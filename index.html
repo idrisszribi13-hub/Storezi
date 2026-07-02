@@ -8,11 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <style>
         /* ===== RESET & BASE ===== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
             --bg: #0a0a1a;
@@ -27,10 +23,6 @@
             --heart-color: #f472b6;
             --free-color: #34d399;
             --vip-color: #fbbf24;
-            --card-radius: 14px;
-            --card-padding: 12px;
-            --font-ar: 'Cairo', sans-serif;
-            --font-en: 'Space Grotesk', sans-serif;
             --success: #34d399;
             --danger: #f87171;
             --orange: #fb923c;
@@ -42,6 +34,10 @@
             --preparing-color: #60a5fa;
             --shipped-color: #f59e0b;
             --delivered-color: #34d399;
+            --font-ar: 'Cairo', sans-serif;
+            --font-en: 'Space Grotesk', sans-serif;
+            --card-radius: 12px;
+            --card-padding: 10px;
         }
 
         body.light {
@@ -65,24 +61,13 @@
             overflow-x: hidden;
         }
 
-        body {
-            padding: 12px;
-            padding-bottom: 90px;
-            line-height: 1.6;
-            font-size: 15px;
-        }
+        body { padding: 12px; padding-bottom: 90px; line-height: 1.6; font-size: 15px; }
 
-        /* ===== SCROLLBAR ===== */
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
 
-        /* ===== CONTAINER ===== */
-        .container {
-            max-width: 480px;
-            margin: 0 auto;
-            width: 100%;
-        }
+        .container { max-width: 480px; margin: 0 auto; width: 100%; }
 
         /* ===== HEADER ===== */
         .header {
@@ -98,7 +83,6 @@
             margin-bottom: 14px;
             gap: 8px;
         }
-
         .logo {
             font-size: 18px;
             font-weight: 900;
@@ -162,14 +146,8 @@
             font-size: 13px;
             display: none;
         }
-        .search-wrapper .search-clear.visible {
-            opacity: 0.5;
-            display: block;
-        }
-        .search-wrapper .search-clear.visible:hover {
-            opacity: 1;
-            color: var(--danger);
-        }
+        .search-wrapper .search-clear.visible { opacity: 0.5; display: block; }
+        .search-wrapper .search-clear.visible:hover { opacity: 1; color: var(--danger); }
 
         .search-results {
             display: none;
@@ -255,11 +233,7 @@
             position: relative;
             transition: 0.3s;
         }
-        .header-btn:hover {
-            transform: scale(1.05);
-            border-color: var(--primary);
-            color: var(--primary);
-        }
+        .header-btn:hover { transform: scale(1.05); border-color: var(--primary); color: var(--primary); }
         .header-btn .badge {
             position: absolute;
             top: -4px;
@@ -301,10 +275,7 @@
             position: relative;
             font-family: var(--font-en);
         }
-        .user-btn:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-        }
+        .user-btn:hover { border-color: var(--primary); color: var(--primary); }
         .user-btn .user-dot {
             position: absolute;
             bottom: 2px;
@@ -335,15 +306,9 @@
             font-size: 14px;
             transition: 0.3s;
         }
-        .theme-toggle:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-        }
+        .theme-toggle:hover { border-color: var(--primary); color: var(--primary); }
 
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-        }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
 
         /* ===== RP DISPLAY ===== */
         .rp-display-bar {
@@ -1234,6 +1199,138 @@
         .share-modal .share-options button .facebook { color: #1877F2; }
         .share-modal .share-options button .copy-link { color: var(--text-secondary); }
 
+        /* ===== PAYMENT MODAL ===== */
+        .payment-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .payment-option {
+            padding: 14px 8px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            background: var(--bg);
+            color: var(--text-secondary);
+            cursor: pointer;
+            text-align: center;
+            transition: 0.3s;
+            font-family: var(--font-en);
+            font-size: 12px;
+        }
+        .payment-option:hover { border-color: var(--primary); color: var(--text); }
+        .payment-option.selected {
+            border-color: var(--primary);
+            background: var(--primary-glow);
+            color: var(--primary);
+        }
+        .payment-option i { font-size: 22px; display: block; margin-bottom: 4px; }
+        .payment-option .p-label { font-size: 12px; font-weight: 600; }
+        .payment-option .p-sub { font-size: 10px; opacity: 0.4; }
+
+        .payment-step2 { display: none; }
+        .payment-step2.active { display: block; }
+
+        .wallet-info {
+            background: var(--bg);
+            border-radius: 10px;
+            padding: 14px;
+            border: 1px solid var(--border);
+            margin: 10px 0;
+        }
+        .wallet-info .w-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 13px;
+            font-family: var(--font-en);
+        }
+        .wallet-info .w-row .w-label { color: var(--text-secondary); opacity: 0.5; }
+        .wallet-info .w-row .w-value { color: var(--text); font-weight: 600; }
+        .wallet-info .w-address {
+            background: var(--card-bg);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            font-family: var(--font-en);
+            font-size: 12px;
+            word-break: break-all;
+            color: var(--primary);
+            margin: 6px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+        .wallet-info .w-address button {
+            padding: 4px 12px;
+            border: none;
+            border-radius: 6px;
+            background: var(--primary);
+            color: #fff;
+            cursor: pointer;
+            font-size: 11px;
+            font-family: var(--font-en);
+            white-space: nowrap;
+        }
+        .wallet-info .w-address button:hover { opacity: 0.8; }
+
+        .payment-summary {
+            background: var(--bg);
+            border-radius: 10px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            margin: 10px 0;
+        }
+        .payment-summary .ps-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 14px;
+            font-family: var(--font-en);
+        }
+        .payment-summary .ps-row .ps-label { color: var(--text-secondary); opacity: 0.5; }
+        .payment-summary .ps-row .ps-value { color: var(--text); font-weight: 600; }
+        .payment-summary .ps-total {
+            border-top: 1px solid var(--border);
+            margin-top: 4px;
+            padding-top: 6px;
+            font-size: 18px;
+            font-weight: 800;
+        }
+        .payment-summary .ps-total .ps-value { color: var(--primary); }
+
+        .payment-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: var(--primary);
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 15px;
+            font-family: var(--font-en);
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+        .payment-btn:hover { background: var(--primary-hover); }
+
+        .payment-tx-input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 13px;
+            outline: none;
+            font-family: var(--font-en);
+            margin: 6px 0;
+        }
+        .payment-tx-input:focus { border-color: var(--primary); }
+        .payment-tx-input::placeholder { color: var(--text-secondary); opacity: 0.3; }
+
         /* ===== FULLSCREEN MODALS ===== */
         .fullscreen-modal {
             display: none;
@@ -1382,6 +1479,15 @@
             border-color: var(--danger);
             background: rgba(248, 113, 113, 0.1);
         }
+        .user-menu-full .menu-item.admin-btn {
+            border-color: var(--vip-color);
+            color: var(--vip-color);
+        }
+        .user-menu-full .menu-item.admin-btn i { color: var(--vip-color); }
+        .user-menu-full .menu-item.admin-btn:hover {
+            border-color: var(--vip-color);
+            background: rgba(251, 191, 36, 0.1);
+        }
 
         /* ===== CART ITEMS ===== */
         .cart-item {
@@ -1458,121 +1564,6 @@
             color: var(--text-secondary);
         }
         .cart-empty i { font-size: 32px; opacity: 0.2; display: block; margin-bottom: 6px; }
-
-        /* ===== WISHLIST EMPTY ===== */
-        .wishlist-empty {
-            text-align: center;
-            padding: 16px 0;
-            color: var(--text-secondary);
-            font-size: 13px;
-        }
-        .wishlist-empty i { font-size: 22px; opacity: 0.2; display: block; margin-bottom: 4px; }
-
-        /* ===== DETAILS MODAL ===== */
-        .modal-game-image {
-            width: 100%;
-            height: 160px;
-            border-radius: 12px;
-            overflow: hidden;
-            margin-bottom: 10px;
-            background: var(--bg);
-            border: 1px solid var(--border);
-        }
-        .modal-game-image img { width: 100%; height: 100%; object-fit: cover; }
-        .modal-name {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--text);
-            text-align: center;
-            font-family: var(--font-en);
-        }
-        .modal-badge {
-            display: inline-block;
-            padding: 2px 14px;
-            border-radius: 16px;
-            font-size: 12px;
-            font-weight: 700;
-            font-family: var(--font-en);
-            margin: 4px 0;
-        }
-        .modal-badge.vip { background: var(--vip-color); color: #0a0a1a; }
-        .modal-badge.free { background: var(--free-color); color: #0a0a1a; }
-        .modal-badge.unavailable { background: var(--danger); color: #fff; }
-        .modal-price {
-            font-size: 18px;
-            font-weight: 800;
-            color: var(--primary);
-            text-align: center;
-            font-family: var(--font-en);
-            margin: 4px 0;
-        }
-        .modal-features {
-            list-style: none;
-            padding: 0;
-            margin: 8px 0;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px 8px;
-            justify-content: center;
-        }
-        .modal-features li {
-            font-size: 13px;
-            color: var(--text-secondary);
-            font-family: var(--font-en);
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .modal-features li i { color: var(--success); font-size: 12px; }
-        .modal-description {
-            font-size: 14px;
-            color: var(--text-secondary);
-            text-align: center;
-            margin: 6px 0;
-            opacity: 0.6;
-        }
-        .modal-video {
-            width: 100%;
-            border-radius: 10px;
-            overflow: hidden;
-            margin: 8px 0;
-            aspect-ratio: 16/9;
-            background: var(--bg);
-            border: 1px solid var(--border);
-        }
-        .modal-video iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-        .modal-actions {
-            display: flex;
-            gap: 6px;
-            margin-top: 10px;
-            flex-wrap: wrap;
-        }
-        .modal-actions button,
-        .modal-actions a {
-            flex: 1;
-            padding: 8px 0;
-            border: none;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            text-align: center;
-            font-size: 13px;
-            font-family: var(--font-en);
-            transition: 0.3s;
-            min-width: 80px;
-        }
-        .btn-download-modal { background: var(--free-color); color: #0a0a1a; }
-        .btn-download-modal:hover { opacity: 0.9; }
-        .btn-add-cart-modal { background: var(--primary); color: #fff; }
-        .btn-add-cart-modal:hover { background: var(--primary-hover); }
-        .btn-add-cart-modal.added { background: var(--free-color); color: #0a0a1a; }
-        .btn-close-modal { background: var(--card-bg); color: var(--text); border: 1px solid var(--border) !important; }
-        .btn-close-modal:hover { background: var(--danger); color: #fff; border-color: var(--danger) !important; }
 
         /* ===== AUTH ===== */
         .auth-tabs {
@@ -1707,18 +1698,43 @@
         .admin-panel .tab-content { display: none; }
         .admin-panel .tab-content.active { display: block; }
 
-        /* ===== ADMIN ORDERS ===== */
+        .admin-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+            gap: 4px;
+            margin-bottom: 10px;
+        }
+        .admin-stat-card {
+            background: var(--bg);
+            border-radius: 6px;
+            padding: 6px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+        .admin-stat-card .stat-number {
+            font-size: 14px;
+            font-weight: 800;
+            font-family: var(--font-en);
+        }
+        .admin-stat-card .stat-label {
+            font-size: 8px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-family: var(--font-en);
+            letter-spacing: 0.2px;
+        }
+
         .admin-orders-table {
             width: 100%;
             border-collapse: collapse;
             font-family: var(--font-en);
-            font-size: 13px;
+            font-size: 12px;
         }
         .admin-orders-table th {
-            padding: 8px 10px;
+            padding: 6px 8px;
             text-align: right;
             color: var(--text-secondary);
-            font-size: 11px;
+            font-size: 10px;
             text-transform: uppercase;
             letter-spacing: 0.3px;
             font-weight: 700;
@@ -1726,15 +1742,15 @@
             background: var(--bg);
         }
         .admin-orders-table td {
-            padding: 8px 10px;
+            padding: 6px 8px;
             border-bottom: 1px solid var(--border);
             vertical-align: middle;
         }
         .admin-orders-table .status-badge {
             display: inline-block;
-            padding: 2px 12px;
-            border-radius: 14px;
-            font-size: 11px;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 10px;
             font-weight: 700;
             text-transform: uppercase;
             font-family: var(--font-en);
@@ -1745,63 +1761,60 @@
         .admin-orders-table .status-badge.preparing { background: var(--preparing-color); color: #fff; }
         .admin-orders-table .status-badge.shipped { background: var(--shipped-color); color: #0a0a1a; }
         .admin-orders-table .status-badge.delivered { background: var(--delivered-color); color: #0a0a1a; }
-        .admin-orders-table .order-id { font-weight: 700; color: var(--primary); font-size: 13px; font-family: var(--font-en); }
-        .admin-orders-table .user-email { font-size: 12px; color: var(--text-secondary); opacity: 0.5; }
-        .admin-orders-table .order-total { font-weight: 700; color: var(--primary); font-size: 13px; }
-        .admin-orders-table .order-date { font-size: 12px; color: var(--text-secondary); }
-        .admin-orders-table .order-checkbox { accent-color: var(--primary); cursor: pointer; }
+        .admin-orders-table .order-id { font-weight: 700; color: var(--primary); font-size: 12px; }
+        .admin-orders-table .user-email { font-size: 11px; color: var(--text-secondary); opacity: 0.4; }
+        .admin-orders-table .order-total { font-weight: 700; color: var(--primary); font-size: 12px; }
+        .admin-orders-table .order-date { font-size: 11px; color: var(--text-secondary); }
 
         .admin-downloads .dl-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 12px;
+            padding: 8px 10px;
             background: var(--bg);
-            border-radius: 8px;
+            border-radius: 6px;
             border: 1px solid var(--border);
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
         .admin-downloads .dl-item .dl-info { flex: 1; }
         .admin-downloads .dl-item .dl-info .dl-title {
             font-weight: 600;
             color: var(--text);
             font-family: var(--font-en);
-            font-size: 14px;
+            font-size: 13px;
         }
         .admin-downloads .dl-item .dl-info .dl-type {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-secondary);
             opacity: 0.4;
             font-family: var(--font-en);
         }
         .admin-downloads .dl-item .dl-actions { display: flex; gap: 4px; }
         .admin-downloads .dl-item .dl-actions button {
-            padding: 4px 12px;
+            padding: 3px 10px;
             border: none;
-            border-radius: 6px;
-            font-size: 11px;
+            border-radius: 4px;
+            font-size: 10px;
             font-weight: 600;
             cursor: pointer;
             transition: 0.3s;
             font-family: var(--font-en);
         }
         .admin-downloads .dl-item .dl-actions .btn-edit { background: var(--vip-color); color: #0a0a1a; }
-        .admin-downloads .dl-item .dl-actions .btn-edit:hover { opacity: 0.8; }
         .admin-downloads .dl-item .dl-actions .btn-delete { background: var(--danger); color: #fff; }
-        .admin-downloads .dl-item .dl-actions .btn-delete:hover { opacity: 0.8; }
 
         .add-btn {
-            padding: 8px 20px;
+            padding: 6px 16px;
             border: none;
-            border-radius: 8px;
+            border-radius: 6px;
             background: var(--primary);
             color: #fff;
             font-weight: 700;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             font-family: var(--font-en);
             transition: 0.3s;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         .add-btn:hover { background: var(--primary-hover); }
 
@@ -1809,89 +1822,84 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 12px;
+            padding: 8px 10px;
             background: var(--bg);
-            border-radius: 8px;
+            border-radius: 6px;
             border: 1px solid var(--border);
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
         .admin-product-item .product-info { flex: 1; }
         .admin-product-item .product-name {
             font-weight: 600;
             color: var(--text);
-            font-size: 14px;
+            font-size: 13px;
             font-family: var(--font-en);
         }
         .admin-product-item .product-meta {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-secondary);
-            opacity: 0.5;
+            opacity: 0.4;
         }
-        .admin-product-item .product-meta .badge-vip { color: var(--vip-color); }
-        .admin-product-item .product-meta .badge-free { color: var(--free-color); }
         .admin-product-item .product-actions { display: flex; gap: 4px; }
         .admin-product-item .product-actions button {
-            padding: 3px 12px;
+            padding: 3px 10px;
             border: none;
-            border-radius: 6px;
+            border-radius: 4px;
             font-weight: 600;
             cursor: pointer;
-            font-size: 11px;
+            font-size: 10px;
             transition: 0.3s;
             font-family: var(--font-en);
         }
         .admin-product-item .product-actions .btn-edit { background: var(--vip-color); color: #0a0a1a; }
-        .admin-product-item .product-actions .btn-edit:hover { opacity: 0.8; }
         .admin-product-item .product-actions .btn-delete { background: var(--danger); color: #fff; }
-        .admin-product-item .product-actions .btn-delete:hover { opacity: 0.8; }
 
-        /* ===== ADMIN USERS ===== */
         .admin-users-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-            gap: 8px;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 6px;
         }
         .admin-user-card {
             background: var(--bg);
             border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 12px;
+            border-radius: 8px;
+            padding: 10px;
             transition: 0.3s;
             position: relative;
         }
         .admin-user-card:hover { border-color: var(--primary); }
         .admin-user-card .user-avatar {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             background: var(--primary);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 17px;
+            font-size: 15px;
             font-weight: 700;
             color: #fff;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
         .admin-user-card .user-email {
             font-weight: 600;
             font-family: var(--font-en);
-            font-size: 14px;
+            font-size: 13px;
         }
         .admin-user-card .user-meta {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-secondary);
-            opacity: 0.5;
+            opacity: 0.4;
             font-family: var(--font-en);
         }
         .admin-user-card .user-badge {
             position: absolute;
-            top: 8px;
-            left: 8px;
-            font-size: 10px;
+            top: 6px;
+            left: 6px;
+            font-size: 9px;
             font-weight: 700;
-            padding: 2px 10px;
-            border-radius: 12px;
+            padding: 1px 8px;
+            border-radius: 10px;
             font-family: var(--font-en);
         }
         .admin-user-card .user-badge.banned { background: var(--danger); color: #fff; }
@@ -1899,16 +1907,16 @@
         .admin-user-card .user-actions {
             display: flex;
             gap: 4px;
-            margin-top: 8px;
+            margin-top: 6px;
             flex-wrap: wrap;
         }
         .admin-user-card .user-actions button {
-            padding: 3px 12px;
+            padding: 2px 10px;
             border: none;
-            border-radius: 6px;
+            border-radius: 4px;
             font-weight: 600;
             cursor: pointer;
-            font-size: 11px;
+            font-size: 10px;
             transition: 0.3s;
             font-family: var(--font-en);
         }
@@ -1947,22 +1955,23 @@
             .bottom-cart-bar .cart-actions { justify-content: center; }
             .toast { min-width: 200px; padding: 10px 16px; font-size: 13px; }
             .modal-content { padding: 14px; }
+            .payment-options { grid-template-columns: 1fr; }
         }
 
         /* ===== NOTIFICATIONS ===== */
         .notification-item {
-            padding: 12px 0;
+            padding: 10px 0;
             border-bottom: 1px solid var(--border);
         }
         .notification-item:last-child { border-bottom: none; }
         .notification-item .notification-title {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 700;
             color: var(--text);
             font-family: var(--font-en);
         }
         .notification-item .notification-message {
-            font-size: 14px;
+            font-size: 13px;
             color: var(--text-secondary);
             font-family: var(--font-en);
             margin-top: 2px;
@@ -1977,7 +1986,7 @@
         .notification-item.unread {
             background: var(--primary-glow);
             border-radius: 8px;
-            padding: 10px 14px;
+            padding: 8px 12px;
             margin-bottom: 4px;
             border-right: 3px solid var(--primary);
         }
@@ -1997,7 +2006,7 @@
             flex-wrap: wrap;
         }
         .notifications-header-actions button {
-            padding: 5px 14px;
+            padding: 4px 12px;
             border: none;
             border-radius: 6px;
             font-weight: 600;
@@ -2014,11 +2023,11 @@
         /* ===== REQUESTS ===== */
         .request-form label {
             display: block;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             color: var(--text);
             font-family: var(--font-en);
-            margin-top: 8px;
+            margin-top: 6px;
         }
         .request-form .sub-label {
             display: block;
@@ -2026,7 +2035,7 @@
             color: var(--text-secondary);
             opacity: 0.4;
             font-family: var(--font-en);
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
         .request-form input,
         .request-form textarea,
@@ -2037,7 +2046,7 @@
             border-radius: 8px;
             background: var(--bg);
             color: var(--text);
-            font-size: 14px;
+            font-size: 13px;
             outline: none;
             font-family: var(--font-en);
             margin-bottom: 4px;
@@ -2045,7 +2054,7 @@
         .request-form input:focus,
         .request-form textarea:focus,
         .request-form select:focus { border-color: var(--primary); }
-        .request-form textarea { min-height: 60px; resize: vertical; }
+        .request-form textarea { min-height: 50px; resize: vertical; }
         .request-form .submit-btn {
             width: 100%;
             padding: 10px;
@@ -2058,42 +2067,42 @@
             font-size: 14px;
             font-family: var(--font-en);
             transition: 0.3s;
-            margin-top: 8px;
+            margin-top: 6px;
         }
         .request-form .submit-btn:hover { background: var(--primary-hover); }
 
         .history-empty {
             text-align: center;
-            padding: 20px 0;
+            padding: 16px 0;
             color: var(--text-secondary);
         }
-        .history-empty i { font-size: 28px; opacity: 0.2; display: block; margin-bottom: 4px; }
+        .history-empty i { font-size: 24px; opacity: 0.2; display: block; margin-bottom: 4px; }
 
         .downloads-empty {
             text-align: center;
-            padding: 20px 0;
+            padding: 16px 0;
             color: var(--text-secondary);
         }
-        .downloads-empty i { font-size: 28px; opacity: 0.2; display: block; margin-bottom: 4px; }
+        .downloads-empty i { font-size: 24px; opacity: 0.2; display: block; margin-bottom: 4px; }
 
         /* ===== DOWNLOAD ITEM ===== */
         .download-item {
-            padding: 12px 0;
+            padding: 10px 0;
             border-bottom: 1px solid var(--border);
         }
         .download-item:last-child { border-bottom: none; }
         .download-item .dl-title {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 700;
             color: var(--text);
             font-family: var(--font-en);
         }
         .download-item .dl-type {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
             background: var(--primary-glow);
-            padding: 2px 12px;
-            border-radius: 12px;
+            padding: 2px 10px;
+            border-radius: 10px;
             color: var(--primary);
             font-family: var(--font-en);
             display: inline-block;
@@ -2110,14 +2119,14 @@
             font-family: var(--font-en);
         }
         .download-item .dl-btn {
-            padding: 6px 18px;
+            padding: 4px 14px;
             border: none;
-            border-radius: 20px;
+            border-radius: 16px;
             background: var(--free-color);
             color: #0a0a1a;
             font-weight: 600;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 12px;
             font-family: var(--font-en);
             text-decoration: none;
             display: inline-block;
@@ -2125,32 +2134,119 @@
         }
         .download-item .dl-btn:hover { opacity: 0.9; }
 
-        /* ===== ADMIN STATS ===== */
-        .admin-stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-            gap: 6px;
-            margin-bottom: 12px;
-        }
-        .admin-stat-card {
+        /* ===== DETAILS MODAL ===== */
+        .modal-game-image {
+            width: 100%;
+            height: 150px;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 8px;
             background: var(--bg);
-            border-radius: 8px;
-            padding: 8px;
-            text-align: center;
             border: 1px solid var(--border);
         }
-        .admin-stat-card .stat-number {
-            font-size: 16px;
+        .modal-game-image img { width: 100%; height: 100%; object-fit: cover; }
+        .modal-name {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text);
+            text-align: center;
+            font-family: var(--font-en);
+        }
+        .modal-badge {
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 14px;
+            font-size: 11px;
+            font-weight: 700;
+            font-family: var(--font-en);
+            margin: 4px 0;
+        }
+        .modal-badge.vip { background: var(--vip-color); color: #0a0a1a; }
+        .modal-badge.free { background: var(--free-color); color: #0a0a1a; }
+        .modal-badge.unavailable { background: var(--danger); color: #fff; }
+        .modal-price {
+            font-size: 17px;
             font-weight: 800;
+            color: var(--primary);
+            text-align: center;
             font-family: var(--font-en);
+            margin: 4px 0;
         }
-        .admin-stat-card .stat-label {
-            font-size: 9px;
+        .modal-features {
+            list-style: none;
+            padding: 0;
+            margin: 6px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 8px;
+            justify-content: center;
+        }
+        .modal-features li {
+            font-size: 12px;
             color: var(--text-secondary);
-            text-transform: uppercase;
             font-family: var(--font-en);
-            letter-spacing: 0.3px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
+        .modal-features li i { color: var(--success); font-size: 11px; }
+        .modal-description {
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-align: center;
+            margin: 4px 0;
+            opacity: 0.5;
+        }
+        .modal-video {
+            width: 100%;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 6px 0;
+            aspect-ratio: 16/9;
+            background: var(--bg);
+            border: 1px solid var(--border);
+        }
+        .modal-video iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        .modal-actions button,
+        .modal-actions a {
+            flex: 1;
+            padding: 8px 0;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            font-size: 12px;
+            font-family: var(--font-en);
+            transition: 0.3s;
+            min-width: 70px;
+        }
+        .btn-download-modal { background: var(--free-color); color: #0a0a1a; }
+        .btn-download-modal:hover { opacity: 0.9; }
+        .btn-add-cart-modal { background: var(--primary); color: #fff; }
+        .btn-add-cart-modal:hover { background: var(--primary-hover); }
+        .btn-add-cart-modal.added { background: var(--free-color); color: #0a0a1a; }
+        .btn-close-modal { background: var(--card-bg); color: var(--text); border: 1px solid var(--border) !important; }
+        .btn-close-modal:hover { background: var(--danger); color: #fff; border-color: var(--danger) !important; }
+
+        .wishlist-empty {
+            text-align: center;
+            padding: 16px 0;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+        .wishlist-empty i { font-size: 22px; opacity: 0.2; display: block; margin-bottom: 4px; }
     </style>
 </head>
 <body>
@@ -2214,6 +2310,11 @@
                     <span class="menu-label">Contact</span>
                 </div>
                 <div class="menu-divider"></div>
+                <div class="menu-item admin-btn" id="adminMenuItem" style="display:none;" onclick="closeUserMenuFull(); openAdminPanel();">
+                    <i class="fas fa-shield-alt"></i>
+                    <span class="menu-label">👑 Admin Panel</span>
+                    <span class="menu-badge" id="adminMenuBadge" style="display:none;">0</span>
+                </div>
                 <div class="menu-item logout" onclick="closeUserMenuFull(); logoutUser();">
                     <i class="fas fa-sign-out-alt"></i>
                     <span class="menu-label">Logout</span>
@@ -2287,6 +2388,86 @@
                 </button>
             </div>
             <button class="auth-btn" onclick="closeShareModal()" style="background:var(--card-bg);border:1px solid var(--border);color:var(--text);margin-top:6px;">إلغاء</button>
+        </div>
+    </div>
+
+    <!-- ===== PAYMENT MODAL ===== -->
+    <div class="modal-overlay" id="paymentModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closePaymentModal()"><i class="fas fa-times"></i></button>
+            <div class="modal-title"><i class="fas fa-credit-card"></i> الدفع</div>
+            
+            <!-- Step 1: Choose Payment Method -->
+            <div id="paymentStep1">
+                <p style="text-align:center;color:var(--text-secondary);font-size:13px;margin-bottom:10px;opacity:0.5;">اختر طريقة الدفع</p>
+                <div class="payment-options">
+                    <div class="payment-option" id="optionTelegram" onclick="selectPayment('telegram')">
+                        <i class="fab fa-telegram-plane" style="color:#0088cc;"></i>
+                        <div class="p-label">Telegram</div>
+                        <div class="p-sub">يدوياً</div>
+                    </div>
+                    <div class="payment-option" id="optionLitecoin" onclick="selectPayment('litecoin')">
+                        <i class="fab fa-bitcoin" style="color:#f2a900;"></i>
+                        <div class="p-label">Litecoin</div>
+                        <div class="p-sub">LTC</div>
+                    </div>
+                    <div class="payment-option" id="optionUsdt" onclick="selectPayment('usdt')">
+                        <i class="fas fa-coins" style="color:#26a17b;"></i>
+                        <div class="p-label">USDT</div>
+                        <div class="p-sub">ERC20</div>
+                    </div>
+                </div>
+                <button class="payment-btn" onclick="continuePayment()" id="continuePaymentBtn">متابعة</button>
+            </div>
+
+            <!-- Step 2: Payment Details -->
+            <div class="payment-step2" id="paymentStep2">
+                <div id="walletInfo">
+                    <div class="wallet-info">
+                        <div class="w-row">
+                            <span class="w-label">طريقة الدفع</span>
+                            <span class="w-value" id="paymentMethodName">Litecoin</span>
+                        </div>
+                        <div class="w-row">
+                            <span class="w-label">الشبكة</span>
+                            <span class="w-value" id="cryptoNetwork">LTC</span>
+                        </div>
+                        <div class="w-address">
+                            <span id="walletAddressDisplay">ltc1qy6ksn0g4hm6hlh93fwekgz8x74vr6hvdmh6zz8</span>
+                            <button onclick="copyWalletAddress()"><i class="fas fa-copy"></i> نسخ</button>
+                        </div>
+                        <div class="w-row">
+                            <span class="w-label">المبلغ</span>
+                            <span class="w-value" id="cryptoAmount">0.0000 LTC</span>
+                        </div>
+                        <div class="w-row">
+                            <span class="w-label">سعر الصرف</span>
+                            <span class="w-value" id="exchangeRate">1 LTC ≈ $42.00 USD</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin:8px 0;">
+                    <label style="font-size:13px;color:var(--text-secondary);font-family:var(--font-en);opacity:0.5;">🔗 هاش المعاملة (Transaction Hash)</label>
+                    <input class="payment-tx-input" id="transactionHashInput" placeholder="ألصق هاش المعاملة هنا..." type="text" />
+                </div>
+
+                <div class="payment-summary">
+                    <div class="ps-row">
+                        <span class="ps-label">المجموع</span>
+                        <span class="ps-value" id="step2Subtotal">$0.00</span>
+                    </div>
+                    <div class="ps-row ps-total">
+                        <span class="ps-label">الإجمالي</span>
+                        <span class="ps-value" id="step2Total">$0.00</span>
+                    </div>
+                </div>
+
+                <div style="display:flex;gap:6px;margin-top:6px;">
+                    <button class="payment-btn" onclick="goToStep1()" style="flex:0.4;background:var(--card-bg);border:1px solid var(--border);color:var(--text);">رجوع</button>
+                    <button class="payment-btn" onclick="placeOrder()" id="placeOrderBtn" style="flex:0.6;">تأكيد الدفع</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -2849,6 +3030,7 @@
         let isUpdatingNotifications = false;
         let shareProductId = null;
         let allUsers = [];
+        let selectedPayment = null;
         const RP_TO_DOLLAR = 0.1;
 
         // ============================================================
@@ -3044,6 +3226,7 @@
             const wishlistBadge = document.getElementById('fullWishlistBadge');
             const orderBadge = document.getElementById('fullOrderBadge');
             const notifBadge = document.getElementById('fullNotifBadge');
+            const adminBadge = document.getElementById('adminMenuBadge');
 
             if (currentUser) {
                 const displayName = currentUser.displayName || currentUser.email || 'User';
@@ -3069,6 +3252,20 @@
                 } else {
                     notifBadge.style.display = 'none';
                 }
+
+                // Admin menu item
+                const adminMenuItem = document.getElementById('adminMenuItem');
+                if (currentUser.email === ADMIN_EMAIL) {
+                    adminMenuItem.style.display = 'flex';
+                    if (pendingCount > 0) {
+                        adminBadge.style.display = 'inline-block';
+                        adminBadge.textContent = pendingCount;
+                    } else {
+                        adminBadge.style.display = 'none';
+                    }
+                } else {
+                    adminMenuItem.style.display = 'none';
+                }
             } else {
                 avatar.textContent = 'U';
                 name.textContent = 'Guest';
@@ -3077,6 +3274,7 @@
                 wishlistBadge.style.display = 'none';
                 orderBadge.style.display = 'none';
                 notifBadge.style.display = 'none';
+                document.getElementById('adminMenuItem').style.display = 'none';
             }
         }
 
@@ -3394,6 +3592,7 @@
                     cryptoPrices.ltc = parseFloat(data.price);
                     cryptoPrices.usdt = 1;
                     cryptoPrices.lastUpdate = new Date();
+                    updatePriceUI();
                 }
             } catch (error) {
                 console.error('Error fetching crypto prices:', error);
@@ -3404,6 +3603,7 @@
                         cryptoPrices.ltc = data.litecoin.usd;
                         cryptoPrices.usdt = data.tether?.usd || 1;
                         cryptoPrices.lastUpdate = new Date();
+                        updatePriceUI();
                     }
                 } catch (e) {
                     console.error('Fallback fetch failed:', e);
@@ -3415,14 +3615,25 @@
         function getLTCPrice() { return cryptoPrices.ltc || 42; }
         function getUSDTPrice() { return cryptoPrices.usdt || 1; }
 
+        function updatePriceUI() {
+            const exchangeRate = document.getElementById('exchangeRate');
+            if (exchangeRate) {
+                if (selectedPayment === 'litecoin' && cryptoPrices.ltc > 0) {
+                    exchangeRate.textContent = `1 LTC ≈ $${cryptoPrices.ltc.toFixed(2)} USD`;
+                } else if (selectedPayment === 'usdt') {
+                    exchangeRate.textContent = `1 USDT ≈ $${cryptoPrices.usdt.toFixed(2)} USD`;
+                }
+            }
+        }
+
         // ============================================================
         // PRODUCTS - FALLBACK DATA
         // ============================================================
         const fallbackProducts = [
-            { id: "fallback_1", name: "Numbers Game 2048", price: 0, badge: "VIP", status: "available", image: "https://picsum.photos/seed/2048/400/300", downloadLink: "", description: "Classic 2048 game with exclusive mod features.", features: ["Unlimited Device", "Block Spawn Modify", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() },
-            { id: "fallback_2", name: "Screwdom 3D", price: 0, badge: "VIP", status: "available", image: "https://picsum.photos/seed/screwdom/400/300", downloadLink: "", description: "Exciting 3D puzzle game with unlimited boosts.", features: ["Unlimited Boost", "Level Auto Complete", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() },
-            { id: "fallback_3", name: "Smart Telegram Bot", price: 0, badge: "FREE", status: "available", image: "https://picsum.photos/seed/bot/400/300", downloadLink: "https://www.mediafire.com/file/example/bot.zip", description: "Advanced Telegram bot with auto-reply and group management.", features: ["Auto Replies", "Group Management", "Notifications"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() },
-            { id: "fallback_4", name: "Booking System Pro", price: 20, badge: "VIP", status: "available", image: "https://picsum.photos/seed/booking/400/300", downloadLink: "", description: "Complete appointment booking system with interactive calendar.", features: ["Interactive Calendar", "Reminder Notifications", "Service Management"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() }
+            { id: "fallback_1", name: "Mergedom", price: 11, badge: "VIP", status: "available", image: "https://picsum.photos/seed/mergedom/400/300", downloadLink: "", description: "Mergedom game with premium features.", features: ["Level Auto Bypass", "Unlimited Boost", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() },
+            { id: "fallback_2", name: "Numbers Game 2048", price: 0, badge: "VIP", status: "available", image: "https://picsum.photos/seed/2048/400/300", downloadLink: "", description: "Classic 2048 game with exclusive mod features.", features: ["Unlimited Device", "Block Spawn Modify", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() },
+            { id: "fallback_3", name: "Screwdom 3D", price: 0, badge: "VIP", status: "available", image: "https://picsum.photos/seed/screwdom/400/300", downloadLink: "", description: "Exciting 3D puzzle game with unlimited boosts.", features: ["Unlimited Boost", "Level Auto Complete", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() },
+            { id: "fallback_4", name: "Smart Telegram Bot", price: 0, badge: "FREE", status: "available", image: "https://picsum.photos/seed/bot/400/300", downloadLink: "https://www.mediafire.com/file/example/bot.zip", description: "Advanced Telegram bot with auto-reply and group management.", features: ["Auto Replies", "Group Management", "Notifications"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() }
         ];
 
         // ============================================================
@@ -3691,7 +3902,6 @@
             }
         };
 
-        let selectedPayment = null;
         let userProfile = {
             name: '',
             email: '',
@@ -3773,7 +3983,6 @@
                     updateBottomCartBar();
                     updateDropdownStats();
                     updateNotificationBadge();
-                    updateHistoryBadge();
                     updateRpDisplay();
                     
                     if (currentUser && currentUser.email === ADMIN_EMAIL) {
@@ -3824,14 +4033,9 @@
                 updateBottomCartBar();
                 updateDropdownStats();
                 updateNotificationBadge();
-                updateHistoryBadge();
                 updateRpDisplay();
             }
             isLoadingUser = false;
-        }
-
-        function updateHistoryBadge() {
-            // handled in updateFullUserMenu
         }
 
         async function saveUserData(silent = false) {
@@ -4427,6 +4631,7 @@
             updateDropdownStats();
             updateNotificationBadge();
             updateRpDisplay();
+            updateFullUserMenu();
         }
 
         // ============================================================
@@ -4515,6 +4720,7 @@
                     loadDownloads();
                     loadNotifications();
                     fetchCryptoPrices();
+                    updateFullUserMenu();
                 }, 500);
             } catch (error) {
                 errorEl.textContent = '❌ ' + error.message;
@@ -4590,6 +4796,7 @@
                     loadDownloads();
                     loadNotifications();
                     fetchCryptoPrices();
+                    updateFullUserMenu();
                 }, 500);
             } catch (error) {
                 errorEl.textContent = '❌ ' + error.message;
@@ -4619,6 +4826,7 @@
                 updateUI();
                 updateNotificationBadge();
                 loadUserData();
+                updateFullUserMenu();
             } catch (error) {
                 showToast('❌ Error logging out', 'error');
             }
@@ -4660,9 +4868,244 @@
         };
 
         // ============================================================
+        // PAYMENT FUNCTIONS
+        // ============================================================
+        window.selectPayment = function(method) {
+            selectedPayment = method;
+            document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
+            const optionMap = { 'telegram': 'optionTelegram', 'litecoin': 'optionLitecoin', 'usdt': 'optionUsdt' };
+            const optionEl = document.getElementById(optionMap[method]);
+            if (optionEl) optionEl.classList.add('selected');
+            
+            if (method === 'litecoin' || method === 'usdt') {
+                const wallet = method === 'litecoin' ? paymentWallets.litecoin : paymentWallets.usdt;
+                document.getElementById('paymentMethodName').textContent = wallet.name;
+                document.getElementById('cryptoNetwork').textContent = wallet.network;
+                document.getElementById('walletAddressDisplay').textContent = wallet.address;
+                updateCryptoAmount();
+                updatePriceUI();
+            }
+        };
+
+        function updateCryptoAmount() {
+            const totalEl = document.getElementById('step2Total');
+            if (!totalEl) return;
+            const total = parseFloat(totalEl.textContent.replace('$', '')) || 0;
+            if (selectedPayment === 'litecoin') {
+                const ltcPrice = getLTCPrice();
+                if (ltcPrice > 0) {
+                    const amount = total / ltcPrice;
+                    document.getElementById('cryptoAmount').textContent = `${amount.toFixed(4)} LTC`;
+                }
+            } else if (selectedPayment === 'usdt') {
+                const usdtPrice = getUSDTPrice();
+                if (usdtPrice > 0) {
+                    const amount = total / usdtPrice;
+                    document.getElementById('cryptoAmount').textContent = `${amount.toFixed(2)} USDT`;
+                }
+            }
+        }
+
+        window.continuePayment = function() {
+            if (!selectedPayment) {
+                showToast('⚠️ Please select a payment method', 'warning');
+                return;
+            }
+            document.getElementById('paymentStep1').style.display = 'none';
+            document.getElementById('paymentStep2').classList.add('active');
+            
+            // Update totals
+            let total = 0;
+            cart.forEach(item => {
+                const qty = item.quantity || 1;
+                total += item.price * qty;
+            });
+            const rpDiscount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total);
+            let finalTotal = total - rpDiscount;
+            if (activeDiscount > 0 && total > 0) {
+                finalTotal = finalTotal - (finalTotal * activeDiscount / 100);
+            }
+            if (finalTotal < 0) finalTotal = 0;
+            
+            document.getElementById('step2Subtotal').textContent = `$${total.toFixed(2)}`;
+            document.getElementById('step2Total').textContent = `$${finalTotal.toFixed(2)}`;
+            
+            updateCryptoAmount();
+            updatePriceUI();
+            fetchCryptoPrices();
+        };
+
+        window.goToStep1 = function() {
+            document.getElementById('paymentStep1').style.display = 'block';
+            document.getElementById('paymentStep2').classList.remove('active');
+        };
+
+        window.copyWalletAddress = function() {
+            const address = document.getElementById('walletAddressDisplay').textContent;
+            if (address) {
+                navigator.clipboard.writeText(address).then(() => {
+                    showToast('✅ Wallet address copied!', 'success');
+                }).catch(() => {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = address;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    showToast('✅ Wallet address copied!', 'success');
+                });
+            }
+        };
+
+        window.placeOrder = function() {
+            const txHash = document.getElementById('transactionHashInput').value.trim();
+            if (selectedPayment === 'litecoin' || selectedPayment === 'usdt') {
+                if (!txHash) {
+                    showToast('⚠️ Please paste your transaction hash', 'warning');
+                    document.getElementById('transactionHashInput').style.borderColor = 'var(--danger)';
+                    setTimeout(() => {
+                        document.getElementById('transactionHashInput').style.borderColor = '';
+                    }, 2000);
+                    return;
+                }
+            }
+            sendOrderToTelegram(selectedPayment, txHash);
+        };
+
+        function sendOrderToTelegram(method, txHash = null) {
+            if (!currentUser) {
+                showToast('⚠️ Please login first', 'warning');
+                return;
+            }
+            let total = 0;
+            let itemsList = '';
+            cart.forEach((item, i) => {
+                const qty = item.quantity || 1;
+                const sub = item.price * qty;
+                total += sub;
+                itemsList += `${i+1}. ${item.name} × ${qty} = ${sub.toFixed(2)} $\n`;
+            });
+            let finalTotal = total;
+            let discountText = '';
+            
+            const rpDiscount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total);
+            if (rpDiscount > 0) {
+                finalTotal = total - rpDiscount;
+                discountText += `\n🎯 RP Discount (${Math.floor(rpDiscount / RP_TO_DOLLAR)} RP): -${rpDiscount.toFixed(2)}$`;
+            }
+            
+            if (activeDiscount > 0 && total > 0) {
+                const discountAmount = (finalTotal * activeDiscount) / 100;
+                finalTotal = finalTotal - discountAmount;
+                discountText += `\n🎫 Promo (${activeDiscount}%): -${discountAmount.toFixed(2)}$`;
+            }
+            
+            let msg = '🛒 **NEW ORDER**\n\n';
+            msg += `👤 **Customer:** ${currentUser.displayName || currentUser.email || 'Unknown'}\n`;
+            msg += `📧 **Email:** ${currentUser.email || 'N/A'}\n`;
+            msg += `📅 **Date:** ${new Date().toLocaleString()}\n\n`;
+            msg += `📦 **Items:**\n${itemsList}\n`;
+            msg += `💰 **Subtotal:** ${total.toFixed(2)}$`;
+            if (discountText) msg += discountText;
+            msg += `\n💵 **Total:** ${finalTotal.toFixed(2)}$`;
+            msg += `\n💬 **Payment Method:** ${method}`;
+            if (method === 'litecoin') {
+                msg += `\n📍 **LTC Address:** ${paymentWallets.litecoin.address}`;
+                if (txHash) msg += `\n🔍 **Tx Hash:** ${txHash}`;
+            } else if (method === 'usdt') {
+                msg += `\n📍 **USDT Address:** ${paymentWallets.usdt.address}`;
+                if (txHash) msg += `\n🔍 **Tx Hash:** ${txHash}`;
+            }
+            msg += `\n\n📎 **Order ID:** #${Date.now().toString().slice(-6)}`;
+
+            const orderItem = {
+                id: 'order_' + Date.now(),
+                items: cart.map(item => ({ id: item.id, name: item.name, price: item.price, quantity: item.quantity || 1 })),
+                total: finalTotal,
+                method: method,
+                date: new Date().toISOString(),
+                status: 'pending',
+                txHash: txHash || null,
+                rpUsed: Math.floor(rpDiscount / RP_TO_DOLLAR) || 0
+            };
+
+            const rpToDeduct = Math.floor(rpDiscount / RP_TO_DOLLAR);
+            if (rpToDeduct > 0) {
+                userProfile.rp = (userProfile.rp || 0) - rpToDeduct;
+            }
+
+            const userRef = doc(db, 'users', currentUser.uid);
+            updateDoc(userRef, { 
+                history: arrayUnion(orderItem),
+                rp: userProfile.rp || 0
+            }).catch(console.error);
+            userProfile.history.push(orderItem);
+
+            const telegramUrl = `https://t.me/Mitalica69?text=${encodeURIComponent(msg)}`;
+            window.open(telegramUrl, '_blank');
+
+            cart = [];
+            activeDiscount = 0;
+            activeDiscountCode = '';
+            document.getElementById('redeemStatus').textContent = 'Enter SAVE10, SAVE15, WELCOME, VIP2024, SUMMER';
+            document.getElementById('redeemStatus').style.color = '';
+            saveUserData();
+            updateCartUI();
+            updateBottomCartBar();
+            renderProducts(products);
+            generateRecommendationsFromProducts(products);
+            updateRpDisplay();
+            showToast('📤 Order sent to Telegram!', 'success');
+            document.getElementById('paymentModal').classList.remove('open');
+            document.getElementById('paymentStep1').style.display = 'block';
+            document.getElementById('paymentStep2').classList.remove('active');
+            selectedPayment = null;
+            document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
+            
+            setTimeout(() => {
+                if (currentUser && currentUser.email === ADMIN_EMAIL) {
+                    loadAdminOrders();
+                }
+                loadUserData();
+                updateDropdownStats();
+                updateFullUserMenu();
+            }, 1000);
+        }
+
+        window.openPaymentModal = function() {
+            if (!currentUser) {
+                showToast('⚠️ Please login first', 'warning');
+                openAuthModal();
+                return;
+            }
+            if (cart.length === 0) {
+                showToast('⚠️ Cart is empty', 'warning');
+                return;
+            }
+            document.getElementById('paymentModal').classList.add('open');
+            document.getElementById('paymentStep1').style.display = 'block';
+            document.getElementById('paymentStep2').classList.remove('active');
+            selectedPayment = null;
+            document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
+            fetchCryptoPrices();
+        };
+
+        window.closePaymentModal = function() {
+            document.getElementById('paymentModal').classList.remove('open');
+            document.getElementById('paymentStep1').style.display = 'block';
+            document.getElementById('paymentStep2').classList.remove('active');
+            selectedPayment = null;
+            document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
+        };
+
+        window.checkout = function() { 
+            openPaymentModal(); 
+        };
+
+        // ============================================================
         // ADMIN FUNCTIONS
         // ============================================================
-        function openAdminPanel() {
+        window.openAdminPanel = function() {
             if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
                 showToast('⛔ Access Denied. Admin only.', 'error');
                 return;
@@ -4680,15 +5123,15 @@
                 renderAdminProducts(products);
                 loadAdminUsers();
             }
-        }
+        };
 
-        function closeAdminPanel() {
+        window.closeAdminPanel = function() {
             document.getElementById('adminPanel').classList.remove('open');
             if (unsubscribeAdmin) {
                 unsubscribeAdmin();
                 unsubscribeAdmin = null;
             }
-        }
+        };
 
         window.switchAdminTab = function(tab) {
             document.querySelectorAll('.admin-panel .tab-content').forEach(el => el.classList.remove('active'));
@@ -4749,7 +5192,7 @@
                         badge.style.display = 'none';
                     }
                 }
-                updateSelectedCount();
+                updateFullUserMenu();
             }, (error) => {
                 console.error('Admin listener error:', error);
             });
@@ -4800,7 +5243,7 @@
                         badge.style.display = 'none';
                     }
                 }
-                updateSelectedCount();
+                updateFullUserMenu();
             }).catch(error => {
                 tbody.innerHTML = `<tr><td colspan="7"><div style="text-align:center; padding:20px; color:var(--danger);">${error.message}</div></td></tr>`;
             });
@@ -4827,7 +5270,7 @@
                 const date = order.date ? new Date(order.date) : new Date();
                 const dateStr = date.toLocaleDateString('ar-TN', { day: '2-digit', month: 'short', year: 'numeric' });
                 const itemsList = order.items ? order.items.map(item => 
-                    `<span class="item-tag">${item.name} ×${item.quantity || 1}</span>`
+                    `<span style="display:inline-block;background:var(--bg);padding:2px 8px;border-radius:10px;font-size:11px;border:1px solid var(--border);margin:1px;">${item.name} ×${item.quantity || 1}</span>`
                 ).join('') : '—';
                 const total = order.total || 0;
                 const orderId = (order.orderId || order.id || '').slice(-6);
@@ -4836,16 +5279,16 @@
                     <tr>
                         <td><span class="order-id">#${orderId}</span></td>
                         <td>
-                            <div style="font-weight:600;font-size:13px;">${order.userName || 'Unknown'}</div>
+                            <div style="font-weight:600;font-size:12px;">${order.userName || 'Unknown'}</div>
                             <div class="user-email">${order.userEmail || 'N/A'}</div>
                         </td>
-                        <td><div class="items-list">${itemsList}</div></td>
+                        <td><div style="display:flex;flex-wrap:wrap;gap:2px;">${itemsList}</div></td>
                         <td><span class="order-total">${total.toFixed(2)} $</span></td>
                         <td><span class="order-date">${dateStr}</span></td>
                         <td><span class="status-badge ${info.class}">${info.label}</span></td>
                         <td>
                             <div style="display:flex; gap:4px; flex-wrap:wrap;">
-                                <select onchange="updateOrderStatus('${order.orderId || order.id}', '${order.userId}', this.value)" style="padding:3px 8px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--text); font-size:11px; font-family:var(--font-en);">
+                                <select onchange="updateOrderStatus('${order.orderId || order.id}', '${order.userId}', this.value)" style="padding:2px 6px; border:1px solid var(--border); border-radius:4px; background:var(--bg); color:var(--text); font-size:10px; font-family:var(--font-en);">
                                     <option value="pending" ${status === 'pending' ? 'selected' : ''}>⏳ Pending</option>
                                     <option value="preparing" ${status === 'preparing' ? 'selected' : ''}>📦 Preparing</option>
                                     <option value="shipped" ${status === 'shipped' ? 'selected' : ''}>🚚 Shipped</option>
@@ -4853,14 +5296,13 @@
                                     <option value="completed" ${status === 'completed' ? 'selected' : ''}>✅ Completed</option>
                                     <option value="rejected" ${status === 'rejected' ? 'selected' : ''}>❌ Rejected</option>
                                 </select>
-                                <button onclick="deleteOrder('${order.orderId || order.id}', '${order.userId}')" style="padding:3px 10px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--text-secondary); font-size:11px; cursor:pointer;">Delete</button>
+                                <button onclick="deleteOrder('${order.orderId || order.id}', '${order.userId}')" style="padding:2px 8px; border:1px solid var(--border); border-radius:4px; background:transparent; color:var(--text-secondary); font-size:10px; cursor:pointer;">Delete</button>
                             </div>
                         </td>
                     </tr>
                 `;
             });
             tbody.innerHTML = html;
-            updateSelectedCount();
         }
 
         function updateAdminStats(orders) {
@@ -4878,17 +5320,6 @@
             document.getElementById('adminRejectedOrders').textContent = rejected;
         }
 
-        function updateSelectedCount() {
-            // handled inline
-        }
-
-        function updateBulkButtons() {
-            // no-op
-        }
-
-        // ============================================================
-        // ORDER STATUS UPDATE
-        // ============================================================
         window.updateOrderStatus = async function(orderId, userId, newStatus) {
             if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
                 showToast('⛔ Unauthorized', 'error');
@@ -4928,7 +5359,6 @@
                 const statusLabel = statusLabels[newStatus] || newStatus;
                 showToast(`📦 تم تحديث الطلب إلى ${statusLabel}`, 'success');
                 
-                // Auto notification
                 if (updatedOrder) {
                     const itemsNames = updatedOrder.items ? updatedOrder.items.map(i => i.name).join(', ') : 'طلبك';
                     const notifMessage = `🔄 تحديث حالة الطلب #${orderId.slice(-6)}\n${itemsNames}\nالحالة: ${statusLabel}`;
@@ -4948,6 +5378,7 @@
                 if (currentUser && currentUser.uid === userId) {
                     userProfile.history = updatedHistory;
                 }
+                updateFullUserMenu();
             } catch (error) {
                 console.error('Error updating order:', error);
                 showToast('❌ خطأ: ' + error.message, 'error');
@@ -4988,9 +5419,6 @@
             }
         };
 
-        // ============================================================
-        // ADMIN SEARCH
-        // ============================================================
         window.searchAdminOrders = function() {
             const query = document.getElementById('adminSearchInput').value.trim().toLowerCase();
             if (!query) {
@@ -5095,7 +5523,7 @@
                                 <div class="user-meta">📅 ${dateStr} • 🎯 ${rp} RP</div>
                                 <div class="user-meta">📦 ${orderCount} orders</div>
                                 ${isBanned ? `<span class="user-badge banned">🚫 BANNED</span>` : ''}
-                                ${isAdmin ? `<span class="user-badge admin" style="position:absolute;top:8px;left:8px;">👑 Admin</span>` : ''}
+                                ${isAdmin ? `<span class="user-badge admin" style="position:absolute;top:6px;left:6px;">👑 Admin</span>` : ''}
                                 <div class="user-actions">
                                     <button class="btn-view" onclick="viewUserDetails('${user.uid}')"><i class="fas fa-eye"></i> View</button>
                                     ${!isAdmin ? (isBanned ? 
@@ -5185,7 +5613,7 @@
                     <div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid var(--border); font-size:12px; font-family:var(--font-en);">
                         <span>${o.items ? o.items.map(i => i.name).join(', ') : 'Order'}</span>
                         <span style="color:var(--primary);">${(o.total || 0).toFixed(2)} $</span>
-                        <span class="status-badge ${o.status || 'pending'}" style="font-size:10px; padding:1px 10px;">${o.status || 'pending'}</span>
+                        <span class="status-badge ${o.status || 'pending'}" style="font-size:9px; padding:1px 8px;">${o.status || 'pending'}</span>
                     </div>
                 `).join('') : '<div style="text-align:center; color:var(--text-secondary); opacity:0.4; padding:10px;">No orders</div>';
 
@@ -5193,36 +5621,36 @@
                 content.innerHTML = `
                     <div style="padding:4px 0;">
                         <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
-                            <div style="width:48px; height:48px; border-radius:50%; background:var(--primary); display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:700; color:#fff;">${(data.name || 'U').charAt(0).toUpperCase()}</div>
+                            <div style="width:44px; height:44px; border-radius:50%; background:var(--primary); display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:700; color:#fff;">${(data.name || 'U').charAt(0).toUpperCase()}</div>
                             <div>
-                                <div style="font-size:16px; font-weight:700; color:var(--text); font-family:var(--font-en);">${data.name || 'Unknown'}</div>
-                                <div style="font-size:13px; color:var(--text-secondary); font-family:var(--font-en);">${data.email || 'No email'}</div>
+                                <div style="font-size:15px; font-weight:700; color:var(--text); font-family:var(--font-en);">${data.name || 'Unknown'}</div>
+                                <div style="font-size:12px; color:var(--text-secondary); font-family:var(--font-en);">${data.email || 'No email'}</div>
                                 <div style="font-size:12px; color:var(--vip-color); font-weight:600; font-family:var(--font-en);">🎯 RP: ${data.rp || 0} • 📦 ${orders.length} orders</div>
                             </div>
                         </div>
                         <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-bottom:10px;">
                             <div style="background:var(--bg); border-radius:6px; padding:6px; text-align:center; border:1px solid var(--border);">
-                                <div style="font-size:15px; font-weight:700; color:var(--text); font-family:var(--font-en);">${orders.length}</div>
-                                <div style="font-size:10px; color:var(--text-secondary); font-family:var(--font-en);">Orders</div>
+                                <div style="font-size:14px; font-weight:700; color:var(--text); font-family:var(--font-en);">${orders.length}</div>
+                                <div style="font-size:9px; color:var(--text-secondary); font-family:var(--font-en);">Orders</div>
                             </div>
                             <div style="background:var(--bg); border-radius:6px; padding:6px; text-align:center; border:1px solid var(--border);">
-                                <div style="font-size:15px; font-weight:700; color:var(--primary); font-family:var(--font-en);">${totalSpent.toFixed(2)} $</div>
-                                <div style="font-size:10px; color:var(--text-secondary); font-family:var(--font-en);">Spent</div>
+                                <div style="font-size:14px; font-weight:700; color:var(--primary); font-family:var(--font-en);">${totalSpent.toFixed(2)} $</div>
+                                <div style="font-size:9px; color:var(--text-secondary); font-family:var(--font-en);">Spent</div>
                             </div>
                             <div style="background:var(--bg); border-radius:6px; padding:6px; text-align:center; border:1px solid var(--border);">
-                                <div style="font-size:15px; font-weight:700; color:var(--vip-color); font-family:var(--font-en);">${data.rp || 0}</div>
-                                <div style="font-size:10px; color:var(--text-secondary); font-family:var(--font-en);">RP</div>
+                                <div style="font-size:14px; font-weight:700; color:var(--vip-color); font-family:var(--font-en);">${data.rp || 0}</div>
+                                <div style="font-size:9px; color:var(--text-secondary); font-family:var(--font-en);">RP</div>
                             </div>
                         </div>
                         <div style="font-size:12px; font-weight:600; color:var(--text-secondary); font-family:var(--font-en); margin-bottom:4px;">Recent Orders</div>
                         ${ordersHtml}
                         <div style="margin-top:10px; display:flex; gap:6px; flex-wrap:wrap;">
-                            <button onclick="closeUserDetailsModal();" style="padding:6px 16px; border:1px solid var(--border); border-radius:6px; background:var(--card-bg); color:var(--text); cursor:pointer; font-family:var(--font-en); font-size:13px;">Close</button>
+                            <button onclick="closeUserDetailsModal();" style="padding:4px 14px; border:1px solid var(--border); border-radius:6px; background:var(--card-bg); color:var(--text); cursor:pointer; font-family:var(--font-en); font-size:12px;">Close</button>
                             ${data.isBanned ? 
-                                `<button onclick="closeUserDetailsModal();toggleUserBan('${uid}', false);" style="padding:6px 16px; border:none; border-radius:6px; background:var(--success); color:#0a0a1a; cursor:pointer; font-family:var(--font-en); font-weight:600; font-size:13px;"><i class="fas fa-user-check"></i> Unban</button>` :
-                                `<button onclick="closeUserDetailsModal();toggleUserBan('${uid}', true);" style="padding:6px 16px; border:none; border-radius:6px; background:var(--danger); color:#fff; cursor:pointer; font-family:var(--font-en); font-weight:600; font-size:13px;"><i class="fas fa-ban"></i> Ban</button>`
+                                `<button onclick="closeUserDetailsModal();toggleUserBan('${uid}', false);" style="padding:4px 14px; border:none; border-radius:6px; background:var(--success); color:#0a0a1a; cursor:pointer; font-family:var(--font-en); font-weight:600; font-size:12px;"><i class="fas fa-user-check"></i> Unban</button>` :
+                                `<button onclick="closeUserDetailsModal();toggleUserBan('${uid}', true);" style="padding:4px 14px; border:none; border-radius:6px; background:var(--danger); color:#fff; cursor:pointer; font-family:var(--font-en); font-weight:600; font-size:12px;"><i class="fas fa-ban"></i> Ban</button>`
                             }
-                            ${uid !== currentUser.uid ? `<button onclick="closeUserDetailsModal();deleteUserAccount('${uid}');" style="padding:6px 16px; border:none; border-radius:6px; background:var(--danger); color:#fff; cursor:pointer; font-family:var(--font-en); font-weight:600; font-size:13px;"><i class="fas fa-trash"></i> Delete</button>` : ''}
+                            ${uid !== currentUser.uid ? `<button onclick="closeUserDetailsModal();deleteUserAccount('${uid}');" style="padding:4px 14px; border:none; border-radius:6px; background:var(--danger); color:#fff; cursor:pointer; font-family:var(--font-en); font-weight:600; font-size:12px;"><i class="fas fa-trash"></i> Delete</button>` : ''}
                         </div>
                     </div>
                 `;
@@ -5444,222 +5872,6 @@
             updateCartUI();
             updateBottomCartBar();
             showToast(`🎉 ${codeData.discount}% discount applied!`, 'success');
-        };
-
-        // ============================================================
-        // PAYMENT
-        // ============================================================
-        function updateCryptoAmount() {
-            // simplified - full payment flow not shown for brevity
-        }
-
-        window.selectPayment = function(method) {
-            selectedPayment = method;
-        };
-
-        window.continuePayment = function() {
-            if (!selectedPayment) {
-                showToast('⚠️ Please select a payment method', 'warning');
-                return;
-            }
-            sendOrderToTelegram(selectedPayment);
-            document.getElementById('paymentModal').classList.remove('open');
-        };
-
-        function sendOrderToTelegram(method, txHash = null) {
-            if (!currentUser) {
-                showToast('⚠️ Please login first', 'warning');
-                return;
-            }
-            let total = 0;
-            let itemsList = '';
-            cart.forEach((item, i) => {
-                const qty = item.quantity || 1;
-                const sub = item.price * qty;
-                total += sub;
-                itemsList += `${i+1}. ${item.name} × ${qty} = ${sub.toFixed(2)} $\n`;
-            });
-            let finalTotal = total;
-            let discountText = '';
-            
-            const rpDiscount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total);
-            if (rpDiscount > 0) {
-                finalTotal = total - rpDiscount;
-                discountText += `\n🎯 RP Discount (${Math.floor(rpDiscount / RP_TO_DOLLAR)} RP): -${rpDiscount.toFixed(2)}$`;
-            }
-            
-            if (activeDiscount > 0 && total > 0) {
-                const discountAmount = (finalTotal * activeDiscount) / 100;
-                finalTotal = finalTotal - discountAmount;
-                discountText += `\n🎫 Promo (${activeDiscount}%): -${discountAmount.toFixed(2)}$`;
-            }
-            
-            let msg = '🛒 **NEW ORDER**\n\n';
-            msg += `👤 **Customer:** ${currentUser.displayName || currentUser.email || 'Unknown'}\n`;
-            msg += `📧 **Email:** ${currentUser.email || 'N/A'}\n`;
-            msg += `📅 **Date:** ${new Date().toLocaleString()}\n\n`;
-            msg += `📦 **Items:**\n${itemsList}\n`;
-            msg += `💰 **Subtotal:** ${total.toFixed(2)}$`;
-            if (discountText) msg += discountText;
-            msg += `\n💵 **Total:** ${finalTotal.toFixed(2)}$`;
-            msg += `\n💬 **Payment Method:** ${method}`;
-            if (txHash) {
-                msg += `\n🔍 **Transaction Hash:** ${txHash}`;
-            }
-            msg += `\n\n📎 **Order ID:** #${Date.now().toString().slice(-6)}`;
-
-            const orderItem = {
-                id: 'order_' + Date.now(),
-                items: cart.map(item => ({ id: item.id, name: item.name, price: item.price, quantity: item.quantity || 1 })),
-                total: finalTotal,
-                method: method,
-                date: new Date().toISOString(),
-                status: 'pending',
-                txHash: txHash || null,
-                rpUsed: Math.floor(rpDiscount / RP_TO_DOLLAR) || 0
-            };
-
-            const rpToDeduct = Math.floor(rpDiscount / RP_TO_DOLLAR);
-            if (rpToDeduct > 0) {
-                userProfile.rp = (userProfile.rp || 0) - rpToDeduct;
-            }
-
-            const userRef = doc(db, 'users', currentUser.uid);
-            updateDoc(userRef, { 
-                history: arrayUnion(orderItem),
-                rp: userProfile.rp || 0
-            }).catch(console.error);
-            userProfile.history.push(orderItem);
-
-            const telegramUrl = `https://t.me/Mitalica69?text=${encodeURIComponent(msg)}`;
-            window.open(telegramUrl, '_blank');
-
-            cart = [];
-            activeDiscount = 0;
-            activeDiscountCode = '';
-            document.getElementById('redeemStatus').textContent = 'Enter SAVE10, SAVE15, WELCOME, VIP2024, SUMMER';
-            document.getElementById('redeemStatus').style.color = '';
-            saveUserData();
-            updateCartUI();
-            updateBottomCartBar();
-            renderProducts(products);
-            generateRecommendationsFromProducts(products);
-            updateRpDisplay();
-            showToast('📤 Order sent to Telegram!', 'success');
-            document.getElementById('paymentModal').classList.remove('open');
-            setTimeout(() => {
-                if (currentUser && currentUser.email === ADMIN_EMAIL) {
-                    loadAdminOrders();
-                }
-                loadUserData();
-                updateDropdownStats();
-            }, 1000);
-        }
-
-        window.openPaymentModal = function() {
-            if (!currentUser) {
-                showToast('⚠️ Please login first', 'warning');
-                openAuthModal();
-                return;
-            }
-            if (cart.length === 0) {
-                showToast('⚠️ Cart is empty', 'warning');
-                return;
-            }
-            let total = 0;
-            cart.forEach(item => {
-                const qty = item.quantity || 1;
-                total += item.price * qty;
-            });
-            const rpDiscount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total);
-            let finalTotal = total - rpDiscount;
-            if (activeDiscount > 0 && total > 0) {
-                finalTotal = finalTotal - (finalTotal * activeDiscount / 100);
-            }
-            if (finalTotal < 0) finalTotal = 0;
-            
-            // Simple payment modal - simplified for readability
-            const msg = `🛒 **Order Summary**\n\nTotal: ${finalTotal.toFixed(2)}$\n\nContinue to Telegram for payment.`;
-            if (confirm(`Total: ${finalTotal.toFixed(2)}$\n\nSend order to Telegram?`)) {
-                sendOrderToTelegram('telegram');
-            }
-        };
-
-        window.checkout = function() { openPaymentModal(); };
-
-        // ============================================================
-        // PROFILE
-        // ============================================================
-        window.openReferralModal = function() {
-            if (!currentUser) {
-                showToast('⚠️ Please login first', 'warning');
-                openAuthModal();
-                return;
-            }
-            updateReferralUI();
-            document.getElementById('referralModal').classList.add('open');
-        };
-
-        window.closeReferralModal = function() {
-            document.getElementById('referralModal').classList.remove('open');
-        };
-
-        function updateReferralUI() {
-            const codeDisplay2 = document.getElementById('referralCodeDisplay2');
-            if (currentUser && userProfile.referralCode) {
-                codeDisplay2.textContent = userProfile.referralCode;
-            } else if (currentUser) {
-                const code = generateReferralCode(currentUser.displayName || currentUser.email, currentUser.email);
-                userProfile.referralCode = code;
-                const userRef = doc(db, 'users', currentUser.uid);
-                updateDoc(userRef, { referralCode: code }).catch(console.error);
-                codeDisplay2.textContent = code;
-            } else {
-                codeDisplay2.textContent = 'Login to get your code';
-            }
-            const referrals = userProfile.referrals || [];
-            document.getElementById('referralCount2').textContent = referrals.length;
-            document.getElementById('referralRewards2').textContent = (userProfile.referralRewards || 0).toFixed(2) + ' $';
-        }
-
-        window.copyReferralCode2 = function() {
-            const code = document.getElementById('referralCodeDisplay2').textContent;
-            if (code && code !== 'Loading...' && code !== 'Login to get your code') {
-                navigator.clipboard.writeText(code).then(() => {
-                    showToast('✅ Referral code copied!', 'success');
-                }).catch(() => {
-                    const textArea = document.createElement('textarea');
-                    textArea.value = code;
-                    document.body.appendChild(textArea);
-                    textArea.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(textArea);
-                    showToast('✅ Referral code copied!', 'success');
-                });
-            } else {
-                showToast('⚠️ Please login first', 'warning');
-            }
-        };
-
-        window.openEditProfileModal = function() {
-            if (!currentUser) {
-                showToast('⚠️ Please login first', 'warning');
-                return;
-            }
-            // Simple inline edit
-            const newName = prompt('Enter your name:', userProfile.name || currentUser.displayName || '');
-            if (newName && newName.trim()) {
-                const name = newName.trim();
-                updateProfile(currentUser, { displayName: name }).then(() => {
-                    const userRef = doc(db, 'users', currentUser.uid);
-                    updateDoc(userRef, { name: name, updatedAt: serverTimestamp() }).then(() => {
-                        userProfile.name = name;
-                        showToast('✅ Profile updated!', 'success');
-                        updateUI();
-                        renderProfileFull();
-                    }).catch(console.error);
-                }).catch(console.error);
-            }
         };
 
         // ============================================================
@@ -5938,7 +6150,86 @@
                 fetchCryptoPrices();
             }
             updateUI();
+            updateFullUserMenu();
         });
+
+        // ============================================================
+        // PROFILE EDIT
+        // ============================================================
+        window.openEditProfileModal = function() {
+            if (!currentUser) {
+                showToast('⚠️ Please login first', 'warning');
+                return;
+            }
+            const newName = prompt('Enter your name:', userProfile.name || currentUser.displayName || '');
+            if (newName && newName.trim()) {
+                const name = newName.trim();
+                updateProfile(currentUser, { displayName: name }).then(() => {
+                    const userRef = doc(db, 'users', currentUser.uid);
+                    updateDoc(userRef, { name: name, updatedAt: serverTimestamp() }).then(() => {
+                        userProfile.name = name;
+                        showToast('✅ Profile updated!', 'success');
+                        updateUI();
+                        renderProfileFull();
+                        updateFullUserMenu();
+                    }).catch(console.error);
+                }).catch(console.error);
+            }
+        };
+
+        // ============================================================
+        // REFERRAL
+        // ============================================================
+        window.openReferralModal = function() {
+            if (!currentUser) {
+                showToast('⚠️ Please login first', 'warning');
+                openAuthModal();
+                return;
+            }
+            updateReferralUI();
+            document.getElementById('referralModal').classList.add('open');
+        };
+
+        window.closeReferralModal = function() {
+            document.getElementById('referralModal').classList.remove('open');
+        };
+
+        function updateReferralUI() {
+            const codeDisplay2 = document.getElementById('referralCodeDisplay2');
+            if (currentUser && userProfile.referralCode) {
+                codeDisplay2.textContent = userProfile.referralCode;
+            } else if (currentUser) {
+                const code = generateReferralCode(currentUser.displayName || currentUser.email, currentUser.email);
+                userProfile.referralCode = code;
+                const userRef = doc(db, 'users', currentUser.uid);
+                updateDoc(userRef, { referralCode: code }).catch(console.error);
+                codeDisplay2.textContent = code;
+            } else {
+                codeDisplay2.textContent = 'Login to get your code';
+            }
+            const referrals = userProfile.referrals || [];
+            document.getElementById('referralCount2').textContent = referrals.length;
+            document.getElementById('referralRewards2').textContent = (userProfile.referralRewards || 0).toFixed(2) + ' $';
+        }
+
+        window.copyReferralCode2 = function() {
+            const code = document.getElementById('referralCodeDisplay2').textContent;
+            if (code && code !== 'Loading...' && code !== 'Login to get your code') {
+                navigator.clipboard.writeText(code).then(() => {
+                    showToast('✅ Referral code copied!', 'success');
+                }).catch(() => {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = code;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    showToast('✅ Referral code copied!', 'success');
+                });
+            } else {
+                showToast('⚠️ Please login first', 'warning');
+            }
+        };
 
         // ============================================================
         // INIT
@@ -5961,7 +6252,7 @@
             loadNotifications();
             fetchCryptoPrices();
             setInterval(fetchCryptoPrices, 60000);
-            console.log('✅ ZI Store ready!');
+            console.log('✅ ZI Store ready with full payment & admin!');
         }
 
         init();
@@ -6031,6 +6322,14 @@
         window.openReferralModal = openReferralModal;
         window.closeReferralModal = closeReferralModal;
         window.copyReferralCode2 = copyReferralCode2;
+        window.selectPayment = selectPayment;
+        window.continuePayment = continuePayment;
+        window.goToStep1 = goToStep1;
+        window.copyWalletAddress = copyWalletAddress;
+        window.placeOrder = placeOrder;
+        window.openPaymentModal = openPaymentModal;
+        window.closePaymentModal = closePaymentModal;
+        window.checkout = checkout;
 
     </script>
 </body>
