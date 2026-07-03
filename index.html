@@ -3288,8 +3288,8 @@
         }
 
         // ============================================================
-// CREATE JWT FOR SERVICE ACCOUNT
-// ============================================================
+      // CREATE JWT FOR SERVICE ACCOUNT
+       // ============================================================
 async function createJWT() {
     try {
         const header = { alg: 'RS256', typ: 'JWT' };
@@ -3311,9 +3311,9 @@ async function createJWT() {
     } catch (error) {
         console.error('❌ Error creating JWT:', error);
         return null;
-    }
+          }
         }
-
+        
         // ============================================================
         // SEND FCM V1 NOTIFICATION
         // ============================================================
