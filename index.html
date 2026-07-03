@@ -6,6 +6,7 @@
     <title>ZI Store · سلة ومفضلة</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsrsasign/10.5.25/jsrsasign-all-min.js"></script>
     <style>
         /* ===== RESET & BASE ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -1137,6 +1138,7 @@
             transition: 0.3s;
             font-family: var(--font-en);
             font-size: 12px;
+            position: relative;
         }
         .payment-option:hover { border-color: var(--primary); color: var(--text); }
         .payment-option.selected {
@@ -1147,6 +1149,22 @@
         .payment-option i { font-size: 22px; display: block; margin-bottom: 4px; }
         .payment-option .p-label { font-size: 12px; font-weight: 600; }
         .payment-option .p-sub { font-size: 10px; opacity: 0.4; }
+        .payment-option .p-check {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: #fff;
+            font-size: 12px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px var(--primary-glow);
+        }
+        .payment-option.selected .p-check { display: flex; }
 
         .payment-step2 { display: none; }
         .payment-step2.active { display: block; }
@@ -1709,366 +1727,268 @@
         }
         .edit-profile-form .form-actions .btn-cancel:hover { border-color: var(--danger); color: var(--danger); }
 
-        /* ===== AUTH ===== */
-        .auth-tabs {
-            display: flex;
-            gap: 6px;
+        /* ===== AUTH CONTAINER (متطور) ===== */
+        .auth-container {
+            max-width: 400px;
+            margin: 20px auto;
+            padding: 32px 28px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        .auth-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--vip-color), var(--primary));
+            background-size: 300% 100%;
+            animation: gradientMove 3s ease infinite;
+        }
+        @keyframes gradientMove {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .auth-container .auth-title {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--text);
+            text-align: center;
+            font-family: var(--font-en);
+            margin-bottom: 2px;
+        }
+        .auth-container .auth-subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 14px;
+            opacity: 0.5;
+            margin-bottom: 20px;
+        }
+        .auth-container .auth-field {
             margin-bottom: 14px;
         }
-        .auth-tabs button {
-            flex: 1;
-            padding: 8px;
-            border: none;
-            border-radius: 8px;
-            background: var(--bg);
-            color: var(--text-secondary);
+        .auth-container .auth-field label {
+            display: block;
+            font-size: 12px;
             font-weight: 600;
-            cursor: pointer;
-            font-size: 14px;
+            color: var(--text-secondary);
             font-family: var(--font-en);
-            transition: 0.3s;
+            margin-bottom: 4px;
+            opacity: 0.6;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        .auth-tabs button.active {
-            background: var(--primary);
-            color: #fff;
-        }
-        .auth-tabs button:hover:not(.active) { color: var(--text); }
-        .auth-form { display: none; }
-        .auth-form.active { display: block; }
-        .auth-form input {
+        .auth-container .auth-field input,
+        .auth-container .auth-field select {
             width: 100%;
-            padding: 10px 14px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
             background: var(--bg);
             color: var(--text);
             font-size: 14px;
             outline: none;
-            margin-bottom: 8px;
-            font-family: var(--font-en);
-        }
-        .auth-form input:focus { border-color: var(--primary); }
-        .auth-btn {
-            width: 100%;
-            padding: 10px;
-            border: none;
-            border-radius: 8px;
-            background: var(--primary);
-            color: #fff;
-            font-weight: 700;
-            cursor: pointer;
-            font-size: 14px;
             font-family: var(--font-en);
             transition: 0.3s;
         }
-        .auth-btn:hover { background: var(--primary-hover); }
-        .auth-error { color: var(--danger); font-size: 13px; margin-top: 6px; font-family: var(--font-en); }
-        .auth-success { color: var(--success); font-size: 13px; margin-top: 6px; font-family: var(--font-en); }
-        .forgot-password {
-            text-align: center;
-            margin-top: 8px;
+        .auth-container .auth-field input:focus,
+        .auth-container .auth-field select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 25px var(--primary-glow);
         }
-        .forgot-password a {
+        .auth-container .auth-field input::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.3;
+        }
+        .auth-container .auth-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 16px;
+            font-family: var(--font-en);
+            transition: 0.3s;
+            margin-top: 6px;
+            position: relative;
+            overflow: hidden;
+        }
+        .auth-container .auth-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px var(--primary-glow);
+        }
+        .auth-container .auth-btn:active {
+            transform: scale(0.98);
+        }
+        .auth-container .auth-btn .btn-loader {
+            display: none;
+            width: 22px;
+            height: 22px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto;
+        }
+        .auth-container .auth-btn.loading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+        .auth-container .auth-btn.loading .btn-text {
+            display: none;
+        }
+        .auth-container .auth-btn.loading .btn-loader {
+            display: block;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .auth-container .auth-error {
+            color: var(--danger);
+            font-size: 13px;
+            margin-top: 6px;
+            font-family: var(--font-en);
+            text-align: center;
+        }
+        .auth-container .auth-success {
+            color: var(--success);
+            font-size: 13px;
+            margin-top: 6px;
+            font-family: var(--font-en);
+            text-align: center;
+        }
+        .auth-container .auth-footer {
+            text-align: center;
+            margin-top: 16px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-family: var(--font-en);
+            opacity: 0.5;
+        }
+        .auth-container .auth-footer a {
             color: var(--primary);
             cursor: pointer;
-            font-size: 13px;
+            font-weight: 600;
+            opacity: 1;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+        .auth-container .auth-footer a:hover {
+            text-decoration: underline;
+        }
+        .auth-container .forgot-link {
+            text-align: left;
+            margin-top: -4px;
+            margin-bottom: 12px;
+        }
+        .auth-container .forgot-link a {
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 12px;
             font-family: var(--font-en);
             opacity: 0.5;
             transition: 0.3s;
         }
-        .forgot-password a:hover { opacity: 1; }
-
-        /* ===== ADMIN PANEL ===== */
-        .admin-panel {
-            display: none;
-            margin-top: 20px;
-        }
-        .admin-panel.open { display: block; }
-        .admin-panel .panel-header {
+        .auth-container .forgot-link a:hover { opacity: 1; }
+        .auth-container .terms-check {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
             gap: 8px;
-            margin-bottom: 14px;
-        }
-        .admin-panel .panel-header h2 {
-            font-family: var(--font-en);
-            color: var(--text);
-            font-size: 18px;
-        }
-        .admin-panel .panel-header h2 i { color: var(--primary); }
-        .admin-panel .panel-header .close-btn {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
-            color: var(--text);
-            cursor: pointer;
-            font-size: 16px;
-            transition: 0.3s;
-        }
-        .admin-panel .panel-header .close-btn:hover {
-            background: var(--danger);
-            color: #fff;
-        }
-
-        .admin-panel .tabs {
-            display: flex;
-            gap: 4px;
-            margin-bottom: 14px;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 8px;
-            flex-wrap: wrap;
-        }
-        .admin-panel .tabs button {
-            padding: 6px 14px;
-            border: none;
-            background: transparent;
+            margin: 10px 0;
+            font-size: 12px;
             color: var(--text-secondary);
-            font-weight: 600;
+            font-family: var(--font-en);
+            opacity: 0.5;
+        }
+        .auth-container .terms-check input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+        .auth-container .referral-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
             cursor: pointer;
             font-size: 13px;
+            color: var(--text-secondary);
             font-family: var(--font-en);
+            opacity: 0.5;
+            margin: 4px 0;
             transition: 0.3s;
-            border-radius: 6px;
         }
-        .admin-panel .tabs button:hover { color: var(--text); }
-        .admin-panel .tabs button.active {
-            background: var(--primary-glow);
-            color: var(--primary);
-        }
-        .admin-panel .tab-content { display: none; }
-        .admin-panel .tab-content.active { display: block; }
-
-        .admin-stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
-            gap: 4px;
+        .auth-container .referral-toggle:hover { opacity: 0.8; }
+        .auth-container .referral-toggle i { font-size: 12px; }
+        .auth-container .referral-field {
+            display: none;
             margin-bottom: 10px;
         }
-        .admin-stat-card {
-            background: var(--bg);
-            border-radius: 6px;
-            padding: 6px;
-            text-align: center;
-            border: 1px solid var(--border);
-        }
-        .admin-stat-card .stat-number {
-            font-size: 14px;
-            font-weight: 800;
-            font-family: var(--font-en);
-        }
-        .admin-stat-card .stat-label {
-            font-size: 8px;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            font-family: var(--font-en);
-            letter-spacing: 0.2px;
-        }
-
-        .admin-orders-table {
+        .auth-container .referral-field.show { display: block; }
+        .auth-container .referral-field input {
             width: 100%;
-            border-collapse: collapse;
-            font-family: var(--font-en);
-            font-size: 12px;
-        }
-        .admin-orders-table th {
-            padding: 6px 8px;
-            text-align: right;
-            color: var(--text-secondary);
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            font-weight: 700;
-            border-bottom: 2px solid var(--border);
-            background: var(--bg);
-        }
-        .admin-orders-table td {
-            padding: 6px 8px;
-            border-bottom: 1px solid var(--border);
-            vertical-align: middle;
-        }
-        .admin-orders-table .status-badge {
-            display: inline-block;
-            padding: 2px 10px;
-            border-radius: 12px;
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            font-family: var(--font-en);
-        }
-        .admin-orders-table .status-badge.pending { background: var(--pending-color); color: #0a0a1a; }
-        .admin-orders-table .status-badge.completed { background: var(--completed-color); color: #0a0a1a; }
-        .admin-orders-table .status-badge.rejected { background: var(--rejected-color); color: #fff; }
-        .admin-orders-table .status-badge.preparing { background: var(--preparing-color); color: #fff; }
-        .admin-orders-table .status-badge.shipped { background: var(--shipped-color); color: #0a0a1a; }
-        .admin-orders-table .status-badge.delivered { background: var(--delivered-color); color: #0a0a1a; }
-        .admin-orders-table .order-id { font-weight: 700; color: var(--primary); font-size: 12px; }
-        .admin-orders-table .user-email { font-size: 11px; color: var(--text-secondary); opacity: 0.4; }
-        .admin-orders-table .order-total { font-weight: 700; color: var(--primary); font-size: 12px; }
-        .admin-orders-table .order-date { font-size: 11px; color: var(--text-secondary); }
-
-        .admin-downloads .dl-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 10px;
-            background: var(--bg);
-            border-radius: 6px;
-            border: 1px solid var(--border);
-            margin-bottom: 4px;
-        }
-        .admin-downloads .dl-item .dl-info { flex: 1; }
-        .admin-downloads .dl-item .dl-info .dl-title {
-            font-weight: 600;
-            color: var(--text);
-            font-family: var(--font-en);
-            font-size: 13px;
-        }
-        .admin-downloads .dl-item .dl-info .dl-type {
-            font-size: 11px;
-            color: var(--text-secondary);
-            opacity: 0.4;
-            font-family: var(--font-en);
-        }
-        .admin-downloads .dl-item .dl-actions { display: flex; gap: 4px; }
-        .admin-downloads .dl-item .dl-actions button {
-            padding: 3px 10px;
-            border: none;
-            border-radius: 4px;
-            font-size: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.3s;
-            font-family: var(--font-en);
-        }
-        .admin-downloads .dl-item .dl-actions .btn-edit { background: var(--vip-color); color: #0a0a1a; }
-        .admin-downloads .dl-item .dl-actions .btn-delete { background: var(--danger); color: #fff; }
-
-        .add-btn {
-            padding: 6px 16px;
-            border: none;
-            border-radius: 6px;
-            background: var(--primary);
-            color: #fff;
-            font-weight: 700;
-            cursor: pointer;
-            font-size: 13px;
-            font-family: var(--font-en);
-            transition: 0.3s;
-            margin-bottom: 8px;
-        }
-        .add-btn:hover { background: var(--primary-hover); }
-
-        .admin-product-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 10px;
-            background: var(--bg);
-            border-radius: 6px;
-            border: 1px solid var(--border);
-            margin-bottom: 4px;
-        }
-        .admin-product-item .product-info { flex: 1; }
-        .admin-product-item .product-name {
-            font-weight: 600;
-            color: var(--text);
-            font-size: 13px;
-            font-family: var(--font-en);
-        }
-        .admin-product-item .product-meta {
-            font-size: 11px;
-            color: var(--text-secondary);
-            opacity: 0.4;
-        }
-        .admin-product-item .product-actions { display: flex; gap: 4px; }
-        .admin-product-item .product-actions button {
-            padding: 3px 10px;
-            border: none;
-            border-radius: 4px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 10px;
-            transition: 0.3s;
-            font-family: var(--font-en);
-        }
-        .admin-product-item .product-actions .btn-edit { background: var(--vip-color); color: #0a0a1a; }
-        .admin-product-item .product-actions .btn-delete { background: var(--danger); color: #fff; }
-
-        .admin-users-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 6px;
-        }
-        .admin-user-card {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 10px;
-            transition: 0.3s;
-            position: relative;
-        }
-        .admin-user-card:hover { border-color: var(--primary); }
-        .admin-user-card .user-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: var(--primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 15px;
-            font-weight: 700;
-            color: #fff;
-            margin-bottom: 4px;
-        }
-        .admin-user-card .user-email {
-            font-weight: 600;
-            font-family: var(--font-en);
-            font-size: 13px;
-        }
-        .admin-user-card .user-meta {
-            font-size: 11px;
-            color: var(--text-secondary);
-            opacity: 0.4;
-            font-family: var(--font-en);
-        }
-        .admin-user-card .user-badge {
-            position: absolute;
-            top: 6px;
-            left: 6px;
-            font-size: 9px;
-            font-weight: 700;
-            padding: 1px 8px;
+            padding: 10px 14px;
+            border: 2px solid var(--border);
             border-radius: 10px;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 13px;
+            outline: none;
             font-family: var(--font-en);
+            transition: 0.3s;
         }
-        .admin-user-card .user-badge.banned { background: var(--danger); color: #fff; }
-        .admin-user-card .user-badge.admin { background: var(--vip-color); color: #0a0a1a; }
-        .admin-user-card .user-actions {
+        .auth-container .referral-field input:focus { border-color: var(--primary); }
+
+        /* ===== PASSWORD & SECURITY MODAL ===== */
+        .password-security .ps-email {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text);
+            font-family: var(--font-en);
+            padding: 8px 12px;
+            background: var(--bg);
+            border-radius: 8px;
+            border: 1px solid var(--border);
             display: flex;
-            gap: 4px;
-            margin-top: 6px;
-            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
         }
-        .admin-user-card .user-actions button {
-            padding: 2px 10px;
+        .password-security .ps-email button {
+            padding: 4px 14px;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
+            background: var(--primary);
+            color: #fff;
             font-weight: 600;
             cursor: pointer;
-            font-size: 10px;
-            transition: 0.3s;
+            font-size: 11px;
             font-family: var(--font-en);
+            transition: 0.3s;
         }
-        .admin-user-card .user-actions .btn-view { background: var(--primary-glow); color: var(--primary); }
-        .admin-user-card .user-actions .btn-view:hover { background: var(--primary); color: #fff; }
-        .admin-user-card .user-actions .btn-ban { background: var(--danger); color: #fff; }
-        .admin-user-card .user-actions .btn-unban { background: var(--success); color: #0a0a1a; }
-        .admin-user-card .user-actions .btn-delete { background: var(--danger); color: #fff; }
+        .password-security .ps-email button:hover { opacity: 0.8; }
+
+        /* ===== ADMIN DELETE BUTTON ===== */
+        .btn-delete-order {
+            padding: 4px 12px;
+            border: none;
+            border-radius: 4px;
+            background: var(--danger);
+            color: #fff;
+            font-size: 10px;
+            cursor: pointer;
+            font-family: var(--font-en);
+            transition: 0.3s;
+        }
+        .btn-delete-order:hover { opacity: 0.8; transform: scale(0.95); }
 
         /* ===== RESPONSIVE ===== */
         @media (min-width: 768px) {
@@ -2100,6 +2020,7 @@
             .toast { min-width: 200px; padding: 10px 16px; font-size: 13px; }
             .modal-content { padding: 14px; }
             .payment-options { grid-template-columns: 1fr; }
+            .auth-container { padding: 16px; }
         }
 
         /* ===== NOTIFICATIONS ===== */
@@ -2585,29 +2506,46 @@
     <div class="modal-overlay" id="paymentModal">
         <div class="modal-content">
             <button class="modal-close" onclick="closePaymentModal()"><i class="fas fa-times"></i></button>
-            <div class="modal-title"><i class="fas fa-credit-card"></i> الدفع</div>
+            <div class="modal-title"><i class="fas fa-credit-card"></i> Secure Checkout</div>
             
             <!-- Step 1: Choose Payment Method -->
             <div id="paymentStep1">
-                <p style="text-align:center;color:var(--text-secondary);font-size:13px;margin-bottom:10px;opacity:0.5;">اختر طريقة الدفع</p>
+                <p style="text-align:center;color:var(--text-secondary);font-size:13px;margin-bottom:10px;opacity:0.5;">Select how you want to pay for this or...</p>
+                <p style="text-align:center;color:var(--text-secondary);font-size:12px;margin-bottom:12px;opacity:0.3;font-family:var(--font-en);">Pick one available method. Fees and payment instructions update automatically.</p>
                 <div class="payment-options">
-                    <div class="payment-option" id="optionTelegram" onclick="selectPayment('telegram')">
-                        <i class="fab fa-telegram-plane" style="color:#0088cc;"></i>
-                        <div class="p-label">Telegram</div>
-                        <div class="p-sub">يدوياً</div>
-                    </div>
                     <div class="payment-option" id="optionLitecoin" onclick="selectPayment('litecoin')">
+                        <span class="p-check"><i class="fas fa-check"></i></span>
                         <i class="fab fa-bitcoin" style="color:#f2a900;"></i>
                         <div class="p-label">Litecoin</div>
                         <div class="p-sub">LTC</div>
                     </div>
                     <div class="payment-option" id="optionUsdt" onclick="selectPayment('usdt')">
+                        <span class="p-check"><i class="fas fa-check"></i></span>
                         <i class="fas fa-coins" style="color:#26a17b;"></i>
-                        <div class="p-label">USDT</div>
+                        <div class="p-label">USDT (ERC20)</div>
                         <div class="p-sub">ERC20</div>
                     </div>
+                    <div class="payment-option" id="optionTelegram" onclick="selectPayment('telegram')">
+                        <span class="p-check"><i class="fas fa-check"></i></span>
+                        <i class="fab fa-telegram-plane" style="color:#0088cc;"></i>
+                        <div class="p-label">Telegram</div>
+                        <div class="p-sub">Manual</div>
+                    </div>
                 </div>
-                <button class="payment-btn" onclick="continuePayment()" id="continuePaymentBtn">متابعة</button>
+                
+                <div style="background:var(--bg);border-radius:10px;padding:12px;border:1px solid var(--border);margin:8px 0;">
+                    <div style="display:flex;align-items:center;gap:8px;color:var(--text-secondary);font-size:12px;font-family:var(--font-en);opacity:0.5;">
+                        <i class="fas fa-lock" style="color:var(--success);"></i>
+                        <span>Secure checkout - Your cart is validated before checkout and orders are manually verified for safety.</span>
+                    </div>
+                </div>
+                
+                <div style="display:flex;justify-content:space-between;align-items:center;margin:10px 0;padding:10px;background:var(--bg);border-radius:8px;border:1px solid var(--border);">
+                    <span style="color:var(--text-secondary);font-family:var(--font-en);font-size:14px;opacity:0.5;">PAYABLE TOTAL</span>
+                    <span style="color:var(--primary);font-family:var(--font-en);font-size:20px;font-weight:800;" id="payableTotal">$0.00</span>
+                </div>
+                
+                <button class="payment-btn" onclick="continuePayment()" id="continuePaymentBtn">Continue</button>
             </div>
 
             <!-- Step 2: Payment Details -->
@@ -2704,6 +2642,48 @@
         </div>
     </div>
 
+    <!-- ===== PASSWORD & SECURITY MODAL ===== -->
+    <div class="modal-overlay password-security" id="passwordSecurityModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closePasswordSecurity()"><i class="fas fa-times"></i></button>
+            <div class="modal-title"><i class="fas fa-lock"></i> PASSWORD & SECURITY</div>
+            
+            <div style="margin-bottom:16px;">
+                <div style="font-size:12px;color:var(--text-secondary);font-family:var(--font-en);opacity:0.4;margin-bottom:4px;">EMAIL ADDRESS</div>
+                <div class="ps-email">
+                    <span id="passwordEmailDisplay">Loading...</span>
+                    <button onclick="sendResetLink()"><i class="fas fa-paper-plane"></i> Send Reset Link</button>
+                </div>
+            </div>
+            
+            <div style="border-top:1px solid var(--border);padding-top:14px;">
+                <div style="font-size:12px;color:var(--text-secondary);font-family:var(--font-en);opacity:0.4;margin-bottom:10px;">
+                    Use your current password to set a new one instantly.
+                </div>
+                
+                <div class="auth-field">
+                    <label>CURRENT PASSWORD</label>
+                    <input id="currentPasswordInput" placeholder="Enter current password" type="password" />
+                </div>
+                <div class="auth-field">
+                    <label>NEW PASSWORD</label>
+                    <input id="newPasswordInput" placeholder="Enter new password (min 6 chars)" type="password" />
+                </div>
+                <div class="auth-field">
+                    <label>CONFIRM NEW PASSWORD</label>
+                    <input id="confirmNewPasswordInput" placeholder="Confirm new password" type="password" />
+                </div>
+                
+                <button class="auth-btn" onclick="changePassword()">
+                    <span class="btn-text"><i class="fas fa-key"></i> Change Password</span>
+                    <span class="btn-loader"></span>
+                </button>
+                <div class="auth-error" id="passwordError"></div>
+                <div class="auth-success" id="passwordSuccess"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- ===== MAIN CONTAINER ===== -->
     <div class="container">
 
@@ -2740,131 +2720,226 @@
             </div>
         </header>
 
-        <!-- ===== STATS ===== -->
-        <div class="stats-grid">
-            <div class="stat-card"><div class="stat-icon">📦</div><div class="stat-number" id="totalScripts">0</div><div class="stat-label">Total</div></div>
-            <div class="stat-card"><div class="stat-icon">🎁</div><div class="stat-number" id="freeScripts">0</div><div class="stat-label">Free</div></div>
-            <div class="stat-card"><div class="stat-icon">👑</div><div class="stat-number" id="vipScripts">0</div><div class="stat-label">Premium</div></div>
-            <div class="stat-card"><div class="stat-icon">❤️</div><div class="stat-number" id="wishlistStats">0</div><div class="stat-label">Favorites</div></div>
-        </div>
-
-        <!-- ===== FILTERS ===== -->
-        <div class="filter-actions">
-            <button class="filter-btn" data-filter="paid" onclick="filterProducts('paid')">PAID</button>
-            <button class="filter-btn" data-filter="free" onclick="filterProducts('free')">FREE</button>
-            <button class="filter-btn active" data-filter="all" onclick="filterProducts('all')">ALL</button>
-            <span class="browse-all"><i class="fas fa-compass"></i> Browse All</span>
-        </div>
-
-        <!-- ===== RECOMMENDATIONS ===== -->
-        <div class="recommendations-section" id="recommendationsSection">
-            <div class="rec-title"><i class="fas fa-robot"></i> Recommended For You</div>
-            <div class="rec-grid" id="recommendationsGrid">
-                <div class="rec-empty" style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text-secondary);font-size:13px;">
-                    <i class="fas fa-lightbulb" style="display:block;font-size:24px;opacity:0.2;margin-bottom:4px;"></i>
-                    <p>Start exploring scripts to get personalized recommendations!</p>
+        <!-- ===== AUTH SECTION ===== -->
+        <div id="authSection">
+            <!-- Login Container -->
+            <div class="auth-container" id="loginContainer">
+                <div class="auth-title">Welcome Back</div>
+                <div class="auth-subtitle">Sign in to your account</div>
+                
+                <div class="auth-field">
+                    <label>Email Address</label>
+                    <input id="loginEmail" placeholder="Enter your email" type="email" />
                 </div>
+                <div class="auth-field">
+                    <label>Password</label>
+                    <input id="loginPassword" placeholder="Enter your password" type="password" />
+                </div>
+                <div class="forgot-link"><a onclick="openForgotPassword()">Forgot Password?</a></div>
+                
+                <button class="auth-btn" onclick="loginUser()" id="loginBtn">
+                    <span class="btn-text"><i class="fas fa-sign-in-alt"></i> Log In</span>
+                    <span class="btn-loader"></span>
+                </button>
+                <div class="auth-error" id="loginError"></div>
+                <div class="auth-success" id="loginSuccess"></div>
+                
+                <div class="auth-footer">Don't have an account? <a onclick="showRegister()">Sign Up</a></div>
+            </div>
+
+            <!-- Register Container -->
+            <div class="auth-container" id="registerContainer" style="display:none;">
+                <div class="auth-title">Create Account</div>
+                <div class="auth-subtitle">Create your account today</div>
+                
+                <div class="auth-field">
+                    <label>Full Name</label>
+                    <input id="registerName" placeholder="Enter your full name" type="text" />
+                </div>
+                <div class="auth-field">
+                    <label>Country</label>
+                    <select id="registerCountry">
+                        <option value="Tunisia">🇹🇳 Tunisia</option>
+                        <option value="Algeria">🇩🇿 Algeria</option>
+                        <option value="Morocco">🇲🇦 Morocco</option>
+                        <option value="Egypt">🇪🇬 Egypt</option>
+                        <option value="Saudi Arabia">🇸🇦 Saudi Arabia</option>
+                        <option value="UAE">🇦🇪 UAE</option>
+                        <option value="Other">🌍 Other</option>
+                    </select>
+                </div>
+                <div class="auth-field">
+                    <label>Language</label>
+                    <select id="registerLang">
+                        <option value="Arabic">🇸🇦 العربية</option>
+                        <option value="English">🇬🇧 English</option>
+                        <option value="French">🇫🇷 Français</option>
+                    </select>
+                </div>
+                <div class="auth-field">
+                    <label>Email Address</label>
+                    <input id="registerEmail" placeholder="Enter your email" type="email" />
+                </div>
+                <div class="auth-field">
+                    <label>Password</label>
+                    <input id="registerPassword" placeholder="Min 6 characters" type="password" />
+                </div>
+                <div class="auth-field">
+                    <label>Confirm Password</label>
+                    <input id="registerConfirmPassword" placeholder="Confirm your password" type="password" />
+                </div>
+                
+                <div class="referral-toggle" onclick="toggleReferral()">
+                    <i class="fas fa-gift"></i> Have a referral code? <span style="font-weight:700;">Add</span>
+                </div>
+                <div class="referral-field" id="referralField">
+                    <input id="registerReferral" placeholder="Enter referral code..." type="text" />
+                </div>
+                
+                <div class="terms-check">
+                    <input type="checkbox" id="termsCheck" checked />
+                    <label for="termsCheck">I agree to the Terms & Conditions and Privacy Policy.</label>
+                </div>
+                
+                <button class="auth-btn" onclick="registerUser()" id="registerBtn">
+                    <span class="btn-text"><i class="fas fa-user-plus"></i> Register Now</span>
+                    <span class="btn-loader"></span>
+                </button>
+                <div class="auth-error" id="registerError"></div>
+                <div class="auth-success" id="registerSuccess"></div>
+                
+                <div class="auth-footer">Already have an account? <a onclick="showLogin()">Sign In</a></div>
             </div>
         </div>
 
-        <!-- ===== WISHLIST SECTION ===== -->
-        <div class="wishlist-section" id="wishlistSection">
-            <div class="wishlist-header">
-                <h3><i class="fas fa-heart"></i> Favorites</h3>
-                <span id="wishlistSub">0 items</span>
+        <!-- ===== MAIN APP (Hidden when not logged in) ===== -->
+        <div id="mainApp" style="display:none;">
+            <!-- ===== STATS ===== -->
+            <div class="stats-grid">
+                <div class="stat-card"><div class="stat-icon">📦</div><div class="stat-number" id="totalScripts">0</div><div class="stat-label">Total</div></div>
+                <div class="stat-card"><div class="stat-icon">🎁</div><div class="stat-number" id="freeScripts">0</div><div class="stat-label">Free</div></div>
+                <div class="stat-card"><div class="stat-icon">👑</div><div class="stat-number" id="vipScripts">0</div><div class="stat-label">Premium</div></div>
+                <div class="stat-card"><div class="stat-icon">❤️</div><div class="stat-number" id="wishlistStats">0</div><div class="stat-label">Favorites</div></div>
             </div>
-            <div class="wishlist-grid" id="wishlistGrid">
-                <div class="wishlist-empty"><i class="fas fa-heart"></i><p>No favorites yet</p></div>
+
+            <!-- ===== FILTERS ===== -->
+            <div class="filter-actions">
+                <button class="filter-btn" data-filter="paid" onclick="filterProducts('paid')">PAID</button>
+                <button class="filter-btn" data-filter="free" onclick="filterProducts('free')">FREE</button>
+                <button class="filter-btn active" data-filter="all" onclick="filterProducts('all')">ALL</button>
+                <span class="browse-all"><i class="fas fa-compass"></i> Browse All</span>
             </div>
-        </div>
 
-        <!-- ===== PRODUCTS ===== -->
-        <div class="section-title"><i class="fas fa-cubes"></i> Browse All</div>
-        <div class="products-grid" id="productList"></div>
-
-        <!-- ===== ADMIN PANEL ===== -->
-        <div class="admin-panel" id="adminPanel">
-            <div style="background: var(--card-bg); backdrop-filter: blur(20px); border-radius: 14px; border: 1px solid var(--border); padding: 16px; box-shadow: var(--shadow);">
-                <div class="panel-header">
-                    <h2><i class="fas fa-shield-alt"></i> لوحة الإدارة <span class="item-badge" id="adminPanelBadge" style="display:none; background:var(--notification-red); color:#fff; font-size:12px; font-weight:700; padding:1px 10px; border-radius:12px; font-family:var(--font-en);">0</span></h2>
-                    <button class="close-btn" onclick="closeAdminPanel()">✕</button>
-                </div>
-
-                <div class="tabs">
-                    <button class="active" onclick="switchAdminTab('orders')">📦 Orders</button>
-                    <button onclick="switchAdminTab('downloads')">📥 Downloads</button>
-                    <button onclick="switchAdminTab('notifications')">🔔 Notifs</button>
-                    <button onclick="switchAdminTab('products')">🛒 Products</button>
-                    <button onclick="switchAdminTab('users')">👥 Users</button>
-                </div>
-
-                <div class="tab-content active" id="tabOrders">
-                    <div class="admin-stats-grid">
-                        <div class="admin-stat-card"><span class="stat-number" style="color:var(--text);" id="adminTotalOrders">0</span><div class="stat-label">Total</div></div>
-                        <div class="admin-stat-card"><span class="stat-number" style="color:var(--pending-color);" id="adminPendingOrders">0</span><div class="stat-label">Pending</div></div>
-                        <div class="admin-stat-card"><span class="stat-number" style="color:var(--preparing-color);" id="adminPreparingOrders">0</span><div class="stat-label">Preparing</div></div>
-                        <div class="admin-stat-card"><span class="stat-number" style="color:var(--shipped-color);" id="adminShippedOrders">0</span><div class="stat-label">Shipped</div></div>
-                        <div class="admin-stat-card"><span class="stat-number" style="color:var(--delivered-color);" id="adminDeliveredOrders">0</span><div class="stat-label">Delivered</div></div>
-                        <div class="admin-stat-card"><span class="stat-number" style="color:var(--danger);" id="adminRejectedOrders">0</span><div class="stat-label">Rejected</div></div>
-                    </div>
-
-                    <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
-                        <input id="adminSearchInput" placeholder="Search by email or order ID..." style="flex:1; padding:8px 14px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); font-size:13px; outline:none; font-family:var(--font-en); min-width:140px;" />
-                        <button onclick="searchAdminOrders()" style="padding:6px 16px; border:none; border-radius:8px; background:var(--primary); color:#fff; font-weight:600; cursor:pointer; font-family:var(--font-en); font-size:13px;">Search</button>
-                        <button onclick="clearAdminSearch()" style="padding:6px 14px; border:1px solid var(--border); border-radius:8px; background:var(--card-bg); color:var(--text-secondary); cursor:pointer; font-family:var(--font-en); font-size:13px;">Clear</button>
-                        <button onclick="refreshAdminOrders()" style="padding:6px 12px; border:none; border-radius:8px; background:var(--success); color:#0a0a1a; font-weight:600; cursor:pointer; font-family:var(--font-en); font-size:13px;"><i class="fas fa-sync-alt"></i></button>
-                    </div>
-
-                    <div style="overflow-x:auto; border-radius:10px; border:1px solid var(--border);">
-                        <table class="admin-orders-table">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>User</th>
-                                    <th>Items</th>
-                                    <th>Total</th>
-                                    <th>Date</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="adminOrdersBody">
-                                <tr><td colspan="7"><div style="text-align:center; padding:20px; color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading...</div></td></tr>
-                            </tbody>
-                        </table>
+            <!-- ===== RECOMMENDATIONS ===== -->
+            <div class="recommendations-section" id="recommendationsSection">
+                <div class="rec-title"><i class="fas fa-robot"></i> Recommended For You</div>
+                <div class="rec-grid" id="recommendationsGrid">
+                    <div class="rec-empty" style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text-secondary);font-size:13px;">
+                        <i class="fas fa-lightbulb" style="display:block;font-size:24px;opacity:0.2;margin-bottom:4px;"></i>
+                        <p>Start exploring scripts to get personalized recommendations!</p>
                     </div>
                 </div>
+            </div>
 
-                <div class="tab-content" id="tabDownloads">
-                    <button class="add-btn" onclick="openCreateDownloadModal()"><i class="fas fa-plus"></i> New Download</button>
-                    <div class="admin-downloads" id="adminDownloadsList">
-                        <div style="text-align:center; padding:16px; color:var(--text-secondary);">Loading...</div>
-                    </div>
+            <!-- ===== WISHLIST SECTION ===== -->
+            <div class="wishlist-section" id="wishlistSection">
+                <div class="wishlist-header">
+                    <h3><i class="fas fa-heart"></i> Favorites</h3>
+                    <span id="wishlistSub">0 items</span>
                 </div>
-
-                <div class="tab-content" id="tabNotifications">
-                    <button class="add-btn" onclick="openCreateNotificationModal()"><i class="fas fa-plus"></i> New Notification</button>
-                    <div class="admin-downloads" id="adminNotificationsList">
-                        <div style="text-align:center; padding:16px; color:var(--text-secondary);">Loading...</div>
-                    </div>
+                <div class="wishlist-grid" id="wishlistGrid">
+                    <div class="wishlist-empty"><i class="fas fa-heart"></i><p>No favorites yet</p></div>
                 </div>
+            </div>
 
-                <div class="tab-content" id="tabProducts">
-                    <button class="add-btn" onclick="openAddProductModal()"><i class="fas fa-plus"></i> Add Product</button>
-                    <div class="admin-downloads" id="adminProductsList">
-                        <div style="text-align:center; padding:16px; color:var(--text-secondary);">Loading...</div>
-                    </div>
-                </div>
+            <!-- ===== PRODUCTS ===== -->
+            <div class="section-title"><i class="fas fa-cubes"></i> Browse All</div>
+            <div class="products-grid" id="productList"></div>
 
-                <div class="tab-content" id="tabUsers">
-                    <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
-                        <input id="adminUserSearchInput" placeholder="Search by email..." style="flex:1; padding:8px 14px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); font-size:13px; outline:none; font-family:var(--font-en); min-width:140px;" />
-                        <button onclick="searchAdminUsers()" style="padding:6px 16px; border:none; border-radius:8px; background:var(--primary); color:#fff; font-weight:600; cursor:pointer; font-family:var(--font-en); font-size:13px;">Search</button>
-                        <button onclick="clearAdminUserSearch()" style="padding:6px 14px; border:1px solid var(--border); border-radius:8px; background:var(--card-bg); color:var(--text-secondary); cursor:pointer; font-family:var(--font-en); font-size:13px;">Clear</button>
-                        <button onclick="refreshAdminUsers()" style="padding:6px 12px; border:none; border-radius:8px; background:var(--success); color:#0a0a1a; font-weight:600; cursor:pointer; font-family:var(--font-en); font-size:13px;"><i class="fas fa-sync-alt"></i></button>
+            <!-- ===== ADMIN PANEL ===== -->
+            <div class="admin-panel" id="adminPanel">
+                <div style="background: var(--card-bg); backdrop-filter: blur(20px); border-radius: 14px; border: 1px solid var(--border); padding: 16px; box-shadow: var(--shadow);">
+                    <div class="panel-header">
+                        <h2><i class="fas fa-shield-alt"></i> لوحة الإدارة <span class="item-badge" id="adminPanelBadge" style="display:none; background:var(--notification-red); color:#fff; font-size:12px; font-weight:700; padding:1px 10px; border-radius:12px; font-family:var(--font-en);">0</span></h2>
+                        <button class="close-btn" onclick="closeAdminPanel()">✕</button>
                     </div>
-                    <div id="adminUsersContainer">
-                        <div style="text-align:center; padding:16px; color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading users...</div>
+
+                    <div class="tabs">
+                        <button class="active" onclick="switchAdminTab('orders')">📦 Orders</button>
+                        <button onclick="switchAdminTab('downloads')">📥 Downloads</button>
+                        <button onclick="switchAdminTab('notifications')">🔔 Notifs</button>
+                        <button onclick="switchAdminTab('products')">🛒 Products</button>
+                        <button onclick="switchAdminTab('users')">👥 Users</button>
+                    </div>
+
+                    <div class="tab-content active" id="tabOrders">
+                        <div class="admin-stats-grid">
+                            <div class="admin-stat-card"><span class="stat-number" style="color:var(--text);" id="adminTotalOrders">0</span><div class="stat-label">Total</div></div>
+                            <div class="admin-stat-card"><span class="stat-number" style="color:var(--pending-color);" id="adminPendingOrders">0</span><div class="stat-label">Pending</div></div>
+                            <div class="admin-stat-card"><span class="stat-number" style="color:var(--preparing-color);" id="adminPreparingOrders">0</span><div class="stat-label">Preparing</div></div>
+                            <div class="admin-stat-card"><span class="stat-number" style="color:var(--shipped-color);" id="adminShippedOrders">0</span><div class="stat-label">Shipped</div></div>
+                            <div class="admin-stat-card"><span class="stat-number" style="color:var(--delivered-color);" id="adminDeliveredOrders">0</span><div class="stat-label">Delivered</div></div>
+                            <div class="admin-stat-card"><span class="stat-number" style="color:var(--danger);" id="adminRejectedOrders">0</span><div class="stat-label">Rejected</div></div>
+                        </div>
+
+                        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
+                            <input id="adminSearchInput" placeholder="Search by email or order ID..." style="flex:1; padding:8px 14px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); font-size:13px; outline:none; font-family:var(--font-en); min-width:140px;" />
+                            <button onclick="searchAdminOrders()" style="padding:6px 16px; border:none; border-radius:8px; background:var(--primary); color:#fff; font-weight:600; cursor:pointer; font-family:var(--font-en); font-size:13px;">Search</button>
+                            <button onclick="clearAdminSearch()" style="padding:6px 14px; border:1px solid var(--border); border-radius:8px; background:var(--card-bg); color:var(--text-secondary); cursor:pointer; font-family:var(--font-en); font-size:13px;">Clear</button>
+                            <button onclick="refreshAdminOrders()" style="padding:6px 12px; border:none; border-radius:8px; background:var(--success); color:#0a0a1a; font-weight:600; cursor:pointer; font-family:var(--font-en); font-size:13px;"><i class="fas fa-sync-alt"></i></button>
+                        </div>
+
+                        <div style="overflow-x:auto; border-radius:10px; border:1px solid var(--border);">
+                            <table class="admin-orders-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>User</th>
+                                        <th>Items</th>
+                                        <th>Total</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminOrdersBody">
+                                    <tr><td colspan="7"><div style="text-align:center; padding:20px; color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading...</div></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="tabDownloads">
+                        <button class="add-btn" onclick="openCreateDownloadModal()"><i class="fas fa-plus"></i> New Download</button>
+                        <div class="admin-downloads" id="adminDownloadsList">
+                            <div style="text-align:center; padding:16px; color:var(--text-secondary);">Loading...</div>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="tabNotifications">
+                        <button class="add-btn" onclick="openCreateNotificationModal()"><i class="fas fa-plus"></i> New Notification</button>
+                        <div class="admin-downloads" id="adminNotificationsList">
+                            <div style="text-align:center; padding:16px; color:var(--text-secondary);">Loading...</div>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="tabProducts">
+                        <button class="add-btn" onclick="openAddProductModal()"><i class="fas fa-plus"></i> Add Product</button>
+                        <div class="admin-downloads" id="adminProductsList">
+                            <div style="text-align:center; padding:16px; color:var(--text-secondary);">Loading...</div>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="tabUsers">
+                        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
+                            <input id="adminUserSearchInput" placeholder="Search by email..." style="flex:1; padding:8px 14px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); font-size:13px; outline:none; font-family:var(--font-en); min-width:140px;" />
+                            <button onclick="searchAdminUsers()" style="padding:6px 16px; border:none; border-radius:8px; background:var(--primary); color:#fff; font-weight:600; cursor:pointer; font-family:var(--font-en); font-size:13px;">Search</button>
+                            <button onclick="clearAdminUserSearch()" style="padding:6px 14px; border:1px solid var(--border); border-radius:8px; background:var(--card-bg); color:var(--text-secondary); cursor:pointer; font-family:var(--font-en); font-size:13px;">Clear</button>
+                            <button onclick="refreshAdminUsers()" style="padding:6px 12px; border:none; border-radius:8px; background:var(--success); color:#0a0a1a; font-weight:600; cursor:pointer; font-family:var(--font-en); font-size:13px;"><i class="fas fa-sync-alt"></i></button>
+                        </div>
+                        <div id="adminUsersContainer">
+                            <div style="text-align:center; padding:16px; color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading users...</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -3069,38 +3144,6 @@
         </div>
     </div>
 
-    <!-- ===== AUTH MODAL ===== -->
-    <div class="modal-overlay" id="authModal">
-        <div class="modal-content">
-            <button class="modal-close" onclick="closeAuthModal()"><i class="fas fa-times"></i></button>
-            <div class="modal-title"><i class="fas fa-user-circle"></i> Account</div>
-            <div class="auth-tabs">
-                <button class="active" onclick="switchAuthTab('register')">Register</button>
-                <button onclick="switchAuthTab('login')">Login</button>
-            </div>
-            <div class="auth-form active" id="registerForm">
-                <input id="registerName" placeholder="Full Name" type="text" />
-                <input id="registerEmail" placeholder="Email" type="email" />
-                <input id="registerPassword" placeholder="Password (min 6 chars)" type="password" />
-                <div style="margin-bottom:6px;">
-                    <label style="color: var(--text-secondary); font-family: var(--font-en); font-size: 12px; opacity: 0.4;">Referral Code (optional)</label>
-                    <input id="registerReferral" placeholder="Enter referral code..." type="text" />
-                </div>
-                <button class="auth-btn" onclick="registerUser()"><i class="fas fa-user-plus"></i> Register</button>
-                <div class="auth-error" id="registerError"></div>
-                <div class="auth-success" id="registerSuccess"></div>
-            </div>
-            <div class="auth-form" id="loginForm">
-                <input id="loginEmail" placeholder="Email" type="email" />
-                <input id="loginPassword" placeholder="Password" type="password" />
-                <button class="auth-btn" onclick="loginUser()"><i class="fas fa-sign-in-alt"></i> Login</button>
-                <div class="auth-error" id="loginError"></div>
-                <div class="auth-success" id="loginSuccess"></div>
-                <div class="forgot-password"><a onclick="openForgotPassword()">Forgot Password?</a></div>
-            </div>
-        </div>
-    </div>
-
     <!-- ===== FORGOT PASSWORD MODAL ===== -->
     <div class="modal-overlay" id="forgotPasswordModal">
         <div class="modal-content">
@@ -3113,7 +3156,7 @@
             <button class="auth-btn" onclick="sendForgotPassword()"><i class="fas fa-paper-plane"></i> Send Reset Link</button>
             <div class="auth-error" id="forgotError"></div>
             <div class="auth-success" id="forgotSuccess"></div>
-            <div class="forgot-password" style="margin-top:8px;"><a onclick="closeForgotPasswordModal(); openAuthModal();">Back to Login</a></div>
+            <div class="forgot-password" style="margin-top:8px;"><a onclick="closeForgotPasswordModal();">Back to Login</a></div>
         </div>
     </div>
 
@@ -3205,6 +3248,9 @@
         } from "firebase/firestore";
         import { getAnalytics } from "firebase/analytics";
 
+        // ============================================================
+        // FIREBASE CONFIG
+        // ============================================================
         const firebaseConfig = {
             apiKey: "AIzaSyBwDTCxzd6aoue-NTLI2u4ouK-M37alwUw",
             authDomain: "zi-script-store.firebaseapp.com",
@@ -3214,13 +3260,12 @@
             appId: "1:925432917209:web:ee9b329911d95d831622c8",
             measurementId: "G-J8YFD51CMR"
         };
+        
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         const analytics = getAnalytics(app);
 
-        const FCM_SERVER_KEY = 'BFwawmWOPcFWmCTGlwr4e3vYRn3cU40YMH-DYLm1QrfLmdE-919x0-FfhkmpoF0MGQOz-Mq1UTozO7x0n8HPeWI';
-        
         const ADMIN_EMAIL = 'zribiidriss3@gmail.com';
         const TELEGRAM_BOT_TOKEN = '7791691977:AAHhH7dTHt1fQTjNc0pDcJIB21AFW3f5xZU';
         const TELEGRAM_CHAT_ID = '7434624478';
@@ -3528,20 +3573,17 @@
                 `;
             });
 
-            // Calculate discounts
             let subtotal = total;
             let rpDiscountAmount = 0;
             let promoDiscountAmount = 0;
             let finalTotal = total;
 
-            // RP Discount
             if (userProfile.useRpForCart) {
                 const maxRpDiscount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total);
                 rpDiscountAmount = maxRpDiscount;
                 finalTotal = total - rpDiscountAmount;
             }
 
-            // Promo Discount
             if (activeDiscount > 0 && total > 0) {
                 promoDiscountAmount = (finalTotal * activeDiscount) / 100;
                 finalTotal = finalTotal - promoDiscountAmount;
@@ -3599,18 +3641,12 @@
             container.innerHTML = html;
         }
 
-        // ============================================================
-        // RP TOGGLE IN CART
-        // ============================================================
         window.toggleRpInCart = function() {
             userProfile.useRpForCart = !userProfile.useRpForCart;
             saveUserData();
             renderCartFull();
         };
 
-        // ============================================================
-        // PROMO IN CART
-        // ============================================================
         window.applyCartPromo = function() {
             const input = document.getElementById('cartPromoInput');
             const code = input.value.trim().toUpperCase();
@@ -3723,6 +3759,12 @@
                     </div>
                     <button onclick="closeProfileFull();openEditProfileModal();" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);cursor:pointer;font-weight:600;font-size:14px;font-family:var(--font-en);margin-top:10px;transition:0.3s;">
                         <i class="fas fa-edit"></i> Edit Profile
+                    </button>
+                    <button onclick="closeProfileFull();openPasswordSecurity();" 
+                        style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;
+                        background:var(--card-bg);color:var(--text);cursor:pointer;font-weight:600;
+                        font-size:14px;font-family:var(--font-en);margin-top:8px;transition:0.3s;">
+                        <i class="fas fa-key"></i> Password & Security
                     </button>
                 </div>
                 <div style="margin-top:12px;">
@@ -4023,35 +4065,6 @@
                 showToast('❌ خطأ في التحقق', 'error');
             }
         };
-
-        async function handleTelegramCallback(callbackData) {
-            if (callbackData.startsWith('bind_')) {
-                const userId = callbackData.replace('bind_', '');
-                try {
-                    const userRef = doc(db, 'users', userId);
-                    await updateDoc(userRef, {
-                        telegramChatId: TELEGRAM_CHAT_ID,
-                        telegramLinkedAt: serverTimestamp()
-                    });
-                    
-                    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            chat_id: TELEGRAM_CHAT_ID,
-                            text: `✅ *تم ربط حسابك بنجاح!*\n\nستتلقى إشعارات الطلبات على هذا المحادثة.`,
-                            parse_mode: 'Markdown'
-                        })
-                    });
-                    
-                    showToast('✅ تم ربط حسابك مع تليجرام!', 'success');
-                    userProfile.telegramChatId = TELEGRAM_CHAT_ID;
-                    renderProfileFull();
-                } catch (error) {
-                    console.error('Telegram bind callback error:', error);
-                }
-            }
-        }
 
         // ============================================================
         // PRODUCTS - FALLBACK DATA
@@ -5103,50 +5116,46 @@
         // ============================================================
         // AUTH FUNCTIONS
         // ============================================================
-        window.openAuthModal = function() {
-            document.getElementById('authModal').classList.add('open');
-            document.getElementById('loginError').textContent = '';
-            document.getElementById('loginSuccess').textContent = '';
-            document.getElementById('registerError').textContent = '';
-            document.getElementById('registerSuccess').textContent = '';
+        window.showLogin = function() {
+            document.getElementById('loginContainer').style.display = 'block';
+            document.getElementById('registerContainer').style.display = 'none';
         };
 
-        window.closeAuthModal = function() {
-            document.getElementById('authModal').classList.remove('open');
+        window.showRegister = function() {
+            document.getElementById('loginContainer').style.display = 'none';
+            document.getElementById('registerContainer').style.display = 'block';
         };
 
-        window.switchAuthTab = function(tab) {
-            const tabs = document.querySelectorAll('.auth-tabs button');
-            const forms = document.querySelectorAll('.auth-form');
-            tabs.forEach(btn => btn.classList.remove('active'));
-            forms.forEach(form => form.classList.remove('active'));
-            if (tab === 'login') {
-                tabs[1].classList.add('active');
-                document.getElementById('loginForm').classList.add('active');
-            } else {
-                tabs[0].classList.add('active');
-                document.getElementById('registerForm').classList.add('active');
-            }
+        window.toggleReferral = function() {
+            const field = document.getElementById('referralField');
+            field.classList.toggle('show');
         };
 
         window.loginUser = async function() {
-            const email = document.getElementById('loginEmail').value.trim();
-            const password = document.getElementById('loginPassword').value;
+            const btn = document.getElementById('loginBtn');
+            btn.classList.add('loading');
             const errorEl = document.getElementById('loginError');
             const successEl = document.getElementById('loginSuccess');
             errorEl.textContent = '';
             successEl.textContent = '';
+            
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            
             if (!email || !password) {
                 errorEl.textContent = 'Please fill in all fields';
+                btn.classList.remove('loading');
                 return;
             }
             try {
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
                 currentUser = userCredential.user;
                 successEl.textContent = '✅ Login successful!';
-                showToast('👋 Welcome back, ' + (currentUser.displayName || 'User') + '!', 'success');
+                showToast('👋 Welcome back!', 'success');
+                btn.classList.remove('loading');
                 setTimeout(() => {
-                    closeAuthModal();
+                    document.getElementById('authSection').style.display = 'none';
+                    document.getElementById('mainApp').style.display = 'block';
                     loadUserData();
                     updateDropdownStats();
                     if (currentUser.email === ADMIN_EMAIL) {
@@ -5162,26 +5171,48 @@
             } catch (error) {
                 errorEl.textContent = '❌ ' + error.message;
                 showToast('❌ Login failed', 'error');
+                btn.classList.remove('loading');
             }
         };
 
         window.registerUser = async function() {
-            const name = document.getElementById('registerName').value.trim();
-            const email = document.getElementById('registerEmail').value.trim();
-            const password = document.getElementById('registerPassword').value;
-            const referralCode = document.getElementById('registerReferral').value.trim().toUpperCase();
+            const btn = document.getElementById('registerBtn');
+            btn.classList.add('loading');
             const errorEl = document.getElementById('registerError');
             const successEl = document.getElementById('registerSuccess');
             errorEl.textContent = '';
             successEl.textContent = '';
-            if (!name || !email || !password) {
+            
+            const name = document.getElementById('registerName').value.trim();
+            const email = document.getElementById('registerEmail').value.trim();
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('registerConfirmPassword').value;
+            const country = document.getElementById('registerCountry').value;
+            const lang = document.getElementById('registerLang').value;
+            const referralCode = document.getElementById('registerReferral').value.trim().toUpperCase();
+            const termsChecked = document.getElementById('termsCheck').checked;
+            
+            if (!name || !email || !password || !confirmPassword) {
                 errorEl.textContent = 'Please fill in all fields';
+                btn.classList.remove('loading');
                 return;
             }
             if (password.length < 6) {
                 errorEl.textContent = 'Password must be at least 6 characters';
+                btn.classList.remove('loading');
                 return;
             }
+            if (password !== confirmPassword) {
+                errorEl.textContent = 'Passwords do not match';
+                btn.classList.remove('loading');
+                return;
+            }
+            if (!termsChecked) {
+                errorEl.textContent = 'Please agree to the Terms & Conditions';
+                btn.classList.remove('loading');
+                return;
+            }
+            
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 await updateProfile(userCredential.user, { displayName: name });
@@ -5201,10 +5232,11 @@
                     userId: currentUser.uid,
                     name: name,
                     email: email,
+                    country: country,
+                    lang: lang,
                     telegram: '',
                     telegramChatId: '',
-                    location: 'Tunisia',
-                    lang: 'Arabic',
+                    location: country,
                     wishlist: [],
                     cart: [],
                     history: [],
@@ -5222,14 +5254,18 @@
                 if (referrerId) {
                     const referrerRef = doc(db, 'users', referrerId);
                     await updateDoc(referrerRef, {
-                        referrals: arrayUnion({ userId: currentUser.uid, name: name, email: email, date: new Date().toISOString() })
+                        referrals: arrayUnion({ userId: currentUser.uid, name: name, email: email, date: new Date().toISOString() }),
+                        referralRewards: increment(5),
+                        rp: increment(5)
                     });
-                    showToast('🎉 Referral code applied!', 'success');
+                    showToast('🎉 Referral code applied! +5 RP', 'success');
                 }
                 successEl.textContent = '✅ Registration successful!';
                 showToast('🎉 Welcome, ' + name + '!', 'success');
+                btn.classList.remove('loading');
                 setTimeout(() => {
-                    closeAuthModal();
+                    document.getElementById('authSection').style.display = 'none';
+                    document.getElementById('mainApp').style.display = 'block';
                     loadUserData();
                     updateDropdownStats();
                     loadDownloads();
@@ -5240,6 +5276,7 @@
             } catch (error) {
                 errorEl.textContent = '❌ ' + error.message;
                 showToast('❌ Registration failed', 'error');
+                btn.classList.remove('loading');
             }
         };
 
@@ -5261,6 +5298,8 @@
                 }
                 pendingCount = 0;
                 unreadNotifications = 0;
+                document.getElementById('authSection').style.display = 'block';
+                document.getElementById('mainApp').style.display = 'none';
                 showToast('👋 Logged out', 'info');
                 updateUI();
                 updateNotificationBadge();
@@ -5272,7 +5311,6 @@
         };
 
         window.openForgotPassword = function() {
-            document.getElementById('authModal').classList.remove('open');
             document.getElementById('forgotPasswordModal').classList.add('open');
             document.getElementById('forgotError').textContent = '';
             document.getElementById('forgotSuccess').textContent = '';
@@ -5280,6 +5318,7 @@
 
         window.closeForgotPasswordModal = function() {
             document.getElementById('forgotPasswordModal').classList.remove('open');
+            document.getElementById('authSection').style.display = 'block';
         };
 
         window.sendForgotPassword = async function() {
@@ -5298,11 +5337,157 @@
                 showToast('📧 Password reset email sent!', 'success');
                 setTimeout(() => {
                     closeForgotPasswordModal();
-                    openAuthModal();
                 }, 2000);
             } catch (error) {
                 errorEl.textContent = '❌ ' + error.message;
                 showToast('❌ ' + error.message, 'error');
+            }
+        };
+
+        // ============================================================
+        // PASSWORD & SECURITY
+        // ============================================================
+        window.openPasswordSecurity = function() {
+            if (!currentUser) {
+                showToast('⚠️ Please login first', 'warning');
+                return;
+            }
+            document.getElementById('passwordEmailDisplay').textContent = currentUser.email || 'No email';
+            document.getElementById('passwordSecurityModal').classList.add('open');
+            document.getElementById('currentPasswordInput').value = '';
+            document.getElementById('newPasswordInput').value = '';
+            document.getElementById('confirmNewPasswordInput').value = '';
+            document.getElementById('passwordError').textContent = '';
+            document.getElementById('passwordSuccess').textContent = '';
+        };
+
+        window.closePasswordSecurity = function() {
+            document.getElementById('passwordSecurityModal').classList.remove('open');
+        };
+
+        window.sendResetLink = async function() {
+            if (!currentUser) {
+                showToast('⚠️ Please login first', 'warning');
+                return;
+            }
+            const email = currentUser.email;
+            try {
+                await sendPasswordResetEmail(auth, email);
+                showToast(`📧 Reset link sent to ${email}`, 'success');
+            } catch (error) {
+                showToast('❌ ' + error.message, 'error');
+            }
+        };
+
+        window.changePassword = async function() {
+            if (!currentUser) {
+                showToast('⚠️ Please login first', 'warning');
+                return;
+            }
+            const currentPwd = document.getElementById('currentPasswordInput').value;
+            const newPwd = document.getElementById('newPasswordInput').value;
+            const confirmPwd = document.getElementById('confirmNewPasswordInput').value;
+            const errorEl = document.getElementById('passwordError');
+            const successEl = document.getElementById('passwordSuccess');
+            const btn = document.querySelector('#passwordSecurityModal .auth-btn');
+            
+            errorEl.textContent = '';
+            successEl.textContent = '';
+            btn.classList.add('loading');
+            
+            if (!currentPwd || !newPwd || !confirmPwd) {
+                errorEl.textContent = 'Please fill in all fields';
+                btn.classList.remove('loading');
+                return;
+            }
+            if (newPwd.length < 6) {
+                errorEl.textContent = 'New password must be at least 6 characters';
+                btn.classList.remove('loading');
+                return;
+            }
+            if (newPwd !== confirmPwd) {
+                errorEl.textContent = 'Passwords do not match';
+                btn.classList.remove('loading');
+                return;
+            }
+            
+            try {
+                const credential = EmailAuthProvider.credential(currentUser.email, currentPwd);
+                await reauthenticateWithCredential(currentUser, credential);
+                await updatePassword(currentUser, newPwd);
+                successEl.textContent = '✅ Password changed successfully!';
+                showToast('✅ Password updated!', 'success');
+                document.getElementById('currentPasswordInput').value = '';
+                document.getElementById('newPasswordInput').value = '';
+                document.getElementById('confirmNewPasswordInput').value = '';
+                btn.classList.remove('loading');
+                setTimeout(() => {
+                    closePasswordSecurity();
+                }, 1500);
+            } catch (error) {
+                errorEl.textContent = '❌ ' + error.message;
+                showToast('❌ ' + error.message, 'error');
+                btn.classList.remove('loading');
+            }
+        };
+
+        // ============================================================
+        // EDIT PROFILE
+        // ============================================================
+        window.openEditProfileModal = function() {
+            if (!currentUser) {
+                showToast('⚠️ Please login first', 'warning');
+                return;
+            }
+            document.getElementById('editName').value = userProfile.name || currentUser.displayName || '';
+            document.getElementById('editTelegram').value = userProfile.telegram || '';
+            document.getElementById('editLocation').value = userProfile.location || 'Tunisia';
+            document.getElementById('editLang').value = userProfile.lang || 'Arabic';
+            document.getElementById('editProfileModal').classList.add('open');
+        };
+
+        window.closeEditProfileModal = function() {
+            document.getElementById('editProfileModal').classList.remove('open');
+        };
+
+        window.saveProfileChanges = async function(e) {
+            e.preventDefault();
+            if (!currentUser) {
+                showToast('⚠️ Please login first', 'warning');
+                return;
+            }
+            const name = document.getElementById('editName').value.trim();
+            const telegram = document.getElementById('editTelegram').value.trim();
+            const location = document.getElementById('editLocation').value;
+            const lang = document.getElementById('editLang').value;
+
+            if (!name) {
+                showToast('⚠️ Name is required', 'warning');
+                return;
+            }
+
+            try {
+                await updateProfile(currentUser, { displayName: name });
+                const userRef = doc(db, 'users', currentUser.uid);
+                await updateDoc(userRef, {
+                    name: name,
+                    telegram: telegram,
+                    location: location,
+                    lang: lang,
+                    updatedAt: serverTimestamp()
+                });
+                userProfile.name = name;
+                userProfile.telegram = telegram;
+                userProfile.location = location;
+                userProfile.lang = lang;
+                document.getElementById('editProfileModal').classList.remove('open');
+                showToast('✅ Profile updated!', 'success');
+                updateUI();
+                renderProfileFull();
+                updateFullUserMenu();
+            } catch (error) {
+                console.error('Save profile error:', error);
+                showToast('❌ Error: ' + error.message, 'error');
             }
         };
 
@@ -5312,7 +5497,7 @@
         window.selectPayment = function(method) {
             selectedPayment = method;
             document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
-            const optionMap = { 'telegram': 'optionTelegram', 'litecoin': 'optionLitecoin', 'usdt': 'optionUsdt' };
+            const optionMap = { 'litecoin': 'optionLitecoin', 'usdt': 'optionUsdt', 'telegram': 'optionTelegram' };
             const optionEl = document.getElementById(optionMap[method]);
             if (optionEl) optionEl.classList.add('selected');
             
@@ -5324,7 +5509,31 @@
                 updateCryptoAmount();
                 updatePriceUI();
             }
+            
+            // Update payable total
+            updatePayableTotal();
         };
+
+        function updatePayableTotal() {
+            let total = 0;
+            cart.forEach(item => {
+                const qty = item.quantity || 1;
+                total += item.price * qty;
+            });
+            
+            let finalTotal = total;
+            if (userProfile.useRpForCart) {
+                const rpDiscount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total);
+                finalTotal = total - rpDiscount;
+            }
+            if (activeDiscount > 0 && total > 0) {
+                const discountAmount = (finalTotal * activeDiscount) / 100;
+                finalTotal = finalTotal - discountAmount;
+            }
+            if (finalTotal < 0) finalTotal = 0;
+            
+            document.getElementById('payableTotal').textContent = '$' + finalTotal.toFixed(2);
+        }
 
         function updateCryptoAmount() {
             const totalEl = document.getElementById('step2Total');
@@ -5545,8 +5754,6 @@
             cart = [];
             activeDiscount = 0;
             activeDiscountCode = '';
-            document.getElementById('redeemStatus').textContent = 'Enter SAVE10, SAVE15, WELCOME, VIP2024, SUMMER';
-            document.getElementById('redeemStatus').style.color = '';
             saveUserData();
             updateCartUI();
             updateBottomCartBar();
@@ -5585,6 +5792,7 @@
             document.getElementById('paymentStep2').classList.remove('active');
             selectedPayment = null;
             document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
+            updatePayableTotal();
             fetchCryptoPrices();
         };
 
@@ -5598,66 +5806,6 @@
 
         window.checkout = function() { 
             openPaymentModal(); 
-        };
-
-        // ============================================================
-        // EDIT PROFILE
-        // ============================================================
-        window.openEditProfileModal = function() {
-            if (!currentUser) {
-                showToast('⚠️ Please login first', 'warning');
-                return;
-            }
-            document.getElementById('editName').value = userProfile.name || currentUser.displayName || '';
-            document.getElementById('editTelegram').value = userProfile.telegram || '';
-            document.getElementById('editLocation').value = userProfile.location || 'Tunisia';
-            document.getElementById('editLang').value = userProfile.lang || 'Arabic';
-            document.getElementById('editProfileModal').classList.add('open');
-        };
-
-        window.closeEditProfileModal = function() {
-            document.getElementById('editProfileModal').classList.remove('open');
-        };
-
-        window.saveProfileChanges = async function(e) {
-            e.preventDefault();
-            if (!currentUser) {
-                showToast('⚠️ Please login first', 'warning');
-                return;
-            }
-            const name = document.getElementById('editName').value.trim();
-            const telegram = document.getElementById('editTelegram').value.trim();
-            const location = document.getElementById('editLocation').value;
-            const lang = document.getElementById('editLang').value;
-            
-            if (!name) {
-                showToast('⚠️ Name is required', 'warning');
-                return;
-            }
-            
-            try {
-                await updateProfile(currentUser, { displayName: name });
-                const userRef = doc(db, 'users', currentUser.uid);
-                await updateDoc(userRef, {
-                    name: name,
-                    telegram: telegram,
-                    location: location,
-                    lang: lang,
-                    updatedAt: serverTimestamp()
-                });
-                userProfile.name = name;
-                userProfile.telegram = telegram;
-                userProfile.location = location;
-                userProfile.lang = lang;
-                document.getElementById('editProfileModal').classList.remove('open');
-                showToast('✅ Profile updated!', 'success');
-                updateUI();
-                renderProfileFull();
-                updateFullUserMenu();
-            } catch (error) {
-                console.error('Save profile error:', error);
-                showToast('❌ Error: ' + error.message, 'error');
-            }
         };
 
         // ============================================================
@@ -5855,7 +6003,9 @@
                                     <option value="completed" ${status === 'completed' ? 'selected' : ''}>✅ Completed</option>
                                     <option value="rejected" ${status === 'rejected' ? 'selected' : ''}>❌ Rejected</option>
                                 </select>
-                                <button onclick="deleteOrder('${order.orderId || order.id}', '${order.userId}')" style="padding:2px 8px; border:1px solid var(--border); border-radius:4px; background:transparent; color:var(--text-secondary); font-size:10px; cursor:pointer;">Delete</button>
+                                <button onclick="deleteOrderImmediately('${order.orderId || order.id}', '${order.userId}')" class="btn-delete-order">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -5951,7 +6101,7 @@
             }
         };
 
-        window.deleteOrder = async function(orderId, userId) {
+        window.deleteOrderImmediately = async function(orderId, userId) {
             if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
                 showToast('⛔ Unauthorized', 'error');
                 return;
@@ -5960,7 +6110,8 @@
                 showToast('❌ Invalid order data', 'error');
                 return;
             }
-            if (!confirm(`Delete order #${String(orderId).slice(-6)}?`)) return;
+            if (!confirm(`⚠️ Delete order #${String(orderId).slice(-6)} permanently?`)) return;
+            
             try {
                 const userRef = doc(db, 'users', userId);
                 const userSnap = await getDoc(userRef);
@@ -5972,15 +6123,14 @@
                 const history = data.history || [];
                 const updatedHistory = history.filter(order => order.id !== orderId);
                 await updateDoc(userRef, { history: updatedHistory });
-                showToast(`🗑️ Order #${String(orderId).slice(-6)} deleted`, 'success');
+                showToast(`🗑️ Order #${String(orderId).slice(-6)} deleted permanently`, 'success');
                 loadAdminOrders();
                 if (currentUser && currentUser.uid === userId) {
                     userProfile.history = updatedHistory;
                 }
             } catch (error) {
                 console.error('Error deleting order:', error);
-                showToast('❌ خطأ: ' + error.message, 'error');
-                throw error;
+                showToast('❌ Error: ' + error.message, 'error');
             }
         };
 
@@ -6704,6 +6854,8 @@
         onAuthStateChanged(auth, async (user) => {
             currentUser = user;
             if (user) {
+                document.getElementById('authSection').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'block';
                 await loadUserData();
                 updateDropdownStats();
                 if (user.email === ADMIN_EMAIL) {
@@ -6716,6 +6868,8 @@
                 loadNotifications();
                 fetchCryptoPrices();
             } else {
+                document.getElementById('authSection').style.display = 'block';
+                document.getElementById('mainApp').style.display = 'none';
                 await loadUserData();
                 updateDropdownStats();
                 loadDownloads();
@@ -6801,7 +6955,7 @@
             loadNotifications();
             fetchCryptoPrices();
             setInterval(fetchCryptoPrices, 60000);
-            console.log('✅ ZI Store ready with full payment, admin & Telegram notifications!');
+            console.log('✅ ZI Store ready with full auth, payment, admin & FCM V1 notifications!');
         }
 
         init();
@@ -6816,7 +6970,7 @@
         window.clearAdminSearch = clearAdminSearch;
         window.refreshAdminOrders = refreshAdminOrders;
         window.updateOrderStatus = updateOrderStatus;
-        window.deleteOrder = deleteOrder;
+        window.deleteOrderImmediately = deleteOrderImmediately;
         window.openDownloads = openDownloads;
         window.closeDownloads = closeDownloads;
         window.openNotifications = openNotifications;
@@ -6886,6 +7040,10 @@
         window.saveProfileChanges = saveProfileChanges;
         window.toggleRpInCart = toggleRpInCart;
         window.applyCartPromo = applyCartPromo;
+        window.openPasswordSecurity = openPasswordSecurity;
+        window.closePasswordSecurity = closePasswordSecurity;
+        window.sendResetLink = sendResetLink;
+        window.changePassword = changePassword;
 
     </script>
 </body>
