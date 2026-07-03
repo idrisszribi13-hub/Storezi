@@ -1726,7 +1726,7 @@
         }
         .edit-profile-form .form-actions .btn-cancel:hover { border-color: var(--danger); color: var(--danger); }
 
-        /* ===== AUTH CONTAINER (متطور) ===== */
+        /* ===== AUTH CONTAINER ===== */
         .auth-container {
             max-width: 400px;
             margin: 20px auto;
@@ -3541,7 +3541,13 @@
         function renderCartFull() {
             const container = document.getElementById('cartFullContent');
             if (cart.length === 0) {
-                container.innerHTML = `<div class="cart-empty"><i class="fas fa-shopping-basket"></i><p>Cart is empty</p></div>`;
+                container.innerHTML = `
+                    <div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
+                        <i class="fas fa-shopping-basket" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i>
+                        <div style="font-size:18px;font-weight:600;font-family:var(--font-en);">Cart is empty</div>
+                        <div style="font-size:13px;opacity:0.4;margin-top:4px;">Start shopping to add items</div>
+                    </div>
+                `;
                 return;
             }
 
@@ -3554,19 +3560,21 @@
                 const product = products.find(p => p.id === item.id);
                 const image = product?.image || item.image || 'https://picsum.photos/seed/default/100/100';
                 html += `
-                    <div class="cart-item">
-                        <div class="item-info">
-                            <img src="${image}" alt="${item.name}" />
-                            <div>
-                                <div class="item-name">${item.name}</div>
-                                <div class="item-price">${itemTotal.toFixed(2)} $</div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);margin-bottom:8px;">
+                        <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
+                            <img src="${image}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" />
+                            <div style="flex:1;min-width:0;">
+                                <div style="font-size:14px;font-weight:600;color:var(--text);font-family:var(--font-en);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.name}</div>
+                                <div style="font-size:12px;color:var(--primary);font-weight:700;font-family:var(--font-en);">$${itemTotal.toFixed(2)}</div>
                             </div>
                         </div>
-                        <div class="item-actions">
-                            <button onclick="updateCartQuantity('${item.id}', -1)">-</button>
-                            <span class="qty">${qty}</span>
-                            <button onclick="updateCartQuantity('${item.id}', 1)">+</button>
-                            <button class="remove-btn" onclick="removeFromCart('${item.id}')"><i class="fas fa-trash-alt"></i></button>
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <button onclick="updateCartQuantity('${item.id}', -1)" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;">-</button>
+                            <span style="min-width:20px;text-align:center;font-size:14px;font-weight:700;font-family:var(--font-en);">${qty}</span>
+                            <button onclick="updateCartQuantity('${item.id}', 1)" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;">+</button>
+                            <button onclick="removeFromCart('${item.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:14px;opacity:0.3;padding:4px;">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
                         </div>
                     </div>
                 `;
@@ -3591,45 +3599,47 @@
             if (finalTotal < 0) finalTotal = 0;
 
             html += `
-                <div class="cart-rp-section">
-                    <div class="rp-row">
-                        <span class="rp-label"><i class="fas fa-star"></i> نقاط الولاء (RP)</span>
-                        <span class="rp-value">${userProfile.rp || 0} RP (≈ $${((userProfile.rp || 0) * RP_TO_DOLLAR).toFixed(2)})</span>
+                <div style="background:var(--bg);border-radius:10px;padding:12px;border:1px solid var(--border);margin:8px 0;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:13px;font-family:var(--font-en);">
+                        <span style="color:var(--text-secondary);opacity:0.5;display:flex;align-items:center;gap:6px;"><i class="fas fa-star" style="color:var(--vip-color);"></i> نقاط الولاء (RP)</span>
+                        <span style="color:var(--text);font-weight:600;">${userProfile.rp || 0} RP (≈ $${((userProfile.rp || 0) * RP_TO_DOLLAR).toFixed(2)})</span>
                     </div>
-                    <button class="rp-btn ${userProfile.useRpForCart ? 'active' : ''}" onclick="toggleRpInCart()">
+                    <button class="rp-btn ${userProfile.useRpForCart ? 'active' : ''}" onclick="toggleRpInCart()" style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;font-family:var(--font-en);transition:0.3s;margin-top:4px;">
                         <i class="fas ${userProfile.useRpForCart ? 'fa-check-circle' : 'fa-circle'}"></i>
                         ${userProfile.useRpForCart ? 'استخدام نقاط RP ✓' : 'استخدام نقاط RP'}
                     </button>
                 </div>
 
-                <div class="cart-promo-section">
-                    <div class="promo-row">
-                        <input id="cartPromoInput" placeholder="أدخل كود الخصم..." type="text" />
-                        <button onclick="applyCartPromo()"><i class="fas fa-ticket-alt"></i> تطبيق</button>
+                <div style="background:var(--bg);border-radius:10px;padding:12px;border:1px solid var(--border);margin:8px 0;">
+                    <div style="display:flex;gap:6px;align-items:center;">
+                        <input id="cartPromoInput" placeholder="أدخل كود الخصم..." style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);font-size:13px;outline:none;font-family:var(--font-en);" type="text" />
+                        <button onclick="applyCartPromo()" style="padding:6px 14px;border:none;border-radius:6px;background:var(--primary);color:#fff;font-weight:600;cursor:pointer;font-size:12px;font-family:var(--font-en);transition:0.3s;white-space:nowrap;">
+                            <i class="fas fa-ticket-alt"></i> تطبيق
+                        </button>
                     </div>
-                    <div class="promo-status" id="cartPromoStatus">${activeDiscount > 0 ? `✅ خصم ${activeDiscount}% مفعل` : 'أدخل كود الخصم للحصول على تخفيض'}</div>
+                    <div class="promo-status" id="cartPromoStatus" style="font-size:11px;color:var(--text-secondary);opacity:0.4;font-family:var(--font-en);margin-top:4px;">${activeDiscount > 0 ? `✅ خصم ${activeDiscount}% مفعل` : 'أدخل كود الخصم للحصول على تخفيض'}</div>
                 </div>
 
-                <div class="cart-summary">
-                    <div class="cs-row">
-                        <span class="cs-label">المجموع الفرعي</span>
-                        <span class="cs-value">$${total.toFixed(2)}</span>
+                <div style="margin-top:12px;padding-top:12px;border-top:2px solid var(--border);">
+                    <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;font-family:var(--font-en);">
+                        <span style="color:var(--text-secondary);opacity:0.5;">المجموع الفرعي</span>
+                        <span style="color:var(--text);font-weight:600;">$${total.toFixed(2)}</span>
                     </div>
                     ${rpDiscountAmount > 0 ? `
-                        <div class="cs-row" style="color:var(--success);">
-                            <span class="cs-label">🎯 خصم RP (${Math.floor(rpDiscountAmount / RP_TO_DOLLAR)} RP)</span>
-                            <span class="cs-value">-$${rpDiscountAmount.toFixed(2)}</span>
+                        <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;font-family:var(--font-en);color:var(--success);">
+                            <span style="color:var(--text-secondary);opacity:0.5;">🎯 خصم RP (${Math.floor(rpDiscountAmount / RP_TO_DOLLAR)} RP)</span>
+                            <span style="font-weight:600;">-$${rpDiscountAmount.toFixed(2)}</span>
                         </div>
                     ` : ''}
                     ${activeDiscount > 0 ? `
-                        <div class="cs-row" style="color:var(--success);">
-                            <span class="cs-label">🎫 خصم (${activeDiscount}%)</span>
-                            <span class="cs-value">-$${promoDiscountAmount.toFixed(2)}</span>
+                        <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;font-family:var(--font-en);color:var(--success);">
+                            <span style="color:var(--text-secondary);opacity:0.5;">🎫 خصم (${activeDiscount}%)</span>
+                            <span style="font-weight:600;">-$${promoDiscountAmount.toFixed(2)}</span>
                         </div>
                     ` : ''}
-                    <div class="cs-row cs-total">
-                        <span class="cs-label">الإجمالي</span>
-                        <span class="cs-value">$${finalTotal.toFixed(2)}</span>
+                    <div style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid var(--border);margin-top:4px;padding-top:6px;font-size:18px;font-weight:800;">
+                        <span style="color:var(--text-secondary);opacity:0.5;">الإجمالي</span>
+                        <span style="color:var(--primary);">$${finalTotal.toFixed(2)}</span>
                     </div>
                     <button onclick="closeCartFull();checkout();" style="width:100%;padding:10px;border:none;border-radius:8px;background:var(--primary);color:#fff;font-weight:700;cursor:pointer;font-size:14px;font-family:var(--font-en);margin-top:10px;transition:0.3s;">
                         <i class="fas fa-credit-card"></i> إتمام الشراء
@@ -3684,21 +3694,27 @@
         function renderWishlistFull() {
             const container = document.getElementById('wishlistFullContent');
             if (wishlist.length === 0) {
-                container.innerHTML = `<div class="wishlist-empty"><i class="fas fa-heart"></i><p>No favorites yet</p></div>`;
+                container.innerHTML = `
+                    <div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
+                        <i class="fas fa-heart" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i>
+                        <div style="font-size:18px;font-weight:600;font-family:var(--font-en);">No favorites yet</div>
+                        <div style="font-size:13px;opacity:0.4;margin-top:4px;">Start adding products to your wishlist</div>
+                    </div>
+                `;
                 return;
             }
 
             const wlProducts = products.filter(p => wishlist.includes(p.id));
             container.innerHTML = `
-                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;">
+                <div style="display:grid;gap:8px;">
                     ${wlProducts.map(p => `
-                        <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--card-bg);border-radius:8px;border:1px solid var(--border);cursor:pointer;" onclick="window.openDetails('${p.id}');closeWishlistFull();">
-                            <img src="${p.image || 'https://picsum.photos/seed/default/60/60'}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;" />
+                        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);cursor:pointer;" onclick="window.openDetails('${p.id}');closeWishlistFull();">
+                            <img src="${p.image || 'https://picsum.photos/seed/default/60/60'}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" />
                             <div style="flex:1;min-width:0;">
-                                <div style="font-size:12px;font-weight:600;color:var(--text);font-family:var(--font-en);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div>
-                                <div style="font-size:11px;color:var(--primary);font-weight:700;font-family:var(--font-en);">${p.price === 0 ? 'FREE' : p.price + ' $'}</div>
+                                <div style="font-size:14px;font-weight:600;color:var(--text);font-family:var(--font-en);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div>
+                                <div style="font-size:12px;color:var(--primary);font-weight:700;font-family:var(--font-en);">${p.price === 0 ? 'FREE' : '$' + p.price}</div>
                             </div>
-                            <button onclick="event.stopPropagation();removeFromWishlist('${p.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:11px;opacity:0.3;transition:0.3s;">
+                            <button onclick="event.stopPropagation();removeFromWishlist('${p.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:14px;opacity:0.3;padding:8px;transition:0.3s;">
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
@@ -3710,7 +3726,13 @@
         function renderProfileFull() {
             const container = document.getElementById('profileFullContent');
             if (!currentUser) {
-                container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);"><i class="fas fa-user-circle" style="font-size:40px;opacity:0.2;display:block;margin-bottom:8px;"></i><p>Please login to view profile</p></div>`;
+                container.innerHTML = `
+                    <div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
+                        <i class="fas fa-user-circle" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i>
+                        <div style="font-size:18px;font-weight:600;font-family:var(--font-en);">Please login</div>
+                        <div style="font-size:13px;opacity:0.4;margin-top:4px;">Login to view your profile</div>
+                    </div>
+                `;
                 return;
             }
 
@@ -3725,7 +3747,7 @@
                             <div style="font-size:13px;color:var(--vip-color);font-weight:700;font-family:var(--font-en);">🎯 RP: ${userProfile.rp || 0}</div>
                         </div>
                     </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
                         <div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center;border:1px solid var(--border);">
                             <div style="font-size:18px;font-weight:800;color:var(--text);font-family:var(--font-en);">${userProfile.history.length}</div>
                             <div style="font-size:10px;color:var(--text-secondary);font-family:var(--font-en);">Orders</div>
@@ -3734,9 +3756,21 @@
                             <div style="font-size:18px;font-weight:800;color:var(--vip-color);font-family:var(--font-en);">${userProfile.rp || 0}</div>
                             <div style="font-size:10px;color:var(--text-secondary);font-family:var(--font-en);">RP Points</div>
                         </div>
+                        <div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center;border:1px solid var(--border);">
+                            <div style="font-size:18px;font-weight:800;color:var(--heart-color);font-family:var(--font-en);">${wishlist.length}</div>
+                            <div style="font-size:10px;color:var(--text-secondary);font-family:var(--font-en);">Favorites</div>
+                        </div>
                     </div>
                 </div>
-                <div style="background:var(--card-bg);border-radius:14px;border:1px solid var(--border);padding:14px;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                    <button onclick="closeProfileFull();openEditProfileModal();" style="padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);color:var(--text);cursor:pointer;font-weight:600;font-size:13px;font-family:var(--font-en);transition:0.3s;">
+                        <i class="fas fa-edit"></i> Edit Profile
+                    </button>
+                    <button onclick="closeProfileFull();openPasswordSecurity();" style="padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);color:var(--text);cursor:pointer;font-weight:600;font-size:13px;font-family:var(--font-en);transition:0.3s;">
+                        <i class="fas fa-key"></i> Security
+                    </button>
+                </div>
+                <div style="margin-top:12px;background:var(--card-bg);border-radius:14px;border:1px solid var(--border);padding:14px;">
                     <div style="font-size:12px;font-weight:600;color:var(--text-secondary);font-family:var(--font-en);text-transform:uppercase;letter-spacing:0.3px;margin-bottom:6px;">Personal Information</div>
                     <div style="display:grid;gap:6px;">
                         <div style="display:flex;padding:4px 0;border-bottom:1px solid var(--border);font-size:14px;font-family:var(--font-en);">
@@ -3756,15 +3790,6 @@
                             <span style="color:var(--text);font-weight:500;">${userProfile.joined || '--'}</span>
                         </div>
                     </div>
-                    <button onclick="closeProfileFull();openEditProfileModal();" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);cursor:pointer;font-weight:600;font-size:14px;font-family:var(--font-en);margin-top:10px;transition:0.3s;">
-                        <i class="fas fa-edit"></i> Edit Profile
-                    </button>
-                    <button onclick="closeProfileFull();openPasswordSecurity();" 
-                        style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;
-                        background:var(--card-bg);color:var(--text);cursor:pointer;font-weight:600;
-                        font-size:14px;font-family:var(--font-en);margin-top:8px;transition:0.3s;">
-                        <i class="fas fa-key"></i> Password & Security
-                    </button>
                 </div>
                 <div style="margin-top:12px;">
                     <div class="telegram-bind-section">
@@ -3772,10 +3797,10 @@
                             <i class="fab fa-telegram-plane" style="color:#0088cc;"></i> Telegram Notifications
                         </div>
                         <div class="tb-row">
-                            <span class="tb-label">الحالة</span>
+                            <span class="tb-label">Status</span>
                             <span class="tb-value">
                                 <span class="tb-status ${userProfile.telegramChatId ? 'linked' : 'unlinked'}">
-                                    ${userProfile.telegramChatId ? '✅ مرتبط' : '❌ غير مرتبط'}
+                                    ${userProfile.telegramChatId ? '✅ Connected' : '❌ Not connected'}
                                 </span>
                             </span>
                         </div>
@@ -3787,14 +3812,14 @@
                         ` : ''}
                         <div class="tb-actions">
                             <button class="btn-bind" onclick="bindTelegram()">
-                                <i class="fas fa-link"></i> ${userProfile.telegramChatId ? 'إعادة الربط' : 'ربط تليجرام'}
+                                <i class="fas fa-link"></i> ${userProfile.telegramChatId ? 'Reconnect' : 'Connect Telegram'}
                             </button>
                             <button class="btn-check" onclick="checkTelegramStatus()">
-                                <i class="fas fa-sync-alt"></i> تحقق
+                                <i class="fas fa-sync-alt"></i> Check
                             </button>
                         </div>
                         <div style="font-size:11px;color:var(--text-secondary);opacity:0.4;margin-top:6px;font-family:var(--font-en);">
-                            اضغط "ربط تليجرام" لاستلام إشعارات الطلبات على تليجرام
+                            Connect Telegram to receive order notifications
                         </div>
                     </div>
                 </div>
@@ -3806,11 +3831,17 @@
             const history = userProfile.history || [];
 
             if (history.length === 0) {
-                container.innerHTML = `<div class="history-empty"><i class="fas fa-shopping-bag"></i><p>No purchases yet</p></div>`;
+                container.innerHTML = `
+                    <div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
+                        <i class="fas fa-shopping-bag" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i>
+                        <div style="font-size:18px;font-weight:600;font-family:var(--font-en);">No purchases yet</div>
+                        <div style="font-size:13px;opacity:0.4;margin-top:4px;">Start shopping to see your orders here</div>
+                    </div>
+                `;
                 return;
             }
 
-            let html = `<div style="display:grid;gap:6px;">`;
+            let html = `<div style="display:grid;gap:8px;">`;
             history.slice().reverse().forEach(item => {
                 const status = item.status || 'pending';
                 const statusMap = {
@@ -3823,17 +3854,17 @@
                 };
                 const info = statusMap[status] || statusMap['pending'];
                 const date = item.date ? new Date(item.date) : new Date();
-                const dateStr = date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+                const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                 const itemsNames = item.items ? item.items.map(i => i.name).join(', ') : 'Order';
                 const total = item.total || 0;
                 html += `
-                    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
-                        <div>
-                            <div style="font-size:14px;font-weight:600;color:var(--text);font-family:var(--font-en);">${itemsNames}</div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);">
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-size:14px;font-weight:600;color:var(--text);font-family:var(--font-en);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${itemsNames}</div>
                             <div style="font-size:11px;color:var(--text-secondary);opacity:0.4;font-family:var(--font-en);">${dateStr}</div>
                             <span class="status-badge ${info.class}" style="font-size:10px;padding:2px 10px;">${info.label}</span>
                         </div>
-                        <span style="font-size:14px;font-weight:700;color:var(--primary);font-family:var(--font-en);">${total > 0 ? total.toFixed(2) + ' $' : 'FREE'}</span>
+                        <span style="font-size:16px;font-weight:700;color:var(--primary);font-family:var(--font-en);">${total > 0 ? '$' + total.toFixed(2) : 'FREE'}</span>
                     </div>
                 `;
             });
@@ -3880,10 +3911,10 @@
 
             if (results.length === 0) {
                 searchResults.innerHTML = `
-                    <div class="search-empty">
-                        <i class="fas fa-search"></i>
-                        <div class="search-empty-title">لا توجد نتائج</div>
-                        <div class="search-empty-sub">لم نجد منتجات تطابق "${searchTerm}"</div>
+                    <div style="text-align:center;padding:16px;color:var(--text-secondary);">
+                        <i class="fas fa-search" style="font-size:24px;opacity:0.2;display:block;margin-bottom:4px;"></i>
+                        <div style="font-size:14px;font-weight:600;font-family:var(--font-en);">لا توجد نتائج</div>
+                        <div style="font-size:12px;opacity:0.4;">لم نجد منتجات تطابق "${searchTerm}"</div>
                     </div>
                 `;
                 searchResults.classList.add('active');
@@ -3893,17 +3924,17 @@
             searchResults.innerHTML = results.slice(0, 10).map(p => {
                 const isFree = p.price === 0;
                 const isUnavailable = p.status === 'unavailable';
-                const priceDisplay = isUnavailable ? '⛔ غير متاح' : (isFree ? 'FREE' : p.price + ' $');
+                const priceDisplay = isUnavailable ? '⛔ غير متاح' : (isFree ? 'FREE' : '$' + p.price);
                 const badgeClass = isUnavailable ? 'unavailable' : (isFree ? 'free' : 'vip');
                 const badgeText = isUnavailable ? '⛔' : (isFree ? 'FREE' : 'VIP');
                 return `
-                    <div class="search-result-item" onclick="window.openDetails('${p.id}'); closeSearchResults();">
-                        <img src="${p.image || 'https://picsum.photos/seed/default/100/100'}" alt="${p.name}" />
-                        <div class="sr-info">
-                            <div class="sr-name">${highlightText(p.name, searchTerm)}</div>
-                            <div class="sr-price">${priceDisplay}</div>
+                    <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;transition:0.2s;border-bottom:1px solid var(--border);" onclick="window.openDetails('${p.id}'); closeSearchResults();">
+                        <img src="${p.image || 'https://picsum.photos/seed/default/100/100'}" style="width:36px;height:36px;border-radius:6px;object-fit:cover;" />
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-size:13px;font-weight:600;color:var(--text);font-family:var(--font-en);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${highlightText(p.name, searchTerm)}</div>
+                            <div style="font-size:12px;color:var(--primary);font-weight:700;font-family:var(--font-en);">${priceDisplay}</div>
                         </div>
-                        <span class="sr-badge ${badgeClass}">${badgeText}</span>
+                        <span style="padding:2px 10px;border-radius:12px;font-size:9px;font-weight:700;font-family:var(--font-en);background:${badgeClass === 'vip' ? 'var(--vip-color)' : badgeClass === 'free' ? 'var(--free-color)' : 'var(--danger)'};color:${badgeClass === 'vip' || badgeClass === 'free' ? '#0a0a1a' : '#fff'};">${badgeText}</span>
                     </div>
                 `;
             }).join('');
@@ -4622,10 +4653,10 @@
             const container = document.getElementById('notificationsList');
             if (!container) return;
             container.innerHTML = `
-                <div style="text-align:center; padding:30px 20px; color:var(--text-secondary);">
-                    <i class="fas fa-bell" style="font-size:36px; opacity:0.15; display:block; margin-bottom:8px;"></i>
-                    <p style="font-size:15px; font-weight:600;">لا توجد إشعارات</p>
-                    <p style="font-size:13px; opacity:0.4; margin-top:2px;">سيتم عرض الإشعارات هنا عند إرسالها</p>
+                <div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
+                    <i class="fas fa-bell" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i>
+                    <div style="font-size:18px;font-weight:600;font-family:var(--font-en);">All caught up</div>
+                    <div style="font-size:13px;opacity:0.4;margin-top:4px;">No new notifications</div>
                 </div>
             `;
         }
@@ -4635,10 +4666,10 @@
             if (!container) return;
             if (!notifications || notifications.length === 0) {
                 container.innerHTML = `
-                    <div style="text-align:center; padding:30px 20px; color:var(--text-secondary);">
-                        <i class="fas fa-bell" style="font-size:36px; opacity:0.15; display:block; margin-bottom:8px;"></i>
-                        <p style="font-size:15px; font-weight:600;">لا توجد إشعارات</p>
-                        <p style="font-size:13px; opacity:0.4; margin-top:2px;">سيتم عرض الإشعارات هنا عند إرسالها</p>
+                    <div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
+                        <i class="fas fa-bell" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i>
+                        <div style="font-size:18px;font-weight:600;font-family:var(--font-en);">All caught up</div>
+                        <div style="font-size:13px;opacity:0.4;margin-top:4px;">No new notifications</div>
                     </div>
                 `;
                 return;
@@ -4651,35 +4682,23 @@
                 try {
                     if (n.createdAt) {
                         const date = n.createdAt.toDate ? n.createdAt.toDate() : new Date(n.createdAt);
-                        dateStr = date.toLocaleDateString('fr-FR', { 
-                            day: '2-digit', 
-                            month: 'short', 
-                            year: 'numeric', 
-                            hour: '2-digit', 
-                            minute: '2-digit' 
-                        });
+                        dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                     }
                 } catch (e) {
-                    dateStr = new Date().toLocaleDateString('fr-FR');
+                    dateStr = new Date().toLocaleDateString('en-US');
                 }
                 html += `
-                    <div class="notification-item ${!isRead ? 'unread' : ''}">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
-                            <div style="flex:1;">
-                                <div class="notification-title">${n.title || '📢 إشعار جديد'}</div>
-                                <div class="notification-message">${n.message || ''}</div>
-                                <div class="notification-date"><i class="far fa-clock"></i> ${dateStr}</div>
-                            </div>
-                            ${!isRead ? '<span class="badge-new">جديد</span>' : ''}
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:${!isRead ? 'var(--primary-glow)' : 'var(--bg)'};border-radius:10px;border:1px solid var(--border);margin-bottom:8px;${!isRead ? 'border-right:3px solid var(--primary);' : ''}">
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-size:14px;font-weight:600;color:var(--text);font-family:var(--font-en);">${n.title || 'Notification'}</div>
+                            <div style="font-size:12px;color:var(--text-secondary);font-family:var(--font-en);">${n.message || ''}</div>
+                            <div style="font-size:11px;color:var(--text-secondary);opacity:0.3;font-family:var(--font-en);">${dateStr}</div>
                         </div>
+                        ${!isRead ? '<span style="background:var(--notification-red);color:#fff;font-size:9px;font-weight:700;padding:2px 10px;border-radius:12px;font-family:var(--font-en);">NEW</span>' : ''}
                     </div>
                 `;
             });
             container.innerHTML = html;
-            
-            if (currentUser && unreadNotifications > 0) {
-                markAllNotificationsRead();
-            }
         }
 
         window.markAllNotificationsRead = async function() {
@@ -4778,22 +4797,26 @@
             const container = document.getElementById('downloadsList');
             if (!container) return;
             if (downloads.length === 0) {
-                container.innerHTML = `<div class="downloads-empty"><i class="fas fa-file"></i><p>Aucun fichier disponible</p></div>`;
+                container.innerHTML = `
+                    <div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
+                        <i class="fas fa-file" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i>
+                        <div style="font-size:18px;font-weight:600;font-family:var(--font-en);">No downloads available</div>
+                        <div style="font-size:13px;opacity:0.4;margin-top:4px;">Check back later for new content</div>
+                    </div>
+                `;
                 return;
             }
             container.innerHTML = downloads.map(d => {
-                const date = d.date || (d.createdAt ? new Date(d.createdAt.toDate()).toLocaleDateString('fr-FR') : '');
+                const date = d.date || (d.createdAt ? new Date(d.createdAt.toDate()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '');
                 return `
-                    <div class="download-item">
-                        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;">
-                            <div class="dl-title">${d.title}</div>
-                            <span class="dl-type">${d.type || 'FICHIER'}</span>
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);margin-bottom:8px;">
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-size:14px;font-weight:600;color:var(--text);font-family:var(--font-en);">${d.title}</div>
+                            <div style="font-size:11px;color:var(--text-secondary);opacity:0.4;font-family:var(--font-en);">${d.type || 'File'} • ${date}</div>
                         </div>
-                        <div class="dl-desc">${d.description || ''}</div>
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;flex-wrap:wrap;gap:4px;">
-                            <span class="dl-date">${date}</span>
-                            <a href="${d.downloadUrl || '#'}" target="_blank" class="dl-btn"><i class="fas fa-download"></i> Télécharger</a>
-                        </div>
+                        <a href="${d.downloadUrl || '#'}" target="_blank" style="padding:6px 16px;border:none;border-radius:8px;background:var(--free-color);color:#0a0a1a;font-weight:600;cursor:pointer;font-size:12px;font-family:var(--font-en);text-decoration:none;transition:0.3s;">
+                            <i class="fas fa-download"></i>
+                        </a>
                     </div>
                 `;
             }).join('');
@@ -4982,10 +5005,16 @@
             const list = document.getElementById('requestsList');
             const requests = userProfile.requests || [];
             if (requests.length === 0) {
-                list.innerHTML = `<div class="history-empty"><i class="fas fa-inbox"></i><p>No requests yet</p></div>`;
+                list.innerHTML = `
+                    <div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
+                        <i class="fas fa-inbox" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i>
+                        <div style="font-size:18px;font-weight:600;font-family:var(--font-en);">No requests yet</div>
+                        <div style="font-size:13px;opacity:0.4;margin-top:4px;">Submit your first script request</div>
+                    </div>
+                `;
             } else {
                 list.innerHTML = requests.slice().reverse().map(req => `
-                    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);margin-bottom:8px;">
                         <div>
                             <div style="font-weight:600;color:var(--text);font-family:var(--font-en);">${req.gameName || 'Untitled'}</div>
                             <div style="font-size:12px;color:var(--text-secondary);opacity:0.4;font-family:var(--font-en);">${new Date(req.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
@@ -5509,7 +5538,6 @@
                 updatePriceUI();
             }
             
-            // Update payable total
             updatePayableTotal();
         };
 
@@ -6954,7 +6982,7 @@
             loadNotifications();
             fetchCryptoPrices();
             setInterval(fetchCryptoPrices, 60000);
-            console.log('✅ ZI Store ready with full auth, payment, admin & FCM V1 notifications!');
+            console.log('✅ ZI Store ready with full auth, payment, admin & notifications!');
         }
 
         init();
