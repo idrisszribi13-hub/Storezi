@@ -6,7 +6,7 @@
     <title>ZI Store · سلة ومفضلة</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsrsasign/10.5.25/jsrsasign-all-min.js"></script>
+    
     <style>
         /* ===== RESET & BASE ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -3460,94 +3460,9 @@
         const TELEGRAM_BOT_TOKEN = '7791691977:AAHhH7dTHt1fQTjNc0pDcJIB21AFW3f5xZU';
         const TELEGRAM_CHAT_ID = '7434624478';
 
-        // ============================================================
-        // FCM V1 - SERVICE ACCOUNT CREDENTIALS
-        // ============================================================
-        // ATTENTION: Replace with your actual Service Account credentials
-        // Download from: Firebase Console > Project Settings > Service Accounts
-        const SERVICE_ACCOUNT = {
-            type: "service_account",
-            project_id: "zi-script-store",
-            private_key_id: "YOUR_PRIVATE_KEY_ID",
-            private_key: "-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY\n-----END PRIVATE KEY-----\n",
-            client_email: "firebase-adminsdk-xxx@zi-script-store.iam.gserviceaccount.com",
-            client_id: "YOUR_CLIENT_ID",
-            auth_uri: "https://accounts.google.com/o/oauth2/auth",
-            token_uri: "https://oauth2.googleapis.com/token",
-            auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
-            client_x509_cert_url: "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-xxx.iam.gserviceaccount.com"
-        };
+        
 
-        let cachedAccessToken = null;
-        let tokenExpiryTime = 0;
-
-        // ============================================================
-        // GET OAuth2 ACCESS TOKEN
-        // ============================================================
-        async function getAccessToken() {
-            if (cachedAccessToken && Date.now() < tokenExpiryTime - 300000) {
-                return cachedAccessToken;
-            }
-
-            try {
-                const jwt = await createJWT();
-                if (!jwt) {
-                    console.warn('⚠️ Failed to create JWT');
-                    return null;
-                }
-
-                const response = await fetch('https://oauth2.googleapis.com/token', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: new URLSearchParams({
-                        grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-                        assertion: jwt
-                    })
-                });
-
-                const data = await response.json();
-                if (data.access_token) {
-                    cachedAccessToken = data.access_token;
-                    tokenExpiryTime = Date.now() + (data.expires_in * 1000);
-                    console.log('✅ FCM V1 Access token obtained');
-                    return cachedAccessToken;
-                } else {
-                    console.error('❌ Failed to get access token:', data);
-                    return null;
-                }
-            } catch (error) {
-                console.error('❌ Error getting access token:', error);
-                return null;
-            }
-        }
-
-        // ============================================================
-        // CREATE JWT FOR SERVICE ACCOUNT
-        // ============================================================
-        async function createJWT() {
-            try {
-                const header = { alg: 'RS256', typ: 'JWT' };
-                const now = Math.floor(Date.now() / 1000);
-                const payload = {
-                    iss: SERVICE_ACCOUNT.client_email,
-                    scope: 'https://www.googleapis.com/auth/firebase.messaging',
-                    aud: 'https://oauth2.googleapis.com/token',
-                    exp: now + 3600,
-                    iat: now
-                };
-
-                const sHeader = JSON.stringify(header);
-                const sPayload = JSON.stringify(payload);
-                
-                const jwt = KJUR.jws.JWS.sign('RS256', sHeader, sPayload, SERVICE_ACCOUNT.private_key);
-                return jwt;
-            } catch (error) {
-                console.error('❌ Error creating JWT:', error);
-                return null;
-            }
-        }
+        
 
         // ============================================================
         // SEND FCM V1 NOTIFICATION
@@ -3675,17 +3590,7 @@
             let results = [];
             for (const userId of userIds) {
                 try {
-                    const result = await sendFCMNotification(userId, title, body, data);
-                    results.push({ userId, ...result });
-                } catch (error) {
-                    results.push({ userId, success: false, error: error.message });
-                }
-            }
 
-            const successful = results.filter(r => r.success).length;
-            console.log(`✅ FCM notifications sent: ${successful}/${userIds.length}`);
-            return { results, successful, total: userIds.length };
-        }
 
         // ============================================================
         // REGISTER FCM TOKEN FOR USER
@@ -3705,28 +3610,6 @@
                 console.log('✅ FCM token registered for user:', userId);
                 return true;
             } catch (error) {
-                console.error('❌ Error registering FCM token:', error);
-                return false;
-            }
-        }
-
-        // ============================================================
-        // UNREGISTER FCM TOKEN
-        // ============================================================
-        async function unregisterFCMToken(userId) {
-            if (!userId) return false;
-            try {
-                const userRef = doc(db, 'users', userId);
-                await updateDoc(userRef, {
-                    fcmToken: null
-                });
-                console.log('🗑️ FCM token unregistered for user:', userId);
-                return true;
-            } catch (error) {
-                console.error('❌ Error unregistering FCM token:', error);
-                return false;
-            }
-        }
 
         // ============================================================
         // EXPOSE FCM FUNCTIONS
