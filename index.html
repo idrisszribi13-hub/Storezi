@@ -9,7 +9,7 @@
     <style>
         /* ===== RESET & BASE ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+
         :root {
             --bg: #0a0a1a;
             --card-bg: rgba(22, 22, 42, 0.95);
@@ -166,50 +166,6 @@
             z-index: 999;
         }
         .search-results.active { display: block; }
-        .search-result-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 14px;
-            cursor: pointer;
-            transition: 0.3s;
-            color: var(--text);
-            border-bottom: 1px solid var(--border);
-        }
-        .search-result-item:last-child { border-bottom: none; }
-        .search-result-item:hover { background: var(--primary-glow); }
-        .search-result-item img {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            object-fit: cover;
-        }
-        .search-result-item .sr-info { flex: 1; min-width: 0; }
-        .search-result-item .sr-info .sr-name {
-            font-size: 14px;
-            font-weight: 600;
-            font-family: var(--font-en);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .search-result-item .sr-info .sr-price {
-            font-size: 12px;
-            color: var(--primary);
-            font-weight: 700;
-            font-family: var(--font-en);
-        }
-        .search-result-item .sr-badge {
-            font-size: 10px;
-            font-weight: 700;
-            padding: 2px 10px;
-            border-radius: 12px;
-            font-family: var(--font-en);
-            white-space: nowrap;
-        }
-        .search-result-item .sr-badge.vip { background: var(--vip-color); color: #0a0a1a; }
-        .search-result-item .sr-badge.free { background: var(--free-color); color: #0a0a1a; }
-        .search-result-item .sr-badge.unavailable { background: var(--danger); color: #fff; }
 
         .header-actions {
             display: flex;
@@ -309,42 +265,6 @@
         .theme-toggle:hover { border-color: var(--primary); color: var(--primary); }
 
         @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
-
-        /* ===== RP DISPLAY ===== */
-        .rp-display-bar {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 10px 16px;
-            border: 1px solid var(--border);
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-        .rp-display-bar .rp-label {
-            font-size: 13px;
-            color: var(--text-secondary);
-            font-family: var(--font-en);
-            opacity: 0.6;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .rp-display-bar .rp-label i { color: var(--vip-color); }
-        .rp-display-bar .rp-value {
-            font-size: 18px;
-            font-weight: 800;
-            color: var(--vip-color);
-            font-family: var(--font-en);
-        }
-        .rp-display-bar .rp-value span {
-            font-size: 13px;
-            font-weight: 400;
-            color: var(--text-secondary);
-            opacity: 0.4;
-        }
 
         /* ===== STATS ===== */
         .stats-grid {
@@ -1245,7 +1165,19 @@
             font-size: 13px;
             font-family: var(--font-en);
         }
-        .wallet-info .w-row .w-label { color: var(--text-secondary); opacity: 0.5; }
+        .wallet-info .w-row .w-label { 
+            color: var(--text-secondary); 
+            opacity: 0.5; 
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .wallet-info .w-row .w-label i { 
+            font-size: 14px;
+            opacity: 0.6;
+            width: 18px;
+            text-align: center;
+        }
         .wallet-info .w-row .w-value { color: var(--text); font-weight: 600; }
         .wallet-info .w-address {
             background: var(--card-bg);
@@ -1369,7 +1301,7 @@
             opacity: 0.4;
         }
 
-        /* ===== FULLSCREEN MODALS ===== */
+        /* ===== FULLSCREEN CART ===== */
         .fullscreen-modal {
             display: none;
             position: fixed;
@@ -1417,7 +1349,200 @@
             color: var(--danger);
         }
 
-        /* ===== USER MENU FULLSCREEN ===== */
+        /* ===== CART STYLES ===== */
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .cart-item:last-child { border-bottom: none; }
+        .cart-item .item-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+        .cart-item .item-info img {
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+        .cart-item .item-info .item-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            font-family: var(--font-en);
+        }
+        .cart-item .item-info .item-price {
+            font-size: 12px;
+            color: var(--primary);
+            font-weight: 700;
+            font-family: var(--font-en);
+        }
+        .cart-item .item-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .cart-item .item-actions button {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            color: var(--text);
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .cart-item .item-actions .qty {
+            min-width: 20px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: var(--font-en);
+        }
+        .cart-item .item-actions .remove-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 13px;
+            opacity: 0.3;
+            padding: 4px;
+        }
+        .cart-item .item-actions .remove-btn:hover { opacity: 1; color: var(--danger); }
+
+        .cart-empty {
+            text-align: center;
+            padding: 30px 0;
+            color: var(--text-secondary);
+        }
+        .cart-empty i { font-size: 32px; opacity: 0.2; display: block; margin-bottom: 6px; }
+
+        /* ===== CART SUMMARY ===== */
+        .cart-summary {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 2px solid var(--border);
+        }
+        .cart-summary .cs-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 14px;
+            font-family: var(--font-en);
+        }
+        .cart-summary .cs-row .cs-label { color: var(--text-secondary); opacity: 0.5; }
+        .cart-summary .cs-row .cs-value { color: var(--text); font-weight: 600; }
+        .cart-summary .cs-total {
+            border-top: 1px solid var(--border);
+            margin-top: 4px;
+            padding-top: 6px;
+            font-size: 18px;
+            font-weight: 800;
+        }
+        .cart-summary .cs-total .cs-value { color: var(--primary); }
+
+        /* ===== RP & PROMO IN CART ===== */
+        .cart-rp-section {
+            background: var(--bg);
+            border-radius: 10px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            margin: 8px 0;
+        }
+        .cart-rp-section .rp-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+            font-size: 13px;
+            font-family: var(--font-en);
+        }
+        .cart-rp-section .rp-row .rp-label { 
+            color: var(--text-secondary); 
+            opacity: 0.5;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .cart-rp-section .rp-row .rp-label i { color: var(--vip-color); }
+        .cart-rp-section .rp-row .rp-value { color: var(--text); font-weight: 600; }
+        .cart-rp-section .rp-btn {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            color: var(--text);
+            cursor: pointer;
+            font-size: 12px;
+            font-family: var(--font-en);
+            transition: 0.3s;
+            margin-top: 4px;
+        }
+        .cart-rp-section .rp-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .cart-rp-section .rp-btn.active { 
+            border-color: var(--primary); 
+            background: var(--primary-glow);
+            color: var(--primary);
+        }
+
+        .cart-promo-section {
+            background: var(--bg);
+            border-radius: 10px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            margin: 8px 0;
+        }
+        .cart-promo-section .promo-row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .cart-promo-section .promo-row input {
+            flex: 1;
+            padding: 6px 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            color: var(--text);
+            font-size: 13px;
+            outline: none;
+            font-family: var(--font-en);
+        }
+        .cart-promo-section .promo-row input:focus { border-color: var(--primary); }
+        .cart-promo-section .promo-row button {
+            padding: 6px 14px;
+            border: none;
+            border-radius: 6px;
+            background: var(--primary);
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 12px;
+            font-family: var(--font-en);
+            transition: 0.3s;
+            white-space: nowrap;
+        }
+        .cart-promo-section .promo-row button:hover { background: var(--primary-hover); }
+        .cart-promo-section .promo-status {
+            font-size: 11px;
+            color: var(--text-secondary);
+            opacity: 0.4;
+            font-family: var(--font-en);
+            margin-top: 4px;
+        }
+        .cart-promo-section .promo-status.success { color: var(--success); opacity: 1; }
+        .cart-promo-section .promo-status.error { color: var(--danger); opacity: 1; }
+
+        /* ===== FULLSCREEN USER MENU ===== */
         .user-menu-full .user-header {
             display: flex;
             align-items: center;
@@ -1583,82 +1708,6 @@
             color: var(--text-secondary);
         }
         .edit-profile-form .form-actions .btn-cancel:hover { border-color: var(--danger); color: var(--danger); }
-
-        /* ===== CART ITEMS ===== */
-        .cart-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border);
-        }
-        .cart-item:last-child { border-bottom: none; }
-        .cart-item .item-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex: 1;
-        }
-        .cart-item .item-info img {
-            width: 44px;
-            height: 44px;
-            border-radius: 8px;
-            object-fit: cover;
-        }
-        .cart-item .item-info .item-name {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text);
-            font-family: var(--font-en);
-        }
-        .cart-item .item-info .item-price {
-            font-size: 12px;
-            color: var(--primary);
-            font-weight: 700;
-            font-family: var(--font-en);
-        }
-        .cart-item .item-actions {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .cart-item .item-actions button {
-            width: 26px;
-            height: 26px;
-            border-radius: 50%;
-            border: 1px solid var(--border);
-            background: var(--card-bg);
-            color: var(--text);
-            cursor: pointer;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .cart-item .item-actions .qty {
-            min-width: 20px;
-            text-align: center;
-            font-size: 14px;
-            font-weight: 700;
-            font-family: var(--font-en);
-        }
-        .cart-item .item-actions .remove-btn {
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            cursor: pointer;
-            font-size: 13px;
-            opacity: 0.3;
-            padding: 4px;
-        }
-        .cart-item .item-actions .remove-btn:hover { opacity: 1; color: var(--danger); }
-
-        .cart-empty {
-            text-align: center;
-            padding: 30px 0;
-            color: var(--text-secondary);
-        }
-        .cart-empty i { font-size: 32px; opacity: 0.2; display: block; margin-bottom: 6px; }
 
         /* ===== AUTH ===== */
         .auth-tabs {
@@ -2569,11 +2618,11 @@
                 <div id="walletInfo">
                     <div class="wallet-info">
                         <div class="w-row">
-                            <span class="w-label">طريقة الدفع</span>
+                            <span class="w-label"><i class="fas fa-credit-card"></i> طريقة الدفع</span>
                             <span class="w-value" id="paymentMethodName">Litecoin</span>
                         </div>
                         <div class="w-row">
-                            <span class="w-label">الشبكة</span>
+                            <span class="w-label"><i class="fas fa-globe"></i> الشبكة</span>
                             <span class="w-value" id="cryptoNetwork">LTC</span>
                         </div>
                         <div class="w-address">
@@ -2581,24 +2630,26 @@
                             <button onclick="copyWalletAddress()"><i class="fas fa-copy"></i> نسخ</button>
                         </div>
                         <div class="w-row">
-                            <span class="w-label">المبلغ</span>
+                            <span class="w-label"><i class="fas fa-coins"></i> المبلغ</span>
                             <span class="w-value" id="cryptoAmount">0.0000 LTC</span>
                         </div>
                         <div class="w-row">
-                            <span class="w-label">سعر الصرف</span>
+                            <span class="w-label"><i class="fas fa-exchange-alt"></i> سعر الصرف</span>
                             <span class="w-value" id="exchangeRate">1 LTC ≈ $42.00 USD</span>
                         </div>
                     </div>
                 </div>
 
                 <div style="margin:8px 0;">
-                    <label style="font-size:13px;color:var(--text-secondary);font-family:var(--font-en);opacity:0.5;">🔗 هاش المعاملة (Transaction Hash)</label>
+                    <label style="font-size:13px;color:var(--text-secondary);font-family:var(--font-en);opacity:0.5;display:flex;align-items:center;gap:6px;">
+                        <i class="fas fa-hashtag" style="color:var(--primary);"></i> هاش المعاملة (Transaction Hash)
+                    </label>
                     <input class="payment-tx-input" id="transactionHashInput" placeholder="ألصق هاش المعاملة هنا..." type="text" />
                 </div>
 
                 <div class="payment-summary">
                     <div class="ps-row">
-                        <span class="ps-label">المجموع</span>
+                        <span class="ps-label">المجموع الفرعي</span>
                         <span class="ps-value" id="step2Subtotal">$0.00</span>
                     </div>
                     <div class="ps-row ps-total">
@@ -2689,32 +2740,12 @@
             </div>
         </header>
 
-        <!-- ===== RP DISPLAY ===== -->
-        <div class="rp-display-bar">
-            <span class="rp-label">
-                <i class="fas fa-star"></i> نقاط الولاء (RP)
-                <span class="info-trigger-sm" onclick="showTooltip(event, 'rp')">?</span>
-            </span>
-            <span class="rp-value" id="rpDisplay">0 <span>RP</span></span>
-        </div>
-
         <!-- ===== STATS ===== -->
         <div class="stats-grid">
             <div class="stat-card"><div class="stat-icon">📦</div><div class="stat-number" id="totalScripts">0</div><div class="stat-label">Total</div></div>
             <div class="stat-card"><div class="stat-icon">🎁</div><div class="stat-number" id="freeScripts">0</div><div class="stat-label">Free</div></div>
             <div class="stat-card"><div class="stat-icon">👑</div><div class="stat-number" id="vipScripts">0</div><div class="stat-label">Premium</div></div>
             <div class="stat-card"><div class="stat-icon">❤️</div><div class="stat-number" id="wishlistStats">0</div><div class="stat-label">Favorites</div></div>
-        </div>
-
-        <!-- ===== REDEEM ===== -->
-        <div class="redeem-section">
-            <span class="redeem-label">
-                <i class="fas fa-gift"></i> Promo Code
-                <span class="info-trigger-sm" onclick="showTooltip(event, 'redeem')">?</span>
-            </span>
-            <input class="redeem-input" id="redeemInput" placeholder="Enter discount code..." type="text" />
-            <button class="redeem-btn" onclick="applyRedeemCode()"><i class="fas fa-ticket-alt"></i> Apply</button>
-            <span class="redeem-info" id="redeemStatus">Enter SAVE10, SAVE15, WELCOME, VIP2024, SUMMER</span>
         </div>
 
         <!-- ===== FILTERS ===== -->
@@ -3175,13 +3206,13 @@
         import { getAnalytics } from "firebase/analytics";
 
         const firebaseConfig = {
-  apiKey: "AIzaSyBHOtG80SLxCTvcc9WSYo9V69tkFvfJnz4",
-  authDomain: "zi-script-store.firebaseapp.com",
-  projectId: "zi-script-store",
-  storageBucket: "zi-script-store.firebasestorage.app",
-  messagingSenderId: "925432917209",
-  appId: "1:925432917209:web:ee9b329911d95d831622c8",
-  measurementId: "G-J8YFD51CMR"
+            apiKey: "AIzaSyBHOtG80SLxCTvcc9WSYo9V69tkFvfJnz4",
+            authDomain: "zi-script-store.firebaseapp.com",
+            projectId: "zi-script-store",
+            storageBucket: "zi-script-store.firebasestorage.app",
+            messagingSenderId: "925432917209",
+            appId: "1:925432917209:web:ee9b329911d95d831622c8",
+            measurementId: "G-J8YFD51CMR"
         };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -3495,41 +3526,123 @@
                 `;
             });
 
-            const rpDiscount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total);
-            const finalTotal = total - rpDiscount;
-            const discountAmount = activeDiscount > 0 ? (finalTotal * activeDiscount / 100) : 0;
-            const grandTotal = finalTotal - discountAmount;
+            // Calculate discounts
+            let subtotal = total;
+            let rpDiscountAmount = 0;
+            let promoDiscountAmount = 0;
+            let finalTotal = total;
+
+            // RP Discount
+            if (userProfile.useRpForCart) {
+                const maxRpDiscount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total);
+                rpDiscountAmount = maxRpDiscount;
+                finalTotal = total - rpDiscountAmount;
+            }
+
+            // Promo Discount
+            if (activeDiscount > 0 && total > 0) {
+                promoDiscountAmount = (finalTotal * activeDiscount) / 100;
+                finalTotal = finalTotal - promoDiscountAmount;
+            }
+            
+            if (finalTotal < 0) finalTotal = 0;
 
             html += `
-                <div style="padding:12px 0;border-top:2px solid var(--border);margin-top:6px;">
-                    <div style="display:flex;justify-content:space-between;font-size:14px;color:var(--text-secondary);padding:2px 0;">
-                        <span>Subtotal</span>
-                        <span>${total.toFixed(2)} $</span>
+                <div class="cart-rp-section">
+                    <div class="rp-row">
+                        <span class="rp-label"><i class="fas fa-star"></i> نقاط الولاء (RP)</span>
+                        <span class="rp-value">${userProfile.rp || 0} RP (≈ $${((userProfile.rp || 0) * RP_TO_DOLLAR).toFixed(2)})</span>
                     </div>
-                    ${rpDiscount > 0 ? `
-                        <div style="display:flex;justify-content:space-between;font-size:14px;color:var(--success);padding:2px 0;">
-                            <span>RP Discount (${Math.min((userProfile.rp || 0), Math.floor(total / RP_TO_DOLLAR))} RP)</span>
-                            <span>-${rpDiscount.toFixed(2)} $</span>
+                    <button class="rp-btn ${userProfile.useRpForCart ? 'active' : ''}" onclick="toggleRpInCart()">
+                        <i class="fas ${userProfile.useRpForCart ? 'fa-check-circle' : 'fa-circle'}"></i>
+                        ${userProfile.useRpForCart ? 'استخدام نقاط RP ✓' : 'استخدام نقاط RP'}
+                    </button>
+                </div>
+
+                <div class="cart-promo-section">
+                    <div class="promo-row">
+                        <input id="cartPromoInput" placeholder="أدخل كود الخصم..." type="text" />
+                        <button onclick="applyCartPromo()"><i class="fas fa-ticket-alt"></i> تطبيق</button>
+                    </div>
+                    <div class="promo-status" id="cartPromoStatus">${activeDiscount > 0 ? `✅ خصم ${activeDiscount}% مفعل` : 'أدخل كود الخصم للحصول على تخفيض'}</div>
+                </div>
+
+                <div class="cart-summary">
+                    <div class="cs-row">
+                        <span class="cs-label">المجموع الفرعي</span>
+                        <span class="cs-value">$${total.toFixed(2)}</span>
+                    </div>
+                    ${rpDiscountAmount > 0 ? `
+                        <div class="cs-row" style="color:var(--success);">
+                            <span class="cs-label">🎯 خصم RP (${Math.floor(rpDiscountAmount / RP_TO_DOLLAR)} RP)</span>
+                            <span class="cs-value">-$${rpDiscountAmount.toFixed(2)}</span>
                         </div>
                     ` : ''}
                     ${activeDiscount > 0 ? `
-                        <div style="display:flex;justify-content:space-between;font-size:14px;color:var(--success);padding:2px 0;">
-                            <span>Promo (${activeDiscount}%)</span>
-                            <span>-${discountAmount.toFixed(2)} $</span>
+                        <div class="cs-row" style="color:var(--success);">
+                            <span class="cs-label">🎫 خصم (${activeDiscount}%)</span>
+                            <span class="cs-value">-$${promoDiscountAmount.toFixed(2)}</span>
                         </div>
                     ` : ''}
-                    <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:800;padding-top:6px;border-top:1px solid var(--border);">
-                        <span>Total</span>
-                        <span style="color:var(--primary);">${grandTotal.toFixed(2)} $</span>
+                    <div class="cs-row cs-total">
+                        <span class="cs-label">الإجمالي</span>
+                        <span class="cs-value">$${finalTotal.toFixed(2)}</span>
                     </div>
                     <button onclick="closeCartFull();checkout();" style="width:100%;padding:10px;border:none;border-radius:8px;background:var(--primary);color:#fff;font-weight:700;cursor:pointer;font-size:14px;font-family:var(--font-en);margin-top:10px;transition:0.3s;">
-                        <i class="fas fa-credit-card"></i> Proceed to Checkout
+                        <i class="fas fa-credit-card"></i> إتمام الشراء
                     </button>
                 </div>
             `;
 
             container.innerHTML = html;
         }
+
+        // ============================================================
+        // RP TOGGLE IN CART
+        // ============================================================
+        window.toggleRpInCart = function() {
+            userProfile.useRpForCart = !userProfile.useRpForCart;
+            saveUserData();
+            renderCartFull();
+        };
+
+        // ============================================================
+        // PROMO IN CART
+        // ============================================================
+        window.applyCartPromo = function() {
+            const input = document.getElementById('cartPromoInput');
+            const code = input.value.trim().toUpperCase();
+            const statusEl = document.getElementById('cartPromoStatus');
+            
+            if (!code) {
+                statusEl.textContent = '⚠️ الرجاء إدخال كود';
+                statusEl.className = 'promo-status error';
+                return;
+            }
+
+            const discountCodes = {
+                'SAVE10': { discount: 10 },
+                'SAVE15': { discount: 15 },
+                'WELCOME': { discount: 10 },
+                'VIP2024': { discount: 15 },
+                'SUMMER': { discount: 10 }
+            };
+
+            const codeData = discountCodes[code];
+            if (!codeData) {
+                statusEl.textContent = '❌ كود غير صالح';
+                statusEl.className = 'promo-status error';
+                return;
+            }
+
+            activeDiscount = codeData.discount;
+            activeDiscountCode = code;
+            statusEl.textContent = `✅ خصم ${codeData.discount}% مفعل!`;
+            statusEl.className = 'promo-status success';
+            input.value = '';
+            renderCartFull();
+            showToast(`🎉 خصم ${codeData.discount}% مفعل!`, 'success');
+        };
 
         function renderWishlistFull() {
             const container = document.getElementById('wishlistFullContent');
@@ -3610,7 +3723,6 @@
                         <i class="fas fa-edit"></i> Edit Profile
                     </button>
                 </div>
-                <!-- Telegram Bind Section -->
                 <div style="margin-top:12px;">
                     <div class="telegram-bind-section">
                         <div style="font-size:14px;font-weight:700;color:var(--text);font-family:var(--font-en);margin-bottom:6px;">
@@ -3856,7 +3968,6 @@
             }
             
             try {
-                // Send a message to the bot to get the chat ID
                 const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -3876,7 +3987,6 @@
                 const data = await response.json();
                 if (data.ok) {
                     showToast('📨 تم إرسال طلب الربط إلى تليجرام!', 'success');
-                    // Open Telegram
                     window.open(`https://t.me/${TELEGRAM_BOT_TOKEN.split(':')[0]}`, '_blank');
                 } else {
                     showToast('❌ خطأ في إرسال طلب الربط', 'error');
@@ -3894,7 +4004,6 @@
             }
             
             try {
-                // Check if user has a chat ID stored
                 const userRef = doc(db, 'users', currentUser.uid);
                 const userSnap = await getDoc(userRef);
                 if (userSnap.exists()) {
@@ -3913,21 +4022,16 @@
             }
         };
 
-        // Handle Telegram callback data
         async function handleTelegramCallback(callbackData) {
             if (callbackData.startsWith('bind_')) {
                 const userId = callbackData.replace('bind_', '');
                 try {
-                    // Get the user's chat ID from the callback query
-                    // In a real implementation, you'd store the chat ID in Firestore
-                    // For now, we'll use the chat ID from the message
                     const userRef = doc(db, 'users', userId);
                     await updateDoc(userRef, {
                         telegramChatId: TELEGRAM_CHAT_ID,
                         telegramLinkedAt: serverTimestamp()
                     });
                     
-                    // Send confirmation
                     await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -4237,7 +4341,8 @@
             referralCode: '',
             referrals: [],
             referralRewards: 0,
-            rp: 0
+            rp: 0,
+            useRpForCart: false
         };
 
         // ============================================================
@@ -4297,6 +4402,7 @@
                     userProfile.location = data.location || 'Tunisia';
                     userProfile.lang = data.lang || 'Arabic';
                     userProfile.joined = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '--';
+                    userProfile.useRpForCart = data.useRpForCart || false;
                     
                     updateWishlistUI();
                     updateCartUI();
@@ -4323,6 +4429,7 @@
                         referrals: [], 
                         referralRewards: 0, 
                         rp: 0,
+                        useRpForCart: false,
                         createdAt: serverTimestamp(), 
                         updatedAt: serverTimestamp() 
                     });
@@ -4379,6 +4486,7 @@
                     telegramChatId: userProfile.telegramChatId,
                     location: userProfile.location,
                     lang: userProfile.lang,
+                    useRpForCart: userProfile.useRpForCart,
                     updatedAt: serverTimestamp() 
                 }, { merge: true });
                 localStorage.setItem('zi_wishlist_backup', JSON.stringify(wishlist));
@@ -5103,6 +5211,7 @@
                     referrals: [],
                     referralRewards: 0,
                     rp: 0,
+                    useRpForCart: false,
                     referralCode: newReferralCode,
                     referredBy: referrerId || '',
                     createdAt: serverTimestamp(),
@@ -5267,19 +5376,24 @@
             document.getElementById('paymentStep1').style.display = 'none';
             document.getElementById('paymentStep2').classList.add('active');
             
-            // Render products
             renderPaymentProducts();
             
-            // Update totals
             let total = 0;
             cart.forEach(item => {
                 const qty = item.quantity || 1;
                 total += item.price * qty;
             });
-            const rpDiscount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total);
-            let finalTotal = total - rpDiscount;
+            
+            let rpDiscountAmount = 0;
+            if (userProfile.useRpForCart) {
+                rpDiscountAmount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total);
+            }
+            let finalTotal = total - rpDiscountAmount;
+            
+            let promoDiscountAmount = 0;
             if (activeDiscount > 0 && total > 0) {
-                finalTotal = finalTotal - (finalTotal * activeDiscount / 100);
+                promoDiscountAmount = (finalTotal * activeDiscount) / 100;
+                finalTotal = finalTotal - promoDiscountAmount;
             }
             if (finalTotal < 0) finalTotal = 0;
             
@@ -5362,10 +5476,11 @@
             let finalTotal = total;
             let discountText = '';
             
-            const rpDiscount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total);
-            if (rpDiscount > 0) {
-                finalTotal = total - rpDiscount;
-                discountText += `\n🎯 RP Discount (${Math.floor(rpDiscount / RP_TO_DOLLAR)} RP): -${rpDiscount.toFixed(2)}$`;
+            let rpDiscountAmount = 0;
+            if (userProfile.useRpForCart) {
+                rpDiscountAmount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total);
+                finalTotal = total - rpDiscountAmount;
+                discountText += `\n🎯 RP Discount (${Math.floor(rpDiscountAmount / RP_TO_DOLLAR)} RP): -${rpDiscountAmount.toFixed(2)}$`;
             }
             
             if (activeDiscount > 0 && total > 0) {
@@ -5400,26 +5515,26 @@
                 date: new Date().toISOString(),
                 status: 'pending',
                 txHash: txHash || null,
-                rpUsed: Math.floor(rpDiscount / RP_TO_DOLLAR) || 0
+                rpUsed: Math.floor(rpDiscountAmount / RP_TO_DOLLAR) || 0
             };
 
-            const rpToDeduct = Math.floor(rpDiscount / RP_TO_DOLLAR);
+            const rpToDeduct = Math.floor(rpDiscountAmount / RP_TO_DOLLAR);
             if (rpToDeduct > 0) {
                 userProfile.rp = (userProfile.rp || 0) - rpToDeduct;
+                userProfile.useRpForCart = false;
             }
 
             const userRef = doc(db, 'users', currentUser.uid);
             updateDoc(userRef, { 
                 history: arrayUnion(orderItem),
-                rp: userProfile.rp || 0
+                rp: userProfile.rp || 0,
+                useRpForCart: false
             }).catch(console.error);
             userProfile.history.push(orderItem);
 
-            // Send to Telegram (Main admin)
             const telegramUrl = `https://t.me/Mitalica69?text=${encodeURIComponent(msg)}`;
             window.open(telegramUrl, '_blank');
 
-            // Send to user's Telegram if linked
             if (userProfile.telegramChatId) {
                 const userMsg = `🛒 *طلب جديد*\n\n📦 #${orderItem.id.slice(-6)}\n💰 ${finalTotal.toFixed(2)}$\n📅 ${new Date().toLocaleString()}\n\nشكراً لتسوقك معنا! سيتم معالجة طلبك قريباً.`;
                 sendTelegramNotification(userMsg);
@@ -5714,7 +5829,6 @@
                     `<span style="display:inline-block;background:var(--bg);padding:2px 8px;border-radius:10px;font-size:11px;border:1px solid var(--border);margin:1px;">${item.name} ×${item.quantity || 1}</span>`
                 ).join('') : '—';
                 const total = order.total || 0;
-                // Safe slice - ensure orderId is a string
                 const orderIdStr = String(order.orderId || order.id || '');
                 const orderId = orderIdStr.slice(-6) || '------';
 
@@ -5802,7 +5916,6 @@
                 const statusLabel = statusLabels[newStatus] || newStatus;
                 showToast(`📦 تم تحديث الطلب إلى ${statusLabel}`, 'success');
                 
-                // Send notification to user's Telegram if linked
                 if (updatedOrder && data.telegramChatId) {
                     const itemsNames = updatedOrder.items ? updatedOrder.items.map(i => i.name).join(', ') : 'طلبك';
                     const msg = `📦 *تحديث الطلب #${String(orderId).slice(-6)}*\n\n${itemsNames}\n\n🔄 الحالة: ${statusLabel}`;
@@ -6250,12 +6363,20 @@
                 const qty = item.quantity || 1;
                 totalSum += item.price * qty;
             });
-            const rpDiscount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, totalSum);
-            let finalTotal = totalSum - rpDiscount;
+            
+            let rpDiscountAmount = 0;
+            if (userProfile.useRpForCart) {
+                rpDiscountAmount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, totalSum);
+            }
+            let finalTotal = totalSum - rpDiscountAmount;
+            
+            let promoDiscountAmount = 0;
             if (activeDiscount > 0 && totalSum > 0) {
-                finalTotal = finalTotal - (finalTotal * activeDiscount / 100);
+                promoDiscountAmount = (finalTotal * activeDiscount) / 100;
+                finalTotal = finalTotal - promoDiscountAmount;
             }
             if (finalTotal < 0) finalTotal = 0;
+            
             if (cart.length === 0) {
                 bar.classList.remove('open');
                 return;
@@ -6761,6 +6882,8 @@
         window.openEditProfileModal = openEditProfileModal;
         window.closeEditProfileModal = closeEditProfileModal;
         window.saveProfileChanges = saveProfileChanges;
+        window.toggleRpInCart = toggleRpInCart;
+        window.applyCartPromo = applyCartPromo;
 
     </script>
 </body>
