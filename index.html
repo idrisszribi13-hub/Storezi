@@ -3647,10 +3647,14 @@
         const analytics = getAnalytics(app);
 
         // ============================================================
-        // CONSTANTS (آمنة - استخدم متغيرات البيئة في الإنتاج)
+        // CONSTANTS - التعديل المطلوب للربط
         // ============================================================
         const ADMIN_EMAIL = 'zribiidriss3@gmail.com';
+        // البوت الرئيسي للإشعارات (نفس البوت المستخدم حالياً)
         const TELEGRAM_BOT_TOKEN = '8687744794:AAGeeNrEU-iQLRmg3dLvYkWhddtYo_sJ1tc';
+        // البوت الثاني المخصص لعملية الربط (قم بإنشائه من @BotFather ثم ضع التوكن هنا)
+        const TELEGRAM_BIND_BOT_TOKEN = '8884982867:AAH7WHhCwy-jTjzAugLVyiIwUIu7Pghdq8k';
+        // معرف المدير (أنت)
         const TELEGRAM_CHAT_ID = '7434396478';
 
         let currentUser = null;
@@ -4417,7 +4421,7 @@
         }
 
         // ============================================================
-        // TELEGRAM BIND FUNCTIONS
+        // TELEGRAM BIND FUNCTIONS - المعدل
         // ============================================================
         window.bindTelegram = async function() {
             if (!currentUser) {
@@ -4439,8 +4443,9 @@
                     status: 'pending'
                 });
 
-                // إرسال رسالة إلى بوت التليجرام
-                const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                // إرسال رسالة إلى بوت التليجرام المخصص للربط (البوت الثاني)
+                // باستخدام TELEGRAM_BIND_BOT_TOKEN
+                const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BIND_BOT_TOKEN}/sendMessage`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -4453,7 +4458,7 @@
                 const data = await response.json();
                 if (data.ok) {
                     showToast('📨 تم إرسال طلب الربط إلى تليجرام!', 'success');
-                    window.open(`https://t.me/${TELEGRAM_BOT_TOKEN.split(':')[0]}`, '_blank');
+                    window.open(`https://t.me/${TELEGRAM_BIND_BOT_TOKEN.split(':')[0]}`, '_blank');
                     
                     // بدء مراقبة حالة الربط
                     startBindingListener(bindCode);
