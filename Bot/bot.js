@@ -1,21 +1,17 @@
 const TelegramBot = require('node-telegram-bot-api');
 const express = require('express');
-const bodyParser = require('body-parser');
 
-// ============= 1. تعريف Express App أولاً =============
-const app = express();
-app.use(bodyParser.json());
-
-// ============= 2. تعريف البوت =============
+// تأكد من وجود التوكن
 const token = process.env.BOT_TOKEN;
 if (!token) {
     console.error('❌ BOT_TOKEN is not set!');
     process.exit(1);
 }
 
+// إنشاء البوت
 const bot = new TelegramBot(token, { polling: true });
 
-// ============= 3. Firebase =============
+// ============= Firebase =============
 const { initializeApp } = require('firebase/app');
 const { getFirestore, doc, getDoc, updateDoc, serverTimestamp } = require('firebase/firestore');
 
@@ -31,7 +27,7 @@ const firebaseConfig = {
 const fbApp = initializeApp(firebaseConfig);
 const db = getFirestore(fbApp);
 
-// ============= 4. أوامر البوت =============
+// ============= معالج الأوامر =============
 
 bot.onText(/\/start/, (msg) => {
     const chatId = msg.chat.id;
@@ -53,7 +49,10 @@ bot.onText(/\/chatid/, (msg) => {
     bot.sendMessage(chatId, `🆔 **Chat ID الخاص بك هو:** \`${chatId}\``, { parse_mode: 'Markdown' });
 });
 
-// ============= 5. Webhook =============
+// ============= Webhook للربط =============
+const app = express();
+app.use(express.json());
+
 app.post('/webhook', async (req, res) => {
     try {
         const { message } = req.body;
@@ -94,7 +93,8 @@ app.post('/webhook', async (req, res) => {
     }
 });
 
-// ============= 6. معالج الرسائل العامة =============
+// ============= معالج الرسائل العامة =============
+
 bot.on('message', (msg) => {
     const chatId = msg.chat.id;
     const text = msg.text;
@@ -108,7 +108,8 @@ bot.on('message', (msg) => {
     }
 });
 
-// ============= 7. تشغيل السيرفر =============
+// ============= تشغيل السيرفر =============
+
 const PORT = process.env.PORT || 3000;
 
 app.get('/', (req, res) => {
