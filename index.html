@@ -2525,6 +2525,7 @@
             display: flex;
             gap: 6px;
             margin-top: 8px;
+            flex-wrap: wrap;
         }
         .telegram-bind-section .tb-actions button {
             padding: 6px 16px;
@@ -2551,6 +2552,14 @@
         .telegram-bind-section .tb-actions .btn-check:hover {
             border-color: var(--primary);
             color: var(--primary);
+        }
+        .telegram-bind-section .tb-actions .btn-test {
+            background: var(--success);
+            color: #0a0a1a;
+            border: none;
+        }
+        .telegram-bind-section .tb-actions .btn-test:hover {
+            opacity: 0.8;
         }
 
         .add-btn {
@@ -3696,7 +3705,9 @@
         const analytics = getAnalytics(app);
 
         const ADMIN_EMAIL = 'zribiidriss3@gmail.com';
+        // ✅ بوت الإشعارات العام
         const TELEGRAM_BOT_TOKEN = '8687744794:AAGeeNrEU-iQLRmg3dLvYkWhddtYo_sJ1tc';
+        // ✅ بوت الربط المخصص (Zistore_Notif_bot)
         const TELEGRAM_BIND_BOT_TOKEN = '8884982867:AAH7WHhCwy-jTjzAugLVyiIwUIu7Pghdq8k';
         const TELEGRAM_CHAT_ID = '7434396478';
 
@@ -3740,6 +3751,35 @@
             usdt: { name: 'USDT (ERC20)', icon: 'fas fa-coins', network: 'ERC20', address: '0x1234567890abcdef1234567890abcdef12345678', currency: 'USDT', color: '#26a17b' }
         };
         let cryptoPrices = { ltc: 0, usdt: 1, lastUpdate: null, isUpdating: false };
+
+        // ✅ وظيفة موحدة لإرسال الإشعارات إلى تيليجرام
+        async function sendTelegramNotification(chatId, message) {
+            if (!chatId) {
+                console.error('❌ No chatId provided');
+                return false;
+            }
+            try {
+                const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: chatId,
+                        text: message,
+                        parse_mode: 'Markdown'
+                    })
+                });
+                const data = await response.json();
+                if (!data.ok) {
+                    console.error('❌ Telegram API error:', data.description);
+                    return false;
+                }
+                console.log('✅ Telegram notification sent to:', chatId);
+                return true;
+            } catch (error) {
+                console.error('❌ Send notification error:', error);
+                return false;
+            }
+        }
 
         // toast
         function showToast(message, type = 'success') {
@@ -4213,6 +4253,7 @@
               <div class="tb-actions">
                 <button class="btn-bind" onclick="bindTelegram()"><i class="fas fa-link"></i> ${userProfile.telegramChatId?'Re-link':'Link Telegram'}</button>
                 <button class="btn-check" onclick="checkTelegramStatus()"><i class="fas fa-sync-alt"></i> Check</button>
+                ${userProfile.telegramChatId ? `<button class="btn-test" onclick="testTelegramNotification()"><i class="fas fa-paper-plane"></i> Test</button>` : ''}
               </div>
               <div style="font-size:11px;color:var(--text-secondary);opacity:0.4;margin-top:6px;font-family:var(--font);">Link Telegram to receive order notifications</div>
             </div>
@@ -4278,6 +4319,23 @@
                 showToast('❌ ' + error.message, 'error'); }
         };
 
+        // ✅ اختبار الإشعارات
+        window.testTelegramNotification = async function() {
+            if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
+            if (!userProfile.telegramChatId) { showToast('⚠️ No Telegram linked', 'warning'); return; }
+
+            const result = await sendTelegramNotification(
+                userProfile.telegramChatId,
+                `🔔 *Test Notification*\n\nThis is a test message from ZI Store.\n📅 ${new Date().toLocaleString()}\n\nIf you see this, notifications are working properly! ✅`
+            );
+
+            if (result) {
+                showToast('✅ Test notification sent! Check your Telegram.', 'success');
+            } else {
+                showToast('❌ Failed to send test notification. Check your Chat ID.', 'error');
+            }
+        };
+
         // history
         function renderHistoryFull() {
             const container = document.getElementById('historyFullContent');
@@ -4290,7 +4348,8 @@
             let html = `<div style="display:grid;gap:8px;">`;
             history.slice().reverse().forEach(item => {
                 const status = item.status || 'pending';
-                const statusMap = { 'pending': { label: '⏳ Pending', class: 'pending' }, 'preparing': { label: '📦 Preparing', class: 'preparing' }, 'shipped': { label: '🚚 Shipped', class: 'shipped' }, 'delivered': { label: '✅ Delivered', class: 'delivered' }, 'completed': { label: '✅ Completed', class: 'completed' }, 'rejected': { label: '❌ Rejected', class: 'rejected' } };
+                const statusMap = { 'pending': { label: '⏳ Pending', class: 'pending' }, 'preparing': { label: '📦 Preparing', class: 'preparing' }, 'shipped': { label: '🚚 Shipped', class: 'shipped' },
+                    'delivered': { label: '✅ Delivered', class: 'delivered' }, 'completed': { label: '✅ Completed', class: 'completed' }, 'rejected': { label: '❌ Rejected', class: 'rejected' } };
                 const info = statusMap[status] || statusMap['pending'];
                 const date = item.date ? new Date(item.date) : new Date();
                 const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -4959,6 +5018,8 @@
                     showToast('✅ Address copied!', 'success'); });
             }
         };
+
+        // ✅ وظيفة إنشاء الطلب وإرسال الإشعارات
         window.placeOrder = function() {
             const txHash = document.getElementById('transactionHashInput').value.trim();
             if (selectedPayment === 'litecoin' || selectedPayment === 'usdt') {
@@ -4989,19 +5050,10 @@
             }).join('');
         }
 
-        async function sendTelegramNotification(message) {
-            try {
-                const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: message, parse_mode: 'Markdown' })
-                });
-                return await response.json();
-            } catch (error) { console.error('Telegram send error:', error); return null; }
-        }
-
+        // ✅ وظيفة إرسال الطلب مع الإشعارات (محسنة)
         function sendOrderToTelegram(method, txHash = null) {
             if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
+
             let total = 0;
             let itemsList = '';
             cart.forEach((item, i) => {
@@ -5010,30 +5062,57 @@
                 total += sub;
                 itemsList += `${i+1}. ${item.name} × ${qty} = ${sub.toFixed(2)} $\n`;
             });
+
             let finalTotal = total;
             let discountText = '';
             let rpDiscountAmount = 0;
-            if (userProfile.useRpForCart) { rpDiscountAmount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total);
+            if (userProfile.useRpForCart) {
+                rpDiscountAmount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total);
                 finalTotal = total - rpDiscountAmount;
-                discountText += `\n🎯 RP discount (${Math.floor(rpDiscountAmount/RP_TO_DOLLAR)} RP): -${rpDiscountAmount.toFixed(2)}$`; }
-            if (activeDiscount > 0 && total > 0) { const discountAmount = (finalTotal * activeDiscount) / 100;
+                discountText += `\n🎯 RP discount (${Math.floor(rpDiscountAmount/RP_TO_DOLLAR)} RP): -${rpDiscountAmount.toFixed(2)}$`;
+            }
+            if (activeDiscount > 0 && total > 0) {
+                const discountAmount = (finalTotal * activeDiscount) / 100;
                 finalTotal = finalTotal - discountAmount;
-                discountText += `\n🎫 Promo (${activeDiscount}%): -${discountAmount.toFixed(2)}$`; }
-            let msg = '🛒 **New Order**\n\n';
-            msg += `👤 **Customer:** ${currentUser.displayName || currentUser.email || 'Unknown'}\n`;
-            msg += `📧 **Email:** ${currentUser.email || 'N/A'}\n`;
-            msg += `📅 **Date:** ${new Date().toLocaleString()}\n\n`;
-            msg += `📦 **Products:**\n${itemsList}\n`;
-            msg += `💰 **Subtotal:** ${total.toFixed(2)}$`;
-            if (discountText) msg += discountText;
-            msg += `\n💵 **Total:** ${finalTotal.toFixed(2)}$`;
-            msg += `\n💬 **Payment Method:** ${method}`;
-            if (method === 'litecoin') { msg += `\n📍 **LTC Address:** ${paymentWallets.litecoin.address}`; if (txHash) msg +=
-                    `\n🔍 **Tx Hash:** ${txHash}`; } else if (method === 'usdt') { msg +=
-                    `\n📍 **USDT Address:** ${paymentWallets.usdt.address}`; if (txHash) msg += `\n🔍 **Tx Hash:** ${txHash}`; }
-            msg += `\n\n📎 **Order ID:** #${Date.now().toString().slice(-6)}`;
+                discountText += `\n🎫 Promo (${activeDiscount}%): -${discountAmount.toFixed(2)}$`;
+            }
+
+            const orderId = 'order_' + Date.now();
+
+            // رسالة المدير
+            let adminMsg = '🛒 **New Order**\n\n';
+            adminMsg += `👤 **Customer:** ${currentUser.displayName || currentUser.email || 'Unknown'}\n`;
+            adminMsg += `📧 **Email:** ${currentUser.email || 'N/A'}\n`;
+            adminMsg += `📅 **Date:** ${new Date().toLocaleString()}\n\n`;
+            adminMsg += `📦 **Products:**\n${itemsList}\n`;
+            adminMsg += `💰 **Subtotal:** ${total.toFixed(2)}$`;
+            if (discountText) adminMsg += discountText;
+            adminMsg += `\n💵 **Total:** ${finalTotal.toFixed(2)}$`;
+            adminMsg += `\n💬 **Payment Method:** ${method}`;
+            if (method === 'litecoin') {
+                adminMsg += `\n📍 **LTC Address:** ${paymentWallets.litecoin.address}`;
+                if (txHash) adminMsg += `\n🔍 **Tx Hash:** ${txHash}`;
+            } else if (method === 'usdt') {
+                adminMsg += `\n📍 **USDT Address:** ${paymentWallets.usdt.address}`;
+                if (txHash) adminMsg += `\n🔍 **Tx Hash:** ${txHash}`;
+            }
+            adminMsg += `\n\n📎 **Order ID:** #${orderId.slice(-6)}`;
+
+            // 1️⃣ إرسال إشعار للمدير
+            sendTelegramNotification(TELEGRAM_CHAT_ID, adminMsg);
+
+            // 2️⃣ إرسال إشعار للمستخدم إذا كان مربطاً
+            if (userProfile.telegramChatId) {
+                const userMsg = `🛒 *New Order*\n\n📦 #${orderId.slice(-6)}\n💰 ${finalTotal.toFixed(2)}$\n📅 ${new Date().toLocaleString()}\n\nThank you for shopping with us! Your order will be processed soon.`;
+                sendTelegramNotification(userProfile.telegramChatId, userMsg);
+            }
+
+            // 3️⃣ فتح محادثة المدير (اختياري)
+            window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(adminMsg)}`, '_blank');
+
+            // حفظ الطلب
             const orderItem = {
-                id: 'order_' + Date.now(),
+                id: orderId,
                 items: cart.map(item => ({ id: item.id, name: item.name, price: item.price, quantity: item.quantity || 1 })),
                 total: finalTotal,
                 method: method,
@@ -5042,20 +5121,22 @@
                 txHash: txHash || null,
                 rpUsed: Math.floor(rpDiscountAmount / RP_TO_DOLLAR) || 0
             };
+
             const rpToDeduct = Math.floor(rpDiscountAmount / RP_TO_DOLLAR);
-            if (rpToDeduct > 0) { userProfile.rp = (userProfile.rp || 0) - rpToDeduct;
-                userProfile.useRpForCart = false; }
-            const userRef = doc(db, 'users', currentUser.uid);
-            updateDoc(userRef, { history: arrayUnion(orderItem), rp: userProfile.rp || 0, useRpForCart: false }).catch(
-                console.error);
-            userProfile.history.push(orderItem);
-            const telegramUrl = `https://t.me/Mitalica69?text=${encodeURIComponent(msg)}`;
-            window.open(telegramUrl, '_blank');
-            if (userProfile.telegramChatId) {
-                const userMsg =
-                    `🛒 *New Order*\n\n📦 #${orderItem.id.slice(-6)}\n💰 ${finalTotal.toFixed(2)}$\n📅 ${new Date().toLocaleString()}\n\nThank you for shopping with us! Your order will be processed soon.`;
-                sendTelegramNotification(userMsg);
+            if (rpToDeduct > 0) {
+                userProfile.rp = (userProfile.rp || 0) - rpToDeduct;
+                userProfile.useRpForCart = false;
             }
+
+            const userRef = doc(db, 'users', currentUser.uid);
+            updateDoc(userRef, {
+                history: arrayUnion(orderItem),
+                rp: userProfile.rp || 0,
+                useRpForCart: false
+            }).catch(console.error);
+            userProfile.history.push(orderItem);
+
+            // تنظيف السلة
             cart = [];
             activeDiscount = 0;
             activeDiscountCode = '';
@@ -5065,12 +5146,14 @@
             renderProducts(products);
             generateRecommendations(products);
             updateRpDisplay();
-            showToast('📤 Order sent to Telegram!', 'success');
+
+            showToast('📤 Order sent successfully!', 'success');
             document.getElementById('paymentModal').classList.remove('open');
             document.getElementById('paymentStep1').style.display = 'block';
             document.getElementById('paymentStep2').classList.remove('active');
             selectedPayment = null;
             document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
+
             setTimeout(() => {
                 if (currentUser && currentUser.email === ADMIN_EMAIL) { loadAdminOrders(); }
                 loadUserData();
@@ -5115,14 +5198,21 @@
             }
         }
 
-        // telegram bind
+        // ✅ ربط تيليجرام (محسن)
         window.bindTelegram = async function() {
             if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
             try {
                 const bindCode = currentUser.uid.slice(-8) + Math.random().toString(36).substring(2, 6);
                 const bindRef = doc(db, 'telegram_binds', bindCode);
-                await setDoc(bindRef, { userId: currentUser.uid, userEmail: currentUser.email, userName: currentUser
-                        .displayName || 'User', createdAt: serverTimestamp(), status: 'pending' });
+                await setDoc(bindRef, {
+                    userId: currentUser.uid,
+                    userEmail: currentUser.email,
+                    userName: currentUser.displayName || 'User',
+                    createdAt: serverTimestamp(),
+                    status: 'pending'
+                });
+
+                // ✅ استخدم البوت الصحيح للربط
                 const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BIND_BOT_TOKEN}/sendMessage`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -5135,9 +5225,11 @@
                 const data = await response.json();
                 if (data.ok) {
                     showToast('📨 Link request sent to Telegram!', 'success');
-                    window.open(`https://t.me/${TELEGRAM_BIND_BOT_TOKEN.split(':')[0]}`, '_blank');
+                    window.open(`https://t.me/Zistore_Notif_bot`, '_blank');
                     startBindingListener(bindCode);
-                } else { showToast('❌ Error sending link request', 'error'); }
+                } else {
+                    showToast('❌ Error sending link request', 'error');
+                }
             } catch (error) { console.error('Telegram bind error:', error);
                 showToast('❌ Telegram connection error', 'error'); }
         };
@@ -5152,6 +5244,11 @@
                         saveUserData();
                         renderProfileFull();
                         showToast('✅ Telegram linked successfully!', 'success');
+                        // ✅ إرسال رسالة ترحيب للمستخدم بعد الربط
+                        sendTelegramNotification(
+                            userProfile.telegramChatId,
+                            `🔔 *Welcome to ZI Store!*\n\nYour account has been successfully linked.\nYou will now receive order notifications here.\n\nThank you for using ZI Store! 🚀`
+                        );
                         unsubscribe();
                     }
                 }
@@ -5741,6 +5838,7 @@
             document.getElementById('adminRejectedOrders').textContent = rejected;
         }
 
+        // ✅ تحديث حالة الطلب مع إرسال إشعار للمستخدم
         window.updateOrderStatus = async function(orderId, userId, newStatus) {
             if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
             if (!orderId || !userId) { showToast('❌ Invalid data', 'error'); return; }
@@ -5757,48 +5855,47 @@
                     return order;
                 });
                 await updateDoc(userRef, { history: updatedHistory });
+
                 const statusLabels = { 'pending': '⏳ Pending', 'preparing': '📦 Preparing', 'shipped': '🚚 Shipped',
                     'delivered': '✅ Delivered', 'completed': '✅ Completed', 'rejected': '❌ Rejected' };
                 const statusLabel = statusLabels[newStatus] || newStatus;
                 showToast(`📦 Order updated to ${statusLabel}`, 'success');
-                if (updatedOrder && data.telegramChatId) {
-                    const itemsNames = updatedOrder.items ? updatedOrder.items.map(i => i.name).join(', ') : 'Your order';
-                    const msg =
-                        `📦 *Order Update #${String(orderId).slice(-6)}*\n\n📋 Products: ${itemsNames}\n🔄 Status: ${statusLabel}\n📅 Date: ${new Date().toLocaleString()}`;
-                    await sendTelegramNotificationToUser(userId, msg);
-                }
+
+                // ✅ إرسال إشعار للمستخدم
                 if (updatedOrder) {
                     const itemsNames = updatedOrder.items ? updatedOrder.items.map(i => i.name).join(', ') : 'Your order';
-                    const notifMessage =
-                        `🔄 Order #${String(orderId).slice(-6)} status updated\n${itemsNames}\nStatus: ${statusLabel}`;
-                    try { await addDoc(collection(db, 'notifications'), { title: `📦 Order #${String(orderId).slice(-6)}`,
-                            message: notifMessage, userId: userId, readBy: [], createdAt: serverTimestamp(),
-                            updatedAt: serverTimestamp() }); } catch (e) { console.error(
-                            'Error sending auto notification:', e); }
+                    const userMsg =
+                        `📦 *Order Update #${String(orderId).slice(-6)}*\n\n📋 Products: ${itemsNames}\n🔄 Status: ${statusLabel}\n📅 Date: ${new Date().toLocaleString()}`;
+
+                    // إرسال للمستخدم إذا كان مربطاً
+                    if (data.telegramChatId) {
+                        await sendTelegramNotification(data.telegramChatId, userMsg);
+                    }
+
+                    // إرسال للمدير
+                    const adminMsg =
+                        `🔄 Order #${String(orderId).slice(-6)} updated\nUser: ${data.email || 'Unknown'}\nNew Status: ${statusLabel}`;
+                    await sendTelegramNotification(TELEGRAM_CHAT_ID, adminMsg);
+
+                    // حفظ كإشعار في قاعدة البيانات
+                    try {
+                        await addDoc(collection(db, 'notifications'), {
+                            title: `📦 Order #${String(orderId).slice(-6)}`,
+                            message: `Status updated to: ${statusLabel}`,
+                            userId: userId,
+                            readBy: [],
+                            createdAt: serverTimestamp(),
+                            updatedAt: serverTimestamp()
+                        });
+                    } catch (e) { console.error('Error saving notification:', e); }
                 }
+
                 loadAdminOrders();
                 if (currentUser && currentUser.uid === userId) { userProfile.history = updatedHistory; }
                 updateFullUserMenu();
             } catch (error) { console.error('Error updating order:', error);
                 showToast('❌ Error: ' + error.message, 'error'); }
         };
-
-        async function sendTelegramNotificationToUser(userId, message) {
-            try {
-                const userRef = doc(db, 'users', userId);
-                const userSnap = await getDoc(userRef);
-                if (!userSnap.exists()) return false;
-                const userData = userSnap.data();
-                const chatId = userData.telegramChatId;
-                if (!chatId) return false;
-                const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'Markdown' })
-                });
-                return response.ok;
-            } catch (error) { console.error('Send notification error:', error); return false; }
-        }
 
         window.deleteOrderImmediately = async function(orderId, userId) {
             if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
@@ -6096,6 +6193,7 @@
         window.checkout = checkout;
         window.bindTelegram = bindTelegram;
         window.checkTelegramStatus = checkTelegramStatus;
+        window.testTelegramNotification = testTelegramNotification;
         window.saveProfileChangesInline = saveProfileChangesInline;
         window.sendResetLinkInline = sendResetLinkInline;
         window.changePasswordInline = changePasswordInline;
