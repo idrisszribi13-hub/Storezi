@@ -1,56 +1,65 @@
-const express = require('express');
 const TelegramBot = require('node-telegram-bot-api');
+const express = require('express');
 
-const TOKEN = '8687744794:AAGeeNrEU-iQLRmg3dLvYkWhddtYo_sJ1tc';
-const ADMIN_CHAT_ID = '7434624478';
+// تأكد من وجود التوكن
+const token = process.env.BOT_TOKEN;
+if (!token) {
+    console.error('❌ BOT_TOKEN is not set!');
+    process.exit(1);
+}
 
-const bot = new TelegramBot(TOKEN, { polling: true });
-const app = express();
-const PORT = process.env.PORT || 3000;
+// إنشاء البوت
+const bot = new TelegramBot(token, { polling: true });
 
-// ===== أمر /start =====
+// ============= معالج الأوامر =============
+
+// أمر /start
 bot.onText(/\/start/, (msg) => {
     const chatId = msg.chat.id;
-    bot.sendMessage(chatId, 
-        `👋 *مرحباً بك في بوت ZI Store!*\n\n` +
-        `📌 للربط مع الموقع:\n` +
-        `1️⃣ افتح الموقع واضغط "ربط تليجرام"\n` +
-        `2️⃣ سيظهر لك كود ربط\n` +
-        `3️⃣ أرسل الكود هنا\n\n` +
-        `🔗 الموقع: https://idrisszribi13-hub.github.io/Storezi/`,
-        { parse_mode: 'Markdown' }
-    );
+    bot.sendMessage(chatId, '👋 مرحباً بك في **Zi Store Bot**!\n\nأنا هنا لمساعدتك في التسوق. استخدم الأوامر التالية:\n/help - للحصول على المساعدة');
 });
 
-// ===== استقبال الرسائل =====
+// أمر /help
+bot.onText(/\/help/, (msg) => {
+    const chatId = msg.chat.id;
+    bot.sendMessage(chatId, '📋 **الأوامر المتاحة:**\n\n/start - بدء البوت\n/help - عرض المساعدة\n/products - عرض المنتجات');
+});
+
+// أمر /products
+bot.onText(/\/products/, (msg) => {
+    const chatId = msg.chat.id;
+    bot.sendMessage(chatId, '🛍️ **المنتجات المتاحة:**\n\n1️⃣ منتج 1 - 10 دينار\n2️⃣ منتج 2 - 20 دينار\n3️⃣ منتج 3 - 30 دينار');
+});
+
+// ============= معالج الرسائل العامة =============
+
 bot.on('message', (msg) => {
     const chatId = msg.chat.id;
     const text = msg.text;
-    
-    if (!text || text === '/start') return;
-    
-    bot.sendMessage(chatId, 
-        `✅ *تم استلام كودك!*\n\n` +
-        `📌 سيتم ربط حسابك قريباً.\n` +
-        `إذا كنت تريد مساعدة، أرسل /start`,
-        { parse_mode: 'Markdown' }
-    );
-    
-    // إشعار للإدارة
-    bot.sendMessage(ADMIN_CHAT_ID,
-        `📩 *رسالة جديدة*\n\n` +
-        `👤 المستخدم: ${msg.from.first_name || 'Unknown'}\n` +
-        `🆔 Chat ID: ${chatId}\n` +
-        `📝 الرسالة: ${text}`,
-        { parse_mode: 'Markdown' }
-    );
+
+    // تجاهل الأوامر (لأنها تعالج أعلاه)
+    if (text && text.startsWith('/')) {
+        return;
+    }
+
+    // الرد على الرسائل النصية العادية
+    if (text) {
+        bot.sendMessage(chatId, `📩 لقد أرسلت: "${text}"\n\nللمساعدة اكتب /help`);
+    }
 });
 
-// ===== صفحة الويب =====
+// ============= تشغيل السيرفر (لـ Render) =============
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
 app.get('/', (req, res) => {
-    res.send('🤖 ZI Store Bot is running!');
+    res.send('🤖 Zi Store Bot is running!');
 });
 
 app.listen(PORT, () => {
-    console.log(`🤖 Bot is running on port ${PORT}`);
+    console.log(`✅ Server is running on port ${PORT}`);
+    console.log('✅ Bot is polling for messages...');
 });
+
+console.log('🚀 Zi Store Bot started successfully!');
