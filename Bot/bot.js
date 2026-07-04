@@ -30,7 +30,11 @@ bot.onText(/\/products/, (msg) => {
     const chatId = msg.chat.id;
     bot.sendMessage(chatId, '🛍️ **المنتجات المتاحة:**\n\n1️⃣ منتج 1 - 10 دينار\n2️⃣ منتج 2 - 20 دينار\n3️⃣ منتج 3 - 30 دينار');
 });
-
+// ============= Chat ID ============
+bot.onText(/\/chatid/, (msg) => {
+    const chatId = msg.chat.id;
+    bot.sendMessage(chatId, `🆔 **Chat ID الخاص بك هو:** \`${chatId}\``, { parse_mode: 'Markdown' });
+});
 // ============= معالج الرسائل العامة =============
 
 bot.on('message', (msg) => {
