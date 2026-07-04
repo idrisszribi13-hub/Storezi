@@ -8,7 +8,7 @@ if (!token) {
     process.exit(1);
 }
 
-// إنشاء البوت
+// إنشاء البوت (polling فقط)
 const bot = new TelegramBot(token, { polling: true });
 
 // ============= Firebase =============
@@ -49,67 +49,48 @@ bot.onText(/\/chatid/, (msg) => {
     bot.sendMessage(chatId, `🆔 **Chat ID الخاص بك هو:** \`${chatId}\``, { parse_mode: 'Markdown' });
 });
 
-// ============= Webhook للربط =============
-const app = express();
-app.use(express.json());
+// ============= معالج الرسائل العامة (للكود) =============
 
-app.post('/webhook', async (req, res) => {
-    try {
-        const { message } = req.body;
-        if (!message || !message.text) {
-            return res.sendStatus(200);
-        }
-
-        const chatId = message.chat.id;
-        const text = message.text.trim();
-
-        if (text.startsWith('/')) {
-            return res.sendStatus(200);
-        }
-
-        const bindRef = doc(db, 'telegram_binds', text);
-        const bindSnap = await getDoc(bindRef);
-
-        if (bindSnap.exists()) {
-            const data = bindSnap.data();
-            if (data.status === 'pending') {
-                await updateDoc(bindRef, {
-                    status: 'completed',
-                    telegramChatId: String(chatId),
-                    completedAt: serverTimestamp()
-                });
-                await bot.sendMessage(chatId, '✅ **تم ربط حسابك بنجاح!**\n\nستستلم إشعارات الطلبات هنا.');
-            } else {
-                await bot.sendMessage(chatId, '❌ هذا الكود منتهي الصلاحية أو مستخدم بالفعل.');
-            }
-        } else {
-            await bot.sendMessage(chatId, '❌ **كود غير صحيح!**\n\nتأكد من الكود الذي ظهر في الموقع.');
-        }
-
-        res.sendStatus(200);
-    } catch (error) {
-        console.error('Webhook error:', error);
-        res.sendStatus(200);
-    }
-});
-
-// ============= معالج الرسائل العامة =============
-
-bot.on('message', (msg) => {
+bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
     const text = msg.text;
 
+    // تجاهل الأوامر
     if (text && text.startsWith('/')) {
         return;
     }
 
+    // التحقق من كود الربط
     if (text) {
-        bot.sendMessage(chatId, `📩 لقد أرسلت: "${text}"\n\nللمساعدة اكتب /help`);
+        try {
+            const bindRef = doc(db, 'telegram_binds', text);
+            const bindSnap = await getDoc(bindRef);
+
+            if (bindSnap.exists()) {
+                const data = bindSnap.data();
+                if (data.status === 'pending') {
+                    await updateDoc(bindRef, {
+                        status: 'completed',
+                        telegramChatId: String(chatId),
+                        completedAt: serverTimestamp()
+                    });
+                    await bot.sendMessage(chatId, '✅ **تم ربط حسابك بنجاح!**\n\nستستلم إشعارات الطلبات هنا.');
+                } else {
+                    await bot.sendMessage(chatId, '❌ هذا الكود منتهي الصلاحية أو مستخدم بالفعل.');
+                }
+            } else {
+                await bot.sendMessage(chatId, '📩 لقد أرسلت: "' + text + '"\n\nللمساعدة اكتب /help');
+            }
+        } catch (error) {
+            console.error('Error processing message:', error);
+            await bot.sendMessage(chatId, '📩 لقد أرسلت: "' + text + '"\n\nللمساعدة اكتب /help');
+        }
     }
 });
 
 // ============= تشغيل السيرفر =============
 
+const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.get('/', (req, res) => {
@@ -119,7 +100,6 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
     console.log(`✅ Server is running on port ${PORT}`);
     console.log('✅ Bot is polling for messages...');
-    console.log('✅ Webhook endpoint: /webhook');
 });
 
 console.log('🚀 Zi Store Bot started successfully!');
