@@ -9,7 +9,11 @@ if (!token) {
     process.exit(1);
 }
 
-// إنشاء البوت
+// ============= إنشاء Express App أولاً =============
+const app = express();
+app.use(bodyParser.json());
+
+// ============= إنشاء البوت =============
 const bot = new TelegramBot(token, { polling: true });
 
 // ============= Firebase Setup =============
@@ -116,9 +120,6 @@ bot.on('message', (msg) => {
 });
 
 // ============= تشغيل السيرفر =============
-const app = express();
-app.use(bodyParser.json());
-
 const PORT = process.env.PORT || 3000;
 
 app.get('/', (req, res) => {
