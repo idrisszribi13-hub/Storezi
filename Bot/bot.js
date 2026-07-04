@@ -32,18 +32,19 @@ try {
     console.log('✅ Firebase connected successfully!');
 } catch (error) {
     console.error('❌ Firebase connection failed:', error.message);
+    db = null;
 }
 
 // ============= أوامر البوت =============
 
 bot.onText(/\/start/, (msg) => {
     const chatId = msg.chat.id;
-    bot.sendMessage(chatId, '👋 مرحباً بك في Zi Store Bot!');
+    bot.sendMessage(chatId, '👋 مرحباً بك في Zi Store Bot!\n\nللمساعدة اكتب /help');
 });
 
 bot.onText(/\/help/, (msg) => {
     const chatId = msg.chat.id;
-    bot.sendMessage(chatId, '📋 الأوامر:\n/start - بدء\n/help - مساعدة\n/chatid - معرف الدردشة');
+    bot.sendMessage(chatId, '📋 الأوامر:\n\n/start - بدء البوت\n/help - عرض المساعدة\n/chatid - معرف الدردشة');
 });
 
 bot.onText(/\/chatid/, (msg) => {
@@ -72,13 +73,13 @@ bot.on('message', async (msg) => {
     }
 
     try {
-        // البحث عن كود الربط
+        // البحث عن كود الربط في Firebase
         const bindRef = doc(db, 'telegram_binds', text);
         const bindSnap = await getDoc(bindRef);
 
         if (bindSnap.exists()) {
             const data = bindSnap.data();
-            console.log(`📄 البيانات:`, data);
+            console.log('📄 البيانات:', data);
 
             if (data.status === 'pending') {
                 // تحديث حالة الربط
@@ -98,7 +99,7 @@ bot.on('message', async (msg) => {
             await bot.sendMessage(chatId, `📩 لقد أرسلت: "${text}"\n\nللمساعدة اكتب /help`);
         }
     } catch (error) {
-        console.error('❌ خطأ في معالجة الرسالة:', error.message);
+        console.error('❌ خطأ:', error.message);
         await bot.sendMessage(chatId, '❌ حدث خطأ. الرجاء المحاولة مرة أخرى.');
     }
 });
