@@ -1,5 +1,7 @@
 const TelegramBot = require('node-telegram-bot-api');
 const express = require('express');
+const admin = require('firebase-admin');
+const fs = require('fs');
 
 // ============= التوكن =============
 const token = process.env.BOT_TOKEN;
@@ -11,32 +13,48 @@ if (!token) {
 // ============= البوت =============
 const bot = new TelegramBot(token, { polling: true });
 
-// ============= Firebase Admin =============
-const admin = require('firebase-admin');
+// ============= Firebase Admin مع Service Account =============
+let db;
+try {
+    // قراءة ملف Service Account من Render
+    const serviceAccountPath = '/etc/secrets/firebase-credentials.json';
+    let serviceAccount;
+    
+    if (fs.existsSync(serviceAccountPath)) {
+        serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+        console.log('✅ Service Account loaded from secrets');
+    } else {
+        // محاولة التهيئة بدون ملف (للتطوير)
+        console.warn('⚠️ Service Account not found, trying without...');
+        serviceAccount = {
+            projectId: "zi-script-store"
+        };
+    }
 
-// تهيئة Firebase Admin (بدون مصادقة)
-if (!admin.apps.length) {
-    try {
+    if (!admin.apps.length) {
         admin.initializeApp({
-            credential: admin.credential.applicationDefault(),
+            credential: admin.credential.cert(serviceAccount),
             projectId: "zi-script-store"
         });
         console.log('✅ Firebase Admin initialized!');
-    } catch (error) {
-        console.error('❌ Firebase Admin error:', error.message);
-        // محاولة تهيئة بدون credentials (للقراءة فقط)
-        try {
+    }
+    db = admin.firestore();
+} catch (error) {
+    console.error('❌ Firebase Admin error:', error.message);
+    // محاولة تهيئة بدون مصادقة (للقراءة فقط)
+    try {
+        if (!admin.apps.length) {
             admin.initializeApp({
                 projectId: "zi-script-store"
             });
-            console.log('✅ Firebase Admin initialized (without credentials)');
-        } catch (e) {
-            console.error('❌ Firebase Admin failed:', e.message);
         }
+        db = admin.firestore();
+        console.log('⚠️ Firebase initialized without auth (read-only)');
+    } catch (e) {
+        console.error('❌ Firebase failed:', e.message);
+        db = null;
     }
 }
-
-const db = admin.firestore();
 
 // ============= أوامر البوت =============
 
@@ -55,7 +73,7 @@ bot.onText(/\/chatid/, (msg) => {
     bot.sendMessage(chatId, `🆔 معرف الدردشة: ${chatId}`);
 });
 
-// ============= معالج الرسائل (لكود الربط) =============
+// ============= معالج الرسائل =============
 
 bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
@@ -67,8 +85,14 @@ bot.on('message', async (msg) => {
 
     console.log(`📩 استلمت: "${text}" من ${chatId}`);
 
+    if (!db) {
+        console.error('❌ Firebase not initialized!');
+        await bot.sendMessage(chatId, '❌ خطأ في قاعدة البيانات. الرجاء المحاولة لاحقاً.');
+        return;
+    }
+
     try {
-        // البحث عن كود الربط في Firestore
+        // البحث عن كود الربط
         const docRef = db.collection('telegram_binds').doc(text);
         const docSnap = await docRef.get();
 
@@ -90,7 +114,6 @@ bot.on('message', async (msg) => {
                 await bot.sendMessage(chatId, '❌ هذا الكود منتهي الصلاحية أو مستخدم بالفعل.');
             }
         } else {
-            // ليس كود ربط
             await bot.sendMessage(chatId, `📩 لقد أرسلت: "${text}"\n\nللمساعدة اكتب /help`);
         }
     } catch (error) {
