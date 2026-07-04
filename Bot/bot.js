@@ -1,12 +1,14 @@
 const TelegramBot = require('node-telegram-bot-api');
 const express = require('express');
 
+// ============= التوكن =============
 const token = process.env.BOT_TOKEN;
 if (!token) {
     console.error('❌ BOT_TOKEN is not set!');
     process.exit(1);
 }
 
+// ============= البوت =============
 const bot = new TelegramBot(token, { polling: true });
 
 // ============= Firebase =============
@@ -22,73 +24,97 @@ const firebaseConfig = {
     appId: "1:925432917209:web:ee9b329911d95d831622c8"
 };
 
+// تهيئة Firebase
 let db;
 try {
     const fbApp = initializeApp(firebaseConfig);
     db = getFirestore(fbApp);
-    console.log('✅ Firebase connected');
-} catch (e) {
-    console.error('❌ Firebase error:', e.message);
+    console.log('✅ Firebase connected successfully!');
+} catch (error) {
+    console.error('❌ Firebase connection failed:', error.message);
 }
 
-// ============= الأوامر =============
+// ============= أوامر البوت =============
+
 bot.onText(/\/start/, (msg) => {
-    bot.sendMessage(msg.chat.id, '👋 مرحباً!');
+    const chatId = msg.chat.id;
+    bot.sendMessage(chatId, '👋 مرحباً بك في Zi Store Bot!');
+});
+
+bot.onText(/\/help/, (msg) => {
+    const chatId = msg.chat.id;
+    bot.sendMessage(chatId, '📋 الأوامر:\n/start - بدء\n/help - مساعدة\n/chatid - معرف الدردشة');
 });
 
 bot.onText(/\/chatid/, (msg) => {
-    bot.sendMessage(msg.chat.id, `🆔 ${msg.chat.id}`);
+    const chatId = msg.chat.id;
+    bot.sendMessage(chatId, `🆔 معرف الدردشة: ${chatId}`);
 });
 
-// ============= معالج الرسائل (للربط) =============
+// ============= معالج الرسائل (لكود الربط) =============
+
 bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
     const text = msg.text;
 
-    if (!text || text.startsWith('/')) return;
+    // تجاهل الأوامر
+    if (!text || text.startsWith('/')) {
+        return;
+    }
 
-    console.log(`📩 "${text}" from ${chatId}`);
+    console.log(`📩 استلمت: "${text}" من ${chatId}`);
+
+    // التأكد من أن Firebase يعمل
+    if (!db) {
+        console.error('❌ Firebase not initialized!');
+        await bot.sendMessage(chatId, '❌ خطأ في قاعدة البيانات. الرجاء المحاولة لاحقاً.');
+        return;
+    }
 
     try {
-        if (!db) {
-            await bot.sendMessage(chatId, '❌ خطأ في قاعدة البيانات');
-            return;
-        }
-
+        // البحث عن كود الربط
         const bindRef = doc(db, 'telegram_binds', text);
         const bindSnap = await getDoc(bindRef);
 
         if (bindSnap.exists()) {
             const data = bindSnap.data();
+            console.log(`📄 البيانات:`, data);
+
             if (data.status === 'pending') {
+                // تحديث حالة الربط
                 await updateDoc(bindRef, {
                     status: 'completed',
                     telegramChatId: String(chatId),
                     completedAt: serverTimestamp()
                 });
-                await bot.sendMessage(chatId, '✅ تم ربط حسابك بنجاح!');
-                console.log(`✅ ربط ناجح: ${chatId}`);
+
+                await bot.sendMessage(chatId, '✅ **تم ربط حسابك بنجاح!**\n\nستستلم إشعارات الطلبات هنا.');
+                console.log(`✅ تم ربط المستخدم ${chatId} بالكود: ${text}`);
             } else {
-                await bot.sendMessage(chatId, '❌ هذا الكود منتهي الصلاحية.');
+                await bot.sendMessage(chatId, '❌ هذا الكود منتهي الصلاحية أو مستخدم بالفعل.');
             }
         } else {
-            await bot.sendMessage(chatId, `📩 "${text}"\nاكتب /help للمساعدة`);
+            // ليس كود ربط، رسالة عادية
+            await bot.sendMessage(chatId, `📩 لقد أرسلت: "${text}"\n\nللمساعدة اكتب /help`);
         }
-    } catch (e) {
-        console.error('❌ Error:', e.message);
-        await bot.sendMessage(chatId, '❌ حدث خطأ، حاول مرة أخرى.');
+    } catch (error) {
+        console.error('❌ خطأ في معالجة الرسالة:', error.message);
+        await bot.sendMessage(chatId, '❌ حدث خطأ. الرجاء المحاولة مرة أخرى.');
     }
 });
 
 // ============= السيرفر =============
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.get('/', (req, res) => res.send('🤖 Bot is running!'));
-
-app.listen(PORT, () => {
-    console.log(`✅ Server on port ${PORT}`);
-    console.log('✅ Bot is polling...');
+app.get('/', (req, res) => {
+    res.send('🤖 Zi Store Bot is running!');
 });
 
-console.log('🚀 Bot started!');
+app.listen(PORT, () => {
+    console.log(`✅ Server running on port ${PORT}`);
+    console.log('✅ Bot is polling for messages...');
+});
+
+console.log('🚀 Zi Store Bot started successfully!');
