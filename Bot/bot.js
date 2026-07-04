@@ -1,14 +1,12 @@
 const TelegramBot = require('node-telegram-bot-api');
 const express = require('express');
 
-// تأكد من وجود التوكن
 const token = process.env.BOT_TOKEN;
 if (!token) {
     console.error('❌ BOT_TOKEN is not set!');
     process.exit(1);
 }
 
-// إنشاء البوت (polling فقط)
 const bot = new TelegramBot(token, { polling: true });
 
 // ============= Firebase =============
@@ -24,82 +22,73 @@ const firebaseConfig = {
     appId: "1:925432917209:web:ee9b329911d95d831622c8"
 };
 
-const fbApp = initializeApp(firebaseConfig);
-const db = getFirestore(fbApp);
+let db;
+try {
+    const fbApp = initializeApp(firebaseConfig);
+    db = getFirestore(fbApp);
+    console.log('✅ Firebase connected');
+} catch (e) {
+    console.error('❌ Firebase error:', e.message);
+}
 
-// ============= معالج الأوامر =============
-
+// ============= الأوامر =============
 bot.onText(/\/start/, (msg) => {
-    const chatId = msg.chat.id;
-    bot.sendMessage(chatId, '👋 مرحباً بك في **Zi Store Bot**!\n\nأنا هنا لمساعدتك في التسوق. استخدم الأوامر التالية:\n/help - للحصول على المساعدة');
-});
-
-bot.onText(/\/help/, (msg) => {
-    const chatId = msg.chat.id;
-    bot.sendMessage(chatId, '📋 **الأوامر المتاحة:**\n\n/start - بدء البوت\n/help - عرض المساعدة\n/products - عرض المنتجات\n/chatid - معرف الدردشة الخاص بك');
-});
-
-bot.onText(/\/products/, (msg) => {
-    const chatId = msg.chat.id;
-    bot.sendMessage(chatId, '🛍️ **المنتجات المتاحة:**\n\n1️⃣ منتج 1 - 10 دينار\n2️⃣ منتج 2 - 20 دينار\n3️⃣ منتج 3 - 30 دينار');
+    bot.sendMessage(msg.chat.id, '👋 مرحباً!');
 });
 
 bot.onText(/\/chatid/, (msg) => {
-    const chatId = msg.chat.id;
-    bot.sendMessage(chatId, `🆔 **Chat ID الخاص بك هو:** \`${chatId}\``, { parse_mode: 'Markdown' });
+    bot.sendMessage(msg.chat.id, `🆔 ${msg.chat.id}`);
 });
 
-// ============= معالج الرسائل العامة (للكود) =============
-
+// ============= معالج الرسائل (للربط) =============
 bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
     const text = msg.text;
 
-    // تجاهل الأوامر
-    if (text && text.startsWith('/')) {
-        return;
-    }
+    if (!text || text.startsWith('/')) return;
 
-    // التحقق من كود الربط
-    if (text) {
-        try {
-            const bindRef = doc(db, 'telegram_binds', text);
-            const bindSnap = await getDoc(bindRef);
+    console.log(`📩 "${text}" from ${chatId}`);
 
-            if (bindSnap.exists()) {
-                const data = bindSnap.data();
-                if (data.status === 'pending') {
-                    await updateDoc(bindRef, {
-                        status: 'completed',
-                        telegramChatId: String(chatId),
-                        completedAt: serverTimestamp()
-                    });
-                    await bot.sendMessage(chatId, '✅ **تم ربط حسابك بنجاح!**\n\nستستلم إشعارات الطلبات هنا.');
-                } else {
-                    await bot.sendMessage(chatId, '❌ هذا الكود منتهي الصلاحية أو مستخدم بالفعل.');
-                }
-            } else {
-                await bot.sendMessage(chatId, '📩 لقد أرسلت: "' + text + '"\n\nللمساعدة اكتب /help');
-            }
-        } catch (error) {
-            console.error('Error processing message:', error);
-            await bot.sendMessage(chatId, '📩 لقد أرسلت: "' + text + '"\n\nللمساعدة اكتب /help');
+    try {
+        if (!db) {
+            await bot.sendMessage(chatId, '❌ خطأ في قاعدة البيانات');
+            return;
         }
+
+        const bindRef = doc(db, 'telegram_binds', text);
+        const bindSnap = await getDoc(bindRef);
+
+        if (bindSnap.exists()) {
+            const data = bindSnap.data();
+            if (data.status === 'pending') {
+                await updateDoc(bindRef, {
+                    status: 'completed',
+                    telegramChatId: String(chatId),
+                    completedAt: serverTimestamp()
+                });
+                await bot.sendMessage(chatId, '✅ تم ربط حسابك بنجاح!');
+                console.log(`✅ ربط ناجح: ${chatId}`);
+            } else {
+                await bot.sendMessage(chatId, '❌ هذا الكود منتهي الصلاحية.');
+            }
+        } else {
+            await bot.sendMessage(chatId, `📩 "${text}"\nاكتب /help للمساعدة`);
+        }
+    } catch (e) {
+        console.error('❌ Error:', e.message);
+        await bot.sendMessage(chatId, '❌ حدث خطأ، حاول مرة أخرى.');
     }
 });
 
-// ============= تشغيل السيرفر =============
-
+// ============= السيرفر =============
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.get('/', (req, res) => {
-    res.send('🤖 Zi Store Bot is running!');
-});
+app.get('/', (req, res) => res.send('🤖 Bot is running!'));
 
 app.listen(PORT, () => {
-    console.log(`✅ Server is running on port ${PORT}`);
-    console.log('✅ Bot is polling for messages...');
+    console.log(`✅ Server on port ${PORT}`);
+    console.log('✅ Bot is polling...');
 });
 
-console.log('🚀 Zi Store Bot started successfully!');
+console.log('🚀 Bot started!');
