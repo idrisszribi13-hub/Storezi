@@ -4450,7 +4450,11 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         chat_id: TELEGRAM_CHAT_ID,
-                        text: `🔗 *طلب ربط حساب جديد*\n\n👤 المستخدم: ${currentUser.displayName || currentUser.email}\n📧 البريد: ${currentUser.email}\n🆔 كود الربط: \`${bindCode}\`\n\n📌 📌 أرسل هذا الكود إلى البوت في الخاص: [@Zistore_Notif_bot](https://t.me/Zistore_Notif_bot)`,
+                        text: `🔗 *طلب ربط حساب جديد*
+                        👤 المستخدم: ${currentUser.displayName || currentUser.email}
+                        📧 البريد: ${currentUser.email}
+                        🆔 كود الربط: \`${bindCode}\`
+                        📌 أرسل هذا الكود إلى البوت في الخاص: [@Zistore_Notif_bot](https://t.me/Zistore_Notif_bot)`,
                         parse_mode: 'Markdown'
                     })
                 });
