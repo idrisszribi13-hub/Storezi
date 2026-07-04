@@ -82,6 +82,7 @@
             width: 100%;
         }
 
+        /* header */
         .header {
             display: flex;
             flex-wrap: wrap;
@@ -314,6 +315,7 @@
             }
         }
 
+        /* stats */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -351,6 +353,7 @@
             opacity: 0.5;
         }
 
+        /* filters */
         .filter-actions {
             display: flex;
             gap: 5px;
@@ -393,6 +396,7 @@
             gap: 4px;
         }
 
+        /* recommendations */
         .recommendations-section {
             background: var(--card-bg);
             border-radius: 14px;
@@ -451,6 +455,7 @@
             font-family: var(--font);
         }
 
+        /* section title */
         .section-title {
             font-size: 18px;
             font-weight: 700;
@@ -466,6 +471,7 @@
             font-size: 16px;
         }
 
+        /* products */
         .products-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -704,6 +710,7 @@
             color: #0a0a1a;
         }
 
+        /* bottom cart bar */
         .bottom-cart-bar {
             position: fixed;
             bottom: 0;
@@ -787,6 +794,7 @@
             color: var(--danger);
         }
 
+        /* toast */
         .toast {
             position: fixed;
             top: 20px;
@@ -861,6 +869,7 @@
             background: linear-gradient(135deg, #a78bfa, #7c3aed);
         }
 
+        /* footer */
         .footer {
             margin-top: 20px;
             padding: 16px 0;
@@ -911,6 +920,7 @@
             opacity: 0.8;
         }
 
+        /* modals overlay */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -976,6 +986,7 @@
             margin-left: 6px;
         }
 
+        /* share modal */
         .share-modal .share-options {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -1017,6 +1028,7 @@
             color: var(--text-secondary);
         }
 
+        /* payment modal */
         .payment-options {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -1251,6 +1263,7 @@
             opacity: 0.4;
         }
 
+        /* fullscreen modals */
         .fullscreen-modal {
             display: none;
             position: fixed;
@@ -1303,6 +1316,7 @@
             color: var(--danger);
         }
 
+        /* user menu */
         .user-menu-full .user-header {
             display: flex;
             align-items: center;
@@ -1417,6 +1431,7 @@
             background: rgba(251, 191, 36, 0.1);
         }
 
+        /* edit profile (inside profile) */
         .edit-profile-inline {
             background: var(--card-bg);
             border-radius: 14px;
@@ -1485,6 +1500,7 @@
             color: var(--danger);
         }
 
+        /* password security (inline in profile) */
         .password-inline {
             background: var(--card-bg);
             border-radius: 14px;
@@ -1581,6 +1597,7 @@
             font-family: var(--font);
         }
 
+        /* auth containers */
         .auth-container {
             max-width: 400px;
             margin: 20px auto;
@@ -1817,6 +1834,7 @@
             border-color: var(--primary);
         }
 
+        /* admin panel */
         .admin-panel {
             display: none;
             margin-top: 20px;
@@ -2282,6 +2300,7 @@
             opacity: 0.8;
         }
 
+        /* notification */
         .notification-item {
             padding: 10px 0;
             border-bottom: 1px solid var(--border);
@@ -2355,6 +2374,7 @@
             opacity: 0.8;
         }
 
+        /* request form */
         .request-form label {
             display: block;
             font-size: 13px;
@@ -2412,6 +2432,7 @@
             background: var(--primary-hover);
         }
 
+        /* misc */
         .history-empty,
         .downloads-empty,
         .wishlist-empty,
@@ -2694,6 +2715,7 @@
             border-color: var(--danger) !important;
         }
 
+        /* cart items */
         .cart-item {
             display: flex;
             justify-content: space-between;
@@ -2907,6 +2929,7 @@
             opacity: 1;
         }
 
+        /* floating hearts */
         .floating-hearts {
             position: fixed;
             pointer-events: none;
@@ -2935,6 +2958,7 @@
             }
         }
 
+        /* responsive */
         @media (min-width: 768px) {
             body {
                 padding: 20px;
@@ -3069,17 +3093,51 @@
                 </div>
             </div>
             <div class="menu-grid">
-                <div class="menu-item" onclick="closeUserMenuFull(); openProfileFull();"><i class="fas fa-user"></i><span class="menu-label">Profile</span></div>
-                <div class="menu-item" onclick="closeUserMenuFull(); openHistoryFull();"><i class="fas fa-shopping-bag"></i><span class="menu-label">My Orders</span><span class="menu-badge" id="fullOrderBadge" style="display:none;">0</span></div>
-                <div class="menu-item" onclick="closeUserMenuFull(); openWishlistFull();"><i class="fas fa-heart"></i><span class="menu-label">Favorites</span><span class="menu-badge" id="fullWishlistBadge">0</span></div>
-                <div class="menu-item" onclick="closeUserMenuFull(); openReferralModal();"><i class="fas fa-share-alt"></i><span class="menu-label">Referrals</span></div>
-                <div class="menu-item" onclick="closeUserMenuFull(); openDownloads();"><i class="fas fa-download"></i><span class="menu-label">Downloads</span></div>
-                <div class="menu-item" onclick="closeUserMenuFull(); openNotifications();"><i class="fas fa-bell"></i><span class="menu-label">Notifications</span><span class="menu-badge" id="fullNotifBadge" style="display:none;">0</span></div>
-                <div class="menu-item" onclick="closeUserMenuFull(); openRequestsModal();"><i class="fas fa-code"></i><span class="menu-label">Request Script</span></div>
-                <div class="menu-item" onclick="closeUserMenuFull(); window.open('https://t.me/Mitalica69', '_blank');"><i class="fas fa-phone"></i><span class="menu-label">Contact</span></div>
+                <div class="menu-item" onclick="closeUserMenuFull(); openProfileFull();">
+                    <i class="fas fa-user"></i>
+                    <span class="menu-label">Profile</span>
+                </div>
+                <div class="menu-item" onclick="closeUserMenuFull(); openHistoryFull();">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span class="menu-label">My Orders</span>
+                    <span class="menu-badge" id="fullOrderBadge" style="display:none;">0</span>
+                </div>
+                <div class="menu-item" onclick="closeUserMenuFull(); openWishlistFull();">
+                    <i class="fas fa-heart"></i>
+                    <span class="menu-label">Favorites</span>
+                    <span class="menu-badge" id="fullWishlistBadge">0</span>
+                </div>
+                <div class="menu-item" onclick="closeUserMenuFull(); openReferralModal();">
+                    <i class="fas fa-share-alt"></i>
+                    <span class="menu-label">Referrals</span>
+                </div>
+                <div class="menu-item" onclick="closeUserMenuFull(); openDownloads();">
+                    <i class="fas fa-download"></i>
+                    <span class="menu-label">Downloads</span>
+                </div>
+                <div class="menu-item" onclick="closeUserMenuFull(); openNotifications();">
+                    <i class="fas fa-bell"></i>
+                    <span class="menu-label">Notifications</span>
+                    <span class="menu-badge" id="fullNotifBadge" style="display:none;">0</span>
+                </div>
+                <div class="menu-item" onclick="closeUserMenuFull(); openRequestsModal();">
+                    <i class="fas fa-code"></i>
+                    <span class="menu-label">Request Script</span>
+                </div>
+                <div class="menu-item" onclick="closeUserMenuFull(); window.open('https://t.me/Mitalica69', '_blank');">
+                    <i class="fas fa-phone"></i>
+                    <span class="menu-label">Contact</span>
+                </div>
                 <div class="menu-divider"></div>
-                <div class="menu-item admin-btn" id="adminMenuItem" style="display:none;" onclick="closeUserMenuFull(); openAdminPanel();"><i class="fas fa-shield-alt"></i><span class="menu-label">👑 Admin Panel</span><span class="menu-badge" id="adminMenuBadge" style="display:none;">0</span></div>
-                <div class="menu-item logout" onclick="closeUserMenuFull(); logoutUser();"><i class="fas fa-sign-out-alt"></i><span class="menu-label">Logout</span></div>
+                <div class="menu-item admin-btn" id="adminMenuItem" style="display:none;" onclick="closeUserMenuFull(); openAdminPanel();">
+                    <i class="fas fa-shield-alt"></i>
+                    <span class="menu-label">👑 Admin Panel</span>
+                    <span class="menu-badge" id="adminMenuBadge" style="display:none;">0</span>
+                </div>
+                <div class="menu-item logout" onclick="closeUserMenuFull(); logoutUser();">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="menu-label">Logout</span>
+                </div>
             </div>
         </div>
     </div>
@@ -3090,7 +3148,9 @@
             <h2><i class="fas fa-shopping-cart"></i> Shopping Cart</h2>
             <button class="modal-close" onclick="closeCartFull()"><i class="fas fa-times"></i></button>
         </div>
-        <div id="cartFullContent"><div class="cart-empty"><i class="fas fa-shopping-basket"></i><p>Cart is empty</p></div></div>
+        <div id="cartFullContent">
+            <div class="cart-empty"><i class="fas fa-shopping-basket"></i><p>Cart is empty</p></div>
+        </div>
     </div>
 
     <!-- fullscreen wishlist -->
@@ -3099,7 +3159,9 @@
             <h2><i class="fas fa-heart" style="color:var(--heart-color);"></i> My Wishlist</h2>
             <button class="modal-close" onclick="closeWishlistFull()"><i class="fas fa-times"></i></button>
         </div>
-        <div id="wishlistFullContent"><div class="wishlist-empty"><i class="fas fa-heart"></i><p>No favorites yet</p></div></div>
+        <div id="wishlistFullContent">
+            <div class="wishlist-empty"><i class="fas fa-heart"></i><p>No favorites yet</p></div>
+        </div>
     </div>
 
     <!-- fullscreen profile (with inline edit & password) -->
@@ -3145,9 +3207,24 @@
                 <p style="text-align:center;color:var(--text-secondary);font-size:13px;margin-bottom:10px;opacity:0.5;">Select how you want to pay for this or...</p>
                 <p style="text-align:center;color:var(--text-secondary);font-size:12px;margin-bottom:12px;opacity:0.3;font-family:var(--font);">Pick one available method. Fees and payment instructions update automatically.</p>
                 <div class="payment-options">
-                    <div class="payment-option" id="optionLitecoin" onclick="selectPayment('litecoin')"><span class="p-check"><i class="fas fa-check"></i></span><i class="fab fa-bitcoin" style="color:#f2a900;"></i><div class="p-label">Litecoin</div><div class="p-sub">LTC</div></div>
-                    <div class="payment-option" id="optionUsdt" onclick="selectPayment('usdt')"><span class="p-check"><i class="fas fa-check"></i></span><i class="fas fa-coins" style="color:#26a17b;"></i><div class="p-label">USDT (ERC20)</div><div class="p-sub">ERC20</div></div>
-                    <div class="payment-option" id="optionTelegram" onclick="selectPayment('telegram')"><span class="p-check"><i class="fas fa-check"></i></span><i class="fab fa-telegram-plane" style="color:#0088cc;"></i><div class="p-label">Telegram</div><div class="p-sub">Manual</div></div>
+                    <div class="payment-option" id="optionLitecoin" onclick="selectPayment('litecoin')">
+                        <span class="p-check"><i class="fas fa-check"></i></span>
+                        <i class="fab fa-bitcoin" style="color:#f2a900;"></i>
+                        <div class="p-label">Litecoin</div>
+                        <div class="p-sub">LTC</div>
+                    </div>
+                    <div class="payment-option" id="optionUsdt" onclick="selectPayment('usdt')">
+                        <span class="p-check"><i class="fas fa-check"></i></span>
+                        <i class="fas fa-coins" style="color:#26a17b;"></i>
+                        <div class="p-label">USDT (ERC20)</div>
+                        <div class="p-sub">ERC20</div>
+                    </div>
+                    <div class="payment-option" id="optionTelegram" onclick="selectPayment('telegram')">
+                        <span class="p-check"><i class="fas fa-check"></i></span>
+                        <i class="fab fa-telegram-plane" style="color:#0088cc;"></i>
+                        <div class="p-label">Telegram</div>
+                        <div class="p-sub">Manual</div>
+                    </div>
                 </div>
                 <div style="background:var(--bg);border-radius:10px;padding:12px;border:1px solid var(--border);margin:8px 0;">
                     <div style="display:flex;align-items:center;gap:8px;color:var(--text-secondary);font-size:12px;font-family:var(--font);opacity:0.5;">
@@ -3167,13 +3244,18 @@
                     <div class="wallet-info">
                         <div class="w-row"><span class="w-label"><i class="fas fa-credit-card"></i> Payment Method</span><span class="w-value" id="paymentMethodName">Litecoin</span></div>
                         <div class="w-row"><span class="w-label"><i class="fas fa-globe"></i> Network</span><span class="w-value" id="cryptoNetwork">LTC</span></div>
-                        <div class="w-address"><span id="walletAddressDisplay">ltc1qy6ksn0g4hm6hlh93fwekgz8x74vr6hvdmh6zz8</span><button onclick="copyWalletAddress()"><i class="fas fa-copy"></i> Copy</button></div>
+                        <div class="w-address">
+                            <span id="walletAddressDisplay">ltc1qy6ksn0g4hm6hlh93fwekgz8x74vr6hvdmh6zz8</span>
+                            <button onclick="copyWalletAddress()"><i class="fas fa-copy"></i> Copy</button>
+                        </div>
                         <div class="w-row"><span class="w-label"><i class="fas fa-coins"></i> Amount</span><span class="w-value" id="cryptoAmount">0.0000 LTC</span></div>
                         <div class="w-row"><span class="w-label"><i class="fas fa-exchange-alt"></i> Exchange Rate</span><span class="w-value" id="exchangeRate">1 LTC ≈ $42.00 USD</span></div>
                     </div>
                 </div>
                 <div style="margin:8px 0;">
-                    <label style="font-size:13px;color:var(--text-secondary);font-family:var(--font);opacity:0.5;display:flex;align-items:center;gap:6px;"><i class="fas fa-hashtag" style="color:var(--primary);"></i> Transaction Hash</label>
+                    <label style="font-size:13px;color:var(--text-secondary);font-family:var(--font);opacity:0.5;display:flex;align-items:center;gap:6px;">
+                        <i class="fas fa-hashtag" style="color:var(--primary);"></i> Transaction Hash
+                    </label>
                     <input class="payment-tx-input" id="transactionHashInput" placeholder="Paste transaction hash here..." type="text" />
                 </div>
                 <div class="payment-summary">
@@ -3208,7 +3290,9 @@
         <div class="modal-content">
             <button class="modal-close" onclick="closeDownloads()"><i class="fas fa-times"></i></button>
             <div class="modal-title"><i class="fas fa-download"></i> Downloads</div>
-            <div id="downloadsList"><div class="downloads-empty"><i class="fas fa-file"></i><p>No downloads available</p></div></div>
+            <div id="downloadsList">
+                <div class="downloads-empty"><i class="fas fa-file"></i><p>No downloads available</p></div>
+            </div>
         </div>
     </div>
 
@@ -3221,7 +3305,9 @@
                 <button class="btn-mark-read" onclick="markAllNotificationsRead()"><i class="fas fa-check-double"></i> Mark all read</button>
                 <button class="btn-clear-all" onclick="clearAllNotifications()"><i class="fas fa-trash-alt"></i> Clear all</button>
             </div>
-            <div id="notificationsList"><div style="text-align:center;padding:30px;color:var(--text-secondary);"><i class="fas fa-check-circle"></i><p>No notifications</p></div></div>
+            <div id="notificationsList">
+                <div style="text-align:center;padding:30px;color:var(--text-secondary);"><i class="fas fa-check-circle"></i><p>No notifications</p></div>
+            </div>
         </div>
     </div>
 
@@ -3230,8 +3316,12 @@
         <div class="modal-content">
             <button class="modal-close" onclick="closeRequestsModal()"><i class="fas fa-times"></i></button>
             <div class="modal-title"><i class="fas fa-clipboard-list"></i> My Requests</div>
-            <div id="requestsList"><div class="history-empty"><i class="fas fa-inbox"></i><p>No requests</p></div></div>
-            <button class="auth-btn" onclick="openNewRequestModal(); closeRequestsModal();" style="background:var(--orange);margin-top:10px;"><i class="fas fa-plus"></i> New Request</button>
+            <div id="requestsList">
+                <div class="history-empty"><i class="fas fa-inbox"></i><p>No requests</p></div>
+            </div>
+            <button class="auth-btn" onclick="openNewRequestModal(); closeRequestsModal();" style="background:var(--orange);margin-top:10px;">
+                <i class="fas fa-plus"></i> New Request
+            </button>
         </div>
     </div>
 
@@ -3241,16 +3331,22 @@
             <button class="modal-close" onclick="closeNewRequestModal()"><i class="fas fa-times"></i></button>
             <div class="modal-title"><i class="fas fa-code"></i> New Script Request</div>
             <form class="request-form" id="requestForm" onsubmit="submitRequest(event)">
-                <label>Game Name</label><span class="sub-label">e.g. Subway Surfers</span>
+                <label>Game Name</label>
+                <span class="sub-label">e.g. Subway Surfers</span>
                 <input id="reqGameName" placeholder="Enter game name..." required type="text" />
-                <label>Play Store Link</label><span class="sub-label">Link to the game on Google Play</span>
+                <label>Play Store Link</label>
+                <span class="sub-label">Link to the game on Google Play</span>
                 <input id="reqPlayStore" placeholder="https://play.google.com/store/apps/details?..." required type="url" />
-                <label>Features Required</label><span class="sub-label">List the modifications you want</span>
+                <label>Features Required</label>
+                <span class="sub-label">List the modifications you want</span>
                 <textarea id="reqFeatures" placeholder="e.g. God Mode, Unlimited Gold, Speed Hack..." required></textarea>
-                <label>Budget</label><span class="sub-label">How much are you willing to pay?</span>
+                <label>Budget</label>
+                <span class="sub-label">How much are you willing to pay?</span>
                 <input id="reqBudget" placeholder="e.g. $20, $50, open to negotiation" required type="text" />
                 <button class="submit-btn" type="submit"><i class="fab fa-telegram-plane"></i> Open Telegram to send request</button>
-                <div style="color:var(--text-secondary);font-size:11px;margin-top:6px;opacity:0.3;text-align:center;">Telegram will open with a pre-filled message</div>
+                <div style="color:var(--text-secondary);font-size:11px;margin-top:6px;opacity:0.3;text-align:center;">
+                    Telegram will open with a pre-filled message
+                </div>
             </form>
         </div>
     </div>
@@ -3260,7 +3356,9 @@
         <div class="modal-content">
             <button class="modal-close" onclick="closeReferralModal()"><i class="fas fa-times"></i></button>
             <div class="modal-title"><i class="fas fa-share-alt"></i> 🥳 Referral Program</div>
-            <div style="color:var(--text-secondary);font-size:14px;opacity:0.5;text-align:center;margin-bottom:12px;">Share your referral code and earn rewards when friends sign up!</div>
+            <div style="color:var(--text-secondary);font-size:14px;opacity:0.5;text-align:center;margin-bottom:12px;">
+                Share your referral code and earn rewards when friends sign up!
+            </div>
             <div style="border:1px solid var(--border);border-radius:10px;padding:14px;">
                 <div style="font-weight:700;font-family:var(--font);font-size:14px;color:var(--text-secondary);"><i class="fas fa-link"></i> Your Referral Code</div>
                 <div style="display:flex;align-items:center;gap:8px;margin:6px 0;">
@@ -3272,7 +3370,9 @@
                     <div style="font-size:13px;color:var(--text-secondary);font-family:var(--font);"><i class="fas fa-coins"></i> Rewards: <span id="referralRewards2">0.00 $</span></div>
                 </div>
             </div>
-            <div style="color:var(--text-secondary);font-size:12px;margin-top:10px;opacity:0.3;text-align:center;">Share your code with friends and earn 10% of their first purchase! 🚀</div>
+            <div style="color:var(--text-secondary);font-size:12px;margin-top:10px;opacity:0.3;text-align:center;">
+                Share your code with friends and earn 10% of their first purchase! 🚀
+            </div>
             <button class="auth-btn" onclick="closeReferralModal();" style="background:var(--card-bg);border:1px solid var(--border);color:var(--text);margin-top:10px;">Close</button>
         </div>
     </div>
@@ -3282,7 +3382,9 @@
         <div class="modal-content">
             <button class="modal-close" onclick="closeForgotPasswordModal()"><i class="fas fa-times"></i></button>
             <div class="modal-title"><i class="fas fa-key"></i> Reset Password</div>
-            <div style="color:var(--text-secondary);font-size:14px;opacity:0.5;text-align:center;margin-bottom:10px;">Enter your email and we'll send you a reset link.</div>
+            <div style="color:var(--text-secondary);font-size:14px;opacity:0.5;text-align:center;margin-bottom:10px;">
+                Enter your email and we'll send you a reset link.
+            </div>
             <input class="payment-tx-input" id="forgotEmail" placeholder="Email address" type="email" />
             <button class="auth-btn" onclick="sendForgotPassword()"><i class="fas fa-paper-plane"></i> Send Reset Link</button>
             <div class="auth-error" id="forgotError"></div>
@@ -3297,11 +3399,16 @@
             <button class="modal-close" onclick="closeCreateDownloadModal()"><i class="fas fa-times"></i></button>
             <div class="modal-title"><i class="fas fa-plus"></i> Add New Download</div>
             <form class="request-form" id="createDownloadForm" onsubmit="createDownload(event)">
-                <label>Title</label><input id="dlTitle" placeholder="e.g. PSH GG V8" required type="text" />
-                <label>Type</label><input id="dlType" placeholder="e.g. LUA, JSON, APK" required type="text" />
-                <label>Description</label><textarea id="dlDescription" placeholder="File description..." required></textarea>
-                <label>Download URL</label><input id="dlUrl" placeholder="https://..." required type="url" />
-                <label>Date (optional)</label><input id="dlDate" type="date" />
+                <label>Title</label>
+                <input id="dlTitle" placeholder="e.g. PSH GG V8" required type="text" />
+                <label>Type</label>
+                <input id="dlType" placeholder="e.g. LUA, JSON, APK" required type="text" />
+                <label>Description</label>
+                <textarea id="dlDescription" placeholder="File description..." required></textarea>
+                <label>Download URL</label>
+                <input id="dlUrl" placeholder="https://..." required type="url" />
+                <label>Date (optional)</label>
+                <input id="dlDate" type="date" />
                 <button class="submit-btn" type="submit" style="background:var(--primary);"><i class="fas fa-save"></i> Add</button>
             </form>
         </div>
@@ -3312,8 +3419,10 @@
             <button class="modal-close" onclick="closeCreateNotificationModal()"><i class="fas fa-times"></i></button>
             <div class="modal-title"><i class="fas fa-bell"></i> New Notification</div>
             <form class="request-form" id="createNotificationForm" onsubmit="createNotification(event)">
-                <label>Title</label><input id="notifTitle" placeholder="e.g. 📢 New Script Available" required type="text" />
-                <label>Message</label><textarea id="notifMessage" placeholder="Notification content..." required></textarea>
+                <label>Title</label>
+                <input id="notifTitle" placeholder="e.g. 📢 New Script Available" required type="text" />
+                <label>Message</label>
+                <textarea id="notifMessage" placeholder="Notification content..." required></textarea>
                 <button class="submit-btn" type="submit" style="background:var(--primary);"><i class="fas fa-paper-plane"></i> Send</button>
             </form>
         </div>
@@ -3325,16 +3434,28 @@
             <div class="modal-title" id="productFormTitle">➕ Add New Product</div>
             <form class="request-form" id="productForm" onsubmit="saveProduct(event)">
                 <input type="hidden" id="productIdField" />
-                <label>Product Name</label><input id="productName" placeholder="e.g. Booking System Pro" required type="text" />
-                <label>Price (0 for FREE)</label><input id="productPrice" placeholder="e.g. 20" type="number" step="0.01" min="0" />
+                <label>Product Name</label>
+                <input id="productName" placeholder="e.g. Booking System Pro" required type="text" />
+                <label>Price (0 for FREE)</label>
+                <input id="productPrice" placeholder="e.g. 20" type="number" step="0.01" min="0" />
                 <label>Type</label>
-                <select id="productBadge"><option value="FREE">🎁 FREE</option><option value="VIP">👑 VIP</option></select>
+                <select id="productBadge">
+                    <option value="FREE">🎁 FREE</option>
+                    <option value="VIP">👑 VIP</option>
+                </select>
                 <label>Status</label>
-                <select id="productStatus"><option value="available">✅ Available</option><option value="unavailable">⛔ Unavailable</option></select>
-                <label>Image URL</label><input id="productImage" placeholder="https://picsum.photos/seed/.../400/300" type="url" />
-                <label>Description</label><textarea id="productDescription" placeholder="Product description..."></textarea>
-                <label>Features (comma separated)</label><input id="productFeatures" placeholder="e.g. Feature 1, Feature 2, Feature 3" type="text" />
-                <label>Video URL (YouTube Embed)</label><input id="productVideo" placeholder="https://www.youtube.com/embed/..." type="url" />
+                <select id="productStatus">
+                    <option value="available">✅ Available</option>
+                    <option value="unavailable">⛔ Unavailable</option>
+                </select>
+                <label>Image URL</label>
+                <input id="productImage" placeholder="https://picsum.photos/seed/.../400/300" type="url" />
+                <label>Description</label>
+                <textarea id="productDescription" placeholder="Product description..."></textarea>
+                <label>Features (comma separated)</label>
+                <input id="productFeatures" placeholder="e.g. Feature 1, Feature 2, Feature 3" type="text" />
+                <label>Video URL (YouTube Embed)</label>
+                <input id="productVideo" placeholder="https://www.youtube.com/embed/..." type="url" />
                 <button class="submit-btn" type="submit" style="background:var(--primary);"><i class="fas fa-save"></i> Save Product</button>
             </form>
         </div>
@@ -3451,7 +3572,9 @@
                     <h3 style="font-size:14px;font-weight:700;color:var(--text);font-family:var(--font);"><i class="fas fa-heart" style="color:var(--heart-color);"></i> Favorites</h3>
                     <span id="wishlistSub" style="font-size:12px;color:var(--text-secondary);font-family:var(--font);opacity:0.5;">0 items</span>
                 </div>
-                <div class="wishlist-grid" id="wishlistGrid"><div class="wishlist-empty"><i class="fas fa-heart"></i><p>No favorites yet</p></div></div>
+                <div class="wishlist-grid" id="wishlistGrid">
+                    <div class="wishlist-empty"><i class="fas fa-heart"></i><p>No favorites yet</p></div>
+                </div>
             </div>
 
             <!-- products -->
@@ -3554,7 +3677,7 @@
     </script>
     <script type="module">
         import { initializeApp } from "firebase/app";
-        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, updatePassword, sendPasswordResetEmail, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
+        import { getAuth, onAuthStateChanged, signInAnonymously, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, updatePassword, sendPasswordResetEmail, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
         import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, increment, collection, query, where, getDocs, onSnapshot, addDoc, deleteDoc, orderBy } from "firebase/firestore";
         import { getAnalytics } from "firebase/analytics";
 
@@ -3825,25 +3948,7 @@
             document.getElementById('registerContainer').style.display = 'block'; };
         window.toggleReferral = function() { document.getElementById('referralField').classList.toggle('show'); };
 
-        // BAN CHECK FUNCTION
-        async function checkUserBanned(uid) {
-            try {
-                const userRef = doc(db, 'users', uid);
-                const userSnap = await getDoc(userRef);
-                if (userSnap.exists() && userSnap.data().isBanned === true) {
-                    return true;
-                }
-                return false;
-            } catch (e) { return false; }
-        }
-
-        // LOGIN - NO ANONYMOUS
         window.loginUser = async function() {
-            // Ensure we are logged out first
-            if (auth.currentUser) {
-                await signOut(auth);
-            }
-            
             const btn = document.getElementById('loginBtn');
             btn.classList.add('loading');
             const errorEl = document.getElementById('loginError');
@@ -3856,15 +3961,6 @@
                 btn.classList.remove('loading'); return; }
             try {
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                // BAN CHECK
-                const isBanned = await checkUserBanned(userCredential.user.uid);
-                if (isBanned) {
-                    await signOut(auth);
-                    errorEl.textContent = '⛔ This account has been banned. Contact support.';
-                    btn.classList.remove('loading');
-                    showToast('⛔ Account banned', 'error');
-                    return;
-                }
                 currentUser = userCredential.user;
                 successEl.textContent = '✅ Login successful!';
                 showToast('👋 Welcome back!', 'success');
@@ -3923,7 +4019,7 @@
                     if (!querySnapshot.empty) { querySnapshot.forEach((doc) => { referrerId = doc.id; }); }
                 }
                 const userRef = doc(db, 'users', currentUser.uid);
-                await setDoc(userRef, { userId: currentUser.uid, name, email, country, lang, telegram: '', telegramChatId: '', location: country, wishlist: [], cart: [], history: [], requests: [], usedCodes: [], referrals: [], referralRewards: 0, rp: 0, useRpForCart: false, referralCode: newReferralCode, referredBy: referrerId || '', isBanned: false, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+                await setDoc(userRef, { userId: currentUser.uid, name, email, country, lang, telegram: '', telegramChatId: '', location: country, wishlist: [], cart: [], history: [], requests: [], usedCodes: [], referrals: [], referralRewards: 0, rp: 0, useRpForCart: false, referralCode: newReferralCode, referredBy: referrerId || '', createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
                 if (referrerId) {
                     const referrerRef = doc(db, 'users', referrerId);
                     await updateDoc(referrerRef, { referrals: arrayUnion({ userId: currentUser.uid, name, email, date: new Date().toISOString() }), referralRewards: increment(5), rp: increment(5) });
@@ -3959,8 +4055,6 @@
                     unsubscribeAdmin = null; }
                 if (unsubscribeUser) { unsubscribeUser();
                     unsubscribeUser = null; }
-                if (unsubscribeBanListener) { unsubscribeBanListener();
-                    unsubscribeBanListener = null; }
                 pendingCount = 0;
                 unreadNotifications = 0;
                 document.getElementById('authSection').style.display = 'block';
@@ -3993,24 +4087,6 @@
             } catch (error) { errorEl.textContent = '❌ ' + error.message;
                 showToast('❌ ' + error.message, 'error'); }
         };
-
-        // BAN LISTENER - realtime ban check
-        let unsubscribeBanListener = null;
-
-        function startBanListener(uid) {
-            if (unsubscribeBanListener) { unsubscribeBanListener(); }
-            const userRef = doc(db, 'users', uid);
-            unsubscribeBanListener = onSnapshot(userRef, (docSnap) => {
-                if (docSnap.exists() && docSnap.data().isBanned === true && currentUser && currentUser.uid === uid) {
-                    signOut(auth);
-                    showToast('⛔ Your account has been banned.', 'error');
-                    document.getElementById('authSection').style.display = 'block';
-                    document.getElementById('mainApp').style.display = 'none';
-                    if (unsubscribeBanListener) { unsubscribeBanListener();
-                        unsubscribeBanListener = null; }
-                }
-            }, (error) => { console.error('Ban listener error:', error); });
-        }
 
         // fullscreen toggles
         window.openUserMenuFull = function() {
@@ -4214,10 +4290,7 @@
             let html = `<div style="display:grid;gap:8px;">`;
             history.slice().reverse().forEach(item => {
                 const status = item.status || 'pending';
-                const statusMap = { 'pending': { label: '⏳ Pending', class: 'pending' }, 'preparing': { label: '📦 Preparing',
-                        class: 'preparing' }, 'shipped': { label: '🚚 Shipped', class: 'shipped' },
-                    'delivered': { label: '✅ Delivered', class: 'delivered' }, 'completed': { label: '✅ Completed',
-                        class: 'completed' }, 'rejected': { label: '❌ Rejected', class: 'rejected' } };
+                const statusMap = { 'pending': { label: '⏳ Pending', class: 'pending' }, 'preparing': { label: '📦 Preparing', class: 'preparing' }, 'shipped': { label: '🚚 Shipped', class: 'shipped' }, 'delivered': { label: '✅ Delivered', class: 'delivered' }, 'completed': { label: '✅ Completed', class: 'completed' }, 'rejected': { label: '❌ Rejected', class: 'rejected' } };
                 const info = statusMap[status] || statusMap['pending'];
                 const date = item.date ? new Date(item.date) : new Date();
                 const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -4927,24 +5000,6 @@
             } catch (error) { console.error('Telegram send error:', error); return null; }
         }
 
-        // Send notification to specific user
-        async function sendTelegramNotificationToUser(userId, message) {
-            try {
-                const userRef = doc(db, 'users', userId);
-                const userSnap = await getDoc(userRef);
-                if (!userSnap.exists()) return false;
-                const userData = userSnap.data();
-                const chatId = userData.telegramChatId;
-                if (!chatId) return false;
-                const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'Markdown' })
-                });
-                return response.ok;
-            } catch (error) { console.error('Send notification error:', error); return false; }
-        }
-
         function sendOrderToTelegram(method, txHash = null) {
             if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
             let total = 0;
@@ -4994,30 +5049,13 @@
             updateDoc(userRef, { history: arrayUnion(orderItem), rp: userProfile.rp || 0, useRpForCart: false }).catch(
                 console.error);
             userProfile.history.push(orderItem);
-            
-            // Send to admin Telegram
             const telegramUrl = `https://t.me/Mitalica69?text=${encodeURIComponent(msg)}`;
             window.open(telegramUrl, '_blank');
-            
-            // Send notification to the user who placed the order
             if (userProfile.telegramChatId) {
                 const userMsg =
                     `🛒 *New Order*\n\n📦 #${orderItem.id.slice(-6)}\n💰 ${finalTotal.toFixed(2)}$\n📅 ${new Date().toLocaleString()}\n\nThank you for shopping with us! Your order will be processed soon.`;
-                sendTelegramNotificationToUser(currentUser.uid, userMsg);
+                sendTelegramNotification(userMsg);
             }
-            
-            // Create a notification in Firestore only for this user
-            try {
-                await addDoc(collection(db, 'notifications'), {
-                    title: `🛒 New Order #${orderItem.id.slice(-6)}`,
-                    message: `You placed a new order for ${cart.length} item(s) totaling $${finalTotal.toFixed(2)}. Status: Pending.`,
-                    userId: currentUser.uid,
-                    readBy: [],
-                    createdAt: serverTimestamp(),
-                    updatedAt: serverTimestamp()
-                });
-            } catch (e) { console.error('Error creating notification:', e); }
-
             cart = [];
             activeDiscount = 0;
             activeDiscountCode = '';
@@ -5198,6 +5236,7 @@
         };
         window.deleteDownload = async function(id) {
             if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
+            if (!confirm('Delete this download?')) return;
             try { await deleteDoc(doc(db, 'downloads', id));
                 showToast('🗑️ Download deleted', 'success'); } catch (error) { showToast('❌ Error: ' + error.message,
                     'error'); }
@@ -5211,7 +5250,7 @@
         window.closeCreateDownloadModal = function() { document.getElementById('createDownloadModal').classList.remove(
                 'open'); };
 
-        // notifications - only show user-specific notifications
+        // notifications
         function loadNotifications() {
             if (unsubscribeNotifications) { unsubscribeNotifications(); }
             const notifRef = collection(db, 'notifications');
@@ -5220,35 +5259,22 @@
                     notifications = [];
                     snapshot.forEach((doc) => { const data = doc.data();
                         notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] }); });
-                    // Filter notifications for the current user
-                    if (currentUser) {
-                        const userId = currentUser.uid;
-                        // Only show notifications that belong to this user OR have no userId (global)
-                        notifications = notifications.filter(n => !n.userId || n.userId === userId);
-                        unreadNotifications = notifications.filter(n => !(n.readBy || []).includes(userId)).length;
-                    } else {
-                        notifications = [];
-                        unreadNotifications = 0;
-                    }
+                    if (currentUser) { const userId = currentUser.uid;
+                        unreadNotifications = notifications.filter(n => !(n.readBy || []).includes(userId)).length; } else { unreadNotifications =
+                            0; }
                     updateNotificationBadge();
                     renderAdminNotifications();
                     renderUserNotifications();
                 }).catch((error) => { console.error('Error loading notifications:', error);
                     renderUserNotificationsFallback(); });
-                
                 unsubscribeNotifications = onSnapshot(query(notifRef, orderBy('createdAt', 'desc')), (snapshot) => {
                     if (isUpdatingNotifications) return;
                     notifications = [];
                     snapshot.forEach((doc) => { const data = doc.data();
                         notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] }); });
-                    if (currentUser) {
-                        const userId = currentUser.uid;
-                        notifications = notifications.filter(n => !n.userId || n.userId === userId);
-                        unreadNotifications = notifications.filter(n => !(n.readBy || []).includes(userId)).length;
-                    } else {
-                        notifications = [];
-                        unreadNotifications = 0;
-                    }
+                    if (currentUser) { const userId = currentUser.uid;
+                        unreadNotifications = notifications.filter(n => !(n.readBy || []).includes(userId)).length; } else { unreadNotifications =
+                            0; }
                     updateNotificationBadge();
                     renderAdminNotifications();
                     renderUserNotifications();
@@ -5267,11 +5293,8 @@
         function renderUserNotifications() {
             const container = document.getElementById('notificationsList');
             if (!container) return;
-            if (!notifications || notifications.length === 0) {
-                container.innerHTML =
-                    `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-bell" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;font-family:var(--font);">No notifications</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Notifications will appear here</div></div>`;
-                return;
-            }
+            if (!notifications || notifications.length === 0) { container.innerHTML =
+                    `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-bell" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;font-family:var(--font);">No notifications</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Notifications will appear here</div></div>`; return; }
             let html = '';
             notifications.forEach(n => {
                 const isRead = currentUser && (n.readBy || []).includes(currentUser.uid);
@@ -5289,12 +5312,10 @@
         function renderAdminNotifications() {
             const container = document.getElementById('adminNotificationsList');
             if (!container) return;
-            // Admin sees all notifications
-            const allNotifs = notifications;
-            if (allNotifs.length === 0) { container.innerHTML =
+            if (notifications.length === 0) { container.innerHTML =
                     `<div style="text-align:center;padding:30px;color:var(--text-secondary);">📭 No notifications</div>`; return; }
-            container.innerHTML = allNotifs.map(n =>
-                `<div class="admin-item"><div class="item-info"><div class="item-title">${n.title||'Notification'} ${n.userId ? '🔒' : '🌐'}</div><div class="item-meta">${n.message||''} • ${n.createdAt?new Date(n.createdAt.toDate()).toLocaleDateString('en-US'):''} ${n.userId ? '• User specific' : '• Global'}</div></div><div class="item-actions"><button class="btn-delete" onclick="deleteNotification('${n.id}')"><i class="fas fa-trash"></i></button></div></div>`
+            container.innerHTML = notifications.map(n =>
+                `<div class="admin-item"><div class="item-info"><div class="item-title">${n.title||'Notification'}</div><div class="item-meta">${n.message||''} • ${n.createdAt?new Date(n.createdAt.toDate()).toLocaleDateString('en-US'):''}</div></div><div class="item-actions"><button class="btn-delete" onclick="deleteNotification('${n.id}')"><i class="fas fa-trash"></i></button></div></div>`
             ).join('');
         }
 
@@ -5326,17 +5347,13 @@
             isUpdatingNotifications = false;
         };
 
-        // CLEAR ALL NOTIFICATIONS - NO CONFIRMATION, only user's own
         window.clearAllNotifications = async function() {
             if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
-            const userId = currentUser.uid;
-            const userNotifs = notifications.filter(n => n.userId === userId);
+            if (!confirm('Delete all notifications?')) return;
             try {
-                for (const n of userNotifs) {
-                    try { await deleteDoc(doc(db, 'notifications', n.id)); } catch (e) { console.error(
-                            'Error deleting notification:', e); }
-                }
-                notifications = notifications.filter(n => n.userId !== userId);
+                for (const n of notifications) { try { await deleteDoc(doc(db, 'notifications', n.id)); } catch (e) { console
+                            .error('Error deleting notification:', e); } }
+                notifications = [];
                 unreadNotifications = 0;
                 updateNotificationBadge();
                 renderUserNotifications();
@@ -5348,52 +5365,23 @@
 
         window.openNotifications = function() { document.getElementById('notificationsModal').classList.add('open'); };
         window.closeNotifications = function() { document.getElementById('notificationsModal').classList.remove('open'); };
-        
-        // Admin create notification - can send to specific user or global
         window.createNotification = async function(e) {
             e.preventDefault();
             if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
             const title = document.getElementById('notifTitle').value.trim();
             const message = document.getElementById('notifMessage').value.trim();
             if (!title || !message) { showToast('⚠️ Please fill all fields', 'warning'); return; }
-            // Ask admin if they want to send to all users or a specific user
-            const target = prompt('Send to:\n1 - All users (global)\n2 - Specific user (enter email)', '1');
-            let userId = null;
-            if (target === '2') {
-                const email = prompt('Enter user email:');
-                if (email) {
-                    // Find user by email
-                    const usersRef = collection(db, 'users');
-                    const q = query(usersRef, where('email', '==', email));
-                    const querySnapshot = await getDocs(q);
-                    if (!querySnapshot.empty) {
-                        querySnapshot.forEach((doc) => { userId = doc.id; });
-                    } else {
-                        showToast('❌ User not found with that email', 'error');
-                        return;
-                    }
-                } else {
-                    showToast('⚠️ Email is required', 'warning');
-                    return;
-                }
-            }
             try {
-                await addDoc(collection(db, 'notifications'), { 
-                    title, 
-                    message, 
-                    userId: userId || null,
-                    readBy: [], 
-                    createdAt: serverTimestamp(), 
-                    updatedAt: serverTimestamp() 
-                });
-                showToast(`✅ Notification sent${userId ? ' to user' : ' to all users'}!`, 'success');
+                await addDoc(collection(db, 'notifications'), { title, message, readBy: [], createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp() });
+                showToast('✅ Notification sent', 'success');
                 closeCreateNotificationModal();
                 document.getElementById('createNotificationForm').reset();
             } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
         };
-        
         window.deleteNotification = async function(id) {
             if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
+            if (!confirm('Delete this notification?')) return;
             try { await deleteDoc(doc(db, 'notifications', id));
                 showToast('🗑️ Notification deleted', 'success'); } catch (error) { showToast('❌ Error: ' + error.message,
                     'error'); }
@@ -5586,6 +5574,7 @@
         };
         window.deleteProduct = async function(productId) {
             if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
+            if (!confirm('Delete this product?')) return;
             try { await deleteProductFromFirestore(productId);
                 showToast('🗑️ Product deleted', 'success'); } catch (error) { console.error('Delete product error:', error);
                 showToast('❌ Error: ' + error.message, 'error'); }
@@ -5772,27 +5761,20 @@
                     'delivered': '✅ Delivered', 'completed': '✅ Completed', 'rejected': '❌ Rejected' };
                 const statusLabel = statusLabels[newStatus] || newStatus;
                 showToast(`📦 Order updated to ${statusLabel}`, 'success');
-                
-                // Send notification to the user
+                if (updatedOrder && data.telegramChatId) {
+                    const itemsNames = updatedOrder.items ? updatedOrder.items.map(i => i.name).join(', ') : 'Your order';
+                    const msg =
+                        `📦 *Order Update #${String(orderId).slice(-6)}*\n\n📋 Products: ${itemsNames}\n🔄 Status: ${statusLabel}\n📅 Date: ${new Date().toLocaleString()}`;
+                    await sendTelegramNotificationToUser(userId, msg);
+                }
                 if (updatedOrder) {
                     const itemsNames = updatedOrder.items ? updatedOrder.items.map(i => i.name).join(', ') : 'Your order';
-                    // Send to user's Telegram if linked
-                    if (data.telegramChatId) {
-                        const msg =
-                            `📦 *Order Update #${String(orderId).slice(-6)}*\n\n📋 Products: ${itemsNames}\n🔄 Status: ${statusLabel}\n📅 Date: ${new Date().toLocaleString()}`;
-                        await sendTelegramNotificationToUser(userId, msg);
-                    }
-                    // Create notification for user
-                    try {
-                        await addDoc(collection(db, 'notifications'), {
-                            title: `📦 Order #${String(orderId).slice(-6)} Updated`,
-                            message: `Your order status has been updated to: ${statusLabel}`,
-                            userId: userId,
-                            readBy: [],
-                            createdAt: serverTimestamp(),
-                            updatedAt: serverTimestamp()
-                        });
-                    } catch (e) { console.error('Error sending auto notification:', e); }
+                    const notifMessage =
+                        `🔄 Order #${String(orderId).slice(-6)} status updated\n${itemsNames}\nStatus: ${statusLabel}`;
+                    try { await addDoc(collection(db, 'notifications'), { title: `📦 Order #${String(orderId).slice(-6)}`,
+                            message: notifMessage, userId: userId, readBy: [], createdAt: serverTimestamp(),
+                            updatedAt: serverTimestamp() }); } catch (e) { console.error(
+                            'Error sending auto notification:', e); }
                 }
                 loadAdminOrders();
                 if (currentUser && currentUser.uid === userId) { userProfile.history = updatedHistory; }
@@ -5801,7 +5783,23 @@
                 showToast('❌ Error: ' + error.message, 'error'); }
         };
 
-        // DELETE ORDER - NO CONFIRMATION
+        async function sendTelegramNotificationToUser(userId, message) {
+            try {
+                const userRef = doc(db, 'users', userId);
+                const userSnap = await getDoc(userRef);
+                if (!userSnap.exists()) return false;
+                const userData = userSnap.data();
+                const chatId = userData.telegramChatId;
+                if (!chatId) return false;
+                const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'Markdown' })
+                });
+                return response.ok;
+            } catch (error) { console.error('Send notification error:', error); return false; }
+        }
+
         window.deleteOrderImmediately = async function(orderId, userId) {
             if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
             if (!orderId || !userId) { showToast('❌ Invalid data', 'error'); return; }
@@ -5913,42 +5911,24 @@
             renderAdminUsers(allUsers); };
         window.refreshAdminUsers = function() { loadAdminUsers();
             showToast('🔄 Users refreshed', 'info'); };
-
-        // TOGGLE BAN - NO CONFIRMATION
         window.toggleUserBan = async function(uid, ban) {
             if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
             if (uid === currentUser.uid) { showToast('⚠️ You cannot ban yourself', 'warning'); return; }
-            try {
-                await updateDoc(doc(db, 'users', uid), { isBanned: ban });
-                if (ban) {
-                    // Try to sign them out if they are the current user
-                    if (currentUser && currentUser.uid === uid) {
-                        await signOut(auth);
-                        showToast('⛔ You have been banned.', 'error');
-                        document.getElementById('authSection').style.display = 'block';
-                        document.getElementById('mainApp').style.display = 'none';
-                    }
-                }
+            try { await updateDoc(doc(db, 'users', uid), { isBanned: ban });
                 showToast(`✅ User ${ban?'banned':'unbanned'}`, 'success');
-                loadAdminUsers();
-                loadAdminOrders();
-            } catch (error) { console.error('Error toggling user ban:', error);
+                loadAdminUsers(); } catch (error) { console.error('Error toggling user ban:', error);
                 showToast('❌ Error: ' + error.message, 'error'); }
         };
-
-        // DELETE USER - NO CONFIRMATION
         window.deleteUserAccount = async function(uid) {
             if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
             if (uid === currentUser.uid) { showToast('⚠️ You cannot delete your own account', 'warning'); return; }
-            try {
-                await deleteDoc(doc(db, 'users', uid));
+            if (!confirm('⚠️ Delete this user account permanently?')) return;
+            try { await deleteDoc(doc(db, 'users', uid));
                 showToast('🗑️ User account deleted', 'success');
                 loadAdminUsers();
-                loadAdminOrders();
-            } catch (error) { console.error('Error deleting user:', error);
+                loadAdminOrders(); } catch (error) { console.error('Error deleting user:', error);
                 showToast('❌ Error: ' + error.message, 'error'); }
         };
-
         window.viewUserDetails = async function(uid) {
             if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
             try {
@@ -5998,22 +5978,10 @@
                 this.innerHTML = '<i class="fas fa-sun"></i>'; }
         });
 
-        // auth state with ban check - NO ANONYMOUS
+        // auth state
         onAuthStateChanged(auth, async (user) => {
             currentUser = user;
             if (user) {
-                // Check if banned
-                const isBanned = await checkUserBanned(user.uid);
-                if (isBanned) {
-                    await signOut(auth);
-                    document.getElementById('authSection').style.display = 'block';
-                    document.getElementById('mainApp').style.display = 'none';
-                    showToast('⛔ Your account has been banned.', 'error');
-                    if (unsubscribeBanListener) { unsubscribeBanListener(); }
-                    return;
-                }
-                // Start ban listener for realtime updates
-                startBanListener(user.uid);
                 document.getElementById('authSection').style.display = 'none';
                 document.getElementById('mainApp').style.display = 'block';
                 await loadUserData();
@@ -6033,16 +6001,14 @@
                 loadDownloads();
                 loadNotifications();
                 fetchCryptoPrices();
-                if (unsubscribeBanListener) { unsubscribeBanListener();
-                    unsubscribeBanListener = null; }
             }
             updateUI();
             updateFullUserMenu();
         });
 
-        // init - NO ANONYMOUS
+        // init
         async function init() {
-            // No anonymous sign-in
+            try { await signInAnonymously(auth); } catch (e) { console.log('ℹ️ Anonymous sign-in'); }
             const productsFromFirestore = await loadProductsFromFirestore();
             products = productsFromFirestore.length > 0 ? productsFromFirestore : fallbackProducts;
             startProductsRealtimeListener();
@@ -6070,6 +6036,8 @@
         window.deleteOrderImmediately = deleteOrderImmediately;
         window.openDownloads = openDownloads;
         window.closeDownloads = closeDownloads;
+        window.openNotifications = openNotifications;
+        window.closeNotifications = closeNotifications;
         window.createDownload = createDownload;
         window.deleteDownload = deleteDownload;
         window.editDownload = editDownload;
