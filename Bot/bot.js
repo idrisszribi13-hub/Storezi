@@ -13,6 +13,17 @@ if (!token) {
 // ============= البوت =============
 const bot = new TelegramBot(token, { polling: true });
 
+// ============= معالجة أخطاء الـ Polling وإعادة التشغيل التلقائي =============
+bot.on('polling_error', (error) => {
+    console.error('❌ حدث خطأ في الـ Polling:', error.message);
+    
+    // إذا كان الخطأ هو تضارب 409 أو توقف الاتصال الفادح
+    if (error.message && (error.message.includes('409') || error.message.includes('terminated'))) {
+        console.log('🔄 تم كشف تضارب (409 Conflict). إغلاق إجباري ليتيح لـ Render إعادة التشغيل تلقائياً...');
+        process.exit(1); // إغلاق برمز خطأ ليقوم السيرفر بعمل ريستارت فوراً بدلاً من البقاء معلقاً
+    }
+});
+
 // ============= Firebase Admin مع Service Account =============
 let db;
 try {
@@ -137,3 +148,23 @@ app.listen(PORT, () => {
 });
 
 console.log('🚀 Zi Store Bot started successfully!');
+
+
+// ============= إغلاق نظيف للبوت عند التحديث لمنع الـ 409 (Graceful Shutdown) =============
+const shutdown = (signal) => {
+    console.log(`⚠️ تم استقبال إشارة ${signal}. جاري إيقاف الـ Polling لتفادي تضارب الحسابات...`);
+    bot.stopPolling()
+        .then(() => {
+            console.log('✅ تم إيقاف الـ Polling بنجاح. إغلاق السيرفر الآن.');
+            process.exit(0);
+        })
+        .catch((err) => {
+            console.error('❌ خطأ أثناء إيقاف الـ Polling:', err.message);
+            process.exit(1);
+        });
+};
+
+// الاستماع لإشارات الإغلاق من سيرفر Render أو Terminal
+process.on('SIGTERM', () => shutdown('SIGTERM')); 
+process.on('SIGINT', () => shutdown('SIGINT'));
+
