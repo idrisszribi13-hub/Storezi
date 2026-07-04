@@ -3554,7 +3554,7 @@
     </script>
     <script type="module">
         import { initializeApp } from "firebase/app";
-        import { getAuth, onAuthStateChanged, signInAnonymously, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, updatePassword, sendPasswordResetEmail, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, updatePassword, sendPasswordResetEmail, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
         import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, increment, collection, query, where, getDocs, onSnapshot, addDoc, deleteDoc, orderBy } from "firebase/firestore";
         import { getAnalytics } from "firebase/analytics";
 
@@ -3837,8 +3837,13 @@
             } catch (e) { return false; }
         }
 
-        // LOGIN WITH BAN CHECK
+        // LOGIN - NO ANONYMOUS
         window.loginUser = async function() {
+            // Ensure we are logged out first
+            if (auth.currentUser) {
+                await signOut(auth);
+            }
+            
             const btn = document.getElementById('loginBtn');
             btn.classList.add('loading');
             const errorEl = document.getElementById('loginError');
@@ -5993,7 +5998,7 @@
                 this.innerHTML = '<i class="fas fa-sun"></i>'; }
         });
 
-        // auth state with ban check
+        // auth state with ban check - NO ANONYMOUS
         onAuthStateChanged(auth, async (user) => {
             currentUser = user;
             if (user) {
@@ -6035,9 +6040,9 @@
             updateFullUserMenu();
         });
 
-        // init
+        // init - NO ANONYMOUS
         async function init() {
-            try { await signInAnonymously(auth); } catch (e) { console.log('ℹ️ Anonymous sign-in'); }
+            // No anonymous sign-in
             const productsFromFirestore = await loadProductsFromFirestore();
             products = productsFromFirestore.length > 0 ? productsFromFirestore : fallbackProducts;
             startProductsRealtimeListener();
