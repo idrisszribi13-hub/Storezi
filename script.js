@@ -2495,9 +2495,10 @@ document.getElementById('themeToggle')?.addEventListener('click', function() {
 });
 
 onAuthStateChanged(auth, async (user) => {
-    // ⭐ إظهار شاشة التحميل عند تغيير حالة المستخدم
-    showLoadingScreen();
-    
+// ========================================
+// onAuthStateChanged - مبسط
+// ========================================
+onAuthStateChanged(auth, async (user) => {
     currentUser = user;
     if (user) {
         document.getElementById('authSection').style.display = 'none';
@@ -2522,12 +2523,15 @@ onAuthStateChanged(auth, async (user) => {
     }
     updateUI();
     updateFullUserMenu();
-    
-    // ⭐ إخفاء شاشة التحميل بعد الانتهاء
-    hideLoadingScreen();
 });
 
+// ========================================
+// init() - هنا فقط تدار شاشة التحميل
+// ========================================
 async function init() {
+    // ⭐ إظهار شاشة التحميل في البداية
+    showLoadingScreen();
+    
     try { await signInAnonymously(auth); } catch (e) { console.log('ℹ️ Anonymous sign-in'); }
     const productsFromFirestore = await loadProductsFromFirestore();
     products = productsFromFirestore.length > 0 ? productsFromFirestore : fallbackProducts;
