@@ -3014,43 +3014,8 @@ body {
         font-size: 11px;
         padding: 6px 10px;
     }
-       /* Guest welcome message */
-    #guestWelcome {
-        animation: fadeIn 0.6s ease;
-    }
+}
 
-    #guestWelcome button:hover {
-        transform: scale(1.05);
-    }
-
-    #guestWelcome .close-btn:hover {
-        opacity: 0.8 !important;
-        color: var(--danger) !important;
-    }
-
-    /* Fade in animation */
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    /* Pulse animation for the button */
-    @keyframes pulse {
-        0%, 100% {
-            transform: scale(1);
-        }
-        50% {
-            transform: scale(1.05);
-            box-shadow: 0 0 30px var(--primary-glow);
-        }
-    }
-
-/* ============================================
+/* ========================================
    END OF STYLE.CSS
-   ============================================ */
+   ======================================== */
