@@ -25,19 +25,55 @@ const analytics = getAnalytics(app);
 // شاشة تحميل بسيطة
 // ========================================
 
-// إخفاء شاشة التحميل
-function hideLoadingScreen() {
-    const screen = document.getElementById('loadingScreen');
-    if (screen) {
-        screen.style.display = 'none';
+// رسائل التحميل
+const loadingMessages = [
+    'جاري تهيئة المتجر...',
+    'جاري تحميل المنتجات...',
+    'جاري الاتصال بقاعدة البيانات...',
+    'مرحباً بك في ZI Store! 🚀'
+];
+
+let loadingMessageIndex = 0;
+let loadingInterval = null;
+
+// تحديث رسالة التحميل
+function updateLoadingMessage() {
+    const statusEl = document.getElementById('loadingStatus');
+    if (statusEl) {
+        loadingMessageIndex = (loadingMessageIndex + 1) % loadingMessages.length;
+        statusEl.textContent = loadingMessages[loadingMessageIndex];
     }
 }
 
-// إظهار شاشة التحميل
+function startLoadingMessages() {
+    if (loadingInterval) clearInterval(loadingInterval);
+    loadingInterval = setInterval(updateLoadingMessage, 2000);
+}
+
+// ✅ إخفاء شاشة التحميل - طريقة مباشرة
+function hideLoadingScreen() {
+    console.log('✅ Hiding loading screen...');
+    const screen = document.getElementById('loadingScreen');
+    if (screen) {
+        screen.style.display = 'none';
+        if (loadingInterval) {
+            clearInterval(loadingInterval);
+            loadingInterval = null;
+        }
+    } else {
+        console.error('❌ loadingScreen element not found!');
+    }
+}
+
+// ✅ إظهار شاشة التحميل
 function showLoadingScreen() {
+    console.log('✅ Showing loading screen...');
     const screen = document.getElementById('loadingScreen');
     if (screen) {
         screen.style.display = 'flex';
+        startLoadingMessages();
+    } else {
+        console.error('❌ loadingScreen element not found!');
     }
 }
 
@@ -45,7 +81,7 @@ function showLoadingScreen() {
 function updateLoadingBar(percent) {
     const bar = document.getElementById('loadingBar');
     if (bar) {
-        bar.style.width = percent + '%';
+        bar.style.width = Math.min(percent, 100) + '%';
     }
 }
 
@@ -778,9 +814,18 @@ window.checkTelegramStatus = async function() {
         if (userSnap.exists()) {
             const data = userSnap.data();
             if (data.telegramChatId) {
-                showToast(`✅ مرتبط مع تيليجرام (Chat ID: ${data.telegramChatId})`, 'success');
-                userProfile.telegramChatId = data.telegramChatId;
-                renderProfileFull();
+                // محاولة إرسال رسالة اختبار للتحقق
+                const testResult = await sendTelegramNotification(
+                    data.telegramChatId,
+                    `🔍 *فحص الاتصال*\n\n✅ تم التحقق من اتصالك مع البوت بنجاح!\n📅 ${new Date().toLocaleString()}`
+                );
+                if (testResult) {
+                    showToast(`✅ مرتبط مع تيليجرام (Chat ID: ${data.telegramChatId})`, 'success');
+                    userProfile.telegramChatId = data.telegramChatId;
+                    renderProfileFull();
+                } else {
+                    showToast('⚠️ البوت لا يستطيع إرسال رسالة. تأكد من أنك بدأت المحادثة مع @Zistore_Notif_bot', 'warning');
+                }
             } else { showToast('❌ غير مرتبط مع تيليجرام', 'warning'); }
         }
     } catch (error) { console.error('Check telegram status error:', error);
@@ -1005,29 +1050,32 @@ window.addToCart = async function(productId) {
     if (!product || product.price === 0) { showToast('⚠️ This script is free', 'warning'); return; }
     const existing = cart.find(item => item.id === productId);
     if (existing) { existing.quantity = (existing.quantity || 1) + 1; } else { cart.push({ ...product, quantity: 1 }); }
+    await saveUserData(true);
     updateCartUI();
     renderProducts(products);
     updateBottomCartBar();
     showToast(`✅ Added ${product.name} to cart`, 'success');
-    saveUserData(true);
 };
-window.clearCart = function() {
+
+window.clearCart = async function() {
     if (cart.length === 0) return;
     cart = [];
-    saveUserData();
+    await saveUserData();
     updateCartUI();
     renderProducts(products);
     updateBottomCartBar();
     showToast('🗑️ Cart cleared', 'info');
 };
+
 window.removeFromCart = async function(productId) {
     cart = cart.filter(item => item.id !== productId);
+    await saveUserData(true);
     updateCartUI();
     renderProducts(products);
     updateBottomCartBar();
     showToast('🗑️ Removed from cart', 'info');
-    saveUserData(true);
 };
+
 window.updateCartQuantity = async function(productId, change) {
     const item = cart.find(item => item.id === productId);
     if (!item) return;
@@ -1642,11 +1690,12 @@ window.toggleWishlist = async function(productId) {
         createFloatingHearts();
         showToast(`❤️ Added ${product ? product.name : ''} to favorites`, 'success'); } else { wishlist = wishlist.filter(id => id !== productId);
         showToast(`💔 Removed ${product ? product.name : ''} from favorites`, 'info'); }
+    await saveUserData(true);
     updateWishlistUI();
     renderProducts(products);
     updateStatsFromProducts(products);
-    saveUserData(true);
 };
+
 window.removeFromWishlist = function(id) { window.toggleWishlist(id); };
 
 function updateWishlistUI() {
@@ -1906,12 +1955,17 @@ window.markAllNotificationsRead = async function() {
     isUpdatingNotifications = false;
 };
 
+// ✅ Clear Notifications - يحذف مباشرة بدون تأكيد
 window.clearAllNotifications = async function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
-    if (!confirm('Delete all notifications?')) return;
     try {
-        for (const n of notifications) { try { await deleteDoc(doc(db, 'notifications', n.id)); } catch (e) { console
-                    .error('Error deleting notification:', e); } }
+        const notifRef = collection(db, 'notifications');
+        const snapshot = await getDocs(query(notifRef, where('userId', '==', currentUser.uid)));
+        const batch = [];
+        snapshot.forEach((doc) => {
+            batch.push(deleteDoc(doc.ref));
+        });
+        await Promise.all(batch);
         notifications = [];
         unreadNotifications = 0;
         updateNotificationBadge();
