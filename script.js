@@ -2520,7 +2520,6 @@ onAuthStateChanged(auth, async (user) => {
 // init() - هنا فقط تدار شاشة التحميل
 // ========================================
 async function init() {
-    // ⭐ إظهار شاشة التحميل في البداية
     showLoadingScreen();
     
     try { await signInAnonymously(auth); } catch (e) { console.log('ℹ️ Anonymous sign-in'); }
@@ -2538,8 +2537,18 @@ async function init() {
     setInterval(fetchCryptoPrices, 60000);
     console.log('✅ ZI Store ready with single Telegram bot!');
     
-    // ⭐ إخفاء شاشة التحميل بعد اكتمال التحميل
+    // ⭐ إخفاء شاشة التحميل
     hideLoadingScreen();
+    
+    // ⭐⭐ حل طوارئ: إخفاء بعد 3 ثوانٍ كحد أقصى
+    setTimeout(() => {
+        console.log('⚠️ Force hiding loading screen (timeout)');
+        const screen = document.getElementById('loadingScreen');
+        if (screen) {
+            screen.style.display = 'none';
+            screen.classList.add('hidden');
+        }
+    }, 3000);
 }
 init();
 // تصدير الدوال للاستخدام العام
