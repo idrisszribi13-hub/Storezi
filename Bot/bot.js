@@ -2,6 +2,7 @@ const TelegramBot = require('node-telegram-bot-api');
 const express = require('express');
 const admin = require('firebase-admin');
 const fs = require('fs');
+const cors = require('cors');
 
 // ============= التوكن =============
 const token = process.env.BOT_TOKEN || '8687744794:AAGeeNrEU-iQLRmg3dLvYkWhddtYo_sJ1tc';
@@ -14,7 +15,7 @@ if (!token) {
 
 console.log('🤖 Starting bot with token:', token.substring(0, 10) + '...');
 
-// ============= البوت مع إعدادات إضافية =============
+// ============= البوت =============
 const bot = new TelegramBot(token, { 
     polling: true,
     onlyFirstMatch: true,
@@ -86,7 +87,6 @@ async function safeSendMessage(chatId, text, options = {}) {
     } catch (error) {
         console.error(`❌ Failed to send to ${chatId}:`, error.message);
         
-        // محاولة إرسال بدون Markdown
         try {
             const plainText = text.replace(/\*([^*]+)\*/g, '$1').replace(/\_([^_]+)\_/g, '$1');
             const result = await bot.sendMessage(chatId, plainText);
@@ -249,29 +249,86 @@ bot.on('message', async (msg) => {
     }
 });
 
-// ============= اختبار الإرسال (للتصحيح) =============
-// يمكنك تشغيل هذا الأمر في الترمينال لاختبار الإرسال
-async function testSend() {
-    try {
-        const result = await safeSendMessage(ADMIN_CHAT_ID, '🔔 *Test Message*\n\nIf you see this, the bot is working!');
-        console.log('✅ Test result:', result ? 'Success' : 'Failed');
-    } catch (error) {
-        console.error('❌ Test failed:', error.message);
-    }
-}
-
-// اختبار الإرسال عند بدء التشغيل
-setTimeout(testSend, 3000);
-
-// ============= السيرفر =============
+// ============= السيرفر مع CORS ونقاط النهاية الجديدة =============
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// ✅ إضافة CORS و JSON
+app.use(cors());
+app.use(express.json());
+
+// ✅ نقطة نهاية لإرسال الرسائل (للموقع)
+app.post('/send-message', async (req, res) => {
+    const { chatId, message } = req.body;
+    
+    if (!chatId || !message) {
+        return res.status(400).json({ 
+            success: false, 
+            error: 'Missing chatId or message' 
+        });
+    }
+    
+    console.log(`📤 Sending to ${chatId}: ${message.substring(0, 50)}...`);
+    
+    try {
+        const result = await bot.sendMessage(chatId, message, { 
+            parse_mode: 'Markdown' 
+        });
+        console.log(`✅ Message sent to ${chatId}`);
+        res.json({ success: true, result });
+    } catch (error) {
+        console.error(`❌ Failed to send to ${chatId}:`, error.message);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message 
+        });
+    }
+});
+
+// ✅ نقطة نهاية لإرسال إشعارات الاختبار
+app.post('/test-notification', async (req, res) => {
+    const { chatId } = req.body;
+    
+    if (!chatId) {
+        return res.status(400).json({ 
+            success: false, 
+            error: 'Missing chatId' 
+        });
+    }
+    
+    try {
+        const message = `🔔 *اختبار الإشعارات*\n\nهذه رسالة اختبار من ZI Store.\n📅 ${new Date().toLocaleString()}\n\nإذا رأيت هذه الرسالة، فالإشعارات تعمل بشكل صحيح! ✅`;
+        
+        const result = await bot.sendMessage(chatId, message, { 
+            parse_mode: 'Markdown' 
+        });
+        res.json({ success: true, result });
+    } catch (error) {
+        res.status(500).json({ 
+            success: false, 
+            error: error.message 
+        });
+    }
+});
+
+// ✅ نقطة نهاية للتحقق من حالة البوت
+app.get('/status', (req, res) => {
+    res.json({
+        status: 'online',
+        bot: 'running',
+        adminChatId: ADMIN_CHAT_ID,
+        db: db ? 'connected' : 'disconnected',
+        timestamp: new Date().toISOString()
+    });
+});
+
+// ✅ نقطة نهاية رئيسية
 app.get('/', (req, res) => {
     res.send('🤖 Zi Store Bot is running!');
 });
 
+// ✅ نقطة نهاية للصحة
 app.get('/health', (req, res) => {
     res.json({ 
         status: 'ok', 
@@ -279,16 +336,6 @@ app.get('/health', (req, res) => {
         db: db ? 'connected' : 'disconnected',
         adminChatId: ADMIN_CHAT_ID
     });
-});
-
-app.post('/test', async (req, res) => {
-    try {
-        const chatId = req.query.chatId || ADMIN_CHAT_ID;
-        const result = await safeSendMessage(chatId, '🔔 *Test Message*\n\nThis is a test message from Zi Store Bot.');
-        res.json({ success: true, result });
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
-    }
 });
 
 app.listen(PORT, () => {
