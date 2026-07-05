@@ -36,7 +36,6 @@ const loadingMessages = [
 let loadingMessageIndex = 0;
 let loadingInterval = null;
 
-// تحديث رسالة التحميل
 function updateLoadingMessage() {
     const statusEl = document.getElementById('loadingStatus');
     if (statusEl) {
@@ -50,7 +49,6 @@ function startLoadingMessages() {
     loadingInterval = setInterval(updateLoadingMessage, 2000);
 }
 
-// ✅ إخفاء شاشة التحميل - طريقة مباشرة
 function hideLoadingScreen() {
     console.log('✅ Hiding loading screen...');
     const screen = document.getElementById('loadingScreen');
@@ -65,7 +63,6 @@ function hideLoadingScreen() {
     }
 }
 
-// ✅ إظهار شاشة التحميل
 function showLoadingScreen() {
     console.log('✅ Showing loading screen...');
     const screen = document.getElementById('loadingScreen');
@@ -77,7 +74,6 @@ function showLoadingScreen() {
     }
 }
 
-// تحديث شريط التحميل
 function updateLoadingBar(percent) {
     const bar = document.getElementById('loadingBar');
     if (bar) {
@@ -90,9 +86,8 @@ function updateLoadingBar(percent) {
 // ========================================
 
 const ADMIN_EMAIL = 'zribiidriss3@gmail.com';
-// ✅ بوت Zistore_Notif_bot (التوكن الصحيح)
 const TELEGRAM_BOT_TOKEN = '8687744794:AAGeeNrEU-iQLRmg3dLvYkWhddtYo_sJ1tc';
-const TELEGRAM_CHAT_ID = '7434396478'; // معرف المدير
+const TELEGRAM_CHAT_ID = '7434396478';
 
 let currentUser = null;
 let userId = null;
@@ -152,7 +147,6 @@ const paymentWallets = {
 };
 let cryptoPrices = { ltc: 0, usdt: 1, lastUpdate: null, isUpdating: false };
 
-// ✅ دالة التحقق من حالة Ban
 async function checkUserBanned(uid) {
     try {
         const userRef = doc(db, 'users', uid);
@@ -168,7 +162,6 @@ async function checkUserBanned(uid) {
     }
 }
 
-// ✅ وظيفة موحدة لإرسال الإشعارات إلى تيليجرام (باستخدام بوت واحد)
 async function sendTelegramNotification(chatId, message) {
     if (!chatId) {
         console.error('❌ No chatId provided');
@@ -199,6 +192,106 @@ async function sendTelegramNotification(chatId, message) {
         return false;
     }
 }
+
+// ✅ طريقة مبسطة: إرسال كود والتحقق التلقائي
+window.bindTelegramSimple = async function() {
+    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
+
+    try {
+        const bindCode = currentUser.uid.slice(-8) + Math.random().toString(36).substring(2, 6);
+
+        // حفظ طلب الربط
+        const bindRef = doc(db, 'telegram_binds', bindCode);
+        await setDoc(bindRef, {
+            userId: currentUser.uid,
+            userEmail: currentUser.email,
+            userName: currentUser.displayName || 'User',
+            createdAt: serverTimestamp(),
+            status: 'pending'
+        });
+
+        // إرسال رسالة مع كود الربط
+        const botUsername = 'Zistore_Notif_bot';
+        const message = `🔗 *ربط حساب تيليجرام*\n\n👤 المستخدم: ${currentUser.displayName || currentUser.email}\n📧 البريد: ${currentUser.email}\n🆔 كود الربط: \`${bindCode}\`\n\n📌 اضغط على الرابط التالي لقبول الربط:\n[قبول الربط](https://t.me/${botUsername}?start=${bindCode})`;
+
+        await sendTelegramNotification(TELEGRAM_CHAT_ID, message);
+        
+        window.open(`https://t.me/${botUsername}`, '_blank');
+        showToast('📨 تم إرسال طلب الربط!', 'success');
+        
+        // الاستماع لتأكيد الربط
+        startBindingListener(bindCode);
+
+    } catch (error) {
+        console.error('Bind error:', error);
+        showToast('❌ خطأ', 'error');
+    }
+};
+
+// دالة ربط تيليجرام العادية
+window.bindTelegram = window.bindTelegramSimple;
+
+// الاستماع لتأكيد الربط
+function startBindingListener(bindCode) {
+    const bindRef = doc(db, 'telegram_binds', bindCode);
+    const unsubscribe = onSnapshot(bindRef, (doc) => {
+        if (doc.exists()) {
+            const data = doc.data();
+            if (data.status === 'completed' && data.telegramChatId) {
+                userProfile.telegramChatId = data.telegramChatId;
+                saveUserData();
+                renderProfileFull();
+                showToast('✅ تم ربط تيليجرام بنجاح!', 'success');
+                sendTelegramNotification(
+                    userProfile.telegramChatId,
+                    `🔔 *مرحباً بك في ZI Store!*\n\nتم ربط حسابك بنجاح.\nستستلم إشعارات الطلبات هنا.\n\nشكراً لاستخدامك ZI Store! 🚀`
+                );
+                updateFullUserMenu();
+                unsubscribe();
+            }
+        }
+    });
+    setTimeout(() => { unsubscribe(); }, 300000);
+}
+
+// ✅ إلغاء ربط تيليجرام
+window.unlinkTelegram = async function() {
+    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
+    
+    if (!userProfile.telegramChatId) {
+        showToast('⚠️ Telegram is not linked', 'warning');
+        return;
+    }
+    
+    if (!confirm('Are you sure you want to unlink your Telegram account?\n\nYou will no longer receive order notifications.')) {
+        return;
+    }
+    
+    try {
+        const userRef = doc(db, 'users', currentUser.uid);
+        await updateDoc(userRef, {
+            telegramChatId: '',
+            telegram: ''
+        });
+        
+        userProfile.telegramChatId = '';
+        userProfile.telegram = '';
+        await saveUserData();
+        
+        renderProfileFull();
+        updateFullUserMenu();
+        showToast('✅ Telegram unlinked successfully!', 'success');
+        
+        sendTelegramNotification(
+            TELEGRAM_CHAT_ID,
+            `🔓 *تم إلغاء ربط تيليجرام*\n\n👤 المستخدم: ${currentUser.displayName || currentUser.email}\n📧 البريد: ${currentUser.email}\n\nتم إلغاء ربط حسابك بنجاح.`
+        );
+        
+    } catch (error) {
+        console.error('Unlink error:', error);
+        showToast('❌ Error unlinking Telegram', 'error');
+    }
+};
 
 // عرض الإشعارات في الواجهة
 function showToast(message, type = 'success') {
@@ -413,7 +506,6 @@ window.showRegister = function() { document.getElementById('loginContainer').sty
     document.getElementById('registerContainer').style.display = 'block'; };
 window.toggleReferral = function() { document.getElementById('referralField').classList.toggle('show'); };
 
-// ✅ دالة تسجيل الدخول مع التحقق من Ban
 window.loginUser = async function() {
     const btn = document.getElementById('loginBtn');
     btn.classList.add('loading');
@@ -428,7 +520,6 @@ window.loginUser = async function() {
     try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         
-        // ⭐ التحقق من حالة Ban
         const userRef = doc(db, 'users', userCredential.user.uid);
         const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
@@ -464,7 +555,6 @@ window.loginUser = async function() {
         btn.classList.remove('loading'); }
 };
 
-// ✅ دالة التسجيل مع إضافة isBanned: false
 window.registerUser = async function() {
     const btn = document.getElementById('registerBtn');
     btn.classList.add('loading');
@@ -727,6 +817,7 @@ function renderProfileFull() {
         </button>
         ${userProfile.telegramChatId ? `<button class="btn-test" onclick="testTelegramNotification()"><i class="fas fa-paper-plane"></i> Test</button>` : ''}
         <button class="btn-check" onclick="checkTelegramStatus()"><i class="fas fa-sync-alt"></i> Check</button>
+        ${userProfile.telegramChatId ? `<button class="btn-unlink" onclick="unlinkTelegram()" style="background:var(--danger);color:#fff;padding:6px 16px;border:none;border-radius:6px;font-weight:600;cursor:pointer;font-size:12px;font-family:var(--font);transition:0.3s;"><i class="fas fa-unlink"></i> Unlink</button>` : ''}
       </div>
       <div style="font-size:11px;color:var(--text-secondary);opacity:0.4;margin-top:6px;font-family:var(--font);">
         <i class="fab fa-telegram-plane" style="color:#0088cc;"></i> 
@@ -736,60 +827,7 @@ function renderProfileFull() {
   `;
 }
 
-// ✅ ربط تيليجرام المبسط (باستخدام بوت واحد)
-window.bindTelegram = async function() {
-    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
-
-    try {
-        const bindCode = currentUser.uid.slice(-8) + Math.random().toString(36).substring(2, 6);
-
-        const bindRef = doc(db, 'telegram_binds', bindCode);
-        await setDoc(bindRef, {
-            userId: currentUser.uid,
-            userEmail: currentUser.email,
-            userName: currentUser.displayName || 'User',
-            createdAt: serverTimestamp(),
-            status: 'pending'
-        });
-
-        const botUsername = 'Zistore_Notif_bot';
-        const message = `🔗 *ربط حساب تيليجرام*\n\n👤 المستخدم: ${currentUser.displayName || currentUser.email}\n📧 البريد: ${currentUser.email}\n🆔 كود الربط: \`${bindCode}\`\n\n📌 أرسل هذا الكود إلى البوت: [@${botUsername}](https://t.me/${botUsername})`;
-
-        await sendTelegramNotification(TELEGRAM_CHAT_ID, message);
-        window.open(`https://t.me/${botUsername}`, '_blank');
-        showToast('📨 تم إرسال طلب الربط إلى تيليجرام!', 'success');
-        startBindingListener(bindCode);
-
-    } catch (error) {
-        console.error('Telegram bind error:', error);
-        showToast('❌ خطأ في الاتصال مع تيليجرام', 'error');
-    }
-};
-
-// الاستماع لتأكيد الربط
-function startBindingListener(bindCode) {
-    const bindRef = doc(db, 'telegram_binds', bindCode);
-    const unsubscribe = onSnapshot(bindRef, (doc) => {
-        if (doc.exists()) {
-            const data = doc.data();
-            if (data.status === 'completed' && data.telegramChatId) {
-                userProfile.telegramChatId = data.telegramChatId;
-                saveUserData();
-                renderProfileFull();
-                showToast('✅ تم ربط تيليجرام بنجاح!', 'success');
-                sendTelegramNotification(
-                    userProfile.telegramChatId,
-                    `🔔 *مرحباً بك في ZI Store!*\n\nتم ربط حسابك بنجاح.\nستستلم إشعارات الطلبات هنا.\n\nشكراً لاستخدامك ZI Store! 🚀`
-                );
-                updateFullUserMenu();
-                unsubscribe();
-            }
-        }
-    });
-    setTimeout(() => { unsubscribe(); }, 300000);
-}
-
-// ✅ اختبار الإشعارات
+// اختبار الإشعارات
 window.testTelegramNotification = async function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
     if (!userProfile.telegramChatId) { showToast('⚠️ No Telegram linked', 'warning'); return; }
@@ -814,7 +852,6 @@ window.checkTelegramStatus = async function() {
         if (userSnap.exists()) {
             const data = userSnap.data();
             if (data.telegramChatId) {
-                // محاولة إرسال رسالة اختبار للتحقق
                 const testResult = await sendTelegramNotification(
                     data.telegramChatId,
                     `🔍 *فحص الاتصال*\n\n✅ تم التحقق من اتصالك مع البوت بنجاح!\n📅 ${new Date().toLocaleString()}`
@@ -832,7 +869,6 @@ window.checkTelegramStatus = async function() {
         showToast('❌ خطأ في التحقق', 'error'); }
 };
 
-// بقية الدوال
 window.saveProfileChangesInline = async function(e) {
     e.preventDefault();
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
@@ -890,7 +926,10 @@ window.changePasswordInline = async function() {
         showToast('❌ ' + error.message, 'error'); }
 };
 
-// دوال المنتجات
+// ========================================
+// دوال المنتجات - مع إضافة خيار VIP Pricing
+// ========================================
+
 async function loadProductsFromFirestore() {
     try {
         const productsRef = collection(db, 'products');
@@ -938,7 +977,7 @@ function renderProducts(productsList) {
         const inCart = cart.some(item => item.id === p.id);
         const inWish = wishlist.includes(p.id);
         const qty = cart.find(item => item.id === p.id)?.quantity || 0;
-        const badgeLabel = isFree ? 'FREE' : (isUnavailable ? 'Unavailable' : 'VIP');
+        const badgeLabel = isFree ? 'FREE' : (isUnavailable ? 'Unavailable' : (p.badge || 'VIP'));
         const badgeClass = isUnavailable ? 'unavailable' : (isFree ? 'free' : 'vip');
         const displayFeatures = p.features ? p.features.slice(0, 3) : [];
         let displayPrice = p.price;
@@ -1044,7 +1083,10 @@ function generateRecommendations(productsList) {
     }
 }
 
+// ========================================
 // دوال السلة
+// ========================================
+
 window.addToCart = async function(productId) {
     const product = products.find(p => p.id === productId);
     if (!product || product.price === 0) { showToast('⚠️ This script is free', 'warning'); return; }
@@ -1194,7 +1236,79 @@ window.applyCartPromo = function() {
     showToast(`🎉 ${codeData.discount}% discount applied!`, 'success');
 };
 
+// ========================================
+// دوال الـ wishlist
+// ========================================
+
+window.toggleWishlist = async function(productId) {
+    const index = wishlist.indexOf(productId);
+    const product = products.find(p => p.id === productId);
+    if (index === -1) { wishlist.push(productId);
+        createFloatingHearts();
+        showToast(`❤️ Added ${product ? product.name : ''} to favorites`, 'success'); } else { wishlist = wishlist.filter(id => id !== productId);
+        showToast(`💔 Removed ${product ? product.name : ''} from favorites`, 'info'); }
+    await saveUserData(true);
+    updateWishlistUI();
+    renderProducts(products);
+    updateStatsFromProducts(products);
+};
+
+window.removeFromWishlist = function(id) { window.toggleWishlist(id); };
+
+function updateWishlistUI() {
+    const section = document.getElementById('wishlistSection');
+    const grid = document.getElementById('wishlistGrid');
+    const count = document.getElementById('wishlistCount');
+    const stats = document.getElementById('wishlistStats');
+    const sub = document.getElementById('wishlistSub');
+    const wlCount = wishlist.length;
+    if (count) count.textContent = wlCount;
+    if (stats) stats.textContent = wlCount;
+    if (sub) sub.textContent = wlCount + ' items';
+    if (wlCount === 0) { if (section) section.style.display = 'none'; if (grid) grid.innerHTML =
+            `<div class="wishlist-empty"><i class="fas fa-heart"></i><p>No favorites yet</p></div>`; return; }
+    if (section) section.style.display = 'block';
+    const wlProducts = products.filter(p => wishlist.includes(p.id));
+    if (grid) {
+        grid.innerHTML = wlProducts.map(p =>
+            `<div class="wishlist-item" style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:var(--bg);border-radius:8px;border:1px solid var(--border);transition:0.3s;"><img src="${p.image || 'https://picsum.photos/seed/default/60/60'}" style="width:30px;height:30px;border-radius:6px;object-fit:cover;" /><div class="info" style="flex:1;min-width:0;"><h4 style="font-size:11px;font-weight:600;color:var(--text);font-family:var(--font);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</h4><div class="price" style="font-size:10px;color:var(--primary);font-weight:700;font-family:var(--font);">${p.price===0?'FREE':p.price+' $'}</div></div><button class="remove-btn" onclick="window.removeFromWishlist('${p.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:11px;opacity:0.3;transition:0.3s;"><i class="fas fa-times"></i></button></div>`
+        ).join('');
+    }
+    updateFullUserMenu();
+}
+
+function renderWishlistFull() {
+    const container = document.getElementById('wishlistFullContent');
+    if (wishlist.length === 0) {
+        container.innerHTML =
+            `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-heart" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;font-family:var(--font);">No favorites yet</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Start adding products to your wishlist</div></div>`;
+        return;
+    }
+    const wlProducts = products.filter(p => wishlist.includes(p.id));
+    container.innerHTML =
+        `<div style="display:grid;gap:8px;">${wlProducts.map(p=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);cursor:pointer;" onclick="window.openDetails('${p.id}');closeWishlistFull();"><img src="${p.image||'https://picsum.photos/seed/default/60/60'}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" /><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);font-family:var(--font);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div><div style="font-size:12px;color:var(--primary);font-weight:700;font-family:var(--font);">${p.price===0?'FREE':'$'+p.price}</div></div><button onclick="event.stopPropagation();removeFromWishlist('${p.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:14px;opacity:0.3;padding:8px;transition:0.3s;"><i class="fas fa-times"></i></button></div>`).join('')}</div>`;
+}
+
+function createFloatingHearts() {
+    const container = document.getElementById('floatingHearts');
+    const heartCount = 6;
+    for (let i = 0; i < heartCount; i++) {
+        const heart = document.createElement('div');
+        heart.className = 'floating-heart';
+        heart.textContent = ['❤️', '💖', '💗', '💕', '♥️', '💝'][Math.floor(Math.random() * 6)];
+        heart.style.left = (10 + Math.random() * 80) + '%';
+        heart.style.top = (60 + Math.random() * 30) + '%';
+        heart.style.fontSize = (16 + Math.random() * 20) + 'px';
+        heart.style.animationDuration = (1.2 + Math.random() * 0.8) + 's';
+        container.appendChild(heart);
+        setTimeout(() => heart.remove(), 2000);
+    }
+}
+
+// ========================================
 // دوال الدفع
+// ========================================
+
 window.openDetails = function(id) {
     const p = products.find(x => x.id === id);
     if (!p) return;
@@ -1204,7 +1318,7 @@ window.openDetails = function(id) {
     document.getElementById('modalGameImage').style.filter = isUnavailable ? 'grayscale(100%)' : 'none';
     document.getElementById('modalName').textContent = p.name + (isUnavailable ? ' ⛔' : '');
     const badge = document.getElementById('modalBadge');
-    badge.textContent = isUnavailable ? '⛔ Unavailable' : (isFree ? '🎁 FREE' : '👑 VIP');
+    badge.textContent = isUnavailable ? '⛔ Unavailable' : (isFree ? '🎁 FREE' : (p.badge || '👑 VIP'));
     badge.className = 'modal-badge ' + (isUnavailable ? 'unavailable' : (isFree ? 'free' : 'vip'));
     let priceDisplay = isUnavailable ? '⛔ Unavailable' : (isFree ? '💰 FREE' : `💰 ${p.price} $`);
     if (!isUnavailable && !isFree && p.price > 0) {
@@ -1291,7 +1405,10 @@ window.copyShareLink = function() {
         closeShareModal(); });
 };
 
+// ========================================
 // دوال التصفية والبحث
+// ========================================
+
 window.filterProducts = function(filter) {
     currentFilter = filter;
     document.querySelectorAll('.filter-btn').forEach(btn => { btn.classList.toggle('active', btn.dataset.filter ===
@@ -1375,7 +1492,10 @@ document.addEventListener('keydown', function(e) {
         closeHistoryFull(); }
 });
 
+// ========================================
 // دوال الدفع
+// ========================================
+
 async function fetchCryptoPrices() {
     if (cryptoPrices.isUpdating) return;
     cryptoPrices.isUpdating = true;
@@ -1497,7 +1617,6 @@ window.copyWalletAddress = function() {
     }
 };
 
-// ✅ وظيفة إرسال الطلب مع إشعارات للمدير والمستخدم فقط
 function sendOrderToTelegram(method, txHash = null) {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
 
@@ -1526,7 +1645,6 @@ function sendOrderToTelegram(method, txHash = null) {
 
     const orderId = 'order_' + Date.now();
 
-    // ⭐ نظام مكافآت RP
     const RP_EARN_RATE = 0.1;
     const rpEarned = Math.floor((finalTotal / RP_TO_DOLLAR) * RP_EARN_RATE);
     
@@ -1536,7 +1654,6 @@ function sendOrderToTelegram(method, txHash = null) {
         showToast(`🎉 ربحت ${rpEarned} نقاط RP!`, 'success');
     }
 
-    // ✅ رسالة للمدير فقط
     let adminMsg = '🛒 **طلب جديد**\n\n';
     adminMsg += `👤 **العميل:** ${currentUser.displayName || currentUser.email || 'Unknown'}\n`;
     adminMsg += `📧 **البريد:** ${currentUser.email || 'N/A'}\n`;
@@ -1556,19 +1673,15 @@ function sendOrderToTelegram(method, txHash = null) {
     }
     adminMsg += `\n\n📎 **رقم الطلب:** #${orderId.slice(-6)}`;
 
-    // ✅ إرسال إشعار للمدير فقط
     sendTelegramNotification(TELEGRAM_CHAT_ID, adminMsg);
 
-    // ✅ إرسال إشعار للمستخدم فقط (إذا كان مربطاً)
     if (userProfile.telegramChatId) {
         const userMsg = `🛒 *طلب جديد*\n\n📦 #${orderId.slice(-6)}\n💰 ${finalTotal.toFixed(2)}$\n📅 ${new Date().toLocaleString()}\n${rpEarned > 0 ? `🎯 +${rpEarned} RP مكافأة!\n` : ''}\nشكراً لتسوقك معنا! سيتم معالجة طلبك قريباً.`;
         sendTelegramNotification(userProfile.telegramChatId, userMsg);
     }
 
-    // فتح محادثة المدير (اختياري)
     window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(adminMsg)}`, '_blank');
 
-    // حفظ الطلب
     const orderItem = {
         id: orderId,
         items: cart.map(item => ({ id: item.id, name: item.name, price: item.price, quantity: item.quantity || 1 })),
@@ -1595,7 +1708,6 @@ function sendOrderToTelegram(method, txHash = null) {
     }).catch(console.error);
     userProfile.history.push(orderItem);
 
-    // ✅ إضافة إشعار في قاعدة البيانات للمستخدم فقط
     try {
         addDoc(collection(db, 'notifications'), {
             title: `🛒 New Order #${orderId.slice(-6)}`,
@@ -1607,7 +1719,6 @@ function sendOrderToTelegram(method, txHash = null) {
         }).catch(e => console.error('Error saving notification:', e));
     } catch (e) { console.error('Error saving notification:', e); }
 
-    // تنظيف السلة
     cart = [];
     activeDiscount = 0;
     activeDiscountCode = '';
@@ -1682,73 +1793,10 @@ window.closePaymentModal = function() { document.getElementById('paymentModal').
     document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected')); };
 window.checkout = function() { openPaymentModal(); };
 
-// دوال الـ wishlist
-window.toggleWishlist = async function(productId) {
-    const index = wishlist.indexOf(productId);
-    const product = products.find(p => p.id === productId);
-    if (index === -1) { wishlist.push(productId);
-        createFloatingHearts();
-        showToast(`❤️ Added ${product ? product.name : ''} to favorites`, 'success'); } else { wishlist = wishlist.filter(id => id !== productId);
-        showToast(`💔 Removed ${product ? product.name : ''} from favorites`, 'info'); }
-    await saveUserData(true);
-    updateWishlistUI();
-    renderProducts(products);
-    updateStatsFromProducts(products);
-};
-
-window.removeFromWishlist = function(id) { window.toggleWishlist(id); };
-
-function updateWishlistUI() {
-    const section = document.getElementById('wishlistSection');
-    const grid = document.getElementById('wishlistGrid');
-    const count = document.getElementById('wishlistCount');
-    const stats = document.getElementById('wishlistStats');
-    const sub = document.getElementById('wishlistSub');
-    const wlCount = wishlist.length;
-    if (count) count.textContent = wlCount;
-    if (stats) stats.textContent = wlCount;
-    if (sub) sub.textContent = wlCount + ' items';
-    if (wlCount === 0) { if (section) section.style.display = 'none'; if (grid) grid.innerHTML =
-            `<div class="wishlist-empty"><i class="fas fa-heart"></i><p>No favorites yet</p></div>`; return; }
-    if (section) section.style.display = 'block';
-    const wlProducts = products.filter(p => wishlist.includes(p.id));
-    if (grid) {
-        grid.innerHTML = wlProducts.map(p =>
-            `<div class="wishlist-item" style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:var(--bg);border-radius:8px;border:1px solid var(--border);transition:0.3s;"><img src="${p.image || 'https://picsum.photos/seed/default/60/60'}" style="width:30px;height:30px;border-radius:6px;object-fit:cover;" /><div class="info" style="flex:1;min-width:0;"><h4 style="font-size:11px;font-weight:600;color:var(--text);font-family:var(--font);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</h4><div class="price" style="font-size:10px;color:var(--primary);font-weight:700;font-family:var(--font);">${p.price===0?'FREE':p.price+' $'}</div></div><button class="remove-btn" onclick="window.removeFromWishlist('${p.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:11px;opacity:0.3;transition:0.3s;"><i class="fas fa-times"></i></button></div>`
-        ).join('');
-    }
-    updateFullUserMenu();
-}
-
-function renderWishlistFull() {
-    const container = document.getElementById('wishlistFullContent');
-    if (wishlist.length === 0) {
-        container.innerHTML =
-            `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-heart" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;font-family:var(--font);">No favorites yet</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Start adding products to your wishlist</div></div>`;
-        return;
-    }
-    const wlProducts = products.filter(p => wishlist.includes(p.id));
-    container.innerHTML =
-        `<div style="display:grid;gap:8px;">${wlProducts.map(p=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);cursor:pointer;" onclick="window.openDetails('${p.id}');closeWishlistFull();"><img src="${p.image||'https://picsum.photos/seed/default/60/60'}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" /><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);font-family:var(--font);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div><div style="font-size:12px;color:var(--primary);font-weight:700;font-family:var(--font);">${p.price===0?'FREE':'$'+p.price}</div></div><button onclick="event.stopPropagation();removeFromWishlist('${p.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:14px;opacity:0.3;padding:8px;transition:0.3s;"><i class="fas fa-times"></i></button></div>`).join('')}</div>`;
-}
-
-function createFloatingHearts() {
-    const container = document.getElementById('floatingHearts');
-    const heartCount = 6;
-    for (let i = 0; i < heartCount; i++) {
-        const heart = document.createElement('div');
-        heart.className = 'floating-heart';
-        heart.textContent = ['❤️', '💖', '💗', '💕', '♥️', '💝'][Math.floor(Math.random() * 6)];
-        heart.style.left = (10 + Math.random() * 80) + '%';
-        heart.style.top = (60 + Math.random() * 30) + '%';
-        heart.style.fontSize = (16 + Math.random() * 20) + 'px';
-        heart.style.animationDuration = (1.2 + Math.random() * 0.8) + 's';
-        container.appendChild(heart);
-        setTimeout(() => heart.remove(), 2000);
-    }
-}
-
+// ========================================
 // دوال التنزيلات والإشعارات
+// ========================================
+
 function loadDownloads() {
     if (unsubscribeDownloads) { unsubscribeDownloads(); }
     const dlRef = collection(db, 'downloads');
@@ -1822,7 +1870,10 @@ window.openCreateDownloadModal = function() {
 window.closeCreateDownloadModal = function() { document.getElementById('createDownloadModal').classList.remove(
         'open'); };
 
-// دوال الإشعارات - تعرض فقط للمستخدم الذي يملك الإشعار
+// ========================================
+// دوال الإشعارات
+// ========================================
+
 function loadNotifications() {
     if (unsubscribeNotifications) { unsubscribeNotifications(); }
     const notifRef = collection(db, 'notifications');
@@ -1896,7 +1947,6 @@ function renderUserNotifications() {
     container.innerHTML = html;
 }
 
-// عرض الإشعارات في لوحة المدير (جميع الإشعارات)
 function renderAdminNotifications() {
     const container = document.getElementById('adminNotificationsList');
     if (!container) return;
@@ -2007,7 +2057,10 @@ window.openCreateNotificationModal = function() {
 window.closeCreateNotificationModal = function() { document.getElementById('createNotificationModal').classList.remove(
         'open'); };
 
+// ========================================
 // دوال الطلبات
+// ========================================
+
 window.openRequestsModal = function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning');
         openAuthModal(); return; }
@@ -2052,7 +2105,10 @@ window.submitRequest = function(e) {
     }).catch(error => { showToast('❌ Error: ' + error.message, 'error'); });
 };
 
+// ========================================
 // دوال الإحالات
+// ========================================
+
 window.openReferralModal = function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning');
         openAuthModal(); return; }
@@ -2090,7 +2146,10 @@ window.copyReferralCode2 = function() {
     } else { showToast('⚠️ Please login first', 'warning'); }
 };
 
-// دوال لوحة المدير
+// ========================================
+// دوال لوحة المدير - مع إضافة خيار VIP Pricing
+// ========================================
+
 window.openAdminPanel = function() {
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized. Admin only.', 'error'); return; }
     const panel = document.getElementById('adminPanel');
@@ -2125,13 +2184,22 @@ function renderAdminProducts(productsList) {
         const isUnavailable = p.status === 'unavailable';
         return `
       <div class="admin-item" style="${isUnavailable?'opacity:0.5;':''}">
-        <div class="item-info"><div class="item-title">${p.name} ${isUnavailable?'⛔':''}</div><div class="item-meta">${p.price===0?'🎁 FREE':`💰 $${p.price}`} • ${p.badge||'FREE'} ${isUnavailable?'• Unavailable':''}</div></div>
-        <div class="item-actions"><button class="btn-edit" onclick="openEditProductModal('${p.id}')"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="deleteProduct('${p.id}')"><i class="fas fa-trash"></i></button></div>
+        <div class="item-info">
+          <div class="item-title">${p.name} ${isUnavailable?'⛔':''}</div>
+          <div class="item-meta">${p.price===0?'🎁 FREE':`💰 $${p.price}`} • ${p.badge||'FREE'} ${isUnavailable?'• Unavailable':''}</div>
+          ${p.duration ? `<div class="item-meta">⏱️ ${p.duration}</div>` : ''}
+          ${p.originalPrice ? `<div class="item-meta" style="text-decoration:line-through;opacity:0.5;">Original: $${p.originalPrice}</div>` : ''}
+        </div>
+        <div class="item-actions">
+          <button class="btn-edit" onclick="openEditProductModal('${p.id}')"><i class="fas fa-edit"></i></button>
+          <button class="btn-delete" onclick="deleteProduct('${p.id}')"><i class="fas fa-trash"></i></button>
+        </div>
       </div>
     `;
     }).join('');
 }
 
+// ✅ تعديل دالة إضافة منتج لتشمل خيارات VIP Pricing
 window.openAddProductModal = function() {
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
     document.getElementById('productFormTitle').textContent = '➕ Add New Product';
@@ -2143,8 +2211,12 @@ window.openAddProductModal = function() {
     document.getElementById('productFeatures').value = '';
     document.getElementById('productDescription').value = '';
     document.getElementById('productVideo').value = 'https://www.youtube.com/embed/dQw4w9WgXcQ';
+    document.getElementById('productDuration').value = '';
+    document.getElementById('productOriginalPrice').value = '';
     document.getElementById('productModal').classList.add('open');
 };
+
+// ✅ تعديل دالة تعديل منتج لتشمل خيارات VIP Pricing
 window.openEditProductModal = function(productId) {
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
     const product = products.find(p => p.id === productId);
@@ -2159,9 +2231,14 @@ window.openEditProductModal = function(productId) {
     document.getElementById('productDescription').value = product.description || '';
     document.getElementById('productFeatures').value = (product.features || []).join(', ');
     document.getElementById('productVideo').value = product.video || 'https://www.youtube.com/embed/dQw4w9WgXcQ';
+    document.getElementById('productDuration').value = product.duration || '';
+    document.getElementById('productOriginalPrice').value = product.originalPrice || '';
     document.getElementById('productModal').classList.add('open');
 };
+
 window.closeProductModal = function() { document.getElementById('productModal').classList.remove('open'); };
+
+// ✅ تعديل دالة حفظ المنتج لتشمل خيارات VIP Pricing
 window.saveProduct = async function(event) {
     event.preventDefault();
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
@@ -2174,17 +2251,30 @@ window.saveProduct = async function(event) {
     const description = document.getElementById('productDescription').value.trim();
     const featuresText = document.getElementById('productFeatures').value.trim();
     const video = document.getElementById('productVideo').value.trim();
+    const duration = document.getElementById('productDuration').value.trim();
+    const originalPrice = parseFloat(document.getElementById('productOriginalPrice').value) || 0;
+    
     if (!name) { showToast('⚠️ Product name is required', 'warning'); return; }
     const features = featuresText ? featuresText.split(',').map(f => f.trim()).filter(f => f) : [];
     const productData = { name, price, badge, status, image, description, features, video };
+    
+    // ✅ إضافة خيارات VIP Pricing إذا كانت موجودة
+    if (duration) productData.duration = duration;
+    if (originalPrice > 0) productData.originalPrice = originalPrice;
+    
     try {
-        if (productId) { await updateProductInFirestore(productId, productData);
-            showToast('✅ Product updated', 'success'); } else { await addProductToFirestore(productData);
-            showToast('✅ Product added', 'success'); }
+        if (productId) { 
+            await updateProductInFirestore(productId, productData);
+            showToast('✅ Product updated', 'success'); 
+        } else { 
+            await addProductToFirestore(productData);
+            showToast('✅ Product added', 'success'); 
+        }
         closeProductModal();
     } catch (error) { console.error('Save product error:', error);
         showToast('❌ Error: ' + error.message, 'error'); }
 };
+
 window.deleteProduct = async function(productId) {
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!confirm('Delete this product?')) return;
@@ -2208,7 +2298,10 @@ async function deleteProductFromFirestore(productId) {
             'Error deleting product:', error); throw error; }
 }
 
+// ========================================
 // دوال إدارة الطلبات
+// ========================================
+
 function startAdminRealtimeListener() {
     if (unsubscribeAdmin) { unsubscribeAdmin(); }
     const usersRef = collection(db, 'users');
@@ -2354,7 +2447,6 @@ function updateAdminStats(orders) {
     document.getElementById('adminRejectedOrders').textContent = rejected;
 }
 
-// ✅ تحديث حالة الطلب مع إرسال إشعار للمستخدم فقط
 window.updateOrderStatus = async function(orderId, userId, newStatus) {
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!orderId || !userId) { showToast('❌ Invalid data', 'error'); return; }
@@ -2447,7 +2539,10 @@ window.clearAdminSearch = function() { document.getElementById('adminSearchInput
 window.refreshAdminOrders = function() { loadAdminOrders();
     showToast('🔄 Refreshed', 'info'); };
 
+// ========================================
 // دوال إدارة المستخدمين
+// ========================================
+
 async function loadAdminUsers() {
     const container = document.getElementById('adminUsersContainer');
     if (!container) return;
@@ -2578,7 +2673,10 @@ window.viewUserDetails = async function(uid) {
 };
 window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
+// ========================================
 // دوال السجل
+// ========================================
+
 function renderHistoryFull() {
     const container = document.getElementById('historyFullContent');
     const history = userProfile.history || [];
@@ -2609,6 +2707,7 @@ function renderHistoryFull() {
 // ========================================
 // دوال الوضع والتهيئة
 // ========================================
+
 let isDark = true;
 document.getElementById('themeToggle')?.addEventListener('click', function() {
     isDark = !isDark;
@@ -2617,11 +2716,9 @@ document.getElementById('themeToggle')?.addEventListener('click', function() {
         this.innerHTML = '<i class="fas fa-sun"></i>'; }
 });
 
-// ✅ onAuthStateChanged - مع التحقق من Ban
 onAuthStateChanged(auth, async (user) => {
     currentUser = user;
     if (user) {
-        // ⭐ التحقق من حالة Ban
         try {
             const userRef = doc(db, 'users', user.uid);
             const userSnap = await getDoc(userRef);
@@ -2665,8 +2762,9 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ========================================
-// init() - هنا فقط تدار شاشة التحميل
+// init()
 // ========================================
+
 async function init() {
     showLoadingScreen();
     updateLoadingBar(10);
@@ -2711,7 +2809,10 @@ setTimeout(() => {
     console.log('⚠️ Force hiding loading screen (timeout)');
 }, 5000);
 
+// ========================================
 // تصدير الدوال للاستخدام العام
+// ========================================
+
 window.showToast = showToast;
 window.openAdminPanel = openAdminPanel;
 window.closeAdminPanel = closeAdminPanel;
@@ -2783,6 +2884,7 @@ window.checkout = checkout;
 window.bindTelegram = bindTelegram;
 window.checkTelegramStatus = checkTelegramStatus;
 window.testTelegramNotification = testTelegramNotification;
+window.unlinkTelegram = unlinkTelegram;
 window.saveProfileChangesInline = saveProfileChangesInline;
 window.sendResetLinkInline = sendResetLinkInline;
 window.changePasswordInline = changePasswordInline;
