@@ -167,7 +167,7 @@ async function checkUserBanned(uid) {
 // دوال تيليجرام - نسخة محسّنة
 // ========================================
 
-// ✅ دالة إرسال إشعارات تيليجرام (مع تحسينات)
+// ✅ دالة إرسال إشعارات تيليجرام
 async function sendTelegramNotification(chatId, message) {
     if (!chatId) {
         console.error('❌ No chatId provided');
@@ -175,12 +175,11 @@ async function sendTelegramNotification(chatId, message) {
     }
     
     console.log('📤 Sending to chatId:', chatId);
-    console.log('📝 Message:', message.substring(0, 50) + '...');
+    console.log('📝 Message preview:', message.substring(0, 50) + '...');
+    console.log('🔑 Token:', TELEGRAM_BOT_TOKEN.substring(0, 10) + '...');
     
     try {
         const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-        console.log('🔗 URL:', url.substring(0, 60) + '...');
-        
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -190,9 +189,8 @@ async function sendTelegramNotification(chatId, message) {
                 parse_mode: 'Markdown'
             })
         });
-        
         const data = await response.json();
-        console.log('📥 Response:', data);
+        console.log('📥 Response:', JSON.stringify(data));
         
         if (!data.ok) {
             console.error('❌ Telegram API error:', data.description);
@@ -212,7 +210,7 @@ async function sendTelegramNotification(chatId, message) {
     }
 }
 
-// ✅ اختبار الإشعارات (محسّن)
+// ✅ اختبار الإشعارات - نسخة محسّنة
 window.testTelegramNotification = async function() {
     console.log('🔍 Test button clicked');
     
@@ -221,39 +219,45 @@ window.testTelegramNotification = async function() {
         return; 
     }
     
-    // تحميل أحدث بيانات المستخدم من Firebase
+    // تحميل أحدث بيانات المستخدم من Firebase مباشرة
     try {
         const userRef = doc(db, 'users', currentUser.uid);
         const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
             const data = userSnap.data();
-            userProfile.telegramChatId = data.telegramChatId || '';
-            console.log('📋 Retrieved chatId from Firebase:', userProfile.telegramChatId);
+            const chatId = data.telegramChatId || '';
+            console.log('📋 Retrieved chatId from Firebase:', chatId);
+            
+            if (!chatId) {
+                showToast('❌ No Telegram linked. Please link first.', 'warning');
+                return;
+            }
+            
+            // تحديث userProfile
+            userProfile.telegramChatId = chatId;
+            
+            // إرسال رسالة اختبار
+            const result = await sendTelegramNotification(
+                chatId,
+                `🔔 *اختبار الإشعارات*\n\nهذه رسالة اختبار من ZI Store.\n📅 ${new Date().toLocaleString()}\n👤 المستخدم: ${currentUser.displayName || currentUser.email}\n\nإذا رأيت هذه الرسالة، فالإشعارات تعمل بشكل صحيح! ✅`
+            );
+
+            if (result) {
+                showToast('✅ تم إرسال رسالة اختبار! تحقق من تيليجرام.', 'success');
+                renderProfileFull();
+            } else {
+                showToast('❌ فشل إرسال رسالة الاختبار. تأكد من أنك بدأت المحادثة مع @Zistore_Notif_bot', 'error');
+            }
+        } else {
+            showToast('❌ User not found', 'error');
         }
     } catch (e) {
-        console.error('Error loading user data:', e);
-    }
-    
-    if (!userProfile.telegramChatId) { 
-        showToast('⚠️ No Telegram linked. Please link first.', 'warning'); 
-        return; 
-    }
-
-    console.log('📤 Sending test message to:', userProfile.telegramChatId);
-    
-    const result = await sendTelegramNotification(
-        userProfile.telegramChatId,
-        `🔔 *اختبار الإشعارات*\n\nهذه رسالة اختبار من ZI Store.\n📅 ${new Date().toLocaleString()}\n👤 المستخدم: ${currentUser.displayName || currentUser.email}\n\nإذا رأيت هذه الرسالة، فالإشعارات تعمل بشكل صحيح! ✅`
-    );
-
-    if (result) {
-        showToast('✅ تم إرسال رسالة اختبار! تحقق من تيليجرام.', 'success');
-    } else {
-        showToast('❌ فشل إرسال رسالة الاختبار. تأكد من أنك بدأت المحادثة مع @Zistore_Notif_bot', 'error');
+        console.error('Error:', e);
+        showToast('❌ خطأ في التحقق', 'error');
     }
 };
 
-// ✅ التحقق من حالة تيليجرام (محسّن)
+// ✅ التحقق من حالة تيليجرام - نسخة محسّنة
 window.checkTelegramStatus = async function() {
     console.log('🔍 Check button clicked');
     
@@ -263,7 +267,7 @@ window.checkTelegramStatus = async function() {
     }
     
     try {
-        // تحميل أحدث البيانات من Firebase
+        // تحميل أحدث البيانات من Firebase مباشرة
         const userRef = doc(db, 'users', currentUser.uid);
         const userSnap = await getDoc(userRef);
         if (!userSnap.exists()) {
@@ -276,6 +280,9 @@ window.checkTelegramStatus = async function() {
         console.log('📋 Retrieved chatId from Firebase:', chatId);
         
         if (chatId) {
+            // تحديث userProfile
+            userProfile.telegramChatId = chatId;
+            
             // محاولة إرسال رسالة اختبار للتحقق
             const testResult = await sendTelegramNotification(
                 chatId,
@@ -284,7 +291,6 @@ window.checkTelegramStatus = async function() {
             
             if (testResult) {
                 showToast(`✅ مرتبط مع تيليجرام (Chat ID: ${chatId})`, 'success');
-                userProfile.telegramChatId = chatId;
                 renderProfileFull();
             } else {
                 showToast('⚠️ البوت لا يستطيع إرسال رسالة. تأكد من أنك بدأت المحادثة مع @Zistore_Notif_bot', 'warning');
