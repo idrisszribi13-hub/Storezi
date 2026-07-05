@@ -614,7 +614,80 @@
                 <div class="stat-card"><div class="stat-icon">👑</div><div class="stat-number" id="vipScripts">0</div><div class="stat-label">Premium</div></div>
                 <div class="stat-card"><div class="stat-icon">❤️</div><div class="stat-number" id="wishlistStats">0</div><div class="stat-label">Favorites</div></div>
             </div>
-
+       <!-- ⭐ Guest Welcome Message -->
+<div id="guestWelcome" style="
+    background: linear-gradient(135deg, rgba(167, 139, 250, 0.15), rgba(251, 191, 36, 0.10));
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin-bottom: 14px;
+    display: none;
+    align-items: center;
+    gap: 14px;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+">
+    <div style="
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--vip-color));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        color: #fff;
+        flex-shrink: 0;
+    ">
+        <i class="fas fa-gift"></i>
+    </div>
+    <div style="flex: 1;">
+        <div style="
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+            font-family: var(--font);
+        ">
+            👋 Welcome to ZI Store!
+        </div>
+        <div style="
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-family: var(--font);
+            opacity: 0.6;
+            margin-top: 2px;
+        ">
+            Sign up now to get <strong style="color: var(--vip-color);">RP Points</strong>, <strong style="color: var(--heart-color);">Favorites</strong>, and <strong style="color: #0088cc;">Telegram</strong> notifications 🚀
+        </div>
+    </div>
+    <button onclick="scrollToAuth()" style="
+        padding: 6px 16px;
+        border: none;
+        border-radius: 20px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 12px;
+        font-family: var(--font);
+        transition: 0.3s;
+        white-space: nowrap;
+    ">
+        <i class="fas fa-user-plus"></i> Sign Up
+    </button>
+    <button onclick="closeGuestWelcome()" style="
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        cursor: pointer;
+        font-size: 14px;
+        opacity: 0.3;
+        transition: 0.3s;
+        padding: 4px;
+    ">
+        <i class="fas fa-times"></i>
+    </button>
+</div>
             <div class="filter-actions">
                 <button class="filter-btn" data-filter="paid" onclick="filterProducts('paid')">PAID</button>
                 <button class="filter-btn" data-filter="free" onclick="filterProducts('free')">FREE</button>
