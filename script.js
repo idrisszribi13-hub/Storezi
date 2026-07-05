@@ -88,8 +88,9 @@ function updateLoadingBar(percent) {
 const ADMIN_EMAIL = 'zribiidriss3@gmail.com';
 
 // ✅ بوت واحد لكل شيء (Zistore_Notif_bot)
-const TELEGRAM_BOT_TOKEN = '8687744794:AAGeeNrEU-iQLRmg3dLvYkWHddtYo_sJ1tc';
+const TELEGRAM_BOT_TOKEN = '8884982867:AAH7WHhCwy-jTjzAugLVyiIwUIu7Pghdq8k';
 const TELEGRAM_CHAT_ID = '7434396478'; // معرف المدير
+const BOT_USERNAME = 'Zistore_Notif_bot';
 
 let currentUser = null;
 let userId = null;
@@ -169,7 +170,7 @@ async function checkUserBanned(uid) {
 // دوال تيليجرام - بوت واحد يعمل 100%
 // ========================================
 
-// ✅ وظيفة موحدة لإرسال الإشعارات إلى تيليجرام (باستخدام بوت واحد)
+// ✅ وظيفة موحدة لإرسال الإشعارات إلى تيليجرام
 async function sendTelegramNotification(chatId, message) {
     if (!chatId) {
         console.error('❌ No chatId provided');
@@ -188,7 +189,6 @@ async function sendTelegramNotification(chatId, message) {
         const data = await response.json();
         if (!data.ok) {
             console.error('❌ Telegram API error:', data.description);
-            // إذا كان الخطأ هو أن البوت لم يبدأ المحادثة
             if (data.description && data.description.includes('bot was blocked')) {
                 console.warn('⚠️ Bot was blocked by user. Ask user to start the bot first.');
             }
@@ -202,9 +202,12 @@ async function sendTelegramNotification(chatId, message) {
     }
 }
 
-// ✅ ربط تيليجرام المبسط (باستخدام بوت واحد)
+// ✅ ربط تيليجرام - إرسال الكود تلقائياً إلى البوت
 window.bindTelegram = async function() {
-    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
+    if (!currentUser) { 
+        showToast('⚠️ Please login first', 'warning'); 
+        return; 
+    }
 
     try {
         // توليد كود ربط فريد
@@ -220,17 +223,19 @@ window.bindTelegram = async function() {
             status: 'pending'
         });
 
-        // إرسال رسالة إلى بوت تيليجرام مع كود الربط
-        const botUsername = 'Zistore_Notif_bot';
-        const message = `🔗 *ربط حساب تيليجرام*\n\n👤 المستخدم: ${currentUser.displayName || currentUser.email}\n📧 البريد: ${currentUser.email}\n🆔 كود الربط: \`${bindCode}\`\n\n📌 أرسل هذا الكود إلى البوت: [@${botUsername}](https://t.me/${botUsername})`;
+        // ✅ إرسال الكود مباشرة إلى البوت (بدون فتح نافذة)
+        const message = `${bindCode}`;
+        
+        // إرسال الكود إلى البوت عبر API
+        await sendTelegramNotification(TELEGRAM_CHAT_ID, 
+            `🔗 *طلب ربط جديد*\n\n👤 المستخدم: ${currentUser.displayName || currentUser.email}\n📧 البريد: ${currentUser.email}\n🆔 كود الربط: \`${bindCode}\``
+        );
 
-        // إرسال الكود للمدير
-        await sendTelegramNotification(TELEGRAM_CHAT_ID, message);
+        // ✅ فتح البوت مع الكود في الرسالة
+        const botUrl = `https://t.me/${BOT_USERNAME}?start=${bindCode}`;
+        window.open(botUrl, '_blank');
 
-        // فتح البوت في تيليجرام
-        window.open(`https://t.me/${botUsername}`, '_blank');
-
-        showToast('📨 تم إرسال طلب الربط إلى تيليجرام!', 'success');
+        showToast('📨 تم إرسال كود الربط إلى البوت!', 'success');
 
         // البدء بالاستماع لتأكيد الربط
         startBindingListener(bindCode);
@@ -295,7 +300,10 @@ window.checkTelegramStatus = async function() {
         if (userSnap.exists()) {
             const data = userSnap.data();
             if (data.telegramChatId) {
-                showToast(`✅ مرتبط مع تيليجرام (Chat ID: ${data.telegramChatId})`, 'success');
+                // ✅ إخفاء Chat ID جزئياً للحماية
+                const chatId = data.telegramChatId;
+                const maskedId = chatId.slice(0, 4) + '***' + chatId.slice(-4);
+                showToast(`✅ مرتبط مع تيليجرام (Chat ID: ${maskedId})`, 'success');
                 userProfile.telegramChatId = data.telegramChatId;
                 renderProfileFull();
             } else { showToast('❌ غير مرتبط مع تيليجرام', 'warning'); }
@@ -342,6 +350,13 @@ window.unlinkTelegram = async function() {
         showToast('❌ Error unlinking Telegram', 'error');
     }
 };
+
+// ✅ دالة عرض Chat ID بشكل مخفي (للحماية)
+function maskChatId(chatId) {
+    if (!chatId) return 'Not linked';
+    if (chatId.length <= 8) return chatId;
+    return chatId.slice(0, 4) + '***' + chatId.slice(-4);
+}
 
 // ========================================
 // نهاية دوال تيليجرام
@@ -788,6 +803,8 @@ function renderProfileFull() {
         return;
     }
     const displayName = currentUser.displayName || currentUser.email || 'User';
+    const maskedChatId = maskChatId(userProfile.telegramChatId);
+    
     container.innerHTML = `
     <div style="background:var(--card-bg);border-radius:14px;border:1px solid var(--border);padding:16px;margin-bottom:12px;">
       <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border);">
@@ -853,7 +870,7 @@ function renderProfileFull() {
       </div>
     </div>
 
-    <!-- ✅ قسم ربط تيليجرام المبسط باستخدام بوت واحد -->
+    <!-- ✅ قسم ربط تيليجرام المحسّن -->
     <div class="telegram-bind-section" style="margin-top:12px;">
       <div style="font-size:14px;font-weight:700;color:var(--text);font-family:var(--font);margin-bottom:6px;">
         <i class="fab fa-telegram-plane" style="color:#0088cc;"></i> Telegram Notifications
@@ -868,27 +885,31 @@ function renderProfileFull() {
       </div>
       ${userProfile.telegramChatId?`
       <div class="tb-row">
-        <span class="tb-label">Chat ID</span>
-        <span class="tb-value">${userProfile.telegramChatId}</span>
+        <span class="tb-label">Bound Chat ID</span>
+        <span class="tb-value" style="font-family:monospace;letter-spacing:1px;">${maskedChatId}</span>
+      </div>
+      <div class="tb-row">
+        <span class="tb-label">Bot</span>
+        <span class="tb-value" style="color:#0088cc;">@${BOT_USERNAME}</span>
       </div>`:''}
       <div style="background:var(--card-bg);padding:10px;border-radius:8px;margin:8px 0;border:1px solid var(--border);">
         <div style="font-size:13px;color:var(--text-secondary);font-family:var(--font);">
           <i class="fas fa-info-circle" style="color:var(--primary);"></i> 
-          ${userProfile.telegramChatId ? 'You will receive order notifications here.' : 'Click the button below to link your Telegram account.'}
+          ${userProfile.telegramChatId ? 'You will receive order notifications here.' : 'Click "Link Bot" to connect your Telegram account.'}
         </div>
       </div>
       <div class="tb-actions">
-        <button class="btn-bind" onclick="bindTelegram()" style="flex:1;">
-          <i class="fas ${userProfile.telegramChatId?'fa-sync':'fa-link'}"></i> 
-          ${userProfile.telegramChatId?'Re-link':'Link Telegram'}
+        <button class="btn-bind" onclick="bindTelegram()" style="flex:1;background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;font-family:var(--font);transition:0.3s;display:flex;align-items:center;justify-content:center;gap:8px;">
+          <i class="fab fa-telegram-plane"></i> 
+          ${userProfile.telegramChatId?'Re-link':'Link Bot'}
         </button>
-        ${userProfile.telegramChatId ? `<button class="btn-test" onclick="testTelegramNotification()"><i class="fas fa-paper-plane"></i> Test</button>` : ''}
-        <button class="btn-check" onclick="checkTelegramStatus()"><i class="fas fa-sync-alt"></i> Check</button>
-        ${userProfile.telegramChatId ? `<button class="btn-unlink" onclick="unlinkTelegram()" style="background:var(--danger);color:#fff;padding:6px 16px;border:none;border-radius:6px;font-weight:600;cursor:pointer;font-size:12px;font-family:var(--font);transition:0.3s;"><i class="fas fa-unlink"></i> Unlink</button>` : ''}
+        ${userProfile.telegramChatId ? `<button class="btn-test" onclick="testTelegramNotification()" style="background:var(--success);color:#0a0a1a;border:none;border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;font-family:var(--font);transition:0.3s;display:flex;align-items:center;gap:6px;"><i class="fas fa-paper-plane"></i> Test</button>` : ''}
+        <button class="btn-check" onclick="checkTelegramStatus()" style="background:var(--card-bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;font-family:var(--font);transition:0.3s;display:flex;align-items:center;gap:6px;"><i class="fas fa-sync-alt"></i> Check</button>
+        ${userProfile.telegramChatId ? `<button class="btn-unlink" onclick="unlinkTelegram()" style="background:var(--danger);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;font-family:var(--font);transition:0.3s;display:flex;align-items:center;gap:6px;"><i class="fas fa-unlink"></i> Unlink</button>` : ''}
       </div>
-      <div style="font-size:11px;color:var(--text-secondary);opacity:0.4;margin-top:6px;font-family:var(--font);">
+      <div style="font-size:11px;color:var(--text-secondary);opacity:0.4;margin-top:6px;font-family:var(--font);display:flex;align-items:center;gap:4px;">
         <i class="fab fa-telegram-plane" style="color:#0088cc;"></i> 
-        ${userProfile.telegramChatId ? 'You are connected to @Zistore_Notif_bot' : 'Start @Zistore_Notif_bot and click "Link" to connect'}
+        ${userProfile.telegramChatId ? `Connected to @${BOT_USERNAME}` : `Start @${BOT_USERNAME} and click "Link Bot" to connect`}
       </div>
     </div>
   `;
@@ -2243,10 +2264,22 @@ window.openAddProductModal = function() {
     document.getElementById('productModal').classList.add('open');
 };
 
+// ✅ فتح مودال تعديل المنتج (نسخة تعمل)
 window.openEditProductModal = function(productId) {
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { 
+        showToast('⛔ Unauthorized', 'error'); 
+        return; 
+    }
+    
     const product = products.find(p => p.id === productId);
-    if (!product) { showToast('❌ Product not found', 'error'); return; }
+    if (!product) { 
+        showToast('❌ Product not found', 'error'); 
+        return; 
+    }
+    
+    console.log('✏️ Editing product:', product);
+    
+    // تعبئة النموذج
     document.getElementById('productFormTitle').textContent = '✏️ Edit Product: ' + product.name;
     document.getElementById('productIdField').value = productId;
     document.getElementById('productName').value = product.name || '';
@@ -2259,7 +2292,10 @@ window.openEditProductModal = function(productId) {
     document.getElementById('productVideo').value = product.video || 'https://www.youtube.com/embed/dQw4w9WgXcQ';
     document.getElementById('productDuration').value = product.duration || '';
     document.getElementById('productOriginalPrice').value = product.originalPrice || '';
+    
+    // فتح المودال
     document.getElementById('productModal').classList.add('open');
+    setTimeout(fixDirection, 200);
 };
 
 window.closeProductModal = function() { document.getElementById('productModal').classList.remove('open'); };
