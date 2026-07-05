@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>ZI Store · Cart & Favorites</title>
-
+    
     <!-- ⭐ استدعاء CSS من ملف خارجي -->
     <link rel="stylesheet" href="style.css" />
     
@@ -13,6 +13,132 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&display=swap" rel="stylesheet" />
 </head>
 <body>
+    <!-- ⭐ شاشة التحميل الاحترافية -->
+    <div id="loadingScreen" style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #0a0a1a;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 999999;
+        transition: opacity 0.6s ease, visibility 0.6s ease;
+    ">
+        <!-- الشعار المتحرك -->
+        <div style="
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #a78bfa, #fbbf24);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            color: #fff;
+            margin-bottom: 20px;
+            animation: pulseLogo 1.5s ease infinite;
+            box-shadow: 0 0 60px rgba(167, 139, 250, 0.3);
+        ">
+            <i class="fas fa-crown"></i>
+        </div>
+        
+        <!-- النص -->
+        <div style="
+            font-size: 24px;
+            font-weight: 700;
+            color: #e8e8f0;
+            font-family: 'Inter', sans-serif;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        ">
+            ZI Store
+        </div>
+        
+        <!-- تحت النص -->
+        <div style="
+            font-size: 13px;
+            color: #9898b0;
+            font-family: 'Inter', sans-serif;
+            opacity: 0.4;
+            margin-bottom: 30px;
+        ">
+            Loading...
+        </div>
+        
+        <!-- شريط التحميل المتحرك -->
+        <div style="
+            width: 200px;
+            height: 3px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        ">
+            <div id="loadingBar" style="
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(90deg, #a78bfa, #fbbf24);
+                border-radius: 10px;
+                animation: loadingMove 1.8s ease infinite;
+            "></div>
+        </div>
+        
+        <!-- نص تحميل متغير -->
+        <div id="loadingStatus" style="
+            margin-top: 12px;
+            font-size: 11px;
+            color: #9898b0;
+            font-family: 'Inter', sans-serif;
+            opacity: 0.3;
+            transition: opacity 0.3s;
+        ">
+            جاري تهيئة المتجر...
+        </div>
+    </div>
+
+    <!-- أنماط الحركات -->
+    <style>
+        @keyframes pulseLogo {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 60px rgba(167, 139, 250, 0.3);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 0 80px rgba(167, 139, 250, 0.5);
+            }
+        }
+        
+        @keyframes loadingMove {
+            0% {
+                left: -100%;
+                width: 30%;
+            }
+            50% {
+                left: 20%;
+                width: 60%;
+            }
+            100% {
+                left: 100%;
+                width: 30%;
+            }
+        }
+        
+        /* إخفاء شاشة التحميل */
+        #loadingScreen.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+    </style>
+
     <!-- toast -->
     <div class="toast" id="toast">
         <span class="toast-icon"><i class="fas fa-check-circle"></i></span>
