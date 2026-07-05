@@ -301,13 +301,20 @@ window.checkTelegramStatus = async function() {
     }
 };
 
-// ✅ ربط تيليجرام
+// ✅ ربط تيليجرام - النسخة النهائية
 window.bindTelegram = async function() {
-    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
+    if (!currentUser) { 
+        showToast('⚠️ Please login first', 'warning'); 
+        return; 
+    }
 
     try {
+        // إنشاء كود ربط فريد
         const bindCode = currentUser.uid.slice(-8) + Math.random().toString(36).substring(2, 6);
-
+        
+        console.log('🔑 Generating bind code:', bindCode);
+        
+        // حفظ الكود في Firebase
         const bindRef = doc(db, 'telegram_binds', bindCode);
         await setDoc(bindRef, {
             userId: currentUser.uid,
@@ -317,13 +324,44 @@ window.bindTelegram = async function() {
             status: 'pending'
         });
 
+        // ✅ عرض الكود للمستخدم في رسالة منبثقة
         const botUsername = 'Zistore_Notif_bot';
-        const message = `🔗 *ربط حساب تيليجرام*\n\n👤 المستخدم: ${currentUser.displayName || currentUser.email}\n📧 البريد: ${currentUser.email}\n🆔 كود الربط: \`${bindCode}\`\n\n📌 أرسل هذا الكود إلى البوت:\n[اضغط هنا للربط](https://t.me/${botUsername}?start=${bindCode})\n\nأو أرسل الكود مباشرة: \`${bindCode}\``;
+        
+        // رسالة تحتوي على الكود
+        const message = `
+🔗 *كود ربط تيليجرام*
 
+👤 المستخدم: ${currentUser.displayName || currentUser.email}
+📧 البريد: ${currentUser.email}
+
+📌 *كود الربط الخاص بك:*
+\`${bindCode}\`
+
+📱 *خطوات الربط:*
+1️⃣ انسخ الكود أعلاه
+2️⃣ افتح محادثة البوت: [@${botUsername}](https://t.me/${botUsername})
+3️⃣ الصق الكود وأرسله
+
+أو اضغط على الرابط مباشرة:
+[اضغط هنا للربط](https://t.me/${botUsername}?start=${bindCode})
+        `;
+        
+        // عرض الكود في نافذة منبثقة
+        showToast(`📋 كود الربط: ${bindCode}`, 'info');
+        
+        // إرسال الكود للمدير (للتوثيق)
         await sendTelegramNotification(TELEGRAM_CHAT_ID, message);
+        
+        // فتح البوت
         window.open(`https://t.me/${botUsername}?start=${bindCode}`, '_blank');
-        showToast('📨 تم إرسال طلب الربط إلى تيليجرام! اضغط على الرابط في البوت.', 'success');
+        
+        // بدء الاستماع لتأكيد الربط
         startBindingListener(bindCode);
+        
+        // عرض الكود في رسالة منفصلة
+        setTimeout(() => {
+            alert(`🔗 كود الربط الخاص بك:\n\n${bindCode}\n\nانسخ هذا الكود وأرسله إلى البوت @${botUsername}`);
+        }, 500);
 
     } catch (error) {
         console.error('Telegram bind error:', error);
