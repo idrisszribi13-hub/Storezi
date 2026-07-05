@@ -303,7 +303,61 @@ function generateReferralCode(name, email) {
     const random = Math.random().toString(36).substring(2, 6).toUpperCase();
     return `${prefix}${random}`;
 }
+// ========================================
+// Guest Welcome Message
+// ========================================
 
+// Show welcome message for guest users
+function showGuestWelcome() {
+    const welcomeEl = document.getElementById('guestWelcome');
+    if (!welcomeEl) return;
+    
+    // Check if user is anonymous/guest
+    if (currentUser && currentUser.isAnonymous) {
+        welcomeEl.style.display = 'flex';
+        // Animated message
+        welcomeEl.style.animation = 'fadeIn 0.6s ease';
+    } else {
+        welcomeEl.style.display = 'none';
+    }
+}
+
+// Hide welcome message (when X is clicked)
+window.closeGuestWelcome = function() {
+    const welcomeEl = document.getElementById('guestWelcome');
+    if (welcomeEl) {
+        welcomeEl.style.display = 'none';
+        // Save in localStorage that user dismissed the message
+        localStorage.setItem('guest_welcome_closed', 'true');
+    }
+};
+
+// Scroll to registration page
+window.scrollToAuth = function() {
+    const authSection = document.getElementById('authSection');
+    if (authSection) {
+        authSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Highlight the registration button
+        setTimeout(() => {
+            const registerBtn = document.getElementById('registerBtn');
+            if (registerBtn) {
+                registerBtn.style.animation = 'pulse 1s ease 3';
+                setTimeout(() => {
+                    registerBtn.style.animation = '';
+                }, 3000);
+            }
+        }, 500);
+    }
+};
+
+// Check if user has previously closed the message
+function isGuestWelcomeClosed() {
+    return localStorage.getItem('guest_welcome_closed') === 'true';
+}
+
+// ========================================
+// End of Guest Welcome Message
+// ========================================
 // تحديثات الواجهة
 function updateDropdownStats() {
     const userAvatar = document.getElementById('userAvatarText');
