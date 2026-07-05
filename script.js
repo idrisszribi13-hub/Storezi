@@ -163,14 +163,25 @@ async function checkUserBanned(uid) {
     }
 }
 
-// ✅ وظيفة موحدة لإرسال الإشعارات إلى تيليجرام
+// ========================================
+// دوال تيليجرام - نسخة محسّنة
+// ========================================
+
+// ✅ دالة إرسال إشعارات تيليجرام (مع تحسينات)
 async function sendTelegramNotification(chatId, message) {
     if (!chatId) {
         console.error('❌ No chatId provided');
         return false;
     }
+    
+    console.log('📤 Sending to chatId:', chatId);
+    console.log('📝 Message:', message.substring(0, 50) + '...');
+    
     try {
-        const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+        console.log('🔗 URL:', url.substring(0, 60) + '...');
+        
+        const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -179,11 +190,17 @@ async function sendTelegramNotification(chatId, message) {
                 parse_mode: 'Markdown'
             })
         });
+        
         const data = await response.json();
+        console.log('📥 Response:', data);
+        
         if (!data.ok) {
             console.error('❌ Telegram API error:', data.description);
             if (data.description && data.description.includes('bot was blocked')) {
                 console.warn('⚠️ Bot was blocked by user. Ask user to start the bot first.');
+            }
+            if (data.description && data.description.includes('chat not found')) {
+                console.warn('⚠️ Chat ID not found. Make sure user started the bot.');
             }
             return false;
         }
@@ -195,15 +212,99 @@ async function sendTelegramNotification(chatId, message) {
     }
 }
 
-// ✅ ربط تيليجرام - إرسال كود للبوت
+// ✅ اختبار الإشعارات (محسّن)
+window.testTelegramNotification = async function() {
+    console.log('🔍 Test button clicked');
+    
+    if (!currentUser) { 
+        showToast('⚠️ Please login first', 'warning'); 
+        return; 
+    }
+    
+    // تحميل أحدث بيانات المستخدم من Firebase
+    try {
+        const userRef = doc(db, 'users', currentUser.uid);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+            const data = userSnap.data();
+            userProfile.telegramChatId = data.telegramChatId || '';
+            console.log('📋 Retrieved chatId from Firebase:', userProfile.telegramChatId);
+        }
+    } catch (e) {
+        console.error('Error loading user data:', e);
+    }
+    
+    if (!userProfile.telegramChatId) { 
+        showToast('⚠️ No Telegram linked. Please link first.', 'warning'); 
+        return; 
+    }
+
+    console.log('📤 Sending test message to:', userProfile.telegramChatId);
+    
+    const result = await sendTelegramNotification(
+        userProfile.telegramChatId,
+        `🔔 *اختبار الإشعارات*\n\nهذه رسالة اختبار من ZI Store.\n📅 ${new Date().toLocaleString()}\n👤 المستخدم: ${currentUser.displayName || currentUser.email}\n\nإذا رأيت هذه الرسالة، فالإشعارات تعمل بشكل صحيح! ✅`
+    );
+
+    if (result) {
+        showToast('✅ تم إرسال رسالة اختبار! تحقق من تيليجرام.', 'success');
+    } else {
+        showToast('❌ فشل إرسال رسالة الاختبار. تأكد من أنك بدأت المحادثة مع @Zistore_Notif_bot', 'error');
+    }
+};
+
+// ✅ التحقق من حالة تيليجرام (محسّن)
+window.checkTelegramStatus = async function() {
+    console.log('🔍 Check button clicked');
+    
+    if (!currentUser) { 
+        showToast('⚠️ Please login first', 'warning'); 
+        return; 
+    }
+    
+    try {
+        // تحميل أحدث البيانات من Firebase
+        const userRef = doc(db, 'users', currentUser.uid);
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) {
+            showToast('❌ User not found', 'error');
+            return;
+        }
+        
+        const data = userSnap.data();
+        const chatId = data.telegramChatId || '';
+        console.log('📋 Retrieved chatId from Firebase:', chatId);
+        
+        if (chatId) {
+            // محاولة إرسال رسالة اختبار للتحقق
+            const testResult = await sendTelegramNotification(
+                chatId,
+                `🔍 *فحص الاتصال*\n\n✅ تم التحقق من اتصالك مع البوت بنجاح!\n📅 ${new Date().toLocaleString()}\n👤 المستخدم: ${currentUser.displayName || currentUser.email}`
+            );
+            
+            if (testResult) {
+                showToast(`✅ مرتبط مع تيليجرام (Chat ID: ${chatId})`, 'success');
+                userProfile.telegramChatId = chatId;
+                renderProfileFull();
+            } else {
+                showToast('⚠️ البوت لا يستطيع إرسال رسالة. تأكد من أنك بدأت المحادثة مع @Zistore_Notif_bot', 'warning');
+            }
+        } else {
+            showToast('❌ غير مرتبط مع تيليجرام', 'warning');
+        }
+    } catch (error) { 
+        console.error('Check telegram status error:', error);
+        showToast('❌ خطأ في التحقق', 'error'); 
+    }
+};
+
+// ✅ ربط تيليجرام
 window.bindTelegram = async function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
 
     try {
-        // توليد كود ربط فريد
         const bindCode = currentUser.uid.slice(-8) + Math.random().toString(36).substring(2, 6);
 
-        // حفظ طلب الربط في قاعدة البيانات
         const bindRef = doc(db, 'telegram_binds', bindCode);
         await setDoc(bindRef, {
             userId: currentUser.uid,
@@ -213,19 +314,12 @@ window.bindTelegram = async function() {
             status: 'pending'
         });
 
-        // إرسال رسالة إلى بوت تيليجرام مع كود الربط
         const botUsername = 'Zistore_Notif_bot';
         const message = `🔗 *ربط حساب تيليجرام*\n\n👤 المستخدم: ${currentUser.displayName || currentUser.email}\n📧 البريد: ${currentUser.email}\n🆔 كود الربط: \`${bindCode}\`\n\n📌 أرسل هذا الكود إلى البوت:\n[اضغط هنا للربط](https://t.me/${botUsername}?start=${bindCode})\n\nأو أرسل الكود مباشرة: \`${bindCode}\``;
 
-        // إرسال الكود للمدير
         await sendTelegramNotification(TELEGRAM_CHAT_ID, message);
-
-        // فتح البوت في تيليجرام
         window.open(`https://t.me/${botUsername}?start=${bindCode}`, '_blank');
-
         showToast('📨 تم إرسال طلب الربط إلى تيليجرام! اضغط على الرابط في البوت.', 'success');
-
-        // البدء بالاستماع لتأكيد الربط
         startBindingListener(bindCode);
 
     } catch (error) {
@@ -234,7 +328,7 @@ window.bindTelegram = async function() {
     }
 };
 
-// ✅ الاستماع لتأكيد الربط من البوت
+// الاستماع لتأكيد الربط
 function startBindingListener(bindCode) {
     const bindRef = doc(db, 'telegram_binds', bindCode);
     const unsubscribe = onSnapshot(bindRef, (doc) => {
@@ -246,68 +340,20 @@ function startBindingListener(bindCode) {
                 saveUserData();
                 renderProfileFull();
                 showToast('✅ تم ربط تيليجرام بنجاح!', 'success');
-
-                // إرسال رسالة ترحيب للمستخدم
                 sendTelegramNotification(
                     userProfile.telegramChatId,
                     `🔔 *مرحباً بك في ZI Store!*\n\nتم ربط حسابك بنجاح.\nستستلم إشعارات الطلبات هنا.\n\nشكراً لاستخدامك ZI Store! 🚀`
                 );
-
                 updateFullUserMenu();
                 unsubscribe();
             }
         }
     });
-
-    // إلغاء الاستماع بعد 5 دقائق
     setTimeout(() => { 
         unsubscribe(); 
         console.log('⏰ Binding listener timeout');
     }, 300000);
 }
-
-// ✅ اختبار الإشعارات
-window.testTelegramNotification = async function() {
-    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
-    if (!userProfile.telegramChatId) { showToast('⚠️ No Telegram linked', 'warning'); return; }
-
-    const result = await sendTelegramNotification(
-        userProfile.telegramChatId,
-        `🔔 *اختبار الإشعارات*\n\nهذه رسالة اختبار من ZI Store.\n📅 ${new Date().toLocaleString()}\n\nإذا رأيت هذه الرسالة، فالإشعارات تعمل بشكل صحيح! ✅`
-    );
-
-    if (result) {
-        showToast('✅ تم إرسال رسالة اختبار! تحقق من تيليجرام.', 'success');
-    } else {
-        showToast('❌ فشل إرسال رسالة الاختبار. تأكد من Chat ID.', 'error');
-    }
-};
-
-// ✅ التحقق من حالة تيليجرام
-window.checkTelegramStatus = async function() {
-    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
-    try {
-        const userRef = doc(db, 'users', currentUser.uid);
-        const userSnap = await getDoc(userRef);
-        if (userSnap.exists()) {
-            const data = userSnap.data();
-            if (data.telegramChatId) {
-                const testResult = await sendTelegramNotification(
-                    data.telegramChatId,
-                    `🔍 *فحص الاتصال*\n\n✅ تم التحقق من اتصالك مع البوت بنجاح!\n📅 ${new Date().toLocaleString()}`
-                );
-                if (testResult) {
-                    showToast(`✅ مرتبط مع تيليجرام (Chat ID: ${data.telegramChatId})`, 'success');
-                    userProfile.telegramChatId = data.telegramChatId;
-                    renderProfileFull();
-                } else {
-                    showToast('⚠️ البوت لا يستطيع إرسال رسالة. تأكد من أنك بدأت المحادثة مع @Zistore_Notif_bot', 'warning');
-                }
-            } else { showToast('❌ غير مرتبط مع تيليجرام', 'warning'); }
-        }
-    } catch (error) { console.error('Check telegram status error:', error);
-        showToast('❌ خطأ في التحقق', 'error'); }
-};
 
 // ✅ إلغاء ربط تيليجرام
 window.unlinkTelegram = async function() {
@@ -347,6 +393,10 @@ window.unlinkTelegram = async function() {
         showToast('❌ Error unlinking Telegram', 'error');
     }
 };
+
+// ========================================
+// نهاية دوال تيليجرام
+// ========================================
 
 // عرض الإشعارات في الواجهة
 function showToast(message, type = 'success') {
@@ -1686,8 +1736,10 @@ function sendOrderToTelegram(method, txHash = null) {
     }
     adminMsg += `\n\n📎 **رقم الطلب:** #${orderId.slice(-6)}`;
 
+    // ✅ إرسال للمدير
     sendTelegramNotification(TELEGRAM_CHAT_ID, adminMsg);
 
+    // ✅ إرسال للمستخدم إذا كان مربطاً
     if (userProfile.telegramChatId) {
         const userMsg = `🛒 *طلب جديد*\n\n📦 #${orderId.slice(-6)}\n💰 ${finalTotal.toFixed(2)}$\n📅 ${new Date().toLocaleString()}\n${rpEarned > 0 ? `🎯 +${rpEarned} RP مكافأة!\n` : ''}\nشكراً لتسوقك معنا! سيتم معالجة طلبك قريباً.`;
         sendTelegramNotification(userProfile.telegramChatId, userMsg);
