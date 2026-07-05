@@ -164,11 +164,8 @@ async function checkUserBanned(uid) {
 }
 
 // ========================================
-// دوال تيليجرام - عبر Proxy البوت
+// دوال تيليجرام - نسخة بسيطة جداً (اتصال مباشر)
 // ========================================
-
-// ✅ رابط البوت على Render - استبدل برابطك الحقيقي
-const BOT_PROXY_URL = 'https://zi-store-bot.onrender.com';
 
 // ✅ دالة للحصول على Chat ID من Firebase مباشرة
 async function getTelegramChatId() {
@@ -187,7 +184,7 @@ async function getTelegramChatId() {
     }
 }
 
-// ✅ دالة إرسال إشعارات عبر البوت (Proxy)
+// ✅ دالة إرسال إشعارات - اتصال مباشر
 async function sendTelegramNotification(chatId, message) {
     if (!chatId) {
         console.error('❌ No chatId provided');
@@ -198,25 +195,29 @@ async function sendTelegramNotification(chatId, message) {
     console.log('📝 Message preview:', message.substring(0, 50) + '...');
     
     try {
-        const response = await fetch(`${BOT_PROXY_URL}/send-message`, {
+        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+        const response = await fetch(url, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                chatId: chatId,
-                message: message
+                chat_id: chatId,
+                text: message,
+                parse_mode: 'Markdown'
             })
         });
-        
         const data = await response.json();
         console.log('📥 Response:', JSON.stringify(data));
         
-        if (!data.success) {
-            console.error('❌ Bot error:', data.error);
+        if (!data.ok) {
+            console.error('❌ Telegram API error:', data.description);
+            if (data.description && data.description.includes('bot was blocked')) {
+                console.warn('⚠️ Bot was blocked by user. Ask user to start the bot first.');
+            }
+            if (data.description && data.description.includes('chat not found')) {
+                console.warn('⚠️ Chat ID not found. Make sure user started the bot.');
+            }
             return false;
         }
-        
         console.log('✅ Telegram notification sent to:', chatId);
         return true;
     } catch (error) {
@@ -246,29 +247,16 @@ window.testTelegramNotification = async function() {
     
     console.log('📤 Sending test to:', chatId);
     
-    try {
-        const response = await fetch(`${BOT_PROXY_URL}/test-notification`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                chatId: chatId
-            })
-        });
-        
-        const data = await response.json();
-        console.log('📥 Response:', JSON.stringify(data));
-        
-        if (data.success) {
-            showToast('✅ تم إرسال رسالة اختبار! تحقق من تيليجرام.', 'success');
-            renderProfileFull();
-        } else {
-            showToast(`❌ فشل إرسال رسالة الاختبار: ${data.error || 'خطأ غير معروف'}`, 'error');
-        }
-    } catch (error) {
-        console.error('Test notification error:', error);
-        showToast('❌ فشل إرسال رسالة الاختبار. تأكد من أن البوت يعمل.', 'error');
+    const result = await sendTelegramNotification(
+        chatId,
+        `🔔 *اختبار الإشعارات*\n\nهذه رسالة اختبار من ZI Store.\n📅 ${new Date().toLocaleString()}\n👤 المستخدم: ${currentUser.displayName || currentUser.email}\n\nإذا رأيت هذه الرسالة، فالإشعارات تعمل بشكل صحيح! ✅`
+    );
+
+    if (result) {
+        showToast('✅ تم إرسال رسالة اختبار! تحقق من تيليجرام.', 'success');
+        renderProfileFull();
+    } else {
+        showToast('❌ فشل إرسال رسالة الاختبار. تأكد من أنك بدأت المحادثة مع @Zistore_Notif_bot', 'error');
     }
 };
 
@@ -298,7 +286,7 @@ window.checkTelegramStatus = async function() {
     }
 };
 
-// ✅ ربط تيليجرام
+// ✅ ربط تيليجرام - مع نافذة كود الربط
 window.bindTelegram = async function() {
     if (!currentUser) { 
         showToast('⚠️ Please login first', 'warning'); 
@@ -306,10 +294,12 @@ window.bindTelegram = async function() {
     }
 
     try {
+        // توليد كود ربط فريد
         const bindCode = currentUser.uid.slice(-8) + Math.random().toString(36).substring(2, 6);
         
         console.log('🔑 Generating bind code:', bindCode);
         
+        // حفظ طلب الربط في Firebase
         const bindRef = doc(db, 'telegram_binds', bindCode);
         await setDoc(bindRef, {
             userId: currentUser.uid,
@@ -321,10 +311,10 @@ window.bindTelegram = async function() {
 
         const botUsername = 'Zistore_Notif_bot';
         
-        // ✅ عرض نافذة الكود
+        // ✅ عرض نافذة الكود مع زر نسخ وإرسال
         showBindCodeModal(bindCode, botUsername);
         
-        // ✅ إرسال الكود للمدير
+        // ✅ إرسال إشعار للمدير بالكود
         const adminMessage = `
 🔗 *كود ربط جديد*
 
@@ -336,12 +326,238 @@ window.bindTelegram = async function() {
         `;
         await sendTelegramNotification(TELEGRAM_CHAT_ID, adminMessage);
         
+        // بدء الاستماع لتأكيد الربط
         startBindingListener(bindCode);
 
     } catch (error) {
         console.error('Telegram bind error:', error);
         showToast('❌ خطأ في الاتصال مع تيليجرام', 'error');
     }
+};
+
+// ✅ عرض نافذة الكود مع زر نسخ وإرسال
+function showBindCodeModal(bindCode, botUsername) {
+    // إزالة أي نافذة سابقة
+    const oldModal = document.getElementById('bindCodeModal');
+    if (oldModal) oldModal.remove();
+    
+    // إنشاء النافذة
+    const modal = document.createElement('div');
+    modal.id = 'bindCodeModal';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 99999;
+        animation: fadeIn 0.3s ease;
+        font-family: var(--font, 'Segoe UI', sans-serif);
+    `;
+    
+    modal.innerHTML = `
+        <div style="
+            background: var(--card-bg, #1a1a2e);
+            border-radius: 16px;
+            padding: 28px 24px;
+            max-width: 420px;
+            width: 90%;
+            border: 1px solid var(--border, #2a2a4a);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            position: relative;
+        ">
+            <button onclick="closeBindCodeModal()" style="
+                position: absolute;
+                top: 12px; right: 16px;
+                background: none;
+                border: none;
+                color: var(--text-secondary, #888);
+                font-size: 22px;
+                cursor: pointer;
+                transition: 0.3s;
+            ">✕</button>
+            
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div style="font-size: 32px; margin-bottom: 8px;">🔗</div>
+                <h2 style="
+                    font-size: 18px;
+                    font-weight: 700;
+                    color: var(--text, #fff);
+                    margin: 0;
+                ">كود ربط تيليجرام</h2>
+                <p style="
+                    font-size: 13px;
+                    color: var(--text-secondary, #888);
+                    margin: 6px 0 0;
+                ">انسخ الكود وأرسله إلى البوت</p>
+            </div>
+            
+            <!-- عرض الكود مع زر نسخ -->
+            <div style="
+                background: var(--bg, #0d0d1a);
+                border-radius: 10px;
+                padding: 14px 16px;
+                border: 2px dashed var(--primary, #6c5ce7);
+                margin-bottom: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+            ">
+                <code id="bindCodeDisplay" style="
+                    font-size: 20px;
+                    font-weight: 700;
+                    color: var(--primary, #6c5ce7);
+                    letter-spacing: 1px;
+                    font-family: monospace;
+                    word-break: break-all;
+                    flex: 1;
+                ">${bindCode}</code>
+                <button onclick="copyBindCode()" style="
+                    background: var(--primary, #6c5ce7);
+                    border: none;
+                    border-radius: 8px;
+                    padding: 8px 14px;
+                    color: #fff;
+                    font-weight: 600;
+                    cursor: pointer;
+                    font-size: 13px;
+                    transition: 0.3s;
+                    white-space: nowrap;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                ">
+                    <i class="fas fa-copy"></i> نسخ
+                </button>
+            </div>
+            
+            <!-- زر إرسال إلى البوت -->
+            <button onclick="sendCodeToBot('${bindCode}', '${botUsername}')" style="
+                width: 100%;
+                padding: 12px;
+                border: none;
+                border-radius: 10px;
+                background: #0088cc;
+                color: #fff;
+                font-weight: 700;
+                font-size: 15px;
+                cursor: pointer;
+                transition: 0.3s;
+                margin-bottom: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+            ">
+                <i class="fab fa-telegram-plane"></i> إرسال الكود إلى البوت
+            </button>
+            
+            <!-- تعليمات -->
+            <div style="
+                background: var(--bg, #0d0d1a);
+                border-radius: 8px;
+                padding: 12px 14px;
+                border: 1px solid var(--border, #2a2a4a);
+            ">
+                <div style="font-size: 12px; color: var(--text-secondary, #888);">
+                    <div style="display: flex; gap: 8px; align-items: flex-start; margin-bottom: 4px;">
+                        <span style="color: var(--primary, #6c5ce7);">1️⃣</span>
+                        <span>انسخ الكود أو اضغط "إرسال إلى البوت"</span>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: flex-start; margin-bottom: 4px;">
+                        <span style="color: var(--primary, #6c5ce7);">2️⃣</span>
+                        <span>سيفتح البوت تلقائياً</span>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: flex-start;">
+                        <span style="color: var(--primary, #6c5ce7);">3️⃣</span>
+                        <span>أرسل الكود في المحادثة وسيتم ربط حسابك</span>
+                    </div>
+                </div>
+            </div>
+            
+            <button onclick="closeBindCodeModal()" style="
+                width: 100%;
+                padding: 10px;
+                border: 1px solid var(--border, #2a2a4a);
+                border-radius: 8px;
+                background: transparent;
+                color: var(--text-secondary, #888);
+                cursor: pointer;
+                font-size: 13px;
+                margin-top: 10px;
+                transition: 0.3s;
+            ">إغلاق</button>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // حفظ الكود للاستخدام
+    window._bindCode = bindCode;
+    window._botUsername = botUsername;
+}
+
+// ✅ دالة نسخ الكود
+window.copyBindCode = function() {
+    const code = window._bindCode || document.getElementById('bindCodeDisplay')?.textContent;
+    if (!code) return;
+    
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code).then(() => {
+            showToast('✅ تم نسخ الكود!', 'success');
+            const btn = document.querySelector('#bindCodeModal button:has(.fa-copy)');
+            if (btn) {
+                btn.innerHTML = '✅ تم النسخ';
+                btn.style.background = '#00b894';
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="fas fa-copy"></i> نسخ';
+                    btn.style.background = '';
+                }, 2000);
+            }
+        }).catch(() => {
+            const textArea = document.createElement('textarea');
+            textArea.value = code;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            showToast('✅ تم نسخ الكود!', 'success');
+        });
+    } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = code;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showToast('✅ تم نسخ الكود!', 'success');
+    }
+};
+
+// ✅ دالة إرسال الكود إلى البوت
+window.sendCodeToBot = function(code, botUsername) {
+    window.open(`https://t.me/${botUsername}?start=${code}`, '_blank');
+    
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code).then(() => {
+            showToast('📋 تم نسخ الكود وفتح البوت!', 'success');
+        });
+    } else {
+        showToast('📱 تم فتح البوت! أرسل الكود: ' + code, 'info');
+    }
+    
+    setTimeout(() => {
+        closeBindCodeModal();
+    }, 3000);
+};
+
+// ✅ دالة إغلاق النافذة
+window.closeBindCodeModal = function() {
+    const modal = document.getElementById('bindCodeModal');
+    if (modal) modal.remove();
 };
 
 // الاستماع لتأكيد الربط
@@ -408,202 +624,6 @@ window.unlinkTelegram = async function() {
         console.error('Unlink error:', error);
         showToast('❌ Error unlinking Telegram', 'error');
     }
-};
-
-// ✅ عرض نافذة الكود مع زر نسخ وإرسال
-function showBindCodeModal(bindCode, botUsername) {
-    const oldModal = document.getElementById('bindCodeModal');
-    if (oldModal) oldModal.remove();
-    
-    const modal = document.createElement('div');
-    modal.id = 'bindCodeModal';
-    modal.style.cssText = `
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        background: rgba(0,0,0,0.7);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 99999;
-        animation: fadeIn 0.3s ease;
-        font-family: var(--font, 'Segoe UI', sans-serif);
-    `;
-    
-    modal.innerHTML = `
-        <div style="
-            background: var(--card-bg, #1a1a2e);
-            border-radius: 16px;
-            padding: 28px 24px;
-            max-width: 420px;
-            width: 90%;
-            border: 1px solid var(--border, #2a2a4a);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-            position: relative;
-        ">
-            <button onclick="closeBindCodeModal()" style="
-                position: absolute;
-                top: 12px; right: 16px;
-                background: none;
-                border: none;
-                color: var(--text-secondary, #888);
-                font-size: 22px;
-                cursor: pointer;
-                transition: 0.3s;
-            ">✕</button>
-            
-            <div style="text-align: center; margin-bottom: 20px;">
-                <div style="font-size: 32px; margin-bottom: 8px;">🔗</div>
-                <h2 style="font-size: 18px; font-weight: 700; color: var(--text, #fff); margin: 0;">كود ربط تيليجرام</h2>
-                <p style="font-size: 13px; color: var(--text-secondary, #888); margin: 6px 0 0;">انسخ الكود وأرسله إلى البوت</p>
-            </div>
-            
-            <div style="
-                background: var(--bg, #0d0d1a);
-                border-radius: 10px;
-                padding: 14px 16px;
-                border: 2px dashed var(--primary, #6c5ce7);
-                margin-bottom: 16px;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 12px;
-            ">
-                <code id="bindCodeDisplay" style="
-                    font-size: 20px;
-                    font-weight: 700;
-                    color: var(--primary, #6c5ce7);
-                    letter-spacing: 1px;
-                    font-family: monospace;
-                    word-break: break-all;
-                    flex: 1;
-                ">${bindCode}</code>
-                <button onclick="copyBindCode()" style="
-                    background: var(--primary, #6c5ce7);
-                    border: none;
-                    border-radius: 8px;
-                    padding: 8px 14px;
-                    color: #fff;
-                    font-weight: 600;
-                    cursor: pointer;
-                    font-size: 13px;
-                    transition: 0.3s;
-                    white-space: nowrap;
-                    display: flex;
-                    align-items: center;
-                    gap: 6px;
-                ">
-                    <i class="fas fa-copy"></i> نسخ
-                </button>
-            </div>
-            
-            <button onclick="sendCodeToBot('${bindCode}', '${botUsername}')" style="
-                width: 100%;
-                padding: 12px;
-                border: none;
-                border-radius: 10px;
-                background: #0088cc;
-                color: #fff;
-                font-weight: 700;
-                font-size: 15px;
-                cursor: pointer;
-                transition: 0.3s;
-                margin-bottom: 10px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 8px;
-            ">
-                <i class="fab fa-telegram-plane"></i> إرسال الكود إلى البوت
-            </button>
-            
-            <div style="
-                background: var(--bg, #0d0d1a);
-                border-radius: 8px;
-                padding: 12px 14px;
-                border: 1px solid var(--border, #2a2a4a);
-            ">
-                <div style="font-size: 12px; color: var(--text-secondary, #888);">
-                    <div style="display: flex; gap: 8px; align-items: flex-start; margin-bottom: 4px;">
-                        <span style="color: var(--primary, #6c5ce7);">1️⃣</span>
-                        <span>انسخ الكود أو اضغط "إرسال إلى البوت"</span>
-                    </div>
-                    <div style="display: flex; gap: 8px; align-items: flex-start; margin-bottom: 4px;">
-                        <span style="color: var(--primary, #6c5ce7);">2️⃣</span>
-                        <span>سيفتح البوت تلقائياً</span>
-                    </div>
-                    <div style="display: flex; gap: 8px; align-items: flex-start;">
-                        <span style="color: var(--primary, #6c5ce7);">3️⃣</span>
-                        <span>أرسل الكود في المحادثة وسيتم ربط حسابك</span>
-                    </div>
-                </div>
-            </div>
-            
-            <button onclick="closeBindCodeModal()" style="
-                width: 100%;
-                padding: 10px;
-                border: 1px solid var(--border, #2a2a4a);
-                border-radius: 8px;
-                background: transparent;
-                color: var(--text-secondary, #888);
-                cursor: pointer;
-                font-size: 13px;
-                margin-top: 10px;
-                transition: 0.3s;
-            ">إغلاق</button>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    window._bindCode = bindCode;
-    window._botUsername = botUsername;
-}
-
-// ✅ دالة نسخ الكود
-window.copyBindCode = function() {
-    const code = window._bindCode || document.getElementById('bindCodeDisplay')?.textContent;
-    if (!code) return;
-    
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(code).then(() => {
-            showToast('✅ تم نسخ الكود!', 'success');
-        }).catch(() => {
-            const textArea = document.createElement('textarea');
-            textArea.value = code;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
-            showToast('✅ تم نسخ الكود!', 'success');
-        });
-    } else {
-        const textArea = document.createElement('textarea');
-        textArea.value = code;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        showToast('✅ تم نسخ الكود!', 'success');
-    }
-};
-
-// ✅ دالة إرسال الكود إلى البوت
-window.sendCodeToBot = function(code, botUsername) {
-    window.open(`https://t.me/${botUsername}?start=${code}`, '_blank');
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(code).then(() => {
-            showToast('📋 تم نسخ الكود وفتح البوت!', 'success');
-        });
-    }
-    setTimeout(() => {
-        closeBindCodeModal();
-    }, 3000);
-};
-
-// ✅ دالة إغلاق النافذة
-window.closeBindCodeModal = function() {
-    const modal = document.getElementById('bindCodeModal');
-    if (modal) modal.remove();
 };
 
 // ========================================
