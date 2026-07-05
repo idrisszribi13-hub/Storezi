@@ -778,7 +778,6 @@ window.testTelegramNotification = async function() {
 
 // ✅ تحسين زر Check - يتحقق من حالة الربط بشكل صحيح
 window.checkTelegramStatus = async function() {
-window.checkTelegramStatus = async function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
     try {
         const userRef = doc(db, 'users', currentUser.uid);
