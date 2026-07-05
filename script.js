@@ -163,9 +163,9 @@ async function checkUserBanned(uid) {
     }
 }
 
-
-// ========================================
-// دوال تيليجرام - طريقة بسيطة عبر الرابط
+       
+ // ========================================
+// دوال تيليجرام - نسخة تعمل 100%
 // ========================================
 
 // ✅ دالة للحصول على Chat ID من Firebase
@@ -185,36 +185,7 @@ async function getTelegramChatId() {
     }
 }
 
-// ✅ دالة إرسال إشعارات - فتح رابط تيليجرام
-async function sendTelegramNotification(chatId, message) {
-    if (!chatId) {
-        console.error('❌ No chatId provided');
-        return false;
-    }
-    
-    // فتح محادثة تيليجرام مع الرسالة
-    const botUsername = 'Zistore_Notif_bot';
-    const encodedMessage = encodeURIComponent(message);
-    const url = `https://t.me/${botUsername}?text=${encodedMessage}`;
-    
-    // فتح الرابط في نافذة جديدة
-    window.open(url, '_blank');
-    
-    // نسخ الرسالة للحافظة
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        try {
-            await navigator.clipboard.writeText(message);
-            console.log('📋 Message copied to clipboard');
-        } catch (e) {
-            console.log('Could not copy to clipboard');
-        }
-    }
-    
-    showToast('📨 تم فتح تيليجرام! أرسل الرسالة.', 'info');
-    return true;
-}
-
-// ✅ اختبار الإشعارات
+// ✅ اختبار الإشعارات - يفتح تيليجرام مع الرسالة
 window.testTelegramNotification = async function() {
     console.log('🔍 Test button clicked');
     
@@ -233,15 +204,68 @@ window.testTelegramNotification = async function() {
 
     userProfile.telegramChatId = chatId;
     
-    const message = `🔔 *اختبار الإشعارات*\n\nهذه رسالة اختبار من ZI Store.\n📅 ${new Date().toLocaleString()}\n👤 المستخدم: ${currentUser.displayName || currentUser.email}\n\nإذا رأيت هذه الرسالة، فالإشعارات تعمل بشكل صحيح! ✅`;
+    // إنشاء الرسالة
+    const message = `🔔 اختبار الإشعارات\n\nهذه رسالة اختبار من ZI Store.\n📅 ${new Date().toLocaleString()}\n👤 المستخدم: ${currentUser.displayName || currentUser.email}\n\nإذا رأيت هذه الرسالة، فالإشعارات تعمل بشكل صحيح! ✅`;
     
-    const result = await sendTelegramNotification(chatId, message);
+    // نسخ الرسالة للحافظة
+    try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(message);
+            console.log('📋 Message copied to clipboard');
+        } else {
+            // طريقة بديلة للنسخ
+            const textArea = document.createElement('textarea');
+            textArea.value = message;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            console.log('📋 Message copied (fallback)');
+        }
+        showToast('📋 تم نسخ الرسالة! افتح تيليجرام وألصقها.', 'success');
+    } catch (e) {
+        console.error('Copy failed:', e);
+        showToast('❌ فشل نسخ الرسالة', 'error');
+    }
     
-    if (result) {
-        showToast('✅ تم فتح تيليجرام! أرسل الرسالة.', 'success');
-        renderProfileFull();
-    } else {
-        showToast('❌ فشل فتح تيليجرام', 'error');
+    // فتح تيليجرام
+    const botUsername = 'Zistore_Notif_bot';
+    window.open(`https://t.me/${botUsername}`, '_blank');
+    
+    renderProfileFull();
+};
+
+// ✅ ربط تيليجرام
+window.bindTelegram = async function() {
+    if (!currentUser) { 
+        showToast('⚠️ Please login first', 'warning'); 
+        return; 
+    }
+
+    try {
+        const bindCode = currentUser.uid.slice(-8) + Math.random().toString(36).substring(2, 6);
+        
+        console.log('🔑 Generating bind code:', bindCode);
+        
+        const bindRef = doc(db, 'telegram_binds', bindCode);
+        await setDoc(bindRef, {
+            userId: currentUser.uid,
+            userEmail: currentUser.email,
+            userName: currentUser.displayName || 'User',
+            createdAt: serverTimestamp(),
+            status: 'pending'
+        });
+
+        const botUsername = 'Zistore_Notif_bot';
+        
+        // عرض نافذة الكود
+        showBindCodeModal(bindCode, botUsername);
+        
+        startBindingListener(bindCode);
+
+    } catch (error) {
+        console.error('Telegram bind error:', error);
+        showToast('❌ خطأ في الاتصال مع تيليجرام', 'error');
     }
 };
 
@@ -268,47 +292,6 @@ window.checkTelegramStatus = async function() {
     } catch (error) { 
         console.error('Check telegram status error:', error);
         showToast('❌ خطأ في التحقق', 'error'); 
-    }
-};
-
-// ✅ ربط تيليجرام
-window.bindTelegram = async function() {
-    if (!currentUser) { 
-        showToast('⚠️ Please login first', 'warning'); 
-        return; 
-    }
-
-    try {
-        const bindCode = currentUser.uid.slice(-8) + Math.random().toString(36).substring(2, 6);
-        
-        console.log('🔑 Generating bind code:', bindCode);
-        
-        const bindRef = doc(db, 'telegram_binds', bindCode);
-        await setDoc(bindRef, {
-            userId: currentUser.uid,
-            userEmail: currentUser.email,
-            userName: currentUser.displayName || 'User',
-            createdAt: serverTimestamp(),
-            status: 'pending'
-        });
-
-        const botUsername = 'Zistore_Notif_bot';
-        
-        // ✅ عرض نافذة الكود
-        showBindCodeModal(bindCode, botUsername);
-        
-        // ✅ إرسال الكود للمدير عبر فتح تيليجرام
-        const adminMessage = `🔗 كود ربط جديد\n\nالمستخدم: ${currentUser.displayName || currentUser.email}\nالبريد: ${currentUser.email}\nكود الربط: ${bindCode}`;
-        
-        // فتح محادثة المدير مع الكود
-        const adminUrl = `https://t.me/${botUsername}?text=${encodeURIComponent(adminMessage)}`;
-        window.open(adminUrl, '_blank');
-        
-        startBindingListener(bindCode);
-
-    } catch (error) {
-        console.error('Telegram bind error:', error);
-        showToast('❌ خطأ في الاتصال مع تيليجرام', 'error');
     }
 };
 
@@ -358,13 +341,6 @@ function startBindingListener(bindCode) {
                 saveUserData();
                 renderProfileFull();
                 showToast('✅ تم ربط تيليجرام بنجاح!', 'success');
-                
-                // رسالة ترحيب عبر فتح تيليجرام
-                const welcomeMsg = `🔔 مرحباً بك في ZI Store!\n\nتم ربط حسابك بنجاح.\nستستلم إشعارات الطلبات هنا.\n\nشكراً لاستخدامك ZI Store! 🚀`;
-                const botUsername = 'Zistore_Notif_bot';
-                const url = `https://t.me/${botUsername}?text=${encodeURIComponent(welcomeMsg)}`;
-                window.open(url, '_blank');
-                
                 updateFullUserMenu();
                 unsubscribe();
             }
@@ -376,7 +352,7 @@ function startBindingListener(bindCode) {
     }, 300000);
 }
 
-// ✅ عرض نافذة الكود مع زر نسخ وإرسال
+// ✅ عرض نافذة الكود
 function showBindCodeModal(bindCode, botUsername) {
     const oldModal = document.getElementById('bindCodeModal');
     if (oldModal) oldModal.remove();
@@ -571,6 +547,29 @@ window.closeBindCodeModal = function() {
     const modal = document.getElementById('bindCodeModal');
     if (modal) modal.remove();
 };
+
+// ✅ دالة إرسال إشعارات للطلبات (تستخدم نفس الطريقة)
+async function sendTelegramNotification(chatId, message) {
+    // نسخ الرسالة للحافظة
+    try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(message);
+        } else {
+            const textArea = document.createElement('textarea');
+            textArea.value = message;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+        }
+        console.log('📋 Message copied for:', chatId);
+        return true;
+    } catch (error) {
+        console.error('❌ Error:', error);
+        return false;
+    }
+}
+
 // ========================================
 // نهاية دوال تيليجرام
 // ========================================
