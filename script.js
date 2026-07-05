@@ -164,7 +164,7 @@ async function checkUserBanned(uid) {
 }
 
 // ========================================
-// دوال تيليجرام - النسخة النهائية
+// دوال تيليجرام - الاتصال المباشر
 // ========================================
 
 // ✅ دالة للحصول على Chat ID من Firebase مباشرة
@@ -184,7 +184,7 @@ async function getTelegramChatId() {
     }
 }
 
-// ✅ دالة إرسال إشعارات تيليجرام
+// ✅ دالة إرسال إشعارات تيليجرام - اتصال مباشر
 async function sendTelegramNotification(chatId, message) {
     if (!chatId) {
         console.error('❌ No chatId provided');
@@ -275,18 +275,8 @@ window.checkTelegramStatus = async function() {
         
         if (chatId) {
             userProfile.telegramChatId = chatId;
-            
-            const testResult = await sendTelegramNotification(
-                chatId,
-                `🔍 *فحص الاتصال*\n\n✅ تم التحقق من اتصالك مع البوت بنجاح!\n📅 ${new Date().toLocaleString()}\n👤 المستخدم: ${currentUser.displayName || currentUser.email}`
-            );
-            
-            if (testResult) {
-                showToast(`✅ مرتبط مع تيليجرام (Chat ID: ${chatId})`, 'success');
-                renderProfileFull();
-            } else {
-                showToast('⚠️ البوت لا يستطيع إرسال رسالة. تأكد من أنك بدأت المحادثة مع @Zistore_Notif_bot', 'warning');
-            }
+            showToast(`✅ مرتبط مع تيليجرام (Chat ID: ${chatId})`, 'success');
+            renderProfileFull();
         } else {
             showToast('❌ غير مرتبط مع تيليجرام', 'warning');
         }
@@ -296,7 +286,7 @@ window.checkTelegramStatus = async function() {
     }
 };
 
-// ✅ ربط تيليجرام - مع نافذة كود الربط
+// ✅ ربط تيليجرام
 window.bindTelegram = async function() {
     if (!currentUser) { 
         showToast('⚠️ Please login first', 'warning'); 
@@ -304,12 +294,12 @@ window.bindTelegram = async function() {
     }
 
     try {
-        // إنشاء كود ربط فريد
+        // توليد كود ربط فريد
         const bindCode = currentUser.uid.slice(-8) + Math.random().toString(36).substring(2, 6);
         
         console.log('🔑 Generating bind code:', bindCode);
         
-        // حفظ الكود في Firebase
+        // حفظ طلب الربط في Firebase
         const bindRef = doc(db, 'telegram_binds', bindCode);
         await setDoc(bindRef, {
             userId: currentUser.uid,
@@ -321,10 +311,10 @@ window.bindTelegram = async function() {
 
         const botUsername = 'Zistore_Notif_bot';
         
-        // ✅ عرض نافذة منبثقة مع زر نسخ وإرسال
+        // ✅ عرض نافذة الكود مع زر نسخ وإرسال
         showBindCodeModal(bindCode, botUsername);
         
-        // ✅ إرسال الكود للمدير
+        // ✅ إرسال إشعار للمدير بالكود
         const adminMessage = `
 🔗 *كود ربط جديد*
 
