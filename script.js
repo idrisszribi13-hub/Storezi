@@ -1450,8 +1450,7 @@ function renderPaymentProducts() {
     }).join('');
 }
 
-// وظيفة إرسال الطلب مع إشعارات للمدير والمستخدم
-function sendOrderToTelegram(method, txHash = null) {
+// ✅ تعريف واحد فقط - احذف التكرار
 function sendOrderToTelegram(method, txHash = null) {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
 
@@ -1481,7 +1480,7 @@ function sendOrderToTelegram(method, txHash = null) {
     const orderId = 'order_' + Date.now();
 
     // ⭐⭐⭐ نظام مكافآت RP ⭐⭐⭐
-    const RP_EARN_RATE = 0.1; // 10% من قيمة الطلب
+    const RP_EARN_RATE = 0.1;
     const rpEarned = Math.floor((finalTotal / RP_TO_DOLLAR) * RP_EARN_RATE);
     
     if (rpEarned > 0) {
@@ -1490,7 +1489,7 @@ function sendOrderToTelegram(method, txHash = null) {
         showToast(`🎉 ربحت ${rpEarned} نقاط RP!`, 'success');
     }
 
-    // رسالة للمدير مع معلومات RP
+    // رسالة للمدير
     let adminMsg = '🛒 **طلب جديد**\n\n';
     adminMsg += `👤 **العميل:** ${currentUser.displayName || currentUser.email || 'Unknown'}\n`;
     adminMsg += `📧 **البريد:** ${currentUser.email || 'N/A'}\n`;
@@ -1530,7 +1529,7 @@ function sendOrderToTelegram(method, txHash = null) {
         status: 'pending',
         txHash: txHash || null,
         rpUsed: Math.floor(rpDiscountAmount / RP_TO_DOLLAR) || 0,
-        rpEarned: rpEarned || 0  // ⭐ حفظ النقاط المكتسبة
+        rpEarned: rpEarned || 0
     };
 
     const rpToDeduct = Math.floor(rpDiscountAmount / RP_TO_DOLLAR);
@@ -2478,7 +2477,9 @@ function renderHistoryFull() {
     container.innerHTML = html;
 }
 
+// ========================================
 // دوال الوضع والتهيئة
+// ========================================
 let isDark = true;
 document.getElementById('themeToggle')?.addEventListener('click', function() {
     isDark = !isDark;
@@ -2487,10 +2488,7 @@ document.getElementById('themeToggle')?.addEventListener('click', function() {
         this.innerHTML = '<i class="fas fa-sun"></i>'; }
 });
 
-onAuthStateChanged(auth, async (user) => {
-// ========================================
-// onAuthStateChanged - مبسط
-// ========================================
+// ✅ onAuthStateChanged - تعريف واحد فقط
 onAuthStateChanged(auth, async (user) => {
     currentUser = user;
     if (user) {
