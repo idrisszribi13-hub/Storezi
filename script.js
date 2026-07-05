@@ -147,6 +147,7 @@ const paymentWallets = {
 };
 let cryptoPrices = { ltc: 0, usdt: 1, lastUpdate: null, isUpdating: false };
 
+// ✅ دالة التحقق من حالة Ban
 async function checkUserBanned(uid) {
     try {
         const userRef = doc(db, 'users', uid);
@@ -162,6 +163,7 @@ async function checkUserBanned(uid) {
     }
 }
 
+// ✅ وظيفة موحدة لإرسال الإشعارات إلى تيليجرام
 async function sendTelegramNotification(chatId, message) {
     if (!chatId) {
         console.error('❌ No chatId provided');
@@ -193,14 +195,15 @@ async function sendTelegramNotification(chatId, message) {
     }
 }
 
-// ✅ طريقة مبسطة: إرسال كود والتحقق التلقائي
-window.bindTelegramSimple = async function() {
+// ✅ ربط تيليجرام - إرسال كود للبوت
+window.bindTelegram = async function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
 
     try {
+        // توليد كود ربط فريد
         const bindCode = currentUser.uid.slice(-8) + Math.random().toString(36).substring(2, 6);
 
-        // حفظ طلب الربط
+        // حفظ طلب الربط في قاعدة البيانات
         const bindRef = doc(db, 'telegram_binds', bindCode);
         await setDoc(bindRef, {
             userId: currentUser.uid,
@@ -210,49 +213,101 @@ window.bindTelegramSimple = async function() {
             status: 'pending'
         });
 
-        // إرسال رسالة مع كود الربط
+        // إرسال رسالة إلى بوت تيليجرام مع كود الربط
         const botUsername = 'Zistore_Notif_bot';
-        const message = `🔗 *ربط حساب تيليجرام*\n\n👤 المستخدم: ${currentUser.displayName || currentUser.email}\n📧 البريد: ${currentUser.email}\n🆔 كود الربط: \`${bindCode}\`\n\n📌 اضغط على الرابط التالي لقبول الربط:\n[قبول الربط](https://t.me/${botUsername}?start=${bindCode})`;
+        const message = `🔗 *ربط حساب تيليجرام*\n\n👤 المستخدم: ${currentUser.displayName || currentUser.email}\n📧 البريد: ${currentUser.email}\n🆔 كود الربط: \`${bindCode}\`\n\n📌 أرسل هذا الكود إلى البوت:\n[اضغط هنا للربط](https://t.me/${botUsername}?start=${bindCode})\n\nأو أرسل الكود مباشرة: \`${bindCode}\``;
 
+        // إرسال الكود للمدير
         await sendTelegramNotification(TELEGRAM_CHAT_ID, message);
-        
-        window.open(`https://t.me/${botUsername}`, '_blank');
-        showToast('📨 تم إرسال طلب الربط!', 'success');
-        
-        // الاستماع لتأكيد الربط
+
+        // فتح البوت في تيليجرام
+        window.open(`https://t.me/${botUsername}?start=${bindCode}`, '_blank');
+
+        showToast('📨 تم إرسال طلب الربط إلى تيليجرام! اضغط على الرابط في البوت.', 'success');
+
+        // البدء بالاستماع لتأكيد الربط
         startBindingListener(bindCode);
 
     } catch (error) {
-        console.error('Bind error:', error);
-        showToast('❌ خطأ', 'error');
+        console.error('Telegram bind error:', error);
+        showToast('❌ خطأ في الاتصال مع تيليجرام', 'error');
     }
 };
 
-// دالة ربط تيليجرام العادية
-window.bindTelegram = window.bindTelegramSimple;
-
-// الاستماع لتأكيد الربط
+// ✅ الاستماع لتأكيد الربط من البوت
 function startBindingListener(bindCode) {
     const bindRef = doc(db, 'telegram_binds', bindCode);
     const unsubscribe = onSnapshot(bindRef, (doc) => {
         if (doc.exists()) {
             const data = doc.data();
+            console.log('📋 Binding status:', data.status);
             if (data.status === 'completed' && data.telegramChatId) {
                 userProfile.telegramChatId = data.telegramChatId;
                 saveUserData();
                 renderProfileFull();
                 showToast('✅ تم ربط تيليجرام بنجاح!', 'success');
+
+                // إرسال رسالة ترحيب للمستخدم
                 sendTelegramNotification(
                     userProfile.telegramChatId,
                     `🔔 *مرحباً بك في ZI Store!*\n\nتم ربط حسابك بنجاح.\nستستلم إشعارات الطلبات هنا.\n\nشكراً لاستخدامك ZI Store! 🚀`
                 );
+
                 updateFullUserMenu();
                 unsubscribe();
             }
         }
     });
-    setTimeout(() => { unsubscribe(); }, 300000);
+
+    // إلغاء الاستماع بعد 5 دقائق
+    setTimeout(() => { 
+        unsubscribe(); 
+        console.log('⏰ Binding listener timeout');
+    }, 300000);
 }
+
+// ✅ اختبار الإشعارات
+window.testTelegramNotification = async function() {
+    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
+    if (!userProfile.telegramChatId) { showToast('⚠️ No Telegram linked', 'warning'); return; }
+
+    const result = await sendTelegramNotification(
+        userProfile.telegramChatId,
+        `🔔 *اختبار الإشعارات*\n\nهذه رسالة اختبار من ZI Store.\n📅 ${new Date().toLocaleString()}\n\nإذا رأيت هذه الرسالة، فالإشعارات تعمل بشكل صحيح! ✅`
+    );
+
+    if (result) {
+        showToast('✅ تم إرسال رسالة اختبار! تحقق من تيليجرام.', 'success');
+    } else {
+        showToast('❌ فشل إرسال رسالة الاختبار. تأكد من Chat ID.', 'error');
+    }
+};
+
+// ✅ التحقق من حالة تيليجرام
+window.checkTelegramStatus = async function() {
+    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
+    try {
+        const userRef = doc(db, 'users', currentUser.uid);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+            const data = userSnap.data();
+            if (data.telegramChatId) {
+                const testResult = await sendTelegramNotification(
+                    data.telegramChatId,
+                    `🔍 *فحص الاتصال*\n\n✅ تم التحقق من اتصالك مع البوت بنجاح!\n📅 ${new Date().toLocaleString()}`
+                );
+                if (testResult) {
+                    showToast(`✅ مرتبط مع تيليجرام (Chat ID: ${data.telegramChatId})`, 'success');
+                    userProfile.telegramChatId = data.telegramChatId;
+                    renderProfileFull();
+                } else {
+                    showToast('⚠️ البوت لا يستطيع إرسال رسالة. تأكد من أنك بدأت المحادثة مع @Zistore_Notif_bot', 'warning');
+                }
+            } else { showToast('❌ غير مرتبط مع تيليجرام', 'warning'); }
+        }
+    } catch (error) { console.error('Check telegram status error:', error);
+        showToast('❌ خطأ في التحقق', 'error'); }
+};
 
 // ✅ إلغاء ربط تيليجرام
 window.unlinkTelegram = async function() {
@@ -725,7 +780,7 @@ function openAuthModal() {
     document.getElementById('authSection').scrollIntoView({ behavior: 'smooth' });
 }
 
-// عرض الملف الشخصي مع زر الربط المباشر
+// عرض الملف الشخصي
 function renderProfileFull() {
     const container = document.getElementById('profileFullContent');
     if (!currentUser) {
@@ -827,48 +882,6 @@ function renderProfileFull() {
   `;
 }
 
-// اختبار الإشعارات
-window.testTelegramNotification = async function() {
-    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
-    if (!userProfile.telegramChatId) { showToast('⚠️ No Telegram linked', 'warning'); return; }
-
-    const result = await sendTelegramNotification(
-        userProfile.telegramChatId,
-        `🔔 *اختبار الإشعارات*\n\nهذه رسالة اختبار من ZI Store.\n📅 ${new Date().toLocaleString()}\n\nإذا رأيت هذه الرسالة، فالإشعارات تعمل بشكل صحيح! ✅`
-    );
-
-    if (result) {
-        showToast('✅ تم إرسال رسالة اختبار! تحقق من تيليجرام.', 'success');
-    } else {
-        showToast('❌ فشل إرسال رسالة الاختبار. تأكد من Chat ID.', 'error');
-    }
-};
-
-window.checkTelegramStatus = async function() {
-    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
-    try {
-        const userRef = doc(db, 'users', currentUser.uid);
-        const userSnap = await getDoc(userRef);
-        if (userSnap.exists()) {
-            const data = userSnap.data();
-            if (data.telegramChatId) {
-                const testResult = await sendTelegramNotification(
-                    data.telegramChatId,
-                    `🔍 *فحص الاتصال*\n\n✅ تم التحقق من اتصالك مع البوت بنجاح!\n📅 ${new Date().toLocaleString()}`
-                );
-                if (testResult) {
-                    showToast(`✅ مرتبط مع تيليجرام (Chat ID: ${data.telegramChatId})`, 'success');
-                    userProfile.telegramChatId = data.telegramChatId;
-                    renderProfileFull();
-                } else {
-                    showToast('⚠️ البوت لا يستطيع إرسال رسالة. تأكد من أنك بدأت المحادثة مع @Zistore_Notif_bot', 'warning');
-                }
-            } else { showToast('❌ غير مرتبط مع تيليجرام', 'warning'); }
-        }
-    } catch (error) { console.error('Check telegram status error:', error);
-        showToast('❌ خطأ في التحقق', 'error'); }
-};
-
 window.saveProfileChangesInline = async function(e) {
     e.preventDefault();
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
@@ -927,7 +940,7 @@ window.changePasswordInline = async function() {
 };
 
 // ========================================
-// دوال المنتجات - مع إضافة خيار VIP Pricing
+// دوال المنتجات
 // ========================================
 
 async function loadProductsFromFirestore() {
@@ -2005,7 +2018,6 @@ window.markAllNotificationsRead = async function() {
     isUpdatingNotifications = false;
 };
 
-// ✅ Clear Notifications - يحذف مباشرة بدون تأكيد
 window.clearAllNotifications = async function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
     try {
@@ -2147,7 +2159,7 @@ window.copyReferralCode2 = function() {
 };
 
 // ========================================
-// دوال لوحة المدير - مع إضافة خيار VIP Pricing
+// دوال لوحة المدير
 // ========================================
 
 window.openAdminPanel = function() {
@@ -2199,7 +2211,6 @@ function renderAdminProducts(productsList) {
     }).join('');
 }
 
-// ✅ تعديل دالة إضافة منتج لتشمل خيارات VIP Pricing
 window.openAddProductModal = function() {
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
     document.getElementById('productFormTitle').textContent = '➕ Add New Product';
@@ -2216,7 +2227,6 @@ window.openAddProductModal = function() {
     document.getElementById('productModal').classList.add('open');
 };
 
-// ✅ تعديل دالة تعديل منتج لتشمل خيارات VIP Pricing
 window.openEditProductModal = function(productId) {
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
     const product = products.find(p => p.id === productId);
@@ -2238,7 +2248,6 @@ window.openEditProductModal = function(productId) {
 
 window.closeProductModal = function() { document.getElementById('productModal').classList.remove('open'); };
 
-// ✅ تعديل دالة حفظ المنتج لتشمل خيارات VIP Pricing
 window.saveProduct = async function(event) {
     event.preventDefault();
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
@@ -2258,7 +2267,6 @@ window.saveProduct = async function(event) {
     const features = featuresText ? featuresText.split(',').map(f => f.trim()).filter(f => f) : [];
     const productData = { name, price, badge, status, image, description, features, video };
     
-    // ✅ إضافة خيارات VIP Pricing إذا كانت موجودة
     if (duration) productData.duration = duration;
     if (originalPrice > 0) productData.originalPrice = originalPrice;
     
