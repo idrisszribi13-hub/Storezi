@@ -2,7 +2,7 @@ const TelegramBot = require('node-telegram-bot-api');
 const express = require('express');
 const admin = require('firebase-admin');
 const fs = require('fs');
-const cors = require('cors'); // ✅ إضافة CORS
+const cors = require('cors');
 
 // ============= التوكن =============
 const token = process.env.BOT_TOKEN || '8687744794:AAGeeNrEU-iQLRmg3dLvYkWhddtYo_sJ1tc';
@@ -76,6 +76,16 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+// ✅ نقطة نهاية للتحقق من حالة البوت
+app.get('/status', (req, res) => {
+    res.json({
+        status: 'online',
+        bot: 'running',
+        adminChatId: ADMIN_CHAT_ID,
+        db: db ? 'connected' : 'disconnected'
+    });
+});
+
 // ✅ نقطة نهاية لإرسال الرسائل
 app.post('/send-message', async (req, res) => {
     const { chatId, message } = req.body;
@@ -130,17 +140,7 @@ app.post('/test-notification', async (req, res) => {
     }
 });
 
-// ✅ نقطة نهاية للتحقق من حالة البوت
-app.get('/status', (req, res) => {
-    res.json({
-        status: 'online',
-        bot: 'running',
-        adminChatId: ADMIN_CHAT_ID,
-        db: db ? 'connected' : 'disconnected'
-    });
-});
-
-// ✅ الصفحة الرئيسية
+// ✅ نقطة نهاية رئيسية
 app.get('/', (req, res) => {
     res.send('🤖 Zi Store Bot is running!');
 });
