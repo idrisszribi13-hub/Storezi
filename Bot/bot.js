@@ -71,10 +71,22 @@ try {
 
 bot.onText(/\/start/, (msg) => {
     const chatId = msg.chat.id;
-    bot.sendMessage(chatId, '👋 مرحباً بك في Zi Store Bot!\n\nللمساعدة اكتب /help');
+    const text = `
+👋 مرحباً بك في Zi Store Bot!
+
+🔗 لربط حسابك مع المتجر:
+1️⃣ اضغط على زر "ربط تيليجرام" في الملف الشخصي
+2️⃣ ستحصل على كود ربط
+3️⃣ أرسل الكود هنا في هذه المحادثة
+
+📋 الأوامر:
+/help - عرض المساعدة
+/chatid - معرف الدردشة
+`;
+    bot.sendMessage(chatId, text);
 });
 
-// ✅ معالجة /start مع كود الربط
+// ✅ معالجة /start مع كود الربط (للتوافق مع الروابط)
 bot.onText(/\/start (.+)/, async (msg, match) => {
     const chatId = msg.chat.id;
     const bindCode = match[1];
@@ -100,18 +112,18 @@ bot.onText(/\/start (.+)/, async (msg, match) => {
                     completedAt: admin.firestore.FieldValue.serverTimestamp()
                 });
                 
-                await bot.sendMessage(chatId, '✅ **تم ربط حسابك بنجاح!**\n\nستستلم إشعارات الطلبات هنا.');
+                await bot.sendMessage(chatId, '✅ **تم ربط حسابك بنجاح!**\n\nستستلم إشعارات الطلبات هنا.\n\nشكراً لاستخدامك Zi Store! 🚀');
                 console.log(`✅ User ${chatId} bound with code: ${bindCode}`);
                 
                 // إشعار للمدير
                 bot.sendMessage(ADMIN_CHAT_ID, 
-                    `🔗 *New binding*\n\n👤 User: ${data.userName || data.userEmail || 'Unknown'}\n📧 Email: ${data.userEmail || 'N/A'}\n🆔 Chat ID: ${chatId}`
+                    `🔗 *ربط جديد*\n\n👤 المستخدم: ${data.userName || data.userEmail || 'Unknown'}\n📧 البريد: ${data.userEmail || 'N/A'}\n🆔 معرف الدردشة: ${chatId}`
                 );
             } else {
                 await bot.sendMessage(chatId, '❌ هذا الكود منتهي الصلاحية أو مستخدم بالفعل.');
             }
         } else {
-            await bot.sendMessage(chatId, '❌ كود الربط غير صحيح.');
+            await bot.sendMessage(chatId, '❌ كود الربط غير صحيح.\n\nتأكد من نسخ الكود بشكل صحيح أو اطلب كود جديد.');
         }
     } catch (error) {
         console.error('❌ Error:', error.message);
@@ -121,33 +133,46 @@ bot.onText(/\/start (.+)/, async (msg, match) => {
 
 bot.onText(/\/help/, (msg) => {
     const chatId = msg.chat.id;
-    bot.sendMessage(chatId, '📋 الأوامر:\n\n/start - بدء البوت\n/help - عرض المساعدة\n/chatid - معرف الدردشة');
+    bot.sendMessage(chatId, `
+📋 *الأوامر المتاحة:*
+
+/start - بدء البوت وعرض التعليمات
+/help - عرض المساعدة
+/chatid - معرف الدردشة الخاص بك
+
+🔗 *لربط حسابك:*
+1. افتح الملف الشخصي في Zi Store
+2. اضغط "ربط تيليجرام"
+3. انسخ كود الربط
+4. أرسله هنا في هذه المحادثة
+`);
 });
 
 bot.onText(/\/chatid/, (msg) => {
     const chatId = msg.chat.id;
-    bot.sendMessage(chatId, `🆔 معرف الدردشة: ${chatId}`);
+    bot.sendMessage(chatId, `🆔 معرف الدردشة الخاص بك: \`${chatId}\``, { parse_mode: 'Markdown' });
 });
 
-// ============= معالج الرسائل =============
+// ============= معالج الرسائل (الربط اليدوي) =============
 
 bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
     const text = msg.text;
 
+    // تجاهل الأوامر
     if (!text || text.startsWith('/')) {
         return;
     }
 
-    console.log(`📩 Received: "${text}" from ${chatId}`);
+    console.log(`📩 استلام: "${text}" من ${chatId}`);
 
     if (!db) {
-        await bot.sendMessage(chatId, '❌ Database error. Please try again later.');
+        await bot.sendMessage(chatId, '❌ خطأ في قاعدة البيانات. الرجاء المحاولة لاحقاً.');
         return;
     }
 
     try {
-        // البحث عن كود الربط
+        // 🔍 البحث عن كود الربط في Firebase
         const docRef = db.collection('telegram_binds').doc(text);
         const docSnap = await docRef.get();
 
@@ -155,26 +180,46 @@ bot.on('message', async (msg) => {
             const data = docSnap.data();
 
             if (data.status === 'pending') {
+                // ✅ تأكيد الربط
                 await docRef.update({
                     status: 'completed',
                     telegramChatId: String(chatId),
                     completedAt: admin.firestore.FieldValue.serverTimestamp()
                 });
 
-                await bot.sendMessage(chatId, '✅ **تم ربط حسابك بنجاح!**\n\nستستلم إشعارات الطلبات هنا.');
-                console.log(`✅ User ${chatId} bound with code: ${text}`);
+                await bot.sendMessage(chatId, `✅ **تم ربط حسابك بنجاح!** 🎉
+
+ستستلم إشعارات الطلبات هنا.
+شكراً لاستخدامك Zi Store! 🚀`);
                 
-                bot.sendMessage(ADMIN_CHAT_ID, 
-                    `🔗 *New binding*\n\n👤 User: ${data.userName || data.userEmail || 'Unknown'}\n📧 Email: ${data.userEmail || 'N/A'}\n🆔 Chat ID: ${chatId}`
+                console.log(`✅ المستخدم ${chatId} مرتبط بالكود: ${text}`);
+                
+                // 📨 إشعار للمدير
+                await bot.sendMessage(ADMIN_CHAT_ID, 
+                    `🔗 *ربط جديد*\n\n👤 المستخدم: ${data.userName || data.userEmail || 'Unknown'}\n📧 البريد: ${data.userEmail || 'N/A'}\n🆔 معرف الدردشة: ${chatId}`
                 );
+                
+                // 📨 إشعار للمستخدم أنه سيتم إعلام المدير
+                await bot.sendMessage(chatId, `📨 تم إعلام المدير بربط حسابك.`);
+                
             } else {
-                await bot.sendMessage(chatId, '❌ هذا الكود منتهي الصلاحية أو مستخدم بالفعل.');
+                await bot.sendMessage(chatId, '❌ هذا الكود منتهي الصلاحية أو مستخدم بالفعل.\n\nاطلب كود جديد من الملف الشخصي.');
             }
         } else {
-            await bot.sendMessage(chatId, `📩 لقد أرسلت: "${text}"\n\nللمساعدة اكتب /help`);
+            // ❌ كود غير صحيح
+            await bot.sendMessage(chatId, `❌ كود الربط غير صحيح.
+
+🔍 تأكد من نسخ الكود بشكل صحيح.
+
+📌 للحصول على كود جديد:
+1. افتح الملف الشخصي في Zi Store
+2. اضغط "ربط تيليجرام"
+3. انسخ الكود الجديد
+
+📋 للمساعدة اكتب /help`);
         }
     } catch (error) {
-        console.error('❌ Error:', error.message);
+        console.error('❌ خطأ:', error.message);
         await bot.sendMessage(chatId, '❌ حدث خطأ. الرجاء المحاولة مرة أخرى.');
     }
 });
@@ -188,12 +233,21 @@ app.get('/', (req, res) => {
     res.send('🤖 Zi Store Bot is running!');
 });
 
+app.get('/health', (req, res) => {
+    res.json({ 
+        status: 'ok', 
+        bot: 'running',
+        db: db ? 'connected' : 'disconnected'
+    });
+});
+
 app.listen(PORT, () => {
     console.log(`✅ Server running on port ${PORT}`);
     console.log('✅ Bot is polling for messages...');
 });
 
 console.log('🚀 Zi Store Bot started successfully!');
+console.log(`📌 Admin Chat ID: ${ADMIN_CHAT_ID}`);
 
 // ============= إغلاق نظيف =============
 
