@@ -2317,6 +2317,7 @@ body {
     border-color: var(--danger);
 }
 
+/* ✅ إصلاح أزرار التبويب */
 .admin-panel .tabs {
     display: flex;
     gap: 4px;
@@ -2329,29 +2330,30 @@ body {
 }
 
 .admin-panel .tabs button {
-    padding: 8px 16px;
-    border: none;
-    border-radius: 8px;
-    background: transparent;
-    color: var(--text-secondary);
-    font-weight: 600;
-    cursor: pointer;
-    font-size: 13px;
-    font-family: var(--font);
-    transition: 0.3s;
-    flex: 1;
-    min-width: 60px;
-    text-align: center;
+    padding: 8px 16px !important;
+    border: none !important;
+    border-radius: 8px !important;
+    background: transparent !important;
+    color: var(--text-secondary) !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    font-size: 13px !important;
+    font-family: var(--font) !important;
+    transition: 0.3s !important;
+    flex: 1 !important;
+    min-width: 60px !important;
+    text-align: center !important;
 }
 
 .admin-panel .tabs button:hover {
-    color: var(--text);
+    color: var(--text) !important;
+    background: var(--primary-glow) !important;
 }
 
 .admin-panel .tabs button.active {
-    background: var(--primary);
-    color: #fff;
-    box-shadow: 0 4px 15px var(--primary-glow);
+    background: var(--primary) !important;
+    color: #fff !important;
+    box-shadow: 0 4px 15px var(--primary-glow) !important;
 }
 
 .admin-panel .tab-content {
@@ -2584,80 +2586,135 @@ body {
     opacity: 0.8;
 }
 
+/* ✅ إصلاح عرض المنتجات في لوحة المدير */
 .admin-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 14px;
-    background: var(--bg);
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    margin-bottom: 6px;
-    transition: 0.3s;
-    direction: ltr !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 12px 16px !important;
+    background: var(--bg) !important;
+    border-radius: 10px !important;
+    border: 1px solid var(--border) !important;
+    margin-bottom: 8px !important;
+    transition: all 0.3s ease !important;
 }
 
 .admin-item:hover {
-    border-color: var(--primary);
+    border-color: var(--primary) !important;
+    transform: translateX(4px) !important;
 }
 
 .admin-item .item-info {
-    flex: 1;
+    flex: 1 !important;
+    min-width: 0 !important;
 }
 
 .admin-item .item-info .item-title {
-    font-weight: 600;
-    color: var(--text);
-    font-family: var(--font);
-    font-size: 14px;
-    text-align: left !important;
+    font-weight: 600 !important;
+    color: var(--text) !important;
+    font-family: var(--font) !important;
+    font-size: 14px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
 }
 
 .admin-item .item-info .item-meta {
-    font-size: 11px;
-    color: var(--text-secondary);
-    opacity: 0.4;
-    font-family: var(--font);
-    text-align: left !important;
+    font-size: 12px !important;
+    color: var(--text-secondary) !important;
+    opacity: 0.5 !important;
+    font-family: var(--font) !important;
+    margin-top: 2px !important;
 }
 
+/* ✅ إصلاح أزرار Edit و Delete في المنتجات */
 .admin-item .item-actions {
-    display: flex;
-    gap: 4px;
+    display: flex !important;
+    gap: 6px !important;
+    align-items: center !important;
 }
 
 .admin-item .item-actions button {
-    padding: 4px 12px;
-    border: none;
-    border-radius: 6px;
-    font-weight: 600;
-    cursor: pointer;
-    font-size: 10px;
-    transition: 0.3s;
-    font-family: var(--font);
+    padding: 6px 14px !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    font-size: 12px !important;
+    transition: all 0.3s ease !important;
+    font-family: var(--font) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    min-width: 60px !important;
+    justify-content: center !important;
 }
 
 .admin-item .item-actions .btn-edit {
-    background: var(--vip-color);
-    color: #0a0a1a;
+    background: var(--vip-color) !important;
+    color: #0a0a1a !important;
 }
 
 .admin-item .item-actions .btn-edit:hover {
-    opacity: 0.8;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4) !important;
+    opacity: 0.9 !important;
 }
 
 .admin-item .item-actions .btn-delete {
-    background: var(--danger);
-    color: #fff;
+    background: var(--danger) !important;
+    color: #fff !important;
 }
 
 .admin-item .item-actions .btn-delete:hover {
-    opacity: 0.8;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 15px rgba(248, 113, 113, 0.4) !important;
+    opacity: 0.9 !important;
 }
 
-/* ============================================
-   المستخدمين (للمدير)
-   ============================================ */
+.admin-item .item-actions .btn-edit i,
+.admin-item .item-actions .btn-delete i {
+    font-size: 13px !important;
+}
+
+/* ✅ إصلاح أزرار الإضافة */
+.add-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    padding: 10px 20px !important;
+    border: none !important;
+    border-radius: 10px !important;
+    background: linear-gradient(135deg, var(--primary), var(--primary-hover)) !important;
+    color: #fff !important;
+    font-weight: 700 !important;
+    font-size: 14px !important;
+    font-family: var(--font) !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    margin-bottom: 14px !important;
+    width: auto !important;
+    min-width: 140px !important;
+    box-shadow: 0 4px 15px var(--primary-glow) !important;
+    text-decoration: none !important;
+}
+
+.add-btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px var(--primary-glow) !important;
+    opacity: 0.9 !important;
+}
+
+.add-btn:active {
+    transform: scale(0.97) !important;
+}
+
+.add-btn i {
+    font-size: 16px !important;
+    margin: 0 !important;
+}
+
 .admin-users-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -3159,28 +3216,167 @@ body {
 }
 
 /* ============================================
-   الأزرار الإضافية
+   نموذج المنتج في لوحة المدير
    ============================================ */
-.add-btn {
-    padding: 8px 18px;
-    border: none;
-    border-radius: 8px;
-    background: var(--primary);
-    color: #fff;
-    font-weight: 700;
-    cursor: pointer;
-    font-size: 13px;
-    font-family: var(--font);
-    transition: 0.3s;
-    margin-bottom: 10px;
+#productForm .auth-field {
+    margin-bottom: 12px !important;
 }
 
-.add-btn:hover {
-    background: var(--primary-hover);
+#productForm .auth-field label {
+    display: block !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    color: var(--text-secondary) !important;
+    font-family: var(--font) !important;
+    margin-bottom: 4px !important;
+    opacity: 0.6 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.3px !important;
+    text-align: left !important;
 }
 
-.add-btn i {
-    margin-left: 6px;
+#productForm .auth-field input,
+#productForm .auth-field select,
+#productForm .auth-field textarea {
+    width: 100% !important;
+    padding: 10px 14px !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 8px !important;
+    background: var(--bg) !important;
+    color: var(--text) !important;
+    font-size: 13px !important;
+    outline: none !important;
+    font-family: var(--font) !important;
+    transition: 0.3s !important;
+    direction: ltr !important;
+    text-align: left !important;
+}
+
+#productForm .auth-field input:focus,
+#productForm .auth-field select:focus,
+#productForm .auth-field textarea:focus {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 20px var(--primary-glow) !important;
+}
+
+#productForm .auth-field textarea {
+    min-height: 60px !important;
+    resize: vertical !important;
+}
+
+/* ✅ زر Save في نموذج المنتج */
+#productForm .auth-btn {
+    width: 100% !important;
+    padding: 12px !important;
+    border: none !important;
+    border-radius: 10px !important;
+    background: linear-gradient(135deg, var(--primary), var(--primary-hover)) !important;
+    color: #fff !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    font-size: 15px !important;
+    font-family: var(--font) !important;
+    transition: 0.3s !important;
+    margin-top: 10px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+}
+
+#productForm .auth-btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px var(--primary-glow) !important;
+    opacity: 0.9 !important;
+}
+
+/* ============================================
+   نموذج الإشعارات في لوحة المدير
+   ============================================ */
+#createNotificationForm .auth-field {
+    margin-bottom: 12px !important;
+}
+
+#createNotificationForm .auth-field label {
+    display: block !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    color: var(--text-secondary) !important;
+    font-family: var(--font) !important;
+    margin-bottom: 4px !important;
+    opacity: 0.6 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.3px !important;
+    text-align: left !important;
+}
+
+#createNotificationForm .auth-field input,
+#createNotificationForm .auth-field textarea {
+    width: 100% !important;
+    padding: 10px 14px !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 8px !important;
+    background: var(--bg) !important;
+    color: var(--text) !important;
+    font-size: 13px !important;
+    outline: none !important;
+    font-family: var(--font) !important;
+    transition: 0.3s !important;
+    direction: ltr !important;
+    text-align: left !important;
+}
+
+#createNotificationForm .auth-field input:focus,
+#createNotificationForm .auth-field textarea:focus {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 20px var(--primary-glow) !important;
+}
+
+#createNotificationForm .auth-field textarea {
+    min-height: 80px !important;
+    resize: vertical !important;
+}
+
+/* ============================================
+   نموذج التحميلات في لوحة المدير
+   ============================================ */
+#createDownloadForm .auth-field {
+    margin-bottom: 12px !important;
+}
+
+#createDownloadForm .auth-field label {
+    display: block !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    color: var(--text-secondary) !important;
+    font-family: var(--font) !important;
+    margin-bottom: 4px !important;
+    opacity: 0.6 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.3px !important;
+    text-align: left !important;
+}
+
+#createDownloadForm .auth-field input,
+#createDownloadForm .auth-field textarea {
+    width: 100% !important;
+    padding: 10px 14px !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 8px !important;
+    background: var(--bg) !important;
+    color: var(--text) !important;
+    font-size: 13px !important;
+    outline: none !important;
+    font-family: var(--font) !important;
+    transition: 0.3s !important;
+    direction: ltr !important;
+    text-align: left !important;
+}
+
+#createDownloadForm .auth-field input:focus,
+#createDownloadForm .auth-field textarea:focus {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 20px var(--primary-glow) !important;
 }
 
 /* ============================================
@@ -3348,119 +3544,6 @@ body {
     background: var(--danger);
     color: #fff;
     border-color: var(--danger) !important;
-}
-
-/* ============================================
-   نموذج المنتج في لوحة المدير
-   ============================================ */
-#productForm .auth-field label {
-    display: block;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    font-family: var(--font);
-    margin-top: 8px;
-    opacity: 0.6;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    text-align: left !important;
-}
-
-#productForm .auth-field input,
-#productForm .auth-field select,
-#productForm .auth-field textarea {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--bg);
-    color: var(--text);
-    font-size: 13px;
-    outline: none;
-    font-family: var(--font);
-    margin-bottom: 4px;
-    direction: ltr !important;
-    text-align: left !important;
-}
-
-#productForm .auth-field input:focus,
-#productForm .auth-field select:focus,
-#productForm .auth-field textarea:focus {
-    border-color: var(--primary);
-}
-
-/* ============================================
-   نموذج الإشعارات في لوحة المدير
-   ============================================ */
-#createNotificationForm .auth-field label {
-    display: block;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    font-family: var(--font);
-    margin-top: 8px;
-    opacity: 0.6;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    text-align: left !important;
-}
-
-#createNotificationForm .auth-field input,
-#createNotificationForm .auth-field textarea {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--bg);
-    color: var(--text);
-    font-size: 13px;
-    outline: none;
-    font-family: var(--font);
-    margin-bottom: 4px;
-    direction: ltr !important;
-    text-align: left !important;
-}
-
-#createNotificationForm .auth-field input:focus,
-#createNotificationForm .auth-field textarea:focus {
-    border-color: var(--primary);
-}
-
-/* ============================================
-   نموذج التحميلات في لوحة المدير
-   ============================================ */
-#createDownloadForm .auth-field label {
-    display: block;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    font-family: var(--font);
-    margin-top: 8px;
-    opacity: 0.6;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    text-align: left !important;
-}
-
-#createDownloadForm .auth-field input,
-#createDownloadForm .auth-field textarea {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--bg);
-    color: var(--text);
-    font-size: 13px;
-    outline: none;
-    font-family: var(--font);
-    margin-bottom: 4px;
-    direction: ltr !important;
-    text-align: left !important;
-}
-
-#createDownloadForm .auth-field input:focus,
-#createDownloadForm .auth-field textarea:focus {
-    border-color: var(--primary);
 }
 
 /* ============================================
