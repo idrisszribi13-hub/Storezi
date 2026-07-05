@@ -167,8 +167,8 @@ async function checkUserBanned(uid) {
 // دوال تيليجرام - عبر Proxy البوت
 // ========================================
 
-// ✅ رابط البوت على Render
-const BOT_PROXY_URL = 'https://zi-store-bot.onrender.com'; // ⚠️ استبدل برابط البوت الحقيقي
+// ✅ رابط البوت على Render - استبدل برابطك الحقيقي
+const BOT_PROXY_URL = 'https://zi-store-bot.onrender.com';
 
 // ✅ دالة للحصول على Chat ID من Firebase مباشرة
 async function getTelegramChatId() {
