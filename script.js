@@ -22,10 +22,8 @@ const db = getFirestore(app);
 const analytics = getAnalytics(app);
 
 // ========================================
-// شاشة التحميل الاحترافية - أضف هذا في بداية الملف
+// شاشة التحميل الاحترافية
 // ========================================
-
-// رسائل التحميل المتغيرة
 const loadingMessages = [
     'جاري تهيئة المتجر...',
     'جاري تحميل المنتجات...',
@@ -35,8 +33,8 @@ const loadingMessages = [
 
 let loadingMessageIndex = 0;
 let loadingInterval = null;
+let isInitialized = false;  // ⭐ متغير التحكم
 
-// تغيير رسالة التحميل كل ثانيتين
 function updateLoadingMessage() {
     const statusEl = document.getElementById('loadingStatus');
     if (!statusEl) return;
@@ -44,13 +42,12 @@ function updateLoadingMessage() {
     statusEl.textContent = loadingMessages[loadingMessageIndex];
 }
 
-// بدء تغيير الرسائل
 function startLoadingMessages() {
     loadingInterval = setInterval(updateLoadingMessage, 1800);
 }
 
-// إخفاء شاشة التحميل
 function hideLoadingScreen() {
+    console.log('✅ Hiding loading screen...');
     const screen = document.getElementById('loadingScreen');
     if (screen) {
         screen.classList.add('hidden');
@@ -61,8 +58,8 @@ function hideLoadingScreen() {
     }
 }
 
-// عرض شاشة التحميل مرة أخرى
 function showLoadingScreen() {
+    console.log('✅ Showing loading screen...');
     const screen = document.getElementById('loadingScreen');
     if (screen) {
         screen.style.display = 'flex';
@@ -73,10 +70,6 @@ function showLoadingScreen() {
 
 // بدء التحميل فوراً
 startLoadingMessages();
-
-// ========================================
-// نهاية شاشة التحميل
-// ========================================
 
 const ADMIN_EMAIL = 'zribiidriss3@gmail.com';
 // ✅ بوت واحد لكل شيء (Zistore_Notif_bot)
