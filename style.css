@@ -3015,7 +3015,43 @@ body {
         padding: 6px 10px;
     }
 }
+   /* ========================================
+   نهاية الملف - أضف هنا
+   ======================================== */
 
+/* ✅ أنماط نافذة كود الربط */
+#bindCodeModal {
+    animation: fadeIn 0.3s ease;
+}
+
+#bindCodeModal code {
+    user-select: all;
+    -webkit-user-select: all;
+}
+
+#bindCodeModal button {
+    transition: all 0.3s ease;
+}
+
+#bindCodeModal button:hover {
+    transform: scale(1.02);
+    opacity: 0.9;
+}
+
+#bindCodeModal button:active {
+    transform: scale(0.98);
+}
+
+@keyframes fadeIn {
+    from { 
+        opacity: 0; 
+        transform: scale(0.95) translateY(-10px);
+    }
+    to { 
+        opacity: 1; 
+        transform: scale(1) translateY(0);
+    }
+}
 /* ========================================
    END OF STYLE.CSS
    ======================================== */
