@@ -25,6 +25,7 @@ const analytics = getAnalytics(app);
 // شاشة تحميل بسيطة
 // ========================================
 
+// إخفاء شاشة التحميل
 function hideLoadingScreen() {
     const screen = document.getElementById('loadingScreen');
     if (screen) {
@@ -32,6 +33,7 @@ function hideLoadingScreen() {
     }
 }
 
+// إظهار شاشة التحميل
 function showLoadingScreen() {
     const screen = document.getElementById('loadingScreen');
     if (screen) {
@@ -39,6 +41,7 @@ function showLoadingScreen() {
     }
 }
 
+// تحديث شريط التحميل
 function updateLoadingBar(percent) {
     const bar = document.getElementById('loadingBar');
     if (bar) {
@@ -51,8 +54,9 @@ function updateLoadingBar(percent) {
 // ========================================
 
 const ADMIN_EMAIL = 'zribiidriss3@gmail.com';
+// ✅ بوت Zistore_Notif_bot (التوكن الصحيح)
 const TELEGRAM_BOT_TOKEN = '8687744794:AAGeeNrEU-iQLRmg3dLvYkWhddtYo_sJ1tc';
-const TELEGRAM_CHAT_ID = '7434396478';
+const TELEGRAM_CHAT_ID = '7434396478'; // معرف المدير
 
 let currentUser = null;
 let userId = null;
@@ -112,6 +116,7 @@ const paymentWallets = {
 };
 let cryptoPrices = { ltc: 0, usdt: 1, lastUpdate: null, isUpdating: false };
 
+// ✅ دالة التحقق من حالة Ban
 async function checkUserBanned(uid) {
     try {
         const userRef = doc(db, 'users', uid);
@@ -127,6 +132,7 @@ async function checkUserBanned(uid) {
     }
 }
 
+// ✅ وظيفة موحدة لإرسال الإشعارات إلى تيليجرام (باستخدام بوت واحد)
 async function sendTelegramNotification(chatId, message) {
     if (!chatId) {
         console.error('❌ No chatId provided');
@@ -158,6 +164,7 @@ async function sendTelegramNotification(chatId, message) {
     }
 }
 
+// عرض الإشعارات في الواجهة
 function showToast(message, type = 'success') {
     const toast = document.getElementById('toast');
     const messageEl = document.getElementById('toastMessage');
@@ -174,10 +181,7 @@ function showToast(message, type = 'success') {
 }
 window.hideToast = function() { document.getElementById('toast')?.classList.remove('show'); };
 
-// ========================================
 // دوال المستخدم
-// ========================================
-
 async function getUserId() {
     if (userId) return userId;
     let savedId = localStorage.getItem('zi_userId');
@@ -297,6 +301,7 @@ function generateReferralCode(name, email) {
     return `${prefix}${random}`;
 }
 
+// تحديثات الواجهة
 function updateDropdownStats() {
     const userAvatar = document.getElementById('userAvatarText');
     if (currentUser) {
@@ -365,16 +370,14 @@ function updateFullUserMenu() {
     }
 }
 
-// ========================================
 // دوال التوثيق
-// ========================================
-
 window.showLogin = function() { document.getElementById('loginContainer').style.display = 'block';
     document.getElementById('registerContainer').style.display = 'none'; };
 window.showRegister = function() { document.getElementById('loginContainer').style.display = 'none';
     document.getElementById('registerContainer').style.display = 'block'; };
 window.toggleReferral = function() { document.getElementById('referralField').classList.toggle('show'); };
 
+// ✅ دالة تسجيل الدخول مع التحقق من Ban
 window.loginUser = async function() {
     const btn = document.getElementById('loginBtn');
     btn.classList.add('loading');
@@ -389,6 +392,7 @@ window.loginUser = async function() {
     try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         
+        // ⭐ التحقق من حالة Ban
         const userRef = doc(db, 'users', userCredential.user.uid);
         const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
@@ -424,6 +428,7 @@ window.loginUser = async function() {
         btn.classList.remove('loading'); }
 };
 
+// ✅ دالة التسجيل مع إضافة isBanned: false
 window.registerUser = async function() {
     const btn = document.getElementById('registerBtn');
     btn.classList.add('loading');
@@ -486,11 +491,7 @@ window.registerUser = async function() {
         });
         if (referrerId) {
             const referrerRef = doc(db, 'users', referrerId);
-            await updateDoc(referrerRef, { 
-                referrals: arrayUnion({ userId: currentUser.uid, name, email, date: new Date().toISOString() }), 
-                referralRewards: increment(5), 
-                rp: increment(5) 
-            });
+            await updateDoc(referrerRef, { referrals: arrayUnion({ userId: currentUser.uid, name, email, date: new Date().toISOString() }), referralRewards: increment(5), rp: increment(5) });
             showToast('🎉 Referral code applied! +5 RP', 'success');
         }
         successEl.textContent = '✅ Registration successful!';
@@ -556,10 +557,7 @@ window.sendForgotPassword = async function() {
         showToast('❌ ' + error.message, 'error'); }
 };
 
-// ========================================
 // دوال المودالات
-// ========================================
-
 window.openUserMenuFull = function() {
     if (!currentUser) { openAuthModal(); return; }
     document.getElementById('userMenuFull').classList.add('open');
@@ -601,10 +599,7 @@ function openAuthModal() {
     document.getElementById('authSection').scrollIntoView({ behavior: 'smooth' });
 }
 
-// ========================================
-// عرض الملف الشخصي
-// ========================================
-
+// عرض الملف الشخصي مع زر الربط المباشر
 function renderProfileFull() {
     const container = document.getElementById('profileFullContent');
     if (!currentUser) {
@@ -705,10 +700,7 @@ function renderProfileFull() {
   `;
 }
 
-// ========================================
-// ربط تيليجرام
-// ========================================
-
+// ✅ ربط تيليجرام المبسط (باستخدام بوت واحد)
 window.bindTelegram = async function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
 
@@ -738,6 +730,7 @@ window.bindTelegram = async function() {
     }
 };
 
+// الاستماع لتأكيد الربط
 function startBindingListener(bindCode) {
     const bindRef = doc(db, 'telegram_binds', bindCode);
     const unsubscribe = onSnapshot(bindRef, (doc) => {
@@ -760,6 +753,7 @@ function startBindingListener(bindCode) {
     setTimeout(() => { unsubscribe(); }, 300000);
 }
 
+// ✅ اختبار الإشعارات
 window.testTelegramNotification = async function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
     if (!userProfile.telegramChatId) { showToast('⚠️ No Telegram linked', 'warning'); return; }
@@ -776,36 +770,24 @@ window.testTelegramNotification = async function() {
     }
 };
 
-// ✅ تحسين زر Check - يتحقق من حالة الربط بشكل صحيح
 window.checkTelegramStatus = async function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
     try {
-        // التحقق من قاعدة البيانات أولاً
         const userRef = doc(db, 'users', currentUser.uid);
         const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
             const data = userSnap.data();
             if (data.telegramChatId) {
-                // التحقق من أن البوت يعمل بإرسال رسالة اختبار
-                const testResult = await sendTelegramNotification(
-                    data.telegramChatId,
-                    `🔍 *فحص الاتصال*\n\nتم التحقق من اتصالك مع البوت بنجاح!\n📅 ${new Date().toLocaleString()}`
-                );
-                if (testResult) {
-                    showToast(`✅ مرتبط مع تيليجرام (Chat ID: ${data.telegramChatId})`, 'success');
-                    userProfile.telegramChatId = data.telegramChatId;
-                    renderProfileFull();
-                } else {
-                    showToast('⚠️ البوت لا يستطيع إرسال رسالة. تأكد من أنك بدأت المحادثة مع البوت.', 'warning');
-                }
-            } else {
-                showToast('❌ غير مرتبط مع تيليجرام', 'warning');
-            }
+                showToast(`✅ مرتبط مع تيليجرام (Chat ID: ${data.telegramChatId})`, 'success');
+                userProfile.telegramChatId = data.telegramChatId;
+                renderProfileFull();
+            } else { showToast('❌ غير مرتبط مع تيليجرام', 'warning'); }
         }
     } catch (error) { console.error('Check telegram status error:', error);
         showToast('❌ خطأ في التحقق', 'error'); }
 };
 
+// بقية الدوال
 window.saveProfileChangesInline = async function(e) {
     e.preventDefault();
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
@@ -863,10 +845,7 @@ window.changePasswordInline = async function() {
         showToast('❌ ' + error.message, 'error'); }
 };
 
-// ========================================
 // دوال المنتجات
-// ========================================
-
 async function loadProductsFromFirestore() {
     try {
         const productsRef = collection(db, 'products');
@@ -1020,41 +999,35 @@ function generateRecommendations(productsList) {
     }
 }
 
-// ========================================
-// دوال السلة - مع حفظ في Firebase
-// ========================================
-
+// دوال السلة
 window.addToCart = async function(productId) {
     const product = products.find(p => p.id === productId);
     if (!product || product.price === 0) { showToast('⚠️ This script is free', 'warning'); return; }
     const existing = cart.find(item => item.id === productId);
     if (existing) { existing.quantity = (existing.quantity || 1) + 1; } else { cart.push({ ...product, quantity: 1 }); }
-    await saveUserData(true);
     updateCartUI();
     renderProducts(products);
     updateBottomCartBar();
     showToast(`✅ Added ${product.name} to cart`, 'success');
+    saveUserData(true);
 };
-
-window.clearCart = async function() {
+window.clearCart = function() {
     if (cart.length === 0) return;
     cart = [];
-    await saveUserData();
+    saveUserData();
     updateCartUI();
     renderProducts(products);
     updateBottomCartBar();
     showToast('🗑️ Cart cleared', 'info');
 };
-
 window.removeFromCart = async function(productId) {
     cart = cart.filter(item => item.id !== productId);
-    await saveUserData(true);
     updateCartUI();
     renderProducts(products);
     updateBottomCartBar();
     showToast('🗑️ Removed from cart', 'info');
+    saveUserData(true);
 };
-
 window.updateCartQuantity = async function(productId, change) {
     const item = cart.find(item => item.id === productId);
     if (!item) return;
@@ -1152,12 +1125,9 @@ function renderCartFull() {
     container.innerHTML = html;
 }
 
-window.toggleRpInCart = function() { 
-    userProfile.useRpForCart = !userProfile.useRpForCart;
+window.toggleRpInCart = function() { userProfile.useRpForCart = !userProfile.useRpForCart;
     saveUserData();
-    renderCartFull(); 
-};
-
+    renderCartFull(); };
 window.applyCartPromo = function() {
     const input = document.getElementById('cartPromoInput');
     const code = input.value.trim().toUpperCase();
@@ -1176,79 +1146,7 @@ window.applyCartPromo = function() {
     showToast(`🎉 ${codeData.discount}% discount applied!`, 'success');
 };
 
-// ========================================
-// دوال الـ wishlist - مع حفظ في Firebase
-// ========================================
-
-window.toggleWishlist = async function(productId) {
-    const index = wishlist.indexOf(productId);
-    const product = products.find(p => p.id === productId);
-    if (index === -1) { wishlist.push(productId);
-        createFloatingHearts();
-        showToast(`❤️ Added ${product ? product.name : ''} to favorites`, 'success'); } else { wishlist = wishlist.filter(id => id !== productId);
-        showToast(`💔 Removed ${product ? product.name : ''} from favorites`, 'info'); }
-    await saveUserData(true);
-    updateWishlistUI();
-    renderProducts(products);
-    updateStatsFromProducts(products);
-};
-
-window.removeFromWishlist = function(id) { window.toggleWishlist(id); };
-
-function updateWishlistUI() {
-    const section = document.getElementById('wishlistSection');
-    const grid = document.getElementById('wishlistGrid');
-    const count = document.getElementById('wishlistCount');
-    const stats = document.getElementById('wishlistStats');
-    const sub = document.getElementById('wishlistSub');
-    const wlCount = wishlist.length;
-    if (count) count.textContent = wlCount;
-    if (stats) stats.textContent = wlCount;
-    if (sub) sub.textContent = wlCount + ' items';
-    if (wlCount === 0) { if (section) section.style.display = 'none'; if (grid) grid.innerHTML =
-            `<div class="wishlist-empty"><i class="fas fa-heart"></i><p>No favorites yet</p></div>`; return; }
-    if (section) section.style.display = 'block';
-    const wlProducts = products.filter(p => wishlist.includes(p.id));
-    if (grid) {
-        grid.innerHTML = wlProducts.map(p =>
-            `<div class="wishlist-item" style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:var(--bg);border-radius:8px;border:1px solid var(--border);transition:0.3s;"><img src="${p.image || 'https://picsum.photos/seed/default/60/60'}" style="width:30px;height:30px;border-radius:6px;object-fit:cover;" /><div class="info" style="flex:1;min-width:0;"><h4 style="font-size:11px;font-weight:600;color:var(--text);font-family:var(--font);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</h4><div class="price" style="font-size:10px;color:var(--primary);font-weight:700;font-family:var(--font);">${p.price===0?'FREE':p.price+' $'}</div></div><button class="remove-btn" onclick="window.removeFromWishlist('${p.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:11px;opacity:0.3;transition:0.3s;"><i class="fas fa-times"></i></button></div>`
-        ).join('');
-    }
-    updateFullUserMenu();
-}
-
-function renderWishlistFull() {
-    const container = document.getElementById('wishlistFullContent');
-    if (wishlist.length === 0) {
-        container.innerHTML =
-            `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-heart" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;font-family:var(--font);">No favorites yet</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Start adding products to your wishlist</div></div>`;
-        return;
-    }
-    const wlProducts = products.filter(p => wishlist.includes(p.id));
-    container.innerHTML =
-        `<div style="display:grid;gap:8px;">${wlProducts.map(p=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);cursor:pointer;" onclick="window.openDetails('${p.id}');closeWishlistFull();"><img src="${p.image||'https://picsum.photos/seed/default/60/60'}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" /><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);font-family:var(--font);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div><div style="font-size:12px;color:var(--primary);font-weight:700;font-family:var(--font);">${p.price===0?'FREE':'$'+p.price}</div></div><button onclick="event.stopPropagation();removeFromWishlist('${p.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:14px;opacity:0.3;padding:8px;transition:0.3s;"><i class="fas fa-times"></i></button></div>`).join('')}</div>`;
-}
-
-function createFloatingHearts() {
-    const container = document.getElementById('floatingHearts');
-    const heartCount = 6;
-    for (let i = 0; i < heartCount; i++) {
-        const heart = document.createElement('div');
-        heart.className = 'floating-heart';
-        heart.textContent = ['❤️', '💖', '💗', '💕', '♥️', '💝'][Math.floor(Math.random() * 6)];
-        heart.style.left = (10 + Math.random() * 80) + '%';
-        heart.style.top = (60 + Math.random() * 30) + '%';
-        heart.style.fontSize = (16 + Math.random() * 20) + 'px';
-        heart.style.animationDuration = (1.2 + Math.random() * 0.8) + 's';
-        container.appendChild(heart);
-        setTimeout(() => heart.remove(), 2000);
-    }
-}
-
-// ========================================
 // دوال الدفع
-// ========================================
-
 window.openDetails = function(id) {
     const p = products.find(x => x.id === id);
     if (!p) return;
@@ -1345,10 +1243,7 @@ window.copyShareLink = function() {
         closeShareModal(); });
 };
 
-// ========================================
 // دوال التصفية والبحث
-// ========================================
-
 window.filterProducts = function(filter) {
     currentFilter = filter;
     document.querySelectorAll('.filter-btn').forEach(btn => { btn.classList.toggle('active', btn.dataset.filter ===
@@ -1432,10 +1327,7 @@ document.addEventListener('keydown', function(e) {
         closeHistoryFull(); }
 });
 
-// ========================================
 // دوال الدفع
-// ========================================
-
 async function fetchCryptoPrices() {
     if (cryptoPrices.isUpdating) return;
     cryptoPrices.isUpdating = true;
@@ -1557,6 +1449,7 @@ window.copyWalletAddress = function() {
     }
 };
 
+// ✅ وظيفة إرسال الطلب مع إشعارات للمدير والمستخدم فقط
 function sendOrderToTelegram(method, txHash = null) {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
 
@@ -1595,6 +1488,7 @@ function sendOrderToTelegram(method, txHash = null) {
         showToast(`🎉 ربحت ${rpEarned} نقاط RP!`, 'success');
     }
 
+    // ✅ رسالة للمدير فقط
     let adminMsg = '🛒 **طلب جديد**\n\n';
     adminMsg += `👤 **العميل:** ${currentUser.displayName || currentUser.email || 'Unknown'}\n`;
     adminMsg += `📧 **البريد:** ${currentUser.email || 'N/A'}\n`;
@@ -1614,15 +1508,19 @@ function sendOrderToTelegram(method, txHash = null) {
     }
     adminMsg += `\n\n📎 **رقم الطلب:** #${orderId.slice(-6)}`;
 
+    // ✅ إرسال إشعار للمدير فقط
     sendTelegramNotification(TELEGRAM_CHAT_ID, adminMsg);
 
+    // ✅ إرسال إشعار للمستخدم فقط (إذا كان مربطاً)
     if (userProfile.telegramChatId) {
         const userMsg = `🛒 *طلب جديد*\n\n📦 #${orderId.slice(-6)}\n💰 ${finalTotal.toFixed(2)}$\n📅 ${new Date().toLocaleString()}\n${rpEarned > 0 ? `🎯 +${rpEarned} RP مكافأة!\n` : ''}\nشكراً لتسوقك معنا! سيتم معالجة طلبك قريباً.`;
         sendTelegramNotification(userProfile.telegramChatId, userMsg);
     }
 
+    // فتح محادثة المدير (اختياري)
     window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(adminMsg)}`, '_blank');
 
+    // حفظ الطلب
     const orderItem = {
         id: orderId,
         items: cart.map(item => ({ id: item.id, name: item.name, price: item.price, quantity: item.quantity || 1 })),
@@ -1649,6 +1547,7 @@ function sendOrderToTelegram(method, txHash = null) {
     }).catch(console.error);
     userProfile.history.push(orderItem);
 
+    // ✅ إضافة إشعار في قاعدة البيانات للمستخدم فقط
     try {
         addDoc(collection(db, 'notifications'), {
             title: `🛒 New Order #${orderId.slice(-6)}`,
@@ -1660,6 +1559,7 @@ function sendOrderToTelegram(method, txHash = null) {
         }).catch(e => console.error('Error saving notification:', e));
     } catch (e) { console.error('Error saving notification:', e); }
 
+    // تنظيف السلة
     cart = [];
     activeDiscount = 0;
     activeDiscountCode = '';
@@ -1734,10 +1634,72 @@ window.closePaymentModal = function() { document.getElementById('paymentModal').
     document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected')); };
 window.checkout = function() { openPaymentModal(); };
 
-// ========================================
-// دوال التنزيلات والإشعارات
-// ========================================
+// دوال الـ wishlist
+window.toggleWishlist = async function(productId) {
+    const index = wishlist.indexOf(productId);
+    const product = products.find(p => p.id === productId);
+    if (index === -1) { wishlist.push(productId);
+        createFloatingHearts();
+        showToast(`❤️ Added ${product ? product.name : ''} to favorites`, 'success'); } else { wishlist = wishlist.filter(id => id !== productId);
+        showToast(`💔 Removed ${product ? product.name : ''} from favorites`, 'info'); }
+    updateWishlistUI();
+    renderProducts(products);
+    updateStatsFromProducts(products);
+    saveUserData(true);
+};
+window.removeFromWishlist = function(id) { window.toggleWishlist(id); };
 
+function updateWishlistUI() {
+    const section = document.getElementById('wishlistSection');
+    const grid = document.getElementById('wishlistGrid');
+    const count = document.getElementById('wishlistCount');
+    const stats = document.getElementById('wishlistStats');
+    const sub = document.getElementById('wishlistSub');
+    const wlCount = wishlist.length;
+    if (count) count.textContent = wlCount;
+    if (stats) stats.textContent = wlCount;
+    if (sub) sub.textContent = wlCount + ' items';
+    if (wlCount === 0) { if (section) section.style.display = 'none'; if (grid) grid.innerHTML =
+            `<div class="wishlist-empty"><i class="fas fa-heart"></i><p>No favorites yet</p></div>`; return; }
+    if (section) section.style.display = 'block';
+    const wlProducts = products.filter(p => wishlist.includes(p.id));
+    if (grid) {
+        grid.innerHTML = wlProducts.map(p =>
+            `<div class="wishlist-item" style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:var(--bg);border-radius:8px;border:1px solid var(--border);transition:0.3s;"><img src="${p.image || 'https://picsum.photos/seed/default/60/60'}" style="width:30px;height:30px;border-radius:6px;object-fit:cover;" /><div class="info" style="flex:1;min-width:0;"><h4 style="font-size:11px;font-weight:600;color:var(--text);font-family:var(--font);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</h4><div class="price" style="font-size:10px;color:var(--primary);font-weight:700;font-family:var(--font);">${p.price===0?'FREE':p.price+' $'}</div></div><button class="remove-btn" onclick="window.removeFromWishlist('${p.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:11px;opacity:0.3;transition:0.3s;"><i class="fas fa-times"></i></button></div>`
+        ).join('');
+    }
+    updateFullUserMenu();
+}
+
+function renderWishlistFull() {
+    const container = document.getElementById('wishlistFullContent');
+    if (wishlist.length === 0) {
+        container.innerHTML =
+            `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-heart" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;font-family:var(--font);">No favorites yet</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Start adding products to your wishlist</div></div>`;
+        return;
+    }
+    const wlProducts = products.filter(p => wishlist.includes(p.id));
+    container.innerHTML =
+        `<div style="display:grid;gap:8px;">${wlProducts.map(p=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);cursor:pointer;" onclick="window.openDetails('${p.id}');closeWishlistFull();"><img src="${p.image||'https://picsum.photos/seed/default/60/60'}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" /><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);font-family:var(--font);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div><div style="font-size:12px;color:var(--primary);font-weight:700;font-family:var(--font);">${p.price===0?'FREE':'$'+p.price}</div></div><button onclick="event.stopPropagation();removeFromWishlist('${p.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:14px;opacity:0.3;padding:8px;transition:0.3s;"><i class="fas fa-times"></i></button></div>`).join('')}</div>`;
+}
+
+function createFloatingHearts() {
+    const container = document.getElementById('floatingHearts');
+    const heartCount = 6;
+    for (let i = 0; i < heartCount; i++) {
+        const heart = document.createElement('div');
+        heart.className = 'floating-heart';
+        heart.textContent = ['❤️', '💖', '💗', '💕', '♥️', '💝'][Math.floor(Math.random() * 6)];
+        heart.style.left = (10 + Math.random() * 80) + '%';
+        heart.style.top = (60 + Math.random() * 30) + '%';
+        heart.style.fontSize = (16 + Math.random() * 20) + 'px';
+        heart.style.animationDuration = (1.2 + Math.random() * 0.8) + 's';
+        container.appendChild(heart);
+        setTimeout(() => heart.remove(), 2000);
+    }
+}
+
+// دوال التنزيلات والإشعارات
 function loadDownloads() {
     if (unsubscribeDownloads) { unsubscribeDownloads(); }
     const dlRef = collection(db, 'downloads');
@@ -1811,10 +1773,7 @@ window.openCreateDownloadModal = function() {
 window.closeCreateDownloadModal = function() { document.getElementById('createDownloadModal').classList.remove(
         'open'); };
 
-// ========================================
 // دوال الإشعارات - تعرض فقط للمستخدم الذي يملك الإشعار
-// ========================================
-
 function loadNotifications() {
     if (unsubscribeNotifications) { unsubscribeNotifications(); }
     const notifRef = collection(db, 'notifications');
@@ -1888,6 +1847,7 @@ function renderUserNotifications() {
     container.innerHTML = html;
 }
 
+// عرض الإشعارات في لوحة المدير (جميع الإشعارات)
 function renderAdminNotifications() {
     const container = document.getElementById('adminNotificationsList');
     if (!container) return;
@@ -1927,28 +1887,6 @@ function updateNotificationBadge() {
     updateFullUserMenu();
 }
 
-// ✅ Clear Notifications - يحذف مباشرة بدون تأكيد
-window.clearAllNotifications = async function() {
-    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
-    try {
-        // حذف إشعارات المستخدم الحالي فقط
-        const notifRef = collection(db, 'notifications');
-        const snapshot = await getDocs(query(notifRef, where('userId', '==', currentUser.uid)));
-        const batch = [];
-        snapshot.forEach((doc) => {
-            batch.push(deleteDoc(doc.ref));
-        });
-        await Promise.all(batch);
-        notifications = [];
-        unreadNotifications = 0;
-        updateNotificationBadge();
-        renderUserNotifications();
-        renderAdminNotifications();
-        showToast('🗑️ All notifications cleared', 'success');
-    } catch (error) { console.error('Error clearing notifications:', error);
-        showToast('❌ Error clearing notifications', 'error'); }
-};
-
 window.markAllNotificationsRead = async function() {
     if (!currentUser) return;
     if (isUpdatingNotifications) return;
@@ -1966,6 +1904,22 @@ window.markAllNotificationsRead = async function() {
         renderUserNotifications();
         showToast(`✅ ${updatedCount} notifications marked read`, 'success'); }
     isUpdatingNotifications = false;
+};
+
+window.clearAllNotifications = async function() {
+    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
+    if (!confirm('Delete all notifications?')) return;
+    try {
+        for (const n of notifications) { try { await deleteDoc(doc(db, 'notifications', n.id)); } catch (e) { console
+                    .error('Error deleting notification:', e); } }
+        notifications = [];
+        unreadNotifications = 0;
+        updateNotificationBadge();
+        renderUserNotifications();
+        renderAdminNotifications();
+        showToast('🗑️ All notifications cleared', 'success');
+    } catch (error) { console.error('Error clearing notifications:', error);
+        showToast('❌ Error clearing notifications', 'error'); }
 };
 
 window.openNotifications = function() { document.getElementById('notificationsModal').classList.add('open'); };
@@ -1999,10 +1953,7 @@ window.openCreateNotificationModal = function() {
 window.closeCreateNotificationModal = function() { document.getElementById('createNotificationModal').classList.remove(
         'open'); };
 
-// ========================================
 // دوال الطلبات
-// ========================================
-
 window.openRequestsModal = function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning');
         openAuthModal(); return; }
@@ -2047,10 +1998,7 @@ window.submitRequest = function(e) {
     }).catch(error => { showToast('❌ Error: ' + error.message, 'error'); });
 };
 
-// ========================================
 // دوال الإحالات
-// ========================================
-
 window.openReferralModal = function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning');
         openAuthModal(); return; }
@@ -2088,10 +2036,7 @@ window.copyReferralCode2 = function() {
     } else { showToast('⚠️ Please login first', 'warning'); }
 };
 
-// ========================================
 // دوال لوحة المدير
-// ========================================
-
 window.openAdminPanel = function() {
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized. Admin only.', 'error'); return; }
     const panel = document.getElementById('adminPanel');
@@ -2209,10 +2154,7 @@ async function deleteProductFromFirestore(productId) {
             'Error deleting product:', error); throw error; }
 }
 
-// ========================================
 // دوال إدارة الطلبات
-// ========================================
-
 function startAdminRealtimeListener() {
     if (unsubscribeAdmin) { unsubscribeAdmin(); }
     const usersRef = collection(db, 'users');
@@ -2358,6 +2300,7 @@ function updateAdminStats(orders) {
     document.getElementById('adminRejectedOrders').textContent = rejected;
 }
 
+// ✅ تحديث حالة الطلب مع إرسال إشعار للمستخدم فقط
 window.updateOrderStatus = async function(orderId, userId, newStatus) {
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!orderId || !userId) { showToast('❌ Invalid data', 'error'); return; }
@@ -2450,10 +2393,7 @@ window.clearAdminSearch = function() { document.getElementById('adminSearchInput
 window.refreshAdminOrders = function() { loadAdminOrders();
     showToast('🔄 Refreshed', 'info'); };
 
-// ========================================
 // دوال إدارة المستخدمين
-// ========================================
-
 async function loadAdminUsers() {
     const container = document.getElementById('adminUsersContainer');
     if (!container) return;
@@ -2584,10 +2524,7 @@ window.viewUserDetails = async function(uid) {
 };
 window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
-// ========================================
 // دوال السجل
-// ========================================
-
 function renderHistoryFull() {
     const container = document.getElementById('historyFullContent');
     const history = userProfile.history || [];
@@ -2618,7 +2555,6 @@ function renderHistoryFull() {
 // ========================================
 // دوال الوضع والتهيئة
 // ========================================
-
 let isDark = true;
 document.getElementById('themeToggle')?.addEventListener('click', function() {
     isDark = !isDark;
@@ -2631,6 +2567,7 @@ document.getElementById('themeToggle')?.addEventListener('click', function() {
 onAuthStateChanged(auth, async (user) => {
     currentUser = user;
     if (user) {
+        // ⭐ التحقق من حالة Ban
         try {
             const userRef = doc(db, 'users', user.uid);
             const userSnap = await getDoc(userRef);
@@ -2676,7 +2613,6 @@ onAuthStateChanged(auth, async (user) => {
 // ========================================
 // init() - هنا فقط تدار شاشة التحميل
 // ========================================
-
 async function init() {
     showLoadingScreen();
     updateLoadingBar(10);
@@ -2721,10 +2657,7 @@ setTimeout(() => {
     console.log('⚠️ Force hiding loading screen (timeout)');
 }, 5000);
 
-// ========================================
 // تصدير الدوال للاستخدام العام
-// ========================================
-
 window.showToast = showToast;
 window.openAdminPanel = openAdminPanel;
 window.closeAdminPanel = closeAdminPanel;
