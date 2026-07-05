@@ -2,6 +2,7 @@ const TelegramBot = require('node-telegram-bot-api');
 const express = require('express');
 const admin = require('firebase-admin');
 const fs = require('fs');
+const cors = require('cors'); // ✅ إضافة CORS
 
 // ============= التوكن =============
 const token = process.env.BOT_TOKEN || '8687744794:AAGeeNrEU-iQLRmg3dLvYkWhddtYo_sJ1tc';
@@ -67,6 +68,90 @@ try {
     }
 }
 
+// ============= السيرفر مع CORS ونقاط النهاية =============
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// ✅ تفعيل CORS و JSON
+app.use(cors());
+app.use(express.json());
+
+// ✅ نقطة نهاية لإرسال الرسائل
+app.post('/send-message', async (req, res) => {
+    const { chatId, message } = req.body;
+    
+    if (!chatId || !message) {
+        return res.status(400).json({ 
+            success: false, 
+            error: 'Missing chatId or message' 
+        });
+    }
+    
+    console.log(`📤 Sending to ${chatId}: ${message.substring(0, 50)}...`);
+    
+    try {
+        const result = await bot.sendMessage(chatId, message, { 
+            parse_mode: 'Markdown' 
+        });
+        console.log(`✅ Message sent to ${chatId}`);
+        res.json({ success: true, result });
+    } catch (error) {
+        console.error(`❌ Failed to send to ${chatId}:`, error.message);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message 
+        });
+    }
+});
+
+// ✅ نقطة نهاية لإرسال إشعارات الاختبار
+app.post('/test-notification', async (req, res) => {
+    const { chatId } = req.body;
+    
+    if (!chatId) {
+        return res.status(400).json({ 
+            success: false, 
+            error: 'Missing chatId' 
+        });
+    }
+    
+    try {
+        const message = `🔔 *اختبار الإشعارات*\n\nهذه رسالة اختبار من ZI Store.\n📅 ${new Date().toLocaleString()}\n\nإذا رأيت هذه الرسالة، فالإشعارات تعمل بشكل صحيح! ✅`;
+        
+        const result = await bot.sendMessage(chatId, message, { 
+            parse_mode: 'Markdown' 
+        });
+        res.json({ success: true, result });
+    } catch (error) {
+        res.status(500).json({ 
+            success: false, 
+            error: error.message 
+        });
+    }
+});
+
+// ✅ نقطة نهاية للتحقق من حالة البوت
+app.get('/status', (req, res) => {
+    res.json({
+        status: 'online',
+        bot: 'running',
+        adminChatId: ADMIN_CHAT_ID,
+        db: db ? 'connected' : 'disconnected'
+    });
+});
+
+// ✅ الصفحة الرئيسية
+app.get('/', (req, res) => {
+    res.send('🤖 Zi Store Bot is running!');
+});
+
+app.listen(PORT, () => {
+    console.log(`✅ Server running on port ${PORT}`);
+    console.log('✅ Bot is polling for messages...');
+});
+
+console.log('🚀 Zi Store Bot started successfully!');
+
 // ============= أوامر البوت =============
 
 bot.onText(/\/start/, (msg) => {
@@ -101,7 +186,7 @@ bot.onText(/\/chatid/, (msg) => {
     bot.sendMessage(chatId, `🆔 معرف الدردشة: \`${chatId}\``, { parse_mode: 'Markdown' });
 });
 
-// ============= معالج الرسائل (الربط) =============
+// ============= معالج الرسائل =============
 
 bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
@@ -120,7 +205,6 @@ bot.on('message', async (msg) => {
     }
 
     try {
-        // البحث عن كود الربط
         const docRef = db.collection('telegram_binds').doc(text);
         const docSnap = await docRef.get();
 
@@ -129,7 +213,6 @@ bot.on('message', async (msg) => {
             console.log('📄 البيانات:', data);
 
             if (data.status === 'pending') {
-                // تحديث حالة الربط
                 await docRef.update({
                     status: 'completed',
                     telegramChatId: String(chatId),
@@ -143,7 +226,6 @@ bot.on('message', async (msg) => {
                 
                 console.log(`✅ تم ربط المستخدم ${chatId} بالكود: ${text}`);
                 
-                // إشعار للمدير
                 await bot.sendMessage(ADMIN_CHAT_ID, 
                     `🔗 *ربط جديد*\n\n👤 المستخدم: ${data.userName || data.userEmail || 'Unknown'}\n📧 البريد: ${data.userEmail || 'N/A'}\n🆔 معرف الدردشة: ${chatId}`
                 );
@@ -167,22 +249,6 @@ bot.on('message', async (msg) => {
         await bot.sendMessage(chatId, '❌ حدث خطأ. الرجاء المحاولة مرة أخرى.');
     }
 });
-
-// ============= السيرفر =============
-
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-app.get('/', (req, res) => {
-    res.send('🤖 Zi Store Bot is running!');
-});
-
-app.listen(PORT, () => {
-    console.log(`✅ Server running on port ${PORT}`);
-    console.log('✅ Bot is polling for messages...');
-});
-
-console.log('🚀 Zi Store Bot started successfully!');
 
 // ============= إغلاق نظيف =============
 const shutdown = (signal) => {
