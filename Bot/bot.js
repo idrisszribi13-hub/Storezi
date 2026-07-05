@@ -4,30 +4,32 @@ const admin = require('firebase-admin');
 const fs = require('fs');
 
 // ============= التوكن =============
-const token = process.env.BOT_TOKEN;
+const token = process.env.BOT_TOKEN || '8687744794:AAGeeNrEU-iQLRmg3dLvYkWhddtYo_sJ1tc';
+const ADMIN_CHAT_ID = process.env.ADMIN_CHAT_ID || '7434396478';
+
 if (!token) {
     console.error('❌ BOT_TOKEN is not set!');
     process.exit(1);
 }
+
+console.log('🤖 Starting bot with token:', token.substring(0, 10) + '...');
 
 // ============= البوت =============
 const bot = new TelegramBot(token, { polling: true });
 
 // ============= معالجة أخطاء الـ Polling وإعادة التشغيل التلقائي =============
 bot.on('polling_error', (error) => {
-    console.error('❌ حدث خطأ في الـ Polling:', error.message);
+    console.error('❌ Polling error:', error.message);
     
-    // إذا كان الخطأ هو تضارب 409 أو توقف الاتصال الفادح
     if (error.message && (error.message.includes('409') || error.message.includes('terminated'))) {
-        console.log('🔄 تم كشف تضارب (409 Conflict). إغلاق إجباري ليتيح لـ Render إعادة التشغيل تلقائياً...');
-        process.exit(1); // إغلاق برمز خطأ ليقوم السيرفر بعمل ريستارت فوراً بدلاً من البقاء معلقاً
+        console.log('🔄 409 Conflict detected. Exiting for restart...');
+        process.exit(1);
     }
 });
 
-// ============= Firebase Admin مع Service Account =============
+// ============= Firebase Admin =============
 let db;
 try {
-    // قراءة ملف Service Account من Render
     const serviceAccountPath = '/etc/secrets/firebase-credentials.json';
     let serviceAccount;
     
@@ -35,7 +37,6 @@ try {
         serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
         console.log('✅ Service Account loaded from secrets');
     } else {
-        // محاولة التهيئة بدون ملف (للتطوير)
         console.warn('⚠️ Service Account not found, trying without...');
         serviceAccount = {
             projectId: "zi-script-store"
@@ -52,7 +53,6 @@ try {
     db = admin.firestore();
 } catch (error) {
     console.error('❌ Firebase Admin error:', error.message);
-    // محاولة تهيئة بدون مصادقة (للقراءة فقط)
     try {
         if (!admin.apps.length) {
             admin.initializeApp({
@@ -72,6 +72,51 @@ try {
 bot.onText(/\/start/, (msg) => {
     const chatId = msg.chat.id;
     bot.sendMessage(chatId, '👋 مرحباً بك في Zi Store Bot!\n\nللمساعدة اكتب /help');
+});
+
+// ✅ معالجة /start مع كود الربط
+bot.onText(/\/start (.+)/, async (msg, match) => {
+    const chatId = msg.chat.id;
+    const bindCode = match[1];
+    
+    console.log(`🔗 Binding with code: ${bindCode} from ${chatId}`);
+    
+    if (!db) {
+        await bot.sendMessage(chatId, '❌ Database error. Please try again later.');
+        return;
+    }
+    
+    try {
+        const docRef = db.collection('telegram_binds').doc(bindCode);
+        const docSnap = await docRef.get();
+        
+        if (docSnap.exists) {
+            const data = docSnap.data();
+            
+            if (data.status === 'pending') {
+                await docRef.update({
+                    status: 'completed',
+                    telegramChatId: String(chatId),
+                    completedAt: admin.firestore.FieldValue.serverTimestamp()
+                });
+                
+                await bot.sendMessage(chatId, '✅ **تم ربط حسابك بنجاح!**\n\nستستلم إشعارات الطلبات هنا.');
+                console.log(`✅ User ${chatId} bound with code: ${bindCode}`);
+                
+                // إشعار للمدير
+                bot.sendMessage(ADMIN_CHAT_ID, 
+                    `🔗 *New binding*\n\n👤 User: ${data.userName || data.userEmail || 'Unknown'}\n📧 Email: ${data.userEmail || 'N/A'}\n🆔 Chat ID: ${chatId}`
+                );
+            } else {
+                await bot.sendMessage(chatId, '❌ هذا الكود منتهي الصلاحية أو مستخدم بالفعل.');
+            }
+        } else {
+            await bot.sendMessage(chatId, '❌ كود الربط غير صحيح.');
+        }
+    } catch (error) {
+        console.error('❌ Error:', error.message);
+        await bot.sendMessage(chatId, '❌ حدث خطأ. الرجاء المحاولة مرة أخرى.');
+    }
 });
 
 bot.onText(/\/help/, (msg) => {
@@ -94,11 +139,10 @@ bot.on('message', async (msg) => {
         return;
     }
 
-    console.log(`📩 استلمت: "${text}" من ${chatId}`);
+    console.log(`📩 Received: "${text}" from ${chatId}`);
 
     if (!db) {
-        console.error('❌ Firebase not initialized!');
-        await bot.sendMessage(chatId, '❌ خطأ في قاعدة البيانات. الرجاء المحاولة لاحقاً.');
+        await bot.sendMessage(chatId, '❌ Database error. Please try again later.');
         return;
     }
 
@@ -109,10 +153,8 @@ bot.on('message', async (msg) => {
 
         if (docSnap.exists) {
             const data = docSnap.data();
-            console.log('📄 البيانات:', data);
 
             if (data.status === 'pending') {
-                // تحديث حالة الربط
                 await docRef.update({
                     status: 'completed',
                     telegramChatId: String(chatId),
@@ -120,7 +162,11 @@ bot.on('message', async (msg) => {
                 });
 
                 await bot.sendMessage(chatId, '✅ **تم ربط حسابك بنجاح!**\n\nستستلم إشعارات الطلبات هنا.');
-                console.log(`✅ تم ربط المستخدم ${chatId} بالكود: ${text}`);
+                console.log(`✅ User ${chatId} bound with code: ${text}`);
+                
+                bot.sendMessage(ADMIN_CHAT_ID, 
+                    `🔗 *New binding*\n\n👤 User: ${data.userName || data.userEmail || 'Unknown'}\n📧 Email: ${data.userEmail || 'N/A'}\n🆔 Chat ID: ${chatId}`
+                );
             } else {
                 await bot.sendMessage(chatId, '❌ هذا الكود منتهي الصلاحية أو مستخدم بالفعل.');
             }
@@ -128,7 +174,7 @@ bot.on('message', async (msg) => {
             await bot.sendMessage(chatId, `📩 لقد أرسلت: "${text}"\n\nللمساعدة اكتب /help`);
         }
     } catch (error) {
-        console.error('❌ خطأ:', error.message);
+        console.error('❌ Error:', error.message);
         await bot.sendMessage(chatId, '❌ حدث خطأ. الرجاء المحاولة مرة أخرى.');
     }
 });
@@ -149,22 +195,20 @@ app.listen(PORT, () => {
 
 console.log('🚀 Zi Store Bot started successfully!');
 
+// ============= إغلاق نظيف =============
 
-// ============= إغلاق نظيف للبوت عند التحديث لمنع الـ 409 (Graceful Shutdown) =============
 const shutdown = (signal) => {
-    console.log(`⚠️ تم استقبال إشارة ${signal}. جاري إيقاف الـ Polling لتفادي تضارب الحسابات...`);
+    console.log(`⚠️ Received ${signal}. Stopping polling...`);
     bot.stopPolling()
         .then(() => {
-            console.log('✅ تم إيقاف الـ Polling بنجاح. إغلاق السيرفر الآن.');
+            console.log('✅ Polling stopped. Exiting.');
             process.exit(0);
         })
         .catch((err) => {
-            console.error('❌ خطأ أثناء إيقاف الـ Polling:', err.message);
+            console.error('❌ Error stopping polling:', err.message);
             process.exit(1);
         });
 };
 
-// الاستماع لإشارات الإغلاق من سيرفر Render أو Terminal
 process.on('SIGTERM', () => shutdown('SIGTERM')); 
 process.on('SIGINT', () => shutdown('SIGINT'));
-
