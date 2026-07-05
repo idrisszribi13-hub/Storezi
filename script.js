@@ -448,6 +448,9 @@ window.loginUser = async function() {
     try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         currentUser = userCredential.user;
+         // ⭐ Hide welcome message after login
+        document.getElementById('guestWelcome').style.display = 'none';    
+        // ... rest of the code ...
         successEl.textContent = '✅ Login successful!';
         showToast('👋 Welcome back!', 'success');
         btn.classList.remove('loading');
@@ -496,6 +499,10 @@ window.registerUser = async function() {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(userCredential.user, { displayName: name });
         currentUser = userCredential.user;
+        // ⭐ Hide welcome message after registration
+        document.getElementById('guestWelcome').style.display = 'none';
+        
+        // ... rest of the code ...
         const newReferralCode = generateReferralCode(name, email);
         let referrerId = null;
         if (referralCode) {
@@ -2548,7 +2555,6 @@ document.getElementById('themeToggle')?.addEventListener('click', function() {
 });
 
 onAuthStateChanged(auth, async (user) => {
-    // ⭐ إظهار شاشة التحميل عند تغيير حالة المستخدم
     showLoadingScreen();
     
     currentUser = user;
@@ -2576,7 +2582,12 @@ onAuthStateChanged(auth, async (user) => {
     updateUI();
     updateFullUserMenu();
     
-    // ⭐ إخفاء شاشة التحميل بعد الانتهاء
+    // ⭐ Show welcome message for guest users
+    // Only if user hasn't closed it before
+    if (!isGuestWelcomeClosed()) {
+        showGuestWelcome();
+    }
+    // ⭐️ اخفاء شاشة التحميل بعد الانتهاء
     hideLoadingScreen();
 });
 
