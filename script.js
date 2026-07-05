@@ -3192,5 +3192,53 @@ window.toggleRpInCart = toggleRpInCart;
 window.applyCartPromo = applyCartPromo;
 
 // ========================================
+// إصلاح الاتجاه للعناصر
+// ========================================
+
+function fixDirection() {
+    // التأكد من أن جميع العناصر في الاتجاه الصحيح
+    document.querySelectorAll('.header, .logo, .header-actions, .modal-content, .fullscreen-modal, .admin-panel').forEach(el => {
+        el.style.direction = 'ltr';
+        el.style.textAlign = 'left';
+    });
+    
+    // إصلاح زر الإغلاق
+    document.querySelectorAll('.modal-close').forEach(el => {
+        el.style.right = 'auto';
+        el.style.left = '10px';
+    });
+}
+
+// استدعاء الدالة بعد تحميل الصفحة
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(fixDirection, 100);
+});
+
+// استدعاء الدالة عند فتح أي مودال
+const originalOpenAdminPanel = window.openAdminPanel;
+window.openAdminPanel = function() {
+    if (originalOpenAdminPanel) originalOpenAdminPanel();
+    setTimeout(fixDirection, 200);
+};
+
+const originalOpenAddProductModal = window.openAddProductModal;
+window.openAddProductModal = function() {
+    if (originalOpenAddProductModal) originalOpenAddProductModal();
+    setTimeout(fixDirection, 200);
+};
+
+const originalOpenEditProductModal = window.openEditProductModal;
+window.openEditProductModal = function() {
+    if (originalOpenEditProductModal) originalOpenEditProductModal();
+    setTimeout(fixDirection, 200);
+};
+
+const originalOpenCreateNotificationModal = window.openCreateNotificationModal;
+window.openCreateNotificationModal = function() {
+    if (originalOpenCreateNotificationModal) originalOpenCreateNotificationModal();
+    setTimeout(fixDirection, 200);
+};
+
+// ========================================
 // END OF SCRIPT.JS
 // ========================================
