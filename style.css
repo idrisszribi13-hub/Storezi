@@ -6,6 +6,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    direction: ltr !important;
 }
 
 :root {
@@ -57,7 +58,7 @@ body {
     min-height: 100vh;
     transition: background 0.3s ease;
     overflow-x: hidden;
-    direction: ltr;
+    direction: ltr !important;
 }
 
 body {
@@ -65,6 +66,7 @@ body {
     padding-bottom: 90px;
     line-height: 1.6;
     font-size: 15px;
+    direction: ltr !important;
 }
 
 ::-webkit-scrollbar {
@@ -84,15 +86,25 @@ body {
     max-width: 480px;
     margin: 0 auto;
     width: 100%;
+    direction: ltr !important;
 }
 
 /* ============================================
-   HEADER - الشعار يسار والأيقونات يمين
+   إصلاح الاتجاه للعناصر العربية
    ============================================ */
+
+/* ✅ التأكد من أن كل شيء في الاتجاه الصحيح */
+* {
+    direction: ltr !important;
+}
+
+/* ✅ إصلاح header */
 .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    direction: ltr !important;
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
     background: var(--card-bg);
     padding: 10px 14px;
     border-radius: 16px;
@@ -100,18 +112,18 @@ body {
     box-shadow: var(--shadow);
     margin-bottom: 14px;
     gap: 8px;
-    direction: ltr;
 }
 
+/* ✅ الشعار في اليسار */
 .logo {
+    order: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
     font-size: 18px;
     font-weight: 700;
     color: var(--text);
-    display: flex;
-    align-items: center;
-    gap: 4px;
     font-family: var(--font);
-    order: 0;
     flex-shrink: 0;
 }
 
@@ -124,12 +136,13 @@ body {
     color: var(--primary);
 }
 
+/* ✅ الأيقونات في اليمين */
 .header-actions {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    flex-wrap: nowrap;
-    order: 1;
+    order: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    flex-direction: row !important;
     flex-shrink: 0;
 }
 
@@ -142,7 +155,7 @@ body {
     min-width: 120px;
     max-width: 100%;
     width: 100%;
-    direction: ltr;
+    direction: ltr !important;
     margin-bottom: 12px;
 }
 
@@ -157,6 +170,8 @@ body {
     outline: none;
     font-family: var(--font);
     transition: 0.3s;
+    text-align: left !important;
+    direction: ltr !important;
 }
 
 .search-wrapper .search-input:focus {
@@ -172,7 +187,8 @@ body {
 
 .search-wrapper .search-clear {
     position: absolute;
-    right: 12px;
+    right: 12px !important;
+    left: auto !important;
     top: 50%;
     transform: translateY(-50%);
     background: none;
@@ -210,6 +226,8 @@ body {
     overflow-y: auto;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
     z-index: 999;
+    direction: ltr !important;
+    text-align: left !important;
 }
 
 .search-results.active {
@@ -244,7 +262,8 @@ body {
 .header-btn .badge {
     position: absolute;
     top: -4px;
-    right: -4px;
+    right: -4px !important;
+    left: auto !important;
     border-radius: 50%;
     min-width: 17px;
     height: 17px;
@@ -300,7 +319,8 @@ body {
 .user-btn .user-dot {
     position: absolute;
     bottom: 2px;
-    right: 2px;
+    right: 2px !important;
+    left: auto !important;
     width: 8px;
     height: 8px;
     border-radius: 50%;
@@ -355,6 +375,7 @@ body {
     grid-template-columns: repeat(4, 1fr);
     gap: 6px;
     margin-bottom: 12px;
+    direction: ltr !important;
 }
 
 .stat-card {
@@ -364,6 +385,7 @@ body {
     border: 1px solid var(--border);
     text-align: center;
     transition: 0.3s;
+    direction: ltr !important;
 }
 
 .stat-card:hover {
@@ -402,6 +424,7 @@ body {
     margin-bottom: 12px;
     align-items: center;
     justify-content: flex-start;
+    direction: ltr !important;
 }
 
 .filter-btn {
@@ -451,6 +474,7 @@ body {
     padding: 14px;
     border: 1px solid var(--border);
     margin-bottom: 14px;
+    direction: ltr !important;
 }
 
 .recommendations-section .rec-title {
@@ -523,6 +547,7 @@ body {
     align-items: center;
     gap: 8px;
     font-family: var(--font);
+    direction: ltr !important;
 }
 
 .section-title i {
@@ -535,6 +560,7 @@ body {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
     margin-bottom: 16px;
+    direction: ltr !important;
 }
 
 .product-card {
@@ -546,6 +572,7 @@ body {
     position: relative;
     transition: 0.3s;
     cursor: pointer;
+    direction: ltr !important;
 }
 
 .product-card:hover {
@@ -556,7 +583,8 @@ body {
 .product-card .product-actions-top {
     position: absolute;
     top: 8px;
-    right: 8px;
+    right: 8px !important;
+    left: auto !important;
     display: flex;
     gap: 4px;
     z-index: 5;
@@ -644,7 +672,8 @@ body {
 .product-card .image-badge {
     position: absolute;
     top: 6px;
-    left: 6px;
+    left: 6px !important;
+    right: auto !important;
     padding: 2px 10px;
     border-radius: 16px;
     font-size: 9px;
@@ -818,7 +847,7 @@ body {
     justify-content: space-between;
     z-index: 99990;
     box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.3);
-    direction: ltr;
+    direction: ltr !important;
 }
 
 .bottom-cart-bar.open {
@@ -925,6 +954,7 @@ body {
     justify-content: center;
     transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
     opacity: 0;
+    direction: ltr !important;
 }
 
 .toast.show {
@@ -992,6 +1022,7 @@ body {
     padding: 16px 0;
     border-top: 1px solid var(--border);
     text-align: center;
+    direction: ltr !important;
 }
 
 .footer .social-links {
@@ -1060,6 +1091,7 @@ body {
     align-items: center;
     justify-content: center;
     padding: 16px;
+    direction: ltr !important;
 }
 
 .modal-overlay.open {
@@ -1078,12 +1110,15 @@ body {
     overflow-y: auto;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
     position: relative;
+    direction: ltr !important;
+    text-align: left !important;
 }
 
 .modal-content .modal-close {
     position: absolute;
     top: 10px;
-    left: 10px;
+    left: 10px !important;
+    right: auto !important;
     width: 32px;
     height: 32px;
     border-radius: 50%;
@@ -1223,7 +1258,8 @@ body {
 .payment-option .p-check {
     position: absolute;
     top: 6px;
-    right: 6px;
+    right: 6px !important;
+    left: auto !important;
     width: 22px;
     height: 22px;
     border-radius: 50%;
@@ -1384,6 +1420,8 @@ body {
     outline: none;
     font-family: var(--font);
     margin: 6px 0;
+    direction: ltr !important;
+    text-align: left !important;
 }
 
 .payment-tx-input:focus {
@@ -1457,6 +1495,8 @@ body {
     z-index: 99999;
     padding: 14px;
     overflow-y: auto;
+    direction: ltr !important;
+    text-align: left !important;
 }
 
 .fullscreen-modal.open {
@@ -1516,6 +1556,7 @@ body {
     border-radius: 14px;
     border: 1px solid var(--border);
     margin-bottom: 14px;
+    direction: ltr !important;
 }
 
 .user-menu-full .user-header .avatar {
@@ -1594,7 +1635,8 @@ body {
 }
 
 .user-menu-full .menu-item .menu-badge {
-    margin-right: auto;
+    margin-right: auto !important;
+    margin-left: 0 !important;
     background: var(--notification-red);
     color: #fff;
     font-size: 9px;
@@ -1647,6 +1689,7 @@ body {
     border: 1px solid var(--border);
     padding: 16px;
     margin-top: 12px;
+    direction: ltr !important;
 }
 
 .edit-profile-inline label {
@@ -1659,6 +1702,7 @@ body {
     opacity: 0.6;
     text-transform: uppercase;
     letter-spacing: 0.3px;
+    text-align: left !important;
 }
 
 .edit-profile-inline input,
@@ -1673,6 +1717,8 @@ body {
     outline: none;
     font-family: var(--font);
     margin-bottom: 4px;
+    direction: ltr !important;
+    text-align: left !important;
 }
 
 .edit-profile-inline input:focus,
@@ -1727,6 +1773,7 @@ body {
     border: 1px solid var(--border);
     padding: 16px;
     margin-top: 12px;
+    direction: ltr !important;
 }
 
 .password-inline .ps-email {
@@ -1777,6 +1824,7 @@ body {
     opacity: 0.6;
     text-transform: uppercase;
     letter-spacing: 0.3px;
+    text-align: left !important;
 }
 
 .password-inline .auth-field input {
@@ -1789,6 +1837,8 @@ body {
     font-size: 13px;
     outline: none;
     font-family: var(--font);
+    direction: ltr !important;
+    text-align: left !important;
 }
 
 .password-inline .auth-field input:focus {
@@ -1819,6 +1869,7 @@ body {
     font-size: 13px;
     margin-top: 4px;
     font-family: var(--font);
+    text-align: left !important;
 }
 
 .password-inline .auth-success {
@@ -1826,6 +1877,7 @@ body {
     font-size: 13px;
     margin-top: 4px;
     font-family: var(--font);
+    text-align: left !important;
 }
 
 /* ============================================
@@ -1837,6 +1889,7 @@ body {
     padding: 14px;
     border: 1px solid var(--border);
     margin: 10px 0;
+    direction: ltr !important;
 }
 
 .telegram-bind-section .tb-row {
@@ -1945,6 +1998,8 @@ body {
     box-shadow: var(--shadow);
     position: relative;
     overflow: hidden;
+    direction: ltr !important;
+    text-align: left !important;
 }
 
 .auth-container::before {
@@ -2000,6 +2055,7 @@ body {
     opacity: 0.6;
     text-transform: uppercase;
     letter-spacing: 0.3px;
+    text-align: left !important;
 }
 
 .auth-container .auth-field input,
@@ -2014,6 +2070,8 @@ body {
     outline: none;
     font-family: var(--font);
     transition: 0.3s;
+    direction: ltr !important;
+    text-align: left !important;
 }
 
 .auth-container .auth-field input:focus,
@@ -2199,6 +2257,8 @@ body {
     outline: none;
     font-family: var(--font);
     transition: 0.3s;
+    direction: ltr !important;
+    text-align: left !important;
 }
 
 .auth-container .referral-field input:focus {
@@ -2208,6 +2268,11 @@ body {
 /* ============================================
    لوحة المدير
    ============================================ */
+.admin-panel {
+    direction: ltr !important;
+    text-align: left !important;
+}
+
 .admin-panel .panel-header {
     display: flex;
     justify-content: space-between;
@@ -2350,11 +2415,12 @@ body {
     border-collapse: collapse;
     font-family: var(--font);
     font-size: 12px;
+    direction: ltr !important;
 }
 
 .admin-orders-table th {
     padding: 8px 10px;
-    text-align: left;
+    text-align: left !important;
     color: var(--text-secondary);
     font-size: 10px;
     text-transform: uppercase;
@@ -2368,6 +2434,7 @@ body {
     padding: 8px 10px;
     border-bottom: 1px solid var(--border);
     vertical-align: middle;
+    text-align: left !important;
 }
 
 .admin-orders-table tr:hover {
@@ -2458,6 +2525,8 @@ body {
     outline: none;
     font-family: var(--font);
     min-width: 140px;
+    direction: ltr !important;
+    text-align: left !important;
 }
 
 .admin-search-bar input:focus {
@@ -2525,6 +2594,7 @@ body {
     border: 1px solid var(--border);
     margin-bottom: 6px;
     transition: 0.3s;
+    direction: ltr !important;
 }
 
 .admin-item:hover {
@@ -2540,6 +2610,7 @@ body {
     color: var(--text);
     font-family: var(--font);
     font-size: 14px;
+    text-align: left !important;
 }
 
 .admin-item .item-info .item-meta {
@@ -2547,6 +2618,7 @@ body {
     color: var(--text-secondary);
     opacity: 0.4;
     font-family: var(--font);
+    text-align: left !important;
 }
 
 .admin-item .item-actions {
@@ -2599,6 +2671,8 @@ body {
     padding: 12px;
     transition: 0.3s;
     position: relative;
+    direction: ltr !important;
+    text-align: left !important;
 }
 
 .admin-user-card:hover {
@@ -2625,6 +2699,7 @@ body {
     font-family: var(--font);
     font-size: 14px;
     color: var(--text);
+    text-align: left !important;
 }
 
 .admin-user-card .user-email {
@@ -2632,6 +2707,7 @@ body {
     color: var(--text-secondary);
     opacity: 0.4;
     font-family: var(--font);
+    text-align: left !important;
 }
 
 .admin-user-card .user-meta {
@@ -2640,12 +2716,14 @@ body {
     opacity: 0.4;
     font-family: var(--font);
     margin-top: 2px;
+    text-align: left !important;
 }
 
 .admin-user-card .user-badge {
     position: absolute;
     top: 8px;
-    left: 8px;
+    left: 8px !important;
+    right: auto !important;
     font-size: 9px;
     font-weight: 700;
     padding: 2px 10px;
@@ -2750,6 +2828,8 @@ body {
 .notification-item {
     padding: 10px 0;
     border-bottom: 1px solid var(--border);
+    direction: ltr !important;
+    text-align: left !important;
 }
 
 .notification-item:last-child {
@@ -2842,6 +2922,7 @@ body {
     color: var(--text);
     font-family: var(--font);
     margin-top: 6px;
+    text-align: left !important;
 }
 
 .request-form .sub-label {
@@ -2851,6 +2932,7 @@ body {
     opacity: 0.4;
     font-family: var(--font);
     margin-bottom: 2px;
+    text-align: left !important;
 }
 
 .request-form input,
@@ -2866,6 +2948,8 @@ body {
     outline: none;
     font-family: var(--font);
     margin-bottom: 4px;
+    direction: ltr !important;
+    text-align: left !important;
 }
 
 .request-form input:focus,
@@ -2954,6 +3038,7 @@ body {
     align-items: center;
     justify-content: center;
     z-index: 9999999;
+    direction: ltr !important;
 }
 
 .loader-container {
@@ -3000,6 +3085,7 @@ body {
     color: var(--text-secondary);
     opacity: 0.5;
     font-family: var(--font);
+    direction: ltr !important;
 }
 
 /* ============================================
@@ -3040,6 +3126,7 @@ body {
    ============================================ */
 #bindCodeModal {
     animation: fadeIn 0.3s ease;
+    direction: ltr !important;
 }
 
 #bindCodeModal code {
@@ -3094,6 +3181,286 @@ body {
 
 .add-btn i {
     margin-left: 6px;
+}
+
+/* ============================================
+   تفاصيل المنتج - مودال
+   ============================================ */
+.modal-game-image {
+    width: 100%;
+    height: 150px;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 8px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+}
+
+.modal-game-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.modal-name {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text);
+    text-align: center;
+    font-family: var(--font);
+}
+
+.modal-badge {
+    display: inline-block;
+    padding: 2px 12px;
+    border-radius: 14px;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: var(--font);
+    margin: 4px 0;
+}
+
+.modal-badge.vip {
+    background: var(--vip-color);
+    color: #0a0a1a;
+}
+
+.modal-badge.free {
+    background: var(--free-color);
+    color: #0a0a1a;
+}
+
+.modal-badge.unavailable {
+    background: var(--danger);
+    color: #fff;
+}
+
+.modal-price {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--primary);
+    text-align: center;
+    font-family: var(--font);
+    margin: 4px 0;
+}
+
+.modal-features {
+    list-style: none;
+    padding: 0;
+    margin: 6px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    justify-content: center;
+}
+
+.modal-features li {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-family: var(--font);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.modal-features li i {
+    color: var(--success);
+    font-size: 11px;
+}
+
+.modal-description {
+    font-size: 13px;
+    color: var(--text-secondary);
+    text-align: center;
+    margin: 4px 0;
+    opacity: 0.5;
+}
+
+.modal-video {
+    width: 100%;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 6px 0;
+    aspect-ratio: 16/9;
+    background: var(--bg);
+    border: 1px solid var(--border);
+}
+
+.modal-video iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+.modal-actions button,
+.modal-actions a {
+    flex: 1;
+    padding: 8px 0;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+    font-size: 12px;
+    font-family: var(--font);
+    transition: 0.3s;
+    min-width: 70px;
+}
+
+.btn-download-modal {
+    background: var(--free-color);
+    color: #0a0a1a;
+}
+
+.btn-download-modal:hover {
+    opacity: 0.9;
+}
+
+.btn-add-cart-modal {
+    background: var(--primary);
+    color: #fff;
+}
+
+.btn-add-cart-modal:hover {
+    background: var(--primary-hover);
+}
+
+.btn-add-cart-modal.added {
+    background: var(--free-color);
+    color: #0a0a1a;
+}
+
+.btn-close-modal {
+    background: var(--card-bg);
+    color: var(--text);
+    border: 1px solid var(--border) !important;
+}
+
+.btn-close-modal:hover {
+    background: var(--danger);
+    color: #fff;
+    border-color: var(--danger) !important;
+}
+
+/* ============================================
+   نموذج المنتج في لوحة المدير
+   ============================================ */
+#productForm .auth-field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-family: var(--font);
+    margin-top: 8px;
+    opacity: 0.6;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    text-align: left !important;
+}
+
+#productForm .auth-field input,
+#productForm .auth-field select,
+#productForm .auth-field textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 13px;
+    outline: none;
+    font-family: var(--font);
+    margin-bottom: 4px;
+    direction: ltr !important;
+    text-align: left !important;
+}
+
+#productForm .auth-field input:focus,
+#productForm .auth-field select:focus,
+#productForm .auth-field textarea:focus {
+    border-color: var(--primary);
+}
+
+/* ============================================
+   نموذج الإشعارات في لوحة المدير
+   ============================================ */
+#createNotificationForm .auth-field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-family: var(--font);
+    margin-top: 8px;
+    opacity: 0.6;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    text-align: left !important;
+}
+
+#createNotificationForm .auth-field input,
+#createNotificationForm .auth-field textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 13px;
+    outline: none;
+    font-family: var(--font);
+    margin-bottom: 4px;
+    direction: ltr !important;
+    text-align: left !important;
+}
+
+#createNotificationForm .auth-field input:focus,
+#createNotificationForm .auth-field textarea:focus {
+    border-color: var(--primary);
+}
+
+/* ============================================
+   نموذج التحميلات في لوحة المدير
+   ============================================ */
+#createDownloadForm .auth-field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-family: var(--font);
+    margin-top: 8px;
+    opacity: 0.6;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    text-align: left !important;
+}
+
+#createDownloadForm .auth-field input,
+#createDownloadForm .auth-field textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 13px;
+    outline: none;
+    font-family: var(--font);
+    margin-bottom: 4px;
+    direction: ltr !important;
+    text-align: left !important;
+}
+
+#createDownloadForm .auth-field input:focus,
+#createDownloadForm .auth-field textarea:focus {
+    border-color: var(--primary);
 }
 
 /* ============================================
