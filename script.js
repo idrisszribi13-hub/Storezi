@@ -54,8 +54,8 @@ function updateLoadingBar(percent) {
 // ========================================
 
 const ADMIN_EMAIL = 'zribiidriss3@gmail.com';
-// ✅ بوت واحد لكل شيء (Zistore_Notif_bot)
-const TELEGRAM_BOT_TOKEN = '8687744794:AAGeeNrEU-iQLRmg3dLvYkWHddtYo_sJ1tc';
+// ✅ بوت Zistore_Notif_bot (التوكن الصحيح)
+const TELEGRAM_BOT_TOKEN = '8687744794:AAGeeNrEU-iQLRmg3dLvYkWhddtYo_sJ1tc';
 const TELEGRAM_CHAT_ID = '7434396478'; // معرف المدير
 
 let currentUser = null;
@@ -98,7 +98,8 @@ let userProfile = {
     referrals: [],
     referralRewards: 0,
     rp: 0,
-    useRpForCart: false
+    useRpForCart: false,
+    isBanned: false
 };
 
 const fallbackProducts = [
@@ -114,6 +115,22 @@ const paymentWallets = {
     usdt: { name: 'USDT (ERC20)', icon: 'fas fa-coins', network: 'ERC20', address: '0x1234567890abcdef1234567890abcdef12345678', currency: 'USDT', color: '#26a17b' }
 };
 let cryptoPrices = { ltc: 0, usdt: 1, lastUpdate: null, isUpdating: false };
+
+// ✅ دالة التحقق من حالة Ban
+async function checkUserBanned(uid) {
+    try {
+        const userRef = doc(db, 'users', uid);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+            const data = userSnap.data();
+            return data.isBanned === true;
+        }
+        return false;
+    } catch (error) {
+        console.error('Error checking ban status:', error);
+        return false;
+    }
+}
 
 // ✅ وظيفة موحدة لإرسال الإشعارات إلى تيليجرام (باستخدام بوت واحد)
 async function sendTelegramNotification(chatId, message) {
@@ -171,7 +188,7 @@ async function getUserId() {
     if (savedId) { userId = savedId; return userId; }
     userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
     localStorage.setItem('zi_userId', userId);
-    try { await setDoc(doc(db, 'users', userId), { userId, wishlist: [], cart: [], history: [], requests: [], usedCodes: [], referrals: [], referralRewards: 0, rp: 0, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }, { merge: true }); } catch (e) { console.error(e); }
+    try { await setDoc(doc(db, 'users', userId), { userId, wishlist: [], cart: [], history: [], requests: [], usedCodes: [], referrals: [], referralRewards: 0, rp: 0, isBanned: false, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }, { merge: true }); } catch (e) { console.error(e); }
     return userId;
 }
 
@@ -207,6 +224,7 @@ async function loadUserData() {
             userProfile.telegramChatId = data.telegramChatId || '';
             userProfile.location = data.location || 'Tunisia';
             userProfile.lang = data.lang || 'English';
+            userProfile.isBanned = data.isBanned || false;
             userProfile.joined = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '--';
             userProfile.useRpForCart = data.useRpForCart || false;
             updateWishlistUI();
@@ -220,7 +238,7 @@ async function loadUserData() {
             if (currentUser && currentUser.email === ADMIN_EMAIL) { loadAdminOrders();
                 loadAdminUsers(); }
         } else {
-            await setDoc(userRef, { userId: uid, wishlist: [], cart: [], history: [], requests: [], usedCodes: [], referrals: [], referralRewards: 0, rp: 0, useRpForCart: false, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+            await setDoc(userRef, { userId: uid, wishlist: [], cart: [], history: [], requests: [], usedCodes: [], referrals: [], referralRewards: 0, rp: 0, isBanned: false, useRpForCart: false, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
         }
     } catch (error) {
         console.error('Error loading user data:', error);
@@ -233,7 +251,8 @@ async function loadUserData() {
             userProfile.referrals = JSON.parse(localStorage.getItem('zi_referrals_backup') || '[]');
             userProfile.referralRewards = JSON.parse(localStorage.getItem('zi_referralRewards_backup') || '0');
             userProfile.rp = JSON.parse(localStorage.getItem('zi_rp_backup') || '0');
-        } catch (e) { wishlist = []; cart = []; userProfile.history = []; userProfile.requests = []; userProfile.usedCodes = []; userProfile.referrals = []; userProfile.referralRewards = 0; userProfile.rp = 0; }
+            userProfile.isBanned = JSON.parse(localStorage.getItem('zi_isBanned_backup') || 'false');
+        } catch (e) { wishlist = []; cart = []; userProfile.history = []; userProfile.requests = []; userProfile.usedCodes = []; userProfile.referrals = []; userProfile.referralRewards = 0; userProfile.rp = 0; userProfile.isBanned = false; }
         updateWishlistUI();
         updateCartUI();
         renderProducts(products);
@@ -250,7 +269,7 @@ async function saveUserData(silent = false) {
     const uid = await getUserId();
     if (!uid) return;
     try {
-        await setDoc(doc(db, 'users', uid), { wishlist, cart, history: userProfile.history, requests: userProfile.requests, usedCodes: userProfile.usedCodes, referrals: userProfile.referrals, referralRewards: userProfile.referralRewards, rp: userProfile.rp, referralCode: userProfile.referralCode, telegram: userProfile.telegram, telegramChatId: userProfile.telegramChatId, location: userProfile.location, lang: userProfile.lang, useRpForCart: userProfile.useRpForCart, updatedAt: serverTimestamp() }, { merge: true });
+        await setDoc(doc(db, 'users', uid), { wishlist, cart, history: userProfile.history, requests: userProfile.requests, usedCodes: userProfile.usedCodes, referrals: userProfile.referrals, referralRewards: userProfile.referralRewards, rp: userProfile.rp, referralCode: userProfile.referralCode, telegram: userProfile.telegram, telegramChatId: userProfile.telegramChatId, location: userProfile.location, lang: userProfile.lang, useRpForCart: userProfile.useRpForCart, isBanned: userProfile.isBanned, updatedAt: serverTimestamp() }, { merge: true });
         localStorage.setItem('zi_wishlist_backup', JSON.stringify(wishlist));
         localStorage.setItem('zi_cart_backup', JSON.stringify(cart));
         localStorage.setItem('zi_history_backup', JSON.stringify(userProfile.history));
@@ -259,6 +278,7 @@ async function saveUserData(silent = false) {
         localStorage.setItem('zi_referrals_backup', JSON.stringify(userProfile.referrals));
         localStorage.setItem('zi_referralRewards_backup', JSON.stringify(userProfile.referralRewards));
         localStorage.setItem('zi_rp_backup', JSON.stringify(userProfile.rp));
+        localStorage.setItem('zi_isBanned_backup', JSON.stringify(userProfile.isBanned));
         return true;
     } catch (e) {
         console.error('Save failed:', e);
@@ -270,6 +290,7 @@ async function saveUserData(silent = false) {
         localStorage.setItem('zi_referrals_backup', JSON.stringify(userProfile.referrals));
         localStorage.setItem('zi_referralRewards_backup', JSON.stringify(userProfile.referralRewards));
         localStorage.setItem('zi_rp_backup', JSON.stringify(userProfile.rp));
+        localStorage.setItem('zi_isBanned_backup', JSON.stringify(userProfile.isBanned));
         return false;
     }
 }
@@ -356,6 +377,7 @@ window.showRegister = function() { document.getElementById('loginContainer').sty
     document.getElementById('registerContainer').style.display = 'block'; };
 window.toggleReferral = function() { document.getElementById('referralField').classList.toggle('show'); };
 
+// ✅ دالة تسجيل الدخول مع التحقق من Ban
 window.loginUser = async function() {
     const btn = document.getElementById('loginBtn');
     btn.classList.add('loading');
@@ -369,6 +391,21 @@ window.loginUser = async function() {
         btn.classList.remove('loading'); return; }
     try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        
+        // ⭐ التحقق من حالة Ban
+        const userRef = doc(db, 'users', userCredential.user.uid);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+            const data = userSnap.data();
+            if (data.isBanned === true) {
+                await signOut(auth);
+                errorEl.textContent = '🚫 Your account has been banned. Please contact support.';
+                showToast('🚫 Account banned!', 'error');
+                btn.classList.remove('loading');
+                return;
+            }
+        }
+        
         currentUser = userCredential.user;
         successEl.textContent = '✅ Login successful!';
         showToast('👋 Welcome back!', 'success');
@@ -391,6 +428,7 @@ window.loginUser = async function() {
         btn.classList.remove('loading'); }
 };
 
+// ✅ دالة التسجيل مع إضافة isBanned: false
 window.registerUser = async function() {
     const btn = document.getElementById('registerBtn');
     btn.classList.add('loading');
@@ -427,7 +465,30 @@ window.registerUser = async function() {
             if (!querySnapshot.empty) { querySnapshot.forEach((doc) => { referrerId = doc.id; }); }
         }
         const userRef = doc(db, 'users', currentUser.uid);
-        await setDoc(userRef, { userId: currentUser.uid, name, email, country, lang, telegram: '', telegramChatId: '', location: country, wishlist: [], cart: [], history: [], requests: [], usedCodes: [], referrals: [], referralRewards: 0, rp: 0, useRpForCart: false, referralCode: newReferralCode, referredBy: referrerId || '', createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+        await setDoc(userRef, { 
+            userId: currentUser.uid, 
+            name, 
+            email, 
+            country, 
+            lang, 
+            telegram: '', 
+            telegramChatId: '', 
+            location: country, 
+            wishlist: [], 
+            cart: [], 
+            history: [], 
+            requests: [], 
+            usedCodes: [], 
+            referrals: [], 
+            referralRewards: 0, 
+            rp: 0, 
+            useRpForCart: false, 
+            referralCode: newReferralCode, 
+            referredBy: referrerId || '', 
+            isBanned: false,
+            createdAt: serverTimestamp(), 
+            updatedAt: serverTimestamp() 
+        });
         if (referrerId) {
             const referrerRef = doc(db, 'users', referrerId);
             await updateDoc(referrerRef, { referrals: arrayUnion({ userId: currentUser.uid, name, email, date: new Date().toISOString() }), referralRewards: increment(5), rp: increment(5) });
@@ -555,6 +616,7 @@ function renderProfileFull() {
           <div style="font-size:16px;font-weight:700;color:var(--text);font-family:var(--font);">${displayName}</div>
           <div style="font-size:13px;color:var(--text-secondary);font-family:var(--font);">${currentUser.email || 'No email'}</div>
           <div style="font-size:13px;color:var(--vip-color);font-weight:700;font-family:var(--font);">🎯 RP: ${userProfile.rp || 0}</div>
+          ${userProfile.isBanned ? '<div style="font-size:13px;color:var(--danger);font-weight:700;font-family:var(--font);">🚫 BANNED</div>' : ''}
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
@@ -611,7 +673,7 @@ function renderProfileFull() {
       </div>
     </div>
 
-    <!-- ✅ قسم ربط تيليجرام المبسط باستخدام بوت واحد -->
+    <!-- ✅ قسم ربط تيليجرام -->
     <div class="telegram-bind-section" style="margin-top:12px;">
       <div style="font-size:14px;font-weight:700;color:var(--text);font-family:var(--font);margin-bottom:6px;"><i class="fab fa-telegram-plane" style="color:#0088cc;"></i> Telegram Notifications</div>
       <div class="tb-row"><span class="tb-label">Status</span><span class="tb-value"><span class="tb-status ${userProfile.telegramChatId?'linked':'unlinked'}">${userProfile.telegramChatId?'✅ Linked':'❌ Unlinked'}</span></span></div>
@@ -643,10 +705,8 @@ window.bindTelegram = async function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
 
     try {
-        // توليد كود ربط فريد
         const bindCode = currentUser.uid.slice(-8) + Math.random().toString(36).substring(2, 6);
 
-        // حفظ طلب الربط في قاعدة البيانات
         const bindRef = doc(db, 'telegram_binds', bindCode);
         await setDoc(bindRef, {
             userId: currentUser.uid,
@@ -656,19 +716,12 @@ window.bindTelegram = async function() {
             status: 'pending'
         });
 
-        // إرسال رسالة إلى بوت تيليجرام مع كود الربط
         const botUsername = 'Zistore_Notif_bot';
         const message = `🔗 *ربط حساب تيليجرام*\n\n👤 المستخدم: ${currentUser.displayName || currentUser.email}\n📧 البريد: ${currentUser.email}\n🆔 كود الربط: \`${bindCode}\`\n\n📌 أرسل هذا الكود إلى البوت: [@${botUsername}](https://t.me/${botUsername})`;
 
-        // إرسال الكود للمدير
         await sendTelegramNotification(TELEGRAM_CHAT_ID, message);
-
-        // فتح البوت في تيليجرام
         window.open(`https://t.me/${botUsername}`, '_blank');
-
         showToast('📨 تم إرسال طلب الربط إلى تيليجرام!', 'success');
-
-        // البدء بالاستماع لتأكيد الربط
         startBindingListener(bindCode);
 
     } catch (error) {
@@ -688,20 +741,15 @@ function startBindingListener(bindCode) {
                 saveUserData();
                 renderProfileFull();
                 showToast('✅ تم ربط تيليجرام بنجاح!', 'success');
-
-                // إرسال رسالة ترحيب للمستخدم
                 sendTelegramNotification(
                     userProfile.telegramChatId,
                     `🔔 *مرحباً بك في ZI Store!*\n\nتم ربط حسابك بنجاح.\nستستلم إشعارات الطلبات هنا.\n\nشكراً لاستخدامك ZI Store! 🚀`
                 );
-
                 updateFullUserMenu();
                 unsubscribe();
             }
         }
     });
-
-    // إلغاء الاستماع بعد 5 دقائق
     setTimeout(() => { unsubscribe(); }, 300000);
 }
 
@@ -1734,7 +1782,6 @@ function loadNotifications() {
             notifications = [];
             snapshot.forEach((doc) => { 
                 const data = doc.data();
-                // ✅ إضافة الإشعار فقط إذا كان userId الخاص بالمستخدم الحالي أو بدون userId (إشعار عام)
                 if (!data.userId || data.userId === currentUser?.uid) {
                     notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] });
                 }
@@ -1756,7 +1803,6 @@ function loadNotifications() {
             notifications = [];
             snapshot.forEach((doc) => { 
                 const data = doc.data();
-                // ✅ تصفية الإشعارات للمستخدم الحالي فقط
                 if (!data.userId || data.userId === currentUser?.uid) {
                     notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] });
                 }
@@ -2277,23 +2323,19 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
         const statusLabel = statusLabels[newStatus] || newStatus;
         showToast(`📦 Order updated to ${statusLabel}`, 'success');
 
-        // ✅ إرسال إشعار للمستخدم فقط
         if (updatedOrder) {
             const itemsNames = updatedOrder.items ? updatedOrder.items.map(i => i.name).join(', ') : 'Your order';
             const userMsg =
                 `📦 *Order Update #${String(orderId).slice(-6)}*\n\n📋 Products: ${itemsNames}\n🔄 Status: ${statusLabel}\n📅 Date: ${new Date().toLocaleString()}`;
 
-            // ✅ إرسال للمستخدم فقط إذا كان مربطاً
             if (data.telegramChatId) {
                 await sendTelegramNotification(data.telegramChatId, userMsg);
             }
 
-            // ✅ إرسال للمدير فقط (للمتابعة)
             const adminMsg =
                 `🔄 Order #${String(orderId).slice(-6)} updated\nUser: ${data.email || 'Unknown'}\nNew Status: ${statusLabel}`;
             await sendTelegramNotification(TELEGRAM_CHAT_ID, adminMsg);
 
-            // ✅ حفظ الإشعار في قاعدة البيانات للمستخدم فقط
             try {
                 await addDoc(collection(db, 'notifications'), {
                     title: `📦 Order #${String(orderId).slice(-6)}`,
@@ -2521,10 +2563,29 @@ document.getElementById('themeToggle')?.addEventListener('click', function() {
         this.innerHTML = '<i class="fas fa-sun"></i>'; }
 });
 
-// ✅ onAuthStateChanged - تعريف واحد فقط
+// ✅ onAuthStateChanged - مع التحقق من Ban
 onAuthStateChanged(auth, async (user) => {
     currentUser = user;
     if (user) {
+        // ⭐ التحقق من حالة Ban
+        try {
+            const userRef = doc(db, 'users', user.uid);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+                const data = userSnap.data();
+                if (data.isBanned === true) {
+                    await signOut(auth);
+                    currentUser = null;
+                    document.getElementById('authSection').style.display = 'block';
+                    document.getElementById('mainApp').style.display = 'none';
+                    showToast('🚫 Your account has been banned.', 'error');
+                    return;
+                }
+            }
+        } catch (error) {
+            console.error('Error checking ban status:', error);
+        }
+        
         document.getElementById('authSection').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
         await loadUserData();
@@ -2553,7 +2614,6 @@ onAuthStateChanged(auth, async (user) => {
 // init() - هنا فقط تدار شاشة التحميل
 // ========================================
 async function init() {
-    // ⭐ إظهار شاشة التحميل في البداية
     showLoadingScreen();
     updateLoadingBar(10);
     
@@ -2586,14 +2646,12 @@ async function init() {
     
     console.log('✅ ZI Store ready with single Telegram bot!');
     
-    // ⭐ إخفاء شاشة التحميل بعد اكتمال التحميل
     setTimeout(() => {
         hideLoadingScreen();
     }, 500);
 }
 init();
 
-// ⭐ حل طوارئ: إخفاء شاشة التحميل بعد 5 ثوانٍ كحد أقصى
 setTimeout(() => {
     hideLoadingScreen();
     console.log('⚠️ Force hiding loading screen (timeout)');
