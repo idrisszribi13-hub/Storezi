@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&display=swap" rel="stylesheet" />
 </head>
 <body>
-    <!-- ⭐ شاشة التحميل الاحترافية -->
+    <!-- ⭐ شاشة التحميل -->
     <div id="loadingScreen" style="
         position: fixed;
         top: 0;
@@ -494,25 +494,27 @@
         </div>
     </div>
 
-    <!-- ⭐ productModal مع حقول VIP Pricing الجديدة -->
+    <!-- ⭐ productModal مع حقول VIP Pricing -->
     <div class="modal-overlay" id="productModal">
         <div class="modal-content">
             <button class="modal-close" onclick="closeProductModal()"><i class="fas fa-times"></i></button>
             <div class="modal-title" id="productFormTitle">➕ Add New Product</div>
             <form class="request-form" id="productForm" onsubmit="saveProduct(event)">
                 <input type="hidden" id="productIdField" />
+                
                 <label>Product Name</label>
                 <input id="productName" placeholder="e.g. Booking System Pro" required type="text" />
                 
                 <label>Price (0 for FREE)</label>
                 <input id="productPrice" placeholder="e.g. 20" type="number" step="0.01" min="0" />
                 
-                <!-- ✅ حقول VIP Pricing الجديدة -->
+                <!-- ⭐⭐⭐ حقول VIP Pricing - أضفها هنا ⭐⭐⭐ -->
                 <label>Duration (e.g. 1 Month, 3 Months, 1 Year)</label>
                 <input id="productDuration" placeholder="e.g. 1 Month" type="text" />
                 
                 <label>Original Price (for discount display)</label>
                 <input id="productOriginalPrice" placeholder="e.g. 35.99" type="number" step="0.01" min="0" />
+                <!-- ⭐⭐⭐ نهاية حقول VIP Pricing ⭐⭐⭐ -->
                 
                 <label>Type</label>
                 <select id="productBadge">
