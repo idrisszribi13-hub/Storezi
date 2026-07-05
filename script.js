@@ -22,54 +22,36 @@ const db = getFirestore(app);
 const analytics = getAnalytics(app);
 
 // ========================================
-// شاشة التحميل الاحترافية
+// شاشة تحميل بسيطة
 // ========================================
-const loadingMessages = [
-    'جاري تهيئة المتجر...',
-    'جاري تحميل المنتجات...',
-    'جاري الاتصال بقاعدة البيانات...',
-    'مرحباً بك في ZI Store! 🚀'
-];
 
-let loadingMessageIndex = 0;
-let loadingInterval = null;
-let isInitialized = false;  // ⭐ متغير التحكم
-
-function updateLoadingMessage() {
-    const statusEl = document.getElementById('loadingStatus');
-    if (!statusEl) return;
-    loadingMessageIndex = (loadingMessageIndex + 1) % loadingMessages.length;
-    statusEl.textContent = loadingMessages[loadingMessageIndex];
-}
-
-function startLoadingMessages() {
-    loadingInterval = setInterval(updateLoadingMessage, 1800);
-}
-
+// إخفاء شاشة التحميل
 function hideLoadingScreen() {
-    console.log('✅ Hiding loading screen...');
     const screen = document.getElementById('loadingScreen');
     if (screen) {
-        screen.classList.add('hidden');
-        clearInterval(loadingInterval);
-        setTimeout(() => {
-            screen.style.display = 'none';
-        }, 600);
+        screen.style.display = 'none';
     }
 }
 
+// إظهار شاشة التحميل
 function showLoadingScreen() {
-    console.log('✅ Showing loading screen...');
     const screen = document.getElementById('loadingScreen');
     if (screen) {
         screen.style.display = 'flex';
-        screen.classList.remove('hidden');
-        startLoadingMessages();
     }
 }
 
-// بدء التحميل فوراً
-startLoadingMessages();
+// تحديث شريط التحميل
+function updateLoadingBar(percent) {
+    const bar = document.getElementById('loadingBar');
+    if (bar) {
+        bar.style.width = percent + '%';
+    }
+}
+
+// ========================================
+// نهاية شاشة التحميل
+// ========================================
 
 const ADMIN_EMAIL = 'zribiidriss3@gmail.com';
 // ✅ بوت واحد لكل شيء (Zistore_Notif_bot)
@@ -1419,38 +1401,7 @@ window.copyWalletAddress = function() {
     }
 };
 
-// إرسال الطلب مع الإشعارات
-window.placeOrder = function() {
-    const txHash = document.getElementById('transactionHashInput').value.trim();
-    if (selectedPayment === 'litecoin' || selectedPayment === 'usdt') {
-        if (!txHash) { showToast('⚠️ Please paste the transaction hash', 'warning');
-            document.getElementById('transactionHashInput').style.borderColor = 'var(--danger)';
-            setTimeout(() => { document.getElementById('transactionHashInput').style.borderColor = ''; }, 2000); return; }
-    }
-    sendOrderToTelegram(selectedPayment, txHash);
-};
-
-function renderPaymentProducts() {
-    const container = document.getElementById('paymentProductsList');
-    if (!container) return;
-    if (!cart || cart.length === 0) { container.innerHTML =
-            '<div style="text-align:center;padding:8px;color:var(--text-secondary);opacity:0.4;">No products</div>'; return; }
-    container.innerHTML = cart.map(item => {
-        const qty = item.quantity || 1;
-        const total = item.price * qty;
-        const product = products.find(p => p.id === item.id);
-        const image = product?.image || item.image || 'https://picsum.photos/seed/default/60/60';
-        return `
-      <div class="payment-product-item">
-        <img src="${image}" alt="${item.name}" />
-        <div class="pp-info"><div class="pp-name">${item.name}</div><div class="pp-price">${total.toFixed(2)} $</div></div>
-        <div class="pp-qty">×${qty}</div>
-      </div>
-    `;
-    }).join('');
-}
-
-// ✅ تعريف واحد فقط - احذف التكرار
+// ✅ وظيفة إرسال الطلب مع إشعارات للمدير والمستخدم فقط
 function sendOrderToTelegram(method, txHash = null) {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
 
@@ -1479,7 +1430,7 @@ function sendOrderToTelegram(method, txHash = null) {
 
     const orderId = 'order_' + Date.now();
 
-    // ⭐⭐⭐ نظام مكافآت RP ⭐⭐⭐
+    // ⭐ نظام مكافآت RP
     const RP_EARN_RATE = 0.1;
     const rpEarned = Math.floor((finalTotal / RP_TO_DOLLAR) * RP_EARN_RATE);
     
@@ -1489,7 +1440,7 @@ function sendOrderToTelegram(method, txHash = null) {
         showToast(`🎉 ربحت ${rpEarned} نقاط RP!`, 'success');
     }
 
-    // رسالة للمدير
+    // ✅ رسالة للمدير فقط
     let adminMsg = '🛒 **طلب جديد**\n\n';
     adminMsg += `👤 **العميل:** ${currentUser.displayName || currentUser.email || 'Unknown'}\n`;
     adminMsg += `📧 **البريد:** ${currentUser.email || 'N/A'}\n`;
@@ -1509,14 +1460,16 @@ function sendOrderToTelegram(method, txHash = null) {
     }
     adminMsg += `\n\n📎 **رقم الطلب:** #${orderId.slice(-6)}`;
 
-    // إرسال الإشعارات
+    // ✅ إرسال إشعار للمدير فقط
     sendTelegramNotification(TELEGRAM_CHAT_ID, adminMsg);
 
+    // ✅ إرسال إشعار للمستخدم فقط (إذا كان مربطاً)
     if (userProfile.telegramChatId) {
         const userMsg = `🛒 *طلب جديد*\n\n📦 #${orderId.slice(-6)}\n💰 ${finalTotal.toFixed(2)}$\n📅 ${new Date().toLocaleString()}\n${rpEarned > 0 ? `🎯 +${rpEarned} RP مكافأة!\n` : ''}\nشكراً لتسوقك معنا! سيتم معالجة طلبك قريباً.`;
         sendTelegramNotification(userProfile.telegramChatId, userMsg);
     }
 
+    // فتح محادثة المدير (اختياري)
     window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(adminMsg)}`, '_blank');
 
     // حفظ الطلب
@@ -1546,6 +1499,18 @@ function sendOrderToTelegram(method, txHash = null) {
     }).catch(console.error);
     userProfile.history.push(orderItem);
 
+    // ✅ إضافة إشعار في قاعدة البيانات للمستخدم فقط
+    try {
+        addDoc(collection(db, 'notifications'), {
+            title: `🛒 New Order #${orderId.slice(-6)}`,
+            message: `Your order has been placed successfully! Total: ${finalTotal.toFixed(2)}$`,
+            userId: currentUser.uid,
+            readBy: [],
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        }).catch(e => console.error('Error saving notification:', e));
+    } catch (e) { console.error('Error saving notification:', e); }
+
     // تنظيف السلة
     cart = [];
     activeDiscount = 0;
@@ -1570,6 +1535,36 @@ function sendOrderToTelegram(method, txHash = null) {
         updateDropdownStats();
         updateFullUserMenu();
     }, 1000);
+}
+
+window.placeOrder = function() {
+    const txHash = document.getElementById('transactionHashInput').value.trim();
+    if (selectedPayment === 'litecoin' || selectedPayment === 'usdt') {
+        if (!txHash) { showToast('⚠️ Please paste the transaction hash', 'warning');
+            document.getElementById('transactionHashInput').style.borderColor = 'var(--danger)';
+            setTimeout(() => { document.getElementById('transactionHashInput').style.borderColor = ''; }, 2000); return; }
+    }
+    sendOrderToTelegram(selectedPayment, txHash);
+};
+
+function renderPaymentProducts() {
+    const container = document.getElementById('paymentProductsList');
+    if (!container) return;
+    if (!cart || cart.length === 0) { container.innerHTML =
+            '<div style="text-align:center;padding:8px;color:var(--text-secondary);opacity:0.4;">No products</div>'; return; }
+    container.innerHTML = cart.map(item => {
+        const qty = item.quantity || 1;
+        const total = item.price * qty;
+        const product = products.find(p => p.id === item.id);
+        const image = product?.image || item.image || 'https://picsum.photos/seed/default/60/60';
+        return `
+      <div class="payment-product-item">
+        <img src="${image}" alt="${item.name}" />
+        <div class="pp-info"><div class="pp-name">${item.name}</div><div class="pp-price">${total.toFixed(2)} $</div></div>
+        <div class="pp-qty">×${qty}</div>
+      </div>
+    `;
+    }).join('');
 }
 
 window.openPaymentModal = function() {
@@ -1730,31 +1725,48 @@ window.openCreateDownloadModal = function() {
 window.closeCreateDownloadModal = function() { document.getElementById('createDownloadModal').classList.remove(
         'open'); };
 
-// دوال الإشعارات
+// دوال الإشعارات - تعرض فقط للمستخدم الذي يملك الإشعار
 function loadNotifications() {
     if (unsubscribeNotifications) { unsubscribeNotifications(); }
     const notifRef = collection(db, 'notifications');
     try {
         getDocs(query(notifRef, orderBy('createdAt', 'desc'))).then((snapshot) => {
             notifications = [];
-            snapshot.forEach((doc) => { const data = doc.data();
-                notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] }); });
-            if (currentUser) { const userId = currentUser.uid;
-                unreadNotifications = notifications.filter(n => !(n.readBy || []).includes(userId)).length; } else { unreadNotifications =
-                    0; }
+            snapshot.forEach((doc) => { 
+                const data = doc.data();
+                // ✅ إضافة الإشعار فقط إذا كان userId الخاص بالمستخدم الحالي أو بدون userId (إشعار عام)
+                if (!data.userId || data.userId === currentUser?.uid) {
+                    notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] });
+                }
+            });
+            if (currentUser) { 
+                const userId = currentUser.uid;
+                unreadNotifications = notifications.filter(n => !(n.readBy || []).includes(userId)).length; 
+            } else { 
+                unreadNotifications = 0; 
+            }
             updateNotificationBadge();
             renderAdminNotifications();
             renderUserNotifications();
         }).catch((error) => { console.error('Error loading notifications:', error);
             renderUserNotificationsFallback(); });
+        
         unsubscribeNotifications = onSnapshot(query(notifRef, orderBy('createdAt', 'desc')), (snapshot) => {
             if (isUpdatingNotifications) return;
             notifications = [];
-            snapshot.forEach((doc) => { const data = doc.data();
-                notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] }); });
-            if (currentUser) { const userId = currentUser.uid;
-                unreadNotifications = notifications.filter(n => !(n.readBy || []).includes(userId)).length; } else { unreadNotifications =
-                    0; }
+            snapshot.forEach((doc) => { 
+                const data = doc.data();
+                // ✅ تصفية الإشعارات للمستخدم الحالي فقط
+                if (!data.userId || data.userId === currentUser?.uid) {
+                    notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] });
+                }
+            });
+            if (currentUser) { 
+                const userId = currentUser.uid;
+                unreadNotifications = notifications.filter(n => !(n.readBy || []).includes(userId)).length; 
+            } else { 
+                unreadNotifications = 0; 
+            }
             updateNotificationBadge();
             renderAdminNotifications();
             renderUserNotifications();
@@ -1789,14 +1801,35 @@ function renderUserNotifications() {
     container.innerHTML = html;
 }
 
+// عرض الإشعارات في لوحة المدير (جميع الإشعارات)
 function renderAdminNotifications() {
     const container = document.getElementById('adminNotificationsList');
     if (!container) return;
-    if (notifications.length === 0) { container.innerHTML =
-            `<div style="text-align:center;padding:30px;color:var(--text-secondary);">📭 No notifications</div>`; return; }
-    container.innerHTML = notifications.map(n =>
-        `<div class="admin-item"><div class="item-info"><div class="item-title">${n.title||'Notification'}</div><div class="item-meta">${n.message||''} • ${n.createdAt?new Date(n.createdAt.toDate()).toLocaleDateString('en-US'):''}</div></div><div class="item-actions"><button class="btn-delete" onclick="deleteNotification('${n.id}')"><i class="fas fa-trash"></i></button></div></div>`
-    ).join('');
+    
+    const notifRef = collection(db, 'notifications');
+    getDocs(query(notifRef, orderBy('createdAt', 'desc'))).then((snapshot) => {
+        let allNotifs = [];
+        snapshot.forEach((doc) => { 
+            allNotifs.push({ id: doc.id, ...doc.data() }); 
+        });
+        
+        if (allNotifs.length === 0) { 
+            container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">📭 No notifications</div>`; 
+            return; 
+        }
+        
+        container.innerHTML = allNotifs.map(n =>
+            `<div class="admin-item">
+                <div class="item-info">
+                    <div class="item-title">${n.title||'Notification'}</div>
+                    <div class="item-meta">${n.message||''} • ${n.userId ? 'User: ' + n.userId.slice(-6) : 'Global'} • ${n.createdAt?new Date(n.createdAt.toDate()).toLocaleDateString('en-US'):''}</div>
+                </div>
+                <div class="item-actions">
+                    <button class="btn-delete" onclick="deleteNotification('${n.id}')"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>`
+        ).join('');
+    }).catch((error) => { console.error('Error loading admin notifications:', error); });
 }
 
 function updateNotificationBadge() {
@@ -2221,7 +2254,7 @@ function updateAdminStats(orders) {
     document.getElementById('adminRejectedOrders').textContent = rejected;
 }
 
-// تحديث حالة الطلب مع إرسال إشعار للمستخدم
+// ✅ تحديث حالة الطلب مع إرسال إشعار للمستخدم فقط
 window.updateOrderStatus = async function(orderId, userId, newStatus) {
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!orderId || !userId) { showToast('❌ Invalid data', 'error'); return; }
@@ -2244,23 +2277,23 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
         const statusLabel = statusLabels[newStatus] || newStatus;
         showToast(`📦 Order updated to ${statusLabel}`, 'success');
 
-        // إرسال إشعار للمستخدم
+        // ✅ إرسال إشعار للمستخدم فقط
         if (updatedOrder) {
             const itemsNames = updatedOrder.items ? updatedOrder.items.map(i => i.name).join(', ') : 'Your order';
             const userMsg =
                 `📦 *Order Update #${String(orderId).slice(-6)}*\n\n📋 Products: ${itemsNames}\n🔄 Status: ${statusLabel}\n📅 Date: ${new Date().toLocaleString()}`;
 
-            // إرسال للمستخدم إذا كان مربطاً
+            // ✅ إرسال للمستخدم فقط إذا كان مربطاً
             if (data.telegramChatId) {
                 await sendTelegramNotification(data.telegramChatId, userMsg);
             }
 
-            // إرسال للمدير
+            // ✅ إرسال للمدير فقط (للمتابعة)
             const adminMsg =
                 `🔄 Order #${String(orderId).slice(-6)} updated\nUser: ${data.email || 'Unknown'}\nNew Status: ${statusLabel}`;
             await sendTelegramNotification(TELEGRAM_CHAT_ID, adminMsg);
 
-            // حفظ كإشعار في قاعدة البيانات
+            // ✅ حفظ الإشعار في قاعدة البيانات للمستخدم فقط
             try {
                 await addDoc(collection(db, 'notifications'), {
                     title: `📦 Order #${String(orderId).slice(-6)}`,
@@ -2520,13 +2553,27 @@ onAuthStateChanged(auth, async (user) => {
 // init() - هنا فقط تدار شاشة التحميل
 // ========================================
 async function init() {
+    // ⭐ إظهار شاشة التحميل في البداية
     showLoadingScreen();
+    updateLoadingBar(10);
     
-    try { await signInAnonymously(auth); } catch (e) { console.log('ℹ️ Anonymous sign-in'); }
+    try { 
+        await signInAnonymously(auth); 
+        updateLoadingBar(30);
+    } catch (e) { 
+        console.log('ℹ️ Anonymous sign-in'); 
+    }
+    
     const productsFromFirestore = await loadProductsFromFirestore();
     products = productsFromFirestore.length > 0 ? productsFromFirestore : fallbackProducts;
+    updateLoadingBar(50);
+    
     startProductsRealtimeListener();
+    updateLoadingBar(70);
+    
     await loadUserData();
+    updateLoadingBar(85);
+    
     renderProducts(products);
     generateRecommendations(products);
     updateBottomCartBar();
@@ -2535,22 +2582,23 @@ async function init() {
     loadNotifications();
     fetchCryptoPrices();
     setInterval(fetchCryptoPrices, 60000);
+    updateLoadingBar(100);
+    
     console.log('✅ ZI Store ready with single Telegram bot!');
     
-    // ⭐ إخفاء شاشة التحميل
-    hideLoadingScreen();
-    
-    // ⭐⭐ حل طوارئ: إخفاء بعد 3 ثوانٍ كحد أقصى
+    // ⭐ إخفاء شاشة التحميل بعد اكتمال التحميل
     setTimeout(() => {
-        console.log('⚠️ Force hiding loading screen (timeout)');
-        const screen = document.getElementById('loadingScreen');
-        if (screen) {
-            screen.style.display = 'none';
-            screen.classList.add('hidden');
-        }
-    }, 3000);
+        hideLoadingScreen();
+    }, 500);
 }
 init();
+
+// ⭐ حل طوارئ: إخفاء شاشة التحميل بعد 5 ثوانٍ كحد أقصى
+setTimeout(() => {
+    hideLoadingScreen();
+    console.log('⚠️ Force hiding loading screen (timeout)');
+}, 5000);
+
 // تصدير الدوال للاستخدام العام
 window.showToast = showToast;
 window.openAdminPanel = openAdminPanel;
