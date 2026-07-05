@@ -1,6 +1,26 @@
 // ========================================
 // START OF SCRIPT.JS - كل الكود البرمجي هنا
 // ========================================
+
+import { initializeApp } from "firebase/app";
+import { getAuth, onAuthStateChanged, signInAnonymously, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, updatePassword, sendPasswordResetEmail, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, increment, collection, query, where, getDocs, onSnapshot, addDoc, deleteDoc, orderBy } from "firebase/firestore";
+import { getAnalytics } from "firebase/analytics";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyBwDTCxzd6aoue-NTLI2u4ouK-M37alwUw",
+    authDomain: "zi-script-store.firebaseapp.com",
+    projectId: "zi-script-store",
+    storageBucket: "zi-script-store.firebasestorage.app",
+    messagingSenderId: "925432917209",
+    appId: "1:925432917209:web:ee9b329911d95d831622c8",
+    measurementId: "G-J8YFD51CMR"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const analytics = getAnalytics(app);
+
 // ========================================
 // شاشة التحميل الاحترافية - أضف هذا في بداية الملف
 // ========================================
@@ -57,25 +77,6 @@ startLoadingMessages();
 // ========================================
 // نهاية شاشة التحميل
 // ========================================
-
-import { initializeApp } from "firebase/app";
-import { getAuth, onAuthStateChanged, signInAnonymously, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, updatePassword, sendPasswordResetEmail, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, increment, collection, query, where, getDocs, onSnapshot, addDoc, deleteDoc, orderBy } from "firebase/firestore";
-import { getAnalytics } from "firebase/analytics";
-
-const firebaseConfig = {
-    apiKey: "AIzaSyBwDTCxzd6aoue-NTLI2u4ouK-M37alwUw",
-    authDomain: "zi-script-store.firebaseapp.com",
-    projectId: "zi-script-store",
-    storageBucket: "zi-script-store.firebasestorage.app",
-    messagingSenderId: "925432917209",
-    appId: "1:925432917209:web:ee9b329911d95d831622c8",
-    measurementId: "G-J8YFD51CMR"
-};
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const analytics = getAnalytics(app);
 
 const ADMIN_EMAIL = 'zribiidriss3@gmail.com';
 // ✅ بوت واحد لكل شيء (Zistore_Notif_bot)
