@@ -780,22 +780,23 @@ window.testTelegramNotification = async function() {
 window.checkTelegramStatus = async function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
     try {
+        // التحقق من قاعدة البيانات أولاً
         const userRef = doc(db, 'users', currentUser.uid);
         const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
             const data = userSnap.data();
             if (data.telegramChatId) {
-                // محاولة إرسال رسالة اختبار
+                // التحقق من أن البوت يعمل بإرسال رسالة اختبار
                 const testResult = await sendTelegramNotification(
                     data.telegramChatId,
-                    `🔍 *فحص الاتصال*\n\n✅ تم التحقق من اتصالك مع البوت بنجاح!\n📅 ${new Date().toLocaleString()}`
+                    `🔍 *فحص الاتصال*\n\nتم التحقق من اتصالك مع البوت بنجاح!\n📅 ${new Date().toLocaleString()}`
                 );
                 if (testResult) {
                     showToast(`✅ مرتبط مع تيليجرام (Chat ID: ${data.telegramChatId})`, 'success');
                     userProfile.telegramChatId = data.telegramChatId;
                     renderProfileFull();
                 } else {
-                    showToast('⚠️ البوت لا يستطيع إرسال رسالة. تأكد من أنك بدأت المحادثة مع @Zistore_Notif_bot', 'warning');
+                    showToast('⚠️ البوت لا يستطيع إرسال رسالة. تأكد من أنك بدأت المحادثة مع البوت.', 'warning');
                 }
             } else {
                 showToast('❌ غير مرتبط مع تيليجرام', 'warning');
@@ -804,6 +805,7 @@ window.checkTelegramStatus = async function() {
     } catch (error) { console.error('Check telegram status error:', error);
         showToast('❌ خطأ في التحقق', 'error'); }
 };
+
 window.saveProfileChangesInline = async function(e) {
     e.preventDefault();
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
