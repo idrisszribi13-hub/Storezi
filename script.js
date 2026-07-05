@@ -163,11 +163,12 @@ async function checkUserBanned(uid) {
     }
 }
 
+
 // ========================================
-// دوال تيليجرام - نسخة بسيطة جداً (اتصال مباشر)
+// دوال تيليجرام - طريقة بسيطة عبر الرابط
 // ========================================
 
-// ✅ دالة للحصول على Chat ID من Firebase مباشرة
+// ✅ دالة للحصول على Chat ID من Firebase
 async function getTelegramChatId() {
     if (!currentUser) return null;
     try {
@@ -184,46 +185,33 @@ async function getTelegramChatId() {
     }
 }
 
-// ✅ دالة إرسال إشعارات - اتصال مباشر
+// ✅ دالة إرسال إشعارات - فتح رابط تيليجرام
 async function sendTelegramNotification(chatId, message) {
     if (!chatId) {
         console.error('❌ No chatId provided');
         return false;
     }
     
-    console.log('📤 Sending to chatId:', chatId);
-    console.log('📝 Message preview:', message.substring(0, 50) + '...');
+    // فتح محادثة تيليجرام مع الرسالة
+    const botUsername = 'Zistore_Notif_bot';
+    const encodedMessage = encodeURIComponent(message);
+    const url = `https://t.me/${botUsername}?text=${encodedMessage}`;
     
-    try {
-        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                chat_id: chatId,
-                text: message,
-                parse_mode: 'Markdown'
-            })
-        });
-        const data = await response.json();
-        console.log('📥 Response:', JSON.stringify(data));
-        
-        if (!data.ok) {
-            console.error('❌ Telegram API error:', data.description);
-            if (data.description && data.description.includes('bot was blocked')) {
-                console.warn('⚠️ Bot was blocked by user. Ask user to start the bot first.');
-            }
-            if (data.description && data.description.includes('chat not found')) {
-                console.warn('⚠️ Chat ID not found. Make sure user started the bot.');
-            }
-            return false;
+    // فتح الرابط في نافذة جديدة
+    window.open(url, '_blank');
+    
+    // نسخ الرسالة للحافظة
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        try {
+            await navigator.clipboard.writeText(message);
+            console.log('📋 Message copied to clipboard');
+        } catch (e) {
+            console.log('Could not copy to clipboard');
         }
-        console.log('✅ Telegram notification sent to:', chatId);
-        return true;
-    } catch (error) {
-        console.error('❌ Send notification error:', error);
-        return false;
     }
+    
+    showToast('📨 تم فتح تيليجرام! أرسل الرسالة.', 'info');
+    return true;
 }
 
 // ✅ اختبار الإشعارات
@@ -245,18 +233,15 @@ window.testTelegramNotification = async function() {
 
     userProfile.telegramChatId = chatId;
     
-    console.log('📤 Sending test to:', chatId);
+    const message = `🔔 *اختبار الإشعارات*\n\nهذه رسالة اختبار من ZI Store.\n📅 ${new Date().toLocaleString()}\n👤 المستخدم: ${currentUser.displayName || currentUser.email}\n\nإذا رأيت هذه الرسالة، فالإشعارات تعمل بشكل صحيح! ✅`;
     
-    const result = await sendTelegramNotification(
-        chatId,
-        `🔔 *اختبار الإشعارات*\n\nهذه رسالة اختبار من ZI Store.\n📅 ${new Date().toLocaleString()}\n👤 المستخدم: ${currentUser.displayName || currentUser.email}\n\nإذا رأيت هذه الرسالة، فالإشعارات تعمل بشكل صحيح! ✅`
-    );
-
+    const result = await sendTelegramNotification(chatId, message);
+    
     if (result) {
-        showToast('✅ تم إرسال رسالة اختبار! تحقق من تيليجرام.', 'success');
+        showToast('✅ تم فتح تيليجرام! أرسل الرسالة.', 'success');
         renderProfileFull();
     } else {
-        showToast('❌ فشل إرسال رسالة الاختبار. تأكد من أنك بدأت المحادثة مع @Zistore_Notif_bot', 'error');
+        showToast('❌ فشل فتح تيليجرام', 'error');
     }
 };
 
@@ -286,7 +271,7 @@ window.checkTelegramStatus = async function() {
     }
 };
 
-// ✅ ربط تيليجرام - مع نافذة كود الربط
+// ✅ ربط تيليجرام
 window.bindTelegram = async function() {
     if (!currentUser) { 
         showToast('⚠️ Please login first', 'warning'); 
@@ -294,12 +279,10 @@ window.bindTelegram = async function() {
     }
 
     try {
-        // توليد كود ربط فريد
         const bindCode = currentUser.uid.slice(-8) + Math.random().toString(36).substring(2, 6);
         
         console.log('🔑 Generating bind code:', bindCode);
         
-        // حفظ طلب الربط في Firebase
         const bindRef = doc(db, 'telegram_binds', bindCode);
         await setDoc(bindRef, {
             userId: currentUser.uid,
@@ -311,22 +294,16 @@ window.bindTelegram = async function() {
 
         const botUsername = 'Zistore_Notif_bot';
         
-        // ✅ عرض نافذة الكود مع زر نسخ وإرسال
+        // ✅ عرض نافذة الكود
         showBindCodeModal(bindCode, botUsername);
         
-        // ✅ إرسال إشعار للمدير بالكود
-        const adminMessage = `
-🔗 *كود ربط جديد*
-
-👤 المستخدم: ${currentUser.displayName || currentUser.email}
-📧 البريد: ${currentUser.email}
-🆔 كود الربط: \`${bindCode}\`
-
-📌 الحالة: في انتظار التأكيد
-        `;
-        await sendTelegramNotification(TELEGRAM_CHAT_ID, adminMessage);
+        // ✅ إرسال الكود للمدير عبر فتح تيليجرام
+        const adminMessage = `🔗 كود ربط جديد\n\nالمستخدم: ${currentUser.displayName || currentUser.email}\nالبريد: ${currentUser.email}\nكود الربط: ${bindCode}`;
         
-        // بدء الاستماع لتأكيد الربط
+        // فتح محادثة المدير مع الكود
+        const adminUrl = `https://t.me/${botUsername}?text=${encodeURIComponent(adminMessage)}`;
+        window.open(adminUrl, '_blank');
+        
         startBindingListener(bindCode);
 
     } catch (error) {
@@ -335,13 +312,75 @@ window.bindTelegram = async function() {
     }
 };
 
+// ✅ إلغاء ربط تيليجرام
+window.unlinkTelegram = async function() {
+    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
+    
+    if (!userProfile.telegramChatId) {
+        showToast('⚠️ Telegram is not linked', 'warning');
+        return;
+    }
+    
+    if (!confirm('Are you sure you want to unlink your Telegram account?\n\nYou will no longer receive order notifications.')) {
+        return;
+    }
+    
+    try {
+        const userRef = doc(db, 'users', currentUser.uid);
+        await updateDoc(userRef, {
+            telegramChatId: '',
+            telegram: ''
+        });
+        
+        userProfile.telegramChatId = '';
+        userProfile.telegram = '';
+        await saveUserData();
+        
+        renderProfileFull();
+        updateFullUserMenu();
+        showToast('✅ Telegram unlinked successfully!', 'success');
+        
+    } catch (error) {
+        console.error('Unlink error:', error);
+        showToast('❌ Error unlinking Telegram', 'error');
+    }
+};
+
+// الاستماع لتأكيد الربط
+function startBindingListener(bindCode) {
+    const bindRef = doc(db, 'telegram_binds', bindCode);
+    const unsubscribe = onSnapshot(bindRef, (doc) => {
+        if (doc.exists()) {
+            const data = doc.data();
+            console.log('📋 Binding status:', data.status);
+            if (data.status === 'completed' && data.telegramChatId) {
+                userProfile.telegramChatId = data.telegramChatId;
+                saveUserData();
+                renderProfileFull();
+                showToast('✅ تم ربط تيليجرام بنجاح!', 'success');
+                
+                // رسالة ترحيب عبر فتح تيليجرام
+                const welcomeMsg = `🔔 مرحباً بك في ZI Store!\n\nتم ربط حسابك بنجاح.\nستستلم إشعارات الطلبات هنا.\n\nشكراً لاستخدامك ZI Store! 🚀`;
+                const botUsername = 'Zistore_Notif_bot';
+                const url = `https://t.me/${botUsername}?text=${encodeURIComponent(welcomeMsg)}`;
+                window.open(url, '_blank');
+                
+                updateFullUserMenu();
+                unsubscribe();
+            }
+        }
+    });
+    setTimeout(() => { 
+        unsubscribe(); 
+        console.log('⏰ Binding listener timeout');
+    }, 300000);
+}
+
 // ✅ عرض نافذة الكود مع زر نسخ وإرسال
 function showBindCodeModal(bindCode, botUsername) {
-    // إزالة أي نافذة سابقة
     const oldModal = document.getElementById('bindCodeModal');
     if (oldModal) oldModal.remove();
     
-    // إنشاء النافذة
     const modal = document.createElement('div');
     modal.id = 'bindCodeModal';
     modal.style.cssText = `
@@ -381,20 +420,10 @@ function showBindCodeModal(bindCode, botUsername) {
             
             <div style="text-align: center; margin-bottom: 20px;">
                 <div style="font-size: 32px; margin-bottom: 8px;">🔗</div>
-                <h2 style="
-                    font-size: 18px;
-                    font-weight: 700;
-                    color: var(--text, #fff);
-                    margin: 0;
-                ">كود ربط تيليجرام</h2>
-                <p style="
-                    font-size: 13px;
-                    color: var(--text-secondary, #888);
-                    margin: 6px 0 0;
-                ">انسخ الكود وأرسله إلى البوت</p>
+                <h2 style="font-size: 18px; font-weight: 700; color: var(--text, #fff); margin: 0;">كود ربط تيليجرام</h2>
+                <p style="font-size: 13px; color: var(--text-secondary, #888); margin: 6px 0 0;">انسخ الكود وأرسله إلى البوت</p>
             </div>
             
-            <!-- عرض الكود مع زر نسخ -->
             <div style="
                 background: var(--bg, #0d0d1a);
                 border-radius: 10px;
@@ -434,7 +463,6 @@ function showBindCodeModal(bindCode, botUsername) {
                 </button>
             </div>
             
-            <!-- زر إرسال إلى البوت -->
             <button onclick="sendCodeToBot('${bindCode}', '${botUsername}')" style="
                 width: 100%;
                 padding: 12px;
@@ -452,10 +480,9 @@ function showBindCodeModal(bindCode, botUsername) {
                 justify-content: center;
                 gap: 8px;
             ">
-                <i class="fab fa-telegram-plane"></i> إرسال الكود إلى البوت
+                <i class="fab fa-telegram-plane"></i> فتح البوت
             </button>
             
-            <!-- تعليمات -->
             <div style="
                 background: var(--bg, #0d0d1a);
                 border-radius: 8px;
@@ -465,7 +492,7 @@ function showBindCodeModal(bindCode, botUsername) {
                 <div style="font-size: 12px; color: var(--text-secondary, #888);">
                     <div style="display: flex; gap: 8px; align-items: flex-start; margin-bottom: 4px;">
                         <span style="color: var(--primary, #6c5ce7);">1️⃣</span>
-                        <span>انسخ الكود أو اضغط "إرسال إلى البوت"</span>
+                        <span>انسخ الكود أو اضغط "فتح البوت"</span>
                     </div>
                     <div style="display: flex; gap: 8px; align-items: flex-start; margin-bottom: 4px;">
                         <span style="color: var(--primary, #6c5ce7);">2️⃣</span>
@@ -494,8 +521,6 @@ function showBindCodeModal(bindCode, botUsername) {
     `;
     
     document.body.appendChild(modal);
-    
-    // حفظ الكود للاستخدام
     window._bindCode = bindCode;
     window._botUsername = botUsername;
 }
@@ -508,15 +533,6 @@ window.copyBindCode = function() {
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(code).then(() => {
             showToast('✅ تم نسخ الكود!', 'success');
-            const btn = document.querySelector('#bindCodeModal button:has(.fa-copy)');
-            if (btn) {
-                btn.innerHTML = '✅ تم النسخ';
-                btn.style.background = '#00b894';
-                setTimeout(() => {
-                    btn.innerHTML = '<i class="fas fa-copy"></i> نسخ';
-                    btn.style.background = '';
-                }, 2000);
-            }
         }).catch(() => {
             const textArea = document.createElement('textarea');
             textArea.value = code;
@@ -537,18 +553,14 @@ window.copyBindCode = function() {
     }
 };
 
-// ✅ دالة إرسال الكود إلى البوت
+// ✅ دالة فتح البوت
 window.sendCodeToBot = function(code, botUsername) {
-    window.open(`https://t.me/${botUsername}?start=${code}`, '_blank');
-    
+    window.open(`https://t.me/${botUsername}`, '_blank');
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(code).then(() => {
             showToast('📋 تم نسخ الكود وفتح البوت!', 'success');
         });
-    } else {
-        showToast('📱 تم فتح البوت! أرسل الكود: ' + code, 'info');
     }
-    
     setTimeout(() => {
         closeBindCodeModal();
     }, 3000);
@@ -559,73 +571,6 @@ window.closeBindCodeModal = function() {
     const modal = document.getElementById('bindCodeModal');
     if (modal) modal.remove();
 };
-
-// الاستماع لتأكيد الربط
-function startBindingListener(bindCode) {
-    const bindRef = doc(db, 'telegram_binds', bindCode);
-    const unsubscribe = onSnapshot(bindRef, (doc) => {
-        if (doc.exists()) {
-            const data = doc.data();
-            console.log('📋 Binding status:', data.status);
-            if (data.status === 'completed' && data.telegramChatId) {
-                userProfile.telegramChatId = data.telegramChatId;
-                saveUserData();
-                renderProfileFull();
-                showToast('✅ تم ربط تيليجرام بنجاح!', 'success');
-                sendTelegramNotification(
-                    userProfile.telegramChatId,
-                    `🔔 *مرحباً بك في ZI Store!*\n\nتم ربط حسابك بنجاح.\nستستلم إشعارات الطلبات هنا.\n\nشكراً لاستخدامك ZI Store! 🚀`
-                );
-                updateFullUserMenu();
-                unsubscribe();
-            }
-        }
-    });
-    setTimeout(() => { 
-        unsubscribe(); 
-        console.log('⏰ Binding listener timeout');
-    }, 300000);
-}
-
-// ✅ إلغاء ربط تيليجرام
-window.unlinkTelegram = async function() {
-    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
-    
-    if (!userProfile.telegramChatId) {
-        showToast('⚠️ Telegram is not linked', 'warning');
-        return;
-    }
-    
-    if (!confirm('Are you sure you want to unlink your Telegram account?\n\nYou will no longer receive order notifications.')) {
-        return;
-    }
-    
-    try {
-        const userRef = doc(db, 'users', currentUser.uid);
-        await updateDoc(userRef, {
-            telegramChatId: '',
-            telegram: ''
-        });
-        
-        userProfile.telegramChatId = '';
-        userProfile.telegram = '';
-        await saveUserData();
-        
-        renderProfileFull();
-        updateFullUserMenu();
-        showToast('✅ Telegram unlinked successfully!', 'success');
-        
-        sendTelegramNotification(
-            TELEGRAM_CHAT_ID,
-            `🔓 *تم إلغاء ربط تيليجرام*\n\n👤 المستخدم: ${currentUser.displayName || currentUser.email}\n📧 البريد: ${currentUser.email}\n\nتم إلغاء ربط حسابك بنجاح.`
-        );
-        
-    } catch (error) {
-        console.error('Unlink error:', error);
-        showToast('❌ Error unlinking Telegram', 'error');
-    }
-};
-
 // ========================================
 // نهاية دوال تيليجرام
 // ========================================
