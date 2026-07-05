@@ -2,31 +2,26 @@ const TelegramBot = require('node-telegram-bot-api');
 const express = require('express');
 const admin = require('firebase-admin');
 const fs = require('fs');
-const cors = require('cors');
 
-// ============= التوكن =============
-const token = process.env.BOT_TOKEN || '8687744794:AAGeeNrEU-iQLRmg3dLvYkWhddtYo_sJ1tc';
-const ADMIN_CHAT_ID = process.env.ADMIN_CHAT_ID || '7434396478';
+// ============= التوكن من متغيرات البيئة =============
+const token = process.env.BOT_TOKEN;
+const ADMIN_CHAT_ID = process.env.TELEGRAM_CHAT_ID; // ✅ استخدم TELEGRAM_CHAT_ID
 
 if (!token) {
     console.error('❌ BOT_TOKEN is not set!');
     process.exit(1);
 }
 
-console.log('🤖 Starting bot with token:', token.substring(0, 10) + '...');
+if (!ADMIN_CHAT_ID) {
+    console.error('❌ TELEGRAM_CHAT_ID is not set!');
+    process.exit(1);
+}
+
+console.log('🤖 Starting bot...');
+console.log('📌 Admin Chat ID:', ADMIN_CHAT_ID);
 
 // ============= البوت =============
 const bot = new TelegramBot(token, { polling: true });
-
-// ============= معالجة أخطاء الـ Polling =============
-bot.on('polling_error', (error) => {
-    console.error('❌ Polling error:', error.message);
-    
-    if (error.message && (error.message.includes('409') || error.message.includes('terminated'))) {
-        console.log('🔄 409 Conflict detected. Exiting for restart...');
-        process.exit(1);
-    }
-});
 
 // ============= Firebase Admin =============
 let db;
@@ -36,12 +31,9 @@ try {
     
     if (fs.existsSync(serviceAccountPath)) {
         serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
-        console.log('✅ Service Account loaded from secrets');
+        console.log('✅ Service Account loaded');
     } else {
-        console.warn('⚠️ Service Account not found, trying without...');
-        serviceAccount = {
-            projectId: "zi-script-store"
-        };
+        serviceAccount = { projectId: "zi-script-store" };
     }
 
     if (!admin.apps.length) {
@@ -53,137 +45,54 @@ try {
     }
     db = admin.firestore();
 } catch (error) {
-    console.error('❌ Firebase Admin error:', error.message);
-    try {
-        if (!admin.apps.length) {
-            admin.initializeApp({
-                projectId: "zi-script-store"
-            });
-        }
-        db = admin.firestore();
-        console.log('⚠️ Firebase initialized without auth (read-only)');
-    } catch (e) {
-        console.error('❌ Firebase failed:', e.message);
-        db = null;
-    }
+    console.error('❌ Firebase error:', error.message);
+    db = null;
 }
 
-// ============= السيرفر مع CORS ونقاط النهاية =============
+// ============= السيرفر =============
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ✅ تفعيل CORS و JSON
-app.use(cors());
-app.use(express.json());
-
-// ✅ نقطة نهاية للتحقق من حالة البوت
-app.get('/status', (req, res) => {
-    res.json({
-        status: 'online',
-        bot: 'running',
-        adminChatId: ADMIN_CHAT_ID,
-        db: db ? 'connected' : 'disconnected'
-    });
-});
-
-// ✅ نقطة نهاية لإرسال الرسائل
-app.post('/send-message', async (req, res) => {
-    const { chatId, message } = req.body;
-    
-    if (!chatId || !message) {
-        return res.status(400).json({ 
-            success: false, 
-            error: 'Missing chatId or message' 
-        });
-    }
-    
-    console.log(`📤 Sending to ${chatId}: ${message.substring(0, 50)}...`);
-    
-    try {
-        const result = await bot.sendMessage(chatId, message, { 
-            parse_mode: 'Markdown' 
-        });
-        console.log(`✅ Message sent to ${chatId}`);
-        res.json({ success: true, result });
-    } catch (error) {
-        console.error(`❌ Failed to send to ${chatId}:`, error.message);
-        res.status(500).json({ 
-            success: false, 
-            error: error.message 
-        });
-    }
-});
-
-// ✅ نقطة نهاية لإرسال إشعارات الاختبار
-app.post('/test-notification', async (req, res) => {
-    const { chatId } = req.body;
-    
-    if (!chatId) {
-        return res.status(400).json({ 
-            success: false, 
-            error: 'Missing chatId' 
-        });
-    }
-    
-    try {
-        const message = `🔔 *اختبار الإشعارات*\n\nهذه رسالة اختبار من ZI Store.\n📅 ${new Date().toLocaleString()}\n\nإذا رأيت هذه الرسالة، فالإشعارات تعمل بشكل صحيح! ✅`;
-        
-        const result = await bot.sendMessage(chatId, message, { 
-            parse_mode: 'Markdown' 
-        });
-        res.json({ success: true, result });
-    } catch (error) {
-        res.status(500).json({ 
-            success: false, 
-            error: error.message 
-        });
-    }
-});
-
-// ✅ نقطة نهاية رئيسية
 app.get('/', (req, res) => {
     res.send('🤖 Zi Store Bot is running!');
 });
 
 app.listen(PORT, () => {
     console.log(`✅ Server running on port ${PORT}`);
-    console.log('✅ Bot is polling for messages...');
 });
-
-console.log('🚀 Zi Store Bot started successfully!');
 
 // ============= أوامر البوت =============
 
 bot.onText(/\/start/, (msg) => {
     const chatId = msg.chat.id;
-    bot.sendMessage(chatId, `👋 مرحباً بك في Zi Store Bot!
+    bot.sendMessage(chatId, `👋 Welcome to Zi Store Bot!
 
-🔗 *لربط حسابك:*
-1. افتح الملف الشخصي في Zi Store
-2. اضغط "ربط تيليجرام"
-3. انسخ كود الربط
-4. أرسل الكود هنا
+🔗 To link your account:
+1. Open your profile in Zi Store
+2. Click "Link Telegram"
+3. Copy the code
+4. Send it here
 
-📋 الأوامر:
-/help - عرض المساعدة
-/chatid - معرف الدردشة`, { parse_mode: 'Markdown' });
+📋 Commands:
+/help - Show help
+/chatid - Your Chat ID`);
 });
 
 bot.onText(/\/help/, (msg) => {
     const chatId = msg.chat.id;
-    bot.sendMessage(chatId, `📋 *الأوامر:*
+    bot.sendMessage(chatId, `📋 Commands:
 
-/start - بدء البوت
-/help - عرض المساعدة
-/chatid - معرف الدردشة
+/start - Start the bot
+/help - Show help
+/chatid - Your Chat ID
 
-🔗 *لربط حسابك:*
-أرسل كود الربط الذي تحصل عليه من الملف الشخصي`, { parse_mode: 'Markdown' });
+🔗 To link your account:
+Send the code you get from your profile.`);
 });
 
 bot.onText(/\/chatid/, (msg) => {
     const chatId = msg.chat.id;
-    bot.sendMessage(chatId, `🆔 معرف الدردشة: \`${chatId}\``, { parse_mode: 'Markdown' });
+    bot.sendMessage(chatId, `🆔 Your Chat ID: ${chatId}`);
 });
 
 // ============= معالج الرسائل =============
@@ -196,11 +105,10 @@ bot.on('message', async (msg) => {
         return;
     }
 
-    console.log(`📩 استلمت: "${text}" من ${chatId}`);
+    console.log(`📩 Received: "${text}" from ${chatId}`);
 
     if (!db) {
-        console.error('❌ Firebase not initialized!');
-        await bot.sendMessage(chatId, '❌ خطأ في قاعدة البيانات. الرجاء المحاولة لاحقاً.');
+        await bot.sendMessage(chatId, '❌ Database error. Try again later.');
         return;
     }
 
@@ -210,7 +118,6 @@ bot.on('message', async (msg) => {
 
         if (docSnap.exists) {
             const data = docSnap.data();
-            console.log('📄 البيانات:', data);
 
             if (data.status === 'pending') {
                 await docRef.update({
@@ -219,49 +126,43 @@ bot.on('message', async (msg) => {
                     completedAt: admin.firestore.FieldValue.serverTimestamp()
                 });
 
-                await bot.sendMessage(chatId, `✅ *تم ربط حسابك بنجاح!* 🎉
+                await bot.sendMessage(chatId, `✅ **Account linked successfully!** 🎉
 
-ستستلم إشعارات الطلبات هنا.
-شكراً لاستخدامك Zi Store! 🚀`, { parse_mode: 'Markdown' });
+You will receive order notifications here.
+Thank you for using Zi Store! 🚀`);
                 
-                console.log(`✅ تم ربط المستخدم ${chatId} بالكود: ${text}`);
+                console.log(`✅ User ${chatId} linked with code: ${text}`);
                 
                 await bot.sendMessage(ADMIN_CHAT_ID, 
-                    `🔗 *ربط جديد*\n\n👤 المستخدم: ${data.userName || data.userEmail || 'Unknown'}\n📧 البريد: ${data.userEmail || 'N/A'}\n🆔 معرف الدردشة: ${chatId}`
+                    `🔗 New Link\n\nUser: ${data.userName || data.userEmail || 'Unknown'}\nEmail: ${data.userEmail || 'N/A'}\nChat ID: ${chatId}`
                 );
             } else {
-                await bot.sendMessage(chatId, '❌ هذا الكود منتهي الصلاحية أو مستخدم بالفعل.');
+                await bot.sendMessage(chatId, '❌ This code is already used or expired.');
             }
         } else {
-            await bot.sendMessage(chatId, `❌ كود الربط غير صحيح.
+            await bot.sendMessage(chatId, `❌ Invalid code.
 
-🔍 تأكد من نسخ الكود بشكل صحيح.
+🔍 Make sure you copied the code correctly.
 
-📌 للحصول على كود جديد:
-1. افتح الملف الشخصي في Zi Store
-2. اضغط "ربط تيليجرام"
-3. انسخ الكود الجديد
+📌 To get a new code:
+1. Open your profile in Zi Store
+2. Click "Link Telegram"
+3. Copy the new code
 
-📋 للمساعدة اكتب /help`);
+📋 For help type /help`);
         }
     } catch (error) {
-        console.error('❌ خطأ:', error.message);
-        await bot.sendMessage(chatId, '❌ حدث خطأ. الرجاء المحاولة مرة أخرى.');
+        console.error('❌ Error:', error.message);
+        await bot.sendMessage(chatId, '❌ Error occurred. Try again.');
     }
 });
 
+console.log('🚀 Zi Store Bot started successfully!');
+
 // ============= إغلاق نظيف =============
 const shutdown = (signal) => {
-    console.log(`⚠️ Received ${signal}. Stopping polling...`);
-    bot.stopPolling()
-        .then(() => {
-            console.log('✅ Polling stopped. Exiting.');
-            process.exit(0);
-        })
-        .catch((err) => {
-            console.error('❌ Error stopping polling:', err.message);
-            process.exit(1);
-        });
+    console.log(`⚠️ Received ${signal}. Stopping...`);
+    bot.stopPolling().then(() => process.exit(0));
 };
 
 process.on('SIGTERM', () => shutdown('SIGTERM')); 
