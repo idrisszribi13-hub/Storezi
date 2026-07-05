@@ -1,62 +1,6 @@
 // ========================================
 // START OF SCRIPT.JS - كل الكود البرمجي هنا
 // ========================================
-// ========================================
-// شاشة التحميل الاحترافية - أضف هذا في بداية الملف
-// ========================================
-
-// رسائل التحميل المتغيرة
-const loadingMessages = [
-    'جاري تهيئة المتجر...',
-    'جاري تحميل المنتجات...',
-    'جاري الاتصال بقاعدة البيانات...',
-    'مرحباً بك في ZI Store! 🚀'
-];
-
-let loadingMessageIndex = 0;
-let loadingInterval = null;
-
-// تغيير رسالة التحميل كل ثانيتين
-function updateLoadingMessage() {
-    const statusEl = document.getElementById('loadingStatus');
-    if (!statusEl) return;
-    loadingMessageIndex = (loadingMessageIndex + 1) % loadingMessages.length;
-    statusEl.textContent = loadingMessages[loadingMessageIndex];
-}
-
-// بدء تغيير الرسائل
-function startLoadingMessages() {
-    loadingInterval = setInterval(updateLoadingMessage, 1800);
-}
-
-// إخفاء شاشة التحميل
-function hideLoadingScreen() {
-    const screen = document.getElementById('loadingScreen');
-    if (screen) {
-        screen.classList.add('hidden');
-        clearInterval(loadingInterval);
-        setTimeout(() => {
-            screen.style.display = 'none';
-        }, 600);
-    }
-}
-
-// عرض شاشة التحميل مرة أخرى
-function showLoadingScreen() {
-    const screen = document.getElementById('loadingScreen');
-    if (screen) {
-        screen.style.display = 'flex';
-        screen.classList.remove('hidden');
-        startLoadingMessages();
-    }
-}
-
-// بدء التحميل فوراً
-startLoadingMessages();
-
-// ========================================
-// نهاية شاشة التحميل
-// ========================================
 
 import { initializeApp } from "firebase/app";
 import { getAuth, onAuthStateChanged, signInAnonymously, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, updatePassword, sendPasswordResetEmail, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
@@ -303,61 +247,7 @@ function generateReferralCode(name, email) {
     const random = Math.random().toString(36).substring(2, 6).toUpperCase();
     return `${prefix}${random}`;
 }
-// ========================================
-// Guest Welcome Message
-// ========================================
 
-// Show welcome message for guest users
-function showGuestWelcome() {
-    const welcomeEl = document.getElementById('guestWelcome');
-    if (!welcomeEl) return;
-    
-    // Check if user is anonymous/guest
-    if (currentUser && currentUser.isAnonymous) {
-        welcomeEl.style.display = 'flex';
-        // Animated message
-        welcomeEl.style.animation = 'fadeIn 0.6s ease';
-    } else {
-        welcomeEl.style.display = 'none';
-    }
-}
-
-// Hide welcome message (when X is clicked)
-window.closeGuestWelcome = function() {
-    const welcomeEl = document.getElementById('guestWelcome');
-    if (welcomeEl) {
-        welcomeEl.style.display = 'none';
-        // Save in localStorage that user dismissed the message
-        localStorage.setItem('guest_welcome_closed', 'true');
-    }
-};
-
-// Scroll to registration page
-window.scrollToAuth = function() {
-    const authSection = document.getElementById('authSection');
-    if (authSection) {
-        authSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        // Highlight the registration button
-        setTimeout(() => {
-            const registerBtn = document.getElementById('registerBtn');
-            if (registerBtn) {
-                registerBtn.style.animation = 'pulse 1s ease 3';
-                setTimeout(() => {
-                    registerBtn.style.animation = '';
-                }, 3000);
-            }
-        }, 500);
-    }
-};
-
-// Check if user has previously closed the message
-function isGuestWelcomeClosed() {
-    return localStorage.getItem('guest_welcome_closed') === 'true';
-}
-
-// ========================================
-// End of Guest Welcome Message
-// ========================================
 // تحديثات الواجهة
 function updateDropdownStats() {
     const userAvatar = document.getElementById('userAvatarText');
@@ -448,9 +338,6 @@ window.loginUser = async function() {
     try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         currentUser = userCredential.user;
-         // ⭐ Hide welcome message after login
-        document.getElementById('guestWelcome').style.display = 'none';    
-        // ... rest of the code ...
         successEl.textContent = '✅ Login successful!';
         showToast('👋 Welcome back!', 'success');
         btn.classList.remove('loading');
@@ -499,10 +386,6 @@ window.registerUser = async function() {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(userCredential.user, { displayName: name });
         currentUser = userCredential.user;
-        // ⭐ Hide welcome message after registration
-        document.getElementById('guestWelcome').style.display = 'none';
-        
-        // ... rest of the code ...
         const newReferralCode = generateReferralCode(name, email);
         let referrerId = null;
         if (referralCode) {
@@ -1519,7 +1402,6 @@ function renderPaymentProducts() {
 
 // وظيفة إرسال الطلب مع إشعارات للمدير والمستخدم
 function sendOrderToTelegram(method, txHash = null) {
-function sendOrderToTelegram(method, txHash = null) {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
 
     let total = 0;
@@ -1547,17 +1429,7 @@ function sendOrderToTelegram(method, txHash = null) {
 
     const orderId = 'order_' + Date.now();
 
-    // ⭐⭐⭐ نظام مكافآت RP ⭐⭐⭐
-    const RP_EARN_RATE = 0.1; // 10% من قيمة الطلب
-    const rpEarned = Math.floor((finalTotal / RP_TO_DOLLAR) * RP_EARN_RATE);
-    
-    if (rpEarned > 0) {
-        userProfile.rp = (userProfile.rp || 0) + rpEarned;
-        discountText += `\n🎯 RP مكتسب: +${rpEarned} RP (قيمة ${finalTotal.toFixed(2)}$)`;
-        showToast(`🎉 ربحت ${rpEarned} نقاط RP!`, 'success');
-    }
-
-    // رسالة للمدير مع معلومات RP
+    // رسالة للمدير
     let adminMsg = '🛒 **طلب جديد**\n\n';
     adminMsg += `👤 **العميل:** ${currentUser.displayName || currentUser.email || 'Unknown'}\n`;
     adminMsg += `📧 **البريد:** ${currentUser.email || 'N/A'}\n`;
@@ -1567,7 +1439,6 @@ function sendOrderToTelegram(method, txHash = null) {
     if (discountText) adminMsg += discountText;
     adminMsg += `\n💵 **الإجمالي:** ${finalTotal.toFixed(2)}$`;
     adminMsg += `\n💬 **طريقة الدفع:** ${method}`;
-    adminMsg += `\n🎯 **رصيد RP الحالي:** ${userProfile.rp || 0}`;
     if (method === 'litecoin') {
         adminMsg += `\n📍 **عنوان LTC:** ${paymentWallets.litecoin.address}`;
         if (txHash) adminMsg += `\n🔍 **Tx Hash:** ${txHash}`;
@@ -1577,17 +1448,19 @@ function sendOrderToTelegram(method, txHash = null) {
     }
     adminMsg += `\n\n📎 **رقم الطلب:** #${orderId.slice(-6)}`;
 
-    // إرسال الإشعارات
+    // 1️⃣ إرسال إشعار للمدير
     sendTelegramNotification(TELEGRAM_CHAT_ID, adminMsg);
 
+    // 2️⃣ إرسال إشعار للمستخدم إذا كان مربطاً
     if (userProfile.telegramChatId) {
-        const userMsg = `🛒 *طلب جديد*\n\n📦 #${orderId.slice(-6)}\n💰 ${finalTotal.toFixed(2)}$\n📅 ${new Date().toLocaleString()}\n${rpEarned > 0 ? `🎯 +${rpEarned} RP مكافأة!\n` : ''}\nشكراً لتسوقك معنا! سيتم معالجة طلبك قريباً.`;
+        const userMsg = `🛒 *طلب جديد*\n\n📦 #${orderId.slice(-6)}\n💰 ${finalTotal.toFixed(2)}$\n📅 ${new Date().toLocaleString()}\n\nشكراً لتسوقك معنا! سيتم معالجة طلبك قريباً.`;
         sendTelegramNotification(userProfile.telegramChatId, userMsg);
     }
 
+    // 3️⃣ فتح محادثة المدير (اختياري)
     window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(adminMsg)}`, '_blank');
 
-    // حفظ الطلب
+    // حفظ الطلب في قاعدة البيانات
     const orderItem = {
         id: orderId,
         items: cart.map(item => ({ id: item.id, name: item.name, price: item.price, quantity: item.quantity || 1 })),
@@ -1596,8 +1469,7 @@ function sendOrderToTelegram(method, txHash = null) {
         date: new Date().toISOString(),
         status: 'pending',
         txHash: txHash || null,
-        rpUsed: Math.floor(rpDiscountAmount / RP_TO_DOLLAR) || 0,
-        rpEarned: rpEarned || 0  // ⭐ حفظ النقاط المكتسبة
+        rpUsed: Math.floor(rpDiscountAmount / RP_TO_DOLLAR) || 0
     };
 
     const rpToDeduct = Math.floor(rpDiscountAmount / RP_TO_DOLLAR);
@@ -1638,7 +1510,7 @@ function sendOrderToTelegram(method, txHash = null) {
         updateDropdownStats();
         updateFullUserMenu();
     }, 1000);
- }
+}
 
 window.openPaymentModal = function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning');
@@ -2555,8 +2427,6 @@ document.getElementById('themeToggle')?.addEventListener('click', function() {
 });
 
 onAuthStateChanged(auth, async (user) => {
-    showLoadingScreen();
-    
     currentUser = user;
     if (user) {
         document.getElementById('authSection').style.display = 'none';
@@ -2581,14 +2451,6 @@ onAuthStateChanged(auth, async (user) => {
     }
     updateUI();
     updateFullUserMenu();
-    
-    // ⭐ Show welcome message for guest users
-    // Only if user hasn't closed it before
-    if (!isGuestWelcomeClosed()) {
-        showGuestWelcome();
-    }
-    // ⭐️ اخفاء شاشة التحميل بعد الانتهاء
-    hideLoadingScreen();
 });
 
 async function init() {
@@ -2606,9 +2468,6 @@ async function init() {
     fetchCryptoPrices();
     setInterval(fetchCryptoPrices, 60000);
     console.log('✅ ZI Store ready with single Telegram bot!');
-    
-    // ⭐ إخفاء شاشة التحميل بعد اكتمال التحميل
-    hideLoadingScreen();
 }
 init();
 
