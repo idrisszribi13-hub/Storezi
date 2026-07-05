@@ -1,6 +1,62 @@
 // ========================================
 // START OF SCRIPT.JS - كل الكود البرمجي هنا
 // ========================================
+// ========================================
+// شاشة التحميل الاحترافية - أضف هذا في بداية الملف
+// ========================================
+
+// رسائل التحميل المتغيرة
+const loadingMessages = [
+    'جاري تهيئة المتجر...',
+    'جاري تحميل المنتجات...',
+    'جاري الاتصال بقاعدة البيانات...',
+    'مرحباً بك في ZI Store! 🚀'
+];
+
+let loadingMessageIndex = 0;
+let loadingInterval = null;
+
+// تغيير رسالة التحميل كل ثانيتين
+function updateLoadingMessage() {
+    const statusEl = document.getElementById('loadingStatus');
+    if (!statusEl) return;
+    loadingMessageIndex = (loadingMessageIndex + 1) % loadingMessages.length;
+    statusEl.textContent = loadingMessages[loadingMessageIndex];
+}
+
+// بدء تغيير الرسائل
+function startLoadingMessages() {
+    loadingInterval = setInterval(updateLoadingMessage, 1800);
+}
+
+// إخفاء شاشة التحميل
+function hideLoadingScreen() {
+    const screen = document.getElementById('loadingScreen');
+    if (screen) {
+        screen.classList.add('hidden');
+        clearInterval(loadingInterval);
+        setTimeout(() => {
+            screen.style.display = 'none';
+        }, 600);
+    }
+}
+
+// عرض شاشة التحميل مرة أخرى
+function showLoadingScreen() {
+    const screen = document.getElementById('loadingScreen');
+    if (screen) {
+        screen.style.display = 'flex';
+        screen.classList.remove('hidden');
+        startLoadingMessages();
+    }
+}
+
+// بدء التحميل فوراً
+startLoadingMessages();
+
+// ========================================
+// نهاية شاشة التحميل
+// ========================================
 
 import { initializeApp } from "firebase/app";
 import { getAuth, onAuthStateChanged, signInAnonymously, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, updatePassword, sendPasswordResetEmail, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
@@ -2427,6 +2483,9 @@ document.getElementById('themeToggle')?.addEventListener('click', function() {
 });
 
 onAuthStateChanged(auth, async (user) => {
+    // ⭐ إظهار شاشة التحميل عند تغيير حالة المستخدم
+    showLoadingScreen();
+    
     currentUser = user;
     if (user) {
         document.getElementById('authSection').style.display = 'none';
@@ -2451,6 +2510,9 @@ onAuthStateChanged(auth, async (user) => {
     }
     updateUI();
     updateFullUserMenu();
+    
+    // ⭐ إخفاء شاشة التحميل بعد الانتهاء
+    hideLoadingScreen();
 });
 
 async function init() {
@@ -2468,6 +2530,9 @@ async function init() {
     fetchCryptoPrices();
     setInterval(fetchCryptoPrices, 60000);
     console.log('✅ ZI Store ready with single Telegram bot!');
+    
+    // ⭐ إخفاء شاشة التحميل بعد اكتمال التحميل
+    hideLoadingScreen();
 }
 init();
 
