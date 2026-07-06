@@ -225,13 +225,14 @@ window.bindTelegram = async function() {
         const adminMessage = `🔗 *New Link Request*\n\n👤 User: ${currentUser.displayName || currentUser.email}\n📧 Email: ${currentUser.email}\n🆔 Bind Code: \`${bindCode}\``;
         await sendTelegramNotification(TELEGRAM_CHAT_ID, adminMessage);
 
-        window.open(`https://t.me/${BOT_USERNAME}`, '_blank');
-        showToast('📨 Bot opened! Click "Link Account".', 'success');
+        // ✅ فتح البوت مع بارامتر start
+        window.open(`https://t.me/${BOT_USERNAME}?start=bind`, '_blank');
+        showToast('📨 افتح البوت واضغط على زر "ابدأ" لربط حسابك.', 'success');
         startBindingListener(bindCode);
 
     } catch (error) {
         console.error('Telegram bind error:', error);
-        showToast('❌ Error connecting to Telegram', 'error');
+        showToast('❌ خطأ في الاتصال', 'error');
     }
 };
 
