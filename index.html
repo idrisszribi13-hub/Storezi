@@ -12,7 +12,7 @@
 <body>
 
     <!-- ============================================ -->
-    <!-- شاشة التحميل -->
+    <!-- شاشة التحميل (Loading Screen) -->
     <!-- ============================================ -->
     <div id="loadingScreen">
         <div class="loader-container">
@@ -20,7 +20,29 @@
             <div class="loader-bar">
                 <div class="loader-progress" id="loadingBar"></div>
             </div>
-            <div class="loader-text" id="loadingStatus">جاري تهيئة المتجر...</div>
+            <div class="loader-text" id="loadingStatus">Loading...</div>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- نافذة تيليجرام المتحركة (Telegram Banner) -->
+    <!-- ============================================ -->
+    <div id="telegramBanner" class="telegram-banner" style="display:none;">
+        <div class="banner-content">
+            <div class="banner-icon">
+                <i class="fab fa-telegram-plane"></i>
+                <span class="banner-pulse"></span>
+            </div>
+            <div class="banner-text">
+                <div class="banner-title">🔔 Stay Connected! <span class="badge-new">New</span></div>
+                <div class="banner-subtitle">Link your Telegram account to receive instant order notifications</div>
+            </div>
+            <button class="banner-action" onclick="bindTelegram()">
+                <i class="fab fa-telegram-plane"></i> Link Now
+            </button>
+            <button class="banner-close" onclick="closeTelegramBanner()" title="Close">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
     </div>
 
@@ -29,12 +51,12 @@
     <!-- ============================================ -->
     <div id="toast" class="toast">
         <span class="toast-icon"><i class="fas fa-check-circle"></i></span>
-        <span class="toast-message" id="toastMessage">تم بنجاح!</span>
+        <span class="toast-message" id="toastMessage">Success!</span>
         <button class="toast-close" onclick="hideToast()"><i class="fas fa-times"></i></button>
     </div>
 
     <!-- ============================================ -->
-    <!-- تطبيق رئيسي -->
+    <!-- تطبيق رئيسي (Main App) -->
     <!-- ============================================ -->
     <div id="mainApp" style="display:none;">
 
@@ -565,13 +587,14 @@
             <div class="tab-content" id="tabNotifications">
                 <button class="add-btn" onclick="openCreateNotificationModal()"><i class="fas fa-plus"></i> Send Notification</button>
                 <div id="adminNotificationsList"></div>
+                <!-- سيتم إضافة أزرار التحكم في Banner بواسطة JavaScript -->
             </div>
         </div>
     </div>
 
     <!-- مودال إضافة/تعديل منتج -->
     <div class="modal-overlay" id="productModal">
-        <div class="modal-content" style="max-width:460px;">
+        <div class="modal-content" style="max-width:480px;">
             <button class="modal-close" onclick="closeProductModal()"><i class="fas fa-times"></i></button>
             <div class="modal-title" id="productFormTitle">Add Product</div>
             <form id="productForm" onsubmit="saveProduct(event)">
