@@ -26,15 +26,17 @@ const analytics = getAnalytics(app);
 // ========================================
 
 // رسائل التحميل
+// Loading messages
 const loadingMessages = [
-    'جاري تهيئة المتجر...',
-    'جاري تحميل المنتجات...',
-    'جاري الاتصال بقاعدة البيانات...',
-    'مرحباً بك في ZI Store! 🚀'
+    'Initializing store...',
+    'Loading products...',
+    'Connecting to the database...',
+    'Welcome to ZI Store! 🚀'
 ];
 
 let loadingMessageIndex = 0;
 let loadingInterval = null;
+
 
 function updateLoadingMessage() {
     const statusEl = document.getElementById('loadingStatus');
