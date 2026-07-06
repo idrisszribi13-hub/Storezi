@@ -165,7 +165,6 @@ async function checkUserBanned(uid) {
         return false;
     }
 }
-
 // ========================================
 // دوال تيليجرام - بوت واحد يعمل 100%
 // ========================================
@@ -202,7 +201,7 @@ async function sendTelegramNotification(chatId, message) {
     }
 }
 
-// ✅ ربط تيليجرام - نسخة مبسطة (الكود يظهر للمدير فقط)
+// ✅ ربط تيليجرام - الكود يظهر للمدير فقط
 window.bindTelegram = async function() {
     if (!currentUser) { 
         showToast('⚠️ Please login first', 'warning'); 
@@ -225,13 +224,13 @@ window.bindTelegram = async function() {
 
         const botUsername = 'Zistore_Notif_bot';
         
-        // ✅ Send only to admin (user doesn't see the code)
+        // ✅ إرسال الكود للمدير فقط (وليس للمستخدم)
         const adminMessage = `🔗 *New Link Request*\n\n👤 User: ${currentUser.displayName || currentUser.email}\n📧 Email: ${currentUser.email}\n🆔 Bind Code: \`${bindCode}\``;
 
-        // Send code to admin only
+        // ✅ إرسال فقط للمدير
         await sendTelegramNotification(TELEGRAM_CHAT_ID, adminMessage);
 
-        // ✅ Open bot with interactive button
+        // ✅ فتح البوت مع زر الربط (بدون إرسال الكود للمستخدم)
         window.open(`https://t.me/${botUsername}`, '_blank');
 
         showToast('📨 Bot opened! Click "Link Account".', 'success');
@@ -245,7 +244,7 @@ window.bindTelegram = async function() {
     }
 };
 
-// ✅ Listening for binding confirmation
+// ✅ الاستماع لتأكيد الربط
 function startBindingListener(bindCode) {
     const bindRef = doc(db, 'telegram_binds', bindCode);
     const unsubscribe = onSnapshot(bindRef, (doc) => {
@@ -258,7 +257,7 @@ function startBindingListener(bindCode) {
                 renderProfileFull();
                 showToast('✅ Telegram linked successfully!', 'success');
                 
-                // Send welcome message
+                // ✅ إرسال رسالة ترحيب للمستخدم (بدون كود)
                 sendTelegramNotification(
                     userProfile.telegramChatId,
                     `🔔 *Welcome to ZI Store!*\n\nYour account has been linked successfully.\nYou will receive order notifications here.\n\nThank you for using ZI Store! 🚀`
@@ -270,12 +269,11 @@ function startBindingListener(bindCode) {
         }
     });
     
-    // Auto-cleanup after 5 minutes
     setTimeout(() => { 
         unsubscribe(); 
         console.log('⏰ Binding listener timeout');
     }, 300000);
-}
+}        
 
 // ✅ اختبار الإشعارات
 window.testTelegramNotification = async function() {
