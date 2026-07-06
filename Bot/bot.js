@@ -1,7 +1,6 @@
 const TelegramBot = require('node-telegram-bot-api');
 const express = require('express');
 const admin = require('firebase-admin');
-const fs = require('fs');
 
 // ============= Tokens from Environment Variables =============
 const token = process.env.BOT_TOKEN;
@@ -23,19 +22,8 @@ console.log('📌 Admin Chat ID:', ADMIN_CHAT_ID);
 // ============= Firebase Admin =============
 let db;
 try {
-    const serviceAccountPath = '/etc/secrets/firebase-credentials.json';
-    let serviceAccount;
-    
-    if (fs.existsSync(serviceAccountPath)) {
-        serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
-        console.log('✅ Service Account loaded');
-    } else {
-        serviceAccount = { projectId: "zi-script-store" };
-    }
-
     if (!admin.apps.length) {
         admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount),
             projectId: "zi-script-store"
         });
         console.log('✅ Firebase Admin initialized!');
@@ -59,8 +47,6 @@ app.post(`/webhook/${token}`, (req, res) => {
     try {
         const update = req.body;
         console.log('📩 Webhook update received');
-        
-        // Process update
         bot.processUpdate(update);
         res.sendStatus(200);
     } catch (error) {
@@ -78,7 +64,6 @@ bot.setWebHook(WEBHOOK_URL).then(() => {
     console.error('❌ Failed to set webhook:', err.message);
 });
 
-// ============= Root endpoint =============
 app.get('/', (req, res) => {
     res.send('🤖 Zi Store Bot is running with Webhook!');
 });
@@ -139,7 +124,7 @@ bot.onText(/\/chatid/, (msg) => {
     bot.sendMessage(chatId, `🆔 Your Chat ID: \`${chatId}\``, { parse_mode: 'Markdown' });
 });
 
-// ============= Callback Query Handler (Button Clicks) =============
+// ============= Callback Query Handler =============
 
 bot.on('callback_query', async (callbackQuery) => {
     const chatId = callbackQuery.message.chat.id;
@@ -148,7 +133,6 @@ bot.on('callback_query', async (callbackQuery) => {
 
     console.log(`🔘 Button clicked: ${data} from ${chatId}`);
 
-    // ✅ Acknowledge button press
     await bot.answerCallbackQuery(callbackQuery.id);
 
     if (data === 'link_account') {
@@ -172,12 +156,10 @@ bot.on('callback_query', async (callbackQuery) => {
 
             let bindDoc = null;
             let bindData = null;
-            let bindId = null;
 
             snapshot.forEach(doc => {
                 bindDoc = doc;
                 bindData = doc.data();
-                bindId = doc.id;
             });
 
             await bindDoc.ref.update({
@@ -201,7 +183,7 @@ Thank you for using ZI Store! 🚀`;
 
             await sendMessageWithButtons(chatId, successText, buttons);
             
-            console.log(`✅ User ${chatId} linked with code: ${bindId}`);
+            console.log(`✅ User ${chatId} linked successfully`);
 
             await bot.sendMessage(ADMIN_CHAT_ID, 
                 `🔗 *New Link*\n\n👤 User: ${bindData.userName || bindData.userEmail || 'Unknown'}\n📧 Email: ${bindData.userEmail || 'N/A'}\n🆔 Chat ID: ${chatId}`
@@ -223,90 +205,11 @@ Thank you for using ZI Store! 🚀`;
     }
 });
 
-// ============= Text Message Handler =============
-
-bot.on('message', async (msg) => {
-    const chatId = msg.chat.id;
-    const text = msg.text;
-
-    if (!text || text.startsWith('/')) {
-        return;
-    }
-
-    console.log(`📩 Received: "${text}" from ${chatId}`);
-
-    if (!db) {
-        await bot.sendMessage(chatId, '❌ Database error. Try again later.');
-        return;
-    }
-
-    try {
-        const docRef = db.collection('telegram_binds').doc(text);
-        const docSnap = await docRef.get();
-
-        if (docSnap.exists) {
-            const data = docSnap.data();
-
-            if (data.status === 'pending') {
-                await docRef.update({
-                    status: 'completed',
-                    telegramChatId: String(chatId),
-                    completedAt: admin.firestore.FieldValue.serverTimestamp()
-                });
-
-                const successText = `✅ *Account linked successfully!* 🎉
-
-👤 User: ${data.userName || data.userEmail || 'Unknown'}
-📧 Email: ${data.userEmail || 'N/A'}
-
-You will receive order notifications here.
-
-Thank you for using ZI Store! 🚀`;
-
-                const buttons = [
-                    [{ text: '🛒 Open Store', url: 'https://zribi13-hub.github.io/Storezi/' }]
-                ];
-
-                await sendMessageWithButtons(chatId, successText, buttons);
-                
-                console.log(`✅ User ${chatId} linked with code: ${text}`);
-                
-                await bot.sendMessage(ADMIN_CHAT_ID, 
-                    `🔗 *New Link*\n\n👤 User: ${data.userName || data.userEmail || 'Unknown'}\n📧 Email: ${data.userEmail || 'N/A'}\n🆔 Chat ID: ${chatId}`
-                );
-            } else {
-                await bot.sendMessage(chatId, '❌ This code is already used or expired.');
-            }
-        } else {
-            await bot.sendMessage(chatId, `❌ Invalid code.
-
-🔍 Make sure you copied the code correctly.
-
-📌 To get a new code:
-1. Open your profile in Zi Store
-2. Click "Link Telegram"
-3. Copy the new code
-
-📋 For help type /help`);
-        }
-    } catch (error) {
-        console.error('❌ Error:', error.message);
-        await bot.sendMessage(chatId, '❌ An error occurred. Try again.');
-    }
-});
-
 console.log('🚀 Zi Store Bot started successfully with Webhook!');
 
-// ============= Graceful Shutdown =============
 const shutdown = (signal) => {
     console.log(`⚠️ Received ${signal}. Removing webhook...`);
-    bot.deleteWebHook().then(() => {
-        console.log('✅ Webhook removed. Exiting.');
-        process.exit(0);
-    }).catch(err => {
-        console.error('❌ Error removing webhook:', err.message);
-        process.exit(1);
-    });
+    bot.deleteWebHook().then(() => process.exit(0));
 };
 
 process.on('SIGTERM', () => shutdown('SIGTERM')); 
