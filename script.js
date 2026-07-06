@@ -88,7 +88,7 @@ function updateLoadingBar(percent) {
 const ADMIN_EMAIL = 'zribiidriss3@gmail.com';
 
 // ✅ بوت واحد لكل شيء (Zistore_Notif_bot)
-const TELEGRAM_BOT_TOKEN = '8884982867:AAH7WHhCwy-jTjzAugLVyiIwUIu7Pghdq8k';
+const TELEGRAM_BOT_TOKEN = '8687744794:AAGeeNrEU-iQLRmg3dLvYkWHddtYo_sJ1tc';
 const TELEGRAM_CHAT_ID = '7434396478'; // معرف المدير
 const BOT_USERNAME = 'Zistore_Notif_bot';
 
