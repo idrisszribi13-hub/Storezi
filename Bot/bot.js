@@ -1,11 +1,15 @@
+// ========================================
+// BOT.JS - Full Code with Interactive Buttons
+// ========================================
+
 const TelegramBot = require('node-telegram-bot-api');
 const express = require('express');
 const admin = require('firebase-admin');
 const fs = require('fs');
 
-// ============= التوكن من متغيرات البيئة =============
+// ============= Tokens from Environment Variables =============
 const token = process.env.BOT_TOKEN;
-const ADMIN_CHAT_ID = process.env.TELEGRAM_CHAT_ID; // ✅ استخدم TELEGRAM_CHAT_ID
+const ADMIN_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
 if (!token) {
     console.error('❌ BOT_TOKEN is not set!');
@@ -20,8 +24,18 @@ if (!ADMIN_CHAT_ID) {
 console.log('🤖 Starting bot...');
 console.log('📌 Admin Chat ID:', ADMIN_CHAT_ID);
 
-// ============= البوت =============
+// ============= Bot Instance =============
 const bot = new TelegramBot(token, { polling: true });
+
+// ============= Polling Error Handling =============
+bot.on('polling_error', (error) => {
+    console.error('❌ Polling error:', error.message);
+    
+    if (error.message && (error.message.includes('409') || error.message.includes('terminated'))) {
+        console.log('🔄 409 Conflict detected. Exiting for restart...');
+        process.exit(1);
+    }
+});
 
 // ============= Firebase Admin =============
 let db;
@@ -49,7 +63,7 @@ try {
     db = null;
 }
 
-// ============= السيرفر =============
+// ============= Express Server =============
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -61,46 +75,160 @@ app.listen(PORT, () => {
     console.log(`✅ Server running on port ${PORT}`);
 });
 
-// ============= أوامر البوت =============
+// ============= Function to Send Message with Buttons =============
+async function sendMessageWithButtons(chatId, text, buttons) {
+    try {
+        const replyMarkup = {
+            inline_keyboard: buttons
+        };
+        
+        await bot.sendMessage(chatId, text, {
+            parse_mode: 'Markdown',
+            reply_markup: replyMarkup
+        });
+        console.log(`✅ Message with buttons sent to ${chatId}`);
+    } catch (error) {
+        console.error(`❌ Failed to send message with buttons:`, error.message);
+    }
+}
 
-bot.onText(/\/start/, (msg) => {
+// ============= Bot Commands =============
+
+bot.onText(/\/start/, async (msg) => {
     const chatId = msg.chat.id;
-    bot.sendMessage(chatId, `👋 Welcome to Zi Store Bot!
+    
+    // Welcome message with link button
+    const welcomeText = `👋 *Welcome to ZI Store Bot!*
 
-🔗 To link your account:
-1. Open your profile in Zi Store
-2. Click "Link Telegram"
-3. Copy the code
-4. Send it here
+🔗 To link your account, click the button below.`;
 
-📋 Commands:
-/help - Show help
-/chatid - Your Chat ID`);
+    const buttons = [
+        [{ text: '🔗 Link Account', callback_data: 'link_account' }],
+        [{ text: '🆔 Get Chat ID', callback_data: 'get_chatid' }]
+    ];
+
+    await sendMessageWithButtons(chatId, welcomeText, buttons);
 });
 
 bot.onText(/\/help/, (msg) => {
     const chatId = msg.chat.id;
-    bot.sendMessage(chatId, `📋 Commands:
+    bot.sendMessage(chatId, `📋 *Available Commands:*
 
 /start - Start the bot
 /help - Show help
-/chatid - Your Chat ID
+/chatid - Get your Chat ID
 
-🔗 To link your account:
-Send the code you get from your profile.`);
+🔗 To link your account, click the "Link Account" button`, { parse_mode: 'Markdown' });
 });
 
 bot.onText(/\/chatid/, (msg) => {
     const chatId = msg.chat.id;
-    bot.sendMessage(chatId, `🆔 Your Chat ID: ${chatId}`);
+    bot.sendMessage(chatId, `🆔 Your Chat ID: \`${chatId}\``, { parse_mode: 'Markdown' });
 });
 
-// ============= معالج الرسائل =============
+// ============= Callback Query Handler (Button Clicks) =============
+
+bot.on('callback_query', async (callbackQuery) => {
+    const chatId = callbackQuery.message.chat.id;
+    const data = callbackQuery.data;
+    const messageId = callbackQuery.message.message_id;
+
+    console.log(`🔘 Button clicked: ${data} from ${chatId}`);
+
+    // ✅ Acknowledge button press (remove loading state)
+    await bot.answerCallbackQuery(callbackQuery.id);
+
+    if (data === 'link_account') {
+        // ✅ Link account request
+        if (!db) {
+            await bot.sendMessage(chatId, '❌ Database error. Please try again later.');
+            return;
+        }
+
+        try {
+            // Search for a pending bind request
+            const bindsRef = db.collection('telegram_binds');
+            const snapshot = await bindsRef.where('status', '==', 'pending').limit(1).get();
+
+            if (snapshot.empty) {
+                // No pending bind request
+                await bot.sendMessage(chatId, `❌ No pending link request found.
+
+🔹 Open your profile in the store and click "Link Telegram" first.
+
+📌 Then come back here and click the button again.`);
+                return;
+            }
+
+            // ✅ Found a pending bind request
+            let bindDoc = null;
+            let bindData = null;
+            let bindId = null;
+
+            snapshot.forEach(doc => {
+                bindDoc = doc;
+                bindData = doc.data();
+                bindId = doc.id;
+            });
+
+            // ✅ Update binding status
+            await bindDoc.ref.update({
+                status: 'completed',
+                telegramChatId: String(chatId),
+                completedAt: admin.firestore.FieldValue.serverTimestamp()
+            });
+
+            // ✅ Success message with Open Store button
+            const successText = `✅ *Account linked successfully!* 🎉
+
+👤 User: ${bindData.userName || bindData.userEmail || 'Unknown'}
+📧 Email: ${bindData.userEmail || 'N/A'}
+
+You will receive order notifications here.
+
+Thank you for using ZI Store! 🚀`;
+
+            const buttons = [
+                [{ text: '🛒 Open Store', url: 'https://zribi13-hub.github.io/Storezi/' }]
+            ];
+
+            await sendMessageWithButtons(chatId, successText, buttons);
+            
+            console.log(`✅ User ${chatId} linked with code: ${bindId}`);
+
+            // ✅ Notify admin
+            await bot.sendMessage(ADMIN_CHAT_ID, 
+                `🔗 *New Link*\n\n👤 User: ${bindData.userName || bindData.userEmail || 'Unknown'}\n📧 Email: ${bindData.userEmail || 'N/A'}\n🆔 Chat ID: ${chatId}`
+            );
+
+            // ✅ Delete the previous message (optional)
+            try {
+                await bot.deleteMessage(chatId, messageId);
+            } catch (e) {
+                console.log('Could not delete message:', e.message);
+            }
+
+        } catch (error) {
+            console.error('❌ Error linking account:', error.message);
+            await bot.sendMessage(chatId, '❌ An error occurred. Please try again.');
+        }
+
+    } else if (data === 'get_chatid') {
+        await bot.sendMessage(chatId, `🆔 Your Chat ID: \`${chatId}\``, { parse_mode: 'Markdown' });
+    } else if (data === 'open_store') {
+        // Open store
+        await bot.sendMessage(chatId, '🛒 *Opening store...*', { parse_mode: 'Markdown' });
+        // Can add direct link here
+    }
+});
+
+// ============= Text Message Handler (for backward compatibility) =============
 
 bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
     const text = msg.text;
 
+    // Ignore commands and callback messages
     if (!text || text.startsWith('/')) {
         return;
     }
@@ -126,15 +254,25 @@ bot.on('message', async (msg) => {
                     completedAt: admin.firestore.FieldValue.serverTimestamp()
                 });
 
-                await bot.sendMessage(chatId, `✅ **Account linked successfully!** 🎉
+                const successText = `✅ *Account linked successfully!* 🎉
+
+👤 User: ${data.userName || data.userEmail || 'Unknown'}
+📧 Email: ${data.userEmail || 'N/A'}
 
 You will receive order notifications here.
-Thank you for using Zi Store! 🚀`);
+
+Thank you for using ZI Store! 🚀`;
+
+                const buttons = [
+                    [{ text: '🛒 Open Store', url: 'https://zribi13-hub.github.io/Storezi/' }]
+                ];
+
+                await sendMessageWithButtons(chatId, successText, buttons);
                 
                 console.log(`✅ User ${chatId} linked with code: ${text}`);
                 
                 await bot.sendMessage(ADMIN_CHAT_ID, 
-                    `🔗 New Link\n\nUser: ${data.userName || data.userEmail || 'Unknown'}\nEmail: ${data.userEmail || 'N/A'}\nChat ID: ${chatId}`
+                    `🔗 *New Link*\n\n👤 User: ${data.userName || data.userEmail || 'Unknown'}\n📧 Email: ${data.userEmail || 'N/A'}\n🆔 Chat ID: ${chatId}`
                 );
             } else {
                 await bot.sendMessage(chatId, '❌ This code is already used or expired.');
@@ -153,15 +291,15 @@ Thank you for using Zi Store! 🚀`);
         }
     } catch (error) {
         console.error('❌ Error:', error.message);
-        await bot.sendMessage(chatId, '❌ Error occurred. Try again.');
+        await bot.sendMessage(chatId, '❌ An error occurred. Try again.');
     }
 });
 
 console.log('🚀 Zi Store Bot started successfully!');
 
-// ============= إغلاق نظيف =============
+// ============= Graceful Shutdown =============
 const shutdown = (signal) => {
-    console.log(`⚠️ Received ${signal}. Stopping...`);
+    console.log(`⚠️ Received ${signal}. Stopping polling...`);
     bot.stopPolling().then(() => process.exit(0));
 };
 
