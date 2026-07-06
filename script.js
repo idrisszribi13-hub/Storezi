@@ -211,10 +211,8 @@ window.bindTelegram = async function() {
     }
 
     try {
-        // Generate unique binding code
         const bindCode = currentUser.uid.slice(-8) + Math.random().toString(36).substring(2, 6);
 
-        // Save binding request to database
         const bindRef = doc(db, 'telegram_binds', bindCode);
         await setDoc(bindRef, {
             userId: currentUser.uid,
@@ -226,18 +224,16 @@ window.bindTelegram = async function() {
 
         const botUsername = 'Zistore_Notif_bot';
         
-        // ✅ إرسال الكود للمدير فقط (وليس للمستخدم)
+        // ✅ إرسال الكود للمدير فقط
         const adminMessage = `🔗 *New Link Request*\n\n👤 User: ${currentUser.displayName || currentUser.email}\n📧 Email: ${currentUser.email}\n🆔 Bind Code: \`${bindCode}\``;
 
-        // ✅ إرسال فقط للمدير
         await sendTelegramNotification(TELEGRAM_CHAT_ID, adminMessage);
 
-        // ✅ فتح البوت مع زر الربط (بدون إرسال الكود للمستخدم)
+        // ✅ فتح البوت
         window.open(`https://t.me/${botUsername}`, '_blank');
 
         showToast('📨 Bot opened! Click "Link Account".', 'success');
 
-        // Start listening for confirmation
         startBindingListener(bindCode);
 
     } catch (error) {
@@ -259,7 +255,7 @@ function startBindingListener(bindCode) {
                 renderProfileFull();
                 showToast('✅ Telegram linked successfully!', 'success');
                 
-                // ✅ إرسال رسالة ترحيب للمستخدم (بدون كود)
+                // ✅ رسالة ترحيب للمستخدم (بدون كود)
                 sendTelegramNotification(
                     userProfile.telegramChatId,
                     `🔔 *Welcome to ZI Store!*\n\nYour account has been linked successfully.\nYou will receive order notifications here.\n\nThank you for using ZI Store! 🚀`
@@ -275,8 +271,7 @@ function startBindingListener(bindCode) {
         unsubscribe(); 
         console.log('⏰ Binding listener timeout');
     }, 300000);
-}        
-
+}
 // ✅ اختبار الإشعارات
 window.testTelegramNotification = async function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
