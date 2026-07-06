@@ -204,7 +204,11 @@ async function sendTelegramNotification(chatId, message) {
     }
 }
 
-// ✅ Simplified Telegram linking (code to admin only)
+// ========================================
+// SCRIPT.JS - تعديل دالة bindTelegram (إخفاء الكود)
+// ========================================
+
+// ✅ ربط تيليجرام - الكود يظهر للمدير فقط، والمستخدم يضغط زر في البوت
 window.bindTelegram = async function() {
     if (!currentUser) { 
         showToast('⚠️ Please login first', 'warning'); 
@@ -222,11 +226,16 @@ window.bindTelegram = async function() {
             status: 'pending'
         });
 
+        // ✅ إرسال الكود للمدير فقط (للتوثيق)
         const adminMessage = `🔗 *New Link Request*\n\n👤 User: ${currentUser.displayName || currentUser.email}\n📧 Email: ${currentUser.email}\n🆔 Bind Code: \`${bindCode}\``;
         await sendTelegramNotification(TELEGRAM_CHAT_ID, adminMessage);
 
+        // ✅ فتح البوت مع زر الربط (بدون إرسال الكود للمستخدم)
         window.open(`https://t.me/${BOT_USERNAME}`, '_blank');
+
         showToast('📨 Bot opened! Click "Link Account".', 'success');
+
+        // ✅ الاستماع لتأكيد الربط (لتحديث الواجهة فوراً)
         startBindingListener(bindCode);
 
     } catch (error) {
@@ -235,6 +244,7 @@ window.bindTelegram = async function() {
     }
 };
 
+// ✅ دالة الاستماع لتأكيد الربط (تحدث الواجهة عند نجاح الربط)
 function startBindingListener(bindCode) {
     const bindRef = doc(db, 'telegram_binds', bindCode);
     const unsubscribe = onSnapshot(bindRef, (doc) => {
@@ -246,15 +256,19 @@ function startBindingListener(bindCode) {
                 saveUserData();
                 renderProfileFull();
                 showToast('✅ Telegram linked successfully!', 'success');
+                
+                // ✅ رسالة ترحيب للمستخدم
                 sendTelegramNotification(
                     userProfile.telegramChatId,
                     `🔔 *Welcome to ZI Store!*\n\nYour account has been linked successfully.\nYou will receive order notifications here.\n\nThank you for using ZI Store! 🚀`
                 );
+                
                 updateFullUserMenu();
                 unsubscribe();
             }
         }
     });
+    
     setTimeout(() => { 
         unsubscribe(); 
         console.log('⏰ Binding listener timeout');
