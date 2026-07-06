@@ -2,7 +2,7 @@ const TelegramBot = require('node-telegram-bot-api');
 const express = require('express');
 const admin = require('firebase-admin');
 
-// ============= Tokens from Environment Variables =============
+// ============= Tokens =============
 const token = process.env.BOT_TOKEN;
 const ADMIN_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
@@ -34,38 +34,33 @@ try {
     db = null;
 }
 
-// ============= Express Server =============
-const app = express();
-app.use(express.json());
-const PORT = process.env.PORT || 3000;
-
-// ============= Bot Instance (without polling) =============
-const bot = new TelegramBot(token, { polling: false });
-
-// ============= Webhook endpoint =============
-app.post(`/webhook/${token}`, (req, res) => {
-    try {
-        const update = req.body;
-        console.log('📩 Webhook update received');
-        bot.processUpdate(update);
-        res.sendStatus(200);
-    } catch (error) {
-        console.error('❌ Webhook error:', error.message);
-        res.sendStatus(500);
+// ============= Bot Instance (Polling) =============
+const bot = new TelegramBot(token, { 
+    polling: {
+        autoStart: true,
+        interval: 300,
+        params: {
+            timeout: 10
+        }
     }
 });
 
-// ============= Set webhook =============
-const WEBHOOK_URL = `https://zi-store-bot.onrender.com/webhook/${token}`;
-
-bot.setWebHook(WEBHOOK_URL).then(() => {
-    console.log(`✅ Webhook set to: ${WEBHOOK_URL}`);
-}).catch(err => {
-    console.error('❌ Failed to set webhook:', err.message);
+// ============= Polling Error Handling =============
+bot.on('polling_error', (error) => {
+    console.error('❌ Polling error:', error.message);
+    
+    if (error.message && error.message.includes('409')) {
+        console.log('🔄 409 Conflict - Another instance is running');
+        console.log('💡 Wait a moment, the old instance will stop automatically');
+    }
 });
 
+// ============= Express Server =============
+const app = express();
+const PORT = process.env.PORT || 3000;
+
 app.get('/', (req, res) => {
-    res.send('🤖 Zi Store Bot is running with Webhook!');
+    res.send('🤖 Zi Store Bot is running with Polling!');
 });
 
 app.listen(PORT, () => {
@@ -86,7 +81,7 @@ async function sendMessageWithButtons(chatId, text, buttons) {
         console.log(`✅ Message with buttons sent to ${chatId}`);
         return true;
     } catch (error) {
-        console.error(`❌ Failed to send message with buttons:`, error.message);
+        console.error(`❌ Failed to send message:`, error.message);
         return false;
     }
 }
@@ -205,11 +200,11 @@ Thank you for using ZI Store! 🚀`;
     }
 });
 
-console.log('🚀 Zi Store Bot started successfully with Webhook!');
+console.log('🚀 Zi Store Bot started successfully with Polling!');
 
 const shutdown = (signal) => {
-    console.log(`⚠️ Received ${signal}. Removing webhook...`);
-    bot.deleteWebHook().then(() => process.exit(0));
+    console.log(`⚠️ Received ${signal}. Stopping...`);
+    bot.stopPolling().then(() => process.exit(0));
 };
 
 process.on('SIGTERM', () => shutdown('SIGTERM')); 
