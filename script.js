@@ -202,7 +202,7 @@ async function sendTelegramNotification(chatId, message) {
     }
 }
 
-// ✅ ربط تيليجرام - إرسال الكود تلقائياً إلى البوت
+// ✅ ربط تيليجرام
 window.bindTelegram = async function() {
     if (!currentUser) { 
         showToast('⚠️ Please login first', 'warning'); 
@@ -210,10 +210,7 @@ window.bindTelegram = async function() {
     }
 
     try {
-        // توليد كود ربط فريد
         const bindCode = currentUser.uid.slice(-8) + Math.random().toString(36).substring(2, 6);
-
-        // حفظ طلب الربط في قاعدة البيانات
         const bindRef = doc(db, 'telegram_binds', bindCode);
         await setDoc(bindRef, {
             userId: currentUser.uid,
@@ -223,20 +220,21 @@ window.bindTelegram = async function() {
             status: 'pending'
         });
 
-        // ✅ إرسال الكود مباشرة إلى البوت (بدون فتح نافذة)
-        const message = `${bindCode}`;
-        
-        // إرسال الكود إلى البوت عبر API
-        await sendTelegramNotification(TELEGRAM_CHAT_ID, 
-            `🔗 *طلب ربط جديد*\n\n👤 المستخدم: ${currentUser.displayName || currentUser.email}\n📧 البريد: ${currentUser.email}\n🆔 كود الربط: \`${bindCode}\``
-        );
+        const botUsername = 'Zistore_Notif_bot';
+        const adminMessage = `🔗 *طلب ربط جديد*\n\n👤 المستخدم: ${currentUser.displayName || currentUser.email}\n📧 البريد: ${currentUser.email}\n🆔 كود الربط: \`${bindCode}\``;
 
-        // ✅ فتح البوت مع الكود في الرسالة
-        const botUrl = `https://t.me/${BOT_USERNAME}?start=${bindCode}`;
-        
+        await sendTelegramNotification(TELEGRAM_CHAT_ID, adminMessage);
+        window.open(`https://t.me/${botUsername}`, '_blank');
+        showToast('📨 تم فتح البوت! اضغط على "ربط الحساب".', 'success');
+        startBindingListener(bindCode);
 
+    } catch (error) {
+        console.error('Telegram bind error:', error);
+        showToast('❌ خطأ في الاتصال مع تيليجرام', 'error');
+    }
+};
 
-// ✅ Listening for binding confirmation
+// ✅ الاستماع لتأكيد الربط
 function startBindingListener(bindCode) {
     const bindRef = doc(db, 'telegram_binds', bindCode);
     const unsubscribe = onSnapshot(bindRef, (doc) => {
@@ -247,12 +245,11 @@ function startBindingListener(bindCode) {
                 userProfile.telegramChatId = data.telegramChatId;
                 saveUserData();
                 renderProfileFull();
-                showToast('✅ Telegram linked successfully!', 'success');
+                showToast('✅ تم ربط تيليجرام بنجاح!', 'success');
                 
-                // Send welcome message
                 sendTelegramNotification(
                     userProfile.telegramChatId,
-                    `🔔 *Welcome to ZI Store!*\n\nYour account has been linked successfully.\nYou will receive order notifications here.\n\nThank you for using ZI Store! 🚀`
+                    `🔔 *مرحباً بك في ZI Store!*\n\nتم ربط حسابك بنجاح.\nستستلم إشعارات الطلبات هنا.\n\nشكراً لاستخدامك ZI Store! 🚀`
                 );
                 
                 updateFullUserMenu();
@@ -261,7 +258,6 @@ function startBindingListener(bindCode) {
         }
     });
     
-    // Auto-cleanup after 5 minutes
     setTimeout(() => { 
         unsubscribe(); 
         console.log('⏰ Binding listener timeout');
@@ -294,7 +290,6 @@ window.checkTelegramStatus = async function() {
         if (userSnap.exists()) {
             const data = userSnap.data();
             if (data.telegramChatId) {
-                // ✅ إخفاء Chat ID جزئياً للحماية
                 const chatId = data.telegramChatId;
                 const maskedId = chatId.slice(0, 4) + '***' + chatId.slice(-4);
                 showToast(`✅ مرتبط مع تيليجرام (Chat ID: ${maskedId})`, 'success');
