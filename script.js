@@ -1,5 +1,5 @@
 // ========================================
-// START OF SCRIPT.JS - كل الكود البرمجي هنا
+// START OF SCRIPT.JS - كامل مع جميع التعديلات
 // ========================================
 
 import { initializeApp } from "firebase/app";
@@ -7,6 +7,9 @@ import { getAuth, onAuthStateChanged, signInAnonymously, signInWithEmailAndPassw
 import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, increment, collection, query, where, getDocs, onSnapshot, addDoc, deleteDoc, orderBy } from "firebase/firestore";
 import { getAnalytics } from "firebase/analytics";
 
+// ========================================
+// Firebase Config
+// ========================================
 const firebaseConfig = {
     apiKey: "AIzaSyBwDTCxzd6aoue-NTLI2u4ouK-M37alwUw",
     authDomain: "zi-script-store.firebaseapp.com",
@@ -22,21 +25,18 @@ const db = getFirestore(app);
 const analytics = getAnalytics(app);
 
 // ========================================
-// شاشة تحميل بسيطة
+// Loading Screen - English Version
 // ========================================
 
-// رسائل التحميل
-// Loading messages
 const loadingMessages = [
     'Initializing store...',
     'Loading products...',
-    'Connecting to the database...',
+    'Connecting to database...',
     'Welcome to ZI Store! 🚀'
 ];
 
 let loadingMessageIndex = 0;
 let loadingInterval = null;
-
 
 function updateLoadingMessage() {
     const statusEl = document.getElementById('loadingStatus');
@@ -84,14 +84,12 @@ function updateLoadingBar(percent) {
 }
 
 // ========================================
-// نهاية شاشة التحميل
+// Constants
 // ========================================
 
 const ADMIN_EMAIL = 'zribiidriss3@gmail.com';
-
-// ✅ بوت واحد لكل شيء (Zistore_Notif_bot)
-const TELEGRAM_BOT_TOKEN = '8687744794:AAGeeNrEU-iQLRmg3dLvYkWHddtYo_sJ1tc';
-const TELEGRAM_CHAT_ID = '7434396478'; // معرف المدير
+const TELEGRAM_BOT_TOKEN = '8884982867:AAH7WHhCwy-jTjzAugLVyiIwUIu7Pghdq8k';
+const TELEGRAM_CHAT_ID = '7434396478';
 const BOT_USERNAME = 'Zistore_Notif_bot';
 
 let currentUser = null;
@@ -152,7 +150,10 @@ const paymentWallets = {
 };
 let cryptoPrices = { ltc: 0, usdt: 1, lastUpdate: null, isUpdating: false };
 
-// ✅ دالة التحقق من حالة Ban
+// ========================================
+// Helper Functions
+// ========================================
+
 async function checkUserBanned(uid) {
     try {
         const userRef = doc(db, 'users', uid);
@@ -167,11 +168,11 @@ async function checkUserBanned(uid) {
         return false;
     }
 }
+
 // ========================================
-// دوال تيليجرام - بوت واحد يعمل 100%
+// Telegram Functions
 // ========================================
 
-// ✅ وظيفة موحدة لإرسال الإشعارات إلى تيليجرام
 async function sendTelegramNotification(chatId, message) {
     if (!chatId) {
         console.error('❌ No chatId provided');
@@ -203,7 +204,7 @@ async function sendTelegramNotification(chatId, message) {
     }
 }
 
-// ✅ ربط تيليجرام - الكود يظهر للمدير فقط
+// ✅ Simplified Telegram linking (code to admin only)
 window.bindTelegram = async function() {
     if (!currentUser) { 
         showToast('⚠️ Please login first', 'warning'); 
@@ -212,7 +213,6 @@ window.bindTelegram = async function() {
 
     try {
         const bindCode = currentUser.uid.slice(-8) + Math.random().toString(36).substring(2, 6);
-
         const bindRef = doc(db, 'telegram_binds', bindCode);
         await setDoc(bindRef, {
             userId: currentUser.uid,
@@ -222,18 +222,11 @@ window.bindTelegram = async function() {
             status: 'pending'
         });
 
-        const botUsername = 'Zistore_Notif_bot';
-        
-        // ✅ إرسال الكود للمدير فقط
         const adminMessage = `🔗 *New Link Request*\n\n👤 User: ${currentUser.displayName || currentUser.email}\n📧 Email: ${currentUser.email}\n🆔 Bind Code: \`${bindCode}\``;
-
         await sendTelegramNotification(TELEGRAM_CHAT_ID, adminMessage);
 
-        // ✅ فتح البوت
-        window.open(`https://t.me/${botUsername}`, '_blank');
-
+        window.open(`https://t.me/${BOT_USERNAME}`, '_blank');
         showToast('📨 Bot opened! Click "Link Account".', 'success');
-
         startBindingListener(bindCode);
 
     } catch (error) {
@@ -242,7 +235,6 @@ window.bindTelegram = async function() {
     }
 };
 
-// ✅ الاستماع لتأكيد الربط
 function startBindingListener(bindCode) {
     const bindRef = doc(db, 'telegram_binds', bindCode);
     const unsubscribe = onSnapshot(bindRef, (doc) => {
@@ -254,42 +246,37 @@ function startBindingListener(bindCode) {
                 saveUserData();
                 renderProfileFull();
                 showToast('✅ Telegram linked successfully!', 'success');
-                
-                // ✅ رسالة ترحيب للمستخدم (بدون كود)
                 sendTelegramNotification(
                     userProfile.telegramChatId,
                     `🔔 *Welcome to ZI Store!*\n\nYour account has been linked successfully.\nYou will receive order notifications here.\n\nThank you for using ZI Store! 🚀`
                 );
-                
                 updateFullUserMenu();
                 unsubscribe();
             }
         }
     });
-    
     setTimeout(() => { 
         unsubscribe(); 
         console.log('⏰ Binding listener timeout');
     }, 300000);
 }
-// ✅ اختبار الإشعارات
+
 window.testTelegramNotification = async function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
     if (!userProfile.telegramChatId) { showToast('⚠️ No Telegram linked', 'warning'); return; }
 
     const result = await sendTelegramNotification(
         userProfile.telegramChatId,
-        `🔔 *اختبار الإشعارات*\n\nهذه رسالة اختبار من ZI Store.\n📅 ${new Date().toLocaleString()}\n\nإذا رأيت هذه الرسالة، فالإشعارات تعمل بشكل صحيح! ✅`
+        `🔔 *Test Notification*\n\nThis is a test message from ZI Store.\n📅 ${new Date().toLocaleString()}\n\nIf you see this, notifications are working! ✅`
     );
 
     if (result) {
-        showToast('✅ تم إرسال رسالة اختبار! تحقق من تيليجرام.', 'success');
+        showToast('✅ Test sent! Check Telegram.', 'success');
     } else {
-        showToast('❌ فشل إرسال رسالة الاختبار. تأكد من Chat ID.', 'error');
+        showToast('❌ Failed to send test. Check Chat ID.', 'error');
     }
 };
 
-// ✅ التحقق من حالة تيليجرام
 window.checkTelegramStatus = async function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
     try {
@@ -298,57 +285,44 @@ window.checkTelegramStatus = async function() {
         if (userSnap.exists()) {
             const data = userSnap.data();
             if (data.telegramChatId) {
-                const chatId = data.telegramChatId;
-                const maskedId = chatId.slice(0, 4) + '***' + chatId.slice(-4);
-                showToast(`✅ مرتبط مع تيليجرام (Chat ID: ${maskedId})`, 'success');
+                const maskedId = data.telegramChatId.slice(0, 4) + '***' + data.telegramChatId.slice(-4);
+                showToast(`✅ Linked (Chat ID: ${maskedId})`, 'success');
                 userProfile.telegramChatId = data.telegramChatId;
                 renderProfileFull();
-            } else { showToast('❌ غير مرتبط مع تيليجرام', 'warning'); }
+            } else { showToast('❌ Not linked', 'warning'); }
         }
     } catch (error) { console.error('Check telegram status error:', error);
-        showToast('❌ خطأ في التحقق', 'error'); }
+        showToast('❌ Error checking status', 'error'); }
 };
 
-// ✅ إلغاء ربط تيليجرام
 window.unlinkTelegram = async function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
-    
     if (!userProfile.telegramChatId) {
         showToast('⚠️ Telegram is not linked', 'warning');
         return;
     }
-    
     if (!confirm('Are you sure you want to unlink your Telegram account?\n\nYou will no longer receive order notifications.')) {
         return;
     }
-    
     try {
         const userRef = doc(db, 'users', currentUser.uid);
-        await updateDoc(userRef, {
-            telegramChatId: '',
-            telegram: ''
-        });
-        
+        await updateDoc(userRef, { telegramChatId: '', telegram: '' });
         userProfile.telegramChatId = '';
         userProfile.telegram = '';
         await saveUserData();
-        
         renderProfileFull();
         updateFullUserMenu();
         showToast('✅ Telegram unlinked successfully!', 'success');
-        
         sendTelegramNotification(
             TELEGRAM_CHAT_ID,
-            `🔓 *تم إلغاء ربط تيليجرام*\n\n👤 المستخدم: ${currentUser.displayName || currentUser.email}\n📧 البريد: ${currentUser.email}\n\nتم إلغاء ربط حسابك بنجاح.`
+            `🔓 *Telegram Unlinked*\n\n👤 User: ${currentUser.displayName || currentUser.email}\n📧 Email: ${currentUser.email}\n\nAccount unlinked successfully.`
         );
-        
     } catch (error) {
         console.error('Unlink error:', error);
         showToast('❌ Error unlinking Telegram', 'error');
     }
 };
 
-// ✅ دالة عرض Chat ID بشكل مخفي (للحماية)
 function maskChatId(chatId) {
     if (!chatId) return 'Not linked';
     if (chatId.length <= 8) return chatId;
@@ -356,10 +330,9 @@ function maskChatId(chatId) {
 }
 
 // ========================================
-// نهاية دوال تيليجرام
+// Toast
 // ========================================
 
-// عرض الإشعارات في الواجهة
 function showToast(message, type = 'success') {
     const toast = document.getElementById('toast');
     const messageEl = document.getElementById('toastMessage');
@@ -376,7 +349,10 @@ function showToast(message, type = 'success') {
 }
 window.hideToast = function() { document.getElementById('toast')?.classList.remove('show'); };
 
-// دوال المستخدم
+// ========================================
+// User Functions
+// ========================================
+
 async function getUserId() {
     if (userId) return userId;
     let savedId = localStorage.getItem('zi_userId');
@@ -496,7 +472,10 @@ function generateReferralCode(name, email) {
     return `${prefix}${random}`;
 }
 
-// تحديثات الواجهة
+// ========================================
+// UI Updates
+// ========================================
+
 function updateDropdownStats() {
     const userAvatar = document.getElementById('userAvatarText');
     if (currentUser) {
@@ -565,7 +544,10 @@ function updateFullUserMenu() {
     }
 }
 
-// دوال التوثيق
+// ========================================
+// Auth Functions
+// ========================================
+
 window.showLogin = function() { document.getElementById('loginContainer').style.display = 'block';
     document.getElementById('registerContainer').style.display = 'none'; };
 window.showRegister = function() { document.getElementById('loginContainer').style.display = 'none';
@@ -585,7 +567,6 @@ window.loginUser = async function() {
         btn.classList.remove('loading'); return; }
     try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        
         const userRef = doc(db, 'users', userCredential.user.uid);
         const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
@@ -598,7 +579,6 @@ window.loginUser = async function() {
                 return;
             }
         }
-        
         currentUser = userCredential.user;
         successEl.textContent = '✅ Login successful!';
         showToast('👋 Welcome back!', 'success');
@@ -615,6 +595,7 @@ window.loginUser = async function() {
             loadNotifications();
             fetchCryptoPrices();
             updateFullUserMenu();
+            showTelegramBanner();
         }, 500);
     } catch (error) { errorEl.textContent = '❌ ' + error.message;
         showToast('❌ Login failed', 'error');
@@ -698,6 +679,7 @@ window.registerUser = async function() {
             loadNotifications();
             fetchCryptoPrices();
             updateFullUserMenu();
+            showTelegramBanner();
         }, 500);
     } catch (error) { errorEl.textContent = '❌ ' + error.message;
         showToast('❌ Registration failed', 'error');
@@ -749,7 +731,10 @@ window.sendForgotPassword = async function() {
         showToast('❌ ' + error.message, 'error'); }
 };
 
-// دوال المودالات
+// ========================================
+// Modals
+// ========================================
+
 window.openUserMenuFull = function() {
     if (!currentUser) { openAuthModal(); return; }
     document.getElementById('userMenuFull').classList.add('open');
@@ -791,7 +776,10 @@ function openAuthModal() {
     document.getElementById('authSection').scrollIntoView({ behavior: 'smooth' });
 }
 
-// عرض الملف الشخصي
+// ========================================
+// Profile Render
+// ========================================
+
 function renderProfileFull() {
     const container = document.getElementById('profileFullContent');
     if (!currentUser) {
@@ -867,7 +855,7 @@ function renderProfileFull() {
       </div>
     </div>
 
-    <!-- ✅ قسم ربط تيليجرام المحسّن -->
+    <!-- Telegram Section -->
     <div class="telegram-bind-section" style="margin-top:12px;">
       <div style="font-size:14px;font-weight:700;color:var(--text);font-family:var(--font);margin-bottom:6px;">
         <i class="fab fa-telegram-plane" style="color:#0088cc;"></i> Telegram Notifications
@@ -910,6 +898,7 @@ function renderProfileFull() {
       </div>
     </div>
   `;
+    setTimeout(showTelegramBanner, 300);
 }
 
 window.saveProfileChangesInline = async function(e) {
@@ -970,7 +959,7 @@ window.changePasswordInline = async function() {
 };
 
 // ========================================
-// دوال المنتجات
+// Products
 // ========================================
 
 async function loadProductsFromFirestore() {
@@ -1127,7 +1116,7 @@ function generateRecommendations(productsList) {
 }
 
 // ========================================
-// دوال السلة
+// Cart
 // ========================================
 
 window.addToCart = async function(productId) {
@@ -1280,7 +1269,7 @@ window.applyCartPromo = function() {
 };
 
 // ========================================
-// دوال الـ wishlist
+// Wishlist
 // ========================================
 
 window.toggleWishlist = async function(productId) {
@@ -1349,7 +1338,7 @@ function createFloatingHearts() {
 }
 
 // ========================================
-// دوال الدفع
+// Product Details Modal
 // ========================================
 
 window.openDetails = function(id) {
@@ -1408,7 +1397,10 @@ window.openDetails = function(id) {
 };
 window.closeDetailsModal = function() { document.getElementById('detailsModal').classList.remove('open'); };
 
-// دوال المشاركة
+// ========================================
+// Share
+// ========================================
+
 window.openShareModal = function(productId) {
     const product = products.find(p => p.id === productId);
     if (!product) return;
@@ -1449,7 +1441,7 @@ window.copyShareLink = function() {
 };
 
 // ========================================
-// دوال التصفية والبحث
+// Filters & Search
 // ========================================
 
 window.filterProducts = function(filter) {
@@ -1536,7 +1528,7 @@ document.addEventListener('keydown', function(e) {
 });
 
 // ========================================
-// دوال الدفع
+// Payment
 // ========================================
 
 async function fetchCryptoPrices() {
@@ -1565,7 +1557,6 @@ async function fetchCryptoPrices() {
 }
 
 function getLTCPrice() { return cryptoPrices.ltc || 42; }
-
 function getUSDTPrice() { return cryptoPrices.usdt || 1; }
 
 function updatePriceUI() {
@@ -1660,7 +1651,6 @@ window.copyWalletAddress = function() {
     }
 };
 
-// ✅ إرسال الطلب مع الإشعارات
 function sendOrderToTelegram(method, txHash = null) {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
 
@@ -1694,39 +1684,36 @@ function sendOrderToTelegram(method, txHash = null) {
     
     if (rpEarned > 0) {
         userProfile.rp = (userProfile.rp || 0) + rpEarned;
-        discountText += `\n🎯 RP مكتسب: +${rpEarned} RP (قيمة ${finalTotal.toFixed(2)}$)`;
-        showToast(`🎉 ربحت ${rpEarned} نقاط RP!`, 'success');
+        discountText += `\n🎯 RP Earned: +${rpEarned} RP (value $${finalTotal.toFixed(2)})`;
+        showToast(`🎉 Earned ${rpEarned} RP!`, 'success');
     }
 
-    let adminMsg = '🛒 **طلب جديد**\n\n';
-    adminMsg += `👤 **العميل:** ${currentUser.displayName || currentUser.email || 'Unknown'}\n`;
-    adminMsg += `📧 **البريد:** ${currentUser.email || 'N/A'}\n`;
-    adminMsg += `📅 **التاريخ:** ${new Date().toLocaleString()}\n\n`;
-    adminMsg += `📦 **المنتجات:**\n${itemsList}\n`;
-    adminMsg += `💰 **المجموع:** ${total.toFixed(2)}$`;
+    let adminMsg = '🛒 **New Order**\n\n';
+    adminMsg += `👤 **Customer:** ${currentUser.displayName || currentUser.email || 'Unknown'}\n`;
+    adminMsg += `📧 **Email:** ${currentUser.email || 'N/A'}\n`;
+    adminMsg += `📅 **Date:** ${new Date().toLocaleString()}\n\n`;
+    adminMsg += `📦 **Products:**\n${itemsList}\n`;
+    adminMsg += `💰 **Subtotal:** ${total.toFixed(2)}$`;
     if (discountText) adminMsg += discountText;
-    adminMsg += `\n💵 **الإجمالي:** ${finalTotal.toFixed(2)}$`;
-    adminMsg += `\n💬 **طريقة الدفع:** ${method}`;
-    adminMsg += `\n🎯 **رصيد RP الحالي:** ${userProfile.rp || 0}`;
+    adminMsg += `\n💵 **Total:** ${finalTotal.toFixed(2)}$`;
+    adminMsg += `\n💬 **Payment Method:** ${method}`;
+    adminMsg += `\n🎯 **Current RP:** ${userProfile.rp || 0}`;
     if (method === 'litecoin') {
-        adminMsg += `\n📍 **عنوان LTC:** ${paymentWallets.litecoin.address}`;
+        adminMsg += `\n📍 **LTC Address:** ${paymentWallets.litecoin.address}`;
         if (txHash) adminMsg += `\n🔍 **Tx Hash:** ${txHash}`;
     } else if (method === 'usdt') {
-        adminMsg += `\n📍 **عنوان USDT:** ${paymentWallets.usdt.address}`;
+        adminMsg += `\n📍 **USDT Address:** ${paymentWallets.usdt.address}`;
         if (txHash) adminMsg += `\n🔍 **Tx Hash:** ${txHash}`;
     }
-    adminMsg += `\n\n📎 **رقم الطلب:** #${orderId.slice(-6)}`;
+    adminMsg += `\n\n📎 **Order ID:** #${orderId.slice(-6)}`;
 
-    // 1️⃣ إرسال إشعار للمدير
     sendTelegramNotification(TELEGRAM_CHAT_ID, adminMsg);
 
-    // 2️⃣ إرسال إشعار للمستخدم إذا كان مربطاً
     if (userProfile.telegramChatId) {
-        const userMsg = `🛒 *طلب جديد*\n\n📦 #${orderId.slice(-6)}\n💰 ${finalTotal.toFixed(2)}$\n📅 ${new Date().toLocaleString()}\n${rpEarned > 0 ? `🎯 +${rpEarned} RP مكافأة!\n` : ''}\nشكراً لتسوقك معنا! سيتم معالجة طلبك قريباً.`;
+        const userMsg = `🛒 *New Order*\n\n📦 #${orderId.slice(-6)}\n💰 ${finalTotal.toFixed(2)}$\n📅 ${new Date().toLocaleString()}\n${rpEarned > 0 ? `🎯 +${rpEarned} RP Bonus!\n` : ''}\nThank you for shopping with us! Your order will be processed soon.`;
         sendTelegramNotification(userProfile.telegramChatId, userMsg);
     }
 
-    // 3️⃣ فتح محادثة المدير (اختياري)
     window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(adminMsg)}`, '_blank');
 
     const orderItem = {
@@ -1776,7 +1763,7 @@ function sendOrderToTelegram(method, txHash = null) {
     generateRecommendations(products);
     updateRpDisplay();
 
-    showToast('📤 تم إرسال الطلب بنجاح!', 'success');
+    showToast('📤 Order placed successfully!', 'success');
     document.getElementById('paymentModal').classList.remove('open');
     document.getElementById('paymentStep1').style.display = 'block';
     document.getElementById('paymentStep2').classList.remove('active');
@@ -1841,7 +1828,7 @@ window.closePaymentModal = function() { document.getElementById('paymentModal').
 window.checkout = function() { openPaymentModal(); };
 
 // ========================================
-// دوال التنزيلات والإشعارات
+// Downloads
 // ========================================
 
 function loadDownloads() {
@@ -1918,7 +1905,7 @@ window.closeCreateDownloadModal = function() { document.getElementById('createDo
         'open'); };
 
 // ========================================
-// دوال الإشعارات
+// Notifications
 // ========================================
 
 function loadNotifications() {
@@ -2104,7 +2091,7 @@ window.closeCreateNotificationModal = function() { document.getElementById('crea
         'open'); };
 
 // ========================================
-// دوال الطلبات
+// Requests
 // ========================================
 
 window.openRequestsModal = function() {
@@ -2152,7 +2139,7 @@ window.submitRequest = function(e) {
 };
 
 // ========================================
-// دوال الإحالات
+// Referrals
 // ========================================
 
 window.openReferralModal = function() {
@@ -2193,7 +2180,7 @@ window.copyReferralCode2 = function() {
 };
 
 // ========================================
-// دوال لوحة المدير
+// Admin Panel
 // ========================================
 
 window.openAdminPanel = function() {
@@ -2206,7 +2193,9 @@ window.openAdminPanel = function() {
         loadDownloads();
         loadNotifications();
         renderAdminProducts(products);
-        loadAdminUsers(); }
+        loadAdminUsers();
+        setTimeout(addBannerAdminControls, 300);
+    }
 };
 window.closeAdminPanel = function() { document.getElementById('adminPanel').classList.remove('open'); if (
         unsubscribeAdmin) { unsubscribeAdmin();
@@ -2245,6 +2234,52 @@ function renderAdminProducts(productsList) {
     }).join('');
 }
 
+// ✅ FIXED: Edit Product Modal
+window.openEditProductModal = function(productId) {
+    console.log('🔍 Edit button clicked for:', productId);
+    
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { 
+        showToast('⛔ Unauthorized', 'error'); 
+        return; 
+    }
+    
+    if (!products || products.length === 0) {
+        showToast('❌ No products loaded', 'error');
+        return;
+    }
+    
+    const product = products.find(p => p.id === productId);
+    if (!product) { 
+        showToast('❌ Product not found', 'error'); 
+        console.log('❌ Product not found for ID:', productId);
+        console.log('📋 Available products:', products.map(p => p.id));
+        return; 
+    }
+    
+    console.log('✏️ Editing product:', product);
+    
+    document.getElementById('productFormTitle').textContent = '✏️ Edit Product: ' + product.name;
+    document.getElementById('productIdField').value = productId;
+    document.getElementById('productName').value = product.name || '';
+    document.getElementById('productPrice').value = product.price !== undefined ? product.price : '';
+    document.getElementById('productBadge').value = product.badge || 'FREE';
+    document.getElementById('productStatus').value = product.status || 'available';
+    document.getElementById('productImage').value = product.image || '';
+    document.getElementById('productDescription').value = product.description || '';
+    document.getElementById('productFeatures').value = (product.features || []).join(', ');
+    document.getElementById('productVideo').value = product.video || 'https://www.youtube.com/embed/dQw4w9WgXcQ';
+    document.getElementById('productDuration').value = product.duration || '';
+    document.getElementById('productOriginalPrice').value = product.originalPrice || '';
+    
+    const modal = document.getElementById('productModal');
+    if (modal) {
+        modal.classList.add('open');
+        setTimeout(fixDirection, 200);
+    } else {
+        showToast('❌ Modal not found', 'error');
+    }
+};
+
 window.openAddProductModal = function() {
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
     document.getElementById('productFormTitle').textContent = '➕ Add New Product';
@@ -2259,40 +2294,6 @@ window.openAddProductModal = function() {
     document.getElementById('productDuration').value = '';
     document.getElementById('productOriginalPrice').value = '';
     document.getElementById('productModal').classList.add('open');
-};
-
-// ✅ فتح مودال تعديل المنتج (نسخة تعمل)
-window.openEditProductModal = function(productId) {
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { 
-        showToast('⛔ Unauthorized', 'error'); 
-        return; 
-    }
-    
-    const product = products.find(p => p.id === productId);
-    if (!product) { 
-        showToast('❌ Product not found', 'error'); 
-        return; 
-    }
-    
-    console.log('✏️ Editing product:', product);
-    
-    // تعبئة النموذج
-    document.getElementById('productFormTitle').textContent = '✏️ Edit Product: ' + product.name;
-    document.getElementById('productIdField').value = productId;
-    document.getElementById('productName').value = product.name || '';
-    document.getElementById('productPrice').value = product.price !== undefined ? product.price : '';
-    document.getElementById('productBadge').value = product.badge || 'FREE';
-    document.getElementById('productStatus').value = product.status || 'available';
-    document.getElementById('productImage').value = product.image || '';
-    document.getElementById('productDescription').value = product.description || '';
-    document.getElementById('productFeatures').value = (product.features || []).join(', ');
-    document.getElementById('productVideo').value = product.video || 'https://www.youtube.com/embed/dQw4w9WgXcQ';
-    document.getElementById('productDuration').value = product.duration || '';
-    document.getElementById('productOriginalPrice').value = product.originalPrice || '';
-    
-    // فتح المودال
-    document.getElementById('productModal').classList.add('open');
-    setTimeout(fixDirection, 200);
 };
 
 window.closeProductModal = function() { document.getElementById('productModal').classList.remove('open'); };
@@ -2356,7 +2357,7 @@ async function deleteProductFromFirestore(productId) {
 }
 
 // ========================================
-// دوال إدارة الطلبات
+// Admin Orders
 // ========================================
 
 function startAdminRealtimeListener() {
@@ -2504,7 +2505,6 @@ function updateAdminStats(orders) {
     document.getElementById('adminRejectedOrders').textContent = rejected;
 }
 
-// ✅ تحديث حالة الطلب مع إرسال إشعار للمستخدم
 window.updateOrderStatus = async function(orderId, userId, newStatus) {
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!orderId || !userId) { showToast('❌ Invalid data', 'error'); return; }
@@ -2527,18 +2527,15 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
         const statusLabel = statusLabels[newStatus] || newStatus;
         showToast(`📦 Order updated to ${statusLabel}`, 'success');
 
-        // ✅ إرسال إشعار للمستخدم
         if (updatedOrder) {
             const itemsNames = updatedOrder.items ? updatedOrder.items.map(i => i.name).join(', ') : 'Your order';
             const userMsg =
                 `📦 *Order Update #${String(orderId).slice(-6)}*\n\n📋 Products: ${itemsNames}\n🔄 Status: ${statusLabel}\n📅 Date: ${new Date().toLocaleString()}`;
 
-            // إرسال للمستخدم إذا كان مربطاً
             if (data.telegramChatId) {
                 await sendTelegramNotification(data.telegramChatId, userMsg);
             }
 
-            // إرسال للمدير
             const adminMsg =
                 `🔄 Order #${String(orderId).slice(-6)} updated\nUser: ${data.email || 'Unknown'}\nNew Status: ${statusLabel}`;
             await sendTelegramNotification(TELEGRAM_CHAT_ID, adminMsg);
@@ -2601,7 +2598,7 @@ window.refreshAdminOrders = function() { loadAdminOrders();
     showToast('🔄 Refreshed', 'info'); };
 
 // ========================================
-// دوال إدارة المستخدمين
+// Admin Users
 // ========================================
 
 async function loadAdminUsers() {
@@ -2735,7 +2732,7 @@ window.viewUserDetails = async function(uid) {
 window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
 // ========================================
-// دوال السجل
+// History
 // ========================================
 
 function renderHistoryFull() {
@@ -2766,7 +2763,7 @@ function renderHistoryFull() {
 }
 
 // ========================================
-// دوال الوضع والتهيئة
+// Theme
 // ========================================
 
 let isDark = true;
@@ -2776,6 +2773,10 @@ document.getElementById('themeToggle')?.addEventListener('click', function() {
         this.innerHTML = '<i class="fas fa-moon"></i>'; } else { document.body.classList.add('light');
         this.innerHTML = '<i class="fas fa-sun"></i>'; }
 });
+
+// ========================================
+// Auth State
+// ========================================
 
 onAuthStateChanged(auth, async (user) => {
     currentUser = user;
@@ -2805,10 +2806,13 @@ onAuthStateChanged(auth, async (user) => {
         if (user.email === ADMIN_EMAIL) { loadAdminOrders();
             startAdminRealtimeListener();
             renderAdminProducts(products);
-            loadAdminUsers(); }
+            loadAdminUsers();
+            setTimeout(addBannerAdminControls, 500);
+        }
         loadDownloads();
         loadNotifications();
         fetchCryptoPrices();
+        setTimeout(showTelegramBanner, 1000);
     } else {
         document.getElementById('authSection').style.display = 'block';
         document.getElementById('mainApp').style.display = 'none';
@@ -2823,7 +2827,216 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ========================================
-// init()
+// Telegram Banner
+// ========================================
+
+function showTelegramBanner() {
+    const banner = document.getElementById('telegramBanner');
+    if (!banner) return;
+    
+    const bannerHidden = localStorage.getItem('telegram_banner_hidden') === 'true';
+    const adminDisabled = localStorage.getItem('telegram_banner_admin_disabled') === 'true';
+    
+    if (bannerHidden || adminDisabled) {
+        banner.classList.add('hidden');
+        return;
+    }
+    
+    if (userProfile.telegramChatId) {
+        banner.classList.add('linked');
+        banner.querySelector('.banner-title').textContent = '✅ Connected!';
+        banner.querySelector('.banner-subtitle').textContent = 'You will receive order notifications here.';
+        banner.querySelector('.banner-action').innerHTML = '<i class="fas fa-check"></i> Linked';
+        banner.querySelector('.banner-action').onclick = () => openProfileFull();
+        banner.querySelector('.banner-icon i').className = 'fas fa-check-circle';
+    } else {
+        banner.classList.remove('linked');
+        banner.querySelector('.banner-title').innerHTML = '🔔 Stay Connected! <span class="badge-new">New</span>';
+        banner.querySelector('.banner-subtitle').textContent = 'Link your Telegram account to receive instant order notifications';
+        banner.querySelector('.banner-action').innerHTML = '<i class="fab fa-telegram-plane"></i> Link Now';
+        banner.querySelector('.banner-action').onclick = () => bindTelegram();
+        banner.querySelector('.banner-icon i').className = 'fab fa-telegram-plane';
+    }
+    
+    banner.style.display = 'block';
+    banner.style.animation = 'none';
+    setTimeout(() => {
+        banner.style.animation = 'bannerSlideDown 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards';
+    }, 10);
+}
+
+function closeTelegramBanner() {
+    const banner = document.getElementById('telegramBanner');
+    if (banner) {
+        banner.style.display = 'none';
+        localStorage.setItem('telegram_banner_hidden', 'true');
+    }
+}
+
+function showTelegramBannerAgain() {
+    localStorage.removeItem('telegram_banner_hidden');
+    showTelegramBanner();
+}
+
+function addBannerAdminControls() {
+    const tabNotifications = document.getElementById('tabNotifications');
+    if (!tabNotifications) return;
+    
+    // Remove existing controls if any
+    const existingControls = tabNotifications.querySelector('.banner-admin-controls');
+    if (existingControls) existingControls.remove();
+    
+    const controls = document.createElement('div');
+    controls.className = 'banner-admin-controls';
+    controls.style.cssText = `
+        background: var(--bg);
+        border-radius: 10px;
+        padding: 14px;
+        border: 1px solid var(--border);
+        margin-bottom: 12px;
+    `;
+    const isHidden = localStorage.getItem('telegram_banner_admin_disabled') === 'true';
+    controls.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+            <div>
+                <div style="font-weight:600;color:var(--text);font-size:14px;font-family:var(--font);">
+                    <i class="fab fa-telegram-plane" style="color:#0088cc;"></i> Telegram Banner
+                </div>
+                <div style="font-size:12px;color:var(--text-secondary);opacity:0.4;font-family:var(--font);">
+                    Show/hide the Telegram notification banner for all users
+                </div>
+            </div>
+            <div style="display:flex;gap:6px;">
+                <button onclick="adminToggleBanner(true)" class="banner-admin-btn" style="
+                    padding:6px 16px;
+                    border:none;
+                    border-radius:6px;
+                    background:var(--success);
+                    color:#0a0a1a;
+                    font-weight:600;
+                    cursor:pointer;
+                    font-size:12px;
+                    font-family:var(--font);
+                    transition:0.3s;
+                ">
+                    <i class="fas fa-eye"></i> Show
+                </button>
+                <button onclick="adminToggleBanner(false)" class="banner-admin-btn" style="
+                    padding:6px 16px;
+                    border:none;
+                    border-radius:6px;
+                    background:var(--danger);
+                    color:#fff;
+                    font-weight:600;
+                    cursor:pointer;
+                    font-size:12px;
+                    font-family:var(--font);
+                    transition:0.3s;
+                ">
+                    <i class="fas fa-eye-slash"></i> Hide
+                </button>
+                <button onclick="resetBannerForAll()" class="banner-admin-btn" style="
+                    padding:6px 16px;
+                    border:1px solid var(--border);
+                    border-radius:6px;
+                    background:var(--card-bg);
+                    color:var(--text);
+                    font-weight:600;
+                    cursor:pointer;
+                    font-size:12px;
+                    font-family:var(--font);
+                    transition:0.3s;
+                ">
+                    <i class="fas fa-sync"></i> Reset
+                </button>
+            </div>
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:var(--text-secondary);opacity:0.3;font-family:var(--font);">
+            ${isHidden ? '🚫 Banner is currently <strong style="color:var(--danger);">HIDDEN</strong> for all users' : '✅ Banner is currently <strong style="color:var(--success);">VISIBLE</strong> for all users'}
+        </div>
+    `;
+    
+    const notifList = document.getElementById('adminNotificationsList');
+    if (notifList) {
+        tabNotifications.insertBefore(controls, notifList);
+    } else {
+        tabNotifications.appendChild(controls);
+    }
+}
+
+function adminToggleBanner(show) {
+    if (show) {
+        localStorage.setItem('telegram_banner_admin_disabled', 'false');
+        showToast('✅ Banner is now visible for all users', 'success');
+    } else {
+        localStorage.setItem('telegram_banner_admin_disabled', 'true');
+        const banner = document.getElementById('telegramBanner');
+        if (banner) banner.classList.add('hidden');
+        showToast('🚫 Banner is now hidden for all users', 'warning');
+    }
+    addBannerAdminControls();
+    if (show) {
+        localStorage.removeItem('telegram_banner_hidden');
+        setTimeout(showTelegramBanner, 300);
+    }
+}
+
+function resetBannerForAll() {
+    localStorage.removeItem('telegram_banner_admin_disabled');
+    localStorage.removeItem('telegram_banner_hidden');
+    showToast('🔄 Banner reset for all users', 'info');
+    addBannerAdminControls();
+    setTimeout(showTelegramBanner, 300);
+}
+
+// ========================================
+// Fix Direction
+// ========================================
+
+function fixDirection() {
+    document.querySelectorAll('.header, .logo, .header-actions, .modal-content, .fullscreen-modal, .admin-panel').forEach(el => {
+        el.style.direction = 'ltr';
+        el.style.textAlign = 'left';
+    });
+    
+    document.querySelectorAll('.modal-close').forEach(el => {
+        el.style.right = 'auto';
+        el.style.left = '10px';
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(fixDirection, 100);
+    setTimeout(showTelegramBanner, 500);
+});
+
+// Override admin panel open to add controls
+const originalOpenAdminPanel = window.openAdminPanel;
+window.openAdminPanel = function() {
+    if (originalOpenAdminPanel) originalOpenAdminPanel();
+    setTimeout(addBannerAdminControls, 300);
+};
+
+const originalOpenAddProductModal = window.openAddProductModal;
+window.openAddProductModal = function() {
+    if (originalOpenAddProductModal) originalOpenAddProductModal();
+    setTimeout(fixDirection, 200);
+};
+
+const originalOpenEditProductModal = window.openEditProductModal;
+window.openEditProductModal = function() {
+    if (originalOpenEditProductModal) originalOpenEditProductModal();
+    setTimeout(fixDirection, 200);
+};
+
+const originalOpenCreateNotificationModal = window.openCreateNotificationModal;
+window.openCreateNotificationModal = function() {
+    if (originalOpenCreateNotificationModal) originalOpenCreateNotificationModal();
+    setTimeout(fixDirection, 200);
+};
+
+// ========================================
+// Init
 // ========================================
 
 async function init() {
@@ -2861,6 +3074,7 @@ async function init() {
     
     setTimeout(() => {
         hideLoadingScreen();
+        setTimeout(showTelegramBanner, 500);
     }, 500);
 }
 init();
@@ -2871,7 +3085,7 @@ setTimeout(() => {
 }, 5000);
 
 // ========================================
-// تصدير الدوال للاستخدام العام
+// Exports
 // ========================================
 
 window.showToast = showToast;
@@ -2951,50 +3165,9 @@ window.sendResetLinkInline = sendResetLinkInline;
 window.changePasswordInline = changePasswordInline;
 window.toggleRpInCart = toggleRpInCart;
 window.applyCartPromo = applyCartPromo;
-
-// ========================================
-// إصلاح الاتجاه للعناصر
-// ========================================
-
-function fixDirection() {
-    document.querySelectorAll('.header, .logo, .header-actions, .modal-content, .fullscreen-modal, .admin-panel').forEach(el => {
-        el.style.direction = 'ltr';
-        el.style.textAlign = 'left';
-    });
-    
-    document.querySelectorAll('.modal-close').forEach(el => {
-        el.style.right = 'auto';
-        el.style.left = '10px';
-    });
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(fixDirection, 100);
-});
-
-const originalOpenAdminPanel = window.openAdminPanel;
-window.openAdminPanel = function() {
-    if (originalOpenAdminPanel) originalOpenAdminPanel();
-    setTimeout(fixDirection, 200);
-};
-
-const originalOpenAddProductModal = window.openAddProductModal;
-window.openAddProductModal = function() {
-    if (originalOpenAddProductModal) originalOpenAddProductModal();
-    setTimeout(fixDirection, 200);
-};
-
-const originalOpenEditProductModal = window.openEditProductModal;
-window.openEditProductModal = function() {
-    if (originalOpenEditProductModal) originalOpenEditProductModal();
-    setTimeout(fixDirection, 200);
-};
-
-const originalOpenCreateNotificationModal = window.openCreateNotificationModal;
-window.openCreateNotificationModal = function() {
-    if (originalOpenCreateNotificationModal) originalOpenCreateNotificationModal();
-    setTimeout(fixDirection, 200);
-};
+window.showTelegramBannerAgain = showTelegramBannerAgain;
+window.adminToggleBanner = adminToggleBanner;
+window.resetBannerForAll = resetBannerForAll;
 
 // ========================================
 // END OF SCRIPT.JS
