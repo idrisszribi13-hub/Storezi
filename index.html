@@ -17,7 +17,9 @@
     <div id="loadingScreen">
         <div class="loader-container">
             <div class="loader-icon">🚀</div>
-            <div class="loader-bar"><div class="loader-progress" id="loadingBar"></div></div>
+            <div class="loader-bar">
+                <div class="loader-progress" id="loadingBar"></div>
+            </div>
             <div class="loader-text" id="loadingStatus">جاري تهيئة المتجر...</div>
         </div>
     </div>
@@ -38,13 +40,10 @@
 
         <!-- ================== HEADER ================== -->
         <header class="header">
-            <!-- الشعار - في أقصى اليسار -->
             <div class="logo">
                 <i class="fas fa-bolt"></i>
                 <span>ZI</span> Store
             </div>
-
-            <!-- الأيقونات - في أقصى اليمين -->
             <div class="header-actions">
                 <button class="header-btn" onclick="openDownloads()" title="Downloads">
                     <i class="fas fa-download"></i>
@@ -218,7 +217,7 @@
             </div>
             <div class="terms-check">
                 <input type="checkbox" id="termsCheck" />
-                <label for="termsCheck">I agree to the <a onclick="showToast('Terms & Conditions','info')">Terms & Conditions</a></label>
+                <label for="termsCheck">I agree to the Terms & Conditions</label>
             </div>
             <button class="auth-btn" id="registerBtn" onclick="registerUser()">
                 <span class="btn-text">Create Account</span>
@@ -266,7 +265,6 @@
             <button class="modal-close" onclick="closePaymentModal()"><i class="fas fa-times"></i></button>
             <div class="modal-title"><i class="fas fa-credit-card"></i> Checkout</div>
 
-            <!-- الخطوة 1: اختيار طريقة الدفع -->
             <div id="paymentStep1">
                 <div class="payment-options">
                     <div class="payment-option" id="optionLitecoin" onclick="selectPayment('litecoin')">
@@ -295,7 +293,6 @@
                 <button class="payment-btn" onclick="continuePayment()"><i class="fas fa-arrow-right"></i> Continue</button>
             </div>
 
-            <!-- الخطوة 2: تأكيد الدفع -->
             <div class="payment-step2" id="paymentStep2">
                 <div class="payment-products-list" id="paymentProductsList"></div>
                 <div class="payment-summary">
