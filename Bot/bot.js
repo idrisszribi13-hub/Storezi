@@ -1,5 +1,5 @@
 // ============================================================
-// BOT.JS - النسخة النهائية مع تحديث وثيقة المستخدم مباشرة
+// BOT.JS - النسخة النهائية مع البحث عن المستخدم وتحديثه
 // ============================================================
 
 const TelegramBot = require('node-telegram-bot-api');
@@ -83,7 +83,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.get('/', (req, res) => {
-    res.send('🤖 Zi Store Bot يعمل مع تحديث وثيقة المستخدم مباشرة!');
+    res.send('🤖 Zi Store Bot يعمل مع البحث عن المستخدم وتحديثه!');
 });
 
 app.listen(PORT, () => {
@@ -142,6 +142,84 @@ async function isUserLinked(chatId) {
         return !snapshot.empty;
     } catch (error) {
         console.error('خطأ في التحقق من الربط:', error.message);
+        return false;
+    }
+}
+
+// 🔥 البحث عن المستخدم وتحديثه بالـ chatId
+async function updateUserWithChatId(bindData, chatId) {
+    if (!db) return false;
+    
+    try {
+        let userId = bindData.userId || bindData.userID;
+        let userRef = null;
+        
+        // محاولة 1: باستخدام userId الموجود في bindData
+        if (userId) {
+            userRef = db.collection('users').doc(userId);
+            const docSnap = await userRef.get();
+            if (docSnap.exists) {
+                await userRef.update({
+                    telegramChatId: String(chatId),
+                    telegram: bindData.userName || bindData.userEmail || '',
+                    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+                });
+                console.log(`✅ تم تحديث المستخدم ${userId} بالـ chatId`);
+                return true;
+            }
+        }
+        
+        // محاولة 2: البحث باستخدام البريد الإلكتروني
+        if (bindData.userEmail) {
+            const usersRef = db.collection('users');
+            const snapshot = await usersRef
+                .where('email', '==', bindData.userEmail)
+                .limit(1)
+                .get();
+            
+            if (!snapshot.empty) {
+                snapshot.forEach(doc => {
+                    userRef = doc.ref;
+                    userId = doc.id;
+                });
+                await userRef.update({
+                    telegramChatId: String(chatId),
+                    telegram: bindData.userName || bindData.userEmail || '',
+                    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+                });
+                console.log(`✅ تم تحديث المستخدم ${userId} (عن طريق البريد) بالـ chatId`);
+                return true;
+            }
+        }
+        
+        // محاولة 3: البحث باستخدام اسم المستخدم
+        if (bindData.userName) {
+            const usersRef = db.collection('users');
+            const snapshot = await usersRef
+                .where('name', '==', bindData.userName)
+                .limit(1)
+                .get();
+            
+            if (!snapshot.empty) {
+                snapshot.forEach(doc => {
+                    userRef = doc.ref;
+                    userId = doc.id;
+                });
+                await userRef.update({
+                    telegramChatId: String(chatId),
+                    telegram: bindData.userName || '',
+                    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+                });
+                console.log(`✅ تم تحديث المستخدم ${userId} (عن طريق الاسم) بالـ chatId`);
+                return true;
+            }
+        }
+        
+        console.error('❌ لم يتم العثور على مستخدم مطابق للربط');
+        return false;
+        
+    } catch (error) {
+        console.error('❌ فشل تحديث المستخدم:', error.message);
         return false;
     }
 }
@@ -230,33 +308,23 @@ bot.on('callback_query', async (callbackQuery) => {
 
             const { doc, data: bindData } = pending;
 
-            // ✅ تحديث وثيقة الربط إلى مكتمل
+            // ✅ 1. تحديث وثيقة الربط إلى مكتمل
             await doc.ref.update({
                 status: 'completed',
                 telegramChatId: String(chatId),
                 completedAt: admin.firestore.FieldValue.serverTimestamp()
             });
 
-            // ✅ تحديث وثيقة المستخدم مباشرة (لضمان تحديث الموقع فوراً)
-            if (bindData.userId) {
-                try {
-                    const userRef = db.collection('users').doc(bindData.userId);
-                    await userRef.update({
-                        telegramChatId: String(chatId),
-                        telegram: bindData.userName || '',
-                        updatedAt: admin.firestore.FieldValue.serverTimestamp()
-                    });
-                    console.log(`✅ تم تحديث وثيقة المستخدم ${bindData.userId} بالـ chatId`);
-                } catch (userError) {
-                    console.error('❌ فشل تحديث وثيقة المستخدم:', userError.message);
-                }
-            }
+            // ✅ 2. البحث عن المستخدم وتحديثه بالـ chatId
+            const userUpdated = await updateUserWithChatId(bindData, chatId);
 
-            // ✅ رسالة نجاح مع زر فتح المتجر
+            // ✅ 3. رسالة نجاح
             const successText = `✅ *تم ربط الحساب بنجاح!* 🎉
 
 👤 المستخدم: ${bindData.userName || bindData.userEmail || 'غير معروف'}
 📧 البريد: ${bindData.userEmail || 'غير موجود'}
+
+${userUpdated ? '📱 تم تحديث حسابك في المتجر.' : '⚠️ حدث خطأ في تحديث حسابك، يرجى مراجعة المدير.'}
 
 ستصلك إشعارات الطلبات هنا.
 
@@ -269,17 +337,12 @@ bot.on('callback_query', async (callbackQuery) => {
             await sendMessageWithButtons(chatId, successText, buttons);
             console.log(`✅ تم ربط المستخدم ${chatId} بنجاح`);
 
-            // ✅ إشعار للمدير
+            // ✅ 4. إشعار للمدير
             await bot.sendMessage(ADMIN_CHAT_ID,
-                `🔗 *ربط جديد*\n\n👤 المستخدم: ${bindData.userName || bindData.userEmail || 'غير معروف'}\n📧 البريد: ${bindData.userEmail || 'غير موجود'}\n🆔 معرف الدردشة: ${chatId}`
+                `🔗 *ربط جديد*\n\n👤 المستخدم: ${bindData.userName || bindData.userEmail || 'غير معروف'}\n📧 البريد: ${bindData.userEmail || 'غير موجود'}\n🆔 معرف الدردشة: ${chatId}\n${userUpdated ? '✅ تم تحديث المستخدم' : '⚠️ فشل تحديث المستخدم'}`
             );
 
-            // ✅ إرسال رسالة ترحيب للمستخدم
-            try {
-                await bot.sendMessage(chatId, `🎉 مرحباً بك في المتجر! ستصل إليك الإشعارات هنا.`, { parse_mode: 'Markdown' });
-            } catch (e) {}
-
-            // ✅ حذف رسالة زر الربط القديمة
+            // ✅ 5. حذف رسالة زر الربط القديمة
             try {
                 await bot.deleteMessage(chatId, messageId);
             } catch (e) {
@@ -326,31 +389,22 @@ bot.on('message', async (msg) => {
             if (docSnap.exists) {
                 const data = docSnap.data();
                 if (data.status === 'pending') {
+                    // ✅ 1. تحديث وثيقة الربط
                     await docRef.update({
                         status: 'completed',
                         telegramChatId: String(chatId),
                         completedAt: admin.firestore.FieldValue.serverTimestamp()
                     });
 
-                    // تحديث وثيقة المستخدم مباشرة
-                    if (data.userId) {
-                        try {
-                            const userRef = db.collection('users').doc(data.userId);
-                            await userRef.update({
-                                telegramChatId: String(chatId),
-                                telegram: data.userName || '',
-                                updatedAt: admin.firestore.FieldValue.serverTimestamp()
-                            });
-                            console.log(`✅ تم تحديث وثيقة المستخدم ${data.userId} بالـ chatId (عبر الكود)`);
-                        } catch (userError) {
-                            console.error('❌ فشل تحديث وثيقة المستخدم:', userError.message);
-                        }
-                    }
+                    // ✅ 2. تحديث المستخدم
+                    const userUpdated = await updateUserWithChatId(data, chatId);
 
                     const successText = `✅ *تم ربط الحساب بنجاح!* 🎉
 
 👤 المستخدم: ${data.userName || data.userEmail || 'غير معروف'}
 📧 البريد: ${data.userEmail || 'غير موجود'}
+
+${userUpdated ? '📱 تم تحديث حسابك في المتجر.' : '⚠️ حدث خطأ في تحديث حسابك، يرجى مراجعة المدير.'}
 
 ستصلك إشعارات الطلبات هنا.
 
@@ -364,7 +418,7 @@ bot.on('message', async (msg) => {
                     console.log(`✅ تم ربط المستخدم ${chatId} بالكود: ${text}`);
 
                     await bot.sendMessage(ADMIN_CHAT_ID,
-                        `🔗 *ربط جديد (عبر كود)*\n\n👤 المستخدم: ${data.userName || data.userEmail || 'غير معروف'}\n📧 البريد: ${data.userEmail || 'غير موجود'}\n🆔 معرف الدردشة: ${chatId}`
+                        `🔗 *ربط جديد (عبر كود)*\n\n👤 المستخدم: ${data.userName || data.userEmail || 'غير معروف'}\n📧 البريد: ${data.userEmail || 'غير موجود'}\n🆔 معرف الدردشة: ${chatId}\n${userUpdated ? '✅ تم تحديث المستخدم' : '⚠️ فشل تحديث المستخدم'}`
                     );
                     return;
                 } else {
@@ -397,7 +451,7 @@ bot.on('message', async (msg) => {
 });
 
 // ============= إشعار بدء التشغيل =============
-console.log('🚀 تم تشغيل بوت Zi Store بنجاح مع تحديث وثيقة المستخدم مباشرة!');
+console.log('🚀 تم تشغيل بوت Zi Store بنجاح مع البحث عن المستخدم وتحديثه!');
 
 // ============= إغلاق آمن =============
 const shutdown = (signal) => {
