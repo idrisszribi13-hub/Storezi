@@ -25,28 +25,6 @@
     </div>
 
     <!-- ============================================ -->
-    <!-- نافذة تيليجرام المتحركة (Telegram Banner) -->
-    <!-- ============================================ -->
-    <div id="telegramBanner" class="telegram-banner" style="display:none;">
-        <div class="banner-content">
-            <div class="banner-icon">
-                <i class="fab fa-telegram-plane"></i>
-                <span class="banner-pulse"></span>
-            </div>
-            <div class="banner-text">
-                <div class="banner-title">🔔 Stay Connected! <span class="badge-new">New</span></div>
-                <div class="banner-subtitle">Link your Telegram account to receive instant order notifications</div>
-            </div>
-            <button class="banner-action" onclick="bindTelegram()">
-                <i class="fab fa-telegram-plane"></i> Link Now
-            </button>
-            <button class="banner-close" onclick="closeTelegramBanner()" title="Close">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-    </div>
-
-    <!-- ============================================ -->
     <!-- Toast (إشعارات منبثقة) -->
     <!-- ============================================ -->
     <div id="toast" class="toast">
@@ -97,6 +75,26 @@
             <input type="text" class="search-input" id="liveSearchInput" placeholder="🔍 Search products..." />
             <button class="search-clear" id="searchClear" onclick="clearSearch()"><i class="fas fa-times"></i></button>
             <div class="search-results" id="searchResults"></div>
+        </div>
+
+        <!-- ================== نافذة تيليجرام (Banner) - فوق الاحصائيات ================== -->
+        <div id="telegramBanner" class="telegram-banner" style="display:none;">
+            <div class="banner-content">
+                <div class="banner-icon">
+                    <i class="fab fa-telegram-plane"></i>
+                    <span class="banner-pulse"></span>
+                </div>
+                <div class="banner-text">
+                    <div class="banner-title">🔔 Stay Connected! <span class="badge-new">New</span></div>
+                    <div class="banner-subtitle">Link your Telegram account to receive instant order notifications</div>
+                </div>
+                <button class="banner-action" onclick="bindTelegram()">
+                    <i class="fab fa-telegram-plane"></i> Link Now
+                </button>
+                <button class="banner-close" onclick="closeTelegramBanner()" title="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
         </div>
 
         <!-- ================== الإحصائيات ================== -->
@@ -587,7 +585,6 @@
             <div class="tab-content" id="tabNotifications">
                 <button class="add-btn" onclick="openCreateNotificationModal()"><i class="fas fa-plus"></i> Send Notification</button>
                 <div id="adminNotificationsList"></div>
-                <!-- سيتم إضافة أزرار التحكم في Banner بواسطة JavaScript -->
             </div>
         </div>
     </div>
