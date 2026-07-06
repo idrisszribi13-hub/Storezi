@@ -1,5 +1,5 @@
 // ========================================
-// START OF SCRIPT.JS - كامل مع جميع التعديلات
+// START OF SCRIPT.JS - كامل مع الإصلاحات والإضافات
 // ========================================
 
 import { initializeApp } from "firebase/app";
@@ -88,7 +88,7 @@ function updateLoadingBar(percent) {
 // ========================================
 
 const ADMIN_EMAIL = 'zribiidriss3@gmail.com';
-const TELEGRAM_BOT_TOKEN = '8687744794:AAGeeNrEU-iQLRmg3dLvYkWHddtYo_sJ1tc';
+const TELEGRAM_BOT_TOKEN = '8884982867:AAH7WHhCwy-jTjzAugLVyiIwUIu7Pghdq8k';
 const TELEGRAM_CHAT_ID = '7434396478';
 const BOT_USERNAME = 'Zistore_Notif_bot';
 
@@ -204,11 +204,7 @@ async function sendTelegramNotification(chatId, message) {
     }
 }
 
-// ========================================
-// SCRIPT.JS - تعديل دالة bindTelegram (إخفاء الكود)
-// ========================================
-
-// ✅ ربط تيليجرام - الكود يظهر للمدير فقط، والمستخدم يضغط زر في البوت
+// ✅ ربط تيليجرام - الكود يظهر للمدير فقط
 window.bindTelegram = async function() {
     if (!currentUser) { 
         showToast('⚠️ Please login first', 'warning'); 
@@ -226,16 +222,11 @@ window.bindTelegram = async function() {
             status: 'pending'
         });
 
-        // ✅ إرسال الكود للمدير فقط (للتوثيق)
         const adminMessage = `🔗 *New Link Request*\n\n👤 User: ${currentUser.displayName || currentUser.email}\n📧 Email: ${currentUser.email}\n🆔 Bind Code: \`${bindCode}\``;
         await sendTelegramNotification(TELEGRAM_CHAT_ID, adminMessage);
 
-        // ✅ فتح البوت مع زر الربط (بدون إرسال الكود للمستخدم)
         window.open(`https://t.me/${BOT_USERNAME}`, '_blank');
-
         showToast('📨 Bot opened! Click "Link Account".', 'success');
-
-        // ✅ الاستماع لتأكيد الربط (لتحديث الواجهة فوراً)
         startBindingListener(bindCode);
 
     } catch (error) {
@@ -244,7 +235,6 @@ window.bindTelegram = async function() {
     }
 };
 
-// ✅ دالة الاستماع لتأكيد الربط (تحدث الواجهة عند نجاح الربط)
 function startBindingListener(bindCode) {
     const bindRef = doc(db, 'telegram_binds', bindCode);
     const unsubscribe = onSnapshot(bindRef, (doc) => {
@@ -257,7 +247,11 @@ function startBindingListener(bindCode) {
                 renderProfileFull();
                 showToast('✅ Telegram linked successfully!', 'success');
                 
-                // ✅ رسالة ترحيب للمستخدم
+                // إخفاء النافذة فوراً
+                const banner = document.getElementById('telegramBanner');
+                if (banner) banner.classList.add('hidden');
+                localStorage.removeItem('telegram_banner_hidden');
+                
                 sendTelegramNotification(
                     userProfile.telegramChatId,
                     `🔔 *Welcome to ZI Store!*\n\nYour account has been linked successfully.\nYou will receive order notifications here.\n\nThank you for using ZI Store! 🚀`
@@ -268,7 +262,6 @@ function startBindingListener(bindCode) {
             }
         }
     });
-    
     setTimeout(() => { 
         unsubscribe(); 
         console.log('⏰ Binding listener timeout');
@@ -2250,28 +2243,25 @@ function renderAdminProducts(productsList) {
 
 // ✅ FIXED: Edit Product Modal
 window.openEditProductModal = function(productId) {
-    console.log('🔍 Edit button clicked for:', productId);
+    console.log('🔍 Edit button clicked for product ID:', productId);
     
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { 
-        showToast('⛔ Unauthorized', 'error'); 
-        return; 
-    }
-    
-    if (!products || products.length === 0) {
-        showToast('❌ No products loaded', 'error');
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
+        showToast('⛔ Unauthorized', 'error');
         return;
     }
     
+    // البحث عن المنتج في مصفوفة products (التي يتم تحديثها في الوقت الفعلي)
     const product = products.find(p => p.id === productId);
-    if (!product) { 
-        showToast('❌ Product not found', 'error'); 
-        console.log('❌ Product not found for ID:', productId);
-        console.log('📋 Available products:', products.map(p => p.id));
-        return; 
+    if (!product) {
+        showToast('❌ Product not found. Please refresh and try again.', 'error');
+        console.error('❌ Product not found for ID:', productId);
+        console.log('📋 Available product IDs:', products.map(p => p.id));
+        return;
     }
     
     console.log('✏️ Editing product:', product);
     
+    // تعبئة النموذج
     document.getElementById('productFormTitle').textContent = '✏️ Edit Product: ' + product.name;
     document.getElementById('productIdField').value = productId;
     document.getElementById('productName').value = product.name || '';
@@ -2285,6 +2275,7 @@ window.openEditProductModal = function(productId) {
     document.getElementById('productDuration').value = product.duration || '';
     document.getElementById('productOriginalPrice').value = product.originalPrice || '';
     
+    // فتح المودال
     const modal = document.getElementById('productModal');
     if (modal) {
         modal.classList.add('open');
@@ -2746,32 +2737,102 @@ window.viewUserDetails = async function(uid) {
 window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
 // ========================================
-// History
+// History (مع زر Clear All)
 // ========================================
+
+// ✅ مسح جميع الطلبات في السجل (بدون تأكيد)
+window.clearOrderHistory = async function() {
+    if (!currentUser) {
+        showToast('⚠️ Please login first', 'warning');
+        return;
+    }
+    
+    try {
+        // تحديث المصفوفة المحلية
+        userProfile.history = [];
+        // تحديث Firebase
+        const userRef = doc(db, 'users', currentUser.uid);
+        await updateDoc(userRef, {
+            history: []
+        });
+        // تحديث الواجهة
+        renderHistoryFull();
+        updateFullUserMenu();
+        showToast('🗑️ Order history cleared successfully!', 'success');
+    } catch (error) {
+        console.error('Error clearing order history:', error);
+        showToast('❌ Failed to clear order history', 'error');
+    }
+};
 
 function renderHistoryFull() {
     const container = document.getElementById('historyFullContent');
     const history = userProfile.history || [];
+    
+    // إذا كان السجل فارغًا
     if (history.length === 0) {
-        container.innerHTML =
-            `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-shopping-bag" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;font-family:var(--font);">No orders yet</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Start shopping to see your orders here</div></div>`;
+        container.innerHTML = `
+            <div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
+                <i class="fas fa-shopping-bag" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i>
+                <div style="font-size:18px;font-weight:600;font-family:var(--font);">No orders yet</div>
+                <div style="font-size:13px;opacity:0.4;margin-top:4px;">Start shopping to see your orders here</div>
+            </div>
+        `;
         return;
     }
-    let html = `<div style="display:grid;gap:8px;">`;
+    
+    // بناء HTML مع زر Clear All
+    let html = `
+        <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+            <button onclick="clearOrderHistory()" style="
+                padding:6px 16px;
+                border:none;
+                border-radius:8px;
+                background:var(--danger);
+                color:#fff;
+                font-weight:600;
+                cursor:pointer;
+                font-size:13px;
+                font-family:var(--font);
+                display:flex;
+                align-items:center;
+                gap:6px;
+                transition:0.3s;
+            " onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                <i class="fas fa-trash-alt"></i> Clear All
+            </button>
+        </div>
+        <div style="display:grid;gap:8px;">
+    `;
+    
     history.slice().reverse().forEach(item => {
         const status = item.status || 'pending';
-        const statusMap = { 'pending': { label: '⏳ Pending', class: 'pending' }, 'preparing': { label: '📦 Preparing',
-                class: 'preparing' }, 'shipped': { label: '🚚 Shipped', class: 'shipped' },
-            'delivered': { label: '✅ Delivered', class: 'delivered' }, 'completed': { label: '✅ Completed',
-                class: 'completed' }, 'rejected': { label: '❌ Rejected', class: 'rejected' } };
+        const statusMap = {
+            'pending': { label: '⏳ Pending', class: 'pending' },
+            'preparing': { label: '📦 Preparing', class: 'preparing' },
+            'shipped': { label: '🚚 Shipped', class: 'shipped' },
+            'delivered': { label: '✅ Delivered', class: 'delivered' },
+            'completed': { label: '✅ Completed', class: 'completed' },
+            'rejected': { label: '❌ Rejected', class: 'rejected' }
+        };
         const info = statusMap[status] || statusMap['pending'];
         const date = item.date ? new Date(item.date) : new Date();
         const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         const itemsNames = item.items ? item.items.map(i => i.name).join(', ') : 'Order';
         const total = item.total || 0;
-        html +=
-            `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);"><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);font-family:var(--font);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${itemsNames}</div><div style="font-size:11px;color:var(--text-secondary);opacity:0.4;font-family:var(--font);">${dateStr}</div><span class="status-badge ${info.class}" style="font-size:10px;padding:2px 10px;">${info.label}</span></div><span style="font-size:16px;font-weight:700;color:var(--primary);font-family:var(--font);">${total>0?'$'+total.toFixed(2):'FREE'}</span></div>`;
+        
+        html += `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);">
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:14px;font-weight:600;color:var(--text);font-family:var(--font);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${itemsNames}</div>
+                    <div style="font-size:11px;color:var(--text-secondary);opacity:0.4;font-family:var(--font);">${dateStr}</div>
+                    <span class="status-badge ${info.class}" style="font-size:10px;padding:2px 10px;">${info.label}</span>
+                </div>
+                <span style="font-size:16px;font-weight:700;color:var(--primary);font-family:var(--font);">${total>0?'$'+total.toFixed(2):'FREE'}</span>
+            </div>
+        `;
     });
+    
     html += `</div>`;
     container.innerHTML = html;
 }
@@ -2847,15 +2908,10 @@ onAuthStateChanged(auth, async (user) => {
 function showTelegramBanner() {
     const banner = document.getElementById('telegramBanner');
     if (!banner) return;
-    
+
     const bannerHidden = localStorage.getItem('telegram_banner_hidden') === 'true';
     const adminDisabled = localStorage.getItem('telegram_banner_admin_disabled') === 'true';
-    
-    if (bannerHidden || adminDisabled) {
-        banner.classList.add('hidden');
-        return;
-    }
-    
+
     if (userProfile.telegramChatId) {
         banner.classList.add('linked');
         banner.querySelector('.banner-title').textContent = '✅ Connected!';
@@ -2863,15 +2919,25 @@ function showTelegramBanner() {
         banner.querySelector('.banner-action').innerHTML = '<i class="fas fa-check"></i> Linked';
         banner.querySelector('.banner-action').onclick = () => openProfileFull();
         banner.querySelector('.banner-icon i').className = 'fas fa-check-circle';
-    } else {
-        banner.classList.remove('linked');
-        banner.querySelector('.banner-title').innerHTML = '🔔 Stay Connected! <span class="badge-new">New</span>';
-        banner.querySelector('.banner-subtitle').textContent = 'Link your Telegram account to receive instant order notifications';
-        banner.querySelector('.banner-action').innerHTML = '<i class="fab fa-telegram-plane"></i> Link Now';
-        banner.querySelector('.banner-action').onclick = () => bindTelegram();
-        banner.querySelector('.banner-icon i').className = 'fab fa-telegram-plane';
+        banner.style.display = 'block';
+        setTimeout(() => {
+            banner.classList.add('hidden');
+        }, 3000);
+        return;
     }
-    
+
+    if (bannerHidden || adminDisabled) {
+        banner.classList.add('hidden');
+        return;
+    }
+
+    banner.classList.remove('linked', 'hidden');
+    banner.querySelector('.banner-title').innerHTML = '🔔 Stay Connected! <span class="badge-new">New</span>';
+    banner.querySelector('.banner-subtitle').textContent = 'Link your Telegram account to receive instant order notifications';
+    banner.querySelector('.banner-action').innerHTML = '<i class="fab fa-telegram-plane"></i> Link Now';
+    banner.querySelector('.banner-action').onclick = () => bindTelegram();
+    banner.querySelector('.banner-icon i').className = 'fab fa-telegram-plane';
+
     banner.style.display = 'block';
     banner.style.animation = 'none';
     setTimeout(() => {
@@ -2882,8 +2948,14 @@ function showTelegramBanner() {
 function closeTelegramBanner() {
     const banner = document.getElementById('telegramBanner');
     if (banner) {
-        banner.style.display = 'none';
+        banner.classList.add('hidden');
         localStorage.setItem('telegram_banner_hidden', 'true');
+        setTimeout(() => {
+            localStorage.removeItem('telegram_banner_hidden');
+            if (!userProfile.telegramChatId) {
+                showTelegramBanner();
+            }
+        }, 600000);
     }
 }
 
@@ -2896,7 +2968,6 @@ function addBannerAdminControls() {
     const tabNotifications = document.getElementById('tabNotifications');
     if (!tabNotifications) return;
     
-    // Remove existing controls if any
     const existingControls = tabNotifications.querySelector('.banner-admin-controls');
     if (existingControls) existingControls.remove();
     
@@ -3037,11 +3108,7 @@ window.openAddProductModal = function() {
     setTimeout(fixDirection, 200);
 };
 
-const originalOpenEditProductModal = window.openEditProductModal;
-window.openEditProductModal = function() {
-    if (originalOpenEditProductModal) originalOpenEditProductModal();
-    setTimeout(fixDirection, 200);
-};
+// Note: openEditProductModal is already defined above (fixed)
 
 const originalOpenCreateNotificationModal = window.openCreateNotificationModal;
 window.openCreateNotificationModal = function() {
@@ -3125,6 +3192,7 @@ window.openCreateNotificationModal = openCreateNotificationModal;
 window.closeCreateNotificationModal = closeCreateNotificationModal;
 window.switchAdminTab = switchAdminTab;
 window.openAddProductModal = openAddProductModal;
+// use fixed version
 window.openEditProductModal = openEditProductModal;
 window.closeProductModal = closeProductModal;
 window.saveProduct = saveProduct;
@@ -3182,6 +3250,7 @@ window.applyCartPromo = applyCartPromo;
 window.showTelegramBannerAgain = showTelegramBannerAgain;
 window.adminToggleBanner = adminToggleBanner;
 window.resetBannerForAll = resetBannerForAll;
+window.clearOrderHistory = clearOrderHistory;
 
 // ========================================
 // END OF SCRIPT.JS
