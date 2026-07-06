@@ -1,5 +1,5 @@
 // ============================================================
-// BOT.JS - النسخة النهائية مع زر الربط التلقائي والدعم الكامل
+// BOT.JS - النسخة النهائية مع تحديث وثيقة المستخدم مباشرة
 // ============================================================
 
 const TelegramBot = require('node-telegram-bot-api');
@@ -26,7 +26,6 @@ console.log('📌 معرف المدير:', ADMIN_CHAT_ID);
 // ============= تهيئة Firebase Admin =============
 let db;
 try {
-    // محاولة تحميل ملف الخدمة من المسار السري (Render)
     const serviceAccountPath = '/etc/secrets/firebase-credentials.json';
     let serviceAccount;
 
@@ -34,7 +33,6 @@ try {
         serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
         console.log('✅ تم تحميل بيانات الخدمة من الملف السري');
     } else if (process.env.FIREBASE_CREDENTIALS_JSON) {
-        // بديل: قراءة من متغير بيئة
         serviceAccount = JSON.parse(process.env.FIREBASE_CREDENTIALS_JSON);
         console.log('✅ تم تحميل بيانات الخدمة من متغير البيئة');
     } else {
@@ -52,7 +50,6 @@ try {
     db = admin.firestore();
 } catch (error) {
     console.error('❌ خطأ في Firebase:', error.message);
-    // محاولة تهيئة بدون مصادقة (قد لا تعمل عمليات الكتابة)
     try {
         if (!admin.apps.length) {
             admin.initializeApp({ projectId: "zi-script-store" });
@@ -86,7 +83,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.get('/', (req, res) => {
-    res.send('🤖 Zi Store Bot يعمل مع زر الربط التلقائي!');
+    res.send('🤖 Zi Store Bot يعمل مع تحديث وثيقة المستخدم مباشرة!');
 });
 
 app.listen(PORT, () => {
@@ -154,7 +151,6 @@ bot.onText(/\/start/, async (msg) => {
     const chatId = msg.chat.id;
     console.log(`📩 /start من ${chatId}`);
 
-    // التحقق مما إذا كان المستخدم مرتبطاً بالفعل
     const linked = await isUserLinked(chatId);
     if (linked) {
         await bot.sendMessage(chatId,
@@ -164,28 +160,22 @@ bot.onText(/\/start/, async (msg) => {
         return;
     }
 
-    // البحث عن طلب ربط معلق
     const pending = await getPendingBind();
 
     let text, buttons;
     if (pending) {
         text = `👋 *مرحباً بك في بوت Zi Store!*\n\n🔗 يوجد طلب ربط معلق لحسابك. اضغط على الزر أدناه لربط حسابك فوراً.`;
-        buttons = [
-            [{ text: '🔗 ربط الحساب', callback_data: 'link_account' }],
-            [{ text: '🆔 معرف الدردشة', callback_data: 'get_chatid' }]
-        ];
     } else {
         text = `👋 *مرحباً بك في بوت Zi Store!*\n\n🔗 لربط حسابك، يرجى فتح الملف الشخصي في المتجر والضغط على "ربط تيليجرام"، ثم عد إلى هنا واضغط على الزر أدناه.`;
-        buttons = [
-            [{ text: '🔗 ربط الحساب', callback_data: 'link_account' }],
-            [{ text: '🆔 معرف الدردشة', callback_data: 'get_chatid' }]
-        ];
     }
+    buttons = [
+        [{ text: '🔗 ربط الحساب', callback_data: 'link_account' }],
+        [{ text: '🆔 معرف الدردشة', callback_data: 'get_chatid' }]
+    ];
 
     await sendMessageWithButtons(chatId, text, buttons);
 });
 
-// ============= الأمر /help =============
 bot.onText(/\/help/, (msg) => {
     const chatId = msg.chat.id;
     bot.sendMessage(chatId,
@@ -194,7 +184,6 @@ bot.onText(/\/help/, (msg) => {
     );
 });
 
-// ============= الأمر /chatid =============
 bot.onText(/\/chatid/, (msg) => {
     const chatId = msg.chat.id;
     bot.sendMessage(chatId, `🆔 معرف الدردشة الخاص بك: \`${chatId}\``, { parse_mode: 'Markdown' });
@@ -210,7 +199,6 @@ bot.on('callback_query', async (callbackQuery) => {
     await bot.answerCallbackQuery(callbackQuery.id);
 
     if (data === 'link_account') {
-        // التحقق أولاً من أن المستخدم لم يربط حسابه بالفعل
         const linked = await isUserLinked(chatId);
         if (linked) {
             await bot.sendMessage(chatId,
@@ -227,7 +215,6 @@ bot.on('callback_query', async (callbackQuery) => {
         }
 
         try {
-            // البحث عن طلب ربط معلق (أحدث طلب)
             const pending = await getPendingBind();
 
             if (!pending) {
@@ -243,12 +230,27 @@ bot.on('callback_query', async (callbackQuery) => {
 
             const { doc, data: bindData } = pending;
 
-            // ✅ تحديث حالة الربط إلى مكتمل
+            // ✅ تحديث وثيقة الربط إلى مكتمل
             await doc.ref.update({
                 status: 'completed',
                 telegramChatId: String(chatId),
                 completedAt: admin.firestore.FieldValue.serverTimestamp()
             });
+
+            // ✅ تحديث وثيقة المستخدم مباشرة (لضمان تحديث الموقع فوراً)
+            if (bindData.userId) {
+                try {
+                    const userRef = db.collection('users').doc(bindData.userId);
+                    await userRef.update({
+                        telegramChatId: String(chatId),
+                        telegram: bindData.userName || '',
+                        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+                    });
+                    console.log(`✅ تم تحديث وثيقة المستخدم ${bindData.userId} بالـ chatId`);
+                } catch (userError) {
+                    console.error('❌ فشل تحديث وثيقة المستخدم:', userError.message);
+                }
+            }
 
             // ✅ رسالة نجاح مع زر فتح المتجر
             const successText = `✅ *تم ربط الحساب بنجاح!* 🎉
@@ -267,12 +269,17 @@ bot.on('callback_query', async (callbackQuery) => {
             await sendMessageWithButtons(chatId, successText, buttons);
             console.log(`✅ تم ربط المستخدم ${chatId} بنجاح`);
 
-            // ✅ إشعار للمدير بالكود للتوثيق
+            // ✅ إشعار للمدير
             await bot.sendMessage(ADMIN_CHAT_ID,
-                `🔗 *ربط جديد*\n\n👤 المستخدم: ${bindData.userName || bindData.userEmail || 'غير معروف'}\n📧 البريد: ${bindData.userEmail || 'غير موجود'}\n🆔 معرف الدردشة: ${chatId}\n🔑 الكود: ${doc.id}`
+                `🔗 *ربط جديد*\n\n👤 المستخدم: ${bindData.userName || bindData.userEmail || 'غير معروف'}\n📧 البريد: ${bindData.userEmail || 'غير موجود'}\n🆔 معرف الدردشة: ${chatId}`
             );
 
-            // ✅ حذف الرسالة القديمة التي تحتوي على زر الربط
+            // ✅ إرسال رسالة ترحيب للمستخدم
+            try {
+                await bot.sendMessage(chatId, `🎉 مرحباً بك في المتجر! ستصل إليك الإشعارات هنا.`, { parse_mode: 'Markdown' });
+            } catch (e) {}
+
+            // ✅ حذف رسالة زر الربط القديمة
             try {
                 await bot.deleteMessage(chatId, messageId);
             } catch (e) {
@@ -294,17 +301,15 @@ bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
     const text = msg.text;
 
-    // تجاهل الأوامر (لأنها تعالج في مكان آخر)
     if (!text || text.startsWith('/')) {
         return;
     }
 
     console.log(`📩 استلمنا نصاً: "${text}" من ${chatId}`);
 
-    // أولاً: التحقق مما إذا كان المستخدم قد ربط حسابه بالفعل
+    // التحقق مما إذا كان المستخدم مرتبطاً بالفعل
     const linked = await isUserLinked(chatId);
     if (linked) {
-        // إذا كان مرتبطاً، لا نرسل رسائل مزعجة، فقط نستجيب إذا طلب شيئاً.
         await bot.sendMessage(chatId,
             `✅ أنت مرتبط بالفعل. ستصل إليك إشعارات الطلبات هنا. 🚀`,
             { parse_mode: 'Markdown' }
@@ -312,7 +317,7 @@ bot.on('message', async (msg) => {
         return;
     }
 
-    // ثانياً: محاولة تفسير النص ككود ربط (دعم الإدخال اليدوي)
+    // محاولة تفسير النص ككود ربط (دعم الإدخال اليدوي)
     if (db) {
         try {
             const docRef = db.collection('telegram_binds').doc(text.trim());
@@ -326,6 +331,21 @@ bot.on('message', async (msg) => {
                         telegramChatId: String(chatId),
                         completedAt: admin.firestore.FieldValue.serverTimestamp()
                     });
+
+                    // تحديث وثيقة المستخدم مباشرة
+                    if (data.userId) {
+                        try {
+                            const userRef = db.collection('users').doc(data.userId);
+                            await userRef.update({
+                                telegramChatId: String(chatId),
+                                telegram: data.userName || '',
+                                updatedAt: admin.firestore.FieldValue.serverTimestamp()
+                            });
+                            console.log(`✅ تم تحديث وثيقة المستخدم ${data.userId} بالـ chatId (عبر الكود)`);
+                        } catch (userError) {
+                            console.error('❌ فشل تحديث وثيقة المستخدم:', userError.message);
+                        }
+                    }
 
                     const successText = `✅ *تم ربط الحساب بنجاح!* 🎉
 
@@ -365,23 +385,19 @@ bot.on('message', async (msg) => {
 
     if (pending) {
         textMsg = `👋 *مرحباً بك في بوت Zi Store!*\n\n🔗 يوجد طلب ربط معلق. اضغط على الزر أدناه لربط حسابك فوراً.`;
-        buttons = [
-            [{ text: '🔗 ربط الحساب', callback_data: 'link_account' }],
-            [{ text: '🆔 معرف الدردشة', callback_data: 'get_chatid' }]
-        ];
     } else {
         textMsg = `👋 *مرحباً بك في بوت Zi Store!*\n\n🔗 لربط حسابك، يرجى فتح الملف الشخصي في المتجر والضغط على "ربط تيليجرام"، ثم عد إلى هنا واضغط على الزر أدناه.`;
-        buttons = [
-            [{ text: '🔗 ربط الحساب', callback_data: 'link_account' }],
-            [{ text: '🆔 معرف الدردشة', callback_data: 'get_chatid' }]
-        ];
     }
+    buttons = [
+        [{ text: '🔗 ربط الحساب', callback_data: 'link_account' }],
+        [{ text: '🆔 معرف الدردشة', callback_data: 'get_chatid' }]
+    ];
 
     await sendMessageWithButtons(chatId, textMsg, buttons);
 });
 
 // ============= إشعار بدء التشغيل =============
-console.log('🚀 تم تشغيل بوت Zi Store بنجاح مع زر الربط التلقائي!');
+console.log('🚀 تم تشغيل بوت Zi Store بنجاح مع تحديث وثيقة المستخدم مباشرة!');
 
 // ============= إغلاق آمن =============
 const shutdown = (signal) => {
