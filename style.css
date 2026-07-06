@@ -171,6 +171,198 @@ body {
 }
 
 /* ============================================
+   نافذة تيليجرام المتحركة (Banner)
+   ============================================ */
+.telegram-banner {
+    position: relative;
+    margin-bottom: 12px;
+    border-radius: 16px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #0088cc, #004d7a);
+    box-shadow: 0 8px 32px rgba(0, 136, 204, 0.3);
+    animation: bannerSlideDown 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 2px;
+}
+
+.telegram-banner.hidden {
+    display: none !important;
+}
+
+.telegram-banner .banner-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 14px;
+    flex-wrap: wrap;
+    position: relative;
+}
+
+.telegram-banner .banner-icon {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 24px;
+    color: #fff;
+    transition: 0.3s;
+}
+
+.telegram-banner .banner-icon i {
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+}
+
+.telegram-banner .banner-icon .banner-pulse {
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    animation: bannerPulse 2s ease-in-out infinite;
+}
+
+@keyframes bannerPulse {
+    0% {
+        transform: scale(1);
+        opacity: 0.6;
+    }
+    100% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+}
+
+.telegram-banner .banner-text {
+    flex: 1;
+    min-width: 140px;
+}
+
+.telegram-banner .banner-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    font-family: var(--font);
+    letter-spacing: 0.2px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.telegram-banner .banner-title .badge-new {
+    background: #ff6b6b;
+    color: #fff;
+    font-size: 8px;
+    font-weight: 700;
+    padding: 1px 8px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    animation: badgePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+.telegram-banner .banner-subtitle {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    font-family: var(--font);
+    margin-top: 1px;
+    line-height: 1.4;
+}
+
+.telegram-banner .banner-action {
+    padding: 8px 18px;
+    border: none;
+    border-radius: 30px;
+    background: #fff;
+    color: #0088cc;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: var(--font);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.telegram-banner .banner-action:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.telegram-banner .banner-action:active {
+    transform: scale(0.96);
+}
+
+.telegram-banner .banner-action i {
+    font-size: 14px;
+}
+
+.telegram-banner .banner-close {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+    flex-shrink: 0;
+}
+
+.telegram-banner .banner-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    transform: rotate(90deg);
+}
+
+.telegram-banner.linked {
+    background: linear-gradient(135deg, #10b981, #059669);
+    box-shadow: 0 8px 32px rgba(16, 185, 129, 0.3);
+}
+
+.telegram-banner.linked .banner-action {
+    background: #fff;
+    color: #10b981;
+}
+
+.telegram-banner.linked .banner-action i {
+    color: #10b981;
+}
+
+@keyframes bannerSlideDown {
+    0% {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ============================================
    HEADER
    ============================================ */
 .header {
@@ -2786,6 +2978,31 @@ body {
     margin: 0 !important;
 }
 
+/* Banner Admin Controls */
+.banner-admin-controls {
+    background: var(--bg) !important;
+    border-radius: 10px !important;
+    padding: 14px !important;
+    border: 1px solid var(--border) !important;
+    margin-bottom: 12px !important;
+}
+
+.banner-admin-controls .banner-admin-btn {
+    padding: 6px 16px !important;
+    border: none !important;
+    border-radius: 6px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    font-size: 12px !important;
+    font-family: var(--font) !important;
+    transition: 0.3s !important;
+}
+
+.banner-admin-controls .banner-admin-btn:hover {
+    transform: translateY(-2px) !important;
+    opacity: 0.9 !important;
+}
+
 .admin-users-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -3226,7 +3443,6 @@ body {
    تحسين مودالات الإشعارات والتحميلات
    ============================================ */
 
-/* ✅ تنسيق عام لنماذج الإدارة */
 #createNotificationForm,
 #createDownloadForm,
 #productForm {
@@ -3296,7 +3512,6 @@ body {
     border-radius: 10px !important;
 }
 
-/* ✅ تنسيق أزرار الإرسال في النماذج */
 #createNotificationForm .auth-btn,
 #createDownloadForm .auth-btn,
 #productForm .auth-btn {
@@ -3326,7 +3541,6 @@ body {
     opacity: 0.9 !important;
 }
 
-/* ✅ تحسين عنوان المودال */
 #createNotificationModal .modal-title,
 #createDownloadModal .modal-title,
 #productModal .modal-title {
@@ -3345,7 +3559,6 @@ body {
     margin-left: 8px !important;
 }
 
-/* ✅ تحسين مودال المنتج */
 #productModal .modal-content {
     max-width: 480px !important;
 }
@@ -3360,7 +3573,6 @@ body {
     color: var(--text) !important;
 }
 
-/* ✅ تنسيق placeholder */
 #createNotificationForm .auth-field input::placeholder,
 #createNotificationForm .auth-field textarea::placeholder,
 #createDownloadForm .auth-field input::placeholder,
@@ -3370,20 +3582,6 @@ body {
     color: var(--text-secondary) !important;
     opacity: 0.3 !important;
     font-size: 12px !important;
-}
-
-/* ✅ تحسين المسافات في المودالات الصغيرة */
-@media (max-width: 400px) {
-    #createNotificationForm .auth-field input,
-    #createNotificationForm .auth-field textarea,
-    #createDownloadForm .auth-field input,
-    #createDownloadForm .auth-field textarea,
-    #productForm .auth-field input,
-    #productForm .auth-field select,
-    #productForm .auth-field textarea {
-        padding: 8px 12px !important;
-        font-size: 12px !important;
-    }
 }
 
 /* ============================================
@@ -3639,6 +3837,52 @@ body {
     .admin-panel .tabs button {
         font-size: 11px;
         padding: 6px 10px;
+    }
+    .telegram-banner .banner-content {
+        padding: 10px 12px;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .telegram-banner .banner-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+    }
+    .telegram-banner .banner-title {
+        font-size: 13px;
+    }
+    .telegram-banner .banner-subtitle {
+        font-size: 11px;
+    }
+    .telegram-banner .banner-action {
+        padding: 6px 14px;
+        font-size: 12px;
+        margin-left: auto;
+    }
+    .telegram-banner .banner-close {
+        width: 26px;
+        height: 26px;
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 360px) {
+    .telegram-banner .banner-content {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+    }
+    .telegram-banner .banner-icon {
+        align-self: center;
+    }
+    .telegram-banner .banner-action {
+        align-self: center;
+        margin-left: 0;
+    }
+    .telegram-banner .banner-close {
+        position: absolute;
+        top: 4px;
+        right: 4px;
     }
 }
 
