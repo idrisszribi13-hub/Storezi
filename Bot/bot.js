@@ -1,10 +1,7 @@
-// ========================================
-// BOT.JS - زر الربط المباشر (بدون إدخال كود)
-// ========================================
-
 const TelegramBot = require('node-telegram-bot-api');
 const express = require('express');
 const admin = require('firebase-admin');
+const fs = require('fs');
 
 // ============= Tokens =============
 const token = process.env.BOT_TOKEN;
@@ -14,7 +11,6 @@ if (!token) {
     console.error('❌ BOT_TOKEN is not set!');
     process.exit(1);
 }
-
 if (!ADMIN_CHAT_ID) {
     console.error('❌ TELEGRAM_CHAT_ID is not set!');
     process.exit(1);
@@ -23,11 +19,26 @@ if (!ADMIN_CHAT_ID) {
 console.log('🤖 Starting bot...');
 console.log('📌 Admin Chat ID:', ADMIN_CHAT_ID);
 
-// ============= Firebase Admin =============
+// ============= Firebase Admin (مع Service Account) =============
 let db;
 try {
+    const serviceAccountPath = '/etc/secrets/firebase-credentials.json';
+    let serviceAccount;
+    
+    if (fs.existsSync(serviceAccountPath)) {
+        serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+        console.log('✅ Service Account loaded from secrets');
+    } else {
+        console.warn('⚠️ Service Account not found, using env vars fallback');
+        // محاولة استخدام متغيرات البيئة (اختياري)
+        serviceAccount = {
+            projectId: "zi-script-store"
+        };
+    }
+
     if (!admin.apps.length) {
         admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount),
             projectId: "zi-script-store"
         });
         console.log('✅ Firebase Admin initialized!');
@@ -35,7 +46,19 @@ try {
     db = admin.firestore();
 } catch (error) {
     console.error('❌ Firebase error:', error.message);
-    db = null;
+    // محاولة بدون مصادقة (قد لا تعمل)
+    try {
+        if (!admin.apps.length) {
+            admin.initializeApp({
+                projectId: "zi-script-store"
+            });
+        }
+        db = admin.firestore();
+        console.log('⚠️ Firebase initialized without auth (read-only)');
+    } catch (e) {
+        console.error('❌ Firebase failed:', e.message);
+        db = null;
+    }
 }
 
 // ============= Bot Instance (Polling) =============
@@ -54,6 +77,7 @@ bot.on('polling_error', (error) => {
     console.error('❌ Polling error:', error.message);
     if (error.message && error.message.includes('409')) {
         console.log('🔄 409 Conflict - Another instance is running');
+        console.log('💡 Wait a moment, the old instance will stop automatically');
     }
 });
 
@@ -119,7 +143,7 @@ bot.onText(/\/chatid/, (msg) => {
     bot.sendMessage(chatId, `🆔 Your Chat ID: \`${chatId}\``, { parse_mode: 'Markdown' });
 });
 
-// ============= Callback Query Handler (Button Clicks) =============
+// ============= Callback Query Handler =============
 
 bot.on('callback_query', async (callbackQuery) => {
     const chatId = callbackQuery.message.chat.id;
@@ -131,14 +155,13 @@ bot.on('callback_query', async (callbackQuery) => {
     await bot.answerCallbackQuery(callbackQuery.id);
 
     if (data === 'link_account') {
-        // ✅ ربط مباشر بدون كود
         if (!db) {
             await bot.sendMessage(chatId, '❌ Database error. Please try again later.');
             return;
         }
 
         try {
-            // البحث عن طلب ربط معلق (pending) لهذا المستخدم
+            // ✅ البحث عن طلب ربط معلق (pending) لهذا المستخدم
             const bindsRef = db.collection('telegram_binds');
             const snapshot = await bindsRef
                 .where('status', '==', 'pending')
@@ -209,8 +232,7 @@ Thank you for using ZI Store! 🚀`;
     }
 });
 
-// ============= Text Message Handler (for backward compatibility) =============
-// هذا الجزء يحتفظ بالقدرة على ربط الحساب عبر إرسال الكود يدوياً (للأمان)
+// ============= Text Message Handler (للتوافق مع الإرسال اليدوي) =============
 bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
     const text = msg.text;
