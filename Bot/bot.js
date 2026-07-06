@@ -1,7 +1,3 @@
-// ========================================
-// BOT.JS - Full Code with Interactive Buttons
-// ========================================
-
 const TelegramBot = require('node-telegram-bot-api');
 const express = require('express');
 const admin = require('firebase-admin');
@@ -97,7 +93,6 @@ async function sendMessageWithButtons(chatId, text, buttons) {
 bot.onText(/\/start/, async (msg) => {
     const chatId = msg.chat.id;
     
-    // Welcome message with link button
     const welcomeText = `👋 *Welcome to ZI Store Bot!*
 
 🔗 To link your account, click the button below.`;
@@ -135,7 +130,7 @@ bot.on('callback_query', async (callbackQuery) => {
 
     console.log(`🔘 Button clicked: ${data} from ${chatId}`);
 
-    // ✅ Acknowledge button press (remove loading state)
+    // ✅ Acknowledge button press
     await bot.answerCallbackQuery(callbackQuery.id);
 
     if (data === 'link_account') {
@@ -201,7 +196,7 @@ Thank you for using ZI Store! 🚀`;
                 `🔗 *New Link*\n\n👤 User: ${bindData.userName || bindData.userEmail || 'Unknown'}\n📧 Email: ${bindData.userEmail || 'N/A'}\n🆔 Chat ID: ${chatId}`
             );
 
-            // ✅ Delete the previous message (optional)
+            // ✅ Delete the previous message
             try {
                 await bot.deleteMessage(chatId, messageId);
             } catch (e) {
@@ -215,10 +210,6 @@ Thank you for using ZI Store! 🚀`;
 
     } else if (data === 'get_chatid') {
         await bot.sendMessage(chatId, `🆔 Your Chat ID: \`${chatId}\``, { parse_mode: 'Markdown' });
-    } else if (data === 'open_store') {
-        // Open store
-        await bot.sendMessage(chatId, '🛒 *Opening store...*', { parse_mode: 'Markdown' });
-        // Can add direct link here
     }
 });
 
@@ -228,7 +219,6 @@ bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
     const text = msg.text;
 
-    // Ignore commands and callback messages
     if (!text || text.startsWith('/')) {
         return;
     }
