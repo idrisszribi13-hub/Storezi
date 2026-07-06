@@ -202,6 +202,84 @@ async function sendTelegramNotification(chatId, message) {
     }
 }
 
+// ========================================
+// SIMPLIFIED TELEGRAM LINK FUNCTION
+// ========================================
+
+// ✅ Simplified Telegram linking - sends code to admin only
+window.bindTelegram = async function() {
+    if (!currentUser) { 
+        showToast('⚠️ Please login first', 'warning'); 
+        return; 
+    }
+
+    try {
+        // Generate unique binding code
+        const bindCode = currentUser.uid.slice(-8) + Math.random().toString(36).substring(2, 6);
+
+        // Save binding request to database
+        const bindRef = doc(db, 'telegram_binds', bindCode);
+        await setDoc(bindRef, {
+            userId: currentUser.uid,
+            userEmail: currentUser.email,
+            userName: currentUser.displayName || 'User',
+            createdAt: serverTimestamp(),
+            status: 'pending'
+        });
+
+        const botUsername = 'Zistore_Notif_bot';
+        
+        // ✅ Simplified message for admin (without "send this code to bot")
+        const adminMessage = `🔗 *New Link Request*\n\n👤 User: ${currentUser.displayName || currentUser.email}\n📧 Email: ${currentUser.email}\n🆔 Bind Code: \`${bindCode}\``;
+
+        // Send code to admin
+        await sendTelegramNotification(TELEGRAM_CHAT_ID, adminMessage);
+
+        // ✅ Open bot with interactive button
+        window.open(`https://t.me/${botUsername}`, '_blank');
+
+        showToast('📨 Bot opened! Click "Link Account".', 'success');
+
+        // Start listening for confirmation
+        startBindingListener(bindCode);
+
+    } catch (error) {
+        console.error('Telegram bind error:', error);
+        showToast('❌ Error connecting to Telegram', 'error');
+    }
+};
+
+// ✅ Listening for binding confirmation
+function startBindingListener(bindCode) {
+    const bindRef = doc(db, 'telegram_binds', bindCode);
+    const unsubscribe = onSnapshot(bindRef, (doc) => {
+        if (doc.exists()) {
+            const data = doc.data();
+            console.log('📋 Binding status:', data.status);
+            if (data.status === 'completed' && data.telegramChatId) {
+                userProfile.telegramChatId = data.telegramChatId;
+                saveUserData();
+                renderProfileFull();
+                showToast('✅ Telegram linked successfully!', 'success');
+                
+                // Send welcome message
+                sendTelegramNotification(
+                    userProfile.telegramChatId,
+                    `🔔 *Welcome to ZI Store!*\n\nYour account has been linked successfully.\nYou will receive order notifications here.\n\nThank you for using ZI Store! 🚀`
+                );
+                
+                updateFullUserMenu();
+                unsubscribe();
+            }
+        }
+    });
+    
+    // Auto-cleanup after 5 minutes
+    setTimeout(() => { 
+        unsubscribe(); 
+        console.log('⏰ Binding listener timeout');
+    }, 300000);
+}
 
 // ✅ اختبار الإشعارات
 window.testTelegramNotification = async function() {
