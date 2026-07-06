@@ -56,9 +56,13 @@ body {
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
+    min-height: 100dvh;
     transition: background 0.3s ease;
     overflow-x: hidden;
     direction: ltr !important;
+    height: 100%;
+    margin: 0;
+    padding: 0;
 }
 
 body {
@@ -67,6 +71,26 @@ body {
     line-height: 1.6;
     font-size: 15px;
     direction: ltr !important;
+    background: var(--bg);
+    min-height: 100vh;
+    min-height: 100dvh;
+}
+
+#mainApp {
+    min-height: 100vh;
+    min-height: 100dvh;
+    width: 100%;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    max-width: 480px;
+    margin: 0 auto;
+    width: 100%;
+    direction: ltr !important;
+    flex: 1;
 }
 
 ::-webkit-scrollbar {
@@ -82,23 +106,73 @@ body {
     border-radius: 10px;
 }
 
-.container {
-    max-width: 480px;
-    margin: 0 auto;
+/* ============================================
+   شاشة التحميل
+   ============================================ */
+#loadingScreen {
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
+    height: 100%;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999999;
+    direction: ltr !important;
+}
+
+.loader-container {
+    text-align: center;
+    max-width: 300px;
+    width: 90%;
+}
+
+.loader-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    animation: bounce 1s ease infinite;
+}
+
+@keyframes bounce {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.loader-bar {
+    width: 100%;
+    height: 4px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 12px 0;
+}
+
+.loader-progress {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--primary), var(--vip-color));
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.loader-text {
+    font-size: 14px;
+    color: var(--text-secondary);
+    opacity: 0.5;
+    font-family: var(--font);
     direction: ltr !important;
 }
 
 /* ============================================
-   إصلاح الاتجاه للعناصر العربية
+   HEADER
    ============================================ */
-
-/* ✅ التأكد من أن كل شيء في الاتجاه الصحيح */
-* {
-    direction: ltr !important;
-}
-
-/* ✅ إصلاح header */
 .header {
     direction: ltr !important;
     display: flex !important;
@@ -114,7 +188,6 @@ body {
     gap: 8px;
 }
 
-/* ✅ الشعار في اليسار */
 .logo {
     order: 0 !important;
     display: flex !important;
@@ -136,7 +209,6 @@ body {
     color: var(--primary);
 }
 
-/* ✅ الأيقونات في اليمين */
 .header-actions {
     order: 1 !important;
     display: flex !important;
@@ -144,94 +216,6 @@ body {
     gap: 4px !important;
     flex-direction: row !important;
     flex-shrink: 0;
-}
-
-/* ============================================
-   شريط البحث - LTR
-   ============================================ */
-.search-wrapper {
-    position: relative;
-    flex: 1;
-    min-width: 120px;
-    max-width: 100%;
-    width: 100%;
-    direction: ltr !important;
-    margin-bottom: 12px;
-}
-
-.search-wrapper .search-input {
-    width: 100%;
-    padding: 10px 40px 10px 16px;
-    border: 1px solid var(--border);
-    border-radius: 30px;
-    background: var(--bg);
-    color: var(--text);
-    font-size: 14px;
-    outline: none;
-    font-family: var(--font);
-    transition: 0.3s;
-    text-align: left !important;
-    direction: ltr !important;
-}
-
-.search-wrapper .search-input:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 20px var(--primary-glow);
-}
-
-.search-wrapper .search-input::placeholder {
-    color: var(--text-secondary);
-    opacity: 0.4;
-    font-size: 13px;
-}
-
-.search-wrapper .search-clear {
-    position: absolute;
-    right: 12px !important;
-    left: auto !important;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    color: var(--text-secondary);
-    cursor: pointer;
-    opacity: 0;
-    transition: 0.3s;
-    font-size: 14px;
-    display: none;
-}
-
-.search-wrapper .search-clear.visible {
-    opacity: 0.5;
-    display: block;
-}
-
-.search-wrapper .search-clear.visible:hover {
-    opacity: 1;
-    color: var(--danger);
-}
-
-.search-results {
-    display: none;
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
-    right: 0;
-    background: var(--card-bg);
-    backdrop-filter: blur(20px);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 6px 0;
-    max-height: 300px;
-    overflow-y: auto;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-    z-index: 999;
-    direction: ltr !important;
-    text-align: left !important;
-}
-
-.search-results.active {
-    display: block;
 }
 
 /* ============================================
@@ -365,6 +349,94 @@ body {
     50% {
         transform: scale(1.2);
     }
+}
+
+/* ============================================
+   شريط البحث
+   ============================================ */
+.search-wrapper {
+    position: relative;
+    flex: 1;
+    min-width: 120px;
+    max-width: 100%;
+    width: 100%;
+    direction: ltr !important;
+    margin-bottom: 12px;
+}
+
+.search-wrapper .search-input {
+    width: 100%;
+    padding: 10px 40px 10px 16px;
+    border: 1px solid var(--border);
+    border-radius: 30px;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+    font-family: var(--font);
+    transition: 0.3s;
+    text-align: left !important;
+    direction: ltr !important;
+}
+
+.search-wrapper .search-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 20px var(--primary-glow);
+}
+
+.search-wrapper .search-input::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.4;
+    font-size: 13px;
+}
+
+.search-wrapper .search-clear {
+    position: absolute;
+    right: 12px !important;
+    left: auto !important;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    opacity: 0;
+    transition: 0.3s;
+    font-size: 14px;
+    display: none;
+}
+
+.search-wrapper .search-clear.visible {
+    opacity: 0.5;
+    display: block;
+}
+
+.search-wrapper .search-clear.visible:hover {
+    opacity: 1;
+    color: var(--danger);
+}
+
+.search-results {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    background: var(--card-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 6px 0;
+    max-height: 300px;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    direction: ltr !important;
+    text-align: left !important;
+}
+
+.search-results.active {
+    display: block;
 }
 
 /* ============================================
@@ -2317,7 +2389,6 @@ body {
     border-color: var(--danger);
 }
 
-/* ✅ إصلاح أزرار التبويب */
 .admin-panel .tabs {
     display: flex;
     gap: 4px;
@@ -3082,70 +3153,6 @@ body {
 }
 
 /* ============================================
-   شاشة التحميل
-   ============================================ */
-#loadingScreen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: var(--bg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999999;
-    direction: ltr !important;
-}
-
-.loader-container {
-    text-align: center;
-    max-width: 300px;
-    width: 90%;
-}
-
-.loader-icon {
-    font-size: 48px;
-    margin-bottom: 16px;
-    animation: bounce 1s ease infinite;
-}
-
-@keyframes bounce {
-    0%,
-    100% {
-        transform: translateY(0);
-    }
-    50% {
-        transform: translateY(-10px);
-    }
-}
-
-.loader-bar {
-    width: 100%;
-    height: 4px;
-    background: var(--border);
-    border-radius: 4px;
-    overflow: hidden;
-    margin: 12px 0;
-}
-
-.loader-progress {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg, var(--primary), var(--vip-color));
-    border-radius: 4px;
-    transition: width 0.5s ease;
-}
-
-.loader-text {
-    font-size: 14px;
-    color: var(--text-secondary);
-    opacity: 0.5;
-    font-family: var(--font);
-    direction: ltr !important;
-}
-
-/* ============================================
    قلب متطايرة
    ============================================ */
 .floating-hearts {
@@ -3216,32 +3223,50 @@ body {
 }
 
 /* ============================================
-   نموذج المنتج في لوحة المدير
+   تحسين مودالات الإشعارات والتحميلات
    ============================================ */
-#productForm .auth-field {
-    margin-bottom: 12px !important;
+
+/* ✅ تنسيق عام لنماذج الإدارة */
+#createNotificationForm,
+#createDownloadForm,
+#productForm {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
+#createNotificationForm .auth-field,
+#createDownloadForm .auth-field,
+#productForm .auth-field {
+    margin-bottom: 4px !important;
+}
+
+#createNotificationForm .auth-field label,
+#createDownloadForm .auth-field label,
 #productForm .auth-field label {
     display: block !important;
-    font-size: 12px !important;
+    font-size: 11px !important;
     font-weight: 600 !important;
     color: var(--text-secondary) !important;
     font-family: var(--font) !important;
-    margin-bottom: 4px !important;
-    opacity: 0.6 !important;
+    margin-bottom: 3px !important;
+    opacity: 0.5 !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.3px !important;
+    letter-spacing: 0.5px !important;
     text-align: left !important;
 }
 
+#createNotificationForm .auth-field input,
+#createNotificationForm .auth-field textarea,
+#createDownloadForm .auth-field input,
+#createDownloadForm .auth-field textarea,
 #productForm .auth-field input,
 #productForm .auth-field select,
 #productForm .auth-field textarea {
     width: 100% !important;
     padding: 10px 14px !important;
     border: 1px solid var(--border) !important;
-    border-radius: 8px !important;
+    border-radius: 10px !important;
     background: var(--bg) !important;
     color: var(--text) !important;
     font-size: 13px !important;
@@ -3252,6 +3277,10 @@ body {
     text-align: left !important;
 }
 
+#createNotificationForm .auth-field input:focus,
+#createNotificationForm .auth-field textarea:focus,
+#createDownloadForm .auth-field input:focus,
+#createDownloadForm .auth-field textarea:focus,
 #productForm .auth-field input:focus,
 #productForm .auth-field select:focus,
 #productForm .auth-field textarea:focus {
@@ -3259,12 +3288,17 @@ body {
     box-shadow: 0 0 20px var(--primary-glow) !important;
 }
 
+#createNotificationForm .auth-field textarea,
+#createDownloadForm .auth-field textarea,
 #productForm .auth-field textarea {
     min-height: 60px !important;
     resize: vertical !important;
+    border-radius: 10px !important;
 }
 
-/* ✅ زر Save في نموذج المنتج */
+/* ✅ تنسيق أزرار الإرسال في النماذج */
+#createNotificationForm .auth-btn,
+#createDownloadForm .auth-btn,
 #productForm .auth-btn {
     width: 100% !important;
     padding: 12px !important;
@@ -3277,106 +3311,79 @@ body {
     font-size: 15px !important;
     font-family: var(--font) !important;
     transition: 0.3s !important;
-    margin-top: 10px !important;
+    margin-top: 8px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     gap: 8px !important;
 }
 
+#createNotificationForm .auth-btn:hover,
+#createDownloadForm .auth-btn:hover,
 #productForm .auth-btn:hover {
     transform: translateY(-2px) !important;
     box-shadow: 0 8px 25px var(--primary-glow) !important;
     opacity: 0.9 !important;
 }
 
-/* ============================================
-   نموذج الإشعارات في لوحة المدير
-   ============================================ */
-#createNotificationForm .auth-field {
-    margin-bottom: 12px !important;
-}
-
-#createNotificationForm .auth-field label {
-    display: block !important;
-    font-size: 12px !important;
-    font-weight: 600 !important;
-    color: var(--text-secondary) !important;
+/* ✅ تحسين عنوان المودال */
+#createNotificationModal .modal-title,
+#createDownloadModal .modal-title,
+#productModal .modal-title {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    color: var(--text) !important;
     font-family: var(--font) !important;
-    margin-bottom: 4px !important;
-    opacity: 0.6 !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.3px !important;
-    text-align: left !important;
+    text-align: center !important;
+    margin-bottom: 16px !important;
 }
 
-#createNotificationForm .auth-field input,
-#createNotificationForm .auth-field textarea {
-    width: 100% !important;
-    padding: 10px 14px !important;
-    border: 1px solid var(--border) !important;
-    border-radius: 8px !important;
+#createNotificationModal .modal-title i,
+#createDownloadModal .modal-title i,
+#productModal .modal-title i {
+    color: var(--primary) !important;
+    margin-left: 8px !important;
+}
+
+/* ✅ تحسين مودال المنتج */
+#productModal .modal-content {
+    max-width: 480px !important;
+}
+
+#productModal .auth-field select {
+    appearance: auto !important;
+    cursor: pointer !important;
+}
+
+#productModal .auth-field select option {
     background: var(--bg) !important;
     color: var(--text) !important;
-    font-size: 13px !important;
-    outline: none !important;
-    font-family: var(--font) !important;
-    transition: 0.3s !important;
-    direction: ltr !important;
-    text-align: left !important;
 }
 
-#createNotificationForm .auth-field input:focus,
-#createNotificationForm .auth-field textarea:focus {
-    border-color: var(--primary) !important;
-    box-shadow: 0 0 20px var(--primary-glow) !important;
-}
-
-#createNotificationForm .auth-field textarea {
-    min-height: 80px !important;
-    resize: vertical !important;
-}
-
-/* ============================================
-   نموذج التحميلات في لوحة المدير
-   ============================================ */
-#createDownloadForm .auth-field {
-    margin-bottom: 12px !important;
-}
-
-#createDownloadForm .auth-field label {
-    display: block !important;
-    font-size: 12px !important;
-    font-weight: 600 !important;
+/* ✅ تنسيق placeholder */
+#createNotificationForm .auth-field input::placeholder,
+#createNotificationForm .auth-field textarea::placeholder,
+#createDownloadForm .auth-field input::placeholder,
+#createDownloadForm .auth-field textarea::placeholder,
+#productForm .auth-field input::placeholder,
+#productForm .auth-field textarea::placeholder {
     color: var(--text-secondary) !important;
-    font-family: var(--font) !important;
-    margin-bottom: 4px !important;
-    opacity: 0.6 !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.3px !important;
-    text-align: left !important;
+    opacity: 0.3 !important;
+    font-size: 12px !important;
 }
 
-#createDownloadForm .auth-field input,
-#createDownloadForm .auth-field textarea {
-    width: 100% !important;
-    padding: 10px 14px !important;
-    border: 1px solid var(--border) !important;
-    border-radius: 8px !important;
-    background: var(--bg) !important;
-    color: var(--text) !important;
-    font-size: 13px !important;
-    outline: none !important;
-    font-family: var(--font) !important;
-    transition: 0.3s !important;
-    direction: ltr !important;
-    text-align: left !important;
-}
-
-#createDownloadForm .auth-field input:focus,
-#createDownloadForm .auth-field textarea:focus {
-    border-color: var(--primary) !important;
-    box-shadow: 0 0 20px var(--primary-glow) !important;
+/* ✅ تحسين المسافات في المودالات الصغيرة */
+@media (max-width: 400px) {
+    #createNotificationForm .auth-field input,
+    #createNotificationForm .auth-field textarea,
+    #createDownloadForm .auth-field input,
+    #createDownloadForm .auth-field textarea,
+    #productForm .auth-field input,
+    #productForm .auth-field select,
+    #productForm .auth-field textarea {
+        padding: 8px 12px !important;
+        font-size: 12px !important;
+    }
 }
 
 /* ============================================
