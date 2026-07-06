@@ -202,11 +202,7 @@ async function sendTelegramNotification(chatId, message) {
     }
 }
 
-// ========================================
-// SIMPLIFIED TELEGRAM LINK FUNCTION
-// ========================================
-
-// ✅ Simplified Telegram linking - sends code to admin only
+// ✅ ربط تيليجرام - نسخة مبسطة (الكود يظهر للمدير فقط)
 window.bindTelegram = async function() {
     if (!currentUser) { 
         showToast('⚠️ Please login first', 'warning'); 
@@ -229,10 +225,10 @@ window.bindTelegram = async function() {
 
         const botUsername = 'Zistore_Notif_bot';
         
-        // ✅ Simplified message for admin (without "send this code to bot")
+        // ✅ Send only to admin (user doesn't see the code)
         const adminMessage = `🔗 *New Link Request*\n\n👤 User: ${currentUser.displayName || currentUser.email}\n📧 Email: ${currentUser.email}\n🆔 Bind Code: \`${bindCode}\``;
 
-        // Send code to admin
+        // Send code to admin only
         await sendTelegramNotification(TELEGRAM_CHAT_ID, adminMessage);
 
         // ✅ Open bot with interactive button
