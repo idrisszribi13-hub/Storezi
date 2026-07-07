@@ -1,5 +1,5 @@
 // ============================================================
-// BOT.JS - Complete and Clean Version with English Comments
+// BOT.JS - Complete with 409 Conflict Handling (No Exit)
 // ============================================================
 
 const TelegramBot = require('node-telegram-bot-api');
@@ -62,8 +62,10 @@ try {
     }
 }
 
-// ============= Bot Instance with conflict handling =============
+// ============= Bot Instance =============
 let bot;
+let pollingStarted = false;
+let restartTimeout = null;
 
 function startBot() {
     bot = new TelegramBot(token, {
@@ -77,24 +79,68 @@ function startBot() {
     bot.on('polling_error', (error) => {
         console.error('❌ Polling error:', error.message);
         if (error.message && error.message.includes('409')) {
-            console.log('🔄 409 Conflict - Another instance is running. Stopping this one...');
-            bot.stopPolling().then(() => {
-                console.log('✅ Stopped polling. Exiting process to let the other instance run.');
-                process.exit(0);
-            }).catch(() => process.exit(0));
+            console.log('🔄 409 Conflict - Another instance is running. Stopping polling...');
+            if (pollingStarted) {
+                bot.stopPolling().then(() => {
+                    console.log('✅ Stopped polling. Waiting 30s before retry...');
+                    pollingStarted = false;
+                    // Retry after 30 seconds
+                    if (restartTimeout) clearTimeout(restartTimeout);
+                    restartTimeout = setTimeout(() => {
+                        console.log('🔄 Retrying to start polling...');
+                        startPolling();
+                    }, 30000);
+                }).catch((err) => {
+                    console.error('❌ Error stopping polling:', err.message);
+                    // Still retry after 30s
+                    if (restartTimeout) clearTimeout(restartTimeout);
+                    restartTimeout = setTimeout(() => {
+                        console.log('🔄 Retrying to start polling...');
+                        startPolling();
+                    }, 30000);
+                });
+            } else {
+                // If polling wasn't started, retry after delay
+                if (restartTimeout) clearTimeout(restartTimeout);
+                restartTimeout = setTimeout(() => {
+                    console.log('🔄 Retrying to start polling...');
+                    startPolling();
+                }, 30000);
+            }
+        } else {
+            // Other polling errors - just log and continue
+            console.log('⚠️ Other polling error, continuing...');
         }
     });
 
-    // Start polling after a short delay to allow any previous instance to clean up
-    setTimeout(() => {
-        bot.startPolling().then(() => {
-            console.log('✅ Bot polling started successfully.');
-        }).catch((err) => {
-            console.error('❌ Failed to start polling:', err.message);
-        });
-    }, 2000);
+    // Start polling
+    startPolling();
 
     // ============= Helper Functions =============
+
+    function startPolling() {
+        if (pollingStarted) {
+            console.log('ℹ️ Polling already started');
+            return;
+        }
+        console.log('🔄 Starting polling...');
+        bot.startPolling().then(() => {
+            console.log('✅ Bot polling started successfully.');
+            pollingStarted = true;
+            if (restartTimeout) {
+                clearTimeout(restartTimeout);
+                restartTimeout = null;
+            }
+        }).catch((err) => {
+            console.error('❌ Failed to start polling:', err.message);
+            // Retry after delay
+            if (restartTimeout) clearTimeout(restartTimeout);
+            restartTimeout = setTimeout(() => {
+                console.log('🔄 Retrying to start polling...');
+                startPolling();
+            }, 10000);
+        });
+    }
 
     /**
      * Send a message with inline buttons
@@ -160,7 +206,7 @@ function startBot() {
     }
 
     /**
-     * Update user document with chat ID using userId from bindData
+     * Update user document with chat ID or create if not exists
      * @param {Object} bindData - Data from the bind request
      * @param {string} chatId - Telegram chat ID to assign
      */
@@ -175,7 +221,6 @@ function startBot() {
             const userRef = db.collection('users').doc(userId);
             const docSnap = await userRef.get();
             if (!docSnap.exists) {
-                // User document not found, create it
                 console.log(`ℹ️ User document ${userId} not found. Creating new user...`);
                 await userRef.set({
                     userId: userId,
@@ -358,17 +403,24 @@ Thank you for using Zi Store! 🚀`;
     });
 
     // ============= No message handler for regular text =============
-    console.log('🚀 Bot started successfully!');
-
-    // ============= Graceful Shutdown =============
-    const shutdown = (signal) => {
-        console.log(`⚠️ Received ${signal}. Shutting down...`);
-        bot.stopPolling().then(() => process.exit(0));
-    };
-
-    process.on('SIGTERM', () => shutdown('SIGTERM'));
-    process.on('SIGINT', () => shutdown('SIGINT'));
+    console.log('🚀 Bot handlers registered successfully!');
 }
 
 // Start the bot
 startBot();
+
+// ============= Graceful Shutdown =============
+const shutdown = (signal) => {
+    console.log(`⚠️ Received ${signal}. Shutting down...`);
+    if (bot) {
+        bot.stopPolling().then(() => {
+            console.log('✅ Polling stopped.');
+            process.exit(0);
+        }).catch(() => process.exit(0));
+    } else {
+        process.exit(0);
+    }
+};
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
