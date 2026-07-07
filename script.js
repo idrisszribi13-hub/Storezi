@@ -1,6 +1,6 @@
-// ============================================================
-// SCRIPT.JS - النسخة النهائية مع جميع التعديلات
-// ============================================================
+// ========================================
+// START OF SCRIPT.JS - كامل مع الإصلاحات والإضافات
+// ========================================
 
 import { initializeApp } from "firebase/app";
 import { getAuth, onAuthStateChanged, signInAnonymously, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, updatePassword, sendPasswordResetEmail, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
@@ -25,7 +25,7 @@ const db = getFirestore(app);
 const analytics = getAnalytics(app);
 
 // ========================================
-// Loading Screen
+// Loading Screen - English Version
 // ========================================
 
 const loadingMessages = [
@@ -170,7 +170,7 @@ async function checkUserBanned(uid) {
 }
 
 // ========================================
-// Telegram Functions (مع التعديلات الجديدة)
+// Telegram Functions
 // ========================================
 
 async function sendTelegramNotification(chatId, message) {
@@ -204,7 +204,7 @@ async function sendTelegramNotification(chatId, message) {
     }
 }
 
-// ✅ ربط تيليجرام - مع فتح البوت بـ ?start=bind
+// ✅ ربط تيليجرام - الكود يظهر للمدير فقط
 window.bindTelegram = async function() {
     if (!currentUser) { 
         showToast('⚠️ Please login first', 'warning'); 
@@ -222,22 +222,19 @@ window.bindTelegram = async function() {
             status: 'pending'
         });
 
-        // إشعار للمدير (يحتوي على الكود للتوثيق)
         const adminMessage = `🔗 *New Link Request*\n\n👤 User: ${currentUser.displayName || currentUser.email}\n📧 Email: ${currentUser.email}\n🆔 Bind Code: \`${bindCode}\``;
         await sendTelegramNotification(TELEGRAM_CHAT_ID, adminMessage);
 
-        // ✅ فتح البوت مع بارامتر start
-        window.open(`https://t.me/${BOT_USERNAME}?start=bind`, '_blank');
-        showToast('📨 افتح البوت واضغط على زر "ابدأ" ثم "ربط الحساب".', 'success');
+        window.open(`https://t.me/${BOT_USERNAME}`, '_blank');
+        showToast('📨 Bot opened! Click "Link Account".', 'success');
         startBindingListener(bindCode);
 
     } catch (error) {
         console.error('Telegram bind error:', error);
-        showToast('❌ خطأ في الاتصال', 'error');
+        showToast('❌ Error connecting to Telegram', 'error');
     }
 };
 
-// ✅ مستمع الربط - بدون مهلة زمنية
 function startBindingListener(bindCode) {
     const bindRef = doc(db, 'telegram_binds', bindCode);
     const unsubscribe = onSnapshot(bindRef, (doc) => {
@@ -245,37 +242,32 @@ function startBindingListener(bindCode) {
             const data = doc.data();
             console.log('📋 Binding status:', data.status);
             if (data.status === 'completed' && data.telegramChatId) {
-                // تحديث userProfile
                 userProfile.telegramChatId = data.telegramChatId;
-                userProfile.telegram = data.userName || '';
                 saveUserData();
-                
-                // تحديث الواجهة بالكامل
                 renderProfileFull();
-                updateFullUserMenu();
-                updateUI();
                 showToast('✅ Telegram linked successfully!', 'success');
                 
-                // إخفاء البانر
+                // إخفاء النافذة فوراً
                 const banner = document.getElementById('telegramBanner');
                 if (banner) banner.classList.add('hidden');
                 localStorage.removeItem('telegram_banner_hidden');
                 
-                // إرسال رسالة ترحيب للمستخدم
                 sendTelegramNotification(
                     userProfile.telegramChatId,
                     `🔔 *Welcome to ZI Store!*\n\nYour account has been linked successfully.\nYou will receive order notifications here.\n\nThank you for using ZI Store! 🚀`
                 );
                 
-                // إلغاء المستمع بعد النجاح
+                updateFullUserMenu();
                 unsubscribe();
             }
         }
     });
-    // ❌ إزالة setTimeout حتى لا ينقطع المستمع مبكراً
+    setTimeout(() => { 
+        unsubscribe(); 
+        console.log('⏰ Binding listener timeout');
+    }, 300000);
 }
 
-// ✅ اختبار الإشعارات
 window.testTelegramNotification = async function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
     if (!userProfile.telegramChatId) { showToast('⚠️ No Telegram linked', 'warning'); return; }
@@ -292,61 +284,26 @@ window.testTelegramNotification = async function() {
     }
 };
 
-// ✅ التحقق من حالة الربط (مع تحديث كامل)
 window.checkTelegramStatus = async function() {
-    if (!currentUser) {
-        showToast('⚠️ Please login first', 'warning');
-        return;
-    }
+    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
     try {
         const userRef = doc(db, 'users', currentUser.uid);
         const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
             const data = userSnap.data();
-            const chatId = data.telegramChatId || '';
-            const telegram = data.telegram || '';
-            
-            // تحديث userProfile بالكامل من Firestore
-            userProfile.telegramChatId = chatId;
-            userProfile.telegram = telegram;
-            // تحديث باقي الحقول الضرورية
-            userProfile.name = data.name || userProfile.name;
-            userProfile.email = data.email || userProfile.email;
-            // ... إلخ (يمكن إضافة حقول أخرى)
-            
-            await saveUserData();
-            
-            // تحديث الواجهة بالكامل
-            renderProfileFull();
-            updateFullUserMenu();
-            updateUI();
-            
-            if (chatId) {
-                const maskedId = chatId.slice(0, 4) + '***' + chatId.slice(-4);
+            if (data.telegramChatId) {
+                const maskedId = data.telegramChatId.slice(0, 4) + '***' + data.telegramChatId.slice(-4);
                 showToast(`✅ Linked (Chat ID: ${maskedId})`, 'success');
-                // إرسال رسالة تأكيد للمستخدم
-                await sendTelegramNotification(
-                    chatId,
-                    `✅ *Connection verified!*\n\nYour account is linked to Zi Store.\n📅 ${new Date().toLocaleString()}`
-                );
-            } else {
-                showToast('❌ Not linked', 'warning');
-            }
-        } else {
-            showToast('❌ User document not found', 'error');
+                userProfile.telegramChatId = data.telegramChatId;
+                renderProfileFull();
+            } else { showToast('❌ Not linked', 'warning'); }
         }
-    } catch (error) {
-        console.error('Check telegram status error:', error);
-        showToast('❌ Error checking status: ' + error.message, 'error');
-    }
+    } catch (error) { console.error('Check telegram status error:', error);
+        showToast('❌ Error checking status', 'error'); }
 };
 
-// ✅ إلغاء الربط
 window.unlinkTelegram = async function() {
-    if (!currentUser) {
-        showToast('⚠️ Please login first', 'warning');
-        return;
-    }
+    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
     if (!userProfile.telegramChatId) {
         showToast('⚠️ Telegram is not linked', 'warning');
         return;
@@ -356,32 +313,23 @@ window.unlinkTelegram = async function() {
     }
     try {
         const userRef = doc(db, 'users', currentUser.uid);
-        await updateDoc(userRef, { 
-            telegramChatId: '', 
-            telegram: '',
-            updatedAt: serverTimestamp()
-        });
-        
+        await updateDoc(userRef, { telegramChatId: '', telegram: '' });
         userProfile.telegramChatId = '';
         userProfile.telegram = '';
         await saveUserData();
-        
         renderProfileFull();
         updateFullUserMenu();
-        updateUI();
         showToast('✅ Telegram unlinked successfully!', 'success');
-        
-        await sendTelegramNotification(
+        sendTelegramNotification(
             TELEGRAM_CHAT_ID,
             `🔓 *Telegram Unlinked*\n\n👤 User: ${currentUser.displayName || currentUser.email}\n📧 Email: ${currentUser.email}\n\nAccount unlinked successfully.`
         );
     } catch (error) {
         console.error('Unlink error:', error);
-        showToast('❌ Error unlinking Telegram: ' + error.message, 'error');
+        showToast('❌ Error unlinking Telegram', 'error');
     }
 };
 
-// ✅ إخفاء Chat ID
 function maskChatId(chatId) {
     if (!chatId) return 'Not linked';
     if (chatId.length <= 8) return chatId;
@@ -836,7 +784,7 @@ function openAuthModal() {
 }
 
 // ========================================
-// Profile Render (مع تحديث حالة Telegram)
+// Profile Render
 // ========================================
 
 function renderProfileFull() {
@@ -914,7 +862,7 @@ function renderProfileFull() {
       </div>
     </div>
 
-    <!-- Telegram Section (مع تحديث الحالة) -->
+    <!-- Telegram Section -->
     <div class="telegram-bind-section" style="margin-top:12px;">
       <div style="font-size:14px;font-weight:700;color:var(--text);font-family:var(--font);margin-bottom:6px;">
         <i class="fab fa-telegram-plane" style="color:#0088cc;"></i> Telegram Notifications
@@ -922,12 +870,12 @@ function renderProfileFull() {
       <div class="tb-row">
         <span class="tb-label">Status</span>
         <span class="tb-value">
-          <span class="tb-status ${userProfile.telegramChatId ? 'linked' : 'unlinked'}">
-            ${userProfile.telegramChatId ? '✅ Linked' : '❌ Unlinked'}
+          <span class="tb-status ${userProfile.telegramChatId?'linked':'unlinked'}">
+            ${userProfile.telegramChatId?'✅ Linked':'❌ Unlinked'}
           </span>
         </span>
       </div>
-      ${userProfile.telegramChatId ? `
+      ${userProfile.telegramChatId?`
       <div class="tb-row">
         <span class="tb-label">Bound Chat ID</span>
         <span class="tb-value" style="font-family:monospace;letter-spacing:1px;">${maskedChatId}</span>
@@ -935,7 +883,7 @@ function renderProfileFull() {
       <div class="tb-row">
         <span class="tb-label">Bot</span>
         <span class="tb-value" style="color:#0088cc;">@${BOT_USERNAME}</span>
-      </div>` : ''}
+      </div>`:''}
       <div style="background:var(--card-bg);padding:10px;border-radius:8px;margin:8px 0;border:1px solid var(--border);">
         <div style="font-size:13px;color:var(--text-secondary);font-family:var(--font);">
           <i class="fas fa-info-circle" style="color:var(--primary);"></i> 
@@ -945,7 +893,7 @@ function renderProfileFull() {
       <div class="tb-actions">
         <button class="btn-bind" onclick="bindTelegram()" style="flex:1;background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;font-family:var(--font);transition:0.3s;display:flex;align-items:center;justify-content:center;gap:8px;">
           <i class="fab fa-telegram-plane"></i> 
-          ${userProfile.telegramChatId ? 'Re-link' : 'Link Bot'}
+          ${userProfile.telegramChatId?'Re-link':'Link Bot'}
         </button>
         ${userProfile.telegramChatId ? `<button class="btn-test" onclick="testTelegramNotification()" style="background:var(--success);color:#0a0a1a;border:none;border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;font-family:var(--font);transition:0.3s;display:flex;align-items:center;gap:6px;"><i class="fas fa-paper-plane"></i> Test</button>` : ''}
         <button class="btn-check" onclick="checkTelegramStatus()" style="background:var(--card-bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;font-family:var(--font);transition:0.3s;display:flex;align-items:center;gap:6px;"><i class="fas fa-sync-alt"></i> Check</button>
@@ -960,12 +908,62 @@ function renderProfileFull() {
     setTimeout(showTelegramBanner, 300);
 }
 
-// ========================================
-// باقي الكود (منتجات، سلة، إلخ)
-// ========================================
+window.saveProfileChangesInline = async function(e) {
+    e.preventDefault();
+    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
+    const name = document.getElementById('editNameInline').value.trim();
+    const telegram = document.getElementById('editTelegramInline').value.trim();
+    const location = document.getElementById('editLocationInline').value;
+    const lang = document.getElementById('editLangInline').value;
+    if (!name) { showToast('⚠️ Name is required', 'warning'); return; }
+    try {
+        await updateProfile(currentUser, { displayName: name });
+        const userRef = doc(db, 'users', currentUser.uid);
+        await updateDoc(userRef, { name, telegram, location, lang, updatedAt: serverTimestamp() });
+        userProfile.name = name;
+        userProfile.telegram = telegram;
+        userProfile.location = location;
+        userProfile.lang = lang;
+        showToast('✅ Profile updated!', 'success');
+        updateUI();
+        renderProfileFull();
+        updateFullUserMenu();
+    } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
+};
 
-// هنا نضع باقي الكود كما هو (لم يتغير)
-// ... (سيتم إكماله في النسخة الكاملة)
+window.sendResetLinkInline = async function() {
+    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
+    try {
+        await sendPasswordResetEmail(auth, currentUser.email);
+        showToast(`📧 Reset link sent to ${currentUser.email}`, 'success');
+    } catch (error) { showToast('❌ ' + error.message, 'error'); }
+};
+
+window.changePasswordInline = async function() {
+    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
+    const currentPwd = document.getElementById('currentPasswordInline').value;
+    const newPwd = document.getElementById('newPasswordInline').value;
+    const confirmPwd = document.getElementById('confirmNewPasswordInline').value;
+    const errorEl = document.getElementById('passwordErrorInline');
+    const successEl = document.getElementById('passwordSuccessInline');
+    errorEl.textContent = '';
+    successEl.textContent = '';
+    if (!currentPwd || !newPwd || !confirmPwd) { errorEl.textContent = 'Please fill all fields'; return; }
+    if (newPwd.length < 6) { errorEl.textContent = 'New password must be at least 6 characters'; return; }
+    if (newPwd !== confirmPwd) { errorEl.textContent = 'Passwords do not match'; return; }
+    try {
+        const credential = EmailAuthProvider.credential(currentUser.email, currentPwd);
+        await reauthenticateWithCredential(currentUser, credential);
+        await updatePassword(currentUser, newPwd);
+        successEl.textContent = '✅ Password changed successfully!';
+        showToast('✅ Password updated!', 'success');
+        document.getElementById('currentPasswordInline').value = '';
+        document.getElementById('newPasswordInline').value = '';
+        document.getElementById('confirmNewPasswordInline').value = '';
+        setTimeout(() => { successEl.textContent = ''; }, 3000);
+    } catch (error) { errorEl.textContent = '❌ ' + error.message;
+        showToast('❌ ' + error.message, 'error'); }
+};
 
 // ========================================
 // Products
@@ -999,6 +997,129 @@ function startProductsRealtimeListener() {
         renderProducts(products);
         renderAdminProducts(products);
         updateStatsFromProducts(products); });
+}
+
+function renderProducts(productsList) {
+    const container = document.getElementById('productList');
+    if (!container) return;
+    const list = productsList || [];
+    if (list.length === 0) { container.innerHTML =
+            `<div style="grid-column:1/-1;text-align:center;padding:20px 0;color:var(--text-secondary);font-size:14px;font-family:var(--font);"><i class="fas fa-search" style="font-size:28px;opacity:0.2;display:block;margin-bottom:4px;"></i><p>No products</p></div>`; return; }
+    let filtered = [...list];
+    if (currentFilter === 'free') filtered = filtered.filter(p => p.price === 0);
+    else if (currentFilter === 'paid') filtered = filtered.filter(p => p.price > 0);
+    if (filtered.length === 0) { container.innerHTML =
+            `<div style="grid-column:1/-1;text-align:center;padding:20px 0;color:var(--text-secondary);font-size:14px;font-family:var(--font);"><i class="fas fa-search" style="font-size:28px;opacity:0.2;display:block;margin-bottom:4px;"></i><p>No results</p></div>`; return; }
+    container.innerHTML = filtered.map(p => {
+        const isFree = p.price === 0;
+        const isUnavailable = p.status === 'unavailable';
+        const inCart = cart.some(item => item.id === p.id);
+        const inWish = wishlist.includes(p.id);
+        const qty = cart.find(item => item.id === p.id)?.quantity || 0;
+        const badgeLabel = isFree ? 'FREE' : (isUnavailable ? 'Unavailable' : (p.badge || 'VIP'));
+        const badgeClass = isUnavailable ? 'unavailable' : (isFree ? 'free' : 'vip');
+        const displayFeatures = p.features ? p.features.slice(0, 3) : [];
+        let displayPrice = p.price;
+        let originalPrice = '';
+        let discountBadge = '';
+        let rpDiscountText = '';
+        if (!isUnavailable) {
+            const rpDiscount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, p.price);
+            if (rpDiscount > 0 && p.price > 0) {
+                const discountedPrice = p.price - rpDiscount;
+                displayPrice = discountedPrice;
+                rpDiscountText =
+                    `<span class="rp-discount">🎯 -${Math.floor(rpDiscount / RP_TO_DOLLAR)} RP (${rpDiscount.toFixed(2)} $)</span>`;
+            }
+            if (activeDiscount > 0 && p.price > 0) {
+                const discounted = displayPrice - (displayPrice * activeDiscount / 100);
+                displayPrice = discounted;
+                originalPrice = `<span class="original-price">${p.price} $</span>`;
+                discountBadge = `<span class="discount-badge">-${activeDiscount}%</span>`;
+            }
+        }
+        const imageFilter = isUnavailable ? 'grayscale(100%)' : 'none';
+        const unavailableOverlay = isUnavailable ?
+            `<div style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;border-radius:10px;z-index:3;"><span style="background:var(--danger);color:#fff;padding:4px 12px;border-radius:14px;font-size:11px;font-weight:700;font-family:var(--font);">⛔</span></div>` :
+            '';
+        return `
+      <div class="product-card" onclick="window.openDetails('${p.id}')" style="${isUnavailable?'opacity:0.7;':''}">
+        <div class="product-actions-top">
+          <button class="share-btn" onclick="event.stopPropagation(); openShareModal('${p.id}')" title="Share"><i class="fas fa-share-alt"></i></button>
+          <button class="wishlist-btn" onclick="event.stopPropagation(); window.toggleWishlist('${p.id}')"><i class="fas fa-heart heart-icon ${inWish?'liked':''}"></i></button>
+        </div>
+        <div class="image-wrapper">
+          ${p.image?`<img src="${p.image}" alt="${p.name}" loading="lazy" style="filter:${imageFilter};" />`:`<div class="placeholder"><i class="fas fa-code"></i></div>`}
+          ${unavailableOverlay}
+          <div class="image-badge ${badgeClass}">${badgeLabel}</div>
+        </div>
+        <div class="product-name">${p.name}</div>
+        <div class="features-list">
+          ${displayFeatures.map(f=>`<span class="feature-item"><i class="fas fa-circle"></i> ${f}</span>`).join('')}
+          ${displayFeatures.length>0 && p.features && p.features.length>3?`<span class="feature-item" style="opacity:0.2;">+${p.features.length-3}</span>`:''}
+        </div>
+        <div class="price">
+          ${isUnavailable?'⛔ Unavailable':(isFree?'FREE':(displayPrice.toFixed(2)+' $'))}
+          ${originalPrice}
+          ${discountBadge}
+          ${rpDiscountText}
+        </div>
+        <div class="card-actions">
+          <button class="btn-details" onclick="event.stopPropagation(); window.openDetails('${p.id}')"><i class="fas fa-info-circle"></i></button>
+          ${isUnavailable?`<button class="btn-download" style="background:var(--text-secondary);color:#fff;cursor:not-allowed;opacity:0.4;" onclick="event.preventDefault();showToast('⛔ Unavailable','warning')"><i class="fas fa-times-circle"></i></button>`:(isFree?`<a href="${p.downloadLink||'#'}" class="btn-download" ${p.downloadLink?'target="_blank"':'onclick="event.preventDefault();showToast(\'⏳ Coming soon\',\'info\')"'}><i class="fas fa-download"></i></a>`:`<button class="btn-add-cart ${inCart?'added':''}" onclick="event.stopPropagation(); window.addToCart('${p.id}')"><i class="fas ${inCart?'fa-check':'fa-cart-plus'}"></i> ${inCart?qty:''}</button>`)}
+        </div>
+      </div>
+    `;
+    }).join('');
+}
+
+function updateStatsFromProducts(productsList) {
+    const total = productsList.length;
+    const free = productsList.filter(p => p.price === 0).length;
+    const vip = productsList.filter(p => p.price > 0).length;
+    document.getElementById('totalScripts').textContent = total;
+    document.getElementById('freeScripts').textContent = free;
+    document.getElementById('vipScripts').textContent = vip;
+    document.getElementById('wishlistStats').textContent = wishlist.length;
+}
+
+function generateRecommendations(productsList) {
+    const grid = document.getElementById('recommendationsGrid');
+    if (!grid) return;
+    const list = productsList || [];
+    if (!currentUser || (userProfile.history.length === 0 && wishlist.length === 0)) {
+        const shuffled = [...list].sort(() => 0.5 - Math.random());
+        const top = shuffled.slice(0, 4);
+        if (top.length === 0) { grid.innerHTML =
+                `<div class="rec-empty" style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text-secondary);font-size:13px;"><i class="fas fa-lightbulb" style="display:block;font-size:24px;opacity:0.2;margin-bottom:4px;"></i><p>Start exploring scripts!</p></div>`; return; }
+        grid.innerHTML = top.map(p =>
+            `<div class="rec-item" onclick="window.openDetails('${p.id}')"><img src="${p.image||'https://picsum.photos/seed/default/200/120'}" alt="${p.name}" /><div class="r-name">${p.name}</div><div class="r-price">${p.price===0?'FREE':p.price+' $'}</div></div>`
+        ).join('');
+        return;
+    }
+    const userInterests = new Set();
+    userProfile.history.forEach(item => { if (item.id) userInterests.add(item.id); });
+    wishlist.forEach(id => { userInterests.add(id); });
+    if (userInterests.size > 0) {
+        const recommendations = list.filter(p => !userInterests.has(p.id));
+        const shuffled = recommendations.sort(() => 0.5 - Math.random());
+        const top = shuffled.slice(0, 4);
+        if (top.length === 0) {
+            const random = [...list].sort(() => 0.5 - Math.random()).slice(0, 4);
+            grid.innerHTML = random.map(p =>
+                `<div class="rec-item" onclick="window.openDetails('${p.id}')"><img src="${p.image||'https://picsum.photos/seed/default/200/120'}" alt="${p.name}" /><div class="r-name">${p.name}</div><div class="r-price">${p.price===0?'FREE':p.price+' $'}</div></div>`
+            ).join('');
+            return;
+        }
+        grid.innerHTML = top.map(p =>
+            `<div class="rec-item" onclick="window.openDetails('${p.id}')"><img src="${p.image||'https://picsum.photos/seed/default/200/120'}" alt="${p.name}" /><div class="r-name">${p.name}</div><div class="r-price">${p.price===0?'FREE':p.price+' $'}</div></div>`
+        ).join('');
+    } else {
+        const shuffled = [...list].sort(() => 0.5 - Math.random()).slice(0, 4);
+        grid.innerHTML = shuffled.map(p =>
+            `<div class="rec-item" onclick="window.openDetails('${p.id}')"><img src="${p.image||'https://picsum.photos/seed/default/200/120'}" alt="${p.name}" /><div class="r-name">${p.name}</div><div class="r-price">${p.price===0?'FREE':p.price+' $'}</div></div>`
+        ).join('');
+    }
 }
 
 // ========================================
@@ -2619,15 +2740,22 @@ window.closeUserDetailsModal = function() { document.getElementById('userDetails
 // History (مع زر Clear All)
 // ========================================
 
+// ✅ مسح جميع الطلبات في السجل (بدون تأكيد)
 window.clearOrderHistory = async function() {
     if (!currentUser) {
         showToast('⚠️ Please login first', 'warning');
         return;
     }
+    
     try {
+        // تحديث المصفوفة المحلية
         userProfile.history = [];
+        // تحديث Firebase
         const userRef = doc(db, 'users', currentUser.uid);
-        await updateDoc(userRef, { history: [] });
+        await updateDoc(userRef, {
+            history: []
+        });
+        // تحديث الواجهة
         renderHistoryFull();
         updateFullUserMenu();
         showToast('🗑️ Order history cleared successfully!', 'success');
@@ -2640,6 +2768,8 @@ window.clearOrderHistory = async function() {
 function renderHistoryFull() {
     const container = document.getElementById('historyFullContent');
     const history = userProfile.history || [];
+    
+    // إذا كان السجل فارغًا
     if (history.length === 0) {
         container.innerHTML = `
             <div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
@@ -2650,12 +2780,31 @@ function renderHistoryFull() {
         `;
         return;
     }
+    
+    // بناء HTML مع زر Clear All
     let html = `
         <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
-            <button onclick="clearOrderHistory()" style="padding:6px 16px;border:none;border-radius:8px;background:var(--danger);color:#fff;font-weight:600;cursor:pointer;font-size:13px;font-family:var(--font);display:flex;align-items:center;gap:6px;transition:0.3s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'"><i class="fas fa-trash-alt"></i> Clear All</button>
+            <button onclick="clearOrderHistory()" style="
+                padding:6px 16px;
+                border:none;
+                border-radius:8px;
+                background:var(--danger);
+                color:#fff;
+                font-weight:600;
+                cursor:pointer;
+                font-size:13px;
+                font-family:var(--font);
+                display:flex;
+                align-items:center;
+                gap:6px;
+                transition:0.3s;
+            " onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                <i class="fas fa-trash-alt"></i> Clear All
+            </button>
         </div>
         <div style="display:grid;gap:8px;">
     `;
+    
     history.slice().reverse().forEach(item => {
         const status = item.status || 'pending';
         const statusMap = {
@@ -2671,6 +2820,7 @@ function renderHistoryFull() {
         const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         const itemsNames = item.items ? item.items.map(i => i.name).join(', ') : 'Order';
         const total = item.total || 0;
+        
         html += `
             <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);">
                 <div style="flex:1;min-width:0;">
@@ -2682,6 +2832,7 @@ function renderHistoryFull() {
             </div>
         `;
     });
+    
     html += `</div>`;
     container.innerHTML = html;
 }
@@ -2722,6 +2873,7 @@ onAuthStateChanged(auth, async (user) => {
         } catch (error) {
             console.error('Error checking ban status:', error);
         }
+        
         document.getElementById('authSection').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
         await loadUserData();
@@ -2815,8 +2967,10 @@ function showTelegramBannerAgain() {
 function addBannerAdminControls() {
     const tabNotifications = document.getElementById('tabNotifications');
     if (!tabNotifications) return;
+    
     const existingControls = tabNotifications.querySelector('.banner-admin-controls');
     if (existingControls) existingControls.remove();
+    
     const controls = document.createElement('div');
     controls.className = 'banner-admin-controls';
     controls.style.cssText = `
@@ -2838,13 +2992,46 @@ function addBannerAdminControls() {
                 </div>
             </div>
             <div style="display:flex;gap:6px;">
-                <button onclick="adminToggleBanner(true)" class="banner-admin-btn" style="padding:6px 16px;border:none;border-radius:6px;background:var(--success);color:#0a0a1a;font-weight:600;cursor:pointer;font-size:12px;font-family:var(--font);transition:0.3s;">
+                <button onclick="adminToggleBanner(true)" class="banner-admin-btn" style="
+                    padding:6px 16px;
+                    border:none;
+                    border-radius:6px;
+                    background:var(--success);
+                    color:#0a0a1a;
+                    font-weight:600;
+                    cursor:pointer;
+                    font-size:12px;
+                    font-family:var(--font);
+                    transition:0.3s;
+                ">
                     <i class="fas fa-eye"></i> Show
                 </button>
-                <button onclick="adminToggleBanner(false)" class="banner-admin-btn" style="padding:6px 16px;border:none;border-radius:6px;background:var(--danger);color:#fff;font-weight:600;cursor:pointer;font-size:12px;font-family:var(--font);transition:0.3s;">
+                <button onclick="adminToggleBanner(false)" class="banner-admin-btn" style="
+                    padding:6px 16px;
+                    border:none;
+                    border-radius:6px;
+                    background:var(--danger);
+                    color:#fff;
+                    font-weight:600;
+                    cursor:pointer;
+                    font-size:12px;
+                    font-family:var(--font);
+                    transition:0.3s;
+                ">
                     <i class="fas fa-eye-slash"></i> Hide
                 </button>
-                <button onclick="resetBannerForAll()" class="banner-admin-btn" style="padding:6px 16px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);font-weight:600;cursor:pointer;font-size:12px;font-family:var(--font);transition:0.3s;">
+                <button onclick="resetBannerForAll()" class="banner-admin-btn" style="
+                    padding:6px 16px;
+                    border:1px solid var(--border);
+                    border-radius:6px;
+                    background:var(--card-bg);
+                    color:var(--text);
+                    font-weight:600;
+                    cursor:pointer;
+                    font-size:12px;
+                    font-family:var(--font);
+                    transition:0.3s;
+                ">
                     <i class="fas fa-sync"></i> Reset
                 </button>
             </div>
@@ -2853,6 +3040,7 @@ function addBannerAdminControls() {
             ${isHidden ? '🚫 Banner is currently <strong style="color:var(--danger);">HIDDEN</strong> for all users' : '✅ Banner is currently <strong style="color:var(--success);">VISIBLE</strong> for all users'}
         </div>
     `;
+    
     const notifList = document.getElementById('adminNotificationsList');
     if (notifList) {
         tabNotifications.insertBefore(controls, notifList);
@@ -2895,6 +3083,7 @@ function fixDirection() {
         el.style.direction = 'ltr';
         el.style.textAlign = 'left';
     });
+    
     document.querySelectorAll('.modal-close').forEach(el => {
         el.style.right = 'auto';
         el.style.left = '10px';
@@ -2906,6 +3095,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(showTelegramBanner, 500);
 });
 
+// Override admin panel open to add controls
 const originalOpenAdminPanel = window.openAdminPanel;
 window.openAdminPanel = function() {
     if (originalOpenAdminPanel) originalOpenAdminPanel();
@@ -2917,6 +3107,8 @@ window.openAddProductModal = function() {
     if (originalOpenAddProductModal) originalOpenAddProductModal();
     setTimeout(fixDirection, 200);
 };
+
+// Note: openEditProductModal is already defined above (fixed)
 
 const originalOpenCreateNotificationModal = window.openCreateNotificationModal;
 window.openCreateNotificationModal = function() {
@@ -2931,19 +3123,24 @@ window.openCreateNotificationModal = function() {
 async function init() {
     showLoadingScreen();
     updateLoadingBar(10);
+    
     try { 
         await signInAnonymously(auth); 
         updateLoadingBar(30);
     } catch (e) { 
         console.log('ℹ️ Anonymous sign-in'); 
     }
+    
     const productsFromFirestore = await loadProductsFromFirestore();
     products = productsFromFirestore.length > 0 ? productsFromFirestore : fallbackProducts;
     updateLoadingBar(50);
+    
     startProductsRealtimeListener();
     updateLoadingBar(70);
+    
     await loadUserData();
     updateLoadingBar(85);
+    
     renderProducts(products);
     generateRecommendations(products);
     updateBottomCartBar();
@@ -2953,7 +3150,9 @@ async function init() {
     fetchCryptoPrices();
     setInterval(fetchCryptoPrices, 60000);
     updateLoadingBar(100);
+    
     console.log('✅ ZI Store ready with single Telegram bot!');
+    
     setTimeout(() => {
         hideLoadingScreen();
         setTimeout(showTelegramBanner, 500);
@@ -2993,6 +3192,7 @@ window.openCreateNotificationModal = openCreateNotificationModal;
 window.closeCreateNotificationModal = closeCreateNotificationModal;
 window.switchAdminTab = switchAdminTab;
 window.openAddProductModal = openAddProductModal;
+// use fixed version
 window.openEditProductModal = openEditProductModal;
 window.closeProductModal = closeProductModal;
 window.saveProduct = saveProduct;
