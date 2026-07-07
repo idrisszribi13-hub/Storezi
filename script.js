@@ -1,15 +1,17 @@
-// ========================================
-// START OF SCRIPT.JS - كامل مع الإصلاحات والإضافات
-// ========================================
+// ============================================================
+// SCRIPT.JS - النسخة النهائية المتكاملة
+// مع جميع الميزات الجديدة والتصحيحات
+// ============================================================
 
 import { initializeApp } from "firebase/app";
 import { getAuth, onAuthStateChanged, signInAnonymously, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, updatePassword, sendPasswordResetEmail, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, increment, collection, query, where, getDocs, onSnapshot, addDoc, deleteDoc, orderBy } from "firebase/firestore";
 import { getAnalytics } from "firebase/analytics";
 
-// ========================================
-// Firebase Config
-// ========================================
+// ============================================================
+// 1. إعدادات Firebase
+// ============================================================
+
 const firebaseConfig = {
     apiKey: "AIzaSyBwDTCxzd6aoue-NTLI2u4ouK-M37alwUw",
     authDomain: "zi-script-store.firebaseapp.com",
@@ -24,9 +26,9 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const analytics = getAnalytics(app);
 
-// ========================================
-// Loading Screen - English Version
-// ========================================
+// ============================================================
+// 2. شاشة التحميل
+// ============================================================
 
 const loadingMessages = [
     'Initializing store...',
@@ -83,14 +85,15 @@ function updateLoadingBar(percent) {
     }
 }
 
-// ========================================
-// Constants
-// ========================================
+// ============================================================
+// 3. الثوابت والمتغيرات العامة
+// ============================================================
 
 const ADMIN_EMAIL = 'zribiidriss3@gmail.com';
 const TELEGRAM_BOT_TOKEN = '8687744794:AAGeeNrEU-iQLRmg3dLvYkWHddtYo_sJ1tc';
 const TELEGRAM_CHAT_ID = '7434396478';
 const BOT_USERNAME = 'Zistore_Notif_bot';
+const RP_TO_DOLLAR = 0.1;
 
 let currentUser = null;
 let userId = null;
@@ -115,7 +118,18 @@ let isUpdatingNotifications = false;
 let shareProduct = null;
 let allUsers = [];
 let selectedPayment = null;
-const RP_TO_DOLLAR = 0.1;
+let ordersFilter = 'all';
+
+// متغيرات المنتجات المميزة
+let featuredProducts = [];
+let featuredRotationInterval = null;
+let featuredCurrentIndex = 0;
+let featuredSettings = {
+    enabled: true,
+    rotationInterval: 5000,
+    maxProducts: 4,
+    selectedProductIds: []
+};
 
 let userProfile = {
     name: '',
@@ -150,9 +164,9 @@ const paymentWallets = {
 };
 let cryptoPrices = { ltc: 0, usdt: 1, lastUpdate: null, isUpdating: false };
 
-// ========================================
-// Helper Functions
-// ========================================
+// ============================================================
+// 4. دوال مساعدة
+// ============================================================
 
 async function checkUserBanned(uid) {
     try {
@@ -169,9 +183,9 @@ async function checkUserBanned(uid) {
     }
 }
 
-// ========================================
-// Telegram Functions
-// ========================================
+// ============================================================
+// 5. دوال تيليجرام (محسّنة)
+// ============================================================
 
 async function sendTelegramNotification(chatId, message) {
     if (!chatId) {
@@ -204,11 +218,10 @@ async function sendTelegramNotification(chatId, message) {
     }
 }
 
-// ✅ ربط تيليجرام - الكود يظهر للمدير فقط
 window.bindTelegram = async function() {
-    if (!currentUser) { 
-        showToast('⚠️ Please login first', 'warning'); 
-        return; 
+    if (!currentUser) {
+        showToast('⚠️ Please login first', 'warning');
+        return;
     }
 
     try {
@@ -225,47 +238,45 @@ window.bindTelegram = async function() {
         const adminMessage = `🔗 *New Link Request*\n\n👤 User: ${currentUser.displayName || currentUser.email}\n📧 Email: ${currentUser.email}\n🆔 Bind Code: \`${bindCode}\``;
         await sendTelegramNotification(TELEGRAM_CHAT_ID, adminMessage);
 
-        window.open(`https://t.me/${BOT_USERNAME}`, '_blank');
-        showToast('📨 Bot opened! Click "Link Account".', 'success');
+        window.open(`https://t.me/${BOT_USERNAME}?start=bind`, '_blank');
+        showToast('📨 افتح البوت واضغط على زر "ابدأ" ثم "ربط الحساب".', 'success');
         startBindingListener(bindCode);
 
     } catch (error) {
         console.error('Telegram bind error:', error);
-        showToast('❌ Error connecting to Telegram', 'error');
+        showToast('❌ خطأ في الاتصال', 'error');
     }
 };
 
+// ✅ مستمع الربط - بدون مهلة زمنية (إزالة setTimeout)
 function startBindingListener(bindCode) {
     const bindRef = doc(db, 'telegram_binds', bindCode);
-    const unsubscribe = onSnapshot(bindRef, (doc) => {
+    const unsubscribe = onSnapshot(bindRef, async (doc) => {
         if (doc.exists()) {
             const data = doc.data();
             console.log('📋 Binding status:', data.status);
             if (data.status === 'completed' && data.telegramChatId) {
-                userProfile.telegramChatId = data.telegramChatId;
-                saveUserData();
+                // استخدام loadUserData لجلب أحدث البيانات
+                await loadUserData();
                 renderProfileFull();
+                updateFullUserMenu();
+                updateUI();
                 showToast('✅ Telegram linked successfully!', 'success');
-                
-                // إخفاء النافذة فوراً
+
                 const banner = document.getElementById('telegramBanner');
                 if (banner) banner.classList.add('hidden');
                 localStorage.removeItem('telegram_banner_hidden');
-                
+
                 sendTelegramNotification(
                     userProfile.telegramChatId,
                     `🔔 *Welcome to ZI Store!*\n\nYour account has been linked successfully.\nYou will receive order notifications here.\n\nThank you for using ZI Store! 🚀`
                 );
-                
-                updateFullUserMenu();
+
                 unsubscribe();
             }
         }
     });
-    setTimeout(() => { 
-        unsubscribe(); 
-        console.log('⏰ Binding listener timeout');
-    }, 300000);
+    // تم إزالة setTimeout
 }
 
 window.testTelegramNotification = async function() {
@@ -285,25 +296,36 @@ window.testTelegramNotification = async function() {
 };
 
 window.checkTelegramStatus = async function() {
-    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
+    if (!currentUser) {
+        showToast('⚠️ Please login first', 'warning');
+        return;
+    }
     try {
-        const userRef = doc(db, 'users', currentUser.uid);
-        const userSnap = await getDoc(userRef);
-        if (userSnap.exists()) {
-            const data = userSnap.data();
-            if (data.telegramChatId) {
-                const maskedId = data.telegramChatId.slice(0, 4) + '***' + data.telegramChatId.slice(-4);
-                showToast(`✅ Linked (Chat ID: ${maskedId})`, 'success');
-                userProfile.telegramChatId = data.telegramChatId;
-                renderProfileFull();
-            } else { showToast('❌ Not linked', 'warning'); }
+        await loadUserData();
+        if (userProfile.telegramChatId) {
+            const maskedId = userProfile.telegramChatId.slice(0, 4) + '***' + userProfile.telegramChatId.slice(-4);
+            showToast(`✅ Linked (Chat ID: ${maskedId})`, 'success');
+            await sendTelegramNotification(
+                userProfile.telegramChatId,
+                `✅ *Connection verified!*\n\nYour account is linked to Zi Store.\n📅 ${new Date().toLocaleString()}`
+            );
+        } else {
+            showToast('❌ Not linked', 'warning');
         }
-    } catch (error) { console.error('Check telegram status error:', error);
-        showToast('❌ Error checking status', 'error'); }
+        renderProfileFull();
+        updateFullUserMenu();
+        updateUI();
+    } catch (error) {
+        console.error('Check telegram status error:', error);
+        showToast('❌ Error checking status: ' + error.message, 'error');
+    }
 };
 
 window.unlinkTelegram = async function() {
-    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
+    if (!currentUser) {
+        showToast('⚠️ Please login first', 'warning');
+        return;
+    }
     if (!userProfile.telegramChatId) {
         showToast('⚠️ Telegram is not linked', 'warning');
         return;
@@ -313,20 +335,25 @@ window.unlinkTelegram = async function() {
     }
     try {
         const userRef = doc(db, 'users', currentUser.uid);
-        await updateDoc(userRef, { telegramChatId: '', telegram: '' });
+        await updateDoc(userRef, {
+            telegramChatId: '',
+            telegram: '',
+            updatedAt: serverTimestamp()
+        });
         userProfile.telegramChatId = '';
         userProfile.telegram = '';
         await saveUserData();
         renderProfileFull();
         updateFullUserMenu();
+        updateUI();
         showToast('✅ Telegram unlinked successfully!', 'success');
-        sendTelegramNotification(
+        await sendTelegramNotification(
             TELEGRAM_CHAT_ID,
             `🔓 *Telegram Unlinked*\n\n👤 User: ${currentUser.displayName || currentUser.email}\n📧 Email: ${currentUser.email}\n\nAccount unlinked successfully.`
         );
     } catch (error) {
         console.error('Unlink error:', error);
-        showToast('❌ Error unlinking Telegram', 'error');
+        showToast('❌ Error unlinking Telegram: ' + error.message, 'error');
     }
 };
 
@@ -336,9 +363,9 @@ function maskChatId(chatId) {
     return chatId.slice(0, 4) + '***' + chatId.slice(-4);
 }
 
-// ========================================
-// Toast
-// ========================================
+// ============================================================
+// 6. Toast
+// ============================================================
 
 function showToast(message, type = 'success') {
     const toast = document.getElementById('toast');
@@ -356,9 +383,9 @@ function showToast(message, type = 'success') {
 }
 window.hideToast = function() { document.getElementById('toast')?.classList.remove('show'); };
 
-// ========================================
-// User Functions
-// ========================================
+// ============================================================
+// 7. دوال المستخدم (محسّنة)
+// ============================================================
 
 async function getUserId() {
     if (userId) return userId;
@@ -374,14 +401,15 @@ let isLoadingUser = false;
 let lastUserLoadTime = 0;
 
 async function loadUserData() {
-    const now = Date.now();
-    if (isLoadingUser || (now - lastUserLoadTime < 500)) return;
+    const uid = currentUser ? currentUser.uid : await getUserId();
+    if (!uid) return;
+    if (isLoadingUser || (Date.now() - lastUserLoadTime < 500)) return;
     isLoadingUser = true;
-    lastUserLoadTime = now;
-    const uid = await getUserId();
-    if (!uid) { isLoadingUser = false; return; }
-    if (unsubscribeUser) { unsubscribeUser();
-        unsubscribeUser = null; }
+    lastUserLoadTime = Date.now();
+    if (unsubscribeUser) {
+        unsubscribeUser();
+        unsubscribeUser = null;
+    }
     try {
         const userRef = doc(db, 'users', uid);
         const userSnap = await getDoc(userRef);
@@ -413,6 +441,7 @@ async function loadUserData() {
             updateBottomCartBar();
             updateDropdownStats();
             updateNotificationBadge();
+            updateFullUserMenu();
             if (currentUser && currentUser.email === ADMIN_EMAIL) { loadAdminOrders();
                 loadAdminUsers(); }
         } else {
@@ -439,12 +468,13 @@ async function loadUserData() {
         updateBottomCartBar();
         updateDropdownStats();
         updateNotificationBadge();
+        updateFullUserMenu();
     }
     isLoadingUser = false;
 }
 
 async function saveUserData(silent = false) {
-    const uid = await getUserId();
+    const uid = currentUser ? currentUser.uid : await getUserId();
     if (!uid) return;
     try {
         await setDoc(doc(db, 'users', uid), { wishlist, cart, history: userProfile.history, requests: userProfile.requests, usedCodes: userProfile.usedCodes, referrals: userProfile.referrals, referralRewards: userProfile.referralRewards, rp: userProfile.rp, referralCode: userProfile.referralCode, telegram: userProfile.telegram, telegramChatId: userProfile.telegramChatId, location: userProfile.location, lang: userProfile.lang, useRpForCart: userProfile.useRpForCart, isBanned: userProfile.isBanned, updatedAt: serverTimestamp() }, { merge: true });
@@ -479,9 +509,9 @@ function generateReferralCode(name, email) {
     return `${prefix}${random}`;
 }
 
-// ========================================
-// UI Updates
-// ========================================
+// ============================================================
+// 8. تحديثات الواجهة
+// ============================================================
 
 function updateDropdownStats() {
     const userAvatar = document.getElementById('userAvatarText');
@@ -551,9 +581,9 @@ function updateFullUserMenu() {
     }
 }
 
-// ========================================
-// Auth Functions
-// ========================================
+// ============================================================
+// 9. دوال المصادقة
+// ============================================================
 
 window.showLogin = function() { document.getElementById('loginContainer').style.display = 'block';
     document.getElementById('registerContainer').style.display = 'none'; };
@@ -645,29 +675,29 @@ window.registerUser = async function() {
             if (!querySnapshot.empty) { querySnapshot.forEach((doc) => { referrerId = doc.id; }); }
         }
         const userRef = doc(db, 'users', currentUser.uid);
-        await setDoc(userRef, { 
-            userId: currentUser.uid, 
-            name, 
-            email, 
-            country, 
-            lang, 
-            telegram: '', 
-            telegramChatId: '', 
-            location: country, 
-            wishlist: [], 
-            cart: [], 
-            history: [], 
-            requests: [], 
-            usedCodes: [], 
-            referrals: [], 
-            referralRewards: 0, 
-            rp: 0, 
-            useRpForCart: false, 
-            referralCode: newReferralCode, 
-            referredBy: referrerId || '', 
+        await setDoc(userRef, {
+            userId: currentUser.uid,
+            name,
+            email,
+            country,
+            lang,
+            telegram: '',
+            telegramChatId: '',
+            location: country,
+            wishlist: [],
+            cart: [],
+            history: [],
+            requests: [],
+            usedCodes: [],
+            referrals: [],
+            referralRewards: 0,
+            rp: 0,
+            useRpForCart: false,
+            referralCode: newReferralCode,
+            referredBy: referrerId || '',
             isBanned: false,
-            createdAt: serverTimestamp(), 
-            updatedAt: serverTimestamp() 
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
         });
         if (referrerId) {
             const referrerRef = doc(db, 'users', referrerId);
@@ -738,9 +768,9 @@ window.sendForgotPassword = async function() {
         showToast('❌ ' + error.message, 'error'); }
 };
 
-// ========================================
-// Modals
-// ========================================
+// ============================================================
+// 10. المودالات العامة
+// ============================================================
 
 window.openUserMenuFull = function() {
     if (!currentUser) { openAuthModal(); return; }
@@ -783,9 +813,9 @@ function openAuthModal() {
     document.getElementById('authSection').scrollIntoView({ behavior: 'smooth' });
 }
 
-// ========================================
-// Profile Render
-// ========================================
+// ============================================================
+// 11. عرض الملف الشخصي
+// ============================================================
 
 function renderProfileFull() {
     const container = document.getElementById('profileFullContent');
@@ -796,7 +826,7 @@ function renderProfileFull() {
     }
     const displayName = currentUser.displayName || currentUser.email || 'User';
     const maskedChatId = maskChatId(userProfile.telegramChatId);
-    
+
     container.innerHTML = `
     <div style="background:var(--card-bg);border-radius:14px;border:1px solid var(--border);padding:16px;margin-bottom:12px;">
       <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border);">
@@ -862,7 +892,6 @@ function renderProfileFull() {
       </div>
     </div>
 
-    <!-- Telegram Section -->
     <div class="telegram-bind-section" style="margin-top:12px;">
       <div style="font-size:14px;font-weight:700;color:var(--text);font-family:var(--font);margin-bottom:6px;">
         <i class="fab fa-telegram-plane" style="color:#0088cc;"></i> Telegram Notifications
@@ -886,13 +915,13 @@ function renderProfileFull() {
       </div>`:''}
       <div style="background:var(--card-bg);padding:10px;border-radius:8px;margin:8px 0;border:1px solid var(--border);">
         <div style="font-size:13px;color:var(--text-secondary);font-family:var(--font);">
-          <i class="fas fa-info-circle" style="color:var(--primary);"></i> 
+          <i class="fas fa-info-circle" style="color:var(--primary);"></i>
           ${userProfile.telegramChatId ? 'You will receive order notifications here.' : 'Click "Link Bot" to connect your Telegram account.'}
         </div>
       </div>
       <div class="tb-actions">
         <button class="btn-bind" onclick="bindTelegram()" style="flex:1;background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;font-family:var(--font);transition:0.3s;display:flex;align-items:center;justify-content:center;gap:8px;">
-          <i class="fab fa-telegram-plane"></i> 
+          <i class="fab fa-telegram-plane"></i>
           ${userProfile.telegramChatId?'Re-link':'Link Bot'}
         </button>
         ${userProfile.telegramChatId ? `<button class="btn-test" onclick="testTelegramNotification()" style="background:var(--success);color:#0a0a1a;border:none;border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;font-family:var(--font);transition:0.3s;display:flex;align-items:center;gap:6px;"><i class="fas fa-paper-plane"></i> Test</button>` : ''}
@@ -900,7 +929,7 @@ function renderProfileFull() {
         ${userProfile.telegramChatId ? `<button class="btn-unlink" onclick="unlinkTelegram()" style="background:var(--danger);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;font-family:var(--font);transition:0.3s;display:flex;align-items:center;gap:6px;"><i class="fas fa-unlink"></i> Unlink</button>` : ''}
       </div>
       <div style="font-size:11px;color:var(--text-secondary);opacity:0.4;margin-top:6px;font-family:var(--font);display:flex;align-items:center;gap:4px;">
-        <i class="fab fa-telegram-plane" style="color:#0088cc;"></i> 
+        <i class="fab fa-telegram-plane" style="color:#0088cc;"></i>
         ${userProfile.telegramChatId ? `Connected to @${BOT_USERNAME}` : `Start @${BOT_USERNAME} and click "Link Bot" to connect`}
       </div>
     </div>
@@ -965,9 +994,9 @@ window.changePasswordInline = async function() {
         showToast('❌ ' + error.message, 'error'); }
 };
 
-// ========================================
-// Products
-// ========================================
+// ============================================================
+// 12. المنتجات (مع دعم المنتجات المميزة)
+// ============================================================
 
 async function loadProductsFromFirestore() {
     try {
@@ -992,11 +1021,13 @@ function startProductsRealtimeListener() {
         generateRecommendations(products);
         updateBottomCartBar();
         updateRpDisplay();
+        renderFeaturedProducts();
     }, (error) => { console.error('Products listener error:', error);
         products = fallbackProducts;
         renderProducts(products);
         renderAdminProducts(products);
-        updateStatsFromProducts(products); });
+        updateStatsFromProducts(products);
+        renderFeaturedProducts(); });
 }
 
 function renderProducts(productsList) {
@@ -1077,10 +1108,14 @@ function updateStatsFromProducts(productsList) {
     const total = productsList.length;
     const free = productsList.filter(p => p.price === 0).length;
     const vip = productsList.filter(p => p.price > 0).length;
-    document.getElementById('totalScripts').textContent = total;
-    document.getElementById('freeScripts').textContent = free;
-    document.getElementById('vipScripts').textContent = vip;
-    document.getElementById('wishlistStats').textContent = wishlist.length;
+    const totalEl = document.getElementById('totalScripts');
+    const freeEl = document.getElementById('freeScripts');
+    const vipEl = document.getElementById('vipScripts');
+    const wishlistEl = document.getElementById('wishlistStats');
+    if (totalEl) totalEl.textContent = total;
+    if (freeEl) freeEl.textContent = free;
+    if (vipEl) vipEl.textContent = vip;
+    if (wishlistEl) wishlistEl.textContent = wishlist.length;
 }
 
 function generateRecommendations(productsList) {
@@ -1122,9 +1157,174 @@ function generateRecommendations(productsList) {
     }
 }
 
-// ========================================
-// Cart
-// ========================================
+// ============================================================
+// 13. المنتجات المميزة (Featured) - جديدة
+// ============================================================
+
+function renderFeaturedProducts() {
+    const grid = document.getElementById('featuredGrid');
+    if (!grid) return;
+
+    let productsToShow = [];
+    if (featuredSettings.selectedProductIds.length > 0) {
+        productsToShow = products.filter(p => featuredSettings.selectedProductIds.includes(p.id));
+    }
+    if (productsToShow.length === 0) {
+        productsToShow = products.slice(0, 4);
+    }
+    if (productsToShow.length === 0) {
+        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text-secondary);font-size:13px;">No products available</div>`;
+        return;
+    }
+
+    featuredProducts = productsToShow;
+    featuredCurrentIndex = 0;
+    displayFeaturedSlice();
+}
+
+function displayFeaturedSlice() {
+    const grid = document.getElementById('featuredGrid');
+    if (!grid || featuredProducts.length === 0) return;
+
+    const start = featuredCurrentIndex;
+    const end = Math.min(start + 4, featuredProducts.length);
+    const slice = featuredProducts.slice(start, end);
+
+    if (slice.length === 0) {
+        featuredCurrentIndex = 0;
+        displayFeaturedSlice();
+        return;
+    }
+
+    grid.innerHTML = slice.map(p => {
+        const badgeClass = p.price === 0 ? 'free' : (p.status === 'unavailable' ? 'unavailable' : 'vip');
+        const badgeText = p.price === 0 ? 'FREE' : (p.badge || 'VIP');
+        return `
+        <div class="featured-item" onclick="window.openDetails('${p.id}')">
+            <div class="featured-item-image">
+                <img src="${p.image || 'https://picsum.photos/seed/default/200/150'}" alt="${p.name}" loading="lazy" />
+                <span class="featured-item-badge ${badgeClass}">${badgeText}</span>
+            </div>
+            <div class="featured-item-name">${p.name}</div>
+            <div class="featured-item-price">${p.price === 0 ? 'FREE' : '$' + p.price.toFixed(2)}</div>
+        </div>
+    `}).join('');
+}
+
+function startFeaturedRotation() {
+    if (featuredRotationInterval) {
+        clearInterval(featuredRotationInterval);
+        featuredRotationInterval = null;
+    }
+    if (!featuredSettings.enabled || featuredProducts.length <= 4) return;
+    featuredRotationInterval = setInterval(() => {
+        featuredCurrentIndex = (featuredCurrentIndex + 4) % featuredProducts.length;
+        displayFeaturedSlice();
+    }, featuredSettings.rotationInterval);
+}
+
+function stopFeaturedRotation() {
+    if (featuredRotationInterval) {
+        clearInterval(featuredRotationInterval);
+        featuredRotationInterval = null;
+    }
+}
+
+// ============================================================
+// 14. إعدادات المنتجات المميزة (للوحة الأدمن)
+// ============================================================
+
+window.updateFeaturedSettings = async function(settings) {
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
+        showToast('⛔ Unauthorized', 'error');
+        return;
+    }
+    try {
+        const settingsRef = doc(db, 'settings', 'featured');
+        await setDoc(settingsRef, {
+            ...settings,
+            updatedAt: serverTimestamp(),
+            updatedBy: currentUser.uid
+        }, { merge: true });
+        featuredSettings = { ...featuredSettings, ...settings };
+        renderFeaturedProducts();
+        if (featuredSettings.enabled) {
+            startFeaturedRotation();
+        } else {
+            stopFeaturedRotation();
+        }
+        showToast('✅ Featured settings updated!', 'success');
+        loadFeaturedSettings();
+    } catch (error) {
+        console.error('Error updating featured settings:', error);
+        showToast('❌ Error: ' + error.message, 'error');
+    }
+};
+
+async function loadFeaturedSettings() {
+    try {
+        const settingsRef = doc(db, 'settings', 'featured');
+        const settingsSnap = await getDoc(settingsRef);
+        if (settingsSnap.exists()) {
+            const data = settingsSnap.data();
+            featuredSettings = { ...featuredSettings, ...data };
+        }
+        renderFeaturedProducts();
+        if (featuredSettings.enabled) {
+            startFeaturedRotation();
+        } else {
+            stopFeaturedRotation();
+        }
+    } catch (error) {
+        console.error('Error loading featured settings:', error);
+    }
+}
+
+window.openFeaturedSettings = function() {
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
+        showToast('⛔ Unauthorized', 'error');
+        return;
+    }
+    document.getElementById('featuredEnabled').checked = featuredSettings.enabled;
+    document.getElementById('featuredInterval').value = featuredSettings.rotationInterval / 1000;
+
+    const container = document.getElementById('featuredProductSelector');
+    container.innerHTML = products.map(p => `
+        <div class="product-check-item">
+            <input type="checkbox" id="fp_${p.id}" value="${p.id}"
+                   ${featuredSettings.selectedProductIds.includes(p.id) ? 'checked' : ''}
+                   onchange="updateFeaturedProductSelection()" />
+            <label for="fp_${p.id}">${p.name} (${p.price === 0 ? 'FREE' : '$' + p.price.toFixed(2)})</label>
+        </div>
+    `).join('');
+
+    document.getElementById('featuredSettingsModal').classList.add('open');
+};
+
+window.updateFeaturedProductSelection = function() {
+    const checkboxes = document.querySelectorAll('#featuredProductSelector input[type="checkbox"]:checked');
+    featuredSettings.selectedProductIds = Array.from(checkboxes).map(cb => cb.value);
+};
+
+window.saveFeaturedSettings = function() {
+    const enabled = document.getElementById('featuredEnabled').checked;
+    const interval = parseFloat(document.getElementById('featuredInterval').value) * 1000 || 5000;
+    const settings = {
+        enabled,
+        rotationInterval: interval,
+        selectedProductIds: featuredSettings.selectedProductIds || []
+    };
+    window.updateFeaturedSettings(settings);
+    document.getElementById('featuredSettingsModal').classList.remove('open');
+};
+
+window.closeFeaturedSettings = function() {
+    document.getElementById('featuredSettingsModal').classList.remove('open');
+};
+
+// ============================================================
+// 15. السلة (محسّنة)
+// ============================================================
 
 window.addToCart = async function(productId) {
     const product = products.find(p => p.id === productId);
@@ -1191,7 +1391,8 @@ function updateBottomCartBar() {
 }
 
 function updateCartUI() {
-    const count = document.getElementById('cartCount');
+    // ✅ استخدام المعرف الصحيح من الـ HTML: cartBadge
+    const count = document.getElementById('cartBadge');
     const totalItems = cart.reduce((s, i) => s + (i.quantity || 1), 0);
     if (count) count.textContent = totalItems;
     updateBottomCartBar();
@@ -1248,7 +1449,12 @@ function renderCartFull() {
       ${rpDiscountAmount>0?`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;font-family:var(--font);color:var(--success);"><span style="color:var(--text-secondary);opacity:0.5;">🎯 RP discount (${Math.floor(rpDiscountAmount/RP_TO_DOLLAR)} RP)</span><span style="font-weight:600;">-$${rpDiscountAmount.toFixed(2)}</span></div>`:''}
       ${activeDiscount>0?`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;font-family:var(--font);color:var(--success);"><span style="color:var(--text-secondary);opacity:0.5;">🎫 Promo (${activeDiscount}%)</span><span style="font-weight:600;">-$${promoDiscountAmount.toFixed(2)}</span></div>`:''}
       <div style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid var(--border);margin-top:4px;padding-top:6px;font-size:18px;font-weight:700;"><span style="color:var(--text-secondary);opacity:0.5;">Total</span><span style="color:var(--primary);">$${finalTotal.toFixed(2)}</span></div>
-      <button onclick="closeCartFull();checkout();" style="width:100%;padding:10px;border:none;border-radius:8px;background:var(--primary);color:#fff;font-weight:700;cursor:pointer;font-size:14px;font-family:var(--font);margin-top:10px;transition:0.3s;"><i class="fas fa-credit-card"></i> Checkout</button>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:16px;">
+        <button onclick="closeCartFull();checkout();" style="flex:1;padding:14px 20px;border:none;border-radius:12px;background:var(--primary);color:#fff;font-weight:700;cursor:pointer;font-size:16px;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px;transition:0.3s;">
+          <i class="fas fa-shopping-cart"></i> Checkout
+        </button>
+        <span style="font-size:22px;font-weight:800;color:var(--primary);min-width:80px;text-align:right;">$${finalTotal.toFixed(2)}</span>
+      </div>
     </div>
   `;
     container.innerHTML = html;
@@ -1275,9 +1481,9 @@ window.applyCartPromo = function() {
     showToast(`🎉 ${codeData.discount}% discount applied!`, 'success');
 };
 
-// ========================================
-// Wishlist
-// ========================================
+// ============================================================
+// 16. المفضلة (محسّنة)
+// ============================================================
 
 window.toggleWishlist = async function(productId) {
     const index = wishlist.indexOf(productId);
@@ -1288,8 +1494,9 @@ window.toggleWishlist = async function(productId) {
         showToast(`💔 Removed ${product ? product.name : ''} from favorites`, 'info'); }
     await saveUserData(true);
     updateWishlistUI();
-    renderProducts(products);
     updateStatsFromProducts(products);
+    renderProducts(products);
+    updateFullUserMenu();
 };
 
 window.removeFromWishlist = function(id) { window.toggleWishlist(id); };
@@ -1297,7 +1504,8 @@ window.removeFromWishlist = function(id) { window.toggleWishlist(id); };
 function updateWishlistUI() {
     const section = document.getElementById('wishlistSection');
     const grid = document.getElementById('wishlistGrid');
-    const count = document.getElementById('wishlistCount');
+    // ✅ استخدام المعرف الصحيح من الـ HTML: wishlistBadge
+    const count = document.getElementById('wishlistBadge');
     const stats = document.getElementById('wishlistStats');
     const sub = document.getElementById('wishlistSub');
     const wlCount = wishlist.length;
@@ -1344,69 +1552,84 @@ function createFloatingHearts() {
     }
 }
 
-// ========================================
-// Product Details Modal
-// ========================================
+// ============================================================
+// 17. عرض المنتج كامل الشاشة (Preview Modal) - جديد
+// ============================================================
 
 window.openDetails = function(id) {
     const p = products.find(x => x.id === id);
     if (!p) return;
-    const isFree = p.price === 0;
-    const isUnavailable = p.status === 'unavailable';
-    document.getElementById('modalGameImage').src = p.image || 'https://picsum.photos/seed/default/400/300';
-    document.getElementById('modalGameImage').style.filter = isUnavailable ? 'grayscale(100%)' : 'none';
-    document.getElementById('modalName').textContent = p.name + (isUnavailable ? ' ⛔' : '');
-    const badge = document.getElementById('modalBadge');
-    badge.textContent = isUnavailable ? '⛔ Unavailable' : (isFree ? '🎁 FREE' : (p.badge || '👑 VIP'));
-    badge.className = 'modal-badge ' + (isUnavailable ? 'unavailable' : (isFree ? 'free' : 'vip'));
-    let priceDisplay = isUnavailable ? '⛔ Unavailable' : (isFree ? '💰 FREE' : `💰 ${p.price} $`);
-    if (!isUnavailable && !isFree && p.price > 0) {
-        const rpDiscount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, p.price);
-        if (rpDiscount > 0) {
-            const discounted = p.price - rpDiscount;
-            if (activeDiscount > 0) {
-                const finalPrice = discounted - (discounted * activeDiscount / 100);
-                priceDisplay =
-                    `💰 ${finalPrice.toFixed(2)} $ <span style="font-size:12px;opacity:0.3;text-decoration:line-through;">${p.price} $</span> 🎯-${Math.floor(rpDiscount/RP_TO_DOLLAR)} RP`;
-            } else {
-                priceDisplay =
-                    `💰 ${discounted.toFixed(2)} $ <span style="font-size:12px;opacity:0.3;text-decoration:line-through;">${p.price} $</span> 🎯-${Math.floor(rpDiscount/RP_TO_DOLLAR)} RP`;
-            }
-        } else if (activeDiscount > 0) {
-            const discounted = p.price - (p.price * activeDiscount / 100);
-            priceDisplay =
-                `💰 ${discounted.toFixed(2)} $ <span style="font-size:12px;opacity:0.3;text-decoration:line-through;">${p.price} $</span>`;
-        }
-    }
-    document.getElementById('modalPrice').innerHTML = priceDisplay;
-    document.getElementById('modalFeatures').innerHTML = (p.features || []).map(f =>
-        `<li><i class="fas fa-check-circle"></i> ${f}</li>`).join('') ||
-        '<li style="opacity:0.3;">No features listed</li>';
-    document.getElementById('modalDescription').textContent = p.description || '';
-    document.getElementById('modalVideo').src = p.video || 'https://www.youtube.com/embed/dQw4w9WgXcQ';
-    const inCart = cart.some(item => item.id === id);
-    const actions = document.getElementById('modalActions');
-    if (isUnavailable) {
-        actions.innerHTML =
-            `<button style="flex:1;padding:8px;border:none;border-radius:8px;background:var(--text-secondary);color:#fff;cursor:not-allowed;opacity:0.5;font-size:13px;font-family:var(--font);" onclick="showToast('⛔ Unavailable','warning')"><i class="fas fa-times-circle"></i> Unavailable</button><button class="btn-close-modal" onclick="closeDetailsModal()">Close</button>`;
-    } else if (isFree && p.downloadLink) {
-        actions.innerHTML =
-            `<button class="btn-download-modal" onclick="window.openShareModal('${id}')" style="background:var(--referral-color);color:#fff;"><i class="fas fa-share-alt"></i></button><a href="${p.downloadLink}" target="_blank" class="btn-download-modal"><i class="fas fa-download"></i> Download</a><button class="btn-close-modal" onclick="closeDetailsModal()">Close</button>`;
-    } else if (isFree) {
-        actions.innerHTML =
-            `<button class="btn-download-modal" onclick="window.openShareModal('${id}')" style="background:var(--referral-color);color:#fff;"><i class="fas fa-share-alt"></i></button><button class="btn-download-modal" onclick="showToast('⏳ Coming soon','info')"><i class="fas fa-download"></i></button><button class="btn-close-modal" onclick="closeDetailsModal()">Close</button>`;
-    } else {
-        actions.innerHTML =
-            `<button class="btn-download-modal" onclick="window.openShareModal('${id}')" style="background:var(--referral-color);color:#fff;"><i class="fas fa-share-alt"></i></button><button class="btn-add-cart-modal ${inCart?'added':''}" onclick="window.addToCart('${id}');closeDetailsModal();"><i class="fas ${inCart?'fa-check':'fa-cart-plus'}"></i> ${inCart?'Added':'Add to Cart'}</button><button class="btn-close-modal" onclick="closeDetailsModal()">Close</button>`;
-    }
-    document.getElementById('detailsModal').classList.add('open');
-    updateBottomCartBar();
-};
-window.closeDetailsModal = function() { document.getElementById('detailsModal').classList.remove('open'); };
+    window._currentProduct = p;
 
-// ========================================
-// Share
-// ========================================
+    document.getElementById('previewImage').src = p.image || 'https://picsum.photos/seed/default/400/300';
+    document.getElementById('previewName').textContent = p.name;
+    document.getElementById('previewPrice').textContent = p.price === 0 ? 'FREE' : `$${p.price.toFixed(2)}`;
+    document.getElementById('previewDescription').textContent = p.description || 'Premium script with advanced features.';
+    document.getElementById('previewBadge').textContent = p.badge || 'PREMIUM';
+    document.getElementById('previewVerified').textContent = p.status === 'available' ? '✅ 100% VERIFIED WORKING PRODUCT' : '⛔ UNAVAILABLE';
+
+    const addBtn = document.getElementById('previewAddBtn');
+    const inCart = cart.some(item => item.id === id);
+    if (inCart) {
+        addBtn.innerHTML = '<i class="fas fa-check"></i> Added to Cart';
+        addBtn.style.background = 'var(--success)';
+        addBtn.style.color = '#0a0a1a';
+        addBtn.onclick = () => { closePreviewModal(); openCartFull(); };
+    } else if (p.price === 0) {
+        addBtn.innerHTML = '<i class="fas fa-download"></i> Download';
+        addBtn.style.background = 'var(--free-color)';
+        addBtn.style.color = '#0a0a1a';
+        addBtn.onclick = () => {
+            if (p.downloadLink) {
+                window.open(p.downloadLink, '_blank');
+            } else {
+                showToast('⏳ Coming soon', 'info');
+            }
+        };
+    } else if (p.status === 'unavailable') {
+        addBtn.innerHTML = '<i class="fas fa-times-circle"></i> Unavailable';
+        addBtn.style.background = 'var(--text-secondary)';
+        addBtn.style.cursor = 'not-allowed';
+        addBtn.onclick = () => showToast('⛔ Unavailable', 'warning');
+    } else {
+        addBtn.innerHTML = '<i class="fas fa-cart-plus"></i> Add to Cart';
+        addBtn.style.background = 'var(--primary)';
+        addBtn.style.color = '#fff';
+        addBtn.onclick = () => {
+            window.addToCart(id);
+            const updatedBtn = document.getElementById('previewAddBtn');
+            updatedBtn.innerHTML = '<i class="fas fa-check"></i> Added';
+            updatedBtn.style.background = 'var(--success)';
+            updatedBtn.style.color = '#0a0a1a';
+            updatedBtn.onclick = () => { closePreviewModal(); openCartFull(); };
+        };
+    }
+
+    document.getElementById('previewModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+};
+
+window.closePreviewModal = function() {
+    document.getElementById('previewModal').classList.remove('open');
+    document.body.style.overflow = '';
+};
+
+window.addToCartFromPreview = function() {
+    if (window._currentProduct) {
+        window.addToCart(window._currentProduct.id);
+        closePreviewModal();
+    }
+};
+
+window.shareFromPreview = function() {
+    if (window._currentProduct) {
+        window.openShareModal(window._currentProduct.id);
+    }
+};
+
+// ============================================================
+// 18. مودال المشاركة
+// ============================================================
 
 window.openShareModal = function(productId) {
     const product = products.find(p => p.id === productId);
@@ -1447,9 +1670,9 @@ window.copyShareLink = function() {
         closeShareModal(); });
 };
 
-// ========================================
-// Filters & Search
-// ========================================
+// ============================================================
+// 19. التصفية والبحث
+// ============================================================
 
 window.filterProducts = function(filter) {
     currentFilter = filter;
@@ -1534,9 +1757,9 @@ document.addEventListener('keydown', function(e) {
         closeHistoryFull(); }
 });
 
-// ========================================
-// Payment
-// ========================================
+// ============================================================
+// 20. الدفع
+// ============================================================
 
 async function fetchCryptoPrices() {
     if (cryptoPrices.isUpdating) return;
@@ -1688,7 +1911,7 @@ function sendOrderToTelegram(method, txHash = null) {
 
     const RP_EARN_RATE = 0.1;
     const rpEarned = Math.floor((finalTotal / RP_TO_DOLLAR) * RP_EARN_RATE);
-    
+
     if (rpEarned > 0) {
         userProfile.rp = (userProfile.rp || 0) + rpEarned;
         discountText += `\n🎯 RP Earned: +${rpEarned} RP (value $${finalTotal.toFixed(2)})`;
@@ -1834,9 +2057,9 @@ window.closePaymentModal = function() { document.getElementById('paymentModal').
     document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected')); };
 window.checkout = function() { openPaymentModal(); };
 
-// ========================================
-// Downloads
-// ========================================
+// ============================================================
+// 21. التحميلات
+// ============================================================
 
 function loadDownloads() {
     if (unsubscribeDownloads) { unsubscribeDownloads(); }
@@ -1911,9 +2134,9 @@ window.openCreateDownloadModal = function() {
 window.closeCreateDownloadModal = function() { document.getElementById('createDownloadModal').classList.remove(
         'open'); };
 
-// ========================================
-// Notifications
-// ========================================
+// ============================================================
+// 22. الإشعارات
+// ============================================================
 
 function loadNotifications() {
     if (unsubscribeNotifications) { unsubscribeNotifications(); }
@@ -1921,38 +2144,38 @@ function loadNotifications() {
     try {
         getDocs(query(notifRef, orderBy('createdAt', 'desc'))).then((snapshot) => {
             notifications = [];
-            snapshot.forEach((doc) => { 
+            snapshot.forEach((doc) => {
                 const data = doc.data();
                 if (!data.userId || data.userId === currentUser?.uid) {
                     notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] });
                 }
             });
-            if (currentUser) { 
+            if (currentUser) {
                 const userId = currentUser.uid;
-                unreadNotifications = notifications.filter(n => !(n.readBy || []).includes(userId)).length; 
-            } else { 
-                unreadNotifications = 0; 
+                unreadNotifications = notifications.filter(n => !(n.readBy || []).includes(userId)).length;
+            } else {
+                unreadNotifications = 0;
             }
             updateNotificationBadge();
             renderAdminNotifications();
             renderUserNotifications();
         }).catch((error) => { console.error('Error loading notifications:', error);
             renderUserNotificationsFallback(); });
-        
+
         unsubscribeNotifications = onSnapshot(query(notifRef, orderBy('createdAt', 'desc')), (snapshot) => {
             if (isUpdatingNotifications) return;
             notifications = [];
-            snapshot.forEach((doc) => { 
+            snapshot.forEach((doc) => {
                 const data = doc.data();
                 if (!data.userId || data.userId === currentUser?.uid) {
                     notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] });
                 }
             });
-            if (currentUser) { 
+            if (currentUser) {
                 const userId = currentUser.uid;
-                unreadNotifications = notifications.filter(n => !(n.readBy || []).includes(userId)).length; 
-            } else { 
-                unreadNotifications = 0; 
+                unreadNotifications = notifications.filter(n => !(n.readBy || []).includes(userId)).length;
+            } else {
+                unreadNotifications = 0;
             }
             updateNotificationBadge();
             renderAdminNotifications();
@@ -1991,19 +2214,19 @@ function renderUserNotifications() {
 function renderAdminNotifications() {
     const container = document.getElementById('adminNotificationsList');
     if (!container) return;
-    
+
     const notifRef = collection(db, 'notifications');
     getDocs(query(notifRef, orderBy('createdAt', 'desc'))).then((snapshot) => {
         let allNotifs = [];
-        snapshot.forEach((doc) => { 
-            allNotifs.push({ id: doc.id, ...doc.data() }); 
+        snapshot.forEach((doc) => {
+            allNotifs.push({ id: doc.id, ...doc.data() });
         });
-        
-        if (allNotifs.length === 0) { 
-            container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">📭 No notifications</div>`; 
-            return; 
+
+        if (allNotifs.length === 0) {
+            container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">📭 No notifications</div>`;
+            return;
         }
-        
+
         container.innerHTML = allNotifs.map(n =>
             `<div class="admin-item">
                 <div class="item-info">
@@ -2097,9 +2320,9 @@ window.openCreateNotificationModal = function() {
 window.closeCreateNotificationModal = function() { document.getElementById('createNotificationModal').classList.remove(
         'open'); };
 
-// ========================================
-// Requests
-// ========================================
+// ============================================================
+// 23. الطلبات (Requests)
+// ============================================================
 
 window.openRequestsModal = function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning');
@@ -2145,9 +2368,9 @@ window.submitRequest = function(e) {
     }).catch(error => { showToast('❌ Error: ' + error.message, 'error'); });
 };
 
-// ========================================
-// Referrals
-// ========================================
+// ============================================================
+// 24. الإحالات (Referrals) - مع نشاط وخطوات
+// ============================================================
 
 window.openReferralModal = function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning');
@@ -2170,6 +2393,57 @@ function updateReferralUI() {
     const referrals = userProfile.referrals || [];
     document.getElementById('referralCount2').textContent = referrals.length;
     document.getElementById('referralRewards2').textContent = (userProfile.referralRewards || 0).toFixed(2) + ' $';
+
+    // نشاط الإحالات
+    const activityContainer = document.getElementById('referralActivity');
+    if (referrals.length === 0) {
+        activityContainer.innerHTML = `
+            <div class="referral-empty">
+                <i class="fas fa-users"></i>
+                <p>No referrals yet</p>
+                <span>Share your link to start earning.</span>
+            </div>
+        `;
+    } else {
+        let html = '';
+        referrals.slice().reverse().forEach(ref => {
+            const date = ref.date ? new Date(ref.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '--';
+            html += `
+                <div class="referral-activity-item">
+                    <div class="referral-activity-icon">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <div class="referral-activity-info">
+                        <div class="referral-activity-name">${ref.name || 'User'}</div>
+                        <div class="referral-activity-date">${date}</div>
+                    </div>
+                    <div class="referral-activity-status">✅ Joined</div>
+                </div>
+            `;
+        });
+        activityContainer.innerHTML = html;
+    }
+
+    // خطوات الإحالة
+    const stepsContainer = document.getElementById('referralSteps');
+    if (stepsContainer) {
+        stepsContainer.innerHTML = `
+            <div class="referral-steps">
+                <div class="referral-step">
+                    <span class="step-number">1</span>
+                    <span class="step-text">Share your referral code</span>
+                </div>
+                <div class="referral-step">
+                    <span class="step-number">2</span>
+                    <span class="step-text">They create an account using your code</span>
+                </div>
+                <div class="referral-step">
+                    <span class="step-number">3</span>
+                    <span class="step-text">Earn Rewards<br><small>You get 10% of their first order value</small></span>
+                </div>
+            </div>
+        `;
+    }
 }
 
 window.copyReferralCode2 = function() {
@@ -2186,9 +2460,9 @@ window.copyReferralCode2 = function() {
     } else { showToast('⚠️ Please login first', 'warning'); }
 };
 
-// ========================================
-// Admin Panel
-// ========================================
+// ============================================================
+// 25. لوحة المدير (Admin Panel)
+// ============================================================
 
 window.openAdminPanel = function() {
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized. Admin only.', 'error'); return; }
@@ -2241,16 +2515,14 @@ function renderAdminProducts(productsList) {
     }).join('');
 }
 
-// ✅ FIXED: Edit Product Modal
 window.openEditProductModal = function(productId) {
     console.log('🔍 Edit button clicked for product ID:', productId);
-    
+
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
         showToast('⛔ Unauthorized', 'error');
         return;
     }
-    
-    // البحث عن المنتج في مصفوفة products (التي يتم تحديثها في الوقت الفعلي)
+
     const product = products.find(p => p.id === productId);
     if (!product) {
         showToast('❌ Product not found. Please refresh and try again.', 'error');
@@ -2258,10 +2530,9 @@ window.openEditProductModal = function(productId) {
         console.log('📋 Available product IDs:', products.map(p => p.id));
         return;
     }
-    
+
     console.log('✏️ Editing product:', product);
-    
-    // تعبئة النموذج
+
     document.getElementById('productFormTitle').textContent = '✏️ Edit Product: ' + product.name;
     document.getElementById('productIdField').value = productId;
     document.getElementById('productName').value = product.name || '';
@@ -2274,8 +2545,7 @@ window.openEditProductModal = function(productId) {
     document.getElementById('productVideo').value = product.video || 'https://www.youtube.com/embed/dQw4w9WgXcQ';
     document.getElementById('productDuration').value = product.duration || '';
     document.getElementById('productOriginalPrice').value = product.originalPrice || '';
-    
-    // فتح المودال
+
     const modal = document.getElementById('productModal');
     if (modal) {
         modal.classList.add('open');
@@ -2317,21 +2587,21 @@ window.saveProduct = async function(event) {
     const video = document.getElementById('productVideo').value.trim();
     const duration = document.getElementById('productDuration').value.trim();
     const originalPrice = parseFloat(document.getElementById('productOriginalPrice').value) || 0;
-    
+
     if (!name) { showToast('⚠️ Product name is required', 'warning'); return; }
     const features = featuresText ? featuresText.split(',').map(f => f.trim()).filter(f => f) : [];
     const productData = { name, price, badge, status, image, description, features, video };
-    
+
     if (duration) productData.duration = duration;
     if (originalPrice > 0) productData.originalPrice = originalPrice;
-    
+
     try {
-        if (productId) { 
+        if (productId) {
             await updateProductInFirestore(productId, productData);
-            showToast('✅ Product updated', 'success'); 
-        } else { 
+            showToast('✅ Product updated', 'success');
+        } else {
             await addProductToFirestore(productData);
-            showToast('✅ Product added', 'success'); 
+            showToast('✅ Product added', 'success');
         }
         closeProductModal();
     } catch (error) { console.error('Save product error:', error);
@@ -2361,9 +2631,9 @@ async function deleteProductFromFirestore(productId) {
             'Error deleting product:', error); throw error; }
 }
 
-// ========================================
-// Admin Orders
-// ========================================
+// ============================================================
+// 26. الطلبات (Admin Orders)
+// ============================================================
 
 function startAdminRealtimeListener() {
     if (unsubscribeAdmin) { unsubscribeAdmin(); }
@@ -2602,9 +2872,9 @@ window.clearAdminSearch = function() { document.getElementById('adminSearchInput
 window.refreshAdminOrders = function() { loadAdminOrders();
     showToast('🔄 Refreshed', 'info'); };
 
-// ========================================
-// Admin Users
-// ========================================
+// ============================================================
+// 27. المستخدمين (Admin Users)
+// ============================================================
 
 async function loadAdminUsers() {
     const container = document.getElementById('adminUsersContainer');
@@ -2736,26 +3006,19 @@ window.viewUserDetails = async function(uid) {
 };
 window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
-// ========================================
-// History (مع زر Clear All)
-// ========================================
+// ============================================================
+// 28. تاريخ الطلبات (Order History) مع إحصائيات
+// ============================================================
 
-// ✅ مسح جميع الطلبات في السجل (بدون تأكيد)
 window.clearOrderHistory = async function() {
     if (!currentUser) {
         showToast('⚠️ Please login first', 'warning');
         return;
     }
-    
     try {
-        // تحديث المصفوفة المحلية
         userProfile.history = [];
-        // تحديث Firebase
         const userRef = doc(db, 'users', currentUser.uid);
-        await updateDoc(userRef, {
-            history: []
-        });
-        // تحديث الواجهة
+        await updateDoc(userRef, { history: [] });
         renderHistoryFull();
         updateFullUserMenu();
         showToast('🗑️ Order history cleared successfully!', 'success');
@@ -2768,78 +3031,104 @@ window.clearOrderHistory = async function() {
 function renderHistoryFull() {
     const container = document.getElementById('historyFullContent');
     const history = userProfile.history || [];
-    
-    // إذا كان السجل فارغًا
-    if (history.length === 0) {
-        container.innerHTML = `
-            <div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
-                <i class="fas fa-shopping-bag" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i>
-                <div style="font-size:18px;font-weight:600;font-family:var(--font);">No orders yet</div>
-                <div style="font-size:13px;opacity:0.4;margin-top:4px;">Start shopping to see your orders here</div>
-            </div>
-        `;
-        return;
-    }
-    
-    // بناء HTML مع زر Clear All
+
+    // إحصائيات الطلبات
+    const total = history.length;
+    const approved = history.filter(o => o.status === 'completed' || o.status === 'delivered' || o.status === 'shipped').length;
+    const pending = history.filter(o => o.status === 'pending' || o.status === 'preparing').length;
+
     let html = `
-        <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
-            <button onclick="clearOrderHistory()" style="
-                padding:6px 16px;
-                border:none;
-                border-radius:8px;
-                background:var(--danger);
-                color:#fff;
-                font-weight:600;
-                cursor:pointer;
-                font-size:13px;
-                font-family:var(--font);
-                display:flex;
-                align-items:center;
-                gap:6px;
-                transition:0.3s;
-            " onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
-                <i class="fas fa-trash-alt"></i> Clear All
-            </button>
+        <!-- إحصائيات الطلبات -->
+        <div class="orders-stats">
+            <div class="orders-stat-card">
+                <div class="orders-stat-number">${total}</div>
+                <div class="orders-stat-label">All</div>
+            </div>
+            <div class="orders-stat-card approved">
+                <div class="orders-stat-number" style="color:var(--success);">${approved}</div>
+                <div class="orders-stat-label">Approved</div>
+            </div>
+            <div class="orders-stat-card pending">
+                <div class="orders-stat-number" style="color:var(--pending-color);">${pending}</div>
+                <div class="orders-stat-label">Pending</div>
+            </div>
         </div>
-        <div style="display:grid;gap:8px;">
+
+        <!-- أزرار تصفية -->
+        <div class="orders-filter-bar">
+            <button class="orders-filter-btn ${ordersFilter === 'all' ? 'active' : ''}" data-filter="all" onclick="filterOrders('all')">📋 All Orders</button>
+            <button class="orders-filter-btn ${ordersFilter === 'newest' ? 'active' : ''}" data-filter="newest" onclick="filterOrders('newest')">🔄 Newest</button>
+            <button class="orders-filter-btn ${ordersFilter === 'pending' ? 'active' : ''}" data-filter="pending" onclick="filterOrders('pending')">⏳ Pending</button>
+        </div>
+
+        <!-- قائمة الطلبات -->
+        <div class="orders-list" id="ordersList">
     `;
-    
-    history.slice().reverse().forEach(item => {
-        const status = item.status || 'pending';
-        const statusMap = {
-            'pending': { label: '⏳ Pending', class: 'pending' },
-            'preparing': { label: '📦 Preparing', class: 'preparing' },
-            'shipped': { label: '🚚 Shipped', class: 'shipped' },
-            'delivered': { label: '✅ Delivered', class: 'delivered' },
-            'completed': { label: '✅ Completed', class: 'completed' },
-            'rejected': { label: '❌ Rejected', class: 'rejected' }
-        };
-        const info = statusMap[status] || statusMap['pending'];
-        const date = item.date ? new Date(item.date) : new Date();
-        const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-        const itemsNames = item.items ? item.items.map(i => i.name).join(', ') : 'Order';
-        const total = item.total || 0;
-        
+
+    // تصفية حسب الفلتر الحالي
+    let filteredHistory = [...history];
+    if (ordersFilter === 'pending') {
+        filteredHistory = filteredHistory.filter(o => o.status === 'pending' || o.status === 'preparing');
+    }
+    if (ordersFilter === 'newest') {
+        filteredHistory = filteredHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
+    } else {
+        filteredHistory = filteredHistory.slice().reverse();
+    }
+
+    if (filteredHistory.length === 0) {
         html += `
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);">
-                <div style="flex:1;min-width:0;">
-                    <div style="font-size:14px;font-weight:600;color:var(--text);font-family:var(--font);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${itemsNames}</div>
-                    <div style="font-size:11px;color:var(--text-secondary);opacity:0.4;font-family:var(--font);">${dateStr}</div>
-                    <span class="status-badge ${info.class}" style="font-size:10px;padding:2px 10px;">${info.label}</span>
-                </div>
-                <span style="font-size:16px;font-weight:700;color:var(--primary);font-family:var(--font);">${total>0?'$'+total.toFixed(2):'FREE'}</span>
+            <div class="orders-empty">
+                <i class="fas fa-shopping-bag"></i>
+                <p>No orders found.</p>
             </div>
         `;
-    });
-    
+    } else {
+        filteredHistory.forEach(item => {
+            const status = item.status || 'pending';
+            const statusMap = {
+                'pending': { label: '⏳ Pending', class: 'pending' },
+                'preparing': { label: '📦 Preparing', class: 'preparing' },
+                'shipped': { label: '🚚 Shipped', class: 'shipped' },
+                'delivered': { label: '✅ Delivered', class: 'delivered' },
+                'completed': { label: '✅ Completed', class: 'completed' },
+                'rejected': { label: '❌ Rejected', class: 'rejected' }
+            };
+            const info = statusMap[status] || statusMap['pending'];
+            const date = item.date ? new Date(item.date) : new Date();
+            const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            const itemsNames = item.items ? item.items.map(i => i.name).join(', ') : 'Order';
+            const totalPrice = item.total || 0;
+
+            html += `
+                <div class="orders-item">
+                    <div class="orders-item-info">
+                        <div class="orders-item-name">${itemsNames}</div>
+                        <div class="orders-item-date">${dateStr}</div>
+                        <span class="status-badge ${info.class}">${info.label}</span>
+                    </div>
+                    <div class="orders-item-price">${totalPrice > 0 ? '$' + totalPrice.toFixed(2) : 'FREE'}</div>
+                </div>
+            `;
+        });
+    }
+
     html += `</div>`;
     container.innerHTML = html;
 }
 
-// ========================================
-// Theme
-// ========================================
+// دالة تصفية الطلبات
+window.filterOrders = function(filter) {
+    ordersFilter = filter;
+    document.querySelectorAll('.orders-filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.filter === filter);
+    });
+    renderHistoryFull();
+};
+
+// ============================================================
+// 29. السمة (Theme)
+// ============================================================
 
 let isDark = true;
 document.getElementById('themeToggle')?.addEventListener('click', function() {
@@ -2849,9 +3138,9 @@ document.getElementById('themeToggle')?.addEventListener('click', function() {
         this.innerHTML = '<i class="fas fa-sun"></i>'; }
 });
 
-// ========================================
-// Auth State
-// ========================================
+// ============================================================
+// 30. حالة المصادقة
+// ============================================================
 
 onAuthStateChanged(auth, async (user) => {
     currentUser = user;
@@ -2873,7 +3162,6 @@ onAuthStateChanged(auth, async (user) => {
         } catch (error) {
             console.error('Error checking ban status:', error);
         }
-        
         document.getElementById('authSection').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
         await loadUserData();
@@ -2887,6 +3175,7 @@ onAuthStateChanged(auth, async (user) => {
         loadDownloads();
         loadNotifications();
         fetchCryptoPrices();
+        loadFeaturedSettings();
         setTimeout(showTelegramBanner, 1000);
     } else {
         document.getElementById('authSection').style.display = 'block';
@@ -2896,14 +3185,15 @@ onAuthStateChanged(auth, async (user) => {
         loadDownloads();
         loadNotifications();
         fetchCryptoPrices();
+        loadFeaturedSettings();
     }
     updateUI();
     updateFullUserMenu();
 });
 
-// ========================================
-// Telegram Banner
-// ========================================
+// ============================================================
+// 31. Banner تيليجرام
+// ============================================================
 
 function showTelegramBanner() {
     const banner = document.getElementById('telegramBanner');
@@ -2967,10 +3257,8 @@ function showTelegramBannerAgain() {
 function addBannerAdminControls() {
     const tabNotifications = document.getElementById('tabNotifications');
     if (!tabNotifications) return;
-    
     const existingControls = tabNotifications.querySelector('.banner-admin-controls');
     if (existingControls) existingControls.remove();
-    
     const controls = document.createElement('div');
     controls.className = 'banner-admin-controls';
     controls.style.cssText = `
@@ -2992,46 +3280,13 @@ function addBannerAdminControls() {
                 </div>
             </div>
             <div style="display:flex;gap:6px;">
-                <button onclick="adminToggleBanner(true)" class="banner-admin-btn" style="
-                    padding:6px 16px;
-                    border:none;
-                    border-radius:6px;
-                    background:var(--success);
-                    color:#0a0a1a;
-                    font-weight:600;
-                    cursor:pointer;
-                    font-size:12px;
-                    font-family:var(--font);
-                    transition:0.3s;
-                ">
+                <button onclick="adminToggleBanner(true)" class="banner-admin-btn" style="padding:6px 16px;border:none;border-radius:6px;background:var(--success);color:#0a0a1a;font-weight:600;cursor:pointer;font-size:12px;font-family:var(--font);transition:0.3s;">
                     <i class="fas fa-eye"></i> Show
                 </button>
-                <button onclick="adminToggleBanner(false)" class="banner-admin-btn" style="
-                    padding:6px 16px;
-                    border:none;
-                    border-radius:6px;
-                    background:var(--danger);
-                    color:#fff;
-                    font-weight:600;
-                    cursor:pointer;
-                    font-size:12px;
-                    font-family:var(--font);
-                    transition:0.3s;
-                ">
+                <button onclick="adminToggleBanner(false)" class="banner-admin-btn" style="padding:6px 16px;border:none;border-radius:6px;background:var(--danger);color:#fff;font-weight:600;cursor:pointer;font-size:12px;font-family:var(--font);transition:0.3s;">
                     <i class="fas fa-eye-slash"></i> Hide
                 </button>
-                <button onclick="resetBannerForAll()" class="banner-admin-btn" style="
-                    padding:6px 16px;
-                    border:1px solid var(--border);
-                    border-radius:6px;
-                    background:var(--card-bg);
-                    color:var(--text);
-                    font-weight:600;
-                    cursor:pointer;
-                    font-size:12px;
-                    font-family:var(--font);
-                    transition:0.3s;
-                ">
+                <button onclick="resetBannerForAll()" class="banner-admin-btn" style="padding:6px 16px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);font-weight:600;cursor:pointer;font-size:12px;font-family:var(--font);transition:0.3s;">
                     <i class="fas fa-sync"></i> Reset
                 </button>
             </div>
@@ -3040,7 +3295,6 @@ function addBannerAdminControls() {
             ${isHidden ? '🚫 Banner is currently <strong style="color:var(--danger);">HIDDEN</strong> for all users' : '✅ Banner is currently <strong style="color:var(--success);">VISIBLE</strong> for all users'}
         </div>
     `;
-    
     const notifList = document.getElementById('adminNotificationsList');
     if (notifList) {
         tabNotifications.insertBefore(controls, notifList);
@@ -3074,16 +3328,15 @@ function resetBannerForAll() {
     setTimeout(showTelegramBanner, 300);
 }
 
-// ========================================
-// Fix Direction
-// ========================================
+// ============================================================
+// 32. توجيه الاتجاه (Fix Direction)
+// ============================================================
 
 function fixDirection() {
     document.querySelectorAll('.header, .logo, .header-actions, .modal-content, .fullscreen-modal, .admin-panel').forEach(el => {
         el.style.direction = 'ltr';
         el.style.textAlign = 'left';
     });
-    
     document.querySelectorAll('.modal-close').forEach(el => {
         el.style.right = 'auto';
         el.style.left = '10px';
@@ -3095,7 +3348,6 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(showTelegramBanner, 500);
 });
 
-// Override admin panel open to add controls
 const originalOpenAdminPanel = window.openAdminPanel;
 window.openAdminPanel = function() {
     if (originalOpenAdminPanel) originalOpenAdminPanel();
@@ -3108,51 +3360,51 @@ window.openAddProductModal = function() {
     setTimeout(fixDirection, 200);
 };
 
-// Note: openEditProductModal is already defined above (fixed)
-
 const originalOpenCreateNotificationModal = window.openCreateNotificationModal;
 window.openCreateNotificationModal = function() {
     if (originalOpenCreateNotificationModal) originalOpenCreateNotificationModal();
     setTimeout(fixDirection, 200);
 };
 
-// ========================================
-// Init
-// ========================================
+// ============================================================
+// 33. التهيئة (Init)
+// ============================================================
 
 async function init() {
     showLoadingScreen();
     updateLoadingBar(10);
-    
-    try { 
-        await signInAnonymously(auth); 
+
+    try {
+        await signInAnonymously(auth);
         updateLoadingBar(30);
-    } catch (e) { 
-        console.log('ℹ️ Anonymous sign-in'); 
+    } catch (e) {
+        console.log('ℹ️ Anonymous sign-in');
     }
-    
+
     const productsFromFirestore = await loadProductsFromFirestore();
     products = productsFromFirestore.length > 0 ? productsFromFirestore : fallbackProducts;
     updateLoadingBar(50);
-    
+
     startProductsRealtimeListener();
     updateLoadingBar(70);
-    
+
     await loadUserData();
     updateLoadingBar(85);
-    
+
     renderProducts(products);
+    renderFeaturedProducts();
     generateRecommendations(products);
     updateBottomCartBar();
     updateDropdownStats();
     loadDownloads();
     loadNotifications();
     fetchCryptoPrices();
+    loadFeaturedSettings();
     setInterval(fetchCryptoPrices, 60000);
     updateLoadingBar(100);
-    
-    console.log('✅ ZI Store ready with single Telegram bot!');
-    
+
+    console.log('✅ ZI Store ready with all features!');
+
     setTimeout(() => {
         hideLoadingScreen();
         setTimeout(showTelegramBanner, 500);
@@ -3165,9 +3417,9 @@ setTimeout(() => {
     console.log('⚠️ Force hiding loading screen (timeout)');
 }, 5000);
 
-// ========================================
-// Exports
-// ========================================
+// ============================================================
+// 34. التصديرات (Exports)
+// ============================================================
 
 window.showToast = showToast;
 window.openAdminPanel = openAdminPanel;
@@ -3192,7 +3444,6 @@ window.openCreateNotificationModal = openCreateNotificationModal;
 window.closeCreateNotificationModal = closeCreateNotificationModal;
 window.switchAdminTab = switchAdminTab;
 window.openAddProductModal = openAddProductModal;
-// use fixed version
 window.openEditProductModal = openEditProductModal;
 window.closeProductModal = closeProductModal;
 window.saveProduct = saveProduct;
@@ -3251,7 +3502,16 @@ window.showTelegramBannerAgain = showTelegramBannerAgain;
 window.adminToggleBanner = adminToggleBanner;
 window.resetBannerForAll = resetBannerForAll;
 window.clearOrderHistory = clearOrderHistory;
+window.filterOrders = filterOrders;
+window.openFeaturedSettings = openFeaturedSettings;
+window.updateFeaturedProductSelection = updateFeaturedProductSelection;
+window.saveFeaturedSettings = saveFeaturedSettings;
+window.closeFeaturedSettings = closeFeaturedSettings;
+window.updateFeaturedSettings = updateFeaturedSettings;
+window.closePreviewModal = closePreviewModal;
+window.addToCartFromPreview = addToCartFromPreview;
+window.shareFromPreview = shareFromPreview;
 
-// ========================================
+// ============================================================
 // END OF SCRIPT.JS
-// ========================================
+// ============================================================
