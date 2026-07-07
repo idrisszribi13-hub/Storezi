@@ -258,7 +258,9 @@
         </div>
     </div>
 
-    <!-- مودال عرض المنتج كامل الشاشة (Preview) -->
+    <!-- ============================================ -->
+    <!-- مودال عرض المنتج (Preview) مع Features و VIP Pricing -->
+    <!-- ============================================ -->
     <div class="modal-overlay preview-modal" id="previewModal">
         <div class="preview-content">
             <!-- شريط علوي -->
@@ -283,19 +285,36 @@
                 <div class="preview-verified" id="previewVerified">✅ 100% VERIFIED WORKING PRODUCT</div>
                 <h2 class="preview-name" id="previewName">Product Name</h2>
                 <p class="preview-desc" id="previewDescription">Description here</p>
+
+                <!-- ✅ Features -->
                 <div class="preview-features" id="previewFeatures">
-    <div class="features-header">
-        <i class="fas fa-check-circle"></i> Features
-    </div>
-       <!--features -->
-    <ul class="features-list">
-        <li><i class="fas fa-check-circle"></i> Unlimited Device</li>
-        <li><i class="fas fa-check-circle"></i> Win Level</li>
-        <li><i class="fas fa-check-circle"></i> Level Jumper</li>
-        <li><i class="fas fa-check-circle"></i> Unlimited Booster</li>
-        <li><i class="fas fa-check-circle"></i> Game Speed</li>
-    </ul>
+                    <div class="features-header">
+                        <i class="fas fa-check-circle"></i> Features
+                    </div>
+                    <ul class="features-list">
+                        <!-- سيتم تعبئتها بواسطة JavaScript -->
+                    </ul>
                 </div>
+
+                <!-- ✅ VIP Pricing -->
+                <div id="previewVipPricing" style="display:none;">
+                    <div class="vip-pricing-section">
+                        <div class="vip-pricing-header">
+                            <i class="fas fa-crown"></i> VIP Pricing
+                        </div>
+                        <div class="vip-pricing-grid" id="vipPricingGrid">
+                            <!-- سيتم تعبئتها بواسطة JavaScript -->
+                        </div>
+                        <button class="vip-add-to-cart" onclick="addVipToCart(window._currentProduct)">
+                            <i class="fas fa-shopping-cart"></i> Add to Cart
+                        </button>
+                        <div class="vip-footer">
+                            Checkout via Telegram <a href="https://t.me/Mitalica69" target="_blank">@Mitalica69</a>.
+                            By purchasing you agree to the <a href="#">Terms</a>. See the <a href="#">refund policy</a>.
+                        </div>
+                    </div>
+                </div>
+
                 <!-- زر الإضافة والسعر -->
                 <div class="preview-action">
                     <button class="preview-add-btn" id="previewAddBtn" onclick="addToCartFromPreview()">
@@ -388,7 +407,6 @@
                 </div>
                 <div style="margin-top: 8px;">
                     <input class="payment-tx-input" id="transactionHashInput" placeholder="Paste transaction hash..." />
-                    <!-- ✅ إضافة الوصف التوضيحي هنا -->
                     <p style="font-size: 12px; color: var(--text-secondary); opacity: 0.5; margin-top: 4px;">
                         📌 Please paste your transaction hash to verify your payment.
                     </p>
@@ -598,19 +616,41 @@
         </div>
     </div>
 
-    <!-- مودال لوحة المدير -->
+    <!-- ============================================ -->
+    <!-- لوحة المدير (Admin Panel) -->
+    <!-- ============================================ -->
     <div class="modal-overlay admin-panel" id="adminPanel">
-        <div class="modal-content" style="max-width:600px;max-height:90vh;">
+        <div class="modal-content" style="max-width:700px;max-height:90vh;">
             <div class="panel-header">
                 <h2><i class="fas fa-crown"></i> Admin Panel</h2>
                 <button class="close-btn" onclick="closeAdminPanel()"><i class="fas fa-times"></i></button>
             </div>
             <div class="tabs">
+                <button onclick="switchAdminTab('dashboard')">📊 Dashboard</button>
                 <button class="active" onclick="switchAdminTab('orders')">📦 Orders</button>
                 <button onclick="switchAdminTab('products')">📦 Products</button>
                 <button onclick="switchAdminTab('users')">👥 Users</button>
                 <button onclick="switchAdminTab('downloads')">📁 Downloads</button>
                 <button onclick="switchAdminTab('notifications')">🔔 Notifications</button>
+            </div>
+
+            <!-- ======== تبويب Dashboard ======== -->
+            <div class="tab-content" id="tabDashboard">
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">
+                    <div class="admin-stat-card" style="background:var(--bg);padding:14px;border-radius:12px;border:1px solid var(--border);text-align:center;">
+                        <div style="font-size:28px;font-weight:800;color:var(--primary);" id="dashboardTotalOrders">0</div>
+                        <div style="font-size:12px;color:var(--text-secondary);opacity:0.6;margin-top:2px;">Total Orders</div>
+                    </div>
+                    <div class="admin-stat-card" style="background:var(--bg);padding:14px;border-radius:12px;border:1px solid var(--border);text-align:center;">
+                        <div style="font-size:28px;font-weight:800;color:var(--success);" id="dashboardTotalRevenue">$0.00</div>
+                        <div style="font-size:12px;color:var(--text-secondary);opacity:0.6;margin-top:2px;">Total Revenue</div>
+                    </div>
+                    <div class="admin-stat-card" style="background:var(--bg);padding:14px;border-radius:12px;border:1px solid var(--border);text-align:center;">
+                        <div style="font-size:28px;font-weight:800;color:var(--vip-color);" id="dashboardNetRevenue">$0.00</div>
+                        <div style="font-size:12px;color:var(--text-secondary);opacity:0.6;margin-top:2px;">Net Revenue (10%)</div>
+                    </div>
+                </div>
+                <button onclick="refreshDashboardStats()" class="admin-submit-btn" style="width:100%;"><i class="fas fa-sync"></i> Refresh Stats</button>
             </div>
 
             <!-- تبويب الطلبات -->
@@ -677,21 +717,25 @@
     <!-- مودالات الإدارة - محسنة وجميلة -->
     <!-- ============================================ -->
 
-    <!-- مودال إضافة/تعديل منتج -->
+    <!-- مودال إضافة/تعديل منتج (مع VIP Pricing) -->
     <div class="modal-overlay" id="productModal">
-        <div class="modal-content" style="max-width:500px;">
+        <div class="modal-content" style="max-width:540px;">
             <button class="modal-close" onclick="closeProductModal()"><i class="fas fa-times"></i></button>
             <div class="modal-title" id="productFormTitle">Add Product</div>
             <form id="productForm" onsubmit="saveProduct(event)" class="admin-form">
                 <input type="hidden" id="productIdField" />
+                
+                <!-- المعلومات الأساسية -->
                 <div class="admin-form-group">
                     <label for="productName">Product Name</label>
                     <input type="text" id="productName" required placeholder="Enter product name" />
                 </div>
+                
                 <div class="admin-form-group">
                     <label for="productPrice">Price ($)</label>
                     <input type="number" id="productPrice" step="0.01" min="0" placeholder="0.00" />
                 </div>
+                
                 <div class="admin-form-row">
                     <div class="admin-form-group" style="flex:1;">
                         <label for="productBadge">Badge</label>
@@ -709,7 +753,8 @@
                         </select>
                     </div>
                 </div>
-                <!-- ✅ حقل رفع الصورة وإدخال الرابط -->
+                
+                <!-- رفع الصورة وإدخال الرابط -->
                 <div class="admin-form-group">
                     <label for="productImageFile">Upload Product Image</label>
                     <input type="file" id="productImageFile" accept="image/*" />
@@ -719,18 +764,65 @@
                     <small style="color: var(--text-secondary); opacity: 0.5;">Or enter a URL below:</small>
                     <input type="url" id="productImage" placeholder="https://example.com/image.jpg" style="margin-top: 4px;" />
                 </div>
+                
+                <!-- الوصف والميزات -->
                 <div class="admin-form-group">
                     <label for="productDescription">Description</label>
                     <textarea id="productDescription" rows="3" placeholder="Product description..."></textarea>
                 </div>
+                
                 <div class="admin-form-group">
                     <label for="productFeatures">Features (comma separated)</label>
                     <input type="text" id="productFeatures" placeholder="Feature 1, Feature 2, Feature 3" />
                 </div>
+                
                 <div class="admin-form-group">
                     <label for="productVideo">Video URL</label>
                     <input type="url" id="productVideo" placeholder="https://www.youtube.com/embed/..." />
                 </div>
+                
+                <!-- ✅ VIP Pricing Toggle -->
+                <div class="admin-form-group" style="border-top:1px solid var(--border);padding-top:12px;margin-top:8px;">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+                        <input type="checkbox" id="vipEnabled" style="width:20px;height:20px;accent-color:var(--vip-color);cursor:pointer;" />
+                        <label for="vipEnabled" style="font-weight:700;color:var(--vip-color);cursor:pointer;font-size:14px;">
+                            <i class="fas fa-crown"></i> Enable VIP Pricing
+                        </label>
+                    </div>
+                    <div id="vipPricingFields" style="display:none;margin-top:8px;">
+                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;background:var(--bg);border-radius:8px;padding:10px;border:1px solid var(--border);">
+                            <!-- 1 Month -->
+                            <div style="text-align:center;">
+                                <div style="font-size:11px;font-weight:600;color:var(--text-secondary);opacity:0.5;">1 Month</div>
+                                <input type="number" id="vipPrice1m" step="0.01" placeholder="Price" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text);font-size:12px;text-align:center;margin:2px 0;" />
+                                <input type="number" id="vipOriginalPrice1m" step="0.01" placeholder="Original" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text-secondary);font-size:11px;text-align:center;opacity:0.5;text-decoration:line-through;" />
+                            </div>
+                            <!-- 3 Months -->
+                            <div style="text-align:center;">
+                                <div style="font-size:11px;font-weight:600;color:var(--text-secondary);opacity:0.5;">3 Months</div>
+                                <input type="number" id="vipPrice3m" step="0.01" placeholder="Price" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text);font-size:12px;text-align:center;margin:2px 0;" />
+                                <input type="number" id="vipOriginalPrice3m" step="0.01" placeholder="Original" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text-secondary);font-size:11px;text-align:center;opacity:0.5;text-decoration:line-through;" />
+                            </div>
+                            <!-- 1 Year -->
+                            <div style="text-align:center;">
+                                <div style="font-size:11px;font-weight:600;color:var(--text-secondary);opacity:0.5;">1 Year</div>
+                                <input type="number" id="vipPrice1y" step="0.01" placeholder="Price" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text);font-size:12px;text-align:center;margin:2px 0;" />
+                                <input type="number" id="vipOriginalPrice1y" step="0.01" placeholder="Original" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text-secondary);font-size:11px;text-align:center;opacity:0.5;text-decoration:line-through;" />
+                            </div>
+                            <!-- LIFETIME -->
+                            <div style="text-align:center;">
+                                <div style="font-size:11px;font-weight:600;color:var(--text-secondary);opacity:0.5;">LIFETIME</div>
+                                <input type="number" id="vipPriceLifetime" step="0.01" placeholder="Price" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text);font-size:12px;text-align:center;margin:2px 0;" />
+                                <input type="number" id="vipOriginalPriceLifetime" step="0.01" placeholder="Original" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text-secondary);font-size:11px;text-align:center;opacity:0.5;text-decoration:line-through;" />
+                            </div>
+                        </div>
+                        <div style="font-size:11px;color:var(--text-secondary);opacity:0.4;margin-top:4px;text-align:center;">
+                            💡 Fill price and original price to show discount badge
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- الحقول الإضافية -->
                 <div class="admin-form-row">
                     <div class="admin-form-group" style="flex:1;">
                         <label for="productDuration">Duration</label>
@@ -741,6 +833,7 @@
                         <input type="number" id="productOriginalPrice" step="0.01" min="0" placeholder="0.00" />
                     </div>
                 </div>
+                
                 <button type="submit" class="admin-submit-btn"><i class="fas fa-save"></i> Save Product</button>
             </form>
         </div>
