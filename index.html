@@ -77,7 +77,16 @@
             <div class="search-results" id="searchResults"></div>
         </div>
 
-        <!-- ================== نافذة تيليجرام (Banner) - فوق الاحصائيات ================== -->
+        <!-- ================== المنتجات المميزة (Featured) ================== -->
+        <div class="featured-products">
+            <div class="featured-header">
+                <span class="featured-title"><i class="fas fa-fire"></i> Trending Now</span>
+                <span class="featured-more" onclick="document.getElementById('productList').scrollIntoView({behavior:'smooth'})">View All <i class="fas fa-arrow-right"></i></span>
+            </div>
+            <div class="featured-grid" id="featuredGrid"></div>
+        </div>
+
+        <!-- ================== نافذة تيليجرام (Banner) ================== -->
         <div id="telegramBanner" class="telegram-banner" style="display:none;">
             <div class="banner-content">
                 <div class="banner-icon">
@@ -249,7 +258,44 @@
         </div>
     </div>
 
-    <!-- مودال تفاصيل المنتج -->
+    <!-- مودال عرض المنتج كامل الشاشة (Preview) -->
+    <div class="modal-overlay preview-modal" id="previewModal">
+        <div class="preview-content">
+            <!-- شريط علوي -->
+            <div class="preview-header">
+                <button class="preview-back" onclick="closePreviewModal()">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <div class="preview-header-title">Product Details</div>
+                <button class="preview-share" onclick="shareFromPreview()">
+                    <i class="fas fa-share-alt"></i>
+                </button>
+            </div>
+
+            <!-- صورة المنتج -->
+            <div class="preview-image-wrapper">
+                <img id="previewImage" src="" alt="Product" />
+                <div class="preview-badge" id="previewBadge">PREMIUM</div>
+            </div>
+
+            <!-- تفاصيل المنتج -->
+            <div class="preview-body">
+                <div class="preview-verified" id="previewVerified">✅ 100% VERIFIED WORKING PRODUCT</div>
+                <h2 class="preview-name" id="previewName">Product Name</h2>
+                <p class="preview-desc" id="previewDescription">Description here</p>
+
+                <!-- زر الإضافة والسعر -->
+                <div class="preview-action">
+                    <button class="preview-add-btn" id="previewAddBtn" onclick="addToCartFromPreview()">
+                        <i class="fas fa-cart-plus"></i> Add to Cart
+                    </button>
+                    <span class="preview-price" id="previewPrice">$0.00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- مودال تفاصيل المنتج (قديم - احتفظ به للتوافق) -->
     <div class="modal-overlay" id="detailsModal">
         <div class="modal-content" style="max-width:460px;">
             <button class="modal-close" onclick="closeDetailsModal()"><i class="fas fa-times"></i></button>
@@ -481,11 +527,13 @@
         </div>
     </div>
 
-    <!-- مودال الإحالات -->
+    <!-- مودال الإحالات (معدل) -->
     <div class="modal-overlay" id="referralModal">
         <div class="modal-content" style="max-width:420px;">
             <button class="modal-close" onclick="closeReferralModal()"><i class="fas fa-times"></i></button>
             <div class="modal-title"><i class="fas fa-gift"></i> Refer & Earn</div>
+
+            <!-- كود الإحالة -->
             <div style="background:var(--bg);border-radius:10px;padding:14px;border:1px solid var(--border);margin-bottom:12px;">
                 <div style="font-size:12px;color:var(--text-secondary);opacity:0.5;">Your Referral Code</div>
                 <div style="display:flex;align-items:center;gap:10px;">
@@ -493,13 +541,26 @@
                     <button onclick="copyReferralCode2()" style="padding:4px 12px;border:none;border-radius:6px;background:var(--primary);color:#fff;cursor:pointer;font-size:12px;"><i class="fas fa-copy"></i></button>
                 </div>
             </div>
+
+            <!-- إحصائيات -->
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
-                <div style="background:var(--bg);border-radius:8px;padding:8px;text-align:center;border:1px solid var(--border);"><div style="font-size:18px;font-weight:700;color:var(--text);" id="referralCount2">0</div><div style="font-size:10px;color:var(--text-secondary);opacity:0.4;">Referrals</div></div>
-                <div style="background:var(--bg);border-radius:8px;padding:8px;text-align:center;border:1px solid var(--border);"><div style="font-size:18px;font-weight:700;color:var(--success);" id="referralRewards2">0 $</div><div style="font-size:10px;color:var(--text-secondary);opacity:0.4;">Earned</div></div>
+                <div style="background:var(--bg);border-radius:8px;padding:8px;text-align:center;border:1px solid var(--border);">
+                    <div style="font-size:18px;font-weight:700;color:var(--text);" id="referralCount2">0</div>
+                    <div style="font-size:10px;color:var(--text-secondary);opacity:0.4;">Referrals</div>
+                </div>
+                <div style="background:var(--bg);border-radius:8px;padding:8px;text-align:center;border:1px solid var(--border);">
+                    <div style="font-size:18px;font-weight:700;color:var(--success);" id="referralRewards2">0 $</div>
+                    <div style="font-size:10px;color:var(--text-secondary);opacity:0.4;">Earned</div>
+                </div>
             </div>
-            <div style="background:var(--bg);border-radius:8px;padding:10px;border:1px solid var(--border);">
-                <div style="font-size:12px;font-weight:600;color:var(--text-secondary);opacity:0.5;">How it works</div>
-                <div style="font-size:12px;color:var(--text-secondary);opacity:0.4;margin-top:4px;">Share your code with friends. You get <strong style="color:var(--success);">10%</strong> of their first order!</div>
+
+            <!-- خطوات الإحالة -->
+            <div id="referralSteps"></div>
+
+            <!-- نشاط الإحالات -->
+            <div style="margin-top:12px;">
+                <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;">📋 Referral Activity</div>
+                <div id="referralActivity"></div>
             </div>
         </div>
     </div>
@@ -560,7 +621,12 @@
 
             <!-- تبويب المنتجات -->
             <div class="tab-content" id="tabProducts">
-                <button class="add-btn" onclick="openAddProductModal()"><i class="fas fa-plus"></i> Add Product</button>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+                    <button class="add-btn" onclick="openAddProductModal()"><i class="fas fa-plus"></i> Add Product</button>
+                    <button class="add-btn" onclick="openFeaturedSettings()" style="background:var(--vip-color);color:#0a0a1a;">
+                        <i class="fas fa-star"></i> Manage Featured
+                    </button>
+                </div>
                 <div id="adminProductsList"></div>
             </div>
 
@@ -612,6 +678,36 @@
                 <div class="auth-field"><label>Original Price</label><input type="number" id="productOriginalPrice" step="0.01" min="0" /></div>
                 <button type="submit" class="auth-btn"><i class="fas fa-save"></i> Save Product</button>
             </form>
+        </div>
+    </div>
+
+    <!-- مودال إعدادات المنتجات المميزة -->
+    <div class="modal-overlay" id="featuredSettingsModal">
+        <div class="modal-content" style="max-width:480px;">
+            <button class="modal-close" onclick="closeFeaturedSettings()"><i class="fas fa-times"></i></button>
+            <div class="modal-title"><i class="fas fa-star"></i> Featured Settings</div>
+
+            <div style="display:flex;flex-direction:column;gap:12px;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <label style="font-weight:600;color:var(--text);">Enable Featured:</label>
+                    <input type="checkbox" id="featuredEnabled" checked />
+                </div>
+
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <label style="font-weight:600;color:var(--text);">Rotation Interval (seconds):</label>
+                    <input type="number" id="featuredInterval" value="5" min="2" max="60" style="width:80px;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);" />
+                </div>
+
+                <div>
+                    <label style="font-weight:600;color:var(--text);display:block;margin-bottom:6px;">Select Products:</label>
+                    <div id="featuredProductSelector" style="max-height:200px;overflow-y:auto;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px;"></div>
+                </div>
+
+                <div style="display:flex;gap:8px;margin-top:8px;">
+                    <button onclick="saveFeaturedSettings()" style="flex:1;padding:10px;border:none;border-radius:8px;background:var(--primary);color:#fff;font-weight:600;cursor:pointer;">💾 Save Settings</button>
+                    <button onclick="closeFeaturedSettings()" style="padding:10px 20px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);cursor:pointer;">Cancel</button>
+                </div>
+            </div>
         </div>
     </div>
 
