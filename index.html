@@ -374,7 +374,13 @@
                         <button onclick="copyWalletAddress()"><i class="fas fa-copy"></i> Copy</button>
                     </div>
                 </div>
-                <input class="payment-tx-input" id="transactionHashInput" placeholder="Paste transaction hash..." />
+                <div style="margin-top: 8px;">
+                    <input class="payment-tx-input" id="transactionHashInput" placeholder="Paste transaction hash..." />
+                    <!-- ✅ إضافة الوصف التوضيحي هنا -->
+                    <p style="font-size: 12px; color: var(--text-secondary); opacity: 0.5; margin-top: 4px;">
+                        📌 Please paste your transaction hash to verify your payment.
+                    </p>
+                </div>
                 <button class="payment-btn" onclick="placeOrder()"><i class="fas fa-check"></i> Confirm Payment</button>
                 <button class="payment-btn" onclick="goToStep1()" style="background:var(--card-bg);color:var(--text);margin-top:4px;"><i class="fas fa-arrow-left"></i> Back</button>
             </div>
@@ -655,28 +661,75 @@
         </div>
     </div>
 
+    <!-- ============================================ -->
+    <!-- مودالات الإدارة - محسنة وجميلة -->
+    <!-- ============================================ -->
+
     <!-- مودال إضافة/تعديل منتج -->
     <div class="modal-overlay" id="productModal">
-        <div class="modal-content" style="max-width:480px;">
+        <div class="modal-content" style="max-width:500px;">
             <button class="modal-close" onclick="closeProductModal()"><i class="fas fa-times"></i></button>
             <div class="modal-title" id="productFormTitle">Add Product</div>
-            <form id="productForm" onsubmit="saveProduct(event)">
+            <form id="productForm" onsubmit="saveProduct(event)" class="admin-form">
                 <input type="hidden" id="productIdField" />
-                <div class="auth-field"><label>Product Name</label><input type="text" id="productName" required /></div>
-                <div class="auth-field"><label>Price ($)</label><input type="number" id="productPrice" step="0.01" min="0" /></div>
-                <div class="auth-field"><label>Badge</label>
-                    <select id="productBadge"><option value="FREE">FREE</option><option value="VIP">VIP</option><option value="PRO">PRO</option></select>
+                <div class="admin-form-group">
+                    <label for="productName">Product Name</label>
+                    <input type="text" id="productName" required placeholder="Enter product name" />
                 </div>
-                <div class="auth-field"><label>Status</label>
-                    <select id="productStatus"><option value="available">Available</option><option value="unavailable">Unavailable</option></select>
+                <div class="admin-form-group">
+                    <label for="productPrice">Price ($)</label>
+                    <input type="number" id="productPrice" step="0.01" min="0" placeholder="0.00" />
                 </div>
-                <div class="auth-field"><label>Image URL</label><input type="url" id="productImage" placeholder="https://..." /></div>
-                <div class="auth-field"><label>Description</label><textarea id="productDescription" rows="2"></textarea></div>
-                <div class="auth-field"><label>Features (comma separated)</label><input type="text" id="productFeatures" placeholder="Feature 1, Feature 2" /></div>
-                <div class="auth-field"><label>Video URL</label><input type="url" id="productVideo" placeholder="https://www.youtube.com/embed/..." /></div>
-                <div class="auth-field"><label>Duration</label><input type="text" id="productDuration" placeholder="e.g., 30 days" /></div>
-                <div class="auth-field"><label>Original Price</label><input type="number" id="productOriginalPrice" step="0.01" min="0" /></div>
-                <button type="submit" class="auth-btn"><i class="fas fa-save"></i> Save Product</button>
+                <div class="admin-form-row">
+                    <div class="admin-form-group" style="flex:1;">
+                        <label for="productBadge">Badge</label>
+                        <select id="productBadge">
+                            <option value="FREE">FREE</option>
+                            <option value="VIP">VIP</option>
+                            <option value="PRO">PRO</option>
+                        </select>
+                    </div>
+                    <div class="admin-form-group" style="flex:1;">
+                        <label for="productStatus">Status</label>
+                        <select id="productStatus">
+                            <option value="available">Available</option>
+                            <option value="unavailable">Unavailable</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- ✅ حقل رفع الصورة وإدخال الرابط -->
+                <div class="admin-form-group">
+                    <label for="productImageFile">Upload Product Image</label>
+                    <input type="file" id="productImageFile" accept="image/*" />
+                    <div id="imagePreviewContainer" style="margin-top: 8px; display: none;">
+                        <img id="imagePreview" src="#" alt="Image preview" style="max-width: 100px; max-height: 100px; border-radius: 8px; border: 1px solid var(--border);" />
+                    </div>
+                    <small style="color: var(--text-secondary); opacity: 0.5;">Or enter a URL below:</small>
+                    <input type="url" id="productImage" placeholder="https://example.com/image.jpg" style="margin-top: 4px;" />
+                </div>
+                <div class="admin-form-group">
+                    <label for="productDescription">Description</label>
+                    <textarea id="productDescription" rows="3" placeholder="Product description..."></textarea>
+                </div>
+                <div class="admin-form-group">
+                    <label for="productFeatures">Features (comma separated)</label>
+                    <input type="text" id="productFeatures" placeholder="Feature 1, Feature 2, Feature 3" />
+                </div>
+                <div class="admin-form-group">
+                    <label for="productVideo">Video URL</label>
+                    <input type="url" id="productVideo" placeholder="https://www.youtube.com/embed/..." />
+                </div>
+                <div class="admin-form-row">
+                    <div class="admin-form-group" style="flex:1;">
+                        <label for="productDuration">Duration</label>
+                        <input type="text" id="productDuration" placeholder="e.g., 30 days" />
+                    </div>
+                    <div class="admin-form-group" style="flex:1;">
+                        <label for="productOriginalPrice">Original Price</label>
+                        <input type="number" id="productOriginalPrice" step="0.01" min="0" placeholder="0.00" />
+                    </div>
+                </div>
+                <button type="submit" class="admin-submit-btn"><i class="fas fa-save"></i> Save Product</button>
             </form>
         </div>
     </div>
@@ -686,26 +739,22 @@
         <div class="modal-content" style="max-width:480px;">
             <button class="modal-close" onclick="closeFeaturedSettings()"><i class="fas fa-times"></i></button>
             <div class="modal-title"><i class="fas fa-star"></i> Featured Settings</div>
-
             <div style="display:flex;flex-direction:column;gap:12px;">
                 <div style="display:flex;align-items:center;gap:10px;">
                     <label style="font-weight:600;color:var(--text);">Enable Featured:</label>
                     <input type="checkbox" id="featuredEnabled" checked />
                 </div>
-
                 <div style="display:flex;align-items:center;gap:10px;">
                     <label style="font-weight:600;color:var(--text);">Rotation Interval (seconds):</label>
-                    <input type="number" id="featuredInterval" value="5" min="2" max="60" style="width:80px;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);" />
+                    <input type="number" id="featuredInterval" value="5" min="2" max="60" />
                 </div>
-
                 <div>
                     <label style="font-weight:600;color:var(--text);display:block;margin-bottom:6px;">Select Products:</label>
                     <div id="featuredProductSelector" style="max-height:200px;overflow-y:auto;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px;"></div>
                 </div>
-
                 <div style="display:flex;gap:8px;margin-top:8px;">
-                    <button onclick="saveFeaturedSettings()" style="flex:1;padding:10px;border:none;border-radius:8px;background:var(--primary);color:#fff;font-weight:600;cursor:pointer;">💾 Save Settings</button>
-                    <button onclick="closeFeaturedSettings()" style="padding:10px 20px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);cursor:pointer;">Cancel</button>
+                    <button onclick="saveFeaturedSettings()" class="admin-submit-btn" style="flex:1;">💾 Save Settings</button>
+                    <button onclick="closeFeaturedSettings()" class="admin-cancel-btn">Cancel</button>
                 </div>
             </div>
         </div>
@@ -716,13 +765,28 @@
         <div class="modal-content" style="max-width:420px;">
             <button class="modal-close" onclick="closeCreateDownloadModal()"><i class="fas fa-times"></i></button>
             <div class="modal-title"><i class="fas fa-plus-circle"></i> Add Download</div>
-            <form id="createDownloadForm" onsubmit="createDownload(event)">
-                <div class="auth-field"><label>Title</label><input type="text" id="dlTitle" required /></div>
-                <div class="auth-field"><label>Type</label><input type="text" id="dlType" placeholder="e.g., APK, ZIP" required /></div>
-                <div class="auth-field"><label>Description</label><textarea id="dlDescription" rows="2"></textarea></div>
-                <div class="auth-field"><label>Download URL</label><input type="url" id="dlUrl" required /></div>
-                <div class="auth-field"><label>Date</label><input type="date" id="dlDate" /></div>
-                <button type="submit" class="auth-btn"><i class="fas fa-save"></i> Add Download</button>
+            <form id="createDownloadForm" onsubmit="createDownload(event)" class="admin-form">
+                <div class="admin-form-group">
+                    <label for="dlTitle">Title</label>
+                    <input type="text" id="dlTitle" required placeholder="Download title" />
+                </div>
+                <div class="admin-form-group">
+                    <label for="dlType">Type</label>
+                    <input type="text" id="dlType" placeholder="e.g., APK, ZIP" required />
+                </div>
+                <div class="admin-form-group">
+                    <label for="dlDescription">Description</label>
+                    <textarea id="dlDescription" rows="2" placeholder="Short description"></textarea>
+                </div>
+                <div class="admin-form-group">
+                    <label for="dlUrl">Download URL</label>
+                    <input type="url" id="dlUrl" required placeholder="https://example.com/file.zip" />
+                </div>
+                <div class="admin-form-group">
+                    <label for="dlDate">Date</label>
+                    <input type="date" id="dlDate" />
+                </div>
+                <button type="submit" class="admin-submit-btn"><i class="fas fa-save"></i> Add Download</button>
             </form>
         </div>
     </div>
@@ -732,10 +796,16 @@
         <div class="modal-content" style="max-width:420px;">
             <button class="modal-close" onclick="closeCreateNotificationModal()"><i class="fas fa-times"></i></button>
             <div class="modal-title"><i class="fas fa-bell"></i> Send Notification</div>
-            <form id="createNotificationForm" onsubmit="createNotification(event)">
-                <div class="auth-field"><label>Title</label><input type="text" id="notifTitle" required /></div>
-                <div class="auth-field"><label>Message</label><textarea id="notifMessage" rows="3" required></textarea></div>
-                <button type="submit" class="auth-btn"><i class="fas fa-paper-plane"></i> Send Notification</button>
+            <form id="createNotificationForm" onsubmit="createNotification(event)" class="admin-form">
+                <div class="admin-form-group">
+                    <label for="notifTitle">Title</label>
+                    <input type="text" id="notifTitle" required placeholder="Notification title" />
+                </div>
+                <div class="admin-form-group">
+                    <label for="notifMessage">Message</label>
+                    <textarea id="notifMessage" rows="3" required placeholder="Notification message..."></textarea>
+                </div>
+                <button type="submit" class="admin-submit-btn"><i class="fas fa-paper-plane"></i> Send Notification</button>
             </form>
         </div>
     </div>
