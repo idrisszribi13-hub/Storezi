@@ -1,6 +1,6 @@
 /* ============================================
    STYLE.CSS - النسخة النهائية المتطورة
-   جميع الأنماط محسّنة وجميلة
+   جميع الأنماط محسّنة وجميلة ومتناسقة
    ============================================ */
 
 /* ============================================
@@ -260,7 +260,6 @@ body {
     position: relative;
 }
 
-/* أيقونة البوت */
 .telegram-banner .banner-icon {
     position: relative;
     width: 48px;
@@ -299,7 +298,6 @@ body {
     }
 }
 
-/* النصوص */
 .telegram-banner .banner-text {
     flex: 1;
     min-width: 0;
@@ -330,12 +328,8 @@ body {
 
 @keyframes badgePulse {
     0%,
-    100% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.08);
-    }
+    100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
 }
 
 .telegram-banner .banner-subtitle {
@@ -348,7 +342,6 @@ body {
     letter-spacing: 0.1px;
 }
 
-/* زر الربط */
 .telegram-banner .banner-action {
     padding: 9px 20px;
     border: none;
@@ -381,7 +374,6 @@ body {
     font-size: 14px;
 }
 
-/* زر الإغلاق */
 .telegram-banner .banner-close {
     background: rgba(255, 255, 255, 0.08);
     border: none;
@@ -404,7 +396,6 @@ body {
     transform: rotate(90deg);
 }
 
-/* حالة الربط (متصل) */
 .telegram-banner.linked {
     background: linear-gradient(135deg, #10b981, #059669);
     box-shadow: 0 6px 24px rgba(16, 185, 129, 0.25);
@@ -419,7 +410,6 @@ body {
     color: #fff;
 }
 
-/* حركة النزول */
 @keyframes bannerSlideDown {
     0% {
         opacity: 0;
@@ -613,12 +603,8 @@ body {
 
 @keyframes pulse {
     0%,
-    100% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.2);
-    }
+    100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
 }
 
 /* ============================================
@@ -754,12 +740,8 @@ body {
 
 @keyframes firePulse {
     0%,
-    100% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.1);
-    }
+    100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
 }
 
 .featured-more {
@@ -2796,12 +2778,8 @@ body {
 
 @keyframes gradientMove {
     0%,
-    100% {
-        background-position: 0% 50%;
-    }
-    50% {
-        background-position: 100% 50%;
-    }
+    100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
 }
 
 .auth-container .auth-title {
@@ -2916,9 +2894,7 @@ body {
 }
 
 @keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
+    to { transform: rotate(360deg); }
 }
 
 .auth-container .auth-error {
@@ -3097,7 +3073,6 @@ body {
     margin-top: 2px;
 }
 
-/* نشاط الإحالات */
 .referral-activity-item {
     display: flex;
     align-items: center;
@@ -3323,7 +3298,7 @@ body {
 }
 
 /* ============================================
-   29. لوحة المدير (Admin Panel)
+   29. لوحة المدير (Admin Panel) - محسّنة
    ============================================ */
 
 .admin-panel {
@@ -3424,14 +3399,8 @@ body {
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(8px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* إحصائيات المدير */
@@ -3469,38 +3438,6 @@ body {
     letter-spacing: 0.3px;
     opacity: 0.5;
     margin-top: 2px;
-}
-
-/* جدول الطلبات */
-.admin-orders-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: var(--font);
-    font-size: 12px;
-    direction: ltr !important;
-}
-
-.admin-orders-table th {
-    padding: 8px 10px;
-    text-align: left !important;
-    color: var(--text-secondary);
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    font-weight: 700;
-    border-bottom: 2px solid var(--border);
-    background: var(--bg);
-}
-
-.admin-orders-table td {
-    padding: 8px 10px;
-    border-bottom: 1px solid var(--border);
-    vertical-align: middle;
-    text-align: left !important;
-}
-
-.admin-orders-table tr:hover {
-    background: var(--primary-glow);
 }
 
 /* شريط البحث في المدير */
@@ -3581,7 +3518,149 @@ body {
     opacity: 0.8;
 }
 
-/* عناصر المدير */
+/* جدول الطلبات في المدير - محسّن */
+.admin-orders-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font);
+    font-size: 13px;
+    direction: ltr !important;
+}
+
+.admin-orders-table th {
+    padding: 10px 12px;
+    text-align: left !important;
+    color: var(--text-secondary);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+    border-bottom: 2px solid var(--border);
+    background: var(--bg-secondary);
+}
+
+.admin-orders-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+    text-align: left !important;
+}
+
+.admin-orders-table tr:hover td {
+    background: var(--primary-glow);
+}
+
+.admin-orders-table .order-id {
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 13px;
+    font-family: var(--font);
+}
+
+.admin-orders-table .user-email {
+    font-size: 12px;
+    color: var(--text-secondary);
+    opacity: 0.6;
+}
+
+.admin-orders-table .order-total {
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 14px;
+    font-family: var(--font);
+}
+
+.admin-orders-table .order-date {
+    font-size: 12px;
+    color: var(--text-secondary);
+    opacity: 0.5;
+}
+
+/* حالات الطلبات في الجدول */
+.admin-orders-table .status-badge {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    font-family: var(--font);
+}
+
+.admin-orders-table .status-badge.pending {
+    background: var(--pending-color);
+    color: #0a0a1a;
+}
+
+.admin-orders-table .status-badge.preparing {
+    background: var(--preparing-color);
+    color: #fff;
+}
+
+.admin-orders-table .status-badge.shipped {
+    background: var(--shipped-color);
+    color: #0a0a1a;
+}
+
+.admin-orders-table .status-badge.delivered,
+.admin-orders-table .status-badge.completed {
+    background: var(--delivered-color);
+    color: #0a0a1a;
+}
+
+.admin-orders-table .status-badge.rejected {
+    background: var(--rejected-color);
+    color: #fff;
+}
+
+/* أزرار الإجراءات في الجدول */
+.admin-orders-table .actions-cell {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.admin-orders-table .actions-cell select {
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 11px;
+    font-family: var(--font);
+    outline: none;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.admin-orders-table .actions-cell select:focus {
+    border-color: var(--primary);
+}
+
+.btn-delete-order {
+    padding: 4px 14px;
+    border: none;
+    border-radius: 6px;
+    background: var(--danger);
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 12px;
+    transition: 0.3s;
+    font-family: var(--font);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-delete-order:hover {
+    opacity: 0.8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(248, 113, 113, 0.3);
+}
+
+/* عناصر المدير (المنتجات، التحميلات، الإشعارات) */
 .admin-item {
     display: flex !important;
     justify-content: space-between !important;
@@ -3628,25 +3707,20 @@ body {
     align-items: center !important;
 }
 
-.admin-item .item-actions button {
+.admin-item .item-actions .btn-edit {
     padding: 6px 14px !important;
     border: none !important;
     border-radius: var(--radius-sm) !important;
+    background: var(--vip-color) !important;
+    color: #0a0a1a !important;
     font-weight: 600 !important;
     cursor: pointer !important;
     font-size: 12px !important;
-    transition: all 0.3s ease !important;
+    transition: 0.3s !important;
     font-family: var(--font) !important;
     display: inline-flex !important;
     align-items: center !important;
     gap: 4px !important;
-    min-width: 60px !important;
-    justify-content: center !important;
-}
-
-.admin-item .item-actions .btn-edit {
-    background: var(--vip-color) !important;
-    color: #0a0a1a !important;
 }
 
 .admin-item .item-actions .btn-edit:hover {
@@ -3655,8 +3729,19 @@ body {
 }
 
 .admin-item .item-actions .btn-delete {
+    padding: 6px 14px !important;
+    border: none !important;
+    border-radius: var(--radius-sm) !important;
     background: var(--danger) !important;
     color: #fff !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    font-size: 12px !important;
+    transition: 0.3s !important;
+    font-family: var(--font) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
 }
 
 .admin-item .item-actions .btn-delete:hover {
@@ -3702,13 +3787,103 @@ body {
 }
 
 /* ============================================
-   30. مودال إعدادات المنتجات المميزة
+   30. نماذج الإدارة (Admin Forms)
    ============================================ */
 
-#featuredSettingsModal .modal-content {
-    max-width: 480px;
+.admin-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
+.admin-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.admin-form-group label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    opacity: 0.6;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    font-family: var(--font);
+}
+
+.admin-form-group input,
+.admin-form-group textarea,
+.admin-form-group select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    font-family: var(--font);
+    outline: none;
+    transition: 0.3s;
+}
+
+.admin-form-group input:focus,
+.admin-form-group textarea:focus,
+.admin-form-group select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 20px var(--primary-glow);
+}
+
+.admin-form-row {
+    display: flex;
+    gap: 12px;
+}
+
+.admin-form-row .admin-form-group {
+    flex: 1;
+}
+
+.admin-submit-btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: var(--radius-md);
+    background: var(--primary-gradient);
+    color: #fff;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    transition: 0.3s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: var(--font);
+    box-shadow: 0 4px 15px var(--primary-glow);
+}
+
+.admin-submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px var(--primary-glow);
+}
+
+.admin-cancel-btn {
+    padding: 12px 20px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--card-bg);
+    color: var(--text);
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+    font-family: var(--font);
+}
+
+.admin-cancel-btn:hover {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+/* مودال إعدادات المنتجات المميزة */
 #featuredSettingsModal input[type="checkbox"] {
     width: 18px;
     height: 18px;
@@ -3717,7 +3892,7 @@ body {
 }
 
 #featuredSettingsModal input[type="number"] {
-    width: 80px;
+    width: 100px;
     padding: 6px 10px;
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
@@ -3745,12 +3920,17 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 4px 0;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+#featuredProductSelector .product-check-item:last-child {
+    border-bottom: none;
 }
 
 #featuredProductSelector .product-check-item input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     accent-color: var(--primary);
     cursor: pointer;
 }
@@ -3763,8 +3943,14 @@ body {
 }
 
 /* ============================================
-   31. مودال تفاصيل المستخدم (للمدير)
+   31. المستخدمون في المدير
    ============================================ */
+
+.admin-users-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
+}
 
 .admin-user-card {
     background: var(--bg);
@@ -3912,50 +4098,7 @@ body {
 }
 
 /* ============================================
-   32. الحالات والشارات
-   ============================================ */
-
-.status-badge {
-    display: inline-block;
-    padding: 2px 10px;
-    border-radius: var(--radius-full);
-    font-size: 11px;
-    font-weight: 600;
-    font-family: var(--font);
-}
-
-.status-badge.pending {
-    background: var(--pending-color);
-    color: #0a0a1a;
-}
-
-.status-badge.completed {
-    background: var(--completed-color);
-    color: #0a0a1a;
-}
-
-.status-badge.rejected {
-    background: var(--rejected-color);
-    color: #fff;
-}
-
-.status-badge.preparing {
-    background: var(--preparing-color);
-    color: #fff;
-}
-
-.status-badge.shipped {
-    background: var(--shipped-color);
-    color: #0a0a1a;
-}
-
-.status-badge.delivered {
-    background: var(--delivered-color);
-    color: #0a0a1a;
-}
-
-/* ============================================
-   33. مودال الإشعارات
+   32. الإشعارات
    ============================================ */
 
 .notifications-header-actions {
@@ -4036,7 +4179,7 @@ body {
 }
 
 /* ============================================
-   34. مودال الطلبات (Requests)
+   33. الطلبات (Requests)
    ============================================ */
 
 .request-form label {
@@ -4097,7 +4240,7 @@ body {
 }
 
 /* ============================================
-   35. قلب متطايرة
+   34. القلب المتطايرة
    ============================================ */
 
 .floating-hearts {
@@ -4131,246 +4274,85 @@ body {
 }
 
 /* ============================================
-   36. التوافق مع الشاشات الصغيرة
+   35. التوافق مع الشاشات الصغيرة
    ============================================ */
 
 @media (max-width: 400px) {
-    .header {
-        padding: 8px 10px;
-    }
-    .header-btn,
-    .user-btn,
-    .theme-toggle {
-        width: 32px;
-        height: 32px;
-        font-size: 12px;
-    }
-    .logo {
-        font-size: 15px;
-    }
-    .search-wrapper .search-input {
-        font-size: 12px;
-        padding: 8px 32px 8px 12px;
-    }
-    .products-grid {
-        gap: 6px;
-    }
-    .product-card {
-        padding: 8px;
-    }
-    .product-card .image-wrapper {
-        height: 100px;
-    }
-    .product-card .product-name {
-        font-size: 12px;
-    }
-    .product-card .price {
-        font-size: 14px;
-    }
+    .header { padding: 8px 10px; }
+    .header-btn, .user-btn, .theme-toggle { width: 32px; height: 32px; font-size: 12px; }
+    .logo { font-size: 15px; }
+    .search-wrapper .search-input { font-size: 12px; padding: 8px 32px 8px 12px; }
+    .products-grid { gap: 6px; }
+    .product-card { padding: 8px; }
+    .product-card .image-wrapper { height: 100px; }
+    .product-card .product-name { font-size: 12px; }
+    .product-card .price { font-size: 14px; }
     .product-card .card-actions button,
-    .product-card .card-actions a {
-        font-size: 9px;
-        padding: 4px 0;
-    }
-    .stat-card .stat-number {
-        font-size: 15px;
-    }
-    .stat-card .stat-label {
-        font-size: 8px;
-    }
-    .bottom-cart-bar {
-        flex-direction: column;
-        gap: 6px;
-        padding: 8px 12px;
-    }
-    .bottom-cart-bar .cart-info {
-        justify-content: center;
-    }
-    .bottom-cart-bar .cart-actions {
-        justify-content: center;
-    }
-    .toast {
-        min-width: 200px;
-        padding: 10px 16px;
-        font-size: 13px;
-    }
-    .modal-content {
-        padding: 14px;
-    }
-    .payment-options {
-        grid-template-columns: 1fr;
-    }
-    .auth-container {
-        padding: 16px;
-    }
-    .admin-stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
+    .product-card .card-actions a { font-size: 9px; padding: 4px 0; }
+    .stat-card .stat-number { font-size: 15px; }
+    .stat-card .stat-label { font-size: 8px; }
+    .bottom-cart-bar { flex-direction: column; gap: 6px; padding: 8px 12px; }
+    .bottom-cart-bar .cart-info { justify-content: center; }
+    .bottom-cart-bar .cart-actions { justify-content: center; }
+    .toast { min-width: 200px; padding: 10px 16px; font-size: 13px; }
+    .modal-content { padding: 14px; }
+    .payment-options { grid-template-columns: 1fr; }
+    .auth-container { padding: 16px; }
+    .admin-stats-grid { grid-template-columns: repeat(2, 1fr); }
     .admin-orders-table th,
-    .admin-orders-table td {
-        padding: 4px 6px;
-        font-size: 10px;
-    }
-    .admin-users-grid {
-        grid-template-columns: 1fr;
-    }
-    .admin-panel .tabs button {
-        font-size: 11px;
-        padding: 6px 10px;
-    }
-    .featured-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 6px;
-    }
-    .featured-products {
-        padding: 10px 12px;
-    }
-    .featured-item-image {
-        padding-top: 50%;
-    }
-    .preview-body {
-        padding: 16px 14px;
-    }
-    .preview-name {
-        font-size: 18px;
-    }
-    .preview-action {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    .preview-price {
-        text-align: center;
-    }
-    .telegram-banner .banner-content {
-        padding: 10px 12px;
-        gap: 8px;
-        flex-wrap: wrap;
-    }
-    .telegram-banner .banner-icon {
-        width: 40px;
-        height: 40px;
-        font-size: 18px;
-    }
-    .telegram-banner .banner-title {
-        font-size: 14px;
-    }
-    .telegram-banner .banner-subtitle {
-        font-size: 12px;
-    }
-    .telegram-banner .banner-action {
-        padding: 6px 14px;
-        font-size: 12px;
-        margin-left: auto;
-    }
-    .telegram-banner .banner-close {
-        width: 26px;
-        height: 26px;
-        font-size: 12px;
-    }
-    .referral-activity-item {
-        flex-wrap: wrap;
-    }
-    .orders-stats {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 4px;
-    }
-    .orders-stat-number {
-        font-size: 18px;
-    }
+    .admin-orders-table td { padding: 4px 6px; font-size: 10px; }
+    .admin-users-grid { grid-template-columns: 1fr; }
+    .admin-panel .tabs button { font-size: 11px; padding: 6px 10px; }
+    .featured-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+    .featured-products { padding: 10px 12px; }
+    .featured-item-image { padding-top: 50%; }
+    .preview-body { padding: 16px 14px; }
+    .preview-name { font-size: 18px; }
+    .preview-action { flex-direction: column; align-items: stretch; }
+    .preview-price { text-align: center; }
+    .telegram-banner .banner-content { padding: 10px 12px; gap: 8px; flex-wrap: wrap; }
+    .telegram-banner .banner-icon { width: 40px; height: 40px; font-size: 18px; }
+    .telegram-banner .banner-title { font-size: 14px; }
+    .telegram-banner .banner-subtitle { font-size: 12px; }
+    .telegram-banner .banner-action { padding: 6px 14px; font-size: 12px; margin-left: auto; }
+    .telegram-banner .banner-close { width: 26px; height: 26px; font-size: 12px; }
+    .referral-activity-item { flex-wrap: wrap; }
+    .orders-stats { grid-template-columns: repeat(3, 1fr); gap: 4px; }
+    .orders-stat-number { font-size: 18px; }
+    .admin-item { flex-wrap: wrap; gap: 8px; }
+    .admin-item .item-actions { width: 100%; justify-content: flex-end; }
 }
 
 @media (max-width: 360px) {
-    .telegram-banner .banner-content {
-        flex-direction: column;
-        align-items: stretch;
-        text-align: center;
-        padding: 14px 12px;
-    }
-    .telegram-banner .banner-icon {
-        align-self: center;
-    }
-    .telegram-banner .banner-action {
-        align-self: center;
-        margin-left: 0;
-    }
-    .telegram-banner .banner-close {
-        position: absolute;
-        top: 4px;
-        right: 4px;
-    }
-    .featured-grid {
-        grid-template-columns: 1fr;
-    }
-    .products-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 6px;
-    }
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 4px;
-    }
-    .user-menu-full .menu-grid {
-        grid-template-columns: 1fr;
-    }
-    .orders-stats {
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 4px;
-    }
+    .telegram-banner .banner-content { flex-direction: column; align-items: stretch; text-align: center; padding: 14px 12px; }
+    .telegram-banner .banner-icon { align-self: center; }
+    .telegram-banner .banner-action { align-self: center; margin-left: 0; }
+    .telegram-banner .banner-close { position: absolute; top: 4px; right: 4px; }
+    .featured-grid { grid-template-columns: 1fr; }
+    .products-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 4px; }
+    .user-menu-full .menu-grid { grid-template-columns: 1fr; }
+    .orders-stats { grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
 }
 
 @media (min-width: 768px) {
-    body {
-        padding: 20px;
-        padding-bottom: 100px;
-    }
-    .container {
-        max-width: 600px;
-    }
-    .products-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-    .featured-grid {
-        grid-template-columns: repeat(4, 1fr);
-    }
-    .recommendations-section .rec-grid {
-        grid-template-columns: repeat(4, 1fr);
-    }
-    .user-menu-full .menu-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-    .admin-users-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    .telegram-banner .banner-content {
-        padding: 16px 22px;
-        gap: 18px;
-    }
-    .telegram-banner .banner-title {
-        font-size: 18px;
-    }
-    .telegram-banner .banner-subtitle {
-        font-size: 14px;
-    }
-    .telegram-banner .banner-action {
-        padding: 10px 24px;
-        font-size: 15px;
-    }
-    .telegram-banner .banner-icon {
-        width: 54px;
-        height: 54px;
-        font-size: 26px;
-    }
-    .stats-grid {
-        gap: 10px;
-    }
-    .stat-card .stat-number {
-        font-size: 22px;
-    }
-    .modal-content {
-        max-width: 480px;
-    }
+    body { padding: 20px; padding-bottom: 100px; }
+    .container { max-width: 600px; }
+    .products-grid { grid-template-columns: repeat(3, 1fr); }
+    .featured-grid { grid-template-columns: repeat(4, 1fr); }
+    .recommendations-section .rec-grid { grid-template-columns: repeat(4, 1fr); }
+    .user-menu-full .menu-grid { grid-template-columns: repeat(3, 1fr); }
+    .admin-users-grid { grid-template-columns: repeat(2, 1fr); }
+    .telegram-banner .banner-content { padding: 16px 22px; gap: 18px; }
+    .telegram-banner .banner-title { font-size: 18px; }
+    .telegram-banner .banner-subtitle { font-size: 14px; }
+    .telegram-banner .banner-action { padding: 10px 24px; font-size: 15px; }
+    .telegram-banner .banner-icon { width: 54px; height: 54px; font-size: 26px; }
+    .stats-grid { gap: 10px; }
+    .stat-card .stat-number { font-size: 22px; }
+    .modal-content { max-width: 480px; }
 }
 
 /* ============================================
-   37. نهاية الملف
+   36. نهاية الملف
    ============================================ */
