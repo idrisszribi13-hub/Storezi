@@ -1,7 +1,6 @@
 // ============================================================
 // SCRIPT.JS - النسخة النهائية المتكاملة
-// مع دعم رفع الصور إلى Cloudinary، وإحصائيات لوحة المدير،
-// وتحديد الدولة تلقائياً من IP، وVIP Pricing
+// مع VIP Pricing، Features، إحصائيات Dashboard، ودولة IP
 // ============================================================
 
 import { initializeApp } from "firebase/app";
@@ -31,8 +30,8 @@ const analytics = getAnalytics(app);
 // 2. إعدادات Cloudinary
 // ============================================================
 
-const CLOUDINARY_CLOUD_NAME = 'y14bgb5s'; // ضع الـ Cloud Name الخاص بك
-const CLOUDINARY_UPLOAD_PRESET = 'zi_store_uploads'; // ضع اسم الـ Upload Preset
+const CLOUDINARY_CLOUD_NAME = 'YOUR_CLOUD_NAME_HERE';
+const CLOUDINARY_UPLOAD_PRESET = 'zi_store_uploads';
 
 // ============================================================
 // 3. شاشة التحميل
@@ -127,6 +126,7 @@ let shareProduct = null;
 let allUsers = [];
 let selectedPayment = null;
 let ordersFilter = 'all';
+let _selectedVipPlan = '1m';
 
 // متغيرات المنتجات المميزة
 let featuredProducts = [];
@@ -215,7 +215,7 @@ async function getUserCountryByIP() {
 }
 
 // ============================================================
-// 7. دوال تيليجرام (محسّنة)
+// 7. دوال تيليجرام
 // ============================================================
 
 async function sendTelegramNotification(chatId, message) {
@@ -422,7 +422,7 @@ function showToast(message, type = 'success') {
 window.hideToast = function() { document.getElementById('toast')?.classList.remove('show'); };
 
 // ============================================================
-// 9. دوال المستخدم (محسّنة)
+// 9. دوال المستخدم
 // ============================================================
 
 async function getUserId() {
@@ -1216,7 +1216,6 @@ function renderProducts(productsList) {
         let displayPrice = p.price;
         let originalPrice = '';
         let discountBadge = '';
-        // لا نطبق خصم RP هنا
         if (activeDiscount > 0 && p.price > 0) {
             const discounted = displayPrice - (displayPrice * activeDiscount / 100);
             displayPrice = discounted;
@@ -1384,7 +1383,7 @@ function stopFeaturedRotation() {
 }
 
 // ============================================================
-// 17. إعدادات المنتجات المميزة (للوحة الأدمن)
+// 17. إعدادات المنتجات المميزة
 // ============================================================
 
 window.updateFeaturedSettings = async function(settings) {
@@ -1476,7 +1475,7 @@ window.closeFeaturedSettings = function() {
 };
 
 // ============================================================
-// 18. السلة (محسّنة مع RP)
+// 18. السلة
 // ============================================================
 
 window.addToCart = async function(productId) {
@@ -1704,7 +1703,7 @@ function createFloatingHearts() {
 }
 
 // ============================================================
-// 20. عرض المنتج كامل الشاشة (Preview Modal) مع VIP Pricing
+// 20. عرض المنتج كامل الشاشة (Preview Modal) مع VIP Pricing و Features
 // ============================================================
 
 window.openDetails = function(id) {
@@ -1719,7 +1718,7 @@ window.openDetails = function(id) {
     document.getElementById('previewBadge').textContent = p.badge || 'PREMIUM';
     document.getElementById('previewVerified').textContent = p.status === 'available' ? '✅ 100% VERIFIED WORKING PRODUCT' : '⛔ UNAVAILABLE';
 
-    // الميزات (Features)
+    // ✅ الميزات (Features)
     const featuresContainer = document.getElementById('previewFeatures');
     if (p.features && p.features.length > 0) {
         const featuresHtml = p.features.map(f => `<li><i class="fas fa-check-circle"></i> ${f}</li>`).join('');
@@ -1734,15 +1733,11 @@ window.openDetails = function(id) {
         featuresContainer.style.display = 'none';
     }
 
-    // السعر الأساسي
+    // ✅ السعر الأساسي (بدون RP في العرض)
     let priceDisplay = p.price === 0 ? 'FREE' : `$${p.price.toFixed(2)}`;
-    const rpDiscount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, p.price);
-    if (rpDiscount > 0 && p.price > 0) {
-        priceDisplay += ` <span style="font-size:12px;opacity:0.5;">(🎯 ${Math.floor(rpDiscount/RP_TO_DOLLAR)} RP = $${rpDiscount.toFixed(2)} off)</span>`;
-    }
     document.getElementById('previewPrice').textContent = priceDisplay;
 
-    // زر الإضافة (Add to Cart) الأساسي
+    // ✅ زر الإضافة الأساسي
     const addBtn = document.getElementById('previewAddBtn');
     const inCart = cart.some(item => item.id === id);
     if (inCart) {
@@ -1780,7 +1775,9 @@ window.openDetails = function(id) {
         };
     }
 
-    // ===== VIP Pricing =====
+    // ================================================================
+    // ✅ VIP PRICING - مع اختيار الخطة
+    // ================================================================
     const vipSection = document.getElementById('previewVipPricing');
     if (p.vipEnabled && p.vipPrices) {
         const vipPrices = p.vipPrices;
@@ -1790,32 +1787,46 @@ window.openDetails = function(id) {
             { key: '1y', label: '1 Year', price: vipPrices['1y'], original: vipPrices['1y_original'] },
             { key: 'lifetime', label: 'LIFETIME', price: vipPrices['lifetime'], original: vipPrices['lifetime_original'] }
         ];
+
         let gridHtml = '';
-        plans.forEach(plan => {
-            if (plan.price && plan.original && parseFloat(plan.original) > parseFloat(plan.price)) {
-                const discount = Math.round((1 - parseFloat(plan.price) / parseFloat(plan.original)) * 100);
+        let hasValidPlans = false;
+        let firstPlanKey = null;
+
+        plans.forEach((plan, index) => {
+            const priceNum = parseFloat(plan.price);
+            const originalNum = parseFloat(plan.original);
+            if (priceNum > 0) {
+                hasValidPlans = true;
+                if (!firstPlanKey) firstPlanKey = plan.key;
+                const discount = (originalNum > priceNum) ? Math.round((1 - priceNum / originalNum) * 100) : 0;
+                const hasDiscount = discount > 0;
                 gridHtml += `
-                    <div class="vip-plan">
+                    <div class="vip-plan ${index === 0 ? 'selected' : ''}" 
+                         data-plan="${plan.key}"
+                         data-price="${priceNum}"
+                         onclick="selectVipPlan(this, '${plan.key}')">
+                        <div class="vip-plan-check"><i class="fas fa-check-circle"></i></div>
                         <div class="vip-plan-label">${plan.label}</div>
-                        <div class="vip-plan-price">$${parseFloat(plan.price).toFixed(2)}</div>
-                        <div class="vip-plan-original">$${parseFloat(plan.original).toFixed(2)}</div>
-                        <div class="vip-plan-discount">SAVE ${discount}%</div>
-                    </div>
-                `;
-            } else if (plan.price) {
-                gridHtml += `
-                    <div class="vip-plan">
-                        <div class="vip-plan-label">${plan.label}</div>
-                        <div class="vip-plan-price">$${parseFloat(plan.price).toFixed(2)}</div>
+                        <div class="vip-plan-price">$${priceNum.toFixed(2)}</div>
+                        ${hasDiscount ? `
+                            <div class="vip-plan-original">$${originalNum.toFixed(2)}</div>
+                            <div class="vip-plan-discount">SAVE ${discount}%</div>
+                        ` : ''}
                     </div>
                 `;
             }
         });
-        if (gridHtml) {
+
+        if (hasValidPlans) {
             document.getElementById('vipPricingGrid').innerHTML = gridHtml;
             vipSection.style.display = 'block';
-            // ربط زر Add to Cart لخطة VIP
-            document.querySelector('.vip-add-to-cart').onclick = () => addVipToCart(p);
+            // تخزين الخطة المختارة حالياً
+            window._selectedVipPlan = firstPlanKey;
+            // تحديث زر الإضافة لاستخدام الخطة المختارة
+            document.querySelector('.vip-add-to-cart').onclick = () => {
+                addVipPlanToCart(p);
+            };
+            document.querySelector('.vip-add-to-cart').dataset.productId = p.id;
         } else {
             vipSection.style.display = 'none';
         }
@@ -1827,37 +1838,60 @@ window.openDetails = function(id) {
     document.body.style.overflow = 'hidden';
 };
 
-// دالة إضافة خطة VIP إلى السلة
-function addVipToCart(product) {
+// ✅ اختيار خطة VIP
+window.selectVipPlan = function(element, planKey) {
+    document.querySelectorAll('.vip-plan').forEach(el => el.classList.remove('selected'));
+    element.classList.add('selected');
+    window._selectedVipPlan = planKey;
+};
+
+// ✅ إضافة خطة VIP مختارة إلى السلة
+function addVipPlanToCart(product) {
     if (!product) {
         product = window._currentProduct;
         if (!product) { showToast('⚠️ Product not found', 'warning'); return; }
     }
-    // نضيف المنتج كخطة VIP (نضعه في السلة بسعر VIP المختار أو نضيف خطة افتراضية)
-    // هنا يمكن إظهار اختيار الخطة، لكن سنضيف الخطة الأولى بشكل افتراضي
+
+    const selectedPlan = window._selectedVipPlan || '1m';
     const vipPrices = product.vipPrices;
-    if (!vipPrices || !vipPrices['1m']) { showToast('⚠️ No VIP plan available', 'warning'); return; }
-    const selectedPrice = parseFloat(vipPrices['1m']);
-    if (isNaN(selectedPrice) || selectedPrice <= 0) { showToast('⚠️ Invalid price', 'warning'); return; }
-    // نضيف إلى السلة مع تمييز أنها VIP
-    const existing = cart.find(item => item.id === product.id && item.isVip);
+    if (!vipPrices || !vipPrices[selectedPlan]) {
+        showToast('⚠️ Invalid VIP plan', 'warning');
+        return;
+    }
+
+    const price = parseFloat(vipPrices[selectedPlan]);
+    if (isNaN(price) || price <= 0) {
+        showToast('⚠️ Invalid price', 'warning');
+        return;
+    }
+
+    const planLabels = {
+        '1m': '1 Month',
+        '3m': '3 Months',
+        '1y': '1 Year',
+        'lifetime': 'LIFETIME'
+    };
+
+    const existing = cart.find(item => item.id === product.id && item.isVip && item.vipPlan === selectedPlan);
     if (existing) {
         existing.quantity = (existing.quantity || 1) + 1;
     } else {
-        cart.push({ 
-            ...product, 
-            price: selectedPrice, 
-            quantity: 1, 
-            isVip: true, 
-            vipPlan: '1 Month',
-            originalPrice: product.price 
+        cart.push({
+            ...product,
+            price: price,
+            quantity: 1,
+            isVip: true,
+            vipPlan: selectedPlan,
+            vipPlanLabel: planLabels[selectedPlan] || selectedPlan,
+            originalPrice: product.price
         });
     }
+
     saveUserData(true);
     updateCartUI();
     renderProducts(products);
     updateBottomCartBar();
-    showToast(`✅ Added VIP plan for ${product.name}`, 'success');
+    showToast(`✅ Added ${planLabels[selectedPlan]} VIP plan for ${product.name}`, 'success');
 }
 
 window.closePreviewModal = function() {
@@ -2965,14 +2999,14 @@ window.saveProduct = async function(event) {
 
     if (!name) { showToast('⚠️ Product name is required', 'warning'); return; }
     const features = featuresText ? featuresText.split(',').map(f => f.trim()).filter(f => f) : [];
-    const productData = { 
-        name, 
-        price, 
-        badge, 
-        status, 
-        image: imageUrl, 
-        description, 
-        features, 
+    const productData = {
+        name,
+        price,
+        badge,
+        status,
+        image: imageUrl,
+        description,
+        features,
         video,
         vipEnabled,
         vipPrices
@@ -3017,7 +3051,7 @@ async function deleteProductFromFirestore(productId) {
 }
 
 // ============================================================
-// 31. الطلبات (Admin Orders) - محسّن
+// 31. الطلبات (Admin Orders)
 // ============================================================
 
 function startAdminRealtimeListener() {
@@ -3953,6 +3987,8 @@ window.shareFromPreview = shareFromPreview;
 window.refreshDashboardStats = refreshDashboardStats;
 window.loadDashboardStats = loadDashboardStats;
 window.getUserCountryByIP = getUserCountryByIP;
+window.selectVipPlan = selectVipPlan;
+window.addVipPlanToCart = addVipPlanToCart;
 
 // ============================================================
 // END OF SCRIPT.JS
