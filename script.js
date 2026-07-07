@@ -1,6 +1,5 @@
 // ============================================================
-// SCRIPT.JS - النسخة النهائية المتكاملة
-// مع جميع الميزات الجديدة والتصحيحات
+// SCRIPT.JS - النسخة النهائية المتكاملة مع جميع التعديلات
 // ============================================================
 
 import { initializeApp } from "firebase/app";
@@ -218,9 +217,15 @@ async function sendTelegramNotification(chatId, message) {
     }
 }
 
+// ✅ ربط تيليجرام - فقط للمستخدمين المسجلين (ليس مجهولين)
 window.bindTelegram = async function() {
     if (!currentUser) {
         showToast('⚠️ Please login first', 'warning');
+        return;
+    }
+    if (currentUser.isAnonymous) {
+        showToast('⚠️ You need to sign in to link Telegram.', 'warning');
+        openAuthModal();
         return;
     }
 
@@ -248,7 +253,7 @@ window.bindTelegram = async function() {
     }
 };
 
-// ✅ مستمع الربط - بدون مهلة زمنية (إزالة setTimeout)
+// ✅ مستمع الربط - بدون مهلة زمنية
 function startBindingListener(bindCode) {
     const bindRef = doc(db, 'telegram_binds', bindCode);
     const unsubscribe = onSnapshot(bindRef, async (doc) => {
@@ -256,7 +261,6 @@ function startBindingListener(bindCode) {
             const data = doc.data();
             console.log('📋 Binding status:', data.status);
             if (data.status === 'completed' && data.telegramChatId) {
-                // استخدام loadUserData لجلب أحدث البيانات
                 await loadUserData();
                 renderProfileFull();
                 updateFullUserMenu();
@@ -276,11 +280,11 @@ function startBindingListener(bindCode) {
             }
         }
     });
-    // تم إزالة setTimeout
 }
 
 window.testTelegramNotification = async function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
+    if (currentUser.isAnonymous) { showToast('⚠️ Please sign in first', 'warning'); return; }
     if (!userProfile.telegramChatId) { showToast('⚠️ No Telegram linked', 'warning'); return; }
 
     const result = await sendTelegramNotification(
@@ -324,6 +328,10 @@ window.checkTelegramStatus = async function() {
 window.unlinkTelegram = async function() {
     if (!currentUser) {
         showToast('⚠️ Please login first', 'warning');
+        return;
+    }
+    if (currentUser.isAnonymous) {
+        showToast('⚠️ Please sign in first', 'warning');
         return;
     }
     if (!userProfile.telegramChatId) {
@@ -582,7 +590,7 @@ function updateFullUserMenu() {
 }
 
 // ============================================================
-// 9. دوال المصادقة
+// 9. دوال المصادقة (مع دمج بيانات المجهول)
 // ============================================================
 
 window.showLogin = function() { document.getElementById('loginContainer').style.display = 'block';
@@ -603,6 +611,17 @@ window.loginUser = async function() {
     if (!email || !password) { errorEl.textContent = 'Please fill in all fields';
         btn.classList.remove('loading'); return; }
     try {
+        // حفظ البيانات المحلية للمستخدم المجهول
+        const localWishlist = JSON.parse(localStorage.getItem('zi_wishlist_backup') || '[]');
+        const localCart = JSON.parse(localStorage.getItem('zi_cart_backup') || '[]');
+        const localHistory = JSON.parse(localStorage.getItem('zi_history_backup') || '[]');
+        const localRequests = JSON.parse(localStorage.getItem('zi_requests_backup') || '[]');
+        const localUsedCodes = JSON.parse(localStorage.getItem('zi_usedcodes_backup') || '[]');
+        const localReferrals = JSON.parse(localStorage.getItem('zi_referrals_backup') || '[]');
+        const localReferralRewards = JSON.parse(localStorage.getItem('zi_referralRewards_backup') || '0');
+        const localRp = JSON.parse(localStorage.getItem('zi_rp_backup') || '0');
+        const hasLocalData = localWishlist.length > 0 || localCart.length > 0 || localHistory.length > 0;
+
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const userRef = doc(db, 'users', userCredential.user.uid);
         const userSnap = await getDoc(userRef);
@@ -610,7 +629,7 @@ window.loginUser = async function() {
             const data = userSnap.data();
             if (data.isBanned === true) {
                 await signOut(auth);
-                errorEl.textContent = '🚫 Your account has been banned. Please contact support.';
+                errorEl.textContent = '🚫 Your account has been banned.';
                 showToast('🚫 Account banned!', 'error');
                 btn.classList.remove('loading');
                 return;
@@ -620,6 +639,44 @@ window.loginUser = async function() {
         successEl.textContent = '✅ Login successful!';
         showToast('👋 Welcome back!', 'success');
         btn.classList.remove('loading');
+
+        // دمج البيانات المحلية مع المستخدم المسجل
+        if (hasLocalData) {
+            let mergedWishlist = localWishlist;
+            let mergedCart = localCart;
+            let mergedHistory = localHistory;
+            let mergedRequests = localRequests;
+            let mergedUsedCodes = localUsedCodes;
+            let mergedReferrals = localReferrals;
+            let mergedReferralRewards = localReferralRewards;
+            let mergedRp = localRp;
+
+            if (userSnap.exists()) {
+                const regData = userSnap.data();
+                mergedWishlist = [...new Set([...(regData.wishlist || []), ...localWishlist])];
+                mergedCart = [...(regData.cart || []), ...localCart];
+                mergedHistory = [...(regData.history || []), ...localHistory];
+                mergedRequests = [...(regData.requests || []), ...localRequests];
+                mergedUsedCodes = [...new Set([...(regData.usedCodes || []), ...localUsedCodes])];
+                mergedReferrals = [...(regData.referrals || []), ...localReferrals];
+                mergedReferralRewards = (regData.referralRewards || 0) + localReferralRewards;
+                mergedRp = (regData.rp || 0) + localRp;
+            }
+
+            await updateDoc(userRef, {
+                wishlist: mergedWishlist,
+                cart: mergedCart,
+                history: mergedHistory,
+                requests: mergedRequests,
+                usedCodes: mergedUsedCodes,
+                referrals: mergedReferrals,
+                referralRewards: mergedReferralRewards,
+                rp: mergedRp,
+                updatedAt: serverTimestamp()
+            });
+            console.log('✅ Merged local data into registered user.');
+        }
+
         setTimeout(() => {
             document.getElementById('authSection').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
@@ -826,6 +883,7 @@ function renderProfileFull() {
     }
     const displayName = currentUser.displayName || currentUser.email || 'User';
     const maskedChatId = maskChatId(userProfile.telegramChatId);
+    const isAnonymous = currentUser.isAnonymous || false;
 
     container.innerHTML = `
     <div style="background:var(--card-bg);border-radius:14px;border:1px solid var(--border);padding:16px;margin-bottom:12px;">
@@ -836,6 +894,7 @@ function renderProfileFull() {
           <div style="font-size:13px;color:var(--text-secondary);font-family:var(--font);">${currentUser.email || 'No email'}</div>
           <div style="font-size:13px;color:var(--vip-color);font-weight:700;font-family:var(--font);">🎯 RP: ${userProfile.rp || 0}</div>
           ${userProfile.isBanned ? '<div style="font-size:13px;color:var(--danger);font-weight:700;font-family:var(--font);">🚫 BANNED</div>' : ''}
+          ${isAnonymous ? '<div style="font-size:13px;color:var(--text-secondary);font-weight:600;font-family:var(--font);">👤 Guest Mode (Sign in to save data)</div>' : ''}
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
@@ -849,11 +908,11 @@ function renderProfileFull() {
       <div style="font-size:14px;font-weight:700;color:var(--text);font-family:var(--font);margin-bottom:8px;"><i class="fas fa-edit"></i> Edit Profile</div>
       <form onsubmit="saveProfileChangesInline(event)">
         <label>Name</label>
-        <input id="editNameInline" value="${userProfile.name || currentUser.displayName || ''}" placeholder="Enter your name" type="text" />
+        <input id="editNameInline" value="${userProfile.name || currentUser.displayName || ''}" placeholder="Enter your name" type="text" ${isAnonymous ? 'disabled style="opacity:0.5;"' : ''} />
         <label>Telegram Username</label>
-        <input id="editTelegramInline" value="${userProfile.telegram || ''}" placeholder="@username" type="text" />
+        <input id="editTelegramInline" value="${userProfile.telegram || ''}" placeholder="@username" type="text" ${isAnonymous ? 'disabled style="opacity:0.5;"' : ''} />
         <label>Country</label>
-        <select id="editLocationInline">
+        <select id="editLocationInline" ${isAnonymous ? 'disabled style="opacity:0.5;"' : ''}>
           <option value="Tunisia" ${userProfile.location==='Tunisia'?'selected':''}>🇹🇳 Tunisia</option>
           <option value="Algeria" ${userProfile.location==='Algeria'?'selected':''}>🇩🇿 Algeria</option>
           <option value="Morocco" ${userProfile.location==='Morocco'?'selected':''}>🇲🇦 Morocco</option>
@@ -863,15 +922,16 @@ function renderProfileFull() {
           <option value="Other" ${userProfile.location==='Other'?'selected':''}>🌍 Other</option>
         </select>
         <label>Language</label>
-        <select id="editLangInline">
+        <select id="editLangInline" ${isAnonymous ? 'disabled style="opacity:0.5;"' : ''}>
           <option value="English" ${userProfile.lang==='English'?'selected':''}>🇬🇧 English</option>
           <option value="Arabic" ${userProfile.lang==='Arabic'?'selected':''}>🇸🇦 العربية</option>
           <option value="French" ${userProfile.lang==='French'?'selected':''}>🇫🇷 Français</option>
         </select>
         <div class="form-actions">
           <button type="button" class="btn-cancel" onclick="renderProfileFull()">Cancel</button>
-          <button type="submit" class="btn-save"><i class="fas fa-save"></i> Save</button>
+          <button type="submit" class="btn-save" ${isAnonymous ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}><i class="fas fa-save"></i> Save</button>
         </div>
+        ${isAnonymous ? '<div style="font-size:12px;color:var(--text-secondary);margin-top:8px;text-align:center;opacity:0.4;">📌 Please sign in to save profile changes.</div>' : ''}
       </form>
     </div>
 
@@ -879,19 +939,20 @@ function renderProfileFull() {
       <div style="font-size:14px;font-weight:700;color:var(--text);font-family:var(--font);margin-bottom:8px;"><i class="fas fa-lock"></i> Password & Security</div>
       <div class="ps-email">
         <span>${currentUser.email || 'No email'}</span>
-        <button onclick="sendResetLinkInline()"><i class="fas fa-paper-plane"></i> Send Reset Link</button>
+        <button onclick="sendResetLinkInline()" ${isAnonymous ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}><i class="fas fa-paper-plane"></i> Send Reset Link</button>
       </div>
       <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:8px;">
         <div style="font-size:12px;color:var(--text-secondary);font-family:var(--font);opacity:0.4;margin-bottom:6px;">Use your current password to set a new one instantly.</div>
-        <div class="auth-field"><label>Current Password</label><input id="currentPasswordInline" placeholder="Enter current password" type="password" /></div>
-        <div class="auth-field"><label>New Password</label><input id="newPasswordInline" placeholder="Enter new password (min 6 chars)" type="password" /></div>
-        <div class="auth-field"><label>Confirm New Password</label><input id="confirmNewPasswordInline" placeholder="Confirm new password" type="password" /></div>
-        <button class="auth-btn" onclick="changePasswordInline()"><i class="fas fa-key"></i> Change Password</button>
+        <div class="auth-field"><label>Current Password</label><input id="currentPasswordInline" placeholder="Enter current password" type="password" ${isAnonymous ? 'disabled style="opacity:0.5;"' : ''} /></div>
+        <div class="auth-field"><label>New Password</label><input id="newPasswordInline" placeholder="Enter new password (min 6 chars)" type="password" ${isAnonymous ? 'disabled style="opacity:0.5;"' : ''} /></div>
+        <div class="auth-field"><label>Confirm New Password</label><input id="confirmNewPasswordInline" placeholder="Confirm new password" type="password" ${isAnonymous ? 'disabled style="opacity:0.5;"' : ''} /></div>
+        <button class="auth-btn" onclick="changePasswordInline()" ${isAnonymous ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}><i class="fas fa-key"></i> Change Password</button>
         <div class="auth-error" id="passwordErrorInline"></div>
         <div class="auth-success" id="passwordSuccessInline"></div>
       </div>
     </div>
 
+    <!-- Telegram Section -->
     <div class="telegram-bind-section" style="margin-top:12px;">
       <div style="font-size:14px;font-weight:700;color:var(--text);font-family:var(--font);margin-bottom:6px;">
         <i class="fab fa-telegram-plane" style="color:#0088cc;"></i> Telegram Notifications
@@ -916,21 +977,27 @@ function renderProfileFull() {
       <div style="background:var(--card-bg);padding:10px;border-radius:8px;margin:8px 0;border:1px solid var(--border);">
         <div style="font-size:13px;color:var(--text-secondary);font-family:var(--font);">
           <i class="fas fa-info-circle" style="color:var(--primary);"></i>
-          ${userProfile.telegramChatId ? 'You will receive order notifications here.' : 'Click "Link Bot" to connect your Telegram account.'}
+          ${isAnonymous ? 'Please sign in to link your Telegram account.' : (userProfile.telegramChatId ? 'You will receive order notifications here.' : 'Click "Link Bot" to connect your Telegram account.')}
         </div>
       </div>
       <div class="tb-actions">
+        ${!isAnonymous ? `
         <button class="btn-bind" onclick="bindTelegram()" style="flex:1;background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;font-family:var(--font);transition:0.3s;display:flex;align-items:center;justify-content:center;gap:8px;">
           <i class="fab fa-telegram-plane"></i>
           ${userProfile.telegramChatId?'Re-link':'Link Bot'}
         </button>
-        ${userProfile.telegramChatId ? `<button class="btn-test" onclick="testTelegramNotification()" style="background:var(--success);color:#0a0a1a;border:none;border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;font-family:var(--font);transition:0.3s;display:flex;align-items:center;gap:6px;"><i class="fas fa-paper-plane"></i> Test</button>` : ''}
+        ` : `
+        <button class="btn-bind" style="flex:1;background:var(--text-secondary);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-weight:600;cursor:not-allowed;font-size:13px;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px;opacity:0.4;" onclick="showToast('⚠️ Please sign in first','warning')">
+          <i class="fas fa-lock"></i> Sign in to Link
+        </button>
+        `}
+        ${userProfile.telegramChatId && !isAnonymous ? `<button class="btn-test" onclick="testTelegramNotification()" style="background:var(--success);color:#0a0a1a;border:none;border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;font-family:var(--font);transition:0.3s;display:flex;align-items:center;gap:6px;"><i class="fas fa-paper-plane"></i> Test</button>` : ''}
         <button class="btn-check" onclick="checkTelegramStatus()" style="background:var(--card-bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;font-family:var(--font);transition:0.3s;display:flex;align-items:center;gap:6px;"><i class="fas fa-sync-alt"></i> Check</button>
-        ${userProfile.telegramChatId ? `<button class="btn-unlink" onclick="unlinkTelegram()" style="background:var(--danger);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;font-family:var(--font);transition:0.3s;display:flex;align-items:center;gap:6px;"><i class="fas fa-unlink"></i> Unlink</button>` : ''}
+        ${userProfile.telegramChatId && !isAnonymous ? `<button class="btn-unlink" onclick="unlinkTelegram()" style="background:var(--danger);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;font-family:var(--font);transition:0.3s;display:flex;align-items:center;gap:6px;"><i class="fas fa-unlink"></i> Unlink</button>` : ''}
       </div>
       <div style="font-size:11px;color:var(--text-secondary);opacity:0.4;margin-top:6px;font-family:var(--font);display:flex;align-items:center;gap:4px;">
         <i class="fab fa-telegram-plane" style="color:#0088cc;"></i>
-        ${userProfile.telegramChatId ? `Connected to @${BOT_USERNAME}` : `Start @${BOT_USERNAME} and click "Link Bot" to connect`}
+        ${isAnonymous ? 'Sign in to connect Telegram' : (userProfile.telegramChatId ? `Connected to @${BOT_USERNAME}` : `Start @${BOT_USERNAME} and click "Link Bot" to connect`)}
       </div>
     </div>
   `;
@@ -940,6 +1007,7 @@ function renderProfileFull() {
 window.saveProfileChangesInline = async function(e) {
     e.preventDefault();
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
+    if (currentUser.isAnonymous) { showToast('⚠️ Please sign in to save changes', 'warning'); return; }
     const name = document.getElementById('editNameInline').value.trim();
     const telegram = document.getElementById('editTelegramInline').value.trim();
     const location = document.getElementById('editLocationInline').value;
@@ -962,6 +1030,7 @@ window.saveProfileChangesInline = async function(e) {
 
 window.sendResetLinkInline = async function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
+    if (currentUser.isAnonymous) { showToast('⚠️ Please sign in first', 'warning'); return; }
     try {
         await sendPasswordResetEmail(auth, currentUser.email);
         showToast(`📧 Reset link sent to ${currentUser.email}`, 'success');
@@ -970,6 +1039,7 @@ window.sendResetLinkInline = async function() {
 
 window.changePasswordInline = async function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
+    if (currentUser.isAnonymous) { showToast('⚠️ Please sign in first', 'warning'); return; }
     const currentPwd = document.getElementById('currentPasswordInline').value;
     const newPwd = document.getElementById('newPasswordInline').value;
     const confirmPwd = document.getElementById('confirmNewPasswordInline').value;
@@ -1391,7 +1461,6 @@ function updateBottomCartBar() {
 }
 
 function updateCartUI() {
-    // ✅ استخدام المعرف الصحيح من الـ HTML: cartBadge
     const count = document.getElementById('cartBadge');
     const totalItems = cart.reduce((s, i) => s + (i.quantity || 1), 0);
     if (count) count.textContent = totalItems;
@@ -1482,7 +1551,7 @@ window.applyCartPromo = function() {
 };
 
 // ============================================================
-// 16. المفضلة (محسّنة)
+// 16. المفضلة
 // ============================================================
 
 window.toggleWishlist = async function(productId) {
@@ -1504,7 +1573,6 @@ window.removeFromWishlist = function(id) { window.toggleWishlist(id); };
 function updateWishlistUI() {
     const section = document.getElementById('wishlistSection');
     const grid = document.getElementById('wishlistGrid');
-    // ✅ استخدام المعرف الصحيح من الـ HTML: wishlistBadge
     const count = document.getElementById('wishlistBadge');
     const stats = document.getElementById('wishlistStats');
     const sub = document.getElementById('wishlistSub');
@@ -1553,7 +1621,7 @@ function createFloatingHearts() {
 }
 
 // ============================================================
-// 17. عرض المنتج كامل الشاشة (Preview Modal) - جديد
+// 17. عرض المنتج كامل الشاشة (Preview Modal)
 // ============================================================
 
 window.openDetails = function(id) {
@@ -1758,7 +1826,7 @@ document.addEventListener('keydown', function(e) {
 });
 
 // ============================================================
-// 20. الدفع
+// 20. الدفع (مع إضافة وصف Transaction Hash)
 // ============================================================
 
 async function fetchCryptoPrices() {
@@ -1883,6 +1951,7 @@ window.copyWalletAddress = function() {
 
 function sendOrderToTelegram(method, txHash = null) {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
+    if (currentUser.isAnonymous) { showToast('⚠️ Please sign in to place an order.', 'warning'); return; }
 
     let total = 0;
     let itemsList = '';
@@ -2011,9 +2080,12 @@ function sendOrderToTelegram(method, txHash = null) {
 window.placeOrder = function() {
     const txHash = document.getElementById('transactionHashInput').value.trim();
     if (selectedPayment === 'litecoin' || selectedPayment === 'usdt') {
-        if (!txHash) { showToast('⚠️ Please paste the transaction hash', 'warning');
+        if (!txHash) {
+            showToast('⚠️ Please paste the transaction hash', 'warning');
             document.getElementById('transactionHashInput').style.borderColor = 'var(--danger)';
-            setTimeout(() => { document.getElementById('transactionHashInput').style.borderColor = ''; }, 2000); return; }
+            setTimeout(() => { document.getElementById('transactionHashInput').style.borderColor = ''; }, 2000);
+            return;
+        }
     }
     sendOrderToTelegram(selectedPayment, txHash);
 };
@@ -2039,9 +2111,20 @@ function renderPaymentProducts() {
 }
 
 window.openPaymentModal = function() {
-    if (!currentUser) { showToast('⚠️ Please login first', 'warning');
-        openAuthModal(); return; }
-    if (cart.length === 0) { showToast('⚠️ Cart is empty', 'warning'); return; }
+    if (!currentUser) {
+        showToast('⚠️ Please login first', 'warning');
+        openAuthModal();
+        return;
+    }
+    if (currentUser.isAnonymous) {
+        showToast('⚠️ Please sign in to place an order.', 'warning');
+        openAuthModal();
+        return;
+    }
+    if (cart.length === 0) {
+        showToast('⚠️ Cart is empty', 'warning');
+        return;
+    }
     document.getElementById('paymentModal').classList.add('open');
     document.getElementById('paymentStep1').style.display = 'block';
     document.getElementById('paymentStep2').classList.remove('active');
@@ -2369,7 +2452,7 @@ window.submitRequest = function(e) {
 };
 
 // ============================================================
-// 24. الإحالات (Referrals) - مع نشاط وخطوات
+// 24. الإحالات (Referrals)
 // ============================================================
 
 window.openReferralModal = function() {
@@ -3007,7 +3090,7 @@ window.viewUserDetails = async function(uid) {
 window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
 // ============================================================
-// 28. تاريخ الطلبات (Order History) مع إحصائيات
+// 28. تاريخ الطلبات (Order History)
 // ============================================================
 
 window.clearOrderHistory = async function() {
@@ -3032,13 +3115,11 @@ function renderHistoryFull() {
     const container = document.getElementById('historyFullContent');
     const history = userProfile.history || [];
 
-    // إحصائيات الطلبات
     const total = history.length;
     const approved = history.filter(o => o.status === 'completed' || o.status === 'delivered' || o.status === 'shipped').length;
     const pending = history.filter(o => o.status === 'pending' || o.status === 'preparing').length;
 
     let html = `
-        <!-- إحصائيات الطلبات -->
         <div class="orders-stats">
             <div class="orders-stat-card">
                 <div class="orders-stat-number">${total}</div>
@@ -3054,18 +3135,15 @@ function renderHistoryFull() {
             </div>
         </div>
 
-        <!-- أزرار تصفية -->
         <div class="orders-filter-bar">
             <button class="orders-filter-btn ${ordersFilter === 'all' ? 'active' : ''}" data-filter="all" onclick="filterOrders('all')">📋 All Orders</button>
             <button class="orders-filter-btn ${ordersFilter === 'newest' ? 'active' : ''}" data-filter="newest" onclick="filterOrders('newest')">🔄 Newest</button>
             <button class="orders-filter-btn ${ordersFilter === 'pending' ? 'active' : ''}" data-filter="pending" onclick="filterOrders('pending')">⏳ Pending</button>
         </div>
 
-        <!-- قائمة الطلبات -->
         <div class="orders-list" id="ordersList">
     `;
 
-    // تصفية حسب الفلتر الحالي
     let filteredHistory = [...history];
     if (ordersFilter === 'pending') {
         filteredHistory = filteredHistory.filter(o => o.status === 'pending' || o.status === 'preparing');
@@ -3117,7 +3195,6 @@ function renderHistoryFull() {
     container.innerHTML = html;
 }
 
-// دالة تصفية الطلبات
 window.filterOrders = function(filter) {
     ordersFilter = filter;
     document.querySelectorAll('.orders-filter-btn').forEach(btn => {
@@ -3418,7 +3495,7 @@ setTimeout(() => {
 }, 5000);
 
 // ============================================================
-// 34. التصديرات (Exports)
+// 34. التصديرات
 // ============================================================
 
 window.showToast = showToast;
