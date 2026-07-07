@@ -30,7 +30,7 @@ const analytics = getAnalytics(app);
 // 2. إعدادات Cloudinary
 // ============================================================
 
-const CLOUDINARY_CLOUD_NAME = 'YOUR_CLOUD_NAME_HERE'; // ضع الـ Cloud Name الخاص بك
+const CLOUDINARY_CLOUD_NAME = 'y14bgb5s'; // ضع الـ Cloud Name الخاص بك
 const CLOUDINARY_UPLOAD_PRESET = 'zi_store_uploads'; // ضع اسم الـ Upload Preset
 
 // ============================================================
