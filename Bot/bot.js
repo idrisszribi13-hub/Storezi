@@ -163,26 +163,29 @@ async function isUserLinked(chatId) {
 async function updateUserWithChatId(bindData, chatId) {
     if (!db) return false;
     try {
-        let userId = bindData.userId || bindData.userID;
-        let userRef = null;
-        let found = false;
-
-        // Method 1: Direct userId
-        if (userId) {
-            userRef = db.collection('users').doc(userId);
-            const docSnap = await userRef.get();
-            if (docSnap.exists) {
-                await userRef.update({
-                    telegramChatId: String(chatId),
-                    telegram: bindData.userName || bindData.userEmail || '',
-                    updatedAt: admin.firestore.FieldValue.serverTimestamp()
-                });
-                console.log(`✅ Updated user ${userId} with chatId (by userId)`);
-                return true;
-            } else {
-                console.warn(`⚠️ No user found with userId: ${userId}`);
-            }
+        const userId = bindData.userId || bindData.userID;
+        if (!userId) {
+            console.error('❌ No userId in bindData');
+            return false;
         }
+        const userRef = db.collection('users').doc(userId);
+        const docSnap = await userRef.get();
+        if (!docSnap.exists) {
+            console.error(`❌ User document ${userId} not found`);
+            return false;
+        }
+        await userRef.update({
+            telegramChatId: String(chatId),
+            telegram: bindData.userName || bindData.userEmail || '',
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+        console.log(`✅ Updated user ${userId} with chatId`);
+        return true;
+    } catch (error) {
+        console.error('❌ Failed to update user:', error.message);
+        return false;
+    }
+}
 
         // Method 2: Email
         if (bindData.userEmail) {
