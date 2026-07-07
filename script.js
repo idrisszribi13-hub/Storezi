@@ -1,5 +1,6 @@
 // ============================================================
-// SCRIPT.JS - النسخة النهائية المتكاملة مع جميع التعديلات
+// SCRIPT.JS - النسخة النهائية المتكاملة
+// مع دعم رفع الصور إلى Cloudinary وجميع التحسينات
 // ============================================================
 
 import { initializeApp } from "firebase/app";
@@ -26,7 +27,14 @@ const db = getFirestore(app);
 const analytics = getAnalytics(app);
 
 // ============================================================
-// 2. شاشة التحميل
+// 2. إعدادات Cloudinary
+// ============================================================
+
+const CLOUDINARY_CLOUD_NAME = 'YOUR_CLOUD_NAME_HERE'; // ضع الـ Cloud Name الخاص بك
+const CLOUDINARY_UPLOAD_PRESET = 'zi_store_uploads'; // ضع اسم الـ Upload Preset
+
+// ============================================================
+// 3. شاشة التحميل
 // ============================================================
 
 const loadingMessages = [
@@ -85,7 +93,7 @@ function updateLoadingBar(percent) {
 }
 
 // ============================================================
-// 3. الثوابت والمتغيرات العامة
+// 4. الثوابت والمتغيرات العامة
 // ============================================================
 
 const ADMIN_EMAIL = 'zribiidriss3@gmail.com';
@@ -164,7 +172,7 @@ const paymentWallets = {
 let cryptoPrices = { ltc: 0, usdt: 1, lastUpdate: null, isUpdating: false };
 
 // ============================================================
-// 4. دوال مساعدة
+// 5. دوال مساعدة
 // ============================================================
 
 async function checkUserBanned(uid) {
@@ -183,7 +191,7 @@ async function checkUserBanned(uid) {
 }
 
 // ============================================================
-// 5. دوال تيليجرام (محسّنة)
+// 6. دوال تيليجرام (محسّنة)
 // ============================================================
 
 async function sendTelegramNotification(chatId, message) {
@@ -244,12 +252,12 @@ window.bindTelegram = async function() {
         await sendTelegramNotification(TELEGRAM_CHAT_ID, adminMessage);
 
         window.open(`https://t.me/${BOT_USERNAME}?start=bind`, '_blank');
-        showToast('📨 افتح البوت واضغط على زر "ابدأ" ثم "ربط الحساب".', 'success');
+        showToast('📨 Open bot and press "Start" then "Link Account".', 'success');
         startBindingListener(bindCode);
 
     } catch (error) {
         console.error('Telegram bind error:', error);
-        showToast('❌ خطأ في الاتصال', 'error');
+        showToast('❌ Connection error', 'error');
     }
 };
 
@@ -372,7 +380,7 @@ function maskChatId(chatId) {
 }
 
 // ============================================================
-// 6. Toast
+// 7. Toast
 // ============================================================
 
 function showToast(message, type = 'success') {
@@ -392,7 +400,7 @@ function showToast(message, type = 'success') {
 window.hideToast = function() { document.getElementById('toast')?.classList.remove('show'); };
 
 // ============================================================
-// 7. دوال المستخدم (محسّنة)
+// 8. دوال المستخدم (محسّنة)
 // ============================================================
 
 async function getUserId() {
@@ -518,7 +526,54 @@ function generateReferralCode(name, email) {
 }
 
 // ============================================================
-// 8. تحديثات الواجهة
+// 9. رفع الصور إلى Cloudinary
+// ============================================================
+
+/**
+ * Uploads a file to Cloudinary using an unsigned preset.
+ * @param {File} file - The image file to upload.
+ * @returns {Promise<string>} - The secure URL of the uploaded image.
+ */
+async function uploadToCloudinary(file) {
+    // 1. التحقق من حجم الملف (الحد الأقصى 10 ميجابايت في النسخة المجانية)
+    const MAX_SIZE_MB = 10;
+    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+        showToast(`⚠️ File too large. Maximum size is ${MAX_SIZE_MB}MB.`, 'warning');
+        return null;
+    }
+
+    // 2. إنشاء FormData لإرسال الملف
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+    // 3. تحديد نقطة النهاية (Endpoint) لـ Cloudinary
+    const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`;
+
+    try {
+        // 4. استخدام fetch لإرسال الطلب
+        const response = await fetch(url, {
+            method: 'POST',
+            body: formData
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error?.message || 'Upload failed');
+        }
+
+        const data = await response.json();
+        console.log('✅ Image uploaded to Cloudinary:', data.secure_url);
+        return data.secure_url;
+    } catch (error) {
+        console.error('❌ Cloudinary upload error:', error);
+        showToast('❌ Failed to upload image: ' + error.message, 'error');
+        return null;
+    }
+}
+
+// ============================================================
+// 10. تحديثات الواجهة
 // ============================================================
 
 function updateDropdownStats() {
@@ -590,7 +645,7 @@ function updateFullUserMenu() {
 }
 
 // ============================================================
-// 9. دوال المصادقة (مع دمج بيانات المجهول)
+// 11. دوال المصادقة (مع دمج بيانات المجهول)
 // ============================================================
 
 window.showLogin = function() { document.getElementById('loginContainer').style.display = 'block';
@@ -640,28 +695,48 @@ window.loginUser = async function() {
         showToast('👋 Welcome back!', 'success');
         btn.classList.remove('loading');
 
-        // دمج البيانات المحلية مع المستخدم المسجل
+        // دمج البيانات المحلية مع المستخدم المسجل (مع تجنب التكرار)
         if (hasLocalData) {
-            let mergedWishlist = localWishlist;
-            let mergedCart = localCart;
-            let mergedHistory = localHistory;
-            let mergedRequests = localRequests;
-            let mergedUsedCodes = localUsedCodes;
-            let mergedReferrals = localReferrals;
-            let mergedReferralRewards = localReferralRewards;
-            let mergedRp = localRp;
+            const regData = userSnap.exists() ? userSnap.data() : {};
 
-            if (userSnap.exists()) {
-                const regData = userSnap.data();
-                mergedWishlist = [...new Set([...(regData.wishlist || []), ...localWishlist])];
-                mergedCart = [...(regData.cart || []), ...localCart];
-                mergedHistory = [...(regData.history || []), ...localHistory];
-                mergedRequests = [...(regData.requests || []), ...localRequests];
-                mergedUsedCodes = [...new Set([...(regData.usedCodes || []), ...localUsedCodes])];
-                mergedReferrals = [...(regData.referrals || []), ...localReferrals];
-                mergedReferralRewards = (regData.referralRewards || 0) + localReferralRewards;
-                mergedRp = (regData.rp || 0) + localRp;
-            }
+            // دمج المفضلة (Set)
+            const mergedWishlist = [...new Set([...(regData.wishlist || []), ...localWishlist])];
+
+            // دمج السلة (جمع الكميات للمنتجات المكررة)
+            const mergedCart = [...(regData.cart || [])];
+            localCart.forEach(localItem => {
+                const existing = mergedCart.find(item => item.id === localItem.id);
+                if (existing) {
+                    existing.quantity = (existing.quantity || 1) + (localItem.quantity || 1);
+                } else {
+                    mergedCart.push(localItem);
+                }
+            });
+
+            // دمج سجل الطلبات (إزالة المكررات حسب id)
+            const mergedHistoryMap = new Map();
+            [...(regData.history || []), ...localHistory].forEach(order => {
+                if (order.id) {
+                    mergedHistoryMap.set(order.id, order);
+                }
+            });
+            const mergedHistory = Array.from(mergedHistoryMap.values());
+
+            // دمج الطلبات (Requests) – إزالة المكررات حسب التاريخ
+            const mergedRequestsMap = new Map();
+            [...(regData.requests || []), ...localRequests].forEach(req => {
+                const key = req.date || req.gameName;
+                mergedRequestsMap.set(key, req);
+            });
+            const mergedRequests = Array.from(mergedRequestsMap.values());
+
+            // دمج الأكواد المستخدمة (Set)
+            const mergedUsedCodes = [...new Set([...(regData.usedCodes || []), ...localUsedCodes])];
+
+            // دمج الإحالات
+            const mergedReferrals = [...(regData.referrals || []), ...localReferrals];
+            const mergedReferralRewards = (regData.referralRewards || 0) + localReferralRewards;
+            const mergedRp = (regData.rp || 0) + localRp;
 
             await updateDoc(userRef, {
                 wishlist: mergedWishlist,
@@ -674,7 +749,19 @@ window.loginUser = async function() {
                 rp: mergedRp,
                 updatedAt: serverTimestamp()
             });
-            console.log('✅ Merged local data into registered user.');
+            console.log('✅ Merged and deduplicated local data into registered user.');
+        }
+
+        // حذف وثيقة المستخدم المجهول بعد الدمج
+        const anonymousUid = localStorage.getItem('zi_userId');
+        if (anonymousUid && anonymousUid !== currentUser.uid) {
+            try {
+                await deleteDoc(doc(db, 'users', anonymousUid));
+                localStorage.removeItem('zi_userId');
+                console.log('🗑️ Deleted anonymous user document.');
+            } catch (error) {
+                console.warn('⚠️ Could not delete anonymous user (maybe permission denied).', error.message);
+            }
         }
 
         setTimeout(() => {
@@ -826,7 +913,7 @@ window.sendForgotPassword = async function() {
 };
 
 // ============================================================
-// 10. المودالات العامة
+// 12. المودالات العامة
 // ============================================================
 
 window.openUserMenuFull = function() {
@@ -871,7 +958,7 @@ function openAuthModal() {
 }
 
 // ============================================================
-// 11. عرض الملف الشخصي
+// 13. عرض الملف الشخصي
 // ============================================================
 
 function renderProfileFull() {
@@ -1065,7 +1152,7 @@ window.changePasswordInline = async function() {
 };
 
 // ============================================================
-// 12. المنتجات (مع دعم المنتجات المميزة)
+// 14. المنتجات (مع دعم المنتجات المميزة ورفع الصور)
 // ============================================================
 
 async function loadProductsFromFirestore() {
@@ -1228,7 +1315,7 @@ function generateRecommendations(productsList) {
 }
 
 // ============================================================
-// 13. المنتجات المميزة (Featured) - جديدة
+// 15. المنتجات المميزة (Featured)
 // ============================================================
 
 function renderFeaturedProducts() {
@@ -1301,7 +1388,7 @@ function stopFeaturedRotation() {
 }
 
 // ============================================================
-// 14. إعدادات المنتجات المميزة (للوحة الأدمن)
+// 16. إعدادات المنتجات المميزة (للوحة الأدمن)
 // ============================================================
 
 window.updateFeaturedSettings = async function(settings) {
@@ -1393,7 +1480,7 @@ window.closeFeaturedSettings = function() {
 };
 
 // ============================================================
-// 15. السلة (محسّنة)
+// 17. السلة (محسّنة)
 // ============================================================
 
 window.addToCart = async function(productId) {
@@ -1551,7 +1638,7 @@ window.applyCartPromo = function() {
 };
 
 // ============================================================
-// 16. المفضلة
+// 18. المفضلة
 // ============================================================
 
 window.toggleWishlist = async function(productId) {
@@ -1621,7 +1708,7 @@ function createFloatingHearts() {
 }
 
 // ============================================================
-// 17. عرض المنتج كامل الشاشة (Preview Modal)
+// 19. عرض المنتج كامل الشاشة (Preview Modal)
 // ============================================================
 
 window.openDetails = function(id) {
@@ -1696,7 +1783,7 @@ window.shareFromPreview = function() {
 };
 
 // ============================================================
-// 18. مودال المشاركة
+// 20. مودال المشاركة
 // ============================================================
 
 window.openShareModal = function(productId) {
@@ -1739,7 +1826,7 @@ window.copyShareLink = function() {
 };
 
 // ============================================================
-// 19. التصفية والبحث
+// 21. التصفية والبحث
 // ============================================================
 
 window.filterProducts = function(filter) {
@@ -1826,7 +1913,7 @@ document.addEventListener('keydown', function(e) {
 });
 
 // ============================================================
-// 20. الدفع (مع إضافة وصف Transaction Hash)
+// 22. الدفع (مع إضافة وصف Transaction Hash)
 // ============================================================
 
 async function fetchCryptoPrices() {
@@ -2141,7 +2228,7 @@ window.closePaymentModal = function() { document.getElementById('paymentModal').
 window.checkout = function() { openPaymentModal(); };
 
 // ============================================================
-// 21. التحميلات
+// 23. التحميلات
 // ============================================================
 
 function loadDownloads() {
@@ -2218,7 +2305,7 @@ window.closeCreateDownloadModal = function() { document.getElementById('createDo
         'open'); };
 
 // ============================================================
-// 22. الإشعارات
+// 24. الإشعارات
 // ============================================================
 
 function loadNotifications() {
@@ -2404,7 +2491,7 @@ window.closeCreateNotificationModal = function() { document.getElementById('crea
         'open'); };
 
 // ============================================================
-// 23. الطلبات (Requests)
+// 25. الطلبات (Requests)
 // ============================================================
 
 window.openRequestsModal = function() {
@@ -2452,7 +2539,7 @@ window.submitRequest = function(e) {
 };
 
 // ============================================================
-// 24. الإحالات (Referrals)
+// 26. الإحالات (Referrals)
 // ============================================================
 
 window.openReferralModal = function() {
@@ -2544,7 +2631,7 @@ window.copyReferralCode2 = function() {
 };
 
 // ============================================================
-// 25. لوحة المدير (Admin Panel)
+// 27. لوحة المدير (Admin Panel)
 // ============================================================
 
 window.openAdminPanel = function() {
@@ -2659,22 +2746,33 @@ window.closeProductModal = function() { document.getElementById('productModal').
 window.saveProduct = async function(event) {
     event.preventDefault();
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
+
     const productId = document.getElementById('productIdField').value;
     const name = document.getElementById('productName').value.trim();
     const price = parseFloat(document.getElementById('productPrice').value) || 0;
     const badge = document.getElementById('productBadge').value;
     const status = document.getElementById('productStatus').value;
-    const image = document.getElementById('productImage').value.trim();
     const description = document.getElementById('productDescription').value.trim();
     const featuresText = document.getElementById('productFeatures').value.trim();
     const video = document.getElementById('productVideo').value.trim();
     const duration = document.getElementById('productDuration').value.trim();
     const originalPrice = parseFloat(document.getElementById('productOriginalPrice').value) || 0;
 
+    // Handle image upload or existing URL
+    let imageUrl = document.getElementById('productImage').value.trim();
+    const fileInput = document.getElementById('productImageFile');
+    if (fileInput && fileInput.files && fileInput.files[0]) {
+        const uploadedUrl = await uploadToCloudinary(fileInput.files[0]);
+        if (uploadedUrl) {
+            imageUrl = uploadedUrl;
+        } else {
+            showToast('⚠️ Using provided URL as fallback.', 'warning');
+        }
+    }
+
     if (!name) { showToast('⚠️ Product name is required', 'warning'); return; }
     const features = featuresText ? featuresText.split(',').map(f => f.trim()).filter(f => f) : [];
-    const productData = { name, price, badge, status, image, description, features, video };
-
+    const productData = { name, price, badge, status, image: imageUrl, description, features, video };
     if (duration) productData.duration = duration;
     if (originalPrice > 0) productData.originalPrice = originalPrice;
 
@@ -2715,7 +2813,7 @@ async function deleteProductFromFirestore(productId) {
 }
 
 // ============================================================
-// 26. الطلبات (Admin Orders)
+// 28. الطلبات (Admin Orders) - مع إزالة التكرارات
 // ============================================================
 
 function startAdminRealtimeListener() {
@@ -2803,15 +2901,33 @@ function loadAdminOrders() {
 
 function renderAdminOrders(orders) {
     const tbody = document.getElementById('adminOrdersBody');
-    if (!orders || orders.length === 0) { tbody.innerHTML =
-            `<tr><td colspan="7"><div style="text-align:center;padding:30px;color:var(--text-secondary);"><i class="fas fa-inbox"></i> No orders</div></td></tr>`; return; }
-    let html = '';
+    if (!orders || orders.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7"><div style="text-align:center;padding:30px;color:var(--text-secondary);"><i class="fas fa-inbox"></i> No orders</div></td></tr>`;
+        return;
+    }
+
+    // ✅ إزالة المكررات حسب orderId
+    const uniqueOrders = [];
+    const seen = new Set();
     orders.forEach(order => {
+        const orderId = order.orderId || order.id;
+        if (orderId && !seen.has(orderId)) {
+            seen.add(orderId);
+            uniqueOrders.push(order);
+        }
+    });
+
+    let html = '';
+    uniqueOrders.forEach(order => {
         const status = order.status || 'pending';
-        const statusMap = { 'pending': { label: '⏳ Pending', class: 'pending' }, 'preparing': { label: '📦 Preparing',
-                class: 'preparing' }, 'shipped': { label: '🚚 Shipped', class: 'shipped' },
-            'delivered': { label: '✅ Delivered', class: 'delivered' }, 'completed': { label: '✅ Completed',
-                class: 'completed' }, 'rejected': { label: '❌ Rejected', class: 'rejected' } };
+        const statusMap = {
+            'pending': { label: '⏳ Pending', class: 'pending' },
+            'preparing': { label: '📦 Preparing', class: 'preparing' },
+            'shipped': { label: '🚚 Shipped', class: 'shipped' },
+            'delivered': { label: '✅ Delivered', class: 'delivered' },
+            'completed': { label: '✅ Completed', class: 'completed' },
+            'rejected': { label: '❌ Rejected', class: 'rejected' }
+        };
         const info = statusMap[status] || statusMap['pending'];
         const date = order.date ? new Date(order.date) : new Date();
         const dateStr = date.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -2830,7 +2946,7 @@ function renderAdminOrders(orders) {
         <td><span class="order-date">${dateStr}</span></td>
         <td><span class="status-badge ${info.class}">${info.label}</span></td>
         <td>
-          <div style="display:flex;gap:4px;flex-wrap:wrap;">
+          <div class="actions-cell">
             <select onchange="updateOrderStatus('${order.orderId||order.id}','${order.userId}',this.value)" style="padding:2px 6px;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);font-size:10px;font-family:var(--font);">
               <option value="pending" ${status==='pending'?'selected':''}>⏳ Pending</option>
               <option value="preparing" ${status==='preparing'?'selected':''}>📦 Preparing</option>
@@ -2956,7 +3072,7 @@ window.refreshAdminOrders = function() { loadAdminOrders();
     showToast('🔄 Refreshed', 'info'); };
 
 // ============================================================
-// 27. المستخدمين (Admin Users)
+// 29. المستخدمين (Admin Users)
 // ============================================================
 
 async function loadAdminUsers() {
@@ -3090,7 +3206,7 @@ window.viewUserDetails = async function(uid) {
 window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
 // ============================================================
-// 28. تاريخ الطلبات (Order History)
+// 30. تاريخ الطلبات (Order History)
 // ============================================================
 
 window.clearOrderHistory = async function() {
@@ -3204,7 +3320,7 @@ window.filterOrders = function(filter) {
 };
 
 // ============================================================
-// 29. السمة (Theme)
+// 31. السمة (Theme)
 // ============================================================
 
 let isDark = true;
@@ -3216,7 +3332,33 @@ document.getElementById('themeToggle')?.addEventListener('click', function() {
 });
 
 // ============================================================
-// 30. حالة المصادقة
+// 32. معاينة الصورة المرفوعة
+// ============================================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('productImageFile');
+    const previewContainer = document.getElementById('imagePreviewContainer');
+    const previewImage = document.getElementById('imagePreview');
+
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    previewImage.src = event.target.result;
+                    previewContainer.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                previewContainer.style.display = 'none';
+            }
+        });
+    }
+});
+
+// ============================================================
+// 33. حالة المصادقة
 // ============================================================
 
 onAuthStateChanged(auth, async (user) => {
@@ -3269,7 +3411,7 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// 31. Banner تيليجرام
+// 34. Banner تيليجرام
 // ============================================================
 
 function showTelegramBanner() {
@@ -3406,7 +3548,7 @@ function resetBannerForAll() {
 }
 
 // ============================================================
-// 32. توجيه الاتجاه (Fix Direction)
+// 35. توجيه الاتجاه (Fix Direction)
 // ============================================================
 
 function fixDirection() {
@@ -3444,7 +3586,7 @@ window.openCreateNotificationModal = function() {
 };
 
 // ============================================================
-// 33. التهيئة (Init)
+// 36. التهيئة (Init)
 // ============================================================
 
 async function init() {
@@ -3495,7 +3637,7 @@ setTimeout(() => {
 }, 5000);
 
 // ============================================================
-// 34. التصديرات
+// 37. التصديرات
 // ============================================================
 
 window.showToast = showToast;
