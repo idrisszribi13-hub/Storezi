@@ -327,7 +327,7 @@ bot.on('callback_query', async (callbackQuery) => {
             const userUpdated = await updateUserWithChatId(bindData, chatId);
 
             // ✅ 3. رسالة نجاح مع تعليمات
-            let successText = `✅ *تم ربط الحساب بنجاح!* 🎉
+const successText = `✅ *تم ربط الحساب بنجاح!* 🎉
 
 👤 المستخدم: ${bindData.userName || bindData.userEmail || 'غير معروف'}
 📧 البريد: ${bindData.userEmail || 'غير موجود'}
