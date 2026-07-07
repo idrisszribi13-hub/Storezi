@@ -1,6 +1,6 @@
 // ============================================================
 // SCRIPT.JS - النسخة النهائية المتكاملة
-// مع VIP Pricing، Features، إحصائيات Dashboard، ودولة IP
+// مع VIP Pricing، Features، RP في السلة فقط، ورفع الصور
 // ============================================================
 
 import { initializeApp } from "firebase/app";
@@ -30,8 +30,8 @@ const analytics = getAnalytics(app);
 // 2. إعدادات Cloudinary
 // ============================================================
 
-const CLOUDINARY_CLOUD_NAME = 'YOUR_CLOUD_NAME_HERE';
-const CLOUDINARY_UPLOAD_PRESET = 'zi_store_uploads';
+const CLOUDINARY_CLOUD_NAME = 'YOUR_CLOUD_NAME_HERE'; // ضع الـ Cloud Name الخاص بك
+const CLOUDINARY_UPLOAD_PRESET = 'zi_store_uploads'; // ضع اسم الـ Upload Preset
 
 // ============================================================
 // 3. شاشة التحميل
@@ -1216,6 +1216,7 @@ function renderProducts(productsList) {
         let displayPrice = p.price;
         let originalPrice = '';
         let discountBadge = '';
+        // لا نطبق خصم RP هنا
         if (activeDiscount > 0 && p.price > 0) {
             const discounted = displayPrice - (displayPrice * activeDiscount / 100);
             displayPrice = discounted;
@@ -1475,13 +1476,13 @@ window.closeFeaturedSettings = function() {
 };
 
 // ============================================================
-// 18. السلة
+// 18. السلة (مع RP و VIP)
 // ============================================================
 
 window.addToCart = async function(productId) {
     const product = products.find(p => p.id === productId);
     if (!product || product.price === 0) { showToast('⚠️ This script is free', 'warning'); return; }
-    const existing = cart.find(item => item.id === productId);
+    const existing = cart.find(item => item.id === productId && !item.isVip);
     if (existing) { existing.quantity = (existing.quantity || 1) + 1; } else { cart.push({ ...product, quantity: 1 }); }
     await saveUserData(true);
     updateCartUI();
@@ -1566,8 +1567,9 @@ function renderCartFull() {
         total += itemTotal;
         const product = products.find(p => p.id === item.id);
         const image = product?.image || item.image || 'https://picsum.photos/seed/default/100/100';
+        const vipLabel = item.isVip ? `👑 ${item.vipPlanLabel || 'VIP'}` : '';
         html +=
-            `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);margin-bottom:8px;"><div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;"><img src="${image}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" /><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);font-family:var(--font);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.name}</div><div style="font-size:12px;color:var(--primary);font-weight:700;font-family:var(--font);">$${itemTotal.toFixed(2)}</div></div></div><div style="display:flex;align-items:center;gap:6px;"><button onclick="updateCartQuantity('${item.id}',-1)" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;">-</button><span style="min-width:20px;text-align:center;font-size:14px;font-weight:700;font-family:var(--font);">${qty}</span><button onclick="updateCartQuantity('${item.id}',1)" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;">+</button><button onclick="removeFromCart('${item.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:14px;opacity:0.3;padding:4px;"><i class="fas fa-trash-alt"></i></button></div></div>`;
+            `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);margin-bottom:8px;"><div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;"><img src="${image}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" /><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);font-family:var(--font);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.name} ${vipLabel}</div><div style="font-size:12px;color:var(--primary);font-weight:700;font-family:var(--font);">$${itemTotal.toFixed(2)}</div></div></div><div style="display:flex;align-items:center;gap:6px;"><button onclick="updateCartQuantity('${item.id}',-1)" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;">-</button><span style="min-width:20px;text-align:center;font-size:14px;font-weight:700;font-family:var(--font);">${qty}</span><button onclick="updateCartQuantity('${item.id}',1)" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;">+</button><button onclick="removeFromCart('${item.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:14px;opacity:0.3;padding:4px;"><i class="fas fa-trash-alt"></i></button></div></div>`;
     });
     let rpDiscountAmount = 0;
     let promoDiscountAmount = 0;
@@ -1611,9 +1613,13 @@ function renderCartFull() {
     container.innerHTML = html;
 }
 
-window.toggleRpInCart = function() { userProfile.useRpForCart = !userProfile.useRpForCart;
+window.toggleRpInCart = function() {
+    userProfile.useRpForCart = !userProfile.useRpForCart;
     saveUserData();
-    renderCartFull(); };
+    renderCartFull();
+    updateBottomCartBar();
+};
+
 window.applyCartPromo = function() {
     const input = document.getElementById('cartPromoInput');
     const code = input.value.trim().toUpperCase();
@@ -1703,7 +1709,7 @@ function createFloatingHearts() {
 }
 
 // ============================================================
-// 20. عرض المنتج كامل الشاشة (Preview Modal) مع VIP Pricing و Features
+// 20. عرض المنتج كامل الشاشة (Preview Modal) مع VIP Pricing
 // ============================================================
 
 window.openDetails = function(id) {
@@ -1718,7 +1724,7 @@ window.openDetails = function(id) {
     document.getElementById('previewBadge').textContent = p.badge || 'PREMIUM';
     document.getElementById('previewVerified').textContent = p.status === 'available' ? '✅ 100% VERIFIED WORKING PRODUCT' : '⛔ UNAVAILABLE';
 
-    // ✅ الميزات (Features)
+    // الميزات (Features)
     const featuresContainer = document.getElementById('previewFeatures');
     if (p.features && p.features.length > 0) {
         const featuresHtml = p.features.map(f => `<li><i class="fas fa-check-circle"></i> ${f}</li>`).join('');
@@ -1739,7 +1745,7 @@ window.openDetails = function(id) {
 
     // ✅ زر الإضافة الأساسي
     const addBtn = document.getElementById('previewAddBtn');
-    const inCart = cart.some(item => item.id === id);
+    const inCart = cart.some(item => item.id === id && !item.isVip);
     if (inCart) {
         addBtn.innerHTML = '<i class="fas fa-check"></i> Added to Cart';
         addBtn.style.background = 'var(--success)';
@@ -1804,7 +1810,7 @@ window.openDetails = function(id) {
                     <div class="vip-plan ${index === 0 ? 'selected' : ''}" 
                          data-plan="${plan.key}"
                          data-price="${priceNum}"
-                         onclick="selectVipPlan(this, '${plan.key}')">
+                         onclick="window.selectVipPlan(this, '${plan.key}')">
                         <div class="vip-plan-check"><i class="fas fa-check-circle"></i></div>
                         <div class="vip-plan-label">${plan.label}</div>
                         <div class="vip-plan-price">$${priceNum.toFixed(2)}</div>
@@ -1820,13 +1826,14 @@ window.openDetails = function(id) {
         if (hasValidPlans) {
             document.getElementById('vipPricingGrid').innerHTML = gridHtml;
             vipSection.style.display = 'block';
-            // تخزين الخطة المختارة حالياً
             window._selectedVipPlan = firstPlanKey;
-            // تحديث زر الإضافة لاستخدام الخطة المختارة
-            document.querySelector('.vip-add-to-cart').onclick = () => {
-                addVipPlanToCart(p);
-            };
-            document.querySelector('.vip-add-to-cart').dataset.productId = p.id;
+            const vipAddBtn = document.querySelector('.vip-add-to-cart');
+            if (vipAddBtn) {
+                vipAddBtn.onclick = () => {
+                    addVipPlanToCart(p);
+                };
+                vipAddBtn.dataset.productId = p.id;
+            }
         } else {
             vipSection.style.display = 'none';
         }
@@ -1892,6 +1899,7 @@ function addVipPlanToCart(product) {
     renderProducts(products);
     updateBottomCartBar();
     showToast(`✅ Added ${planLabels[selectedPlan]} VIP plan for ${product.name}`, 'success');
+    closePreviewModal();
 }
 
 window.closePreviewModal = function() {
@@ -2802,7 +2810,7 @@ window.switchAdminTab = function(tab) {
 };
 
 // ============================================================
-// 29. Dashboard Stats
+// 29. Dashboard Stats (global_stats)
 // ============================================================
 
 async function loadDashboardStats() {
