@@ -1,5 +1,5 @@
 /* ============================================
-   STYLE.CSS - النسخة النهائية المتطورة
+   STYLE.CSS - النسخة النهائية المتكاملة
    جميع الأنماط محسّنة وجميلة ومتناسقة
    ============================================ */
 
@@ -1848,6 +1848,213 @@ body {
     line-height: 1.6;
     margin-bottom: 20px;
     font-family: var(--font);
+}
+
+/* ============================================
+   Preview Features - Modern & Clean
+   ============================================ */
+.preview-features {
+    background: var(--bg);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin: 12px 0;
+    border: 1px solid var(--border);
+}
+
+.preview-features .features-header {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.preview-features .features-header i {
+    color: var(--success);
+    font-size: 16px;
+}
+
+.preview-features .features-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.preview-features .features-list li {
+    font-size: 13px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    font-family: var(--font);
+}
+
+.preview-features .features-list li i {
+    color: var(--success);
+    font-size: 14px;
+    width: 18px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+/* ============================================
+   VIP Pricing - Modern Selection Cards
+   ============================================ */
+.vip-pricing-section {
+    background: var(--bg);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin: 12px 0;
+    border: 1px solid var(--border);
+}
+
+.vip-pricing-header {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.vip-pricing-header i {
+    color: var(--vip-color);
+    font-size: 16px;
+}
+
+.vip-pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.vip-plan {
+    background: var(--card-bg);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.vip-plan:hover {
+    border-color: var(--vip-color);
+    transform: translateY(-2px);
+}
+
+.vip-plan.selected {
+    border-color: var(--vip-color);
+    background: rgba(251, 191, 36, 0.08);
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.15);
+}
+
+.vip-plan .vip-plan-check {
+    display: none;
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    color: var(--vip-color);
+    font-size: 16px;
+}
+
+.vip-plan.selected .vip-plan-check {
+    display: block;
+}
+
+.vip-plan .vip-plan-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    opacity: 0.6;
+    margin-bottom: 2px;
+}
+
+.vip-plan .vip-plan-price {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.vip-plan .vip-plan-original {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-decoration: line-through;
+    opacity: 0.4;
+}
+
+.vip-plan .vip-plan-discount {
+    font-size: 10px;
+    font-weight: 700;
+    color: #0a0a1a;
+    background: var(--vip-color);
+    padding: 1px 8px;
+    border-radius: 12px;
+    display: inline-block;
+    margin-top: 2px;
+}
+
+.vip-add-to-cart {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    background: var(--vip-color);
+    color: #0a0a1a;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: var(--font);
+}
+
+.vip-add-to-cart:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(251, 191, 36, 0.3);
+}
+
+.vip-footer {
+    font-size: 11px;
+    color: var(--text-secondary);
+    opacity: 0.5;
+    margin-top: 8px;
+    text-align: center;
+}
+
+.vip-footer a {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.vip-footer a:hover {
+    text-decoration: underline;
+}
+
+/* ✅ استجابة للشاشات الصغيرة */
+@media (max-width: 400px) {
+    .vip-pricing-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+    }
+    .vip-plan .vip-plan-price {
+        font-size: 15px;
+    }
+    .vip-plan .vip-plan-label {
+        font-size: 11px;
+    }
 }
 
 .preview-action {
@@ -4274,7 +4481,7 @@ body {
 }
 
 /* ============================================
-   35. التوافق مع الشاشات الصغيرة
+   35. التوافق مع الشاشات الصغيرة (Responsive)
    ============================================ */
 
 @media (max-width: 400px) {
@@ -4321,6 +4528,9 @@ body {
     .orders-stat-number { font-size: 18px; }
     .admin-item { flex-wrap: wrap; gap: 8px; }
     .admin-item .item-actions { width: 100%; justify-content: flex-end; }
+    .vip-pricing-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+    .vip-plan .vip-plan-price { font-size: 15px; }
+    .vip-plan .vip-plan-label { font-size: 11px; }
 }
 
 @media (max-width: 360px) {
@@ -4352,58 +4562,7 @@ body {
     .stat-card .stat-number { font-size: 22px; }
     .modal-content { max-width: 480px; }
 }
-/* ============================================
-   Preview Features - Modern & Clean
-   ============================================ */
-.preview-features {
-    background: var(--bg);
-    border-radius: 12px;
-    padding: 14px 16px;
-    margin: 12px 0;
-    border: 1px solid var(--border);
-}
 
-.preview-features .features-header {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.preview-features .features-header i {
-    color: var(--success);
-    font-size: 16px;
-}
-
-.preview-features .features-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.preview-features .features-list li {
-    font-size: 13px;
-    color: var(--text-secondary);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 4px 0;
-    font-family: var(--font);
-}
-
-.preview-features .features-list li i {
-    color: var(--success);
-    font-size: 14px;
-    width: 18px;
-    text-align: center;
-    flex-shrink: 0;
-}
 /* ============================================
    36. نهاية الملف
    ============================================ */
