@@ -1,7 +1,7 @@
 // ============================================================
 // SCRIPT.JS - النسخة النهائية المتكاملة
 // مع دعم رفع الصور إلى Cloudinary، وإحصائيات لوحة المدير،
-// وتحديد الدولة تلقائياً من IP عند التسجيل
+// وتحديد الدولة تلقائياً من IP، وVIP Pricing
 // ============================================================
 
 import { initializeApp } from "firebase/app";
@@ -195,20 +195,14 @@ async function checkUserBanned(uid) {
 // 6. جلب الدولة من IP (تلقائياً)
 // ============================================================
 
-/**
- * جلب الدولة من IP باستخدام خدمة ipapi.co (مجانية)
- * @returns {Promise<string>} اسم الدولة أو 'Unknown'
- */
 async function getUserCountryByIP() {
     try {
-        // استخدام ipapi.co (مجاني، لا يتطلب مفتاح API)
         const response = await fetch('https://ipapi.co/country_name/');
         if (!response.ok) throw new Error('Failed to fetch country');
         const country = await response.text();
         return country.trim() || 'Unknown';
     } catch (error) {
         console.error('Error fetching country by IP:', error);
-        // محاولة بديلة باستخدام ipinfo.io (يتطلب مفتاح API للاستخدام المكثف)
         try {
             const response = await fetch('https://ipinfo.io/json');
             const data = await response.json();
@@ -557,29 +551,20 @@ function generateReferralCode(name, email) {
 // 10. رفع الصور إلى Cloudinary
 // ============================================================
 
-/**
- * Uploads a file to Cloudinary using an unsigned preset.
- * @param {File} file - The image file to upload.
- * @returns {Promise<string>} - The secure URL of the uploaded image.
- */
 async function uploadToCloudinary(file) {
-    // 1. التحقق من حجم الملف (الحد الأقصى 10 ميجابايت في النسخة المجانية)
     const MAX_SIZE_MB = 10;
     if (file.size > MAX_SIZE_MB * 1024 * 1024) {
         showToast(`⚠️ File too large. Maximum size is ${MAX_SIZE_MB}MB.`, 'warning');
         return null;
     }
 
-    // 2. إنشاء FormData لإرسال الملف
     const formData = new FormData();
     formData.append('file', file);
     formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
 
-    // 3. تحديد نقطة النهاية (Endpoint) لـ Cloudinary
     const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`;
 
     try {
-        // 4. استخدام fetch لإرسال الطلب
         const response = await fetch(url, {
             method: 'POST',
             body: formData
@@ -673,7 +658,7 @@ function updateFullUserMenu() {
 }
 
 // ============================================================
-// 12. دوال المصادقة (مع دمج بيانات المجهول وجلب الدولة من IP)
+// 12. دوال المصادقة
 // ============================================================
 
 window.showLogin = function() { document.getElementById('loginContainer').style.display = 'block';
@@ -694,7 +679,6 @@ window.loginUser = async function() {
     if (!email || !password) { errorEl.textContent = 'Please fill in all fields';
         btn.classList.remove('loading'); return; }
     try {
-        // حفظ البيانات المحلية للمستخدم المجهول
         const localWishlist = JSON.parse(localStorage.getItem('zi_wishlist_backup') || '[]');
         const localCart = JSON.parse(localStorage.getItem('zi_cart_backup') || '[]');
         const localHistory = JSON.parse(localStorage.getItem('zi_history_backup') || '[]');
@@ -723,14 +707,9 @@ window.loginUser = async function() {
         showToast('👋 Welcome back!', 'success');
         btn.classList.remove('loading');
 
-        // دمج البيانات المحلية مع المستخدم المسجل (مع تجنب التكرار)
         if (hasLocalData) {
             const regData = userSnap.exists() ? userSnap.data() : {};
-
-            // دمج المفضلة (Set)
             const mergedWishlist = [...new Set([...(regData.wishlist || []), ...localWishlist])];
-
-            // دمج السلة (جمع الكميات للمنتجات المكررة)
             const mergedCart = [...(regData.cart || [])];
             localCart.forEach(localItem => {
                 const existing = mergedCart.find(item => item.id === localItem.id);
@@ -740,8 +719,6 @@ window.loginUser = async function() {
                     mergedCart.push(localItem);
                 }
             });
-
-            // دمج سجل الطلبات (إزالة المكررات حسب id)
             const mergedHistoryMap = new Map();
             [...(regData.history || []), ...localHistory].forEach(order => {
                 if (order.id) {
@@ -749,19 +726,13 @@ window.loginUser = async function() {
                 }
             });
             const mergedHistory = Array.from(mergedHistoryMap.values());
-
-            // دمج الطلبات (Requests) – إزالة المكررات حسب التاريخ
             const mergedRequestsMap = new Map();
             [...(regData.requests || []), ...localRequests].forEach(req => {
                 const key = req.date || req.gameName;
                 mergedRequestsMap.set(key, req);
             });
             const mergedRequests = Array.from(mergedRequestsMap.values());
-
-            // دمج الأكواد المستخدمة (Set)
             const mergedUsedCodes = [...new Set([...(regData.usedCodes || []), ...localUsedCodes])];
-
-            // دمج الإحالات
             const mergedReferrals = [...(regData.referrals || []), ...localReferrals];
             const mergedReferralRewards = (regData.referralRewards || 0) + localReferralRewards;
             const mergedRp = (regData.rp || 0) + localRp;
@@ -780,7 +751,6 @@ window.loginUser = async function() {
             console.log('✅ Merged and deduplicated local data into registered user.');
         }
 
-        // حذف وثيقة المستخدم المجهول بعد الدمج
         const anonymousUid = localStorage.getItem('zi_userId');
         if (anonymousUid && anonymousUid !== currentUser.uid) {
             try {
@@ -835,9 +805,7 @@ window.registerUser = async function() {
     if (!termsChecked) { errorEl.textContent = 'Please agree to the terms';
         btn.classList.remove('loading'); return; }
     try {
-        // 🔥 جلب الدولة من IP قبل إنشاء المستخدم
-        let detectedCountry = country; // القيمة الافتراضية من القائمة المنسدلة
-        // إذا اختار المستخدم "Other" أو لم يختر شيئاً، نحاول جلب الدولة من IP
+        let detectedCountry = country;
         if (!detectedCountry || detectedCountry === 'Other') {
             const ipCountry = await getUserCountryByIP();
             if (ipCountry && ipCountry !== 'Unknown') {
@@ -861,11 +829,11 @@ window.registerUser = async function() {
             userId: currentUser.uid,
             name,
             email,
-            country: detectedCountry, // حفظ الدولة المختارة (من IP أو من القائمة)
+            country: detectedCountry,
             lang,
             telegram: '',
             telegramChatId: '',
-            location: detectedCountry, // نفس الدولة
+            location: detectedCountry,
             wishlist: [],
             cart: [],
             history: [],
@@ -1078,7 +1046,6 @@ function renderProfileFull() {
       </div>
     </div>
 
-    <!-- Telegram Section -->
     <div class="telegram-bind-section" style="margin-top:12px;">
       <div style="font-size:14px;font-weight:700;color:var(--text);font-family:var(--font);margin-bottom:6px;">
         <i class="fab fa-telegram-plane" style="color:#0088cc;"></i> Telegram Notifications
@@ -1191,7 +1158,7 @@ window.changePasswordInline = async function() {
 };
 
 // ============================================================
-// 15. المنتجات (مع دعم المنتجات المميزة ورفع الصور)
+// 15. المنتجات
 // ============================================================
 
 async function loadProductsFromFirestore() {
@@ -1249,21 +1216,12 @@ function renderProducts(productsList) {
         let displayPrice = p.price;
         let originalPrice = '';
         let discountBadge = '';
-        let rpDiscountText = '';
-        if (!isUnavailable) {
-            const rpDiscount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, p.price);
-            if (rpDiscount > 0 && p.price > 0) {
-                const discountedPrice = p.price - rpDiscount;
-                displayPrice = discountedPrice;
-                rpDiscountText =
-                    `<span class="rp-discount">🎯 -${Math.floor(rpDiscount / RP_TO_DOLLAR)} RP (${rpDiscount.toFixed(2)} $)</span>`;
-            }
-            if (activeDiscount > 0 && p.price > 0) {
-                const discounted = displayPrice - (displayPrice * activeDiscount / 100);
-                displayPrice = discounted;
-                originalPrice = `<span class="original-price">${p.price} $</span>`;
-                discountBadge = `<span class="discount-badge">-${activeDiscount}%</span>`;
-            }
+        // لا نطبق خصم RP هنا
+        if (activeDiscount > 0 && p.price > 0) {
+            const discounted = displayPrice - (displayPrice * activeDiscount / 100);
+            displayPrice = discounted;
+            originalPrice = `<span class="original-price">${p.price} $</span>`;
+            discountBadge = `<span class="discount-badge">-${activeDiscount}%</span>`;
         }
         const imageFilter = isUnavailable ? 'grayscale(100%)' : 'none';
         const unavailableOverlay = isUnavailable ?
@@ -1289,7 +1247,6 @@ function renderProducts(productsList) {
           ${isUnavailable?'⛔ Unavailable':(isFree?'FREE':(displayPrice.toFixed(2)+' $'))}
           ${originalPrice}
           ${discountBadge}
-          ${rpDiscountText}
         </div>
         <div class="card-actions">
           <button class="btn-details" onclick="event.stopPropagation(); window.openDetails('${p.id}')"><i class="fas fa-info-circle"></i></button>
@@ -1519,7 +1476,7 @@ window.closeFeaturedSettings = function() {
 };
 
 // ============================================================
-// 18. السلة (محسّنة)
+// 18. السلة (محسّنة مع RP)
 // ============================================================
 
 window.addToCart = async function(productId) {
@@ -1747,7 +1704,7 @@ function createFloatingHearts() {
 }
 
 // ============================================================
-// 20. عرض المنتج كامل الشاشة (Preview Modal)
+// 20. عرض المنتج كامل الشاشة (Preview Modal) مع VIP Pricing
 // ============================================================
 
 window.openDetails = function(id) {
@@ -1755,13 +1712,37 @@ window.openDetails = function(id) {
     if (!p) return;
     window._currentProduct = p;
 
+    // الصورة والاسم والوصف
     document.getElementById('previewImage').src = p.image || 'https://picsum.photos/seed/default/400/300';
     document.getElementById('previewName').textContent = p.name;
-    document.getElementById('previewPrice').textContent = p.price === 0 ? 'FREE' : `$${p.price.toFixed(2)}`;
-    document.getElementById('previewDescription').textContent = p.description || 'Premium script with advanced features.';
+    document.getElementById('previewDescription').textContent = p.description || 'No description available.';
     document.getElementById('previewBadge').textContent = p.badge || 'PREMIUM';
     document.getElementById('previewVerified').textContent = p.status === 'available' ? '✅ 100% VERIFIED WORKING PRODUCT' : '⛔ UNAVAILABLE';
 
+    // الميزات (Features)
+    const featuresContainer = document.getElementById('previewFeatures');
+    if (p.features && p.features.length > 0) {
+        const featuresHtml = p.features.map(f => `<li><i class="fas fa-check-circle"></i> ${f}</li>`).join('');
+        featuresContainer.innerHTML = `
+            <div class="features-header">
+                <i class="fas fa-check-circle"></i> Features
+            </div>
+            <ul class="features-list">${featuresHtml}</ul>
+        `;
+        featuresContainer.style.display = 'block';
+    } else {
+        featuresContainer.style.display = 'none';
+    }
+
+    // السعر الأساسي
+    let priceDisplay = p.price === 0 ? 'FREE' : `$${p.price.toFixed(2)}`;
+    const rpDiscount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, p.price);
+    if (rpDiscount > 0 && p.price > 0) {
+        priceDisplay += ` <span style="font-size:12px;opacity:0.5;">(🎯 ${Math.floor(rpDiscount/RP_TO_DOLLAR)} RP = $${rpDiscount.toFixed(2)} off)</span>`;
+    }
+    document.getElementById('previewPrice').textContent = priceDisplay;
+
+    // زر الإضافة (Add to Cart) الأساسي
     const addBtn = document.getElementById('previewAddBtn');
     const inCart = cart.some(item => item.id === id);
     if (inCart) {
@@ -1799,9 +1780,85 @@ window.openDetails = function(id) {
         };
     }
 
+    // ===== VIP Pricing =====
+    const vipSection = document.getElementById('previewVipPricing');
+    if (p.vipEnabled && p.vipPrices) {
+        const vipPrices = p.vipPrices;
+        const plans = [
+            { key: '1m', label: '1 Month', price: vipPrices['1m'], original: vipPrices['1m_original'] },
+            { key: '3m', label: '3 Months', price: vipPrices['3m'], original: vipPrices['3m_original'] },
+            { key: '1y', label: '1 Year', price: vipPrices['1y'], original: vipPrices['1y_original'] },
+            { key: 'lifetime', label: 'LIFETIME', price: vipPrices['lifetime'], original: vipPrices['lifetime_original'] }
+        ];
+        let gridHtml = '';
+        plans.forEach(plan => {
+            if (plan.price && plan.original && parseFloat(plan.original) > parseFloat(plan.price)) {
+                const discount = Math.round((1 - parseFloat(plan.price) / parseFloat(plan.original)) * 100);
+                gridHtml += `
+                    <div class="vip-plan">
+                        <div class="vip-plan-label">${plan.label}</div>
+                        <div class="vip-plan-price">$${parseFloat(plan.price).toFixed(2)}</div>
+                        <div class="vip-plan-original">$${parseFloat(plan.original).toFixed(2)}</div>
+                        <div class="vip-plan-discount">SAVE ${discount}%</div>
+                    </div>
+                `;
+            } else if (plan.price) {
+                gridHtml += `
+                    <div class="vip-plan">
+                        <div class="vip-plan-label">${plan.label}</div>
+                        <div class="vip-plan-price">$${parseFloat(plan.price).toFixed(2)}</div>
+                    </div>
+                `;
+            }
+        });
+        if (gridHtml) {
+            document.getElementById('vipPricingGrid').innerHTML = gridHtml;
+            vipSection.style.display = 'block';
+            // ربط زر Add to Cart لخطة VIP
+            document.querySelector('.vip-add-to-cart').onclick = () => addVipToCart(p);
+        } else {
+            vipSection.style.display = 'none';
+        }
+    } else {
+        vipSection.style.display = 'none';
+    }
+
     document.getElementById('previewModal').classList.add('open');
     document.body.style.overflow = 'hidden';
 };
+
+// دالة إضافة خطة VIP إلى السلة
+function addVipToCart(product) {
+    if (!product) {
+        product = window._currentProduct;
+        if (!product) { showToast('⚠️ Product not found', 'warning'); return; }
+    }
+    // نضيف المنتج كخطة VIP (نضعه في السلة بسعر VIP المختار أو نضيف خطة افتراضية)
+    // هنا يمكن إظهار اختيار الخطة، لكن سنضيف الخطة الأولى بشكل افتراضي
+    const vipPrices = product.vipPrices;
+    if (!vipPrices || !vipPrices['1m']) { showToast('⚠️ No VIP plan available', 'warning'); return; }
+    const selectedPrice = parseFloat(vipPrices['1m']);
+    if (isNaN(selectedPrice) || selectedPrice <= 0) { showToast('⚠️ Invalid price', 'warning'); return; }
+    // نضيف إلى السلة مع تمييز أنها VIP
+    const existing = cart.find(item => item.id === product.id && item.isVip);
+    if (existing) {
+        existing.quantity = (existing.quantity || 1) + 1;
+    } else {
+        cart.push({ 
+            ...product, 
+            price: selectedPrice, 
+            quantity: 1, 
+            isVip: true, 
+            vipPlan: '1 Month',
+            originalPrice: product.price 
+        });
+    }
+    saveUserData(true);
+    updateCartUI();
+    renderProducts(products);
+    updateBottomCartBar();
+    showToast(`✅ Added VIP plan for ${product.name}`, 'success');
+}
 
 window.closePreviewModal = function() {
     document.getElementById('previewModal').classList.remove('open');
@@ -1952,7 +2009,7 @@ document.addEventListener('keydown', function(e) {
 });
 
 // ============================================================
-// 23. الدفع (مع إضافة وصف Transaction Hash)
+// 23. الدفع
 // ============================================================
 
 async function fetchCryptoPrices() {
@@ -2603,7 +2660,6 @@ function updateReferralUI() {
     document.getElementById('referralCount2').textContent = referrals.length;
     document.getElementById('referralRewards2').textContent = (userProfile.referralRewards || 0).toFixed(2) + ' $';
 
-    // نشاط الإحالات
     const activityContainer = document.getElementById('referralActivity');
     if (referrals.length === 0) {
         activityContainer.innerHTML = `
@@ -2633,7 +2689,6 @@ function updateReferralUI() {
         activityContainer.innerHTML = html;
     }
 
-    // خطوات الإحالة
     const stepsContainer = document.getElementById('referralSteps');
     if (stepsContainer) {
         stepsContainer.innerHTML = `
@@ -2670,7 +2725,7 @@ window.copyReferralCode2 = function() {
 };
 
 // ============================================================
-// 28. لوحة المدير (Admin Panel) مع تبويب Dashboard
+// 28. لوحة المدير (Admin Panel)
 // ============================================================
 
 window.openAdminPanel = function() {
@@ -2684,7 +2739,7 @@ window.openAdminPanel = function() {
         loadNotifications();
         renderAdminProducts(products);
         loadAdminUsers();
-        loadDashboardStats(); // تحميل إحصائيات Dashboard
+        loadDashboardStats();
         setTimeout(addBannerAdminControls, 300);
     }
 };
@@ -2713,7 +2768,7 @@ window.switchAdminTab = function(tab) {
 };
 
 // ============================================================
-// 29. إحصائيات Dashboard (مجموعة global_stats)
+// 29. Dashboard Stats
 // ============================================================
 
 async function loadDashboardStats() {
@@ -2729,11 +2784,10 @@ async function loadDashboardStats() {
         }
         document.getElementById('dashboardTotalOrders').textContent = totalOrders;
         document.getElementById('dashboardTotalRevenue').textContent = `$${totalRevenue.toFixed(2)}`;
-        const netRevenue = totalRevenue * 0.1; // 10% commission
+        const netRevenue = totalRevenue * 0.1;
         document.getElementById('dashboardNetRevenue').textContent = `$${netRevenue.toFixed(2)}`;
     } catch (error) {
         console.error('Error loading dashboard stats:', error);
-        // عرض أرقام افتراضية في حال فشل التحميل
         document.getElementById('dashboardTotalOrders').textContent = '0';
         document.getElementById('dashboardTotalRevenue').textContent = '$0.00';
         document.getElementById('dashboardNetRevenue').textContent = '$0.00';
@@ -2745,7 +2799,6 @@ window.refreshDashboardStats = function() {
     showToast('🔄 Stats refreshed', 'info');
 };
 
-// تحديث global_stats عند الموافقة على طلب (سيتم استدعاؤها من updateOrderStatus)
 async function updateGlobalStats(orderTotal) {
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
     try {
@@ -2761,14 +2814,8 @@ async function updateGlobalStats(orderTotal) {
     }
 }
 
-// تعديل updateOrderStatus لإضافة تحديث الإحصائيات عند الموافقة على الطلب (حالة delivered أو completed)
-// في دالة updateOrderStatus، بعد تحديث حالة الطلب، أضف:
-// if (newStatus === 'delivered' || newStatus === 'completed') {
-//     await updateGlobalStats(updatedOrder.total);
-// }
-
 // ============================================================
-// 30. إدارة المنتجات (Admin Products)
+// 30. إدارة المنتجات (Admin Products) مع VIP Pricing
 // ============================================================
 
 function renderAdminProducts(productsList) {
@@ -2777,15 +2824,16 @@ function renderAdminProducts(productsList) {
     if (!productsList || productsList.length === 0) { container.innerHTML =
             `<div style="text-align:center;padding:30px;color:var(--text-secondary);">📭 No products</div>`; return; }
     container.innerHTML = productsList.map(p => {
-        const isVip = p.badge === 'VIP' || p.price > 0;
         const isUnavailable = p.status === 'unavailable';
+        const vipBadge = p.vipEnabled ? '👑 VIP' : '';
         return `
       <div class="admin-item" style="${isUnavailable?'opacity:0.5;':''}">
         <div class="item-info">
-          <div class="item-title">${p.name} ${isUnavailable?'⛔':''}</div>
+          <div class="item-title">${p.name} ${isUnavailable?'⛔':''} ${vipBadge}</div>
           <div class="item-meta">${p.price===0?'🎁 FREE':`💰 $${p.price}`} • ${p.badge||'FREE'} ${isUnavailable?'• Unavailable':''}</div>
           ${p.duration ? `<div class="item-meta">⏱️ ${p.duration}</div>` : ''}
           ${p.originalPrice ? `<div class="item-meta" style="text-decoration:line-through;opacity:0.5;">Original: $${p.originalPrice}</div>` : ''}
+          ${p.vipEnabled ? `<div class="item-meta" style="color:var(--vip-color);">VIP Pricing Enabled</div>` : ''}
         </div>
         <div class="item-actions">
           <button class="btn-edit" onclick="openEditProductModal('${p.id}')"><i class="fas fa-edit"></i></button>
@@ -2798,20 +2846,15 @@ function renderAdminProducts(productsList) {
 
 window.openEditProductModal = function(productId) {
     console.log('🔍 Edit button clicked for product ID:', productId);
-
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
         showToast('⛔ Unauthorized', 'error');
         return;
     }
-
     const product = products.find(p => p.id === productId);
     if (!product) {
         showToast('❌ Product not found. Please refresh and try again.', 'error');
-        console.error('❌ Product not found for ID:', productId);
-        console.log('📋 Available product IDs:', products.map(p => p.id));
         return;
     }
-
     console.log('✏️ Editing product:', product);
 
     document.getElementById('productFormTitle').textContent = '✏️ Edit Product: ' + product.name;
@@ -2827,6 +2870,21 @@ window.openEditProductModal = function(productId) {
     document.getElementById('productDuration').value = product.duration || '';
     document.getElementById('productOriginalPrice').value = product.originalPrice || '';
 
+    // VIP Pricing
+    const vipEnabled = product.vipEnabled || false;
+    document.getElementById('vipEnabled').checked = vipEnabled;
+    document.getElementById('vipPricingFields').style.display = vipEnabled ? 'block' : 'none';
+    if (product.vipPrices) {
+        document.getElementById('vipPrice1m').value = product.vipPrices['1m'] || '';
+        document.getElementById('vipOriginalPrice1m').value = product.vipPrices['1m_original'] || '';
+        document.getElementById('vipPrice3m').value = product.vipPrices['3m'] || '';
+        document.getElementById('vipOriginalPrice3m').value = product.vipPrices['3m_original'] || '';
+        document.getElementById('vipPrice1y').value = product.vipPrices['1y'] || '';
+        document.getElementById('vipOriginalPrice1y').value = product.vipPrices['1y_original'] || '';
+        document.getElementById('vipPriceLifetime').value = product.vipPrices['lifetime'] || '';
+        document.getElementById('vipOriginalPriceLifetime').value = product.vipPrices['lifetime_original'] || '';
+    }
+
     const modal = document.getElementById('productModal');
     if (modal) {
         modal.classList.add('open');
@@ -2835,6 +2893,16 @@ window.openEditProductModal = function(productId) {
         showToast('❌ Modal not found', 'error');
     }
 };
+
+// حدث تبديل تفعيل VIP
+document.addEventListener('DOMContentLoaded', function() {
+    const vipToggle = document.getElementById('vipEnabled');
+    if (vipToggle) {
+        vipToggle.addEventListener('change', function() {
+            document.getElementById('vipPricingFields').style.display = this.checked ? 'block' : 'none';
+        });
+    }
+});
 
 window.openAddProductModal = function() {
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
@@ -2849,6 +2917,8 @@ window.openAddProductModal = function() {
     document.getElementById('productVideo').value = 'https://www.youtube.com/embed/dQw4w9WgXcQ';
     document.getElementById('productDuration').value = '';
     document.getElementById('productOriginalPrice').value = '';
+    document.getElementById('vipEnabled').checked = false;
+    document.getElementById('vipPricingFields').style.display = 'none';
     document.getElementById('productModal').classList.add('open');
 };
 
@@ -2869,7 +2939,19 @@ window.saveProduct = async function(event) {
     const duration = document.getElementById('productDuration').value.trim();
     const originalPrice = parseFloat(document.getElementById('productOriginalPrice').value) || 0;
 
-    // Handle image upload or existing URL
+    // VIP Pricing
+    const vipEnabled = document.getElementById('vipEnabled').checked;
+    const vipPrices = {
+        '1m': parseFloat(document.getElementById('vipPrice1m').value) || 0,
+        '1m_original': parseFloat(document.getElementById('vipOriginalPrice1m').value) || 0,
+        '3m': parseFloat(document.getElementById('vipPrice3m').value) || 0,
+        '3m_original': parseFloat(document.getElementById('vipOriginalPrice3m').value) || 0,
+        '1y': parseFloat(document.getElementById('vipPrice1y').value) || 0,
+        '1y_original': parseFloat(document.getElementById('vipOriginalPrice1y').value) || 0,
+        'lifetime': parseFloat(document.getElementById('vipPriceLifetime').value) || 0,
+        'lifetime_original': parseFloat(document.getElementById('vipOriginalPriceLifetime').value) || 0
+    };
+
     let imageUrl = document.getElementById('productImage').value.trim();
     const fileInput = document.getElementById('productImageFile');
     if (fileInput && fileInput.files && fileInput.files[0]) {
@@ -2883,7 +2965,18 @@ window.saveProduct = async function(event) {
 
     if (!name) { showToast('⚠️ Product name is required', 'warning'); return; }
     const features = featuresText ? featuresText.split(',').map(f => f.trim()).filter(f => f) : [];
-    const productData = { name, price, badge, status, image: imageUrl, description, features, video };
+    const productData = { 
+        name, 
+        price, 
+        badge, 
+        status, 
+        image: imageUrl, 
+        description, 
+        features, 
+        video,
+        vipEnabled,
+        vipPrices
+    };
     if (duration) productData.duration = duration;
     if (originalPrice > 0) productData.originalPrice = originalPrice;
 
@@ -2924,7 +3017,7 @@ async function deleteProductFromFirestore(productId) {
 }
 
 // ============================================================
-// 31. الطلبات (Admin Orders)
+// 31. الطلبات (Admin Orders) - محسّن
 // ============================================================
 
 function startAdminRealtimeListener() {
@@ -3017,7 +3110,6 @@ function renderAdminOrders(orders) {
         return;
     }
 
-    // ✅ إزالة المكررات حسب orderId
     const uniqueOrders = [];
     const seen = new Set();
     orders.forEach(order => {
@@ -3112,7 +3204,6 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
         const statusLabel = statusLabels[newStatus] || newStatus;
         showToast(`📦 Order updated to ${statusLabel}`, 'success');
 
-        // تحديث الإحصائيات العامة إذا تم تسليم الطلب
         if (updatedOrder && (newStatus === 'delivered' || newStatus === 'completed')) {
             await updateGlobalStats(updatedOrder.total || 0);
             console.log('📊 Global stats updated for order:', orderId);
