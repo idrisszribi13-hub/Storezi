@@ -286,21 +286,56 @@ window.testTelegramNotification = async function() {
 };
 
 window.checkTelegramStatus = async function() {
-    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
+    if (!currentUser) {
+        showToast('⚠️ Please login first', 'warning');
+        return;
+    }
     try {
         const userRef = doc(db, 'users', currentUser.uid);
         const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
             const data = userSnap.data();
-            if (data.telegramChatId) {
-                const maskedId = data.telegramChatId.slice(0, 4) + '***' + data.telegramChatId.slice(-4);
-                showToast(`✅ Linked (Chat ID: ${maskedId})`, 'success');
-                userProfile.telegramChatId = data.telegramChatId;
+            const chatId = data.telegramChatId || '';
+            const telegram = data.telegram || '';
+            
+            if (chatId) {
+                // ✅ تحديث البيانات المحلية
+                userProfile.telegramChatId = chatId;
+                userProfile.telegram = telegram;
+                await saveUserData(); // حفظ محلياً
+                
+                // ✅ تحديث الواجهة
                 renderProfileFull();
-            } else { showToast('❌ Not linked', 'warning'); }
+                updateFullUserMenu();
+                updateUI();
+                
+                // ✅ عرض رسالة نجاح مع Chat ID masked
+                const maskedId = chatId.slice(0, 4) + '***' + chatId.slice(-4);
+                showToast(`✅ Linked (Chat ID: ${maskedId})`, 'success');
+                
+                // ✅ (اختياري) إرسال رسالة تأكيد للمستخدم على تيليجرام
+                await sendTelegramNotification(
+                    chatId,
+                    `✅ *Connection verified!*\n\nYour account is linked to Zi Store.\n📅 ${new Date().toLocaleString()}`
+                );
+            } else {
+                // ✅ تحديث المحلي بأنه غير مرتبط
+                userProfile.telegramChatId = '';
+                userProfile.telegram = '';
+                await saveUserData();
+                
+                renderProfileFull();
+                updateFullUserMenu();
+                updateUI();
+                showToast('❌ Not linked', 'warning');
+            }
+        } else {
+            showToast('❌ User document not found', 'error');
         }
-    } catch (error) { console.error('Check telegram status error:', error);
-        showToast('❌ Error checking status', 'error'); }
+    } catch (error) {
+        console.error('Check telegram status error:', error);
+        showToast('❌ Error checking status: ' + error.message, 'error');
+    }
 };
 
 window.unlinkTelegram = async function() {
