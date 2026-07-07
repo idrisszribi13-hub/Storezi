@@ -1,6 +1,7 @@
 // ============================================================
 // SCRIPT.JS - النسخة النهائية المتكاملة
-// مع دعم رفع الصور إلى Cloudinary وجميع التحسينات
+// مع دعم رفع الصور إلى Cloudinary، وإحصائيات لوحة المدير،
+// وتحديد الدولة تلقائياً من IP عند التسجيل
 // ============================================================
 
 import { initializeApp } from "firebase/app";
@@ -191,7 +192,36 @@ async function checkUserBanned(uid) {
 }
 
 // ============================================================
-// 6. دوال تيليجرام (محسّنة)
+// 6. جلب الدولة من IP (تلقائياً)
+// ============================================================
+
+/**
+ * جلب الدولة من IP باستخدام خدمة ipapi.co (مجانية)
+ * @returns {Promise<string>} اسم الدولة أو 'Unknown'
+ */
+async function getUserCountryByIP() {
+    try {
+        // استخدام ipapi.co (مجاني، لا يتطلب مفتاح API)
+        const response = await fetch('https://ipapi.co/country_name/');
+        if (!response.ok) throw new Error('Failed to fetch country');
+        const country = await response.text();
+        return country.trim() || 'Unknown';
+    } catch (error) {
+        console.error('Error fetching country by IP:', error);
+        // محاولة بديلة باستخدام ipinfo.io (يتطلب مفتاح API للاستخدام المكثف)
+        try {
+            const response = await fetch('https://ipinfo.io/json');
+            const data = await response.json();
+            return data.country || data.country_name || 'Unknown';
+        } catch (e) {
+            console.error('Fallback IP fetch also failed:', e);
+            return 'Unknown';
+        }
+    }
+}
+
+// ============================================================
+// 7. دوال تيليجرام (محسّنة)
 // ============================================================
 
 async function sendTelegramNotification(chatId, message) {
@@ -225,7 +255,6 @@ async function sendTelegramNotification(chatId, message) {
     }
 }
 
-// ✅ ربط تيليجرام - فقط للمستخدمين المسجلين (ليس مجهولين)
 window.bindTelegram = async function() {
     if (!currentUser) {
         showToast('⚠️ Please login first', 'warning');
@@ -261,7 +290,6 @@ window.bindTelegram = async function() {
     }
 };
 
-// ✅ مستمع الربط - بدون مهلة زمنية
 function startBindingListener(bindCode) {
     const bindRef = doc(db, 'telegram_binds', bindCode);
     const unsubscribe = onSnapshot(bindRef, async (doc) => {
@@ -380,7 +408,7 @@ function maskChatId(chatId) {
 }
 
 // ============================================================
-// 7. Toast
+// 8. Toast
 // ============================================================
 
 function showToast(message, type = 'success') {
@@ -400,7 +428,7 @@ function showToast(message, type = 'success') {
 window.hideToast = function() { document.getElementById('toast')?.classList.remove('show'); };
 
 // ============================================================
-// 8. دوال المستخدم (محسّنة)
+// 9. دوال المستخدم (محسّنة)
 // ============================================================
 
 async function getUserId() {
@@ -444,7 +472,7 @@ async function loadUserData() {
             userProfile.email = data.email || '';
             userProfile.telegram = data.telegram || '';
             userProfile.telegramChatId = data.telegramChatId || '';
-            userProfile.location = data.location || 'Tunisia';
+            userProfile.location = data.location || data.country || 'Tunisia';
             userProfile.lang = data.lang || 'English';
             userProfile.isBanned = data.isBanned || false;
             userProfile.joined = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '--';
@@ -526,7 +554,7 @@ function generateReferralCode(name, email) {
 }
 
 // ============================================================
-// 9. رفع الصور إلى Cloudinary
+// 10. رفع الصور إلى Cloudinary
 // ============================================================
 
 /**
@@ -573,7 +601,7 @@ async function uploadToCloudinary(file) {
 }
 
 // ============================================================
-// 10. تحديثات الواجهة
+// 11. تحديثات الواجهة
 // ============================================================
 
 function updateDropdownStats() {
@@ -645,7 +673,7 @@ function updateFullUserMenu() {
 }
 
 // ============================================================
-// 11. دوال المصادقة (مع دمج بيانات المجهول)
+// 12. دوال المصادقة (مع دمج بيانات المجهول وجلب الدولة من IP)
 // ============================================================
 
 window.showLogin = function() { document.getElementById('loginContainer').style.display = 'block';
@@ -807,6 +835,16 @@ window.registerUser = async function() {
     if (!termsChecked) { errorEl.textContent = 'Please agree to the terms';
         btn.classList.remove('loading'); return; }
     try {
+        // 🔥 جلب الدولة من IP قبل إنشاء المستخدم
+        let detectedCountry = country; // القيمة الافتراضية من القائمة المنسدلة
+        // إذا اختار المستخدم "Other" أو لم يختر شيئاً، نحاول جلب الدولة من IP
+        if (!detectedCountry || detectedCountry === 'Other') {
+            const ipCountry = await getUserCountryByIP();
+            if (ipCountry && ipCountry !== 'Unknown') {
+                detectedCountry = ipCountry;
+            }
+        }
+
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(userCredential.user, { displayName: name });
         currentUser = userCredential.user;
@@ -823,11 +861,11 @@ window.registerUser = async function() {
             userId: currentUser.uid,
             name,
             email,
-            country,
+            country: detectedCountry, // حفظ الدولة المختارة (من IP أو من القائمة)
             lang,
             telegram: '',
             telegramChatId: '',
-            location: country,
+            location: detectedCountry, // نفس الدولة
             wishlist: [],
             cart: [],
             history: [],
@@ -849,7 +887,7 @@ window.registerUser = async function() {
             showToast('🎉 Referral code applied! +5 RP', 'success');
         }
         successEl.textContent = '✅ Registration successful!';
-        showToast('🎉 Welcome, ' + name + '!', 'success');
+        showToast(`🎉 Welcome, ${name}! Your country: ${detectedCountry}`, 'success');
         btn.classList.remove('loading');
         setTimeout(() => {
             document.getElementById('authSection').style.display = 'none';
@@ -913,7 +951,7 @@ window.sendForgotPassword = async function() {
 };
 
 // ============================================================
-// 12. المودالات العامة
+// 13. المودالات العامة
 // ============================================================
 
 window.openUserMenuFull = function() {
@@ -958,7 +996,7 @@ function openAuthModal() {
 }
 
 // ============================================================
-// 13. عرض الملف الشخصي
+// 14. عرض الملف الشخصي
 // ============================================================
 
 function renderProfileFull() {
@@ -979,6 +1017,7 @@ function renderProfileFull() {
         <div>
           <div style="font-size:16px;font-weight:700;color:var(--text);font-family:var(--font);">${displayName}</div>
           <div style="font-size:13px;color:var(--text-secondary);font-family:var(--font);">${currentUser.email || 'No email'}</div>
+          <div style="font-size:13px;color:var(--text-secondary);font-family:var(--font);">📍 Country: ${userProfile.location || 'Not specified'}</div>
           <div style="font-size:13px;color:var(--vip-color);font-weight:700;font-family:var(--font);">🎯 RP: ${userProfile.rp || 0}</div>
           ${userProfile.isBanned ? '<div style="font-size:13px;color:var(--danger);font-weight:700;font-family:var(--font);">🚫 BANNED</div>' : ''}
           ${isAnonymous ? '<div style="font-size:13px;color:var(--text-secondary);font-weight:600;font-family:var(--font);">👤 Guest Mode (Sign in to save data)</div>' : ''}
@@ -1152,7 +1191,7 @@ window.changePasswordInline = async function() {
 };
 
 // ============================================================
-// 14. المنتجات (مع دعم المنتجات المميزة ورفع الصور)
+// 15. المنتجات (مع دعم المنتجات المميزة ورفع الصور)
 // ============================================================
 
 async function loadProductsFromFirestore() {
@@ -1315,7 +1354,7 @@ function generateRecommendations(productsList) {
 }
 
 // ============================================================
-// 15. المنتجات المميزة (Featured)
+// 16. المنتجات المميزة (Featured)
 // ============================================================
 
 function renderFeaturedProducts() {
@@ -1388,7 +1427,7 @@ function stopFeaturedRotation() {
 }
 
 // ============================================================
-// 16. إعدادات المنتجات المميزة (للوحة الأدمن)
+// 17. إعدادات المنتجات المميزة (للوحة الأدمن)
 // ============================================================
 
 window.updateFeaturedSettings = async function(settings) {
@@ -1480,7 +1519,7 @@ window.closeFeaturedSettings = function() {
 };
 
 // ============================================================
-// 17. السلة (محسّنة)
+// 18. السلة (محسّنة)
 // ============================================================
 
 window.addToCart = async function(productId) {
@@ -1638,7 +1677,7 @@ window.applyCartPromo = function() {
 };
 
 // ============================================================
-// 18. المفضلة
+// 19. المفضلة
 // ============================================================
 
 window.toggleWishlist = async function(productId) {
@@ -1708,7 +1747,7 @@ function createFloatingHearts() {
 }
 
 // ============================================================
-// 19. عرض المنتج كامل الشاشة (Preview Modal)
+// 20. عرض المنتج كامل الشاشة (Preview Modal)
 // ============================================================
 
 window.openDetails = function(id) {
@@ -1783,7 +1822,7 @@ window.shareFromPreview = function() {
 };
 
 // ============================================================
-// 20. مودال المشاركة
+// 21. مودال المشاركة
 // ============================================================
 
 window.openShareModal = function(productId) {
@@ -1826,7 +1865,7 @@ window.copyShareLink = function() {
 };
 
 // ============================================================
-// 21. التصفية والبحث
+// 22. التصفية والبحث
 // ============================================================
 
 window.filterProducts = function(filter) {
@@ -1913,7 +1952,7 @@ document.addEventListener('keydown', function(e) {
 });
 
 // ============================================================
-// 22. الدفع (مع إضافة وصف Transaction Hash)
+// 23. الدفع (مع إضافة وصف Transaction Hash)
 // ============================================================
 
 async function fetchCryptoPrices() {
@@ -2228,7 +2267,7 @@ window.closePaymentModal = function() { document.getElementById('paymentModal').
 window.checkout = function() { openPaymentModal(); };
 
 // ============================================================
-// 23. التحميلات
+// 24. التحميلات
 // ============================================================
 
 function loadDownloads() {
@@ -2305,7 +2344,7 @@ window.closeCreateDownloadModal = function() { document.getElementById('createDo
         'open'); };
 
 // ============================================================
-// 24. الإشعارات
+// 25. الإشعارات
 // ============================================================
 
 function loadNotifications() {
@@ -2491,7 +2530,7 @@ window.closeCreateNotificationModal = function() { document.getElementById('crea
         'open'); };
 
 // ============================================================
-// 25. الطلبات (Requests)
+// 26. الطلبات (Requests)
 // ============================================================
 
 window.openRequestsModal = function() {
@@ -2539,7 +2578,7 @@ window.submitRequest = function(e) {
 };
 
 // ============================================================
-// 26. الإحالات (Referrals)
+// 27. الإحالات (Referrals)
 // ============================================================
 
 window.openReferralModal = function() {
@@ -2631,7 +2670,7 @@ window.copyReferralCode2 = function() {
 };
 
 // ============================================================
-// 27. لوحة المدير (Admin Panel)
+// 28. لوحة المدير (Admin Panel) مع تبويب Dashboard
 // ============================================================
 
 window.openAdminPanel = function() {
@@ -2645,20 +2684,92 @@ window.openAdminPanel = function() {
         loadNotifications();
         renderAdminProducts(products);
         loadAdminUsers();
+        loadDashboardStats(); // تحميل إحصائيات Dashboard
         setTimeout(addBannerAdminControls, 300);
     }
 };
 window.closeAdminPanel = function() { document.getElementById('adminPanel').classList.remove('open'); if (
         unsubscribeAdmin) { unsubscribeAdmin();
         unsubscribeAdmin = null; } };
+
 window.switchAdminTab = function(tab) {
     document.querySelectorAll('.admin-panel .tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.admin-panel .tabs button').forEach(el => el.classList.remove('active'));
-    document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
-    document.querySelector(`.admin-panel .tabs button[onclick="switchAdminTab('${tab}')"]`)?.classList.add('active');
-    if (tab === 'products') { renderAdminProducts(products); }
-    if (tab === 'users') { loadAdminUsers(); }
+    const tabMap = {
+        'dashboard': 'tabDashboard',
+        'orders': 'tabOrders',
+        'products': 'tabProducts',
+        'users': 'tabUsers',
+        'downloads': 'tabDownloads',
+        'notifications': 'tabNotifications'
+    };
+    const tabId = tabMap[tab] || tabMap['dashboard'];
+    document.getElementById(tabId).classList.add('active');
+    const btn = document.querySelector(`.admin-panel .tabs button[onclick="switchAdminTab('${tab}')"]`);
+    if (btn) btn.classList.add('active');
+    if (tab === 'products') renderAdminProducts(products);
+    if (tab === 'users') loadAdminUsers();
+    if (tab === 'dashboard') loadDashboardStats();
 };
+
+// ============================================================
+// 29. إحصائيات Dashboard (مجموعة global_stats)
+// ============================================================
+
+async function loadDashboardStats() {
+    try {
+        const statsRef = doc(db, 'global_stats', 'stats');
+        const statsSnap = await getDoc(statsRef);
+        let totalOrders = 0;
+        let totalRevenue = 0;
+        if (statsSnap.exists()) {
+            const data = statsSnap.data();
+            totalOrders = data.totalOrders || 0;
+            totalRevenue = data.totalRevenue || 0;
+        }
+        document.getElementById('dashboardTotalOrders').textContent = totalOrders;
+        document.getElementById('dashboardTotalRevenue').textContent = `$${totalRevenue.toFixed(2)}`;
+        const netRevenue = totalRevenue * 0.1; // 10% commission
+        document.getElementById('dashboardNetRevenue').textContent = `$${netRevenue.toFixed(2)}`;
+    } catch (error) {
+        console.error('Error loading dashboard stats:', error);
+        // عرض أرقام افتراضية في حال فشل التحميل
+        document.getElementById('dashboardTotalOrders').textContent = '0';
+        document.getElementById('dashboardTotalRevenue').textContent = '$0.00';
+        document.getElementById('dashboardNetRevenue').textContent = '$0.00';
+    }
+}
+
+window.refreshDashboardStats = function() {
+    loadDashboardStats();
+    showToast('🔄 Stats refreshed', 'info');
+};
+
+// تحديث global_stats عند الموافقة على طلب (سيتم استدعاؤها من updateOrderStatus)
+async function updateGlobalStats(orderTotal) {
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
+    try {
+        const statsRef = doc(db, 'global_stats', 'stats');
+        await setDoc(statsRef, {
+            totalOrders: increment(1),
+            totalRevenue: increment(orderTotal || 0),
+            updatedAt: serverTimestamp()
+        }, { merge: true });
+        console.log('✅ Global stats updated');
+    } catch (error) {
+        console.error('❌ Failed to update global stats:', error);
+    }
+}
+
+// تعديل updateOrderStatus لإضافة تحديث الإحصائيات عند الموافقة على الطلب (حالة delivered أو completed)
+// في دالة updateOrderStatus، بعد تحديث حالة الطلب، أضف:
+// if (newStatus === 'delivered' || newStatus === 'completed') {
+//     await updateGlobalStats(updatedOrder.total);
+// }
+
+// ============================================================
+// 30. إدارة المنتجات (Admin Products)
+// ============================================================
 
 function renderAdminProducts(productsList) {
     const container = document.getElementById('adminProductsList');
@@ -2813,7 +2924,7 @@ async function deleteProductFromFirestore(productId) {
 }
 
 // ============================================================
-// 28. الطلبات (Admin Orders) - مع إزالة التكرارات
+// 31. الطلبات (Admin Orders)
 // ============================================================
 
 function startAdminRealtimeListener() {
@@ -3001,6 +3112,12 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
         const statusLabel = statusLabels[newStatus] || newStatus;
         showToast(`📦 Order updated to ${statusLabel}`, 'success');
 
+        // تحديث الإحصائيات العامة إذا تم تسليم الطلب
+        if (updatedOrder && (newStatus === 'delivered' || newStatus === 'completed')) {
+            await updateGlobalStats(updatedOrder.total || 0);
+            console.log('📊 Global stats updated for order:', orderId);
+        }
+
         if (updatedOrder) {
             const itemsNames = updatedOrder.items ? updatedOrder.items.map(i => i.name).join(', ') : 'Your order';
             const userMsg =
@@ -3072,7 +3189,7 @@ window.refreshAdminOrders = function() { loadAdminOrders();
     showToast('🔄 Refreshed', 'info'); };
 
 // ============================================================
-// 29. المستخدمين (Admin Users)
+// 32. المستخدمين (Admin Users)
 // ============================================================
 
 async function loadAdminUsers() {
@@ -3089,7 +3206,7 @@ async function loadAdminUsers() {
             usersList.push({ uid: doc.id, ...data, email: data.email || doc.id, name: data.name ||
                     'Unknown', createdAt: data.createdAt ? new Date(data.createdAt.toDate()) :
                     new Date(), isBanned: data.isBanned || false, history: data.history || [],
-                rp: data.rp || 0, referralCode: data.referralCode || '' });
+                rp: data.rp || 0, referralCode: data.referralCode || '', location: data.location || data.country || 'N/A' });
         });
         allUsers = usersList;
         renderAdminUsers(usersList);
@@ -3121,11 +3238,13 @@ function renderAdminUsers(usersList) {
         const rp = user.rp || 0;
         const initials = (user.name || 'U').charAt(0).toUpperCase();
         const dateStr = user.createdAt ? user.createdAt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '--';
+        const location = user.location || 'N/A';
         return `
           <div class="admin-user-card ${isBanned?'banned':''}">
             <div class="user-avatar">${initials}</div>
             <div class="user-name">${user.name||'Unknown'}</div>
             <div class="user-email">${user.email||'No email'}</div>
+            <div class="user-meta">📍 ${location}</div>
             <div class="user-meta">📅 ${dateStr} • 🎯 ${rp} RP</div>
             <div class="user-meta">📦 ${orderCount} orders</div>
             ${isBanned?`<span class="user-badge banned">🚫 Banned</span>`:''}
@@ -3165,6 +3284,7 @@ window.deleteUserAccount = async function(uid) {
         loadAdminOrders(); } catch (error) { console.error('Error deleting user:', error);
         showToast('❌ Error: ' + error.message, 'error'); }
 };
+
 window.viewUserDetails = async function(uid) {
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
     try {
@@ -3174,31 +3294,40 @@ window.viewUserDetails = async function(uid) {
         const data = userSnap.data();
         const orders = data.history || [];
         const totalSpent = orders.reduce((sum, o) => sum + (o.total || 0), 0);
-        const ordersHtml = orders.length > 0 ? orders.slice(-5).reverse().map(o =>
-            `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px;font-family:var(--font);"><span>${o.items?o.items.map(i=>i.name).join(', '):'Order'}</span><span style="color:var(--primary);">${(o.total||0).toFixed(2)} $</span><span class="status-badge ${o.status||'pending'}" style="font-size:9px;padding:1px 8px;">${o.status||'pending'}</span></div>`
-        ).join('') :
-            '<div style="text-align:center;color:var(--text-secondary);opacity:0.4;padding:10px;">No orders</div>';
+        const location = data.location || data.country || 'Not specified';
+
         const content = document.getElementById('userDetailsContent');
         content.innerHTML = `
-      <div style="padding:4px 0;">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
-          <div style="width:44px;height:44px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;">${(data.name||'U').charAt(0).toUpperCase()}</div>
-          <div><div style="font-size:15px;font-weight:700;color:var(--text);font-family:var(--font);">${data.name||'Unknown'}</div><div style="font-size:12px;color:var(--text-secondary);font-family:var(--font);">${data.email||'No email'}</div><div style="font-size:12px;color:var(--vip-color);font-weight:600;font-family:var(--font);">🎯 RP: ${data.rp||0} • 📦 ${orders.length} orders</div></div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px;">
-          <div style="background:var(--bg);border-radius:6px;padding:6px;text-align:center;border:1px solid var(--border);"><div style="font-size:14px;font-weight:700;color:var(--text);font-family:var(--font);">${orders.length}</div><div style="font-size:9px;color:var(--text-secondary);font-family:var(--font);">Orders</div></div>
-          <div style="background:var(--bg);border-radius:6px;padding:6px;text-align:center;border:1px solid var(--border);"><div style="font-size:14px;font-weight:700;color:var(--primary);font-family:var(--font);">${totalSpent.toFixed(2)} $</div><div style="font-size:9px;color:var(--text-secondary);font-family:var(--font);">Spent</div></div>
-          <div style="background:var(--bg);border-radius:6px;padding:6px;text-align:center;border:1px solid var(--border);"><div style="font-size:14px;font-weight:700;color:var(--vip-color);font-family:var(--font);">${data.rp||0}</div><div style="font-size:9px;color:var(--text-secondary);font-family:var(--font);">RP</div></div>
-        </div>
-        <div style="font-size:12px;font-weight:600;color:var(--text-secondary);font-family:var(--font);margin-bottom:4px;">Recent Orders</div>
-        ${ordersHtml}
-        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
-          <button onclick="closeUserDetailsModal();" style="padding:4px 14px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);cursor:pointer;font-family:var(--font);font-size:12px;">Close</button>
-          ${data.isBanned?`<button onclick="closeUserDetailsModal();toggleUserBan('${uid}',false);" style="padding:4px 14px;border:none;border-radius:6px;background:var(--success);color:#0a0a1a;cursor:pointer;font-family:var(--font);font-weight:600;font-size:12px;"><i class="fas fa-user-check"></i> Unban</button>`:`<button onclick="closeUserDetailsModal();toggleUserBan('${uid}',true);" style="padding:4px 14px;border:none;border-radius:6px;background:var(--danger);color:#fff;cursor:pointer;font-family:var(--font);font-weight:600;font-size:12px;"><i class="fas fa-ban"></i> Ban</button>`}
-          ${uid!==currentUser.uid?`<button onclick="closeUserDetailsModal();deleteUserAccount('${uid}');" style="padding:4px 14px;border:none;border-radius:6px;background:var(--danger);color:#fff;cursor:pointer;font-family:var(--font);font-weight:600;font-size:12px;"><i class="fas fa-trash"></i> Delete</button>`:''}
-        </div>
-      </div>
-    `;
+          <div style="padding:4px 0;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+              <div style="width:44px;height:44px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;">${(data.name||'U').charAt(0).toUpperCase()}</div>
+              <div>
+                <div style="font-size:15px;font-weight:700;color:var(--text);">${data.name||'Unknown'}</div>
+                <div style="font-size:12px;color:var(--text-secondary);">${data.email||'No email'}</div>
+                <div style="font-size:12px;color:var(--text-secondary);">📍 Country: ${location}</div>
+                <div style="font-size:12px;color:var(--vip-color);font-weight:600;">🎯 RP: ${data.rp||0} • 📦 ${orders.length} orders</div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px;">
+              <div style="background:var(--bg);border-radius:6px;padding:6px;text-align:center;border:1px solid var(--border);"><div style="font-size:14px;font-weight:700;color:var(--text);">${orders.length}</div><div style="font-size:9px;color:var(--text-secondary);">Orders</div></div>
+              <div style="background:var(--bg);border-radius:6px;padding:6px;text-align:center;border:1px solid var(--border);"><div style="font-size:14px;font-weight:700;color:var(--primary);">${totalSpent.toFixed(2)} $</div><div style="font-size:9px;color:var(--text-secondary);">Spent</div></div>
+              <div style="background:var(--bg);border-radius:6px;padding:6px;text-align:center;border:1px solid var(--border);"><div style="font-size:14px;font-weight:700;color:var(--vip-color);">${data.rp||0}</div><div style="font-size:9px;color:var(--text-secondary);">RP</div></div>
+            </div>
+            <div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;">Recent Orders</div>
+            ${orders.length > 0 ? orders.slice(-5).reverse().map(o => `
+              <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px;">
+                <span>${o.items?o.items.map(i=>i.name).join(', '):'Order'}</span>
+                <span style="color:var(--primary);">${(o.total||0).toFixed(2)} $</span>
+                <span class="status-badge ${o.status||'pending'}" style="font-size:9px;padding:1px 8px;">${o.status||'pending'}</span>
+              </div>
+            `).join('') : '<div style="text-align:center;color:var(--text-secondary);opacity:0.4;padding:10px;">No orders</div>'}
+            <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+              <button onclick="closeUserDetailsModal();" style="padding:4px 14px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;">Close</button>
+              ${data.isBanned?`<button onclick="closeUserDetailsModal();toggleUserBan('${uid}',false);" style="padding:4px 14px;border:none;border-radius:6px;background:var(--success);color:#0a0a1a;cursor:pointer;font-weight:600;font-size:12px;"><i class="fas fa-user-check"></i> Unban</button>`:`<button onclick="closeUserDetailsModal();toggleUserBan('${uid}',true);" style="padding:4px 14px;border:none;border-radius:6px;background:var(--danger);color:#fff;cursor:pointer;font-weight:600;font-size:12px;"><i class="fas fa-ban"></i> Ban</button>`}
+              ${uid!==currentUser.uid?`<button onclick="closeUserDetailsModal();deleteUserAccount('${uid}');" style="padding:4px 14px;border:none;border-radius:6px;background:var(--danger);color:#fff;cursor:pointer;font-weight:600;font-size:12px;"><i class="fas fa-trash"></i> Delete</button>`:''}
+            </div>
+          </div>
+        `;
         document.getElementById('userDetailsModal').classList.add('open');
     } catch (error) { console.error('Error viewing user details:', error);
         showToast('❌ Error loading user details', 'error'); }
@@ -3206,7 +3335,7 @@ window.viewUserDetails = async function(uid) {
 window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
 // ============================================================
-// 30. تاريخ الطلبات (Order History)
+// 33. تاريخ الطلبات (Order History)
 // ============================================================
 
 window.clearOrderHistory = async function() {
@@ -3320,7 +3449,7 @@ window.filterOrders = function(filter) {
 };
 
 // ============================================================
-// 31. السمة (Theme)
+// 34. السمة (Theme)
 // ============================================================
 
 let isDark = true;
@@ -3332,7 +3461,7 @@ document.getElementById('themeToggle')?.addEventListener('click', function() {
 });
 
 // ============================================================
-// 32. معاينة الصورة المرفوعة
+// 35. معاينة الصورة المرفوعة
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -3358,7 +3487,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================================
-// 33. حالة المصادقة
+// 36. حالة المصادقة
 // ============================================================
 
 onAuthStateChanged(auth, async (user) => {
@@ -3411,7 +3540,7 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// 34. Banner تيليجرام
+// 37. Banner تيليجرام
 // ============================================================
 
 function showTelegramBanner() {
@@ -3548,7 +3677,7 @@ function resetBannerForAll() {
 }
 
 // ============================================================
-// 35. توجيه الاتجاه (Fix Direction)
+// 38. توجيه الاتجاه (Fix Direction)
 // ============================================================
 
 function fixDirection() {
@@ -3586,7 +3715,7 @@ window.openCreateNotificationModal = function() {
 };
 
 // ============================================================
-// 36. التهيئة (Init)
+// 39. التهيئة (Init)
 // ============================================================
 
 async function init() {
@@ -3637,7 +3766,7 @@ setTimeout(() => {
 }, 5000);
 
 // ============================================================
-// 37. التصديرات
+// 40. التصديرات
 // ============================================================
 
 window.showToast = showToast;
@@ -3730,6 +3859,9 @@ window.updateFeaturedSettings = updateFeaturedSettings;
 window.closePreviewModal = closePreviewModal;
 window.addToCartFromPreview = addToCartFromPreview;
 window.shareFromPreview = shareFromPreview;
+window.refreshDashboardStats = refreshDashboardStats;
+window.loadDashboardStats = loadDashboardStats;
+window.getUserCountryByIP = getUserCountryByIP;
 
 // ============================================================
 // END OF SCRIPT.JS
