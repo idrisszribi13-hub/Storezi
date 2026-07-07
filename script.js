@@ -240,58 +240,33 @@ window.bindTelegram = async function() {
 // ✅ مستمع الربط - بدون مهلة زمنية
 function startBindingListener(bindCode) {
     const bindRef = doc(db, 'telegram_binds', bindCode);
-    const unsubscribe = onSnapshot(bindRef, (doc) => {
+    const unsubscribe = onSnapshot(bindRef, async (doc) => {
         if (doc.exists()) {
             const data = doc.data();
             console.log('📋 Binding status:', data.status);
             if (data.status === 'completed' && data.telegramChatId) {
-                // تحديث userProfile
-                userProfile.telegramChatId = data.telegramChatId;
-                userProfile.telegram = data.userName || '';
-                saveUserData();
-                
-                // تحديث الواجهة بالكامل
+                // ✅ استدعاء loadUserData لجلب أحدث بيانات المستخدم من Firestore
+                await loadUserData();
+                // تحديث الواجهة
                 renderProfileFull();
                 updateFullUserMenu();
                 updateUI();
                 showToast('✅ Telegram linked successfully!', 'success');
-                
-                // إخفاء البانر
+
                 const banner = document.getElementById('telegramBanner');
                 if (banner) banner.classList.add('hidden');
                 localStorage.removeItem('telegram_banner_hidden');
-                
-                // إرسال رسالة ترحيب للمستخدم
+
                 sendTelegramNotification(
                     userProfile.telegramChatId,
                     `🔔 *Welcome to ZI Store!*\n\nYour account has been linked successfully.\nYou will receive order notifications here.\n\nThank you for using ZI Store! 🚀`
                 );
-                
-                // إلغاء المستمع بعد النجاح
+
                 unsubscribe();
             }
         }
     });
-    // ❌ إزالة setTimeout حتى لا ينقطع المستمع مبكراً
 }
-
-// ✅ اختبار الإشعارات
-window.testTelegramNotification = async function() {
-    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
-    if (!userProfile.telegramChatId) { showToast('⚠️ No Telegram linked', 'warning'); return; }
-
-    const result = await sendTelegramNotification(
-        userProfile.telegramChatId,
-        `🔔 *Test Notification*\n\nThis is a test message from ZI Store.\n📅 ${new Date().toLocaleString()}\n\nIf you see this, notifications are working! ✅`
-    );
-
-    if (result) {
-        showToast('✅ Test sent! Check Telegram.', 'success');
-    } else {
-        showToast('❌ Failed to send test. Check Chat ID.', 'error');
-    }
-};
-
 // ✅ التحقق من حالة الربط (مع تحديث كامل)
 window.checkTelegramStatus = async function() {
     if (!currentUser) {
@@ -299,48 +274,29 @@ window.checkTelegramStatus = async function() {
         return;
     }
     try {
-        const userRef = doc(db, 'users', currentUser.uid);
-        const userSnap = await getDoc(userRef);
-        if (userSnap.exists()) {
-            const data = userSnap.data();
-            const chatId = data.telegramChatId || '';
-            const telegram = data.telegram || '';
-            
-            // تحديث userProfile بالكامل من Firestore
-            userProfile.telegramChatId = chatId;
-            userProfile.telegram = telegram;
-            // تحديث باقي الحقول الضرورية
-            userProfile.name = data.name || userProfile.name;
-            userProfile.email = data.email || userProfile.email;
-            // ... إلخ (يمكن إضافة حقول أخرى)
-            
-            await saveUserData();
-            
-            // تحديث الواجهة بالكامل
-            renderProfileFull();
-            updateFullUserMenu();
-            updateUI();
-            
-            if (chatId) {
-                const maskedId = chatId.slice(0, 4) + '***' + chatId.slice(-4);
-                showToast(`✅ Linked (Chat ID: ${maskedId})`, 'success');
-                // إرسال رسالة تأكيد للمستخدم
-                await sendTelegramNotification(
-                    chatId,
-                    `✅ *Connection verified!*\n\nYour account is linked to Zi Store.\n📅 ${new Date().toLocaleString()}`
-                );
-            } else {
-                showToast('❌ Not linked', 'warning');
-            }
+        // ✅ جلب أحدث بيانات المستخدم من Firestore
+        await loadUserData();
+        // بعد loadUserData، userProfile محدث بالكامل
+        if (userProfile.telegramChatId) {
+            const maskedId = userProfile.telegramChatId.slice(0, 4) + '***' + userProfile.telegramChatId.slice(-4);
+            showToast(`✅ Linked (Chat ID: ${maskedId})`, 'success');
+            // إرسال رسالة تأكيد للمستخدم
+            await sendTelegramNotification(
+                userProfile.telegramChatId,
+                `✅ *Connection verified!*\n\nYour account is linked to Zi Store.\n📅 ${new Date().toLocaleString()}`
+            );
         } else {
-            showToast('❌ User document not found', 'error');
+            showToast('❌ Not linked', 'warning');
         }
+        // تحديث الواجهة
+        renderProfileFull();
+        updateFullUserMenu();
+        updateUI();
     } catch (error) {
         console.error('Check telegram status error:', error);
         showToast('❌ Error checking status: ' + error.message, 'error');
     }
 };
-
 // ✅ إلغاء الربط
 window.unlinkTelegram = async function() {
     if (!currentUser) {
