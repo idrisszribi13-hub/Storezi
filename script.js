@@ -200,7 +200,7 @@ async function checkUserBanned(uid) {
 }
 
 // ============================================================
-// 6. جلب الدولة من IP (تلقائياً)
+// 6. جلب الدولة من IP
 // ============================================================
 
 async function getUserCountryByIP() {
@@ -223,11 +223,11 @@ async function getUserCountryByIP() {
 }
 
 // ============================================================
-// 7. دوال تيليجرام (يوجد بها اختصار للطول ولكنها كاملة)
+// 7. دوال تيليجرام (مختصرة)
 // ============================================================
 
 async function sendTelegramNotification(chatId, message) {
-    if (!chatId) { console.error('❌ No chatId'); return false; }
+    if (!chatId) return false;
     try {
         const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
             method: 'POST',
@@ -235,9 +235,9 @@ async function sendTelegramNotification(chatId, message) {
             body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'Markdown' })
         });
         const data = await response.json();
-        if (!data.ok) { console.error('❌ Telegram error:', data.description); return false; }
+        if (!data.ok) { console.error('Telegram error:', data.description); return false; }
         return true;
-    } catch (error) { console.error('❌ Send error:', error); return false; }
+    } catch (error) { console.error('Send error:', error); return false; }
 }
 
 window.bindTelegram = async function() {
@@ -322,7 +322,7 @@ function showToast(message, type = 'success') {
 window.hideToast = function() { document.getElementById('toast')?.classList.remove('show'); };
 
 // ============================================================
-// 9. دوال المستخدم (مختصرة ولكنها كاملة)
+// 9. دوال المستخدم
 // ============================================================
 
 async function getUserId() {
@@ -696,13 +696,13 @@ window.closeHistoryFull = function() { document.getElementById('historyFull').cl
 function openAuthModal() { document.getElementById('authSection').scrollIntoView({ behavior: 'smooth' }); }
 
 // ============================================================
-// 14. عرض الملف الشخصي (مختصر)
+// 14. عرض الملف الشخصي
 // ============================================================
 
 function renderProfileFull() {
     const container = document.getElementById('profileFullContent');
     if (!currentUser) {
-        container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-user-circle" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;font-family:var(--font);">Please login</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Login to view your profile</div></div>`;
+        container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-user-circle" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">Please login</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Login to view your profile</div></div>`;
         return;
     }
     const displayName = currentUser.displayName || currentUser.email || 'User';
@@ -948,8 +948,445 @@ function generateRecommendations(productsList) {
 }
 
 // ============================================================
-// 16-20. المنتجات المميزة، السلة، المفضلة، عرض المنتج (محذوف للاختصار ولكنها موجودة في النسخة الكاملة)
+// 16. المنتجات المميزة (Featured)
 // ============================================================
+
+function renderFeaturedProducts() {
+    const grid = document.getElementById('featuredGrid');
+    if (!grid) return;
+
+    let productsToShow = [];
+    if (featuredSettings.selectedProductIds.length > 0) {
+        productsToShow = products.filter(p => featuredSettings.selectedProductIds.includes(p.id));
+    }
+    if (productsToShow.length === 0) {
+        productsToShow = products.slice(0, 4);
+    }
+    if (productsToShow.length === 0) {
+        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text-secondary);font-size:13px;">No products available</div>`;
+        return;
+    }
+
+    featuredProducts = productsToShow;
+    featuredCurrentIndex = 0;
+    displayFeaturedSlice();
+}
+
+function displayFeaturedSlice() {
+    const grid = document.getElementById('featuredGrid');
+    if (!grid || featuredProducts.length === 0) return;
+
+    const start = featuredCurrentIndex;
+    const end = Math.min(start + 4, featuredProducts.length);
+    const slice = featuredProducts.slice(start, end);
+
+    if (slice.length === 0) {
+        featuredCurrentIndex = 0;
+        displayFeaturedSlice();
+        return;
+    }
+
+    grid.innerHTML = slice.map(p => {
+        const badgeClass = p.price === 0 ? 'free' : (p.status === 'unavailable' ? 'unavailable' : 'vip');
+        const badgeText = p.price === 0 ? 'FREE' : (p.badge || 'VIP');
+        return `
+        <div class="featured-item" onclick="window.openDetails('${p.id}')">
+            <div class="featured-item-image">
+                <img src="${p.image || 'https://picsum.photos/seed/default/200/150'}" alt="${p.name}" loading="lazy" />
+                <span class="featured-item-badge ${badgeClass}">${badgeText}</span>
+            </div>
+            <div class="featured-item-name">${p.name}</div>
+            <div class="featured-item-price">${p.price === 0 ? 'FREE' : '$' + p.price.toFixed(2)}</div>
+        </div>
+    `}).join('');
+}
+
+function startFeaturedRotation() {
+    if (featuredRotationInterval) { clearInterval(featuredRotationInterval); featuredRotationInterval = null; }
+    if (!featuredSettings.enabled || featuredProducts.length <= 4) return;
+    featuredRotationInterval = setInterval(() => {
+        featuredCurrentIndex = (featuredCurrentIndex + 4) % featuredProducts.length;
+        displayFeaturedSlice();
+    }, featuredSettings.rotationInterval);
+}
+function stopFeaturedRotation() { if (featuredRotationInterval) { clearInterval(featuredRotationInterval); featuredRotationInterval = null; } }
+
+// ============================================================
+// 17. إعدادات المنتجات المميزة
+// ============================================================
+
+window.updateFeaturedSettings = async function(settings) {
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
+    try {
+        const settingsRef = doc(db, 'settings', 'featured');
+        await setDoc(settingsRef, { ...settings, updatedAt: serverTimestamp(), updatedBy: currentUser.uid }, { merge: true });
+        featuredSettings = { ...featuredSettings, ...settings };
+        renderFeaturedProducts();
+        if (featuredSettings.enabled) { startFeaturedRotation(); } else { stopFeaturedRotation(); }
+        showToast('✅ Featured settings updated!', 'success');
+        loadFeaturedSettings();
+    } catch (error) { console.error('Error updating featured settings:', error); showToast('❌ Error: ' + error.message, 'error'); }
+};
+
+async function loadFeaturedSettings() {
+    try {
+        const settingsRef = doc(db, 'settings', 'featured');
+        const settingsSnap = await getDoc(settingsRef);
+        if (settingsSnap.exists()) { const data = settingsSnap.data(); featuredSettings = { ...featuredSettings, ...data }; }
+        renderFeaturedProducts();
+        if (featuredSettings.enabled) { startFeaturedRotation(); } else { stopFeaturedRotation(); }
+    } catch (error) { console.error('Error loading featured settings:', error); }
+}
+
+window.openFeaturedSettings = function() {
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
+    document.getElementById('featuredEnabled').checked = featuredSettings.enabled;
+    document.getElementById('featuredInterval').value = featuredSettings.rotationInterval / 1000;
+    const container = document.getElementById('featuredProductSelector');
+    container.innerHTML = products.map(p => `
+        <div class="product-check-item">
+            <input type="checkbox" id="fp_${p.id}" value="${p.id}" ${featuredSettings.selectedProductIds.includes(p.id) ? 'checked' : ''} onchange="updateFeaturedProductSelection()" />
+            <label for="fp_${p.id}">${p.name} (${p.price === 0 ? 'FREE' : '$' + p.price.toFixed(2)})</label>
+        </div>
+    `).join('');
+    document.getElementById('featuredSettingsModal').classList.add('open');
+};
+window.updateFeaturedProductSelection = function() {
+    const checkboxes = document.querySelectorAll('#featuredProductSelector input[type="checkbox"]:checked');
+    featuredSettings.selectedProductIds = Array.from(checkboxes).map(cb => cb.value);
+};
+window.saveFeaturedSettings = function() {
+    const enabled = document.getElementById('featuredEnabled').checked;
+    const interval = parseFloat(document.getElementById('featuredInterval').value) * 1000 || 5000;
+    const settings = { enabled, rotationInterval: interval, selectedProductIds: featuredSettings.selectedProductIds || [] };
+    window.updateFeaturedSettings(settings);
+    document.getElementById('featuredSettingsModal').classList.remove('open');
+};
+window.closeFeaturedSettings = function() { document.getElementById('featuredSettingsModal').classList.remove('open'); };
+
+// ============================================================
+// 18. السلة (مع RP و VIP)
+// ============================================================
+
+window.addToCart = async function(productId) {
+    const product = products.find(p => p.id === productId);
+    if (!product || product.price === 0) { showToast('⚠️ This script is free', 'warning'); return; }
+    const existing = cart.find(item => item.id === productId && !item.isVip);
+    if (existing) { existing.quantity = (existing.quantity || 1) + 1; } else { cart.push({ ...product, quantity: 1 }); }
+    await saveUserData(true);
+    updateCartUI();
+    renderProducts(products);
+    updateBottomCartBar();
+    showToast(`✅ Added ${product.name} to cart`, 'success');
+};
+
+window.clearCart = async function() { if (cart.length === 0) return; cart = []; await saveUserData(); updateCartUI(); renderProducts(products); updateBottomCartBar(); showToast('🗑️ Cart cleared', 'info'); };
+window.removeFromCart = async function(productId) { cart = cart.filter(item => item.id !== productId); await saveUserData(true); updateCartUI(); renderProducts(products); updateBottomCartBar(); showToast('🗑️ Removed from cart', 'info'); };
+window.updateCartQuantity = async function(productId, change) {
+    const item = cart.find(item => item.id === productId);
+    if (!item) return;
+    const newQty = (item.quantity || 1) + change;
+    if (newQty <= 0) { await window.removeFromCart(productId); return; }
+    item.quantity = newQty;
+    await saveUserData();
+    updateCartUI();
+    updateBottomCartBar();
+    renderCartFull();
+};
+
+function updateBottomCartBar() {
+    const bar = document.getElementById('bottomCartBar');
+    const countEl = document.getElementById('bottomCartCount');
+    const totalEl = document.getElementById('bottomCartTotal');
+    const totalItems = cart.reduce((s, i) => s + (i.quantity || 1), 0);
+    let totalSum = 0;
+    cart.forEach(item => { const qty = item.quantity || 1; totalSum += item.price * qty; });
+    let rpDiscountAmount = 0;
+    if (userProfile.useRpForCart) { rpDiscountAmount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, totalSum); }
+    let finalTotal = totalSum - rpDiscountAmount;
+    let promoDiscountAmount = 0;
+    if (activeDiscount > 0 && totalSum > 0) { promoDiscountAmount = (finalTotal * activeDiscount) / 100; finalTotal = finalTotal - promoDiscountAmount; }
+    if (finalTotal < 0) finalTotal = 0;
+    if (cart.length === 0) { bar.classList.remove('open'); return; }
+    bar.classList.add('open');
+    if (countEl) countEl.textContent = totalItems;
+    if (totalEl) totalEl.textContent = '$' + finalTotal.toFixed(2);
+}
+
+function updateCartUI() {
+    const count = document.getElementById('cartBadge');
+    const totalItems = cart.reduce((s, i) => s + (i.quantity || 1), 0);
+    if (count) count.textContent = totalItems;
+    updateBottomCartBar();
+    renderCartFull();
+    updateFullUserMenu();
+}
+
+function renderCartFull() {
+    const container = document.getElementById('cartFullContent');
+    if (cart.length === 0) {
+        container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-shopping-basket" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">Cart is empty</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Start shopping to add items</div></div>`;
+        return;
+    }
+    let html = '';
+    let total = 0;
+    cart.forEach(item => {
+        const qty = item.quantity || 1;
+        const itemTotal = item.price * qty;
+        total += itemTotal;
+        const product = products.find(p => p.id === item.id);
+        const image = product?.image || item.image || 'https://picsum.photos/seed/default/100/100';
+        const vipLabel = item.isVip ? `👑 ${item.vipPlanLabel || 'VIP'}` : '';
+        html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);margin-bottom:8px;"><div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;"><img src="${image}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" /><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.name} ${vipLabel}</div><div style="font-size:12px;color:var(--primary);font-weight:700;">$${itemTotal.toFixed(2)}</div></div></div><div style="display:flex;align-items:center;gap:6px;"><button onclick="updateCartQuantity('${item.id}',-1)" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;">-</button><span style="min-width:20px;text-align:center;font-size:14px;font-weight:700;">${qty}</span><button onclick="updateCartQuantity('${item.id}',1)" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;">+</button><button onclick="removeFromCart('${item.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:14px;opacity:0.3;padding:4px;"><i class="fas fa-trash-alt"></i></button></div></div>`;
+    });
+    let rpDiscountAmount = 0;
+    let promoDiscountAmount = 0;
+    let finalTotal = total;
+    if (userProfile.useRpForCart) { rpDiscountAmount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total); finalTotal = total - rpDiscountAmount; }
+    if (activeDiscount > 0 && total > 0) { promoDiscountAmount = (finalTotal * activeDiscount) / 100; finalTotal = finalTotal - promoDiscountAmount; }
+    if (finalTotal < 0) finalTotal = 0;
+    html += `
+    <div style="background:var(--bg);border-radius:10px;padding:12px;border:1px solid var(--border);margin:8px 0;">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:13px;">
+        <span style="color:var(--text-secondary);opacity:0.5;display:flex;align-items:center;gap:6px;"><i class="fas fa-star" style="color:var(--vip-color);"></i> Loyalty Points (RP)</span>
+        <span style="color:var(--text);font-weight:600;">${userProfile.rp || 0} RP (≈ $${((userProfile.rp || 0) * RP_TO_DOLLAR).toFixed(2)})</span>
+      </div>
+      <button class="rp-btn ${userProfile.useRpForCart?'active':''}" onclick="toggleRpInCart()" style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;transition:0.3s;margin-top:4px;">
+        <i class="fas ${userProfile.useRpForCart?'fa-check-circle':'fa-circle'}"></i>
+        ${userProfile.useRpForCart?'Use RP ✓':'Use RP'}
+      </button>
+    </div>
+    <div style="background:var(--bg);border-radius:10px;padding:12px;border:1px solid var(--border);margin:8px 0;">
+      <div style="display:flex;gap:6px;align-items:center;">
+        <input id="cartPromoInput" placeholder="Enter promo code..." style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);font-size:13px;outline:none;" type="text" />
+        <button onclick="applyCartPromo()" style="padding:6px 14px;border:none;border-radius:6px;background:var(--primary);color:#fff;font-weight:600;cursor:pointer;font-size:12px;transition:0.3s;white-space:nowrap;"><i class="fas fa-ticket-alt"></i> Apply</button>
+      </div>
+      <div class="promo-status" id="cartPromoStatus" style="font-size:11px;color:var(--text-secondary);opacity:0.4;margin-top:4px;">${activeDiscount>0?`✅ ${activeDiscount}% discount active`:'Enter a promo code for a discount'}</div>
+    </div>
+    <div style="margin-top:12px;padding-top:12px;border-top:2px solid var(--border);">
+      <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;"><span style="color:var(--text-secondary);opacity:0.5;">Subtotal</span><span style="color:var(--text);font-weight:600;">$${total.toFixed(2)}</span></div>
+      ${rpDiscountAmount>0?`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;color:var(--success);"><span style="color:var(--text-secondary);opacity:0.5;">🎯 RP discount (${Math.floor(rpDiscountAmount/RP_TO_DOLLAR)} RP)</span><span style="font-weight:600;">-$${rpDiscountAmount.toFixed(2)}</span></div>`:''}
+      ${activeDiscount>0?`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;color:var(--success);"><span style="color:var(--text-secondary);opacity:0.5;">🎫 Promo (${activeDiscount}%)</span><span style="font-weight:600;">-$${promoDiscountAmount.toFixed(2)}</span></div>`:''}
+      <div style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid var(--border);margin-top:4px;padding-top:6px;font-size:18px;font-weight:700;"><span style="color:var(--text-secondary);opacity:0.5;">Total</span><span style="color:var(--primary);">$${finalTotal.toFixed(2)}</span></div>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:16px;">
+        <button onclick="closeCartFull();checkout();" style="flex:1;padding:14px 20px;border:none;border-radius:12px;background:var(--primary);color:#fff;font-weight:700;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;gap:8px;transition:0.3s;">
+          <i class="fas fa-shopping-cart"></i> Checkout
+        </button>
+        <span style="font-size:22px;font-weight:800;color:var(--primary);min-width:80px;text-align:right;">$${finalTotal.toFixed(2)}</span>
+      </div>
+    </div>
+  `;
+    container.innerHTML = html;
+}
+
+window.toggleRpInCart = function() {
+    userProfile.useRpForCart = !userProfile.useRpForCart;
+    saveUserData();
+    renderCartFull();
+    updateBottomCartBar();
+};
+window.applyCartPromo = function() {
+    const input = document.getElementById('cartPromoInput');
+    const code = input.value.trim().toUpperCase();
+    const statusEl = document.getElementById('cartPromoStatus');
+    if (!code) { statusEl.textContent = '⚠️ Please enter a code'; statusEl.className = 'promo-status error'; return; }
+    const codeData = discountCodes[code];
+    if (!codeData) { statusEl.textContent = '❌ Invalid code'; statusEl.className = 'promo-status error'; return; }
+    activeDiscount = codeData.discount; activeDiscountCode = code;
+    statusEl.textContent = `✅ ${codeData.discount}% discount applied!`; statusEl.className = 'promo-status success';
+    input.value = ''; renderCartFull(); showToast(`🎉 ${codeData.discount}% discount applied!`, 'success');
+};
+
+// ============================================================
+// 19. المفضلة
+// ============================================================
+
+window.toggleWishlist = async function(productId) {
+    const index = wishlist.indexOf(productId);
+    const product = products.find(p => p.id === productId);
+    if (index === -1) { wishlist.push(productId); createFloatingHearts(); showToast(`❤️ Added ${product ? product.name : ''} to favorites`, 'success'); } else { wishlist = wishlist.filter(id => id !== productId); showToast(`💔 Removed ${product ? product.name : ''} from favorites`, 'info'); }
+    await saveUserData(true);
+    updateWishlistUI();
+    updateStatsFromProducts(products);
+    renderProducts(products);
+    updateFullUserMenu();
+};
+window.removeFromWishlist = function(id) { window.toggleWishlist(id); };
+
+function updateWishlistUI() {
+    const section = document.getElementById('wishlistSection');
+    const grid = document.getElementById('wishlistGrid');
+    const count = document.getElementById('wishlistBadge');
+    const stats = document.getElementById('wishlistStats');
+    const sub = document.getElementById('wishlistSub');
+    const wlCount = wishlist.length;
+    if (count) count.textContent = wlCount;
+    if (stats) stats.textContent = wlCount;
+    if (sub) sub.textContent = wlCount + ' items';
+    if (wlCount === 0) { if (section) section.style.display = 'none'; if (grid) grid.innerHTML = `<div class="wishlist-empty"><i class="fas fa-heart"></i><p>No favorites yet</p></div>`; return; }
+    if (section) section.style.display = 'block';
+    const wlProducts = products.filter(p => wishlist.includes(p.id));
+    if (grid) { grid.innerHTML = wlProducts.map(p => `<div class="wishlist-item" style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:var(--bg);border-radius:8px;border:1px solid var(--border);transition:0.3s;"><img src="${p.image || 'https://picsum.photos/seed/default/60/60'}" style="width:30px;height:30px;border-radius:6px;object-fit:cover;" /><div class="info" style="flex:1;min-width:0;"><h4 style="font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</h4><div class="price" style="font-size:10px;color:var(--primary);font-weight:700;">${p.price===0?'FREE':p.price+' $'}</div></div><button class="remove-btn" onclick="window.removeFromWishlist('${p.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:11px;opacity:0.3;transition:0.3s;"><i class="fas fa-times"></i></button></div>`).join(''); }
+    updateFullUserMenu();
+}
+
+function renderWishlistFull() {
+    const container = document.getElementById('wishlistFullContent');
+    if (wishlist.length === 0) {
+        container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-heart" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">No favorites yet</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Start adding products to your wishlist</div></div>`;
+        return;
+    }
+    const wlProducts = products.filter(p => wishlist.includes(p.id));
+    container.innerHTML = `<div style="display:grid;gap:8px;">${wlProducts.map(p=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);cursor:pointer;" onclick="window.openDetails('${p.id}');closeWishlistFull();"><img src="${p.image||'https://picsum.photos/seed/default/60/60'}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" /><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div><div style="font-size:12px;color:var(--primary);font-weight:700;">${p.price===0?'FREE':'$'+p.price}</div></div><button onclick="event.stopPropagation();removeFromWishlist('${p.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:14px;opacity:0.3;padding:8px;transition:0.3s;"><i class="fas fa-times"></i></button></div>`).join('')}</div>`;
+}
+
+function createFloatingHearts() {
+    const container = document.getElementById('floatingHearts');
+    const heartCount = 6;
+    for (let i = 0; i < heartCount; i++) {
+        const heart = document.createElement('div');
+        heart.className = 'floating-heart';
+        heart.textContent = ['❤️', '💖', '💗', '💕', '♥️', '💝'][Math.floor(Math.random() * 6)];
+        heart.style.left = (10 + Math.random() * 80) + '%';
+        heart.style.top = (60 + Math.random() * 30) + '%';
+        heart.style.fontSize = (16 + Math.random() * 20) + 'px';
+        heart.style.animationDuration = (1.2 + Math.random() * 0.8) + 's';
+        container.appendChild(heart);
+        setTimeout(() => heart.remove(), 2000);
+    }
+}
+
+// ============================================================
+// 20. عرض المنتج كامل الشاشة (Preview Modal) مع VIP Pricing و Ratings
+// ============================================================
+
+window.openDetails = function(id) {
+    const p = products.find(x => x.id === id);
+    if (!p) return;
+    window._currentProduct = p;
+
+    document.getElementById('previewImage').src = p.image || 'https://picsum.photos/seed/default/400/300';
+    document.getElementById('previewName').textContent = p.name;
+    document.getElementById('previewDescription').textContent = p.description || 'No description available.';
+    document.getElementById('previewBadge').textContent = p.badge || 'PREMIUM';
+    document.getElementById('previewVerified').textContent = p.status === 'available' ? '✅ 100% VERIFIED WORKING PRODUCT' : '⛔ UNAVAILABLE';
+
+    const featuresContainer = document.getElementById('previewFeatures');
+    if (p.features && p.features.length > 0) {
+        const featuresHtml = p.features.map(f => `<li><i class="fas fa-check-circle"></i> ${f}</li>`).join('');
+        featuresContainer.innerHTML = `<div class="features-header"><i class="fas fa-check-circle"></i> Features</div><ul class="features-list">${featuresHtml}</ul>`;
+        featuresContainer.style.display = 'block';
+    } else { featuresContainer.style.display = 'none'; }
+
+    let priceDisplay = p.price === 0 ? 'FREE' : `$${p.price.toFixed(2)}`;
+    document.getElementById('previewPrice').textContent = priceDisplay;
+
+    const addBtn = document.getElementById('previewAddBtn');
+    const inCart = cart.some(item => item.id === id && !item.isVip);
+    if (inCart) {
+        addBtn.innerHTML = '<i class="fas fa-check"></i> Added to Cart';
+        addBtn.style.background = 'var(--success)';
+        addBtn.style.color = '#0a0a1a';
+        addBtn.onclick = () => { closePreviewModal(); openCartFull(); };
+    } else if (p.price === 0) {
+        addBtn.innerHTML = '<i class="fas fa-download"></i> Download';
+        addBtn.style.background = 'var(--free-color)';
+        addBtn.style.color = '#0a0a1a';
+        addBtn.onclick = () => { if (p.downloadLink) { window.open(p.downloadLink, '_blank'); } else { showToast('⏳ Coming soon', 'info'); } };
+    } else if (p.status === 'unavailable') {
+        addBtn.innerHTML = '<i class="fas fa-times-circle"></i> Unavailable';
+        addBtn.style.background = 'var(--text-secondary)';
+        addBtn.style.cursor = 'not-allowed';
+        addBtn.onclick = () => showToast('⛔ Unavailable', 'warning');
+    } else {
+        addBtn.innerHTML = '<i class="fas fa-cart-plus"></i> Add to Cart';
+        addBtn.style.background = 'var(--primary)';
+        addBtn.style.color = '#fff';
+        addBtn.onclick = () => {
+            window.addToCart(id);
+            const updatedBtn = document.getElementById('previewAddBtn');
+            updatedBtn.innerHTML = '<i class="fas fa-check"></i> Added';
+            updatedBtn.style.background = 'var(--success)';
+            updatedBtn.style.color = '#0a0a1a';
+            updatedBtn.onclick = () => { closePreviewModal(); openCartFull(); };
+        };
+    }
+
+    const vipSection = document.getElementById('previewVipPricing');
+    if (p.vipEnabled && p.vipPrices) {
+        const vipPrices = p.vipPrices;
+        const plans = [
+            { key: '1m', label: '1 Month', price: vipPrices['1m'], original: vipPrices['1m_original'] },
+            { key: '3m', label: '3 Months', price: vipPrices['3m'], original: vipPrices['3m_original'] },
+            { key: '1y', label: '1 Year', price: vipPrices['1y'], original: vipPrices['1y_original'] },
+            { key: 'lifetime', label: 'LIFETIME', price: vipPrices['lifetime'], original: vipPrices['lifetime_original'] }
+        ];
+        let gridHtml = ''; let hasValidPlans = false; let firstPlanKey = null;
+        plans.forEach((plan, index) => {
+            const priceNum = parseFloat(plan.price);
+            const originalNum = parseFloat(plan.original);
+            if (priceNum > 0) {
+                hasValidPlans = true;
+                if (!firstPlanKey) firstPlanKey = plan.key;
+                const discount = (originalNum > priceNum) ? Math.round((1 - priceNum / originalNum) * 100) : 0;
+                const hasDiscount = discount > 0;
+                gridHtml += `
+                    <div class="vip-plan ${index === 0 ? 'selected' : ''}" 
+                         data-plan="${plan.key}" data-price="${priceNum}"
+                         onclick="window.selectVipPlan(this, '${plan.key}')">
+                        <div class="vip-plan-check"><i class="fas fa-check-circle"></i></div>
+                        <div class="vip-plan-label">${plan.label}</div>
+                        <div class="vip-plan-price">$${priceNum.toFixed(2)}</div>
+                        ${hasDiscount ? `<div class="vip-plan-original">$${originalNum.toFixed(2)}</div><div class="vip-plan-discount">SAVE ${discount}%</div>` : ''}
+                    </div>
+                `;
+            }
+        });
+        if (hasValidPlans) {
+            document.getElementById('vipPricingGrid').innerHTML = gridHtml;
+            vipSection.style.display = 'block';
+            window._selectedVipPlan = firstPlanKey;
+            const vipAddBtn = document.querySelector('.vip-add-to-cart');
+            if (vipAddBtn) {
+                vipAddBtn.onclick = () => { addVipPlanToCart(p); };
+                vipAddBtn.dataset.productId = p.id;
+            }
+        } else { vipSection.style.display = 'none'; }
+    } else { vipSection.style.display = 'none'; }
+
+    document.getElementById('previewModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+
+    setTimeout(() => {
+        renderRatingSection(id);
+        currentProductIdForRating = id;
+        currentRating = 0;
+    }, 150);
+};
+
+window.selectVipPlan = function(element, planKey) {
+    document.querySelectorAll('.vip-plan').forEach(el => el.classList.remove('selected'));
+    element.classList.add('selected');
+    window._selectedVipPlan = planKey;
+};
+
+function addVipPlanToCart(product) {
+    if (!product) { product = window._currentProduct; if (!product) { showToast('⚠️ Product not found', 'warning'); return; } }
+    const selectedPlan = window._selectedVipPlan || '1m';
+    const vipPrices = product.vipPrices;
+    if (!vipPrices || !vipPrices[selectedPlan]) { showToast('⚠️ Invalid VIP plan', 'warning'); return; }
+    const price = parseFloat(vipPrices[selectedPlan]);
+    if (isNaN(price) || price <= 0) { showToast('⚠️ Invalid price', 'warning'); return; }
+    const planLabels = { '1m': '1 Month', '3m': '3 Months', '1y': '1 Year', 'lifetime': 'LIFETIME' };
+    const existing = cart.find(item => item.id === product.id && item.isVip && item.vipPlan === selectedPlan);
+    if (existing) { existing.quantity = (existing.quantity || 1) + 1; } else { cart.push({ ...product, price: price, quantity: 1, isVip: true, vipPlan: selectedPlan, vipPlanLabel: planLabels[selectedPlan] || selectedPlan, originalPrice: product.price }); }
+    saveUserData(true); updateCartUI(); renderProducts(products); updateBottomCartBar();
+    showToast(`✅ Added ${planLabels[selectedPlan]} VIP plan for ${product.name}`, 'success');
+    closePreviewModal();
+}
+window.closePreviewModal = function() { document.getElementById('previewModal').classList.remove('open'); document.body.style.overflow = ''; };
+window.addToCartFromPreview = function() { if (window._currentProduct) { window.addToCart(window._currentProduct.id); closePreviewModal(); } };
+window.shareFromPreview = function() { if (window._currentProduct) { window.openShareModal(window._currentProduct.id); } };
 
 // ============================================================
 // 21. مودال المشاركة
@@ -1025,38 +1462,1343 @@ function closeSearchResults() { searchResults.classList.remove('active'); search
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeSearchResults(); closeUserMenuFull(); closeCartFull(); closeWishlistFull(); closeProfileFull(); closeHistoryFull(); } });
 
 // ============================================================
-// 23. الدفع (مختصر)
+// 23. الدفع
 // ============================================================
-async function fetchCryptoPrices() { if (cryptoPrices.isUpdating) return; cryptoPrices.isUpdating = true; try { const response = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=LTCUSDT'); const data = await response.json(); if (data && data.price) { cryptoPrices.ltc = parseFloat(data.price); cryptoPrices.usdt = 1; cryptoPrices.lastUpdate = new Date(); updatePriceUI(); } } catch (error) { console.error('Error fetching crypto prices:', error); try { const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=litecoin,tether&vs_currencies=usd'); const data = await response.json(); if (data.litecoin && data.litecoin.usd) { cryptoPrices.ltc = data.litecoin.usd; cryptoPrices.usdt = data.tether?.usd || 1; cryptoPrices.lastUpdate = new Date(); updatePriceUI(); } } catch (e) { console.error('Fallback fetch failed:', e); } } cryptoPrices.isUpdating = false; }
-function getLTCPrice() { return cryptoPrices.ltc || 42; } function getUSDTPrice() { return cryptoPrices.usdt || 1; }
-function updatePriceUI() { const exchangeRate = document.getElementById('exchangeRate'); if (exchangeRate) { if (selectedPayment === 'litecoin' && cryptoPrices.ltc > 0) { exchangeRate.textContent = `1 LTC ≈ $${cryptoPrices.ltc.toFixed(2)} USD`; } else if (selectedPayment === 'usdt') { exchangeRate.textContent = `1 USDT ≈ $${cryptoPrices.usdt.toFixed(2)} USD`; } } }
 
-window.selectPayment = function(method) { selectedPayment = method; document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected')); const optionMap = { 'litecoin': 'optionLitecoin', 'usdt': 'optionUsdt', 'telegram': 'optionTelegram' }; const optionEl = document.getElementById(optionMap[method]); if (optionEl) optionEl.classList.add('selected'); if (method === 'litecoin' || method === 'usdt') { const wallet = method === 'litecoin' ? paymentWallets.litecoin : paymentWallets.usdt; document.getElementById('paymentMethodName').textContent = wallet.name; document.getElementById('cryptoNetwork').textContent = wallet.network; document.getElementById('walletAddressDisplay').textContent = wallet.address; updateCryptoAmount(); updatePriceUI(); } updatePayableTotal(); };
-window.continuePayment = function() { if (!selectedPayment) { showToast('⚠️ Please select a payment method', 'warning'); return; } document.getElementById('paymentStep1').style.display = 'none'; document.getElementById('paymentStep2').classList.add('active'); renderPaymentProducts(); let total = 0; cart.forEach(item => { const qty = item.quantity || 1; total += item.price * qty; }); let rpDiscountAmount = 0; if (userProfile.useRpForCart) { rpDiscountAmount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total); } let finalTotal = total - rpDiscountAmount; let promoDiscountAmount = 0; if (activeDiscount > 0 && total > 0) { promoDiscountAmount = (finalTotal * activeDiscount) / 100; finalTotal = finalTotal - promoDiscountAmount; } if (finalTotal < 0) finalTotal = 0; document.getElementById('step2Subtotal').textContent = `$${total.toFixed(2)}`; document.getElementById('step2Total').textContent = `$${finalTotal.toFixed(2)}`; updateCryptoAmount(); updatePriceUI(); fetchCryptoPrices(); };
+async function fetchCryptoPrices() {
+    if (cryptoPrices.isUpdating) return;
+    cryptoPrices.isUpdating = true;
+    try {
+        const response = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=LTCUSDT');
+        const data = await response.json();
+        if (data && data.price) { cryptoPrices.ltc = parseFloat(data.price); cryptoPrices.usdt = 1; cryptoPrices.lastUpdate = new Date(); updatePriceUI(); }
+    } catch (error) {
+        console.error('Error fetching crypto prices:', error);
+        try {
+            const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=litecoin,tether&vs_currencies=usd');
+            const data = await response.json();
+            if (data.litecoin && data.litecoin.usd) { cryptoPrices.ltc = data.litecoin.usd; cryptoPrices.usdt = data.tether?.usd || 1; cryptoPrices.lastUpdate = new Date(); updatePriceUI(); }
+        } catch (e) { console.error('Fallback fetch failed:', e); }
+    }
+    cryptoPrices.isUpdating = false;
+}
+function getLTCPrice() { return cryptoPrices.ltc || 42; }
+function getUSDTPrice() { return cryptoPrices.usdt || 1; }
+function updatePriceUI() {
+    const exchangeRate = document.getElementById('exchangeRate');
+    if (exchangeRate) {
+        if (selectedPayment === 'litecoin' && cryptoPrices.ltc > 0) { exchangeRate.textContent = `1 LTC ≈ $${cryptoPrices.ltc.toFixed(2)} USD`; }
+        else if (selectedPayment === 'usdt') { exchangeRate.textContent = `1 USDT ≈ $${cryptoPrices.usdt.toFixed(2)} USD`; }
+    }
+}
+function updatePayableTotal() {
+    let total = 0; cart.forEach(item => { const qty = item.quantity || 1; total += item.price * qty; });
+    let finalTotal = total;
+    if (userProfile.useRpForCart) { const rpDiscount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total); finalTotal = total - rpDiscount; }
+    if (activeDiscount > 0 && total > 0) { const discountAmount = (finalTotal * activeDiscount) / 100; finalTotal = finalTotal - discountAmount; }
+    if (finalTotal < 0) finalTotal = 0;
+    document.getElementById('payableTotal').textContent = '$' + finalTotal.toFixed(2);
+}
+function updateCryptoAmount() {
+    const totalEl = document.getElementById('step2Total');
+    if (!totalEl) return;
+    const total = parseFloat(totalEl.textContent.replace('$', '')) || 0;
+    if (selectedPayment === 'litecoin') {
+        const ltcPrice = getLTCPrice();
+        if (ltcPrice > 0) { const amount = total / ltcPrice; document.getElementById('cryptoAmount').textContent = `${amount.toFixed(4)} LTC`; }
+    } else if (selectedPayment === 'usdt') {
+        const usdtPrice = getUSDTPrice();
+        if (usdtPrice > 0) { const amount = total / usdtPrice; document.getElementById('cryptoAmount').textContent = `${amount.toFixed(2)} USDT`; }
+    }
+}
+
+window.selectPayment = function(method) {
+    selectedPayment = method;
+    document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
+    const optionMap = { 'litecoin': 'optionLitecoin', 'usdt': 'optionUsdt', 'telegram': 'optionTelegram' };
+    const optionEl = document.getElementById(optionMap[method]);
+    if (optionEl) optionEl.classList.add('selected');
+    if (method === 'litecoin' || method === 'usdt') {
+        const wallet = method === 'litecoin' ? paymentWallets.litecoin : paymentWallets.usdt;
+        document.getElementById('paymentMethodName').textContent = wallet.name;
+        document.getElementById('cryptoNetwork').textContent = wallet.network;
+        document.getElementById('walletAddressDisplay').textContent = wallet.address;
+        updateCryptoAmount(); updatePriceUI();
+    }
+    updatePayableTotal();
+};
+window.continuePayment = function() {
+    if (!selectedPayment) { showToast('⚠️ Please select a payment method', 'warning'); return; }
+    document.getElementById('paymentStep1').style.display = 'none';
+    document.getElementById('paymentStep2').classList.add('active');
+    renderPaymentProducts();
+    let total = 0;
+    cart.forEach(item => { const qty = item.quantity || 1; total += item.price * qty; });
+    let rpDiscountAmount = 0;
+    if (userProfile.useRpForCart) { rpDiscountAmount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total); }
+    let finalTotal = total - rpDiscountAmount;
+    let promoDiscountAmount = 0;
+    if (activeDiscount > 0 && total > 0) { promoDiscountAmount = (finalTotal * activeDiscount) / 100; finalTotal = finalTotal - promoDiscountAmount; }
+    if (finalTotal < 0) finalTotal = 0;
+    document.getElementById('step2Subtotal').textContent = `$${total.toFixed(2)}`;
+    document.getElementById('step2Total').textContent = `$${finalTotal.toFixed(2)}`;
+    updateCryptoAmount(); updatePriceUI(); fetchCryptoPrices();
+};
 window.goToStep1 = function() { document.getElementById('paymentStep1').style.display = 'block'; document.getElementById('paymentStep2').classList.remove('active'); };
-window.copyWalletAddress = function() { const address = document.getElementById('walletAddressDisplay').textContent; if (address) { navigator.clipboard.writeText(address).then(() => { showToast('✅ Address copied!', 'success'); }).catch(() => { const textArea = document.createElement('textarea'); textArea.value = address; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); showToast('✅ Address copied!', 'success'); }); } };
-function updatePayableTotal() { let total = 0; cart.forEach(item => { const qty = item.quantity || 1; total += item.price * qty; }); let finalTotal = total; if (userProfile.useRpForCart) { const rpDiscount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total); finalTotal = total - rpDiscount; } if (activeDiscount > 0 && total > 0) { const discountAmount = (finalTotal * activeDiscount) / 100; finalTotal = finalTotal - discountAmount; } if (finalTotal < 0) finalTotal = 0; document.getElementById('payableTotal').textContent = '$' + finalTotal.toFixed(2); }
-function updateCryptoAmount() { const totalEl = document.getElementById('step2Total'); if (!totalEl) return; const total = parseFloat(totalEl.textContent.replace('$', '')) || 0; if (selectedPayment === 'litecoin') { const ltcPrice = getLTCPrice(); if (ltcPrice > 0) { const amount = total / ltcPrice; document.getElementById('cryptoAmount').textContent = `${amount.toFixed(4)} LTC`; } } else if (selectedPayment === 'usdt') { const usdtPrice = getUSDTPrice(); if (usdtPrice > 0) { const amount = total / usdtPrice; document.getElementById('cryptoAmount').textContent = `${amount.toFixed(2)} USDT`; } } }
-function renderPaymentProducts() { const container = document.getElementById('paymentProductsList'); if (!container) return; if (!cart || cart.length === 0) { container.innerHTML = '<div style="text-align:center;padding:8px;color:var(--text-secondary);opacity:0.4;">No products</div>'; return; } container.innerHTML = cart.map(item => { const qty = item.quantity || 1; const total = item.price * qty; const product = products.find(p => p.id === item.id); const image = product?.image || item.image || 'https://picsum.photos/seed/default/60/60'; return `<div class="payment-product-item"><img src="${image}" alt="${item.name}" /><div class="pp-info"><div class="pp-name">${item.name}</div><div class="pp-price">${total.toFixed(2)} $</div></div><div class="pp-qty">×${qty}</div></div>`; }).join(''); }
+window.copyWalletAddress = function() {
+    const address = document.getElementById('walletAddressDisplay').textContent;
+    if (address) {
+        navigator.clipboard.writeText(address).then(() => { showToast('✅ Address copied!', 'success'); })
+        .catch(() => { const textArea = document.createElement('textarea'); textArea.value = address; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); showToast('✅ Address copied!', 'success'); });
+    }
+};
+function renderPaymentProducts() {
+    const container = document.getElementById('paymentProductsList');
+    if (!container) return;
+    if (!cart || cart.length === 0) { container.innerHTML = '<div style="text-align:center;padding:8px;color:var(--text-secondary);opacity:0.4;">No products</div>'; return; }
+    container.innerHTML = cart.map(item => {
+        const qty = item.quantity || 1;
+        const total = item.price * qty;
+        const product = products.find(p => p.id === item.id);
+        const image = product?.image || item.image || 'https://picsum.photos/seed/default/60/60';
+        return `<div class="payment-product-item"><img src="${image}" alt="${item.name}" /><div class="pp-info"><div class="pp-name">${item.name}</div><div class="pp-price">${total.toFixed(2)} $</div></div><div class="pp-qty">×${qty}</div></div>`;
+    }).join('');
+}
+
+function sendOrderToTelegram(method, txHash = null) {
+    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
+    if (currentUser.isAnonymous) { showToast('⚠️ Please sign in to place an order.', 'warning'); return; }
+
+    let total = 0;
+    let itemsList = '';
+    const productNames = [];
+    cart.forEach((item, i) => {
+        const qty = item.quantity || 1;
+        const sub = item.price * qty;
+        total += sub;
+        itemsList += `${i+1}. ${item.name} × ${qty} = ${sub.toFixed(2)} $\n`;
+        productNames.push(item.name);
+    });
+
+    let finalTotal = total;
+    let discountText = '';
+    let rpDiscountAmount = 0;
+    if (userProfile.useRpForCart) {
+        rpDiscountAmount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total);
+        finalTotal = total - rpDiscountAmount;
+        discountText += `\n🎯 RP discount (${Math.floor(rpDiscountAmount/RP_TO_DOLLAR)} RP): -${rpDiscountAmount.toFixed(2)}$`;
+    }
+    if (activeDiscount > 0 && total > 0) {
+        const discountAmount = (finalTotal * activeDiscount) / 100;
+        finalTotal = finalTotal - discountAmount;
+        discountText += `\n🎫 Promo (${activeDiscount}%): -${discountAmount.toFixed(2)}$`;
+    }
+
+    const orderId = 'order_' + Date.now();
+    const RP_EARN_RATE = 0.1;
+    const rpEarned = Math.floor((finalTotal / RP_TO_DOLLAR) * RP_EARN_RATE);
+    if (rpEarned > 0) {
+        userProfile.rp = (userProfile.rp || 0) + rpEarned;
+        discountText += `\n🎯 RP Earned: +${rpEarned} RP (value $${finalTotal.toFixed(2)})`;
+        showToast(`🎉 Earned ${rpEarned} RP!`, 'success');
+    }
+
+    let adminMsg = '🛒 **New Order**\n\n';
+    adminMsg += `👤 **Customer:** ${currentUser.displayName || currentUser.email || 'Unknown'}\n`;
+    adminMsg += `📧 **Email:** ${currentUser.email || 'N/A'}\n`;
+    adminMsg += `📅 **Date:** ${new Date().toLocaleString()}\n\n`;
+    adminMsg += `📦 **Products:**\n${itemsList}\n`;
+    adminMsg += `💰 **Subtotal:** ${total.toFixed(2)}$`;
+    if (discountText) adminMsg += discountText;
+    adminMsg += `\n💵 **Total:** ${finalTotal.toFixed(2)}$`;
+    adminMsg += `\n💬 **Payment Method:** ${method}`;
+    adminMsg += `\n🎯 **Current RP:** ${userProfile.rp || 0}`;
+    if (method === 'litecoin') {
+        adminMsg += `\n📍 **LTC Address:** ${paymentWallets.litecoin.address}`;
+        if (txHash) adminMsg += `\n🔍 **Tx Hash:** ${txHash}`;
+    } else if (method === 'usdt') {
+        adminMsg += `\n📍 **USDT Address:** ${paymentWallets.usdt.address}`;
+        if (txHash) adminMsg += `\n🔍 **Tx Hash:** ${txHash}`;
+    }
+    adminMsg += `\n\n📎 **Order ID:** #${orderId.slice(-6)}`;
+    sendTelegramNotification(TELEGRAM_CHAT_ID, adminMsg);
+
+    if (userProfile.telegramChatId) {
+        const userMsg = `🛒 *New Order*\n\n📦 #${orderId.slice(-6)}\n💰 ${finalTotal.toFixed(2)}$\n📅 ${new Date().toLocaleString()}\n${rpEarned > 0 ? `🎯 +${rpEarned} RP Bonus!\n` : ''}\nThank you for shopping with us! Your order will be processed soon.`;
+        sendTelegramNotification(userProfile.telegramChatId, userMsg);
+    }
+
+    window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(adminMsg)}`, '_blank');
+
+    const orderItem = {
+        id: orderId,
+        items: cart.map(item => ({ id: item.id, name: item.name, price: item.price, quantity: item.quantity || 1 })),
+        total: finalTotal,
+        method: method,
+        date: new Date().toISOString(),
+        status: 'pending',
+        txHash: txHash || null,
+        rpUsed: Math.floor(rpDiscountAmount / RP_TO_DOLLAR) || 0,
+        rpEarned: rpEarned || 0
+    };
+
+    const rpToDeduct = Math.floor(rpDiscountAmount / RP_TO_DOLLAR);
+    if (rpToDeduct > 0) {
+        userProfile.rp = (userProfile.rp || 0) - rpToDeduct;
+        userProfile.useRpForCart = false;
+    }
+
+    const userRef = doc(db, 'users', currentUser.uid);
+    updateDoc(userRef, { history: arrayUnion(orderItem), rp: userProfile.rp || 0, useRpForCart: false }).catch(console.error);
+    userProfile.history.push(orderItem);
+
+    try {
+        addDoc(collection(db, 'notifications'), {
+            title: `🛒 New Order #${orderId.slice(-6)}`,
+            message: `Your order has been placed successfully! Total: ${finalTotal.toFixed(2)}$`,
+            userId: currentUser.uid,
+            readBy: [],
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        }).catch(e => console.error('Error saving notification:', e));
+    } catch (e) { console.error('Error saving notification:', e); }
+
+    // تشغيل Social Proof
+    triggerSocialProofOnOrder(currentUser.displayName || currentUser.email || 'User', productNames);
+
+    cart = []; activeDiscount = 0; activeDiscountCode = '';
+    saveUserData();
+    updateCartUI();
+    updateBottomCartBar();
+    renderProducts(products);
+    generateRecommendations(products);
+    updateRpDisplay();
+
+    showToast('📤 Order placed successfully!', 'success');
+    document.getElementById('paymentModal').classList.remove('open');
+    document.getElementById('paymentStep1').style.display = 'block';
+    document.getElementById('paymentStep2').classList.remove('active');
+    selectedPayment = null;
+    document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
+
+    setTimeout(() => {
+        if (currentUser && currentUser.email === ADMIN_EMAIL) { loadAdminOrders(); }
+        loadUserData();
+        updateDropdownStats();
+        updateFullUserMenu();
+    }, 1000);
+}
+
+window.placeOrder = function() {
+    const txHash = document.getElementById('transactionHashInput').value.trim();
+    if (selectedPayment === 'litecoin' || selectedPayment === 'usdt') {
+        if (!txHash) {
+            showToast('⚠️ Please paste the transaction hash', 'warning');
+            document.getElementById('transactionHashInput').style.borderColor = 'var(--danger)';
+            setTimeout(() => { document.getElementById('transactionHashInput').style.borderColor = ''; }, 2000);
+            return;
+        }
+    }
+    sendOrderToTelegram(selectedPayment, txHash);
+};
+window.openPaymentModal = function() {
+    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); openAuthModal(); return; }
+    if (currentUser.isAnonymous) { showToast('⚠️ Please sign in to place an order.', 'warning'); openAuthModal(); return; }
+    if (cart.length === 0) { showToast('⚠️ Cart is empty', 'warning'); return; }
+    document.getElementById('paymentModal').classList.add('open');
+    document.getElementById('paymentStep1').style.display = 'block';
+    document.getElementById('paymentStep2').classList.remove('active');
+    selectedPayment = null;
+    document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
+    updatePayableTotal(); fetchCryptoPrices();
+};
+window.closePaymentModal = function() { document.getElementById('paymentModal').classList.remove('open'); document.getElementById('paymentStep1').style.display = 'block'; document.getElementById('paymentStep2').classList.remove('active'); selectedPayment = null; document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected')); };
+window.checkout = function() { openPaymentModal(); };
 
 // ============================================================
-// 24-32. التحميلات، الإشعارات، الطلبات، الإحالات، لوحة المدير (مختصرة)
-// يتم الاحتفاظ بكامل الوظائف من النسخة السابقة
+// 24. التحميلات
 // ============================================================
 
-// ============================================================
-// 33-41. تاريخ الطلبات، السمة، معاينة الصورة، المصادقة، إلخ
-// ============================================================
+function loadDownloads() {
+    if (unsubscribeDownloads) { unsubscribeDownloads(); }
+    const dlRef = collection(db, 'downloads');
+    unsubscribeDownloads = onSnapshot(query(dlRef, orderBy('createdAt', 'desc')), (snapshot) => {
+        downloads = [];
+        snapshot.forEach((doc) => { downloads.push({ id: doc.id, ...doc.data() }); });
+        renderDownloads();
+        renderAdminDownloads();
+    }, (error) => { console.error('Downloads listener error:', error); });
+}
+
+function renderDownloads() {
+    const container = document.getElementById('downloadsList');
+    if (!container) return;
+    if (downloads.length === 0) { container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-file" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">No downloads</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Stay tuned for new content</div></div>`; return; }
+    container.innerHTML = downloads.map(d => {
+        const date = d.date || (d.createdAt ? new Date(d.createdAt.toDate()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '');
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);margin-bottom:8px;"><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);">${d.title}</div><div style="font-size:11px;color:var(--text-secondary);opacity:0.4;">${d.type||'File'} • ${date}</div></div><a href="${d.downloadUrl||'#'}" target="_blank" style="padding:6px 16px;border:none;border-radius:8px;background:var(--free-color);color:#0a0a1a;font-weight:600;cursor:pointer;font-size:12px;text-decoration:none;transition:0.3s;"><i class="fas fa-download"></i></a></div>`;
+    }).join('');
+}
+
+function renderAdminDownloads() {
+    const container = document.getElementById('adminDownloadsList');
+    if (!container) return;
+    if (downloads.length === 0) { container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">📭 No downloads</div>`; return; }
+    container.innerHTML = downloads.map(d => `<div class="admin-item"><div class="item-info"><div class="item-title">${d.title}</div><div class="item-meta">${d.type||'File'} • ${d.downloadUrl||'No link'}</div></div><div class="item-actions"><button class="btn-edit" onclick="editDownload('${d.id}')"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="deleteDownload('${d.id}')"><i class="fas fa-trash"></i></button></div></div>`).join('');
+}
+
+window.openDownloads = function() { document.getElementById('downloadsModal').classList.add('open'); };
+window.closeDownloads = function() { document.getElementById('downloadsModal').classList.remove('open'); };
+window.createDownload = async function(e) {
+    e.preventDefault();
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
+    const title = document.getElementById('dlTitle').value.trim();
+    const type = document.getElementById('dlType').value.trim();
+    const description = document.getElementById('dlDescription').value.trim();
+    const downloadUrl = document.getElementById('dlUrl').value.trim();
+    const date = document.getElementById('dlDate').value;
+    if (!title || !type || !description || !downloadUrl) { showToast('⚠️ Please fill all fields', 'warning'); return; }
+    try {
+        await addDoc(collection(db, 'downloads'), { title, type, description, downloadUrl, date: date || new Date().toISOString().split('T')[0], createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+        showToast('✅ Download added', 'success');
+        closeCreateDownloadModal();
+        document.getElementById('createDownloadForm').reset();
+    } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
+};
+window.deleteDownload = async function(id) {
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (!confirm('Delete this download?')) return;
+    try { await deleteDoc(doc(db, 'downloads', id)); showToast('🗑️ Download deleted', 'success'); } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
+};
+window.editDownload = function(id) { showToast('✏️ Edit feature coming soon', 'info'); };
+window.openCreateDownloadModal = function() { if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; } document.getElementById('createDownloadModal').classList.add('open'); document.getElementById('createDownloadForm').reset(); };
+window.closeCreateDownloadModal = function() { document.getElementById('createDownloadModal').classList.remove('open'); };
 
 // ============================================================
-// 42. تصدير الطلبات (CSV) - موجود
+// 25. الإشعارات
+// ============================================================
+
+function loadNotifications() {
+    if (unsubscribeNotifications) { unsubscribeNotifications(); }
+    const notifRef = collection(db, 'notifications');
+    try {
+        getDocs(query(notifRef, orderBy('createdAt', 'desc'))).then((snapshot) => {
+            notifications = [];
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                if (!data.userId || data.userId === currentUser?.uid) {
+                    notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] });
+                }
+            });
+            if (currentUser) {
+                const userId = currentUser.uid;
+                unreadNotifications = notifications.filter(n => !(n.readBy || []).includes(userId)).length;
+            } else { unreadNotifications = 0; }
+            updateNotificationBadge();
+            renderAdminNotifications();
+            renderUserNotifications();
+        }).catch((error) => { console.error('Error loading notifications:', error); renderUserNotificationsFallback(); });
+
+        unsubscribeNotifications = onSnapshot(query(notifRef, orderBy('createdAt', 'desc')), (snapshot) => {
+            if (isUpdatingNotifications) return;
+            notifications = [];
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                if (!data.userId || data.userId === currentUser?.uid) {
+                    notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] });
+                }
+            });
+            if (currentUser) {
+                const userId = currentUser.uid;
+                unreadNotifications = notifications.filter(n => !(n.readBy || []).includes(userId)).length;
+            } else { unreadNotifications = 0; }
+            updateNotificationBadge();
+            renderAdminNotifications();
+            renderUserNotifications();
+        }, (error) => { console.error('Notifications listener error:', error); });
+    } catch (error) { console.error('Error setting up notifications:', error); renderUserNotificationsFallback(); }
+}
+
+function renderUserNotificationsFallback() {
+    const container = document.getElementById('notificationsList');
+    if (!container) return;
+    container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-bell" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">No notifications</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Notifications will appear here</div></div>`;
+}
+
+function renderUserNotifications() {
+    const container = document.getElementById('notificationsList');
+    if (!container) return;
+    if (!notifications || notifications.length === 0) { container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-bell" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">No notifications</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Notifications will appear here</div></div>`; return; }
+    let html = '';
+    notifications.forEach(n => {
+        const isRead = currentUser && (n.readBy || []).includes(currentUser.uid);
+        let dateStr = '';
+        try { if (n.createdAt) { const date = n.createdAt.toDate ? n.createdAt.toDate() : new Date(n.createdAt); dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); } } catch (e) { dateStr = new Date().toLocaleDateString('en-US'); }
+        html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:${!isRead?'var(--primary-glow)':'var(--bg)'};border-radius:10px;border:1px solid var(--border);margin-bottom:8px;${!isRead?'border-left:3px solid var(--primary);':''}"><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);">${n.title||'Notification'}</div><div style="font-size:12px;color:var(--text-secondary);">${n.message||''}</div><div style="font-size:11px;color:var(--text-secondary);opacity:0.3;">${dateStr}</div></div>${!isRead?'<span style="background:var(--notification-red);color:#fff;font-size:9px;font-weight:700;padding:2px 10px;border-radius:12px;">New</span>':''}</div>`;
+    });
+    container.innerHTML = html;
+}
+
+function renderAdminNotifications() {
+    const container = document.getElementById('adminNotificationsList');
+    if (!container) return;
+    const notifRef = collection(db, 'notifications');
+    getDocs(query(notifRef, orderBy('createdAt', 'desc'))).then((snapshot) => {
+        let allNotifs = [];
+        snapshot.forEach((doc) => { allNotifs.push({ id: doc.id, ...doc.data() }); });
+        if (allNotifs.length === 0) { container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">📭 No notifications</div>`; return; }
+        container.innerHTML = allNotifs.map(n => `<div class="admin-item"><div class="item-info"><div class="item-title">${n.title||'Notification'}</div><div class="item-meta">${n.message||''} • ${n.userId ? 'User: ' + n.userId.slice(-6) : 'Global'} • ${n.createdAt?new Date(n.createdAt.toDate()).toLocaleDateString('en-US'):''}</div></div><div class="item-actions"><button class="btn-delete" onclick="deleteNotification('${n.id}')"><i class="fas fa-trash"></i></button></div></div>`).join('');
+    }).catch((error) => { console.error('Error loading admin notifications:', error); });
+}
+
+function updateNotificationBadge() {
+    const badge = document.getElementById('notifBadge');
+    if (badge) {
+        if (unreadNotifications > 0) { badge.style.display = 'inline-flex'; badge.textContent = unreadNotifications; } else { badge.style.display = 'none'; }
+    }
+    updateFullUserMenu();
+}
+
+window.markAllNotificationsRead = async function() {
+    if (!currentUser) return;
+    if (isUpdatingNotifications) return;
+    const userId = currentUser.uid;
+    const unreadNotifs = notifications.filter(n => !(n.readBy || []).includes(userId));
+    if (unreadNotifs.length === 0) { showToast('📭 No unread notifications', 'info'); return; }
+    isUpdatingNotifications = true;
+    let updatedCount = 0;
+    for (const n of unreadNotifs) {
+        try { await updateDoc(doc(db, 'notifications', n.id), { readBy: arrayUnion(userId) }); updatedCount++; } catch (e) { console.error('Error marking notification read:', e); }
+    }
+    if (updatedCount > 0) { unreadNotifications = 0; updateNotificationBadge(); renderUserNotifications(); showToast(`✅ ${updatedCount} notifications marked read`, 'success'); }
+    isUpdatingNotifications = false;
+};
+window.clearAllNotifications = async function() {
+    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
+    try {
+        const notifRef = collection(db, 'notifications');
+        const snapshot = await getDocs(query(notifRef, where('userId', '==', currentUser.uid)));
+        const batch = [];
+        snapshot.forEach((doc) => { batch.push(deleteDoc(doc.ref)); });
+        await Promise.all(batch);
+        notifications = []; unreadNotifications = 0;
+        updateNotificationBadge(); renderUserNotifications(); renderAdminNotifications();
+        showToast('🗑️ All notifications cleared', 'success');
+    } catch (error) { console.error('Error clearing notifications:', error); showToast('❌ Error clearing notifications', 'error'); }
+};
+window.openNotifications = function() { document.getElementById('notificationsModal').classList.add('open'); };
+window.closeNotifications = function() { document.getElementById('notificationsModal').classList.remove('open'); };
+window.createNotification = async function(e) {
+    e.preventDefault();
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
+    const title = document.getElementById('notifTitle').value.trim();
+    const message = document.getElementById('notifMessage').value.trim();
+    if (!title || !message) { showToast('⚠️ Please fill all fields', 'warning'); return; }
+    try {
+        await addDoc(collection(db, 'notifications'), { title, message, readBy: [], createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+        showToast('✅ Notification sent', 'success');
+        closeCreateNotificationModal();
+        document.getElementById('createNotificationForm').reset();
+    } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
+};
+window.deleteNotification = async function(id) {
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (!confirm('Delete this notification?')) return;
+    try { await deleteDoc(doc(db, 'notifications', id)); showToast('🗑️ Notification deleted', 'success'); } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
+};
+window.openCreateNotificationModal = function() { if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; } document.getElementById('createNotificationModal').classList.add('open'); document.getElementById('createNotificationForm').reset(); };
+window.closeCreateNotificationModal = function() { document.getElementById('createNotificationModal').classList.remove('open'); };
+
+// ============================================================
+// 26. الطلبات (Requests)
+// ============================================================
+
+window.openRequestsModal = function() {
+    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); openAuthModal(); return; }
+    const list = document.getElementById('requestsList');
+    const requests = userProfile.requests || [];
+    if (requests.length === 0) { list.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-inbox" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">No requests</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Submit your first request now</div></div>`; } else {
+        list.innerHTML = requests.slice().reverse().map(req => `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);margin-bottom:8px;"><div><div style="font-weight:600;color:var(--text);">${req.gameName||'Untitled'}</div><div style="font-size:12px;color:var(--text-secondary);opacity:0.4;">${new Date(req.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div></div><span style="font-size:11px;font-weight:600;padding:2px 12px;border-radius:12px;background:var(--pending-color);color:#0a0a1a;">${(req.status||'pending').charAt(0).toUpperCase()+(req.status||'pending').slice(1)}</span></div>`).join('');
+    }
+    document.getElementById('requestsModal').classList.add('open');
+};
+window.closeRequestsModal = function() { document.getElementById('requestsModal').classList.remove('open'); };
+window.openNewRequestModal = function() { if (!currentUser) { showToast('⚠️ Please login first', 'warning'); openAuthModal(); return; } document.getElementById('newRequestModal').classList.add('open'); document.getElementById('requestForm').reset(); };
+window.closeNewRequestModal = function() { document.getElementById('newRequestModal').classList.remove('open'); };
+window.submitRequest = function(e) {
+    e.preventDefault();
+    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
+    const gameName = document.getElementById('reqGameName').value.trim();
+    const playStore = document.getElementById('reqPlayStore').value.trim();
+    const features = document.getElementById('reqFeatures').value.trim();
+    const budget = document.getElementById('reqBudget').value.trim();
+    if (!gameName || !playStore || !features || !budget) { showToast('⚠️ Please fill all fields', 'warning'); return; }
+    const newRequest = { gameName, playStore, features, budget, status: 'pending', date: new Date().toISOString(), userId: currentUser.uid };
+    const userRef = doc(db, 'users', currentUser.uid);
+    updateDoc(userRef, { requests: arrayUnion(newRequest) }).then(() => {
+        userProfile.requests.push(newRequest);
+        document.getElementById('newRequestModal').classList.remove('open');
+        showToast('✅ Request sent', 'success');
+        const msg = `📝 New Script Request!\n\n👤 User: ${currentUser.displayName||currentUser.email}\n🎮 Game: ${gameName}\n🔗 Store Link: ${playStore}\n⚡ Features: ${features}\n💰 Budget: ${budget}`;
+        window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(msg)}`, '_blank');
+    }).catch(error => { showToast('❌ Error: ' + error.message, 'error'); });
+};
+
+// ============================================================
+// 27. الإحالات (Referrals)
+// ============================================================
+
+window.openReferralModal = function() { if (!currentUser) { showToast('⚠️ Please login first', 'warning'); openAuthModal(); return; } updateReferralUI(); document.getElementById('referralModal').classList.add('open'); };
+window.closeReferralModal = function() { document.getElementById('referralModal').classList.remove('open'); };
+
+function updateReferralUI() {
+    const codeDisplay2 = document.getElementById('referralCodeDisplay2');
+    if (currentUser && userProfile.referralCode) { codeDisplay2.textContent = userProfile.referralCode; } else if (currentUser) {
+        const code = generateReferralCode(currentUser.displayName || currentUser.email, currentUser.email);
+        userProfile.referralCode = code;
+        const userRef = doc(db, 'users', currentUser.uid);
+        updateDoc(userRef, { referralCode: code }).catch(console.error);
+        codeDisplay2.textContent = code;
+    } else { codeDisplay2.textContent = 'Login to get your code'; }
+    const referrals = userProfile.referrals || [];
+    document.getElementById('referralCount2').textContent = referrals.length;
+    document.getElementById('referralRewards2').textContent = (userProfile.referralRewards || 0).toFixed(2) + ' $';
+
+    const activityContainer = document.getElementById('referralActivity');
+    if (referrals.length === 0) {
+        activityContainer.innerHTML = `<div class="referral-empty"><i class="fas fa-users"></i><p>No referrals yet</p><span>Share your link to start earning.</span></div>`;
+    } else {
+        let html = '';
+        referrals.slice().reverse().forEach(ref => {
+            const date = ref.date ? new Date(ref.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '--';
+            html += `<div class="referral-activity-item"><div class="referral-activity-icon"><i class="fas fa-user-plus"></i></div><div class="referral-activity-info"><div class="referral-activity-name">${ref.name || 'User'}</div><div class="referral-activity-date">${date}</div></div><div class="referral-activity-status">✅ Joined</div></div>`;
+        });
+        activityContainer.innerHTML = html;
+    }
+    const stepsContainer = document.getElementById('referralSteps');
+    if (stepsContainer) {
+        stepsContainer.innerHTML = `<div class="referral-steps"><div class="referral-step"><span class="step-number">1</span><span class="step-text">Share your referral code</span></div><div class="referral-step"><span class="step-number">2</span><span class="step-text">They create an account using your code</span></div><div class="referral-step"><span class="step-number">3</span><span class="step-text">Earn Rewards<br><small>You get 10% of their first order value</small></span></div></div>`;
+    }
+}
+window.copyReferralCode2 = function() {
+    const code = document.getElementById('referralCodeDisplay2').textContent;
+    if (code && code !== 'Loading...' && code !== 'Login to get your code') {
+        navigator.clipboard.writeText(code).then(() => { showToast('✅ Referral code copied!', 'success'); })
+        .catch(() => { const textArea = document.createElement('textarea'); textArea.value = code; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); showToast('✅ Referral code copied!', 'success'); });
+    } else { showToast('⚠️ Please login first', 'warning'); }
+};
+
+// ============================================================
+// 28. لوحة المدير (Admin Panel)
+// ============================================================
+
+window.openAdminPanel = function() {
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized. Admin only.', 'error'); return; }
+    const panel = document.getElementById('adminPanel');
+    if (panel.classList.contains('open')) { panel.classList.remove('open'); } else { panel.classList.add('open');
+        panel.scrollIntoView({ behavior: 'smooth' });
+        loadAdminOrders();
+        startAdminRealtimeListener();
+        loadDownloads();
+        loadNotifications();
+        renderAdminProducts(products);
+        loadAdminUsers();
+        loadDashboardStats();
+        setTimeout(addBannerAdminControls, 300);
+        const statsTab = document.getElementById('tabStats');
+        if (statsTab && statsTab.classList.contains('active')) { loadAdvancedStats(); }
+        const logsTab = document.getElementById('tabLogs');
+        if (logsTab && logsTab.classList.contains('active')) { loadAuditLogs(); }
+        // تحديث زر المكافأة اليومية
+        const toggleBtn = document.getElementById('dailyRewardToggle');
+        if (toggleBtn) {
+            toggleBtn.textContent = dailyRewardEnabled ? '🔴 Disable Daily Reward' : '🟢 Enable Daily Reward';
+            toggleBtn.style.background = dailyRewardEnabled ? 'var(--danger)' : 'var(--success)';
+        }
+    }
+};
+window.closeAdminPanel = function() { document.getElementById('adminPanel').classList.remove('open'); if (unsubscribeAdmin) { unsubscribeAdmin(); unsubscribeAdmin = null; } };
+
+window.switchAdminTab = function(tab) {
+    document.querySelectorAll('.admin-panel .tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.admin-panel .tabs button').forEach(el => el.classList.remove('active'));
+    const tabMap = {
+        'dashboard': 'tabDashboard',
+        'orders': 'tabOrders',
+        'products': 'tabProducts',
+        'users': 'tabUsers',
+        'downloads': 'tabDownloads',
+        'notifications': 'tabNotifications',
+        'stats': 'tabStats',
+        'logs': 'tabLogs'
+    };
+    const tabId = tabMap[tab] || tabMap['dashboard'];
+    document.getElementById(tabId).classList.add('active');
+    const btn = document.querySelector(`.admin-panel .tabs button[onclick="switchAdminTab('${tab}')"]`);
+    if (btn) btn.classList.add('active');
+    if (tab === 'products') renderAdminProducts(products);
+    if (tab === 'users') loadAdminUsers();
+    if (tab === 'dashboard') loadDashboardStats();
+    if (tab === 'stats') loadAdvancedStats();
+    if (tab === 'logs') loadAuditLogs();
+};
+
+// ============================================================
+// 29. Dashboard Stats (global_stats)
+// ============================================================
+
+async function loadDashboardStats() {
+    try {
+        const statsRef = doc(db, 'global_stats', 'stats');
+        const statsSnap = await getDoc(statsRef);
+        let totalOrders = 0; let totalRevenue = 0;
+        if (statsSnap.exists()) { const data = statsSnap.data(); totalOrders = data.totalOrders || 0; totalRevenue = data.totalRevenue || 0; }
+        document.getElementById('dashboardTotalOrders').textContent = totalOrders;
+        document.getElementById('dashboardTotalRevenue').textContent = `$${totalRevenue.toFixed(2)}`;
+        const netRevenue = totalRevenue * 0.1;
+        document.getElementById('dashboardNetRevenue').textContent = `$${netRevenue.toFixed(2)}`;
+    } catch (error) { console.error('Error loading dashboard stats:', error);
+        document.getElementById('dashboardTotalOrders').textContent = '0';
+        document.getElementById('dashboardTotalRevenue').textContent = '$0.00';
+        document.getElementById('dashboardNetRevenue').textContent = '$0.00';
+    }
+}
+window.refreshDashboardStats = function() { loadDashboardStats(); showToast('🔄 Stats refreshed', 'info'); };
+async function updateGlobalStats(orderTotal) {
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
+    try {
+        const statsRef = doc(db, 'global_stats', 'stats');
+        await setDoc(statsRef, { totalOrders: increment(1), totalRevenue: increment(orderTotal || 0), updatedAt: serverTimestamp() }, { merge: true });
+    } catch (error) { console.error('❌ Failed to update global stats:', error); }
+}
+
+// ============================================================
+// 30. إدارة المنتجات (Admin Products)
+// ============================================================
+
+function renderAdminProducts(productsList) {
+    const container = document.getElementById('adminProductsList');
+    if (!container) return;
+    if (!productsList || productsList.length === 0) { container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">📭 No products</div>`; return; }
+    container.innerHTML = productsList.map(p => {
+        const isUnavailable = p.status === 'unavailable';
+        const vipBadge = p.vipEnabled ? '👑 VIP' : '';
+        return `<div class="admin-item" style="${isUnavailable?'opacity:0.5;':''}"><div class="item-info"><div class="item-title">${p.name} ${isUnavailable?'⛔':''} ${vipBadge}</div><div class="item-meta">${p.price===0?'🎁 FREE':`💰 $${p.price}`} • ${p.badge||'FREE'} ${isUnavailable?'• Unavailable':''}</div>${p.duration ? `<div class="item-meta">⏱️ ${p.duration}</div>` : ''}${p.originalPrice ? `<div class="item-meta" style="text-decoration:line-through;opacity:0.5;">Original: $${p.originalPrice}</div>` : ''}${p.vipEnabled ? `<div class="item-meta" style="color:var(--vip-color);">VIP Pricing Enabled</div>` : ''}</div><div class="item-actions"><button class="btn-edit" onclick="openEditProductModal('${p.id}')"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="deleteProduct('${p.id}')"><i class="fas fa-trash"></i></button></div></div>`;
+    }).join('');
+}
+
+window.openEditProductModal = function(productId) {
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
+    const product = products.find(p => p.id === productId);
+    if (!product) { showToast('❌ Product not found. Please refresh and try again.', 'error'); return; }
+    document.getElementById('productFormTitle').textContent = '✏️ Edit Product: ' + product.name;
+    document.getElementById('productIdField').value = productId;
+    document.getElementById('productName').value = product.name || '';
+    document.getElementById('productPrice').value = product.price !== undefined ? product.price : '';
+    document.getElementById('productBadge').value = product.badge || 'FREE';
+    document.getElementById('productStatus').value = product.status || 'available';
+    document.getElementById('productImage').value = product.image || '';
+    document.getElementById('productDescription').value = product.description || '';
+    document.getElementById('productFeatures').value = (product.features || []).join(', ');
+    document.getElementById('productVideo').value = product.video || 'https://www.youtube.com/embed/dQw4w9WgXcQ';
+    document.getElementById('productDuration').value = product.duration || '';
+    document.getElementById('productOriginalPrice').value = product.originalPrice || '';
+
+    const vipEnabled = product.vipEnabled || false;
+    document.getElementById('vipEnabled').checked = vipEnabled;
+    document.getElementById('vipPricingFields').style.display = vipEnabled ? 'block' : 'none';
+    if (product.vipPrices) {
+        document.getElementById('vipPrice1m').value = product.vipPrices['1m'] || '';
+        document.getElementById('vipOriginalPrice1m').value = product.vipPrices['1m_original'] || '';
+        document.getElementById('vipPrice3m').value = product.vipPrices['3m'] || '';
+        document.getElementById('vipOriginalPrice3m').value = product.vipPrices['3m_original'] || '';
+        document.getElementById('vipPrice1y').value = product.vipPrices['1y'] || '';
+        document.getElementById('vipOriginalPrice1y').value = product.vipPrices['1y_original'] || '';
+        document.getElementById('vipPriceLifetime').value = product.vipPrices['lifetime'] || '';
+        document.getElementById('vipOriginalPriceLifetime').value = product.vipPrices['lifetime_original'] || '';
+    }
+    const modal = document.getElementById('productModal');
+    if (modal) { modal.classList.add('open'); setTimeout(fixDirection, 200); } else { showToast('❌ Modal not found', 'error'); }
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+    const vipToggle = document.getElementById('vipEnabled');
+    if (vipToggle) {
+        vipToggle.addEventListener('change', function() {
+            document.getElementById('vipPricingFields').style.display = this.checked ? 'block' : 'none';
+        });
+    }
+});
+
+window.openAddProductModal = function() {
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
+    document.getElementById('productFormTitle').textContent = '➕ Add New Product';
+    document.getElementById('productForm').reset();
+    document.getElementById('productIdField').value = '';
+    document.getElementById('productPrice').value = '';
+    document.getElementById('productBadge').value = 'FREE';
+    document.getElementById('productStatus').value = 'available';
+    document.getElementById('productFeatures').value = '';
+    document.getElementById('productDescription').value = '';
+    document.getElementById('productVideo').value = 'https://www.youtube.com/embed/dQw4w9WgXcQ';
+    document.getElementById('productDuration').value = '';
+    document.getElementById('productOriginalPrice').value = '';
+    document.getElementById('vipEnabled').checked = false;
+    document.getElementById('vipPricingFields').style.display = 'none';
+    document.getElementById('productModal').classList.add('open');
+};
+window.closeProductModal = function() { document.getElementById('productModal').classList.remove('open'); };
+
+window.saveProduct = async function(event) {
+    event.preventDefault();
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
+    const productId = document.getElementById('productIdField').value;
+    const name = document.getElementById('productName').value.trim();
+    const price = parseFloat(document.getElementById('productPrice').value) || 0;
+    const badge = document.getElementById('productBadge').value;
+    const status = document.getElementById('productStatus').value;
+    const description = document.getElementById('productDescription').value.trim();
+    const featuresText = document.getElementById('productFeatures').value.trim();
+    const video = document.getElementById('productVideo').value.trim();
+    const duration = document.getElementById('productDuration').value.trim();
+    const originalPrice = parseFloat(document.getElementById('productOriginalPrice').value) || 0;
+    const vipEnabled = document.getElementById('vipEnabled').checked;
+    const vipPrices = {
+        '1m': parseFloat(document.getElementById('vipPrice1m').value) || 0,
+        '1m_original': parseFloat(document.getElementById('vipOriginalPrice1m').value) || 0,
+        '3m': parseFloat(document.getElementById('vipPrice3m').value) || 0,
+        '3m_original': parseFloat(document.getElementById('vipOriginalPrice3m').value) || 0,
+        '1y': parseFloat(document.getElementById('vipPrice1y').value) || 0,
+        '1y_original': parseFloat(document.getElementById('vipOriginalPrice1y').value) || 0,
+        'lifetime': parseFloat(document.getElementById('vipPriceLifetime').value) || 0,
+        'lifetime_original': parseFloat(document.getElementById('vipOriginalPriceLifetime').value) || 0
+    };
+
+    let imageUrl = document.getElementById('productImage').value.trim();
+    const fileInput = document.getElementById('productImageFile');
+    if (fileInput && fileInput.files && fileInput.files[0]) {
+        const uploadedUrl = await uploadToCloudinary(fileInput.files[0]);
+        if (uploadedUrl) { imageUrl = uploadedUrl; } else { showToast('⚠️ Using provided URL as fallback.', 'warning'); }
+    }
+    if (!name) { showToast('⚠️ Product name is required', 'warning'); return; }
+    const features = featuresText ? featuresText.split(',').map(f => f.trim()).filter(f => f) : [];
+    const productData = { name, price, badge, status, image: imageUrl, description, features, video, vipEnabled, vipPrices };
+    if (duration) productData.duration = duration;
+    if (originalPrice > 0) productData.originalPrice = originalPrice;
+    try {
+        if (productId) {
+            await updateProductInFirestore(productId, productData);
+            await addAuditLog('Product Updated', `${name} (ID: ${productId})`);
+            showToast('✅ Product updated', 'success');
+        } else {
+            await addProductToFirestore(productData);
+            await addAuditLog('Product Added', `${name}`);
+            showToast('✅ Product added', 'success');
+        }
+        closeProductModal();
+    } catch (error) { console.error('Save product error:', error); showToast('❌ Error: ' + error.message, 'error'); }
+};
+
+window.deleteProduct = async function(productId) {
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (!confirm('Delete this product?')) return;
+    const product = products.find(p => p.id === productId);
+    try { await deleteProductFromFirestore(productId); await addAuditLog('Product Deleted', `${product?.name || productId} (ID: ${productId})`); showToast('🗑️ Product deleted', 'success'); } catch (error) { console.error('Delete product error:', error); showToast('❌ Error: ' + error.message, 'error'); }
+};
+async function addProductToFirestore(productData) {
+    try { const productsRef = collection(db, 'products'); const docRef = await addDoc(productsRef, { ...productData, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }); return docRef.id; } catch (error) { console.error('Error adding product:', error); throw error; }
+}
+async function updateProductInFirestore(productId, productData) {
+    try { const productRef = doc(db, 'products', productId); await updateDoc(productRef, { ...productData, updatedAt: serverTimestamp() }); return true; } catch (error) { console.error('Error updating product:', error); throw error; }
+}
+async function deleteProductFromFirestore(productId) {
+    try { await deleteDoc(doc(db, 'products', productId)); return true; } catch (error) { console.error('Error deleting product:', error); throw error; }
+}
+
+// ============================================================
+// 31. الطلبات (Admin Orders)
+// ============================================================
+
+function startAdminRealtimeListener() {
+    if (unsubscribeAdmin) { unsubscribeAdmin(); }
+    const usersRef = collection(db, 'users');
+    unsubscribeAdmin = onSnapshot(usersRef, (snapshot) => {
+        let orders = [];
+        let pending = 0, preparing = 0, shipped = 0, delivered = 0, rejected = 0;
+        snapshot.forEach((userDoc) => {
+            const data = userDoc.data();
+            const email = data.email || userDoc.id;
+            const name = data.name || 'Unknown';
+            const history = data.history || [];
+            history.forEach(order => {
+                const status = order.status || 'pending';
+                if (status === 'pending') pending++;
+                else if (status === 'preparing') preparing++;
+                else if (status === 'shipped') shipped++;
+                else if (status === 'delivered' || status === 'completed') delivered++;
+                else if (status === 'rejected') rejected++;
+                const orderId = order.id || 'order_' + Date.now();
+                orders.push({ ...order, userId: userDoc.id, userEmail: email, userName: name, orderId: orderId, _checked: selectedOrders.has(orderId) });
+            });
+        });
+        orders.sort((a, b) => new Date(b.date) - new Date(a.date));
+        allOrders = orders;
+        pendingCount = pending + preparing + shipped;
+        renderAdminOrders(orders);
+        updateAdminStats(orders);
+        updateUI();
+        const badge = document.getElementById('adminPanelBadge');
+        if (badge) { if (pendingCount > 0) { badge.style.display = 'inline-block'; badge.textContent = pendingCount; } else { badge.style.display = 'none'; } }
+        updateFullUserMenu();
+    }, (error) => { console.error('Admin listener error:', error); });
+}
+
+function loadAdminOrders() {
+    const tbody = document.getElementById('adminOrdersBody');
+    tbody.innerHTML = '<tr><td colspan="7"><div style="text-align:center;padding:30px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading...</div></td></tr>';
+    const usersRef = collection(db, 'users');
+    getDocs(usersRef).then((snapshot) => {
+        let orders = [];
+        let pending = 0, preparing = 0, shipped = 0, delivered = 0, rejected = 0;
+        snapshot.forEach((userDoc) => {
+            const data = userDoc.data();
+            const email = data.email || userDoc.id;
+            const name = data.name || 'Unknown';
+            const history = data.history || [];
+            history.forEach(order => {
+                const status = order.status || 'pending';
+                if (status === 'pending') pending++;
+                else if (status === 'preparing') preparing++;
+                else if (status === 'shipped') shipped++;
+                else if (status === 'delivered' || status === 'completed') delivered++;
+                else if (status === 'rejected') rejected++;
+                const orderId = order.id || 'order_' + Date.now();
+                orders.push({ ...order, userId: userDoc.id, userEmail: email, userName: name, orderId: orderId, _checked: selectedOrders.has(orderId) });
+            });
+        });
+        orders.sort((a, b) => new Date(b.date) - new Date(a.date));
+        allOrders = orders;
+        pendingCount = pending + preparing + shipped;
+        renderAdminOrders(orders);
+        updateAdminStats(orders);
+        updateUI();
+        const badge = document.getElementById('adminPanelBadge');
+        if (badge) { if (pendingCount > 0) { badge.style.display = 'inline-block'; badge.textContent = pendingCount; } else { badge.style.display = 'none'; } }
+        updateFullUserMenu();
+    }).catch(error => { tbody.innerHTML = `<tr><td colspan="7"><div style="text-align:center;padding:30px;color:var(--danger);">${error.message}</div></td></tr>`; });
+}
+
+function renderAdminOrders(orders) {
+    const tbody = document.getElementById('adminOrdersBody');
+    if (!orders || orders.length === 0) { tbody.innerHTML = `<tr><td colspan="7"><div style="text-align:center;padding:30px;color:var(--text-secondary);"><i class="fas fa-inbox"></i> No orders</div></td></tr>`; return; }
+    const uniqueOrders = []; const seen = new Set();
+    orders.forEach(order => {
+        const orderId = order.orderId || order.id;
+        if (orderId && !seen.has(orderId)) { seen.add(orderId); uniqueOrders.push(order); }
+    });
+    let html = '';
+    uniqueOrders.forEach(order => {
+        const status = order.status || 'pending';
+        const statusMap = {
+            'pending': { label: '⏳ Pending', class: 'pending' },
+            'preparing': { label: '📦 Preparing', class: 'preparing' },
+            'shipped': { label: '🚚 Shipped', class: 'shipped' },
+            'delivered': { label: '✅ Delivered', class: 'delivered' },
+            'completed': { label: '✅ Completed', class: 'completed' },
+            'rejected': { label: '❌ Rejected', class: 'rejected' }
+        };
+        const info = statusMap[status] || statusMap['pending'];
+        const date = order.date ? new Date(order.date) : new Date();
+        const dateStr = date.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+        const itemsList = order.items ? order.items.map(item => `<span style="display:inline-block;background:var(--bg);padding:2px 8px;border-radius:10px;font-size:11px;border:1px solid var(--border);margin:1px;">${item.name} ×${item.quantity||1}</span>`).join('') : '—';
+        const total = order.total || 0;
+        const orderIdStr = String(order.orderId || order.id || '');
+        const orderId = orderIdStr.slice(-6) || '------';
+        html += `<tr><td><span class="order-id">#${orderId}</span></td><td><div style="font-weight:600;font-size:12px;">${order.userName||'Unknown'}</div><div class="user-email">${order.userEmail||'N/A'}</div></td><td><div style="display:flex;flex-wrap:wrap;gap:2px;">${itemsList}</div></td><td><span class="order-total">${total.toFixed(2)} $</span></td><td><span class="order-date">${dateStr}</span></td><td><span class="status-badge ${info.class}">${info.label}</span></td><td><div class="actions-cell"><select onchange="updateOrderStatus('${order.orderId||order.id}','${order.userId}',this.value)" style="padding:2px 6px;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);font-size:10px;"><option value="pending" ${status==='pending'?'selected':''}>⏳ Pending</option><option value="preparing" ${status==='preparing'?'selected':''}>📦 Preparing</option><option value="shipped" ${status==='shipped'?'selected':''}>🚚 Shipped</option><option value="delivered" ${status==='delivered'?'selected':''}>✅ Delivered</option><option value="completed" ${status==='completed'?'selected':''}>✅ Completed</option><option value="rejected" ${status==='rejected'?'selected':''}>❌ Rejected</option></select><button onclick="deleteOrderImmediately('${order.orderId||order.id}','${order.userId}')" class="btn-delete-order"><i class="fas fa-trash"></i> Delete</button></div></td></tr>`;
+    });
+    tbody.innerHTML = html;
+}
+
+function updateAdminStats(orders) {
+    const total = orders.length;
+    const pending = orders.filter(o => (o.status || 'pending') === 'pending').length;
+    const preparing = orders.filter(o => o.status === 'preparing').length;
+    const shipped = orders.filter(o => o.status === 'shipped').length;
+    const delivered = orders.filter(o => o.status === 'delivered' || o.status === 'completed').length;
+    const rejected = orders.filter(o => o.status === 'rejected').length;
+    document.getElementById('adminTotalOrders').textContent = total;
+    document.getElementById('adminPendingOrders').textContent = pending;
+    document.getElementById('adminPreparingOrders').textContent = preparing;
+    document.getElementById('adminShippedOrders').textContent = shipped;
+    document.getElementById('adminDeliveredOrders').textContent = delivered;
+    document.getElementById('adminRejectedOrders').textContent = rejected;
+}
+
+window.updateOrderStatus = async function(orderId, userId, newStatus) {
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (!orderId || !userId) { showToast('❌ Invalid data', 'error'); return; }
+    try {
+        const userRef = doc(db, 'users', userId);
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) { showToast('❌ User not found', 'error'); return; }
+        const data = userSnap.data();
+        const history = data.history || [];
+        let updatedOrder = null;
+        const updatedHistory = history.map(order => {
+            if (order.id === orderId) { updatedOrder = { ...order, status: newStatus, updatedAt: new Date().toISOString() }; return updatedOrder; }
+            return order;
+        });
+        await updateDoc(userRef, { history: updatedHistory });
+        const statusLabels = { 'pending': '⏳ Pending', 'preparing': '📦 Preparing', 'shipped': '🚚 Shipped', 'delivered': '✅ Delivered', 'completed': '✅ Completed', 'rejected': '❌ Rejected' };
+        const statusLabel = statusLabels[newStatus] || newStatus;
+        showToast(`📦 Order updated to ${statusLabel}`, 'success');
+        if (updatedOrder && (newStatus === 'delivered' || newStatus === 'completed')) {
+            await updateGlobalStats(updatedOrder.total || 0);
+            console.log('📊 Global stats updated for order:', orderId);
+        }
+        await addAuditLog('Order Status Changed', `Order #${String(orderId).slice(-6)} → ${statusLabel} (User: ${data.email})`);
+        if (updatedOrder) {
+            const itemsNames = updatedOrder.items ? updatedOrder.items.map(i => i.name).join(', ') : 'Your order';
+            const userMsg = `📦 *Order Update #${String(orderId).slice(-6)}*\n\n📋 Products: ${itemsNames}\n🔄 Status: ${statusLabel}\n📅 Date: ${new Date().toLocaleString()}`;
+            if (data.telegramChatId) { await sendTelegramNotification(data.telegramChatId, userMsg); }
+            const adminMsg = `🔄 Order #${String(orderId).slice(-6)} updated\nUser: ${data.email || 'Unknown'}\nNew Status: ${statusLabel}`;
+            await sendTelegramNotification(TELEGRAM_CHAT_ID, adminMsg);
+            try { await addDoc(collection(db, 'notifications'), { title: `📦 Order #${String(orderId).slice(-6)}`, message: `Status updated to: ${statusLabel}`, userId: userId, readBy: [], createdAt: serverTimestamp(), updatedAt: serverTimestamp() }); } catch (e) { console.error('Error saving notification:', e); }
+        }
+        loadAdminOrders();
+        if (currentUser && currentUser.uid === userId) { userProfile.history = updatedHistory; }
+        updateFullUserMenu();
+    } catch (error) { console.error('Error updating order:', error); showToast('❌ Error: ' + error.message, 'error'); }
+};
+
+window.deleteOrderImmediately = async function(orderId, userId) {
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (!orderId || !userId) { showToast('❌ Invalid data', 'error'); return; }
+    try {
+        const userRef = doc(db, 'users', userId);
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) { showToast('❌ User not found', 'error'); return; }
+        const data = userSnap.data();
+        const history = data.history || [];
+        const updatedHistory = history.filter(order => order.id !== orderId);
+        await updateDoc(userRef, { history: updatedHistory });
+        showToast(`🗑️ Order #${String(orderId).slice(-6)} deleted permanently`, 'success');
+        loadAdminOrders();
+        if (currentUser && currentUser.uid === userId) { userProfile.history = updatedHistory; }
+    } catch (error) { console.error('Error deleting order:', error); showToast('❌ Error: ' + error.message, 'error'); }
+};
+
+window.searchAdminOrders = function() {
+    const query = document.getElementById('adminSearchInput').value.trim().toLowerCase();
+    if (!query) { renderAdminOrders(allOrders); showToast('📋 Showing all orders', 'info'); return; }
+    const filtered = allOrders.filter(order => {
+        const email = (order.userEmail || '').toLowerCase();
+        const orderId = String(order.orderId || order.id || '').toLowerCase();
+        const userName = (order.userName || '').toLowerCase();
+        return email.includes(query) || orderId.includes(query) || userName.includes(query);
+    });
+    renderAdminOrders(filtered);
+    if (filtered.length === 0) { showToast(`🔍 No matching orders`, 'warning'); } else { showToast(`🔍 Found ${filtered.length} orders`, 'success'); }
+};
+window.clearAdminSearch = function() { document.getElementById('adminSearchInput').value = ''; renderAdminOrders(allOrders); showToast('📋 Search cleared', 'info'); };
+window.refreshAdminOrders = function() { loadAdminOrders(); showToast('🔄 Refreshed', 'info'); };
+
+// ============================================================
+// 32. المستخدمين (Admin Users)
+// ============================================================
+
+async function loadAdminUsers() {
+    const container = document.getElementById('adminUsersContainer');
+    if (!container) return;
+    container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
+    try {
+        const usersRef = collection(db, 'users');
+        const snapshot = await getDocs(usersRef);
+        const usersList = [];
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            usersList.push({ uid: doc.id, ...data, email: data.email || doc.id, name: data.name || 'Unknown', createdAt: data.createdAt ? new Date(data.createdAt.toDate()) : new Date(), isBanned: data.isBanned || false, history: data.history || [], rp: data.rp || 0, referralCode: data.referralCode || '', location: data.location || data.country || 'N/A' });
+        });
+        allUsers = usersList;
+        renderAdminUsers(usersList);
+    } catch (error) { console.error('Error loading users:', error); container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--danger);">Error loading users</div>`; }
+}
+
+function renderAdminUsers(usersList) {
+    const container = document.getElementById('adminUsersContainer');
+    if (!container) return;
+    if (!usersList || usersList.length === 0) { container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">👥 No users</div>`; return; }
+    const searchQuery = document.getElementById('adminUserSearchInput')?.value.trim().toLowerCase() || '';
+    let filtered = usersList;
+    if (searchQuery) { filtered = filtered.filter(u => u.email?.toLowerCase().includes(searchQuery) || u.name?.toLowerCase().includes(searchQuery)); }
+    if (filtered.length === 0) { container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">🔍 No results</div>`; return; }
+    container.innerHTML = `<div style="display:flex;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:4px;"><span style="font-size:12px;color:var(--text-secondary);opacity:0.4;">${filtered.length} users</span></div><div class="admin-users-grid">${filtered.map(user=>{
+        const isAdmin = user.email === ADMIN_EMAIL;
+        const isBanned = user.isBanned || false;
+        const orderCount = user.history?.length || 0;
+        const rp = user.rp || 0;
+        const initials = (user.name || 'U').charAt(0).toUpperCase();
+        const dateStr = user.createdAt ? user.createdAt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '--';
+        const location = user.location || 'N/A';
+        return `<div class="admin-user-card ${isBanned?'banned':''}"><div class="user-avatar">${initials}</div><div class="user-name">${user.name||'Unknown'}</div><div class="user-email">${user.email||'No email'}</div><div class="user-meta">📍 ${location}</div><div class="user-meta">📅 ${dateStr} • 🎯 ${rp} RP</div><div class="user-meta">📦 ${orderCount} orders</div>${isBanned?`<span class="user-badge banned">🚫 Banned</span>`:''}${isAdmin?`<span class="user-badge admin">👑 Admin</span>`:''}<div class="user-actions"><button class="btn-view" onclick="viewUserDetails('${user.uid}')"><i class="fas fa-eye"></i> View</button>${!isAdmin ? (isBanned ? `<button class="btn-unban" onclick="toggleUserBan('${user.uid}',false)"><i class="fas fa-user-check"></i> Unban</button>` : `<button class="btn-ban" onclick="toggleUserBan('${user.uid}',true)"><i class="fas fa-ban"></i> Ban</button>`) : ''}${!isAdmin ? `<button class="btn-delete" onclick="deleteUserAccount('${user.uid}')"><i class="fas fa-trash"></i></button>` : ''}</div></div>`;
+    }).join('')}</div>`;
+}
+window.searchAdminUsers = function() { renderAdminUsers(allUsers); };
+window.clearAdminUserSearch = function() { document.getElementById('adminUserSearchInput').value = ''; renderAdminUsers(allUsers); };
+window.refreshAdminUsers = function() { loadAdminUsers(); showToast('🔄 Users refreshed', 'info'); };
+window.toggleUserBan = async function(uid, ban) {
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (uid === currentUser.uid) { showToast('⚠️ You cannot ban yourself', 'warning'); return; }
+    const user = allUsers.find(u => u.uid === uid);
+    try {
+        await updateDoc(doc(db, 'users', uid), { isBanned: ban });
+        await addAuditLog('User ' + (ban ? 'Banned' : 'Unbanned'), `${user?.email || uid}`);
+        showToast(`✅ User ${ban?'banned':'unbanned'}`, 'success');
+        loadAdminUsers();
+    } catch (error) { console.error('Error toggling user ban:', error); showToast('❌ Error: ' + error.message, 'error'); }
+};
+window.deleteUserAccount = async function(uid) {
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (uid === currentUser.uid) { showToast('⚠️ You cannot delete your own account', 'warning'); return; }
+    if (!confirm('⚠️ Delete this user account permanently?')) return;
+    const user = allUsers.find(u => u.uid === uid);
+    try {
+        await deleteDoc(doc(db, 'users', uid));
+        await addAuditLog('User Account Deleted', `${user?.email || uid}`);
+        showToast('🗑️ User account deleted', 'success');
+        loadAdminUsers(); loadAdminOrders();
+    } catch (error) { console.error('Error deleting user:', error); showToast('❌ Error: ' + error.message, 'error'); }
+};
+window.viewUserDetails = async function(uid) {
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
+    try {
+        const userRef = doc(db, 'users', uid);
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) { showToast('❌ User not found', 'error'); return; }
+        const data = userSnap.data();
+        const orders = data.history || [];
+        const totalSpent = orders.reduce((sum, o) => sum + (o.total || 0), 0);
+        const location = data.location || data.country || 'Not specified';
+        const content = document.getElementById('userDetailsContent');
+        content.innerHTML = `
+          <div style="padding:4px 0;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+              <div style="width:44px;height:44px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;">${(data.name||'U').charAt(0).toUpperCase()}</div>
+              <div><div style="font-size:15px;font-weight:700;color:var(--text);">${data.name||'Unknown'}</div><div style="font-size:12px;color:var(--text-secondary);">${data.email||'No email'}</div><div style="font-size:12px;color:var(--text-secondary);">📍 Country: ${location}</div><div style="font-size:12px;color:var(--vip-color);font-weight:600;">🎯 RP: ${data.rp||0} • 📦 ${orders.length} orders</div></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px;">
+              <div style="background:var(--bg);border-radius:6px;padding:6px;text-align:center;border:1px solid var(--border);"><div style="font-size:14px;font-weight:700;color:var(--text);">${orders.length}</div><div style="font-size:9px;color:var(--text-secondary);">Orders</div></div>
+              <div style="background:var(--bg);border-radius:6px;padding:6px;text-align:center;border:1px solid var(--border);"><div style="font-size:14px;font-weight:700;color:var(--primary);">${totalSpent.toFixed(2)} $</div><div style="font-size:9px;color:var(--text-secondary);">Spent</div></div>
+              <div style="background:var(--bg);border-radius:6px;padding:6px;text-align:center;border:1px solid var(--border);"><div style="font-size:14px;font-weight:700;color:var(--vip-color);">${data.rp||0}</div><div style="font-size:9px;color:var(--text-secondary);">RP</div></div>
+            </div>
+            <div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;">Recent Orders</div>
+            ${orders.length > 0 ? orders.slice(-5).reverse().map(o => `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px;"><span>${o.items?o.items.map(i=>i.name).join(', '):'Order'}</span><span style="color:var(--primary);">${(o.total||0).toFixed(2)} $</span><span class="status-badge ${o.status||'pending'}" style="font-size:9px;padding:1px 8px;">${o.status||'pending'}</span></div>`).join('') : '<div style="text-align:center;color:var(--text-secondary);opacity:0.4;padding:10px;">No orders</div>'}
+            <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+              <button onclick="closeUserDetailsModal();" style="padding:4px 14px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;">Close</button>
+              ${data.isBanned?`<button onclick="closeUserDetailsModal();toggleUserBan('${uid}',false);" style="padding:4px 14px;border:none;border-radius:6px;background:var(--success);color:#0a0a1a;cursor:pointer;font-weight:600;font-size:12px;"><i class="fas fa-user-check"></i> Unban</button>`:`<button onclick="closeUserDetailsModal();toggleUserBan('${uid}',true);" style="padding:4px 14px;border:none;border-radius:6px;background:var(--danger);color:#fff;cursor:pointer;font-weight:600;font-size:12px;"><i class="fas fa-ban"></i> Ban</button>`}
+              ${uid!==currentUser.uid?`<button onclick="closeUserDetailsModal();deleteUserAccount('${uid}');" style="padding:4px 14px;border:none;border-radius:6px;background:var(--danger);color:#fff;cursor:pointer;font-weight:600;font-size:12px;"><i class="fas fa-trash"></i> Delete</button>`:''}
+            </div>
+          </div>`;
+        document.getElementById('userDetailsModal').classList.add('open');
+    } catch (error) { console.error('Error viewing user details:', error); showToast('❌ Error loading user details', 'error'); }
+};
+window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
+
+// ============================================================
+// 33. تاريخ الطلبات (Order History) - مع زر PDF
+// ============================================================
+
+window.clearOrderHistory = async function() {
+    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
+    try {
+        userProfile.history = [];
+        const userRef = doc(db, 'users', currentUser.uid);
+        await updateDoc(userRef, { history: [] });
+        renderHistoryFull();
+        updateFullUserMenu();
+        showToast('🗑️ Order history cleared successfully!', 'success');
+    } catch (error) { console.error('Error clearing order history:', error); showToast('❌ Failed to clear order history', 'error'); }
+};
+
+function renderHistoryFull() {
+    const container = document.getElementById('historyFullContent');
+    if (!container) return;
+    const history = userProfile.history || [];
+
+    const total = history.length;
+    const approved = history.filter(o => o.status === 'completed' || o.status === 'delivered' || o.status === 'shipped').length;
+    const pending = history.filter(o => o.status === 'pending' || o.status === 'preparing').length;
+
+    let html = `
+        <div class="orders-stats">
+            <div class="orders-stat-card"><div class="orders-stat-number">${total}</div><div class="orders-stat-label">All</div></div>
+            <div class="orders-stat-card approved"><div class="orders-stat-number" style="color:var(--success);">${approved}</div><div class="orders-stat-label">Approved</div></div>
+            <div class="orders-stat-card pending"><div class="orders-stat-number" style="color:var(--pending-color);">${pending}</div><div class="orders-stat-label">Pending</div></div>
+        </div>
+        <div class="orders-filter-bar">
+            <button class="orders-filter-btn ${ordersFilter === 'all' ? 'active' : ''}" data-filter="all" onclick="filterOrders('all')">📋 All Orders</button>
+            <button class="orders-filter-btn ${ordersFilter === 'newest' ? 'active' : ''}" data-filter="newest" onclick="filterOrders('newest')">🔄 Newest</button>
+            <button class="orders-filter-btn ${ordersFilter === 'pending' ? 'active' : ''}" data-filter="pending" onclick="filterOrders('pending')">⏳ Pending</button>
+        </div>
+        <div class="orders-list" id="ordersList">`;
+
+    let filteredHistory = [...history];
+    if (ordersFilter === 'pending') { filteredHistory = filteredHistory.filter(o => o.status === 'pending' || o.status === 'preparing'); }
+    if (ordersFilter === 'newest') { filteredHistory = filteredHistory.sort((a, b) => new Date(b.date) - new Date(a.date)); } else { filteredHistory = filteredHistory.slice().reverse(); }
+
+    if (filteredHistory.length === 0) { html += `<div class="orders-empty"><i class="fas fa-shopping-bag"></i><p>No orders found.</p></div>`; } else {
+        filteredHistory.forEach(item => {
+            const status = item.status || 'pending';
+            const statusMap = {
+                'pending': { label: '⏳ Pending', class: 'pending' },
+                'preparing': { label: '📦 Preparing', class: 'preparing' },
+                'shipped': { label: '🚚 Shipped', class: 'shipped' },
+                'delivered': { label: '✅ Delivered', class: 'delivered' },
+                'completed': { label: '✅ Completed', class: 'completed' },
+                'rejected': { label: '❌ Rejected', class: 'rejected' }
+            };
+            const info = statusMap[status] || statusMap['pending'];
+            const date = item.date ? new Date(item.date) : new Date();
+            const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            const itemsNames = item.items ? item.items.map(i => i.name).join(', ') : 'Order';
+            const totalPrice = item.total || 0;
+            const orderData = JSON.stringify(item).replace(/'/g, "&apos;");
+            html += `
+                <div class="orders-item" data-order='${orderData}'>
+                    <div class="orders-item-info">
+                        <div class="orders-item-name">${itemsNames}</div>
+                        <div class="orders-item-date">${dateStr}</div>
+                        <span class="status-badge ${info.class}">${info.label}</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <div class="orders-item-price">${totalPrice > 0 ? '$' + totalPrice.toFixed(2) : 'FREE'}</div>
+                        <button onclick="generateInvoice(this.closest('.orders-item').dataset.order)" class="btn-download-invoice" style="padding:4px 10px;border:none;border-radius:6px;background:var(--vip-color);color:#0a0a1a;font-weight:600;cursor:pointer;font-size:11px;display:flex;align-items:center;gap:4px;">
+                            <i class="fas fa-file-pdf"></i> PDF
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+    html += `</div>`;
+    container.innerHTML = html;
+}
+
+window.filterOrders = function(filter) {
+    ordersFilter = filter;
+    document.querySelectorAll('.orders-filter-btn').forEach(btn => { btn.classList.toggle('active', btn.dataset.filter === filter); });
+    renderHistoryFull();
+};
+
+// ============================================================
+// 34. السمة (Theme)
+// ============================================================
+
+let isDark = true;
+document.getElementById('themeToggle')?.addEventListener('click', function() {
+    isDark = !isDark;
+    if (isDark) { document.body.classList.remove('light'); this.innerHTML = '<i class="fas fa-moon"></i>'; } else { document.body.classList.add('light'); this.innerHTML = '<i class="fas fa-sun"></i>'; }
+});
+
+// ============================================================
+// 35. معاينة الصورة المرفوعة
+// ============================================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('productImageFile');
+    const previewContainer = document.getElementById('imagePreviewContainer');
+    const previewImage = document.getElementById('imagePreview');
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    previewImage.src = event.target.result;
+                    previewContainer.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else { previewContainer.style.display = 'none'; }
+        });
+    }
+});
+
+// ============================================================
+// 36. حالة المصادقة
+// ============================================================
+
+onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    if (user) {
+        try {
+            const userRef = doc(db, 'users', user.uid);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+                const data = userSnap.data();
+                if (data.isBanned === true) {
+                    await signOut(auth);
+                    currentUser = null;
+                    document.getElementById('authSection').style.display = 'block';
+                    document.getElementById('mainApp').style.display = 'none';
+                    showToast('🚫 Your account has been banned.', 'error');
+                    return;
+                }
+            }
+        } catch (error) { console.error('Error checking ban status:', error); }
+        document.getElementById('authSection').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'block';
+        await loadUserData();
+        updateDropdownStats();
+        if (user.email === ADMIN_EMAIL) { loadAdminOrders(); startAdminRealtimeListener(); renderAdminProducts(products); loadAdminUsers(); setTimeout(addBannerAdminControls, 500); }
+        loadDownloads(); loadNotifications(); fetchCryptoPrices(); loadFeaturedSettings(); loadDailyRewardSettings();
+        setTimeout(showTelegramBanner, 1000);
+        startSocialProof();
+    } else {
+        document.getElementById('authSection').style.display = 'block';
+        document.getElementById('mainApp').style.display = 'none';
+        await loadUserData();
+        updateDropdownStats();
+        loadDownloads(); loadNotifications(); fetchCryptoPrices(); loadFeaturedSettings(); loadDailyRewardSettings();
+        startSocialProof();
+    }
+    updateUI(); updateFullUserMenu();
+});
+
+// ============================================================
+// 37. Banner تيليجرام
+// ============================================================
+
+function showTelegramBanner() {
+    const banner = document.getElementById('telegramBanner');
+    if (!banner) return;
+    const bannerHidden = localStorage.getItem('telegram_banner_hidden') === 'true';
+    const adminDisabled = localStorage.getItem('telegram_banner_admin_disabled') === 'true';
+    if (userProfile.telegramChatId) {
+        banner.classList.add('linked');
+        banner.querySelector('.banner-title').textContent = '✅ Connected!';
+        banner.querySelector('.banner-subtitle').textContent = 'You will receive order notifications here.';
+        banner.querySelector('.banner-action').innerHTML = '<i class="fas fa-check"></i> Linked';
+        banner.querySelector('.banner-action').onclick = () => openProfileFull();
+        banner.querySelector('.banner-icon i').className = 'fas fa-check-circle';
+        banner.style.display = 'block';
+        setTimeout(() => { banner.classList.add('hidden'); }, 3000);
+        return;
+    }
+    if (bannerHidden || adminDisabled) { banner.classList.add('hidden'); return; }
+    banner.classList.remove('linked', 'hidden');
+    banner.querySelector('.banner-title').innerHTML = '🔔 Stay Connected! <span class="badge-new">New</span>';
+    banner.querySelector('.banner-subtitle').textContent = 'Link your Telegram account to receive instant order notifications';
+    banner.querySelector('.banner-action').innerHTML = '<i class="fab fa-telegram-plane"></i> Link Now';
+    banner.querySelector('.banner-action').onclick = () => bindTelegram();
+    banner.querySelector('.banner-icon i').className = 'fab fa-telegram-plane';
+    banner.style.display = 'block';
+    banner.style.animation = 'none';
+    setTimeout(() => { banner.style.animation = 'bannerSlideDown 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'; }, 10);
+}
+function closeTelegramBanner() {
+    const banner = document.getElementById('telegramBanner');
+    if (banner) { banner.classList.add('hidden'); localStorage.setItem('telegram_banner_hidden', 'true'); setTimeout(() => { localStorage.removeItem('telegram_banner_hidden'); if (!userProfile.telegramChatId) { showTelegramBanner(); } }, 600000); }
+}
+function showTelegramBannerAgain() { localStorage.removeItem('telegram_banner_hidden'); showTelegramBanner(); }
+
+function addBannerAdminControls() {
+    const tabNotifications = document.getElementById('tabNotifications');
+    if (!tabNotifications) return;
+    const existingControls = tabNotifications.querySelector('.banner-admin-controls');
+    if (existingControls) existingControls.remove();
+    const controls = document.createElement('div');
+    controls.className = 'banner-admin-controls';
+    controls.style.cssText = `background: var(--bg); border-radius: 10px; padding: 14px; border: 1px solid var(--border); margin-bottom: 12px;`;
+    const isHidden = localStorage.getItem('telegram_banner_admin_disabled') === 'true';
+    controls.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+            <div><div style="font-weight:600;color:var(--text);font-size:14px;"><i class="fab fa-telegram-plane" style="color:#0088cc;"></i> Telegram Banner</div><div style="font-size:12px;color:var(--text-secondary);opacity:0.4;">Show/hide the Telegram notification banner for all users</div></div>
+            <div style="display:flex;gap:6px;">
+                <button onclick="adminToggleBanner(true)" class="banner-admin-btn" style="padding:6px 16px;border:none;border-radius:6px;background:var(--success);color:#0a0a1a;font-weight:600;cursor:pointer;font-size:12px;"><i class="fas fa-eye"></i> Show</button>
+                <button onclick="adminToggleBanner(false)" class="banner-admin-btn" style="padding:6px 16px;border:none;border-radius:6px;background:var(--danger);color:#fff;font-weight:600;cursor:pointer;font-size:12px;"><i class="fas fa-eye-slash"></i> Hide</button>
+                <button onclick="resetBannerForAll()" class="banner-admin-btn" style="padding:6px 16px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);font-weight:600;cursor:pointer;font-size:12px;"><i class="fas fa-sync"></i> Reset</button>
+            </div>
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:var(--text-secondary);opacity:0.3;">${isHidden ? '🚫 Banner is currently <strong style="color:var(--danger);">HIDDEN</strong> for all users' : '✅ Banner is currently <strong style="color:var(--success);">VISIBLE</strong> for all users'}</div>
+    `;
+    const notifList = document.getElementById('adminNotificationsList');
+    if (notifList) { tabNotifications.insertBefore(controls, notifList); } else { tabNotifications.appendChild(controls); }
+}
+function adminToggleBanner(show) {
+    if (show) { localStorage.setItem('telegram_banner_admin_disabled', 'false'); showToast('✅ Banner is now visible for all users', 'success'); } else { localStorage.setItem('telegram_banner_admin_disabled', 'true'); const banner = document.getElementById('telegramBanner'); if (banner) banner.classList.add('hidden'); showToast('🚫 Banner is now hidden for all users', 'warning'); }
+    addBannerAdminControls();
+    if (show) { localStorage.removeItem('telegram_banner_hidden'); setTimeout(showTelegramBanner, 300); }
+}
+function resetBannerForAll() { localStorage.removeItem('telegram_banner_admin_disabled'); localStorage.removeItem('telegram_banner_hidden'); showToast('🔄 Banner reset for all users', 'info'); addBannerAdminControls(); setTimeout(showTelegramBanner, 300); }
+
+// ============================================================
+// 38. توجيه الاتجاه (Fix Direction)
+// ============================================================
+
+function fixDirection() {
+    document.querySelectorAll('.header, .logo, .header-actions, .modal-content, .fullscreen-modal, .admin-panel').forEach(el => {
+        el.style.direction = 'ltr'; el.style.textAlign = 'left';
+    });
+    document.querySelectorAll('.modal-close').forEach(el => { el.style.right = 'auto'; el.style.left = '10px'; });
+}
+document.addEventListener('DOMContentLoaded', function() { setTimeout(fixDirection, 100); setTimeout(showTelegramBanner, 500); });
+
+const originalOpenAdminPanel = window.openAdminPanel;
+window.openAdminPanel = function() { if (originalOpenAdminPanel) originalOpenAdminPanel(); setTimeout(addBannerAdminControls, 300); };
+const originalOpenAddProductModal = window.openAddProductModal;
+window.openAddProductModal = function() { if (originalOpenAddProductModal) originalOpenAddProductModal(); setTimeout(fixDirection, 200); };
+const originalOpenCreateNotificationModal = window.openCreateNotificationModal;
+window.openCreateNotificationModal = function() { if (originalOpenCreateNotificationModal) originalOpenCreateNotificationModal(); setTimeout(fixDirection, 200); };
+
+// ============================================================
+// 39. التهيئة (Init)
+// ============================================================
+
+async function init() {
+    showLoadingScreen();
+    updateLoadingBar(10);
+    try { await signInAnonymously(auth); updateLoadingBar(30); } catch (e) { console.log('ℹ️ Anonymous sign-in'); }
+    const productsFromFirestore = await loadProductsFromFirestore();
+    products = productsFromFirestore.length > 0 ? productsFromFirestore : fallbackProducts;
+    updateLoadingBar(50);
+    startProductsRealtimeListener();
+    updateLoadingBar(70);
+    await loadUserData();
+    updateLoadingBar(85);
+    renderProducts(products, false);
+    renderFeaturedProducts();
+    generateRecommendations(products);
+    updateBottomCartBar();
+    updateDropdownStats();
+    loadDownloads();
+    loadNotifications();
+    fetchCryptoPrices();
+    loadFeaturedSettings();
+    loadDailyRewardSettings();
+    setInterval(fetchCryptoPrices, 60000);
+    updateLoadingBar(100);
+    console.log('✅ ZI Store ready with all features!');
+    setTimeout(() => { hideLoadingScreen(); setTimeout(showTelegramBanner, 500); startSocialProof(); }, 500);
+}
+init();
+setTimeout(() => { hideLoadingScreen(); console.log('⚠️ Force hiding loading screen (timeout)'); }, 5000);
+
+// ============================================================
+// 40. تصدير الطلبات (CSV)
 // ============================================================
 
 window.exportOrders = function() {
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
     let ordersToExport = allOrders;
     const searchQuery = document.getElementById('adminSearchInput')?.value.trim().toLowerCase();
-    if (searchQuery) { ordersToExport = allOrders.filter(order => { const email = (order.userEmail || '').toLowerCase(); const orderId = String(order.orderId || order.id || '').toLowerCase(); const userName = (order.userName || '').toLowerCase(); return email.includes(searchQuery) || orderId.includes(searchQuery) || userName.includes(searchQuery); }); }
+    if (searchQuery) {
+        ordersToExport = allOrders.filter(order => {
+            const email = (order.userEmail || '').toLowerCase();
+            const orderId = String(order.orderId || order.id || '').toLowerCase();
+            const userName = (order.userName || '').toLowerCase();
+            return email.includes(searchQuery) || orderId.includes(searchQuery) || userName.includes(searchQuery);
+        });
+    }
     if (!ordersToExport || ordersToExport.length === 0) { showToast('📭 No orders to export', 'warning'); return; }
     const headers = ['Order ID', 'User', 'Email', 'Products', 'Total ($)', 'Status', 'Date'];
     const rows = ordersToExport.map(order => {
@@ -1077,7 +2819,7 @@ window.exportOrders = function() {
 };
 
 // ============================================================
-// 43. لوحة الإحصائيات المتقدمة (Chart.js) - موجود
+// 41. لوحة الإحصائيات المتقدمة (Chart.js)
 // ============================================================
 
 function loadChartJs() {
@@ -1132,10 +2874,12 @@ async function loadAdvancedStats() {
 window.refreshAdvancedStats = function() { loadAdvancedStats(); showToast('🔄 Stats refreshed', 'info'); };
 
 // ============================================================
-// 44. Social Proof Toast (إشعارات اجتماعية)
+// 42. Social Proof Toast (إشعارات اجتماعية)
 // ============================================================
+
 let socialProofQueue = [];
 let isSocialProofShowing = false;
+
 function addPurchaseEvent(userName, productName) {
     const now = new Date();
     const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
@@ -1176,8 +2920,9 @@ function triggerSocialProofOnOrder(userName, productNames) {
 }
 
 // ============================================================
-// 45. Admin Audit Logs (سجل نشاط المدير) - موجود
+// 43. Admin Audit Logs (سجل نشاط المدير)
 // ============================================================
+
 async function addAuditLog(action, details) {
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
     try { await addDoc(collection(db, 'auditLogs'), { action, details: details || '', adminId: currentUser.uid, adminEmail: currentUser.email, adminName: currentUser.displayName || 'Admin', timestamp: serverTimestamp(), date: new Date().toISOString() }); console.log('📝 Audit log added:', action); } catch (error) { console.error('❌ Failed to add audit log:', error); }
@@ -1205,10 +2950,12 @@ async function loadAuditLogs() {
 }
 
 // ============================================================
-// 46. Ratings & Reviews (التقييمات والمراجعات) - موجود
+// 44. Ratings & Reviews (التقييمات والمراجعات)
 // ============================================================
+
 let currentRating = 0;
 let currentProductIdForRating = null;
+
 async function loadRatings(productId) {
     const container = document.getElementById('ratingReviewsList');
     const avgEl = document.getElementById('ratingAvgDisplay');
@@ -1281,16 +3028,11 @@ function renderRatingSection(productId) {
 async function updateProductRatingDisplay(productId) { const ratingsRef = collection(db, 'ratings'); const q = query(ratingsRef, where('productId', '==', productId)); const snapshot = await getDocs(q); let total = 0; let count = 0; snapshot.forEach(doc => { total += doc.data().rating || 0; count++; }); const avg = count > 0 ? total / count : 0; }
 
 // ============================================================
-// ======================== الميزات الجديدة ========================
-// ============================================================
-
-// ============================================================
-// 47. PDF Generator (مولد الفواتير)
+// 45. PDF Generator (مولد الفواتير)
 // ============================================================
 
 async function generateInvoice(order) {
     if (!order) return;
-    // التأكد من تحميل المكتبة
     if (typeof window.jspdf === 'undefined') {
         showToast('⏳ Loading PDF library...', 'info');
         await new Promise((resolve) => {
@@ -1362,10 +3104,9 @@ async function generateInvoice(order) {
 }
 
 // ============================================================
-// 48. Daily RP Reward (المكافأة اليومية)
+// 46. Daily RP Reward (المكافأة اليومية)
 // ============================================================
 
-// تحميل إعدادات المكافأة اليومية
 async function loadDailyRewardSettings() {
     try {
         const settingsRef = doc(db, 'settings', 'dailyReward');
@@ -1376,18 +3117,14 @@ async function loadDailyRewardSettings() {
             dailyRewardAmount = data.amount || 5;
         }
         updateDailyRewardVisibility();
-        // تحديث زر التبديل في لوحة المدير
         const toggleBtn = document.getElementById('dailyRewardToggle');
         if (toggleBtn) {
             toggleBtn.textContent = dailyRewardEnabled ? '🔴 Disable Daily Reward' : '🟢 Enable Daily Reward';
             toggleBtn.style.background = dailyRewardEnabled ? 'var(--danger)' : 'var(--success)';
         }
-    } catch (error) {
-        console.error('Error loading daily reward settings:', error);
-    }
+    } catch (error) { console.error('Error loading daily reward settings:', error); }
 }
 
-// تحديث ظهور صندوق المكافأة
 function updateDailyRewardVisibility() {
     const box = document.getElementById('dailyRewardBox');
     if (!box) return;
@@ -1400,66 +3137,32 @@ function updateDailyRewardVisibility() {
     box.classList.remove('hidden');
 }
 
-// المطالبة بالمكافأة
 window.claimDailyReward = async function() {
-    if (!currentUser) {
-        showToast('⚠️ Please login first', 'warning');
-        openAuthModal();
-        return;
-    }
-    if (currentUser.isAnonymous) {
-        showToast('⚠️ Please sign in to claim', 'warning');
-        return;
-    }
-
+    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); openAuthModal(); return; }
+    if (currentUser.isAnonymous) { showToast('⚠️ Please sign in to claim', 'warning'); return; }
     const btn = document.getElementById('dailyClaimBtn');
     btn.disabled = true;
     btn.textContent = '⏳ Claiming...';
-
     try {
         const lastClaim = userProfile.lastDailyReward || 0;
         const today = new Date().setHours(0, 0, 0, 0);
-        if (lastClaim >= today) {
-            showToast('🎁 Already claimed today!', 'info');
-            btn.disabled = false;
-            btn.textContent = `Claim +${dailyRewardAmount} RP`;
-            return;
-        }
-
+        if (lastClaim >= today) { showToast('🎁 Already claimed today!', 'info'); btn.disabled = false; btn.textContent = `Claim +${dailyRewardAmount} RP`; return; }
         userProfile.rp = (userProfile.rp || 0) + dailyRewardAmount;
         userProfile.lastDailyReward = Date.now();
-
         const userRef = doc(db, 'users', currentUser.uid);
-        await updateDoc(userRef, {
-            rp: userProfile.rp,
-            lastDailyReward: userProfile.lastDailyReward
-        });
-
-        updateRpDisplay();
-        updateDropdownStats();
-        updateFullUserMenu();
-
+        await updateDoc(userRef, { rp: userProfile.rp, lastDailyReward: userProfile.lastDailyReward });
+        updateRpDisplay(); updateDropdownStats(); updateFullUserMenu();
         document.getElementById('dailyRewardBox').classList.add('hidden');
         showRewardModal(dailyRewardAmount);
-
         await addAuditLog('Daily Reward Claimed', `${currentUser.email} gained ${dailyRewardAmount} RP`);
-
-    } catch (error) {
-        console.error('Error claiming reward:', error);
-        showToast('❌ Error claiming reward', 'error');
-        btn.disabled = false;
-        btn.textContent = `Claim +${dailyRewardAmount} RP`;
-    }
+    } catch (error) { console.error('Error claiming reward:', error); showToast('❌ Error claiming reward', 'error'); btn.disabled = false; btn.textContent = `Claim +${dailyRewardAmount} RP`; }
 };
 
-// عرض مودال المكافأة مع انفجار
 function showRewardModal(points) {
     const modal = document.getElementById('rewardModal');
     const pointsDisplay = document.getElementById('rewardPointsDisplay');
     const explosionContainer = document.getElementById('rewardExplosion');
-
     pointsDisplay.textContent = `+${points}`;
-
     explosionContainer.innerHTML = '';
     const colors = ['#fbbf24', '#f472b6', '#34d399', '#60a5fa', '#a78bfa', '#fb923c'];
     for (let i = 0; i < 40; i++) {
@@ -1470,45 +3173,20 @@ function showRewardModal(points) {
         const distance = 80 + Math.random() * 120;
         const tx = Math.cos(angle) * distance;
         const ty = Math.sin(angle) * distance;
-        particle.style.cssText = `
-            width: ${size}px;
-            height: ${size}px;
-            background: ${colors[Math.floor(Math.random() * colors.length)]};
-            left: 50%;
-            top: 50%;
-            --tx: ${tx}px;
-            --ty: ${ty}px;
-            animation-duration: ${0.6 + Math.random() * 0.4}s;
-        `;
+        particle.style.cssText = `width:${size}px;height:${size}px;background:${colors[Math.floor(Math.random() * colors.length)]};left:50%;top:50%;--tx:${tx}px;--ty:${ty}px;animation-duration:${0.6 + Math.random() * 0.4}s;`;
         explosionContainer.appendChild(particle);
     }
-
     modal.classList.add('open');
-
     clearTimeout(window._rewardTimeout);
-    window._rewardTimeout = setTimeout(() => {
-        closeRewardModal();
-    }, 5000);
+    window._rewardTimeout = setTimeout(() => { closeRewardModal(); }, 5000);
 }
+window.closeRewardModal = function() { document.getElementById('rewardModal').classList.remove('open'); };
 
-window.closeRewardModal = function() {
-    document.getElementById('rewardModal').classList.remove('open');
-};
-
-// تبديل المكافأة اليومية من لوحة المدير
 window.toggleDailyReward = async function(enable) {
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
-        showToast('⛔ Unauthorized', 'error');
-        return;
-    }
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
     try {
         const settingsRef = doc(db, 'settings', 'dailyReward');
-        await setDoc(settingsRef, {
-            enabled: enable,
-            amount: dailyRewardAmount,
-            updatedAt: serverTimestamp(),
-            updatedBy: currentUser.uid
-        }, { merge: true });
+        await setDoc(settingsRef, { enabled: enable, amount: dailyRewardAmount, updatedAt: serverTimestamp(), updatedBy: currentUser.uid }, { merge: true });
         dailyRewardEnabled = enable;
         updateDailyRewardVisibility();
         showToast(`✅ Daily Reward ${enable ? 'Enabled' : 'Disabled'}`, 'success');
@@ -1517,128 +3195,11 @@ window.toggleDailyReward = async function(enable) {
             toggleBtn.textContent = enable ? '🔴 Disable Daily Reward' : '🟢 Enable Daily Reward';
             toggleBtn.style.background = enable ? 'var(--danger)' : 'var(--success)';
         }
-    } catch (error) {
-        console.error('Error toggling daily reward:', error);
-        showToast('❌ Error: ' + error.message, 'error');
-    }
+    } catch (error) { console.error('Error toggling daily reward:', error); showToast('❌ Error: ' + error.message, 'error'); }
 };
 
 // ============================================================
-// 49. دمج زر PDF في تاريخ الطلبات (تعديل دالة renderHistoryFull)
-// ============================================================
-
-const originalRenderHistoryFull = renderHistoryFull;
-renderHistoryFull = function() {
-    // استدعاء النسخة الأصلية أولاً (لتوليد المحتوى الأساسي)
-    originalRenderHistoryFull();
-    // ثم إضافة أزرار PDF لكل طلب باستخدام الأحداث أو التعديل المباشر
-    // سنقوم بإعادة تعبئة العناصر لأننا لا نستطيع تعديل الأصل بسهولة.
-    // بدلاً من ذلك، سنقوم بإعادة تنفيذ منطق العرض مع إضافة الزر.
-    const container = document.getElementById('historyFullContent');
-    if (!container) return;
-    const history = userProfile.history || [];
-
-    const total = history.length;
-    const approved = history.filter(o => o.status === 'completed' || o.status === 'delivered' || o.status === 'shipped').length;
-    const pending = history.filter(o => o.status === 'pending' || o.status === 'preparing').length;
-
-    let html = `
-        <div class="orders-stats">
-            <div class="orders-stat-card"><div class="orders-stat-number">${total}</div><div class="orders-stat-label">All</div></div>
-            <div class="orders-stat-card approved"><div class="orders-stat-number" style="color:var(--success);">${approved}</div><div class="orders-stat-label">Approved</div></div>
-            <div class="orders-stat-card pending"><div class="orders-stat-number" style="color:var(--pending-color);">${pending}</div><div class="orders-stat-label">Pending</div></div>
-        </div>
-        <div class="orders-filter-bar">
-            <button class="orders-filter-btn ${ordersFilter === 'all' ? 'active' : ''}" data-filter="all" onclick="filterOrders('all')">📋 All Orders</button>
-            <button class="orders-filter-btn ${ordersFilter === 'newest' ? 'active' : ''}" data-filter="newest" onclick="filterOrders('newest')">🔄 Newest</button>
-            <button class="orders-filter-btn ${ordersFilter === 'pending' ? 'active' : ''}" data-filter="pending" onclick="filterOrders('pending')">⏳ Pending</button>
-        </div>
-        <div class="orders-list" id="ordersList">`;
-
-    let filteredHistory = [...history];
-    if (ordersFilter === 'pending') { filteredHistory = filteredHistory.filter(o => o.status === 'pending' || o.status === 'preparing'); }
-    if (ordersFilter === 'newest') { filteredHistory = filteredHistory.sort((a, b) => new Date(b.date) - new Date(a.date)); } else { filteredHistory = filteredHistory.slice().reverse(); }
-
-    if (filteredHistory.length === 0) { html += `<div class="orders-empty"><i class="fas fa-shopping-bag"></i><p>No orders found.</p></div>`; } else {
-        filteredHistory.forEach(item => {
-            const status = item.status || 'pending';
-            const statusMap = { 'pending': { label: '⏳ Pending', class: 'pending' }, 'preparing': { label: '📦 Preparing', class: 'preparing' }, 'shipped': { label: '🚚 Shipped', class: 'shipped' }, 'delivered': { label: '✅ Delivered', class: 'delivered' }, 'completed': { label: '✅ Completed', class: 'completed' }, 'rejected': { label: '❌ Rejected', class: 'rejected' } };
-            const info = statusMap[status] || statusMap['pending'];
-            const date = item.date ? new Date(item.date) : new Date();
-            const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            const itemsNames = item.items ? item.items.map(i => i.name).join(', ') : 'Order';
-            const totalPrice = item.total || 0;
-            // إضافة زر PDF
-            html += `
-                <div class="orders-item" data-order='${JSON.stringify(item).replace(/'/g, "&apos;")}'>
-                    <div class="orders-item-info">
-                        <div class="orders-item-name">${itemsNames}</div>
-                        <div class="orders-item-date">${dateStr}</div>
-                        <span class="status-badge ${info.class}">${info.label}</span>
-                    </div>
-                    <div style="display:flex;align-items:center;gap:10px;">
-                        <div class="orders-item-price">${totalPrice > 0 ? '$' + totalPrice.toFixed(2) : 'FREE'}</div>
-                        <button onclick="generateInvoice(this.closest('.orders-item').dataset.order)" class="btn-download-invoice" style="padding:4px 10px;border:none;border-radius:6px;background:var(--vip-color);color:#0a0a1a;font-weight:600;cursor:pointer;font-size:11px;display:flex;align-items:center;gap:4px;">
-                            <i class="fas fa-file-pdf"></i> PDF
-                        </button>
-                    </div>
-                </div>
-            `;
-        });
-    }
-    html += `</div>`;
-    container.innerHTML = html;
-};
-
-// ============================================================
-// 50. التهيئة (Init)
-// ============================================================
-
-async function init() {
-    showLoadingScreen();
-    updateLoadingBar(10);
-
-    try { await signInAnonymously(auth); updateLoadingBar(30); } catch (e) { console.log('ℹ️ Anonymous sign-in'); }
-
-    const productsFromFirestore = await loadProductsFromFirestore();
-    products = productsFromFirestore.length > 0 ? productsFromFirestore : fallbackProducts;
-    updateLoadingBar(50);
-
-    startProductsRealtimeListener();
-    updateLoadingBar(70);
-
-    await loadUserData();
-    updateLoadingBar(85);
-
-    renderProducts(products, false);
-    renderFeaturedProducts();
-    generateRecommendations(products);
-    updateBottomCartBar();
-    updateDropdownStats();
-    loadDownloads();
-    loadNotifications();
-    fetchCryptoPrices();
-    loadFeaturedSettings();
-    loadDailyRewardSettings();
-    setInterval(fetchCryptoPrices, 60000);
-    updateLoadingBar(100);
-
-    console.log('✅ ZI Store ready with all features!');
-    setTimeout(() => {
-        hideLoadingScreen();
-        setTimeout(showTelegramBanner, 500);
-        startSocialProof();
-    }, 500);
-}
-init();
-
-setTimeout(() => {
-    hideLoadingScreen();
-    console.log('⚠️ Force hiding loading screen (timeout)');
-}, 5000);
-
-// ============================================================
-// 51. التصديرات النهائية
+// 47. التصديرات النهائية
 // ============================================================
 
 window.showToast = showToast;
@@ -1745,6 +3306,7 @@ window.generateInvoice = generateInvoice;
 window.claimDailyReward = claimDailyReward;
 window.closeRewardModal = closeRewardModal;
 window.toggleDailyReward = toggleDailyReward;
+window.loadDailyRewardSettings = loadDailyRewardSettings;
 
 // ============================================================
 // END OF SCRIPT.JS
