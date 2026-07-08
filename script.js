@@ -33,7 +33,7 @@ const analytics = getAnalytics(app);
 // 2. إعدادات Cloudinary
 // ============================================================
 
-const CLOUDINARY_CLOUD_NAME = 'YOUR_CLOUD_NAME_HERE';
+const CLOUDINARY_CLOUD_NAME = 'y14bgb5s';
 const CLOUDINARY_UPLOAD_PRESET = 'zi_store_uploads';
 
 // ============================================================
@@ -2796,7 +2796,7 @@ window.exportOrders = function() {
             const email = (order.userEmail || '').toLowerCase();
             const orderId = String(order.orderId || order.id || '').toLowerCase();
             const userName = (order.userName || '').toLowerCase();
-            return email.includes(searchQuery) || orderId.includes(searchQuery) || userName.includes(searchQuery);
+            return email.includes(query) || orderId.includes(query) || userName.includes(query);
         });
     }
     if (!ordersToExport || ordersToExport.length === 0) { showToast('📭 No orders to export', 'warning'); return; }
@@ -3028,11 +3028,27 @@ function renderRatingSection(productId) {
 async function updateProductRatingDisplay(productId) { const ratingsRef = collection(db, 'ratings'); const q = query(ratingsRef, where('productId', '==', productId)); const snapshot = await getDocs(q); let total = 0; let count = 0; snapshot.forEach(doc => { total += doc.data().rating || 0; count++; }); const avg = count > 0 ? total / count : 0; }
 
 // ============================================================
-// 45. PDF Generator (مولد الفواتير)
+// 45. PDF Generator (مولد الفواتير) - الإصلاح الكامل
 // ============================================================
 
-async function generateInvoice(order) {
-    if (!order) return;
+async function generateInvoice(orderData) {
+    // إذا كان orderData نصاً (string)، قم بتحويله إلى كائن
+    let order = orderData;
+    if (typeof order === 'string') {
+        try {
+            order = JSON.parse(order);
+        } catch (e) {
+            console.error('❌ Failed to parse order data:', e);
+            showToast('❌ Invalid order data', 'error');
+            return;
+        }
+    }
+    if (!order) {
+        showToast('❌ Order not found', 'error');
+        return;
+    }
+
+    // التأكد من تحميل مكتبة jsPDF
     if (typeof window.jspdf === 'undefined') {
         showToast('⏳ Loading PDF library...', 'info');
         await new Promise((resolve) => {
@@ -3042,6 +3058,7 @@ async function generateInvoice(order) {
             document.head.appendChild(script);
         });
     }
+
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -3104,7 +3121,7 @@ async function generateInvoice(order) {
 }
 
 // ============================================================
-// 46. Daily RP Reward (المكافأة اليومية)
+// 46. Daily RP Reward (المكافأة اليومية) - الإصلاح الكامل
 // ============================================================
 
 async function loadDailyRewardSettings() {
