@@ -17,9 +17,7 @@
     <div id="loadingScreen">
         <div class="loader-container">
             <div class="loader-icon">🚀</div>
-            <div class="loader-bar">
-                <div class="loader-progress" id="loadingBar"></div>
-            </div>
+            <div class="loader-bar"><div class="loader-progress" id="loadingBar"></div></div>
             <div class="loader-text" id="loadingStatus">Loading...</div>
         </div>
     </div>
@@ -40,33 +38,14 @@
 
         <!-- ================== HEADER ================== -->
         <header class="header">
-            <div class="logo">
-                <i class="fas fa-bolt"></i>
-                <span>ZI</span> Store
-            </div>
+            <div class="logo"><i class="fas fa-bolt"></i><span>ZI</span> Store</div>
             <div class="header-actions">
-                <button class="header-btn" onclick="openDownloads()" title="Downloads">
-                    <i class="fas fa-download"></i>
-                </button>
-                <button class="header-btn" onclick="openNotifications()" title="Notifications">
-                    <i class="fas fa-bell"></i>
-                    <span class="badge notification" id="notifBadge">0</span>
-                </button>
-                <button class="header-btn" onclick="openWishlistFull()" title="Wishlist">
-                    <i class="fas fa-heart"></i>
-                    <span class="badge heart" id="wishlistBadge">0</span>
-                </button>
-                <button class="header-btn" onclick="openCartFull()" title="Cart">
-                    <i class="fas fa-shopping-cart"></i>
-                    <span class="badge cart" id="cartBadge">0</span>
-                </button>
-                <button class="user-btn" onclick="openUserMenuFull()" title="Profile">
-                    <span id="userAvatarText">U</span>
-                    <span class="user-dot" id="userDot"></span>
-                </button>
-                <button class="theme-toggle" id="themeToggle" title="Theme">
-                    <i class="fas fa-moon"></i>
-                </button>
+                <button class="header-btn" onclick="openDownloads()" title="Downloads"><i class="fas fa-download"></i></button>
+                <button class="header-btn" onclick="openNotifications()" title="Notifications"><i class="fas fa-bell"></i><span class="badge notification" id="notifBadge">0</span></button>
+                <button class="header-btn" onclick="openWishlistFull()" title="Wishlist"><i class="fas fa-heart"></i><span class="badge heart" id="wishlistBadge">0</span></button>
+                <button class="header-btn" onclick="openCartFull()" title="Cart"><i class="fas fa-shopping-cart"></i><span class="badge cart" id="cartBadge">0</span></button>
+                <button class="user-btn" onclick="openUserMenuFull()" title="Profile"><span id="userAvatarText">U</span><span class="user-dot" id="userDot"></span></button>
+                <button class="theme-toggle" id="themeToggle" title="Theme"><i class="fas fa-moon"></i></button>
             </div>
         </header>
 
@@ -89,45 +68,22 @@
         <!-- ================== نافذة تيليجرام (Banner) ================== -->
         <div id="telegramBanner" class="telegram-banner" style="display:none;">
             <div class="banner-content">
-                <div class="banner-icon">
-                    <i class="fab fa-telegram-plane"></i>
-                    <span class="banner-pulse"></span>
-                </div>
+                <div class="banner-icon"><i class="fab fa-telegram-plane"></i><span class="banner-pulse"></span></div>
                 <div class="banner-text">
                     <div class="banner-title">🔔 Stay Connected! <span class="badge-new">New</span></div>
                     <div class="banner-subtitle">Link your Telegram account to receive instant order notifications</div>
                 </div>
-                <button class="banner-action" onclick="bindTelegram()">
-                    <i class="fab fa-telegram-plane"></i> Link Now
-                </button>
-                <button class="banner-close" onclick="closeTelegramBanner()" title="Close">
-                    <i class="fas fa-times"></i>
-                </button>
+                <button class="banner-action" onclick="bindTelegram()"><i class="fab fa-telegram-plane"></i> Link Now</button>
+                <button class="banner-close" onclick="closeTelegramBanner()" title="Close"><i class="fas fa-times"></i></button>
             </div>
         </div>
 
         <!-- ================== الإحصائيات ================== -->
         <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">📦</div>
-                <div class="stat-number" id="totalScripts">0</div>
-                <div class="stat-label">Total</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">🎁</div>
-                <div class="stat-number" id="freeScripts">0</div>
-                <div class="stat-label">Free</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">👑</div>
-                <div class="stat-number" id="vipScripts">0</div>
-                <div class="stat-label">VIP</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">❤️</div>
-                <div class="stat-number" id="wishlistStats">0</div>
-                <div class="stat-label">Favorites</div>
-            </div>
+            <div class="stat-card"><div class="stat-icon">📦</div><div class="stat-number" id="totalScripts">0</div><div class="stat-label">Total</div></div>
+            <div class="stat-card"><div class="stat-icon">🎁</div><div class="stat-number" id="freeScripts">0</div><div class="stat-label">Free</div></div>
+            <div class="stat-card"><div class="stat-icon">👑</div><div class="stat-number" id="vipScripts">0</div><div class="stat-label">VIP</div></div>
+            <div class="stat-card"><div class="stat-icon">❤️</div><div class="stat-number" id="wishlistStats">0</div><div class="stat-label">Favorites</div></div>
         </div>
 
         <!-- ================== أزرار التصفية ================== -->
@@ -183,19 +139,10 @@
         <div class="auth-container" id="loginContainer">
             <div class="auth-title">👋 Welcome Back</div>
             <div class="auth-subtitle">Login to access your scripts</div>
-            <div class="auth-field">
-                <label>Email</label>
-                <input type="email" id="loginEmail" placeholder="your@email.com" />
-            </div>
-            <div class="auth-field">
-                <label>Password</label>
-                <input type="password" id="loginPassword" placeholder="••••••••" />
-            </div>
+            <div class="auth-field"><label>Email</label><input type="email" id="loginEmail" placeholder="your@email.com" /></div>
+            <div class="auth-field"><label>Password</label><input type="password" id="loginPassword" placeholder="••••••••" /></div>
             <div class="forgot-link"><a onclick="openForgotPassword()">Forgot password?</a></div>
-            <button class="auth-btn" id="loginBtn" onclick="loginUser()">
-                <span class="btn-text">Login</span>
-                <span class="btn-loader"></span>
-            </button>
+            <button class="auth-btn" id="loginBtn" onclick="loginUser()"><span class="btn-text">Login</span><span class="btn-loader"></span></button>
             <div class="auth-error" id="loginError"></div>
             <div class="auth-success" id="loginSuccess"></div>
             <div class="auth-footer">Don't have an account? <a onclick="showRegister()">Sign up</a></div>
@@ -204,54 +151,16 @@
         <div class="auth-container" id="registerContainer" style="display:none;">
             <div class="auth-title">✨ Create Account</div>
             <div class="auth-subtitle">Join ZI Store today</div>
-            <div class="auth-field">
-                <label>Full Name</label>
-                <input type="text" id="registerName" placeholder="Your name" />
-            </div>
-            <div class="auth-field">
-                <label>Email</label>
-                <input type="email" id="registerEmail" placeholder="your@email.com" />
-            </div>
-            <div class="auth-field">
-                <label>Password</label>
-                <input type="password" id="registerPassword" placeholder="Min 6 characters" />
-            </div>
-            <div class="auth-field">
-                <label>Confirm Password</label>
-                <input type="password" id="registerConfirmPassword" placeholder="••••••••" />
-            </div>
-            <div class="auth-field">
-                <label>Country</label>
-                <select id="registerCountry">
-                    <option value="Tunisia">🇹🇳 Tunisia</option>
-                    <option value="Algeria">🇩🇿 Algeria</option>
-                    <option value="Morocco">🇲🇦 Morocco</option>
-                    <option value="Egypt">🇪🇬 Egypt</option>
-                    <option value="Saudi Arabia">🇸🇦 Saudi Arabia</option>
-                    <option value="UAE">🇦🇪 UAE</option>
-                    <option value="Other">🌍 Other</option>
-                </select>
-            </div>
-            <div class="auth-field">
-                <label>Language</label>
-                <select id="registerLang">
-                    <option value="English">🇬🇧 English</option>
-                    <option value="Arabic">🇸🇦 العربية</option>
-                    <option value="French">🇫🇷 Français</option>
-                </select>
-            </div>
+            <div class="auth-field"><label>Full Name</label><input type="text" id="registerName" placeholder="Your name" /></div>
+            <div class="auth-field"><label>Email</label><input type="email" id="registerEmail" placeholder="your@email.com" /></div>
+            <div class="auth-field"><label>Password</label><input type="password" id="registerPassword" placeholder="Min 6 characters" /></div>
+            <div class="auth-field"><label>Confirm Password</label><input type="password" id="registerConfirmPassword" placeholder="••••••••" /></div>
+            <div class="auth-field"><label>Country</label><select id="registerCountry"><option value="Tunisia">🇹🇳 Tunisia</option><option value="Algeria">🇩🇿 Algeria</option><option value="Morocco">🇲🇦 Morocco</option><option value="Egypt">🇪🇬 Egypt</option><option value="Saudi Arabia">🇸🇦 Saudi Arabia</option><option value="UAE">🇦🇪 UAE</option><option value="Other">🌍 Other</option></select></div>
+            <div class="auth-field"><label>Language</label><select id="registerLang"><option value="English">🇬🇧 English</option><option value="Arabic">🇸🇦 العربية</option><option value="French">🇫🇷 Français</option></select></div>
             <div class="referral-toggle" onclick="toggleReferral()"><i class="fas fa-gift"></i> Have a referral code?</div>
-            <div class="referral-field" id="referralField">
-                <input type="text" id="registerReferral" placeholder="Enter referral code" />
-            </div>
-            <div class="terms-check">
-                <input type="checkbox" id="termsCheck" />
-                <label for="termsCheck">I agree to the Terms & Conditions</label>
-            </div>
-            <button class="auth-btn" id="registerBtn" onclick="registerUser()">
-                <span class="btn-text">Create Account</span>
-                <span class="btn-loader"></span>
-            </button>
+            <div class="referral-field" id="referralField"><input type="text" id="registerReferral" placeholder="Enter referral code" /></div>
+            <div class="terms-check"><input type="checkbox" id="termsCheck" /><label for="termsCheck">I agree to the Terms & Conditions</label></div>
+            <button class="auth-btn" id="registerBtn" onclick="registerUser()"><span class="btn-text">Create Account</span><span class="btn-loader"></span></button>
             <div class="auth-error" id="registerError"></div>
             <div class="auth-success" id="registerSuccess"></div>
             <div class="auth-footer">Already have an account? <a onclick="showLogin()">Login</a></div>
@@ -259,85 +168,41 @@
     </div>
 
     <!-- ============================================ -->
-    <!-- مودال عرض المنتج (Preview) مع Features و VIP Pricing -->
+    <!-- مودال عرض المنتج (Preview) مع VIP Pricing و Ratings -->
     <!-- ============================================ -->
     <div class="modal-overlay preview-modal" id="previewModal">
         <div class="preview-content">
-            <!-- شريط علوي -->
             <div class="preview-header">
-                <button class="preview-back" onclick="closePreviewModal()">
-                    <i class="fas fa-arrow-left"></i>
-                </button>
+                <button class="preview-back" onclick="closePreviewModal()"><i class="fas fa-arrow-left"></i></button>
                 <div class="preview-header-title">Product Details</div>
-                <button class="preview-share" onclick="shareFromPreview()">
-                    <i class="fas fa-share-alt"></i>
-                </button>
+                <button class="preview-share" onclick="shareFromPreview()"><i class="fas fa-share-alt"></i></button>
             </div>
-
-            <!-- صورة المنتج -->
-            <div class="preview-image-wrapper">
-                <img id="previewImage" src="" alt="Product" />
-                <div class="preview-badge" id="previewBadge">PREMIUM</div>
-            </div>
-
-            <!-- تفاصيل المنتج -->
+            <div class="preview-image-wrapper"><img id="previewImage" src="" alt="Product" /><div class="preview-badge" id="previewBadge">PREMIUM</div></div>
             <div class="preview-body">
                 <div class="preview-verified" id="previewVerified">✅ 100% VERIFIED WORKING PRODUCT</div>
                 <h2 class="preview-name" id="previewName">Product Name</h2>
                 <p class="preview-desc" id="previewDescription">Description here</p>
-
-                <!-- ✅ Features -->
                 <div class="preview-features" id="previewFeatures">
-                    <div class="features-header">
-                        <i class="fas fa-check-circle"></i> Features
-                    </div>
-                    <ul class="features-list">
-                        <!-- سيتم تعبئتها بواسطة JavaScript -->
-                    </ul>
+                    <div class="features-header"><i class="fas fa-check-circle"></i> Features</div>
+                    <ul class="features-list"></ul>
                 </div>
-
-                <!-- ✅ VIP Pricing -->
                 <div id="previewVipPricing" style="display:none;">
                     <div class="vip-pricing-section">
-                        <div class="vip-pricing-header">
-                            <i class="fas fa-crown"></i> VIP Pricing
-                        </div>
-                        <div class="vip-pricing-grid" id="vipPricingGrid">
-                            <!-- سيتم تعبئتها بواسطة JavaScript -->
-                        </div>
-                        <button class="vip-add-to-cart" onclick="addVipToCart(window._currentProduct)">
-                            <i class="fas fa-shopping-cart"></i> Add to Cart
-                        </button>
-                        <div class="vip-footer">
-                            Checkout via Telegram <a href="https://t.me/Mitalica69" target="_blank">@Mitalica69</a>.
-                            By purchasing you agree to the <a href="#">Terms</a>. See the <a href="#">refund policy</a>.
-                        </div>
+                        <div class="vip-pricing-header"><i class="fas fa-crown"></i> VIP Pricing</div>
+                        <div class="vip-pricing-grid" id="vipPricingGrid"></div>
+                        <button class="vip-add-to-cart" onclick="addVipToCart(window._currentProduct)"><i class="fas fa-shopping-cart"></i> Add to Cart</button>
+                        <div class="vip-footer">Checkout via Telegram <a href="https://t.me/Mitalica69" target="_blank">@Mitalica69</a>. By purchasing you agree to the <a href="#">Terms</a>. See the <a href="#">refund policy</a>.</div>
                     </div>
                 </div>
 
-                <!-- زر الإضافة والسعر -->
+                <!-- ====== قسم التقييمات ====== -->
+                <div id="ratingSection"></div>
+
                 <div class="preview-action">
-                    <button class="preview-add-btn" id="previewAddBtn" onclick="addToCartFromPreview()">
-                        <i class="fas fa-cart-plus"></i> Add to Cart
-                    </button>
+                    <button class="preview-add-btn" id="previewAddBtn" onclick="addToCartFromPreview()"><i class="fas fa-cart-plus"></i> Add to Cart</button>
                     <span class="preview-price" id="previewPrice">$0.00</span>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- مودال تفاصيل المنتج (قديم - احتفظ به للتوافق) -->
-    <div class="modal-overlay" id="detailsModal">
-        <div class="modal-content" style="max-width:460px;">
-            <button class="modal-close" onclick="closeDetailsModal()"><i class="fas fa-times"></i></button>
-            <div class="modal-game-image"><img id="modalGameImage" src="" alt="Product" /></div>
-            <div class="modal-name" id="modalName">Product Name</div>
-            <div class="modal-badge" id="modalBadge">VIP</div>
-            <div class="modal-price" id="modalPrice">$0.00</div>
-            <ul class="modal-features" id="modalFeatures"></ul>
-            <div class="modal-description" id="modalDescription">Description</div>
-            <div class="modal-video"><iframe id="modalVideo" src="" allowfullscreen loading="lazy"></iframe></div>
-            <div class="modal-actions" id="modalActions"></div>
         </div>
     </div>
 
@@ -361,56 +226,25 @@
         <div class="modal-content" style="max-width:420px;">
             <button class="modal-close" onclick="closePaymentModal()"><i class="fas fa-times"></i></button>
             <div class="modal-title"><i class="fas fa-credit-card"></i> Checkout</div>
-
             <div id="paymentStep1">
                 <div class="payment-options">
-                    <div class="payment-option" id="optionLitecoin" onclick="selectPayment('litecoin')">
-                        <i class="fab fa-bitcoin"></i>
-                        <div class="p-label">Litecoin</div>
-                        <div class="p-sub">LTC</div>
-                        <div class="p-check"><i class="fas fa-check"></i></div>
-                    </div>
-                    <div class="payment-option" id="optionUsdt" onclick="selectPayment('usdt')">
-                        <i class="fas fa-coins"></i>
-                        <div class="p-label">USDT</div>
-                        <div class="p-sub">ERC20</div>
-                        <div class="p-check"><i class="fas fa-check"></i></div>
-                    </div>
-                    <div class="payment-option" id="optionTelegram" onclick="selectPayment('telegram')">
-                        <i class="fab fa-telegram-plane"></i>
-                        <div class="p-label">Telegram</div>
-                        <div class="p-sub">Direct</div>
-                        <div class="p-check"><i class="fas fa-check"></i></div>
-                    </div>
+                    <div class="payment-option" id="optionLitecoin" onclick="selectPayment('litecoin')"><i class="fab fa-bitcoin"></i><div class="p-label">Litecoin</div><div class="p-sub">LTC</div><div class="p-check"><i class="fas fa-check"></i></div></div>
+                    <div class="payment-option" id="optionUsdt" onclick="selectPayment('usdt')"><i class="fas fa-coins"></i><div class="p-label">USDT</div><div class="p-sub">ERC20</div><div class="p-check"><i class="fas fa-check"></i></div></div>
+                    <div class="payment-option" id="optionTelegram" onclick="selectPayment('telegram')"><i class="fab fa-telegram-plane"></i><div class="p-label">Telegram</div><div class="p-sub">Direct</div><div class="p-check"><i class="fas fa-check"></i></div></div>
                 </div>
-                <div class="payment-summary">
-                    <div class="ps-row"><span class="ps-label">Total</span><span class="ps-value" id="payableTotal">$0.00</span></div>
-                    <div class="ps-row"><span class="ps-label">Exchange Rate</span><span class="ps-value" id="exchangeRate">Loading...</span></div>
-                </div>
+                <div class="payment-summary"><div class="ps-row"><span class="ps-label">Total</span><span class="ps-value" id="payableTotal">$0.00</span></div><div class="ps-row"><span class="ps-label">Exchange Rate</span><span class="ps-value" id="exchangeRate">Loading...</span></div></div>
                 <button class="payment-btn" onclick="continuePayment()"><i class="fas fa-arrow-right"></i> Continue</button>
             </div>
-
             <div class="payment-step2" id="paymentStep2">
                 <div class="payment-products-list" id="paymentProductsList"></div>
-                <div class="payment-summary">
-                    <div class="ps-row"><span class="ps-label">Subtotal</span><span class="ps-value" id="step2Subtotal">$0.00</span></div>
-                    <div class="ps-row ps-total"><span class="ps-label">Total</span><span class="ps-value" id="step2Total">$0.00</span></div>
-                </div>
+                <div class="payment-summary"><div class="ps-row"><span class="ps-label">Subtotal</span><span class="ps-value" id="step2Subtotal">$0.00</span></div><div class="ps-row ps-total"><span class="ps-label">Total</span><span class="ps-value" id="step2Total">$0.00</span></div></div>
                 <div class="wallet-info">
                     <div class="w-row"><span class="w-label"><i class="fas fa-wallet"></i> Method</span><span class="w-value" id="paymentMethodName">Litecoin</span></div>
                     <div class="w-row"><span class="w-label"><i class="fas fa-network-wired"></i> Network</span><span class="w-value" id="cryptoNetwork">LTC</span></div>
                     <div class="w-row"><span class="w-label"><i class="fas fa-coins"></i> Amount</span><span class="w-value" id="cryptoAmount">0.0000 LTC</span></div>
-                    <div class="w-address">
-                        <span id="walletAddressDisplay">0x1234...</span>
-                        <button onclick="copyWalletAddress()"><i class="fas fa-copy"></i> Copy</button>
-                    </div>
+                    <div class="w-address"><span id="walletAddressDisplay">0x1234...</span><button onclick="copyWalletAddress()"><i class="fas fa-copy"></i> Copy</button></div>
                 </div>
-                <div style="margin-top: 8px;">
-                    <input class="payment-tx-input" id="transactionHashInput" placeholder="Paste transaction hash..." />
-                    <p style="font-size: 12px; color: var(--text-secondary); opacity: 0.5; margin-top: 4px;">
-                        📌 Please paste your transaction hash to verify your payment.
-                    </p>
-                </div>
+                <div style="margin-top: 8px;"><input class="payment-tx-input" id="transactionHashInput" placeholder="Paste transaction hash..." /><p style="font-size: 12px; color: var(--text-secondary); opacity: 0.5; margin-top: 4px;">📌 Please paste your transaction hash to verify your payment.</p></div>
                 <button class="payment-btn" onclick="placeOrder()"><i class="fas fa-check"></i> Confirm Payment</button>
                 <button class="payment-btn" onclick="goToStep1()" style="background:var(--card-bg);color:var(--text);margin-top:4px;"><i class="fas fa-arrow-left"></i> Back</button>
             </div>
@@ -419,11 +253,7 @@
 
     <!-- مودال التحميلات -->
     <div class="modal-overlay" id="downloadsModal">
-        <div class="modal-content" style="max-width:440px;">
-            <button class="modal-close" onclick="closeDownloads()"><i class="fas fa-times"></i></button>
-            <div class="modal-title"><i class="fas fa-download"></i> Downloads</div>
-            <div id="downloadsList"></div>
-        </div>
+        <div class="modal-content" style="max-width:440px;"><button class="modal-close" onclick="closeDownloads()"><i class="fas fa-times"></i></button><div class="modal-title"><i class="fas fa-download"></i> Downloads</div><div id="downloadsList"></div></div>
     </div>
 
     <!-- مودال الإشعارات -->
@@ -431,10 +261,7 @@
         <div class="modal-content" style="max-width:440px;">
             <button class="modal-close" onclick="closeNotifications()"><i class="fas fa-times"></i></button>
             <div class="modal-title"><i class="fas fa-bell"></i> Notifications</div>
-            <div class="notifications-header-actions">
-                <button class="btn-mark-read" onclick="markAllNotificationsRead()"><i class="fas fa-check-double"></i> Mark all read</button>
-                <button class="btn-clear-all" onclick="clearAllNotifications()"><i class="fas fa-trash"></i> Clear all</button>
-            </div>
+            <div class="notifications-header-actions"><button class="btn-mark-read" onclick="markAllNotificationsRead()"><i class="fas fa-check-double"></i> Mark all read</button><button class="btn-clear-all" onclick="clearAllNotifications()"><i class="fas fa-trash"></i> Clear all</button></div>
             <div id="notificationsList"></div>
         </div>
     </div>
@@ -445,185 +272,63 @@
 
     <!-- قائمة المستخدم -->
     <div class="fullscreen-modal user-menu-full" id="userMenuFull">
-        <div class="modal-header">
-            <h2><i class="fas fa-user"></i> Profile</h2>
-            <button class="modal-close" onclick="closeUserMenuFull()"><i class="fas fa-times"></i></button>
-        </div>
-        <div class="user-header">
-            <div class="avatar" id="fullAvatar">U</div>
-            <div class="info">
-                <h3 id="fullName">Guest</h3>
-                <p id="fullEmail">Not logged in</p>
-                <div class="rp-display">🎯 <span id="fullRp">0</span> RP</div>
-            </div>
-        </div>
+        <div class="modal-header"><h2><i class="fas fa-user"></i> Profile</h2><button class="modal-close" onclick="closeUserMenuFull()"><i class="fas fa-times"></i></button></div>
+        <div class="user-header"><div class="avatar" id="fullAvatar">U</div><div class="info"><h3 id="fullName">Guest</h3><p id="fullEmail">Not logged in</p><div class="rp-display">🎯 <span id="fullRp">0</span> RP</div></div></div>
         <div class="menu-grid">
-            <div class="menu-item" onclick="openProfileFull();closeUserMenuFull();">
-                <i class="fas fa-user-cog"></i>
-                <span class="menu-label">Profile</span>
-            </div>
-            <div class="menu-item" onclick="openHistoryFull();closeUserMenuFull();">
-                <i class="fas fa-history"></i>
-                <span class="menu-label">Orders</span>
-                <span class="menu-badge" id="fullOrderBadge">0</span>
-            </div>
-            <div class="menu-item" onclick="openWishlistFull();closeUserMenuFull();">
-                <i class="fas fa-heart"></i>
-                <span class="menu-label">Favorites</span>
-                <span class="menu-badge" id="fullWishlistBadge">0</span>
-            </div>
-            <div class="menu-item" onclick="openNotifications();closeUserMenuFull();">
-                <i class="fas fa-bell"></i>
-                <span class="menu-label">Notifications</span>
-                <span class="menu-badge" id="fullNotifBadge">0</span>
-            </div>
-            <div class="menu-item" onclick="openRequestsModal();closeUserMenuFull();">
-                <i class="fas fa-file-alt"></i>
-                <span class="menu-label">Requests</span>
-            </div>
-            <div class="menu-item" onclick="openReferralModal();closeUserMenuFull();">
-                <i class="fas fa-gift"></i>
-                <span class="menu-label">Referrals</span>
-            </div>
+            <div class="menu-item" onclick="openProfileFull();closeUserMenuFull();"><i class="fas fa-user-cog"></i><span class="menu-label">Profile</span></div>
+            <div class="menu-item" onclick="openHistoryFull();closeUserMenuFull();"><i class="fas fa-history"></i><span class="menu-label">Orders</span><span class="menu-badge" id="fullOrderBadge">0</span></div>
+            <div class="menu-item" onclick="openWishlistFull();closeUserMenuFull();"><i class="fas fa-heart"></i><span class="menu-label">Favorites</span><span class="menu-badge" id="fullWishlistBadge">0</span></div>
+            <div class="menu-item" onclick="openNotifications();closeUserMenuFull();"><i class="fas fa-bell"></i><span class="menu-label">Notifications</span><span class="menu-badge" id="fullNotifBadge">0</span></div>
+            <div class="menu-item" onclick="openRequestsModal();closeUserMenuFull();"><i class="fas fa-file-alt"></i><span class="menu-label">Requests</span></div>
+            <div class="menu-item" onclick="openReferralModal();closeUserMenuFull();"><i class="fas fa-gift"></i><span class="menu-label">Referrals</span></div>
             <div class="menu-divider"></div>
-            <div class="menu-item admin-btn" id="adminMenuItem" onclick="openAdminPanel();closeUserMenuFull();">
-                <i class="fas fa-crown"></i>
-                <span class="menu-label">Admin Panel</span>
-                <span class="menu-badge" id="adminMenuBadge">0</span>
-            </div>
-            <div class="menu-item logout" onclick="logoutUser();closeUserMenuFull();">
-                <i class="fas fa-sign-out-alt"></i>
-                <span class="menu-label">Logout</span>
-            </div>
+            <div class="menu-item admin-btn" id="adminMenuItem" onclick="openAdminPanel();closeUserMenuFull();"><i class="fas fa-crown"></i><span class="menu-label">Admin Panel</span><span class="menu-badge" id="adminMenuBadge">0</span></div>
+            <div class="menu-item logout" onclick="logoutUser();closeUserMenuFull();"><i class="fas fa-sign-out-alt"></i><span class="menu-label">Logout</span></div>
         </div>
     </div>
 
     <!-- الملف الشخصي -->
-    <div class="fullscreen-modal" id="profileFull">
-        <div class="modal-header">
-            <h2><i class="fas fa-user-cog"></i> Profile</h2>
-            <button class="modal-close" onclick="closeProfileFull()"><i class="fas fa-times"></i></button>
-        </div>
-        <div id="profileFullContent"></div>
-    </div>
+    <div class="fullscreen-modal" id="profileFull"><div class="modal-header"><h2><i class="fas fa-user-cog"></i> Profile</h2><button class="modal-close" onclick="closeProfileFull()"><i class="fas fa-times"></i></button></div><div id="profileFullContent"></div></div>
 
     <!-- تاريخ الطلبات -->
-    <div class="fullscreen-modal" id="historyFull">
-        <div class="modal-header">
-            <h2><i class="fas fa-history"></i> Order History</h2>
-            <button class="modal-close" onclick="closeHistoryFull()"><i class="fas fa-times"></i></button>
-        </div>
-        <div id="historyFullContent"></div>
-    </div>
+    <div class="fullscreen-modal" id="historyFull"><div class="modal-header"><h2><i class="fas fa-history"></i> Order History</h2><button class="modal-close" onclick="closeHistoryFull()"><i class="fas fa-times"></i></button></div><div id="historyFullContent"></div></div>
 
     <!-- السلة -->
-    <div class="fullscreen-modal" id="cartFull">
-        <div class="modal-header">
-            <h2><i class="fas fa-shopping-cart"></i> Cart</h2>
-            <button class="modal-close" onclick="closeCartFull()"><i class="fas fa-times"></i></button>
-        </div>
-        <div id="cartFullContent"></div>
-    </div>
+    <div class="fullscreen-modal" id="cartFull"><div class="modal-header"><h2><i class="fas fa-shopping-cart"></i> Cart</h2><button class="modal-close" onclick="closeCartFull()"><i class="fas fa-times"></i></button></div><div id="cartFullContent"></div></div>
 
     <!-- المفضلة -->
-    <div class="fullscreen-modal" id="wishlistFull">
-        <div class="modal-header">
-            <h2><i class="fas fa-heart"></i> Favorites</h2>
-            <button class="modal-close" onclick="closeWishlistFull()"><i class="fas fa-times"></i></button>
-        </div>
-        <div id="wishlistFullContent"></div>
-    </div>
+    <div class="fullscreen-modal" id="wishlistFull"><div class="modal-header"><h2><i class="fas fa-heart"></i> Favorites</h2><button class="modal-close" onclick="closeWishlistFull()"><i class="fas fa-times"></i></button></div><div id="wishlistFullContent"></div></div>
 
     <!-- مودال الطلبات -->
-    <div class="modal-overlay" id="requestsModal">
-        <div class="modal-content" style="max-width:420px;">
-            <button class="modal-close" onclick="closeRequestsModal()"><i class="fas fa-times"></i></button>
-            <div class="modal-title"><i class="fas fa-file-alt"></i> My Requests</div>
-            <button class="add-btn" onclick="openNewRequestModal()"><i class="fas fa-plus"></i> New Request</button>
-            <div id="requestsList"></div>
-        </div>
-    </div>
+    <div class="modal-overlay" id="requestsModal"><div class="modal-content" style="max-width:420px;"><button class="modal-close" onclick="closeRequestsModal()"><i class="fas fa-times"></i></button><div class="modal-title"><i class="fas fa-file-alt"></i> My Requests</div><button class="add-btn" onclick="openNewRequestModal()"><i class="fas fa-plus"></i> New Request</button><div id="requestsList"></div></div></div>
 
     <!-- مودال طلب جديد -->
-    <div class="modal-overlay" id="newRequestModal">
-        <div class="modal-content" style="max-width:420px;">
-            <button class="modal-close" onclick="closeNewRequestModal()"><i class="fas fa-times"></i></button>
-            <div class="modal-title"><i class="fas fa-plus-circle"></i> New Request</div>
-            <form class="request-form" id="requestForm" onsubmit="submitRequest(event)">
-                <label>Game Name</label>
-                <input type="text" id="reqGameName" placeholder="e.g., Free Fire" required />
-                <label>Play Store Link</label>
-                <input type="url" id="reqPlayStore" placeholder="https://play.google.com/..." required />
-                <label>Features</label>
-                <textarea id="reqFeatures" placeholder="List the features you want..." required></textarea>
-                <label>Budget</label>
-                <input type="text" id="reqBudget" placeholder="e.g., 50$" required />
-                <button type="submit" class="submit-btn"><i class="fas fa-paper-plane"></i> Submit Request</button>
-            </form>
-        </div>
-    </div>
+    <div class="modal-overlay" id="newRequestModal"><div class="modal-content" style="max-width:420px;"><button class="modal-close" onclick="closeNewRequestModal()"><i class="fas fa-times"></i></button><div class="modal-title"><i class="fas fa-plus-circle"></i> New Request</div><form class="request-form" id="requestForm" onsubmit="submitRequest(event)"><label>Game Name</label><input type="text" id="reqGameName" placeholder="e.g., Free Fire" required /><label>Play Store Link</label><input type="url" id="reqPlayStore" placeholder="https://play.google.com/..." required /><label>Features</label><textarea id="reqFeatures" placeholder="List the features you want..." required></textarea><label>Budget</label><input type="text" id="reqBudget" placeholder="e.g., 50$" required /><button type="submit" class="submit-btn"><i class="fas fa-paper-plane"></i> Submit Request</button></form></div></div>
 
-    <!-- مودال الإحالات (معدل) -->
-    <div class="modal-overlay" id="referralModal">
-        <div class="modal-content" style="max-width:420px;">
-            <button class="modal-close" onclick="closeReferralModal()"><i class="fas fa-times"></i></button>
-            <div class="modal-title"><i class="fas fa-gift"></i> Refer & Earn</div>
-
-            <!-- كود الإحالة -->
-            <div style="background:var(--bg);border-radius:10px;padding:14px;border:1px solid var(--border);margin-bottom:12px;">
-                <div style="font-size:12px;color:var(--text-secondary);opacity:0.5;">Your Referral Code</div>
-                <div style="display:flex;align-items:center;gap:10px;">
-                    <code id="referralCodeDisplay2" style="font-size:20px;font-weight:700;color:var(--primary);font-family:monospace;">Loading...</code>
-                    <button onclick="copyReferralCode2()" style="padding:4px 12px;border:none;border-radius:6px;background:var(--primary);color:#fff;cursor:pointer;font-size:12px;"><i class="fas fa-copy"></i></button>
-                </div>
-            </div>
-
-            <!-- إحصائيات -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
-                <div style="background:var(--bg);border-radius:8px;padding:8px;text-align:center;border:1px solid var(--border);">
-                    <div style="font-size:18px;font-weight:700;color:var(--text);" id="referralCount2">0</div>
-                    <div style="font-size:10px;color:var(--text-secondary);opacity:0.4;">Referrals</div>
-                </div>
-                <div style="background:var(--bg);border-radius:8px;padding:8px;text-align:center;border:1px solid var(--border);">
-                    <div style="font-size:18px;font-weight:700;color:var(--success);" id="referralRewards2">0 $</div>
-                    <div style="font-size:10px;color:var(--text-secondary);opacity:0.4;">Earned</div>
-                </div>
-            </div>
-
-            <!-- خطوات الإحالة -->
-            <div id="referralSteps"></div>
-
-            <!-- نشاط الإحالات -->
-            <div style="margin-top:12px;">
-                <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;">📋 Referral Activity</div>
-                <div id="referralActivity"></div>
-            </div>
-        </div>
-    </div>
+    <!-- مودال الإحالات -->
+    <div class="modal-overlay" id="referralModal"><div class="modal-content" style="max-width:420px;"><button class="modal-close" onclick="closeReferralModal()"><i class="fas fa-times"></i></button><div class="modal-title"><i class="fas fa-gift"></i> Refer & Earn</div>
+        <div style="background:var(--bg);border-radius:10px;padding:14px;border:1px solid var(--border);margin-bottom:12px;"><div style="font-size:12px;color:var(--text-secondary);opacity:0.5;">Your Referral Code</div><div style="display:flex;align-items:center;gap:10px;"><code id="referralCodeDisplay2" style="font-size:20px;font-weight:700;color:var(--primary);font-family:monospace;">Loading...</code><button onclick="copyReferralCode2()" style="padding:4px 12px;border:none;border-radius:6px;background:var(--primary);color:#fff;cursor:pointer;font-size:12px;"><i class="fas fa-copy"></i></button></div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;"><div style="background:var(--bg);border-radius:8px;padding:8px;text-align:center;border:1px solid var(--border);"><div style="font-size:18px;font-weight:700;color:var(--text);" id="referralCount2">0</div><div style="font-size:10px;color:var(--text-secondary);opacity:0.4;">Referrals</div></div><div style="background:var(--bg);border-radius:8px;padding:8px;text-align:center;border:1px solid var(--border);"><div style="font-size:18px;font-weight:700;color:var(--success);" id="referralRewards2">0 $</div><div style="font-size:10px;color:var(--text-secondary);opacity:0.4;">Earned</div></div></div>
+        <div id="referralSteps"></div>
+        <div style="margin-top:12px;"><div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;">📋 Referral Activity</div><div id="referralActivity"></div></div>
+    </div></div>
 
     <!-- مودال نسيت كلمة المرور -->
-    <div class="modal-overlay" id="forgotPasswordModal">
-        <div class="modal-content" style="max-width:360px;">
-            <button class="modal-close" onclick="closeForgotPasswordModal()"><i class="fas fa-times"></i></button>
-            <div class="modal-title"><i class="fas fa-key"></i> Reset Password</div>
-            <div class="auth-field">
-                <label>Email</label>
-                <input type="email" id="forgotEmail" placeholder="your@email.com" />
-            </div>
-            <button class="auth-btn" onclick="sendForgotPassword()"><i class="fas fa-paper-plane"></i> Send Reset Link</button>
-            <div class="auth-error" id="forgotError"></div>
-            <div class="auth-success" id="forgotSuccess"></div>
-        </div>
-    </div>
+    <div class="modal-overlay" id="forgotPasswordModal"><div class="modal-content" style="max-width:360px;"><button class="modal-close" onclick="closeForgotPasswordModal()"><i class="fas fa-times"></i></button><div class="modal-title"><i class="fas fa-key"></i> Reset Password</div><div class="auth-field"><label>Email</label><input type="email" id="forgotEmail" placeholder="your@email.com" /></div><button class="auth-btn" onclick="sendForgotPassword()"><i class="fas fa-paper-plane"></i> Send Reset Link</button><div class="auth-error" id="forgotError"></div><div class="auth-success" id="forgotSuccess"></div></div></div>
 
     <!-- ============================================ -->
-    <!-- لوحة المدير (Admin Panel) مع تبويب الإحصائيات المتقدمة -->
+    <!-- لوحة المدير (Admin Panel) - مع تبويب Logs -->
     <!-- ============================================ -->
     <div class="modal-overlay admin-panel" id="adminPanel">
-        <div class="modal-content" style="max-width:750px;max-height:90vh;">
+        <div class="modal-content">
             <div class="panel-header">
                 <h2><i class="fas fa-crown"></i> Admin Panel</h2>
-                <button class="close-btn" onclick="closeAdminPanel()"><i class="fas fa-times"></i></button>
+                <div class="header-actions">
+                    <button class="btn-primary" onclick="openAddProductModal()"><i class="fas fa-plus"></i> Create Workspace</button>
+                    <button class="btn-secondary" onclick="showToast('Invite member feature coming soon!', 'info')"><i class="fas fa-user-plus"></i> Invite member</button>
+                    <button class="btn-upgrade" onclick="showToast('Upgrade plan feature coming soon!', 'info')"><i class="fas fa-rocket"></i> Upgrade plan</button>
+                    <button class="btn-close" onclick="closeAdminPanel()"><i class="fas fa-times"></i></button>
+                </div>
             </div>
             <div class="tabs">
                 <button onclick="switchAdminTab('dashboard')">📊 Dashboard</button>
@@ -633,28 +338,21 @@
                 <button onclick="switchAdminTab('downloads')">📁 Downloads</button>
                 <button onclick="switchAdminTab('notifications')">🔔 Notifications</button>
                 <button onclick="switchAdminTab('stats')">📈 Statistics</button>
+                <!-- تبويب السجلات الجديد -->
+                <button onclick="switchAdminTab('logs')">📋 Logs</button>
             </div>
 
             <!-- ======== تبويب Dashboard ======== -->
             <div class="tab-content" id="tabDashboard">
                 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">
-                    <div class="admin-stat-card" style="background:var(--bg);padding:14px;border-radius:12px;border:1px solid var(--border);text-align:center;">
-                        <div style="font-size:28px;font-weight:800;color:var(--primary);" id="dashboardTotalOrders">0</div>
-                        <div style="font-size:12px;color:var(--text-secondary);opacity:0.6;margin-top:2px;">Total Orders</div>
-                    </div>
-                    <div class="admin-stat-card" style="background:var(--bg);padding:14px;border-radius:12px;border:1px solid var(--border);text-align:center;">
-                        <div style="font-size:28px;font-weight:800;color:var(--success);" id="dashboardTotalRevenue">$0.00</div>
-                        <div style="font-size:12px;color:var(--text-secondary);opacity:0.6;margin-top:2px;">Total Revenue</div>
-                    </div>
-                    <div class="admin-stat-card" style="background:var(--bg);padding:14px;border-radius:12px;border:1px solid var(--border);text-align:center;">
-                        <div style="font-size:28px;font-weight:800;color:var(--vip-color);" id="dashboardNetRevenue">$0.00</div>
-                        <div style="font-size:12px;color:var(--text-secondary);opacity:0.6;margin-top:2px;">Net Revenue (10%)</div>
-                    </div>
+                    <div class="admin-stat-card"><div style="font-size:28px;font-weight:800;color:var(--primary);" id="dashboardTotalOrders">0</div><div style="font-size:12px;color:var(--text-secondary);opacity:0.6;margin-top:2px;">Total Orders</div></div>
+                    <div class="admin-stat-card"><div style="font-size:28px;font-weight:800;color:var(--success);" id="dashboardTotalRevenue">$0.00</div><div style="font-size:12px;color:var(--text-secondary);opacity:0.6;margin-top:2px;">Total Revenue</div></div>
+                    <div class="admin-stat-card"><div style="font-size:28px;font-weight:800;color:var(--vip-color);" id="dashboardNetRevenue">$0.00</div><div style="font-size:12px;color:var(--text-secondary);opacity:0.6;margin-top:2px;">Net Revenue (10%)</div></div>
                 </div>
                 <button onclick="refreshDashboardStats()" class="admin-submit-btn" style="width:100%;"><i class="fas fa-sync"></i> Refresh Stats</button>
             </div>
 
-            <!-- ======== تبويب الطلبات (مع زر تصدير CSV) ======== -->
+            <!-- ======== تبويب الطلبات ======== -->
             <div class="tab-content active" id="tabOrders">
                 <div class="admin-stats-grid">
                     <div class="admin-stat-card"><div class="stat-number" id="adminTotalOrders">0</div><div class="stat-label">Total</div></div>
@@ -669,10 +367,7 @@
                     <button class="btn-search" onclick="searchAdminOrders()"><i class="fas fa-search"></i></button>
                     <button class="btn-clear" onclick="clearAdminSearch()"><i class="fas fa-times"></i></button>
                     <button class="btn-refresh" onclick="refreshAdminOrders()"><i class="fas fa-sync"></i></button>
-                    <!-- زر تصدير CSV -->
-                    <button class="btn-export" onclick="exportOrders()" style="background:var(--success);color:#0a0a1a;padding:4px 12px;border:none;border-radius:6px;font-weight:600;cursor:pointer;font-size:12px;display:inline-flex;align-items:center;gap:4px;">
-                        <i class="fas fa-file-csv"></i> Export CSV
-                    </button>
+                    <button class="btn-export" onclick="exportOrders()"><i class="fas fa-file-csv"></i> Export CSV</button>
                 </div>
                 <div style="overflow-x:auto;">
                     <table class="admin-orders-table">
@@ -686,9 +381,7 @@
             <div class="tab-content" id="tabProducts">
                 <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
                     <button class="add-btn" onclick="openAddProductModal()"><i class="fas fa-plus"></i> Add Product</button>
-                    <button class="add-btn" onclick="openFeaturedSettings()" style="background:var(--vip-color);color:#0a0a1a;">
-                        <i class="fas fa-star"></i> Manage Featured
-                    </button>
+                    <button class="add-btn" onclick="openFeaturedSettings()" style="background:var(--vip-color);color:#0a0a1a;"><i class="fas fa-star"></i> Manage Featured</button>
                 </div>
                 <div id="adminProductsList"></div>
             </div>
@@ -720,140 +413,71 @@
             <div class="tab-content" id="tabStats">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
                     <h3 style="font-size:16px;font-weight:700;margin:0;"><i class="fas fa-chart-line"></i> Advanced Statistics</h3>
-                    <button onclick="refreshAdvancedStats()" style="padding:6px 14px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);cursor:pointer;">
-                        <i class="fas fa-sync-alt"></i> Refresh
-                    </button>
+                    <button onclick="refreshAdvancedStats()" style="padding:6px 14px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);cursor:pointer;"><i class="fas fa-sync-alt"></i> Refresh</button>
                 </div>
-                <div id="advancedStatsContainer">
-                    <div style="text-align:center;padding:20px;color:var(--text-secondary);">
-                        <i class="fas fa-spinner fa-spin"></i> Loading statistics...
-                    </div>
+                <div id="advancedStatsContainer"><div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading statistics...</div></div>
+            </div>
+
+            <!-- ======== تبويب سجل النشاط (Logs) ======== -->
+            <div class="tab-content" id="tabLogs">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+                    <h3 style="font-size:16px;font-weight:700;margin:0;"><i class="fas fa-clipboard-list"></i> Audit Logs</h3>
+                    <button onclick="loadAuditLogs()" style="padding:6px 14px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);cursor:pointer;"><i class="fas fa-sync-alt"></i> Refresh</button>
+                </div>
+                <div id="auditLogsContainer">
+                    <div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading logs...</div>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- ============================================ -->
-    <!-- مودالات الإدارة - محسنة وجميلة -->
+    <!-- مودالات الإدارة -->
     <!-- ============================================ -->
 
-    <!-- مودال إضافة/تعديل منتج (مع VIP Pricing) -->
+    <!-- مودال إضافة/تعديل منتج -->
     <div class="modal-overlay" id="productModal">
         <div class="modal-content" style="max-width:540px;">
             <button class="modal-close" onclick="closeProductModal()"><i class="fas fa-times"></i></button>
             <div class="modal-title" id="productFormTitle">Add Product</div>
             <form id="productForm" onsubmit="saveProduct(event)" class="admin-form">
                 <input type="hidden" id="productIdField" />
-                
-                <!-- المعلومات الأساسية -->
-                <div class="admin-form-group">
-                    <label for="productName">Product Name</label>
-                    <input type="text" id="productName" required placeholder="Enter product name" />
-                </div>
-                
-                <div class="admin-form-group">
-                    <label for="productPrice">Price ($)</label>
-                    <input type="number" id="productPrice" step="0.01" min="0" placeholder="0.00" />
-                </div>
-                
+                <div class="admin-form-group"><label for="productName">Product Name</label><input type="text" id="productName" required placeholder="Enter product name" /></div>
+                <div class="admin-form-group"><label for="productPrice">Price ($)</label><input type="number" id="productPrice" step="0.01" min="0" placeholder="0.00" /></div>
                 <div class="admin-form-row">
-                    <div class="admin-form-group" style="flex:1;">
-                        <label for="productBadge">Badge</label>
-                        <select id="productBadge">
-                            <option value="FREE">FREE</option>
-                            <option value="VIP">VIP</option>
-                            <option value="PRO">PRO</option>
-                        </select>
-                    </div>
-                    <div class="admin-form-group" style="flex:1;">
-                        <label for="productStatus">Status</label>
-                        <select id="productStatus">
-                            <option value="available">Available</option>
-                            <option value="unavailable">Unavailable</option>
-                        </select>
-                    </div>
+                    <div class="admin-form-group" style="flex:1;"><label for="productBadge">Badge</label><select id="productBadge"><option value="FREE">FREE</option><option value="VIP">VIP</option><option value="PRO">PRO</option></select></div>
+                    <div class="admin-form-group" style="flex:1;"><label for="productStatus">Status</label><select id="productStatus"><option value="available">Available</option><option value="unavailable">Unavailable</option></select></div>
                 </div>
-                
-                <!-- رفع الصورة وإدخال الرابط -->
                 <div class="admin-form-group">
                     <label for="productImageFile">Upload Product Image</label>
                     <input type="file" id="productImageFile" accept="image/*" />
-                    <div id="imagePreviewContainer" style="margin-top: 8px; display: none;">
-                        <img id="imagePreview" src="#" alt="Image preview" style="max-width: 100px; max-height: 100px; border-radius: 8px; border: 1px solid var(--border);" />
-                    </div>
+                    <div id="imagePreviewContainer" style="margin-top: 8px; display: none;"><img id="imagePreview" src="#" alt="Image preview" style="max-width: 100px; max-height: 100px; border-radius: 8px; border: 1px solid var(--border);" /></div>
                     <small style="color: var(--text-secondary); opacity: 0.5;">Or enter a URL below:</small>
                     <input type="url" id="productImage" placeholder="https://example.com/image.jpg" style="margin-top: 4px;" />
                 </div>
+                <div class="admin-form-group"><label for="productDescription">Description</label><textarea id="productDescription" rows="3" placeholder="Product description..."></textarea></div>
+                <div class="admin-form-group"><label for="productFeatures">Features (comma separated)</label><input type="text" id="productFeatures" placeholder="Feature 1, Feature 2, Feature 3" /></div>
+                <div class="admin-form-group"><label for="productVideo">Video URL</label><input type="url" id="productVideo" placeholder="https://www.youtube.com/embed/..." /></div>
                 
-                <!-- الوصف والميزات -->
-                <div class="admin-form-group">
-                    <label for="productDescription">Description</label>
-                    <textarea id="productDescription" rows="3" placeholder="Product description..."></textarea>
-                </div>
-                
-                <div class="admin-form-group">
-                    <label for="productFeatures">Features (comma separated)</label>
-                    <input type="text" id="productFeatures" placeholder="Feature 1, Feature 2, Feature 3" />
-                </div>
-                
-                <div class="admin-form-group">
-                    <label for="productVideo">Video URL</label>
-                    <input type="url" id="productVideo" placeholder="https://www.youtube.com/embed/..." />
-                </div>
-                
-                <!-- ✅ VIP Pricing Toggle -->
+                <!-- VIP Pricing -->
                 <div class="admin-form-group" style="border-top:1px solid var(--border);padding-top:12px;margin-top:8px;">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
                         <input type="checkbox" id="vipEnabled" style="width:20px;height:20px;accent-color:var(--vip-color);cursor:pointer;" />
-                        <label for="vipEnabled" style="font-weight:700;color:var(--vip-color);cursor:pointer;font-size:14px;">
-                            <i class="fas fa-crown"></i> Enable VIP Pricing
-                        </label>
+                        <label for="vipEnabled" style="font-weight:700;color:var(--vip-color);cursor:pointer;font-size:14px;"><i class="fas fa-crown"></i> Enable VIP Pricing</label>
                     </div>
                     <div id="vipPricingFields" style="display:none;margin-top:8px;">
                         <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;background:var(--bg);border-radius:8px;padding:10px;border:1px solid var(--border);">
-                            <!-- 1 Month -->
-                            <div style="text-align:center;">
-                                <div style="font-size:11px;font-weight:600;color:var(--text-secondary);opacity:0.5;">1 Month</div>
-                                <input type="number" id="vipPrice1m" step="0.01" placeholder="Price" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text);font-size:12px;text-align:center;margin:2px 0;" />
-                                <input type="number" id="vipOriginalPrice1m" step="0.01" placeholder="Original" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text-secondary);font-size:11px;text-align:center;opacity:0.5;text-decoration:line-through;" />
-                            </div>
-                            <!-- 3 Months -->
-                            <div style="text-align:center;">
-                                <div style="font-size:11px;font-weight:600;color:var(--text-secondary);opacity:0.5;">3 Months</div>
-                                <input type="number" id="vipPrice3m" step="0.01" placeholder="Price" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text);font-size:12px;text-align:center;margin:2px 0;" />
-                                <input type="number" id="vipOriginalPrice3m" step="0.01" placeholder="Original" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text-secondary);font-size:11px;text-align:center;opacity:0.5;text-decoration:line-through;" />
-                            </div>
-                            <!-- 1 Year -->
-                            <div style="text-align:center;">
-                                <div style="font-size:11px;font-weight:600;color:var(--text-secondary);opacity:0.5;">1 Year</div>
-                                <input type="number" id="vipPrice1y" step="0.01" placeholder="Price" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text);font-size:12px;text-align:center;margin:2px 0;" />
-                                <input type="number" id="vipOriginalPrice1y" step="0.01" placeholder="Original" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text-secondary);font-size:11px;text-align:center;opacity:0.5;text-decoration:line-through;" />
-                            </div>
-                            <!-- LIFETIME -->
-                            <div style="text-align:center;">
-                                <div style="font-size:11px;font-weight:600;color:var(--text-secondary);opacity:0.5;">LIFETIME</div>
-                                <input type="number" id="vipPriceLifetime" step="0.01" placeholder="Price" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text);font-size:12px;text-align:center;margin:2px 0;" />
-                                <input type="number" id="vipOriginalPriceLifetime" step="0.01" placeholder="Original" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text-secondary);font-size:11px;text-align:center;opacity:0.5;text-decoration:line-through;" />
-                            </div>
-                        </div>
-                        <div style="font-size:11px;color:var(--text-secondary);opacity:0.4;margin-top:4px;text-align:center;">
-                            💡 Fill price and original price to show discount badge
+                            <div style="text-align:center;"><div style="font-size:11px;font-weight:600;color:var(--text-secondary);opacity:0.5;">1 Month</div><input type="number" id="vipPrice1m" step="0.01" placeholder="Price" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text);font-size:12px;text-align:center;margin:2px 0;" /><input type="number" id="vipOriginalPrice1m" step="0.01" placeholder="Original" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text-secondary);font-size:11px;text-align:center;opacity:0.5;text-decoration:line-through;" /></div>
+                            <div style="text-align:center;"><div style="font-size:11px;font-weight:600;color:var(--text-secondary);opacity:0.5;">3 Months</div><input type="number" id="vipPrice3m" step="0.01" placeholder="Price" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text);font-size:12px;text-align:center;margin:2px 0;" /><input type="number" id="vipOriginalPrice3m" step="0.01" placeholder="Original" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text-secondary);font-size:11px;text-align:center;opacity:0.5;text-decoration:line-through;" /></div>
+                            <div style="text-align:center;"><div style="font-size:11px;font-weight:600;color:var(--text-secondary);opacity:0.5;">1 Year</div><input type="number" id="vipPrice1y" step="0.01" placeholder="Price" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text);font-size:12px;text-align:center;margin:2px 0;" /><input type="number" id="vipOriginalPrice1y" step="0.01" placeholder="Original" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text-secondary);font-size:11px;text-align:center;opacity:0.5;text-decoration:line-through;" /></div>
+                            <div style="text-align:center;"><div style="font-size:11px;font-weight:600;color:var(--text-secondary);opacity:0.5;">LIFETIME</div><input type="number" id="vipPriceLifetime" step="0.01" placeholder="Price" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text);font-size:12px;text-align:center;margin:2px 0;" /><input type="number" id="vipOriginalPriceLifetime" step="0.01" placeholder="Original" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text-secondary);font-size:11px;text-align:center;opacity:0.5;text-decoration:line-through;" /></div>
                         </div>
                     </div>
                 </div>
-                
-                <!-- الحقول الإضافية -->
                 <div class="admin-form-row">
-                    <div class="admin-form-group" style="flex:1;">
-                        <label for="productDuration">Duration</label>
-                        <input type="text" id="productDuration" placeholder="e.g., 30 days" />
-                    </div>
-                    <div class="admin-form-group" style="flex:1;">
-                        <label for="productOriginalPrice">Original Price</label>
-                        <input type="number" id="productOriginalPrice" step="0.01" min="0" placeholder="0.00" />
-                    </div>
+                    <div class="admin-form-group" style="flex:1;"><label for="productDuration">Duration</label><input type="text" id="productDuration" placeholder="e.g., 30 days" /></div>
+                    <div class="admin-form-group" style="flex:1;"><label for="productOriginalPrice">Original Price</label><input type="number" id="productOriginalPrice" step="0.01" min="0" placeholder="0.00" /></div>
                 </div>
-                
                 <button type="submit" class="admin-submit-btn"><i class="fas fa-save"></i> Save Product</button>
             </form>
         </div>
@@ -865,22 +489,10 @@
             <button class="modal-close" onclick="closeFeaturedSettings()"><i class="fas fa-times"></i></button>
             <div class="modal-title"><i class="fas fa-star"></i> Featured Settings</div>
             <div style="display:flex;flex-direction:column;gap:12px;">
-                <div style="display:flex;align-items:center;gap:10px;">
-                    <label style="font-weight:600;color:var(--text);">Enable Featured:</label>
-                    <input type="checkbox" id="featuredEnabled" checked />
-                </div>
-                <div style="display:flex;align-items:center;gap:10px;">
-                    <label style="font-weight:600;color:var(--text);">Rotation Interval (seconds):</label>
-                    <input type="number" id="featuredInterval" value="5" min="2" max="60" />
-                </div>
-                <div>
-                    <label style="font-weight:600;color:var(--text);display:block;margin-bottom:6px;">Select Products:</label>
-                    <div id="featuredProductSelector" style="max-height:200px;overflow-y:auto;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px;"></div>
-                </div>
-                <div style="display:flex;gap:8px;margin-top:8px;">
-                    <button onclick="saveFeaturedSettings()" class="admin-submit-btn" style="flex:1;">💾 Save Settings</button>
-                    <button onclick="closeFeaturedSettings()" class="admin-cancel-btn">Cancel</button>
-                </div>
+                <div style="display:flex;align-items:center;gap:10px;"><label style="font-weight:600;color:var(--text);">Enable Featured:</label><input type="checkbox" id="featuredEnabled" checked /></div>
+                <div style="display:flex;align-items:center;gap:10px;"><label style="font-weight:600;color:var(--text);">Rotation Interval (seconds):</label><input type="number" id="featuredInterval" value="5" min="2" max="60" /></div>
+                <div><label style="font-weight:600;color:var(--text);display:block;margin-bottom:6px;">Select Products:</label><div id="featuredProductSelector" style="max-height:200px;overflow-y:auto;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px;"></div></div>
+                <div style="display:flex;gap:8px;margin-top:8px;"><button onclick="saveFeaturedSettings()" class="admin-submit-btn" style="flex:1;">💾 Save Settings</button><button onclick="closeFeaturedSettings()" class="admin-cancel-btn">Cancel</button></div>
             </div>
         </div>
     </div>
@@ -891,26 +503,11 @@
             <button class="modal-close" onclick="closeCreateDownloadModal()"><i class="fas fa-times"></i></button>
             <div class="modal-title"><i class="fas fa-plus-circle"></i> Add Download</div>
             <form id="createDownloadForm" onsubmit="createDownload(event)" class="admin-form">
-                <div class="admin-form-group">
-                    <label for="dlTitle">Title</label>
-                    <input type="text" id="dlTitle" required placeholder="Download title" />
-                </div>
-                <div class="admin-form-group">
-                    <label for="dlType">Type</label>
-                    <input type="text" id="dlType" placeholder="e.g., APK, ZIP" required />
-                </div>
-                <div class="admin-form-group">
-                    <label for="dlDescription">Description</label>
-                    <textarea id="dlDescription" rows="2" placeholder="Short description"></textarea>
-                </div>
-                <div class="admin-form-group">
-                    <label for="dlUrl">Download URL</label>
-                    <input type="url" id="dlUrl" required placeholder="https://example.com/file.zip" />
-                </div>
-                <div class="admin-form-group">
-                    <label for="dlDate">Date</label>
-                    <input type="date" id="dlDate" />
-                </div>
+                <div class="admin-form-group"><label for="dlTitle">Title</label><input type="text" id="dlTitle" required placeholder="Download title" /></div>
+                <div class="admin-form-group"><label for="dlType">Type</label><input type="text" id="dlType" placeholder="e.g., APK, ZIP" required /></div>
+                <div class="admin-form-group"><label for="dlDescription">Description</label><textarea id="dlDescription" rows="2" placeholder="Short description"></textarea></div>
+                <div class="admin-form-group"><label for="dlUrl">Download URL</label><input type="url" id="dlUrl" required placeholder="https://example.com/file.zip" /></div>
+                <div class="admin-form-group"><label for="dlDate">Date</label><input type="date" id="dlDate" /></div>
                 <button type="submit" class="admin-submit-btn"><i class="fas fa-save"></i> Add Download</button>
             </form>
         </div>
@@ -922,25 +519,30 @@
             <button class="modal-close" onclick="closeCreateNotificationModal()"><i class="fas fa-times"></i></button>
             <div class="modal-title"><i class="fas fa-bell"></i> Send Notification</div>
             <form id="createNotificationForm" onsubmit="createNotification(event)" class="admin-form">
-                <div class="admin-form-group">
-                    <label for="notifTitle">Title</label>
-                    <input type="text" id="notifTitle" required placeholder="Notification title" />
-                </div>
-                <div class="admin-form-group">
-                    <label for="notifMessage">Message</label>
-                    <textarea id="notifMessage" rows="3" required placeholder="Notification message..."></textarea>
-                </div>
+                <div class="admin-form-group"><label for="notifTitle">Title</label><input type="text" id="notifTitle" required placeholder="Notification title" /></div>
+                <div class="admin-form-group"><label for="notifMessage">Message</label><textarea id="notifMessage" rows="3" required placeholder="Notification message..."></textarea></div>
                 <button type="submit" class="admin-submit-btn"><i class="fas fa-paper-plane"></i> Send Notification</button>
             </form>
         </div>
     </div>
 
-    <!-- مودال تفاصيل المستخدم (للمدير) -->
+    <!-- مودال تفاصيل المستخدم -->
     <div class="modal-overlay" id="userDetailsModal">
         <div class="modal-content" style="max-width:420px;">
             <button class="modal-close" onclick="closeUserDetailsModal()"><i class="fas fa-times"></i></button>
             <div class="modal-title"><i class="fas fa-user"></i> User Details</div>
             <div id="userDetailsContent"></div>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- Social Proof Toast -->
+    <!-- ============================================ -->
+    <div class="social-proof-toast" id="socialProofToast">
+        <div class="sp-icon">🛒</div>
+        <div class="sp-text">
+            <strong id="spUserName">Ali</strong> bought <span class="sp-product" id="spProductName">Mergedom</span>
+            <span class="sp-time" id="spTime">just now</span>
         </div>
     </div>
 
