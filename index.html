@@ -617,10 +617,10 @@
     </div>
 
     <!-- ============================================ -->
-    <!-- لوحة المدير (Admin Panel) -->
+    <!-- لوحة المدير (Admin Panel) مع تبويب الإحصائيات المتقدمة -->
     <!-- ============================================ -->
     <div class="modal-overlay admin-panel" id="adminPanel">
-        <div class="modal-content" style="max-width:700px;max-height:90vh;">
+        <div class="modal-content" style="max-width:750px;max-height:90vh;">
             <div class="panel-header">
                 <h2><i class="fas fa-crown"></i> Admin Panel</h2>
                 <button class="close-btn" onclick="closeAdminPanel()"><i class="fas fa-times"></i></button>
@@ -632,6 +632,7 @@
                 <button onclick="switchAdminTab('users')">👥 Users</button>
                 <button onclick="switchAdminTab('downloads')">📁 Downloads</button>
                 <button onclick="switchAdminTab('notifications')">🔔 Notifications</button>
+                <button onclick="switchAdminTab('stats')">📈 Statistics</button>
             </div>
 
             <!-- ======== تبويب Dashboard ======== -->
@@ -653,7 +654,7 @@
                 <button onclick="refreshDashboardStats()" class="admin-submit-btn" style="width:100%;"><i class="fas fa-sync"></i> Refresh Stats</button>
             </div>
 
-            <!-- تبويب الطلبات -->
+            <!-- ======== تبويب الطلبات (مع زر تصدير CSV) ======== -->
             <div class="tab-content active" id="tabOrders">
                 <div class="admin-stats-grid">
                     <div class="admin-stat-card"><div class="stat-number" id="adminTotalOrders">0</div><div class="stat-label">Total</div></div>
@@ -668,6 +669,10 @@
                     <button class="btn-search" onclick="searchAdminOrders()"><i class="fas fa-search"></i></button>
                     <button class="btn-clear" onclick="clearAdminSearch()"><i class="fas fa-times"></i></button>
                     <button class="btn-refresh" onclick="refreshAdminOrders()"><i class="fas fa-sync"></i></button>
+                    <!-- زر تصدير CSV -->
+                    <button class="btn-export" onclick="exportOrders()" style="background:var(--success);color:#0a0a1a;padding:4px 12px;border:none;border-radius:6px;font-weight:600;cursor:pointer;font-size:12px;display:inline-flex;align-items:center;gap:4px;">
+                        <i class="fas fa-file-csv"></i> Export CSV
+                    </button>
                 </div>
                 <div style="overflow-x:auto;">
                     <table class="admin-orders-table">
@@ -677,7 +682,7 @@
                 </div>
             </div>
 
-            <!-- تبويب المنتجات -->
+            <!-- ======== تبويب المنتجات ======== -->
             <div class="tab-content" id="tabProducts">
                 <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
                     <button class="add-btn" onclick="openAddProductModal()"><i class="fas fa-plus"></i> Add Product</button>
@@ -688,7 +693,7 @@
                 <div id="adminProductsList"></div>
             </div>
 
-            <!-- تبويب المستخدمين -->
+            <!-- ======== تبويب المستخدمين ======== -->
             <div class="tab-content" id="tabUsers">
                 <div class="admin-search-bar">
                     <input type="text" id="adminUserSearchInput" placeholder="🔍 Search users..." onkeyup="searchAdminUsers()" />
@@ -699,16 +704,31 @@
                 <div id="adminUsersContainer"></div>
             </div>
 
-            <!-- تبويب التحميلات -->
+            <!-- ======== تبويب التحميلات ======== -->
             <div class="tab-content" id="tabDownloads">
                 <button class="add-btn" onclick="openCreateDownloadModal()"><i class="fas fa-plus"></i> Add Download</button>
                 <div id="adminDownloadsList"></div>
             </div>
 
-            <!-- تبويب الإشعارات -->
+            <!-- ======== تبويب الإشعارات ======== -->
             <div class="tab-content" id="tabNotifications">
                 <button class="add-btn" onclick="openCreateNotificationModal()"><i class="fas fa-plus"></i> Send Notification</button>
                 <div id="adminNotificationsList"></div>
+            </div>
+
+            <!-- ======== تبويب الإحصائيات المتقدمة ======== -->
+            <div class="tab-content" id="tabStats">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+                    <h3 style="font-size:16px;font-weight:700;margin:0;"><i class="fas fa-chart-line"></i> Advanced Statistics</h3>
+                    <button onclick="refreshAdvancedStats()" style="padding:6px 14px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);cursor:pointer;">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+                <div id="advancedStatsContainer">
+                    <div style="text-align:center;padding:20px;color:var(--text-secondary);">
+                        <i class="fas fa-spinner fa-spin"></i> Loading statistics...
+                    </div>
+                </div>
             </div>
         </div>
     </div>
