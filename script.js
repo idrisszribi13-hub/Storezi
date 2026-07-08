@@ -2,6 +2,7 @@
 // SCRIPT.JS - النسخة النهائية المتكاملة
 // مع VIP Pricing، Features، RP في السلة فقط، ورفع الصور
 // + تصدير الطلبات (CSV) + لوحة إحصائيات متقدمة (Chart.js)
+// + Social Proof Toast + Admin Audit Logs + Ratings & Reviews
 // ============================================================
 
 import { initializeApp } from "firebase/app";
@@ -31,8 +32,8 @@ const analytics = getAnalytics(app);
 // 2. إعدادات Cloudinary
 // ============================================================
 
-const CLOUDINARY_CLOUD_NAME = 'YOUR_CLOUD_NAME_HERE'; // ضع الـ Cloud Name الخاص بك
-const CLOUDINARY_UPLOAD_PRESET = 'zi_store_uploads'; // ضع اسم الـ Upload Preset
+const CLOUDINARY_CLOUD_NAME = 'YOUR_CLOUD_NAME_HERE';
+const CLOUDINARY_UPLOAD_PRESET = 'zi_store_uploads';
 
 // ============================================================
 // 3. شاشة التحميل
@@ -1217,7 +1218,6 @@ function renderProducts(productsList) {
         let displayPrice = p.price;
         let originalPrice = '';
         let discountBadge = '';
-        // لا نطبق خصم RP هنا
         if (activeDiscount > 0 && p.price > 0) {
             const discounted = displayPrice - (displayPrice * activeDiscount / 100);
             displayPrice = discounted;
@@ -1710,7 +1710,7 @@ function createFloatingHearts() {
 }
 
 // ============================================================
-// 20. عرض المنتج كامل الشاشة (Preview Modal) مع VIP Pricing
+// 20. عرض المنتج كامل الشاشة (Preview Modal) مع VIP Pricing و Ratings
 // ============================================================
 
 window.openDetails = function(id) {
@@ -1718,21 +1718,17 @@ window.openDetails = function(id) {
     if (!p) return;
     window._currentProduct = p;
 
-    // الصورة والاسم والوصف
     document.getElementById('previewImage').src = p.image || 'https://picsum.photos/seed/default/400/300';
     document.getElementById('previewName').textContent = p.name;
     document.getElementById('previewDescription').textContent = p.description || 'No description available.';
     document.getElementById('previewBadge').textContent = p.badge || 'PREMIUM';
     document.getElementById('previewVerified').textContent = p.status === 'available' ? '✅ 100% VERIFIED WORKING PRODUCT' : '⛔ UNAVAILABLE';
 
-    // الميزات (Features)
     const featuresContainer = document.getElementById('previewFeatures');
     if (p.features && p.features.length > 0) {
         const featuresHtml = p.features.map(f => `<li><i class="fas fa-check-circle"></i> ${f}</li>`).join('');
         featuresContainer.innerHTML = `
-            <div class="features-header">
-                <i class="fas fa-check-circle"></i> Features
-            </div>
+            <div class="features-header"><i class="fas fa-check-circle"></i> Features</div>
             <ul class="features-list">${featuresHtml}</ul>
         `;
         featuresContainer.style.display = 'block';
@@ -1740,11 +1736,9 @@ window.openDetails = function(id) {
         featuresContainer.style.display = 'none';
     }
 
-    // ✅ السعر الأساسي (بدون RP في العرض)
     let priceDisplay = p.price === 0 ? 'FREE' : `$${p.price.toFixed(2)}`;
     document.getElementById('previewPrice').textContent = priceDisplay;
 
-    // ✅ زر الإضافة الأساسي
     const addBtn = document.getElementById('previewAddBtn');
     const inCart = cart.some(item => item.id === id && !item.isVip);
     if (inCart) {
@@ -1757,11 +1751,7 @@ window.openDetails = function(id) {
         addBtn.style.background = 'var(--free-color)';
         addBtn.style.color = '#0a0a1a';
         addBtn.onclick = () => {
-            if (p.downloadLink) {
-                window.open(p.downloadLink, '_blank');
-            } else {
-                showToast('⏳ Coming soon', 'info');
-            }
+            if (p.downloadLink) { window.open(p.downloadLink, '_blank'); } else { showToast('⏳ Coming soon', 'info'); }
         };
     } else if (p.status === 'unavailable') {
         addBtn.innerHTML = '<i class="fas fa-times-circle"></i> Unavailable';
@@ -1782,9 +1772,6 @@ window.openDetails = function(id) {
         };
     }
 
-    // ================================================================
-    // ✅ VIP PRICING - مع اختيار الخطة
-    // ================================================================
     const vipSection = document.getElementById('previewVipPricing');
     if (p.vipEnabled && p.vipPrices) {
         const vipPrices = p.vipPrices;
@@ -1830,9 +1817,7 @@ window.openDetails = function(id) {
             window._selectedVipPlan = firstPlanKey;
             const vipAddBtn = document.querySelector('.vip-add-to-cart');
             if (vipAddBtn) {
-                vipAddBtn.onclick = () => {
-                    addVipPlanToCart(p);
-                };
+                vipAddBtn.onclick = () => { addVipPlanToCart(p); };
                 vipAddBtn.dataset.productId = p.id;
             }
         } else {
@@ -1844,57 +1829,36 @@ window.openDetails = function(id) {
 
     document.getElementById('previewModal').classList.add('open');
     document.body.style.overflow = 'hidden';
+
+    // عرض قسم التقييمات (Ratings)
+    setTimeout(() => {
+        renderRatingSection(id);
+        currentProductIdForRating = id;
+        currentRating = 0;
+    }, 150);
 };
 
-// ✅ اختيار خطة VIP
 window.selectVipPlan = function(element, planKey) {
     document.querySelectorAll('.vip-plan').forEach(el => el.classList.remove('selected'));
     element.classList.add('selected');
     window._selectedVipPlan = planKey;
 };
 
-// ✅ إضافة خطة VIP مختارة إلى السلة
 function addVipPlanToCart(product) {
     if (!product) {
         product = window._currentProduct;
         if (!product) { showToast('⚠️ Product not found', 'warning'); return; }
     }
-
     const selectedPlan = window._selectedVipPlan || '1m';
     const vipPrices = product.vipPrices;
-    if (!vipPrices || !vipPrices[selectedPlan]) {
-        showToast('⚠️ Invalid VIP plan', 'warning');
-        return;
-    }
-
+    if (!vipPrices || !vipPrices[selectedPlan]) { showToast('⚠️ Invalid VIP plan', 'warning'); return; }
     const price = parseFloat(vipPrices[selectedPlan]);
-    if (isNaN(price) || price <= 0) {
-        showToast('⚠️ Invalid price', 'warning');
-        return;
-    }
-
-    const planLabels = {
-        '1m': '1 Month',
-        '3m': '3 Months',
-        '1y': '1 Year',
-        'lifetime': 'LIFETIME'
-    };
-
+    if (isNaN(price) || price <= 0) { showToast('⚠️ Invalid price', 'warning'); return; }
+    const planLabels = { '1m': '1 Month', '3m': '3 Months', '1y': '1 Year', 'lifetime': 'LIFETIME' };
     const existing = cart.find(item => item.id === product.id && item.isVip && item.vipPlan === selectedPlan);
-    if (existing) {
-        existing.quantity = (existing.quantity || 1) + 1;
-    } else {
-        cart.push({
-            ...product,
-            price: price,
-            quantity: 1,
-            isVip: true,
-            vipPlan: selectedPlan,
-            vipPlanLabel: planLabels[selectedPlan] || selectedPlan,
-            originalPrice: product.price
-        });
+    if (existing) { existing.quantity = (existing.quantity || 1) + 1; } else {
+        cart.push({ ...product, price: price, quantity: 1, isVip: true, vipPlan: selectedPlan, vipPlanLabel: planLabels[selectedPlan] || selectedPlan, originalPrice: product.price });
     }
-
     saveUserData(true);
     updateCartUI();
     renderProducts(products);
@@ -1907,19 +1871,9 @@ window.closePreviewModal = function() {
     document.getElementById('previewModal').classList.remove('open');
     document.body.style.overflow = '';
 };
-
-window.addToCartFromPreview = function() {
-    if (window._currentProduct) {
-        window.addToCart(window._currentProduct.id);
-        closePreviewModal();
-    }
-};
-
-window.shareFromPreview = function() {
-    if (window._currentProduct) {
-        window.openShareModal(window._currentProduct.id);
-    }
-};
+window.addToCartFromPreview = function() { if (window._currentProduct) { window.addToCart(window._currentProduct.id);
+        closePreviewModal(); } };
+window.shareFromPreview = function() { if (window._currentProduct) { window.openShareModal(window._currentProduct.id); } };
 
 // ============================================================
 // 21. مودال المشاركة
@@ -1935,13 +1889,11 @@ window.openShareModal = function(productId) {
 };
 window.closeShareModal = function() { document.getElementById('shareModal').classList.remove('open');
     shareProduct = null; };
-window.shareToWhatsApp = function() { if (!shareProduct) return;
-    const text =
+window.shareToWhatsApp = function() { if (!shareProduct) return; const text =
         `🛒 *${shareProduct.name}*\n💰 Price: ${shareProduct.price===0?'FREE':shareProduct.price+' $'}\n📝 ${shareProduct.description||''}\n🔗 Visit the store to get it!`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
     closeShareModal(); };
-window.shareToTelegram = function() { if (!shareProduct) return;
-    const text =
+window.shareToTelegram = function() { if (!shareProduct) return; const text =
         `🛒 *${shareProduct.name}*\n💰 Price: ${shareProduct.price===0?'FREE':shareProduct.price+' $'}\n📝 ${shareProduct.description||''}\n🔗 Visit the store to get it!`;
     window.open(`https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`,
         '_blank');
@@ -2181,11 +2133,13 @@ function sendOrderToTelegram(method, txHash = null) {
 
     let total = 0;
     let itemsList = '';
+    const productNames = [];
     cart.forEach((item, i) => {
         const qty = item.quantity || 1;
         const sub = item.price * qty;
         total += sub;
         itemsList += `${i+1}. ${item.name} × ${qty} = ${sub.toFixed(2)} $\n`;
+        productNames.push(item.name);
     });
 
     let finalTotal = total;
@@ -2203,7 +2157,6 @@ function sendOrderToTelegram(method, txHash = null) {
     }
 
     const orderId = 'order_' + Date.now();
-
     const RP_EARN_RATE = 0.1;
     const rpEarned = Math.floor((finalTotal / RP_TO_DOLLAR) * RP_EARN_RATE);
 
@@ -2277,6 +2230,9 @@ function sendOrderToTelegram(method, txHash = null) {
             updatedAt: serverTimestamp()
         }).catch(e => console.error('Error saving notification:', e));
     } catch (e) { console.error('Error saving notification:', e); }
+
+    // تشغيل Social Proof
+    triggerSocialProofOnOrder(currentUser.displayName || currentUser.email || 'User', productNames);
 
     cart = [];
     activeDiscount = 0;
@@ -2784,10 +2740,13 @@ window.openAdminPanel = function() {
         loadAdminUsers();
         loadDashboardStats();
         setTimeout(addBannerAdminControls, 300);
-        // تحميل الإحصائيات المتقدمة إذا كان التبويب نشطاً
         const statsTab = document.getElementById('tabStats');
         if (statsTab && statsTab.classList.contains('active')) {
             loadAdvancedStats();
+        }
+        const logsTab = document.getElementById('tabLogs');
+        if (logsTab && logsTab.classList.contains('active')) {
+            loadAuditLogs();
         }
     }
 };
@@ -2805,7 +2764,8 @@ window.switchAdminTab = function(tab) {
         'users': 'tabUsers',
         'downloads': 'tabDownloads',
         'notifications': 'tabNotifications',
-        'stats': 'tabStats'  // التبويب الجديد
+        'stats': 'tabStats',
+        'logs': 'tabLogs'  // إضافة تبويب السجلات
     };
     const tabId = tabMap[tab] || tabMap['dashboard'];
     document.getElementById(tabId).classList.add('active');
@@ -2815,6 +2775,7 @@ window.switchAdminTab = function(tab) {
     if (tab === 'users') loadAdminUsers();
     if (tab === 'dashboard') loadDashboardStats();
     if (tab === 'stats') loadAdvancedStats();
+    if (tab === 'logs') loadAuditLogs();
 };
 
 // ============================================================
@@ -2920,7 +2881,6 @@ window.openEditProductModal = function(productId) {
     document.getElementById('productDuration').value = product.duration || '';
     document.getElementById('productOriginalPrice').value = product.originalPrice || '';
 
-    // VIP Pricing
     const vipEnabled = product.vipEnabled || false;
     document.getElementById('vipEnabled').checked = vipEnabled;
     document.getElementById('vipPricingFields').style.display = vipEnabled ? 'block' : 'none';
@@ -2944,7 +2904,6 @@ window.openEditProductModal = function(productId) {
     }
 };
 
-// حدث تبديل تفعيل VIP
 document.addEventListener('DOMContentLoaded', function() {
     const vipToggle = document.getElementById('vipEnabled');
     if (vipToggle) {
@@ -2989,7 +2948,6 @@ window.saveProduct = async function(event) {
     const duration = document.getElementById('productDuration').value.trim();
     const originalPrice = parseFloat(document.getElementById('productOriginalPrice').value) || 0;
 
-    // VIP Pricing
     const vipEnabled = document.getElementById('vipEnabled').checked;
     const vipPrices = {
         '1m': parseFloat(document.getElementById('vipPrice1m').value) || 0,
@@ -3033,9 +2991,11 @@ window.saveProduct = async function(event) {
     try {
         if (productId) {
             await updateProductInFirestore(productId, productData);
+            await addAuditLog('Product Updated', `${name} (ID: ${productId})`);
             showToast('✅ Product updated', 'success');
         } else {
             await addProductToFirestore(productData);
+            await addAuditLog('Product Added', `${name}`);
             showToast('✅ Product added', 'success');
         }
         closeProductModal();
@@ -3046,8 +3006,12 @@ window.saveProduct = async function(event) {
 window.deleteProduct = async function(productId) {
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!confirm('Delete this product?')) return;
-    try { await deleteProductFromFirestore(productId);
-        showToast('🗑️ Product deleted', 'success'); } catch (error) { console.error('Delete product error:', error);
+    const product = products.find(p => p.id === productId);
+    try {
+        await deleteProductFromFirestore(productId);
+        await addAuditLog('Product Deleted', `${product?.name || productId} (ID: ${productId})`);
+        showToast('🗑️ Product deleted', 'success');
+    } catch (error) { console.error('Delete product error:', error);
         showToast('❌ Error: ' + error.message, 'error'); }
 };
 
@@ -3259,6 +3223,9 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
             console.log('📊 Global stats updated for order:', orderId);
         }
 
+        // Audit Log
+        await addAuditLog('Order Status Changed', `Order #${String(orderId).slice(-6)} → ${statusLabel} (User: ${data.email})`);
+
         if (updatedOrder) {
             const itemsNames = updatedOrder.items ? updatedOrder.items.map(i => i.name).join(', ') : 'Your order';
             const userMsg =
@@ -3410,19 +3377,27 @@ window.refreshAdminUsers = function() { loadAdminUsers();
 window.toggleUserBan = async function(uid, ban) {
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
     if (uid === currentUser.uid) { showToast('⚠️ You cannot ban yourself', 'warning'); return; }
-    try { await updateDoc(doc(db, 'users', uid), { isBanned: ban });
+    const user = allUsers.find(u => u.uid === uid);
+    try {
+        await updateDoc(doc(db, 'users', uid), { isBanned: ban });
+        await addAuditLog('User ' + (ban ? 'Banned' : 'Unbanned'), `${user?.email || uid}`);
         showToast(`✅ User ${ban?'banned':'unbanned'}`, 'success');
-        loadAdminUsers(); } catch (error) { console.error('Error toggling user ban:', error);
+        loadAdminUsers();
+    } catch (error) { console.error('Error toggling user ban:', error);
         showToast('❌ Error: ' + error.message, 'error'); }
 };
 window.deleteUserAccount = async function(uid) {
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
     if (uid === currentUser.uid) { showToast('⚠️ You cannot delete your own account', 'warning'); return; }
     if (!confirm('⚠️ Delete this user account permanently?')) return;
-    try { await deleteDoc(doc(db, 'users', uid));
+    const user = allUsers.find(u => u.uid === uid);
+    try {
+        await deleteDoc(doc(db, 'users', uid));
+        await addAuditLog('User Account Deleted', `${user?.email || uid}`);
         showToast('🗑️ User account deleted', 'success');
         loadAdminUsers();
-        loadAdminOrders(); } catch (error) { console.error('Error deleting user:', error);
+        loadAdminOrders();
+    } catch (error) { console.error('Error deleting user:', error);
         showToast('❌ Error: ' + error.message, 'error'); }
 };
 
@@ -3666,6 +3641,7 @@ onAuthStateChanged(auth, async (user) => {
         fetchCryptoPrices();
         loadFeaturedSettings();
         setTimeout(showTelegramBanner, 1000);
+        startSocialProof();
     } else {
         document.getElementById('authSection').style.display = 'block';
         document.getElementById('mainApp').style.display = 'none';
@@ -3675,6 +3651,7 @@ onAuthStateChanged(auth, async (user) => {
         loadNotifications();
         fetchCryptoPrices();
         loadFeaturedSettings();
+        startSocialProof();
     }
     updateUI();
     updateFullUserMenu();
@@ -3897,6 +3874,7 @@ async function init() {
     setTimeout(() => {
         hideLoadingScreen();
         setTimeout(showTelegramBanner, 500);
+        startSocialProof();
     }, 500);
 }
 init();
@@ -3907,7 +3885,7 @@ setTimeout(() => {
 }, 5000);
 
 // ============================================================
-// 40. تصدير الطلبات (CSV) - إضافة جديدة
+// 40. تصدير الطلبات (CSV)
 // ============================================================
 
 window.exportOrders = function() {
@@ -3916,7 +3894,6 @@ window.exportOrders = function() {
         return;
     }
 
-    // استخدام الطلبات المعروضة حالياً (المصفاة) أو جميع الطلبات
     let ordersToExport = allOrders;
     const searchQuery = document.getElementById('adminSearchInput')?.value.trim().toLowerCase();
     if (searchQuery) {
@@ -3933,7 +3910,6 @@ window.exportOrders = function() {
         return;
     }
 
-    // بناء CSV
     const headers = ['Order ID', 'User', 'Email', 'Products', 'Total ($)', 'Status', 'Date'];
     const rows = ordersToExport.map(order => {
         const itemsNames = order.items ? order.items.map(i => i.name).join('; ') : 'N/A';
@@ -3952,12 +3928,10 @@ window.exportOrders = function() {
 
     let csvContent = headers.join(',') + '\n';
     rows.forEach(row => {
-        // الهروب من الفواصل والاقتباسات
         const escapedRow = row.map(cell => `"${String(cell).replace(/"/g, '""')}"`);
         csvContent += escapedRow.join(',') + '\n';
     });
 
-    // تحميل الملف
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
@@ -3975,7 +3949,6 @@ window.exportOrders = function() {
 // 41. لوحة الإحصائيات المتقدمة (مع Chart.js)
 // ============================================================
 
-// تحميل Chart.js من CDN (يتم مرة واحدة)
 function loadChartJs() {
     return new Promise((resolve, reject) => {
         if (typeof Chart !== 'undefined') {
@@ -3998,11 +3971,9 @@ async function loadAdvancedStats() {
     const container = document.getElementById('advancedStatsContainer');
     if (!container) return;
 
-    // عرض مؤقت
     container.innerHTML = `<div style="text-align:center;padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading statistics...</div>`;
 
     try {
-        // جلب جميع المستخدمين (للاستعلام عن الطلبات)
         const usersRef = collection(db, 'users');
         const snapshot = await getDocs(usersRef);
         let allOrders = [];
@@ -4020,13 +3991,11 @@ async function loadAdvancedStats() {
             });
         });
 
-        // معالجة البيانات
         const totalOrders = allOrders.length;
         const totalRevenue = allOrders.reduce((sum, o) => sum + (o.total || 0), 0);
         const pendingOrders = allOrders.filter(o => (o.status || 'pending') === 'pending').length;
         const completedOrders = allOrders.filter(o => o.status === 'completed' || o.status === 'delivered').length;
 
-        // إحصائيات المنتجات الأكثر مبيعاً
         const productCounts = {};
         allOrders.forEach(order => {
             if (order.items) {
@@ -4040,7 +4009,6 @@ async function loadAdvancedStats() {
             .sort((a, b) => b[1] - a[1])
             .slice(0, 5);
 
-        // إحصائيات الطلبات حسب اليوم (آخر 7 أيام)
         const today = new Date();
         const dayNames = [];
         const dayCounts = [];
@@ -4056,10 +4024,8 @@ async function loadAdvancedStats() {
             dayCounts.push(count);
         }
 
-        // إجمالي المستخدمين
         const totalUsers = snapshot.size;
 
-        // بناء الواجهة
         container.innerHTML = `
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px;">
                 <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
@@ -4102,7 +4068,6 @@ async function loadAdvancedStats() {
             </div>
         `;
 
-        // رسم الرسم البياني
         await loadChartJs();
         const ctx = document.getElementById('salesChart')?.getContext('2d');
         if (ctx) {
@@ -4123,12 +4088,8 @@ async function loadAdvancedStats() {
                 options: {
                     responsive: true,
                     maintainAspectRatio: true,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        y: { beginAtZero: true, ticks: { stepSize: 1 } }
-                    }
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
                 }
             });
         }
@@ -4139,14 +4100,405 @@ async function loadAdvancedStats() {
     }
 }
 
-// ربط زر تحديث الإحصائيات
 window.refreshAdvancedStats = function() {
     loadAdvancedStats();
     showToast('🔄 Stats refreshed', 'info');
 };
 
 // ============================================================
-// 42. التصديرات
+// 42. Social Proof Toast (إشعارات اجتماعية)
+// ============================================================
+
+let socialProofQueue = [];
+let isSocialProofShowing = false;
+
+function addPurchaseEvent(userName, productName) {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    socialProofQueue.push({
+        userName: userName || 'Someone',
+        productName: productName || 'a product',
+        time: timeStr
+    });
+    try {
+        const saved = JSON.parse(localStorage.getItem('social_proof_queue') || '[]');
+        saved.push({ userName: userName || 'Someone', productName: productName || 'a product', time: timeStr });
+        if (saved.length > 50) saved.shift();
+        localStorage.setItem('social_proof_queue', JSON.stringify(saved));
+    } catch (e) {}
+}
+
+function showNextSocialProof() {
+    if (isSocialProofShowing) return;
+    if (socialProofQueue.length === 0) {
+        try {
+            const saved = JSON.parse(localStorage.getItem('social_proof_queue') || '[]');
+            if (saved.length > 0) {
+                socialProofQueue = saved;
+            } else {
+                const demoUsers = ['Ahmed', 'Sara', 'Mohamed', 'Fatima', 'Youssef', 'Lina', 'Omar'];
+                const demoProducts = ['Mergedom VIP', '2048 Pro', 'Screwdom 3D', 'Telegram Bot', 'Auto Clicker'];
+                for (let i = 0; i < 5; i++) {
+                    const now = new Date();
+                    const minutesAgo = Math.floor(Math.random() * 30);
+                    now.setMinutes(now.getMinutes() - minutesAgo);
+                    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                    socialProofQueue.push({
+                        userName: demoUsers[Math.floor(Math.random() * demoUsers.length)],
+                        productName: demoProducts[Math.floor(Math.random() * demoProducts.length)],
+                        time: timeStr
+                    });
+                }
+                localStorage.setItem('social_proof_queue', JSON.stringify(socialProofQueue));
+            }
+        } catch (e) { return; }
+    }
+    if (socialProofQueue.length === 0) return;
+
+    const event = socialProofQueue.shift();
+    isSocialProofShowing = true;
+
+    const toast = document.getElementById('socialProofToast');
+    const nameEl = document.getElementById('spUserName');
+    const productEl = document.getElementById('spProductName');
+    const timeEl = document.getElementById('spTime');
+
+    if (!toast || !nameEl || !productEl || !timeEl) {
+        isSocialProofShowing = false;
+        return;
+    }
+
+    let displayName = event.userName || 'Someone';
+    if (displayName.length > 3) {
+        displayName = displayName.slice(0, 1) + '***' + displayName.slice(-1);
+    }
+
+    nameEl.textContent = displayName;
+    productEl.textContent = event.productName || 'a product';
+    timeEl.textContent = event.time || 'just now';
+
+    toast.classList.add('show');
+
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            isSocialProofShowing = false;
+            const delay = 8000 + Math.random() * 7000;
+            clearTimeout(window._spTimeout);
+            window._spTimeout = setTimeout(showNextSocialProof, delay);
+        }, 500);
+    }, 5000);
+}
+
+function startSocialProof() {
+    if (socialProofQueue.length === 0) {
+        try {
+            const saved = JSON.parse(localStorage.getItem('social_proof_queue') || '[]');
+            if (saved.length > 0) {
+                socialProofQueue = saved;
+            } else {
+                const demoUsers = ['Ahmed', 'Sara', 'Mohamed', 'Fatima', 'Youssef', 'Lina', 'Omar'];
+                const demoProducts = ['Mergedom VIP', '2048 Pro', 'Screwdom 3D', 'Telegram Bot', 'Auto Clicker'];
+                for (let i = 0; i < 5; i++) {
+                    const now = new Date();
+                    const minutesAgo = Math.floor(Math.random() * 30);
+                    now.setMinutes(now.getMinutes() - minutesAgo);
+                    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                    socialProofQueue.push({
+                        userName: demoUsers[Math.floor(Math.random() * demoUsers.length)],
+                        productName: demoProducts[Math.floor(Math.random() * demoProducts.length)],
+                        time: timeStr
+                    });
+                }
+                localStorage.setItem('social_proof_queue', JSON.stringify(socialProofQueue));
+            }
+        } catch (e) { console.warn('Social proof init error:', e); }
+    }
+    setTimeout(showNextSocialProof, 3000);
+}
+
+function triggerSocialProofOnOrder(userName, productNames) {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    const firstProduct = Array.isArray(productNames) ? productNames[0] : productNames;
+    addPurchaseEvent(userName, firstProduct);
+    if (!isSocialProofShowing && socialProofQueue.length > 0) {
+        showNextSocialProof();
+    }
+}
+
+// ============================================================
+// 43. Admin Audit Logs (سجل نشاط المدير)
+// ============================================================
+
+async function addAuditLog(action, details) {
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
+    try {
+        await addDoc(collection(db, 'auditLogs'), {
+            action: action,
+            details: details || '',
+            adminId: currentUser.uid,
+            adminEmail: currentUser.email,
+            adminName: currentUser.displayName || 'Admin',
+            timestamp: serverTimestamp(),
+            date: new Date().toISOString()
+        });
+        console.log('📝 Audit log added:', action);
+    } catch (error) {
+        console.error('❌ Failed to add audit log:', error);
+    }
+}
+
+async function loadAuditLogs() {
+    const container = document.getElementById('auditLogsContainer');
+    if (!container) return;
+
+    container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading logs...</div>`;
+
+    try {
+        const logsRef = collection(db, 'auditLogs');
+        const q = query(logsRef, orderBy('timestamp', 'desc'));
+        const snapshot = await getDocs(q);
+
+        if (snapshot.empty) {
+            container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">📭 No audit logs yet</div>`;
+            return;
+        }
+
+        let html = `<div style="display:flex;flex-direction:column;gap:6px;max-height:400px;overflow-y:auto;">`;
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const date = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString('en-US', {
+                month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+            }) : '--';
+            const admin = data.adminName || data.adminEmail || 'Admin';
+            const action = data.action || 'Action';
+            const details = data.details || '';
+
+            html += `
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg);border-radius:8px;border:1px solid var(--border);font-size:13px;">
+                    <div>
+                        <span style="font-weight:600;color:var(--text);">${admin}</span>
+                        <span style="color:var(--text-secondary);opacity:0.5;margin:0 4px;">→</span>
+                        <span style="color:var(--primary);font-weight:500;">${action}</span>
+                        ${details ? `<span style="color:var(--text-secondary);opacity:0.4;margin-left:4px;">${details}</span>` : ''}
+                    </div>
+                    <span style="font-size:11px;color:var(--text-secondary);opacity:0.3;">${date}</span>
+                </div>
+            `;
+        });
+        html += `</div>`;
+        container.innerHTML = html;
+
+    } catch (error) {
+        console.error('Error loading audit logs:', error);
+        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load logs</div>`;
+    }
+}
+
+// ============================================================
+// 44. Ratings & Reviews (التقييمات والمراجعات)
+// ============================================================
+
+let currentRating = 0;
+let currentProductIdForRating = null;
+
+async function loadRatings(productId) {
+    const container = document.getElementById('ratingReviewsList');
+    const avgEl = document.getElementById('ratingAvgDisplay');
+    const countEl = document.getElementById('ratingCountDisplay');
+
+    if (!container) return;
+
+    try {
+        const ratingsRef = collection(db, 'ratings');
+        const q = query(ratingsRef, where('productId', '==', productId));
+        const snapshot = await getDocs(q);
+
+        let total = 0;
+        let count = 0;
+        let reviewsHtml = '';
+
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            total += data.rating || 0;
+            count++;
+            const date = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleDateString('en-US', {
+                month: 'short', day: 'numeric', year: 'numeric'
+            }) : '--';
+            const stars = '⭐'.repeat(Math.round(data.rating || 0));
+            reviewsHtml += `
+                <div class="rating-review-item">
+                    <div class="rr-header">
+                        <span class="rr-name">${data.userName || 'User'}</span>
+                        <span class="rr-stars">${stars}</span>
+                        ${data.verified ? '<span class="rr-badge">✅ Verified</span>' : ''}
+                        <span class="rr-date">${date}</span>
+                    </div>
+                    ${data.comment ? `<div class="rr-comment">${data.comment}</div>` : ''}
+                </div>
+            `;
+        });
+
+        const avg = count > 0 ? (total / count) : 0;
+        const fullStars = '⭐'.repeat(Math.round(avg));
+        const emptyStars = '☆'.repeat(5 - Math.round(avg));
+
+        if (avgEl) avgEl.textContent = avg.toFixed(1);
+        if (countEl) countEl.textContent = `(${count} reviews)`;
+
+        container.innerHTML = reviewsHtml || `<div style="text-align:center;padding:10px;color:var(--text-secondary);opacity:0.4;">No reviews yet. Be the first!</div>`;
+
+        const avgStarsEl = document.getElementById('ratingAvgStars');
+        if (avgStarsEl) {
+            avgStarsEl.textContent = fullStars + emptyStars;
+        }
+
+        return { avg, count };
+    } catch (error) {
+        console.error('Error loading ratings:', error);
+        container.innerHTML = `<div style="text-align:center;padding:10px;color:var(--danger);">Failed to load reviews</div>`;
+        return { avg: 0, count: 0 };
+    }
+}
+
+function hasUserPurchasedProduct(productId) {
+    if (!currentUser) return false;
+    const history = userProfile.history || [];
+    return history.some(order => {
+        if (!order.items) return false;
+        return order.items.some(item => item.id === productId);
+    });
+}
+
+async function submitRating(productId) {
+    if (!currentUser) {
+        showToast('⚠️ Please login to rate', 'warning');
+        return;
+    }
+    if (currentUser.isAnonymous) {
+        showToast('⚠️ Please sign in to rate', 'warning');
+        return;
+    }
+
+    const comment = document.getElementById('ratingCommentInput')?.value.trim() || '';
+    const rating = currentRating;
+
+    if (rating === 0) {
+        showToast('⭐ Please select a star rating', 'warning');
+        return;
+    }
+
+    if (!hasUserPurchasedProduct(productId)) {
+        showToast('⚠️ You can only rate products you have purchased', 'warning');
+        return;
+    }
+
+    try {
+        const ratingsRef = collection(db, 'ratings');
+        const q = query(ratingsRef,
+            where('productId', '==', productId),
+            where('userId', '==', currentUser.uid)
+        );
+        const snapshot = await getDocs(q);
+        if (!snapshot.empty) {
+            showToast('⚠️ You already rated this product', 'warning');
+            return;
+        }
+
+        await addDoc(collection(db, 'ratings'), {
+            productId: productId,
+            userId: currentUser.uid,
+            userName: currentUser.displayName || currentUser.email || 'User',
+            rating: rating,
+            comment: comment,
+            verified: true,
+            timestamp: serverTimestamp()
+        });
+
+        showToast('✅ Rating submitted! Thank you!', 'success');
+        currentRating = 0;
+        document.getElementById('ratingStarsContainer').innerHTML = renderStarHTML(0);
+        document.getElementById('ratingCommentInput').value = '';
+        loadRatings(productId);
+        updateProductRatingDisplay(productId);
+
+    } catch (error) {
+        console.error('Error submitting rating:', error);
+        showToast('❌ Error: ' + error.message, 'error');
+    }
+}
+
+function renderStarHTML(rating) {
+    let html = '';
+    for (let i = 1; i <= 5; i++) {
+        html += `<span class="star ${i <= rating ? 'active' : ''}" data-value="${i}" onclick="setRating(${i})">★</span>`;
+    }
+    return html;
+}
+
+window.setRating = function(value) {
+    currentRating = value;
+    const container = document.getElementById('ratingStarsContainer');
+    if (container) {
+        container.innerHTML = renderStarHTML(value);
+    }
+};
+
+function renderRatingSection(productId) {
+    const section = document.getElementById('ratingSection');
+    if (!section) return;
+
+    const canRate = currentUser && !currentUser.isAnonymous && hasUserPurchasedProduct(productId);
+    const isLoggedIn = currentUser && !currentUser.isAnonymous;
+
+    section.innerHTML = `
+        <div class="rating-section">
+            <div class="rating-avg">
+                <span class="stars-small" id="ratingAvgStars">☆☆☆☆☆</span>
+                <span class="count" id="ratingCountDisplay">(0 reviews)</span>
+                <span style="font-weight:700;color:var(--vip-color);margin-left:4px;" id="ratingAvgDisplay">0.0</span>
+            </div>
+            <div id="ratingReviewsList" style="max-height:150px;overflow-y:auto;margin-bottom:8px;">
+                <div style="text-align:center;padding:10px;color:var(--text-secondary);opacity:0.4;">Loading reviews...</div>
+            </div>
+
+            ${canRate ? `
+                <div style="border-top:1px solid var(--border);padding-top:10px;margin-top:8px;">
+                    <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">⭐ Rate this product</div>
+                    <div class="rating-stars" id="ratingStarsContainer">
+                        ${renderStarHTML(0)}
+                    </div>
+                    <textarea class="rating-comment-input" id="ratingCommentInput" placeholder="Share your experience... (optional)" rows="2"></textarea>
+                    <button class="rating-submit-btn" onclick="submitRating('${productId}')"><i class="fas fa-paper-plane"></i> Submit Review</button>
+                </div>
+            ` : (isLoggedIn ? `
+                <div style="font-size:12px;color:var(--text-secondary);opacity:0.4;text-align:center;padding:4px;">📌 Purchase this product to leave a review</div>
+            ` : `
+                <div style="font-size:12px;color:var(--text-secondary);opacity:0.4;text-align:center;padding:4px;">🔒 Login to rate this product</div>
+            `)}
+        </div>
+    `;
+
+    loadRatings(productId);
+}
+
+async function updateProductRatingDisplay(productId) {
+    const ratingsRef = collection(db, 'ratings');
+    const q = query(ratingsRef, where('productId', '==', productId));
+    const snapshot = await getDocs(q);
+
+    let total = 0;
+    let count = 0;
+    snapshot.forEach(doc => {
+        total += doc.data().rating || 0;
+        count++;
+    });
+    const avg = count > 0 ? total / count : 0;
+}
+
+// ============================================================
+// 45. التصديرات النهائية (Exports)
 // ============================================================
 
 window.showToast = showToast;
@@ -4246,6 +4598,9 @@ window.selectVipPlan = selectVipPlan;
 window.addVipPlanToCart = addVipPlanToCart;
 window.exportOrders = exportOrders;
 window.refreshAdvancedStats = refreshAdvancedStats;
+window.setRating = setRating;
+window.submitRating = submitRating;
+window.loadAuditLogs = loadAuditLogs;
 
 // ============================================================
 // END OF SCRIPT.JS
