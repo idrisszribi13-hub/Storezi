@@ -1,6 +1,7 @@
 // ============================================================
 // SCRIPT.JS - النسخة النهائية المتكاملة
 // مع VIP Pricing، Features، RP في السلة فقط، ورفع الصور
+// + تصدير الطلبات (CSV) + لوحة إحصائيات متقدمة (Chart.js)
 // ============================================================
 
 import { initializeApp } from "firebase/app";
@@ -2783,6 +2784,11 @@ window.openAdminPanel = function() {
         loadAdminUsers();
         loadDashboardStats();
         setTimeout(addBannerAdminControls, 300);
+        // تحميل الإحصائيات المتقدمة إذا كان التبويب نشطاً
+        const statsTab = document.getElementById('tabStats');
+        if (statsTab && statsTab.classList.contains('active')) {
+            loadAdvancedStats();
+        }
     }
 };
 window.closeAdminPanel = function() { document.getElementById('adminPanel').classList.remove('open'); if (
@@ -2798,7 +2804,8 @@ window.switchAdminTab = function(tab) {
         'products': 'tabProducts',
         'users': 'tabUsers',
         'downloads': 'tabDownloads',
-        'notifications': 'tabNotifications'
+        'notifications': 'tabNotifications',
+        'stats': 'tabStats'  // التبويب الجديد
     };
     const tabId = tabMap[tab] || tabMap['dashboard'];
     document.getElementById(tabId).classList.add('active');
@@ -2807,6 +2814,7 @@ window.switchAdminTab = function(tab) {
     if (tab === 'products') renderAdminProducts(products);
     if (tab === 'users') loadAdminUsers();
     if (tab === 'dashboard') loadDashboardStats();
+    if (tab === 'stats') loadAdvancedStats();
 };
 
 // ============================================================
@@ -3899,7 +3907,246 @@ setTimeout(() => {
 }, 5000);
 
 // ============================================================
-// 40. التصديرات
+// 40. تصدير الطلبات (CSV) - إضافة جديدة
+// ============================================================
+
+window.exportOrders = function() {
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
+        showToast('⛔ Unauthorized', 'error');
+        return;
+    }
+
+    // استخدام الطلبات المعروضة حالياً (المصفاة) أو جميع الطلبات
+    let ordersToExport = allOrders;
+    const searchQuery = document.getElementById('adminSearchInput')?.value.trim().toLowerCase();
+    if (searchQuery) {
+        ordersToExport = allOrders.filter(order => {
+            const email = (order.userEmail || '').toLowerCase();
+            const orderId = String(order.orderId || order.id || '').toLowerCase();
+            const userName = (order.userName || '').toLowerCase();
+            return email.includes(searchQuery) || orderId.includes(searchQuery) || userName.includes(searchQuery);
+        });
+    }
+
+    if (!ordersToExport || ordersToExport.length === 0) {
+        showToast('📭 No orders to export', 'warning');
+        return;
+    }
+
+    // بناء CSV
+    const headers = ['Order ID', 'User', 'Email', 'Products', 'Total ($)', 'Status', 'Date'];
+    const rows = ordersToExport.map(order => {
+        const itemsNames = order.items ? order.items.map(i => i.name).join('; ') : 'N/A';
+        const status = order.status || 'pending';
+        const date = order.date ? new Date(order.date).toLocaleDateString('en-US') : '';
+        return [
+            String(order.orderId || order.id || '').slice(-6),
+            order.userName || 'Unknown',
+            order.userEmail || 'N/A',
+            itemsNames,
+            (order.total || 0).toFixed(2),
+            status,
+            date
+        ];
+    });
+
+    let csvContent = headers.join(',') + '\n';
+    rows.forEach(row => {
+        // الهروب من الفواصل والاقتباسات
+        const escapedRow = row.map(cell => `"${String(cell).replace(/"/g, '""')}"`);
+        csvContent += escapedRow.join(',') + '\n';
+    });
+
+    // تحميل الملف
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    link.setAttribute('download', `orders_export_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    showToast(`✅ Exported ${rows.length} orders`, 'success');
+};
+
+// ============================================================
+// 41. لوحة الإحصائيات المتقدمة (مع Chart.js)
+// ============================================================
+
+// تحميل Chart.js من CDN (يتم مرة واحدة)
+function loadChartJs() {
+    return new Promise((resolve, reject) => {
+        if (typeof Chart !== 'undefined') {
+            resolve();
+            return;
+        }
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error('Failed to load Chart.js'));
+        document.head.appendChild(script);
+    });
+}
+
+let salesChartInstance = null;
+
+async function loadAdvancedStats() {
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
+
+    const container = document.getElementById('advancedStatsContainer');
+    if (!container) return;
+
+    // عرض مؤقت
+    container.innerHTML = `<div style="text-align:center;padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading statistics...</div>`;
+
+    try {
+        // جلب جميع المستخدمين (للاستعلام عن الطلبات)
+        const usersRef = collection(db, 'users');
+        const snapshot = await getDocs(usersRef);
+        let allOrders = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const history = data.history || [];
+            history.forEach(order => {
+                allOrders.push({
+                    ...order,
+                    userEmail: data.email || doc.id,
+                    userName: data.name || 'Unknown',
+                    userId: doc.id,
+                    orderId: order.id || 'order_' + Date.now()
+                });
+            });
+        });
+
+        // معالجة البيانات
+        const totalOrders = allOrders.length;
+        const totalRevenue = allOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+        const pendingOrders = allOrders.filter(o => (o.status || 'pending') === 'pending').length;
+        const completedOrders = allOrders.filter(o => o.status === 'completed' || o.status === 'delivered').length;
+
+        // إحصائيات المنتجات الأكثر مبيعاً
+        const productCounts = {};
+        allOrders.forEach(order => {
+            if (order.items) {
+                order.items.forEach(item => {
+                    const name = item.name || 'Unknown';
+                    productCounts[name] = (productCounts[name] || 0) + (item.quantity || 1);
+                });
+            }
+        });
+        const topProducts = Object.entries(productCounts)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5);
+
+        // إحصائيات الطلبات حسب اليوم (آخر 7 أيام)
+        const today = new Date();
+        const dayNames = [];
+        const dayCounts = [];
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date(today);
+            d.setDate(d.getDate() - i);
+            const dateStr = d.toISOString().split('T')[0];
+            dayNames.push(d.toLocaleDateString('en-US', { weekday: 'short' }));
+            const count = allOrders.filter(o => {
+                const orderDate = o.date ? new Date(o.date).toISOString().split('T')[0] : '';
+                return orderDate === dateStr;
+            }).length;
+            dayCounts.push(count);
+        }
+
+        // إجمالي المستخدمين
+        const totalUsers = snapshot.size;
+
+        // بناء الواجهة
+        container.innerHTML = `
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px;">
+                <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
+                    <div style="font-size:28px;font-weight:700;color:var(--primary);">${totalOrders}</div>
+                    <div style="font-size:12px;color:var(--text-secondary);">Total Orders</div>
+                </div>
+                <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
+                    <div style="font-size:28px;font-weight:700;color:var(--vip-color);">$${totalRevenue.toFixed(2)}</div>
+                    <div style="font-size:12px;color:var(--text-secondary);">Revenue</div>
+                </div>
+                <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
+                    <div style="font-size:28px;font-weight:700;color:var(--pending-color);">${pendingOrders}</div>
+                    <div style="font-size:12px;color:var(--text-secondary);">Pending</div>
+                </div>
+                <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
+                    <div style="font-size:28px;font-weight:700;color:var(--success);">${completedOrders}</div>
+                    <div style="font-size:12px;color:var(--text-secondary);">Completed</div>
+                </div>
+                <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
+                    <div style="font-size:28px;font-weight:700;color:var(--text);">${totalUsers}</div>
+                    <div style="font-size:12px;color:var(--text-secondary);">Total Users</div>
+                </div>
+            </div>
+            <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;">
+                <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;">
+                    <div style="font-weight:600;margin-bottom:8px;">📈 Orders Trend (Last 7 Days)</div>
+                    <canvas id="salesChart" style="max-height:200px;width:100%;"></canvas>
+                </div>
+                <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;">
+                    <div style="font-weight:600;margin-bottom:8px;">🏆 Top Products</div>
+                    ${topProducts.length === 0 ? '<div style="color:var(--text-secondary);opacity:0.5;">No data</div>' :
+                        topProducts.map(([name, count]) =>
+                            `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:13px;">
+                                <span>${name}</span>
+                                <span style="font-weight:600;">${count}</span>
+                            </div>`
+                        ).join('')
+                    }
+                </div>
+            </div>
+        `;
+
+        // رسم الرسم البياني
+        await loadChartJs();
+        const ctx = document.getElementById('salesChart')?.getContext('2d');
+        if (ctx) {
+            if (salesChartInstance) salesChartInstance.destroy();
+            salesChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dayNames,
+                    datasets: [{
+                        label: 'Orders',
+                        data: dayCounts,
+                        borderColor: 'var(--primary)',
+                        backgroundColor: 'rgba(99,102,241,0.1)',
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                    }
+                }
+            });
+        }
+
+    } catch (error) {
+        console.error('Error loading advanced stats:', error);
+        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load statistics</div>`;
+    }
+}
+
+// ربط زر تحديث الإحصائيات
+window.refreshAdvancedStats = function() {
+    loadAdvancedStats();
+    showToast('🔄 Stats refreshed', 'info');
+};
+
+// ============================================================
+// 42. التصديرات
 // ============================================================
 
 window.showToast = showToast;
@@ -3997,6 +4244,8 @@ window.loadDashboardStats = loadDashboardStats;
 window.getUserCountryByIP = getUserCountryByIP;
 window.selectVipPlan = selectVipPlan;
 window.addVipPlanToCart = addVipPlanToCart;
+window.exportOrders = exportOrders;
+window.refreshAdvancedStats = refreshAdvancedStats;
 
 // ============================================================
 // END OF SCRIPT.JS
