@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZiMods - صانع السكربتات الذكي المستقل</title>
+    <style>
+        :root {
+            --bg-main: #0b0f19;
+            --bg-card: #151f32;
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --text-main: #f1f5f9;
+            --text-muted: #64748b;
+            --border: #1e293b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 20px;
+        }
+
+        header h1 {
+            color: var(--success);
+            margin: 0 0 10px 0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+        }
+
+        @media (min-width: 768px) {
+            .grid { grid-template-columns: 1fr 2fr; }
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+
+        .card h2 {
+            font-size: 1.3rem;
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: var(--success);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--bg-main);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-main);
+            box-sizing: border-box;
+            font-size: 0.95rem;
+            transition: border 0.2s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--success);
+        }
+
+        .btn {
+            background-color: var(--accent);
+            color: white;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            transition: all 0.2s;
+            font-size: 1rem;
+        }
+
+        .btn:hover { background-color: var(--accent-hover); }
+        .btn-success { background-color: var(--success); }
+        .btn-success:hover { background-color: #059669; }
+        .btn-danger { background-color: var(--danger); padding: 8px 14px; font-size: 0.85rem; width: auto;}
+        .btn-danger:hover { background-color: #dc2626; }
+
+        .feature-item {
+            background-color: var(--bg-main);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: border-color 0.2s;
+        }
+
+        .feature-item:hover { border-color: #334155; }
+
+        .feature-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: var(--success);
+            border-bottom: 1px dashed var(--border);
+            padding-bottom: 8px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        @media (min-width: 600px) { .feature-grid { grid-template-columns: 1fr 1fr; } }
+
+        .full-width { grid-column: span 1; }
+        @media (min-width: 600px) { .full-width { grid-column: span 2; } }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #1e293b;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        .checkbox-container input { width: auto; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>🔮 لوحة التحكم المستقلة المتطورة (ZiMods Script Builder)</h1>
+        <p style="color: var(--text-muted); margin: 0;">توليد كود منفصل لكل عنوان مع ميزة التجميد (Freeze) التلقائي وبناء الـ ATOTAL ذكياً</p>
+    </header>
+
+    <div class="grid">
+        <div class="card">
+            <h2>⚙️ إعدادات الحزمة العامة</h2>
+            <div class="form-group">
+                <label>اسم اللعبة (GLabel)</label>
+                <input type="text" id="gLabel" value="Game Hack v2">
+            </div>
+            <div class="form-group">
+                <label>Package Name (GProcess)</label>
+                <input type="text" id="gProcess" value="games.midnite.sri">
+            </div>
+            <div class="form-group">
+                <label>إصدار السكربت</label>
+                <input type="text" id="gVersion" value="v2.0">
+            </div>
+            <div class="form-group">
+                <label>المطور</label>
+                <input type="text" id="luaAuthor" value="ZiMods Engine">
+            </div>
+            <div class="form-group">
+                <label>المعمارية المدعومة</label>
+                <select id="xBit">
+                    <option value="64">64-Bit Only</option>
+                    <option value="32">32-Bit Only</option>
+                </select>
+            </div>
+            
+            <hr style="border-color: var(--border); margin: 25px 0;">
+            <button class="btn btn-success" onclick="generateAndDownload()">💾 تحميل السكربت الجاهز (.lua)</button>
+            <button class="btn" style="background-color: #334155; margin-top: 10px;" onclick="saveToFirestore()">حفظ سحابي (Firestore)</button>
+            <div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-top: 8px;" id="fbStatus">اللوحة جاهزة للعمل محلياً بالكامل ومحمية من التوقف</div>
+        </div>
+
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
+                <h2 style="margin: 0; border: none; padding: 0;">🛠️ إدارة العناوين والميزات المستقلة</h2>
+                <button class="btn" style="width: auto; padding: 8px 18px;" onclick="addFeature()">إضافة عنوان جديد +</button>
+            </div>
+
+            <div id="featuresContainer">
+                </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<script>
+    // 1️⃣ متغيرات النظام الأساسية
+    let featureCount = 0;
+    let db = null;
+
+    // 2️⃣ دالة إضافة عنوان جديد (تعمل الآن أولاً ومستقلة تماماً)
+    function addFeature(savedData = null) {
+        featureCount++;
+        const container = document.getElementById('featuresContainer');
+        const fId = featureCount;
+        const div = document.createElement('div');
+        div.className = 'feature-item';
+        div.id = `feature_card_${fId}`;
+        
+        div.innerHTML = `
+            <div class="feature-header">
+                <span>عنوان القائمة #${fId}</span>
+                <button class="btn btn-danger" onclick="removeFeature(${fId})">حذف العملية 🗑️</button>
+            </div>
+            <div class="feature-grid">
+                <div class="form-group">
+                    <label>اسم الخيار في قائمة الـ GG</label>
+                    <input type="text" class="f-menu-name" value="${savedData ? savedData.menuName : 'تفعيل الميزة ' + fId}" required>
+                </div>
+                <div class="form-group">
+                    <label>نوع التعديل والقيمة</label>
+                    <select class="f-val-type" onchange="toggleValInput(${fId})">
+                        <option value="true" ${savedData && savedData.type === 'true' ? 'selected' : ''}>Boolean: True (تشغيل)</option>
+                        <option value="false" ${savedData && savedData.type === 'false' ? 'selected' : ''}>Boolean: False (إيقاف)</option>
+                        <option value="custom" ${savedData && savedData.type === 'custom' ? 'selected' : ''}>قيمة رقمية مخصصة (Custom Number)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>اسم الكلاس (Class Name)</label>
+                    <input type="text" class="f-class" value="${savedData ? savedData.className : 'GameCore'}" required>
+                </div>
+                <div class="form-group">
+                    <label>اسم الميثود (Method Name)</label>
+                    <input type="text" class="f-method" value="${savedData ? savedData.methodName : 'isValidBlock'}" required>
+                </div>
+                <div class="form-group full-width" id="custom_val_div_${fId}" style="display: ${savedData && savedData.type === 'custom' ? 'block' : 'none'};">
+                    <label>أدخل القيمة المخصصة (رقم أو هكس):</label>
+                    <input type="text" class="f-custom-val" value="${savedData ? savedData.customVal : '100'}">
+                </div>
+                <div class="form-group full-width">
+                    <div class="checkbox-container">
+                        <input type="checkbox" class="f-freeze" id="freeze_check_${fId}" ${savedData && savedData.freeze ? 'checked' : ''}>
+                        <label for="freeze_check_${fId}" style="margin:0; color: #f59e0b; font-weight: bold; cursor:pointer;">⚠️ تفعيل خاصية التجميد التلقائي المستمر لهذا العنوان (Freeze Value)</label>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.appendChild(div);
+    }
+
+    function removeFeature(id) {
+        const target = document.getElementById(`feature_card_${id}`);
+        if(target) {
+            target.remove();
+            reindexFeatures();
+        }
+    }
+
+    function reindexFeatures() {
+        const items = document.querySelectorAll('.feature-item');
+        const container = document.getElementById('featuresContainer');
+        
+        // حفظ البيانات الحالية مؤقتاً لإعادة الترتيب دون فقدان المدخلات
+        const currentData = [];
+        items.forEach((item) => {
+            currentData.push({
+                menuName: item.querySelector('.f-menu-name').value,
+                type: item.querySelector('.f-val-type').value,
+                className: item.querySelector('.f-class').value,
+                methodName: item.querySelector('.f-method').value,
+                customVal: item.querySelector('.f-custom-val').value,
+                freeze: item.querySelector('.f-freeze').checked
+            });
+        });
+
+        container.innerHTML = "";
+        featureCount = 0;
+        currentData.forEach(data => addFeature(data));
+    }
+
+    function toggleValInput(id) {
+        const card = document.getElementById(`feature_card_${id}`);
+        if(card) {
+            const select = card.querySelector('.f-val-type').value;
+            document.getElementById(`custom_val_div_${id}`).style.display = (select === 'custom') ? 'block' : 'none';
+        }
+    }
+
+    // 3️⃣ محرك بناء وتوليد كود الـ LUA النهائي بدقة واحترافية
+    function buildLuaScript() {
+        const gLabel = document.getElementById('gLabel').value;
+        const gProcess = document.getElementById('gProcess').value;
+        const gVersion = document.getElementById('gVersion').value;
+        const luaAuthor = document.getElementById('luaAuthor').value;
+        const xBit = document.getElementById('xBit').value;
+
+        const featureItems = document.querySelectorAll('.feature-item');
+        const totalFeatures = featureItems.length;
+
+        if(totalFeatures === 0) { alert('الرجاء إضافة ميزة واحدة على الأقل!'); return null; }
+
+        let script = `------------------------------------------------------------------------------
+-- 1️⃣ [إعدادات اللعبة المستهدفة العامة]
+------------------------------------------------------------------------------
+GLabel = '${gLabel}'         
+GProcess ='${gProcess}'       
+GVersion = '${gVersion}'
+LUA = '${luaAuthor}'
+xbit = ${xBit} 
+LibResult = 1
+xlib = 'libil2cpp.so'
+xSVx = 1.0
+XbitX = 2
+xREV = 1                            
+
+gg.require('101.1')
+::RESTARTSCRIPT::
+I=nil I={}
+A=nil A={} for i = 1,100 do A[i]={} end
+ORIG={}                             
+apex=1   gg.setVisible(false)   v=gg.getTargetInfo()
+
+if v==nil then print("ERROR: NO PROCESS") gg.setVisible(true) os.exit() return end 
+is64 = v.x64 
+
+`;
+
+        // حقن كلاسات وميثودز البحث المتقدم بشكل منظم
+        let classesInjections = "";
+        featureItems.forEach((item, index) => {
+            const num = index + 1;
+            const className = item.querySelector('.f-class').value;
+            const methodName = item.querySelector('.f-method').value;
+            classesInjections += `A[${num}].class="${className}"\nA[${num}].method="${methodName}"\n`;
+        });
+        script = script.replace(/::RESTARTSCRIPT::/g, `::RESTARTSCRIPT::\n${classesInjections}`);
+
+        for(let i=1; i<=totalFeatures; i++) { script += `AM${i}=OFF\n`; }
+
+        script += `\nCONFIG = {\n`;
+        featureItems.forEach((item, index) => {
+            const num = index + 1;
+            const valType = item.querySelector('.f-val-type').value;
+            const customVal = item.querySelector('.f-custom-val').value;
+            const isFreeze = item.querySelector('.f-freeze').checked;
+            script += `    [${num}] = { mode = "${valType}", custom = "${customVal}", freeze = ${isFreeze} },\n`;
+        });
+        script += `}\n\n`;
+
+        featureItems.forEach((item, index) => {
+            const num = index + 1;
+            const menuName = item.querySelector('.f-menu-name').value;
+            script += `-- دالة التحكم في: ${menuName}\nfunction action_trigger_${num}()\n`;
+            script += `    if A[${num}].error==1 then gg.toast("❌ لم يتم العثور على ميزة ${menuName}") return end\n`;
+            script += `    HACK(${num}, AM${num})\n`;
+            script += `    AM${num}=ONOFF(AM${num})\n`;
+            script += `end\n\n`;
+        });
+
+        script += `function menu()\n    gg.setRanges(gg.REGION_ANONYMOUS)\n    local bitStatus = is64 and "64-Bit" or "32-Bit"\n    mc = gg.multiChoice({\n`;
+        featureItems.forEach((item, index) => {
+            const num = index + 1;
+            script += `        AM${num}.." ${item.querySelector('.f-menu-name').value}",\n`;
+        });
+        script += `        "❌ خروج من السكربت"\n    }, nil, "🔮 لوحة تحكم ZiMods الذكية\\nSystem: "..bitStatus)\n\n    if mc==nil then return end\n`;
+
+        featureItems.forEach((item, index) => {
+            script += `    if mc[${index+1}] then action_trigger_${index+1}() end\n`;
+        });
+        script += `    if mc[${totalFeatures+1}] then exit() return end\nend\n\n`;
+
+        script += `if v.processName ~= GProcess then\n    print("❌ خطأ: السكربت غير مخصص لهذه الحزمة!")\n    gg.setVisible(true) os.exit() return\nend \n\n`;
+
+        script += `if is64 then bitx=64 else bitx=32 end \nif XbitX==1 and bitx~=xbit then print("خطأ في المعمارية") gg.setVisible(true) os.exit() return end \n\nxAPEXx={} xXx=0 xLibRes=0 libx=gg.getRangesList(xlib)\nif #libx==0 then print("لم يتم العثور على مكتبة " .. xlib) gg.setVisible(true) os.exit() end\nfor i, v in ipairs(libx) do if libx[i].state=="Xa" then xXx=xXx+1; xAPEXx[xXx]=libx[i].start; xLibRes=1 end end \n\nfunction ONOFF(OO) if OO==OFF then OO=ON else OO=OFF end return OO end \n\nfunction HACK(num, current_state)\n    o = I[num]\n    if current_state == OFF then arm(num) else revert(num) end\nend \n\nfunction arm(num)\n    o=tonumber(o)\n    local cfg = CONFIG[num]\n    for XxX=1,#xAPEXx do\n        local xdump={}\n        local val = 0\n        if cfg.mode == "true" then val = is64 and xtrue or xtrue32\n        elseif cfg.mode == "false" then val = is64 and xfalse or xfalse32\n        else val = tonumber(cfg.custom) or cfg.custom end\n        \n        local target_addr = xAPEXx[XxX] + o\n        \n        if cfg.freeze then\n            gg.addListItems({{address=target_addr, flags=4, value=val, freeze=true}})\n            if cfg.mode == "true" or cfg.mode == "false" then\n                gg.addListItems({{address=target_addr + 4, flags=4, value=xEND, freeze=true}})\n            end\n            gg.toast("🔒 تم تفعيل وتجميد القيمة بنجاح")\n        else\n            if cfg.mode == "true" or cfg.mode == "false" then\n                xdump[1]={address=target_addr, flags=4, value=val}\n                xdump[2]={address=target_addr+4, flags=4, value=xEND}\n            else\n                xdump[1]={address=target_addr, flags=4, value=val}\n            end\n            gg.setValues(xdump)\n            gg.toast("✅ تم التفعيل بنجاح")\n        end\n    end \nend \n\nfunction revert(num)\n    if #ORIG == 0 then return end\n    o=tonumber(I[num])\n    local cfg = CONFIG[num]\n    for XxX=1,#xAPEXx do \n        local REVERT={} local xRx=1 \n        local target_addr = xAPEXx[XxX] + o\n        \n        if cfg.freeze then\n            gg.addListItems({{address=target_addr, flags=4, freeze=false}})\n            gg.addListItems({{address=target_addr + 4, flags=4, freeze=false}})\n        end\n        \n        for i, v in ipairs(ORIG) do\n            if target_addr == ORIG[i].address then\n                REVERT[xRx]={address=target_addr, flags=4, value=ORIG[i].value}\n                gg.setValues(REVERT) \n                break\n            end\n        end \n    end\n    gg.toast("🔄 تم إلغاء التشغيل")\nend \n\n`;
+
+        script += `if is64 then \n    xtrue="h200080D2" xfalse="h000080D2" xEND="hC0035FD6" \nelse \n    xtrue32="h0100A0E3" xfalse32="h0000A0E3" xEND="h1EFF2FE1" \nend \n\nfunction clear() gg.getResults(gg.getResultsCount()) gg.clearResults() end\nfunction exit() gg.clearResults() gg.toast("تم الخروج بنجاح") gg.setVisible(true) os.exit() end \n\nNEEDSEARCH=1 \nSFILE=io.open(gg.EXT_FILES_DIR.."/"..GProcess..".lua")\nif SFILE~=nil then \n    SFILE=io.open(gg.EXT_FILES_DIR.."/"..GProcess..".lua"):read("*all")\n    pcall(load(SFILE))\n    if XsvX==xSVx and tostring(v.versionName)==tostring(SFversion) then NEEDSEARCH=0 end\nend \n\nif NEEDSEARCH==1 then \n    local xtx=0; gg.clearResults() \n    gg.setRanges(gg.REGION_C_ALLOC | gg.REGION_C_DATA | gg.REGION_C_BSS | gg.REGION_ANONYMOUS | gg.REGION_OTHER)\n    gg.searchNumber(":get_localToWorldMatrix_Injected",1)\n    gg.refineNumber(":g",1)\n    gg.searchPointer(0)\n    if gg.getResultsCount()~=0 then r1=gg.REGION_OTHER r2=gg.REGION_OTHER xtx=2 end\n\n    ATOTAL=${totalFeatures} \n    ASTART=1 AEND=0 ATAB=1\n    \n    while ATAB<=ATOTAL do \n        A[ATAB].error=1 \n        ASTART=AEND+1; clear() t=1 \n        gg.searchNumber(":"..tostring(A[ATAB].method),1) \n        xm=gg.getResults(2)\n        if gg.getResultsCount()==0 then break end \n        \n        x=xm[1].value; gg.searchPointer(0)\n        xpoint=gg.getResults(gg.getResultsCount(),nil, nil, nil, nil, nil, nil, nil,gg.POINTER_READ_ONLY)\n        if #xpoint==0 then break end\n        \n        clear()\n        off1 = is64 and -16 or -8  typ = is64 and 32 or 4\n        for xp=1,#xpoint do xpoint[xp].address=xpoint[xp].address+off1; xpoint[xp].flags=typ end\n        gg.loadResults(xpoint) \n        xoff=gg.getResults(#xpoint,nil, nil, nil, nil, nil, nil, nil, gg.POINTER_EXECUTABLE | gg.POINTER_READ_ONLY)\n        if #xoff==0 then break end\n        \n        xadd = is64 and tonumber(xoff[1].value) or tonumber("0x" .. string.sub(string.format("%X", tonumber(xoff[1].value)), -8, -1))\n        \n        A[ATAB].start=ASTART AEND=AEND+1 A[ATAB].finish=AEND A[ATAB].error=0 \n        I[AEND]=xadd-xAPEXx[xXx]\n        ATAB=ATAB+1\n    end \n    \n`;
+
+        let errorCheck = "if ";
+        for(let i=1; i<=totalFeatures; i++) { errorCheck += `A[${i}].error==0 ${i === totalFeatures ? '' : 'and '}`; }
+        errorCheck += " then\n";
+        script += `    ` + errorCheck;
+        script += `        wstring="SFversion='"..v.versionName.."\\n'\\nXsvX="..xSVx.."\\n'\\nA={}\\n'\\nI={}\\n'"\n`;
+        
+        featureItems.forEach((item, index) => {
+            const num = index + 1;
+            script += `        wstring=wstring.."A[${num}]={name=0,class='"..A[${num}].class.."',method='"..A[${num}].method.."',start=${num},finish=${num},error=0}\\nI[${num}]="..I[${num}].."\\n"\n`;
+        });
+        script += `        io.open(gg.EXT_FILES_DIR.."/"..GProcess..".lua","w"):write(wstring):close()\n    end\nend   \n\n`;
+
+        script += `if xREV==1 then\n    xRx=1 ORIG={}\n    for XxX=1,#xAPEXx do\n        for i, v in ipairs(I) do\n            thiscunt=0\n            for dfg=1,7 do\n                ORIG[xRx]={address=xAPEXx[XxX]+tonumber(I[i])+thiscunt, flags=4}\n                xRx=xRx+1 thiscunt=thiscunt+4\n            end\n        end\n    end\n    ORIG=gg.getValues(ORIG)\nend\n\n`;
+        script += `while true do if gg.isVisible() or apex==1 then gg.setVisible(false) apex=0 menu() end end`;
+
+        return script;
+    }
+
+    // 4️⃣ دالة تحميل ملف .lua مباشرة للهاتف والحاسوب بإجبار متصفح الكروم على التنزيل الفوري
+    function generateAndDownload()
+        const code = buildLuaScript(); 
+        if(!code) return;
+        
+        const blob = new Blob([code], { type: 'application/octet-stream;charset=utf-8' });
+        const link = document.createElement('a');
+        
+        let fileName = document.getElementById('gLabel').value.trim().replace(/[^a-zA-Z0-9آ-ي_-]/g, '_');
+        if(!fileName) fileName = "ZiMods_
