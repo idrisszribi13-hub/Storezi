@@ -2859,7 +2859,7 @@ function fixDirection() {
 document.addEventListener('DOMContentLoaded', function() { setTimeout(fixDirection, 100); setTimeout(showTelegramBanner, 500); });
 
 // ============================================================
-// 39. دوال السلايدر (Slider)
+// 39. دوال السلايدر (Slider) - مع إصلاح الزر
 // ============================================================
 
 async function loadSliderSettings() {
@@ -2941,33 +2941,34 @@ function updateSliderHeight() {
     wrapper.style.minHeight = '300px';
 }
 
-function goToSlide(index) {
+// دوال التنقل - جعلها عامة (global)
+window.goToSlide = function(index) {
     if (index < 0 || index >= sliderSlides.length) return;
     currentSlideIndex = index;
     renderSlider();
     resetSliderTimer();
-}
+};
 
-function nextSlide() {
+window.nextSlide = function() {
     if (sliderSlides.length === 0) return;
     currentSlideIndex = (currentSlideIndex + 1) % sliderSlides.length;
     renderSlider();
     resetSliderTimer();
-}
+};
 
-function prevSlide() {
+window.prevSlide = function() {
     if (sliderSlides.length === 0) return;
     currentSlideIndex = (currentSlideIndex - 1 + sliderSlides.length) % sliderSlides.length;
     renderSlider();
     resetSliderTimer();
-}
+};
 
 function startSliderRotation() {
     if (sliderTimer) clearInterval(sliderTimer);
     if (sliderSlides.length <= 1) return;
     sliderTimer = setInterval(() => {
         if (!isSliderPaused) {
-            nextSlide();
+            window.nextSlide();
         }
     }, sliderIntervalTime * 1000);
 }
@@ -2988,83 +2989,27 @@ function resumeSlider() {
 }
 
 // ============================================================
-// 40. دوال إدارة السلايدر (Admin Slider)
+// 40. دوال إدارة السلايدر (Admin Slider) - مع إصلاح الزر
 // ============================================================
 
-async function saveSliderInterval() {
-    const input = document.getElementById('sliderIntervalInput');
-    const interval = parseFloat(input.value);
-    if (isNaN(interval) || interval < 1) {
-        showToast('⚠️ Please enter a valid number (min 1 second)', 'warning');
-        return;
-    }
-    sliderIntervalTime = interval;
-    try {
-        const settingsRef = doc(db, 'settings', 'slider');
-        await setDoc(settingsRef, { interval: sliderIntervalTime, slides: sliderSlides }, { merge: true });
-        showToast('✅ Interval saved!', 'success');
-        resetSliderTimer();
-        renderSlider();
-    } catch (error) {
-        console.error('Error saving interval:', error);
-        showToast('❌ Failed to save interval', 'error');
-    }
-}
-
-function renderSliderSettingsUI() {
-    const container = document.getElementById('sliderSlidesList');
-    if (!container) return;
-    if (sliderSlides.length === 0) {
-        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);opacity:0.5;">No slides yet. Click "Add Slide" to get started.</div>`;
-        return;
-    }
-    container.innerHTML = sliderSlides.map((slide, index) => {
-        const product = products.find(p => p.id === slide.productId);
-        const productName = product ? product.name : 'Unknown';
-        return `
-            <div class="admin-item">
-                <div class="item-info">
-                    <div class="item-title">
-                        <img src="${slide.imageUrl || 'https://picsum.photos/seed/default/60/60'}" style="width:40px;height:40px;border-radius:var(--radius-sm);object-fit:cover;margin-right:8px;" />
-                        ${slide.title || 'Slide ' + (index+1)}
-                        <span style="font-size:11px;opacity:0.4;font-weight:400;">
-                            ${slide.linkType === 'product' ? '📦 Product: ' + productName : slide.linkType === 'download' ? '📥 Download' : '🔗 Custom URL'}
-                        </span>
-                    </div>
-                    <div class="item-meta">${slide.subtitle || ''}</div>
-                </div>
-                <div class="item-actions">
-                    <button class="btn-edit" onclick="editSlide(${index})"><i class="fas fa-edit"></i></button>
-                    <button class="btn-delete" onclick="deleteSlide(${index})"><i class="fas fa-trash"></i></button>
-                </div>
-            </div>
-        `;
-    }).join('');
-}
-
+// تحديث قائمة المنتجات
 function updateSlideProductSelect() {
     const select = document.getElementById('slideProductSelect');
     if (!select) return;
-    select.innerHTML = products.map(p => `<option value="${p.id}">${p.name} ($${p.price})</option>`).join('');
+    select.innerHTML = products.map(p => 
+        `<option value="${p.id}">${p.name} ($${p.price})</option>`
+    ).join('');
 }
 
-function openAddSlideModal() {
-    updateSlideProductSelect();
-    document.getElementById('addSlideModal').classList.add('open');
-    document.getElementById('addSlideForm').reset();
-    document.getElementById('slideImagePreview').style.display = 'none';
-    toggleSlideLinkFields();
-}
-
-function closeAddSlideModal() {
-    document.getElementById('addSlideModal').classList.remove('open');
-}
-
+// تبديل حقول الرابط
 function toggleSlideLinkFields() {
-    const type = document.getElementById('slideLinkType').value;
-    document.getElementById('slideProductGroup').style.display = type === 'product' ? 'block' : 'none';
-    document.getElementById('slideDownloadGroup').style.display = type === 'download' ? 'block' : 'none';
-    document.getElementById('slideCustomUrlGroup').style.display = type === 'url' ? 'block' : 'none';
+    const type = document.getElementById('slideLinkType')?.value || 'product';
+    const productGroup = document.getElementById('slideProductGroup');
+    const downloadGroup = document.getElementById('slideDownloadGroup');
+    const customGroup = document.getElementById('slideCustomUrlGroup');
+    if (productGroup) productGroup.style.display = type === 'product' ? 'block' : 'none';
+    if (downloadGroup) downloadGroup.style.display = type === 'download' ? 'block' : 'none';
+    if (customGroup) customGroup.style.display = type === 'url' ? 'block' : 'none';
 }
 
 // ربط الأحداث
@@ -3081,21 +3026,50 @@ document.addEventListener('DOMContentLoaded', function() {
                 const reader = new FileReader();
                 reader.onload = function(event) {
                     const preview = document.getElementById('slideImagePreview');
-                    const img = preview.querySelector('img');
-                    img.src = event.target.result;
-                    preview.style.display = 'block';
+                    if (preview) {
+                        const img = preview.querySelector('img');
+                        if (img) img.src = event.target.result;
+                        preview.style.display = 'block';
+                    }
                 };
                 reader.readAsDataURL(file);
             }
         });
     }
-    const form = document.getElementById('addSlideForm');
-    if (form) {
-        form.addEventListener('submit', addSlide);
-    }
 });
 
-async function addSlide(e) {
+// ===== الدوال الرئيسية =====
+
+// فتح مودال إضافة شريحة - جعلها عامة
+window.openAddSlideModal = function() {
+    console.log('✅ openAddSlideModal called');
+    updateSlideProductSelect();
+    const modal = document.getElementById('addSlideModal');
+    if (!modal) {
+        console.error('❌ addSlideModal not found');
+        showToast('❌ Modal not found', 'error');
+        return;
+    }
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    const form = document.getElementById('addSlideForm');
+    if (form) form.reset();
+    const preview = document.getElementById('slideImagePreview');
+    if (preview) preview.style.display = 'none';
+    toggleSlideLinkFields();
+};
+
+// إغلاق مودال إضافة شريحة - جعلها عامة
+window.closeAddSlideModal = function() {
+    const modal = document.getElementById('addSlideModal');
+    if (modal) {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+};
+
+// إضافة شريحة جديدة
+document.getElementById('addSlideForm')?.addEventListener('submit', async function(e) {
     e.preventDefault();
     const fileInput = document.getElementById('slideImageFile');
     const file = fileInput.files[0];
@@ -3151,10 +3125,11 @@ async function addSlide(e) {
     renderSlider();
     renderSliderSettingsUI();
     resetSliderTimer();
-    closeAddSlideModal();
+    window.closeAddSlideModal();
     showToast('✅ Slide added successfully!', 'success');
-}
+});
 
+// حذف شريحة
 async function deleteSlide(index) {
     if (!confirm('Delete this slide?')) return;
     sliderSlides.splice(index, 1);
@@ -3165,10 +3140,12 @@ async function deleteSlide(index) {
     showToast('🗑️ Slide deleted', 'success');
 }
 
+// تحرير شريحة
 function editSlide(index) {
     showToast('✏️ Edit feature coming soon', 'info');
 }
 
+// حفظ بيانات السلايدر
 async function saveSliderData() {
     try {
         const settingsRef = doc(db, 'settings', 'slider');
@@ -3182,6 +3159,64 @@ async function saveSliderData() {
         showToast('❌ Failed to save slider data', 'error');
     }
 }
+
+// حفظ وقت التبديل
+async function saveSliderInterval() {
+    const input = document.getElementById('sliderIntervalInput');
+    const interval = parseFloat(input.value);
+    if (isNaN(interval) || interval < 1) {
+        showToast('⚠️ Please enter a valid number (min 1 second)', 'warning');
+        return;
+    }
+    sliderIntervalTime = interval;
+    try {
+        await saveSliderData();
+        showToast('✅ Interval saved!', 'success');
+        resetSliderTimer();
+        renderSlider();
+    } catch (error) {
+        console.error('Error saving interval:', error);
+        showToast('❌ Failed to save interval', 'error');
+    }
+}
+
+function renderSliderSettingsUI() {
+    const container = document.getElementById('sliderSlidesList');
+    if (!container) return;
+    if (sliderSlides.length === 0) {
+        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);opacity:0.5;">No slides yet. Click "Add Slide" to get started.</div>`;
+        return;
+    }
+    container.innerHTML = sliderSlides.map((slide, index) => {
+        const product = products.find(p => p.id === slide.productId);
+        const productName = product ? product.name : 'Unknown';
+        return `
+            <div class="admin-item">
+                <div class="item-info">
+                    <div class="item-title">
+                        <img src="${slide.imageUrl || 'https://picsum.photos/seed/default/60/60'}" style="width:40px;height:40px;border-radius:var(--radius-sm);object-fit:cover;margin-right:8px;" />
+                        ${slide.title || 'Slide ' + (index+1)}
+                        <span style="font-size:11px;opacity:0.4;font-weight:400;">
+                            ${slide.linkType === 'product' ? '📦 Product: ' + productName : slide.linkType === 'download' ? '📥 Download' : '🔗 Custom URL'}
+                        </span>
+                    </div>
+                    <div class="item-meta">${slide.subtitle || ''}</div>
+                </div>
+                <div class="item-actions">
+                    <button class="btn-edit" onclick="editSlide(${index})"><i class="fas fa-edit"></i></button>
+                    <button class="btn-delete" onclick="deleteSlide(${index})"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// تصدير الدوال العامة
+window.saveSliderInterval = saveSliderInterval;
+window.deleteSlide = deleteSlide;
+window.editSlide = editSlide;
+window.pauseSlider = pauseSlider;
+window.resumeSlider = resumeSlider;
 
 // ============================================================
 // 41. PDF Generator (مولد الفواتير)
