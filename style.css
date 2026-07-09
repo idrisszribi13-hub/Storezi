@@ -2600,5 +2600,628 @@ body::before {
     }
    }
 /* ============================================
+   🔥 تحديث جميع الحدود إلى خطين متحركين مزدوجين
+   ============================================ */
+
+/* تعريف خاصية الزاوية (موجودة مسبقاً، نؤكدها) */
+@property --angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+}
+
+/* ===== 1. العناصر الرئيسية ===== */
+
+/* الهيدر */
+.header::before {
+    inset: -2px !important;
+    padding: 2px !important;
+    animation: spin-border 4s linear infinite !important;
+    opacity: 0.6 !important;
+}
+.header::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: var(--radius-lg);
+    padding: 6px;
+    background: conic-gradient(from var(--angle), var(--primary), var(--heart-color), var(--vip-color), var(--primary));
+    animation: spin-border 8s linear infinite reverse;
+    z-index: -2;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0.3;
+}
+
+/* نافذة تيليجرام */
+.telegram-banner::before {
+    inset: -2px !important;
+    padding: 2px !important;
+    animation: spin-border 4s linear infinite !important;
+}
+.telegram-banner::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: var(--radius-lg);
+    padding: 6px;
+    background: conic-gradient(from var(--angle), rgba(0,136,204,0.6), rgba(52,211,153,0.6), rgba(251,191,36,0.6), rgba(0,136,204,0.6));
+    animation: spin-border 7s linear infinite reverse;
+    z-index: -2;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+/* المنتجات المميزة */
+.featured-products::before {
+    inset: -2px !important;
+    padding: 2px !important;
+    animation: spin-border 4s linear infinite !important;
+}
+.featured-products::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: var(--radius-lg);
+    padding: 6px;
+    background: conic-gradient(from var(--angle), rgba(139,92,246,0.3), rgba(236,72,153,0.3), rgba(251,191,36,0.3), rgba(139,92,246,0.3));
+    animation: spin-border 8s linear infinite reverse;
+    z-index: -2;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+/* بطاقات الإحصائيات */
+.stat-card::before {
+    inset: -2px !important;
+    padding: 2px !important;
+    animation: spin-border 4s linear infinite !important;
+}
+.stat-card::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: var(--radius-md);
+    padding: 6px;
+    background: conic-gradient(from var(--angle), rgba(139,92,246,0.2), rgba(236,72,153,0.2), rgba(251,191,36,0.2), rgba(139,92,246,0.2));
+    animation: spin-border 7s linear infinite reverse;
+    z-index: -2;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+/* أزرار التصفية */
+.filter-btn::before {
+    inset: -2px !important;
+    padding: 2px !important;
+    animation: spin-border 3s linear infinite !important;
+}
+.filter-btn::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: var(--radius-full);
+    padding: 6px;
+    background: conic-gradient(from var(--angle), rgba(139,92,246,0.2), rgba(236,72,153,0.2), rgba(139,92,246,0.2));
+    animation: spin-border 6s linear infinite reverse;
+    z-index: -2;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+/* بطاقات المنتجات */
+.product-card::before {
+    inset: -2px !important;
+    padding: 2px !important;
+    animation: spin-border 4s linear infinite !important;
+}
+.product-card::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: var(--radius-md);
+    padding: 6px;
+    background: conic-gradient(from var(--angle), rgba(139,92,246,0.2), rgba(236,72,153,0.2), rgba(251,191,36,0.2), rgba(139,92,246,0.2));
+    animation: spin-border 7s linear infinite reverse;
+    z-index: -2;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+/* الشريط السفلي */
+.bottom-cart-bar::before {
+    inset: -2px -2px 0 -2px !important;
+    padding: 2px 2px 0 2px !important;
+    animation: spin-border 4s linear infinite !important;
+}
+.bottom-cart-bar::after {
+    content: '';
+    position: absolute;
+    inset: -6px -6px 0 -6px;
+    padding: 6px 6px 0 6px;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    background: conic-gradient(from var(--angle), rgba(139,92,246,0.2), rgba(236,72,153,0.2), rgba(251,191,36,0.2), rgba(139,92,246,0.2));
+    animation: spin-border 7s linear infinite reverse;
+    z-index: -2;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+/* Toast */
+.toast::before {
+    inset: -2px !important;
+    padding: 2px !important;
+    animation: spin-border 3s linear infinite !important;
+}
+.toast::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: var(--radius-md);
+    padding: 6px;
+    background: conic-gradient(from var(--angle), rgba(52,211,153,0.3), rgba(251,191,36,0.3), rgba(52,211,153,0.3));
+    animation: spin-border 6s linear infinite reverse;
+    z-index: -2;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+/* المودالات */
+.modal-content::before {
+    inset: -2px !important;
+    padding: 2px !important;
+    animation: spin-border 4s linear infinite !important;
+}
+.modal-content::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: var(--radius-xl);
+    padding: 6px;
+    background: conic-gradient(from var(--angle), rgba(139,92,246,0.2), rgba(236,72,153,0.2), rgba(251,191,36,0.2), rgba(139,92,246,0.2));
+    animation: spin-border 7s linear infinite reverse;
+    z-index: -2;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+/* ===== 2. عناصر صفحة الدفع والمودالات ===== */
+
+/* ميزات المنتج */
+.preview-features::before {
+    inset: -2px !important;
+    padding: 2px !important;
+    animation: spin-border 4s linear infinite !important;
+}
+.preview-features::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: var(--radius-md);
+    padding: 6px;
+    background: conic-gradient(from var(--angle), rgba(139,92,246,0.2), rgba(236,72,153,0.2), rgba(139,92,246,0.2));
+    animation: spin-border 7s linear infinite reverse;
+    z-index: -2;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+/* VIP Pricing */
+.vip-pricing-section::before {
+    inset: -2px !important;
+    padding: 2px !important;
+    animation: spin-border 4s linear infinite !important;
+}
+.vip-pricing-section::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: var(--radius-md);
+    padding: 6px;
+    background: conic-gradient(from var(--angle), rgba(251,191,36,0.2), rgba(139,92,246,0.2), rgba(251,191,36,0.2));
+    animation: spin-border 7s linear infinite reverse;
+    z-index: -2;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+/* عناصر السلايدر */
+.slider-container::before {
+    inset: -2px !important;
+    padding: 2px !important;
+    animation: spin-border 4s linear infinite !important;
+}
+.slider-container::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: var(--radius-lg);
+    padding: 6px;
+    background: conic-gradient(from var(--angle), rgba(139,92,246,0.2), rgba(236,72,153,0.2), rgba(251,191,36,0.2), rgba(139,92,246,0.2));
+    animation: spin-border 8s linear infinite reverse;
+    z-index: -2;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+/* ===== 3. عناصر الملف الشخصي والإعدادات ===== */
+
+/* تحرير الملف الشخصي */
+.edit-profile-inline::before {
+    inset: -2px !important;
+    padding: 2px !important;
+    animation: spin-border 4s linear infinite !important;
+}
+.edit-profile-inline::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: var(--radius-md);
+    padding: 6px;
+    background: conic-gradient(from var(--angle), rgba(139,92,246,0.2), rgba(236,72,153,0.2), rgba(139,92,246,0.2));
+    animation: spin-border 7s linear infinite reverse;
+    z-index: -2;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+/* تغيير كلمة المرور */
+.password-inline::before {
+    inset: -2px !important;
+    padding: 2px !important;
+    animation: spin-border 4s linear infinite !important;
+}
+.password-inline::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: var(--radius-md);
+    padding: 6px;
+    background: conic-gradient(from var(--angle), rgba(6,182,212,0.2), rgba(139,92,246,0.2), rgba(6,182,212,0.2));
+    animation: spin-border 7s linear infinite reverse;
+    z-index: -2;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+/* ربط تيليجرام */
+.telegram-bind-section::before {
+    inset: -2px !important;
+    padding: 2px !important;
+    animation: spin-border 4s linear infinite !important;
+}
+.telegram-bind-section::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: var(--radius-md);
+    padding: 6px;
+    background: conic-gradient(from var(--angle), rgba(0,136,204,0.2), rgba(139,92,246,0.2), rgba(0,136,204,0.2));
+    animation: spin-border 7s linear infinite reverse;
+    z-index: -2;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+/* ===== 4. عناصر المصادقة ===== */
+
+.auth-container::before {
+    inset: -2px !important;
+    padding: 2px !important;
+    animation: spin-border 4s linear infinite !important;
+}
+.auth-container::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: var(--radius-xl);
+    padding: 6px;
+    background: conic-gradient(from var(--angle), rgba(139,92,246,0.2), rgba(236,72,153,0.2), rgba(251,191,36,0.2), rgba(139,92,246,0.2));
+    animation: spin-border 7s linear infinite reverse;
+    z-index: -2;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+/* ===== 5. عناصر لوحة المدير ===== */
+
+.admin-panel .modal-content::before {
+    inset: -2px !important;
+    padding: 2px !important;
+    animation: spin-border 5s linear infinite !important;
+}
+.admin-panel .modal-content::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: var(--radius-xl);
+    padding: 6px;
+    background: conic-gradient(from var(--angle), rgba(139,92,246,0.2), rgba(236,72,153,0.2), rgba(251,191,36,0.2), rgba(139,92,246,0.2));
+    animation: spin-border 8s linear infinite reverse;
+    z-index: -2;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+/* بطاقات إحصائيات المدير */
+.admin-stat-card::before {
+    inset: -2px !important;
+    padding: 2px !important;
+    animation: spin-border 4s linear infinite !important;
+}
+.admin-stat-card::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: var(--radius-md);
+    padding: 6px;
+    background: conic-gradient(from var(--angle), rgba(139,92,246,0.2), rgba(236,72,153,0.2), rgba(251,191,36,0.2), rgba(139,92,246,0.2));
+    animation: spin-border 7s linear infinite reverse;
+    z-index: -2;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+/* عناصر المدير (المنتجات، التحميلات، الإشعارات) */
+.admin-item::before {
+    inset: -2px !important;
+    padding: 2px !important;
+    animation: spin-border 3s linear infinite !important;
+}
+.admin-item::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: var(--radius-md);
+    padding: 6px;
+    background: conic-gradient(from var(--angle), rgba(139,92,246,0.2), rgba(236,72,153,0.2), rgba(139,92,246,0.2));
+    animation: spin-border 6s linear infinite reverse;
+    z-index: -2;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+/* ===== 6. عناصر الإحالات والتوصيات ===== */
+
+.referral-steps::before {
+    inset: -2px !important;
+    padding: 2px !important;
+    animation: spin-border 4s linear infinite !important;
+}
+.referral-steps::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: var(--radius-md);
+    padding: 6px;
+    background: conic-gradient(from var(--angle), rgba(96,165,250,0.2), rgba(139,92,246,0.2), rgba(96,165,250,0.2));
+    animation: spin-border 7s linear infinite reverse;
+    z-index: -2;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+/* توصيات المنتجات */
+.rec-item::before {
+    inset: -2px !important;
+    padding: 2px !important;
+    animation: spin-border 3s linear infinite !important;
+}
+.rec-item::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: var(--radius-md);
+    padding: 6px;
+    background: conic-gradient(from var(--angle), rgba(139,92,246,0.2), rgba(236,72,153,0.2), rgba(139,92,246,0.2));
+    animation: spin-border 6s linear infinite reverse;
+    z-index: -2;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+/* العناصر المميزة */
+.featured-item::before {
+    inset: -2px !important;
+    padding: 2px !important;
+    animation: spin-border 3s linear infinite !important;
+}
+.featured-item::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: var(--radius-md);
+    padding: 6px;
+    background: conic-gradient(from var(--angle), rgba(139,92,246,0.2), rgba(236,72,153,0.2), rgba(139,92,246,0.2));
+    animation: spin-border 6s linear infinite reverse;
+    z-index: -2;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+/* ===== 7. عناصر متنوعة ===== */
+
+/* قائمة المستخدم */
+.user-menu-full .user-header::before {
+    inset: -2px !important;
+    padding: 2px !important;
+    animation: spin-border 4s linear infinite !important;
+}
+.user-menu-full .user-header::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: var(--radius-md);
+    padding: 6px;
+    background: conic-gradient(from var(--angle), rgba(139,92,246,0.2), rgba(236,72,153,0.2), rgba(139,92,246,0.2));
+    animation: spin-border 7s linear infinite reverse;
+    z-index: -2;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+/* عناصر القائمة */
+.menu-item::before {
+    inset: -2px !important;
+    padding: 2px !important;
+    animation: spin-border 3s linear infinite !important;
+}
+.menu-item::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: var(--radius-md);
+    padding: 6px;
+    background: conic-gradient(from var(--angle), rgba(139,92,246,0.2), rgba(236,72,153,0.2), rgba(139,92,246,0.2));
+    animation: spin-border 6s linear infinite reverse;
+    z-index: -2;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+/* إحصائيات الطلبات */
+.orders-stat-card::before {
+    inset: -2px !important;
+    padding: 2px !important;
+    animation: spin-border 4s linear infinite !important;
+}
+.orders-stat-card::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: var(--radius-md);
+    padding: 6px;
+    background: conic-gradient(from var(--angle), rgba(139,92,246,0.2), rgba(236,72,153,0.2), rgba(139,92,246,0.2));
+    animation: spin-border 7s linear infinite reverse;
+    z-index: -2;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+/* محفظة الدفع */
+.wallet-info::before {
+    inset: -2px !important;
+    padding: 2px !important;
+    animation: spin-border 4s linear infinite !important;
+}
+.wallet-info::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: var(--radius-md);
+    padding: 6px;
+    background: conic-gradient(from var(--angle), rgba(6,182,212,0.2), rgba(139,92,246,0.2), rgba(6,182,212,0.2));
+    animation: spin-border 7s linear infinite reverse;
+    z-index: -2;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+/* بطاقات المستخدمين في المدير */
+.admin-user-card::before {
+    inset: -2px !important;
+    padding: 2px !important;
+    animation: spin-border 4s linear infinite !important;
+}
+.admin-user-card::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: var(--radius-md);
+    padding: 6px;
+    background: conic-gradient(from var(--angle), rgba(139,92,246,0.2), rgba(236,72,153,0.2), rgba(139,92,246,0.2));
+    animation: spin-border 7s linear infinite reverse;
+    z-index: -2;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+/* Social Proof Toast */
+.social-proof-toast::before {
+    inset: -2px !important;
+    padding: 2px !important;
+    animation: spin-border 4s linear infinite !important;
+}
+.social-proof-toast::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: var(--radius-lg);
+    padding: 6px;
+    background: conic-gradient(from var(--angle), rgba(139,92,246,0.2), rgba(251,191,36,0.2), rgba(236,72,153,0.2), rgba(139,92,246,0.2));
+    animation: spin-border 7s linear infinite reverse;
+    z-index: -2;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+/* قسم التقييمات */
+.rating-section::before {
+    inset: -2px !important;
+    padding: 2px !important;
+    animation: spin-border 4s linear infinite !important;
+}
+.rating-section::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: var(--radius-md);
+    padding: 6px;
+    background: conic-gradient(from var(--angle), rgba(251,191,36,0.2), rgba(139,92,246,0.2), rgba(251,191,36,0.2));
+    animation: spin-border 7s linear infinite reverse;
+    z-index: -2;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+/* قسم التوصيات */
+.recommendations-section::before {
+    inset: -2px !important;
+    padding: 2px !important;
+    animation: spin-border 5s linear infinite !important;
+}
+.recommendations-section::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: var(--radius-lg);
+    padding: 6px;
+    background: conic-gradient(from var(--angle), rgba(6,182,212,0.2), rgba(139,92,246,0.2), rgba(6,182,212,0.2));
+    animation: spin-border 8s linear infinite reverse;
+    z-index: -2;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+   }
+/* ============================================
    34. نهاية الملف
    ============================================ */
