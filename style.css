@@ -1283,7 +1283,45 @@ body::before {
 .payment-product-item .pp-name { font-size: 14px; font-weight: 600; color: var(--text); }
 .payment-product-item .pp-price { font-size: 13px; color: var(--primary); font-weight: 700; }
 .payment-product-item .pp-qty { font-size: 14px; color: var(--text-secondary); opacity: 0.4; }
-
+.payment-product-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+}
+.payment-product-item:last-child { border-bottom: none; }
+.payment-product-item img {
+    width: 50px;
+    height: 50px;
+    border-radius: var(--radius-sm);
+    object-fit: cover;
+    background: var(--bg-secondary);
+}
+.payment-product-item .pp-info {
+    flex: 1;
+    min-width: 0;
+}
+.payment-product-item .pp-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.payment-product-item .pp-price {
+    font-size: 14px;
+    color: var(--primary);
+    font-weight: 700;
+}
+.payment-product-item .pp-qty {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    opacity: 0.5;
+    margin-left: 8px;
+}
 /* ============================================
    21. المودالات الكاملة (Fullscreen)
    ============================================ */
