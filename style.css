@@ -1,6 +1,7 @@
 /* ============================================
    STYLE.CSS - النسخة النهائية المتطورة
    مع ألوان متحركة شفافة ونصوص واضحة
+   + تعديلات أزرار الإغلاق وإضافة فيديو
    ============================================ */
 
 /* ============================================
@@ -115,7 +116,7 @@ body {
     padding: 14px;
     padding-bottom: 100px;
     line-height: 1.7;
-    font-size: 16px; /* زيادة حجم الخط الأساسي */
+    font-size: 16px;
     background: var(--bg);
 }
 
@@ -994,11 +995,12 @@ body::before {
     to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
+/* ===================== تعديل أزرار الإغلاق ===================== */
 .modal-close {
     position: absolute;
     top: 12px;
-    left: 12px !important;
-    right: auto !important;
+    right: 12px !important;   /* غيّر من left إلى right */
+    left: auto !important;
     width: 34px;
     height: 34px;
     border-radius: 50%;
@@ -1067,6 +1069,33 @@ body::before {
 .preview-verified.unavailable { color: var(--danger); }
 .preview-name { font-size: 24px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
 .preview-desc { font-size: 15px; color: var(--text-secondary); opacity: 0.7; line-height: 1.7; margin-bottom: 20px; }
+
+/* ===== حاوية الفيديو ===== */
+.preview-video {
+    margin: 12px 0;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    position: relative;
+    z-index: 1;
+}
+.preview-video::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    z-index: -1;
+    border-radius: var(--radius-md);
+    background: conic-gradient(from var(--angle), rgba(139,92,246,0.15), rgba(236,72,153,0.15), rgba(139,92,246,0.15));
+    animation: spin-border 4s linear infinite;
+    opacity: 0.3;
+}
+.preview-video iframe {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16/9;
+    border: none;
+}
 
 .preview-features {
     background: var(--bg-secondary);
@@ -1276,13 +1305,6 @@ body::before {
 .payment-tx-input:focus { border-color: var(--primary); box-shadow: 0 0 20px var(--primary-glow); }
 
 .payment-products-list { margin: 8px 0; }
-.payment-product-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
-.payment-product-item:last-child { border-bottom: none; }
-.payment-product-item img { width: 44px; height: 44px; border-radius: var(--radius-sm); object-fit: cover; }
-.payment-product-item .pp-info { flex: 1; }
-.payment-product-item .pp-name { font-size: 14px; font-weight: 600; color: var(--text); }
-.payment-product-item .pp-price { font-size: 13px; color: var(--primary); font-weight: 700; }
-.payment-product-item .pp-qty { font-size: 14px; color: var(--text-secondary); opacity: 0.4; }
 .payment-product-item {
     display: flex;
     align-items: center;
@@ -1322,6 +1344,7 @@ body::before {
     opacity: 0.5;
     margin-left: 8px;
 }
+
 /* ============================================
    21. المودالات الكاملة (Fullscreen)
    ============================================ */
@@ -1350,7 +1373,20 @@ body::before {
 }
 .modal-header h2 { font-size: 20px; font-weight: 700; color: var(--text); }
 .modal-header h2 i { color: var(--primary); margin-left: 6px; }
-.modal-header .modal-close { width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--border); background: var(--card-bg); color: var(--text); cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+.modal-header .modal-close {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+}
 .modal-header .modal-close:hover { border-color: var(--danger); color: var(--danger); transform: rotate(90deg); }
 
 /* ============================================
@@ -1691,7 +1727,7 @@ body::before {
 .orders-empty p { font-size: 15px; opacity: 0.4; }
 
 /* ============================================
-   28. لوحة المدير (Admin Panel) - تصميم متطور شبيه بالصورة
+   28. لوحة المدير (Admin Panel) - تصميم متطور
    ============================================ */
 
 .admin-panel .modal-content {
@@ -1720,7 +1756,6 @@ body::before {
     opacity: 0.4;
 }
 
-/* شريط العنوان العلوي في لوحة المدير */
 .admin-panel .panel-header {
     display: flex;
     justify-content: space-between;
@@ -1736,7 +1771,6 @@ body::before {
 .admin-panel .panel-header h2 i { color: var(--vip-color); }
 .admin-panel .panel-header .header-actions { display: flex; align-items: center; gap: 8px; }
 
-/* الأزرار الشبيهة بالصورة المرفقة */
 .btn-primary { padding: 10px 20px; border: none; border-radius: var(--radius-sm); background: var(--primary-gradient); color: #fff; font-weight: 600; font-size: 14px; cursor: pointer; transition: 0.3s; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 15px var(--primary-glow); }
 
@@ -1760,7 +1794,6 @@ body::before {
 .btn-close { background: var(--card-bg); border: 1px solid var(--border); border-radius: 50%; width: 38px; height: 38px; color: var(--text); cursor: pointer; font-size: 16px; transition: 0.3s; display: flex; align-items: center; justify-content: center; }
 .btn-close:hover { background: var(--danger); color: #fff; border-color: var(--danger); transform: rotate(90deg); }
 
-/* التبويبات */
 .admin-panel .tabs {
     display: flex;
     gap: 2px;
@@ -1800,7 +1833,6 @@ body::before {
 .admin-panel .tabs button.active { color: var(--primary) !important; background: transparent !important; }
 .admin-panel .tabs button.active::after { transform: scaleX(1); }
 
-/* محتوى التبويب */
 .admin-panel .tab-content {
     display: none;
     padding: 20px 24px;
@@ -1811,7 +1843,6 @@ body::before {
 .admin-panel .tab-content.active { display: block; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-/* إحصائيات لوحة التحكم */
 .admin-stats-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -1843,7 +1874,6 @@ body::before {
 .admin-stat-card .stat-number { font-size: 26px; font-weight: 700; color: var(--text); }
 .admin-stat-card .stat-label { font-size: 12px; color: var(--text-secondary); opacity: 0.5; margin-top: 4px; }
 
-/* شريط البحث في المدير */
 .admin-search-bar {
     display: flex;
     gap: 8px;
@@ -1885,7 +1915,6 @@ body::before {
 .btn-export { background: var(--vip-color); color: #0a0a1a; }
 .btn-export:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(251, 191, 36, 0.2); }
 
-/* جدول الطلبات */
 .admin-orders-table {
     width: 100%;
     border-collapse: collapse;
@@ -1913,7 +1942,6 @@ body::before {
 .admin-orders-table .order-total { font-weight: 700; color: var(--primary); font-size: 15px; }
 .admin-orders-table .order-date { font-size: 13px; color: var(--text-secondary); opacity: 0.5; }
 
-/* حالات الطلبات في الجدول */
 .status-badge {
     display: inline-block;
     padding: 4px 16px;
@@ -1935,7 +1963,6 @@ body::before {
 .btn-delete-order { padding: 6px 16px; border: none; border-radius: 6px; background: var(--danger); color: #fff; font-weight: 600; cursor: pointer; font-size: 13px; transition: 0.3s; display: inline-flex; align-items: center; gap: 4px; }
 .btn-delete-order:hover { opacity: 0.8; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(248, 113, 113, 0.3); }
 
-/* عناصر المدير (المنتجات، التحميلات، الإشعارات) */
 .admin-item {
     display: flex !important;
     justify-content: space-between !important;
@@ -2024,7 +2051,6 @@ body::before {
 .admin-cancel-btn { padding: 14px 24px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--card-bg); color: var(--text); font-weight: 600; cursor: pointer; transition: 0.3s; }
 .admin-cancel-btn:hover { border-color: var(--danger); color: var(--danger); }
 
-/* مودال إعدادات المنتجات المميزة */
 #featuredProductSelector { max-height: 200px; overflow-y: auto; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px; }
 #featuredProductSelector .product-check-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border); }
 #featuredProductSelector .product-check-item:last-child { border-bottom: none; }
@@ -2136,6 +2162,7 @@ body::before {
     .admin-users-grid { grid-template-columns: repeat(2, 1fr); }
     .admin-panel .modal-content { max-width: 900px; }
 }
+
 /* ============================================
    Ratings & Reviews
    ============================================ */
@@ -2267,6 +2294,7 @@ body::before {
     font-weight: 600;
     margin-left: 6px;
 }
+
 /* ============================================
    Social Proof Toast
    ============================================ */
@@ -2339,6 +2367,7 @@ body::before {
     display: block;
     margin-top: 2px;
 }
+
 /* ============================================
    Skeleton Loading
    ============================================ */
@@ -2384,6 +2413,7 @@ body::before {
     margin: 8px 10px 10px;
     border-radius: var(--radius-full);
 }
+
 /* ============================================
    34. نهاية الملف
    ============================================ */
