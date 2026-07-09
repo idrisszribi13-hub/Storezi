@@ -349,19 +349,7 @@
                     <div class="admin-stat-card"><div style="font-size:28px;font-weight:800;color:var(--vip-color);" id="dashboardNetRevenue">$0.00</div><div style="font-size:12px;color:var(--text-secondary);opacity:0.6;margin-top:2px;">Net Revenue (10%)</div></div>
                 </div>
                 <button onclick="refreshDashboardStats()" class="admin-submit-btn" style="width:100%;"><i class="fas fa-sync"></i> Refresh Stats</button>
-
-                <!-- ======== التحكم في المكافأة اليومية ======== -->
-                <div style="margin-top: 12px; padding: 12px; background: var(--bg); border-radius: var(--radius-md); border: 1px solid var(--border);">
-                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-                        <div>
-                            <div style="font-weight:700;color:var(--text);">🎁 Daily Reward</div>
-                            <div style="font-size:12px;color:var(--text-secondary);opacity:0.5;">Show/hide the daily reward box for users</div>
-                        </div>
-                        <button id="dailyRewardToggle" onclick="toggleDailyReward(!dailyRewardEnabled)" style="padding:8px 20px;border:none;border-radius:var(--radius-sm);font-weight:700;cursor:pointer;transition:0.3s;">
-                            🔴 Disable Daily Reward
-                        </button>
-                    </div>
-                </div>
+                <!-- تم حذف قسم التحكم في المكافأة اليومية -->
             </div>
 
             <!-- ======== تبويب الطلبات ======== -->
@@ -544,36 +532,6 @@
             <button class="modal-close" onclick="closeUserDetailsModal()"><i class="fas fa-times"></i></button>
             <div class="modal-title"><i class="fas fa-user"></i> User Details</div>
             <div id="userDetailsContent"></div>
-        </div>
-    </div>
-
-    <!-- ============================================ -->
-    <!-- المكافأة اليومية (Daily Reward) -->
-    <!-- ============================================ -->
-
-    <!-- صندوق المكافأة -->
-    <div id="dailyRewardBox" class="daily-reward-box" style="display:none;">
-        <div class="daily-reward-content">
-            <div class="daily-icon">🎁</div>
-            <div class="daily-text">
-                <div class="daily-title">Daily Reward</div>
-                <div class="daily-sub">Claim your free RP!</div>
-            </div>
-            <button class="daily-claim-btn" id="dailyClaimBtn" onclick="claimDailyReward()">
-                Claim <span id="dailyRewardAmount">+5</span> RP
-            </button>
-        </div>
-    </div>
-
-    <!-- مودال المكافأة (يظهر بعد الضغط) -->
-    <div class="modal-overlay reward-modal" id="rewardModal">
-        <div class="reward-modal-content">
-            <div class="reward-explosion" id="rewardExplosion"></div>
-            <div class="reward-icon">🎉</div>
-            <div class="reward-points" id="rewardPointsDisplay">+5</div>
-            <div class="reward-label">RP Earned!</div>
-            <div class="reward-message">Keep coming back daily for more!</div>
-            <button class="reward-close-btn" onclick="closeRewardModal()">Awesome! 🚀</button>
         </div>
     </div>
 
