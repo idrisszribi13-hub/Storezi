@@ -57,13 +57,14 @@
             <div class="search-results" id="searchResults"></div>
         </div>
 
-        <!-- ================== المنتجات المميزة (Featured) ================== -->
-        <div class="featured-products">
-            <div class="featured-header">
-                <span class="featured-title"><i class="fas fa-fire"></i> Trending Now</span>
-                <span class="featured-more" onclick="document.getElementById('productList').scrollIntoView({behavior:'smooth'})">View All <i class="fas fa-arrow-right"></i></span>
+        <!-- ================== السلايدر (Slider) ================== -->
+        <div class="slider-container">
+            <div class="slider-wrapper" id="sliderWrapper">
+                <!-- سيتم إنشاء الشرائح بواسطة JavaScript -->
             </div>
-            <div class="featured-grid" id="featuredGrid"></div>
+            <div class="slider-dots" id="sliderDots"></div>
+            <button class="slider-btn prev" onclick="prevSlide()"><i class="fas fa-chevron-left"></i></button>
+            <button class="slider-btn next" onclick="nextSlide()"><i class="fas fa-chevron-right"></i></button>
         </div>
 
         <!-- ================== نافذة تيليجرام (Banner) ================== -->
@@ -273,7 +274,7 @@
         </div>
     </div>
 
-    <!-- مودال التحميلات (تم حذفه لأننا أزلنا الأيقونة من الهيدر، لكن يمكن تركه للوصول من مكان آخر) -->
+    <!-- مودال التحميلات (للتوافق مع الأزرار القديمة) -->
     <div class="modal-overlay" id="downloadsModal">
         <div class="modal-content" style="max-width:440px;">
             <button class="modal-close" onclick="closeDownloads()"><i class="fas fa-times"></i></button>
@@ -434,6 +435,176 @@
     </div>
 
     <!-- ============================================ -->
+    <!-- مودالات الإدارة -->
+    <!-- ============================================ -->
+
+    <!-- مودال إضافة/تعديل منتج -->
+    <div class="modal-overlay" id="productModal">
+        <div class="modal-content" style="max-width:540px;">
+            <button class="modal-close" onclick="closeProductModal()"><i class="fas fa-times"></i></button>
+            <div class="modal-title" id="productFormTitle">Add Product</div>
+            <form id="productForm" onsubmit="saveProduct(event)" class="admin-form">
+                <input type="hidden" id="productIdField" />
+                <div class="admin-form-group"><label for="productName">Product Name</label><input type="text" id="productName" required placeholder="Enter product name" /></div>
+                <div class="admin-form-group"><label for="productPrice">Price ($)</label><input type="number" id="productPrice" step="0.01" min="0" placeholder="0.00" /></div>
+                <div class="admin-form-row">
+                    <div class="admin-form-group" style="flex:1;"><label for="productBadge">Badge</label><select id="productBadge"><option value="FREE">FREE</option><option value="VIP">VIP</option><option value="PRO">PRO</option></select></div>
+                    <div class="admin-form-group" style="flex:1;"><label for="productStatus">Status</label><select id="productStatus"><option value="available">Available</option><option value="unavailable">Unavailable</option></select></div>
+                </div>
+                <div class="admin-form-group">
+                    <label for="productImageFile">Upload Product Image</label>
+                    <input type="file" id="productImageFile" accept="image/*" />
+                    <div id="imagePreviewContainer" style="margin-top: 8px; display: none;"><img id="imagePreview" src="#" alt="Image preview" style="max-width: 100px; max-height: 100px; border-radius: 8px; border: 1px solid var(--border);" /></div>
+                    <small style="color: var(--text-secondary); opacity: 0.5;">Or enter a URL below:</small>
+                    <input type="url" id="productImage" placeholder="https://example.com/image.jpg" style="margin-top: 4px;" />
+                </div>
+                <div class="admin-form-group"><label for="productDescription">Description</label><textarea id="productDescription" rows="3" placeholder="Product description..."></textarea></div>
+                <div class="admin-form-group"><label for="productFeatures">Features (comma separated)</label><input type="text" id="productFeatures" placeholder="Feature 1, Feature 2, Feature 3" /></div>
+                <div class="admin-form-group"><label for="productVideo">Video URL</label><input type="url" id="productVideo" placeholder="https://www.youtube.com/embed/..." /></div>
+
+                <!-- VIP Pricing -->
+                <div class="admin-form-group" style="border-top:1px solid var(--border);padding-top:12px;margin-top:8px;">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+                        <input type="checkbox" id="vipEnabled" style="width:20px;height:20px;accent-color:var(--vip-color);cursor:pointer;" />
+                        <label for="vipEnabled" style="font-weight:700;color:var(--vip-color);cursor:pointer;font-size:14px;"><i class="fas fa-crown"></i> Enable VIP Pricing</label>
+                    </div>
+                    <div id="vipPricingFields" style="display:none;margin-top:8px;">
+                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;background:var(--bg);border-radius:8px;padding:10px;border:1px solid var(--border);">
+                            <div style="text-align:center;">
+                                <div style="font-size:11px;font-weight:600;color:var(--text-secondary);opacity:0.5;">1 Month</div>
+                                <input type="number" id="vipPrice1m" step="0.01" placeholder="Price" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text);font-size:12px;text-align:center;margin:2px 0;" />
+                                <input type="number" id="vipOriginalPrice1m" step="0.01" placeholder="Original" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text-secondary);font-size:11px;text-align:center;opacity:0.5;text-decoration:line-through;" />
+                            </div>
+                            <div style="text-align:center;">
+                                <div style="font-size:11px;font-weight:600;color:var(--text-secondary);opacity:0.5;">3 Months</div>
+                                <input type="number" id="vipPrice3m" step="0.01" placeholder="Price" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text);font-size:12px;text-align:center;margin:2px 0;" />
+                                <input type="number" id="vipOriginalPrice3m" step="0.01" placeholder="Original" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text-secondary);font-size:11px;text-align:center;opacity:0.5;text-decoration:line-through;" />
+                            </div>
+                            <div style="text-align:center;">
+                                <div style="font-size:11px;font-weight:600;color:var(--text-secondary);opacity:0.5;">1 Year</div>
+                                <input type="number" id="vipPrice1y" step="0.01" placeholder="Price" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text);font-size:12px;text-align:center;margin:2px 0;" />
+                                <input type="number" id="vipOriginalPrice1y" step="0.01" placeholder="Original" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text-secondary);font-size:11px;text-align:center;opacity:0.5;text-decoration:line-through;" />
+                            </div>
+                            <div style="text-align:center;">
+                                <div style="font-size:11px;font-weight:600;color:var(--text-secondary);opacity:0.5;">LIFETIME</div>
+                                <input type="number" id="vipPriceLifetime" step="0.01" placeholder="Price" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text);font-size:12px;text-align:center;margin:2px 0;" />
+                                <input type="number" id="vipOriginalPriceLifetime" step="0.01" placeholder="Original" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text-secondary);font-size:11px;text-align:center;opacity:0.5;text-decoration:line-through;" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <div class="admin-form-group" style="flex:1;"><label for="productDuration">Duration</label><input type="text" id="productDuration" placeholder="e.g., 30 days" /></div>
+                    <div class="admin-form-group" style="flex:1;"><label for="productOriginalPrice">Original Price</label><input type="number" id="productOriginalPrice" step="0.01" min="0" placeholder="0.00" /></div>
+                </div>
+                <button type="submit" class="admin-submit-btn"><i class="fas fa-save"></i> Save Product</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- مودال إعدادات المنتجات المميزة (الإصدار القديم) -->
+    <div class="modal-overlay" id="featuredSettingsModal">
+        <div class="modal-content" style="max-width:480px;">
+            <button class="modal-close" onclick="closeFeaturedSettings()"><i class="fas fa-times"></i></button>
+            <div class="modal-title"><i class="fas fa-star"></i> Featured Settings</div>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+                <div style="display:flex;align-items:center;gap:10px;"><label style="font-weight:600;color:var(--text);">Enable Featured:</label><input type="checkbox" id="featuredEnabled" checked /></div>
+                <div style="display:flex;align-items:center;gap:10px;"><label style="font-weight:600;color:var(--text);">Rotation Interval (seconds):</label><input type="number" id="featuredInterval" value="5" min="2" max="60" /></div>
+                <div><label style="font-weight:600;color:var(--text);display:block;margin-bottom:6px;">Select Products:</label><div id="featuredProductSelector" style="max-height:200px;overflow-y:auto;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px;"></div></div>
+                <div style="display:flex;gap:8px;margin-top:8px;"><button onclick="saveFeaturedSettings()" class="admin-submit-btn" style="flex:1;">💾 Save Settings</button><button onclick="closeFeaturedSettings()" class="admin-cancel-btn">Cancel</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- مودال إضافة تحميل -->
+    <div class="modal-overlay" id="createDownloadModal">
+        <div class="modal-content" style="max-width:420px;">
+            <button class="modal-close" onclick="closeCreateDownloadModal()"><i class="fas fa-times"></i></button>
+            <div class="modal-title"><i class="fas fa-plus-circle"></i> Add Download</div>
+            <form id="createDownloadForm" onsubmit="createDownload(event)" class="admin-form">
+                <div class="admin-form-group"><label for="dlTitle">Title</label><input type="text" id="dlTitle" required placeholder="Download title" /></div>
+                <div class="admin-form-group"><label for="dlType">Type</label><input type="text" id="dlType" placeholder="e.g., APK, ZIP" required /></div>
+                <div class="admin-form-group"><label for="dlDescription">Description</label><textarea id="dlDescription" rows="2" placeholder="Short description"></textarea></div>
+                <div class="admin-form-group"><label for="dlUrl">Download URL</label><input type="url" id="dlUrl" required placeholder="https://example.com/file.zip" /></div>
+                <div class="admin-form-group"><label for="dlDate">Date</label><input type="date" id="dlDate" /></div>
+                <button type="submit" class="admin-submit-btn"><i class="fas fa-save"></i> Add Download</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- مودال إضافة إشعار -->
+    <div class="modal-overlay" id="createNotificationModal">
+        <div class="modal-content" style="max-width:420px;">
+            <button class="modal-close" onclick="closeCreateNotificationModal()"><i class="fas fa-times"></i></button>
+            <div class="modal-title"><i class="fas fa-bell"></i> Send Notification</div>
+            <form id="createNotificationForm" onsubmit="createNotification(event)" class="admin-form">
+                <div class="admin-form-group"><label for="notifTitle">Title</label><input type="text" id="notifTitle" required placeholder="Notification title" /></div>
+                <div class="admin-form-group"><label for="notifMessage">Message</label><textarea id="notifMessage" rows="3" required placeholder="Notification message..."></textarea></div>
+                <button type="submit" class="admin-submit-btn"><i class="fas fa-paper-plane"></i> Send Notification</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- مودال تفاصيل المستخدم -->
+    <div class="modal-overlay" id="userDetailsModal">
+        <div class="modal-content" style="max-width:420px;">
+            <button class="modal-close" onclick="closeUserDetailsModal()"><i class="fas fa-times"></i></button>
+            <div class="modal-title"><i class="fas fa-user"></i> User Details</div>
+            <div id="userDetailsContent"></div>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- مودال إضافة شريحة جديدة (Slider) -->
+    <!-- ============================================ -->
+    <div class="modal-overlay" id="addSlideModal">
+        <div class="modal-content" style="max-width:480px;">
+            <button class="modal-close" onclick="closeAddSlideModal()"><i class="fas fa-times"></i></button>
+            <div class="modal-title"><i class="fas fa-plus-circle"></i> Add Slide</div>
+            <form id="addSlideForm" class="admin-form">
+                <div class="admin-form-group">
+                    <label>Slide Image</label>
+                    <input type="file" id="slideImageFile" accept="image/*" required />
+                    <div id="slideImagePreview" style="margin-top:8px;display:none;"><img src="#" alt="Preview" style="max-width:100%;max-height:150px;border-radius:8px;border:1px solid var(--border);" /></div>
+                </div>
+                <div class="admin-form-group">
+                    <label>Title (optional)</label>
+                    <input type="text" id="slideTitle" placeholder="e.g., New Arrival" />
+                </div>
+                <div class="admin-form-group">
+                    <label>Subtitle (optional)</label>
+                    <input type="text" id="slideSubtitle" placeholder="e.g., Best scripts of the month" />
+                </div>
+                <div class="admin-form-group">
+                    <label>Button Text</label>
+                    <input type="text" id="slideButtonText" placeholder="e.g., Buy Now" value="Buy Now" />
+                </div>
+                <div class="admin-form-group">
+                    <label>Button Link Type</label>
+                    <select id="slideLinkType">
+                        <option value="product">Product</option>
+                        <option value="download">Download</option>
+                        <option value="url">Custom URL</option>
+                    </select>
+                </div>
+                <div class="admin-form-group" id="slideProductGroup">
+                    <label>Select Product</label>
+                    <select id="slideProductSelect"></select>
+                </div>
+                <div class="admin-form-group" id="slideDownloadGroup" style="display:none;">
+                    <label>Download URL</label>
+                    <input type="url" id="slideDownloadUrl" placeholder="https://example.com/file.zip" />
+                </div>
+                <div class="admin-form-group" id="slideCustomUrlGroup" style="display:none;">
+                    <label>Custom URL</label>
+                    <input type="url" id="slideCustomUrl" placeholder="https://example.com/page" />
+                </div>
+                <button type="submit" class="admin-submit-btn"><i class="fas fa-plus"></i> Add Slide</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
     <!-- لوحة المدير (Admin Panel) -->
     <!-- ============================================ -->
     <div class="modal-overlay admin-panel" id="adminPanel">
@@ -456,6 +627,7 @@
                 <button onclick="switchAdminTab('notifications')">🔔 Notifications</button>
                 <button onclick="switchAdminTab('stats')">📈 Statistics</button>
                 <button onclick="switchAdminTab('logs')">📋 Logs</button>
+                <!-- تبويب السلايدر سيتم إضافته بواسطة JavaScript -->
             </div>
 
             <!-- ======== تبويب Dashboard ======== -->
@@ -544,126 +716,8 @@
                     <div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading logs...</div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- ============================================ -->
-    <!-- مودالات الإدارة -->
-    <!-- ============================================ -->
-
-    <!-- مودال إضافة/تعديل منتج -->
-    <div class="modal-overlay" id="productModal">
-        <div class="modal-content" style="max-width:540px;">
-            <button class="modal-close" onclick="closeProductModal()"><i class="fas fa-times"></i></button>
-            <div class="modal-title" id="productFormTitle">Add Product</div>
-            <form id="productForm" onsubmit="saveProduct(event)" class="admin-form">
-                <input type="hidden" id="productIdField" />
-                <div class="admin-form-group"><label for="productName">Product Name</label><input type="text" id="productName" required placeholder="Enter product name" /></div>
-                <div class="admin-form-group"><label for="productPrice">Price ($)</label><input type="number" id="productPrice" step="0.01" min="0" placeholder="0.00" /></div>
-                <div class="admin-form-row">
-                    <div class="admin-form-group" style="flex:1;"><label for="productBadge">Badge</label><select id="productBadge"><option value="FREE">FREE</option><option value="VIP">VIP</option><option value="PRO">PRO</option></select></div>
-                    <div class="admin-form-group" style="flex:1;"><label for="productStatus">Status</label><select id="productStatus"><option value="available">Available</option><option value="unavailable">Unavailable</option></select></div>
-                </div>
-                <div class="admin-form-group">
-                    <label for="productImageFile">Upload Product Image</label>
-                    <input type="file" id="productImageFile" accept="image/*" />
-                    <div id="imagePreviewContainer" style="margin-top: 8px; display: none;"><img id="imagePreview" src="#" alt="Image preview" style="max-width: 100px; max-height: 100px; border-radius: 8px; border: 1px solid var(--border);" /></div>
-                    <small style="color: var(--text-secondary); opacity: 0.5;">Or enter a URL below:</small>
-                    <input type="url" id="productImage" placeholder="https://example.com/image.jpg" style="margin-top: 4px;" />
-                </div>
-                <div class="admin-form-group"><label for="productDescription">Description</label><textarea id="productDescription" rows="3" placeholder="Product description..."></textarea></div>
-                <div class="admin-form-group"><label for="productFeatures">Features (comma separated)</label><input type="text" id="productFeatures" placeholder="Feature 1, Feature 2, Feature 3" /></div>
-                <div class="admin-form-group"><label for="productVideo">Video URL</label><input type="url" id="productVideo" placeholder="https://www.youtube.com/embed/..." /></div>
-
-                <!-- VIP Pricing -->
-                <div class="admin-form-group" style="border-top:1px solid var(--border);padding-top:12px;margin-top:8px;">
-                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-                        <input type="checkbox" id="vipEnabled" style="width:20px;height:20px;accent-color:var(--vip-color);cursor:pointer;" />
-                        <label for="vipEnabled" style="font-weight:700;color:var(--vip-color);cursor:pointer;font-size:14px;"><i class="fas fa-crown"></i> Enable VIP Pricing</label>
-                    </div>
-                    <div id="vipPricingFields" style="display:none;margin-top:8px;">
-                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;background:var(--bg);border-radius:8px;padding:10px;border:1px solid var(--border);">
-                            <div style="text-align:center;">
-                                <div style="font-size:11px;font-weight:600;color:var(--text-secondary);opacity:0.5;">1 Month</div>
-                                <input type="number" id="vipPrice1m" step="0.01" placeholder="Price" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text);font-size:12px;text-align:center;margin:2px 0;" />
-                                <input type="number" id="vipOriginalPrice1m" step="0.01" placeholder="Original" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text-secondary);font-size:11px;text-align:center;opacity:0.5;text-decoration:line-through;" />
-                            </div>
-                            <div style="text-align:center;">
-                                <div style="font-size:11px;font-weight:600;color:var(--text-secondary);opacity:0.5;">3 Months</div>
-                                <input type="number" id="vipPrice3m" step="0.01" placeholder="Price" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text);font-size:12px;text-align:center;margin:2px 0;" />
-                                <input type="number" id="vipOriginalPrice3m" step="0.01" placeholder="Original" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text-secondary);font-size:11px;text-align:center;opacity:0.5;text-decoration:line-through;" />
-                            </div>
-                            <div style="text-align:center;">
-                                <div style="font-size:11px;font-weight:600;color:var(--text-secondary);opacity:0.5;">1 Year</div>
-                                <input type="number" id="vipPrice1y" step="0.01" placeholder="Price" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text);font-size:12px;text-align:center;margin:2px 0;" />
-                                <input type="number" id="vipOriginalPrice1y" step="0.01" placeholder="Original" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text-secondary);font-size:11px;text-align:center;opacity:0.5;text-decoration:line-through;" />
-                            </div>
-                            <div style="text-align:center;">
-                                <div style="font-size:11px;font-weight:600;color:var(--text-secondary);opacity:0.5;">LIFETIME</div>
-                                <input type="number" id="vipPriceLifetime" step="0.01" placeholder="Price" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text);font-size:12px;text-align:center;margin:2px 0;" />
-                                <input type="number" id="vipOriginalPriceLifetime" step="0.01" placeholder="Original" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text-secondary);font-size:11px;text-align:center;opacity:0.5;text-decoration:line-through;" />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="admin-form-row">
-                    <div class="admin-form-group" style="flex:1;"><label for="productDuration">Duration</label><input type="text" id="productDuration" placeholder="e.g., 30 days" /></div>
-                    <div class="admin-form-group" style="flex:1;"><label for="productOriginalPrice">Original Price</label><input type="number" id="productOriginalPrice" step="0.01" min="0" placeholder="0.00" /></div>
-                </div>
-                <button type="submit" class="admin-submit-btn"><i class="fas fa-save"></i> Save Product</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- مودال إعدادات المنتجات المميزة -->
-    <div class="modal-overlay" id="featuredSettingsModal">
-        <div class="modal-content" style="max-width:480px;">
-            <button class="modal-close" onclick="closeFeaturedSettings()"><i class="fas fa-times"></i></button>
-            <div class="modal-title"><i class="fas fa-star"></i> Featured Settings</div>
-            <div style="display:flex;flex-direction:column;gap:12px;">
-                <div style="display:flex;align-items:center;gap:10px;"><label style="font-weight:600;color:var(--text);">Enable Featured:</label><input type="checkbox" id="featuredEnabled" checked /></div>
-                <div style="display:flex;align-items:center;gap:10px;"><label style="font-weight:600;color:var(--text);">Rotation Interval (seconds):</label><input type="number" id="featuredInterval" value="5" min="2" max="60" /></div>
-                <div><label style="font-weight:600;color:var(--text);display:block;margin-bottom:6px;">Select Products:</label><div id="featuredProductSelector" style="max-height:200px;overflow-y:auto;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px;"></div></div>
-                <div style="display:flex;gap:8px;margin-top:8px;"><button onclick="saveFeaturedSettings()" class="admin-submit-btn" style="flex:1;">💾 Save Settings</button><button onclick="closeFeaturedSettings()" class="admin-cancel-btn">Cancel</button></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- مودال إضافة تحميل -->
-    <div class="modal-overlay" id="createDownloadModal">
-        <div class="modal-content" style="max-width:420px;">
-            <button class="modal-close" onclick="closeCreateDownloadModal()"><i class="fas fa-times"></i></button>
-            <div class="modal-title"><i class="fas fa-plus-circle"></i> Add Download</div>
-            <form id="createDownloadForm" onsubmit="createDownload(event)" class="admin-form">
-                <div class="admin-form-group"><label for="dlTitle">Title</label><input type="text" id="dlTitle" required placeholder="Download title" /></div>
-                <div class="admin-form-group"><label for="dlType">Type</label><input type="text" id="dlType" placeholder="e.g., APK, ZIP" required /></div>
-                <div class="admin-form-group"><label for="dlDescription">Description</label><textarea id="dlDescription" rows="2" placeholder="Short description"></textarea></div>
-                <div class="admin-form-group"><label for="dlUrl">Download URL</label><input type="url" id="dlUrl" required placeholder="https://example.com/file.zip" /></div>
-                <div class="admin-form-group"><label for="dlDate">Date</label><input type="date" id="dlDate" /></div>
-                <button type="submit" class="admin-submit-btn"><i class="fas fa-save"></i> Add Download</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- مودال إضافة إشعار -->
-    <div class="modal-overlay" id="createNotificationModal">
-        <div class="modal-content" style="max-width:420px;">
-            <button class="modal-close" onclick="closeCreateNotificationModal()"><i class="fas fa-times"></i></button>
-            <div class="modal-title"><i class="fas fa-bell"></i> Send Notification</div>
-            <form id="createNotificationForm" onsubmit="createNotification(event)" class="admin-form">
-                <div class="admin-form-group"><label for="notifTitle">Title</label><input type="text" id="notifTitle" required placeholder="Notification title" /></div>
-                <div class="admin-form-group"><label for="notifMessage">Message</label><textarea id="notifMessage" rows="3" required placeholder="Notification message..."></textarea></div>
-                <button type="submit" class="admin-submit-btn"><i class="fas fa-paper-plane"></i> Send Notification</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- مودال تفاصيل المستخدم -->
-    <div class="modal-overlay" id="userDetailsModal">
-        <div class="modal-content" style="max-width:420px;">
-            <button class="modal-close" onclick="closeUserDetailsModal()"><i class="fas fa-times"></i></button>
-            <div class="modal-title"><i class="fas fa-user"></i> User Details</div>
-            <div id="userDetailsContent"></div>
+            <!-- ======== تبويب السلايدر (سيتم إنشاؤه بواسطة JS) ======== -->
         </div>
     </div>
 
@@ -696,4 +750,4 @@
     </script>
     <script type="module" src="script.js"></script>
 </body>
-                                       </html>
+</html>
