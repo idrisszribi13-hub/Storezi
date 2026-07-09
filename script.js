@@ -3,7 +3,7 @@
 // مع VIP Pricing، Features، RP في السلة فقط، ورفع الصور
 // + تصدير الطلبات (CSV) + لوحة إحصائيات متقدمة (Chart.js)
 // + Social Proof Toast + Admin Audit Logs + Ratings & Reviews
-// + Skeleton Loading + PDF Generator + Daily RP Reward
+// + Skeleton Loading + PDF Generator
 // ============================================================
 
 import { initializeApp } from "firebase/app";
@@ -142,10 +142,6 @@ let featuredSettings = {
     selectedProductIds: []
 };
 
-// متغيرات المكافأة اليومية
-let dailyRewardEnabled = true;
-let dailyRewardAmount = 5;
-
 let userProfile = {
     name: '',
     email: '',
@@ -162,8 +158,7 @@ let userProfile = {
     referralRewards: 0,
     rp: 0,
     useRpForCart: false,
-    isBanned: false,
-    lastDailyReward: 0
+    isBanned: false
 };
 
 const fallbackProducts = [
@@ -331,7 +326,7 @@ async function getUserId() {
     if (savedId) { userId = savedId; return userId; }
     userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
     localStorage.setItem('zi_userId', userId);
-    try { await setDoc(doc(db, 'users', userId), { userId, wishlist: [], cart: [], history: [], requests: [], usedCodes: [], referrals: [], referralRewards: 0, rp: 0, isBanned: false, lastDailyReward: 0, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }, { merge: true }); } catch (e) { console.error(e); }
+    try { await setDoc(doc(db, 'users', userId), { userId, wishlist: [], cart: [], history: [], requests: [], usedCodes: [], referrals: [], referralRewards: 0, rp: 0, isBanned: false, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }, { merge: true }); } catch (e) { console.error(e); }
     return userId;
 }
 
@@ -368,7 +363,6 @@ async function loadUserData() {
             userProfile.isBanned = data.isBanned || false;
             userProfile.joined = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '--';
             userProfile.useRpForCart = data.useRpForCart || false;
-            userProfile.lastDailyReward = data.lastDailyReward || 0;
             updateWishlistUI();
             updateCartUI();
             renderProducts(products);
@@ -378,11 +372,9 @@ async function loadUserData() {
             updateDropdownStats();
             updateNotificationBadge();
             updateFullUserMenu();
-            // ✅ تحديث المكافأة اليومية بعد تحميل البيانات
-            updateDailyRewardVisibility();
             if (currentUser && currentUser.email === ADMIN_EMAIL) { loadAdminOrders(); loadAdminUsers(); }
         } else {
-            await setDoc(userRef, { userId: uid, wishlist: [], cart: [], history: [], requests: [], usedCodes: [], referrals: [], referralRewards: 0, rp: 0, isBanned: false, useRpForCart: false, lastDailyReward: 0, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+            await setDoc(userRef, { userId: uid, wishlist: [], cart: [], history: [], requests: [], usedCodes: [], referrals: [], referralRewards: 0, rp: 0, isBanned: false, useRpForCart: false, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
         }
     } catch (error) {
         console.error('Error loading user data:', error);
@@ -396,8 +388,7 @@ async function loadUserData() {
             userProfile.referralRewards = JSON.parse(localStorage.getItem('zi_referralRewards_backup') || '0');
             userProfile.rp = JSON.parse(localStorage.getItem('zi_rp_backup') || '0');
             userProfile.isBanned = JSON.parse(localStorage.getItem('zi_isBanned_backup') || 'false');
-            userProfile.lastDailyReward = JSON.parse(localStorage.getItem('zi_lastDailyReward_backup') || '0');
-        } catch (e) { wishlist = []; cart = []; userProfile.history = []; userProfile.requests = []; userProfile.usedCodes = []; userProfile.referrals = []; userProfile.referralRewards = 0; userProfile.rp = 0; userProfile.isBanned = false; userProfile.lastDailyReward = 0; }
+        } catch (e) { wishlist = []; cart = []; userProfile.history = []; userProfile.requests = []; userProfile.usedCodes = []; userProfile.referrals = []; userProfile.referralRewards = 0; userProfile.rp = 0; userProfile.isBanned = false; }
         updateWishlistUI();
         updateCartUI();
         renderProducts(products);
@@ -407,8 +398,6 @@ async function loadUserData() {
         updateDropdownStats();
         updateNotificationBadge();
         updateFullUserMenu();
-        // ✅ أيضاً في حالة الخطأ
-        updateDailyRewardVisibility();
     }
     isLoadingUser = false;
 }
@@ -417,7 +406,7 @@ async function saveUserData(silent = false) {
     const uid = currentUser ? currentUser.uid : await getUserId();
     if (!uid) return;
     try {
-        await setDoc(doc(db, 'users', uid), { wishlist, cart, history: userProfile.history, requests: userProfile.requests, usedCodes: userProfile.usedCodes, referrals: userProfile.referrals, referralRewards: userProfile.referralRewards, rp: userProfile.rp, referralCode: userProfile.referralCode, telegram: userProfile.telegram, telegramChatId: userProfile.telegramChatId, location: userProfile.location, lang: userProfile.lang, useRpForCart: userProfile.useRpForCart, isBanned: userProfile.isBanned, lastDailyReward: userProfile.lastDailyReward || 0, updatedAt: serverTimestamp() }, { merge: true });
+        await setDoc(doc(db, 'users', uid), { wishlist, cart, history: userProfile.history, requests: userProfile.requests, usedCodes: userProfile.usedCodes, referrals: userProfile.referrals, referralRewards: userProfile.referralRewards, rp: userProfile.rp, referralCode: userProfile.referralCode, telegram: userProfile.telegram, telegramChatId: userProfile.telegramChatId, location: userProfile.location, lang: userProfile.lang, useRpForCart: userProfile.useRpForCart, isBanned: userProfile.isBanned, updatedAt: serverTimestamp() }, { merge: true });
         localStorage.setItem('zi_wishlist_backup', JSON.stringify(wishlist));
         localStorage.setItem('zi_cart_backup', JSON.stringify(cart));
         localStorage.setItem('zi_history_backup', JSON.stringify(userProfile.history));
@@ -427,7 +416,6 @@ async function saveUserData(silent = false) {
         localStorage.setItem('zi_referralRewards_backup', JSON.stringify(userProfile.referralRewards));
         localStorage.setItem('zi_rp_backup', JSON.stringify(userProfile.rp));
         localStorage.setItem('zi_isBanned_backup', JSON.stringify(userProfile.isBanned));
-        localStorage.setItem('zi_lastDailyReward_backup', JSON.stringify(userProfile.lastDailyReward || 0));
         return true;
     } catch (e) {
         console.error('Save failed:', e);
@@ -590,7 +578,6 @@ window.loginUser = async function() {
             updateDropdownStats();
             if (currentUser.email === ADMIN_EMAIL) { loadAdminOrders(); startAdminRealtimeListener(); loadAdminUsers(); }
             loadDownloads(); loadNotifications(); fetchCryptoPrices(); updateFullUserMenu(); showTelegramBanner();
-            updateDailyRewardVisibility(); // ✅ تحديث بعد تسجيل الدخول
         }, 500);
     } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Login failed', 'error'); btn.classList.remove('loading'); }
 };
@@ -631,7 +618,7 @@ window.registerUser = async function() {
         await setDoc(userRef, {
             userId: currentUser.uid, name, email, country: detectedCountry, lang, telegram: '', telegramChatId: '', location: detectedCountry,
             wishlist: [], cart: [], history: [], requests: [], usedCodes: [], referrals: [], referralRewards: 0, rp: 0, useRpForCart: false,
-            referralCode: newReferralCode, referredBy: referrerId || '', isBanned: false, lastDailyReward: 0,
+            referralCode: newReferralCode, referredBy: referrerId || '', isBanned: false,
             createdAt: serverTimestamp(), updatedAt: serverTimestamp()
         });
         if (referrerId) {
@@ -646,7 +633,6 @@ window.registerUser = async function() {
             document.getElementById('authSection').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
             loadUserData(); updateDropdownStats(); loadDownloads(); loadNotifications(); fetchCryptoPrices(); updateFullUserMenu(); showTelegramBanner();
-            updateDailyRewardVisibility(); // ✅ تحديث بعد التسجيل
         }, 500);
     } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Registration failed', 'error'); btn.classList.remove('loading'); }
 };
@@ -665,7 +651,6 @@ window.logoutUser = async function() {
         document.getElementById('mainApp').style.display = 'none';
         showToast('👋 Logged out', 'info');
         updateUI(); updateNotificationBadge(); loadUserData(); updateFullUserMenu();
-        updateDailyRewardVisibility(); // ✅ تحديث بعد الخروج
     } catch (error) { showToast('❌ Logout error', 'error'); }
 };
 
@@ -2011,12 +1996,6 @@ window.openAdminPanel = function() {
         if (statsTab && statsTab.classList.contains('active')) { loadAdvancedStats(); }
         const logsTab = document.getElementById('tabLogs');
         if (logsTab && logsTab.classList.contains('active')) { loadAuditLogs(); }
-        // تحديث زر المكافأة اليومية
-        const toggleBtn = document.getElementById('dailyRewardToggle');
-        if (toggleBtn) {
-            toggleBtn.textContent = dailyRewardEnabled ? '🔴 Disable Daily Reward' : '🟢 Enable Daily Reward';
-            toggleBtn.style.background = dailyRewardEnabled ? 'var(--danger)' : 'var(--success)';
-        }
     }
 };
 window.closeAdminPanel = function() { document.getElementById('adminPanel').classList.remove('open'); if (unsubscribeAdmin) { unsubscribeAdmin(); unsubscribeAdmin = null; } };
@@ -2564,7 +2543,7 @@ function renderHistoryFull() {
             const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
             const itemsNames = item.items ? item.items.map(i => i.name).join(', ') : 'Order';
             const totalPrice = item.total || 0;
-            // ✅ الإصلاح: استخدام JSON.stringify مباشرة بدون replace
+            // استخدام JSON.stringify مباشرة بدون replace
             const orderData = JSON.stringify(item);
             html += `
                 <div class="orders-item" data-order='${orderData}'>
@@ -2627,7 +2606,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================================
-// 36. حالة المصادقة (مع تحديث المكافأة اليومية)
+// 36. حالة المصادقة (بدون مكافأة يومية)
 // ============================================================
 
 onAuthStateChanged(auth, async (user) => {
@@ -2653,20 +2632,16 @@ onAuthStateChanged(auth, async (user) => {
         await loadUserData();
         updateDropdownStats();
         if (user.email === ADMIN_EMAIL) { loadAdminOrders(); startAdminRealtimeListener(); renderAdminProducts(products); loadAdminUsers(); setTimeout(addBannerAdminControls, 500); }
-        loadDownloads(); loadNotifications(); fetchCryptoPrices(); loadFeaturedSettings(); loadDailyRewardSettings();
+        loadDownloads(); loadNotifications(); fetchCryptoPrices(); loadFeaturedSettings();
         setTimeout(showTelegramBanner, 1000);
         startSocialProof();
-        // ✅ تحديث المكافأة بعد تحميل البيانات
-        updateDailyRewardVisibility();
     } else {
         document.getElementById('authSection').style.display = 'block';
         document.getElementById('mainApp').style.display = 'none';
         await loadUserData();
         updateDropdownStats();
-        loadDownloads(); loadNotifications(); fetchCryptoPrices(); loadFeaturedSettings(); loadDailyRewardSettings();
+        loadDownloads(); loadNotifications(); fetchCryptoPrices(); loadFeaturedSettings();
         startSocialProof();
-        // ✅ أيضاً في حالة الخروج
-        updateDailyRewardVisibility();
     }
     updateUI(); updateFullUserMenu();
 });
@@ -2758,7 +2733,7 @@ const originalOpenCreateNotificationModal = window.openCreateNotificationModal;
 window.openCreateNotificationModal = function() { if (originalOpenCreateNotificationModal) originalOpenCreateNotificationModal(); setTimeout(fixDirection, 200); };
 
 // ============================================================
-// 39. التهيئة (Init)
+// 39. التهيئة (Init) - بدون Daily Reward
 // ============================================================
 
 async function init() {
@@ -2781,7 +2756,6 @@ async function init() {
     loadNotifications();
     fetchCryptoPrices();
     loadFeaturedSettings();
-    loadDailyRewardSettings(); // ✅ تحميل إعدادات المكافأة
     setInterval(fetchCryptoPrices, 60000);
     updateLoadingBar(100);
     console.log('✅ ZI Store ready with all features!');
@@ -3134,124 +3108,7 @@ async function generateInvoice(orderData) {
 }
 
 // ============================================================
-// 46. Daily RP Reward (المكافأة اليومية) - الإصلاح الكامل
-// ============================================================
-
-async function loadDailyRewardSettings() {
-    try {
-        const settingsRef = doc(db, 'settings', 'dailyReward');
-        const settingsSnap = await getDoc(settingsRef);
-        if (settingsSnap.exists()) {
-            const data = settingsSnap.data();
-            dailyRewardEnabled = data.enabled !== undefined ? data.enabled : true;
-            dailyRewardAmount = data.amount || 5;
-        }
-        updateDailyRewardVisibility();
-        const toggleBtn = document.getElementById('dailyRewardToggle');
-        if (toggleBtn) {
-            toggleBtn.textContent = dailyRewardEnabled ? '🔴 Disable Daily Reward' : '🟢 Enable Daily Reward';
-            toggleBtn.style.background = dailyRewardEnabled ? 'var(--danger)' : 'var(--success)';
-        }
-    } catch (error) { console.error('Error loading daily reward settings:', error); }
-}
-
-function updateDailyRewardVisibility() {
-    const box = document.getElementById('dailyRewardBox');
-    if (!box) {
-        console.warn('⚠️ dailyRewardBox element not found');
-        return;
-    }
-    if (!dailyRewardEnabled) {
-        box.classList.add('hidden');
-        return;
-    }
-    if (currentUser) {
-        const lastClaim = userProfile.lastDailyReward || 0;
-        const today = new Date().setHours(0, 0, 0, 0);
-        if (lastClaim >= today) {
-            box.classList.add('hidden');
-            return;
-        }
-    }
-    box.classList.remove('hidden');
-}
-
-window.claimDailyReward = async function() {
-    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); openAuthModal(); return; }
-    if (currentUser.isAnonymous) { showToast('⚠️ Please sign in to claim', 'warning'); return; }
-    const btn = document.getElementById('dailyClaimBtn');
-    btn.disabled = true;
-    btn.textContent = '⏳ Claiming...';
-    try {
-        const lastClaim = userProfile.lastDailyReward || 0;
-        const today = new Date().setHours(0, 0, 0, 0);
-        if (lastClaim >= today) {
-            showToast('🎁 Already claimed today!', 'info');
-            btn.disabled = false;
-            btn.textContent = `Claim +${dailyRewardAmount} RP`;
-            return;
-        }
-        userProfile.rp = (userProfile.rp || 0) + dailyRewardAmount;
-        userProfile.lastDailyReward = Date.now();
-        const userRef = doc(db, 'users', currentUser.uid);
-        await updateDoc(userRef, { rp: userProfile.rp, lastDailyReward: userProfile.lastDailyReward });
-        updateRpDisplay(); updateDropdownStats(); updateFullUserMenu();
-        // إخفاء الصندوق فوراً
-        document.getElementById('dailyRewardBox').classList.add('hidden');
-        showRewardModal(dailyRewardAmount);
-        await addAuditLog('Daily Reward Claimed', `${currentUser.email} gained ${dailyRewardAmount} RP`);
-    } catch (error) {
-        console.error('Error claiming reward:', error);
-        showToast('❌ Error claiming reward', 'error');
-    } finally {
-        btn.disabled = false;
-        btn.textContent = `Claim +${dailyRewardAmount} RP`;
-    }
-};
-
-function showRewardModal(points) {
-    const modal = document.getElementById('rewardModal');
-    const pointsDisplay = document.getElementById('rewardPointsDisplay');
-    const explosionContainer = document.getElementById('rewardExplosion');
-    if (!modal || !pointsDisplay || !explosionContainer) return;
-    pointsDisplay.textContent = `+${points}`;
-    explosionContainer.innerHTML = '';
-    const colors = ['#fbbf24', '#f472b6', '#34d399', '#60a5fa', '#a78bfa', '#fb923c'];
-    for (let i = 0; i < 40; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'particle';
-        const size = 6 + Math.random() * 12;
-        const angle = Math.random() * 360;
-        const distance = 80 + Math.random() * 120;
-        const tx = Math.cos(angle) * distance;
-        const ty = Math.sin(angle) * distance;
-        particle.style.cssText = `width:${size}px;height:${size}px;background:${colors[Math.floor(Math.random() * colors.length)]};left:50%;top:50%;--tx:${tx}px;--ty:${ty}px;animation-duration:${0.6 + Math.random() * 0.4}s;`;
-        explosionContainer.appendChild(particle);
-    }
-    modal.classList.add('open');
-    clearTimeout(window._rewardTimeout);
-    window._rewardTimeout = setTimeout(() => { closeRewardModal(); }, 5000);
-}
-window.closeRewardModal = function() { document.getElementById('rewardModal').classList.remove('open'); };
-
-window.toggleDailyReward = async function(enable) {
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
-    try {
-        const settingsRef = doc(db, 'settings', 'dailyReward');
-        await setDoc(settingsRef, { enabled: enable, amount: dailyRewardAmount, updatedAt: serverTimestamp(), updatedBy: currentUser.uid }, { merge: true });
-        dailyRewardEnabled = enable;
-        updateDailyRewardVisibility();
-        showToast(`✅ Daily Reward ${enable ? 'Enabled' : 'Disabled'}`, 'success');
-        const toggleBtn = document.getElementById('dailyRewardToggle');
-        if (toggleBtn) {
-            toggleBtn.textContent = enable ? '🔴 Disable Daily Reward' : '🟢 Enable Daily Reward';
-            toggleBtn.style.background = enable ? 'var(--danger)' : 'var(--success)';
-        }
-    } catch (error) { console.error('Error toggling daily reward:', error); showToast('❌ Error: ' + error.message, 'error'); }
-};
-
-// ============================================================
-// 47. التصديرات النهائية
+// 46. التصديرات النهائية (بدون مكافأة يومية)
 // ============================================================
 
 window.showToast = showToast;
@@ -3355,10 +3212,6 @@ window.setRating = setRating;
 window.submitRating = submitRating;
 window.loadAuditLogs = loadAuditLogs;
 window.generateInvoice = generateInvoice;
-window.claimDailyReward = claimDailyReward;
-window.closeRewardModal = closeRewardModal;
-window.toggleDailyReward = toggleDailyReward;
-window.loadDailyRewardSettings = loadDailyRewardSettings;
 
 // ============================================================
 // END OF SCRIPT.JS
