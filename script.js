@@ -33,7 +33,7 @@ const analytics = getAnalytics(app);
 // 2. إعدادات Cloudinary
 // ============================================================
 
-const CLOUDINARY_CLOUD_NAME = 'y14bgb5s';
+const CLOUDINARY_CLOUD_NAME = 'YOUR_CLOUD_NAME_HERE';
 const CLOUDINARY_UPLOAD_PRESET = 'zi_store_uploads';
 
 // ============================================================
@@ -378,7 +378,8 @@ async function loadUserData() {
             updateDropdownStats();
             updateNotificationBadge();
             updateFullUserMenu();
-            updateDailyRewardVisibility(); // ✅ تأكد من تحديث المكافأة اليومية
+            // ✅ تحديث المكافأة اليومية بعد تحميل البيانات
+            updateDailyRewardVisibility();
             if (currentUser && currentUser.email === ADMIN_EMAIL) { loadAdminOrders(); loadAdminUsers(); }
         } else {
             await setDoc(userRef, { userId: uid, wishlist: [], cart: [], history: [], requests: [], usedCodes: [], referrals: [], referralRewards: 0, rp: 0, isBanned: false, useRpForCart: false, lastDailyReward: 0, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
@@ -406,7 +407,8 @@ async function loadUserData() {
         updateDropdownStats();
         updateNotificationBadge();
         updateFullUserMenu();
-        updateDailyRewardVisibility(); // ✅ أيضاً في حالة الخطأ
+        // ✅ أيضاً في حالة الخطأ
+        updateDailyRewardVisibility();
     }
     isLoadingUser = false;
 }
@@ -588,7 +590,7 @@ window.loginUser = async function() {
             updateDropdownStats();
             if (currentUser.email === ADMIN_EMAIL) { loadAdminOrders(); startAdminRealtimeListener(); loadAdminUsers(); }
             loadDownloads(); loadNotifications(); fetchCryptoPrices(); updateFullUserMenu(); showTelegramBanner();
-            updateDailyRewardVisibility(); // ✅ تأكد من تحديث المكافأة بعد تسجيل الدخول
+            updateDailyRewardVisibility(); // ✅ تحديث بعد تسجيل الدخول
         }, 500);
     } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Login failed', 'error'); btn.classList.remove('loading'); }
 };
@@ -644,7 +646,7 @@ window.registerUser = async function() {
             document.getElementById('authSection').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
             loadUserData(); updateDropdownStats(); loadDownloads(); loadNotifications(); fetchCryptoPrices(); updateFullUserMenu(); showTelegramBanner();
-            updateDailyRewardVisibility(); // ✅ تأكد من تحديث المكافأة بعد التسجيل
+            updateDailyRewardVisibility(); // ✅ تحديث بعد التسجيل
         }, 500);
     } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Registration failed', 'error'); btn.classList.remove('loading'); }
 };
@@ -663,7 +665,7 @@ window.logoutUser = async function() {
         document.getElementById('mainApp').style.display = 'none';
         showToast('👋 Logged out', 'info');
         updateUI(); updateNotificationBadge(); loadUserData(); updateFullUserMenu();
-        updateDailyRewardVisibility(); // ✅ تحديث بعد تسجيل الخروج
+        updateDailyRewardVisibility(); // ✅ تحديث بعد الخروج
     } catch (error) { showToast('❌ Logout error', 'error'); }
 };
 
@@ -2654,7 +2656,8 @@ onAuthStateChanged(auth, async (user) => {
         loadDownloads(); loadNotifications(); fetchCryptoPrices(); loadFeaturedSettings(); loadDailyRewardSettings();
         setTimeout(showTelegramBanner, 1000);
         startSocialProof();
-        updateDailyRewardVisibility(); // ✅ تأكد من تحديث المكافأة بعد تحميل البيانات
+        // ✅ تحديث المكافأة بعد تحميل البيانات
+        updateDailyRewardVisibility();
     } else {
         document.getElementById('authSection').style.display = 'block';
         document.getElementById('mainApp').style.display = 'none';
@@ -2662,7 +2665,8 @@ onAuthStateChanged(auth, async (user) => {
         updateDropdownStats();
         loadDownloads(); loadNotifications(); fetchCryptoPrices(); loadFeaturedSettings(); loadDailyRewardSettings();
         startSocialProof();
-        updateDailyRewardVisibility(); // ✅ أيضاً في حالة الخروج
+        // ✅ أيضاً في حالة الخروج
+        updateDailyRewardVisibility();
     }
     updateUI(); updateFullUserMenu();
 });
@@ -2777,7 +2781,7 @@ async function init() {
     loadNotifications();
     fetchCryptoPrices();
     loadFeaturedSettings();
-    loadDailyRewardSettings();
+    loadDailyRewardSettings(); // ✅ تحميل إعدادات المكافأة
     setInterval(fetchCryptoPrices, 60000);
     updateLoadingBar(100);
     console.log('✅ ZI Store ready with all features!');
@@ -3062,6 +3066,12 @@ async function generateInvoice(orderData) {
         });
     }
 
+    // تأكد من أن المكتبة تم تحميلها
+    if (typeof window.jspdf === 'undefined') {
+        showToast('❌ Failed to load PDF library', 'error');
+        return;
+    }
+
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -3147,12 +3157,21 @@ async function loadDailyRewardSettings() {
 
 function updateDailyRewardVisibility() {
     const box = document.getElementById('dailyRewardBox');
-    if (!box) return;
-    if (!dailyRewardEnabled) { box.classList.add('hidden'); return; }
+    if (!box) {
+        console.warn('⚠️ dailyRewardBox element not found');
+        return;
+    }
+    if (!dailyRewardEnabled) {
+        box.classList.add('hidden');
+        return;
+    }
     if (currentUser) {
         const lastClaim = userProfile.lastDailyReward || 0;
         const today = new Date().setHours(0, 0, 0, 0);
-        if (lastClaim >= today) { box.classList.add('hidden'); return; }
+        if (lastClaim >= today) {
+            box.classList.add('hidden');
+            return;
+        }
     }
     box.classList.remove('hidden');
 }
@@ -3166,22 +3185,35 @@ window.claimDailyReward = async function() {
     try {
         const lastClaim = userProfile.lastDailyReward || 0;
         const today = new Date().setHours(0, 0, 0, 0);
-        if (lastClaim >= today) { showToast('🎁 Already claimed today!', 'info'); btn.disabled = false; btn.textContent = `Claim +${dailyRewardAmount} RP`; return; }
+        if (lastClaim >= today) {
+            showToast('🎁 Already claimed today!', 'info');
+            btn.disabled = false;
+            btn.textContent = `Claim +${dailyRewardAmount} RP`;
+            return;
+        }
         userProfile.rp = (userProfile.rp || 0) + dailyRewardAmount;
         userProfile.lastDailyReward = Date.now();
         const userRef = doc(db, 'users', currentUser.uid);
         await updateDoc(userRef, { rp: userProfile.rp, lastDailyReward: userProfile.lastDailyReward });
         updateRpDisplay(); updateDropdownStats(); updateFullUserMenu();
-        document.getElementById('dailyRewardBox').classList.add('hidden'); // ✅ إخفاء الصندوق
+        // إخفاء الصندوق فوراً
+        document.getElementById('dailyRewardBox').classList.add('hidden');
         showRewardModal(dailyRewardAmount);
         await addAuditLog('Daily Reward Claimed', `${currentUser.email} gained ${dailyRewardAmount} RP`);
-    } catch (error) { console.error('Error claiming reward:', error); showToast('❌ Error claiming reward', 'error'); btn.disabled = false; btn.textContent = `Claim +${dailyRewardAmount} RP`; }
+    } catch (error) {
+        console.error('Error claiming reward:', error);
+        showToast('❌ Error claiming reward', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = `Claim +${dailyRewardAmount} RP`;
+    }
 };
 
 function showRewardModal(points) {
     const modal = document.getElementById('rewardModal');
     const pointsDisplay = document.getElementById('rewardPointsDisplay');
     const explosionContainer = document.getElementById('rewardExplosion');
+    if (!modal || !pointsDisplay || !explosionContainer) return;
     pointsDisplay.textContent = `+${points}`;
     explosionContainer.innerHTML = '';
     const colors = ['#fbbf24', '#f472b6', '#34d399', '#60a5fa', '#a78bfa', '#fb923c'];
