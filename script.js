@@ -33,7 +33,7 @@ const analytics = getAnalytics(app);
 // 2. إعدادات Cloudinary
 // ============================================================
 
-const CLOUDINARY_CLOUD_NAME = 'y14bgb5s';
+const CLOUDINARY_CLOUD_NAME = 'YOUR_CLOUD_NAME_HERE';
 const CLOUDINARY_UPLOAD_PRESET = 'zi_store_uploads';
 
 // ============================================================
@@ -378,7 +378,7 @@ async function loadUserData() {
             updateDropdownStats();
             updateNotificationBadge();
             updateFullUserMenu();
-            updateDailyRewardVisibility();
+            updateDailyRewardVisibility(); // ✅ تأكد من تحديث المكافأة اليومية
             if (currentUser && currentUser.email === ADMIN_EMAIL) { loadAdminOrders(); loadAdminUsers(); }
         } else {
             await setDoc(userRef, { userId: uid, wishlist: [], cart: [], history: [], requests: [], usedCodes: [], referrals: [], referralRewards: 0, rp: 0, isBanned: false, useRpForCart: false, lastDailyReward: 0, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
@@ -406,7 +406,7 @@ async function loadUserData() {
         updateDropdownStats();
         updateNotificationBadge();
         updateFullUserMenu();
-        updateDailyRewardVisibility();
+        updateDailyRewardVisibility(); // ✅ أيضاً في حالة الخطأ
     }
     isLoadingUser = false;
 }
@@ -588,7 +588,7 @@ window.loginUser = async function() {
             updateDropdownStats();
             if (currentUser.email === ADMIN_EMAIL) { loadAdminOrders(); startAdminRealtimeListener(); loadAdminUsers(); }
             loadDownloads(); loadNotifications(); fetchCryptoPrices(); updateFullUserMenu(); showTelegramBanner();
-            updateDailyRewardVisibility();
+            updateDailyRewardVisibility(); // ✅ تأكد من تحديث المكافأة بعد تسجيل الدخول
         }, 500);
     } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Login failed', 'error'); btn.classList.remove('loading'); }
 };
@@ -644,7 +644,7 @@ window.registerUser = async function() {
             document.getElementById('authSection').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
             loadUserData(); updateDropdownStats(); loadDownloads(); loadNotifications(); fetchCryptoPrices(); updateFullUserMenu(); showTelegramBanner();
-            updateDailyRewardVisibility();
+            updateDailyRewardVisibility(); // ✅ تأكد من تحديث المكافأة بعد التسجيل
         }, 500);
     } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Registration failed', 'error'); btn.classList.remove('loading'); }
 };
@@ -663,7 +663,7 @@ window.logoutUser = async function() {
         document.getElementById('mainApp').style.display = 'none';
         showToast('👋 Logged out', 'info');
         updateUI(); updateNotificationBadge(); loadUserData(); updateFullUserMenu();
-        updateDailyRewardVisibility();
+        updateDailyRewardVisibility(); // ✅ تحديث بعد تسجيل الخروج
     } catch (error) { showToast('❌ Logout error', 'error'); }
 };
 
@@ -2505,7 +2505,7 @@ window.viewUserDetails = async function(uid) {
 window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
 // ============================================================
-// 33. تاريخ الطلبات (Order History) - مع زر PDF
+// 33. تاريخ الطلبات (Order History) - مع زر PDF (تم الإصلاح)
 // ============================================================
 
 window.clearOrderHistory = async function() {
@@ -2562,7 +2562,8 @@ function renderHistoryFull() {
             const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
             const itemsNames = item.items ? item.items.map(i => i.name).join(', ') : 'Order';
             const totalPrice = item.total || 0;
-            const orderData = JSON.stringify(item).replace(/'/g, "&apos;");
+            // ✅ الإصلاح: استخدام JSON.stringify مباشرة بدون replace
+            const orderData = JSON.stringify(item);
             html += `
                 <div class="orders-item" data-order='${orderData}'>
                     <div class="orders-item-info">
@@ -2624,7 +2625,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================================
-// 36. حالة المصادقة
+// 36. حالة المصادقة (مع تحديث المكافأة اليومية)
 // ============================================================
 
 onAuthStateChanged(auth, async (user) => {
@@ -2653,6 +2654,7 @@ onAuthStateChanged(auth, async (user) => {
         loadDownloads(); loadNotifications(); fetchCryptoPrices(); loadFeaturedSettings(); loadDailyRewardSettings();
         setTimeout(showTelegramBanner, 1000);
         startSocialProof();
+        updateDailyRewardVisibility(); // ✅ تأكد من تحديث المكافأة بعد تحميل البيانات
     } else {
         document.getElementById('authSection').style.display = 'block';
         document.getElementById('mainApp').style.display = 'none';
@@ -2660,6 +2662,7 @@ onAuthStateChanged(auth, async (user) => {
         updateDropdownStats();
         loadDownloads(); loadNotifications(); fetchCryptoPrices(); loadFeaturedSettings(); loadDailyRewardSettings();
         startSocialProof();
+        updateDailyRewardVisibility(); // ✅ أيضاً في حالة الخروج
     }
     updateUI(); updateFullUserMenu();
 });
@@ -2796,7 +2799,7 @@ window.exportOrders = function() {
             const email = (order.userEmail || '').toLowerCase();
             const orderId = String(order.orderId || order.id || '').toLowerCase();
             const userName = (order.userName || '').toLowerCase();
-            return email.includes(query) || orderId.includes(query) || userName.includes(query);
+            return email.includes(searchQuery) || orderId.includes(searchQuery) || userName.includes(searchQuery);
         });
     }
     if (!ordersToExport || ordersToExport.length === 0) { showToast('📭 No orders to export', 'warning'); return; }
@@ -3028,7 +3031,7 @@ function renderRatingSection(productId) {
 async function updateProductRatingDisplay(productId) { const ratingsRef = collection(db, 'ratings'); const q = query(ratingsRef, where('productId', '==', productId)); const snapshot = await getDocs(q); let total = 0; let count = 0; snapshot.forEach(doc => { total += doc.data().rating || 0; count++; }); const avg = count > 0 ? total / count : 0; }
 
 // ============================================================
-// 45. PDF Generator (مولد الفواتير) - الإصلاح الكامل
+// 45. PDF Generator (مولد الفواتير) - مع دعم النص JSON
 // ============================================================
 
 async function generateInvoice(orderData) {
@@ -3169,7 +3172,7 @@ window.claimDailyReward = async function() {
         const userRef = doc(db, 'users', currentUser.uid);
         await updateDoc(userRef, { rp: userProfile.rp, lastDailyReward: userProfile.lastDailyReward });
         updateRpDisplay(); updateDropdownStats(); updateFullUserMenu();
-        document.getElementById('dailyRewardBox').classList.add('hidden');
+        document.getElementById('dailyRewardBox').classList.add('hidden'); // ✅ إخفاء الصندوق
         showRewardModal(dailyRewardAmount);
         await addAuditLog('Daily Reward Claimed', `${currentUser.email} gained ${dailyRewardAmount} RP`);
     } catch (error) { console.error('Error claiming reward:', error); showToast('❌ Error claiming reward', 'error'); btn.disabled = false; btn.textContent = `Claim +${dailyRewardAmount} RP`; }
