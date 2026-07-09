@@ -1,9 +1,7 @@
 // ============================================================
 // SCRIPT.JS - النسخة النهائية المتكاملة
-// مع VIP Pricing، Features، RP في السلة فقط، ورفع الصور
-// + تصدير الطلبات (CSV) + لوحة إحصائيات متقدمة (Chart.js)
-// + Social Proof Toast + Admin Audit Logs + Ratings & Reviews
-// + Skeleton Loading + PDF Generator
+// مع VIP Pricing، RP، السلة، الطلبات، الإحالات، المدير،
+// نظام سلايدر متقدم مع رفع الصور، إصلاح Telegram، PDF، التقييمات
 // ============================================================
 
 import { initializeApp } from "firebase/app";
@@ -33,7 +31,7 @@ const analytics = getAnalytics(app);
 // 2. إعدادات Cloudinary
 // ============================================================
 
-const CLOUDINARY_CLOUD_NAME = 'y14bgb5s';
+const CLOUDINARY_CLOUD_NAME = 'YOUR_CLOUD_NAME_HERE';
 const CLOUDINARY_UPLOAD_PRESET = 'zi_store_uploads';
 
 // ============================================================
@@ -131,7 +129,7 @@ let selectedPayment = null;
 let ordersFilter = 'all';
 let _selectedVipPlan = '1m';
 
-// متغيرات المنتجات المميزة
+// متغيرات المنتجات المميزة (الإصدار القديم – نتركها للتوافق)
 let featuredProducts = [];
 let featuredRotationInterval = null;
 let featuredCurrentIndex = 0;
@@ -141,6 +139,13 @@ let featuredSettings = {
     maxProducts: 4,
     selectedProductIds: []
 };
+
+// متغيرات السلايدر الجديد
+let sliderSlides = [];
+let sliderIntervalTime = 3; // بالثواني
+let currentSlideIndex = 0;
+let sliderTimer = null;
+let isSliderPaused = false;
 
 let userProfile = {
     name: '',
@@ -158,7 +163,8 @@ let userProfile = {
     referralRewards: 0,
     rp: 0,
     useRpForCart: false,
-    isBanned: false
+    isBanned: false,
+    lastDailyReward: 0
 };
 
 const fallbackProducts = [
@@ -277,6 +283,7 @@ window.testTelegramNotification = async function() {
     const result = await sendTelegramNotification(userProfile.telegramChatId, `🔔 *Test Notification*\n\nThis is a test message from ZI Store.\n📅 ${new Date().toLocaleString()}\n\nIf you see this, notifications are working! ✅`);
     if (result) showToast('✅ Test sent!', 'success'); else showToast('❌ Failed to send test.', 'error');
 };
+
 window.unlinkTelegram = async function() {
     if (!currentUser || !userProfile.telegramChatId) return;
     if (!confirm('Are you sure you want to unlink your Telegram account?')) return;
@@ -297,7 +304,54 @@ function maskChatId(chatId) {
 }
 
 // ============================================================
-// 8. Toast
+// 8. دالة checkTelegramStatus (الزر Check)
+// ============================================================
+
+window.checkTelegramStatus = async function() {
+    if (!currentUser) {
+        showToast('⚠️ Please login first', 'warning');
+        return;
+    }
+    if (currentUser.isAnonymous) {
+        showToast('⚠️ Please sign in to check Telegram status', 'warning');
+        return;
+    }
+    try {
+        const userRef = doc(db, 'users', currentUser.uid);
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) {
+            showToast('❌ User data not found', 'error');
+            return;
+        }
+        const data = userSnap.data();
+        const chatId = data.telegramChatId || '';
+        const username = data.telegram || '';
+        userProfile.telegramChatId = chatId;
+        userProfile.telegram = username;
+
+        if (chatId) {
+            const maskedId = chatId.slice(0, 4) + '***' + chatId.slice(-4);
+            showToast(`✅ Telegram is linked!\n📱 Chat ID: ${maskedId}\n👤 Username: ${username || 'Not set'}`, 'success');
+            const testResult = await sendTelegramNotification(chatId, `🔔 *Telegram Check Successful!*\n\n✅ Your ZI Store account is properly linked.\n📱 Chat ID: \`${chatId}\`\n👤 Username: ${username || 'Not set'}\n📅 Check time: ${new Date().toLocaleString()}\n\nIf you receive this message, notifications are working perfectly! 🚀`);
+            if (testResult) {
+                showToast('✅ Test message sent to your Telegram!', 'success');
+            } else {
+                showToast('⚠️ Account linked but failed to send test message. Please try "Test" button.', 'warning');
+            }
+            renderProfileFull();
+            updateFullUserMenu();
+        } else {
+            showToast('❌ Telegram is NOT linked.\n\nPlease click "Link Bot" to connect your account.', 'warning');
+        }
+        await saveUserData();
+    } catch (error) {
+        console.error('❌ Error checking Telegram status:', error);
+        showToast('❌ Failed to check Telegram status: ' + error.message, 'error');
+    }
+};
+
+// ============================================================
+// 9. Toast
 // ============================================================
 
 function showToast(message, type = 'success') {
@@ -317,7 +371,7 @@ function showToast(message, type = 'success') {
 window.hideToast = function() { document.getElementById('toast')?.classList.remove('show'); };
 
 // ============================================================
-// 9. دوال المستخدم
+// 10. دوال المستخدم
 // ============================================================
 
 async function getUserId() {
@@ -326,7 +380,7 @@ async function getUserId() {
     if (savedId) { userId = savedId; return userId; }
     userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
     localStorage.setItem('zi_userId', userId);
-    try { await setDoc(doc(db, 'users', userId), { userId, wishlist: [], cart: [], history: [], requests: [], usedCodes: [], referrals: [], referralRewards: 0, rp: 0, isBanned: false, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }, { merge: true }); } catch (e) { console.error(e); }
+    try { await setDoc(doc(db, 'users', userId), { userId, wishlist: [], cart: [], history: [], requests: [], usedCodes: [], referrals: [], referralRewards: 0, rp: 0, isBanned: false, lastDailyReward: 0, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }, { merge: true }); } catch (e) { console.error(e); }
     return userId;
 }
 
@@ -363,6 +417,7 @@ async function loadUserData() {
             userProfile.isBanned = data.isBanned || false;
             userProfile.joined = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '--';
             userProfile.useRpForCart = data.useRpForCart || false;
+            userProfile.lastDailyReward = data.lastDailyReward || 0;
             updateWishlistUI();
             updateCartUI();
             renderProducts(products);
@@ -374,7 +429,7 @@ async function loadUserData() {
             updateFullUserMenu();
             if (currentUser && currentUser.email === ADMIN_EMAIL) { loadAdminOrders(); loadAdminUsers(); }
         } else {
-            await setDoc(userRef, { userId: uid, wishlist: [], cart: [], history: [], requests: [], usedCodes: [], referrals: [], referralRewards: 0, rp: 0, isBanned: false, useRpForCart: false, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+            await setDoc(userRef, { userId: uid, wishlist: [], cart: [], history: [], requests: [], usedCodes: [], referrals: [], referralRewards: 0, rp: 0, isBanned: false, useRpForCart: false, lastDailyReward: 0, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
         }
     } catch (error) {
         console.error('Error loading user data:', error);
@@ -388,7 +443,8 @@ async function loadUserData() {
             userProfile.referralRewards = JSON.parse(localStorage.getItem('zi_referralRewards_backup') || '0');
             userProfile.rp = JSON.parse(localStorage.getItem('zi_rp_backup') || '0');
             userProfile.isBanned = JSON.parse(localStorage.getItem('zi_isBanned_backup') || 'false');
-        } catch (e) { wishlist = []; cart = []; userProfile.history = []; userProfile.requests = []; userProfile.usedCodes = []; userProfile.referrals = []; userProfile.referralRewards = 0; userProfile.rp = 0; userProfile.isBanned = false; }
+            userProfile.lastDailyReward = JSON.parse(localStorage.getItem('zi_lastDailyReward_backup') || '0');
+        } catch (e) { wishlist = []; cart = []; userProfile.history = []; userProfile.requests = []; userProfile.usedCodes = []; userProfile.referrals = []; userProfile.referralRewards = 0; userProfile.rp = 0; userProfile.isBanned = false; userProfile.lastDailyReward = 0; }
         updateWishlistUI();
         updateCartUI();
         renderProducts(products);
@@ -406,7 +462,7 @@ async function saveUserData(silent = false) {
     const uid = currentUser ? currentUser.uid : await getUserId();
     if (!uid) return;
     try {
-        await setDoc(doc(db, 'users', uid), { wishlist, cart, history: userProfile.history, requests: userProfile.requests, usedCodes: userProfile.usedCodes, referrals: userProfile.referrals, referralRewards: userProfile.referralRewards, rp: userProfile.rp, referralCode: userProfile.referralCode, telegram: userProfile.telegram, telegramChatId: userProfile.telegramChatId, location: userProfile.location, lang: userProfile.lang, useRpForCart: userProfile.useRpForCart, isBanned: userProfile.isBanned, updatedAt: serverTimestamp() }, { merge: true });
+        await setDoc(doc(db, 'users', uid), { wishlist, cart, history: userProfile.history, requests: userProfile.requests, usedCodes: userProfile.usedCodes, referrals: userProfile.referrals, referralRewards: userProfile.referralRewards, rp: userProfile.rp, referralCode: userProfile.referralCode, telegram: userProfile.telegram, telegramChatId: userProfile.telegramChatId, location: userProfile.location, lang: userProfile.lang, useRpForCart: userProfile.useRpForCart, isBanned: userProfile.isBanned, lastDailyReward: userProfile.lastDailyReward || 0, updatedAt: serverTimestamp() }, { merge: true });
         localStorage.setItem('zi_wishlist_backup', JSON.stringify(wishlist));
         localStorage.setItem('zi_cart_backup', JSON.stringify(cart));
         localStorage.setItem('zi_history_backup', JSON.stringify(userProfile.history));
@@ -416,6 +472,7 @@ async function saveUserData(silent = false) {
         localStorage.setItem('zi_referralRewards_backup', JSON.stringify(userProfile.referralRewards));
         localStorage.setItem('zi_rp_backup', JSON.stringify(userProfile.rp));
         localStorage.setItem('zi_isBanned_backup', JSON.stringify(userProfile.isBanned));
+        localStorage.setItem('zi_lastDailyReward_backup', JSON.stringify(userProfile.lastDailyReward || 0));
         return true;
     } catch (e) {
         console.error('Save failed:', e);
@@ -430,7 +487,7 @@ function generateReferralCode(name, email) {
 }
 
 // ============================================================
-// 10. رفع الصور إلى Cloudinary
+// 11. رفع الصور إلى Cloudinary
 // ============================================================
 
 async function uploadToCloudinary(file) {
@@ -449,7 +506,7 @@ async function uploadToCloudinary(file) {
 }
 
 // ============================================================
-// 11. تحديثات الواجهة
+// 12. تحديثات الواجهة
 // ============================================================
 
 function updateDropdownStats() {
@@ -510,7 +567,7 @@ function updateFullUserMenu() {
 }
 
 // ============================================================
-// 12. دوال المصادقة (مختصرة)
+// 13. دوال المصادقة
 // ============================================================
 
 window.showLogin = function() { document.getElementById('loginContainer').style.display = 'block'; document.getElementById('registerContainer').style.display = 'none'; };
@@ -578,6 +635,7 @@ window.loginUser = async function() {
             updateDropdownStats();
             if (currentUser.email === ADMIN_EMAIL) { loadAdminOrders(); startAdminRealtimeListener(); loadAdminUsers(); }
             loadDownloads(); loadNotifications(); fetchCryptoPrices(); updateFullUserMenu(); showTelegramBanner();
+            loadSliderSettings();
         }, 500);
     } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Login failed', 'error'); btn.classList.remove('loading'); }
 };
@@ -618,7 +676,7 @@ window.registerUser = async function() {
         await setDoc(userRef, {
             userId: currentUser.uid, name, email, country: detectedCountry, lang, telegram: '', telegramChatId: '', location: detectedCountry,
             wishlist: [], cart: [], history: [], requests: [], usedCodes: [], referrals: [], referralRewards: 0, rp: 0, useRpForCart: false,
-            referralCode: newReferralCode, referredBy: referrerId || '', isBanned: false,
+            referralCode: newReferralCode, referredBy: referrerId || '', isBanned: false, lastDailyReward: 0,
             createdAt: serverTimestamp(), updatedAt: serverTimestamp()
         });
         if (referrerId) {
@@ -633,6 +691,7 @@ window.registerUser = async function() {
             document.getElementById('authSection').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
             loadUserData(); updateDropdownStats(); loadDownloads(); loadNotifications(); fetchCryptoPrices(); updateFullUserMenu(); showTelegramBanner();
+            loadSliderSettings();
         }, 500);
     } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Registration failed', 'error'); btn.classList.remove('loading'); }
 };
@@ -666,7 +725,7 @@ window.sendForgotPassword = async function() {
 };
 
 // ============================================================
-// 13. المودالات العامة
+// 14. المودالات العامة
 // ============================================================
 
 window.openUserMenuFull = function() { if (!currentUser) { openAuthModal(); return; } document.getElementById('userMenuFull').classList.add('open'); updateFullUserMenu(); document.body.style.overflow = 'hidden'; };
@@ -679,11 +738,15 @@ window.openProfileFull = function() { if (!currentUser) { showToast('⚠️ Plea
 window.closeProfileFull = function() { document.getElementById('profileFull').classList.remove('open'); document.body.style.overflow = ''; };
 window.openHistoryFull = function() { if (!currentUser) { showToast('⚠️ Please login first', 'warning'); openAuthModal(); return; } document.getElementById('historyFull').classList.add('open'); renderHistoryFull(); document.body.style.overflow = 'hidden'; };
 window.closeHistoryFull = function() { document.getElementById('historyFull').classList.remove('open'); document.body.style.overflow = ''; };
+window.openDownloads = function() { document.getElementById('downloadsModal').classList.add('open'); };
+window.closeDownloads = function() { document.getElementById('downloadsModal').classList.remove('open'); };
+window.openNotifications = function() { document.getElementById('notificationsModal').classList.add('open'); };
+window.closeNotifications = function() { document.getElementById('notificationsModal').classList.remove('open'); };
 
 function openAuthModal() { document.getElementById('authSection').scrollIntoView({ behavior: 'smooth' }); }
 
 // ============================================================
-// 14. عرض الملف الشخصي
+// 15. عرض الملف الشخصي
 // ============================================================
 
 function renderProfileFull() {
@@ -790,7 +853,7 @@ window.sendResetLinkInline = async function() { if (!currentUser || currentUser.
 window.changePasswordInline = async function() { if (!currentUser || currentUser.isAnonymous) return; const currentPwd = document.getElementById('currentPasswordInline').value; const newPwd = document.getElementById('newPasswordInline').value; const confirmPwd = document.getElementById('confirmNewPasswordInline').value; const errorEl = document.getElementById('passwordErrorInline'); const successEl = document.getElementById('passwordSuccessInline'); errorEl.textContent = ''; successEl.textContent = ''; if (!currentPwd || !newPwd || !confirmPwd) { errorEl.textContent = 'Please fill all fields'; return; } if (newPwd.length < 6) { errorEl.textContent = 'New password must be at least 6 characters'; return; } if (newPwd !== confirmPwd) { errorEl.textContent = 'Passwords do not match'; return; } try { const credential = EmailAuthProvider.credential(currentUser.email, currentPwd); await reauthenticateWithCredential(currentUser, credential); await updatePassword(currentUser, newPwd); successEl.textContent = '✅ Password changed successfully!'; showToast('✅ Password updated!', 'success'); document.getElementById('currentPasswordInline').value = ''; document.getElementById('newPasswordInline').value = ''; document.getElementById('confirmNewPasswordInline').value = ''; setTimeout(() => { successEl.textContent = ''; }, 3000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); } };
 
 // ============================================================
-// 15. المنتجات مع Skeleton Loading
+// 16. المنتجات مع Skeleton Loading
 // ============================================================
 
 async function loadProductsFromFirestore() {
@@ -805,7 +868,6 @@ async function loadProductsFromFirestore() {
 
 function startProductsRealtimeListener() {
     if (unsubscribeProducts) { unsubscribeProducts(); }
-    // إظهار Skeleton أولاً
     renderProducts([], true);
     const productsRef = collection(db, 'products');
     unsubscribeProducts = onSnapshot(query(productsRef, orderBy('createdAt', 'desc')), (snapshot) => {
@@ -819,13 +881,14 @@ function startProductsRealtimeListener() {
         updateBottomCartBar();
         updateRpDisplay();
         renderFeaturedProducts();
+        // تحديث قائمة المنتجات في مودال إضافة شريحة
+        updateSlideProductSelect();
     }, (error) => { console.error('Products listener error:', error); products = fallbackProducts; renderProducts(products, false); renderAdminProducts(products); updateStatsFromProducts(products); renderFeaturedProducts(); });
 }
 
 function renderProducts(productsList, isLoading = false) {
     const container = document.getElementById('productList');
     if (!container) return;
-
     if (isLoading) {
         container.innerHTML = Array(4).fill(`
             <div class="product-card skeleton">
@@ -837,14 +900,12 @@ function renderProducts(productsList, isLoading = false) {
         `).join('');
         return;
     }
-
     const list = productsList || [];
     if (list.length === 0) { container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:20px 0;color:var(--text-secondary);font-size:14px;"><i class="fas fa-search" style="font-size:28px;opacity:0.2;display:block;margin-bottom:4px;"></i><p>No products</p></div>`; return; }
     let filtered = [...list];
     if (currentFilter === 'free') filtered = filtered.filter(p => p.price === 0);
     else if (currentFilter === 'paid') filtered = filtered.filter(p => p.price > 0);
     if (filtered.length === 0) { container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:20px 0;color:var(--text-secondary);font-size:14px;"><i class="fas fa-search" style="font-size:28px;opacity:0.2;display:block;margin-bottom:4px;"></i><p>No results</p></div>`; return; }
-
     container.innerHTML = filtered.map(p => {
         const isFree = p.price === 0;
         const isUnavailable = p.status === 'unavailable';
@@ -935,13 +996,12 @@ function generateRecommendations(productsList) {
 }
 
 // ============================================================
-// 16. المنتجات المميزة (Featured)
+// 17. المنتجات المميزة (Featured) – إصدار قديم (للتوافق)
 // ============================================================
 
 function renderFeaturedProducts() {
     const grid = document.getElementById('featuredGrid');
     if (!grid) return;
-
     let productsToShow = [];
     if (featuredSettings.selectedProductIds.length > 0) {
         productsToShow = products.filter(p => featuredSettings.selectedProductIds.includes(p.id));
@@ -953,7 +1013,6 @@ function renderFeaturedProducts() {
         grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text-secondary);font-size:13px;">No products available</div>`;
         return;
     }
-
     featuredProducts = productsToShow;
     featuredCurrentIndex = 0;
     displayFeaturedSlice();
@@ -962,17 +1021,14 @@ function renderFeaturedProducts() {
 function displayFeaturedSlice() {
     const grid = document.getElementById('featuredGrid');
     if (!grid || featuredProducts.length === 0) return;
-
     const start = featuredCurrentIndex;
     const end = Math.min(start + 4, featuredProducts.length);
     const slice = featuredProducts.slice(start, end);
-
     if (slice.length === 0) {
         featuredCurrentIndex = 0;
         displayFeaturedSlice();
         return;
     }
-
     grid.innerHTML = slice.map(p => {
         const badgeClass = p.price === 0 ? 'free' : (p.status === 'unavailable' ? 'unavailable' : 'vip');
         const badgeText = p.price === 0 ? 'FREE' : (p.badge || 'VIP');
@@ -998,23 +1054,6 @@ function startFeaturedRotation() {
 }
 function stopFeaturedRotation() { if (featuredRotationInterval) { clearInterval(featuredRotationInterval); featuredRotationInterval = null; } }
 
-// ============================================================
-// 17. إعدادات المنتجات المميزة
-// ============================================================
-
-window.updateFeaturedSettings = async function(settings) {
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
-    try {
-        const settingsRef = doc(db, 'settings', 'featured');
-        await setDoc(settingsRef, { ...settings, updatedAt: serverTimestamp(), updatedBy: currentUser.uid }, { merge: true });
-        featuredSettings = { ...featuredSettings, ...settings };
-        renderFeaturedProducts();
-        if (featuredSettings.enabled) { startFeaturedRotation(); } else { stopFeaturedRotation(); }
-        showToast('✅ Featured settings updated!', 'success');
-        loadFeaturedSettings();
-    } catch (error) { console.error('Error updating featured settings:', error); showToast('❌ Error: ' + error.message, 'error'); }
-};
-
 async function loadFeaturedSettings() {
     try {
         const settingsRef = doc(db, 'settings', 'featured');
@@ -1024,32 +1063,6 @@ async function loadFeaturedSettings() {
         if (featuredSettings.enabled) { startFeaturedRotation(); } else { stopFeaturedRotation(); }
     } catch (error) { console.error('Error loading featured settings:', error); }
 }
-
-window.openFeaturedSettings = function() {
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
-    document.getElementById('featuredEnabled').checked = featuredSettings.enabled;
-    document.getElementById('featuredInterval').value = featuredSettings.rotationInterval / 1000;
-    const container = document.getElementById('featuredProductSelector');
-    container.innerHTML = products.map(p => `
-        <div class="product-check-item">
-            <input type="checkbox" id="fp_${p.id}" value="${p.id}" ${featuredSettings.selectedProductIds.includes(p.id) ? 'checked' : ''} onchange="updateFeaturedProductSelection()" />
-            <label for="fp_${p.id}">${p.name} (${p.price === 0 ? 'FREE' : '$' + p.price.toFixed(2)})</label>
-        </div>
-    `).join('');
-    document.getElementById('featuredSettingsModal').classList.add('open');
-};
-window.updateFeaturedProductSelection = function() {
-    const checkboxes = document.querySelectorAll('#featuredProductSelector input[type="checkbox"]:checked');
-    featuredSettings.selectedProductIds = Array.from(checkboxes).map(cb => cb.value);
-};
-window.saveFeaturedSettings = function() {
-    const enabled = document.getElementById('featuredEnabled').checked;
-    const interval = parseFloat(document.getElementById('featuredInterval').value) * 1000 || 5000;
-    const settings = { enabled, rotationInterval: interval, selectedProductIds: featuredSettings.selectedProductIds || [] };
-    window.updateFeaturedSettings(settings);
-    document.getElementById('featuredSettingsModal').classList.remove('open');
-};
-window.closeFeaturedSettings = function() { document.getElementById('featuredSettingsModal').classList.remove('open'); };
 
 // ============================================================
 // 18. السلة (مع RP و VIP)
@@ -1244,7 +1257,7 @@ function createFloatingHearts() {
 }
 
 // ============================================================
-// 20. عرض المنتج كامل الشاشة (Preview Modal) مع VIP Pricing و Ratings
+// 20. عرض المنتج كامل الشاشة (Preview Modal) مع VIP Pricing و Ratings وفيديو
 // ============================================================
 
 window.openDetails = function(id) {
@@ -1257,6 +1270,17 @@ window.openDetails = function(id) {
     document.getElementById('previewDescription').textContent = p.description || 'No description available.';
     document.getElementById('previewBadge').textContent = p.badge || 'PREMIUM';
     document.getElementById('previewVerified').textContent = p.status === 'available' ? '✅ 100% VERIFIED WORKING PRODUCT' : '⛔ UNAVAILABLE';
+
+    // عرض الفيديو إذا كان موجوداً
+    const videoContainer = document.getElementById('previewVideoContainer');
+    const videoIframe = document.getElementById('previewVideo');
+    if (p.video && p.video.includes('youtube.com/embed/')) {
+        videoIframe.src = p.video;
+        videoContainer.style.display = 'block';
+    } else {
+        videoContainer.style.display = 'none';
+        videoIframe.src = '';
+    }
 
     const featuresContainer = document.getElementById('previewFeatures');
     if (p.features && p.features.length > 0) {
@@ -1371,6 +1395,7 @@ function addVipPlanToCart(product) {
     showToast(`✅ Added ${planLabels[selectedPlan]} VIP plan for ${product.name}`, 'success');
     closePreviewModal();
 }
+
 window.closePreviewModal = function() { document.getElementById('previewModal').classList.remove('open'); document.body.style.overflow = ''; };
 window.addToCartFromPreview = function() { if (window._currentProduct) { window.addToCart(window._currentProduct.id); closePreviewModal(); } };
 window.shareFromPreview = function() { if (window._currentProduct) { window.openShareModal(window._currentProduct.id); } };
@@ -1514,23 +1539,61 @@ window.selectPayment = function(method) {
     }
     updatePayableTotal();
 };
+
 window.continuePayment = function() {
     if (!selectedPayment) { showToast('⚠️ Please select a payment method', 'warning'); return; }
     document.getElementById('paymentStep1').style.display = 'none';
     document.getElementById('paymentStep2').classList.add('active');
+
     renderPaymentProducts();
+
     let total = 0;
     cart.forEach(item => { const qty = item.quantity || 1; total += item.price * qty; });
     let rpDiscountAmount = 0;
-    if (userProfile.useRpForCart) { rpDiscountAmount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total); }
+    if (userProfile.useRpForCart) {
+        rpDiscountAmount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total);
+    }
     let finalTotal = total - rpDiscountAmount;
     let promoDiscountAmount = 0;
-    if (activeDiscount > 0 && total > 0) { promoDiscountAmount = (finalTotal * activeDiscount) / 100; finalTotal = finalTotal - promoDiscountAmount; }
+    if (activeDiscount > 0 && total > 0) {
+        promoDiscountAmount = (finalTotal * activeDiscount) / 100;
+        finalTotal = finalTotal - promoDiscountAmount;
+    }
     if (finalTotal < 0) finalTotal = 0;
+
     document.getElementById('step2Subtotal').textContent = `$${total.toFixed(2)}`;
     document.getElementById('step2Total').textContent = `$${finalTotal.toFixed(2)}`;
-    updateCryptoAmount(); updatePriceUI(); fetchCryptoPrices();
+
+    const walletInfo = document.querySelector('.wallet-info');
+    const txInput = document.getElementById('transactionHashInput');
+    const confirmBtn = document.querySelector('.payment-btn[onclick="placeOrder()"]');
+    const cryptoAmount = document.getElementById('cryptoAmount');
+
+    if (selectedPayment === 'telegram') {
+        if (walletInfo) walletInfo.style.display = 'none';
+        if (txInput) txInput.style.display = 'none';
+        if (confirmBtn) {
+            confirmBtn.innerHTML = '<i class="fab fa-telegram-plane"></i> Contact via Telegram';
+            confirmBtn.onclick = function() {
+                const message = `🛒 New Order\n\nTotal: $${finalTotal.toFixed(2)}\nProducts: ${cart.map(i => i.name).join(', ')}`;
+                window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(message)}`, '_blank');
+                placeOrderTelegram();
+            };
+        }
+        if (cryptoAmount) cryptoAmount.textContent = '💬 Chat with us';
+    } else {
+        if (walletInfo) walletInfo.style.display = 'block';
+        if (txInput) txInput.style.display = 'block';
+        if (confirmBtn) {
+            confirmBtn.innerHTML = '<i class="fas fa-check"></i> Confirm Payment';
+            confirmBtn.onclick = placeOrder;
+        }
+        updateCryptoAmount();
+        updatePriceUI();
+        fetchCryptoPrices();
+    }
 };
+
 window.goToStep1 = function() { document.getElementById('paymentStep1').style.display = 'block'; document.getElementById('paymentStep2').classList.remove('active'); };
 window.copyWalletAddress = function() {
     const address = document.getElementById('walletAddressDisplay').textContent;
@@ -1539,16 +1602,30 @@ window.copyWalletAddress = function() {
         .catch(() => { const textArea = document.createElement('textarea'); textArea.value = address; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); showToast('✅ Address copied!', 'success'); });
     }
 };
+
 function renderPaymentProducts() {
     const container = document.getElementById('paymentProductsList');
     if (!container) return;
-    if (!cart || cart.length === 0) { container.innerHTML = '<div style="text-align:center;padding:8px;color:var(--text-secondary);opacity:0.4;">No products</div>'; return; }
+    if (!cart || cart.length === 0) {
+        container.innerHTML = '<div style="text-align:center;padding:8px;color:var(--text-secondary);opacity:0.4;">No products</div>';
+        return;
+    }
     container.innerHTML = cart.map(item => {
         const qty = item.quantity || 1;
         const total = item.price * qty;
         const product = products.find(p => p.id === item.id);
-        const image = product?.image || item.image || 'https://picsum.photos/seed/default/60/60';
-        return `<div class="payment-product-item"><img src="${image}" alt="${item.name}" /><div class="pp-info"><div class="pp-name">${item.name}</div><div class="pp-price">${total.toFixed(2)} $</div></div><div class="pp-qty">×${qty}</div></div>`;
+        const image = product?.image || item.image || 'https://picsum.photos/seed/default/80/80';
+        const name = item.isVip ? `${item.name} 👑 ${item.vipPlanLabel || 'VIP'}` : item.name;
+        return `
+            <div class="payment-product-item">
+                <img src="${image}" alt="${item.name}" />
+                <div class="pp-info">
+                    <div class="pp-name">${name}</div>
+                    <div class="pp-price">${total.toFixed(2)} $</div>
+                </div>
+                <div class="pp-qty">×${qty}</div>
+            </div>
+        `;
     }).join('');
 }
 
@@ -1650,7 +1727,6 @@ function sendOrderToTelegram(method, txHash = null) {
         }).catch(e => console.error('Error saving notification:', e));
     } catch (e) { console.error('Error saving notification:', e); }
 
-    // تشغيل Social Proof
     triggerSocialProofOnOrder(currentUser.displayName || currentUser.email || 'User', productNames);
 
     cart = []; activeDiscount = 0; activeDiscountCode = '';
@@ -1676,6 +1752,10 @@ function sendOrderToTelegram(method, txHash = null) {
     }, 1000);
 }
 
+function placeOrderTelegram() {
+    sendOrderToTelegram('telegram', null);
+}
+
 window.placeOrder = function() {
     const txHash = document.getElementById('transactionHashInput').value.trim();
     if (selectedPayment === 'litecoin' || selectedPayment === 'usdt') {
@@ -1685,9 +1765,14 @@ window.placeOrder = function() {
             setTimeout(() => { document.getElementById('transactionHashInput').style.borderColor = ''; }, 2000);
             return;
         }
+        sendOrderToTelegram(selectedPayment, txHash);
+    } else if (selectedPayment === 'telegram') {
+        placeOrderTelegram();
+    } else {
+        showToast('⚠️ Please select a payment method', 'warning');
     }
-    sendOrderToTelegram(selectedPayment, txHash);
 };
+
 window.openPaymentModal = function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); openAuthModal(); return; }
     if (currentUser.isAnonymous) { showToast('⚠️ Please sign in to place an order.', 'warning'); openAuthModal(); return; }
@@ -1734,8 +1819,6 @@ function renderAdminDownloads() {
     container.innerHTML = downloads.map(d => `<div class="admin-item"><div class="item-info"><div class="item-title">${d.title}</div><div class="item-meta">${d.type||'File'} • ${d.downloadUrl||'No link'}</div></div><div class="item-actions"><button class="btn-edit" onclick="editDownload('${d.id}')"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="deleteDownload('${d.id}')"><i class="fas fa-trash"></i></button></div></div>`).join('');
 }
 
-window.openDownloads = function() { document.getElementById('downloadsModal').classList.add('open'); };
-window.closeDownloads = function() { document.getElementById('downloadsModal').classList.remove('open'); };
 window.createDownload = async function(e) {
     e.preventDefault();
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
@@ -1873,8 +1956,6 @@ window.clearAllNotifications = async function() {
         showToast('🗑️ All notifications cleared', 'success');
     } catch (error) { console.error('Error clearing notifications:', error); showToast('❌ Error clearing notifications', 'error'); }
 };
-window.openNotifications = function() { document.getElementById('notificationsModal').classList.add('open'); };
-window.closeNotifications = function() { document.getElementById('notificationsModal').classList.remove('open'); };
 window.createNotification = async function(e) {
     e.preventDefault();
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
@@ -1982,7 +2063,8 @@ window.copyReferralCode2 = function() {
 window.openAdminPanel = function() {
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized. Admin only.', 'error'); return; }
     const panel = document.getElementById('adminPanel');
-    if (panel.classList.contains('open')) { panel.classList.remove('open'); } else { panel.classList.add('open');
+    if (panel.classList.contains('open')) { panel.classList.remove('open'); } else {
+        panel.classList.add('open');
         panel.scrollIntoView({ behavior: 'smooth' });
         loadAdminOrders();
         startAdminRealtimeListener();
@@ -1992,12 +2074,59 @@ window.openAdminPanel = function() {
         loadAdminUsers();
         loadDashboardStats();
         setTimeout(addBannerAdminControls, 300);
+        // إضافة تبويب السلايدر إذا لم يكن موجوداً
+        ensureSliderTab();
+        // تحميل بيانات السلايدر
+        loadSliderSettings();
+        renderSliderSettingsUI();
+        document.getElementById('sliderIntervalInput').value = sliderIntervalTime;
+        // تحميل باقي التبويبات
         const statsTab = document.getElementById('tabStats');
         if (statsTab && statsTab.classList.contains('active')) { loadAdvancedStats(); }
         const logsTab = document.getElementById('tabLogs');
         if (logsTab && logsTab.classList.contains('active')) { loadAuditLogs(); }
     }
 };
+
+function ensureSliderTab() {
+    const tabsContainer = document.querySelector('.admin-panel .tabs');
+    if (!tabsContainer) return;
+    if (!document.querySelector('.admin-panel .tabs button[onclick="switchAdminTab(\'slider\')"]')) {
+        const sliderTab = document.createElement('button');
+        sliderTab.setAttribute('onclick', "switchAdminTab('slider')");
+        sliderTab.textContent = '🎨 Slider';
+        tabsContainer.appendChild(sliderTab);
+    }
+    const panelContent = document.querySelector('.admin-panel .modal-content');
+    if (panelContent && !document.getElementById('tabSlider')) {
+        const tabContent = document.createElement('div');
+        tabContent.className = 'tab-content';
+        tabContent.id = 'tabSlider';
+        tabContent.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+                <h3 style="font-size:16px;font-weight:700;margin:0;"><i class="fas fa-images"></i> Slider Settings</h3>
+                <button class="add-btn" onclick="openAddSlideModal()"><i class="fas fa-plus"></i> Add Slide</button>
+            </div>
+            <div style="margin-bottom:12px;">
+                <label style="font-size:13px;font-weight:600;color:var(--text-secondary);opacity:0.6;display:block;margin-bottom:4px;">Rotation Interval (seconds)</label>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <input type="number" id="sliderIntervalInput" value="3" min="1" max="60" style="width:100px;padding:8px 12px;border:2px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-size:14px;" />
+                    <button class="admin-submit-btn" onclick="saveSliderInterval()" style="padding:8px 16px;font-size:13px;"><i class="fas fa-save"></i> Save</button>
+                </div>
+            </div>
+            <div id="sliderSlidesList">
+                <div style="text-align:center;padding:20px;color:var(--text-secondary);opacity:0.5;">No slides yet. Click "Add Slide" to get started.</div>
+            </div>
+        `;
+        const lastTab = panelContent.querySelector('.tab-content:last-of-type');
+        if (lastTab) {
+            lastTab.parentNode.insertBefore(tabContent, lastTab.nextSibling);
+        } else {
+            panelContent.appendChild(tabContent);
+        }
+    }
+}
+
 window.closeAdminPanel = function() { document.getElementById('adminPanel').classList.remove('open'); if (unsubscribeAdmin) { unsubscribeAdmin(); unsubscribeAdmin = null; } };
 
 window.switchAdminTab = function(tab) {
@@ -2011,7 +2140,8 @@ window.switchAdminTab = function(tab) {
         'downloads': 'tabDownloads',
         'notifications': 'tabNotifications',
         'stats': 'tabStats',
-        'logs': 'tabLogs'
+        'logs': 'tabLogs',
+        'slider': 'tabSlider'
     };
     const tabId = tabMap[tab] || tabMap['dashboard'];
     document.getElementById(tabId).classList.add('active');
@@ -2022,6 +2152,10 @@ window.switchAdminTab = function(tab) {
     if (tab === 'dashboard') loadDashboardStats();
     if (tab === 'stats') loadAdvancedStats();
     if (tab === 'logs') loadAuditLogs();
+    if (tab === 'slider') {
+        renderSliderSettingsUI();
+        document.getElementById('sliderIntervalInput').value = sliderIntervalTime;
+    }
 };
 
 // ============================================================
@@ -2543,7 +2677,6 @@ function renderHistoryFull() {
             const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
             const itemsNames = item.items ? item.items.map(i => i.name).join(', ') : 'Order';
             const totalPrice = item.total || 0;
-            // استخدام JSON.stringify مباشرة بدون replace
             const orderData = JSON.stringify(item);
             html += `
                 <div class="orders-item" data-order='${orderData}'>
@@ -2606,7 +2739,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================================
-// 36. حالة المصادقة (بدون مكافأة يومية)
+// 36. حالة المصادقة
 // ============================================================
 
 onAuthStateChanged(auth, async (user) => {
@@ -2632,7 +2765,7 @@ onAuthStateChanged(auth, async (user) => {
         await loadUserData();
         updateDropdownStats();
         if (user.email === ADMIN_EMAIL) { loadAdminOrders(); startAdminRealtimeListener(); renderAdminProducts(products); loadAdminUsers(); setTimeout(addBannerAdminControls, 500); }
-        loadDownloads(); loadNotifications(); fetchCryptoPrices(); loadFeaturedSettings();
+        loadDownloads(); loadNotifications(); fetchCryptoPrices(); loadFeaturedSettings(); loadSliderSettings();
         setTimeout(showTelegramBanner, 1000);
         startSocialProof();
     } else {
@@ -2640,7 +2773,7 @@ onAuthStateChanged(auth, async (user) => {
         document.getElementById('mainApp').style.display = 'none';
         await loadUserData();
         updateDropdownStats();
-        loadDownloads(); loadNotifications(); fetchCryptoPrices(); loadFeaturedSettings();
+        loadDownloads(); loadNotifications(); fetchCryptoPrices(); loadFeaturedSettings(); loadSliderSettings();
         startSocialProof();
     }
     updateUI(); updateFullUserMenu();
@@ -2725,295 +2858,336 @@ function fixDirection() {
 }
 document.addEventListener('DOMContentLoaded', function() { setTimeout(fixDirection, 100); setTimeout(showTelegramBanner, 500); });
 
-const originalOpenAdminPanel = window.openAdminPanel;
-window.openAdminPanel = function() { if (originalOpenAdminPanel) originalOpenAdminPanel(); setTimeout(addBannerAdminControls, 300); };
-const originalOpenAddProductModal = window.openAddProductModal;
-window.openAddProductModal = function() { if (originalOpenAddProductModal) originalOpenAddProductModal(); setTimeout(fixDirection, 200); };
-const originalOpenCreateNotificationModal = window.openCreateNotificationModal;
-window.openCreateNotificationModal = function() { if (originalOpenCreateNotificationModal) originalOpenCreateNotificationModal(); setTimeout(fixDirection, 200); };
-
 // ============================================================
-// 39. التهيئة (Init) - بدون Daily Reward
+// 39. دوال السلايدر (Slider)
 // ============================================================
 
-async function init() {
-    showLoadingScreen();
-    updateLoadingBar(10);
-    try { await signInAnonymously(auth); updateLoadingBar(30); } catch (e) { console.log('ℹ️ Anonymous sign-in'); }
-    const productsFromFirestore = await loadProductsFromFirestore();
-    products = productsFromFirestore.length > 0 ? productsFromFirestore : fallbackProducts;
-    updateLoadingBar(50);
-    startProductsRealtimeListener();
-    updateLoadingBar(70);
-    await loadUserData();
-    updateLoadingBar(85);
-    renderProducts(products, false);
-    renderFeaturedProducts();
-    generateRecommendations(products);
-    updateBottomCartBar();
-    updateDropdownStats();
-    loadDownloads();
-    loadNotifications();
-    fetchCryptoPrices();
-    loadFeaturedSettings();
-    setInterval(fetchCryptoPrices, 60000);
-    updateLoadingBar(100);
-    console.log('✅ ZI Store ready with all features!');
-    setTimeout(() => { hideLoadingScreen(); setTimeout(showTelegramBanner, 500); startSocialProof(); }, 500);
+async function loadSliderSettings() {
+    try {
+        const settingsRef = doc(db, 'settings', 'slider');
+        const settingsSnap = await getDoc(settingsRef);
+        if (settingsSnap.exists()) {
+            const data = settingsSnap.data();
+            sliderSlides = data.slides || [];
+            sliderIntervalTime = data.interval || 3;
+            document.getElementById('sliderIntervalInput').value = sliderIntervalTime;
+        } else {
+            sliderSlides = [];
+            sliderIntervalTime = 3;
+        }
+        renderSlider();
+        startSliderRotation();
+        renderSliderSettingsUI();
+    } catch (error) {
+        console.error('Error loading slider settings:', error);
+        sliderSlides = [];
+        renderSlider();
+    }
 }
-init();
-setTimeout(() => { hideLoadingScreen(); console.log('⚠️ Force hiding loading screen (timeout)'); }, 5000);
+
+function renderSlider() {
+    const wrapper = document.getElementById('sliderWrapper');
+    const dots = document.getElementById('sliderDots');
+    if (!wrapper) return;
+    if (sliderSlides.length === 0) {
+        wrapper.innerHTML = `
+            <div class="slide-item" style="background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;min-height:200px;border-radius:var(--radius-md);">
+                <div style="text-align:center;color:var(--text-secondary);opacity:0.4;">
+                    <i class="fas fa-images" style="font-size:48px;display:block;margin-bottom:8px;"></i>
+                    <p>No slides available. Add slides from admin panel.</p>
+                </div>
+            </div>
+        `;
+        dots.innerHTML = '';
+        return;
+    }
+    wrapper.innerHTML = sliderSlides.map((slide, index) => {
+        const isActive = index === currentSlideIndex ? 'active' : '';
+        const imageUrl = slide.imageUrl || '';
+        const title = slide.title || '';
+        const subtitle = slide.subtitle || '';
+        const buttonText = slide.buttonText || 'Learn More';
+        let buttonLink = '#';
+        let buttonTarget = '_self';
+        if (slide.linkType === 'product' && slide.productId) {
+            buttonLink = `javascript:window.openDetails('${slide.productId}')`;
+        } else if (slide.linkType === 'download' && slide.downloadUrl) {
+            buttonLink = slide.downloadUrl;
+            buttonTarget = '_blank';
+        } else if (slide.linkType === 'url' && slide.customUrl) {
+            buttonLink = slide.customUrl;
+            buttonTarget = '_blank';
+        }
+        return `
+            <div class="slide-item ${isActive}" style="background-image:url('${imageUrl}');">
+                <div class="slide-overlay">
+                    ${title ? `<h2 class="slide-title">${title}</h2>` : ''}
+                    ${subtitle ? `<p class="slide-subtitle">${subtitle}</p>` : ''}
+                    ${buttonText ? `<a href="${buttonLink}" target="${buttonTarget}" class="slide-btn">${buttonText}</a>` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+    dots.innerHTML = sliderSlides.map((_, index) => {
+        const isActive = index === currentSlideIndex ? 'active' : '';
+        return `<span class="dot ${isActive}" onclick="goToSlide(${index})"></span>`;
+    }).join('');
+    updateSliderHeight();
+}
+
+function updateSliderHeight() {
+    const wrapper = document.getElementById('sliderWrapper');
+    if (!wrapper) return;
+    wrapper.style.minHeight = '300px';
+}
+
+function goToSlide(index) {
+    if (index < 0 || index >= sliderSlides.length) return;
+    currentSlideIndex = index;
+    renderSlider();
+    resetSliderTimer();
+}
+
+function nextSlide() {
+    if (sliderSlides.length === 0) return;
+    currentSlideIndex = (currentSlideIndex + 1) % sliderSlides.length;
+    renderSlider();
+    resetSliderTimer();
+}
+
+function prevSlide() {
+    if (sliderSlides.length === 0) return;
+    currentSlideIndex = (currentSlideIndex - 1 + sliderSlides.length) % sliderSlides.length;
+    renderSlider();
+    resetSliderTimer();
+}
+
+function startSliderRotation() {
+    if (sliderTimer) clearInterval(sliderTimer);
+    if (sliderSlides.length <= 1) return;
+    sliderTimer = setInterval(() => {
+        if (!isSliderPaused) {
+            nextSlide();
+        }
+    }, sliderIntervalTime * 1000);
+}
+
+function resetSliderTimer() {
+    if (sliderTimer) {
+        clearInterval(sliderTimer);
+        startSliderRotation();
+    }
+}
+
+function pauseSlider() {
+    isSliderPaused = true;
+}
+
+function resumeSlider() {
+    isSliderPaused = false;
+}
 
 // ============================================================
-// 40. تصدير الطلبات (CSV)
+// 40. دوال إدارة السلايدر (Admin Slider)
 // ============================================================
 
-window.exportOrders = function() {
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
-    let ordersToExport = allOrders;
-    const searchQuery = document.getElementById('adminSearchInput')?.value.trim().toLowerCase();
-    if (searchQuery) {
-        ordersToExport = allOrders.filter(order => {
-            const email = (order.userEmail || '').toLowerCase();
-            const orderId = String(order.orderId || order.id || '').toLowerCase();
-            const userName = (order.userName || '').toLowerCase();
-            return email.includes(searchQuery) || orderId.includes(searchQuery) || userName.includes(searchQuery);
+async function saveSliderInterval() {
+    const input = document.getElementById('sliderIntervalInput');
+    const interval = parseFloat(input.value);
+    if (isNaN(interval) || interval < 1) {
+        showToast('⚠️ Please enter a valid number (min 1 second)', 'warning');
+        return;
+    }
+    sliderIntervalTime = interval;
+    try {
+        const settingsRef = doc(db, 'settings', 'slider');
+        await setDoc(settingsRef, { interval: sliderIntervalTime, slides: sliderSlides }, { merge: true });
+        showToast('✅ Interval saved!', 'success');
+        resetSliderTimer();
+        renderSlider();
+    } catch (error) {
+        console.error('Error saving interval:', error);
+        showToast('❌ Failed to save interval', 'error');
+    }
+}
+
+function renderSliderSettingsUI() {
+    const container = document.getElementById('sliderSlidesList');
+    if (!container) return;
+    if (sliderSlides.length === 0) {
+        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);opacity:0.5;">No slides yet. Click "Add Slide" to get started.</div>`;
+        return;
+    }
+    container.innerHTML = sliderSlides.map((slide, index) => {
+        const product = products.find(p => p.id === slide.productId);
+        const productName = product ? product.name : 'Unknown';
+        return `
+            <div class="admin-item">
+                <div class="item-info">
+                    <div class="item-title">
+                        <img src="${slide.imageUrl || 'https://picsum.photos/seed/default/60/60'}" style="width:40px;height:40px;border-radius:var(--radius-sm);object-fit:cover;margin-right:8px;" />
+                        ${slide.title || 'Slide ' + (index+1)}
+                        <span style="font-size:11px;opacity:0.4;font-weight:400;">
+                            ${slide.linkType === 'product' ? '📦 Product: ' + productName : slide.linkType === 'download' ? '📥 Download' : '🔗 Custom URL'}
+                        </span>
+                    </div>
+                    <div class="item-meta">${slide.subtitle || ''}</div>
+                </div>
+                <div class="item-actions">
+                    <button class="btn-edit" onclick="editSlide(${index})"><i class="fas fa-edit"></i></button>
+                    <button class="btn-delete" onclick="deleteSlide(${index})"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function updateSlideProductSelect() {
+    const select = document.getElementById('slideProductSelect');
+    if (!select) return;
+    select.innerHTML = products.map(p => `<option value="${p.id}">${p.name} ($${p.price})</option>`).join('');
+}
+
+function openAddSlideModal() {
+    updateSlideProductSelect();
+    document.getElementById('addSlideModal').classList.add('open');
+    document.getElementById('addSlideForm').reset();
+    document.getElementById('slideImagePreview').style.display = 'none';
+    toggleSlideLinkFields();
+}
+
+function closeAddSlideModal() {
+    document.getElementById('addSlideModal').classList.remove('open');
+}
+
+function toggleSlideLinkFields() {
+    const type = document.getElementById('slideLinkType').value;
+    document.getElementById('slideProductGroup').style.display = type === 'product' ? 'block' : 'none';
+    document.getElementById('slideDownloadGroup').style.display = type === 'download' ? 'block' : 'none';
+    document.getElementById('slideCustomUrlGroup').style.display = type === 'url' ? 'block' : 'none';
+}
+
+// ربط الأحداث
+document.addEventListener('DOMContentLoaded', function() {
+    const linkType = document.getElementById('slideLinkType');
+    if (linkType) {
+        linkType.addEventListener('change', toggleSlideLinkFields);
+    }
+    const fileInput = document.getElementById('slideImageFile');
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const preview = document.getElementById('slideImagePreview');
+                    const img = preview.querySelector('img');
+                    img.src = event.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
         });
     }
-    if (!ordersToExport || ordersToExport.length === 0) { showToast('📭 No orders to export', 'warning'); return; }
-    const headers = ['Order ID', 'User', 'Email', 'Products', 'Total ($)', 'Status', 'Date'];
-    const rows = ordersToExport.map(order => {
-        const itemsNames = order.items ? order.items.map(i => i.name).join('; ') : 'N/A';
-        const status = order.status || 'pending';
-        const date = order.date ? new Date(order.date).toLocaleDateString('en-US') : '';
-        return [String(order.orderId || order.id || '').slice(-6), order.userName || 'Unknown', order.userEmail || 'N/A', itemsNames, (order.total || 0).toFixed(2), status, date];
-    });
-    let csvContent = headers.join(',') + '\n';
-    rows.forEach(row => { const escapedRow = row.map(cell => `"${String(cell).replace(/"/g, '""')}"`); csvContent += escapedRow.join(',') + '\n'; });
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.href = url;
-    link.setAttribute('download', `orders_export_${new Date().toISOString().slice(0,10)}.csv`);
-    document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url);
-    showToast(`✅ Exported ${rows.length} orders`, 'success');
-};
+    const form = document.getElementById('addSlideForm');
+    if (form) {
+        form.addEventListener('submit', addSlide);
+    }
+});
 
-// ============================================================
-// 41. لوحة الإحصائيات المتقدمة (Chart.js)
-// ============================================================
-
-function loadChartJs() {
-    return new Promise((resolve, reject) => {
-        if (typeof Chart !== 'undefined') { resolve(); return; }
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
-        script.onload = () => resolve();
-        script.onerror = () => reject(new Error('Failed to load Chart.js'));
-        document.head.appendChild(script);
-    });
+async function addSlide(e) {
+    e.preventDefault();
+    const fileInput = document.getElementById('slideImageFile');
+    const file = fileInput.files[0];
+    if (!file) {
+        showToast('⚠️ Please select an image', 'warning');
+        return;
+    }
+    showToast('⏳ Uploading image...', 'info');
+    const imageUrl = await uploadToCloudinary(file);
+    if (!imageUrl) {
+        showToast('❌ Failed to upload image', 'error');
+        return;
+    }
+    const title = document.getElementById('slideTitle').value.trim();
+    const subtitle = document.getElementById('slideSubtitle').value.trim();
+    const buttonText = document.getElementById('slideButtonText').value.trim() || 'Buy Now';
+    const linkType = document.getElementById('slideLinkType').value;
+    let productId = '';
+    let downloadUrl = '';
+    let customUrl = '';
+    if (linkType === 'product') {
+        productId = document.getElementById('slideProductSelect').value;
+        if (!productId) {
+            showToast('⚠️ Please select a product', 'warning');
+            return;
+        }
+    } else if (linkType === 'download') {
+        downloadUrl = document.getElementById('slideDownloadUrl').value.trim();
+        if (!downloadUrl) {
+            showToast('⚠️ Please enter a download URL', 'warning');
+            return;
+        }
+    } else if (linkType === 'url') {
+        customUrl = document.getElementById('slideCustomUrl').value.trim();
+        if (!customUrl) {
+            showToast('⚠️ Please enter a custom URL', 'warning');
+            return;
+        }
+    }
+    const newSlide = {
+        imageUrl,
+        title,
+        subtitle,
+        buttonText,
+        linkType,
+        productId,
+        downloadUrl,
+        customUrl,
+        createdAt: new Date().toISOString()
+    };
+    sliderSlides.push(newSlide);
+    await saveSliderData();
+    renderSlider();
+    renderSliderSettingsUI();
+    resetSliderTimer();
+    closeAddSlideModal();
+    showToast('✅ Slide added successfully!', 'success');
 }
-let salesChartInstance = null;
-async function loadAdvancedStats() {
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
-    const container = document.getElementById('advancedStatsContainer');
-    if (!container) return;
-    container.innerHTML = `<div style="text-align:center;padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading statistics...</div>`;
+
+async function deleteSlide(index) {
+    if (!confirm('Delete this slide?')) return;
+    sliderSlides.splice(index, 1);
+    await saveSliderData();
+    renderSlider();
+    renderSliderSettingsUI();
+    resetSliderTimer();
+    showToast('🗑️ Slide deleted', 'success');
+}
+
+function editSlide(index) {
+    showToast('✏️ Edit feature coming soon', 'info');
+}
+
+async function saveSliderData() {
     try {
-        const usersRef = collection(db, 'users');
-        const snapshot = await getDocs(usersRef);
-        let allOrders = [];
-        snapshot.forEach(doc => { const data = doc.data(); const history = data.history || []; history.forEach(order => { allOrders.push({ ...order, userEmail: data.email || doc.id, userName: data.name || 'Unknown', userId: doc.id, orderId: order.id || 'order_' + Date.now() }); }); });
-        const totalOrders = allOrders.length;
-        const totalRevenue = allOrders.reduce((sum, o) => sum + (o.total || 0), 0);
-        const pendingOrders = allOrders.filter(o => (o.status || 'pending') === 'pending').length;
-        const completedOrders = allOrders.filter(o => o.status === 'completed' || o.status === 'delivered').length;
-        const productCounts = {};
-        allOrders.forEach(order => { if (order.items) { order.items.forEach(item => { const name = item.name || 'Unknown'; productCounts[name] = (productCounts[name] || 0) + (item.quantity || 1); }); } });
-        const topProducts = Object.entries(productCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
-        const today = new Date();
-        const dayNames = []; const dayCounts = [];
-        for (let i = 6; i >= 0; i--) { const d = new Date(today); d.setDate(d.getDate() - i); const dateStr = d.toISOString().split('T')[0]; dayNames.push(d.toLocaleDateString('en-US', { weekday: 'short' })); const count = allOrders.filter(o => { const orderDate = o.date ? new Date(o.date).toISOString().split('T')[0] : ''; return orderDate === dateStr; }).length; dayCounts.push(count); }
-        const totalUsers = snapshot.size;
-        container.innerHTML = `
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px;">
-                <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--primary);">${totalOrders}</div><div style="font-size:12px;color:var(--text-secondary);">Total Orders</div></div>
-                <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--vip-color);">$${totalRevenue.toFixed(2)}</div><div style="font-size:12px;color:var(--text-secondary);">Revenue</div></div>
-                <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--pending-color);">${pendingOrders}</div><div style="font-size:12px;color:var(--text-secondary);">Pending</div></div>
-                <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--success);">${completedOrders}</div><div style="font-size:12px;color:var(--text-secondary);">Completed</div></div>
-                <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--text);">${totalUsers}</div><div style="font-size:12px;color:var(--text-secondary);">Total Users</div></div>
-            </div>
-            <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;">
-                <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;"><div style="font-weight:600;margin-bottom:8px;">📈 Orders Trend (Last 7 Days)</div><canvas id="salesChart" style="max-height:200px;width:100%;"></canvas></div>
-                <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;"><div style="font-weight:600;margin-bottom:8px;">🏆 Top Products</div>${topProducts.length === 0 ? '<div style="color:var(--text-secondary);opacity:0.5;">No data</div>' : topProducts.map(([name, count]) => `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:13px;"><span>${name}</span><span style="font-weight:600;">${count}</span></div>`).join('')}</div>
-            </div>`;
-        await loadChartJs();
-        const ctx = document.getElementById('salesChart')?.getContext('2d');
-        if (ctx) { if (salesChartInstance) salesChartInstance.destroy(); salesChartInstance = new Chart(ctx, { type: 'line', data: { labels: dayNames, datasets: [{ label: 'Orders', data: dayCounts, borderColor: 'var(--primary)', backgroundColor: 'rgba(99,102,241,0.1)', tension: 0.3, fill: true }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } } }); }
-    } catch (error) { console.error('Error loading advanced stats:', error); container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load statistics</div>`; }
-}
-window.refreshAdvancedStats = function() { loadAdvancedStats(); showToast('🔄 Stats refreshed', 'info'); };
-
-// ============================================================
-// 42. Social Proof Toast (إشعارات اجتماعية)
-// ============================================================
-
-let socialProofQueue = [];
-let isSocialProofShowing = false;
-
-function addPurchaseEvent(userName, productName) {
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-    socialProofQueue.push({ userName: userName || 'Someone', productName: productName || 'a product', time: timeStr });
-    try { const saved = JSON.parse(localStorage.getItem('social_proof_queue') || '[]'); saved.push({ userName: userName || 'Someone', productName: productName || 'a product', time: timeStr }); if (saved.length > 50) saved.shift(); localStorage.setItem('social_proof_queue', JSON.stringify(saved)); } catch (e) {}
-}
-function showNextSocialProof() {
-    if (isSocialProofShowing) return;
-    if (socialProofQueue.length === 0) {
-        try { const saved = JSON.parse(localStorage.getItem('social_proof_queue') || '[]'); if (saved.length > 0) { socialProofQueue = saved; } else { const demoUsers = ['Ahmed', 'Sara', 'Mohamed', 'Fatima', 'Youssef', 'Lina', 'Omar']; const demoProducts = ['Mergedom VIP', '2048 Pro', 'Screwdom 3D', 'Telegram Bot', 'Auto Clicker']; for (let i = 0; i < 5; i++) { const now = new Date(); const minutesAgo = Math.floor(Math.random() * 30); now.setMinutes(now.getMinutes() - minutesAgo); const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }); socialProofQueue.push({ userName: demoUsers[Math.floor(Math.random() * demoUsers.length)], productName: demoProducts[Math.floor(Math.random() * demoProducts.length)], time: timeStr }); } localStorage.setItem('social_proof_queue', JSON.stringify(socialProofQueue)); } } catch (e) { return; } }
-    if (socialProofQueue.length === 0) return;
-    const event = socialProofQueue.shift();
-    isSocialProofShowing = true;
-    const toast = document.getElementById('socialProofToast');
-    const nameEl = document.getElementById('spUserName');
-    const productEl = document.getElementById('spProductName');
-    const timeEl = document.getElementById('spTime');
-    if (!toast || !nameEl || !productEl || !timeEl) { isSocialProofShowing = false; return; }
-    let displayName = event.userName || 'Someone';
-    if (displayName.length > 3) { displayName = displayName.slice(0, 1) + '***' + displayName.slice(-1); }
-    nameEl.textContent = displayName;
-    productEl.textContent = event.productName || 'a product';
-    timeEl.textContent = event.time || 'just now';
-    toast.classList.add('show');
-    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => { isSocialProofShowing = false; const delay = 8000 + Math.random() * 7000; clearTimeout(window._spTimeout); window._spTimeout = setTimeout(showNextSocialProof, delay); }, 500); }, 5000);
-}
-function startSocialProof() {
-    if (socialProofQueue.length === 0) {
-        try { const saved = JSON.parse(localStorage.getItem('social_proof_queue') || '[]'); if (saved.length > 0) { socialProofQueue = saved; } else { const demoUsers = ['Ahmed', 'Sara', 'Mohamed', 'Fatima', 'Youssef', 'Lina', 'Omar']; const demoProducts = ['Mergedom VIP', '2048 Pro', 'Screwdom 3D', 'Telegram Bot', 'Auto Clicker']; for (let i = 0; i < 5; i++) { const now = new Date(); const minutesAgo = Math.floor(Math.random() * 30); now.setMinutes(now.getMinutes() - minutesAgo); const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }); socialProofQueue.push({ userName: demoUsers[Math.floor(Math.random() * demoUsers.length)], productName: demoProducts[Math.floor(Math.random() * demoProducts.length)], time: timeStr }); } localStorage.setItem('social_proof_queue', JSON.stringify(socialProofQueue)); } } catch (e) { console.warn('Social proof init error:', e); } }
-    setTimeout(showNextSocialProof, 3000);
-}
-function triggerSocialProofOnOrder(userName, productNames) {
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-    const firstProduct = Array.isArray(productNames) ? productNames[0] : productNames;
-    addPurchaseEvent(userName, firstProduct);
-    if (!isSocialProofShowing && socialProofQueue.length > 0) { showNextSocialProof(); }
+        const settingsRef = doc(db, 'settings', 'slider');
+        await setDoc(settingsRef, {
+            interval: sliderIntervalTime,
+            slides: sliderSlides,
+            updatedAt: serverTimestamp()
+        }, { merge: true });
+    } catch (error) {
+        console.error('Error saving slider data:', error);
+        showToast('❌ Failed to save slider data', 'error');
+    }
 }
 
 // ============================================================
-// 43. Admin Audit Logs (سجل نشاط المدير)
-// ============================================================
-
-async function addAuditLog(action, details) {
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
-    try { await addDoc(collection(db, 'auditLogs'), { action, details: details || '', adminId: currentUser.uid, adminEmail: currentUser.email, adminName: currentUser.displayName || 'Admin', timestamp: serverTimestamp(), date: new Date().toISOString() }); console.log('📝 Audit log added:', action); } catch (error) { console.error('❌ Failed to add audit log:', error); }
-}
-async function loadAuditLogs() {
-    const container = document.getElementById('auditLogsContainer');
-    if (!container) return;
-    container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading logs...</div>`;
-    try {
-        const logsRef = collection(db, 'auditLogs');
-        const q = query(logsRef, orderBy('timestamp', 'desc'));
-        const snapshot = await getDocs(q);
-        if (snapshot.empty) { container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">📭 No audit logs yet</div>`; return; }
-        let html = `<div style="display:flex;flex-direction:column;gap:6px;max-height:400px;overflow-y:auto;">`;
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            const date = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '--';
-            const admin = data.adminName || data.adminEmail || 'Admin';
-            const action = data.action || 'Action';
-            const details = data.details || '';
-            html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg);border-radius:8px;border:1px solid var(--border);font-size:13px;"><div><span style="font-weight:600;color:var(--text);">${admin}</span><span style="color:var(--text-secondary);opacity:0.5;margin:0 4px;">→</span><span style="color:var(--primary);font-weight:500;">${action}</span>${details ? `<span style="color:var(--text-secondary);opacity:0.4;margin-left:4px;">${details}</span>` : ''}</div><span style="font-size:11px;color:var(--text-secondary);opacity:0.3;">${date}</span></div>`;
-        });
-        html += `</div>`; container.innerHTML = html;
-    } catch (error) { console.error('Error loading audit logs:', error); container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load logs</div>`; }
-}
-
-// ============================================================
-// 44. Ratings & Reviews (التقييمات والمراجعات)
-// ============================================================
-
-let currentRating = 0;
-let currentProductIdForRating = null;
-
-async function loadRatings(productId) {
-    const container = document.getElementById('ratingReviewsList');
-    const avgEl = document.getElementById('ratingAvgDisplay');
-    const countEl = document.getElementById('ratingCountDisplay');
-    if (!container) return;
-    try {
-        const ratingsRef = collection(db, 'ratings');
-        const q = query(ratingsRef, where('productId', '==', productId));
-        const snapshot = await getDocs(q);
-        let total = 0, count = 0, reviewsHtml = '';
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            total += data.rating || 0; count++;
-            const date = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '--';
-            const stars = '⭐'.repeat(Math.round(data.rating || 0));
-            reviewsHtml += `<div class="rating-review-item"><div class="rr-header"><span class="rr-name">${data.userName || 'User'}</span><span class="rr-stars">${stars}</span>${data.verified ? '<span class="rr-badge">✅ Verified</span>' : ''}<span class="rr-date">${date}</span></div>${data.comment ? `<div class="rr-comment">${data.comment}</div>` : ''}</div>`;
-        });
-        const avg = count > 0 ? (total / count) : 0;
-        const fullStars = '⭐'.repeat(Math.round(avg));
-        const emptyStars = '☆'.repeat(5 - Math.round(avg));
-        if (avgEl) avgEl.textContent = avg.toFixed(1);
-        if (countEl) countEl.textContent = `(${count} reviews)`;
-        container.innerHTML = reviewsHtml || `<div style="text-align:center;padding:10px;color:var(--text-secondary);opacity:0.4;">No reviews yet. Be the first!</div>`;
-        const avgStarsEl = document.getElementById('ratingAvgStars');
-        if (avgStarsEl) { avgStarsEl.textContent = fullStars + emptyStars; }
-        return { avg, count };
-    } catch (error) { console.error('Error loading ratings:', error); container.innerHTML = `<div style="text-align:center;padding:10px;color:var(--danger);">Failed to load reviews</div>`; return { avg: 0, count: 0 }; }
-}
-function hasUserPurchasedProduct(productId) {
-    if (!currentUser) return false;
-    const history = userProfile.history || [];
-    return history.some(order => { if (!order.items) return false; return order.items.some(item => item.id === productId); });
-}
-async function submitRating(productId) {
-    if (!currentUser) { showToast('⚠️ Please login to rate', 'warning'); return; }
-    if (currentUser.isAnonymous) { showToast('⚠️ Please sign in to rate', 'warning'); return; }
-    const comment = document.getElementById('ratingCommentInput')?.value.trim() || '';
-    const rating = currentRating;
-    if (rating === 0) { showToast('⭐ Please select a star rating', 'warning'); return; }
-    if (!hasUserPurchasedProduct(productId)) { showToast('⚠️ You can only rate products you have purchased', 'warning'); return; }
-    try {
-        const ratingsRef = collection(db, 'ratings');
-        const q = query(ratingsRef, where('productId', '==', productId), where('userId', '==', currentUser.uid));
-        const snapshot = await getDocs(q);
-        if (!snapshot.empty) { showToast('⚠️ You already rated this product', 'warning'); return; }
-        await addDoc(collection(db, 'ratings'), { productId, userId: currentUser.uid, userName: currentUser.displayName || currentUser.email || 'User', rating, comment, verified: true, timestamp: serverTimestamp() });
-        showToast('✅ Rating submitted! Thank you!', 'success');
-        currentRating = 0;
-        document.getElementById('ratingStarsContainer').innerHTML = renderStarHTML(0);
-        document.getElementById('ratingCommentInput').value = '';
-        loadRatings(productId);
-        updateProductRatingDisplay(productId);
-    } catch (error) { console.error('Error submitting rating:', error); showToast('❌ Error: ' + error.message, 'error'); }
-}
-function renderStarHTML(rating) { let html = ''; for (let i = 1; i <= 5; i++) { html += `<span class="star ${i <= rating ? 'active' : ''}" data-value="${i}" onclick="setRating(${i})">★</span>`; } return html; }
-window.setRating = function(value) { currentRating = value; const container = document.getElementById('ratingStarsContainer'); if (container) { container.innerHTML = renderStarHTML(value); } };
-function renderRatingSection(productId) {
-    const section = document.getElementById('ratingSection');
-    if (!section) return;
-    const canRate = currentUser && !currentUser.isAnonymous && hasUserPurchasedProduct(productId);
-    const isLoggedIn = currentUser && !currentUser.isAnonymous;
-    section.innerHTML = `
-        <div class="rating-section">
-            <div class="rating-avg"><span class="stars-small" id="ratingAvgStars">☆☆☆☆☆</span><span class="count" id="ratingCountDisplay">(0 reviews)</span><span style="font-weight:700;color:var(--vip-color);margin-left:4px;" id="ratingAvgDisplay">0.0</span></div>
-            <div id="ratingReviewsList" style="max-height:150px;overflow-y:auto;margin-bottom:8px;"><div style="text-align:center;padding:10px;color:var(--text-secondary);opacity:0.4;">Loading reviews...</div></div>
-            ${canRate ? `<div style="border-top:1px solid var(--border);padding-top:10px;margin-top:8px;"><div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">⭐ Rate this product</div><div class="rating-stars" id="ratingStarsContainer">${renderStarHTML(0)}</div><textarea class="rating-comment-input" id="ratingCommentInput" placeholder="Share your experience... (optional)" rows="2"></textarea><button class="rating-submit-btn" onclick="submitRating('${productId}')"><i class="fas fa-paper-plane"></i> Submit Review</button></div>` : (isLoggedIn ? `<div style="font-size:12px;color:var(--text-secondary);opacity:0.4;text-align:center;padding:4px;">📌 Purchase this product to leave a review</div>` : `<div style="font-size:12px;color:var(--text-secondary);opacity:0.4;text-align:center;padding:4px;">🔒 Login to rate this product</div>`)}
-        </div>`;
-    loadRatings(productId);
-}
-async function updateProductRatingDisplay(productId) { const ratingsRef = collection(db, 'ratings'); const q = query(ratingsRef, where('productId', '==', productId)); const snapshot = await getDocs(q); let total = 0; let count = 0; snapshot.forEach(doc => { total += doc.data().rating || 0; count++; }); const avg = count > 0 ? total / count : 0; }
-
-// ============================================================
-// 45. PDF Generator (مولد الفواتير) - مع دعم النص JSON
+// 41. PDF Generator (مولد الفواتير)
 // ============================================================
 
 async function generateInvoice(orderData) {
-    // إذا كان orderData نصاً (string)، قم بتحويله إلى كائن
     let order = orderData;
     if (typeof order === 'string') {
         try {
@@ -3028,8 +3202,6 @@ async function generateInvoice(orderData) {
         showToast('❌ Order not found', 'error');
         return;
     }
-
-    // التأكد من تحميل مكتبة jsPDF
     if (typeof window.jspdf === 'undefined') {
         showToast('⏳ Loading PDF library...', 'info');
         await new Promise((resolve) => {
@@ -3039,13 +3211,10 @@ async function generateInvoice(orderData) {
             document.head.appendChild(script);
         });
     }
-
-    // تأكد من أن المكتبة تم تحميلها
     if (typeof window.jspdf === 'undefined') {
         showToast('❌ Failed to load PDF library', 'error');
         return;
     }
-
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -3108,7 +3277,284 @@ async function generateInvoice(orderData) {
 }
 
 // ============================================================
-// 46. التصديرات النهائية (بدون مكافأة يومية)
+// 42. Ratings & Reviews (التقييمات والمراجعات)
+// ============================================================
+
+let currentRating = 0;
+let currentProductIdForRating = null;
+
+async function loadRatings(productId) {
+    const container = document.getElementById('ratingReviewsList');
+    const avgEl = document.getElementById('ratingAvgDisplay');
+    const countEl = document.getElementById('ratingCountDisplay');
+    if (!container) return;
+    try {
+        const ratingsRef = collection(db, 'ratings');
+        const q = query(ratingsRef, where('productId', '==', productId));
+        const snapshot = await getDocs(q);
+        let total = 0, count = 0, reviewsHtml = '';
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            total += data.rating || 0; count++;
+            const date = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '--';
+            const stars = '⭐'.repeat(Math.round(data.rating || 0));
+            reviewsHtml += `<div class="rating-review-item"><div class="rr-header"><span class="rr-name">${data.userName || 'User'}</span><span class="rr-stars">${stars}</span>${data.verified ? '<span class="rr-badge">✅ Verified</span>' : ''}<span class="rr-date">${date}</span></div>${data.comment ? `<div class="rr-comment">${data.comment}</div>` : ''}</div>`;
+        });
+        const avg = count > 0 ? (total / count) : 0;
+        const fullStars = '⭐'.repeat(Math.round(avg));
+        const emptyStars = '☆'.repeat(5 - Math.round(avg));
+        if (avgEl) avgEl.textContent = avg.toFixed(1);
+        if (countEl) countEl.textContent = `(${count} reviews)`;
+        container.innerHTML = reviewsHtml || `<div style="text-align:center;padding:10px;color:var(--text-secondary);opacity:0.4;">No reviews yet. Be the first!</div>`;
+        const avgStarsEl = document.getElementById('ratingAvgStars');
+        if (avgStarsEl) { avgStarsEl.textContent = fullStars + emptyStars; }
+        return { avg, count };
+    } catch (error) { console.error('Error loading ratings:', error); container.innerHTML = `<div style="text-align:center;padding:10px;color:var(--danger);">Failed to load reviews</div>`; return { avg: 0, count: 0 }; }
+}
+
+function hasUserPurchasedProduct(productId) {
+    if (!currentUser) return false;
+    const history = userProfile.history || [];
+    return history.some(order => { if (!order.items) return false; return order.items.some(item => item.id === productId); });
+}
+
+async function submitRating(productId) {
+    if (!currentUser) { showToast('⚠️ Please login to rate', 'warning'); return; }
+    if (currentUser.isAnonymous) { showToast('⚠️ Please sign in to rate', 'warning'); return; }
+    const comment = document.getElementById('ratingCommentInput')?.value.trim() || '';
+    const rating = currentRating;
+    if (rating === 0) { showToast('⭐ Please select a star rating', 'warning'); return; }
+    if (!hasUserPurchasedProduct(productId)) { showToast('⚠️ You can only rate products you have purchased', 'warning'); return; }
+    try {
+        const ratingsRef = collection(db, 'ratings');
+        const q = query(ratingsRef, where('productId', '==', productId), where('userId', '==', currentUser.uid));
+        const snapshot = await getDocs(q);
+        if (!snapshot.empty) { showToast('⚠️ You already rated this product', 'warning'); return; }
+        await addDoc(collection(db, 'ratings'), { productId, userId: currentUser.uid, userName: currentUser.displayName || currentUser.email || 'User', rating, comment, verified: true, timestamp: serverTimestamp() });
+        showToast('✅ Rating submitted! Thank you!', 'success');
+        currentRating = 0;
+        document.getElementById('ratingStarsContainer').innerHTML = renderStarHTML(0);
+        document.getElementById('ratingCommentInput').value = '';
+        loadRatings(productId);
+        updateProductRatingDisplay(productId);
+    } catch (error) { console.error('Error submitting rating:', error); showToast('❌ Error: ' + error.message, 'error'); }
+}
+
+function renderStarHTML(rating) { let html = ''; for (let i = 1; i <= 5; i++) { html += `<span class="star ${i <= rating ? 'active' : ''}" data-value="${i}" onclick="setRating(${i})">★</span>`; } return html; }
+window.setRating = function(value) { currentRating = value; const container = document.getElementById('ratingStarsContainer'); if (container) { container.innerHTML = renderStarHTML(value); } };
+
+function renderRatingSection(productId) {
+    const section = document.getElementById('ratingSection');
+    if (!section) return;
+    const canRate = currentUser && !currentUser.isAnonymous && hasUserPurchasedProduct(productId);
+    const isLoggedIn = currentUser && !currentUser.isAnonymous;
+    section.innerHTML = `
+        <div class="rating-section">
+            <div class="rating-avg"><span class="stars-small" id="ratingAvgStars">☆☆☆☆☆</span><span class="count" id="ratingCountDisplay">(0 reviews)</span><span style="font-weight:700;color:var(--vip-color);margin-left:4px;" id="ratingAvgDisplay">0.0</span></div>
+            <div id="ratingReviewsList" style="max-height:150px;overflow-y:auto;margin-bottom:8px;"><div style="text-align:center;padding:10px;color:var(--text-secondary);opacity:0.4;">Loading reviews...</div></div>
+            ${canRate ? `<div style="border-top:1px solid var(--border);padding-top:10px;margin-top:8px;"><div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">⭐ Rate this product</div><div class="rating-stars" id="ratingStarsContainer">${renderStarHTML(0)}</div><textarea class="rating-comment-input" id="ratingCommentInput" placeholder="Share your experience... (optional)" rows="2"></textarea><button class="rating-submit-btn" onclick="submitRating('${productId}')"><i class="fas fa-paper-plane"></i> Submit Review</button></div>` : (isLoggedIn ? `<div style="font-size:12px;color:var(--text-secondary);opacity:0.4;text-align:center;padding:4px;">📌 Purchase this product to leave a review</div>` : `<div style="font-size:12px;color:var(--text-secondary);opacity:0.4;text-align:center;padding:4px;">🔒 Login to rate this product</div>`)}
+        </div>`;
+    loadRatings(productId);
+}
+
+async function updateProductRatingDisplay(productId) { const ratingsRef = collection(db, 'ratings'); const q = query(ratingsRef, where('productId', '==', productId)); const snapshot = await getDocs(q); let total = 0; let count = 0; snapshot.forEach(doc => { total += doc.data().rating || 0; count++; }); const avg = count > 0 ? total / count : 0; }
+
+// ============================================================
+// 43. Social Proof Toast (إشعارات اجتماعية)
+// ============================================================
+
+let socialProofQueue = [];
+let isSocialProofShowing = false;
+
+function addPurchaseEvent(userName, productName) {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    socialProofQueue.push({ userName: userName || 'Someone', productName: productName || 'a product', time: timeStr });
+    try { const saved = JSON.parse(localStorage.getItem('social_proof_queue') || '[]'); saved.push({ userName: userName || 'Someone', productName: productName || 'a product', time: timeStr }); if (saved.length > 50) saved.shift(); localStorage.setItem('social_proof_queue', JSON.stringify(saved)); } catch (e) {}
+}
+function showNextSocialProof() {
+    if (isSocialProofShowing) return;
+    if (socialProofQueue.length === 0) {
+        try { const saved = JSON.parse(localStorage.getItem('social_proof_queue') || '[]'); if (saved.length > 0) { socialProofQueue = saved; } else { const demoUsers = ['Ahmed', 'Sara', 'Mohamed', 'Fatima', 'Youssef', 'Lina', 'Omar']; const demoProducts = ['Mergedom VIP', '2048 Pro', 'Screwdom 3D', 'Telegram Bot', 'Auto Clicker']; for (let i = 0; i < 5; i++) { const now = new Date(); const minutesAgo = Math.floor(Math.random() * 30); now.setMinutes(now.getMinutes() - minutesAgo); const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }); socialProofQueue.push({ userName: demoUsers[Math.floor(Math.random() * demoUsers.length)], productName: demoProducts[Math.floor(Math.random() * demoProducts.length)], time: timeStr }); } localStorage.setItem('social_proof_queue', JSON.stringify(socialProofQueue)); } } catch (e) { return; } }
+    if (socialProofQueue.length === 0) return;
+    const event = socialProofQueue.shift();
+    isSocialProofShowing = true;
+    const toast = document.getElementById('socialProofToast');
+    const nameEl = document.getElementById('spUserName');
+    const productEl = document.getElementById('spProductName');
+    const timeEl = document.getElementById('spTime');
+    if (!toast || !nameEl || !productEl || !timeEl) { isSocialProofShowing = false; return; }
+    let displayName = event.userName || 'Someone';
+    if (displayName.length > 3) { displayName = displayName.slice(0, 1) + '***' + displayName.slice(-1); }
+    nameEl.textContent = displayName;
+    productEl.textContent = event.productName || 'a product';
+    timeEl.textContent = event.time || 'just now';
+    toast.classList.add('show');
+    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => { isSocialProofShowing = false; const delay = 8000 + Math.random() * 7000; clearTimeout(window._spTimeout); window._spTimeout = setTimeout(showNextSocialProof, delay); }, 500); }, 5000);
+}
+function startSocialProof() {
+    if (socialProofQueue.length === 0) {
+        try { const saved = JSON.parse(localStorage.getItem('social_proof_queue') || '[]'); if (saved.length > 0) { socialProofQueue = saved; } else { const demoUsers = ['Ahmed', 'Sara', 'Mohamed', 'Fatima', 'Youssef', 'Lina', 'Omar']; const demoProducts = ['Mergedom VIP', '2048 Pro', 'Screwdom 3D', 'Telegram Bot', 'Auto Clicker']; for (let i = 0; i < 5; i++) { const now = new Date(); const minutesAgo = Math.floor(Math.random() * 30); now.setMinutes(now.getMinutes() - minutesAgo); const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }); socialProofQueue.push({ userName: demoUsers[Math.floor(Math.random() * demoUsers.length)], productName: demoProducts[Math.floor(Math.random() * demoProducts.length)], time: timeStr }); } localStorage.setItem('social_proof_queue', JSON.stringify(socialProofQueue)); } } catch (e) { console.warn('Social proof init error:', e); } }
+    setTimeout(showNextSocialProof, 3000);
+}
+function triggerSocialProofOnOrder(userName, productNames) {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    const firstProduct = Array.isArray(productNames) ? productNames[0] : productNames;
+    addPurchaseEvent(userName, firstProduct);
+    if (!isSocialProofShowing && socialProofQueue.length > 0) { showNextSocialProof(); }
+}
+
+// ============================================================
+// 44. Admin Audit Logs (سجل نشاط المدير)
+// ============================================================
+
+async function addAuditLog(action, details) {
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
+    try { await addDoc(collection(db, 'auditLogs'), { action, details: details || '', adminId: currentUser.uid, adminEmail: currentUser.email, adminName: currentUser.displayName || 'Admin', timestamp: serverTimestamp(), date: new Date().toISOString() }); console.log('📝 Audit log added:', action); } catch (error) { console.error('❌ Failed to add audit log:', error); }
+}
+async function loadAuditLogs() {
+    const container = document.getElementById('auditLogsContainer');
+    if (!container) return;
+    container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading logs...</div>`;
+    try {
+        const logsRef = collection(db, 'auditLogs');
+        const q = query(logsRef, orderBy('timestamp', 'desc'));
+        const snapshot = await getDocs(q);
+        if (snapshot.empty) { container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">📭 No audit logs yet</div>`; return; }
+        let html = `<div style="display:flex;flex-direction:column;gap:6px;max-height:400px;overflow-y:auto;">`;
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const date = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '--';
+            const admin = data.adminName || data.adminEmail || 'Admin';
+            const action = data.action || 'Action';
+            const details = data.details || '';
+            html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg);border-radius:8px;border:1px solid var(--border);font-size:13px;"><div><span style="font-weight:600;color:var(--text);">${admin}</span><span style="color:var(--text-secondary);opacity:0.5;margin:0 4px;">→</span><span style="color:var(--primary);font-weight:500;">${action}</span>${details ? `<span style="color:var(--text-secondary);opacity:0.4;margin-left:4px;">${details}</span>` : ''}</div><span style="font-size:11px;color:var(--text-secondary);opacity:0.3;">${date}</span></div>`;
+        });
+        html += `</div>`; container.innerHTML = html;
+    } catch (error) { console.error('Error loading audit logs:', error); container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load logs</div>`; }
+}
+
+// ============================================================
+// 45. لوحة الإحصائيات المتقدمة (Chart.js)
+// ============================================================
+
+function loadChartJs() {
+    return new Promise((resolve, reject) => {
+        if (typeof Chart !== 'undefined') { resolve(); return; }
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error('Failed to load Chart.js'));
+        document.head.appendChild(script);
+    });
+}
+let salesChartInstance = null;
+async function loadAdvancedStats() {
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
+    const container = document.getElementById('advancedStatsContainer');
+    if (!container) return;
+    container.innerHTML = `<div style="text-align:center;padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading statistics...</div>`;
+    try {
+        const usersRef = collection(db, 'users');
+        const snapshot = await getDocs(usersRef);
+        let allOrders = [];
+        snapshot.forEach(doc => { const data = doc.data(); const history = data.history || []; history.forEach(order => { allOrders.push({ ...order, userEmail: data.email || doc.id, userName: data.name || 'Unknown', userId: doc.id, orderId: order.id || 'order_' + Date.now() }); }); });
+        const totalOrders = allOrders.length;
+        const totalRevenue = allOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+        const pendingOrders = allOrders.filter(o => (o.status || 'pending') === 'pending').length;
+        const completedOrders = allOrders.filter(o => o.status === 'completed' || o.status === 'delivered').length;
+        const productCounts = {};
+        allOrders.forEach(order => { if (order.items) { order.items.forEach(item => { const name = item.name || 'Unknown'; productCounts[name] = (productCounts[name] || 0) + (item.quantity || 1); }); } });
+        const topProducts = Object.entries(productCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+        const today = new Date();
+        const dayNames = []; const dayCounts = [];
+        for (let i = 6; i >= 0; i--) { const d = new Date(today); d.setDate(d.getDate() - i); const dateStr = d.toISOString().split('T')[0]; dayNames.push(d.toLocaleDateString('en-US', { weekday: 'short' })); const count = allOrders.filter(o => { const orderDate = o.date ? new Date(o.date).toISOString().split('T')[0] : ''; return orderDate === dateStr; }).length; dayCounts.push(count); }
+        const totalUsers = snapshot.size;
+        container.innerHTML = `
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px;">
+                <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--primary);">${totalOrders}</div><div style="font-size:12px;color:var(--text-secondary);">Total Orders</div></div>
+                <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--vip-color);">$${totalRevenue.toFixed(2)}</div><div style="font-size:12px;color:var(--text-secondary);">Revenue</div></div>
+                <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--pending-color);">${pendingOrders}</div><div style="font-size:12px;color:var(--text-secondary);">Pending</div></div>
+                <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--success);">${completedOrders}</div><div style="font-size:12px;color:var(--text-secondary);">Completed</div></div>
+                <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--text);">${totalUsers}</div><div style="font-size:12px;color:var(--text-secondary);">Total Users</div></div>
+            </div>
+            <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;">
+                <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;"><div style="font-weight:600;margin-bottom:8px;">📈 Orders Trend (Last 7 Days)</div><canvas id="salesChart" style="max-height:200px;width:100%;"></canvas></div>
+                <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;"><div style="font-weight:600;margin-bottom:8px;">🏆 Top Products</div>${topProducts.length === 0 ? '<div style="color:var(--text-secondary);opacity:0.5;">No data</div>' : topProducts.map(([name, count]) => `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:13px;"><span>${name}</span><span style="font-weight:600;">${count}</span></div>`).join('')}</div>
+            </div>`;
+        await loadChartJs();
+        const ctx = document.getElementById('salesChart')?.getContext('2d');
+        if (ctx) { if (salesChartInstance) salesChartInstance.destroy(); salesChartInstance = new Chart(ctx, { type: 'line', data: { labels: dayNames, datasets: [{ label: 'Orders', data: dayCounts, borderColor: 'var(--primary)', backgroundColor: 'rgba(99,102,241,0.1)', tension: 0.3, fill: true }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } } }); }
+    } catch (error) { console.error('Error loading advanced stats:', error); container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load statistics</div>`; }
+}
+window.refreshAdvancedStats = function() { loadAdvancedStats(); showToast('🔄 Stats refreshed', 'info'); };
+window.exportOrders = function() {
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
+    let ordersToExport = allOrders;
+    const searchQuery = document.getElementById('adminSearchInput')?.value.trim().toLowerCase();
+    if (searchQuery) {
+        ordersToExport = allOrders.filter(order => {
+            const email = (order.userEmail || '').toLowerCase();
+            const orderId = String(order.orderId || order.id || '').toLowerCase();
+            const userName = (order.userName || '').toLowerCase();
+            return email.includes(searchQuery) || orderId.includes(searchQuery) || userName.includes(searchQuery);
+        });
+    }
+    if (!ordersToExport || ordersToExport.length === 0) { showToast('📭 No orders to export', 'warning'); return; }
+    const headers = ['Order ID', 'User', 'Email', 'Products', 'Total ($)', 'Status', 'Date'];
+    const rows = ordersToExport.map(order => {
+        const itemsNames = order.items ? order.items.map(i => i.name).join('; ') : 'N/A';
+        const status = order.status || 'pending';
+        const date = order.date ? new Date(order.date).toLocaleDateString('en-US') : '';
+        return [String(order.orderId || order.id || '').slice(-6), order.userName || 'Unknown', order.userEmail || 'N/A', itemsNames, (order.total || 0).toFixed(2), status, date];
+    });
+    let csvContent = headers.join(',') + '\n';
+    rows.forEach(row => { const escapedRow = row.map(cell => `"${String(cell).replace(/"/g, '""')}"`); csvContent += escapedRow.join(',') + '\n'; });
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    link.setAttribute('download', `orders_export_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url);
+    showToast(`✅ Exported ${rows.length} orders`, 'success');
+};
+
+// ============================================================
+// 46. التهيئة (Init)
+// ============================================================
+
+async function init() {
+    showLoadingScreen();
+    updateLoadingBar(10);
+    try { await signInAnonymously(auth); updateLoadingBar(30); } catch (e) { console.log('ℹ️ Anonymous sign-in'); }
+    const productsFromFirestore = await loadProductsFromFirestore();
+    products = productsFromFirestore.length > 0 ? productsFromFirestore : fallbackProducts;
+    updateLoadingBar(50);
+    startProductsRealtimeListener();
+    updateLoadingBar(70);
+    await loadUserData();
+    updateLoadingBar(85);
+    renderProducts(products, false);
+    renderFeaturedProducts();
+    generateRecommendations(products);
+    updateBottomCartBar();
+    updateDropdownStats();
+    loadDownloads();
+    loadNotifications();
+    fetchCryptoPrices();
+    loadFeaturedSettings();
+    loadSliderSettings();
+    setInterval(fetchCryptoPrices, 60000);
+    updateLoadingBar(100);
+    console.log('✅ ZI Store ready with all features!');
+    setTimeout(() => { hideLoadingScreen(); setTimeout(showTelegramBanner, 500); startSocialProof(); }, 500);
+}
+init();
+setTimeout(() => { hideLoadingScreen(); console.log('⚠️ Force hiding loading screen (timeout)'); }, 5000);
+
+// ============================================================
+// 47. التصديرات النهائية
 // ============================================================
 
 window.showToast = showToast;
@@ -3212,6 +3658,16 @@ window.setRating = setRating;
 window.submitRating = submitRating;
 window.loadAuditLogs = loadAuditLogs;
 window.generateInvoice = generateInvoice;
+window.pauseSlider = pauseSlider;
+window.resumeSlider = resumeSlider;
+window.goToSlide = goToSlide;
+window.nextSlide = nextSlide;
+window.prevSlide = prevSlide;
+window.openAddSlideModal = openAddSlideModal;
+window.closeAddSlideModal = closeAddSlideModal;
+window.saveSliderInterval = saveSliderInterval;
+window.deleteSlide = deleteSlide;
+window.editSlide = editSlide;
 
 // ============================================================
 // END OF SCRIPT.JS
