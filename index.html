@@ -40,11 +40,12 @@
         <header class="header">
             <div class="logo"><i class="fas fa-bolt"></i><span>ZI</span> Store</div>
             <div class="header-actions">
-                <button class="header-btn" onclick="openDownloads()" title="Downloads"><i class="fas fa-download"></i></button>
+                <!-- تم حذف زر التحميل (Downloads) -->
                 <button class="header-btn" onclick="openNotifications()" title="Notifications"><i class="fas fa-bell"></i><span class="badge notification" id="notifBadge">0</span></button>
                 <button class="header-btn" onclick="openWishlistFull()" title="Wishlist"><i class="fas fa-heart"></i><span class="badge heart" id="wishlistBadge">0</span></button>
                 <button class="header-btn" onclick="openCartFull()" title="Cart"><i class="fas fa-shopping-cart"></i><span class="badge cart" id="cartBadge">0</span></button>
                 <button class="user-btn" onclick="openUserMenuFull()" title="Profile"><span id="userAvatarText">U</span><span class="user-dot" id="userDot"></span></button>
+                <!-- أيقونة تغيير الثيم (Theme Toggle) -->
                 <button class="theme-toggle" id="themeToggle" title="Theme"><i class="fas fa-moon"></i></button>
             </div>
         </header>
@@ -168,7 +169,7 @@
     </div>
 
     <!-- ============================================ -->
-    <!-- مودال عرض المنتج (Preview) مع VIP Pricing و Ratings -->
+    <!-- مودال عرض المنتج (Preview) مع VIP Pricing و Ratings وفيديو -->
     <!-- ============================================ -->
     <div class="modal-overlay preview-modal" id="previewModal">
         <div class="preview-content">
@@ -177,15 +178,27 @@
                 <div class="preview-header-title">Product Details</div>
                 <button class="preview-share" onclick="shareFromPreview()"><i class="fas fa-share-alt"></i></button>
             </div>
-            <div class="preview-image-wrapper"><img id="previewImage" src="" alt="Product" /><div class="preview-badge" id="previewBadge">PREMIUM</div></div>
+            <div class="preview-image-wrapper">
+                <img id="previewImage" src="" alt="Product" />
+                <div class="preview-badge" id="previewBadge">PREMIUM</div>
+            </div>
             <div class="preview-body">
                 <div class="preview-verified" id="previewVerified">✅ 100% VERIFIED WORKING PRODUCT</div>
                 <h2 class="preview-name" id="previewName">Product Name</h2>
                 <p class="preview-desc" id="previewDescription">Description here</p>
+
+                <!-- ====== قسم فيديو YouTube ====== -->
+                <div class="preview-video" id="previewVideoContainer" style="display:none;">
+                    <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:var(--radius-md);">
+                        <iframe id="previewVideo" src="" frameborder="0" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
+                    </div>
+                </div>
+
                 <div class="preview-features" id="previewFeatures">
                     <div class="features-header"><i class="fas fa-check-circle"></i> Features</div>
                     <ul class="features-list"></ul>
                 </div>
+
                 <div id="previewVipPricing" style="display:none;">
                     <div class="vip-pricing-section">
                         <div class="vip-pricing-header"><i class="fas fa-crown"></i> VIP Pricing</div>
@@ -232,28 +245,41 @@
                     <div class="payment-option" id="optionUsdt" onclick="selectPayment('usdt')"><i class="fas fa-coins"></i><div class="p-label">USDT</div><div class="p-sub">ERC20</div><div class="p-check"><i class="fas fa-check"></i></div></div>
                     <div class="payment-option" id="optionTelegram" onclick="selectPayment('telegram')"><i class="fab fa-telegram-plane"></i><div class="p-label">Telegram</div><div class="p-sub">Direct</div><div class="p-check"><i class="fas fa-check"></i></div></div>
                 </div>
-                <div class="payment-summary"><div class="ps-row"><span class="ps-label">Total</span><span class="ps-value" id="payableTotal">$0.00</span></div><div class="ps-row"><span class="ps-label">Exchange Rate</span><span class="ps-value" id="exchangeRate">Loading...</span></div></div>
+                <div class="payment-summary">
+                    <div class="ps-row"><span class="ps-label">Total</span><span class="ps-value" id="payableTotal">$0.00</span></div>
+                    <div class="ps-row"><span class="ps-label">Exchange Rate</span><span class="ps-value" id="exchangeRate">Loading...</span></div>
+                </div>
                 <button class="payment-btn" onclick="continuePayment()"><i class="fas fa-arrow-right"></i> Continue</button>
             </div>
             <div class="payment-step2" id="paymentStep2">
                 <div class="payment-products-list" id="paymentProductsList"></div>
-                <div class="payment-summary"><div class="ps-row"><span class="ps-label">Subtotal</span><span class="ps-value" id="step2Subtotal">$0.00</span></div><div class="ps-row ps-total"><span class="ps-label">Total</span><span class="ps-value" id="step2Total">$0.00</span></div></div>
+                <div class="payment-summary">
+                    <div class="ps-row"><span class="ps-label">Subtotal</span><span class="ps-value" id="step2Subtotal">$0.00</span></div>
+                    <div class="ps-row ps-total"><span class="ps-label">Total</span><span class="ps-value" id="step2Total">$0.00</span></div>
+                </div>
                 <div class="wallet-info">
                     <div class="w-row"><span class="w-label"><i class="fas fa-wallet"></i> Method</span><span class="w-value" id="paymentMethodName">Litecoin</span></div>
                     <div class="w-row"><span class="w-label"><i class="fas fa-network-wired"></i> Network</span><span class="w-value" id="cryptoNetwork">LTC</span></div>
                     <div class="w-row"><span class="w-label"><i class="fas fa-coins"></i> Amount</span><span class="w-value" id="cryptoAmount">0.0000 LTC</span></div>
                     <div class="w-address"><span id="walletAddressDisplay">0x1234...</span><button onclick="copyWalletAddress()"><i class="fas fa-copy"></i> Copy</button></div>
                 </div>
-                <div style="margin-top: 8px;"><input class="payment-tx-input" id="transactionHashInput" placeholder="Paste transaction hash..." /><p style="font-size: 12px; color: var(--text-secondary); opacity: 0.5; margin-top: 4px;">📌 Please paste your transaction hash to verify your payment.</p></div>
+                <div style="margin-top: 8px;">
+                    <input class="payment-tx-input" id="transactionHashInput" placeholder="Paste transaction hash..." />
+                    <p style="font-size: 12px; color: var(--text-secondary); opacity: 0.5; margin-top: 4px;">📌 Please paste your transaction hash to verify your payment.</p>
+                </div>
                 <button class="payment-btn" onclick="placeOrder()"><i class="fas fa-check"></i> Confirm Payment</button>
                 <button class="payment-btn" onclick="goToStep1()" style="background:var(--card-bg);color:var(--text);margin-top:4px;"><i class="fas fa-arrow-left"></i> Back</button>
             </div>
         </div>
     </div>
 
-    <!-- مودال التحميلات -->
+    <!-- مودال التحميلات (تم حذفه لأننا أزلنا الأيقونة من الهيدر، لكن يمكن تركه للوصول من مكان آخر) -->
     <div class="modal-overlay" id="downloadsModal">
-        <div class="modal-content" style="max-width:440px;"><button class="modal-close" onclick="closeDownloads()"><i class="fas fa-times"></i></button><div class="modal-title"><i class="fas fa-download"></i> Downloads</div><div id="downloadsList"></div></div>
+        <div class="modal-content" style="max-width:440px;">
+            <button class="modal-close" onclick="closeDownloads()"><i class="fas fa-times"></i></button>
+            <div class="modal-title"><i class="fas fa-download"></i> Downloads</div>
+            <div id="downloadsList"></div>
+        </div>
     </div>
 
     <!-- مودال الإشعارات -->
@@ -261,7 +287,10 @@
         <div class="modal-content" style="max-width:440px;">
             <button class="modal-close" onclick="closeNotifications()"><i class="fas fa-times"></i></button>
             <div class="modal-title"><i class="fas fa-bell"></i> Notifications</div>
-            <div class="notifications-header-actions"><button class="btn-mark-read" onclick="markAllNotificationsRead()"><i class="fas fa-check-double"></i> Mark all read</button><button class="btn-clear-all" onclick="clearAllNotifications()"><i class="fas fa-trash"></i> Clear all</button></div>
+            <div class="notifications-header-actions">
+                <button class="btn-mark-read" onclick="markAllNotificationsRead()"><i class="fas fa-check-double"></i> Mark all read</button>
+                <button class="btn-clear-all" onclick="clearAllNotifications()"><i class="fas fa-trash"></i> Clear all</button>
+            </div>
             <div id="notificationsList"></div>
         </div>
     </div>
@@ -272,8 +301,18 @@
 
     <!-- قائمة المستخدم -->
     <div class="fullscreen-modal user-menu-full" id="userMenuFull">
-        <div class="modal-header"><h2><i class="fas fa-user"></i> Profile</h2><button class="modal-close" onclick="closeUserMenuFull()"><i class="fas fa-times"></i></button></div>
-        <div class="user-header"><div class="avatar" id="fullAvatar">U</div><div class="info"><h3 id="fullName">Guest</h3><p id="fullEmail">Not logged in</p><div class="rp-display">🎯 <span id="fullRp">0</span> RP</div></div></div>
+        <div class="modal-header">
+            <h2><i class="fas fa-user"></i> Profile</h2>
+            <button class="modal-close" onclick="closeUserMenuFull()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="user-header">
+            <div class="avatar" id="fullAvatar">U</div>
+            <div class="info">
+                <h3 id="fullName">Guest</h3>
+                <p id="fullEmail">Not logged in</p>
+                <div class="rp-display">🎯 <span id="fullRp">0</span> RP</div>
+            </div>
+        </div>
         <div class="menu-grid">
             <div class="menu-item" onclick="openProfileFull();closeUserMenuFull();"><i class="fas fa-user-cog"></i><span class="menu-label">Profile</span></div>
             <div class="menu-item" onclick="openHistoryFull();closeUserMenuFull();"><i class="fas fa-history"></i><span class="menu-label">Orders</span><span class="menu-badge" id="fullOrderBadge">0</span></div>
@@ -288,33 +327,111 @@
     </div>
 
     <!-- الملف الشخصي -->
-    <div class="fullscreen-modal" id="profileFull"><div class="modal-header"><h2><i class="fas fa-user-cog"></i> Profile</h2><button class="modal-close" onclick="closeProfileFull()"><i class="fas fa-times"></i></button></div><div id="profileFullContent"></div></div>
+    <div class="fullscreen-modal" id="profileFull">
+        <div class="modal-header">
+            <h2><i class="fas fa-user-cog"></i> Profile</h2>
+            <button class="modal-close" onclick="closeProfileFull()"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="profileFullContent"></div>
+    </div>
 
     <!-- تاريخ الطلبات -->
-    <div class="fullscreen-modal" id="historyFull"><div class="modal-header"><h2><i class="fas fa-history"></i> Order History</h2><button class="modal-close" onclick="closeHistoryFull()"><i class="fas fa-times"></i></button></div><div id="historyFullContent"></div></div>
+    <div class="fullscreen-modal" id="historyFull">
+        <div class="modal-header">
+            <h2><i class="fas fa-history"></i> Order History</h2>
+            <button class="modal-close" onclick="closeHistoryFull()"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="historyFullContent"></div>
+    </div>
 
     <!-- السلة -->
-    <div class="fullscreen-modal" id="cartFull"><div class="modal-header"><h2><i class="fas fa-shopping-cart"></i> Cart</h2><button class="modal-close" onclick="closeCartFull()"><i class="fas fa-times"></i></button></div><div id="cartFullContent"></div></div>
+    <div class="fullscreen-modal" id="cartFull">
+        <div class="modal-header">
+            <h2><i class="fas fa-shopping-cart"></i> Cart</h2>
+            <button class="modal-close" onclick="closeCartFull()"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="cartFullContent"></div>
+    </div>
 
     <!-- المفضلة -->
-    <div class="fullscreen-modal" id="wishlistFull"><div class="modal-header"><h2><i class="fas fa-heart"></i> Favorites</h2><button class="modal-close" onclick="closeWishlistFull()"><i class="fas fa-times"></i></button></div><div id="wishlistFullContent"></div></div>
+    <div class="fullscreen-modal" id="wishlistFull">
+        <div class="modal-header">
+            <h2><i class="fas fa-heart"></i> Favorites</h2>
+            <button class="modal-close" onclick="closeWishlistFull()"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="wishlistFullContent"></div>
+    </div>
 
     <!-- مودال الطلبات -->
-    <div class="modal-overlay" id="requestsModal"><div class="modal-content" style="max-width:420px;"><button class="modal-close" onclick="closeRequestsModal()"><i class="fas fa-times"></i></button><div class="modal-title"><i class="fas fa-file-alt"></i> My Requests</div><button class="add-btn" onclick="openNewRequestModal()"><i class="fas fa-plus"></i> New Request</button><div id="requestsList"></div></div></div>
+    <div class="modal-overlay" id="requestsModal">
+        <div class="modal-content" style="max-width:420px;">
+            <button class="modal-close" onclick="closeRequestsModal()"><i class="fas fa-times"></i></button>
+            <div class="modal-title"><i class="fas fa-file-alt"></i> My Requests</div>
+            <button class="add-btn" onclick="openNewRequestModal()"><i class="fas fa-plus"></i> New Request</button>
+            <div id="requestsList"></div>
+        </div>
+    </div>
 
     <!-- مودال طلب جديد -->
-    <div class="modal-overlay" id="newRequestModal"><div class="modal-content" style="max-width:420px;"><button class="modal-close" onclick="closeNewRequestModal()"><i class="fas fa-times"></i></button><div class="modal-title"><i class="fas fa-plus-circle"></i> New Request</div><form class="request-form" id="requestForm" onsubmit="submitRequest(event)"><label>Game Name</label><input type="text" id="reqGameName" placeholder="e.g., Free Fire" required /><label>Play Store Link</label><input type="url" id="reqPlayStore" placeholder="https://play.google.com/..." required /><label>Features</label><textarea id="reqFeatures" placeholder="List the features you want..." required></textarea><label>Budget</label><input type="text" id="reqBudget" placeholder="e.g., 50$" required /><button type="submit" class="submit-btn"><i class="fas fa-paper-plane"></i> Submit Request</button></form></div></div>
+    <div class="modal-overlay" id="newRequestModal">
+        <div class="modal-content" style="max-width:420px;">
+            <button class="modal-close" onclick="closeNewRequestModal()"><i class="fas fa-times"></i></button>
+            <div class="modal-title"><i class="fas fa-plus-circle"></i> New Request</div>
+            <form class="request-form" id="requestForm" onsubmit="submitRequest(event)">
+                <label>Game Name</label>
+                <input type="text" id="reqGameName" placeholder="e.g., Free Fire" required />
+                <label>Play Store Link</label>
+                <input type="url" id="reqPlayStore" placeholder="https://play.google.com/..." required />
+                <label>Features</label>
+                <textarea id="reqFeatures" placeholder="List the features you want..." required></textarea>
+                <label>Budget</label>
+                <input type="text" id="reqBudget" placeholder="e.g., 50$" required />
+                <button type="submit" class="submit-btn"><i class="fas fa-paper-plane"></i> Submit Request</button>
+            </form>
+        </div>
+    </div>
 
     <!-- مودال الإحالات -->
-    <div class="modal-overlay" id="referralModal"><div class="modal-content" style="max-width:420px;"><button class="modal-close" onclick="closeReferralModal()"><i class="fas fa-times"></i></button><div class="modal-title"><i class="fas fa-gift"></i> Refer & Earn</div>
-        <div style="background:var(--bg);border-radius:10px;padding:14px;border:1px solid var(--border);margin-bottom:12px;"><div style="font-size:12px;color:var(--text-secondary);opacity:0.5;">Your Referral Code</div><div style="display:flex;align-items:center;gap:10px;"><code id="referralCodeDisplay2" style="font-size:20px;font-weight:700;color:var(--primary);font-family:monospace;">Loading...</code><button onclick="copyReferralCode2()" style="padding:4px 12px;border:none;border-radius:6px;background:var(--primary);color:#fff;cursor:pointer;font-size:12px;"><i class="fas fa-copy"></i></button></div></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;"><div style="background:var(--bg);border-radius:8px;padding:8px;text-align:center;border:1px solid var(--border);"><div style="font-size:18px;font-weight:700;color:var(--text);" id="referralCount2">0</div><div style="font-size:10px;color:var(--text-secondary);opacity:0.4;">Referrals</div></div><div style="background:var(--bg);border-radius:8px;padding:8px;text-align:center;border:1px solid var(--border);"><div style="font-size:18px;font-weight:700;color:var(--success);" id="referralRewards2">0 $</div><div style="font-size:10px;color:var(--text-secondary);opacity:0.4;">Earned</div></div></div>
-        <div id="referralSteps"></div>
-        <div style="margin-top:12px;"><div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;">📋 Referral Activity</div><div id="referralActivity"></div></div>
-    </div></div>
+    <div class="modal-overlay" id="referralModal">
+        <div class="modal-content" style="max-width:420px;">
+            <button class="modal-close" onclick="closeReferralModal()"><i class="fas fa-times"></i></button>
+            <div class="modal-title"><i class="fas fa-gift"></i> Refer & Earn</div>
+            <div style="background:var(--bg);border-radius:10px;padding:14px;border:1px solid var(--border);margin-bottom:12px;">
+                <div style="font-size:12px;color:var(--text-secondary);opacity:0.5;">Your Referral Code</div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <code id="referralCodeDisplay2" style="font-size:20px;font-weight:700;color:var(--primary);font-family:monospace;">Loading...</code>
+                    <button onclick="copyReferralCode2()" style="padding:4px 12px;border:none;border-radius:6px;background:var(--primary);color:#fff;cursor:pointer;font-size:12px;"><i class="fas fa-copy"></i></button>
+                </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+                <div style="background:var(--bg);border-radius:8px;padding:8px;text-align:center;border:1px solid var(--border);">
+                    <div style="font-size:18px;font-weight:700;color:var(--text);" id="referralCount2">0</div>
+                    <div style="font-size:10px;color:var(--text-secondary);opacity:0.4;">Referrals</div>
+                </div>
+                <div style="background:var(--bg);border-radius:8px;padding:8px;text-align:center;border:1px solid var(--border);">
+                    <div style="font-size:18px;font-weight:700;color:var(--success);" id="referralRewards2">0 $</div>
+                    <div style="font-size:10px;color:var(--text-secondary);opacity:0.4;">Earned</div>
+                </div>
+            </div>
+            <div id="referralSteps"></div>
+            <div style="margin-top:12px;">
+                <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;">📋 Referral Activity</div>
+                <div id="referralActivity"></div>
+            </div>
+        </div>
+    </div>
 
     <!-- مودال نسيت كلمة المرور -->
-    <div class="modal-overlay" id="forgotPasswordModal"><div class="modal-content" style="max-width:360px;"><button class="modal-close" onclick="closeForgotPasswordModal()"><i class="fas fa-times"></i></button><div class="modal-title"><i class="fas fa-key"></i> Reset Password</div><div class="auth-field"><label>Email</label><input type="email" id="forgotEmail" placeholder="your@email.com" /></div><button class="auth-btn" onclick="sendForgotPassword()"><i class="fas fa-paper-plane"></i> Send Reset Link</button><div class="auth-error" id="forgotError"></div><div class="auth-success" id="forgotSuccess"></div></div></div>
+    <div class="modal-overlay" id="forgotPasswordModal">
+        <div class="modal-content" style="max-width:360px;">
+            <button class="modal-close" onclick="closeForgotPasswordModal()"><i class="fas fa-times"></i></button>
+            <div class="modal-title"><i class="fas fa-key"></i> Reset Password</div>
+            <div class="auth-field"><label>Email</label><input type="email" id="forgotEmail" placeholder="your@email.com" /></div>
+            <button class="auth-btn" onclick="sendForgotPassword()"><i class="fas fa-paper-plane"></i> Send Reset Link</button>
+            <div class="auth-error" id="forgotError"></div>
+            <div class="auth-success" id="forgotSuccess"></div>
+        </div>
+    </div>
 
     <!-- ============================================ -->
     <!-- لوحة المدير (Admin Panel) -->
@@ -349,7 +466,6 @@
                     <div class="admin-stat-card"><div style="font-size:28px;font-weight:800;color:var(--vip-color);" id="dashboardNetRevenue">$0.00</div><div style="font-size:12px;color:var(--text-secondary);opacity:0.6;margin-top:2px;">Net Revenue (10%)</div></div>
                 </div>
                 <button onclick="refreshDashboardStats()" class="admin-submit-btn" style="width:100%;"><i class="fas fa-sync"></i> Refresh Stats</button>
-                <!-- تم حذف قسم التحكم في المكافأة اليومية -->
             </div>
 
             <!-- ======== تبويب الطلبات ======== -->
@@ -467,10 +583,26 @@
                     </div>
                     <div id="vipPricingFields" style="display:none;margin-top:8px;">
                         <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;background:var(--bg);border-radius:8px;padding:10px;border:1px solid var(--border);">
-                            <div style="text-align:center;"><div style="font-size:11px;font-weight:600;color:var(--text-secondary);opacity:0.5;">1 Month</div><input type="number" id="vipPrice1m" step="0.01" placeholder="Price" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text);font-size:12px;text-align:center;margin:2px 0;" /><input type="number" id="vipOriginalPrice1m" step="0.01" placeholder="Original" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text-secondary);font-size:11px;text-align:center;opacity:0.5;text-decoration:line-through;" /></div>
-                            <div style="text-align:center;"><div style="font-size:11px;font-weight:600;color:var(--text-secondary);opacity:0.5;">3 Months</div><input type="number" id="vipPrice3m" step="0.01" placeholder="Price" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text);font-size:12px;text-align:center;margin:2px 0;" /><input type="number" id="vipOriginalPrice3m" step="0.01" placeholder="Original" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text-secondary);font-size:11px;text-align:center;opacity:0.5;text-decoration:line-through;" /></div>
-                            <div style="text-align:center;"><div style="font-size:11px;font-weight:600;color:var(--text-secondary);opacity:0.5;">1 Year</div><input type="number" id="vipPrice1y" step="0.01" placeholder="Price" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text);font-size:12px;text-align:center;margin:2px 0;" /><input type="number" id="vipOriginalPrice1y" step="0.01" placeholder="Original" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text-secondary);font-size:11px;text-align:center;opacity:0.5;text-decoration:line-through;" /></div>
-                            <div style="text-align:center;"><div style="font-size:11px;font-weight:600;color:var(--text-secondary);opacity:0.5;">LIFETIME</div><input type="number" id="vipPriceLifetime" step="0.01" placeholder="Price" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text);font-size:12px;text-align:center;margin:2px 0;" /><input type="number" id="vipOriginalPriceLifetime" step="0.01" placeholder="Original" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text-secondary);font-size:11px;text-align:center;opacity:0.5;text-decoration:line-through;" /></div>
+                            <div style="text-align:center;">
+                                <div style="font-size:11px;font-weight:600;color:var(--text-secondary);opacity:0.5;">1 Month</div>
+                                <input type="number" id="vipPrice1m" step="0.01" placeholder="Price" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text);font-size:12px;text-align:center;margin:2px 0;" />
+                                <input type="number" id="vipOriginalPrice1m" step="0.01" placeholder="Original" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text-secondary);font-size:11px;text-align:center;opacity:0.5;text-decoration:line-through;" />
+                            </div>
+                            <div style="text-align:center;">
+                                <div style="font-size:11px;font-weight:600;color:var(--text-secondary);opacity:0.5;">3 Months</div>
+                                <input type="number" id="vipPrice3m" step="0.01" placeholder="Price" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text);font-size:12px;text-align:center;margin:2px 0;" />
+                                <input type="number" id="vipOriginalPrice3m" step="0.01" placeholder="Original" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text-secondary);font-size:11px;text-align:center;opacity:0.5;text-decoration:line-through;" />
+                            </div>
+                            <div style="text-align:center;">
+                                <div style="font-size:11px;font-weight:600;color:var(--text-secondary);opacity:0.5;">1 Year</div>
+                                <input type="number" id="vipPrice1y" step="0.01" placeholder="Price" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text);font-size:12px;text-align:center;margin:2px 0;" />
+                                <input type="number" id="vipOriginalPrice1y" step="0.01" placeholder="Original" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text-secondary);font-size:11px;text-align:center;opacity:0.5;text-decoration:line-through;" />
+                            </div>
+                            <div style="text-align:center;">
+                                <div style="font-size:11px;font-weight:600;color:var(--text-secondary);opacity:0.5;">LIFETIME</div>
+                                <input type="number" id="vipPriceLifetime" step="0.01" placeholder="Price" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text);font-size:12px;text-align:center;margin:2px 0;" />
+                                <input type="number" id="vipOriginalPriceLifetime" step="0.01" placeholder="Original" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text-secondary);font-size:11px;text-align:center;opacity:0.5;text-decoration:line-through;" />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -564,4 +696,4 @@
     </script>
     <script type="module" src="script.js"></script>
 </body>
-</html>
+                                       </html>
