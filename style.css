@@ -3223,5 +3223,286 @@ body::before {
     mask-composite: exclude;
    }
 /* ============================================
+   ✨ توحيد وتحسين الحدود في جميع أنحاء الموقع
+   ============================================ */
+
+/* 1. توحيد سمك الحدود الأساسية */
+* {
+    border-width: 1px !important;
+}
+
+/* 2. استثناء العناصر التي تحتاج إلى حدود أكثر سمكاً (مثل الأزرار) */
+button,
+.btn,
+input,
+select,
+textarea {
+    border-width: 1.5px !important;
+}
+
+/* 3. تحسين الحدود المتحركة (الحواف الخارجية) */
+.header,
+.telegram-banner,
+.featured-products,
+.stat-card,
+.filter-btn,
+.product-card,
+.bottom-cart-bar,
+.toast,
+.modal-content,
+.preview-features,
+.vip-pricing-section,
+.slider-container,
+.edit-profile-inline,
+.password-inline,
+.telegram-bind-section,
+.auth-container,
+.admin-panel .modal-content,
+.admin-stat-card,
+.admin-item,
+.referral-steps,
+.rec-item,
+.featured-item,
+.user-menu-full .user-header,
+.menu-item,
+.orders-stat-card,
+.wallet-info,
+.admin-user-card,
+.social-proof-toast,
+.rating-section,
+.recommendations-section {
+    border-width: 1px !important;
+    border-style: solid !important;
+    border-color: var(--border) !important;
+}
+
+/* 4. تحسين الحواف المتحركة (::before و ::after) - تقليل سمك الإطار الخارجي */
+.header::before,
+.telegram-banner::before,
+.featured-products::before,
+.stat-card::before,
+.filter-btn::before,
+.product-card::before,
+.bottom-cart-bar::before,
+.toast::before,
+.modal-content::before,
+.preview-features::before,
+.vip-pricing-section::before,
+.slider-container::before,
+.edit-profile-inline::before,
+.password-inline::before,
+.telegram-bind-section::before,
+.auth-container::before,
+.admin-panel .modal-content::before,
+.admin-stat-card::before,
+.admin-item::before,
+.referral-steps::before,
+.rec-item::before,
+.featured-item::before,
+.user-menu-full .user-header::before,
+.menu-item::before,
+.orders-stat-card::before,
+.wallet-info::before,
+.admin-user-card::before,
+.social-proof-toast::before,
+.rating-section::before,
+.recommendations-section::before {
+    inset: -1.5px !important; /* تقليل سمك الإطار الخارجي */
+    padding: 1.5px !important;
+}
+
+/* 5. الخط الثاني المتحرك (::after) */
+.header::after,
+.telegram-banner::after,
+.featured-products::after,
+.stat-card::after,
+.filter-btn::after,
+.product-card::after,
+.bottom-cart-bar::after,
+.toast::after,
+.modal-content::after,
+.preview-features::after,
+.vip-pricing-section::after,
+.slider-container::after,
+.edit-profile-inline::after,
+.password-inline::after,
+.telegram-bind-section::after,
+.auth-container::after,
+.admin-panel .modal-content::after,
+.admin-stat-card::after,
+.admin-item::after,
+.referral-steps::after,
+.rec-item::after,
+.featured-item::after,
+.user-menu-full .user-header::after,
+.menu-item::after,
+.orders-stat-card::after,
+.wallet-info::after,
+.admin-user-card::after,
+.social-proof-toast::after,
+.rating-section::after,
+.recommendations-section::after {
+    inset: -3.5px !important; /* أبعد قليلاً */
+    padding: 3.5px !important;
+}
+
+/* 6. توحيد نصف قطر الزوايا (border-radius) */
+.header,
+.telegram-banner,
+.featured-products,
+.stat-card,
+.filter-btn,
+.product-card,
+.bottom-cart-bar,
+.toast,
+.modal-content,
+.preview-features,
+.vip-pricing-section,
+.slider-container,
+.edit-profile-inline,
+.password-inline,
+.telegram-bind-section,
+.auth-container,
+.admin-panel .modal-content,
+.admin-stat-card,
+.admin-item,
+.referral-steps,
+.rec-item,
+.featured-item,
+.user-menu-full .user-header,
+.menu-item,
+.orders-stat-card,
+.wallet-info,
+.admin-user-card,
+.social-proof-toast,
+.rating-section,
+.recommendations-section {
+    border-radius: var(--radius-md) !important; /* توحيد الزوايا */
+}
+
+/* 7. استثناء العناصر التي تحتاج زوايا مختلفة */
+.filter-btn,
+.orders-filter-btn {
+    border-radius: var(--radius-full) !important;
+}
+
+.admin-panel .modal-content {
+    border-radius: var(--radius-xl) !important;
+}
+
+.auth-container {
+    border-radius: var(--radius-xl) !important;
+}
+
+/* 8. جعل الحدود أكثر نعومة (تقليل شفافية الألوان المتحركة) */
+.header::before,
+.telegram-banner::before,
+.featured-products::before,
+.stat-card::before,
+.filter-btn::before,
+.product-card::before,
+.bottom-cart-bar::before,
+.toast::before,
+.modal-content::before,
+.preview-features::before,
+.vip-pricing-section::before,
+.slider-container::before,
+.edit-profile-inline::before,
+.password-inline::before,
+.telegram-bind-section::before,
+.auth-container::before,
+.admin-panel .modal-content::before,
+.admin-stat-card::before,
+.admin-item::before,
+.referral-steps::before,
+.rec-item::before,
+.featured-item::before,
+.user-menu-full .user-header::before,
+.menu-item::before,
+.orders-stat-card::before,
+.wallet-info::before,
+.admin-user-card::before,
+.social-proof-toast::before,
+.rating-section::before,
+.recommendations-section::before {
+    opacity: 0.3 !important;
+}
+
+.header::after,
+.telegram-banner::after,
+.featured-products::after,
+.stat-card::after,
+.filter-btn::after,
+.product-card::after,
+.bottom-cart-bar::after,
+.toast::after,
+.modal-content::after,
+.preview-features::after,
+.vip-pricing-section::after,
+.slider-container::after,
+.edit-profile-inline::after,
+.password-inline::after,
+.telegram-bind-section::after,
+.auth-container::after,
+.admin-panel .modal-content::after,
+.admin-stat-card::after,
+.admin-item::after,
+.referral-steps::after,
+.rec-item::after,
+.featured-item::after,
+.user-menu-full .user-header::after,
+.menu-item::after,
+.orders-stat-card::after,
+.wallet-info::after,
+.admin-user-card::after,
+.social-proof-toast::after,
+.rating-section::after,
+.recommendations-section::after {
+    opacity: 0.2 !important;
+}
+
+/* 9. تحسين مظهر البطاقات في المنتجات */
+.product-card {
+    border-width: 1px !important;
+    border-color: var(--border) !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
+}
+
+.product-card:hover {
+    border-color: var(--primary) !important;
+    box-shadow: 0 4px 20px var(--primary-glow) !important;
+}
+
+/* 10. تحسين مظهر العناصر في لوحة الأدمن */
+.admin-item {
+    border-width: 1px !important;
+    border-color: var(--border) !important;
+}
+
+.admin-item:hover {
+    border-color: var(--border-hover) !important;
+}
+
+/* 11. تحسين أزرار التصفية */
+.filter-btn {
+    border-width: 1px !important;
+    border-color: var(--border) !important;
+}
+
+.filter-btn.active {
+    border-width: 1.5px !important;
+    border-color: var(--primary) !important;
+}
+
+/* 12. تحسين مظهر البطاقات الإحصائية */
+.stat-card {
+    border-width: 1px !important;
+    border-color: var(--border) !important;
+}
+
+.stat-card:hover {
+    border-color: var(--primary) !important;
+}
+/* ============================================
    34. نهاية الملف
    ============================================ */
