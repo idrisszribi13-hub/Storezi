@@ -3222,6 +3222,150 @@ body::before {
     -webkit-mask-composite: xor;
     mask-composite: exclude;
    }
+
+/* ============================================
+   🔧 إصلاح مشاكل لوحة الأدمن
+   ============================================ */
+
+/* 1. ترتيب الطبقات (z-index) */
+.modal-overlay {
+    z-index: 99998 !important;
+}
+
+.admin-panel {
+    z-index: 99990 !important;
+}
+
+#productModal,
+#addSlideModal,
+#createDownloadModal,
+#createNotificationModal,
+#userDetailsModal {
+    z-index: 99999 !important;
+}
+
+/* 2. خلفية المودال تغطي الشاشة */
+.modal-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(0, 0, 0, 0.75) !important;
+    backdrop-filter: blur(6px) !important;
+    -webkit-backdrop-filter: blur(6px) !important;
+    display: none !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 16px !important;
+    margin: 0 !important;
+}
+
+.modal-overlay.open {
+    display: flex !important;
+}
+
+/* 3. محتوى المودال يظهر بوضوح */
+.modal-overlay .modal-content {
+    position: relative;
+    background: var(--card-bg);
+    backdrop-filter: blur(20px);
+    border-radius: var(--radius-xl);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    padding: 28px;
+    max-width: 540px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+    animation: modalFadeIn 0.3s ease;
+    z-index: 100000 !important;
+}
+
+/* 4. زر الإغلاق في الأدمن - الأعلى اليمين */
+.admin-panel .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 18px 24px;
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.admin-panel .panel-header .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto; /* يدفع الأزرار لليمين */
+}
+
+.admin-panel .panel-header .btn-close {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 16px;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-left: 8px;
+}
+
+.admin-panel .panel-header .btn-close:hover {
+    background: var(--danger);
+    color: #fff;
+    border-color: var(--danger);
+    transform: rotate(90deg);
+}
+
+/* 5. أزرار الأدمن لا تتأثر بالمودال */
+.admin-panel .add-btn,
+.admin-panel .btn-primary,
+.admin-panel .btn-secondary,
+.admin-panel .btn-upgrade {
+    position: relative;
+    z-index: 1;
+}
+
+/* 6. إصلاح المودالات الصغيرة داخل الأدمن */
+.admin-panel .modal-overlay .modal-content {
+    max-width: 480px;
+}
+
+/* 7. منع التمرير خلف المودال */
+body.modal-open {
+    overflow: hidden !important;
+}
+
+/* 8. زر إغلاق المودال نفسه (×) في الأعلى اليمين */
+.modal-content .modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px !important;
+    left: auto !important;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+    z-index: 10;
+}
 /* ============================================
    ✨ توحيد وتحسين الحدود في جميع أنحاء الموقع
    ============================================ */
