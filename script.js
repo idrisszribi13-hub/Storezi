@@ -31,7 +31,7 @@ const analytics = getAnalytics(app);
 // 2. مفتاح Supabase العمومي (للاتصال من الواجهة الأمامية)
 // ============================================================
 
-const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_your_key_here'; // ⚠️ ضع مفتاحك العمومي هنا
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_1uSIqgNONAV53GjOoBoZUw_niAGJXO6'; // ⚠️ ضع مفتاحك العمومي هنا
 const SUPABASE_PROJECT_URL = 'https://kvsyzgavfxnwqmtsginv.supabase.co';
 
 // ============================================================
