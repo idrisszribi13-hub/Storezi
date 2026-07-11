@@ -1,3 +1,4 @@
+
 // index.js - Appwrite Function (Deno)
 import { initializeApp, cert, getApps } from "npm:firebase-admin@11";
 import { getAuth } from "npm:firebase-admin@11/auth";
@@ -12,10 +13,10 @@ if (getApps().length === 0) {
         initializeApp({
             credential: cert({ projectId, clientEmail, privateKey }),
         });
+        console.log("✅ Firebase Admin initialized");
     }
 }
 
-// السكربت الأساسي
 async function yourMainScript(userId, email) {
     return {
         message: `✅ تم التشغيل بنجاح للمستخدم: ${email}`,
@@ -24,19 +25,31 @@ async function yourMainScript(userId, email) {
     };
 }
 
-// نقطة الدخول
 export default async (req, res) => {
     try {
+        // 1. قراءة البيانات المرسلة
         const { firebaseToken } = JSON.parse(req.payload || '{}');
+        console.log("📥 استلام التوكن:", firebaseToken ? "تم الاستلام" : "فارغ");
+
         if (!firebaseToken) {
-            return res.json({ success: false, error: "التوكن مطلوب" });
+            const errorResponse = { success: false, error: "⚠️ التوكن مطلوب" };
+            console.log("📤 الرد:", JSON.stringify(errorResponse)); // ✅ ستظهر في الـ Logs
+            return res.json(errorResponse);
         }
 
+        // 2. التحقق من التوكن
         const decoded = await getAuth().verifyIdToken(firebaseToken);
-        const result = await yourMainScript(decoded.uid, decoded.email);
+        console.log(`✅ مستخدم موثوق: ${decoded.email}`);
 
-        res.json({ success: true, data: result });
+        // 3. تنفيذ السكربت
+        const result = await yourMainScript(decoded.uid, decoded.email);
+        const successResponse = { success: true, data: result };
+        
+        console.log("📤 الرد:", JSON.stringify(successResponse)); // ✅ ستظهر في الـ Logs
+        res.json(successResponse);
+
     } catch (error) {
+        console.error("❌ خطأ:", error.message); // ✅ ستظهر في الـ Logs
         res.json({ success: false, error: error.message });
     }
 };
