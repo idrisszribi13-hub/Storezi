@@ -1,0 +1,12 @@
+{
+  "name": "my-main-script",
+  "version": "1.0.0",
+  "description": "Appwrite Function للتحقق من Firebase وتنفيذ سكربت",
+  "main": "index.js",
+  "dependencies": {
+    "firebase-admin": "^11.11.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
