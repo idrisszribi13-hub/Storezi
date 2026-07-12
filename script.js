@@ -1,6 +1,5 @@
 // ============================================================
-// SCRIPT.JS - النسخة النهائية مع نظام الترخيص (Licence System)
-// والتحقق عبر Supabase - بدون Licences في الشراء
+// SCRIPT.JS - النسخة الكاملة مع جميع الدوال
 // ============================================================
 
 import { initializeApp } from "firebase/app";
@@ -129,6 +128,7 @@ let allUsers = [];
 let selectedPayment = null;
 let ordersFilter = 'all';
 let _selectedVipPlan = '1m';
+let allLicences = [];
 
 let featuredProducts = [];
 let featuredRotationInterval = null;
@@ -163,7 +163,8 @@ let userProfile = {
     rp: 0,
     useRpForCart: false,
     isBanned: false,
-    lastDailyReward: 0
+    lastDailyReward: 0,
+    licences: []
 };
 
 const fallbackProducts = [
@@ -229,7 +230,7 @@ async function getUserId() {
     if (savedId) { userId = savedId; return userId; }
     userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
     localStorage.setItem('zi_userId', userId);
-    try { await setDoc(doc(db, 'users', userId), { userId, wishlist: [], cart: [], history: [], requests: [], usedCodes: [], referrals: [], referralRewards: 0, rp: 0, isBanned: false, lastDailyReward: 0, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }, { merge: true }); } catch (e) { console.error(e); }
+    try { await setDoc(doc(db, 'users', userId), { userId, wishlist: [], cart: [], history: [], requests: [], usedCodes: [], referrals: [], referralRewards: 0, rp: 0, isBanned: false, lastDailyReward: 0, licences: [], createdAt: serverTimestamp(), updatedAt: serverTimestamp() }, { merge: true }); } catch (e) { console.error(e); }
     return userId;
 }
 
@@ -267,6 +268,7 @@ async function loadUserData() {
             userProfile.joined = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '--';
             userProfile.useRpForCart = data.useRpForCart || false;
             userProfile.lastDailyReward = data.lastDailyReward || 0;
+            userProfile.licences = data.licences || [];
             updateWishlistUI();
             updateCartUI();
             renderProducts(products);
@@ -276,9 +278,10 @@ async function loadUserData() {
             updateDropdownStats();
             updateNotificationBadge();
             updateFullUserMenu();
-            if (currentUser && currentUser.email === ADMIN_EMAIL) { loadAdminOrders(); loadAdminUsers(); }
+            renderUserLicences();
+            if (currentUser && currentUser.email === ADMIN_EMAIL) { loadAdminOrders(); loadAdminUsers(); loadLicences(); }
         } else {
-            await setDoc(userRef, { userId: uid, wishlist: [], cart: [], history: [], requests: [], usedCodes: [], referrals: [], referralRewards: 0, rp: 0, isBanned: false, useRpForCart: false, lastDailyReward: 0, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+            await setDoc(userRef, { userId: uid, wishlist: [], cart: [], history: [], requests: [], usedCodes: [], referrals: [], referralRewards: 0, rp: 0, isBanned: false, useRpForCart: false, lastDailyReward: 0, licences: [], createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
         }
     } catch (error) {
         console.error('Error loading user data:', error);
@@ -290,7 +293,26 @@ async function saveUserData(silent = false) {
     const uid = currentUser ? currentUser.uid : await getUserId();
     if (!uid) return;
     try {
-        await setDoc(doc(db, 'users', uid), { wishlist, cart, history: userProfile.history, requests: userProfile.requests, usedCodes: userProfile.usedCodes, referrals: userProfile.referrals, referralRewards: userProfile.referralRewards, rp: userProfile.rp, referralCode: userProfile.referralCode, telegram: userProfile.telegram, telegramChatId: userProfile.telegramChatId, location: userProfile.location, lang: userProfile.lang, useRpForCart: userProfile.useRpForCart, isBanned: userProfile.isBanned, lastDailyReward: userProfile.lastDailyReward || 0, updatedAt: serverTimestamp() }, { merge: true });
+        await setDoc(doc(db, 'users', uid), { 
+            wishlist, 
+            cart, 
+            history: userProfile.history, 
+            requests: userProfile.requests, 
+            usedCodes: userProfile.usedCodes, 
+            referrals: userProfile.referrals, 
+            referralRewards: userProfile.referralRewards, 
+            rp: userProfile.rp, 
+            referralCode: userProfile.referralCode, 
+            telegram: userProfile.telegram, 
+            telegramChatId: userProfile.telegramChatId, 
+            location: userProfile.location, 
+            lang: userProfile.lang, 
+            useRpForCart: userProfile.useRpForCart, 
+            isBanned: userProfile.isBanned, 
+            lastDailyReward: userProfile.lastDailyReward || 0,
+            licences: userProfile.licences || [],
+            updatedAt: serverTimestamp() 
+        }, { merge: true });
         localStorage.setItem('zi_wishlist_backup', JSON.stringify(wishlist));
         localStorage.setItem('zi_cart_backup', JSON.stringify(cart));
         localStorage.setItem('zi_history_backup', JSON.stringify(userProfile.history));
@@ -301,6 +323,7 @@ async function saveUserData(silent = false) {
         localStorage.setItem('zi_rp_backup', JSON.stringify(userProfile.rp));
         localStorage.setItem('zi_isBanned_backup', JSON.stringify(userProfile.isBanned));
         localStorage.setItem('zi_lastDailyReward_backup', JSON.stringify(userProfile.lastDailyReward || 0));
+        localStorage.setItem('zi_licences_backup', JSON.stringify(userProfile.licences || []));
         return true;
     } catch (e) {
         console.error('Save failed:', e);
@@ -354,6 +377,7 @@ function updateFullUserMenu() {
     const orderBadge = document.getElementById('fullOrderBadge');
     const notifBadge = document.getElementById('fullNotifBadge');
     const adminBadge = document.getElementById('adminMenuBadge');
+    const licencesBadge = document.getElementById('licencesBadge');
     if (currentUser) {
         const displayName = currentUser.displayName || currentUser.email || 'User';
         avatar.textContent = displayName.charAt(0).toUpperCase();
@@ -368,10 +392,15 @@ function updateFullUserMenu() {
         if (unreadNotifications > 0) { notifBadge.style.display = 'inline-block'; notifBadge.textContent = unreadNotifications; } else { notifBadge.style.display = 'none'; }
         const adminMenuItem = document.getElementById('adminMenuItem');
         if (currentUser.email === ADMIN_EMAIL) { adminMenuItem.style.display = 'flex'; if (pendingCount > 0) { adminBadge.style.display = 'inline-block'; adminBadge.textContent = pendingCount; } else { adminBadge.style.display = 'none'; } } else { adminMenuItem.style.display = 'none'; }
+        if (licencesBadge) {
+            const activeLicences = (userProfile.licences || []).filter(l => new Date(l.expiryDate) > new Date()).length;
+            if (activeLicences > 0) { licencesBadge.style.display = 'inline-block'; licencesBadge.textContent = activeLicences; } else { licencesBadge.style.display = 'none'; }
+        }
     } else {
         avatar.textContent = 'U'; name.textContent = 'Guest'; email.textContent = 'Not logged in'; rp.textContent = '0';
         wishlistBadge.style.display = 'none'; orderBadge.style.display = 'none'; notifBadge.style.display = 'none';
         document.getElementById('adminMenuItem').style.display = 'none';
+        if (licencesBadge) licencesBadge.style.display = 'none';
     }
 }
 
@@ -403,7 +432,7 @@ window.loginUser = async function() {
             document.getElementById('mainApp').style.display = 'block';
             loadUserData();
             updateDropdownStats();
-            if (currentUser.email === ADMIN_EMAIL) { loadAdminOrders(); startAdminRealtimeListener(); loadAdminUsers(); }
+            if (currentUser.email === ADMIN_EMAIL) { loadAdminOrders(); startAdminRealtimeListener(); loadAdminUsers(); loadLicences(); }
             loadDownloads(); loadNotifications(); fetchCryptoPrices(); updateFullUserMenu(); showTelegramBanner();
             loadSliderSettings();
         }, 500);
@@ -437,7 +466,7 @@ window.registerUser = async function() {
         await setDoc(userRef, {
             userId: currentUser.uid, name, email, country, lang, telegram: '', telegramChatId: '', location: country,
             wishlist: [], cart: [], history: [], requests: [], usedCodes: [], referrals: [], referralRewards: 0, rp: 0, useRpForCart: false,
-            referralCode: newReferralCode, isBanned: false, lastDailyReward: 0,
+            referralCode: newReferralCode, isBanned: false, lastDailyReward: 0, licences: [],
             createdAt: serverTimestamp(), updatedAt: serverTimestamp()
         });
         successEl.textContent = '✅ Registration successful!';
@@ -512,6 +541,7 @@ function renderProfileFull() {
     }
     const displayName = currentUser.displayName || currentUser.email || 'User';
     const maskedChatId = userProfile.telegramChatId ? userProfile.telegramChatId.slice(0, 4) + '***' + userProfile.telegramChatId.slice(-4) : 'Not linked';
+    const activeLicences = (userProfile.licences || []).filter(l => new Date(l.expiryDate) > new Date()).length;
     container.innerHTML = `
     <div style="background:var(--card-bg);border-radius:14px;border:1px solid var(--border);padding:16px;margin-bottom:12px;">
       <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border);">
@@ -521,6 +551,7 @@ function renderProfileFull() {
           <div style="font-size:13px;color:var(--text-secondary);">${currentUser.email || 'No email'}</div>
           <div style="font-size:13px;color:var(--text-secondary);">📍 Country: ${userProfile.location || 'Not specified'}</div>
           <div style="font-size:13px;color:var(--vip-color);font-weight:700;">🎯 RP: ${userProfile.rp || 0}</div>
+          <div style="font-size:13px;color:var(--success);font-weight:600;">🔑 Licences: ${activeLicences}</div>
           ${userProfile.isBanned ? '<div style="font-size:13px;color:var(--danger);font-weight:700;">🚫 BANNED</div>' : ''}
         </div>
       </div>
@@ -1309,7 +1340,7 @@ function renderPaymentProducts() {
 }
 
 // ============================================================
-// 19. إرسال الطلب (بدون Licences)
+// 19. إرسال الطلب (بدون Licences في الشراء)
 // ============================================================
 
 async function sendOrderToTelegram(method, txHash = null) {
@@ -1812,6 +1843,7 @@ window.openAdminPanel = function() {
         loadNotifications();
         renderAdminProducts(products);
         loadAdminUsers();
+        loadLicences();
         loadDashboardStats();
         setTimeout(addBannerAdminControls, 300);
         ensureSliderTab();
@@ -1833,6 +1865,12 @@ function ensureSliderTab() {
         sliderTab.setAttribute('onclick', "switchAdminTab('slider')");
         sliderTab.textContent = '🎨 Slider';
         tabsContainer.appendChild(sliderTab);
+    }
+    if (!document.querySelector('.admin-panel .tabs button[onclick="switchAdminTab(\'licences\')"]')) {
+        const licencesTab = document.createElement('button');
+        licencesTab.setAttribute('onclick', "switchAdminTab('licences')");
+        licencesTab.textContent = '🔑 Licences';
+        tabsContainer.appendChild(licencesTab);
     }
     const panelContent = document.querySelector('.admin-panel .modal-content');
     if (panelContent && !document.getElementById('tabSlider')) {
@@ -1862,6 +1900,33 @@ function ensureSliderTab() {
             panelContent.appendChild(tabContent);
         }
     }
+    if (panelContent && !document.getElementById('tabLicences')) {
+        const tabContent = document.createElement('div');
+        tabContent.className = 'tab-content';
+        tabContent.id = 'tabLicences';
+        tabContent.innerHTML = `
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+                <button class="add-btn" onclick="openCreateLicenceModal()"><i class="fas fa-plus"></i> Create Licence</button>
+                <button class="add-btn" onclick="refreshLicences()" style="background:var(--card-bg);"><i class="fas fa-sync"></i> Refresh</button>
+            </div>
+            <div class="admin-search-bar">
+                <input type="text" id="adminLicenceSearch" placeholder="🔍 Search by code, user, product..." onkeyup="searchLicences()" />
+                <button class="btn-search" onclick="searchLicences()"><i class="fas fa-search"></i></button>
+                <button class="btn-clear" onclick="clearLicenceSearch()"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="adminLicencesList">
+                <div style="text-align:center;padding:30px;color:var(--text-secondary);">
+                    <i class="fas fa-info-circle"></i> Loading licences...
+                </div>
+            </div>
+        `;
+        const lastTab = panelContent.querySelector('.tab-content:last-of-type');
+        if (lastTab) {
+            lastTab.parentNode.insertBefore(tabContent, lastTab.nextSibling);
+        } else {
+            panelContent.appendChild(tabContent);
+        }
+    }
 }
 
 window.closeAdminPanel = function() { document.getElementById('adminPanel').classList.remove('open'); if (unsubscribeAdmin) { unsubscribeAdmin(); unsubscribeAdmin = null; } };
@@ -1878,7 +1943,8 @@ window.switchAdminTab = function(tab) {
         'notifications': 'tabNotifications',
         'stats': 'tabStats',
         'logs': 'tabLogs',
-        'slider': 'tabSlider'
+        'slider': 'tabSlider',
+        'licences': 'tabLicences'
     };
     const tabId = tabMap[tab] || tabMap['dashboard'];
     document.getElementById(tabId).classList.add('active');
@@ -1893,6 +1959,7 @@ window.switchAdminTab = function(tab) {
         renderSliderSettingsUI();
         document.getElementById('sliderIntervalInput').value = sliderIntervalTime;
     }
+    if (tab === 'licences') { loadLicences(); }
 };
 
 // ============================================================
@@ -2386,10 +2453,339 @@ window.filterOrders = function(filter) {
 };
 
 // ============================================================
-// 28. نظام الترخيص (Licence System) - فقط الإدارة والتفعيل
+// 28. نظام إدارة الأكواد (Licences) - مع Supabase
 // ============================================================
 
-// ✅ فتح مودال الترخيص
+let allLicences = [];
+
+async function loadLicences() {
+    try {
+        const container = document.getElementById('adminLicencesList');
+        if (!container) return;
+        container.innerHTML = `<div style="text-align:center;padding:30px;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
+
+        const licencesRef = collection(db, 'licenses');
+        const snapshot = await getDocs(licencesRef);
+        allLicences = [];
+        snapshot.forEach(doc => {
+            allLicences.push({ id: doc.id, ...doc.data() });
+        });
+        renderLicences(allLicences);
+    } catch (error) {
+        console.error('Error loading licences:', error);
+        const container = document.getElementById('adminLicencesList');
+        if (container) {
+            container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--danger);">⚠️ Failed to load licences: ${error.message}</div>`;
+        }
+    }
+}
+
+function renderLicences(licences) {
+    const container = document.getElementById('adminLicencesList');
+    if (!container) return;
+    if (!licences || licences.length === 0) {
+        container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">🔑 No licences found</div>`;
+        return;
+    }
+    container.innerHTML = licences.map(l => {
+        const statusMap = {
+            'pending': '<span class="status-badge pending">⏳ Pending</span>',
+            'active': '<span class="status-badge active">✅ Active</span>',
+            'used': '<span class="status-badge used">🔒 Used</span>',
+            'expired': '<span class="status-badge expired">⛔ Expired</span>',
+            'revoked': '<span class="status-badge revoked">🚫 Revoked</span>'
+        };
+        const statusBadge = statusMap[l.status] || '<span class="status-badge">❓ Unknown</span>';
+        const userDisplay = l.user_email || l.user_id || 'Not assigned';
+        const expiryDate = l.expiry_date ? new Date(l.expiry_date).toLocaleDateString() : '--';
+        const isExpired = l.expiry_date && new Date(l.expiry_date) < new Date();
+
+        return `
+            <div class="admin-item" style="${isExpired && l.status !== 'expired' ? 'border-left:3px solid var(--danger);' : ''}">
+                <div class="item-info">
+                    <div class="item-title" style="font-family:monospace;font-size:14px;">
+                        ${l.code}
+                        <span style="font-size:11px;font-weight:400;opacity:0.5;margin-left:6px;">${l.script_name || 'Unknown'}</span>
+                        ${l.script_id ? `<span style="font-size:10px;opacity:0.3;margin-left:4px;">📎 ${l.script_id}</span>` : ''}
+                    </div>
+                    <div class="item-meta">
+                        👤 ${userDisplay} • 📅 ${expiryDate} • ${statusBadge}
+                        ${l.order_id ? `• 📎 #${l.order_id.slice(-6)}` : ''}
+                    </div>
+                </div>
+                <div class="item-actions">
+                    <button class="btn-edit" onclick="editLicence('${l.id}')"><i class="fas fa-edit"></i></button>
+                    ${l.status === 'pending' ? `<button class="btn-approve" onclick="approveLicence('${l.id}','${l.code}','${l.script_name}')" style="background:var(--success);color:#0a0a1a;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;"><i class="fas fa-check"></i> Approve</button>` : ''}
+                    ${l.status === 'active' ? `<button class="btn-revoke" onclick="revokeLicence('${l.id}')" style="background:var(--danger);color:#fff;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;"><i class="fas fa-ban"></i> Revoke</button>` : ''}
+                    <button class="btn-delete" onclick="deleteLicence('${l.id}')"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function openCreateLicenceModal() {
+    const modal = document.getElementById('createLicenceModal');
+    if (modal) {
+        modal.classList.add('open');
+        document.getElementById('createLicenceForm').reset();
+    } else {
+        showToast('❌ Modal not found', 'error');
+    }
+}
+
+function closeCreateLicenceModal() {
+    const modal = document.getElementById('createLicenceModal');
+    if (modal) {
+        modal.classList.remove('open');
+    }
+}
+
+async function createLicenceManually() {
+    const productName = document.getElementById('newLicenceProduct')?.value.trim();
+    const userId = document.getElementById('newLicenceUser')?.value.trim();
+    const expiryDate = document.getElementById('newLicenceExpiry')?.value;
+    const code = 'LIC-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+
+    if (!productName) {
+        showToast('⚠️ Product name required', 'warning');
+        return;
+    }
+
+    try {
+        const product = products.find(p => p.name === productName);
+        const scriptId = product ? product.id : 'script_' + Date.now();
+
+        const response = await fetch(`${SUPABASE_PROJECT_URL}/functions/v1/admin-create-licence`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + SUPABASE_PUBLISHABLE_KEY,
+                'apikey': SUPABASE_PUBLISHABLE_KEY
+            },
+            body: JSON.stringify({
+                code: code,
+                script_id: scriptId,
+                script_name: productName,
+                product_name: productName,
+                user_id: userId || null,
+                user_email: userId || null,
+                status: 'active',
+                expiry_date: expiryDate ? new Date(expiryDate).toISOString() : new Date(Date.now() + 365*24*60*60*1000).toISOString()
+            })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            showToast(`✅ Licence created: ${code}`, 'success');
+            closeCreateLicenceModal();
+            loadLicences();
+        } else {
+            showToast('❌ Error: ' + (result.error || 'Unknown error'), 'error');
+        }
+    } catch (error) {
+        console.error('Error creating licence:', error);
+        showToast('❌ Error: ' + error.message, 'error');
+    }
+}
+
+async function updateLicenceInFirestore(licenceId, data) {
+    try {
+        await updateDoc(doc(db, 'licenses', licenceId), {
+            ...data,
+            updated_at: serverTimestamp()
+        });
+        return true;
+    } catch (error) {
+        console.error('Error updating licence:', error);
+        throw error;
+    }
+}
+
+async function approveLicence(licenceId, code, scriptName) {
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
+        showToast('⛔ Unauthorized', 'error');
+        return;
+    }
+    if (!confirm(`Approve licence ${code} and send to user?`)) return;
+
+    try {
+        const licenceRef = doc(db, 'licenses', licenceId);
+        const licenceSnap = await getDoc(licenceRef);
+        if (!licenceSnap.exists()) {
+            showToast('❌ Licence not found', 'error');
+            return;
+        }
+        const licenceData = licenceSnap.data();
+
+        await updateLicenceInFirestore(licenceId, {
+            status: 'active',
+            user_id: currentUser.uid,
+            user_email: currentUser.email
+        });
+
+        let chatId = null;
+        try {
+            const usersRef = collection(db, 'users');
+            const q = query(usersRef, where('email', '==', currentUser.email));
+            const snapshot = await getDocs(q);
+            if (!snapshot.empty) {
+                snapshot.forEach(doc => {
+                    const userData = doc.data();
+                    chatId = userData.telegramChatId || null;
+                });
+            }
+        } catch (e) {
+            console.warn('Could not find user for notification:', e);
+        }
+
+        if (chatId) {
+            const userMsg = `🎉 **Licence Activated!**\n\n📦 **Product:** ${scriptName}\n🔑 **Your Code:** \`${code}\`\n📅 **Expires:** ${licenceData.expiry_date ? new Date(licenceData.expiry_date).toLocaleDateString() : 'N/A'}\n\nUse this code in the ZI Store script loader to access your product.`;
+            await sendTelegramNotification(chatId, userMsg);
+        }
+
+        await sendTelegramNotification(TELEGRAM_CHAT_ID, `✅ Licence \`${code}\` approved and sent to ${currentUser.email}`);
+        showToast(`✅ Licence ${code} approved!`, 'success');
+        loadLicences();
+    } catch (error) {
+        console.error('Error approving licence:', error);
+        showToast('❌ Error: ' + error.message, 'error');
+    }
+}
+
+async function revokeLicence(licenceId) {
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
+        showToast('⛔ Unauthorized', 'error');
+        return;
+    }
+    if (!confirm('Revoke this licence?')) return;
+    try {
+        await updateLicenceInFirestore(licenceId, { status: 'revoked' });
+        showToast('🚫 Licence revoked', 'success');
+        loadLicences();
+    } catch (error) {
+        console.error('Error revoking licence:', error);
+        showToast('❌ Error: ' + error.message, 'error');
+    }
+}
+
+async function deleteLicence(licenceId) {
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
+        showToast('⛔ Unauthorized', 'error');
+        return;
+    }
+    if (!confirm('Delete this licence permanently?')) return;
+    try {
+        const response = await fetch(`${SUPABASE_PROJECT_URL}/functions/v1/admin-delete-licence`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + SUPABASE_PUBLISHABLE_KEY,
+                'apikey': SUPABASE_PUBLISHABLE_KEY
+            },
+            body: JSON.stringify({ licenceId })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            showToast('🗑️ Licence deleted', 'success');
+            loadLicences();
+        } else {
+            throw new Error(result.error || 'Failed to delete licence');
+        }
+    } catch (error) {
+        console.error('Error deleting licence:', error);
+        showToast('❌ Error: ' + error.message, 'error');
+    }
+}
+
+function editLicence(licenceId) {
+    const licence = allLicences.find(l => l.id === licenceId);
+    if (!licence) { showToast('❌ Licence not found', 'error'); return; }
+    document.getElementById('editLicenceId').value = licenceId;
+    document.getElementById('editLicenceCode').value = licence.code || '';
+    document.getElementById('editLicenceScript').value = licence.script_name || '';
+    document.getElementById('editLicenceExpiry').value = licence.expiry_date ? licence.expiry_date.slice(0, 16) : '';
+    document.getElementById('editLicenceStatus').value = licence.status || 'active';
+    document.getElementById('editLicenceModal').classList.add('open');
+}
+
+async function saveLicenceEdit() {
+    const licenceId = document.getElementById('editLicenceId').value;
+    const expiryDate = document.getElementById('editLicenceExpiry').value;
+    const status = document.getElementById('editLicenceStatus').value;
+
+    try {
+        await updateLicenceInFirestore(licenceId, {
+            expiry_date: expiryDate ? new Date(expiryDate).toISOString() : null,
+            status: status
+        });
+        showToast('✅ Licence updated!', 'success');
+        document.getElementById('editLicenceModal').classList.remove('open');
+        loadLicences();
+    } catch (error) {
+        console.error('Error updating licence:', error);
+        showToast('❌ Error: ' + error.message, 'error');
+    }
+}
+
+function searchLicences() {
+    const query = document.getElementById('adminLicenceSearch').value.trim().toLowerCase();
+    if (!query) { renderLicences(allLicences); return; }
+    const filtered = allLicences.filter(l => {
+        const code = (l.code || '').toLowerCase();
+        const user = (l.user_email || l.user_id || '').toLowerCase();
+        const product = (l.script_name || l.product_name || '').toLowerCase();
+        return code.includes(query) || user.includes(query) || product.includes(query);
+    });
+    renderLicences(filtered);
+}
+
+function clearLicenceSearch() {
+    document.getElementById('adminLicenceSearch').value = '';
+    renderLicences(allLicences);
+}
+
+function refreshLicences() { loadLicences(); showToast('🔄 Refreshed', 'info'); }
+
+function renderUserLicences() {
+    const container = document.getElementById('userLicencesList');
+    if (!container) return;
+    
+    if (!currentUser) {
+        container.innerHTML = '';
+        return;
+    }
+    
+    const userLicences = userProfile.licences || [];
+    
+    if (userLicences.length === 0) {
+        container.innerHTML = `<div style="text-align:center;padding:8px;color:var(--text-secondary);font-size:12px;">No active licences</div>`;
+        return;
+    }
+    
+    container.innerHTML = userLicences.map(l => {
+        const isExpired = new Date(l.expiryDate) < new Date();
+        return `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--bg);border-radius:6px;border:1px solid var(--border);margin-bottom:4px;">
+                <div>
+                    <div style="font-size:12px;font-weight:600;color:var(--text);">${l.scriptName}</div>
+                    <div style="font-size:10px;color:var(--text-secondary);opacity:0.5;">${isExpired ? '⛔ Expired' : '✅ Active until ' + new Date(l.expiryDate).toLocaleDateString()}</div>
+                </div>
+                <span style="font-size:10px;font-family:monospace;opacity:0.3;">${l.code.slice(-6)}</span>
+            </div>
+        `;
+    }).join('');
+}
+
+function toggleLicencesList() {
+    const list = document.getElementById('userLicencesList');
+    if (list) {
+        list.style.display = list.style.display === 'none' ? 'block' : 'none';
+        renderUserLicences();
+    }
+}
+
 function openLicenceModal() {
     if (!currentUser) {
         showToast('⚠️ Please login first', 'warning');
@@ -2402,10 +2798,11 @@ function openLicenceModal() {
         document.getElementById('licenceInput').value = '';
         document.getElementById('licenceResult').innerHTML = '';
         document.body.style.overflow = 'hidden';
+    } else {
+        showToast('❌ Modal not found', 'error');
     }
 }
 
-// ✅ إغلاق مودال الترخيص
 function closeLicenceModal() {
     const modal = document.getElementById('licenceModal');
     if (modal) {
@@ -2414,11 +2811,10 @@ function closeLicenceModal() {
     }
 }
 
-// ✅ تفعيل رمز الترخيص عبر Supabase
 async function activateLicence() {
     const input = document.getElementById('licenceInput');
     const resultEl = document.getElementById('licenceResult');
-    const code = input.value.trim().toUpperCase();
+    const code = input?.value?.trim().toUpperCase();
 
     if (!code) {
         resultEl.innerHTML = '<span style="color:var(--danger);">⚠️ Please enter a licence code.</span>';
@@ -2479,13 +2875,616 @@ async function activateLicence() {
 }
 
 // ============================================================
-// 29. باقي الدوال (Slider, Banner, PDF, Stats, Ratings)
+// 29. Banner تيليجرام و Social Proof
 // ============================================================
 
-// ... (الدوال المتبقية كما هي)
+function showTelegramBanner() {
+    const banner = document.getElementById('telegramBanner');
+    if (!banner) return;
+    const bannerHidden = localStorage.getItem('telegram_banner_hidden') === 'true';
+    const adminDisabled = localStorage.getItem('telegram_banner_admin_disabled') === 'true';
+    if (userProfile.telegramChatId) {
+        banner.classList.add('linked');
+        banner.querySelector('.banner-title').textContent = '✅ Connected!';
+        banner.querySelector('.banner-subtitle').textContent = 'You will receive order notifications here.';
+        banner.querySelector('.banner-action').innerHTML = '<i class="fas fa-check"></i> Linked';
+        banner.querySelector('.banner-action').onclick = () => openProfileFull();
+        banner.querySelector('.banner-icon i').className = 'fas fa-check-circle';
+        banner.style.display = 'block';
+        setTimeout(() => { banner.classList.add('hidden'); }, 3000);
+        return;
+    }
+    if (bannerHidden || adminDisabled) { banner.classList.add('hidden'); return; }
+    banner.classList.remove('linked', 'hidden');
+    banner.querySelector('.banner-title').innerHTML = '🔔 Stay Connected! <span class="badge-new">New</span>';
+    banner.querySelector('.banner-subtitle').textContent = 'Link your Telegram account to receive instant order notifications';
+    banner.querySelector('.banner-action').innerHTML = '<i class="fab fa-telegram-plane"></i> Link Now';
+    banner.querySelector('.banner-action').onclick = () => bindTelegram();
+    banner.querySelector('.banner-icon i').className = 'fab fa-telegram-plane';
+    banner.style.display = 'block';
+    banner.style.animation = 'none';
+    setTimeout(() => { banner.style.animation = 'bannerSlideDown 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'; }, 10);
+}
+
+function closeTelegramBanner() {
+    const banner = document.getElementById('telegramBanner');
+    if (banner) { banner.classList.add('hidden'); localStorage.setItem('telegram_banner_hidden', 'true'); setTimeout(() => { localStorage.removeItem('telegram_banner_hidden'); if (!userProfile.telegramChatId) { showTelegramBanner(); } }, 600000); }
+}
+
+function showTelegramBannerAgain() { localStorage.removeItem('telegram_banner_hidden'); showTelegramBanner(); }
+
+function addBannerAdminControls() {
+    const tabNotifications = document.getElementById('tabNotifications');
+    if (!tabNotifications) return;
+    const existingControls = tabNotifications.querySelector('.banner-admin-controls');
+    if (existingControls) existingControls.remove();
+    const controls = document.createElement('div');
+    controls.className = 'banner-admin-controls';
+    controls.style.cssText = `background: var(--bg); border-radius: 10px; padding: 14px; border: 1px solid var(--border); margin-bottom: 12px;`;
+    const isHidden = localStorage.getItem('telegram_banner_admin_disabled') === 'true';
+    controls.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+            <div><div style="font-weight:600;color:var(--text);font-size:14px;"><i class="fab fa-telegram-plane" style="color:#0088cc;"></i> Telegram Banner</div><div style="font-size:12px;color:var(--text-secondary);opacity:0.4;">Show/hide the Telegram notification banner for all users</div></div>
+            <div style="display:flex;gap:6px;">
+                <button onclick="adminToggleBanner(true)" class="banner-admin-btn" style="padding:6px 16px;border:none;border-radius:6px;background:var(--success);color:#0a0a1a;font-weight:600;cursor:pointer;font-size:12px;"><i class="fas fa-eye"></i> Show</button>
+                <button onclick="adminToggleBanner(false)" class="banner-admin-btn" style="padding:6px 16px;border:none;border-radius:6px;background:var(--danger);color:#fff;font-weight:600;cursor:pointer;font-size:12px;"><i class="fas fa-eye-slash"></i> Hide</button>
+                <button onclick="resetBannerForAll()" class="banner-admin-btn" style="padding:6px 16px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);font-weight:600;cursor:pointer;font-size:12px;"><i class="fas fa-sync"></i> Reset</button>
+            </div>
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:var(--text-secondary);opacity:0.3;">${isHidden ? '🚫 Banner is currently <strong style="color:var(--danger);">HIDDEN</strong> for all users' : '✅ Banner is currently <strong style="color:var(--success);">VISIBLE</strong> for all users'}</div>
+    `;
+    const notifList = document.getElementById('adminNotificationsList');
+    if (notifList) { tabNotifications.insertBefore(controls, notifList); } else { tabNotifications.appendChild(controls); }
+}
+
+function adminToggleBanner(show) {
+    if (show) { localStorage.setItem('telegram_banner_admin_disabled', 'false'); showToast('✅ Banner is now visible for all users', 'success'); } else { localStorage.setItem('telegram_banner_admin_disabled', 'true'); const banner = document.getElementById('telegramBanner'); if (banner) banner.classList.add('hidden'); showToast('🚫 Banner is now hidden for all users', 'warning'); }
+    addBannerAdminControls();
+    if (show) { localStorage.removeItem('telegram_banner_hidden'); setTimeout(showTelegramBanner, 300); }
+}
+
+function resetBannerForAll() { localStorage.removeItem('telegram_banner_admin_disabled'); localStorage.removeItem('telegram_banner_hidden'); showToast('🔄 Banner reset for all users', 'info'); addBannerAdminControls(); setTimeout(showTelegramBanner, 300); }
+
+function startSocialProof() {}
+function triggerSocialProofOnOrder(userName, productNames) {}
 
 // ============================================================
-// 30. توجيه الاتجاه
+// 30. دوال السلايدر (Slider)
+// ============================================================
+
+async function loadSliderSettings() {
+    try {
+        const settingsRef = doc(db, 'settings', 'slider');
+        const settingsSnap = await getDoc(settingsRef);
+        if (settingsSnap.exists()) {
+            const data = settingsSnap.data();
+            sliderSlides = data.slides || [];
+            sliderIntervalTime = data.interval || 3;
+            document.getElementById('sliderIntervalInput').value = sliderIntervalTime;
+        } else {
+            sliderSlides = [];
+            sliderIntervalTime = 3;
+        }
+        renderSlider();
+        startSliderRotation();
+        renderSliderSettingsUI();
+    } catch (error) {
+        console.error('Error loading slider settings:', error);
+        sliderSlides = [];
+        renderSlider();
+    }
+}
+
+function renderSlider() {
+    const wrapper = document.getElementById('sliderWrapper');
+    const dots = document.getElementById('sliderDots');
+    if (!wrapper) return;
+    if (sliderSlides.length === 0) {
+        wrapper.innerHTML = `
+            <div class="slide-item" style="background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;min-height:200px;border-radius:var(--radius-md);">
+                <div style="text-align:center;color:var(--text-secondary);opacity:0.4;">
+                    <i class="fas fa-images" style="font-size:48px;display:block;margin-bottom:8px;"></i>
+                    <p>No slides available. Add slides from admin panel.</p>
+                </div>
+            </div>
+        `;
+        dots.innerHTML = '';
+        return;
+    }
+    wrapper.innerHTML = sliderSlides.map((slide, index) => {
+        const isActive = index === currentSlideIndex ? 'active' : '';
+        const imageUrl = slide.imageUrl || '';
+        const title = slide.title || '';
+        const subtitle = slide.subtitle || '';
+        const buttonText = slide.buttonText || 'Learn More';
+        let buttonLink = '#';
+        let buttonTarget = '_self';
+        if (slide.linkType === 'product' && slide.productId) {
+            buttonLink = `javascript:window.openDetails('${slide.productId}')`;
+        } else if (slide.linkType === 'download' && slide.downloadUrl) {
+            buttonLink = slide.downloadUrl;
+            buttonTarget = '_blank';
+        } else if (slide.linkType === 'url' && slide.customUrl) {
+            buttonLink = slide.customUrl;
+            buttonTarget = '_blank';
+        }
+        return `
+            <div class="slide-item ${isActive}" style="background-image:url('${imageUrl}');">
+                <div class="slide-overlay">
+                    ${title ? `<h2 class="slide-title">${title}</h2>` : ''}
+                    ${subtitle ? `<p class="slide-subtitle">${subtitle}</p>` : ''}
+                    ${buttonText ? `<a href="${buttonLink}" target="${buttonTarget}" class="slide-btn">${buttonText}</a>` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+    dots.innerHTML = sliderSlides.map((_, index) => {
+        const isActive = index === currentSlideIndex ? 'active' : '';
+        return `<span class="dot ${isActive}" onclick="goToSlide(${index})"></span>`;
+    }).join('');
+    updateSliderHeight();
+}
+
+function updateSliderHeight() {
+    const wrapper = document.getElementById('sliderWrapper');
+    if (!wrapper) return;
+    wrapper.style.minHeight = '300px';
+}
+
+window.goToSlide = function(index) {
+    if (index < 0 || index >= sliderSlides.length) return;
+    currentSlideIndex = index;
+    renderSlider();
+    resetSliderTimer();
+};
+
+window.nextSlide = function() {
+    if (sliderSlides.length === 0) return;
+    currentSlideIndex = (currentSlideIndex + 1) % sliderSlides.length;
+    renderSlider();
+    resetSliderTimer();
+};
+
+window.prevSlide = function() {
+    if (sliderSlides.length === 0) return;
+    currentSlideIndex = (currentSlideIndex - 1 + sliderSlides.length) % sliderSlides.length;
+    renderSlider();
+    resetSliderTimer();
+};
+
+function startSliderRotation() {
+    if (sliderTimer) clearInterval(sliderTimer);
+    if (sliderSlides.length <= 1) return;
+    sliderTimer = setInterval(() => {
+        if (!isSliderPaused) {
+            window.nextSlide();
+        }
+    }, sliderIntervalTime * 1000);
+}
+
+function resetSliderTimer() {
+    if (sliderTimer) {
+        clearInterval(sliderTimer);
+        startSliderRotation();
+    }
+}
+
+window.pauseSlider = function() { isSliderPaused = true; };
+window.resumeSlider = function() { isSliderPaused = false; };
+
+function updateSlideProductSelect() {
+    const select = document.getElementById('slideProductSelect');
+    if (!select) return;
+    select.innerHTML = products.map(p => 
+        `<option value="${p.id}">${p.name} ($${p.price})</option>`
+    ).join('');
+}
+
+function toggleSlideLinkFields() {
+    const type = document.getElementById('slideLinkType')?.value || 'product';
+    const productGroup = document.getElementById('slideProductGroup');
+    const downloadGroup = document.getElementById('slideDownloadGroup');
+    const customGroup = document.getElementById('slideCustomUrlGroup');
+    if (productGroup) productGroup.style.display = type === 'product' ? 'block' : 'none';
+    if (downloadGroup) downloadGroup.style.display = type === 'download' ? 'block' : 'none';
+    if (customGroup) customGroup.style.display = type === 'url' ? 'block' : 'none';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const linkType = document.getElementById('slideLinkType');
+    if (linkType) {
+        linkType.addEventListener('change', toggleSlideLinkFields);
+    }
+    const fileInput = document.getElementById('slideImageFile');
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const preview = document.getElementById('slideImagePreview');
+                    if (preview) {
+                        const img = preview.querySelector('img');
+                        if (img) img.src = event.target.result;
+                        preview.style.display = 'block';
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+});
+
+window.openAddSlideModal = function() {
+    updateSlideProductSelect();
+    const modal = document.getElementById('addSlideModal');
+    if (!modal) { showToast('❌ Modal not found', 'error'); return; }
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    const form = document.getElementById('addSlideForm');
+    if (form) form.reset();
+    const preview = document.getElementById('slideImagePreview');
+    if (preview) preview.style.display = 'none';
+    toggleSlideLinkFields();
+};
+
+window.closeAddSlideModal = function() {
+    const modal = document.getElementById('addSlideModal');
+    if (modal) {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+};
+
+document.getElementById('addSlideForm')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const fileInput = document.getElementById('slideImageFile');
+    const file = fileInput.files[0];
+    if (!file) { showToast('⚠️ Please select an image', 'warning'); return; }
+    showToast('⏳ Uploading image...', 'info');
+    const imageUrl = await uploadToCloudinary(file);
+    if (!imageUrl) { showToast('❌ Failed to upload image', 'error'); return; }
+    const title = document.getElementById('slideTitle').value.trim();
+    const subtitle = document.getElementById('slideSubtitle').value.trim();
+    const buttonText = document.getElementById('slideButtonText').value.trim() || 'Buy Now';
+    const linkType = document.getElementById('slideLinkType').value;
+    let productId = '';
+    let downloadUrl = '';
+    let customUrl = '';
+    if (linkType === 'product') {
+        productId = document.getElementById('slideProductSelect').value;
+        if (!productId) { showToast('⚠️ Please select a product', 'warning'); return; }
+    } else if (linkType === 'download') {
+        downloadUrl = document.getElementById('slideDownloadUrl').value.trim();
+        if (!downloadUrl) { showToast('⚠️ Please enter a download URL', 'warning'); return; }
+    } else if (linkType === 'url') {
+        customUrl = document.getElementById('slideCustomUrl').value.trim();
+        if (!customUrl) { showToast('⚠️ Please enter a custom URL', 'warning'); return; }
+    }
+    const newSlide = {
+        imageUrl,
+        title,
+        subtitle,
+        buttonText,
+        linkType,
+        productId,
+        downloadUrl,
+        customUrl,
+        createdAt: new Date().toISOString()
+    };
+    sliderSlides.push(newSlide);
+    await saveSliderData();
+    renderSlider();
+    renderSliderSettingsUI();
+    resetSliderTimer();
+    window.closeAddSlideModal();
+    showToast('✅ Slide added successfully!', 'success');
+});
+
+async function deleteSlide(index) {
+    if (!confirm('Delete this slide?')) return;
+    sliderSlides.splice(index, 1);
+    await saveSliderData();
+    renderSlider();
+    renderSliderSettingsUI();
+    resetSliderTimer();
+    showToast('🗑️ Slide deleted', 'success');
+}
+
+function editSlide(index) { showToast('✏️ Edit feature coming soon', 'info'); }
+
+async function saveSliderData() {
+    try {
+        const settingsRef = doc(db, 'settings', 'slider');
+        await setDoc(settingsRef, {
+            interval: sliderIntervalTime,
+            slides: sliderSlides,
+            updatedAt: serverTimestamp()
+        }, { merge: true });
+    } catch (error) {
+        console.error('Error saving slider data:', error);
+        showToast('❌ Failed to save slider data', 'error');
+    }
+}
+
+async function saveSliderInterval() {
+    const input = document.getElementById('sliderIntervalInput');
+    const interval = parseFloat(input.value);
+    if (isNaN(interval) || interval < 1) {
+        showToast('⚠️ Please enter a valid number (min 1 second)', 'warning');
+        return;
+    }
+    sliderIntervalTime = interval;
+    try {
+        await saveSliderData();
+        showToast('✅ Interval saved!', 'success');
+        resetSliderTimer();
+        renderSlider();
+    } catch (error) {
+        console.error('Error saving interval:', error);
+        showToast('❌ Failed to save interval', 'error');
+    }
+}
+
+function renderSliderSettingsUI() {
+    const container = document.getElementById('sliderSlidesList');
+    if (!container) return;
+    if (sliderSlides.length === 0) {
+        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);opacity:0.5;">No slides yet. Click "Add Slide" to get started.</div>`;
+        return;
+    }
+    container.innerHTML = sliderSlides.map((slide, index) => {
+        const product = products.find(p => p.id === slide.productId);
+        const productName = product ? product.name : 'Unknown';
+        return `
+            <div class="admin-item">
+                <div class="item-info">
+                    <div class="item-title">
+                        <img src="${slide.imageUrl || 'https://picsum.photos/seed/default/60/60'}" style="width:40px;height:40px;border-radius:var(--radius-sm);object-fit:cover;margin-right:8px;" />
+                        ${slide.title || 'Slide ' + (index+1)}
+                        <span style="font-size:11px;opacity:0.4;font-weight:400;">
+                            ${slide.linkType === 'product' ? '📦 Product: ' + productName : slide.linkType === 'download' ? '📥 Download' : '🔗 Custom URL'}
+                        </span>
+                    </div>
+                    <div class="item-meta">${slide.subtitle || ''}</div>
+                </div>
+                <div class="item-actions">
+                    <button class="btn-edit" onclick="editSlide(${index})"><i class="fas fa-edit"></i></button>
+                    <button class="btn-delete" onclick="deleteSlide(${index})"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+window.saveSliderInterval = saveSliderInterval;
+window.deleteSlide = deleteSlide;
+window.editSlide = editSlide;
+
+// ============================================================
+// 31. PDF Generator
+// ============================================================
+
+async function generateInvoice(orderData) {
+    let order = orderData;
+    if (typeof order === 'string') {
+        try { order = JSON.parse(order); } catch (e) { console.error('❌ Failed to parse order data:', e); showToast('❌ Invalid order data', 'error'); return; }
+    }
+    if (!order) { showToast('❌ Order not found', 'error'); return; }
+    if (typeof window.jspdf === 'undefined') {
+        showToast('⏳ Loading PDF library...', 'info');
+        await new Promise((resolve) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+            script.onload = resolve;
+            document.head.appendChild(script);
+        });
+    }
+    if (typeof window.jspdf === 'undefined') { showToast('❌ Failed to load PDF library', 'error'); return; }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 20;
+    let y = 20;
+    doc.setFontSize(22);
+    doc.setFont('helvetica', 'bold');
+    doc.text('ZI Store - Invoice', margin, y);
+    y += 12;
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Order #${String(order.id || order.orderId || '').slice(-6)}`, margin, y);
+    y += 7;
+    doc.text(`Date: ${new Date(order.date).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}`, margin, y);
+    y += 7;
+    doc.text(`Customer: ${order.userName || 'User'} (${order.userEmail || 'N/A'})`, margin, y);
+    y += 12;
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 8;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Product', margin, y);
+    doc.text('Qty', pageWidth - 60, y);
+    doc.text('Price', pageWidth - 20, y);
+    y += 7;
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 6;
+    doc.setFont('helvetica', 'normal');
+    if (order.items && order.items.length > 0) {
+        order.items.forEach((item) => {
+            const itemName = item.name || 'Product';
+            const qty = item.quantity || 1;
+            const price = (item.price || 0) * qty;
+            doc.text(itemName, margin, y);
+            doc.text(`${qty}`, pageWidth - 60, y);
+            doc.text(`$${price.toFixed(2)}`, pageWidth - 20, y);
+            y += 7;
+            if (y > 270) { doc.addPage(); y = 20; }
+        });
+    }
+    y += 4;
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 8;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.text(`Total: $${(order.total || 0).toFixed(2)}`, pageWidth - 50, y);
+    y += 10;
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'italic');
+    doc.text('Thank you for shopping at ZI Store!', margin, 280);
+    doc.text('For support: t.me/Mitalica69', margin, 288);
+    doc.save(`Invoice_${String(order.id || order.orderId || 'order').slice(-6)}.pdf`);
+}
+
+// ============================================================
+// 32. إحصائيات المدير
+// ============================================================
+
+async function loadDashboardStats() {
+    try {
+        const statsRef = doc(db, 'global_stats', 'stats');
+        const statsSnap = await getDoc(statsRef);
+        let totalOrders = 0; let totalRevenue = 0;
+        if (statsSnap.exists()) { const data = statsSnap.data(); totalOrders = data.totalOrders || 0; totalRevenue = data.totalRevenue || 0; }
+        document.getElementById('dashboardTotalOrders').textContent = totalOrders;
+        document.getElementById('dashboardTotalRevenue').textContent = `$${totalRevenue.toFixed(2)}`;
+        const netRevenue = totalRevenue * 0.1;
+        document.getElementById('dashboardNetRevenue').textContent = `$${netRevenue.toFixed(2)}`;
+    } catch (error) { console.error('Error loading dashboard stats:', error); }
+}
+window.refreshDashboardStats = function() { loadDashboardStats(); showToast('🔄 Stats refreshed', 'info'); };
+
+async function loadAdvancedStats() {
+    const container = document.getElementById('advancedStatsContainer');
+    if (!container) return;
+    container.innerHTML = `<div style="text-align:center;padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading statistics...</div>`;
+    try {
+        const usersRef = collection(db, 'users');
+        const snapshot = await getDocs(usersRef);
+        let allOrders = [];
+        snapshot.forEach(doc => { const data = doc.data(); const history = data.history || []; history.forEach(order => { allOrders.push({ ...order, userEmail: data.email || doc.id, userName: data.name || 'Unknown', userId: doc.id, orderId: order.id || 'order_' + Date.now() }); }); });
+        const totalOrders = allOrders.length;
+        const totalRevenue = allOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+        const pendingOrders = allOrders.filter(o => (o.status || 'pending') === 'pending').length;
+        const completedOrders = allOrders.filter(o => o.status === 'completed' || o.status === 'delivered').length;
+        const totalUsers = snapshot.size;
+        container.innerHTML = `
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px;">
+                <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--primary);">${totalOrders}</div><div style="font-size:12px;color:var(--text-secondary);">Total Orders</div></div>
+                <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--vip-color);">$${totalRevenue.toFixed(2)}</div><div style="font-size:12px;color:var(--text-secondary);">Revenue</div></div>
+                <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--pending-color);">${pendingOrders}</div><div style="font-size:12px;color:var(--text-secondary);">Pending</div></div>
+                <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--success);">${completedOrders}</div><div style="font-size:12px;color:var(--text-secondary);">Completed</div></div>
+                <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--text);">${totalUsers}</div><div style="font-size:12px;color:var(--text-secondary);">Total Users</div></div>
+            </div>`;
+    } catch (error) { console.error('Error loading advanced stats:', error); container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load statistics</div>`; }
+}
+window.refreshAdvancedStats = function() { loadAdvancedStats(); showToast('🔄 Stats refreshed', 'info'); };
+
+async function loadAuditLogs() {
+    const container = document.getElementById('auditLogsContainer');
+    if (!container) return;
+    container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading logs...</div>`;
+    try {
+        const logsRef = collection(db, 'auditLogs');
+        const q = query(logsRef, orderBy('timestamp', 'desc'));
+        const snapshot = await getDocs(q);
+        if (snapshot.empty) { container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">📭 No audit logs yet</div>`; return; }
+        let html = `<div style="display:flex;flex-direction:column;gap:6px;max-height:400px;overflow-y:auto;">`;
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const date = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '--';
+            const admin = data.adminName || data.adminEmail || 'Admin';
+            const action = data.action || 'Action';
+            const details = data.details || '';
+            html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg);border-radius:8px;border:1px solid var(--border);font-size:13px;"><div><span style="font-weight:600;color:var(--text);">${admin}</span><span style="color:var(--text-secondary);opacity:0.5;margin:0 4px;">→</span><span style="color:var(--primary);font-weight:500;">${action}</span>${details ? `<span style="color:var(--text-secondary);opacity:0.4;margin-left:4px;">${details}</span>` : ''}</div><span style="font-size:11px;color:var(--text-secondary);opacity:0.3;">${date}</span></div>`;
+        });
+        html += `</div>`; container.innerHTML = html;
+    } catch (error) { console.error('Error loading audit logs:', error); container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load logs</div>`; }
+}
+window.loadAuditLogs = loadAuditLogs;
+
+// ============================================================
+// 33. التقييمات (Ratings)
+// ============================================================
+
+let currentRating = 0;
+let currentProductIdForRating = null;
+
+async function loadRatings(productId) {
+    const container = document.getElementById('ratingReviewsList');
+    const avgEl = document.getElementById('ratingAvgDisplay');
+    const countEl = document.getElementById('ratingCountDisplay');
+    if (!container) return;
+    try {
+        const ratingsRef = collection(db, 'ratings');
+        const q = query(ratingsRef, where('productId', '==', productId));
+        const snapshot = await getDocs(q);
+        let total = 0, count = 0, reviewsHtml = '';
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            total += data.rating || 0; count++;
+            const date = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '--';
+            const stars = '⭐'.repeat(Math.round(data.rating || 0));
+            reviewsHtml += `<div class="rating-review-item"><div class="rr-header"><span class="rr-name">${data.userName || 'User'}</span><span class="rr-stars">${stars}</span>${data.verified ? '<span class="rr-badge">✅ Verified</span>' : ''}<span class="rr-date">${date}</span></div>${data.comment ? `<div class="rr-comment">${data.comment}</div>` : ''}</div>`;
+        });
+        const avg = count > 0 ? (total / count) : 0;
+        const fullStars = '⭐'.repeat(Math.round(avg));
+        const emptyStars = '☆'.repeat(5 - Math.round(avg));
+        if (avgEl) avgEl.textContent = avg.toFixed(1);
+        if (countEl) countEl.textContent = `(${count} reviews)`;
+        container.innerHTML = reviewsHtml || `<div style="text-align:center;padding:10px;color:var(--text-secondary);opacity:0.4;">No reviews yet. Be the first!</div>`;
+        const avgStarsEl = document.getElementById('ratingAvgStars');
+        if (avgStarsEl) { avgStarsEl.textContent = fullStars + emptyStars; }
+        return { avg, count };
+    } catch (error) { console.error('Error loading ratings:', error); container.innerHTML = `<div style="text-align:center;padding:10px;color:var(--danger);">Failed to load reviews</div>`; return { avg: 0, count: 0 }; }
+}
+
+function hasUserPurchasedProduct(productId) {
+    if (!currentUser) return false;
+    const history = userProfile.history || [];
+    return history.some(order => { if (!order.items) return false; return order.items.some(item => item.id === productId); });
+}
+
+async function submitRating(productId) {
+    if (!currentUser) { showToast('⚠️ Please login to rate', 'warning'); return; }
+    const comment = document.getElementById('ratingCommentInput')?.value.trim() || '';
+    const rating = currentRating;
+    if (rating === 0) { showToast('⭐ Please select a star rating', 'warning'); return; }
+    if (!hasUserPurchasedProduct(productId)) { showToast('⚠️ You can only rate products you have purchased', 'warning'); return; }
+    try {
+        const ratingsRef = collection(db, 'ratings');
+        const q = query(ratingsRef, where('productId', '==', productId), where('userId', '==', currentUser.uid));
+        const snapshot = await getDocs(q);
+        if (!snapshot.empty) { showToast('⚠️ You already rated this product', 'warning'); return; }
+        await addDoc(collection(db, 'ratings'), { productId, userId: currentUser.uid, userName: currentUser.displayName || currentUser.email || 'User', rating, comment, verified: true, timestamp: serverTimestamp() });
+        showToast('✅ Rating submitted! Thank you!', 'success');
+        currentRating = 0;
+        document.getElementById('ratingStarsContainer').innerHTML = renderStarHTML(0);
+        document.getElementById('ratingCommentInput').value = '';
+        loadRatings(productId);
+        updateProductRatingDisplay(productId);
+    } catch (error) { console.error('Error submitting rating:', error); showToast('❌ Error: ' + error.message, 'error'); }
+}
+
+function renderStarHTML(rating) { let html = ''; for (let i = 1; i <= 5; i++) { html += `<span class="star ${i <= rating ? 'active' : ''}" data-value="${i}" onclick="setRating(${i})">★</span>`; } return html; }
+window.setRating = function(value) { currentRating = value; const container = document.getElementById('ratingStarsContainer'); if (container) { container.innerHTML = renderStarHTML(value); } };
+
+function renderRatingSection(productId) {
+    const section = document.getElementById('ratingSection');
+    if (!section) return;
+    const canRate = currentUser && !currentUser.isAnonymous && hasUserPurchasedProduct(productId);
+    const isLoggedIn = currentUser && !currentUser.isAnonymous;
+    section.innerHTML = `
+        <div class="rating-section">
+            <div class="rating-avg"><span class="stars-small" id="ratingAvgStars">☆☆☆☆☆</span><span class="count" id="ratingCountDisplay">(0 reviews)</span><span style="font-weight:700;color:var(--vip-color);margin-left:4px;" id="ratingAvgDisplay">0.0</span></div>
+            <div id="ratingReviewsList" style="max-height:150px;overflow-y:auto;margin-bottom:8px;"><div style="text-align:center;padding:10px;color:var(--text-secondary);opacity:0.4;">Loading reviews...</div></div>
+            ${canRate ? `<div style="border-top:1px solid var(--border);padding-top:10px;margin-top:8px;"><div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">⭐ Rate this product</div><div class="rating-stars" id="ratingStarsContainer">${renderStarHTML(0)}</div><textarea class="rating-comment-input" id="ratingCommentInput" placeholder="Share your experience... (optional)" rows="2"></textarea><button class="rating-submit-btn" onclick="submitRating('${productId}')"><i class="fas fa-paper-plane"></i> Submit Review</button></div>` : (isLoggedIn ? `<div style="font-size:12px;color:var(--text-secondary);opacity:0.4;text-align:center;padding:4px;">📌 Purchase this product to leave a review</div>` : `<div style="font-size:12px;color:var(--text-secondary);opacity:0.4;text-align:center;padding:4px;">🔒 Login to rate this product</div>`)}
+        </div>`;
+    loadRatings(productId);
+}
+
+async function updateProductRatingDisplay(productId) { const ratingsRef = collection(db, 'ratings'); const q = query(ratingsRef, where('productId', '==', productId)); const snapshot = await getDocs(q); let total = 0; let count = 0; snapshot.forEach(doc => { total += doc.data().rating || 0; count++; }); const avg = count > 0 ? total / count : 0; }
+
+// ============================================================
+// 34. توجيه الاتجاه
 // ============================================================
 
 function fixDirection() {
@@ -2497,7 +3496,7 @@ function fixDirection() {
 document.addEventListener('DOMContentLoaded', function() { setTimeout(fixDirection, 100); setTimeout(showTelegramBanner, 500); });
 
 // ============================================================
-// 31. حالة المصادقة
+// 35. حالة المصادقة
 // ============================================================
 
 onAuthStateChanged(auth, async (user) => {
@@ -2522,21 +3521,23 @@ onAuthStateChanged(auth, async (user) => {
         document.getElementById('mainApp').style.display = 'block';
         await loadUserData();
         updateDropdownStats();
-        if (user.email === ADMIN_EMAIL) { loadAdminOrders(); startAdminRealtimeListener(); renderAdminProducts(products); loadAdminUsers(); setTimeout(addBannerAdminControls, 500); }
+        if (user.email === ADMIN_EMAIL) { loadAdminOrders(); startAdminRealtimeListener(); renderAdminProducts(products); loadAdminUsers(); loadLicences(); setTimeout(addBannerAdminControls, 500); }
         loadDownloads(); loadNotifications(); fetchCryptoPrices(); loadFeaturedSettings(); loadSliderSettings();
         setTimeout(showTelegramBanner, 1000);
+        startSocialProof();
     } else {
         document.getElementById('authSection').style.display = 'block';
         document.getElementById('mainApp').style.display = 'none';
         await loadUserData();
         updateDropdownStats();
         loadDownloads(); loadNotifications(); fetchCryptoPrices(); loadFeaturedSettings(); loadSliderSettings();
+        startSocialProof();
     }
     updateUI(); updateFullUserMenu();
 });
 
 // ============================================================
-// 32. التهيئة (Init)
+// 36. التهيئة (Init)
 // ============================================================
 
 async function init() {
@@ -2563,13 +3564,13 @@ async function init() {
     setInterval(fetchCryptoPrices, 60000);
     updateLoadingBar(100);
     console.log('✅ ZI Store ready with all features!');
-    setTimeout(() => { hideLoadingScreen(); setTimeout(showTelegramBanner, 500); }, 500);
+    setTimeout(() => { hideLoadingScreen(); setTimeout(showTelegramBanner, 500); startSocialProof(); }, 500);
 }
 init();
 setTimeout(() => { hideLoadingScreen(); console.log('⚠️ Force hiding loading screen (timeout)'); }, 5000);
 
 // ============================================================
-// 33. التصديرات النهائية
+// 37. التصديرات النهائية
 // ============================================================
 
 window.showToast = showToast;
@@ -2679,6 +3680,21 @@ window.deleteSlide = deleteSlide;
 window.editSlide = editSlide;
 
 // دوال الترخيص
+window.loadLicences = loadLicences;
+window.renderLicences = renderLicences;
+window.approveLicence = approveLicence;
+window.revokeLicence = revokeLicence;
+window.deleteLicence = deleteLicence;
+window.editLicence = editLicence;
+window.saveLicenceEdit = saveLicenceEdit;
+window.searchLicences = searchLicences;
+window.clearLicenceSearch = clearLicenceSearch;
+window.refreshLicences = refreshLicences;
+window.openCreateLicenceModal = openCreateLicenceModal;
+window.closeCreateLicenceModal = closeCreateLicenceModal;
+window.createLicenceManually = createLicenceManually;
+window.toggleLicencesList = toggleLicencesList;
+window.renderUserLicences = renderUserLicences;
 window.openLicenceModal = openLicenceModal;
 window.closeLicenceModal = closeLicenceModal;
 window.activateLicence = activateLicence;
