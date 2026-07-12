@@ -103,6 +103,14 @@ const TELEGRAM_CHAT_ID = '7434396478';
 const BOT_USERNAME = 'Zistore_Notif_bot';
 const RP_TO_DOLLAR = 0.1;
 
+// ضع هذا في أعلى الملف (بعد المتغيرات)
+window.onerror = function(message, source, lineno, colno, error) {
+    alert('❌ خطأ: ' + message + '\nفي: ' + source + '\nالسطر: ' + lineno);
+    console.error('❌ خطأ:', message, source, lineno, colno, error);
+    // نحاول إخفاء شاشة التحميل بالقوة
+    document.getElementById('loadingScreen').style.display = 'none';
+};
+
 let currentUser = null;
 let userId = null;
 let cart = [];
