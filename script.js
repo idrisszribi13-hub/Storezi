@@ -1,11 +1,17 @@
 // ============================================================
-// SCRIPT.JS - النسخة الكاملة المتكاملة مع نظام التراخيص (آمن)
+// SCRIPT.JS - النسخة النهائية مع جميع الإصلاحات
 // ============================================================
 
 import { initializeApp } from "firebase/app";
 import { getAuth, onAuthStateChanged, signInAnonymously, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, updatePassword, sendPasswordResetEmail, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, increment, collection, query, where, getDocs, onSnapshot, addDoc, deleteDoc, orderBy } from "firebase/firestore";
 import { getAnalytics } from "firebase/analytics";
+
+// ============================================================
+// 0. تعريف الثوابت المفقودة (لتجنب ReferenceError)
+// ============================================================
+const CLOUDINARY_CLOUD_NAME = 'y14bgb5s'; // ⚠️ غيّر هذا لاحقاً
+const CLOUDINARY_UPLOAD_PRESET = 'zi_store_uploads'; // ⚠️ غيّر هذا لاحقاً
 
 // ============================================================
 // 1. إعدادات Firebase
@@ -170,8 +176,8 @@ function updateLoadingBar(percent) {
 
 // التقاط الأخطاء العامة لمنع تعطل التطبيق
 window.onerror = function(message, source, lineno, colno, error) {
-    console.error('❌ خطأ:', message, source, lineno, colno, error);
-    hideLoadingScreen();
+    console.error('❌ خطأ عام:', message, source, lineno, colno, error);
+    hideLoadingScreen(); // إخفاء الشاشة في حالة أي خطأ غير متوقع
 };
 
 // ============================================================
@@ -3400,165 +3406,62 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// 36. التهيئة (Init)
+// 36. التهيئة (Init) - النسخة المحمية
 // ============================================================
 
 async function init() {
-    showLoadingScreen();
-    updateLoadingBar(10);
-    try { await signInAnonymously(auth); updateLoadingBar(30); } catch (e) { console.log('ℹ️ Anonymous sign-in'); }
-    const productsFromFirestore = await loadProductsFromFirestore();
-    products = productsFromFirestore.length > 0 ? productsFromFirestore : fallbackProducts;
-    updateLoadingBar(50);
-    startProductsRealtimeListener();
-    updateLoadingBar(70);
-    await loadUserData();
-    updateLoadingBar(85);
-    renderProducts(products, false);
-    renderFeaturedProducts();
-    generateRecommendations(products);
-    updateBottomCartBar();
-    updateDropdownStats();
-    loadDownloads();
-    loadNotifications();
-    fetchCryptoPrices();
-    loadFeaturedSettings();
-    loadSliderSettings();
-    setInterval(fetchCryptoPrices, 60000);
-    updateLoadingBar(100);
-    console.log('✅ ZI Store ready with all features!');
-    setTimeout(() => { hideLoadingScreen(); setTimeout(showTelegramBanner, 500); startSocialProof(); }, 500);
-}
-init();
-setTimeout(() => { hideLoadingScreen(); console.log('⚠️ Force hiding loading screen (timeout)'); }, 5000);
-
-// ============================================================
-// 36.5 🔧 دوال تفعيل الترخيص المفقودة (Licence Activation)
-// ============================================================
-
-function openLicenceModal() {
-    const modal = document.getElementById('licenceModal');
-    if (modal) {
-        modal.classList.add('open');
-        document.getElementById('licenceResult').textContent = '';
-        document.getElementById('licenceInput').value = '';
-    } else {
-        console.warn('⚠️ Licence modal not found in DOM');
-        showToast('⚠️ Modal not found', 'warning');
-    }
-}
-
-function closeLicenceModal() {
-    const modal = document.getElementById('licenceModal');
-    if (modal) modal.classList.remove('open');
-}
-
-async function activateLicence() {
-    const input = document.getElementById('licenceInput');
-    const resultEl = document.getElementById('licenceResult');
-    if (!input || !resultEl) {
-        showToast('⚠️ Modal elements not found', 'warning');
-        return;
-    }
-
-    const code = input.value.trim();
-    if (!code) {
-        resultEl.textContent = '⚠️ Please enter a licence code';
-        resultEl.style.color = 'var(--danger)';
-        return;
-    }
-
-    // التأكد من وجود مستخدم مسجل
-    if (!currentUser) {
-        resultEl.textContent = '⚠️ Please login first';
-        resultEl.style.color = 'var(--danger)';
-        return;
-    }
-
     try {
-        const licencesRef = collection(db, 'licenses');
-        const q = query(licencesRef, where('code', '==', code));
-        const snapshot = await getDocs(q);
-
-        if (snapshot.empty) {
-            resultEl.textContent = '❌ Invalid licence code';
-            resultEl.style.color = 'var(--danger)';
-            return;
-        }
-
-        let licenceData = null;
-        snapshot.forEach(doc => {
-            licenceData = { id: doc.id, ...doc.data() };
-        });
-
-        if (!licenceData) {
-            resultEl.textContent = '❌ Licence not found';
-            resultEl.style.color = 'var(--danger)';
-            return;
-        }
-
-        // التحقق من الحالة
-        if (licenceData.status === 'used') {
-            resultEl.textContent = '🔒 This licence has already been used';
-            resultEl.style.color = 'var(--danger)';
-            return;
-        }
-        if (licenceData.status === 'expired' || (licenceData.expiry_date && new Date(licenceData.expiry_date) < new Date())) {
-            resultEl.textContent = '⛔ This licence has expired';
-            resultEl.style.color = 'var(--danger)';
-            return;
-        }
-        if (licenceData.status === 'revoked') {
-            resultEl.textContent = '🚫 This licence has been revoked';
-            resultEl.style.color = 'var(--danger)';
-            return;
-        }
-        if (licenceData.status === 'pending') {
-            resultEl.textContent = '⏳ This licence is pending approval';
-            resultEl.style.color = 'var(--pending-color)';
-            return;
-        }
-
-        // إذا كان Active
-        if (licenceData.status === 'active') {
-            const licenceRef = doc(db, 'licenses', licenceData.id);
-            await updateDoc(licenceRef, {
-                status: 'used',
-                user_id: currentUser.uid,
-                user_email: currentUser.email,
-                used_at: serverTimestamp(),
-                updated_at: serverTimestamp()
-            });
-
-            // تخزين الترخيص المستخدم في حساب المستخدم
-            const userRef = doc(db, 'users', currentUser.uid);
-            await updateDoc(userRef, {
-                usedLicences: arrayUnion({
-                    code: code,
-                    product: licenceData.script_name || licenceData.product_name || 'Unknown',
-                    usedAt: new Date().toISOString()
-                })
-            });
-
-            resultEl.textContent = '✅ Licence activated successfully!';
-            resultEl.style.color = 'var(--success)';
-            showToast('🎉 Licence activated!', 'success');
-
-            // إعادة تحميل قائمة التراخيص إذا كان المدير
-            if (currentUser.email === ADMIN_EMAIL) {
-                loadLicences();
-            }
-
-            closeLicenceModal();
-        } else {
-            resultEl.textContent = '❌ Unknown licence status';
-            resultEl.style.color = 'var(--danger)';
-        }
+        console.log('🚀 Starting ZI Store...');
+        showLoadingScreen();
+        updateLoadingBar(10);
+        
+        console.log('📡 Signing in anonymously...');
+        try { await signInAnonymously(auth); updateLoadingBar(30); } catch (e) { console.log('ℹ️ Anonymous sign-in skipped or failed:', e.message); }
+        
+        console.log('📦 Loading products from Firestore...');
+        const productsFromFirestore = await loadProductsFromFirestore();
+        products = productsFromFirestore.length > 0 ? productsFromFirestore : fallbackProducts;
+        updateLoadingBar(50);
+        
+        console.log('🔄 Starting products realtime listener...');
+        startProductsRealtimeListener();
+        updateLoadingBar(70);
+        
+        console.log('👤 Loading user data...');
+        await loadUserData();
+        updateLoadingBar(85);
+        
+        console.log('🎨 Rendering UI...');
+        renderProducts(products, false);
+        renderFeaturedProducts();
+        generateRecommendations(products);
+        updateBottomCartBar();
+        updateDropdownStats();
+        
+        console.log('📥 Loading downloads & notifications...');
+        loadDownloads();
+        loadNotifications();
+        fetchCryptoPrices();
+        loadFeaturedSettings();
+        loadSliderSettings();
+        setInterval(fetchCryptoPrices, 60000);
+        
+        updateLoadingBar(100);
+        console.log('✅ ZI Store ready!');
+        
+        setTimeout(() => {
+            hideLoadingScreen();
+            setTimeout(showTelegramBanner, 500);
+            startSocialProof();
+        }, 500);
+        
     } catch (error) {
-        console.error('❌ Error activating licence:', error);
-        resultEl.textContent = '❌ Error: ' + error.message;
-        resultEl.style.color = 'var(--danger)';
-        showToast('❌ Activation failed', 'error');
+        console.error('❌ Fatal error during initialization:', error);
+        // في حالة حدوث أي خطأ، نخفي شاشة التحميل ونعرض رسالة للمستخدم
+        hideLoadingScreen();
+        showToast('⚠️ حدث خطأ أثناء تحميل التطبيق، حاول تحديث الصفحة.', 'error');
+        document.getElementById('mainApp').style.display = 'block';
+        document.getElementById('authSection').style.display = 'block';
     }
 }
 
@@ -3671,6 +3574,8 @@ window.closeAddSlideModal = closeAddSlideModal;
 window.saveSliderInterval = saveSliderInterval;
 window.deleteSlide = deleteSlide;
 window.editSlide = editSlide;
+
+// دوال الترخيص
 window.openLicenceModal = openLicenceModal;
 window.closeLicenceModal = closeLicenceModal;
 window.activateLicence = activateLicence;
@@ -3687,6 +3592,11 @@ window.refreshLicences = refreshLicences;
 window.openCreateLicenceModal = openCreateLicenceModal;
 window.closeCreateLicenceModal = closeCreateLicenceModal;
 window.createLicenceManually = createLicenceManually;
+
+// ============================================================
+// تنفيذ التهيئة
+// ============================================================
+init();
 
 // ============================================================
 // END OF SCRIPT.JS
