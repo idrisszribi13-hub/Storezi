@@ -1897,7 +1897,7 @@ function ensureSliderTab() {
             </div>
             <div id="adminLicencesList">
                 <div style="text-align:center;padding:30px;color:var(--text-secondary);">
-                    <i class="fas fa-info-circle"></i> Licence management is temporarily disabled. Please create the 'licenses' collection in Firestore first.
+                    <i class="fas fa-info-circle"></i> Loading licences...
                 </div>
             </div>
         `;
@@ -3433,6 +3433,136 @@ init();
 setTimeout(() => { hideLoadingScreen(); console.log('⚠️ Force hiding loading screen (timeout)'); }, 5000);
 
 // ============================================================
+// 36.5 🔧 دوال تفعيل الترخيص المفقودة (Licence Activation)
+// ============================================================
+
+function openLicenceModal() {
+    const modal = document.getElementById('licenceModal');
+    if (modal) {
+        modal.classList.add('open');
+        document.getElementById('licenceResult').textContent = '';
+        document.getElementById('licenceInput').value = '';
+    } else {
+        console.warn('⚠️ Licence modal not found in DOM');
+        showToast('⚠️ Modal not found', 'warning');
+    }
+}
+
+function closeLicenceModal() {
+    const modal = document.getElementById('licenceModal');
+    if (modal) modal.classList.remove('open');
+}
+
+async function activateLicence() {
+    const input = document.getElementById('licenceInput');
+    const resultEl = document.getElementById('licenceResult');
+    if (!input || !resultEl) {
+        showToast('⚠️ Modal elements not found', 'warning');
+        return;
+    }
+
+    const code = input.value.trim();
+    if (!code) {
+        resultEl.textContent = '⚠️ Please enter a licence code';
+        resultEl.style.color = 'var(--danger)';
+        return;
+    }
+
+    // التأكد من وجود مستخدم مسجل
+    if (!currentUser) {
+        resultEl.textContent = '⚠️ Please login first';
+        resultEl.style.color = 'var(--danger)';
+        return;
+    }
+
+    try {
+        const licencesRef = collection(db, 'licenses');
+        const q = query(licencesRef, where('code', '==', code));
+        const snapshot = await getDocs(q);
+
+        if (snapshot.empty) {
+            resultEl.textContent = '❌ Invalid licence code';
+            resultEl.style.color = 'var(--danger)';
+            return;
+        }
+
+        let licenceData = null;
+        snapshot.forEach(doc => {
+            licenceData = { id: doc.id, ...doc.data() };
+        });
+
+        if (!licenceData) {
+            resultEl.textContent = '❌ Licence not found';
+            resultEl.style.color = 'var(--danger)';
+            return;
+        }
+
+        // التحقق من الحالة
+        if (licenceData.status === 'used') {
+            resultEl.textContent = '🔒 This licence has already been used';
+            resultEl.style.color = 'var(--danger)';
+            return;
+        }
+        if (licenceData.status === 'expired' || (licenceData.expiry_date && new Date(licenceData.expiry_date) < new Date())) {
+            resultEl.textContent = '⛔ This licence has expired';
+            resultEl.style.color = 'var(--danger)';
+            return;
+        }
+        if (licenceData.status === 'revoked') {
+            resultEl.textContent = '🚫 This licence has been revoked';
+            resultEl.style.color = 'var(--danger)';
+            return;
+        }
+        if (licenceData.status === 'pending') {
+            resultEl.textContent = '⏳ This licence is pending approval';
+            resultEl.style.color = 'var(--pending-color)';
+            return;
+        }
+
+        // إذا كان Active
+        if (licenceData.status === 'active') {
+            const licenceRef = doc(db, 'licenses', licenceData.id);
+            await updateDoc(licenceRef, {
+                status: 'used',
+                user_id: currentUser.uid,
+                user_email: currentUser.email,
+                used_at: serverTimestamp(),
+                updated_at: serverTimestamp()
+            });
+
+            // تخزين الترخيص المستخدم في حساب المستخدم
+            const userRef = doc(db, 'users', currentUser.uid);
+            await updateDoc(userRef, {
+                usedLicences: arrayUnion({
+                    code: code,
+                    product: licenceData.script_name || licenceData.product_name || 'Unknown',
+                    usedAt: new Date().toISOString()
+                })
+            });
+
+            resultEl.textContent = '✅ Licence activated successfully!';
+            resultEl.style.color = 'var(--success)';
+            showToast('🎉 Licence activated!', 'success');
+
+            // إعادة تحميل قائمة التراخيص إذا كان المدير
+            if (currentUser.email === ADMIN_EMAIL) {
+                loadLicences();
+            }
+
+            closeLicenceModal();
+        } else {
+            resultEl.textContent = '❌ Unknown licence status';
+            resultEl.style.color = 'var(--danger)';
+        }
+    } catch (error) {
+        console.error('❌ Error activating licence:', error);
+        resultEl.textContent = '❌ Error: ' + error.message;
+        resultEl.style.color = 'var(--danger)';
+        showToast('❌ Activation failed', 'error');
+    }
+}
+
+// ============================================================
 // 37. التصديرات النهائية
 // ============================================================
 
@@ -3541,8 +3671,6 @@ window.closeAddSlideModal = closeAddSlideModal;
 window.saveSliderInterval = saveSliderInterval;
 window.deleteSlide = deleteSlide;
 window.editSlide = editSlide;
-
-// دوال الترخيص
 window.openLicenceModal = openLicenceModal;
 window.closeLicenceModal = closeLicenceModal;
 window.activateLicence = activateLicence;
