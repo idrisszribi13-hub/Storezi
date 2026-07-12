@@ -2947,7 +2947,7 @@ function startSocialProof() {}
 function triggerSocialProofOnOrder(userName, productNames) {}
 
 // ============================================================
-// 30. دوال السلايدر (Slider)
+// 30. دوال السلايدر (Slider) - معدلة لتجنب أخطاء العناصر المفقودة
 // ============================================================
 
 async function loadSliderSettings() {
@@ -2958,7 +2958,11 @@ async function loadSliderSettings() {
             const data = settingsSnap.data();
             sliderSlides = data.slides || [];
             sliderIntervalTime = data.interval || 3;
-            document.getElementById('sliderIntervalInput').value = sliderIntervalTime;
+            // ✅ التحقق من وجود العنصر قبل تعيين القيمة
+            const intervalInput = document.getElementById('sliderIntervalInput');
+            if (intervalInput) {
+                intervalInput.value = sliderIntervalTime;
+            }
         } else {
             sliderSlides = [];
             sliderIntervalTime = 3;
@@ -2972,6 +2976,7 @@ async function loadSliderSettings() {
         renderSlider();
     }
 }
+
 
 function renderSlider() {
     const wrapper = document.getElementById('sliderWrapper');
@@ -3223,6 +3228,7 @@ async function saveSliderInterval() {
         showToast('❌ Failed to save interval', 'error');
     }
 }
+
 
 function renderSliderSettingsUI() {
     const container = document.getElementById('sliderSlidesList');
