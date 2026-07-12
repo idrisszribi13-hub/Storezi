@@ -319,6 +319,8 @@
             <div class="menu-item" onclick="openNotifications();closeUserMenuFull();"><i class="fas fa-bell"></i><span class="menu-label">Notifications</span><span class="menu-badge" id="fullNotifBadge">0</span></div>
             <div class="menu-item" onclick="openRequestsModal();closeUserMenuFull();"><i class="fas fa-file-alt"></i><span class="menu-label">Requests</span></div>
             <div class="menu-item" onclick="openReferralModal();closeUserMenuFull();"><i class="fas fa-gift"></i><span class="menu-label">Referrals</span></div>
+            
+            <!-- 🆕 Activate Script -->
             <div class="menu-item" onclick="openLicenceModal()"><i class="fas fa-key"></i><span class="menu-label">🔑 Activate Script</span></div>
             
             <!-- 🆕 My Licences -->
@@ -462,7 +464,7 @@
     </div>
 
     <!-- ============================================ -->
-    <!-- مودالات الإدارة (جديدة) -->
+    <!-- مودالات الإدارة -->
     <!-- ============================================ -->
 
     <!-- مودال تحرير الترخيص -->
@@ -668,7 +670,7 @@
     </div>
 
     <!-- ============================================ -->
-    <!-- لوحة المدير (Admin Panel) - تمت إضافة Licences يدوياً -->
+    <!-- لوحة المدير (Admin Panel) -->
     <!-- ============================================ -->
     <div class="modal-overlay admin-panel" id="adminPanel">
         <div class="modal-content">
@@ -691,7 +693,6 @@
                 <button onclick="switchAdminTab('stats')">📈 Statistics</button>
                 <button onclick="switchAdminTab('logs')">📋 Logs</button>
                 <button onclick="switchAdminTab('slider')">🎨 Slider</button>
-                <!-- ✅ تم إضافة تبويب Licences يدوياً -->
                 <button onclick="switchAdminTab('licences')">🔑 Licences</button>
             </div>
 
@@ -710,10 +711,8 @@
                 <div class="admin-stats-grid">
                     <div class="admin-stat-card"><div class="stat-number" id="adminTotalOrders">0</div><div class="stat-label">Total</div></div>
                     <div class="admin-stat-card"><div class="stat-number" id="adminPendingOrders" style="color:var(--pending-color);">0</div><div class="stat-label">Pending</div></div>
-                    <div class="admin-stat-card"><div class="stat-number" id="adminPreparingOrders" style="color:var(--preparing-color);">0</div><div class="stat-label">Preparing</div></div>
-                    <div class="admin-stat-card"><div class="stat-number" id="adminShippedOrders" style="color:var(--shipped-color);">0</div><div class="stat-label">Shipped</div></div>
-                    <div class="admin-stat-card"><div class="stat-number" id="adminDeliveredOrders" style="color:var(--delivered-color);">0</div><div class="stat-label">Delivered</div></div>
-                    <div class="admin-stat-card"><div class="stat-number" id="adminRejectedOrders" style="color:var(--rejected-color);">0</div><div class="stat-label">Rejected</div></div>
+                    <div class="admin-stat-card"><div class="stat-number" id="adminConfirmedOrders" style="color:var(--success);">0</div><div class="stat-label">Confirmed</div></div>
+                    <div class="admin-stat-card"><div class="stat-number" id="adminRejectedOrders" style="color:var(--danger);">0</div><div class="stat-label">Rejected</div></div>
                 </div>
                 <div class="admin-search-bar">
                     <input type="text" id="adminSearchInput" placeholder="🔍 Search orders..." onkeyup="searchAdminOrders()" />
@@ -800,7 +799,7 @@
                 </div>
             </div>
 
-            <!-- ======== ✅ تبويب التراخيص (Licences) ======== -->
+            <!-- ======== تبويب التراخيص (Licences) ======== -->
             <div class="tab-content" id="tabLicences">
                 <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
                     <button class="add-btn" onclick="openCreateLicenceModal()"><i class="fas fa-plus"></i> Create Licence</button>
