@@ -2554,33 +2554,65 @@ async function createLicenceManually() {
         const product = products.find(p => p.name === productName);
         const scriptId = product ? product.id : 'script_' + Date.now();
 
-        const response = await fetch(`${SUPABASE_PROJECT_URL}/functions/v1/admin-create-licence`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + SUPABASE_PUBLISHABLE_KEY,
-                'apikey': SUPABASE_PUBLISHABLE_KEY
-            },
-            body: JSON.stringify({
-                code: code,
-                script_id: scriptId,
-                script_name: productName,
-                product_name: productName,
-                user_id: userId || null,
-                user_email: userId || null,
-                status: 'active',
-                expiry_date: expiryDate ? new Date(expiryDate).toISOString() : new Date(Date.now() + 365*24*60*60*1000).toISOString()
-            })
-        });
+        // 1. إضافة الترخيص إلى مجموعة licenses في Firestore
+        const licenceData = {
+            code: code,
+            script_id: scriptId,
+            script_name: productName,
+            product_name: productName,
+            user_id: userId || null,
+            user_email: userId || null,
+            status: 'active',
+            expiry_date: expiryDate ? new Date(expiryDate).toISOString() : new Date(Date.now() + 365*24*60*60*1000).toISOString(),
+            created_at: serverTimestamp(),
+            updated_at: serverTimestamp()
+        };
 
-        const result = await response.json();
-        if (result.success) {
-            showToast(`✅ Licence created: ${code}`, 'success');
-            closeCreateLicenceModal();
-            loadLicences();
-        } else {
-            showToast('❌ Error: ' + (result.error || 'Unknown error'), 'error');
+        await addDoc(collection(db, 'licenses'), licenceData);
+
+        showToast(`✅ Licence created: ${code}`, 'success');
+        closeCreateLicenceModal();
+        loadLicences(); // تحديث قائمة التراخيص في لوحة المدير
+
+        // 2. إذا تم تحديد مستخدم، أضف الترخيص إلى ملف المستخدم
+        if (userId) {
+            // البحث عن المستخدم
+            const usersRef = collection(db, 'users');
+            let q;
+            if (userId.includes('@')) {
+                q = query(usersRef, where('email', '==', userId));
+            } else {
+                q = query(usersRef, where('userId', '==', userId));
+            }
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                const userDoc = querySnapshot.docs[0];
+                const userData = userDoc.data();
+                const userLicences = userData.licences || [];
+                // تجنب التكرار
+                if (!userLicences.find(l => l.code === code)) {
+                    userLicences.push({
+                        code: code,
+                        scriptId: scriptId,
+                        scriptName: productName,
+                        expiryDate: licenceData.expiry_date,
+                        activatedAt: new Date().toISOString()
+                    });
+                    await updateDoc(userDoc.ref, { licences: userLicences, updatedAt: serverTimestamp() });
+                    // إذا كان هذا هو المستخدم الحالي، حدّث userProfile.licences
+                    if (currentUser && userDoc.id === currentUser.uid) {
+                        userProfile.licences = userLicences;
+                        renderUserLicences();
+                        updateFullUserMenu();
+                    }
+                }
+            } else {
+                console.warn('⚠️ User not found for id/email:', userId);
+                // يمكن إضافة إشعار للمدير بأن المستخدم غير موجود
+                showToast('⚠️ User not found, but licence was created.', 'warning');
+            }
         }
+
     } catch (error) {
         console.error('Error creating licence:', error);
         showToast('❌ Error: ' + error.message, 'error');
