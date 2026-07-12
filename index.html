@@ -319,10 +319,7 @@
             <div class="menu-item" onclick="openNotifications();closeUserMenuFull();"><i class="fas fa-bell"></i><span class="menu-label">Notifications</span><span class="menu-badge" id="fullNotifBadge">0</span></div>
             <div class="menu-item" onclick="openRequestsModal();closeUserMenuFull();"><i class="fas fa-file-alt"></i><span class="menu-label">Requests</span></div>
             <div class="menu-item" onclick="openReferralModal();closeUserMenuFull();"><i class="fas fa-gift"></i><span class="menu-label">Referrals</span></div>
-            
-            <!-- ====== 🆕 زر تفعيل الترخيص (المضافة حديثاً) ====== -->
             <div class="menu-item" onclick="openLicenceModal()"><i class="fas fa-key"></i><span class="menu-label">🔑 Activate Script</span></div>
-            
             <div class="menu-divider"></div>
             <div class="menu-item admin-btn" id="adminMenuItem" onclick="openAdminPanel();closeUserMenuFull();"><i class="fas fa-crown"></i><span class="menu-label">Admin Panel</span><span class="menu-badge" id="adminMenuBadge">0</span></div>
             <div class="menu-item logout" onclick="logoutUser();closeUserMenuFull();"><i class="fas fa-sign-out-alt"></i><span class="menu-label">Logout</span></div>
@@ -455,8 +452,44 @@
     </div>
 
     <!-- ============================================ -->
-    <!-- مودالات الإدارة -->
+    <!-- مودالات الإدارة (جديدة) -->
     <!-- ============================================ -->
+
+    <!-- مودال تحرير الترخيص -->
+    <div class="modal-overlay" id="editLicenceModal">
+        <div class="modal-content" style="max-width:420px;">
+            <button class="modal-close" onclick="document.getElementById('editLicenceModal').classList.remove('open')"><i class="fas fa-times"></i></button>
+            <div class="modal-title"><i class="fas fa-edit"></i> Edit Licence</div>
+            <input type="hidden" id="editLicenceId" />
+            <div class="admin-form-group"><label>Code</label><input type="text" id="editLicenceCode" readonly style="opacity:0.5;font-family:monospace;" /></div>
+            <div class="admin-form-group"><label>Script Name</label><input type="text" id="editLicenceScript" readonly style="opacity:0.5;" /></div>
+            <div class="admin-form-group"><label>Expiry Date</label><input type="datetime-local" id="editLicenceExpiry" /></div>
+            <div class="admin-form-group"><label>Status</label>
+                <select id="editLicenceStatus">
+                    <option value="pending">⏳ Pending</option>
+                    <option value="active">✅ Active</option>
+                    <option value="used">🔒 Used</option>
+                    <option value="expired">⛔ Expired</option>
+                    <option value="revoked">🚫 Revoked</option>
+                </select>
+            </div>
+            <button class="admin-submit-btn" onclick="saveLicenceEdit()"><i class="fas fa-save"></i> Save</button>
+        </div>
+    </div>
+
+    <!-- مودال إضافة ترخيص يدوي -->
+    <div class="modal-overlay" id="createLicenceModal">
+        <div class="modal-content" style="max-width:420px;">
+            <button class="modal-close" onclick="closeCreateLicenceModal()"><i class="fas fa-times"></i></button>
+            <div class="modal-title"><i class="fas fa-plus-circle"></i> Create Licence</div>
+            <form id="createLicenceForm" onsubmit="createLicenceManually();return false;">
+                <div class="admin-form-group"><label>Product Name</label><input type="text" id="newLicenceProduct" placeholder="e.g., Mergedom VIP Tool" required /></div>
+                <div class="admin-form-group"><label>User ID (optional)</label><input type="text" id="newLicenceUser" placeholder="Firebase UID or email" /></div>
+                <div class="admin-form-group"><label>Expiry Date</label><input type="datetime-local" id="newLicenceExpiry" /></div>
+                <button type="submit" class="admin-submit-btn"><i class="fas fa-plus"></i> Create</button>
+            </form>
+        </div>
+    </div>
 
     <!-- مودال إضافة/تعديل منتج -->
     <div class="modal-overlay" id="productModal">
@@ -522,7 +555,7 @@
         </div>
     </div>
 
-    <!-- مودال إعدادات المنتجات المميزة (الإصدار القديم) -->
+    <!-- مودال إعدادات المنتجات المميزة -->
     <div class="modal-overlay" id="featuredSettingsModal">
         <div class="modal-content" style="max-width:480px;">
             <button class="modal-close" onclick="closeFeaturedSettings()"><i class="fas fa-times"></i></button>
@@ -647,7 +680,7 @@
                 <button onclick="switchAdminTab('notifications')">🔔 Notifications</button>
                 <button onclick="switchAdminTab('stats')">📈 Statistics</button>
                 <button onclick="switchAdminTab('logs')">📋 Logs</button>
-                <!-- تبويب السلايدر سيتم إضافته بواسطة JavaScript -->
+                <!-- تم إضافة تبويب السلايدر والتراخيص بواسطة JS -->
             </div>
 
             <!-- ======== تبويب Dashboard ======== -->
@@ -738,6 +771,7 @@
             </div>
 
             <!-- ======== تبويب السلايدر (سيتم إنشاؤه بواسطة JS) ======== -->
+            <!-- ======== تبويب التراخيص (سيتم إنشاؤه بواسطة JS) ======== -->
         </div>
     </div>
 
