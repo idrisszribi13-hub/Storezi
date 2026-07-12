@@ -2455,10 +2455,10 @@ window.filterOrders = function(filter) {
 let allLicences = [];
 
 async function loadLicences() {
+try {
     const container = document.getElementById('adminLicencesList');
     if (!container) return;
     container.innerHTML = `<div style="text-align:center;padding:30px;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
-    try {
         const licencesRef = collection(db, 'licenses');
         const snapshot = await getDocs(licencesRef);
         allLicences = [];
