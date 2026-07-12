@@ -1,7 +1,42 @@
 // ============================================================
 // SCRIPT.JS - النسخة النهائية المتكاملة (مع إصلاح أخطاء التحميل)
 // ============================================================
+// ============================================================
+// 🔥 وضع التصحيح (Debug Mode) - يظهر الأخطاء على الشاشة
+// ============================================================
 
+// عرض رسالة على الشاشة
+function debugLog(msg) {
+    const screen = document.getElementById('loadingScreen');
+    if (screen) {
+        const statusEl = document.getElementById('loadingStatus');
+        if (statusEl) {
+            statusEl.textContent = '⚠️ ' + msg;
+            statusEl.style.color = '#ff6b6b';
+        }
+    }
+    console.log('[DEBUG]', msg);
+}
+
+// التقاط الأخطاء غير المتوقعة
+window.onerror = function(message, source, lineno, colno, error) {
+    debugLog('🚨 خطأ: ' + message);
+    alert('❌ خطأ في السكربت:\n' + message + '\n\nالسطر: ' + lineno);
+    // إخفاء شاشة التحميل بالقوة
+    const screen = document.getElementById('loadingScreen');
+    if (screen) screen.style.display = 'none';
+};
+
+// رسالة بدء التحميل
+debugLog('🚀 بدء تحميل السكربت...');
+
+// محاولة التقاط أخطاء الـ import
+try {
+    // هذا السطر سيُظهر أن الكود وصل إلى هنا
+    debugLog('✅ الكود الأساسي يعمل...');
+} catch (e) {
+    debugLog('❌ فشل التنفيذ: ' + e.message);
+}
 import { initializeApp } from "firebase/app";
 import { getAuth, onAuthStateChanged, signInAnonymously, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, updatePassword, sendPasswordResetEmail, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, increment, collection, query, where, getDocs, onSnapshot, addDoc, deleteDoc, orderBy } from "firebase/firestore";
