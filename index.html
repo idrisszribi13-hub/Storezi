@@ -320,10 +320,10 @@
             <div class="menu-item" onclick="openRequestsModal();closeUserMenuFull();"><i class="fas fa-file-alt"></i><span class="menu-label">Requests</span></div>
             <div class="menu-item" onclick="openReferralModal();closeUserMenuFull();"><i class="fas fa-gift"></i><span class="menu-label">Referrals</span></div>
             
-            <!-- 🆕 Activate Script -->
+            <!-- 🆕 Activate Script - فقط التفعيل -->
             <div class="menu-item" onclick="openLicenceModal()"><i class="fas fa-key"></i><span class="menu-label">🔑 Activate Script</span></div>
             
-            <!-- 🆕 My Licences -->
+            <!-- 🆕 My Licences - عرض التراخيص فقط -->
             <div class="menu-divider"></div>
             <div class="menu-item" onclick="toggleLicencesList()">
                 <i class="fas fa-key"></i>
@@ -464,7 +464,7 @@
     </div>
 
     <!-- ============================================ -->
-    <!-- مودالات الإدارة -->
+    <!-- مودالات الإدارة - فقط إضافة ترخيص (بدون Licences في الشراء) -->
     <!-- ============================================ -->
 
     <!-- مودال تحرير الترخيص -->
@@ -489,7 +489,7 @@
         </div>
     </div>
 
-    <!-- مودال إضافة ترخيص يدوي -->
+    <!-- مودال إضافة ترخيص يدوي (للإدارة فقط) -->
     <div class="modal-overlay" id="createLicenceModal">
         <div class="modal-content" style="max-width:420px;">
             <button class="modal-close" onclick="closeCreateLicenceModal()"><i class="fas fa-times"></i></button>
@@ -711,8 +711,6 @@
                 <div class="admin-stats-grid">
                     <div class="admin-stat-card"><div class="stat-number" id="adminTotalOrders">0</div><div class="stat-label">Total</div></div>
                     <div class="admin-stat-card"><div class="stat-number" id="adminPendingOrders" style="color:var(--pending-color);">0</div><div class="stat-label">Pending</div></div>
-                    <div class="admin-stat-card"><div class="stat-number" id="adminConfirmedOrders" style="color:var(--success);">0</div><div class="stat-label">Confirmed</div></div>
-                    <div class="admin-stat-card"><div class="stat-number" id="adminRejectedOrders" style="color:var(--danger);">0</div><div class="stat-label">Rejected</div></div>
                 </div>
                 <div class="admin-search-bar">
                     <input type="text" id="adminSearchInput" placeholder="🔍 Search orders..." onkeyup="searchAdminOrders()" />
