@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - النسخة النهائية مع نظام الطلبات والتراخيص المتكامل
+// SCRIPT.JS - النسخة المبسطة (بدون Licences في الشراء)
 // ============================================================
 
 import { initializeApp } from "firebase/app";
@@ -81,7 +81,6 @@ let ordersFilter = 'all';
 let _selectedVipPlan = '1m';
 let allLicences = [];
 
-// متغيرات المنتجات المميزة
 let featuredProducts = [];
 let featuredRotationInterval = null;
 let featuredCurrentIndex = 0;
@@ -92,7 +91,6 @@ let featuredSettings = {
     selectedProductIds: []
 };
 
-// متغيرات السلايدر
 let sliderSlides = [];
 let sliderIntervalTime = 3;
 let currentSlideIndex = 0;
@@ -339,7 +337,7 @@ function updateFullUserMenu() {
         rp.textContent = userProfile.rp || 0;
         wishlistBadge.textContent = wishlist.length;
         wishlistBadge.style.display = wishlist.length > 0 ? 'inline-block' : 'none';
-        const pendingOrders = userProfile.history.filter(o => o.status === 'pending' || o.status === 'preparing').length;
+        const pendingOrders = userProfile.history.filter(o => o.status === 'pending').length;
         const totalBadge = pendingOrders + unreadNotifications;
         if (totalBadge > 0) { orderBadge.style.display = 'inline-block'; orderBadge.textContent = totalBadge; } else { orderBadge.style.display = 'none'; }
         if (unreadNotifications > 0) { notifBadge.style.display = 'inline-block'; notifBadge.textContent = unreadNotifications; } else { notifBadge.style.display = 'none'; }
@@ -483,7 +481,7 @@ window.closeNotifications = function() { document.getElementById('notificationsM
 function openAuthModal() { document.getElementById('authSection').scrollIntoView({ behavior: 'smooth' }); }
 
 // ============================================================
-// 12. عرض الملف الشخصي
+// 12. عرض الملف الشخصي (مختصر)
 // ============================================================
 
 function renderProfileFull() {
@@ -493,7 +491,6 @@ function renderProfileFull() {
         return;
     }
     const displayName = currentUser.displayName || currentUser.email || 'User';
-    const maskedChatId = userProfile.telegramChatId ? userProfile.telegramChatId.slice(0, 4) + '***' + userProfile.telegramChatId.slice(-4) : 'Not linked';
     const activeLicences = (userProfile.licences || []).filter(l => new Date(l.expiryDate) > new Date()).length;
     container.innerHTML = `
     <div style="background:var(--card-bg);border-radius:14px;border:1px solid var(--border);padding:16px;margin-bottom:12px;">
@@ -507,11 +504,6 @@ function renderProfileFull() {
           <div style="font-size:13px;color:var(--success);font-weight:600;">🔑 Licences: ${activeLicences}</div>
           ${userProfile.isBanned ? '<div style="font-size:13px;color:var(--danger);font-weight:700;">🚫 BANNED</div>' : ''}
         </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
-        <div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center;border:1px solid var(--border);"><div style="font-size:18px;font-weight:700;color:var(--text);">${userProfile.history.length}</div><div style="font-size:10px;color:var(--text-secondary);">Orders</div></div>
-        <div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center;border:1px solid var(--border);"><div style="font-size:18px;font-weight:700;color:var(--vip-color);">${userProfile.rp || 0}</div><div style="font-size:10px;color:var(--text-secondary);">RP Points</div></div>
-        <div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center;border:1px solid var(--border);"><div style="font-size:18px;font-weight:700;color:var(--heart-color);">${wishlist.length}</div><div style="font-size:10px;color:var(--text-secondary);">Favorites</div></div>
       </div>
     </div>
     <div class="edit-profile-inline">
@@ -536,32 +528,13 @@ function renderProfileFull() {
         <div class="form-actions"><button type="button" class="btn-cancel" onclick="renderProfileFull()">Cancel</button><button type="submit" class="btn-save"><i class="fas fa-save"></i> Save</button></div>
       </form>
     </div>
-    <div class="password-inline">
-      <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px;"><i class="fas fa-lock"></i> Password & Security</div>
-      <div class="ps-email"><span>${currentUser.email || 'No email'}</span><button onclick="sendResetLinkInline()"><i class="fas fa-paper-plane"></i> Send Reset Link</button></div>
-      <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:8px;">
-        <div style="font-size:12px;color:var(--text-secondary);opacity:0.4;margin-bottom:6px;">Use your current password to set a new one instantly.</div>
-        <div class="auth-field"><label>Current Password</label><input id="currentPasswordInline" placeholder="Enter current password" type="password" /></div>
-        <div class="auth-field"><label>New Password</label><input id="newPasswordInline" placeholder="Enter new password (min 6 chars)" type="password" /></div>
-        <div class="auth-field"><label>Confirm New Password</label><input id="confirmNewPasswordInline" placeholder="Confirm new password" type="password" /></div>
-        <button class="auth-btn" onclick="changePasswordInline()"><i class="fas fa-key"></i> Change Password</button>
-        <div class="auth-error" id="passwordErrorInline"></div><div class="auth-success" id="passwordSuccessInline"></div>
-      </div>
-    </div>
     <div class="telegram-bind-section" style="margin-top:12px;">
       <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;"><i class="fab fa-telegram-plane" style="color:#0088cc;"></i> Telegram Notifications</div>
-      <div class="tb-row"><span class="tb-label">Status</span><span class="tb-value"><span class="tb-status ${userProfile.telegramChatId?'linked':'unlinked'}">${userProfile.telegramChatId?'✅ Linked':'❌ Unlinked'}</span></span></div>
-      ${userProfile.telegramChatId?`<div class="tb-row"><span class="tb-label">Bound Chat ID</span><span class="tb-value" style="font-family:monospace;letter-spacing:1px;">${maskedChatId}</span></div><div class="tb-row"><span class="tb-label">Bot</span><span class="tb-value" style="color:#0088cc;">@${BOT_USERNAME}</span></div>`:''}
-      <div style="background:var(--card-bg);padding:10px;border-radius:8px;margin:8px 0;border:1px solid var(--border);">
-        <div style="font-size:13px;color:var(--text-secondary);"><i class="fas fa-info-circle" style="color:var(--primary);"></i> ${userProfile.telegramChatId ? 'You will receive order notifications here.' : 'Click "Link Bot" to connect your Telegram account.'}</div>
-      </div>
       <div class="tb-actions">
-        <button class="btn-bind" onclick="bindTelegram()" style="flex:1;background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;gap:8px;"><i class="fab fa-telegram-plane"></i> ${userProfile.telegramChatId?'Re-link':'Link Bot'}</button>
-        ${userProfile.telegramChatId ? `<button class="btn-test" onclick="testTelegramNotification()" style="background:var(--success);color:#0a0a1a;border:none;border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:6px;"><i class="fas fa-paper-plane"></i> Test</button>` : ''}
-        <button class="btn-check" onclick="checkTelegramStatus()" style="background:var(--card-bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:6px;"><i class="fas fa-sync-alt"></i> Check</button>
-        ${userProfile.telegramChatId ? `<button class="btn-unlink" onclick="unlinkTelegram()" style="background:var(--danger);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:6px;"><i class="fas fa-unlink"></i> Unlink</button>` : ''}
+        <button class="btn-bind" onclick="bindTelegram()" style="flex:1;background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;"><i class="fab fa-telegram-plane"></i> ${userProfile.telegramChatId?'Re-link':'Link Bot'}</button>
+        ${userProfile.telegramChatId ? `<button class="btn-test" onclick="testTelegramNotification()" style="background:var(--success);color:#0a0a1a;border:none;border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;"><i class="fas fa-paper-plane"></i> Test</button>` : ''}
+        <button class="btn-unlink" onclick="unlinkTelegram()" style="background:var(--danger);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;"><i class="fas fa-unlink"></i> Unlink</button>
       </div>
-      <div style="font-size:11px;color:var(--text-secondary);opacity:0.4;margin-top:6px;display:flex;align-items:center;gap:4px;"><i class="fab fa-telegram-plane" style="color:#0088cc;"></i> ${userProfile.telegramChatId ? `Connected to @${BOT_USERNAME}` : `Start @${BOT_USERNAME} and click "Link Bot" to connect`}</div>
     </div>`;
     setTimeout(showTelegramBanner, 300);
 }
@@ -583,9 +556,6 @@ window.saveProfileChangesInline = async function(e) {
         updateUI(); renderProfileFull(); updateFullUserMenu();
     } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
 };
-
-window.sendResetLinkInline = async function() { if (!currentUser) return; try { await sendPasswordResetEmail(auth, currentUser.email); showToast(`📧 Reset link sent to ${currentUser.email}`, 'success'); } catch (error) { showToast('❌ ' + error.message, 'error'); } };
-window.changePasswordInline = async function() { if (!currentUser) return; const currentPwd = document.getElementById('currentPasswordInline').value; const newPwd = document.getElementById('newPasswordInline').value; const confirmPwd = document.getElementById('confirmNewPasswordInline').value; const errorEl = document.getElementById('passwordErrorInline'); const successEl = document.getElementById('passwordSuccessInline'); errorEl.textContent = ''; successEl.textContent = ''; if (!currentPwd || !newPwd || !confirmPwd) { errorEl.textContent = 'Please fill all fields'; return; } if (newPwd.length < 6) { errorEl.textContent = 'New password must be at least 6 characters'; return; } if (newPwd !== confirmPwd) { errorEl.textContent = 'Passwords do not match'; return; } try { const credential = EmailAuthProvider.credential(currentUser.email, currentPwd); await reauthenticateWithCredential(currentUser, credential); await updatePassword(currentUser, newPwd); successEl.textContent = '✅ Password changed successfully!'; showToast('✅ Password updated!', 'success'); document.getElementById('currentPasswordInline').value = ''; document.getElementById('newPasswordInline').value = ''; document.getElementById('confirmNewPasswordInline').value = ''; setTimeout(() => { successEl.textContent = ''; }, 3000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); } };
 
 // ============================================================
 // 13. المنتجات
@@ -1166,7 +1136,7 @@ function closeSearchResults() { searchResults.classList.remove('active'); search
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeSearchResults(); closeUserMenuFull(); closeCartFull(); closeWishlistFull(); closeProfileFull(); closeHistoryFull(); } });
 
 // ============================================================
-// 19. الدفع
+// 19. الدفع (بدون Licences)
 // ============================================================
 
 async function fetchCryptoPrices() {
@@ -1297,7 +1267,7 @@ function renderPaymentProducts() {
 }
 
 // ============================================================
-// 20. إرسال الطلب (نظام جديد: فقط Pending → Confirmed/Rejected)
+// 20. إرسال الطلب (بدون Licences)
 // ============================================================
 
 async function sendOrderToTelegram(method, txHash = null) {
@@ -1331,52 +1301,8 @@ async function sendOrderToTelegram(method, txHash = null) {
         discountText += `\n🎫 Promo (${activeDiscount}%): -${discountAmount.toFixed(2)}$`;
     }
 
-    // توليد كود ترخيص لكل منتج في السلة عبر Supabase
-    const generatedCodes = [];
-    for (const item of cart) {
-        const code = 'LIC-' + Math.random().toString(36).substring(2, 10).toUpperCase();
-        const expiryDate = new Date();
-        expiryDate.setFullYear(expiryDate.getFullYear() + 1);
-
-        // البحث عن script_id للمنتج
-        const product = products.find(p => p.id === item.id);
-        const scriptId = product ? product.id : 'script_' + Date.now();
-
-        try {
-            const response = await fetch(`${SUPABASE_PROJECT_URL}/functions/v1/admin-create-licence`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + SUPABASE_PUBLISHABLE_KEY,
-                    'apikey': SUPABASE_PUBLISHABLE_KEY
-                },
-                body: JSON.stringify({
-                    code: code,
-                    script_id: scriptId,
-                    script_name: item.name,
-                    product_name: item.name,
-                    product_price: item.price,
-                    order_id: orderId,
-                    payment_tx: txHash || null,
-                    user_id: currentUser.uid,
-                    user_email: currentUser.email,
-                    status: 'pending',
-                    expiry_date: expiryDate.toISOString()
-                })
-            });
-            const result = await response.json();
-            if (result.success) {
-                generatedCodes.push({ product: item.name, code: code, scriptId: scriptId });
-            } else {
-                console.error('Failed to create licence:', result.error);
-            }
-        } catch (e) {
-            console.error('Error creating licence via Supabase:', e);
-        }
-    }
-
-    // إرسال رسالة للمدير للموافقة
-    let adminMsg = '🛒 **New Order - Pending Approval**\n\n';
+    // إرسال رسالة للمدير
+    let adminMsg = '🛒 **New Order**\n\n';
     adminMsg += `📎 **Order ID:** #${orderId.slice(-6)}\n`;
     adminMsg += `👤 **Customer:** ${currentUser.displayName || currentUser.email || 'Unknown'}\n`;
     adminMsg += `📧 **Email:** ${currentUser.email || 'N/A'}\n`;
@@ -1385,42 +1311,23 @@ async function sendOrderToTelegram(method, txHash = null) {
     adminMsg += `💰 **Total:** ${finalTotal.toFixed(2)}$\n`;
     adminMsg += `💬 **Payment Method:** ${method}\n`;
     if (txHash) adminMsg += `🔍 **Tx Hash:** ${txHash}\n`;
-    adminMsg += `\n🔑 **Generated Licence Codes:**\n`;
-    generatedCodes.forEach(gc => {
-        adminMsg += `   • ${gc.product} (Script ID: ${gc.scriptId}): \`${gc.code}\`\n`;
-    });
-    adminMsg += `\n📌 **Actions:**\n`;
-    adminMsg += `✅ To approve: /approve_${orderId.slice(-6)}\n`;
-    adminMsg += `❌ To reject: /reject_${orderId.slice(-6)}\n`;
-    adminMsg += `\n⚠️ **Note:** Approved orders will automatically send the licence code to the user's Telegram.`;
 
     try {
         await sendTelegramNotification(TELEGRAM_CHAT_ID, adminMsg);
-        showToast('📨 Order sent to admin for approval!', 'success');
-    } catch (e) { 
-        console.error('Telegram notification error:', e);
-        // فتح المحادثة كنسخة احتياطية
-        window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(adminMsg)}`, '_blank');
-    }
+    } catch (e) { console.error('Telegram notification error:', e); }
+    window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(adminMsg)}`, '_blank');
 
-    // حفظ الطلب في تاريخ المستخدم كـ Pending
+    // حفظ الطلب
     const orderItem = {
         id: orderId,
-        items: cart.map(item => ({ 
-            id: item.id, 
-            name: item.name, 
-            price: item.price, 
-            quantity: item.quantity || 1,
-            script_id: products.find(p => p.id === item.id)?.id || null
-        })),
+        items: cart.map(item => ({ id: item.id, name: item.name, price: item.price, quantity: item.quantity || 1 })),
         total: finalTotal,
         method: method,
         date: new Date().toISOString(),
         status: 'pending',
         txHash: txHash || null,
         rpUsed: Math.floor(rpDiscountAmount / RP_TO_DOLLAR) || 0,
-        rpEarned: 0,
-        codes: generatedCodes
+        rpEarned: 0
     };
 
     const userRef = doc(db, 'users', currentUser.uid);
@@ -1440,10 +1347,10 @@ async function sendOrderToTelegram(method, txHash = null) {
     updateRpDisplay();
     document.getElementById('paymentModal').classList.remove('open');
 
-    showToast('📤 Order placed! Waiting for admin approval.', 'success');
+    showToast('📤 Order placed!', 'success');
 
     setTimeout(() => {
-        if (currentUser && currentUser.email === ADMIN_EMAIL) { loadAdminOrders(); loadLicences(); }
+        if (currentUser && currentUser.email === ADMIN_EMAIL) { loadAdminOrders(); }
         loadUserData();
         updateDropdownStats();
         updateFullUserMenu();
@@ -1485,128 +1392,7 @@ window.closePaymentModal = function() { document.getElementById('paymentModal').
 window.checkout = function() { openPaymentModal(); };
 
 // ============================================================
-// 21. الموافقة على الطلب من المدير (Confirmed)
-// ============================================================
-
-window.approveOrder = async function(orderId, userId) {
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
-        showToast('⛔ Unauthorized', 'error');
-        return;
-    }
-
-    try {
-        // جلب بيانات المستخدم
-        const userRef = doc(db, 'users', userId);
-        const userSnap = await getDoc(userRef);
-        if (!userSnap.exists()) {
-            showToast('❌ User not found', 'error');
-            return;
-        }
-
-        const userData = userSnap.data();
-        const history = userData.history || [];
-        
-        // البحث عن الطلب
-        const orderIndex = history.findIndex(o => o.id === orderId);
-        if (orderIndex === -1) {
-            showToast('❌ Order not found', 'error');
-            return;
-        }
-
-        const order = history[orderIndex];
-        
-        // تحديث حالة الطلب إلى confirmed
-        order.status = 'confirmed';
-        order.confirmedAt = new Date().toISOString();
-
-        // تحديث في Firestore
-        await updateDoc(userRef, { history: history });
-
-        // إرسال الترخيص للمستخدم عبر Telegram
-        if (order.codes && order.codes.length > 0 && userData.telegramChatId) {
-            let message = '✅ **Order Confirmed!**\n\n';
-            message += `📦 **Order #${orderId.slice(-6)}**\n`;
-            message += `📅 **Date:** ${new Date(order.date).toLocaleString()}\n\n`;
-            message += '🔑 **Your Licence Codes:**\n';
-            
-            order.codes.forEach(gc => {
-                message += `   • ${gc.product}: \`${gc.code}\`\n`;
-            });
-            
-            message += '\n📌 Use these codes in the ZI Store script loader to activate your products.';
-            
-            await sendTelegramNotification(userData.telegramChatId, message);
-        }
-
-        // إشعار المدير
-        await sendTelegramNotification(TELEGRAM_CHAT_ID, `✅ Order #${orderId.slice(-6)} confirmed by admin. Licence codes sent to user.`);
-
-        showToast(`✅ Order #${orderId.slice(-6)} confirmed!`, 'success');
-        loadAdminOrders();
-        loadLicences();
-        updateFullUserMenu();
-
-    } catch (error) {
-        console.error('Error approving order:', error);
-        showToast('❌ Error approving order: ' + error.message, 'error');
-    }
-};
-
-// ============================================================
-// 22. رفض الطلب من المدير (Rejected)
-// ============================================================
-
-window.rejectOrder = async function(orderId, userId) {
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
-        showToast('⛔ Unauthorized', 'error');
-        return;
-    }
-
-    if (!confirm(`Are you sure you want to reject order #${orderId.slice(-6)}?`)) return;
-
-    try {
-        const userRef = doc(db, 'users', userId);
-        const userSnap = await getDoc(userRef);
-        if (!userSnap.exists()) {
-            showToast('❌ User not found', 'error');
-            return;
-        }
-
-        const userData = userSnap.data();
-        const history = userData.history || [];
-        
-        const orderIndex = history.findIndex(o => o.id === orderId);
-        if (orderIndex === -1) {
-            showToast('❌ Order not found', 'error');
-            return;
-        }
-
-        const order = history[orderIndex];
-        order.status = 'rejected';
-        order.rejectedAt = new Date().toISOString();
-
-        await updateDoc(userRef, { history: history });
-
-        // إشعار المستخدم
-        if (userData.telegramChatId) {
-            const message = `❌ **Order Rejected**\n\n📦 **Order #${orderId.slice(-6)}**\n📅 **Date:** ${new Date(order.date).toLocaleString()}\n\nYour order has been rejected by the admin. Please contact support for more information.\n\n🛒 You can place a new order with correct payment details.`;
-            await sendTelegramNotification(userData.telegramChatId, message);
-        }
-
-        await sendTelegramNotification(TELEGRAM_CHAT_ID, `❌ Order #${orderId.slice(-6)} rejected by admin.`);
-
-        showToast(`❌ Order #${orderId.slice(-6)} rejected`, 'success');
-        loadAdminOrders();
-        updateFullUserMenu();
-
-    } catch (error) {
-        console.error('Error rejecting order:', error);
-        showToast('❌ Error rejecting order: ' + error.message, 'error');
-    }
-};
-
-// ============================================================
-// 23. دوال تيليجرام
+// 21. دوال تيليجرام
 // ============================================================
 
 async function sendTelegramNotification(chatId, message) {
@@ -1710,7 +1496,7 @@ window.checkTelegramStatus = async function() {
 };
 
 // ============================================================
-// 24. التحميلات والإشعارات
+// 22. التحميلات والإشعارات
 // ============================================================
 
 function loadDownloads() {
@@ -1895,7 +1681,7 @@ window.openCreateNotificationModal = function() { if (!currentUser || currentUse
 window.closeCreateNotificationModal = function() { document.getElementById('createNotificationModal').classList.remove('open'); };
 
 // ============================================================
-// 25. الطلبات والإحالات
+// 23. الطلبات والإحالات
 // ============================================================
 
 window.openRequestsModal = function() {
@@ -1969,7 +1755,7 @@ window.copyReferralCode2 = function() {
 };
 
 // ============================================================
-// 26. لوحة المدير
+// 24. لوحة المدير
 // ============================================================
 
 window.openAdminPanel = function() {
@@ -2104,7 +1890,7 @@ window.switchAdminTab = function(tab) {
 };
 
 // ============================================================
-// 27. إدارة المنتجات (Admin Products)
+// 25. إدارة المنتجات (Admin Products)
 // ============================================================
 
 function renderAdminProducts(productsList) {
@@ -2241,7 +2027,7 @@ async function deleteProductFromFirestore(productId) {
 }
 
 // ============================================================
-// 28. الطلبات (Admin Orders) - نظام Confirmed/Rejected فقط
+// 26. الطلبات (Admin Orders)
 // ============================================================
 
 function startAdminRealtimeListener() {
@@ -2249,7 +2035,7 @@ function startAdminRealtimeListener() {
     const usersRef = collection(db, 'users');
     unsubscribeAdmin = onSnapshot(usersRef, (snapshot) => {
         let orders = [];
-        let pending = 0, confirmed = 0, rejected = 0;
+        let pending = 0;
         snapshot.forEach((userDoc) => {
             const data = userDoc.data();
             const email = data.email || userDoc.id;
@@ -2258,8 +2044,6 @@ function startAdminRealtimeListener() {
             history.forEach(order => {
                 const status = order.status || 'pending';
                 if (status === 'pending') pending++;
-                else if (status === 'confirmed') confirmed++;
-                else if (status === 'rejected') rejected++;
                 const orderId = order.id || 'order_' + Date.now();
                 orders.push({ ...order, userId: userDoc.id, userEmail: email, userName: name, orderId: orderId, _checked: selectedOrders.has(orderId) });
             });
@@ -2282,7 +2066,7 @@ function loadAdminOrders() {
     const usersRef = collection(db, 'users');
     getDocs(usersRef).then((snapshot) => {
         let orders = [];
-        let pending = 0, confirmed = 0, rejected = 0;
+        let pending = 0;
         snapshot.forEach((userDoc) => {
             const data = userDoc.data();
             const email = data.email || userDoc.id;
@@ -2291,8 +2075,6 @@ function loadAdminOrders() {
             history.forEach(order => {
                 const status = order.status || 'pending';
                 if (status === 'pending') pending++;
-                else if (status === 'confirmed') confirmed++;
-                else if (status === 'rejected') rejected++;
                 const orderId = order.id || 'order_' + Date.now();
                 orders.push({ ...order, userId: userDoc.id, userEmail: email, userName: name, orderId: orderId, _checked: selectedOrders.has(orderId) });
             });
@@ -2321,9 +2103,7 @@ function renderAdminOrders(orders) {
     uniqueOrders.forEach(order => {
         const status = order.status || 'pending';
         const statusMap = {
-            'pending': { label: '⏳ Pending', class: 'pending' },
-            'confirmed': { label: '✅ Confirmed', class: 'confirmed' },
-            'rejected': { label: '❌ Rejected', class: 'rejected' }
+            'pending': { label: '⏳ Pending', class: 'pending' }
         };
         const info = statusMap[status] || statusMap['pending'];
         const date = order.date ? new Date(order.date) : new Date();
@@ -2332,7 +2112,6 @@ function renderAdminOrders(orders) {
         const total = order.total || 0;
         const orderIdStr = String(order.orderId || order.id || '');
         const orderId = orderIdStr.slice(-6) || '------';
-        const hasCodes = order.codes && order.codes.length > 0;
         html += `<tr>
             <td><span class="order-id">#${orderId}</span></td>
             <td><div style="font-weight:600;font-size:12px;">${order.userName||'Unknown'}</div><div class="user-email">${order.userEmail||'N/A'}</div></td>
@@ -2342,15 +2121,6 @@ function renderAdminOrders(orders) {
             <td><span class="status-badge ${info.class}">${info.label}</span></td>
             <td>
                 <div class="actions-cell">
-                    ${status === 'pending' ? `
-                        <button onclick="approveOrder('${order.orderId||order.id}','${order.userId}')" class="btn-approve-order" style="background:var(--success);color:#0a0a1a;border:none;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;margin-right:4px;">
-                            <i class="fas fa-check"></i> Approve
-                        </button>
-                        <button onclick="rejectOrder('${order.orderId||order.id}','${order.userId}')" class="btn-reject-order" style="background:var(--danger);color:#fff;border:none;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">
-                            <i class="fas fa-times"></i> Reject
-                        </button>
-                    ` : ''}
-                    ${hasCodes ? `<span style="font-size:9px;opacity:0.3;display:block;margin-top:2px;">🔑 ${order.codes.length} codes</span>` : ''}
                     <button onclick="deleteOrderImmediately('${order.orderId||order.id}','${order.userId}')" class="btn-delete-order" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:12px;opacity:0.3;">
                         <i class="fas fa-trash"></i>
                     </button>
@@ -2364,12 +2134,8 @@ function renderAdminOrders(orders) {
 function updateAdminStats(orders) {
     const total = orders.length;
     const pending = orders.filter(o => (o.status || 'pending') === 'pending').length;
-    const confirmed = orders.filter(o => o.status === 'confirmed').length;
-    const rejected = orders.filter(o => o.status === 'rejected').length;
     document.getElementById('adminTotalOrders').textContent = total;
     document.getElementById('adminPendingOrders').textContent = pending;
-    document.getElementById('adminConfirmedOrders').textContent = confirmed;
-    document.getElementById('adminRejectedOrders').textContent = rejected;
 }
 
 window.deleteOrderImmediately = async function(orderId, userId) {
@@ -2406,7 +2172,7 @@ window.clearAdminSearch = function() { document.getElementById('adminSearchInput
 window.refreshAdminOrders = function() { loadAdminOrders(); showToast('🔄 Refreshed', 'info'); };
 
 // ============================================================
-// 29. المستخدمين (Admin Users)
+// 27. المستخدمين (Admin Users)
 // ============================================================
 
 async function loadAdminUsers() {
@@ -2503,7 +2269,7 @@ window.viewUserDetails = async function(uid) {
 window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
 // ============================================================
-// 30. تاريخ الطلبات و PDF
+// 28. تاريخ الطلبات و PDF
 // ============================================================
 
 window.clearOrderHistory = async function() {
@@ -2523,35 +2289,25 @@ function renderHistoryFull() {
     if (!container) return;
     const history = userProfile.history || [];
     const total = history.length;
-    const confirmed = history.filter(o => o.status === 'confirmed').length;
     const pending = history.filter(o => o.status === 'pending').length;
-    const rejected = history.filter(o => o.status === 'rejected').length;
     let html = `
         <div class="orders-stats">
             <div class="orders-stat-card"><div class="orders-stat-number">${total}</div><div class="orders-stat-label">All</div></div>
-            <div class="orders-stat-card confirmed"><div class="orders-stat-number" style="color:var(--success);">${confirmed}</div><div class="orders-stat-label">Confirmed</div></div>
             <div class="orders-stat-card pending"><div class="orders-stat-number" style="color:var(--pending-color);">${pending}</div><div class="orders-stat-label">Pending</div></div>
-            <div class="orders-stat-card rejected"><div class="orders-stat-number" style="color:var(--danger);">${rejected}</div><div class="orders-stat-label">Rejected</div></div>
         </div>
         <div class="orders-filter-bar">
             <button class="orders-filter-btn ${ordersFilter === 'all' ? 'active' : ''}" data-filter="all" onclick="filterOrders('all')">📋 All Orders</button>
             <button class="orders-filter-btn ${ordersFilter === 'pending' ? 'active' : ''}" data-filter="pending" onclick="filterOrders('pending')">⏳ Pending</button>
-            <button class="orders-filter-btn ${ordersFilter === 'confirmed' ? 'active' : ''}" data-filter="confirmed" onclick="filterOrders('confirmed')">✅ Confirmed</button>
-            <button class="orders-filter-btn ${ordersFilter === 'rejected' ? 'active' : ''}" data-filter="rejected" onclick="filterOrders('rejected')">❌ Rejected</button>
         </div>
         <div class="orders-list" id="ordersList">`;
     let filteredHistory = [...history];
     if (ordersFilter === 'pending') { filteredHistory = filteredHistory.filter(o => o.status === 'pending'); }
-    else if (ordersFilter === 'confirmed') { filteredHistory = filteredHistory.filter(o => o.status === 'confirmed'); }
-    else if (ordersFilter === 'rejected') { filteredHistory = filteredHistory.filter(o => o.status === 'rejected'); }
     filteredHistory = filteredHistory.slice().reverse();
     if (filteredHistory.length === 0) { html += `<div class="orders-empty"><i class="fas fa-shopping-bag"></i><p>No orders found.</p></div>`; } else {
         filteredHistory.forEach(item => {
             const status = item.status || 'pending';
             const statusMap = {
-                'pending': { label: '⏳ Pending', class: 'pending' },
-                'confirmed': { label: '✅ Confirmed', class: 'confirmed' },
-                'rejected': { label: '❌ Rejected', class: 'rejected' }
+                'pending': { label: '⏳ Pending', class: 'pending' }
             };
             const info = statusMap[status] || statusMap['pending'];
             const date = item.date ? new Date(item.date) : new Date();
@@ -2559,14 +2315,12 @@ function renderHistoryFull() {
             const itemsNames = item.items ? item.items.map(i => i.name).join(', ') : 'Order';
             const totalPrice = item.total || 0;
             const orderData = JSON.stringify(item);
-            const hasCodes = item.codes && item.codes.length > 0;
             html += `
                 <div class="orders-item" data-order='${orderData}'>
                     <div class="orders-item-info">
                         <div class="orders-item-name">${itemsNames}</div>
                         <div class="orders-item-date">${dateStr}</div>
                         <span class="status-badge ${info.class}">${info.label}</span>
-                        ${hasCodes ? `<span style="font-size:9px;opacity:0.3;margin-left:4px;">🔑 ${item.codes.length} codes</span>` : ''}
                     </div>
                     <div style="display:flex;align-items:center;gap:10px;">
                         <div class="orders-item-price">${totalPrice > 0 ? '$' + totalPrice.toFixed(2) : 'FREE'}</div>
@@ -2589,7 +2343,7 @@ window.filterOrders = function(filter) {
 };
 
 // ============================================================
-// 31. نظام إدارة الأكواد (Licences) - مع Supabase
+// 29. نظام إدارة الأكواد (Licences) - فقط للإدارة والتفعيل
 // ============================================================
 
 async function loadLicences() {
@@ -2676,7 +2430,6 @@ async function createLicenceManually() {
     if (!productName) { showToast('⚠️ Product name required', 'warning'); return; }
 
     try {
-        // البحث عن script_id من المنتج
         const product = products.find(p => p.name === productName);
         const scriptId = product ? product.id : 'script_' + Date.now();
 
@@ -2705,11 +2458,11 @@ async function createLicenceManually() {
             closeCreateLicenceModal();
             loadLicences();
         } else {
-            showToast('❌ Error creating licence: ' + (result.error || 'Unknown error'), 'error');
+            showToast('❌ Error: ' + (result.error || 'Unknown error'), 'error');
         }
     } catch (error) {
         console.error('Error creating licence:', error);
-        showToast('❌ Error creating licence: ' + error.message, 'error');
+        showToast('❌ Error: ' + error.message, 'error');
     }
 }
 
@@ -2773,7 +2526,7 @@ async function approveLicence(licenceId, code, scriptName) {
         loadLicences();
     } catch (error) {
         console.error('Error approving licence:', error);
-        showToast('❌ Error approving licence: ' + error.message, 'error');
+        showToast('❌ Error: ' + error.message, 'error');
     }
 }
 
@@ -2789,7 +2542,7 @@ async function revokeLicence(licenceId) {
         loadLicences();
     } catch (error) {
         console.error('Error revoking licence:', error);
-        showToast('❌ Error revoking licence: ' + error.message, 'error');
+        showToast('❌ Error: ' + error.message, 'error');
     }
 }
 
@@ -2819,7 +2572,7 @@ async function deleteLicence(licenceId) {
         }
     } catch (error) {
         console.error('Error deleting licence:', error);
-        showToast('❌ Error deleting licence: ' + error.message, 'error');
+        showToast('❌ Error: ' + error.message, 'error');
     }
 }
 
@@ -2849,7 +2602,7 @@ async function saveLicenceEdit() {
         loadLicences();
     } catch (error) {
         console.error('Error updating licence:', error);
-        showToast('❌ Error updating licence: ' + error.message, 'error');
+        showToast('❌ Error: ' + error.message, 'error');
     }
 }
 
@@ -3033,13 +2786,13 @@ async function activateLicence() {
 }
 
 // ============================================================
-// 32. باقي الدوال (Slider, Banner, PDF, Stats, Ratings)
+// 30. باقي الدوال (Slider, Banner, PDF, Stats, Ratings)
 // ============================================================
 
-// ... (جميع الدوال الأخرى مثل showTelegramBanner, loadSliderSettings, generateInvoice, loadDashboardStats, loadAdvancedStats, loadAuditLogs, loadRatings, submitRating, etc.)
+// ... (جميع الدوال الأخرى مثل showTelegramBanner, loadSliderSettings, generateInvoice, loadDashboardStats, loadAdvancedStats, loadAuditLogs, loadRatings, submitRating, uploadToCloudinary, etc.)
 
 // ============================================================
-// 33. توجيه الاتجاه
+// 31. توجيه الاتجاه
 // ============================================================
 
 function fixDirection() {
@@ -3051,7 +2804,7 @@ function fixDirection() {
 document.addEventListener('DOMContentLoaded', function() { setTimeout(fixDirection, 100); setTimeout(showTelegramBanner, 500); });
 
 // ============================================================
-// 34. حالة المصادقة
+// 32. حالة المصادقة
 // ============================================================
 
 onAuthStateChanged(auth, async (user) => {
@@ -3097,11 +2850,10 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// 35. التهيئة (Init)
+// 33. التهيئة (Init)
 // ============================================================
 
 async function init() {
-    // ✅ إظهار شاشة التحميل
     const loadingScreen = document.getElementById('loadingScreen');
     if (loadingScreen) loadingScreen.style.display = 'flex';
     
@@ -3130,17 +2882,14 @@ async function init() {
     
     console.log('✅ ZI Store ready with all features!');
     
-    // ✅ إخفاء شاشة التحميل
     setTimeout(() => {
         if (loadingScreen) loadingScreen.style.display = 'none';
         setTimeout(showTelegramBanner, 500);
     }, 500);
 }
 
-// ✅ بدء التطبيق
 init();
 
-// ✅ إخفاء شاشة التحميل بعد 5 ثوان كحد أقصى (ضمان عدم بقائها)
 setTimeout(() => {
     const loadingScreen = document.getElementById('loadingScreen');
     if (loadingScreen && loadingScreen.style.display !== 'none') {
@@ -3150,7 +2899,7 @@ setTimeout(() => {
 }, 5000);
 
 // ============================================================
-// 36. التصديرات النهائية
+// 34. التصديرات النهائية
 // ============================================================
 
 window.showToast = showToast;
@@ -3160,8 +2909,6 @@ window.searchAdminOrders = searchAdminOrders;
 window.clearAdminSearch = clearAdminSearch;
 window.refreshAdminOrders = refreshAdminOrders;
 window.deleteOrderImmediately = deleteOrderImmediately;
-window.approveOrder = approveOrder;
-window.rejectOrder = rejectOrder;
 window.openDownloads = openDownloads;
 window.closeDownloads = closeDownloads;
 window.openNotifications = openNotifications;
