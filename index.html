@@ -65,14 +65,6 @@
             <button class="slider-btn next" onclick="nextSlide()"><i class="fas fa-chevron-right"></i></button>
         </div>
 
-        <!-- ================== المنتجات المميزة (FEATURED GRID) ================== -->
-        <section class="featured-section">
-            <div class="rec-title"><i class="fas fa-star" style="color: var(--vip-color);"></i> Featured Products</div>
-            <div class="featured-grid" id="featuredGrid">
-                <!-- سيتم إنشاء المنتجات بواسطة JavaScript -->
-            </div>
-        </section>
-
         <!-- ================== نافذة تيليجرام (Banner) ================== -->
         <div id="telegramBanner" class="telegram-banner" style="display:none;">
             <div class="banner-content">
@@ -688,8 +680,7 @@
                 <button onclick="switchAdminTab('notifications')">🔔 Notifications</button>
                 <button onclick="switchAdminTab('stats')">📈 Statistics</button>
                 <button onclick="switchAdminTab('logs')">📋 Logs</button>
-                <button onclick="switchAdminTab('slider')">🎨 Slider</button>
-                <button onclick="switchAdminTab('licences')">🔑 Licences</button>
+                <!-- تم إضافة تبويب السلايدر والتراخيص بواسطة JS -->
             </div>
 
             <!-- ======== تبويب Dashboard ======== -->
@@ -779,42 +770,8 @@
                 </div>
             </div>
 
-            <!-- ======== تبويب السلايدر (Slider) ======== -->
-            <div class="tab-content" id="tabSlider">
-                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
-                    <h3 style="font-size:16px;font-weight:700;margin:0;"><i class="fas fa-images"></i> Slider Settings</h3>
-                    <button class="add-btn" onclick="openAddSlideModal()"><i class="fas fa-plus"></i> Add Slide</button>
-                </div>
-                <div style="margin-bottom:12px;">
-                    <label style="font-size:13px;font-weight:600;color:var(--text-secondary);opacity:0.6;display:block;margin-bottom:4px;">Rotation Interval (seconds)</label>
-                    <div style="display:flex;gap:8px;align-items:center;">
-                        <input type="number" id="sliderIntervalInput" value="3" min="1" max="60" style="width:100px;padding:8px 12px;border:2px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-size:14px;" />
-                        <button class="admin-submit-btn" onclick="saveSliderInterval()" style="padding:8px 16px;font-size:13px;"><i class="fas fa-save"></i> Save</button>
-                    </div>
-                </div>
-                <div id="sliderSlidesList">
-                    <div style="text-align:center;padding:20px;color:var(--text-secondary);opacity:0.5;">No slides yet. Click "Add Slide" to get started.</div>
-                </div>
-            </div>
-
-            <!-- ======== تبويب التراخيص (Licences) ======== -->
-            <div class="tab-content" id="tabLicences">
-                <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
-                    <button class="add-btn" onclick="openCreateLicenceModal()"><i class="fas fa-plus"></i> Create Licence</button>
-                    <button class="add-btn" onclick="refreshLicences()" style="background:var(--card-bg);"><i class="fas fa-sync"></i> Refresh</button>
-                </div>
-                <div class="admin-search-bar">
-                    <input type="text" id="adminLicenceSearch" placeholder="🔍 Search by code, user, product..." onkeyup="searchLicences()" />
-                    <button class="btn-search" onclick="searchLicences()"><i class="fas fa-search"></i></button>
-                    <button class="btn-clear" onclick="clearLicenceSearch()"><i class="fas fa-times"></i></button>
-                </div>
-                <div id="adminLicencesList">
-                    <div style="text-align:center;padding:30px;color:var(--text-secondary);">
-                        <i class="fas fa-info-circle"></i> Loading licences...
-                    </div>
-                </div>
-            </div>
-
+            <!-- ======== تبويب السلايدر (سيتم إنشاؤه بواسطة JS) ======== -->
+            <!-- ======== تبويب التراخيص (سيتم إنشاؤه بواسطة JS) ======== -->
         </div>
     </div>
 
@@ -846,7 +803,5 @@
         }
     </script>
     <script type="module" src="script.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-<script>eruda.init();</script>
 </body>
 </html>
