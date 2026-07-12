@@ -1,22 +1,49 @@
 // ============================================================
-// SCRIPT.JS - النسخة النهائية مع جميع الإصلاحات
+// SCRIPT.JS - النسخة الكاملة مع تحسينات التهيئة
 // ============================================================
 
 import { initializeApp } from "firebase/app";
 import { getAuth, onAuthStateChanged, signInAnonymously, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, updatePassword, sendPasswordResetEmail, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, increment, collection, query, where, getDocs, onSnapshot, addDoc, deleteDoc, orderBy } from "firebase/firestore";
 import { getAnalytics } from "firebase/analytics";
+// ============================================================
+// 🔧 تصحيح الأخطاء على الهاتف - تظهر في Console
+// ============================================================
+
+console.log('✅ script.js: بدأ التحميل بنجاح');
+
+// التقاط الأخطاء غير المُعالجة
+window.onerror = function(message, source, lineno, colno, error) {
+    console.error('❌ خطأ عام:', message, source, lineno, colno, error);
+    // عرض الخطأ في واجهة المستخدم (اختياري)
+    const errorDiv = document.createElement('div');
+    errorDiv.style.cssText = 'position:fixed;bottom:10px;left:10px;right:10px;background:#ff0000;color:#fff;padding:10px;border-radius:8px;z-index:9999;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,0.3);';
+    errorDiv.innerHTML = `❌ خطأ: ${message}`;
+    document.body.appendChild(errorDiv);
+    setTimeout(() => errorDiv.remove(), 8000);
+};
+
+// التقاط الأخطاء في الـ Promises غير المُعالجة
+window.addEventListener('unhandledrejection', function(event) {
+    console.error('❌ Promise غير مُعالج:', event.reason);
+    const errorDiv = document.createElement('div');
+    errorDiv.style.cssText = 'position:fixed;bottom:10px;left:10px;right:10px;background:#ff0000;color:#fff;padding:10px;border-radius:8px;z-index:9999;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,0.3);';
+    errorDiv.innerHTML = `❌ خطأ في Promise: ${event.reason?.message || event.reason}`;
+    document.body.appendChild(errorDiv);
+    setTimeout(() => errorDiv.remove(), 8000);
+});
+
+console.log('✅ تم إعداد مستمعات الأخطاء');
 
 // ============================================================
-// 0. تعريف الثوابت المفقودة (لتجنب ReferenceError)
+// 0. الثوابت المفقودة (لتجنب ReferenceError)
 // ============================================================
-const CLOUDINARY_CLOUD_NAME = 'y14bgb5s'; // ⚠️ غيّر هذا لاحقاً
-const CLOUDINARY_UPLOAD_PRESET = 'zi_store_uploads'; // ⚠️ غيّر هذا لاحقاً
+const CLOUDINARY_CLOUD_NAME = 'y14bgb5s';
+const CLOUDINARY_UPLOAD_PRESET = 'zi_store_uploads';
 
 // ============================================================
 // 1. إعدادات Firebase
 // ============================================================
-
 const firebaseConfig = {
     apiKey: "AIzaSyBwDTCxzd6aoue-NTLI2u4ouK-M37alwUw",
     authDomain: "zi-script-store.firebaseapp.com",
@@ -35,7 +62,6 @@ const analytics = getAnalytics(app);
 // ============================================================
 // 2. الثوابت والمتغيرات العامة
 // ============================================================
-
 const ADMIN_EMAIL = 'zribiidriss3@gmail.com';
 const TELEGRAM_BOT_TOKEN = '8687744794:AAGeeNrEU-iQLRmg3dLvYkWHddtYo_sJ1tc';
 const TELEGRAM_CHAT_ID = '7434396478';
@@ -174,10 +200,10 @@ function updateLoadingBar(percent) {
     }
 }
 
-// التقاط الأخطاء العامة لمنع تعطل التطبيق
+// التقاط الأخطاء العامة
 window.onerror = function(message, source, lineno, colno, error) {
     console.error('❌ خطأ عام:', message, source, lineno, colno, error);
-    hideLoadingScreen(); // إخفاء الشاشة في حالة أي خطأ غير متوقع
+    hideLoadingScreen();
 };
 
 // ============================================================
@@ -3574,8 +3600,6 @@ window.closeAddSlideModal = closeAddSlideModal;
 window.saveSliderInterval = saveSliderInterval;
 window.deleteSlide = deleteSlide;
 window.editSlide = editSlide;
-
-// دوال الترخيص
 window.openLicenceModal = openLicenceModal;
 window.closeLicenceModal = closeLicenceModal;
 window.activateLicence = activateLicence;
