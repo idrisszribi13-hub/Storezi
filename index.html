@@ -319,7 +319,19 @@
             <div class="menu-item" onclick="openNotifications();closeUserMenuFull();"><i class="fas fa-bell"></i><span class="menu-label">Notifications</span><span class="menu-badge" id="fullNotifBadge">0</span></div>
             <div class="menu-item" onclick="openRequestsModal();closeUserMenuFull();"><i class="fas fa-file-alt"></i><span class="menu-label">Requests</span></div>
             <div class="menu-item" onclick="openReferralModal();closeUserMenuFull();"><i class="fas fa-gift"></i><span class="menu-label">Referrals</span></div>
+            
+            <!-- 🆕 Activate Script -->
             <div class="menu-item" onclick="openLicenceModal()"><i class="fas fa-key"></i><span class="menu-label">🔑 Activate Script</span></div>
+            
+            <!-- 🆕 My Licences -->
+            <div class="menu-divider"></div>
+            <div class="menu-item" onclick="toggleLicencesList()">
+                <i class="fas fa-key"></i>
+                <span class="menu-label">My Licences</span>
+                <span class="menu-badge" id="licencesBadge" style="display:none;">0</span>
+            </div>
+            <div id="userLicencesList" style="padding:0 12px 8px 12px;background:var(--bg);border-radius:0 0 10px 10px;display:none;"></div>
+            
             <div class="menu-divider"></div>
             <div class="menu-item admin-btn" id="adminMenuItem" onclick="openAdminPanel();closeUserMenuFull();"><i class="fas fa-crown"></i><span class="menu-label">Admin Panel</span><span class="menu-badge" id="adminMenuBadge">0</span></div>
             <div class="menu-item logout" onclick="logoutUser();closeUserMenuFull();"><i class="fas fa-sign-out-alt"></i><span class="menu-label">Logout</span></div>
@@ -452,7 +464,7 @@
     </div>
 
     <!-- ============================================ -->
-    <!-- مودالات الإدارة (جديدة) -->
+    <!-- مودالات الإدارة -->
     <!-- ============================================ -->
 
     <!-- مودال تحرير الترخيص -->
@@ -477,7 +489,7 @@
         </div>
     </div>
 
-    <!-- مودال إضافة ترخيص يدوي -->
+    <!-- مودال إضافة ترخيص يدوي (Create Licence) -->
     <div class="modal-overlay" id="createLicenceModal">
         <div class="modal-content" style="max-width:420px;">
             <button class="modal-close" onclick="closeCreateLicenceModal()"><i class="fas fa-times"></i></button>
