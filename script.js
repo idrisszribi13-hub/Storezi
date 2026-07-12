@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - النسخة النهائية مع ربط الكود بالمستخدم
+// SCRIPT.JS - النسخة النهائية مع إصلاح الأخطاء
 // ============================================================
 
 import { initializeApp } from "firebase/app";
@@ -128,7 +128,7 @@ let allUsers = [];
 let selectedPayment = null;
 let ordersFilter = 'all';
 let _selectedVipPlan = '1m';
-let allLicences = [];
+let allLicences = []; // ✅ تعريف واحد فقط هنا
 
 // متغيرات المنتجات المميزة
 let featuredProducts = [];
@@ -281,7 +281,7 @@ async function loadUserData() {
             userProfile.joined = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '--';
             userProfile.useRpForCart = data.useRpForCart || false;
             userProfile.lastDailyReward = data.lastDailyReward || 0;
-            userProfile.licences = data.licences || []; // 🆕 تحميل التراخيص
+            userProfile.licences = data.licences || [];
             updateWishlistUI();
             updateCartUI();
             renderProducts(products);
@@ -291,8 +291,8 @@ async function loadUserData() {
             updateDropdownStats();
             updateNotificationBadge();
             updateFullUserMenu();
-            renderUserLicences(); // 🆕 عرض التراخيص في القائمة
-            if (currentUser && currentUser.email === ADMIN_EMAIL) { loadAdminOrders(); loadAdminUsers(); loadLicences(); }
+            renderUserLicences(); // عرض التراخيص في القائمة
+            if (currentUser && currentUser.email === ADMIN_EMAIL) { loadAdminOrders(); loadAdminUsers(); try { loadLicences(); } catch(e) { console.warn('Licences not loaded:', e); } }
         } else {
             await setDoc(userRef, { userId: uid, wishlist: [], cart: [], history: [], requests: [], usedCodes: [], referrals: [], referralRewards: 0, rp: 0, isBanned: false, useRpForCart: false, lastDailyReward: 0, licences: [], createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
         }
@@ -323,7 +323,7 @@ async function saveUserData(silent = false) {
             useRpForCart: userProfile.useRpForCart, 
             isBanned: userProfile.isBanned, 
             lastDailyReward: userProfile.lastDailyReward || 0,
-            licences: userProfile.licences || [], // 🆕 حفظ التراخيص
+            licences: userProfile.licences || [],
             updatedAt: serverTimestamp() 
         }, { merge: true });
         localStorage.setItem('zi_wishlist_backup', JSON.stringify(wishlist));
@@ -445,7 +445,7 @@ window.loginUser = async function() {
             document.getElementById('mainApp').style.display = 'block';
             loadUserData();
             updateDropdownStats();
-            if (currentUser.email === ADMIN_EMAIL) { loadAdminOrders(); startAdminRealtimeListener(); loadAdminUsers(); loadLicences(); }
+            if (currentUser.email === ADMIN_EMAIL) { loadAdminOrders(); startAdminRealtimeListener(); loadAdminUsers(); try { loadLicences(); } catch(e) { console.warn('Licences not loaded:', e); } }
             loadDownloads(); loadNotifications(); fetchCryptoPrices(); updateFullUserMenu(); showTelegramBanner();
             loadSliderSettings();
         }, 500);
@@ -1472,7 +1472,7 @@ async function sendOrderToTelegram(method, txHash = null) {
     showToast('📤 Order placed! Wait for admin approval.', 'success');
 
     setTimeout(() => {
-        if (currentUser && currentUser.email === ADMIN_EMAIL) { loadAdminOrders(); loadLicences(); }
+        if (currentUser && currentUser.email === ADMIN_EMAIL) { loadAdminOrders(); try { loadLicences(); } catch(e) { console.warn('Licences not loaded:', e); } }
         loadUserData();
         updateDropdownStats();
         updateFullUserMenu();
@@ -1892,7 +1892,7 @@ window.openAdminPanel = function() {
         loadNotifications();
         renderAdminProducts(products);
         loadAdminUsers();
-        loadLicences();
+        try { loadLicences(); } catch(e) { console.warn('Licences not loaded:', e); }
         loadDashboardStats();
         setTimeout(addBannerAdminControls, 300);
         ensureSliderTab();
@@ -2008,7 +2008,7 @@ window.switchAdminTab = function(tab) {
         renderSliderSettingsUI();
         document.getElementById('sliderIntervalInput').value = sliderIntervalTime;
     }
-    if (tab === 'licences') loadLicences();
+    if (tab === 'licences') { try { loadLicences(); } catch(e) { showToast('⚠️ Licences unavailable', 'warning'); } }
 };
 
 // ============================================================
@@ -2502,10 +2502,8 @@ window.filterOrders = function(filter) {
 };
 
 // ============================================================
-// 28. نظام إدارة الأكواد (Licences)
+// 28. نظام إدارة الأكواد (Licences) - مع try-catch
 // ============================================================
-
-let allLicences = [];
 
 async function loadLicences() {
     try {
@@ -3573,7 +3571,7 @@ onAuthStateChanged(auth, async (user) => {
             startAdminRealtimeListener();
             renderAdminProducts(products);
             loadAdminUsers();
-            loadLicences();
+            try { loadLicences(); } catch(e) { console.warn('Licences not loaded:', e); }
             setTimeout(addBannerAdminControls, 500);
         }
         loadDownloads(); loadNotifications(); fetchCryptoPrices(); loadFeaturedSettings(); loadSliderSettings();
