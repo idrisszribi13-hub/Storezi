@@ -184,6 +184,17 @@ const paymentWallets = {
 let cryptoPrices = { ltc: 0, usdt: 1, lastUpdate: null, isUpdating: false };
 
 // ============================================================
+// 🔥 إخفاء شاشة التحميل بالقوة (حتى لو حدث خطأ)
+// ============================================================
+setTimeout(() => {
+    const screen = document.getElementById('loadingScreen');
+    if (screen) {
+        screen.style.display = 'none';
+        console.log('⚠️ Force hiding loading screen (timeout)');
+    }
+}, 3000); // بعد 3 ثوانٍ
+
+// ============================================================
 // 6. دوال مساعدة
 // ============================================================
 
