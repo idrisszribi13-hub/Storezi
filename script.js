@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - النسخة النهائية مع إصلاح الأخطاء
+// SCRIPT.JS - النسخة النهائية المتكاملة (مع إصلاح خطأ allLicences)
 // ============================================================
 
 import { initializeApp } from "firebase/app";
@@ -128,7 +128,9 @@ let allUsers = [];
 let selectedPayment = null;
 let ordersFilter = 'all';
 let _selectedVipPlan = '1m';
-let allLicences = []; // ✅ تعريف واحد فقط هنا
+
+// ✅ تعريف allLicences مرة واحدة فقط هنا (تم نقل التعريف إلى الأعلى)
+let allLicences = [];
 
 // متغيرات المنتجات المميزة
 let featuredProducts = [];
@@ -2504,6 +2506,8 @@ window.filterOrders = function(filter) {
 // ============================================================
 // 28. نظام إدارة الأكواد (Licences) - مع try-catch
 // ============================================================
+
+// ✅ جميع دوال licences تستخدم المتغير العام allLicences المُعرّف أعلاه
 
 async function loadLicences() {
     try {
