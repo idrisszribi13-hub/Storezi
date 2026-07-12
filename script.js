@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - النسخة الكاملة مع جميع الدوال
+// SCRIPT.JS - النسخة الكاملة مع جميع الدوال المطلوبة
 // ============================================================
 
 import { initializeApp } from "firebase/app";
@@ -2456,8 +2456,6 @@ window.filterOrders = function(filter) {
 // 28. نظام إدارة الأكواد (Licences) - مع Supabase
 // ============================================================
 
-let allLicences = [];
-
 async function loadLicences() {
     try {
         const container = document.getElementById('adminLicencesList');
@@ -3570,7 +3568,7 @@ init();
 setTimeout(() => { hideLoadingScreen(); console.log('⚠️ Force hiding loading screen (timeout)'); }, 5000);
 
 // ============================================================
-// 37. التصديرات النهائية
+// 37. التصديرات النهائية (للتأكد من أن جميع الدوال متاحة)
 // ============================================================
 
 window.showToast = showToast;
@@ -3698,6 +3696,13 @@ window.renderUserLicences = renderUserLicences;
 window.openLicenceModal = openLicenceModal;
 window.closeLicenceModal = closeLicenceModal;
 window.activateLicence = activateLicence;
+
+// دوال إضافية
+window.loadSliderSettings = loadSliderSettings;
+window.updateSlideProductSelect = updateSlideProductSelect;
+window.addBannerAdminControls = addBannerAdminControls;
+window.showTelegramBanner = showTelegramBanner;
+window.showTelegramBannerAgain = showTelegramBannerAgain;
 
 // ============================================================
 // END OF SCRIPT.JS
