@@ -1,8 +1,9 @@
 // ============================================================
-// SCRIPT.JS - ZI Store النسخة النهائية مع جميع التعديلات
-// نظام الطلبات: pending → confirmed → rejected
-// عند confirmed يتم إنشاء ترخيص تلقائياً
-// تحديث التراخيص ينعكس على واجهة المستخدم فوراً
+// SCRIPT.JS - ZI Store النسخة النهائية مع Supabase لإدارة التراخيص
+// ============================================================
+
+// ============================================================
+// 1. إعدادات Firebase (Auth & Firestore)
 // ============================================================
 
 import { initializeApp } from "firebase/app";
@@ -11,7 +12,17 @@ import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, 
 import { getAnalytics } from "firebase/analytics";
 
 // ============================================================
-// 1. إعدادات Firebase
+// 2. إعدادات Supabase (للتراخيص فقط)
+// ============================================================
+
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+const SUPABASE_URL = 'https://kvsyzgavfxnwqmtsginv.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_1uSIqgNONAV53GjOoBoZUw_niAGJXO6';
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ============================================================
+// 3. تهيئة Firebase
 // ============================================================
 
 const firebaseConfig = {
@@ -30,74 +41,7 @@ const db = getFirestore(app);
 const analytics = getAnalytics(app);
 
 // ============================================================
-// 2. مفتاح Supabase
-// ============================================================
-
-const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_1uSIqgNONAV53GjOoBoZUw_niAGJXO6';
-const SUPABASE_PROJECT_URL = 'https://kvsyzgavfxnwqmtsginv.supabase.co';
-
-// ============================================================
-// 3. إعدادات Cloudinary
-// ============================================================
-
-const CLOUDINARY_CLOUD_NAME = 'y14bgb5s';
-const CLOUDINARY_UPLOAD_PRESET = 'zi_store_uploads';
-
-// ============================================================
-// 4. شاشة التحميل
-// ============================================================
-
-const loadingMessages = [
-    'Initializing store...',
-    'Loading products...',
-    'Connecting to database...',
-    'Welcome to ZI Store! 🚀'
-];
-
-let loadingMessageIndex = 0;
-let loadingInterval = null;
-
-function updateLoadingMessage() {
-    const statusEl = document.getElementById('loadingStatus');
-    if (statusEl) {
-        loadingMessageIndex = (loadingMessageIndex + 1) % loadingMessages.length;
-        statusEl.textContent = loadingMessages[loadingMessageIndex];
-    }
-}
-
-function startLoadingMessages() {
-    if (loadingInterval) clearInterval(loadingInterval);
-    loadingInterval = setInterval(updateLoadingMessage, 2000);
-}
-
-function hideLoadingScreen() {
-    const screen = document.getElementById('loadingScreen');
-    if (screen) {
-        screen.style.display = 'none';
-        if (loadingInterval) {
-            clearInterval(loadingInterval);
-            loadingInterval = null;
-        }
-    }
-}
-
-function showLoadingScreen() {
-    const screen = document.getElementById('loadingScreen');
-    if (screen) {
-        screen.style.display = 'flex';
-        startLoadingMessages();
-    }
-}
-
-function updateLoadingBar(percent) {
-    const bar = document.getElementById('loadingBar');
-    if (bar) {
-        bar.style.width = Math.min(percent, 100) + '%';
-    }
-}
-
-// ============================================================
-// 5. الثوابت والمتغيرات العامة
+// 4. الثوابت والمتغيرات العامة (كما هي)
 // ============================================================
 
 const ADMIN_EMAIL = 'zribiidriss3@gmail.com';
@@ -185,7 +129,7 @@ const paymentWallets = {
 let cryptoPrices = { ltc: 0, usdt: 1, lastUpdate: null, isUpdating: false };
 
 // ============================================================
-// 6. دوال مساعدة
+// 5. دوال مساعدة (كما هي)
 // ============================================================
 
 async function checkUserBanned(uid) {
@@ -204,7 +148,7 @@ async function checkUserBanned(uid) {
 }
 
 // ============================================================
-// 7. Toast
+// 6. Toast (كما هي)
 // ============================================================
 
 function showToast(message, type = 'success') {
@@ -224,7 +168,7 @@ function showToast(message, type = 'success') {
 window.hideToast = function() { document.getElementById('toast')?.classList.remove('show'); };
 
 // ============================================================
-// 8. دوال المستخدم
+// 7. دوال المستخدم (كما هي باستخدام Firestore)
 // ============================================================
 
 async function getUserId() {
@@ -296,25 +240,25 @@ async function saveUserData(silent = false) {
     const uid = currentUser ? currentUser.uid : await getUserId();
     if (!uid) return;
     try {
-        await setDoc(doc(db, 'users', uid), { 
-            wishlist, 
-            cart, 
-            history: userProfile.history, 
-            requests: userProfile.requests, 
-            usedCodes: userProfile.usedCodes, 
-            referrals: userProfile.referrals, 
-            referralRewards: userProfile.referralRewards, 
-            rp: userProfile.rp, 
-            referralCode: userProfile.referralCode, 
-            telegram: userProfile.telegram, 
-            telegramChatId: userProfile.telegramChatId, 
-            location: userProfile.location, 
-            lang: userProfile.lang, 
-            useRpForCart: userProfile.useRpForCart, 
-            isBanned: userProfile.isBanned, 
+        await setDoc(doc(db, 'users', uid), {
+            wishlist,
+            cart,
+            history: userProfile.history,
+            requests: userProfile.requests,
+            usedCodes: userProfile.usedCodes,
+            referrals: userProfile.referrals,
+            referralRewards: userProfile.referralRewards,
+            rp: userProfile.rp,
+            referralCode: userProfile.referralCode,
+            telegram: userProfile.telegram,
+            telegramChatId: userProfile.telegramChatId,
+            location: userProfile.location,
+            lang: userProfile.lang,
+            useRpForCart: userProfile.useRpForCart,
+            isBanned: userProfile.isBanned,
             lastDailyReward: userProfile.lastDailyReward || 0,
             licences: userProfile.licences || [],
-            updatedAt: serverTimestamp() 
+            updatedAt: serverTimestamp()
         }, { merge: true });
         localStorage.setItem('zi_wishlist_backup', JSON.stringify(wishlist));
         localStorage.setItem('zi_cart_backup', JSON.stringify(cart));
@@ -341,7 +285,7 @@ function generateReferralCode(name, email) {
 }
 
 // ============================================================
-// 9. تحديثات الواجهة
+// 8. تحديثات الواجهة (كما هي)
 // ============================================================
 
 function updateDropdownStats() {
@@ -408,7 +352,7 @@ function updateFullUserMenu() {
 }
 
 // ============================================================
-// 10. دوال المصادقة
+// 9. دوال المصادقة (كما هي)
 // ============================================================
 
 window.showLogin = function() { document.getElementById('loginContainer').style.display = 'block'; document.getElementById('registerContainer').style.display = 'none'; };
@@ -513,7 +457,7 @@ window.sendForgotPassword = async function() {
 };
 
 // ============================================================
-// 11. المودالات العامة
+// 10. المودالات العامة (كما هي)
 // ============================================================
 
 window.openUserMenuFull = function() { if (!currentUser) { openAuthModal(); return; } document.getElementById('userMenuFull').classList.add('open'); updateFullUserMenu(); document.body.style.overflow = 'hidden'; };
@@ -533,7 +477,7 @@ window.closeNotifications = function() { document.getElementById('notificationsM
 function openAuthModal() { document.getElementById('authSection').scrollIntoView({ behavior: 'smooth' }); }
 
 // ============================================================
-// 12. عرض الملف الشخصي
+// 11. عرض الملف الشخصي (كما هي)
 // ============================================================
 
 function renderProfileFull() {
@@ -638,7 +582,7 @@ window.sendResetLinkInline = async function() { if (!currentUser) return; try { 
 window.changePasswordInline = async function() { if (!currentUser) return; const currentPwd = document.getElementById('currentPasswordInline').value; const newPwd = document.getElementById('newPasswordInline').value; const confirmPwd = document.getElementById('confirmNewPasswordInline').value; const errorEl = document.getElementById('passwordErrorInline'); const successEl = document.getElementById('passwordSuccessInline'); errorEl.textContent = ''; successEl.textContent = ''; if (!currentPwd || !newPwd || !confirmPwd) { errorEl.textContent = 'Please fill all fields'; return; } if (newPwd.length < 6) { errorEl.textContent = 'New password must be at least 6 characters'; return; } if (newPwd !== confirmPwd) { errorEl.textContent = 'Passwords do not match'; return; } try { const credential = EmailAuthProvider.credential(currentUser.email, currentPwd); await reauthenticateWithCredential(currentUser, credential); await updatePassword(currentUser, newPwd); successEl.textContent = '✅ Password changed successfully!'; showToast('✅ Password updated!', 'success'); document.getElementById('currentPasswordInline').value = ''; document.getElementById('newPasswordInline').value = ''; document.getElementById('confirmNewPasswordInline').value = ''; setTimeout(() => { successEl.textContent = ''; }, 3000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); } };
 
 // ============================================================
-// 13. المنتجات مع Skeleton Loading
+// 12. المنتجات (كما هي)
 // ============================================================
 
 async function loadProductsFromFirestore() {
@@ -761,7 +705,7 @@ function generateRecommendations(productsList) {
 }
 
 // ============================================================
-// 14. المنتجات المميزة و السلة والمفضلة
+// 13. المنتجات المميزة و السلة والمفضلة (كما هي)
 // ============================================================
 
 function renderFeaturedProducts() {
@@ -1003,7 +947,7 @@ function createFloatingHearts() {
 }
 
 // ============================================================
-// 15. عرض المنتج (Preview)
+// 14. عرض المنتج (Preview) (كما هي)
 // ============================================================
 
 window.openDetails = function(id) {
@@ -1138,7 +1082,7 @@ window.addToCartFromPreview = function() { if (window._currentProduct) { window.
 window.shareFromPreview = function() { if (window._currentProduct) { window.openShareModal(window._currentProduct.id); } };
 
 // ============================================================
-// 16. مودال المشاركة
+// 15. مودال المشاركة (كما هي)
 // ============================================================
 
 window.openShareModal = function(productId) {
@@ -1155,7 +1099,7 @@ window.shareToFacebook = function() { if (!shareProduct) return; window.open(`ht
 window.copyShareLink = function() { const url = window.location.href; navigator.clipboard.writeText(url).then(() => { showToast('✅ Link copied!', 'success'); closeShareModal(); }).catch(() => { const textArea = document.createElement('textarea'); textArea.value = url; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); showToast('✅ Link copied!', 'success'); closeShareModal(); }); };
 
 // ============================================================
-// 17. التصفية والبحث
+// 16. التصفية والبحث (كما هي)
 // ============================================================
 
 window.filterProducts = function(filter) {
@@ -1212,7 +1156,7 @@ function closeSearchResults() { searchResults.classList.remove('active'); search
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeSearchResults(); closeUserMenuFull(); closeCartFull(); closeWishlistFull(); closeProfileFull(); closeHistoryFull(); } });
 
 // ============================================================
-// 18. الدفع
+// 17. الدفع (كما هي)
 // ============================================================
 
 async function fetchCryptoPrices() {
@@ -1343,7 +1287,7 @@ function renderPaymentProducts() {
 }
 
 // ============================================================
-// 19. إرسال الطلب (مع الحالة pending فقط)
+// 18. إرسال الطلب (مع الحالة pending فقط - كما هي)
 // ============================================================
 
 async function sendOrderToTelegram(method, txHash = null) {
@@ -1377,7 +1321,6 @@ async function sendOrderToTelegram(method, txHash = null) {
         discountText += `\n🎫 Promo (${activeDiscount}%): -${discountAmount.toFixed(2)}$`;
     }
 
-    // إرسال رسالة للمدير
     let adminMsg = '🛒 **New Order**\n\n';
     adminMsg += `📎 **Order ID:** #${orderId.slice(-6)}\n`;
     adminMsg += `👤 **Customer:** ${currentUser.displayName || currentUser.email || 'Unknown'}\n`;
@@ -1393,14 +1336,13 @@ async function sendOrderToTelegram(method, txHash = null) {
     } catch (e) { console.error('Telegram notification error:', e); }
     window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(adminMsg)}`, '_blank');
 
-    // حفظ الطلب مع الحالة 'pending' دائماً
     const orderItem = {
         id: orderId,
         items: cart.map(item => ({ id: item.id, name: item.name, price: item.price, quantity: item.quantity || 1 })),
         total: finalTotal,
         method: method,
         date: new Date().toISOString(),
-        status: 'pending',   // 🔄 دائماً pending
+        status: 'pending',
         txHash: txHash || null,
         rpUsed: Math.floor(rpDiscountAmount / RP_TO_DOLLAR) || 0,
         rpEarned: 0
@@ -1468,7 +1410,7 @@ window.closePaymentModal = function() { document.getElementById('paymentModal').
 window.checkout = function() { openPaymentModal(); };
 
 // ============================================================
-// 20. دوال تيليجرام
+// 19. دوال تيليجرام (كما هي)
 // ============================================================
 
 async function sendTelegramNotification(chatId, message) {
@@ -1572,7 +1514,7 @@ window.checkTelegramStatus = async function() {
 };
 
 // ============================================================
-// 21. التحميلات والإشعارات
+// 20. التحميلات والإشعارات (كما هي)
 // ============================================================
 
 function loadDownloads() {
@@ -1757,7 +1699,7 @@ window.openCreateNotificationModal = function() { if (!currentUser || currentUse
 window.closeCreateNotificationModal = function() { document.getElementById('createNotificationModal').classList.remove('open'); };
 
 // ============================================================
-// 22. الطلبات والإحالات
+// 21. الطلبات والإحالات (كما هي)
 // ============================================================
 
 window.openRequestsModal = function() {
@@ -1831,7 +1773,8 @@ window.copyReferralCode2 = function() {
 };
 
 // ============================================================
-// 23. لوحة المدير (مع تعديل الحالات إلى pending, confirmed, rejected)
+// 22. لوحة المدير (مع تعديل الحالات إلى pending, confirmed, rejected)
+//     كما هي باستثناء دوال التراخيص التي تم تعديلها لاستخدام Supabase
 // ============================================================
 
 window.openAdminPanel = function() {
@@ -1966,7 +1909,7 @@ window.switchAdminTab = function(tab) {
 };
 
 // ============================================================
-// 24. إدارة المنتجات (Admin Products)
+// 23. إدارة المنتجات (Admin Products) - كما هي
 // ============================================================
 
 function renderAdminProducts(productsList) {
@@ -2103,7 +2046,8 @@ async function deleteProductFromFirestore(productId) {
 }
 
 // ============================================================
-// 25. الطلبات (Admin Orders) - تم التعديل إلى confirmed / rejected
+// 24. الطلبات (Admin Orders) - تم التعديل إلى confirmed / rejected
+//     كما هي، مع استدعاء sendLicenceForOrder الذي تم تعديله لاستخدام Supabase
 // ============================================================
 
 function startAdminRealtimeListener() {
@@ -2128,7 +2072,7 @@ function startAdminRealtimeListener() {
         });
         orders.sort((a, b) => new Date(b.date) - new Date(a.date));
         allOrders = orders;
-        pendingCount = pending; // فقط pending لظهور الإشعارات
+        pendingCount = pending;
         renderAdminOrders(orders);
         updateAdminStats(orders);
         updateUI();
@@ -2208,15 +2152,16 @@ function updateAdminStats(orders) {
     document.getElementById('adminPendingOrders').textContent = pending;
     document.getElementById('adminConfirmedOrders').textContent = confirmed;
     document.getElementById('adminRejectedOrders').textContent = rejected;
-    // يمكنك إخفاء عناصر preparing/shipped/delivered إذا كانت موجودة
 }
 
-// دالة تحديث حالة الطلب مع إنشاء الترخيص عند confirmed
+// ============================================================
+// 25. تحديث حالة الطلب مع إنشاء الترخيص (تم التعديل لاستخدام Supabase)
+// ============================================================
+
 window.updateOrderStatus = async function(orderId, userId, newStatus) {
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!orderId || !userId) { showToast('❌ Invalid data', 'error'); return; }
 
-    // ✅ قائمة الحالات المسموحة فقط
     const validStatuses = ['pending', 'confirmed', 'rejected'];
     if (!validStatuses.includes(newStatus)) {
         showToast('⚠️ حالة غير صالحة', 'warning');
@@ -2235,11 +2180,9 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
         });
         await updateDoc(userRef, { history: updatedHistory });
 
-        // 📨 إذا كانت الحالة confirmed، أرسل الترخيص
         if (newStatus === 'confirmed') {
             await sendLicenceForOrder(orderId, userId);
         } else if (newStatus === 'rejected') {
-            // إشعار بالرفض
             const order = history.find(o => o.id === orderId);
             if (order && data.telegramChatId) {
                 await sendTelegramNotification(data.telegramChatId, `❌ Your order #${orderId.slice(-6)} has been rejected.`);
@@ -2261,7 +2204,10 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
     }
 };
 
-// دالة إنشاء الترخيص وإرساله
+// ============================================================
+// 26. دالة إرسال الترخيص (معدلة لاستخدام Supabase)
+// ============================================================
+
 async function sendLicenceForOrder(orderId, userId) {
     try {
         const userRef = doc(db, 'users', userId);
@@ -2281,21 +2227,29 @@ async function sendLicenceForOrder(orderId, userId) {
         const code = 'LIC-' + Math.random().toString(36).substring(2, 10).toUpperCase();
         const expiryDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
 
-        // حفظ الترخيص في Firestore
-        const licenceData = {
-            code: code,
-            script_id: productName,
-            script_name: productName,
-            user_id: userId,
-            user_email: userData.email || userId,
-            status: 'active',
-            expiry_date: expiryDate,
-            created_at: serverTimestamp(),
-            updated_at: serverTimestamp()
-        };
-        await addDoc(collection(db, 'licenses'), licenceData);
+        // ✅ تخزين الترخيص في Supabase
+        const { data: licenceData, error: insertError } = await supabase
+            .from('licenses')
+            .insert({
+                code: code,
+                script_id: productName,
+                script_name: productName,
+                user_id: userId,
+                user_email: userData.email || userId,
+                status: 'active',
+                expiry_date: expiryDate,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            })
+            .select()
+            .single();
 
-        // إضافة الترخيص إلى ملف المستخدم
+        if (insertError) {
+            console.error('Error inserting licence into Supabase:', insertError);
+            throw insertError;
+        }
+
+        // ✅ إضافة الترخيص إلى ملف المستخدم في Firestore
         const userLicences = userData.licences || [];
         userLicences.push({
             code: code,
@@ -2362,7 +2316,7 @@ window.clearAdminSearch = function() { document.getElementById('adminSearchInput
 window.refreshAdminOrders = function() { loadAdminOrders(); showToast('🔄 Refreshed', 'info'); };
 
 // ============================================================
-// 26. المستخدمين (Admin Users)
+// 27. المستخدمين (Admin Users) - كما هي
 // ============================================================
 
 async function loadAdminUsers() {
@@ -2459,7 +2413,7 @@ window.viewUserDetails = async function(uid) {
 window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
 // ============================================================
-// 27. تاريخ الطلبات (مع تعديل الحالات)
+// 28. تاريخ الطلبات (مع تعديل الحالات) - كما هي
 // ============================================================
 
 window.clearOrderHistory = async function() {
@@ -2542,21 +2496,23 @@ window.filterOrders = function(filter) {
 };
 
 // ============================================================
-// 28. نظام إدارة الأكواد (Licences) - مع مزامنة ملف المستخدم
+// 29. نظام إدارة الأكواد (Licences) - معدل لاستخدام Supabase
 // ============================================================
 
+// تحميل التراخيص من Supabase
 async function loadLicences() {
     try {
         const container = document.getElementById('adminLicencesList');
         if (!container) return;
         container.innerHTML = `<div style="text-align:center;padding:30px;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
 
-        const licencesRef = collection(db, 'licenses');
-        const snapshot = await getDocs(licencesRef);
-        allLicences = [];
-        snapshot.forEach(doc => {
-            allLicences.push({ id: doc.id, ...doc.data() });
-        });
+        const { data, error } = await supabase
+            .from('licenses')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        allLicences = data || [];
         renderLicences(allLicences);
     } catch (error) {
         console.error('Error loading licences:', error);
@@ -2567,6 +2523,7 @@ async function loadLicences() {
     }
 }
 
+// عرض التراخيص
 function renderLicences(licences) {
     const container = document.getElementById('adminLicencesList');
     if (!container) return;
@@ -2611,6 +2568,7 @@ function renderLicences(licences) {
     }).join('');
 }
 
+// فتح مودال إنشاء ترخيص
 function openCreateLicenceModal() {
     const modal = document.getElementById('createLicenceModal');
     if (modal) {
@@ -2628,6 +2586,7 @@ function closeCreateLicenceModal() {
     }
 }
 
+// إنشاء ترخيص يدوياً في Supabase
 async function createLicenceManually() {
     const productName = document.getElementById('newLicenceProduct')?.value.trim();
     const userId = document.getElementById('newLicenceUser')?.value.trim();
@@ -2643,25 +2602,30 @@ async function createLicenceManually() {
         const product = products.find(p => p.name === productName);
         const scriptId = product ? product.id : 'script_' + Date.now();
 
-        const licenceData = {
-            code: code,
-            script_id: scriptId,
-            script_name: productName,
-            product_name: productName,
-            user_id: userId || null,
-            user_email: userId || null,
-            status: 'active',
-            expiry_date: expiryDate ? new Date(expiryDate).toISOString() : new Date(Date.now() + 365*24*60*60*1000).toISOString(),
-            created_at: serverTimestamp(),
-            updated_at: serverTimestamp()
-        };
+        const { data, error } = await supabase
+            .from('licenses')
+            .insert({
+                code: code,
+                script_id: scriptId,
+                script_name: productName,
+                product_name: productName,
+                user_id: userId || null,
+                user_email: userId || null,
+                status: 'active',
+                expiry_date: expiryDate ? new Date(expiryDate).toISOString() : new Date(Date.now() + 365*24*60*60*1000).toISOString(),
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            })
+            .select()
+            .single();
 
-        await addDoc(collection(db, 'licenses'), licenceData);
+        if (error) throw error;
 
         showToast(`✅ Licence created: ${code}`, 'success');
         closeCreateLicenceModal();
         loadLicences();
 
+        // إذا تم تحديد مستخدم، نضيف الترخيص إلى ملفه في Firestore
         if (userId) {
             const usersRef = collection(db, 'users');
             let q;
@@ -2680,7 +2644,7 @@ async function createLicenceManually() {
                         code: code,
                         scriptId: scriptId,
                         scriptName: productName,
-                        expiryDate: licenceData.expiry_date,
+                        expiryDate: data.expiry_date,
                         activatedAt: new Date().toISOString()
                     });
                     await updateDoc(userDoc.ref, { licences: userLicences, updatedAt: serverTimestamp() });
@@ -2702,12 +2666,14 @@ async function createLicenceManually() {
     }
 }
 
-async function updateLicenceInFirestore(licenceId, data) {
+// دالة مساعدة لتحديث الترخيص في Supabase
+async function updateLicenceInSupabase(licenceId, data) {
     try {
-        await updateDoc(doc(db, 'licenses', licenceId), {
-            ...data,
-            updated_at: serverTimestamp()
-        });
+        const { error } = await supabase
+            .from('licenses')
+            .update({ ...data, updated_at: new Date().toISOString() })
+            .eq('id', licenceId);
+        if (error) throw error;
         return true;
     } catch (error) {
         console.error('Error updating licence:', error);
@@ -2715,6 +2681,7 @@ async function updateLicenceInFirestore(licenceId, data) {
     }
 }
 
+// الموافقة على الترخيص (تغيير الحالة إلى active وإرساله للمستخدم)
 async function approveLicence(licenceId, code, scriptName) {
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
         showToast('⛔ Unauthorized', 'error');
@@ -2723,20 +2690,21 @@ async function approveLicence(licenceId, code, scriptName) {
     if (!confirm(`Approve licence ${code} and send to user?`)) return;
 
     try {
-        const licenceRef = doc(db, 'licenses', licenceId);
-        const licenceSnap = await getDoc(licenceRef);
-        if (!licenceSnap.exists()) {
-            showToast('❌ Licence not found', 'error');
-            return;
-        }
-        const licenceData = licenceSnap.data();
+        const { data: licenceData, error: fetchError } = await supabase
+            .from('licenses')
+            .select('*')
+            .eq('id', licenceId)
+            .single();
 
-        await updateLicenceInFirestore(licenceId, {
+        if (fetchError || !licenceData) throw fetchError || new Error('Licence not found');
+
+        await updateLicenceInSupabase(licenceId, {
             status: 'active',
             user_id: currentUser.uid,
             user_email: currentUser.email
         });
 
+        // إرسال إشعار للمستخدم عبر تيليجرام إذا كان مرتبطاً
         let chatId = null;
         try {
             const usersRef = collection(db, 'users');
@@ -2766,6 +2734,7 @@ async function approveLicence(licenceId, code, scriptName) {
     }
 }
 
+// إلغاء الترخيص (revoke)
 async function revokeLicence(licenceId) {
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
         showToast('⛔ Unauthorized', 'error');
@@ -2773,9 +2742,9 @@ async function revokeLicence(licenceId) {
     }
     if (!confirm('Revoke this licence?')) return;
     try {
-        await updateLicenceInFirestore(licenceId, { status: 'revoked' });
+        await updateLicenceInSupabase(licenceId, { status: 'revoked' });
 
-        // ✅ تحديث ملف المستخدم
+        // تحديث ملف المستخدم في Firestore
         const licence = allLicences.find(l => l.id === licenceId);
         if (licence && licence.user_id) {
             const userRef = doc(db, 'users', licence.user_id);
@@ -2790,7 +2759,6 @@ async function revokeLicence(licenceId) {
                     return l;
                 });
                 await updateDoc(userRef, { licences: updatedLicences, updatedAt: serverTimestamp() });
-                // إذا كان المستخدم الحالي هو صاحب الترخيص
                 if (currentUser && currentUser.uid === licence.user_id) {
                     userProfile.licences = updatedLicences;
                     renderUserLicences();
@@ -2807,6 +2775,7 @@ async function revokeLicence(licenceId) {
     }
 }
 
+// حذف الترخيص نهائياً
 async function deleteLicence(licenceId) {
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
         showToast('⛔ Unauthorized', 'error');
@@ -2815,9 +2784,13 @@ async function deleteLicence(licenceId) {
     if (!confirm('Delete this licence permanently?')) return;
     try {
         const licence = allLicences.find(l => l.id === licenceId);
-        await deleteDoc(doc(db, 'licenses', licenceId));
+        const { error } = await supabase
+            .from('licenses')
+            .delete()
+            .eq('id', licenceId);
+        if (error) throw error;
 
-        // ✅ حذف من ملف المستخدم
+        // حذف من ملف المستخدم في Firestore
         if (licence && licence.user_id) {
             const userRef = doc(db, 'users', licence.user_id);
             const userSnap = await getDoc(userRef);
@@ -2842,6 +2815,7 @@ async function deleteLicence(licenceId) {
     }
 }
 
+// تعديل الترخيص (فتح مودال)
 function editLicence(licenceId) {
     const licence = allLicences.find(l => l.id === licenceId);
     if (!licence) { showToast('❌ Licence not found', 'error'); return; }
@@ -2853,18 +2827,19 @@ function editLicence(licenceId) {
     document.getElementById('editLicenceModal').classList.add('open');
 }
 
+// حفظ التعديلات على الترخيص
 async function saveLicenceEdit() {
     const licenceId = document.getElementById('editLicenceId').value;
     const expiryDate = document.getElementById('editLicenceExpiry').value;
     const status = document.getElementById('editLicenceStatus').value;
 
     try {
-        await updateLicenceInFirestore(licenceId, {
+        await updateLicenceInSupabase(licenceId, {
             expiry_date: expiryDate ? new Date(expiryDate).toISOString() : null,
             status: status
         });
 
-        // ✅ تحديث ملف المستخدم
+        // تحديث ملف المستخدم في Firestore
         const licence = allLicences.find(l => l.id === licenceId);
         if (licence && licence.user_id) {
             const userRef = doc(db, 'users', licence.user_id);
@@ -2900,6 +2875,7 @@ async function saveLicenceEdit() {
     }
 }
 
+// البحث في التراخيص
 function searchLicences() {
     const query = document.getElementById('adminLicenceSearch').value.trim().toLowerCase();
     if (!query) { renderLicences(allLicences); return; }
@@ -2919,6 +2895,7 @@ function clearLicenceSearch() {
 
 function refreshLicences() { loadLicences(); showToast('🔄 Refreshed', 'info'); }
 
+// عرض تراخيص المستخدم في الملف الشخصي
 function renderUserLicences() {
     const container = document.getElementById('userLicencesList');
     if (!container) return;
@@ -2957,6 +2934,7 @@ function toggleLicencesList() {
     }
 }
 
+// مودال تفعيل الترخيص (للمستخدم)
 function openLicenceModal() {
     if (!currentUser) {
         showToast('⚠️ Please login first', 'warning');
@@ -2982,6 +2960,7 @@ function closeLicenceModal() {
     }
 }
 
+// تفعيل الترخيص بواسطة المستخدم (التحقق في Supabase)
 async function activateLicence() {
     const input = document.getElementById('licenceInput');
     const resultEl = document.getElementById('licenceResult');
@@ -3000,20 +2979,19 @@ async function activateLicence() {
     try {
         resultEl.innerHTML = '<span style="color:var(--text-secondary);">⏳ Verifying...</span>';
 
-        const licencesRef = collection(db, 'licenses');
-        const q = query(licencesRef, where('code', '==', code));
-        const querySnapshot = await getDocs(q);
+        const { data: licence, error } = await supabase
+            .from('licenses')
+            .select('*')
+            .eq('code', code)
+            .maybeSingle();
 
-        if (querySnapshot.empty) {
+        if (error || !licence) {
             resultEl.innerHTML = '<span style="color:var(--danger);">❌ Invalid licence code.</span>';
             return;
         }
 
-        const doc = querySnapshot.docs[0];
-        const licence = doc.data();
-
         if (licence.status === 'expired' || new Date(licence.expiry_date) < new Date()) {
-            await updateDoc(doc.ref, { status: 'expired', updated_at: serverTimestamp() });
+            await updateLicenceInSupabase(licence.id, { status: 'expired' });
             resultEl.innerHTML = '<span style="color:var(--danger);">⛔ This licence has expired.</span>';
             return;
         }
@@ -3023,23 +3001,21 @@ async function activateLicence() {
             return;
         }
 
-        // إذا كان الترخيص مرتبطاً بمستخدم آخر غير المستخدم الحالي
         if (licence.user_id && licence.user_id !== currentUser.uid) {
             resultEl.innerHTML = '<span style="color:var(--danger);">❌ This licence is already assigned to another user.</span>';
             return;
         }
 
-        // ربط الترخيص بالمستخدم الحالي إذا لم يكن مرتبطاً
+        // ربط الترخيص بالمستخدم الحالي
         if (!licence.user_id || licence.user_id === null) {
-            await updateDoc(doc.ref, {
+            await updateLicenceInSupabase(licence.id, {
                 user_id: currentUser.uid,
                 user_email: currentUser.email,
-                status: 'used',
-                updated_at: serverTimestamp()
+                status: 'used'
             });
         }
 
-        // إضافة الترخيص إلى ملف المستخدم
+        // إضافة الترخيص إلى ملف المستخدم في Firestore
         const userRef = doc(db, 'users', currentUser.uid);
         const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
@@ -3086,7 +3062,7 @@ async function activateLicence() {
 }
 
 // ============================================================
-// 29. Banner تيليجرام و Social Proof
+// 30. Banner تيليجرام و Social Proof (كما هي)
 // ============================================================
 
 function showTelegramBanner() {
@@ -3160,7 +3136,7 @@ function startSocialProof() {}
 function triggerSocialProofOnOrder(userName, productNames) {}
 
 // ============================================================
-// 30. دوال السلايدر (Slider)
+// 31. دوال السلايدر (Slider) - كما هي
 // ============================================================
 
 async function loadSliderSettings() {
@@ -3476,7 +3452,7 @@ window.deleteSlide = deleteSlide;
 window.editSlide = editSlide;
 
 // ============================================================
-// 31. PDF Generator
+// 32. PDF Generator (كما هي)
 // ============================================================
 
 async function generateInvoice(orderData) {
@@ -3549,7 +3525,7 @@ async function generateInvoice(orderData) {
 }
 
 // ============================================================
-// 32. إحصائيات المدير
+// 33. إحصائيات المدير (كما هي)
 // ============================================================
 
 async function loadDashboardStats() {
@@ -3618,7 +3594,7 @@ async function loadAuditLogs() {
 window.loadAuditLogs = loadAuditLogs;
 
 // ============================================================
-// 33. التقييمات (Ratings)
+// 34. التقييمات (Ratings) - كما هي
 // ============================================================
 
 let currentRating = 0;
@@ -3700,7 +3676,7 @@ function renderRatingSection(productId) {
 async function updateProductRatingDisplay(productId) { const ratingsRef = collection(db, 'ratings'); const q = query(ratingsRef, where('productId', '==', productId)); const snapshot = await getDocs(q); let total = 0; let count = 0; snapshot.forEach(doc => { total += doc.data().rating || 0; count++; }); const avg = count > 0 ? total / count : 0; }
 
 // ============================================================
-// 34. توجيه الاتجاه
+// 35. توجيه الاتجاه (كما هي)
 // ============================================================
 
 function fixDirection() {
@@ -3712,8 +3688,11 @@ function fixDirection() {
 document.addEventListener('DOMContentLoaded', function() { setTimeout(fixDirection, 100); setTimeout(showTelegramBanner, 500); });
 
 // ============================================================
-// 35. رفع الصور إلى Cloudinary
+// 36. رفع الصور إلى Cloudinary (كما هي)
 // ============================================================
+
+const CLOUDINARY_CLOUD_NAME = 'y14bgb5s';
+const CLOUDINARY_UPLOAD_PRESET = 'zi_store_uploads';
 
 async function uploadToCloudinary(file) {
     try {
@@ -3738,7 +3717,7 @@ async function uploadToCloudinary(file) {
 }
 
 // ============================================================
-// 36. حالة المصادقة
+// 37. حالة المصادقة (كما هي)
 // ============================================================
 
 onAuthStateChanged(auth, async (user) => {
@@ -3779,7 +3758,7 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// 37. التهيئة (Init)
+// 38. التهيئة (Init)
 // ============================================================
 
 async function init() {
@@ -3812,7 +3791,7 @@ init();
 setTimeout(() => { hideLoadingScreen(); console.log('⚠️ Force hiding loading screen (timeout)'); }, 5000);
 
 // ============================================================
-// 38. التصديرات النهائية
+// 39. التصديرات النهائية
 // ============================================================
 
 window.showToast = showToast;
@@ -3921,7 +3900,7 @@ window.saveSliderInterval = saveSliderInterval;
 window.deleteSlide = deleteSlide;
 window.editSlide = editSlide;
 
-// دوال الترخيص
+// تصدير دوال التراخيص المعدلة
 window.loadLicences = loadLicences;
 window.renderLicences = renderLicences;
 window.approveLicence = approveLicence;
