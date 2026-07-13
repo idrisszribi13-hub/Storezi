@@ -1,7 +1,8 @@
 // ============================================================
-// SCRIPT.JS - النسخة الكاملة مع جميع الدوال المطلوبة
-// تم التعديل: نظام الطلبات (pending, confirmed, rejected) فقط
-// وعند confirmed يتم إنشاء ترخيص تلقائياً
+// SCRIPT.JS - ZI Store النسخة النهائية مع جميع التعديلات
+// نظام الطلبات: pending → confirmed → rejected
+// عند confirmed يتم إنشاء ترخيص تلقائياً
+// تحديث التراخيص ينعكس على واجهة المستخدم فوراً
 // ============================================================
 
 import { initializeApp } from "firebase/app";
@@ -2541,7 +2542,7 @@ window.filterOrders = function(filter) {
 };
 
 // ============================================================
-// 28. نظام إدارة الأكواد (Licences)
+// 28. نظام إدارة الأكواد (Licences) - مع مزامنة ملف المستخدم
 // ============================================================
 
 async function loadLicences() {
@@ -2773,6 +2774,31 @@ async function revokeLicence(licenceId) {
     if (!confirm('Revoke this licence?')) return;
     try {
         await updateLicenceInFirestore(licenceId, { status: 'revoked' });
+
+        // ✅ تحديث ملف المستخدم
+        const licence = allLicences.find(l => l.id === licenceId);
+        if (licence && licence.user_id) {
+            const userRef = doc(db, 'users', licence.user_id);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+                const userData = userSnap.data();
+                const userLicences = userData.licences || [];
+                const updatedLicences = userLicences.map(l => {
+                    if (l.code === licence.code) {
+                        return { ...l, status: 'revoked' };
+                    }
+                    return l;
+                });
+                await updateDoc(userRef, { licences: updatedLicences, updatedAt: serverTimestamp() });
+                // إذا كان المستخدم الحالي هو صاحب الترخيص
+                if (currentUser && currentUser.uid === licence.user_id) {
+                    userProfile.licences = updatedLicences;
+                    renderUserLicences();
+                    updateFullUserMenu();
+                }
+            }
+        }
+
         showToast('🚫 Licence revoked', 'success');
         loadLicences();
     } catch (error) {
@@ -2788,7 +2814,26 @@ async function deleteLicence(licenceId) {
     }
     if (!confirm('Delete this licence permanently?')) return;
     try {
+        const licence = allLicences.find(l => l.id === licenceId);
         await deleteDoc(doc(db, 'licenses', licenceId));
+
+        // ✅ حذف من ملف المستخدم
+        if (licence && licence.user_id) {
+            const userRef = doc(db, 'users', licence.user_id);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+                const userData = userSnap.data();
+                const userLicences = userData.licences || [];
+                const updatedLicences = userLicences.filter(l => l.code !== licence.code);
+                await updateDoc(userRef, { licences: updatedLicences, updatedAt: serverTimestamp() });
+                if (currentUser && currentUser.uid === licence.user_id) {
+                    userProfile.licences = updatedLicences;
+                    renderUserLicences();
+                    updateFullUserMenu();
+                }
+            }
+        }
+
         showToast('🗑️ Licence deleted', 'success');
         loadLicences();
     } catch (error) {
@@ -2818,6 +2863,34 @@ async function saveLicenceEdit() {
             expiry_date: expiryDate ? new Date(expiryDate).toISOString() : null,
             status: status
         });
+
+        // ✅ تحديث ملف المستخدم
+        const licence = allLicences.find(l => l.id === licenceId);
+        if (licence && licence.user_id) {
+            const userRef = doc(db, 'users', licence.user_id);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+                const userData = userSnap.data();
+                const userLicences = userData.licences || [];
+                const updatedLicences = userLicences.map(l => {
+                    if (l.code === licence.code) {
+                        return {
+                            ...l,
+                            expiryDate: expiryDate || l.expiryDate,
+                            status: status || l.status
+                        };
+                    }
+                    return l;
+                });
+                await updateDoc(userRef, { licences: updatedLicences, updatedAt: serverTimestamp() });
+                if (currentUser && currentUser.uid === licence.user_id) {
+                    userProfile.licences = updatedLicences;
+                    renderUserLicences();
+                    updateFullUserMenu();
+                }
+            }
+        }
+
         showToast('✅ Licence updated!', 'success');
         document.getElementById('editLicenceModal').classList.remove('open');
         loadLicences();
@@ -2909,7 +2982,6 @@ function closeLicenceModal() {
     }
 }
 
-// تعديل دالة activateLicence للاستعلام من Firestore مباشرة (بدون Supabase)
 async function activateLicence() {
     const input = document.getElementById('licenceInput');
     const resultEl = document.getElementById('licenceResult');
@@ -2928,7 +3000,6 @@ async function activateLicence() {
     try {
         resultEl.innerHTML = '<span style="color:var(--text-secondary);">⏳ Verifying...</span>';
 
-        // 🔍 الاستعلام من Firestore مباشرة
         const licencesRef = collection(db, 'licenses');
         const q = query(licencesRef, where('code', '==', code));
         const querySnapshot = await getDocs(q);
@@ -2941,30 +3012,31 @@ async function activateLicence() {
         const doc = querySnapshot.docs[0];
         const licence = doc.data();
 
-        // التحقق من الصلاحية
         if (licence.status === 'expired' || new Date(licence.expiry_date) < new Date()) {
-            // تحديث الحالة إلى expired
             await updateDoc(doc.ref, { status: 'expired', updated_at: serverTimestamp() });
             resultEl.innerHTML = '<span style="color:var(--danger);">⛔ This licence has expired.</span>';
             return;
         }
 
-        if (licence.status !== 'active') {
+        if (licence.status !== 'active' && licence.status !== 'used') {
             resultEl.innerHTML = `<span style="color:var(--danger);">❌ Licence status: ${licence.status}</span>`;
             return;
         }
 
-        // إذا كان الترخيص غير مرتبط بمستخدم، ربطه بالمستخدم الحالي
+        // إذا كان الترخيص مرتبطاً بمستخدم آخر غير المستخدم الحالي
+        if (licence.user_id && licence.user_id !== currentUser.uid) {
+            resultEl.innerHTML = '<span style="color:var(--danger);">❌ This licence is already assigned to another user.</span>';
+            return;
+        }
+
+        // ربط الترخيص بالمستخدم الحالي إذا لم يكن مرتبطاً
         if (!licence.user_id || licence.user_id === null) {
             await updateDoc(doc.ref, {
                 user_id: currentUser.uid,
                 user_email: currentUser.email,
-                status: 'used', // يمكن تغييرها إلى 'active' إذا أردت
+                status: 'used',
                 updated_at: serverTimestamp()
             });
-        } else if (licence.user_id !== currentUser.uid) {
-            resultEl.innerHTML = '<span style="color:var(--danger);">❌ This licence is already assigned to another user.</span>';
-            return;
         }
 
         // إضافة الترخيص إلى ملف المستخدم
@@ -2973,7 +3045,6 @@ async function activateLicence() {
         if (userSnap.exists()) {
             const userData = userSnap.data();
             const userLicences = userData.licences || [];
-            // تجنب التكرار
             if (!userLicences.find(l => l.code === code)) {
                 userLicences.push({
                     code: code,
