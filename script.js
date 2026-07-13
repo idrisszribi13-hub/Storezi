@@ -1,5 +1,7 @@
 // ============================================================
 // SCRIPT.JS - النسخة الكاملة مع جميع الدوال المطلوبة
+// تم التعديل: نظام الطلبات (pending, confirmed, rejected) فقط
+// وعند confirmed يتم إنشاء ترخيص تلقائياً
 // ============================================================
 
 import { initializeApp } from "firebase/app";
@@ -386,7 +388,7 @@ function updateFullUserMenu() {
         rp.textContent = userProfile.rp || 0;
         wishlistBadge.textContent = wishlist.length;
         wishlistBadge.style.display = wishlist.length > 0 ? 'inline-block' : 'none';
-        const pendingOrders = userProfile.history.filter(o => (o.status || 'pending') === 'pending' || o.status === 'preparing' || o.status === 'shipped').length;
+        const pendingOrders = userProfile.history.filter(o => (o.status || 'pending') === 'pending').length;
         const totalBadge = pendingOrders + unreadNotifications;
         if (totalBadge > 0) { orderBadge.style.display = 'inline-block'; orderBadge.textContent = totalBadge; } else { orderBadge.style.display = 'none'; }
         if (unreadNotifications > 0) { notifBadge.style.display = 'inline-block'; notifBadge.textContent = unreadNotifications; } else { notifBadge.style.display = 'none'; }
@@ -1340,7 +1342,7 @@ function renderPaymentProducts() {
 }
 
 // ============================================================
-// 19. إرسال الطلب (بدون Licences في الشراء)
+// 19. إرسال الطلب (مع الحالة pending فقط)
 // ============================================================
 
 async function sendOrderToTelegram(method, txHash = null) {
@@ -1390,14 +1392,14 @@ async function sendOrderToTelegram(method, txHash = null) {
     } catch (e) { console.error('Telegram notification error:', e); }
     window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(adminMsg)}`, '_blank');
 
-    // حفظ الطلب
+    // حفظ الطلب مع الحالة 'pending' دائماً
     const orderItem = {
         id: orderId,
         items: cart.map(item => ({ id: item.id, name: item.name, price: item.price, quantity: item.quantity || 1 })),
         total: finalTotal,
         method: method,
         date: new Date().toISOString(),
-        status: 'pending',
+        status: 'pending',   // 🔄 دائماً pending
         txHash: txHash || null,
         rpUsed: Math.floor(rpDiscountAmount / RP_TO_DOLLAR) || 0,
         rpEarned: 0
@@ -1828,7 +1830,7 @@ window.copyReferralCode2 = function() {
 };
 
 // ============================================================
-// 23. لوحة المدير
+// 23. لوحة المدير (مع تعديل الحالات إلى pending, confirmed, rejected)
 // ============================================================
 
 window.openAdminPanel = function() {
@@ -2100,7 +2102,7 @@ async function deleteProductFromFirestore(productId) {
 }
 
 // ============================================================
-// 25. الطلبات (Admin Orders)
+// 25. الطلبات (Admin Orders) - تم التعديل إلى confirmed / rejected
 // ============================================================
 
 function startAdminRealtimeListener() {
@@ -2108,7 +2110,7 @@ function startAdminRealtimeListener() {
     const usersRef = collection(db, 'users');
     unsubscribeAdmin = onSnapshot(usersRef, (snapshot) => {
         let orders = [];
-        let pending = 0, preparing = 0, shipped = 0, delivered = 0, rejected = 0;
+        let pending = 0, confirmed = 0, rejected = 0;
         snapshot.forEach((userDoc) => {
             const data = userDoc.data();
             const email = data.email || userDoc.id;
@@ -2117,9 +2119,7 @@ function startAdminRealtimeListener() {
             history.forEach(order => {
                 const status = order.status || 'pending';
                 if (status === 'pending') pending++;
-                else if (status === 'preparing') preparing++;
-                else if (status === 'shipped') shipped++;
-                else if (status === 'delivered' || status === 'completed') delivered++;
+                else if (status === 'confirmed') confirmed++;
                 else if (status === 'rejected') rejected++;
                 const orderId = order.id || 'order_' + Date.now();
                 orders.push({ ...order, userId: userDoc.id, userEmail: email, userName: name, orderId: orderId, _checked: selectedOrders.has(orderId) });
@@ -2127,7 +2127,7 @@ function startAdminRealtimeListener() {
         });
         orders.sort((a, b) => new Date(b.date) - new Date(a.date));
         allOrders = orders;
-        pendingCount = pending + preparing + shipped;
+        pendingCount = pending; // فقط pending لظهور الإشعارات
         renderAdminOrders(orders);
         updateAdminStats(orders);
         updateUI();
@@ -2143,7 +2143,7 @@ function loadAdminOrders() {
     const usersRef = collection(db, 'users');
     getDocs(usersRef).then((snapshot) => {
         let orders = [];
-        let pending = 0, preparing = 0, shipped = 0, delivered = 0, rejected = 0;
+        let pending = 0, confirmed = 0, rejected = 0;
         snapshot.forEach((userDoc) => {
             const data = userDoc.data();
             const email = data.email || userDoc.id;
@@ -2152,9 +2152,7 @@ function loadAdminOrders() {
             history.forEach(order => {
                 const status = order.status || 'pending';
                 if (status === 'pending') pending++;
-                else if (status === 'preparing') preparing++;
-                else if (status === 'shipped') shipped++;
-                else if (status === 'delivered' || status === 'completed') delivered++;
+                else if (status === 'confirmed') confirmed++;
                 else if (status === 'rejected') rejected++;
                 const orderId = order.id || 'order_' + Date.now();
                 orders.push({ ...order, userId: userDoc.id, userEmail: email, userName: name, orderId: orderId, _checked: selectedOrders.has(orderId) });
@@ -2162,7 +2160,7 @@ function loadAdminOrders() {
         });
         orders.sort((a, b) => new Date(b.date) - new Date(a.date));
         allOrders = orders;
-        pendingCount = pending + preparing + shipped;
+        pendingCount = pending;
         renderAdminOrders(orders);
         updateAdminStats(orders);
         updateUI();
@@ -2185,10 +2183,7 @@ function renderAdminOrders(orders) {
         const status = order.status || 'pending';
         const statusMap = {
             'pending': { label: '⏳ Pending', class: 'pending' },
-            'preparing': { label: '📦 Preparing', class: 'preparing' },
-            'shipped': { label: '🚚 Shipped', class: 'shipped' },
-            'delivered': { label: '✅ Delivered', class: 'delivered' },
-            'completed': { label: '✅ Completed', class: 'completed' },
+            'confirmed': { label: '✅ Confirmed', class: 'confirmed' },
             'rejected': { label: '❌ Rejected', class: 'rejected' }
         };
         const info = statusMap[status] || statusMap['pending'];
@@ -2197,30 +2192,36 @@ function renderAdminOrders(orders) {
         const itemsList = order.items ? order.items.map(item => `<span style="display:inline-block;background:var(--bg);padding:2px 8px;border-radius:10px;font-size:11px;border:1px solid var(--border);margin:1px;">${item.name} ×${item.quantity||1}</span>`).join('') : '—';
         const total = order.total || 0;
         const orderIdStr = String(order.orderId || order.id || '');
-        const orderId = orderIdStr.slice(-6) || '------';
-        html += `<tr><td><span class="order-id">#${orderId}</span></td><td><div style="font-weight:600;font-size:12px;">${order.userName||'Unknown'}</div><div class="user-email">${order.userEmail||'N/A'}</div></td><td><div style="display:flex;flex-wrap:wrap;gap:2px;">${itemsList}</div></td><td><span class="order-total">${total.toFixed(2)} $</span></td><td><span class="order-date">${dateStr}</span></td><td><span class="status-badge ${info.class}">${info.label}</span></td><td><div class="actions-cell"><select onchange="updateOrderStatus('${order.orderId||order.id}','${order.userId}',this.value)" style="padding:2px 6px;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);font-size:10px;"><option value="pending" ${status==='pending'?'selected':''}>⏳ Pending</option><option value="preparing" ${status==='preparing'?'selected':''}>📦 Preparing</option><option value="shipped" ${status==='shipped'?'selected':''}>🚚 Shipped</option><option value="delivered" ${status==='delivered'?'selected':''}>✅ Delivered</option><option value="completed" ${status==='completed'?'selected':''}>✅ Completed</option><option value="rejected" ${status==='rejected'?'selected':''}>❌ Rejected</option></select><button onclick="deleteOrderImmediately('${order.orderId||order.id}','${order.userId}')" class="btn-delete-order"><i class="fas fa-trash"></i> Delete</button></div></td></tr>`;
+        const orderIdDisplay = orderIdStr.slice(-6) || '------';
+        html += `<tr><td><span class="order-id">#${orderIdDisplay}</span></td><td><div style="font-weight:600;font-size:12px;">${order.userName||'Unknown'}</div><div class="user-email">${order.userEmail||'N/A'}</div></td><td><div style="display:flex;flex-wrap:wrap;gap:2px;">${itemsList}</div></td><td><span class="order-total">${total.toFixed(2)} $</span></td><td><span class="order-date">${dateStr}</span></td><td><span class="status-badge ${info.class}">${info.label}</span></td><td><div class="actions-cell"><select onchange="updateOrderStatus('${order.orderId||order.id}','${order.userId}',this.value)" style="padding:2px 6px;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);font-size:10px;"><option value="pending" ${status==='pending'?'selected':''}>⏳ Pending</option><option value="confirmed" ${status==='confirmed'?'selected':''}>✅ Confirmed</option><option value="rejected" ${status==='rejected'?'selected':''}>❌ Rejected</option></select><button onclick="deleteOrderImmediately('${order.orderId||order.id}','${order.userId}')" class="btn-delete-order"><i class="fas fa-trash"></i> Delete</button></div></td></tr>`;
     });
     tbody.innerHTML = html;
 }
 
 function updateAdminStats(orders) {
     const total = orders.length;
-    const pending = orders.filter(o => (o.status || 'pending') === 'pending').length;
-    const preparing = orders.filter(o => o.status === 'preparing').length;
-    const shipped = orders.filter(o => o.status === 'shipped').length;
-    const delivered = orders.filter(o => o.status === 'delivered' || o.status === 'completed').length;
+    const pending = orders.filter(o => o.status === 'pending').length;
+    const confirmed = orders.filter(o => o.status === 'confirmed').length;
     const rejected = orders.filter(o => o.status === 'rejected').length;
     document.getElementById('adminTotalOrders').textContent = total;
     document.getElementById('adminPendingOrders').textContent = pending;
-    document.getElementById('adminPreparingOrders').textContent = preparing;
-    document.getElementById('adminShippedOrders').textContent = shipped;
-    document.getElementById('adminDeliveredOrders').textContent = delivered;
+    document.getElementById('adminConfirmedOrders').textContent = confirmed;
     document.getElementById('adminRejectedOrders').textContent = rejected;
+    // يمكنك إخفاء عناصر preparing/shipped/delivered إذا كانت موجودة
 }
 
+// دالة تحديث حالة الطلب مع إنشاء الترخيص عند confirmed
 window.updateOrderStatus = async function(orderId, userId, newStatus) {
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!orderId || !userId) { showToast('❌ Invalid data', 'error'); return; }
+
+    // ✅ قائمة الحالات المسموحة فقط
+    const validStatuses = ['pending', 'confirmed', 'rejected'];
+    if (!validStatuses.includes(newStatus)) {
+        showToast('⚠️ حالة غير صالحة', 'warning');
+        return;
+    }
+
     try {
         const userRef = doc(db, 'users', userId);
         const userSnap = await getDoc(userRef);
@@ -2232,14 +2233,100 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
             return order;
         });
         await updateDoc(userRef, { history: updatedHistory });
-        const statusLabels = { 'pending': '⏳ Pending', 'preparing': '📦 Preparing', 'shipped': '🚚 Shipped', 'delivered': '✅ Delivered', 'completed': '✅ Completed', 'rejected': '❌ Rejected' };
-        const statusLabel = statusLabels[newStatus] || newStatus;
-        showToast(`📦 Order updated to ${statusLabel}`, 'success');
+
+        // 📨 إذا كانت الحالة confirmed، أرسل الترخيص
+        if (newStatus === 'confirmed') {
+            await sendLicenceForOrder(orderId, userId);
+        } else if (newStatus === 'rejected') {
+            // إشعار بالرفض
+            const order = history.find(o => o.id === orderId);
+            if (order && data.telegramChatId) {
+                await sendTelegramNotification(data.telegramChatId, `❌ Your order #${orderId.slice(-6)} has been rejected.`);
+            }
+        }
+
+        const statusLabels = {
+            'pending': '⏳ Pending',
+            'confirmed': '✅ Confirmed',
+            'rejected': '❌ Rejected'
+        };
+        showToast(`📦 Order updated to ${statusLabels[newStatus]}`, 'success');
         loadAdminOrders();
         if (currentUser && currentUser.uid === userId) { userProfile.history = updatedHistory; }
         updateFullUserMenu();
-    } catch (error) { console.error('Error updating order:', error); showToast('❌ Error: ' + error.message, 'error'); }
+    } catch (error) {
+        console.error('Error updating order:', error);
+        showToast('❌ Error: ' + error.message, 'error');
+    }
 };
+
+// دالة إنشاء الترخيص وإرساله
+async function sendLicenceForOrder(orderId, userId) {
+    try {
+        const userRef = doc(db, 'users', userId);
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) {
+            console.error('User not found');
+            return;
+        }
+        const userData = userSnap.data();
+        const order = userData.history?.find(o => o.id === orderId);
+        if (!order) {
+            console.error('Order not found');
+            return;
+        }
+
+        const productName = order.items?.[0]?.name || 'Product';
+        const code = 'LIC-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+        const expiryDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+
+        // حفظ الترخيص في Firestore
+        const licenceData = {
+            code: code,
+            script_id: productName,
+            script_name: productName,
+            user_id: userId,
+            user_email: userData.email || userId,
+            status: 'active',
+            expiry_date: expiryDate,
+            created_at: serverTimestamp(),
+            updated_at: serverTimestamp()
+        };
+        await addDoc(collection(db, 'licenses'), licenceData);
+
+        // إضافة الترخيص إلى ملف المستخدم
+        const userLicences = userData.licences || [];
+        userLicences.push({
+            code: code,
+            scriptId: productName,
+            scriptName: productName,
+            expiryDate: expiryDate,
+            activatedAt: new Date().toISOString()
+        });
+        await updateDoc(userRef, { licences: userLicences });
+
+        if (currentUser && currentUser.uid === userId) {
+            userProfile.licences = userLicences;
+            renderUserLicences();
+            updateFullUserMenu();
+        }
+
+        // إشعار للمستخدم
+        const chatId = userData.telegramChatId;
+        if (chatId) {
+            const msg = `🎉 **Licence Confirmed!**\n\n📦 **Product:** ${productName}\n🔑 **Your Code:** \`${code}\`\n📅 **Expires:** ${new Date(expiryDate).toLocaleDateString()}\n\nThank you for your purchase!`;
+            await sendTelegramNotification(chatId, msg);
+        }
+
+        await sendTelegramNotification(TELEGRAM_CHAT_ID, `✅ Licence \`${code}\` sent to ${userData.email || userId} for order #${orderId.slice(-6)}`);
+
+        showToast(`✅ Licence sent to user`, 'success');
+
+    } catch (error) {
+        console.error('Error sending licence:', error);
+        showToast('❌ Failed to send licence', 'error');
+    }
+}
 
 window.deleteOrderImmediately = async function(orderId, userId) {
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
@@ -2371,7 +2458,7 @@ window.viewUserDetails = async function(uid) {
 window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
 // ============================================================
-// 27. تاريخ الطلبات و PDF
+// 27. تاريخ الطلبات (مع تعديل الحالات)
 // ============================================================
 
 window.clearOrderHistory = async function() {
@@ -2391,32 +2478,33 @@ function renderHistoryFull() {
     if (!container) return;
     const history = userProfile.history || [];
     const total = history.length;
-    const approved = history.filter(o => o.status === 'completed' || o.status === 'delivered' || o.status === 'shipped').length;
-    const pending = history.filter(o => o.status === 'pending' || o.status === 'preparing').length;
+    const confirmed = history.filter(o => o.status === 'confirmed').length;
+    const pending = history.filter(o => o.status === 'pending').length;
+    const rejected = history.filter(o => o.status === 'rejected').length;
     let html = `
         <div class="orders-stats">
             <div class="orders-stat-card"><div class="orders-stat-number">${total}</div><div class="orders-stat-label">All</div></div>
-            <div class="orders-stat-card approved"><div class="orders-stat-number" style="color:var(--success);">${approved}</div><div class="orders-stat-label">Approved</div></div>
+            <div class="orders-stat-card approved"><div class="orders-stat-number" style="color:var(--success);">${confirmed}</div><div class="orders-stat-label">Confirmed</div></div>
             <div class="orders-stat-card pending"><div class="orders-stat-number" style="color:var(--pending-color);">${pending}</div><div class="orders-stat-label">Pending</div></div>
+            <div class="orders-stat-card rejected"><div class="orders-stat-number" style="color:var(--danger);">${rejected}</div><div class="orders-stat-label">Rejected</div></div>
         </div>
         <div class="orders-filter-bar">
             <button class="orders-filter-btn ${ordersFilter === 'all' ? 'active' : ''}" data-filter="all" onclick="filterOrders('all')">📋 All Orders</button>
             <button class="orders-filter-btn ${ordersFilter === 'newest' ? 'active' : ''}" data-filter="newest" onclick="filterOrders('newest')">🔄 Newest</button>
             <button class="orders-filter-btn ${ordersFilter === 'pending' ? 'active' : ''}" data-filter="pending" onclick="filterOrders('pending')">⏳ Pending</button>
+            <button class="orders-filter-btn ${ordersFilter === 'confirmed' ? 'active' : ''}" data-filter="confirmed" onclick="filterOrders('confirmed')">✅ Confirmed</button>
         </div>
         <div class="orders-list" id="ordersList">`;
     let filteredHistory = [...history];
-    if (ordersFilter === 'pending') { filteredHistory = filteredHistory.filter(o => o.status === 'pending' || o.status === 'preparing'); }
-    if (ordersFilter === 'newest') { filteredHistory = filteredHistory.sort((a, b) => new Date(b.date) - new Date(a.date)); } else { filteredHistory = filteredHistory.slice().reverse(); }
+    if (ordersFilter === 'pending') { filteredHistory = filteredHistory.filter(o => o.status === 'pending'); }
+    else if (ordersFilter === 'confirmed') { filteredHistory = filteredHistory.filter(o => o.status === 'confirmed'); }
+    else if (ordersFilter === 'newest') { filteredHistory = filteredHistory.sort((a, b) => new Date(b.date) - new Date(a.date)); } else { filteredHistory = filteredHistory.slice().reverse(); }
     if (filteredHistory.length === 0) { html += `<div class="orders-empty"><i class="fas fa-shopping-bag"></i><p>No orders found.</p></div>`; } else {
         filteredHistory.forEach(item => {
             const status = item.status || 'pending';
             const statusMap = {
                 'pending': { label: '⏳ Pending', class: 'pending' },
-                'preparing': { label: '📦 Preparing', class: 'preparing' },
-                'shipped': { label: '🚚 Shipped', class: 'shipped' },
-                'delivered': { label: '✅ Delivered', class: 'delivered' },
-                'completed': { label: '✅ Completed', class: 'completed' },
+                'confirmed': { label: '✅ Confirmed', class: 'confirmed' },
                 'rejected': { label: '❌ Rejected', class: 'rejected' }
             };
             const info = statusMap[status] || statusMap['pending'];
@@ -2453,7 +2541,7 @@ window.filterOrders = function(filter) {
 };
 
 // ============================================================
-// 28. نظام إدارة الأكواد (Licences) - مع Supabase
+// 28. نظام إدارة الأكواد (Licences)
 // ============================================================
 
 async function loadLicences() {
@@ -2554,7 +2642,6 @@ async function createLicenceManually() {
         const product = products.find(p => p.name === productName);
         const scriptId = product ? product.id : 'script_' + Date.now();
 
-        // 1. إضافة الترخيص إلى مجموعة licenses في Firestore
         const licenceData = {
             code: code,
             script_id: scriptId,
@@ -2572,11 +2659,9 @@ async function createLicenceManually() {
 
         showToast(`✅ Licence created: ${code}`, 'success');
         closeCreateLicenceModal();
-        loadLicences(); // تحديث قائمة التراخيص في لوحة المدير
+        loadLicences();
 
-        // 2. إذا تم تحديد مستخدم، أضف الترخيص إلى ملف المستخدم
         if (userId) {
-            // البحث عن المستخدم
             const usersRef = collection(db, 'users');
             let q;
             if (userId.includes('@')) {
@@ -2589,7 +2674,6 @@ async function createLicenceManually() {
                 const userDoc = querySnapshot.docs[0];
                 const userData = userDoc.data();
                 const userLicences = userData.licences || [];
-                // تجنب التكرار
                 if (!userLicences.find(l => l.code === code)) {
                     userLicences.push({
                         code: code,
@@ -2599,7 +2683,6 @@ async function createLicenceManually() {
                         activatedAt: new Date().toISOString()
                     });
                     await updateDoc(userDoc.ref, { licences: userLicences, updatedAt: serverTimestamp() });
-                    // إذا كان هذا هو المستخدم الحالي، حدّث userProfile.licences
                     if (currentUser && userDoc.id === currentUser.uid) {
                         userProfile.licences = userLicences;
                         renderUserLicences();
@@ -2608,7 +2691,6 @@ async function createLicenceManually() {
                 }
             } else {
                 console.warn('⚠️ User not found for id/email:', userId);
-                // يمكن إضافة إشعار للمدير بأن المستخدم غير موجود
                 showToast('⚠️ User not found, but licence was created.', 'warning');
             }
         }
@@ -2706,23 +2788,9 @@ async function deleteLicence(licenceId) {
     }
     if (!confirm('Delete this licence permanently?')) return;
     try {
-        const response = await fetch(`${SUPABASE_PROJECT_URL}/functions/v1/admin-delete-licence`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + SUPABASE_PUBLISHABLE_KEY,
-                'apikey': SUPABASE_PUBLISHABLE_KEY
-            },
-            body: JSON.stringify({ licenceId })
-        });
-
-        const result = await response.json();
-        if (result.success) {
-            showToast('🗑️ Licence deleted', 'success');
-            loadLicences();
-        } else {
-            throw new Error(result.error || 'Failed to delete licence');
-        }
+        await deleteDoc(doc(db, 'licenses', licenceId));
+        showToast('🗑️ Licence deleted', 'success');
+        loadLicences();
     } catch (error) {
         console.error('Error deleting licence:', error);
         showToast('❌ Error: ' + error.message, 'error');
@@ -2841,6 +2909,7 @@ function closeLicenceModal() {
     }
 }
 
+// تعديل دالة activateLicence للاستعلام من Firestore مباشرة (بدون Supabase)
 async function activateLicence() {
     const input = document.getElementById('licenceInput');
     const resultEl = document.getElementById('licenceResult');
@@ -2859,48 +2928,89 @@ async function activateLicence() {
     try {
         resultEl.innerHTML = '<span style="color:var(--text-secondary);">⏳ Verifying...</span>';
 
-        const response = await fetch(`${SUPABASE_PROJECT_URL}/functions/v1/verify-licence`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + SUPABASE_PUBLISHABLE_KEY,
-                'apikey': SUPABASE_PUBLISHABLE_KEY
-            },
-            body: JSON.stringify({
-                licenceCode: code,
-                userId: currentUser.uid,
-                userEmail: currentUser.email
-            })
+        // 🔍 الاستعلام من Firestore مباشرة
+        const licencesRef = collection(db, 'licenses');
+        const q = query(licencesRef, where('code', '==', code));
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+            resultEl.innerHTML = '<span style="color:var(--danger);">❌ Invalid licence code.</span>';
+            return;
+        }
+
+        const doc = querySnapshot.docs[0];
+        const licence = doc.data();
+
+        // التحقق من الصلاحية
+        if (licence.status === 'expired' || new Date(licence.expiry_date) < new Date()) {
+            // تحديث الحالة إلى expired
+            await updateDoc(doc.ref, { status: 'expired', updated_at: serverTimestamp() });
+            resultEl.innerHTML = '<span style="color:var(--danger);">⛔ This licence has expired.</span>';
+            return;
+        }
+
+        if (licence.status !== 'active') {
+            resultEl.innerHTML = `<span style="color:var(--danger);">❌ Licence status: ${licence.status}</span>`;
+            return;
+        }
+
+        // إذا كان الترخيص غير مرتبط بمستخدم، ربطه بالمستخدم الحالي
+        if (!licence.user_id || licence.user_id === null) {
+            await updateDoc(doc.ref, {
+                user_id: currentUser.uid,
+                user_email: currentUser.email,
+                status: 'used', // يمكن تغييرها إلى 'active' إذا أردت
+                updated_at: serverTimestamp()
+            });
+        } else if (licence.user_id !== currentUser.uid) {
+            resultEl.innerHTML = '<span style="color:var(--danger);">❌ This licence is already assigned to another user.</span>';
+            return;
+        }
+
+        // إضافة الترخيص إلى ملف المستخدم
+        const userRef = doc(db, 'users', currentUser.uid);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+            const userData = userSnap.data();
+            const userLicences = userData.licences || [];
+            // تجنب التكرار
+            if (!userLicences.find(l => l.code === code)) {
+                userLicences.push({
+                    code: code,
+                    scriptId: licence.script_id,
+                    scriptName: licence.script_name,
+                    expiryDate: licence.expiry_date,
+                    activatedAt: new Date().toISOString()
+                });
+                await updateDoc(userRef, { licences: userLicences, updatedAt: serverTimestamp() });
+                userProfile.licences = userLicences;
+                renderUserLicences();
+                updateFullUserMenu();
+            }
+        }
+
+        const expiryDate = new Date(licence.expiry_date).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
         });
 
-        const result = await response.json();
-
-        if (result.success) {
-            const data = result.data;
-            const expiryDate = new Date(data.expiry_date || data.expiryDate).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-            
-            resultEl.innerHTML = `
-                <div style="background:var(--success-glow);border-radius:8px;padding:10px;border:1px solid var(--success);">
-                    <div style="font-weight:700;color:var(--success);">✅ Activated Successfully!</div>
-                    <div style="font-size:13px;color:var(--text);margin-top:4px;">
-                        <strong>Script:</strong> ${data.script_name || data.scriptName || 'Unknown'}<br>
-                        <strong>Expires:</strong> ${expiryDate}
-                    </div>
-                    <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;opacity:0.5;">
-                        🔒 This script is now linked to your account.
-                    </div>
+        resultEl.innerHTML = `
+            <div style="background:var(--success-glow);border-radius:8px;padding:10px;border:1px solid var(--success);">
+                <div style="font-weight:700;color:var(--success);">✅ Activated Successfully!</div>
+                <div style="font-size:13px;color:var(--text);margin-top:4px;">
+                    <strong>Script:</strong> ${licence.script_name || 'Unknown'}<br>
+                    <strong>Expires:</strong> ${expiryDate}
                 </div>
-            `;
-        } else {
-            resultEl.innerHTML = `<span style="color:var(--danger);">❌ ${result.error || 'Invalid licence code'}</span>`;
-        }
+                <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;opacity:0.5;">
+                    🔒 This script is now linked to your account.
+                </div>
+            </div>
+        `;
+
     } catch (error) {
         console.error('Activation error:', error);
-        resultEl.innerHTML = `<span style="color:var(--danger);">❌ Network error: ${error.message}</span>`;
+        resultEl.innerHTML = `<span style="color:var(--danger);">❌ Error: ${error.message}</span>`;
     }
 }
 
@@ -2979,7 +3089,7 @@ function startSocialProof() {}
 function triggerSocialProofOnOrder(userName, productNames) {}
 
 // ============================================================
-// 30. دوال السلايدر (Slider) - معدلة لتجنب أخطاء العناصر المفقودة
+// 30. دوال السلايدر (Slider)
 // ============================================================
 
 async function loadSliderSettings() {
@@ -2990,7 +3100,6 @@ async function loadSliderSettings() {
             const data = settingsSnap.data();
             sliderSlides = data.slides || [];
             sliderIntervalTime = data.interval || 3;
-            // ✅ التحقق من وجود العنصر قبل تعيين القيمة
             const intervalInput = document.getElementById('sliderIntervalInput');
             if (intervalInput) {
                 intervalInput.value = sliderIntervalTime;
@@ -3008,7 +3117,6 @@ async function loadSliderSettings() {
         renderSlider();
     }
 }
-
 
 function renderSlider() {
     const wrapper = document.getElementById('sliderWrapper');
@@ -3261,7 +3369,6 @@ async function saveSliderInterval() {
     }
 }
 
-
 function renderSliderSettingsUI() {
     const container = document.getElementById('sliderSlidesList');
     if (!container) return;
@@ -3399,15 +3506,17 @@ async function loadAdvancedStats() {
         snapshot.forEach(doc => { const data = doc.data(); const history = data.history || []; history.forEach(order => { allOrders.push({ ...order, userEmail: data.email || doc.id, userName: data.name || 'Unknown', userId: doc.id, orderId: order.id || 'order_' + Date.now() }); }); });
         const totalOrders = allOrders.length;
         const totalRevenue = allOrders.reduce((sum, o) => sum + (o.total || 0), 0);
-        const pendingOrders = allOrders.filter(o => (o.status || 'pending') === 'pending').length;
-        const completedOrders = allOrders.filter(o => o.status === 'completed' || o.status === 'delivered').length;
+        const pendingOrders = allOrders.filter(o => o.status === 'pending').length;
+        const confirmedOrders = allOrders.filter(o => o.status === 'confirmed').length;
+        const rejectedOrders = allOrders.filter(o => o.status === 'rejected').length;
         const totalUsers = snapshot.size;
         container.innerHTML = `
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px;">
                 <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--primary);">${totalOrders}</div><div style="font-size:12px;color:var(--text-secondary);">Total Orders</div></div>
                 <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--vip-color);">$${totalRevenue.toFixed(2)}</div><div style="font-size:12px;color:var(--text-secondary);">Revenue</div></div>
                 <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--pending-color);">${pendingOrders}</div><div style="font-size:12px;color:var(--text-secondary);">Pending</div></div>
-                <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--success);">${completedOrders}</div><div style="font-size:12px;color:var(--text-secondary);">Completed</div></div>
+                <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--success);">${confirmedOrders}</div><div style="font-size:12px;color:var(--text-secondary);">Confirmed</div></div>
+                <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--danger);">${rejectedOrders}</div><div style="font-size:12px;color:var(--text-secondary);">Rejected</div></div>
                 <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--text);">${totalUsers}</div><div style="font-size:12px;color:var(--text-secondary);">Total Users</div></div>
             </div>`;
     } catch (error) { console.error('Error loading advanced stats:', error); container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load statistics</div>`; }
@@ -3532,7 +3641,33 @@ function fixDirection() {
 document.addEventListener('DOMContentLoaded', function() { setTimeout(fixDirection, 100); setTimeout(showTelegramBanner, 500); });
 
 // ============================================================
-// 35. حالة المصادقة
+// 35. رفع الصور إلى Cloudinary
+// ============================================================
+
+async function uploadToCloudinary(file) {
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+        const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+            method: 'POST',
+            body: formData
+        });
+        const data = await response.json();
+        if (data.secure_url) {
+            return data.secure_url;
+        } else {
+            console.error('Cloudinary upload error:', data);
+            return null;
+        }
+    } catch (error) {
+        console.error('Error uploading to Cloudinary:', error);
+        return null;
+    }
+}
+
+// ============================================================
+// 36. حالة المصادقة
 // ============================================================
 
 onAuthStateChanged(auth, async (user) => {
@@ -3573,7 +3708,7 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// 36. التهيئة (Init)
+// 37. التهيئة (Init)
 // ============================================================
 
 async function init() {
@@ -3606,7 +3741,7 @@ init();
 setTimeout(() => { hideLoadingScreen(); console.log('⚠️ Force hiding loading screen (timeout)'); }, 5000);
 
 // ============================================================
-// 37. التصديرات النهائية (للتأكد من أن جميع الدوال متاحة)
+// 38. التصديرات النهائية
 // ============================================================
 
 window.showToast = showToast;
