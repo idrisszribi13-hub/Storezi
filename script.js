@@ -19,10 +19,12 @@ import { getAnalytics } from "firebase/analytics";
 // ============================================================
 // 2. إعدادات Supabase (للاستدعاءات عبر Edge Functions فقط)
 // ============================================================
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
 const SUPABASE_URL = 'https://kvsyzgavfxnwqmtsginv.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_1uSIqgNONAV53GjOoBoZUw_niAGJXO6';
 
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // ============================================================
 // 3. تهيئة Firebase
 // ============================================================
