@@ -1,8 +1,10 @@
 // ============================================================
 // SCRIPT.JS - ZI Store النسخة النهائية الكاملة
-// يعمل مع Supabase Edge Functions للتراخيص (بدون CORS)
-// جميع الوظائف: المنتجات، السلة، الدفع، Firebase Auth، Firestore، التراخيص عبر Edge Functions
-// تم إصلاح: شاشة التحميل، Telegram notifications، أسعار العملات، منع الطلبات المكررة، منع Anonymous من الشراء
+// مع:
+// - تعطيل Anonymous sign-in نهائياً
+// - إضافة زر تحديث في لوحة الأدمن وسجل المستخدم
+// - إضافة console.log لتتبع الطلبات
+// - إصلاح حفظ الطلبات في Firestore
 // ============================================================
 
 // ============================================================
@@ -41,7 +43,7 @@ const db = getFirestore(app);
 const analytics = getAnalytics(app);
 
 // ============================================================
-// 4. شاشة التحميل (تم إضافة الدوال المفقودة)
+// 4. شاشة التحميل
 // ============================================================
 
 const loadingMessages = [
@@ -129,7 +131,7 @@ let selectedPayment = null;
 let ordersFilter = 'all';
 let _selectedVipPlan = '1m';
 let allLicences = [];
-let isProcessingOrder = false; // منع الطلبات المكررة
+let isProcessingOrder = false;
 
 let featuredProducts = [];
 let featuredRotationInterval = null;
@@ -1243,7 +1245,6 @@ function updatePriceUI() {
             exchangeRate.textContent = '⏳ Loading prices...';
         }
     }
-    // تحديث المبلغ بالعملة المشفرة
     const cryptoAmount = document.getElementById('cryptoAmount');
     if (cryptoAmount && selectedPayment) {
         const total = parseFloat(document.getElementById('step2Total')?.textContent?.replace('$', '') || '0');
@@ -1294,7 +1295,6 @@ window.continuePayment = function() {
     document.getElementById('step2Subtotal').textContent = `$${total.toFixed(2)}`;
     document.getElementById('step2Total').textContent = `$${finalTotal.toFixed(2)}`;
     
-    // ✅ تحديث أسعار العملات والمبلغ
     fetchCryptoPrices();
     setTimeout(updatePriceUI, 500);
     
@@ -1365,7 +1365,6 @@ function renderPaymentProducts() {
 // ============================================================
 
 async function sendOrderToTelegram(method, txHash = null) {
-    // ✅ منع الطلبات المكررة
     if (isProcessingOrder) {
         showToast('⏳ Order is already being processed...', 'warning');
         return;
@@ -1374,7 +1373,6 @@ async function sendOrderToTelegram(method, txHash = null) {
     
     try {
         if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
-        // ✅ منع المستخدمين المجهولين من الشراء
         if (currentUser.isAnonymous) { 
             showToast('⚠️ Please sign in to place an order.', 'warning'); 
             openAuthModal();
@@ -1419,7 +1417,6 @@ async function sendOrderToTelegram(method, txHash = null) {
         adminMsg += `💬 **Payment Method:** ${method}\n`;
         if (txHash) adminMsg += `🔍 **Tx Hash:** ${txHash}\n`;
 
-        // إرسال إشعار للأدمن
         try {
             await sendTelegramNotification(TELEGRAM_CHAT_ID, adminMsg);
             console.log('✅ Admin notification sent');
@@ -1427,7 +1424,6 @@ async function sendOrderToTelegram(method, txHash = null) {
             console.error('❌ Failed to send admin notification:', e);
         }
 
-        // إرسال إشعار للمستخدم
         if (userProfile.telegramChatId) {
             const userMsg = `📦 **Order Placed!**\n\n📎 **Order #${orderId.slice(-6)}**\n📅 ${new Date().toLocaleString()}\n💰 Total: $${finalTotal.toFixed(2)}\n\nThank you for your purchase! You will receive a confirmation soon.`;
             try {
@@ -1438,7 +1434,6 @@ async function sendOrderToTelegram(method, txHash = null) {
             }
         }
 
-        // فتح محادثة التيليجرام مع الأدمن
         window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(adminMsg)}`, '_blank');
 
         // حفظ الطلب في Firestore
@@ -1454,10 +1449,19 @@ async function sendOrderToTelegram(method, txHash = null) {
             rpEarned: 0
         };
 
+        console.log('📦 Order ID:', orderId);
+        console.log('👤 Current user UID:', currentUser.uid);
+        console.log('📝 Order item:', orderItem);
+
         const userRef = doc(db, 'users', currentUser.uid);
         try {
             await updateDoc(userRef, { history: arrayUnion(orderItem) });
-        } catch (e) { console.error('Error saving order history:', e); }
+            console.log('✅ Order saved successfully to Firestore');
+        } catch (e) {
+            console.error('❌ Error saving order history:', e);
+            showToast('❌ Failed to save order. Please try again.', 'error');
+            throw e;
+        }
         userProfile.history.push(orderItem);
 
         cart = [];
@@ -1492,7 +1496,6 @@ function placeOrderTelegram() {
 }
 
 window.placeOrder = function() {
-    // ✅ منع المستخدمين المجهولين من تأكيد الدفع
     if (!currentUser || currentUser.isAnonymous) {
         showToast('⚠️ Please sign in to confirm payment.', 'warning');
         openAuthModal();
@@ -1515,7 +1518,6 @@ window.placeOrder = function() {
 };
 
 window.openPaymentModal = function() {
-    // ✅ منع المستخدمين المجهولين من فتح صفحة الدفع
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); openAuthModal(); return; }
     if (currentUser.isAnonymous) { showToast('⚠️ Please sign in to place an order.', 'warning'); openAuthModal(); return; }
     if (cart.length === 0) { showToast('⚠️ Cart is empty', 'warning'); return; }
@@ -1893,7 +1895,7 @@ window.copyReferralCode2 = function() {
 };
 
 // ============================================================
-// 23. لوحة المدير
+// 23. لوحة المدير (مع زر تحديث)
 // ============================================================
 
 window.openAdminPanel = function() {
@@ -2025,6 +2027,27 @@ window.switchAdminTab = function(tab) {
         document.getElementById('sliderIntervalInput').value = sliderIntervalTime;
     }
     if (tab === 'licences') { loadLicences(); }
+    
+    // إضافة زر تحديث للطلبات في تبويب orders
+    if (tab === 'orders') {
+        loadAdminOrders();
+        const refreshBtn = document.getElementById('adminRefreshOrdersBtn');
+        if (!refreshBtn) {
+            const btn = document.createElement('button');
+            btn.id = 'adminRefreshOrdersBtn';
+            btn.textContent = '🔄 تحديث الطلبات';
+            btn.className = 'admin-refresh-btn';
+            btn.style.cssText = 'padding:8px 16px;background:var(--primary);color:#fff;border:none;border-radius:8px;cursor:pointer;margin-bottom:12px;font-weight:600;';
+            btn.onclick = function() {
+                showToast('⏳ جاري التحديث...', 'info');
+                loadAdminOrders();
+            };
+            const container = document.getElementById('tabOrders');
+            if (container) {
+                container.insertBefore(btn, container.firstChild);
+            }
+        }
+    }
 };
 
 // ============================================================
@@ -2171,7 +2194,9 @@ async function deleteProductFromFirestore(productId) {
 function startAdminRealtimeListener() {
     if (unsubscribeAdmin) { unsubscribeAdmin(); }
     const usersRef = collection(db, 'users');
+    console.log('🔄 Admin listener starting...');
     unsubscribeAdmin = onSnapshot(usersRef, (snapshot) => {
+        console.log('🔄 Admin listener triggered, snapshot size:', snapshot.size);
         let orders = [];
         let pending = 0, confirmed = 0, rejected = 0;
         snapshot.forEach((userDoc) => {
@@ -2197,7 +2222,7 @@ function startAdminRealtimeListener() {
         const badge = document.getElementById('adminPanelBadge');
         if (badge) { if (pendingCount > 0) { badge.style.display = 'inline-block'; badge.textContent = pendingCount; } else { badge.style.display = 'none'; } }
         updateFullUserMenu();
-    }, (error) => { console.error('Admin listener error:', error); });
+    }, (error) => { console.error('❌ Admin listener error:', error); });
 }
 
 function loadAdminOrders() {
@@ -2299,12 +2324,9 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
         await updateDoc(userRef, { history: updatedHistory });
 
         if (newStatus === 'confirmed') {
-            // ✅ استدعاء Edge Function لإنشاء الترخيص
             await sendLicenceForOrder(orderId, userId);
-            // إشعار للأدمن
             await sendTelegramNotification(TELEGRAM_CHAT_ID, `✅ Order #${orderId.slice(-6)} confirmed. Licence sent to ${data.email || userId}.`);
         } else if (newStatus === 'rejected') {
-            // إشعار للمستخدم بالرفض
             if (data.telegramChatId) {
                 await sendTelegramNotification(data.telegramChatId, `❌ Your order #${orderId.slice(-6)} has been rejected.`);
             }
@@ -2348,7 +2370,6 @@ async function sendLicenceForOrder(orderId, userId) {
 
         const productName = order.items?.[0]?.name || 'Product';
 
-        // استدعاء Edge Function create-licence
         const response = await fetch(`${SUPABASE_URL}/functions/v1/create-licence`, {
             method: 'POST',
             headers: {
@@ -2371,7 +2392,6 @@ async function sendLicenceForOrder(orderId, userId) {
 
         console.log('✅ Licence created via Edge Function:', data.licence);
 
-        // إضافة الترخيص إلى ملف المستخدم في Firestore
         const userLicences = userData.licences || [];
         const newLicence = {
             code: data.licence.code,
@@ -2393,7 +2413,6 @@ async function sendLicenceForOrder(orderId, userId) {
 
     } catch (error) {
         console.error('❌ Error in sendLicenceForOrder:', error);
-        // إرسال إشعار للأدمن بوجود خطأ
         await sendTelegramNotification(TELEGRAM_CHAT_ID, `❌ Failed to create licence for order #${orderId.slice(-6)}: ${error.message}`);
         throw error;
     }
@@ -2529,7 +2548,7 @@ window.viewUserDetails = async function(uid) {
 window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
 // ============================================================
-// 29. تاريخ الطلبات
+// 29. تاريخ الطلبات (مع زر تحديث)
 // ============================================================
 
 window.clearOrderHistory = async function() {
@@ -2564,6 +2583,11 @@ function renderHistoryFull() {
             <button class="orders-filter-btn ${ordersFilter === 'newest' ? 'active' : ''}" data-filter="newest" onclick="filterOrders('newest')">🔄 Newest</button>
             <button class="orders-filter-btn ${ordersFilter === 'pending' ? 'active' : ''}" data-filter="pending" onclick="filterOrders('pending')">⏳ Pending</button>
             <button class="orders-filter-btn ${ordersFilter === 'confirmed' ? 'active' : ''}" data-filter="confirmed" onclick="filterOrders('confirmed')">✅ Confirmed</button>
+        </div>
+        <div style="margin-bottom:10px;">
+            <button id="refreshHistoryBtn" onclick="loadUserData(); renderHistoryFull(); showToast('🔄 تم التحديث', 'info');" style="padding:6px 14px;background:var(--primary);color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;">
+                🔄 تحديث الطلبات
+            </button>
         </div>
         <div class="orders-list" id="ordersList">`;
     let filteredHistory = [...history];
@@ -3078,7 +3102,6 @@ async function activateLicence() {
     try {
         resultEl.innerHTML = '<span style="color:var(--text-secondary);">⏳ Verifying...</span>';
 
-        // استدعاء Edge Function public-verify
         const response = await fetch(
             `${SUPABASE_URL}/functions/v1/public-verify?code=${encodeURIComponent(code)}&token=${currentUser.uid}`,
             {
@@ -3096,7 +3119,6 @@ async function activateLicence() {
 
         const licence = data.data;
 
-        // إضافة الترخيص إلى ملف المستخدم في Firestore
         const userRef = doc(db, 'users', currentUser.uid);
         const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
@@ -3839,13 +3861,13 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// 39. التهيئة (Init)
+// 39. التهيئة (Init) - Anonymous معطل تماماً
 // ============================================================
 
 async function init() {
     showLoadingScreen();
     updateLoadingBar(10);
-    // ✅ تم تعطيل Anonymous sign-in لتحسين الأمان ومنع الطلبات المكررة
+    // ✅ تم تعطيل Anonymous sign-in نهائياً
     // try { await signInAnonymously(auth); updateLoadingBar(30); } catch (e) { console.log('ℹ️ Anonymous sign-in'); }
     updateLoadingBar(30);
     const productsFromFirestore = await loadProductsFromFirestore();
