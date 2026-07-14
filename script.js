@@ -2370,11 +2370,11 @@ async function sendLicenceForOrder(orderId, userId) {
 
         const productName = order.items?.[0]?.name || 'Product';
 
+        // ✅ استدعاء Edge Function بدون Authorization header
         const response = await fetch(`${SUPABASE_URL}/functions/v1/create-licence`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 orderId: orderId,
@@ -2416,8 +2416,7 @@ async function sendLicenceForOrder(orderId, userId) {
         await sendTelegramNotification(TELEGRAM_CHAT_ID, `❌ Failed to create licence for order #${orderId.slice(-6)}: ${error.message}`);
         throw error;
     }
-}
-
+            }
 window.deleteOrderImmediately = async function(orderId, userId) {
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!orderId || !userId) { showToast('❌ Invalid data', 'error'); return; }
