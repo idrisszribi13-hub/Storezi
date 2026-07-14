@@ -41,6 +41,59 @@ const db = getFirestore(app);
 const analytics = getAnalytics(app);
 
 // ============================================================
+// شاشة التحميل (Loading Screen)
+// ============================================================
+
+const loadingMessages = [
+    'Initializing store...',
+    'Loading products...',
+    'Connecting to database...',
+    'Welcome to ZI Store! 🚀'
+];
+
+let loadingMessageIndex = 0;
+let loadingInterval = null;
+
+function updateLoadingMessage() {
+    const statusEl = document.getElementById('loadingStatus');
+    if (statusEl) {
+        loadingMessageIndex = (loadingMessageIndex + 1) % loadingMessages.length;
+        statusEl.textContent = loadingMessages[loadingMessageIndex];
+    }
+}
+
+function startLoadingMessages() {
+    if (loadingInterval) clearInterval(loadingInterval);
+    loadingInterval = setInterval(updateLoadingMessage, 2000);
+}
+
+function hideLoadingScreen() {
+    const screen = document.getElementById('loadingScreen');
+    if (screen) {
+        screen.style.display = 'none';
+        if (loadingInterval) {
+            clearInterval(loadingInterval);
+            loadingInterval = null;
+        }
+    }
+}
+
+function showLoadingScreen() {
+    const screen = document.getElementById('loadingScreen');
+    if (screen) {
+        screen.style.display = 'flex';
+        startLoadingMessages();
+    }
+}
+
+function updateLoadingBar(percent) {
+    const bar = document.getElementById('loadingBar');
+    if (bar) {
+        bar.style.width = Math.min(percent, 100) + '%';
+    }
+}
+
+// ============================================================
 // 4. الثوابت والمتغيرات العامة (كما هي)
 // ============================================================
 
