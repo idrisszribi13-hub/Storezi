@@ -1,5 +1,6 @@
 // ============================================================
 // SCRIPT.JS - ZI Store النسخة النهائية مع Supabase لإدارة التراخيص
+// وإصلاح جميع مشاكل الإشعارات وإنشاء التراخيص تلقائياً
 // ============================================================
 
 // ============================================================
@@ -41,7 +42,7 @@ const db = getFirestore(app);
 const analytics = getAnalytics(app);
 
 // ============================================================
-// شاشة التحميل (Loading Screen)
+// 4. شاشة التحميل (تم إضافة الدوال المفقودة)
 // ============================================================
 
 const loadingMessages = [
@@ -94,12 +95,12 @@ function updateLoadingBar(percent) {
 }
 
 // ============================================================
-// 4. الثوابت والمتغيرات العامة (كما هي)
+// 5. الثوابت والمتغيرات العامة
 // ============================================================
 
 const ADMIN_EMAIL = 'zribiidriss3@gmail.com';
 const TELEGRAM_BOT_TOKEN = '8687744794:AAGeeNrEU-iQLRmg3dLvYkWHddtYo_sJ1tc';
-const TELEGRAM_CHAT_ID = '7434396478';
+const TELEGRAM_CHAT_ID = '7434396478'; // تأكد من صحة هذا المعرف
 const BOT_USERNAME = 'Zistore_Notif_bot';
 const RP_TO_DOLLAR = 0.1;
 
@@ -182,7 +183,7 @@ const paymentWallets = {
 let cryptoPrices = { ltc: 0, usdt: 1, lastUpdate: null, isUpdating: false };
 
 // ============================================================
-// 5. دوال مساعدة (كما هي)
+// 6. دوال مساعدة
 // ============================================================
 
 async function checkUserBanned(uid) {
@@ -201,7 +202,7 @@ async function checkUserBanned(uid) {
 }
 
 // ============================================================
-// 6. Toast (كما هي)
+// 7. Toast
 // ============================================================
 
 function showToast(message, type = 'success') {
@@ -221,7 +222,7 @@ function showToast(message, type = 'success') {
 window.hideToast = function() { document.getElementById('toast')?.classList.remove('show'); };
 
 // ============================================================
-// 7. دوال المستخدم (كما هي باستخدام Firestore)
+// 8. دوال المستخدم (Firestore)
 // ============================================================
 
 async function getUserId() {
@@ -338,7 +339,7 @@ function generateReferralCode(name, email) {
 }
 
 // ============================================================
-// 8. تحديثات الواجهة (كما هي)
+// 9. تحديثات الواجهة (نفسها)
 // ============================================================
 
 function updateDropdownStats() {
@@ -405,7 +406,7 @@ function updateFullUserMenu() {
 }
 
 // ============================================================
-// 9. دوال المصادقة (كما هي)
+// 10. دوال المصادقة (نفسها)
 // ============================================================
 
 window.showLogin = function() { document.getElementById('loginContainer').style.display = 'block'; document.getElementById('registerContainer').style.display = 'none'; };
@@ -510,7 +511,7 @@ window.sendForgotPassword = async function() {
 };
 
 // ============================================================
-// 10. المودالات العامة (كما هي)
+// 11. المودالات العامة (نفسها)
 // ============================================================
 
 window.openUserMenuFull = function() { if (!currentUser) { openAuthModal(); return; } document.getElementById('userMenuFull').classList.add('open'); updateFullUserMenu(); document.body.style.overflow = 'hidden'; };
@@ -530,7 +531,7 @@ window.closeNotifications = function() { document.getElementById('notificationsM
 function openAuthModal() { document.getElementById('authSection').scrollIntoView({ behavior: 'smooth' }); }
 
 // ============================================================
-// 11. عرض الملف الشخصي (كما هي)
+// 12. عرض الملف الشخصي (نفسه)
 // ============================================================
 
 function renderProfileFull() {
@@ -635,7 +636,7 @@ window.sendResetLinkInline = async function() { if (!currentUser) return; try { 
 window.changePasswordInline = async function() { if (!currentUser) return; const currentPwd = document.getElementById('currentPasswordInline').value; const newPwd = document.getElementById('newPasswordInline').value; const confirmPwd = document.getElementById('confirmNewPasswordInline').value; const errorEl = document.getElementById('passwordErrorInline'); const successEl = document.getElementById('passwordSuccessInline'); errorEl.textContent = ''; successEl.textContent = ''; if (!currentPwd || !newPwd || !confirmPwd) { errorEl.textContent = 'Please fill all fields'; return; } if (newPwd.length < 6) { errorEl.textContent = 'New password must be at least 6 characters'; return; } if (newPwd !== confirmPwd) { errorEl.textContent = 'Passwords do not match'; return; } try { const credential = EmailAuthProvider.credential(currentUser.email, currentPwd); await reauthenticateWithCredential(currentUser, credential); await updatePassword(currentUser, newPwd); successEl.textContent = '✅ Password changed successfully!'; showToast('✅ Password updated!', 'success'); document.getElementById('currentPasswordInline').value = ''; document.getElementById('newPasswordInline').value = ''; document.getElementById('confirmNewPasswordInline').value = ''; setTimeout(() => { successEl.textContent = ''; }, 3000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); } };
 
 // ============================================================
-// 12. المنتجات (كما هي)
+// 13. المنتجات (نفسها)
 // ============================================================
 
 async function loadProductsFromFirestore() {
@@ -758,7 +759,7 @@ function generateRecommendations(productsList) {
 }
 
 // ============================================================
-// 13. المنتجات المميزة و السلة والمفضلة (كما هي)
+// 14. المنتجات المميزة و السلة والمفضلة (نفسها)
 // ============================================================
 
 function renderFeaturedProducts() {
@@ -1000,7 +1001,7 @@ function createFloatingHearts() {
 }
 
 // ============================================================
-// 14. عرض المنتج (Preview) (كما هي)
+// 15. عرض المنتج (Preview) (نفسه)
 // ============================================================
 
 window.openDetails = function(id) {
@@ -1135,7 +1136,7 @@ window.addToCartFromPreview = function() { if (window._currentProduct) { window.
 window.shareFromPreview = function() { if (window._currentProduct) { window.openShareModal(window._currentProduct.id); } };
 
 // ============================================================
-// 15. مودال المشاركة (كما هي)
+// 16. مودال المشاركة (نفسه)
 // ============================================================
 
 window.openShareModal = function(productId) {
@@ -1152,7 +1153,7 @@ window.shareToFacebook = function() { if (!shareProduct) return; window.open(`ht
 window.copyShareLink = function() { const url = window.location.href; navigator.clipboard.writeText(url).then(() => { showToast('✅ Link copied!', 'success'); closeShareModal(); }).catch(() => { const textArea = document.createElement('textarea'); textArea.value = url; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); showToast('✅ Link copied!', 'success'); closeShareModal(); }); };
 
 // ============================================================
-// 16. التصفية والبحث (كما هي)
+// 17. التصفية والبحث (نفسه)
 // ============================================================
 
 window.filterProducts = function(filter) {
@@ -1209,7 +1210,7 @@ function closeSearchResults() { searchResults.classList.remove('active'); search
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeSearchResults(); closeUserMenuFull(); closeCartFull(); closeWishlistFull(); closeProfileFull(); closeHistoryFull(); } });
 
 // ============================================================
-// 17. الدفع (كما هي)
+// 18. الدفع (نفسه)
 // ============================================================
 
 async function fetchCryptoPrices() {
@@ -1340,7 +1341,7 @@ function renderPaymentProducts() {
 }
 
 // ============================================================
-// 18. إرسال الطلب (مع الحالة pending فقط - كما هي)
+// 19. إرسال الطلب (مع الحالة pending) - تم تعديله لإرسال إشعارات للأدمن والمستخدم
 // ============================================================
 
 async function sendOrderToTelegram(method, txHash = null) {
@@ -1374,6 +1375,7 @@ async function sendOrderToTelegram(method, txHash = null) {
         discountText += `\n🎫 Promo (${activeDiscount}%): -${discountAmount.toFixed(2)}$`;
     }
 
+    // رسالة للأدمن
     let adminMsg = '🛒 **New Order**\n\n';
     adminMsg += `📎 **Order ID:** #${orderId.slice(-6)}\n`;
     adminMsg += `👤 **Customer:** ${currentUser.displayName || currentUser.email || 'Unknown'}\n`;
@@ -1384,11 +1386,29 @@ async function sendOrderToTelegram(method, txHash = null) {
     adminMsg += `💬 **Payment Method:** ${method}\n`;
     if (txHash) adminMsg += `🔍 **Tx Hash:** ${txHash}\n`;
 
+    // إرسال إشعار للأدمن عبر التيليجرام
     try {
         await sendTelegramNotification(TELEGRAM_CHAT_ID, adminMsg);
-    } catch (e) { console.error('Telegram notification error:', e); }
+        console.log('✅ Admin notification sent');
+    } catch (e) {
+        console.error('❌ Failed to send admin notification:', e);
+    }
+
+    // إرسال إشعار للمستخدم إذا كان لديه chatId
+    if (userProfile.telegramChatId) {
+        const userMsg = `📦 **Order Placed!**\n\n📎 **Order #${orderId.slice(-6)}**\n📅 ${new Date().toLocaleString()}\n💰 Total: $${finalTotal.toFixed(2)}\n\nThank you for your purchase! You will receive a confirmation soon.`;
+        try {
+            await sendTelegramNotification(userProfile.telegramChatId, userMsg);
+            console.log('✅ User notification sent');
+        } catch (e) {
+            console.error('❌ Failed to send user notification:', e);
+        }
+    }
+
+    // فتح محادثة التيليجرام مع الأدمن (اختياري)
     window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(adminMsg)}`, '_blank');
 
+    // حفظ الطلب في Firestore
     const orderItem = {
         id: orderId,
         items: cart.map(item => ({ id: item.id, name: item.name, price: item.price, quantity: item.quantity || 1 })),
@@ -1463,7 +1483,7 @@ window.closePaymentModal = function() { document.getElementById('paymentModal').
 window.checkout = function() { openPaymentModal(); };
 
 // ============================================================
-// 19. دوال تيليجرام (كما هي)
+// 20. دوال تيليجرام (نفسها)
 // ============================================================
 
 async function sendTelegramNotification(chatId, message) {
@@ -1567,7 +1587,7 @@ window.checkTelegramStatus = async function() {
 };
 
 // ============================================================
-// 20. التحميلات والإشعارات (كما هي)
+// 21. التحميلات والإشعارات (نفسها)
 // ============================================================
 
 function loadDownloads() {
@@ -1752,7 +1772,7 @@ window.openCreateNotificationModal = function() { if (!currentUser || currentUse
 window.closeCreateNotificationModal = function() { document.getElementById('createNotificationModal').classList.remove('open'); };
 
 // ============================================================
-// 21. الطلبات والإحالات (كما هي)
+// 22. الطلبات والإحالات (نفسها)
 // ============================================================
 
 window.openRequestsModal = function() {
@@ -1826,8 +1846,7 @@ window.copyReferralCode2 = function() {
 };
 
 // ============================================================
-// 22. لوحة المدير (مع تعديل الحالات إلى pending, confirmed, rejected)
-//     كما هي باستثناء دوال التراخيص التي تم تعديلها لاستخدام Supabase
+// 23. لوحة المدير (مع تعديل الحالات إلى pending, confirmed, rejected)
 // ============================================================
 
 window.openAdminPanel = function() {
@@ -1962,7 +1981,7 @@ window.switchAdminTab = function(tab) {
 };
 
 // ============================================================
-// 23. إدارة المنتجات (Admin Products) - كما هي
+// 24. إدارة المنتجات (Admin Products) - نفسها
 // ============================================================
 
 function renderAdminProducts(productsList) {
@@ -2099,8 +2118,7 @@ async function deleteProductFromFirestore(productId) {
 }
 
 // ============================================================
-// 24. الطلبات (Admin Orders) - تم التعديل إلى confirmed / rejected
-//     كما هي، مع استدعاء sendLicenceForOrder الذي تم تعديله لاستخدام Supabase
+// 25. الطلبات (Admin Orders) - تم تعديلها لإرسال إشعارات للأدمن والمستخدم
 // ============================================================
 
 function startAdminRealtimeListener() {
@@ -2208,7 +2226,7 @@ function updateAdminStats(orders) {
 }
 
 // ============================================================
-// 25. تحديث حالة الطلب مع إنشاء الترخيص (تم التعديل لاستخدام Supabase)
+// 26. تحديث حالة الطلب مع إنشاء الترخيص وإرسال الإشعارات
 // ============================================================
 
 window.updateOrderStatus = async function(orderId, userId, newStatus) {
@@ -2234,12 +2252,16 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
         await updateDoc(userRef, { history: updatedHistory });
 
         if (newStatus === 'confirmed') {
+            // إنشاء الترخيص وإرسال الإشعارات
             await sendLicenceForOrder(orderId, userId);
+            // إشعار للأدمن
+            await sendTelegramNotification(TELEGRAM_CHAT_ID, `✅ Order #${orderId.slice(-6)} confirmed. Licence sent to ${data.email || userId}.`);
         } else if (newStatus === 'rejected') {
-            const order = history.find(o => o.id === orderId);
-            if (order && data.telegramChatId) {
+            // إشعار للمستخدم بالرفض
+            if (data.telegramChatId) {
                 await sendTelegramNotification(data.telegramChatId, `❌ Your order #${orderId.slice(-6)} has been rejected.`);
             }
+            await sendTelegramNotification(TELEGRAM_CHAT_ID, `❌ Order #${orderId.slice(-6)} rejected.`);
         }
 
         const statusLabels = {
@@ -2258,29 +2280,30 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
 };
 
 // ============================================================
-// 26. دالة إرسال الترخيص (معدلة لاستخدام Supabase)
+// 27. دالة إرسال الترخيص (معدلة لاستخدام Supabase وإرسال الإشعارات)
 // ============================================================
 
 async function sendLicenceForOrder(orderId, userId) {
     try {
+        console.log('🔍 sendLicenceForOrder called:', { orderId, userId });
         const userRef = doc(db, 'users', userId);
         const userSnap = await getDoc(userRef);
         if (!userSnap.exists()) {
-            console.error('User not found');
-            return;
+            console.error('❌ User not found');
+            throw new Error('User not found');
         }
         const userData = userSnap.data();
         const order = userData.history?.find(o => o.id === orderId);
         if (!order) {
-            console.error('Order not found');
-            return;
+            console.error('❌ Order not found');
+            throw new Error('Order not found');
         }
 
         const productName = order.items?.[0]?.name || 'Product';
         const code = 'LIC-' + Math.random().toString(36).substring(2, 10).toUpperCase();
         const expiryDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
 
-        // ✅ تخزين الترخيص في Supabase
+        // ✅ إدراج الترخيص في Supabase
         const { data: licenceData, error: insertError } = await supabase
             .from('licenses')
             .insert({
@@ -2298,9 +2321,10 @@ async function sendLicenceForOrder(orderId, userId) {
             .single();
 
         if (insertError) {
-            console.error('Error inserting licence into Supabase:', insertError);
+            console.error('❌ Supabase insert error:', insertError);
             throw insertError;
         }
+        console.log('✅ Licence inserted:', licenceData);
 
         // ✅ إضافة الترخيص إلى ملف المستخدم في Firestore
         const userLicences = userData.licences || [];
@@ -2319,20 +2343,26 @@ async function sendLicenceForOrder(orderId, userId) {
             updateFullUserMenu();
         }
 
-        // إشعار للمستخدم
+        // ✅ إرسال إشعار للمستخدم عبر التيليجرام
         const chatId = userData.telegramChatId;
         if (chatId) {
             const msg = `🎉 **Licence Confirmed!**\n\n📦 **Product:** ${productName}\n🔑 **Your Code:** \`${code}\`\n📅 **Expires:** ${new Date(expiryDate).toLocaleDateString()}\n\nThank you for your purchase!`;
             await sendTelegramNotification(chatId, msg);
+            console.log('✅ User notification sent for licence');
+        } else {
+            console.log('ℹ️ User has no Telegram chatId');
         }
 
+        // ✅ إشعار للأدمن بأن الترخيص أُرسل
         await sendTelegramNotification(TELEGRAM_CHAT_ID, `✅ Licence \`${code}\` sent to ${userData.email || userId} for order #${orderId.slice(-6)}`);
 
         showToast(`✅ Licence sent to user`, 'success');
 
     } catch (error) {
-        console.error('Error sending licence:', error);
-        showToast('❌ Failed to send licence', 'error');
+        console.error('❌ Error in sendLicenceForOrder:', error);
+        // إرسال إشعار للأدمن بوجود خطأ
+        await sendTelegramNotification(TELEGRAM_CHAT_ID, `❌ Failed to create licence for order #${orderId.slice(-6)}: ${error.message}`);
+        throw error; // لإعادة الخطأ إلى المتصل
     }
 }
 
@@ -2369,7 +2399,7 @@ window.clearAdminSearch = function() { document.getElementById('adminSearchInput
 window.refreshAdminOrders = function() { loadAdminOrders(); showToast('🔄 Refreshed', 'info'); };
 
 // ============================================================
-// 27. المستخدمين (Admin Users) - كما هي
+// 28. المستخدمين (Admin Users) - نفسها
 // ============================================================
 
 async function loadAdminUsers() {
@@ -2466,7 +2496,7 @@ window.viewUserDetails = async function(uid) {
 window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
 // ============================================================
-// 28. تاريخ الطلبات (مع تعديل الحالات) - كما هي
+// 29. تاريخ الطلبات (مع تعديل الحالات) - نفسها
 // ============================================================
 
 window.clearOrderHistory = async function() {
@@ -2549,7 +2579,7 @@ window.filterOrders = function(filter) {
 };
 
 // ============================================================
-// 29. نظام إدارة الأكواد (Licences) - معدل لاستخدام Supabase
+// 30. نظام إدارة الأكواد (Licences) - معدل لاستخدام Supabase (نفس التعديلات السابقة)
 // ============================================================
 
 // تحميل التراخيص من Supabase
@@ -2576,7 +2606,6 @@ async function loadLicences() {
     }
 }
 
-// عرض التراخيص
 function renderLicences(licences) {
     const container = document.getElementById('adminLicencesList');
     if (!container) return;
@@ -2621,7 +2650,6 @@ function renderLicences(licences) {
     }).join('');
 }
 
-// فتح مودال إنشاء ترخيص
 function openCreateLicenceModal() {
     const modal = document.getElementById('createLicenceModal');
     if (modal) {
@@ -2639,7 +2667,6 @@ function closeCreateLicenceModal() {
     }
 }
 
-// إنشاء ترخيص يدوياً في Supabase
 async function createLicenceManually() {
     const productName = document.getElementById('newLicenceProduct')?.value.trim();
     const userId = document.getElementById('newLicenceUser')?.value.trim();
@@ -2678,7 +2705,6 @@ async function createLicenceManually() {
         closeCreateLicenceModal();
         loadLicences();
 
-        // إذا تم تحديد مستخدم، نضيف الترخيص إلى ملفه في Firestore
         if (userId) {
             const usersRef = collection(db, 'users');
             let q;
@@ -2719,7 +2745,6 @@ async function createLicenceManually() {
     }
 }
 
-// دالة مساعدة لتحديث الترخيص في Supabase
 async function updateLicenceInSupabase(licenceId, data) {
     try {
         const { error } = await supabase
@@ -2734,7 +2759,6 @@ async function updateLicenceInSupabase(licenceId, data) {
     }
 }
 
-// الموافقة على الترخيص (تغيير الحالة إلى active وإرساله للمستخدم)
 async function approveLicence(licenceId, code, scriptName) {
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
         showToast('⛔ Unauthorized', 'error');
@@ -2757,7 +2781,7 @@ async function approveLicence(licenceId, code, scriptName) {
             user_email: currentUser.email
         });
 
-        // إرسال إشعار للمستخدم عبر تيليجرام إذا كان مرتبطاً
+        // إرسال إشعار للمستخدم عبر التيليجرام
         let chatId = null;
         try {
             const usersRef = collection(db, 'users');
@@ -2787,7 +2811,6 @@ async function approveLicence(licenceId, code, scriptName) {
     }
 }
 
-// إلغاء الترخيص (revoke)
 async function revokeLicence(licenceId) {
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
         showToast('⛔ Unauthorized', 'error');
@@ -2797,7 +2820,6 @@ async function revokeLicence(licenceId) {
     try {
         await updateLicenceInSupabase(licenceId, { status: 'revoked' });
 
-        // تحديث ملف المستخدم في Firestore
         const licence = allLicences.find(l => l.id === licenceId);
         if (licence && licence.user_id) {
             const userRef = doc(db, 'users', licence.user_id);
@@ -2828,7 +2850,6 @@ async function revokeLicence(licenceId) {
     }
 }
 
-// حذف الترخيص نهائياً
 async function deleteLicence(licenceId) {
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
         showToast('⛔ Unauthorized', 'error');
@@ -2843,7 +2864,6 @@ async function deleteLicence(licenceId) {
             .eq('id', licenceId);
         if (error) throw error;
 
-        // حذف من ملف المستخدم في Firestore
         if (licence && licence.user_id) {
             const userRef = doc(db, 'users', licence.user_id);
             const userSnap = await getDoc(userRef);
@@ -2868,7 +2888,6 @@ async function deleteLicence(licenceId) {
     }
 }
 
-// تعديل الترخيص (فتح مودال)
 function editLicence(licenceId) {
     const licence = allLicences.find(l => l.id === licenceId);
     if (!licence) { showToast('❌ Licence not found', 'error'); return; }
@@ -2880,7 +2899,6 @@ function editLicence(licenceId) {
     document.getElementById('editLicenceModal').classList.add('open');
 }
 
-// حفظ التعديلات على الترخيص
 async function saveLicenceEdit() {
     const licenceId = document.getElementById('editLicenceId').value;
     const expiryDate = document.getElementById('editLicenceExpiry').value;
@@ -2892,7 +2910,6 @@ async function saveLicenceEdit() {
             status: status
         });
 
-        // تحديث ملف المستخدم في Firestore
         const licence = allLicences.find(l => l.id === licenceId);
         if (licence && licence.user_id) {
             const userRef = doc(db, 'users', licence.user_id);
@@ -2928,7 +2945,6 @@ async function saveLicenceEdit() {
     }
 }
 
-// البحث في التراخيص
 function searchLicences() {
     const query = document.getElementById('adminLicenceSearch').value.trim().toLowerCase();
     if (!query) { renderLicences(allLicences); return; }
@@ -2948,7 +2964,6 @@ function clearLicenceSearch() {
 
 function refreshLicences() { loadLicences(); showToast('🔄 Refreshed', 'info'); }
 
-// عرض تراخيص المستخدم في الملف الشخصي
 function renderUserLicences() {
     const container = document.getElementById('userLicencesList');
     if (!container) return;
@@ -2987,7 +3002,6 @@ function toggleLicencesList() {
     }
 }
 
-// مودال تفعيل الترخيص (للمستخدم)
 function openLicenceModal() {
     if (!currentUser) {
         showToast('⚠️ Please login first', 'warning');
@@ -3013,7 +3027,6 @@ function closeLicenceModal() {
     }
 }
 
-// تفعيل الترخيص بواسطة المستخدم (التحقق في Supabase)
 async function activateLicence() {
     const input = document.getElementById('licenceInput');
     const resultEl = document.getElementById('licenceResult');
@@ -3059,7 +3072,6 @@ async function activateLicence() {
             return;
         }
 
-        // ربط الترخيص بالمستخدم الحالي
         if (!licence.user_id || licence.user_id === null) {
             await updateLicenceInSupabase(licence.id, {
                 user_id: currentUser.uid,
@@ -3068,7 +3080,6 @@ async function activateLicence() {
             });
         }
 
-        // إضافة الترخيص إلى ملف المستخدم في Firestore
         const userRef = doc(db, 'users', currentUser.uid);
         const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
@@ -3115,7 +3126,7 @@ async function activateLicence() {
 }
 
 // ============================================================
-// 30. Banner تيليجرام و Social Proof (كما هي)
+// 31. Banner تيليجرام و Social Proof (نفسها)
 // ============================================================
 
 function showTelegramBanner() {
@@ -3189,7 +3200,7 @@ function startSocialProof() {}
 function triggerSocialProofOnOrder(userName, productNames) {}
 
 // ============================================================
-// 31. دوال السلايدر (Slider) - كما هي
+// 32. دوال السلايدر (نفسها)
 // ============================================================
 
 async function loadSliderSettings() {
@@ -3505,7 +3516,7 @@ window.deleteSlide = deleteSlide;
 window.editSlide = editSlide;
 
 // ============================================================
-// 32. PDF Generator (كما هي)
+// 33. PDF Generator (نفسه)
 // ============================================================
 
 async function generateInvoice(orderData) {
@@ -3578,7 +3589,7 @@ async function generateInvoice(orderData) {
 }
 
 // ============================================================
-// 33. إحصائيات المدير (كما هي)
+// 34. إحصائيات المدير (نفسها)
 // ============================================================
 
 async function loadDashboardStats() {
@@ -3647,7 +3658,7 @@ async function loadAuditLogs() {
 window.loadAuditLogs = loadAuditLogs;
 
 // ============================================================
-// 34. التقييمات (Ratings) - كما هي
+// 35. التقييمات (Ratings) - نفسها
 // ============================================================
 
 let currentRating = 0;
@@ -3729,7 +3740,7 @@ function renderRatingSection(productId) {
 async function updateProductRatingDisplay(productId) { const ratingsRef = collection(db, 'ratings'); const q = query(ratingsRef, where('productId', '==', productId)); const snapshot = await getDocs(q); let total = 0; let count = 0; snapshot.forEach(doc => { total += doc.data().rating || 0; count++; }); const avg = count > 0 ? total / count : 0; }
 
 // ============================================================
-// 35. توجيه الاتجاه (كما هي)
+// 36. توجيه الاتجاه (نفسه)
 // ============================================================
 
 function fixDirection() {
@@ -3741,7 +3752,7 @@ function fixDirection() {
 document.addEventListener('DOMContentLoaded', function() { setTimeout(fixDirection, 100); setTimeout(showTelegramBanner, 500); });
 
 // ============================================================
-// 36. رفع الصور إلى Cloudinary (كما هي)
+// 37. رفع الصور إلى Cloudinary (نفسه)
 // ============================================================
 
 const CLOUDINARY_CLOUD_NAME = 'y14bgb5s';
@@ -3770,7 +3781,7 @@ async function uploadToCloudinary(file) {
 }
 
 // ============================================================
-// 37. حالة المصادقة (كما هي)
+// 38. حالة المصادقة (نفسه)
 // ============================================================
 
 onAuthStateChanged(auth, async (user) => {
@@ -3811,7 +3822,7 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// 38. التهيئة (Init)
+// 39. التهيئة (Init)
 // ============================================================
 
 async function init() {
@@ -3844,7 +3855,7 @@ init();
 setTimeout(() => { hideLoadingScreen(); console.log('⚠️ Force hiding loading screen (timeout)'); }, 5000);
 
 // ============================================================
-// 39. التصديرات النهائية
+// 40. التصديرات النهائية
 // ============================================================
 
 window.showToast = showToast;
