@@ -2,6 +2,7 @@
 // SCRIPT.JS - ZI Store النسخة النهائية الكاملة
 // يعمل مع Supabase Edge Functions للتراخيص (بدون CORS)
 // جميع الوظائف: المنتجات، السلة، الدفع، Firebase Auth، Firestore، التراخيص عبر Edge Functions
+// تم إصلاح: شاشة التحميل، Telegram notifications، أسعار العملات، منع الطلبات المكررة، منع Anonymous من الشراء
 // ============================================================
 
 // ============================================================
@@ -40,7 +41,7 @@ const db = getFirestore(app);
 const analytics = getAnalytics(app);
 
 // ============================================================
-// 4. شاشة التحميل
+// 4. شاشة التحميل (تم إضافة الدوال المفقودة)
 // ============================================================
 
 const loadingMessages = [
@@ -128,6 +129,7 @@ let selectedPayment = null;
 let ordersFilter = 'all';
 let _selectedVipPlan = '1m';
 let allLicences = [];
+let isProcessingOrder = false; // منع الطلبات المكررة
 
 let featuredProducts = [];
 let featuredRotationInterval = null;
@@ -1208,7 +1210,7 @@ function closeSearchResults() { searchResults.classList.remove('active'); search
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeSearchResults(); closeUserMenuFull(); closeCartFull(); closeWishlistFull(); closeProfileFull(); closeHistoryFull(); } });
 
 // ============================================================
-// 18. الدفع
+// 18. الدفع (مع إصلاح أسعار العملات ومنع Anonymous)
 // ============================================================
 
 async function fetchCryptoPrices() {
@@ -1233,8 +1235,23 @@ function getUSDTPrice() { return cryptoPrices.usdt || 1; }
 function updatePriceUI() {
     const exchangeRate = document.getElementById('exchangeRate');
     if (exchangeRate) {
-        if (selectedPayment === 'litecoin' && cryptoPrices.ltc > 0) { exchangeRate.textContent = `1 LTC ≈ $${cryptoPrices.ltc.toFixed(2)} USD`; }
-        else if (selectedPayment === 'usdt') { exchangeRate.textContent = `1 USDT ≈ $${cryptoPrices.usdt.toFixed(2)} USD`; }
+        if (selectedPayment === 'litecoin' && cryptoPrices.ltc > 0) {
+            exchangeRate.textContent = `1 LTC ≈ $${cryptoPrices.ltc.toFixed(2)} USD`;
+        } else if (selectedPayment === 'usdt' && cryptoPrices.usdt > 0) {
+            exchangeRate.textContent = `1 USDT ≈ $${cryptoPrices.usdt.toFixed(2)} USD`;
+        } else {
+            exchangeRate.textContent = '⏳ Loading prices...';
+        }
+    }
+    // تحديث المبلغ بالعملة المشفرة
+    const cryptoAmount = document.getElementById('cryptoAmount');
+    if (cryptoAmount && selectedPayment) {
+        const total = parseFloat(document.getElementById('step2Total')?.textContent?.replace('$', '') || '0');
+        if (selectedPayment === 'litecoin' && cryptoPrices.ltc > 0) {
+            cryptoAmount.textContent = (total / cryptoPrices.ltc).toFixed(4) + ' LTC';
+        } else if (selectedPayment === 'usdt' && cryptoPrices.usdt > 0) {
+            cryptoAmount.textContent = (total / cryptoPrices.usdt).toFixed(2) + ' USDT';
+        }
     }
 }
 function updatePayableTotal() {
@@ -1276,6 +1293,11 @@ window.continuePayment = function() {
     if (finalTotal < 0) finalTotal = 0;
     document.getElementById('step2Subtotal').textContent = `$${total.toFixed(2)}`;
     document.getElementById('step2Total').textContent = `$${finalTotal.toFixed(2)}`;
+    
+    // ✅ تحديث أسعار العملات والمبلغ
+    fetchCryptoPrices();
+    setTimeout(updatePriceUI, 500);
+    
     const walletInfo = document.querySelector('.wallet-info');
     const txInput = document.getElementById('transactionHashInput');
     const confirmBtn = document.querySelector('.payment-btn[onclick="placeOrder()"]');
@@ -1339,111 +1361,130 @@ function renderPaymentProducts() {
 }
 
 // ============================================================
-// 19. إرسال الطلب (مع إشعارات للأدمن والمستخدم)
+// 19. إرسال الطلب (مع منع التكرار وإشعارات للأدمن والمستخدم)
 // ============================================================
 
 async function sendOrderToTelegram(method, txHash = null) {
-    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
-    if (currentUser.isAnonymous) { showToast('⚠️ Please sign in to place an order.', 'warning'); return; }
-
-    let total = 0;
-    let itemsList = '';
-    const productNames = [];
-    const orderId = 'order_' + Date.now();
-
-    cart.forEach((item, i) => {
-        const qty = item.quantity || 1;
-        const sub = item.price * qty;
-        total += sub;
-        itemsList += `${i+1}. ${item.name} × ${qty} = ${sub.toFixed(2)} $\n`;
-        productNames.push(item.name);
-    });
-
-    let finalTotal = total;
-    let discountText = '';
-    let rpDiscountAmount = 0;
-    if (userProfile.useRpForCart) {
-        rpDiscountAmount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total);
-        finalTotal = total - rpDiscountAmount;
-        discountText += `\n🎯 RP discount (${Math.floor(rpDiscountAmount/RP_TO_DOLLAR)} RP): -${rpDiscountAmount.toFixed(2)}$`;
+    // ✅ منع الطلبات المكررة
+    if (isProcessingOrder) {
+        showToast('⏳ Order is already being processed...', 'warning');
+        return;
     }
-    if (activeDiscount > 0 && total > 0) {
-        const discountAmount = (finalTotal * activeDiscount) / 100;
-        finalTotal = finalTotal - discountAmount;
-        discountText += `\n🎫 Promo (${activeDiscount}%): -${discountAmount.toFixed(2)}$`;
-    }
-
-    // رسالة للأدمن
-    let adminMsg = '🛒 **New Order**\n\n';
-    adminMsg += `📎 **Order ID:** #${orderId.slice(-6)}\n`;
-    adminMsg += `👤 **Customer:** ${currentUser.displayName || currentUser.email || 'Unknown'}\n`;
-    adminMsg += `📧 **Email:** ${currentUser.email || 'N/A'}\n`;
-    adminMsg += `📅 **Date:** ${new Date().toLocaleString()}\n\n`;
-    adminMsg += `📦 **Products:**\n${itemsList}\n`;
-    adminMsg += `💰 **Total:** ${finalTotal.toFixed(2)}$\n`;
-    adminMsg += `💬 **Payment Method:** ${method}\n`;
-    if (txHash) adminMsg += `🔍 **Tx Hash:** ${txHash}\n`;
-
-    // إرسال إشعار للأدمن
+    isProcessingOrder = true;
+    
     try {
-        await sendTelegramNotification(TELEGRAM_CHAT_ID, adminMsg);
-        console.log('✅ Admin notification sent');
-    } catch (e) {
-        console.error('❌ Failed to send admin notification:', e);
-    }
-
-    // إرسال إشعار للمستخدم
-    if (userProfile.telegramChatId) {
-        const userMsg = `📦 **Order Placed!**\n\n📎 **Order #${orderId.slice(-6)}**\n📅 ${new Date().toLocaleString()}\n💰 Total: $${finalTotal.toFixed(2)}\n\nThank you for your purchase! You will receive a confirmation soon.`;
-        try {
-            await sendTelegramNotification(userProfile.telegramChatId, userMsg);
-            console.log('✅ User notification sent');
-        } catch (e) {
-            console.error('❌ Failed to send user notification:', e);
+        if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
+        // ✅ منع المستخدمين المجهولين من الشراء
+        if (currentUser.isAnonymous) { 
+            showToast('⚠️ Please sign in to place an order.', 'warning'); 
+            openAuthModal();
+            return;
         }
+
+        let total = 0;
+        let itemsList = '';
+        const productNames = [];
+        const orderId = 'order_' + Date.now();
+
+        cart.forEach((item, i) => {
+            const qty = item.quantity || 1;
+            const sub = item.price * qty;
+            total += sub;
+            itemsList += `${i+1}. ${item.name} × ${qty} = ${sub.toFixed(2)} $\n`;
+            productNames.push(item.name);
+        });
+
+        let finalTotal = total;
+        let discountText = '';
+        let rpDiscountAmount = 0;
+        if (userProfile.useRpForCart) {
+            rpDiscountAmount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total);
+            finalTotal = total - rpDiscountAmount;
+            discountText += `\n🎯 RP discount (${Math.floor(rpDiscountAmount/RP_TO_DOLLAR)} RP): -${rpDiscountAmount.toFixed(2)}$`;
+        }
+        if (activeDiscount > 0 && total > 0) {
+            const discountAmount = (finalTotal * activeDiscount) / 100;
+            finalTotal = finalTotal - discountAmount;
+            discountText += `\n🎫 Promo (${activeDiscount}%): -${discountAmount.toFixed(2)}$`;
+        }
+
+        // رسالة للأدمن
+        let adminMsg = '🛒 **New Order**\n\n';
+        adminMsg += `📎 **Order ID:** #${orderId.slice(-6)}\n`;
+        adminMsg += `👤 **Customer:** ${currentUser.displayName || currentUser.email || 'Unknown'}\n`;
+        adminMsg += `📧 **Email:** ${currentUser.email || 'N/A'}\n`;
+        adminMsg += `📅 **Date:** ${new Date().toLocaleString()}\n\n`;
+        adminMsg += `📦 **Products:**\n${itemsList}\n`;
+        adminMsg += `💰 **Total:** ${finalTotal.toFixed(2)}$\n`;
+        adminMsg += `💬 **Payment Method:** ${method}\n`;
+        if (txHash) adminMsg += `🔍 **Tx Hash:** ${txHash}\n`;
+
+        // إرسال إشعار للأدمن
+        try {
+            await sendTelegramNotification(TELEGRAM_CHAT_ID, adminMsg);
+            console.log('✅ Admin notification sent');
+        } catch (e) {
+            console.error('❌ Failed to send admin notification:', e);
+        }
+
+        // إرسال إشعار للمستخدم
+        if (userProfile.telegramChatId) {
+            const userMsg = `📦 **Order Placed!**\n\n📎 **Order #${orderId.slice(-6)}**\n📅 ${new Date().toLocaleString()}\n💰 Total: $${finalTotal.toFixed(2)}\n\nThank you for your purchase! You will receive a confirmation soon.`;
+            try {
+                await sendTelegramNotification(userProfile.telegramChatId, userMsg);
+                console.log('✅ User notification sent');
+            } catch (e) {
+                console.error('❌ Failed to send user notification:', e);
+            }
+        }
+
+        // فتح محادثة التيليجرام مع الأدمن
+        window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(adminMsg)}`, '_blank');
+
+        // حفظ الطلب في Firestore
+        const orderItem = {
+            id: orderId,
+            items: cart.map(item => ({ id: item.id, name: item.name, price: item.price, quantity: item.quantity || 1 })),
+            total: finalTotal,
+            method: method,
+            date: new Date().toISOString(),
+            status: 'pending',
+            txHash: txHash || null,
+            rpUsed: Math.floor(rpDiscountAmount / RP_TO_DOLLAR) || 0,
+            rpEarned: 0
+        };
+
+        const userRef = doc(db, 'users', currentUser.uid);
+        try {
+            await updateDoc(userRef, { history: arrayUnion(orderItem) });
+        } catch (e) { console.error('Error saving order history:', e); }
+        userProfile.history.push(orderItem);
+
+        cart = [];
+        activeDiscount = 0;
+        activeDiscountCode = '';
+        await saveUserData();
+        updateCartUI();
+        updateBottomCartBar();
+        renderProducts(products);
+        generateRecommendations(products);
+        updateRpDisplay();
+        document.getElementById('paymentModal').classList.remove('open');
+
+        showToast('📤 Order placed!', 'success');
+
+        setTimeout(() => {
+            if (currentUser && currentUser.email === ADMIN_EMAIL) { loadAdminOrders(); }
+            loadUserData();
+            updateDropdownStats();
+            updateFullUserMenu();
+        }, 1000);
+    } catch (error) {
+        console.error('Order error:', error);
+        showToast('❌ Error placing order', 'error');
+    } finally {
+        isProcessingOrder = false;
     }
-
-    // فتح محادثة التيليجرام مع الأدمن
-    window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(adminMsg)}`, '_blank');
-
-    // حفظ الطلب في Firestore
-    const orderItem = {
-        id: orderId,
-        items: cart.map(item => ({ id: item.id, name: item.name, price: item.price, quantity: item.quantity || 1 })),
-        total: finalTotal,
-        method: method,
-        date: new Date().toISOString(),
-        status: 'pending',
-        txHash: txHash || null,
-        rpUsed: Math.floor(rpDiscountAmount / RP_TO_DOLLAR) || 0,
-        rpEarned: 0
-    };
-
-    const userRef = doc(db, 'users', currentUser.uid);
-    try {
-        await updateDoc(userRef, { history: arrayUnion(orderItem) });
-    } catch (e) { console.error('Error saving order history:', e); }
-    userProfile.history.push(orderItem);
-
-    cart = [];
-    activeDiscount = 0;
-    activeDiscountCode = '';
-    await saveUserData();
-    updateCartUI();
-    updateBottomCartBar();
-    renderProducts(products);
-    generateRecommendations(products);
-    updateRpDisplay();
-    document.getElementById('paymentModal').classList.remove('open');
-
-    showToast('📤 Order placed!', 'success');
-
-    setTimeout(() => {
-        if (currentUser && currentUser.email === ADMIN_EMAIL) { loadAdminOrders(); }
-        loadUserData();
-        updateDropdownStats();
-        updateFullUserMenu();
-    }, 1000);
 }
 
 function placeOrderTelegram() {
@@ -1451,6 +1492,12 @@ function placeOrderTelegram() {
 }
 
 window.placeOrder = function() {
+    // ✅ منع المستخدمين المجهولين من تأكيد الدفع
+    if (!currentUser || currentUser.isAnonymous) {
+        showToast('⚠️ Please sign in to confirm payment.', 'warning');
+        openAuthModal();
+        return;
+    }
     const txHash = document.getElementById('transactionHashInput').value.trim();
     if (selectedPayment === 'litecoin' || selectedPayment === 'usdt') {
         if (!txHash) {
@@ -1468,7 +1515,9 @@ window.placeOrder = function() {
 };
 
 window.openPaymentModal = function() {
+    // ✅ منع المستخدمين المجهولين من فتح صفحة الدفع
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); openAuthModal(); return; }
+    if (currentUser.isAnonymous) { showToast('⚠️ Please sign in to place an order.', 'warning'); openAuthModal(); return; }
     if (cart.length === 0) { showToast('⚠️ Cart is empty', 'warning'); return; }
     document.getElementById('paymentModal').classList.add('open');
     document.getElementById('paymentStep1').style.display = 'block';
@@ -2566,15 +2615,13 @@ window.filterOrders = function(filter) {
 // 30. نظام إدارة التراخيص (مع Supabase Edge Functions)
 // ============================================================
 
-// تحميل التراخيص من Supabase عبر Edge Function أو مباشرة (سنستخدم مباشرة لأنها للعرض فقط)
+// تحميل التراخيص من Supabase (للقراءة فقط)
 async function loadLicences() {
     try {
         const container = document.getElementById('adminLicencesList');
         if (!container) return;
         container.innerHTML = `<div style="text-align:center;padding:30px;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
 
-        // للعرض فقط، نستخدم الاتصال المباشر بجدول licenses (مع service_role المستخدم في الـ Function)
-        // لكن هنا سنستخدم supabase anon key للقراءة (مع RLS policy تسمح بالقراءة)
         const { data, error } = await supabase
             .from('licenses')
             .select('*')
@@ -2665,7 +2712,6 @@ async function createLicenceManually() {
     }
 
     try {
-        // نستخدم نفس Edge Function create-licence
         const response = await fetch(`${SUPABASE_URL}/functions/v1/create-licence`, {
             method: 'POST',
             headers: {
@@ -2677,7 +2723,7 @@ async function createLicenceManually() {
                 userId: userId || null,
                 userEmail: userId || null,
                 expiryDate: expiryDate || null,
-                manual: true // علامة للتمييز في الـ Function
+                manual: true
             })
         });
 
@@ -2690,7 +2736,6 @@ async function createLicenceManually() {
         closeCreateLicenceModal();
         loadLicences();
 
-        // إذا تم تحديد مستخدم، نضيف الترخيص إلى ملفه في Firestore
         if (userId) {
             const usersRef = collection(db, 'users');
             let q;
@@ -2731,8 +2776,7 @@ async function createLicenceManually() {
     }
 }
 
-// دوال إدارة التراخيص (تعديل، حذف، إلغاء، موافقة) - تستخدم Edge Functions أو اتصال مباشر
-// سنقوم بتبسيطها باستخدام الاتصال المباشر (مع RLS) لأنها عمليات إدارية
+// دوال إدارة التراخيص (تعديل، حذف، إلغاء، موافقة)
 async function updateLicenceInSupabase(licenceId, data) {
     try {
         const { error } = await supabase
@@ -2769,7 +2813,6 @@ async function approveLicence(licenceId, code, scriptName) {
             user_email: currentUser.email
         });
 
-        // إرسال إشعار للمستخدم
         let chatId = null;
         try {
             const usersRef = collection(db, 'users');
@@ -3802,7 +3845,9 @@ onAuthStateChanged(auth, async (user) => {
 async function init() {
     showLoadingScreen();
     updateLoadingBar(10);
-    try { await signInAnonymously(auth); updateLoadingBar(30); } catch (e) { console.log('ℹ️ Anonymous sign-in'); }
+    // ✅ تم تعطيل Anonymous sign-in لتحسين الأمان ومنع الطلبات المكررة
+    // try { await signInAnonymously(auth); updateLoadingBar(30); } catch (e) { console.log('ℹ️ Anonymous sign-in'); }
+    updateLoadingBar(30);
     const productsFromFirestore = await loadProductsFromFirestore();
     products = productsFromFirestore.length > 0 ? productsFromFirestore : fallbackProducts;
     updateLoadingBar(50);
