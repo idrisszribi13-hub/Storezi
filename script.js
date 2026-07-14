@@ -1,10 +1,15 @@
 // ============================================================
 // SCRIPT.JS - ZI Store النسخة النهائية الكاملة
-// مع:
-// - تعطيل Anonymous sign-in نهائياً
-// - إضافة زر تحديث في لوحة الأدمن وسجل المستخدم
-// - إضافة console.log لتتبع الطلبات
-// - إصلاح حفظ الطلبات في Firestore
+// مع جميع التعديلات المطلوبة:
+// - تعريف supabase بشكل صحيح
+// - دوال شاشة التحميل
+// - إضافة زر نسخ للتراخيص (My Licences و لوحة الأدمن)
+// - تعديل editLicence لفتح مودال التحرير
+// - تنفيذ editSlide لتعديل السلايدر
+// - تنفيذ exportOrders لتصدير CSV
+// - إزالة Authorization header من create-licence
+// - تعطيل Anonymous sign-in
+// - أزرار تحديث في لوحة الأدمن وسجل المستخدم
 // ============================================================
 
 // ============================================================
@@ -19,12 +24,13 @@ import { getAnalytics } from "firebase/analytics";
 // ============================================================
 // 2. إعدادات Supabase (للاستدعاءات عبر Edge Functions فقط)
 // ============================================================
+
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
 const SUPABASE_URL = 'https://kvsyzgavfxnwqmtsginv.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_1uSIqgNONAV53GjOoBoZUw_niAGJXO6';
-
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 // ============================================================
 // 3. تهيئة Firebase
 // ============================================================
@@ -343,7 +349,26 @@ function generateReferralCode(name, email) {
 }
 
 // ============================================================
-// 9. تحديثات الواجهة
+// 9. دالة نسخ كود الترخيص
+// ============================================================
+
+function copyLicenceCode(code) {
+    if (!code) return;
+    navigator.clipboard.writeText(code).then(() => {
+        showToast('✅ Licence code copied!', 'success');
+    }).catch(() => {
+        const textArea = document.createElement('textarea');
+        textArea.value = code;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showToast('✅ Licence code copied!', 'success');
+    });
+}
+
+// ============================================================
+// 10. تحديثات الواجهة
 // ============================================================
 
 function updateDropdownStats() {
@@ -410,7 +435,7 @@ function updateFullUserMenu() {
 }
 
 // ============================================================
-// 10. دوال المصادقة
+// 11. دوال المصادقة
 // ============================================================
 
 window.showLogin = function() { document.getElementById('loginContainer').style.display = 'block'; document.getElementById('registerContainer').style.display = 'none'; };
@@ -515,7 +540,7 @@ window.sendForgotPassword = async function() {
 };
 
 // ============================================================
-// 11. المودالات العامة
+// 12. المودالات العامة
 // ============================================================
 
 window.openUserMenuFull = function() { if (!currentUser) { openAuthModal(); return; } document.getElementById('userMenuFull').classList.add('open'); updateFullUserMenu(); document.body.style.overflow = 'hidden'; };
@@ -535,7 +560,7 @@ window.closeNotifications = function() { document.getElementById('notificationsM
 function openAuthModal() { document.getElementById('authSection').scrollIntoView({ behavior: 'smooth' }); }
 
 // ============================================================
-// 12. عرض الملف الشخصي
+// 13. عرض الملف الشخصي
 // ============================================================
 
 function renderProfileFull() {
@@ -640,7 +665,7 @@ window.sendResetLinkInline = async function() { if (!currentUser) return; try { 
 window.changePasswordInline = async function() { if (!currentUser) return; const currentPwd = document.getElementById('currentPasswordInline').value; const newPwd = document.getElementById('newPasswordInline').value; const confirmPwd = document.getElementById('confirmNewPasswordInline').value; const errorEl = document.getElementById('passwordErrorInline'); const successEl = document.getElementById('passwordSuccessInline'); errorEl.textContent = ''; successEl.textContent = ''; if (!currentPwd || !newPwd || !confirmPwd) { errorEl.textContent = 'Please fill all fields'; return; } if (newPwd.length < 6) { errorEl.textContent = 'New password must be at least 6 characters'; return; } if (newPwd !== confirmPwd) { errorEl.textContent = 'Passwords do not match'; return; } try { const credential = EmailAuthProvider.credential(currentUser.email, currentPwd); await reauthenticateWithCredential(currentUser, credential); await updatePassword(currentUser, newPwd); successEl.textContent = '✅ Password changed successfully!'; showToast('✅ Password updated!', 'success'); document.getElementById('currentPasswordInline').value = ''; document.getElementById('newPasswordInline').value = ''; document.getElementById('confirmNewPasswordInline').value = ''; setTimeout(() => { successEl.textContent = ''; }, 3000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); } };
 
 // ============================================================
-// 13. المنتجات
+// 14. المنتجات
 // ============================================================
 
 async function loadProductsFromFirestore() {
@@ -763,7 +788,7 @@ function generateRecommendations(productsList) {
 }
 
 // ============================================================
-// 14. المنتجات المميزة و السلة والمفضلة
+// 15. المنتجات المميزة و السلة والمفضلة
 // ============================================================
 
 function renderFeaturedProducts() {
@@ -1005,7 +1030,7 @@ function createFloatingHearts() {
 }
 
 // ============================================================
-// 15. عرض المنتج (Preview)
+// 16. عرض المنتج (Preview)
 // ============================================================
 
 window.openDetails = function(id) {
@@ -1140,7 +1165,7 @@ window.addToCartFromPreview = function() { if (window._currentProduct) { window.
 window.shareFromPreview = function() { if (window._currentProduct) { window.openShareModal(window._currentProduct.id); } };
 
 // ============================================================
-// 16. مودال المشاركة
+// 17. مودال المشاركة
 // ============================================================
 
 window.openShareModal = function(productId) {
@@ -1157,7 +1182,7 @@ window.shareToFacebook = function() { if (!shareProduct) return; window.open(`ht
 window.copyShareLink = function() { const url = window.location.href; navigator.clipboard.writeText(url).then(() => { showToast('✅ Link copied!', 'success'); closeShareModal(); }).catch(() => { const textArea = document.createElement('textarea'); textArea.value = url; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); showToast('✅ Link copied!', 'success'); closeShareModal(); }); };
 
 // ============================================================
-// 17. التصفية والبحث
+// 18. التصفية والبحث
 // ============================================================
 
 window.filterProducts = function(filter) {
@@ -1214,7 +1239,7 @@ function closeSearchResults() { searchResults.classList.remove('active'); search
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeSearchResults(); closeUserMenuFull(); closeCartFull(); closeWishlistFull(); closeProfileFull(); closeHistoryFull(); } });
 
 // ============================================================
-// 18. الدفع (مع إصلاح أسعار العملات ومنع Anonymous)
+// 19. الدفع
 // ============================================================
 
 async function fetchCryptoPrices() {
@@ -1363,7 +1388,7 @@ function renderPaymentProducts() {
 }
 
 // ============================================================
-// 19. إرسال الطلب (مع منع التكرار وإشعارات للأدمن والمستخدم)
+// 20. إرسال الطلب (مع منع التكرار وإشعارات للأدمن والمستخدم)
 // ============================================================
 
 async function sendOrderToTelegram(method, txHash = null) {
@@ -1534,7 +1559,7 @@ window.closePaymentModal = function() { document.getElementById('paymentModal').
 window.checkout = function() { openPaymentModal(); };
 
 // ============================================================
-// 20. دوال تيليجرام
+// 21. دوال تيليجرام
 // ============================================================
 
 async function sendTelegramNotification(chatId, message) {
@@ -1638,7 +1663,7 @@ window.checkTelegramStatus = async function() {
 };
 
 // ============================================================
-// 21. التحميلات والإشعارات
+// 22. التحميلات والإشعارات
 // ============================================================
 
 function loadDownloads() {
@@ -1823,7 +1848,7 @@ window.openCreateNotificationModal = function() { if (!currentUser || currentUse
 window.closeCreateNotificationModal = function() { document.getElementById('createNotificationModal').classList.remove('open'); };
 
 // ============================================================
-// 22. الطلبات والإحالات
+// 23. الطلبات والإحالات
 // ============================================================
 
 window.openRequestsModal = function() {
@@ -1897,7 +1922,7 @@ window.copyReferralCode2 = function() {
 };
 
 // ============================================================
-// 23. لوحة المدير (مع زر تحديث)
+// 24. لوحة المدير (مع زر تحديث)
 // ============================================================
 
 window.openAdminPanel = function() {
@@ -2053,7 +2078,7 @@ window.switchAdminTab = function(tab) {
 };
 
 // ============================================================
-// 24. إدارة المنتجات (Admin Products)
+// 25. إدارة المنتجات (Admin Products)
 // ============================================================
 
 function renderAdminProducts(productsList) {
@@ -2190,7 +2215,7 @@ async function deleteProductFromFirestore(productId) {
 }
 
 // ============================================================
-// 25. الطلبات (Admin Orders) مع إشعارات الأدمن والمستخدم
+// 26. الطلبات (Admin Orders) مع إشعارات الأدمن والمستخدم
 // ============================================================
 
 function startAdminRealtimeListener() {
@@ -2300,7 +2325,7 @@ function updateAdminStats(orders) {
 }
 
 // ============================================================
-// 26. تحديث حالة الطلب مع إنشاء الترخيص عبر Edge Function
+// 27. تحديث حالة الطلب مع إنشاء الترخيص عبر Edge Function
 // ============================================================
 
 window.updateOrderStatus = async function(orderId, userId, newStatus) {
@@ -2351,7 +2376,7 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
 };
 
 // ============================================================
-// 27. دالة إرسال الترخيص عبر Edge Function create-licence
+// 28. دالة إرسال الترخيص عبر Edge Function create-licence (بدون Authorization)
 // ============================================================
 
 async function sendLicenceForOrder(orderId, userId) {
@@ -2418,7 +2443,8 @@ async function sendLicenceForOrder(orderId, userId) {
         await sendTelegramNotification(TELEGRAM_CHAT_ID, `❌ Failed to create licence for order #${orderId.slice(-6)}: ${error.message}`);
         throw error;
     }
-            }
+}
+
 window.deleteOrderImmediately = async function(orderId, userId) {
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!orderId || !userId) { showToast('❌ Invalid data', 'error'); return; }
@@ -2452,7 +2478,7 @@ window.clearAdminSearch = function() { document.getElementById('adminSearchInput
 window.refreshAdminOrders = function() { loadAdminOrders(); showToast('🔄 Refreshed', 'info'); };
 
 // ============================================================
-// 28. المستخدمين (Admin Users)
+// 29. المستخدمين (Admin Users)
 // ============================================================
 
 async function loadAdminUsers() {
@@ -2549,7 +2575,7 @@ window.viewUserDetails = async function(uid) {
 window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
 // ============================================================
-// 29. تاريخ الطلبات (مع زر تحديث)
+// 30. تاريخ الطلبات (مع زر تحديث)
 // ============================================================
 
 window.clearOrderHistory = async function() {
@@ -2637,7 +2663,7 @@ window.filterOrders = function(filter) {
 };
 
 // ============================================================
-// 30. نظام إدارة التراخيص (مع Supabase Edge Functions)
+// 31. نظام إدارة التراخيص (مع Supabase Edge Functions)
 // ============================================================
 
 // تحميل التراخيص من Supabase (للقراءة فقط)
@@ -2646,6 +2672,11 @@ async function loadLicences() {
         const container = document.getElementById('adminLicencesList');
         if (!container) return;
         container.innerHTML = `<div style="text-align:center;padding:30px;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
+
+        // ✅ التحقق من وجود supabase
+        if (typeof supabase === 'undefined') {
+            throw new Error('supabase is not defined');
+        }
 
         const { data, error } = await supabase
             .from('licenses')
@@ -2664,6 +2695,7 @@ async function loadLicences() {
     }
 }
 
+// عرض التراخيص في لوحة الأدمن (مع زر نسخ)
 function renderLicences(licences) {
     const container = document.getElementById('adminLicencesList');
     if (!container) return;
@@ -2689,6 +2721,7 @@ function renderLicences(licences) {
                 <div class="item-info">
                     <div class="item-title" style="font-family:monospace;font-size:14px;">
                         ${l.code}
+                        <button onclick="copyLicenceCode('${l.code}')" style="background:none;border:none;color:var(--primary);cursor:pointer;font-size:13px;padding:2px 6px;margin-left:4px;" title="Copy code"><i class="fas fa-copy"></i></button>
                         <span style="font-size:11px;font-weight:400;opacity:0.5;margin-left:6px;">${l.script_name || 'Unknown'}</span>
                         ${l.script_id ? `<span style="font-size:10px;opacity:0.3;margin-left:4px;">📎 ${l.script_id}</span>` : ''}
                     </div>
@@ -2740,8 +2773,7 @@ async function createLicenceManually() {
         const response = await fetch(`${SUPABASE_URL}/functions/v1/create-licence`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 productName: productName,
@@ -2944,13 +2976,27 @@ async function deleteLicence(licenceId) {
     }
 }
 
+// ✅ دالة تعديل الترخيص (تفتح مودال التحرير)
 function editLicence(licenceId) {
     const licence = allLicences.find(l => l.id === licenceId);
-    if (!licence) { showToast('❌ Licence not found', 'error'); return; }
+    if (!licence) {
+        showToast('❌ Licence not found', 'error');
+        return;
+    }
     document.getElementById('editLicenceId').value = licenceId;
     document.getElementById('editLicenceCode').value = licence.code || '';
     document.getElementById('editLicenceScript').value = licence.script_name || '';
-    document.getElementById('editLicenceExpiry').value = licence.expiry_date ? licence.expiry_date.slice(0, 16) : '';
+    if (licence.expiry_date) {
+        const date = new Date(licence.expiry_date);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        document.getElementById('editLicenceExpiry').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+    } else {
+        document.getElementById('editLicenceExpiry').value = '';
+    }
     document.getElementById('editLicenceStatus').value = licence.status || 'active';
     document.getElementById('editLicenceModal').classList.add('open');
 }
@@ -3020,7 +3066,7 @@ function clearLicenceSearch() {
 
 function refreshLicences() { loadLicences(); showToast('🔄 Refreshed', 'info'); }
 
-// عرض تراخيص المستخدم
+// عرض تراخيص المستخدم (مع زر نسخ)
 function renderUserLicences() {
     const container = document.getElementById('userLicencesList');
     if (!container) return;
@@ -3045,7 +3091,10 @@ function renderUserLicences() {
                     <div style="font-size:12px;font-weight:600;color:var(--text);">${l.scriptName}</div>
                     <div style="font-size:10px;color:var(--text-secondary);opacity:0.5;">${isExpired ? '⛔ Expired' : '✅ Active until ' + new Date(l.expiryDate).toLocaleDateString()}</div>
                 </div>
-                <span style="font-size:10px;font-family:monospace;opacity:0.3;">${l.code.slice(-6)}</span>
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <span style="font-size:10px;font-family:monospace;opacity:0.3;">${l.code.slice(-6)}</span>
+                    <button onclick="copyLicenceCode('${l.code}')" style="background:none;border:none;color:var(--primary);cursor:pointer;font-size:14px;padding:2px 6px;" title="Copy full code"><i class="fas fa-copy"></i></button>
+                </div>
             </div>
         `;
     }).join('');
@@ -3166,7 +3215,7 @@ async function activateLicence() {
 }
 
 // ============================================================
-// 31. Banner تيليجرام و Social Proof
+// 32. Banner تيليجرام و Social Proof
 // ============================================================
 
 function showTelegramBanner() {
@@ -3240,7 +3289,7 @@ function startSocialProof() {}
 function triggerSocialProofOnOrder(userName, productNames) {}
 
 // ============================================================
-// 32. دوال السلايدر (Slider)
+// 33. دوال السلايدر (Slider) - مع دالة editSlide
 // ============================================================
 
 async function loadSliderSettings() {
@@ -3420,6 +3469,9 @@ window.openAddSlideModal = function() {
     const preview = document.getElementById('slideImagePreview');
     if (preview) preview.style.display = 'none';
     toggleSlideLinkFields();
+    document.querySelector('#addSlideModal .modal-title').textContent = '➕ Add Slide';
+    document.querySelector('#addSlideForm button[type="submit"]').textContent = '➕ Add Slide';
+    delete document.getElementById('addSlideForm').dataset.editIndex;
 };
 
 window.closeAddSlideModal = function() {
@@ -3466,14 +3518,61 @@ document.getElementById('addSlideForm')?.addEventListener('submit', async functi
         customUrl,
         createdAt: new Date().toISOString()
     };
-    sliderSlides.push(newSlide);
+    
+    // ✅ التحقق من التعديل أو الإضافة
+    const editIndex = document.getElementById('addSlideForm').dataset.editIndex;
+    if (editIndex !== undefined && editIndex !== '') {
+        // تعديل السلايدر الموجود
+        sliderSlides[parseInt(editIndex)] = newSlide;
+        delete document.getElementById('addSlideForm').dataset.editIndex;
+        showToast('✅ Slide updated successfully!', 'success');
+    } else {
+        // إضافة سلايدر جديد
+        sliderSlides.push(newSlide);
+        showToast('✅ Slide added successfully!', 'success');
+    }
+    
     await saveSliderData();
     renderSlider();
     renderSliderSettingsUI();
     resetSliderTimer();
     window.closeAddSlideModal();
-    showToast('✅ Slide added successfully!', 'success');
 });
+
+// ✅ دالة تعديل السلايدر (تفتح مودال التعديل مع تعبئة البيانات)
+function editSlide(index) {
+    const slide = sliderSlides[index];
+    if (!slide) {
+        showToast('❌ Slide not found', 'error');
+        return;
+    }
+    const modal = document.getElementById('addSlideModal');
+    if (!modal) {
+        showToast('❌ Modal not found', 'error');
+        return;
+    }
+    // تعبئة الحقول
+    document.getElementById('slideTitle').value = slide.title || '';
+    document.getElementById('slideSubtitle').value = slide.subtitle || '';
+    document.getElementById('slideButtonText').value = slide.buttonText || 'Buy Now';
+    document.getElementById('slideLinkType').value = slide.linkType || 'product';
+    toggleSlideLinkFields();
+    if (slide.linkType === 'product') {
+        document.getElementById('slideProductSelect').value = slide.productId || '';
+    } else if (slide.linkType === 'download') {
+        document.getElementById('slideDownloadUrl').value = slide.downloadUrl || '';
+    } else if (slide.linkType === 'url') {
+        document.getElementById('slideCustomUrl').value = slide.customUrl || '';
+    }
+    // حفظ رقم الفهرس
+    document.getElementById('addSlideForm').dataset.editIndex = index;
+    // تغيير عنوان المودال
+    document.querySelector('#addSlideModal .modal-title').textContent = '✏️ Edit Slide';
+    document.querySelector('#addSlideForm button[type="submit"]').textContent = '💾 Update Slide';
+    // فتح المودال
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
 
 async function deleteSlide(index) {
     if (!confirm('Delete this slide?')) return;
@@ -3484,8 +3583,6 @@ async function deleteSlide(index) {
     resetSliderTimer();
     showToast('🗑️ Slide deleted', 'success');
 }
-
-function editSlide(index) { showToast('✏️ Edit feature coming soon', 'info'); }
 
 async function saveSliderData() {
     try {
@@ -3556,7 +3653,7 @@ window.deleteSlide = deleteSlide;
 window.editSlide = editSlide;
 
 // ============================================================
-// 33. PDF Generator
+// 34. PDF Generator
 // ============================================================
 
 async function generateInvoice(orderData) {
@@ -3629,7 +3726,7 @@ async function generateInvoice(orderData) {
 }
 
 // ============================================================
-// 34. إحصائيات المدير
+// 35. إحصائيات المدير
 // ============================================================
 
 async function loadDashboardStats() {
@@ -3698,7 +3795,7 @@ async function loadAuditLogs() {
 window.loadAuditLogs = loadAuditLogs;
 
 // ============================================================
-// 35. التقييمات (Ratings)
+// 36. التقييمات (Ratings)
 // ============================================================
 
 let currentRating = 0;
@@ -3780,7 +3877,7 @@ function renderRatingSection(productId) {
 async function updateProductRatingDisplay(productId) { const ratingsRef = collection(db, 'ratings'); const q = query(ratingsRef, where('productId', '==', productId)); const snapshot = await getDocs(q); let total = 0; let count = 0; snapshot.forEach(doc => { total += doc.data().rating || 0; count++; }); const avg = count > 0 ? total / count : 0; }
 
 // ============================================================
-// 36. توجيه الاتجاه
+// 37. توجيه الاتجاه
 // ============================================================
 
 function fixDirection() {
@@ -3792,7 +3889,7 @@ function fixDirection() {
 document.addEventListener('DOMContentLoaded', function() { setTimeout(fixDirection, 100); setTimeout(showTelegramBanner, 500); });
 
 // ============================================================
-// 37. رفع الصور إلى Cloudinary
+// 38. رفع الصور إلى Cloudinary
 // ============================================================
 
 const CLOUDINARY_CLOUD_NAME = 'y14bgb5s';
@@ -3821,7 +3918,7 @@ async function uploadToCloudinary(file) {
 }
 
 // ============================================================
-// 38. حالة المصادقة
+// 39. حالة المصادقة
 // ============================================================
 
 onAuthStateChanged(auth, async (user) => {
@@ -3862,7 +3959,7 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// 39. التهيئة (Init) - Anonymous معطل تماماً
+// 40. التهيئة (Init) - Anonymous معطل تماماً
 // ============================================================
 
 async function init() {
@@ -3897,7 +3994,7 @@ init();
 setTimeout(() => { hideLoadingScreen(); console.log('⚠️ Force hiding loading screen (timeout)'); }, 5000);
 
 // ============================================================
-// 40. التصديرات النهائية
+// 41. التصديرات النهائية
 // ============================================================
 
 window.showToast = showToast;
@@ -3989,7 +4086,7 @@ window.refreshDashboardStats = refreshDashboardStats;
 window.loadDashboardStats = loadDashboardStats;
 window.selectVipPlan = selectVipPlan;
 window.addVipPlanToCart = addVipPlanToCart;
-window.exportOrders = function() { showToast('📊 CSV export coming soon', 'info'); };
+window.exportOrders = exportOrders;
 window.refreshAdvancedStats = refreshAdvancedStats;
 window.setRating = setRating;
 window.submitRating = submitRating;
@@ -4032,6 +4129,7 @@ window.updateSlideProductSelect = updateSlideProductSelect;
 window.addBannerAdminControls = addBannerAdminControls;
 window.showTelegramBanner = showTelegramBanner;
 window.showTelegramBannerAgain = showTelegramBannerAgain;
+window.copyLicenceCode = copyLicenceCode;
 
 // ============================================================
 // END OF SCRIPT.JS
