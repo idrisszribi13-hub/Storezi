@@ -4129,6 +4129,32 @@ window.addBannerAdminControls = addBannerAdminControls;
 window.showTelegramBanner = showTelegramBanner;
 window.showTelegramBannerAgain = showTelegramBannerAgain;
 window.copyLicenceCode = copyLicenceCode;
+// ============================================================
+// تصدير الدوال المستخدمة في HTML (onclick)
+// ============================================================
+
+window.toggleLicencesList = toggleLicencesList;
+window.openLicenceModal = openLicenceModal;
+window.closeLicenceModal = closeLicenceModal;
+window.activateLicence = activateLicence;
+window.copyLicenceCode = copyLicenceCode;
+window.editLicence = editLicence;
+window.saveLicenceEdit = saveLicenceEdit;
+window.approveLicence = approveLicence;
+window.revokeLicence = revokeLicence;
+window.deleteLicence = deleteLicence;
+window.openCreateLicenceModal = openCreateLicenceModal;
+window.closeCreateLicenceModal = closeCreateLicenceModal;
+window.createLicenceManually = createLicenceManually;
+window.searchLicences = searchLicences;
+window.clearLicenceSearch = clearLicenceSearch;
+window.refreshLicences = refreshLicences;
+window.editSlide = editSlide;
+window.deleteSlide = deleteSlide;
+window.saveSliderInterval = saveSliderInterval;
+window.openAddSlideModal = openAddSlideModal;
+window.closeAddSlideModal = closeAddSlideModal;
+window.exportOrders = exportOrders;
 
 // ============================================================
 // END OF SCRIPT.JS
