@@ -1,6 +1,7 @@
 // ============================================================
 // SCRIPT.JS - ZI Store النسخة النهائية المستقرة
-// مع إصلاح نهائي لمشكلة صلاحيات المستخدمين
+// مع دعم مجموعة admins في Firestore للتحقق من صلاحيات الأدمن
+// وإصلاح شامل لمشاكل الصلاحيات
 // ============================================================
 
 import { initializeApp } from "firebase/app";
@@ -30,7 +31,7 @@ const db = getFirestore(app);
 const analytics = getAnalytics(app);
 
 // ============================================================
-// شاشة التحميل
+// 4. شاشة التحميل
 // ============================================================
 
 const loadingMessages = [
@@ -83,10 +84,9 @@ function updateLoadingBar(percent) {
 }
 
 // ============================================================
-// الثوابت والمتغيرات العامة
+// 5. الثوابت والمتغيرات العامة
 // ============================================================
 
-const ADMIN_EMAIL = 'zribiidriss3@gmail.com';
 const TELEGRAM_BOT_TOKEN = '8687744794:AAGeeNrEU-iQLRmg3dLvYkWHddtYo_sJ1tc';
 const TELEGRAM_CHAT_ID = '7434396478';
 const BOT_USERNAME = 'Zistore_Notif_bot';
@@ -119,6 +119,9 @@ let ordersFilter = 'all';
 let _selectedVipPlan = '1m';
 let allLicences = [];
 let isProcessingOrder = false;
+
+let isAdminCached = false;
+let adminCheckPromise = null;
 
 let featuredProducts = [];
 let featuredRotationInterval = null;
@@ -175,7 +178,7 @@ const paymentWallets = {
 let cryptoPrices = { ltc: 0, usdt: 1, lastUpdate: null, isUpdating: false };
 
 // ============================================================
-// دوال مساعدة
+// 6. دوال مساعدة
 // ============================================================
 
 async function checkUserBanned(uid) {
@@ -194,7 +197,36 @@ async function checkUserBanned(uid) {
 }
 
 // ============================================================
-// Toast
+// 7. دالة التحقق من الأدمن (من Firestore)
+// ============================================================
+
+async function checkIsAdmin() {
+    if (!currentUser) return false;
+    // إذا كانت النتيجة مخزنة مسبقاً ولم يتغير المستخدم
+    if (isAdminCached !== undefined && isAdminCached !== null && adminCheckPromise) {
+        // نعيد النتيجة المخزنة
+        return isAdminCached;
+    }
+    try {
+        const adminRef = doc(db, 'admins', currentUser.email);
+        const adminSnap = await getDoc(adminRef);
+        const isAdmin = adminSnap.exists() && adminSnap.data().isAdmin === true;
+        isAdminCached = isAdmin;
+        return isAdmin;
+    } catch (error) {
+        console.error('Error checking admin status:', error);
+        return false;
+    }
+}
+
+// دالة لتحديث حالة الأدمن بشكل متزامن (تُستدعى عند تسجيل الدخول)
+async function refreshAdminStatus() {
+    isAdminCached = await checkIsAdmin();
+    return isAdminCached;
+}
+
+// ============================================================
+// 8. Toast
 // ============================================================
 
 function showToast(message, type = 'success') {
@@ -214,7 +246,7 @@ function showToast(message, type = 'success') {
 window.hideToast = function() { document.getElementById('toast')?.classList.remove('show'); };
 
 // ============================================================
-// دوال المستخدم (Firestore) - مع إصلاح الصلاحيات
+// 9. دوال المستخدم (Firestore) - مع دعم localStorage
 // ============================================================
 
 function loadFromLocalStorage() {
@@ -318,12 +350,13 @@ function startUserRealtimeListener() {
             updateFullUserMenu();
             renderUserLicences();
             
-            // ✅ فقط الأدمن يقوم بتحميل بيانات المستخدمين والطلبات
-            if (currentUser && currentUser.email === ADMIN_EMAIL) {
-                loadAdminOrders();
-                loadLicences();
-                // ❌ لا نستدعي loadAdminUsers هنا، بل نتركها لـ openAdminPanel
-            }
+            // فقط إذا كان المستخدم أدمن (يُتحقق من Firestore)
+            checkIsAdmin().then(isAdmin => {
+                if (isAdmin) {
+                    loadAdminOrders();
+                    loadLicences();
+                }
+            });
         }
     }, (error) => {
         console.error('Error in user realtime listener:', error);
@@ -381,8 +414,9 @@ async function loadUserData() {
             updateNotificationBadge();
             updateFullUserMenu();
             renderUserLicences();
-            // ✅ فقط الأدمن يقوم بتحميل بيانات المستخدمين والطلبات
-            if (currentUser && currentUser.email === ADMIN_EMAIL) {
+            
+            const isAdmin = await checkIsAdmin();
+            if (isAdmin) {
                 loadAdminOrders();
                 loadLicences();
             }
@@ -461,7 +495,7 @@ function generateReferralCode(name, email) {
 }
 
 // ============================================================
-// دالة نسخ كود الترخيص
+// 10. دالة نسخ كود الترخيص
 // ============================================================
 
 function copyLicenceCode(code) {
@@ -480,7 +514,7 @@ function copyLicenceCode(code) {
 }
 
 // ============================================================
-// تحديثات الواجهة الأساسية
+// 11. تحديثات الواجهة الأساسية
 // ============================================================
 
 function updateDropdownStats() {
@@ -501,7 +535,7 @@ function updateUI() {
     const dot = document.getElementById('userDot');
     if (dot) {
         if (currentUser) {
-            if (pendingCount > 0 && currentUser.email === ADMIN_EMAIL) { dot.className = 'user-dot notification-dot'; } else { dot.className = 'user-dot'; }
+            if (pendingCount > 0 && isAdminCached) { dot.className = 'user-dot notification-dot'; } else { dot.className = 'user-dot'; }
         } else { dot.className = 'user-dot guest'; }
     }
     updateDropdownStats();
@@ -533,7 +567,7 @@ function updateFullUserMenu() {
         if (totalBadge > 0) { orderBadge.style.display = 'inline-block'; orderBadge.textContent = totalBadge; } else { orderBadge.style.display = 'none'; }
         if (unreadNotifications > 0) { notifBadge.style.display = 'inline-block'; notifBadge.textContent = unreadNotifications; } else { notifBadge.style.display = 'none'; }
         const adminMenuItem = document.getElementById('adminMenuItem');
-        if (currentUser.email === ADMIN_EMAIL) { adminMenuItem.style.display = 'flex'; if (pendingCount > 0) { adminBadge.style.display = 'inline-block'; adminBadge.textContent = pendingCount; } else { adminBadge.style.display = 'none'; } } else { adminMenuItem.style.display = 'none'; }
+        if (isAdminCached) { adminMenuItem.style.display = 'flex'; if (pendingCount > 0) { adminBadge.style.display = 'inline-block'; adminBadge.textContent = pendingCount; } else { adminBadge.style.display = 'none'; } } else { adminMenuItem.style.display = 'none'; }
         if (licencesBadge) {
             const activeLicences = (userProfile.licences || []).filter(l => new Date(l.expiryDate) > new Date()).length;
             if (activeLicences > 0) { licencesBadge.style.display = 'inline-block'; licencesBadge.textContent = activeLicences; } else { licencesBadge.style.display = 'none'; }
@@ -547,7 +581,7 @@ function updateFullUserMenu() {
 }
 
 // ============================================================
-// دوال المصادقة
+// 12. دوال المصادقة
 // ============================================================
 
 window.showLogin = function() { document.getElementById('loginContainer').style.display = 'block'; document.getElementById('registerContainer').style.display = 'none'; };
@@ -569,12 +603,14 @@ window.loginUser = async function() {
         successEl.textContent = '✅ Login successful!';
         showToast('👋 Welcome back!', 'success');
         btn.classList.remove('loading');
+        // تحديث حالة الأدمن
+        await refreshAdminStatus();
         setTimeout(() => {
             document.getElementById('authSection').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
             loadUserData();
             updateDropdownStats();
-            if (currentUser.email === ADMIN_EMAIL) { 
+            if (isAdminCached) { 
                 loadAdminOrders(); 
                 startAdminRealtimeListener(); 
                 loadLicences(); 
@@ -619,6 +655,8 @@ window.registerUser = async function() {
         successEl.textContent = '✅ Registration successful!';
         showToast(`🎉 Welcome, ${name}!`, 'success');
         btn.classList.remove('loading');
+        // تحديث حالة الأدمن
+        await refreshAdminStatus();
         setTimeout(() => {
             document.getElementById('authSection').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
@@ -633,6 +671,7 @@ window.logoutUser = async function() {
     try {
         await signOut(auth);
         currentUser = null;
+        isAdminCached = false;
         activeDiscount = 0; activeDiscountCode = '';
         document.getElementById('adminPanel').classList.remove('open');
         closeUserMenuFull();
@@ -658,7 +697,7 @@ window.sendForgotPassword = async function() {
 };
 
 // ============================================================
-// المودالات العامة
+// 13. المودالات العامة
 // ============================================================
 
 window.openUserMenuFull = function() { if (!currentUser) { openAuthModal(); return; } document.getElementById('userMenuFull').classList.add('open'); updateFullUserMenu(); document.body.style.overflow = 'hidden'; };
@@ -678,7 +717,7 @@ window.closeNotifications = function() { document.getElementById('notificationsM
 function openAuthModal() { document.getElementById('authSection').scrollIntoView({ behavior: 'smooth' }); }
 
 // ============================================================
-// عرض الملف الشخصي
+// 14. عرض الملف الشخصي (مختصر)
 // ============================================================
 
 function renderProfileFull() {
@@ -783,7 +822,7 @@ window.sendResetLinkInline = async function() { if (!currentUser) return; try { 
 window.changePasswordInline = async function() { if (!currentUser) return; const currentPwd = document.getElementById('currentPasswordInline').value; const newPwd = document.getElementById('newPasswordInline').value; const confirmPwd = document.getElementById('confirmNewPasswordInline').value; const errorEl = document.getElementById('passwordErrorInline'); const successEl = document.getElementById('passwordSuccessInline'); errorEl.textContent = ''; successEl.textContent = ''; if (!currentPwd || !newPwd || !confirmPwd) { errorEl.textContent = 'Please fill all fields'; return; } if (newPwd.length < 6) { errorEl.textContent = 'New password must be at least 6 characters'; return; } if (newPwd !== confirmPwd) { errorEl.textContent = 'Passwords do not match'; return; } try { const credential = EmailAuthProvider.credential(currentUser.email, currentPwd); await reauthenticateWithCredential(currentUser, credential); await updatePassword(currentUser, newPwd); successEl.textContent = '✅ Password changed successfully!'; showToast('✅ Password updated!', 'success'); document.getElementById('currentPasswordInline').value = ''; document.getElementById('newPasswordInline').value = ''; document.getElementById('confirmNewPasswordInline').value = ''; setTimeout(() => { successEl.textContent = ''; }, 3000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); } };
 
 // ============================================================
-// المنتجات
+// 15. المنتجات
 // ============================================================
 
 async function loadProductsFromFirestore() {
@@ -911,7 +950,7 @@ function generateRecommendations(productsList) {
 }
 
 // ============================================================
-// المنتجات المميزة و السلة والمفضلة
+// 16. المنتجات المميزة و السلة والمفضلة (مختصرة)
 // ============================================================
 
 function renderFeaturedProducts() {
@@ -1158,7 +1197,7 @@ function createFloatingHearts() {
 }
 
 // ============================================================
-// عرض المنتج (Preview)
+// 17. عرض المنتج (Preview)
 // ============================================================
 
 window.openDetails = function(id) {
@@ -1293,7 +1332,7 @@ window.addToCartFromPreview = function() { if (window._currentProduct) { window.
 window.shareFromPreview = function() { if (window._currentProduct) { window.openShareModal(window._currentProduct.id); } };
 
 // ============================================================
-// مودال المشاركة
+// 18. مودال المشاركة
 // ============================================================
 
 window.openShareModal = function(productId) {
@@ -1310,7 +1349,7 @@ window.shareToFacebook = function() { if (!shareProduct) return; window.open(`ht
 window.copyShareLink = function() { const url = window.location.href; navigator.clipboard.writeText(url).then(() => { showToast('✅ Link copied!', 'success'); closeShareModal(); }).catch(() => { const textArea = document.createElement('textarea'); textArea.value = url; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); showToast('✅ Link copied!', 'success'); closeShareModal(); }); };
 
 // ============================================================
-// التصفية والبحث
+// 19. التصفية والبحث
 // ============================================================
 
 window.filterProducts = function(filter) {
@@ -1367,7 +1406,7 @@ function closeSearchResults() { searchResults.classList.remove('active'); search
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeSearchResults(); closeUserMenuFull(); closeCartFull(); closeWishlistFull(); closeProfileFull(); closeHistoryFull(); } });
 
 // ============================================================
-// الدفع
+// 20. الدفع
 // ============================================================
 
 async function fetchCryptoPrices() {
@@ -1516,7 +1555,7 @@ function renderPaymentProducts() {
 }
 
 // ============================================================
-// إرسال الطلب (مع منع التكرار)
+// 21. إرسال الطلب (مع منع التكرار)
 // ============================================================
 
 async function sendOrderToTelegram(method, txHash = null) {
@@ -1631,7 +1670,7 @@ async function sendOrderToTelegram(method, txHash = null) {
         showToast('📤 Order placed!', 'success');
 
         setTimeout(() => {
-            if (currentUser && currentUser.email === ADMIN_EMAIL) { loadAdminOrders(); }
+            if (currentUser && isAdminCached) { loadAdminOrders(); }
             loadUserData();
             updateDropdownStats();
             updateFullUserMenu();
@@ -1685,7 +1724,7 @@ window.closePaymentModal = function() { document.getElementById('paymentModal').
 window.checkout = function() { openPaymentModal(); };
 
 // ============================================================
-// دوال تيليجرام
+// 22. دوال تيليجرام
 // ============================================================
 
 async function sendTelegramNotification(chatId, message) {
@@ -1789,7 +1828,7 @@ window.checkTelegramStatus = async function() {
 };
 
 // ============================================================
-// التحميلات والإشعارات
+// 23. التحميلات والإشعارات (مختصرة)
 // ============================================================
 
 function loadDownloads() {
@@ -1822,7 +1861,7 @@ function renderAdminDownloads() {
 
 window.createDownload = async function(e) {
     e.preventDefault();
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     const title = document.getElementById('dlTitle').value.trim();
     const type = document.getElementById('dlType').value.trim();
     const description = document.getElementById('dlDescription').value.trim();
@@ -1837,12 +1876,12 @@ window.createDownload = async function(e) {
     } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
 };
 window.deleteDownload = async function(id) {
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!confirm('Delete this download?')) return;
     try { await deleteDoc(doc(db, 'downloads', id)); showToast('🗑️ Download deleted', 'success'); } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
 };
 window.editDownload = function(id) { showToast('✏️ Edit feature coming soon', 'info'); };
-window.openCreateDownloadModal = function() { if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; } document.getElementById('createDownloadModal').classList.add('open'); document.getElementById('createDownloadForm').reset(); };
+window.openCreateDownloadModal = function() { if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; } document.getElementById('createDownloadModal').classList.add('open'); document.getElementById('createDownloadForm').reset(); };
 window.closeCreateDownloadModal = function() { document.getElementById('createDownloadModal').classList.remove('open'); };
 
 function loadNotifications() {
@@ -1954,7 +1993,7 @@ window.clearAllNotifications = async function() {
 };
 window.createNotification = async function(e) {
     e.preventDefault();
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     const title = document.getElementById('notifTitle').value.trim();
     const message = document.getElementById('notifMessage').value.trim();
     if (!title || !message) { showToast('⚠️ Please fill all fields', 'warning'); return; }
@@ -1966,15 +2005,15 @@ window.createNotification = async function(e) {
     } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
 };
 window.deleteNotification = async function(id) {
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!confirm('Delete this notification?')) return;
     try { await deleteDoc(doc(db, 'notifications', id)); showToast('🗑️ Notification deleted', 'success'); } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
 };
-window.openCreateNotificationModal = function() { if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; } document.getElementById('createNotificationModal').classList.add('open'); document.getElementById('createNotificationForm').reset(); };
+window.openCreateNotificationModal = function() { if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; } document.getElementById('createNotificationModal').classList.add('open'); document.getElementById('createNotificationForm').reset(); };
 window.closeCreateNotificationModal = function() { document.getElementById('createNotificationModal').classList.remove('open'); };
 
 // ============================================================
-// الطلبات والإحالات
+// 24. الطلبات والإحالات
 // ============================================================
 
 window.openRequestsModal = function() {
@@ -2048,11 +2087,11 @@ window.copyReferralCode2 = function() {
 };
 
 // ============================================================
-// لوحة المدير
+// 25. لوحة المدير
 // ============================================================
 
 window.openAdminPanel = function() {
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized. Admin only.', 'error'); return; }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized. Admin only.', 'error'); return; }
     const panel = document.getElementById('adminPanel');
     if (panel.classList.contains('open')) { panel.classList.remove('open'); } else {
         panel.classList.add('open');
@@ -2062,7 +2101,7 @@ window.openAdminPanel = function() {
         loadDownloads();
         loadNotifications();
         renderAdminProducts(products);
-        loadAdminUsers(); // ✅ الآن هذه الدالة محمية بشرط الأدمن
+        loadAdminUsers();
         loadLicences();
         loadDashboardStats();
         setTimeout(addBannerAdminControls, 300);
@@ -2239,7 +2278,7 @@ window.switchAdminTab = function(tab) {
 };
 
 // ============================================================
-// إدارة المنتجات (Admin Products)
+// 26. إدارة المنتجات (Admin Products)
 // ============================================================
 
 function renderAdminProducts(productsList) {
@@ -2254,7 +2293,7 @@ function renderAdminProducts(productsList) {
 }
 
 window.openEditProductModal = function(productId) {
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     const product = products.find(p => p.id === productId);
     if (!product) { showToast('❌ Product not found', 'error'); return; }
     document.getElementById('productFormTitle').textContent = '✏️ Edit Product: ' + product.name;
@@ -2295,7 +2334,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 window.openAddProductModal = function() {
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     document.getElementById('productFormTitle').textContent = '➕ Add New Product';
     document.getElementById('productForm').reset();
     document.getElementById('productIdField').value = '';
@@ -2315,7 +2354,7 @@ window.closeProductModal = function() { document.getElementById('productModal').
 
 window.saveProduct = async function(event) {
     event.preventDefault();
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     const productId = document.getElementById('productIdField').value;
     const name = document.getElementById('productName').value.trim();
     const price = parseFloat(document.getElementById('productPrice').value) || 0;
@@ -2361,7 +2400,7 @@ window.saveProduct = async function(event) {
 };
 
 window.deleteProduct = async function(productId) {
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!confirm('Delete this product?')) return;
     try { await deleteProductFromFirestore(productId); showToast('🗑️ Product deleted', 'success'); } catch (error) { console.error('Delete product error:', error); showToast('❌ Error: ' + error.message, 'error'); }
 };
@@ -2376,12 +2415,12 @@ async function deleteProductFromFirestore(productId) {
 }
 
 // ============================================================
-// الطلبات (Admin Orders)
+// 27. الطلبات (Admin Orders)
 // ============================================================
 
 function startAdminRealtimeListener() {
     if (unsubscribeAdmin) { unsubscribeAdmin(); }
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
+    if (!currentUser || !isAdminCached) {
         console.log('ℹ️ Admin listener skipped (not admin)');
         return;
     }
@@ -2423,7 +2462,7 @@ function startAdminRealtimeListener() {
 }
 
 function loadAdminOrders() {
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
+    if (!currentUser || !isAdminCached) {
         console.log('ℹ️ loadAdminOrders skipped (not admin)');
         return;
     }
@@ -2507,11 +2546,11 @@ function updateAdminStats(orders) {
 }
 
 // ============================================================
-// تحديث حالة الطلب وإنشاء الترخيص
+// 28. تحديث حالة الطلب وإنشاء الترخيص
 // ============================================================
 
 window.updateOrderStatus = async function(orderId, userId, newStatus) {
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!orderId || !userId) { showToast('❌ Invalid data', 'error'); return; }
 
     const validStatuses = ['pending', 'confirmed', 'rejected'];
@@ -2558,7 +2597,7 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
 };
 
 // ============================================================
-// دالة إرسال الترخيص عبر Edge Function (بدون Authorization)
+// 29. دالة إرسال الترخيص عبر Edge Function (بدون Authorization)
 // ============================================================
 
 async function sendLicenceForOrder(orderId, userId) {
@@ -2627,7 +2666,7 @@ async function sendLicenceForOrder(orderId, userId) {
 }
 
 window.deleteOrderImmediately = async function(orderId, userId) {
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!orderId || !userId) { showToast('❌ Invalid data', 'error'); return; }
     try {
         const userRef = doc(db, 'users', userId);
@@ -2659,12 +2698,11 @@ window.clearAdminSearch = function() { document.getElementById('adminSearchInput
 window.refreshAdminOrders = function() { loadAdminOrders(); showToast('🔄 Refreshed', 'info'); };
 
 // ============================================================
-// المستخدمين (Admin Users) - محمية بشرط الأدمن
+// 30. المستخدمين (Admin Users) - محمية بشرط الأدمن
 // ============================================================
 
 async function loadAdminUsers() {
-    // 🔥 الشرط الأهم: لا تفعل شيئاً إذا لم يكن المستخدم أدمن
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
+    if (!currentUser || !isAdminCached) {
         console.log('ℹ️ loadAdminUsers skipped (not admin)');
         return;
     }
@@ -2699,7 +2737,7 @@ function renderAdminUsers(usersList) {
     if (searchQuery) { filtered = filtered.filter(u => u.email?.toLowerCase().includes(searchQuery) || u.name?.toLowerCase().includes(searchQuery)); }
     if (filtered.length === 0) { container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">🔍 No results</div>`; return; }
     container.innerHTML = `<div style="display:flex;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:4px;"><span style="font-size:12px;color:var(--text-secondary);opacity:0.4;">${filtered.length} users</span></div><div class="admin-users-grid">${filtered.map(user=>{
-        const isAdmin = user.email === ADMIN_EMAIL;
+        const isAdmin = user.email === 'zribiidriss3@gmail.com'; // فقط للتمييز البصري
         const isBanned = user.isBanned || false;
         const orderCount = user.history?.length || 0;
         const rp = user.rp || 0;
@@ -2713,7 +2751,7 @@ window.searchAdminUsers = function() { renderAdminUsers(allUsers); };
 window.clearAdminUserSearch = function() { document.getElementById('adminUserSearchInput').value = ''; renderAdminUsers(allUsers); };
 window.refreshAdminUsers = function() { loadAdminUsers(); showToast('🔄 Users refreshed', 'info'); };
 window.toggleUserBan = async function(uid, ban) {
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     if (uid === currentUser.uid) { showToast('⚠️ You cannot ban yourself', 'warning'); return; }
     try {
         await updateDoc(doc(db, 'users', uid), { isBanned: ban });
@@ -2722,7 +2760,7 @@ window.toggleUserBan = async function(uid, ban) {
     } catch (error) { console.error('Error toggling user ban:', error); showToast('❌ Error: ' + error.message, 'error'); }
 };
 window.deleteUserAccount = async function(uid) {
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     if (uid === currentUser.uid) { showToast('⚠️ You cannot delete your own account', 'warning'); return; }
     if (!confirm('⚠️ Delete this user account permanently?')) return;
     try {
@@ -2732,7 +2770,7 @@ window.deleteUserAccount = async function(uid) {
     } catch (error) { console.error('Error deleting user:', error); showToast('❌ Error: ' + error.message, 'error'); }
 };
 window.viewUserDetails = async function(uid) {
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     try {
         const userRef = doc(db, 'users', uid);
         const userSnap = await getDoc(userRef);
@@ -2767,7 +2805,7 @@ window.viewUserDetails = async function(uid) {
 window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
 // ============================================================
-// تاريخ الطلبات (مع زر تحديث)
+// 31. تاريخ الطلبات (مع زر تحديث)
 // ============================================================
 
 window.clearOrderHistory = async function() {
@@ -2855,7 +2893,7 @@ window.filterOrders = function(filter) {
 };
 
 // ============================================================
-// نظام إدارة التراخيص (مع Supabase)
+// 32. نظام إدارة التراخيص (مع Supabase)
 // ============================================================
 
 async function loadLicences() {
@@ -3033,7 +3071,7 @@ async function updateLicenceInSupabase(licenceId, data) {
 }
 
 async function approveLicence(licenceId, code, scriptName) {
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
+    if (!currentUser || !isAdminCached) {
         showToast('⛔ Unauthorized', 'error');
         return;
     }
@@ -3084,7 +3122,7 @@ async function approveLicence(licenceId, code, scriptName) {
 }
 
 async function revokeLicence(licenceId) {
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
+    if (!currentUser || !isAdminCached) {
         showToast('⛔ Unauthorized', 'error');
         return;
     }
@@ -3123,7 +3161,7 @@ async function revokeLicence(licenceId) {
 }
 
 async function deleteLicence(licenceId) {
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
+    if (!currentUser || !isAdminCached) {
         showToast('⛔ Unauthorized', 'error');
         return;
     }
@@ -3161,6 +3199,10 @@ async function deleteLicence(licenceId) {
 }
 
 async function editLicence(licenceId) {
+    if (!currentUser || !isAdminCached) {
+        showToast('⛔ Unauthorized', 'error');
+        return;
+    }
     try {
         const { data: licence, error } = await supabase
             .from('licenses')
@@ -3196,6 +3238,10 @@ async function editLicence(licenceId) {
 }
 
 async function saveLicenceEdit() {
+    if (!currentUser || !isAdminCached) {
+        showToast('⛔ Unauthorized', 'error');
+        return;
+    }
     const licenceId = document.getElementById('editLicenceId').value;
     const expiryDate = document.getElementById('editLicenceExpiry').value;
     const status = document.getElementById('editLicenceStatus').value;
@@ -3214,7 +3260,7 @@ async function saveLicenceEdit() {
 
         const licence = allLicences.find(l => l.id === licenceId);
         if (licence && currentUser) {
-            if (licence.user_id === currentUser.uid || currentUser.email === ADMIN_EMAIL) {
+            if (licence.user_id === currentUser.uid || currentUser.email === 'zribiidriss3@gmail.com') {
                 await loadUserData();
                 renderUserLicences();
                 updateFullUserMenu();
@@ -3393,7 +3439,7 @@ async function activateLicence() {
 }
 
 // ============================================================
-// Banner تيليجرام و Social Proof
+// 33. Banner تيليجرام و Social Proof
 // ============================================================
 
 function showTelegramBanner() {
@@ -3467,7 +3513,7 @@ function startSocialProof() {}
 function triggerSocialProofOnOrder(userName, productNames) {}
 
 // ============================================================
-// دوال السلايدر (Slider)
+// 34. دوال السلايدر (Slider)
 // ============================================================
 
 async function loadSliderSettings() {
@@ -3827,7 +3873,7 @@ window.deleteSlide = deleteSlide;
 window.editSlide = editSlide;
 
 // ============================================================
-// PDF Generator
+// 35. PDF Generator
 // ============================================================
 
 async function generateInvoice(orderData) {
@@ -3900,11 +3946,11 @@ async function generateInvoice(orderData) {
 }
 
 // ============================================================
-// إحصائيات المدير
+// 36. إحصائيات المدير
 // ============================================================
 
 async function loadDashboardStats() {
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
+    if (!currentUser || !isAdminCached) {
         console.log('ℹ️ loadDashboardStats skipped (not admin)');
         return;
     }
@@ -3927,7 +3973,7 @@ async function loadDashboardStats() {
 window.refreshDashboardStats = function() { loadDashboardStats(); showToast('🔄 Stats refreshed', 'info'); };
 
 async function loadAdvancedStats() {
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
+    if (!currentUser || !isAdminCached) {
         console.log('ℹ️ loadAdvancedStats skipped (not admin)');
         return;
     }
@@ -3965,7 +4011,7 @@ async function loadAdvancedStats() {
 window.refreshAdvancedStats = function() { loadAdvancedStats(); showToast('🔄 Stats refreshed', 'info'); };
 
 async function loadAuditLogs() {
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
+    if (!currentUser || !isAdminCached) {
         console.log('ℹ️ loadAuditLogs skipped (not admin)');
         return;
     }
@@ -3998,7 +4044,7 @@ async function loadAuditLogs() {
 window.loadAuditLogs = loadAuditLogs;
 
 // ============================================================
-// التقييمات (Ratings)
+// 37. التقييمات (Ratings)
 // ============================================================
 
 let currentRating = 0;
@@ -4080,7 +4126,7 @@ function renderRatingSection(productId) {
 async function updateProductRatingDisplay(productId) { const ratingsRef = collection(db, 'ratings'); const q = query(ratingsRef, where('productId', '==', productId)); const snapshot = await getDocs(q); let total = 0; let count = 0; snapshot.forEach(doc => { total += doc.data().rating || 0; count++; }); const avg = count > 0 ? total / count : 0; }
 
 // ============================================================
-// توجيه الاتجاه
+// 38. توجيه الاتجاه
 // ============================================================
 
 function fixDirection() {
@@ -4092,7 +4138,7 @@ function fixDirection() {
 document.addEventListener('DOMContentLoaded', function() { setTimeout(fixDirection, 100); setTimeout(showTelegramBanner, 500); });
 
 // ============================================================
-// رفع الصور إلى Cloudinary
+// 39. رفع الصور إلى Cloudinary
 // ============================================================
 
 const CLOUDINARY_CLOUD_NAME = 'y14bgb5s';
@@ -4121,7 +4167,7 @@ async function uploadToCloudinary(file) {
 }
 
 // ============================================================
-// دوال الماركي (Marquee)
+// 40. دوال الماركي (Marquee)
 // ============================================================
 
 async function loadMarqueeSettings() {
@@ -4214,7 +4260,7 @@ window.saveMarqueeSettings = async function() {
 };
 
 // ============================================================
-// حالة المصادقة
+// 41. حالة المصادقة
 // ============================================================
 
 onAuthStateChanged(auth, async (user) => {
@@ -4228,6 +4274,7 @@ onAuthStateChanged(auth, async (user) => {
                 if (data.isBanned === true) {
                     await signOut(auth);
                     currentUser = null;
+                    isAdminCached = false;
                     document.getElementById('authSection').style.display = 'block';
                     document.getElementById('mainApp').style.display = 'none';
                     showToast('🚫 Your account has been banned.', 'error');
@@ -4235,15 +4282,16 @@ onAuthStateChanged(auth, async (user) => {
                 }
             }
         } catch (error) { console.error('Error checking ban status:', error); }
+        // تحديث حالة الأدمن
+        await refreshAdminStatus();
         document.getElementById('authSection').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
         await loadUserData();
         updateDropdownStats();
-        if (user.email === ADMIN_EMAIL) { 
+        if (isAdminCached) { 
             loadAdminOrders(); 
             startAdminRealtimeListener(); 
             renderAdminProducts(products); 
-            // loadAdminUsers سيُستدعى فقط عند فتح لوحة الأدمن
             loadLicences(); 
             setTimeout(addBannerAdminControls, 500);
         }
@@ -4252,6 +4300,7 @@ onAuthStateChanged(auth, async (user) => {
         setTimeout(showTelegramBanner, 1000);
         startSocialProof();
     } else {
+        isAdminCached = false;
         document.getElementById('authSection').style.display = 'block';
         document.getElementById('mainApp').style.display = 'none';
         await loadUserData();
@@ -4264,7 +4313,7 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// التهيئة (Init) - مع ضمان إخفاء شاشة التحميل
+// 42. التهيئة (Init) - مع ضمان إخفاء شاشة التحميل
 // ============================================================
 
 async function init() {
@@ -4304,11 +4353,11 @@ async function init() {
 }
 
 // ============================================================
-// دالة تصدير الطلبات (exportOrders)
+// 43. دالة تصدير الطلبات (exportOrders)
 // ============================================================
 
 window.exportOrders = function() {
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
+    if (!currentUser || !isAdminCached) {
         showToast('⛔ Unauthorized', 'error');
         return;
     }
@@ -4337,7 +4386,7 @@ window.exportOrders = function() {
 };
 
 // ============================================================
-// دالة إصلاح الهيدر والمودالات
+// 44. دالة إصلاح الهيدر والمودالات
 // ============================================================
 
 window.fixHeaderAndModals = function() {
@@ -4352,7 +4401,7 @@ window.fixHeaderAndModals = function() {
 };
 
 // ============================================================
-// تبديل الثيم - إصلاح نهائي
+// 45. تبديل الثيم - إصلاح نهائي
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -4377,7 +4426,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================================
-// تصدير الدوال إلى النطاق العام (window)
+// 46. تصدير الدوال إلى النطاق العام (window)
 // ============================================================
 
 window.toggleLicencesList = toggleLicencesList;
@@ -4493,7 +4542,7 @@ window.renderMarqueeSettingsUI = renderMarqueeSettingsUI;
 window.applyMarqueeSettings = applyMarqueeSettings;
 
 // ============================================================
-// بدء التطبيق
+// 47. بدء التطبيق
 // ============================================================
 
 if (document.readyState === 'loading') {
