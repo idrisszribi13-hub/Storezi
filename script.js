@@ -1,14 +1,6 @@
 // ============================================================
 // SCRIPT.JS - ZI Store النسخة النهائية الكاملة
-// مع جميع التعديلات المطلوبة:
-// - إصلاح جميع دوال التراخيص (activateLicence, openLicenceModal, toggleLicencesList)
-// - إضافة زر نسخ للتراخيص (My Licences و لوحة الأدمن)
-// - تعديل editLicence لفتح مودال التحرير
-// - تنفيذ editSlide لتعديل السلايدر
-// - تنفيذ exportOrders لتصدير CSV
-// - إزالة Authorization header من create-licence
-// - تعطيل Anonymous sign-in
-// - أزرار تحديث في لوحة الأدمن وسجل المستخدم
+// مع جميع التصحيحات والتصديرات اللازمة للـ HTML
 // ============================================================
 
 // ============================================================
@@ -664,7 +656,7 @@ window.sendResetLinkInline = async function() { if (!currentUser) return; try { 
 window.changePasswordInline = async function() { if (!currentUser) return; const currentPwd = document.getElementById('currentPasswordInline').value; const newPwd = document.getElementById('newPasswordInline').value; const confirmPwd = document.getElementById('confirmNewPasswordInline').value; const errorEl = document.getElementById('passwordErrorInline'); const successEl = document.getElementById('passwordSuccessInline'); errorEl.textContent = ''; successEl.textContent = ''; if (!currentPwd || !newPwd || !confirmPwd) { errorEl.textContent = 'Please fill all fields'; return; } if (newPwd.length < 6) { errorEl.textContent = 'New password must be at least 6 characters'; return; } if (newPwd !== confirmPwd) { errorEl.textContent = 'Passwords do not match'; return; } try { const credential = EmailAuthProvider.credential(currentUser.email, currentPwd); await reauthenticateWithCredential(currentUser, credential); await updatePassword(currentUser, newPwd); successEl.textContent = '✅ Password changed successfully!'; showToast('✅ Password updated!', 'success'); document.getElementById('currentPasswordInline').value = ''; document.getElementById('newPasswordInline').value = ''; document.getElementById('confirmNewPasswordInline').value = ''; setTimeout(() => { successEl.textContent = ''; }, 3000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); } };
 
 // ============================================================
-// 14. المنتجات
+// 14. المنتجات (ملخص - نفس الوظائف السابقة)
 // ============================================================
 
 async function loadProductsFromFirestore() {
@@ -787,7 +779,7 @@ function generateRecommendations(productsList) {
 }
 
 // ============================================================
-// 15. المنتجات المميزة و السلة والمفضلة
+// 15. المنتجات المميزة و السلة والمفضلة (ملخص)
 // ============================================================
 
 function renderFeaturedProducts() {
@@ -1181,7 +1173,7 @@ window.shareToFacebook = function() { if (!shareProduct) return; window.open(`ht
 window.copyShareLink = function() { const url = window.location.href; navigator.clipboard.writeText(url).then(() => { showToast('✅ Link copied!', 'success'); closeShareModal(); }).catch(() => { const textArea = document.createElement('textarea'); textArea.value = url; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); showToast('✅ Link copied!', 'success'); closeShareModal(); }); };
 
 // ============================================================
-// 18. التصفية والبحث
+// 18. التصفية والبحث (ملخص)
 // ============================================================
 
 window.filterProducts = function(filter) {
@@ -1238,7 +1230,7 @@ function closeSearchResults() { searchResults.classList.remove('active'); search
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeSearchResults(); closeUserMenuFull(); closeCartFull(); closeWishlistFull(); closeProfileFull(); closeHistoryFull(); } });
 
 // ============================================================
-// 19. الدفع
+// 19. الدفع (ملخص)
 // ============================================================
 
 async function fetchCryptoPrices() {
@@ -1387,7 +1379,7 @@ function renderPaymentProducts() {
 }
 
 // ============================================================
-// 20. إرسال الطلب (مع منع التكرار وإشعارات للأدمن والمستخدم)
+// 20. إرسال الطلب (مع منع التكرار)
 // ============================================================
 
 async function sendOrderToTelegram(method, txHash = null) {
@@ -1432,7 +1424,6 @@ async function sendOrderToTelegram(method, txHash = null) {
             discountText += `\n🎫 Promo (${activeDiscount}%): -${discountAmount.toFixed(2)}$`;
         }
 
-        // رسالة للأدمن
         let adminMsg = '🛒 **New Order**\n\n';
         adminMsg += `📎 **Order ID:** #${orderId.slice(-6)}\n`;
         adminMsg += `👤 **Customer:** ${currentUser.displayName || currentUser.email || 'Unknown'}\n`;
@@ -1462,7 +1453,6 @@ async function sendOrderToTelegram(method, txHash = null) {
 
         window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(adminMsg)}`, '_blank');
 
-        // حفظ الطلب في Firestore
         const orderItem = {
             id: orderId,
             items: cart.map(item => ({ id: item.id, name: item.name, price: item.price, quantity: item.quantity || 1 })),
@@ -1662,7 +1652,7 @@ window.checkTelegramStatus = async function() {
 };
 
 // ============================================================
-// 22. التحميلات والإشعارات
+// 22. التحميلات والإشعارات (ملخص)
 // ============================================================
 
 function loadDownloads() {
@@ -1847,7 +1837,7 @@ window.openCreateNotificationModal = function() { if (!currentUser || currentUse
 window.closeCreateNotificationModal = function() { document.getElementById('createNotificationModal').classList.remove('open'); };
 
 // ============================================================
-// 23. الطلبات والإحالات
+// 23. الطلبات والإحالات (ملخص)
 // ============================================================
 
 window.openRequestsModal = function() {
@@ -1921,7 +1911,7 @@ window.copyReferralCode2 = function() {
 };
 
 // ============================================================
-// 24. لوحة المدير (مع زر تحديث)
+// 24. لوحة المدير (مع أزرار تحديث)
 // ============================================================
 
 window.openAdminPanel = function() {
@@ -2054,7 +2044,6 @@ window.switchAdminTab = function(tab) {
     }
     if (tab === 'licences') { loadLicences(); }
     
-    // إضافة زر تحديث للطلبات في تبويب orders
     if (tab === 'orders') {
         loadAdminOrders();
         const refreshBtn = document.getElementById('adminRefreshOrdersBtn');
@@ -2077,7 +2066,7 @@ window.switchAdminTab = function(tab) {
 };
 
 // ============================================================
-// 25. إدارة المنتجات (Admin Products)
+// 25. إدارة المنتجات (Admin Products) - ملخص
 // ============================================================
 
 function renderAdminProducts(productsList) {
@@ -2214,7 +2203,7 @@ async function deleteProductFromFirestore(productId) {
 }
 
 // ============================================================
-// 26. الطلبات (Admin Orders) مع إشعارات الأدمن والمستخدم
+// 26. الطلبات (Admin Orders) - ملخص
 // ============================================================
 
 function startAdminRealtimeListener() {
@@ -2324,7 +2313,7 @@ function updateAdminStats(orders) {
 }
 
 // ============================================================
-// 27. تحديث حالة الطلب مع إنشاء الترخيص عبر Edge Function
+// 27. تحديث حالة الطلب وإنشاء الترخيص
 // ============================================================
 
 window.updateOrderStatus = async function(orderId, userId, newStatus) {
@@ -2375,7 +2364,7 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
 };
 
 // ============================================================
-// 28. دالة إرسال الترخيص عبر Edge Function create-licence (بدون Authorization)
+// 28. دالة إرسال الترخيص عبر Edge Function (بدون Authorization)
 // ============================================================
 
 async function sendLicenceForOrder(orderId, userId) {
@@ -2396,7 +2385,6 @@ async function sendLicenceForOrder(orderId, userId) {
 
         const productName = order.items?.[0]?.name || 'Product';
 
-        // ✅ استدعاء Edge Function بدون Authorization header
         const response = await fetch(`${SUPABASE_URL}/functions/v1/create-licence`, {
             method: 'POST',
             headers: {
@@ -2477,7 +2465,7 @@ window.clearAdminSearch = function() { document.getElementById('adminSearchInput
 window.refreshAdminOrders = function() { loadAdminOrders(); showToast('🔄 Refreshed', 'info'); };
 
 // ============================================================
-// 29. المستخدمين (Admin Users)
+// 29. المستخدمين (Admin Users) - ملخص
 // ============================================================
 
 async function loadAdminUsers() {
@@ -2662,26 +2650,21 @@ window.filterOrders = function(filter) {
 };
 
 // ============================================================
-// 31. نظام إدارة التراخيص (مع Supabase Edge Functions)
+// 31. نظام إدارة التراخيص (مع Supabase)
 // ============================================================
 
-// تحميل التراخيص من Supabase (للقراءة فقط)
 async function loadLicences() {
     try {
         const container = document.getElementById('adminLicencesList');
         if (!container) return;
         container.innerHTML = `<div style="text-align:center;padding:30px;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
-
-        // ✅ التحقق من وجود supabase
         if (typeof supabase === 'undefined') {
             throw new Error('supabase is not defined');
         }
-
         const { data, error } = await supabase
             .from('licenses')
             .select('*')
             .order('created_at', { ascending: false });
-
         if (error) throw error;
         allLicences = data || [];
         renderLicences(allLicences);
@@ -2694,7 +2677,6 @@ async function loadLicences() {
     }
 }
 
-// عرض التراخيص في لوحة الأدمن (مع زر نسخ)
 function renderLicences(licences) {
     const container = document.getElementById('adminLicencesList');
     if (!container) return;
@@ -2757,7 +2739,6 @@ function closeCreateLicenceModal() {
     }
 }
 
-// إنشاء ترخيص يدوياً (يستخدم Edge Function create-licence)
 async function createLicenceManually() {
     const productName = document.getElementById('newLicenceProduct')?.value.trim();
     const userId = document.getElementById('newLicenceUser')?.value.trim();
@@ -2832,7 +2813,6 @@ async function createLicenceManually() {
     }
 }
 
-// دوال إدارة التراخيص (تعديل، حذف، إلغاء، موافقة)
 async function updateLicenceInSupabase(licenceId, data) {
     try {
         const { error } = await supabase
@@ -2975,7 +2955,6 @@ async function deleteLicence(licenceId) {
     }
 }
 
-// ✅ دالة تعديل الترخيص (تفتح مودال التحرير)
 function editLicence(licenceId) {
     const licence = allLicences.find(l => l.id === licenceId);
     if (!licence) {
@@ -3065,23 +3044,18 @@ function clearLicenceSearch() {
 
 function refreshLicences() { loadLicences(); showToast('🔄 Refreshed', 'info'); }
 
-// عرض تراخيص المستخدم (مع زر نسخ)
 function renderUserLicences() {
     const container = document.getElementById('userLicencesList');
     if (!container) return;
-    
     if (!currentUser) {
         container.innerHTML = '';
         return;
     }
-    
     const userLicences = userProfile.licences || [];
-    
     if (userLicences.length === 0) {
         container.innerHTML = `<div style="text-align:center;padding:8px;color:var(--text-secondary);font-size:12px;">No active licences</div>`;
         return;
     }
-    
     container.innerHTML = userLicences.map(l => {
         const isExpired = new Date(l.expiryDate) < new Date();
         return `
@@ -3107,7 +3081,6 @@ function toggleLicencesList() {
     }
 }
 
-// مودال تفعيل الترخيص للمستخدم (يستخدم Edge Function public-verify)
 function openLicenceModal() {
     if (!currentUser) {
         showToast('⚠️ Please login first', 'warning');
@@ -3214,7 +3187,7 @@ async function activateLicence() {
 }
 
 // ============================================================
-// 32. Banner تيليجرام و Social Proof
+// 32. Banner تيليجرام و Social Proof (ملخص)
 // ============================================================
 
 function showTelegramBanner() {
@@ -3288,7 +3261,7 @@ function startSocialProof() {}
 function triggerSocialProofOnOrder(userName, productNames) {}
 
 // ============================================================
-// 33. دوال السلايدر (Slider) - مع دالة editSlide
+// 33. دوال السلايدر (Slider) - مع editSlide
 // ============================================================
 
 async function loadSliderSettings() {
@@ -3518,15 +3491,12 @@ document.getElementById('addSlideForm')?.addEventListener('submit', async functi
         createdAt: new Date().toISOString()
     };
     
-    // ✅ التحقق من التعديل أو الإضافة
     const editIndex = document.getElementById('addSlideForm').dataset.editIndex;
     if (editIndex !== undefined && editIndex !== '') {
-        // تعديل السلايدر الموجود
         sliderSlides[parseInt(editIndex)] = newSlide;
         delete document.getElementById('addSlideForm').dataset.editIndex;
         showToast('✅ Slide updated successfully!', 'success');
     } else {
-        // إضافة سلايدر جديد
         sliderSlides.push(newSlide);
         showToast('✅ Slide added successfully!', 'success');
     }
@@ -3538,7 +3508,6 @@ document.getElementById('addSlideForm')?.addEventListener('submit', async functi
     window.closeAddSlideModal();
 });
 
-// ✅ دالة تعديل السلايدر (تفتح مودال التعديل مع تعبئة البيانات)
 function editSlide(index) {
     const slide = sliderSlides[index];
     if (!slide) {
@@ -3550,7 +3519,6 @@ function editSlide(index) {
         showToast('❌ Modal not found', 'error');
         return;
     }
-    // تعبئة الحقول
     document.getElementById('slideTitle').value = slide.title || '';
     document.getElementById('slideSubtitle').value = slide.subtitle || '';
     document.getElementById('slideButtonText').value = slide.buttonText || 'Buy Now';
@@ -3563,12 +3531,9 @@ function editSlide(index) {
     } else if (slide.linkType === 'url') {
         document.getElementById('slideCustomUrl').value = slide.customUrl || '';
     }
-    // حفظ رقم الفهرس
     document.getElementById('addSlideForm').dataset.editIndex = index;
-    // تغيير عنوان المودال
     document.querySelector('#addSlideModal .modal-title').textContent = '✏️ Edit Slide';
     document.querySelector('#addSlideForm button[type="submit"]').textContent = '💾 Update Slide';
-    // فتح المودال
     modal.classList.add('open');
     document.body.style.overflow = 'hidden';
 }
@@ -3725,7 +3690,7 @@ async function generateInvoice(orderData) {
 }
 
 // ============================================================
-// 35. إحصائيات المدير
+// 35. إحصائيات المدير (ملخص)
 // ============================================================
 
 async function loadDashboardStats() {
@@ -3794,7 +3759,7 @@ async function loadAuditLogs() {
 window.loadAuditLogs = loadAuditLogs;
 
 // ============================================================
-// 36. التقييمات (Ratings)
+// 36. التقييمات (Ratings) - ملخص
 // ============================================================
 
 let currentRating = 0;
@@ -3993,45 +3958,46 @@ init();
 setTimeout(() => { hideLoadingScreen(); console.log('⚠️ Force hiding loading screen (timeout)'); }, 5000);
 
 // ============================================================
-// 41. التصديرات النهائية
+// 41. تصدير الدوال إلى النطاق العام (window) للاستخدام في HTML
 // ============================================================
 
-window.showToast = showToast;
-window.openAdminPanel = openAdminPanel;
-window.closeAdminPanel = closeAdminPanel;
-window.searchAdminOrders = searchAdminOrders;
-window.clearAdminSearch = clearAdminSearch;
-window.refreshAdminOrders = refreshAdminOrders;
-window.updateOrderStatus = updateOrderStatus;
-window.deleteOrderImmediately = deleteOrderImmediately;
-window.openDownloads = openDownloads;
-window.closeDownloads = closeDownloads;
-window.openNotifications = openNotifications;
-window.closeNotifications = closeNotifications;
-window.createDownload = createDownload;
-window.deleteDownload = deleteDownload;
-window.editDownload = editDownload;
-window.createNotification = createNotification;
-window.deleteNotification = deleteNotification;
-window.openCreateDownloadModal = openCreateDownloadModal;
-window.closeCreateDownloadModal = closeCreateDownloadModal;
-window.openCreateNotificationModal = openCreateNotificationModal;
-window.closeCreateNotificationModal = closeCreateNotificationModal;
+window.toggleLicencesList = toggleLicencesList;
+window.openLicenceModal = openLicenceModal;
+window.closeLicenceModal = closeLicenceModal;
+window.activateLicence = activateLicence;
+window.copyLicenceCode = copyLicenceCode;
+window.editLicence = editLicence;
+window.saveLicenceEdit = saveLicenceEdit;
+window.approveLicence = approveLicence;
+window.revokeLicence = revokeLicence;
+window.deleteLicence = deleteLicence;
+window.openCreateLicenceModal = openCreateLicenceModal;
+window.closeCreateLicenceModal = closeCreateLicenceModal;
+window.createLicenceManually = createLicenceManually;
+window.searchLicences = searchLicences;
+window.clearLicenceSearch = clearLicenceSearch;
+window.refreshLicences = refreshLicences;
+window.loadLicences = loadLicences;
+window.renderLicences = renderLicences;
+window.editSlide = editSlide;
+window.deleteSlide = deleteSlide;
+window.saveSliderInterval = saveSliderInterval;
+window.openAddSlideModal = openAddSlideModal;
+window.closeAddSlideModal = closeAddSlideModal;
+window.exportOrders = exportOrders;
 window.switchAdminTab = switchAdminTab;
-window.openAddProductModal = openAddProductModal;
-window.openEditProductModal = openEditProductModal;
-window.closeProductModal = closeProductModal;
-window.saveProduct = saveProduct;
-window.deleteProduct = deleteProduct;
-window.clearSearch = clearSearch;
-window.closeSearchResults = closeSearchResults;
-window.performLiveSearch = performLiveSearch;
-window.openUserMenuFull = openUserMenuFull;
-window.closeUserMenuFull = closeUserMenuFull;
+window.loadAdminOrders = loadAdminOrders;
+window.updateOrderStatus = updateOrderStatus;
+window.filterProducts = filterProducts;
+window.openDetails = openDetails;
+window.addToCart = addToCart;
+window.toggleWishlist = toggleWishlist;
 window.openCartFull = openCartFull;
 window.closeCartFull = closeCartFull;
 window.openWishlistFull = openWishlistFull;
 window.closeWishlistFull = closeWishlistFull;
+window.openUserMenuFull = openUserMenuFull;
+window.closeUserMenuFull = closeUserMenuFull;
 window.openProfileFull = openProfileFull;
 window.closeProfileFull = closeProfileFull;
 window.openHistoryFull = openHistoryFull;
@@ -4042,20 +4008,23 @@ window.shareToWhatsApp = shareToWhatsApp;
 window.shareToTelegram = shareToTelegram;
 window.shareToFacebook = shareToFacebook;
 window.copyShareLink = copyShareLink;
-window.markAllNotificationsRead = markAllNotificationsRead;
-window.clearAllNotifications = clearAllNotifications;
-window.loadAdminUsers = loadAdminUsers;
-window.searchAdminUsers = searchAdminUsers;
-window.clearAdminUserSearch = clearAdminUserSearch;
-window.refreshAdminUsers = refreshAdminUsers;
-window.toggleUserBan = toggleUserBan;
-window.deleteUserAccount = deleteUserAccount;
-window.viewUserDetails = viewUserDetails;
-window.closeUserDetailsModal = closeUserDetailsModal;
-window.filterProducts = filterProducts;
+window.clearSearch = clearSearch;
+window.closeSearchResults = closeSearchResults;
+window.performLiveSearch = performLiveSearch;
+window.openDownloads = openDownloads;
+window.closeDownloads = closeDownloads;
+window.openNotifications = openNotifications;
+window.closeNotifications = closeNotifications;
+window.clearOrderHistory = clearOrderHistory;
+window.filterOrders = filterOrders;
 window.openReferralModal = openReferralModal;
 window.closeReferralModal = closeReferralModal;
 window.copyReferralCode2 = copyReferralCode2;
+window.openRequestsModal = openRequestsModal;
+window.closeRequestsModal = closeRequestsModal;
+window.openNewRequestModal = openNewRequestModal;
+window.closeNewRequestModal = closeNewRequestModal;
+window.submitRequest = submitRequest;
 window.selectPayment = selectPayment;
 window.continuePayment = continuePayment;
 window.goToStep1 = goToStep1;
@@ -4076,8 +4045,6 @@ window.applyCartPromo = applyCartPromo;
 window.showTelegramBannerAgain = showTelegramBannerAgain;
 window.adminToggleBanner = adminToggleBanner;
 window.resetBannerForAll = resetBannerForAll;
-window.clearOrderHistory = clearOrderHistory;
-window.filterOrders = filterOrders;
 window.closePreviewModal = closePreviewModal;
 window.addToCartFromPreview = addToCartFromPreview;
 window.shareFromPreview = shareFromPreview;
@@ -4085,7 +4052,6 @@ window.refreshDashboardStats = refreshDashboardStats;
 window.loadDashboardStats = loadDashboardStats;
 window.selectVipPlan = selectVipPlan;
 window.addVipPlanToCart = addVipPlanToCart;
-window.exportOrders = exportOrders;
 window.refreshAdvancedStats = refreshAdvancedStats;
 window.setRating = setRating;
 window.submitRating = submitRating;
@@ -4096,65 +4062,11 @@ window.resumeSlider = resumeSlider;
 window.goToSlide = goToSlide;
 window.nextSlide = nextSlide;
 window.prevSlide = prevSlide;
-window.openAddSlideModal = openAddSlideModal;
-window.closeAddSlideModal = closeAddSlideModal;
-window.saveSliderInterval = saveSliderInterval;
-window.deleteSlide = deleteSlide;
-window.editSlide = editSlide;
-
-// تصدير دوال التراخيص المعدلة
-window.loadLicences = loadLicences;
-window.renderLicences = renderLicences;
-window.approveLicence = approveLicence;
-window.revokeLicence = revokeLicence;
-window.deleteLicence = deleteLicence;
-window.editLicence = editLicence;
-window.saveLicenceEdit = saveLicenceEdit;
-window.searchLicences = searchLicences;
-window.clearLicenceSearch = clearLicenceSearch;
-window.refreshLicences = refreshLicences;
-window.openCreateLicenceModal = openCreateLicenceModal;
-window.closeCreateLicenceModal = closeCreateLicenceModal;
-window.createLicenceManually = createLicenceManually;
-window.toggleLicencesList = toggleLicencesList;
-window.renderUserLicences = renderUserLicences;
-window.openLicenceModal = openLicenceModal;
-window.closeLicenceModal = closeLicenceModal;
-window.activateLicence = activateLicence;
-
-// دوال إضافية
 window.loadSliderSettings = loadSliderSettings;
 window.updateSlideProductSelect = updateSlideProductSelect;
 window.addBannerAdminControls = addBannerAdminControls;
 window.showTelegramBanner = showTelegramBanner;
 window.showTelegramBannerAgain = showTelegramBannerAgain;
-window.copyLicenceCode = copyLicenceCode;
-// ============================================================
-// تصدير الدوال المستخدمة في HTML (onclick)
-// ============================================================
-
-window.toggleLicencesList = toggleLicencesList;
-window.openLicenceModal = openLicenceModal;
-window.closeLicenceModal = closeLicenceModal;
-window.activateLicence = activateLicence;
-window.copyLicenceCode = copyLicenceCode;
-window.editLicence = editLicence;
-window.saveLicenceEdit = saveLicenceEdit;
-window.approveLicence = approveLicence;
-window.revokeLicence = revokeLicence;
-window.deleteLicence = deleteLicence;
-window.openCreateLicenceModal = openCreateLicenceModal;
-window.closeCreateLicenceModal = closeCreateLicenceModal;
-window.createLicenceManually = createLicenceManually;
-window.searchLicences = searchLicences;
-window.clearLicenceSearch = clearLicenceSearch;
-window.refreshLicences = refreshLicences;
-window.editSlide = editSlide;
-window.deleteSlide = deleteSlide;
-window.saveSliderInterval = saveSliderInterval;
-window.openAddSlideModal = openAddSlideModal;
-window.closeAddSlideModal = closeAddSlideModal;
-window.exportOrders = exportOrders;
 
 // ============================================================
 // END OF SCRIPT.JS
