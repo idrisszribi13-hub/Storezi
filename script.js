@@ -200,13 +200,14 @@ async function checkUserBanned(uid) {
 
 async function checkIsAdmin() {
     if (!currentUser) return false;
-    // إذا كانت النتيجة مخزنة مسبقاً ولم يتغير المستخدم
     if (adminCheckPromise) {
         return adminCheckPromise;
     }
     adminCheckPromise = (async () => {
         try {
-            const adminRef = doc(db, 'admins', currentUser.email);
+            // محاولة قراءة المستند بالبريد بالضبط
+            const email = currentUser.email.toLowerCase();
+            const adminRef = doc(db, 'admins', email);
             const adminSnap = await getDoc(adminRef);
             const isAdmin = adminSnap.exists() && adminSnap.data().isAdmin === true;
             isAdminCached = isAdmin;
@@ -216,13 +217,11 @@ async function checkIsAdmin() {
             isAdminCached = false;
             return false;
         } finally {
-            // إعادة تعيين الـ promise بعد الانتهاء
             setTimeout(() => { adminCheckPromise = null; }, 1000);
         }
     })();
     return adminCheckPromise;
 }
-
 // دالة لتحديث حالة الأدمن بشكل متزامن (تُستدعى عند تسجيل الدخول)
 async function refreshAdminStatus() {
     adminCheckPromise = null;
