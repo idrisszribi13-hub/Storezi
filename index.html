@@ -8,6 +8,66 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="style.css" />
     <link rel="manifest" href="manifest.json" />
+    <style>
+        /* ============================================
+           🆕 شريط النص المتحرك (Marquee)
+           ============================================ */
+        .marquee-bar {
+            background: var(--primary-gradient);
+            padding: 8px 0;
+            overflow: hidden;
+            border-radius: var(--radius-md);
+            margin-bottom: 12px;
+            box-shadow: 0 4px 20px var(--primary-glow);
+            color: #fff;
+            font-weight: 600;
+            font-size: 14px;
+            text-align: center;
+            white-space: nowrap;
+            position: relative;
+            z-index: 2;
+        }
+        .marquee-bar .marquee-content {
+            display: inline-block;
+            padding-left: 100%;
+            animation: marqueeScroll 25s linear infinite;
+        }
+        @keyframes marqueeScroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-200%); }
+        }
+        .marquee-bar .marquee-content span {
+            margin: 0 30px;
+        }
+        .marquee-bar .marquee-content .highlight {
+            color: #fbbf24;
+            font-weight: 800;
+        }
+
+        /* ============================================
+           🆕 أيقونات الخدمات تحت المنتج
+           ============================================ */
+        .product-footer-icons {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            padding: 6px 0 4px;
+            border-top: 1px solid var(--border);
+            margin-top: 6px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            opacity: 0.7;
+        }
+        .product-footer-icons .icon-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .product-footer-icons .icon-item i {
+            font-size: 13px;
+            color: var(--primary);
+        }
+    </style>
 </head>
 <body>
 
@@ -47,6 +107,22 @@
                 <button class="theme-toggle" id="themeToggle" title="Theme"><i class="fas fa-moon"></i></button>
             </div>
         </header>
+
+        <!-- ================== شريط النص المتحرك ================== -->
+        <div id="marqueeBar" class="marquee-bar" style="display: none;">
+            <div class="marquee-content" id="marqueeContent">
+                <span>🚀 Welcome to ZI Store</span>
+                <span>⚡ Instant Delivery</span>
+                <span>🔒 Secure Payment</span>
+                <span>💬 24/7 Support</span>
+                <span>🎯 Best Scripts</span>
+                <span>🚀 Welcome to ZI Store</span>
+                <span>⚡ Instant Delivery</span>
+                <span>🔒 Secure Payment</span>
+                <span>💬 24/7 Support</span>
+                <span>🎯 Best Scripts</span>
+            </div>
+        </div>
 
         <!-- ================== شريط البحث ================== -->
         <div class="search-wrapper">
@@ -670,14 +746,13 @@
     </div>
 
     <!-- ============================================ -->
-    <!-- لوحة المدير (Admin Panel) - مع الأزرار المحذوفة -->
+    <!-- لوحة المدير (Admin Panel) -->
     <!-- ============================================ -->
     <div class="modal-overlay admin-panel" id="adminPanel">
         <div class="modal-content">
             <div class="panel-header">
                 <h2><i class="fas fa-crown"></i> Admin Panel</h2>
                 <div class="header-actions">
-                    <!-- ✅ تم حذف الأزرار: Create Workspace, Invite member, Upgrade plan -->
                     <button class="btn-close" onclick="closeAdminPanel()"><i class="fas fa-times"></i></button>
                 </div>
             </div>
@@ -690,7 +765,9 @@
                 <button onclick="switchAdminTab('notifications')">🔔 Notifications</button>
                 <button onclick="switchAdminTab('stats')">📈 Statistics</button>
                 <button onclick="switchAdminTab('logs')">📋 Logs</button>
-                <!-- تم إضافة تبويب السلايدر والتراخيص بواسطة JS -->
+                <button onclick="switchAdminTab('slider')">🎨 Slider</button>
+                <button onclick="switchAdminTab('licences')">🔑 Licences</button>
+                <button onclick="switchAdminTab('marquee')">🎬 Marquee</button>
             </div>
 
             <!-- ======== تبويب Dashboard ======== -->
@@ -778,8 +855,59 @@
                 </div>
             </div>
 
-            <!-- ======== تبويب السلايدر (سيتم إنشاؤه بواسطة JS) ======== -->
-            <!-- ======== تبويب التراخيص (سيتم إنشاؤه بواسطة JS) ======== -->
+            <!-- ======== تبويب السلايدر ======== -->
+            <div class="tab-content" id="tabSlider">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+                    <h3 style="font-size:16px;font-weight:700;margin:0;"><i class="fas fa-images"></i> Slider Settings</h3>
+                    <button class="add-btn" onclick="openAddSlideModal()"><i class="fas fa-plus"></i> Add Slide</button>
+                </div>
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:13px;font-weight:600;color:var(--text-secondary);opacity:0.6;display:block;margin-bottom:4px;">Rotation Interval (seconds)</label>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <input type="number" id="sliderIntervalInput" value="3" min="1" max="60" style="width:100px;padding:8px 12px;border:2px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-size:14px;" />
+                        <button class="admin-submit-btn" onclick="saveSliderInterval()" style="padding:8px 16px;font-size:13px;"><i class="fas fa-save"></i> Save</button>
+                    </div>
+                </div>
+                <div id="sliderSlidesList">
+                    <div style="text-align:center;padding:20px;color:var(--text-secondary);opacity:0.5;">No slides yet. Click "Add Slide" to get started.</div>
+                </div>
+            </div>
+
+            <!-- ======== تبويب التراخيص ======== -->
+            <div class="tab-content" id="tabLicences">
+                <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+                    <button class="add-btn" onclick="openCreateLicenceModal()"><i class="fas fa-plus"></i> Create Licence</button>
+                    <button class="add-btn" onclick="refreshLicences()" style="background:var(--card-bg);"><i class="fas fa-sync"></i> Refresh</button>
+                </div>
+                <div class="admin-search-bar">
+                    <input type="text" id="adminLicenceSearch" placeholder="🔍 Search by code, user, product..." onkeyup="searchLicences()" />
+                    <button class="btn-search" onclick="searchLicences()"><i class="fas fa-search"></i></button>
+                    <button class="btn-clear" onclick="clearLicenceSearch()"><i class="fas fa-times"></i></button>
+                </div>
+                <div id="adminLicencesList">
+                    <div style="text-align:center;padding:30px;color:var(--text-secondary);">
+                        <i class="fas fa-info-circle"></i> Loading licences...
+                    </div>
+                </div>
+            </div>
+
+            <!-- ======== تبويب الماركي (Marquee) ======== -->
+            <div class="tab-content" id="tabMarquee">
+                <h3 style="font-size:16px;font-weight:700;margin-bottom:12px;"><i class="fas fa-scroll"></i> Marquee Settings</h3>
+                <div id="marqueeSettingsContainer">
+                    <div class="admin-form-group">
+                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                            <input type="checkbox" id="marqueeEnabled" checked />
+                            <span style="font-weight:600;color:var(--text);">Enable Marquee</span>
+                        </label>
+                    </div>
+                    <div class="admin-form-group">
+                        <label for="marqueeText">Marquee Text (separate items with | )</label>
+                        <textarea id="marqueeText" rows="3" placeholder="🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support" style="width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-size:14px;outline:none;font-family:var(--font);">🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support</textarea>
+                    </div>
+                    <button class="admin-submit-btn" onclick="saveMarqueeSettings()" style="margin-top:8px;"><i class="fas fa-save"></i> Save Settings</button>
+                </div>
+            </div>
         </div>
     </div>
 
