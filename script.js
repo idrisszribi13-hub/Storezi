@@ -1,9 +1,7 @@
 // ============================================================
 // SCRIPT.JS - ZI Store النسخة النهائية الكاملة
-// مع إضافة:
-// - شريط النص المتحرك (Marquee) مع إعدادات في لوحة الأدمن
-// - أيقونات الخدمات تحت كل منتج (Instant Delivery, Secure Payment, 24/7 Support)
-// - جميع الوظائف السابقة: التراخيص، الطلبات، المنتجات، الدفع، إلخ
+// مع إصلاح مشكلة تبديل الثيم (Theme) وإخفاء شاشة التحميل
+// وإصلاح تحديث التراخيص في My Licences عند تعديلها من الأدمن
 // ============================================================
 
 // ============================================================
@@ -4183,12 +4181,57 @@ async function init() {
 }
 
 // ============================================================
-// 42. تبديل الثيم (Theme) - إصلاح المشكلة
+// 42. دالة تصدير الطلبات (exportOrders)
+// ============================================================
+window.exportOrders = function() {
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
+        showToast('⛔ Unauthorized', 'error');
+        return;
+    }
+    if (!allOrders || allOrders.length === 0) {
+        showToast('📭 No orders to export', 'info');
+        return;
+    }
+    try {
+        let csv = 'Order ID,User,Email,Total,Status,Date,Items\n';
+        allOrders.forEach(order => {
+            const items = order.items ? order.items.map(i => i.name).join('; ') : '';
+            csv += `${order.orderId || ''},${order.userName || ''},${order.userEmail || ''},${order.total || 0},${order.status || 'pending'},${new Date(order.date).toLocaleDateString()},${items}\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `orders_${new Date().toISOString().slice(0,10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('📥 Orders exported!', 'success');
+    } catch (error) {
+        console.error('Export error:', error);
+        showToast('❌ Export failed', 'error');
+    }
+};
+
+// ============================================================
+// 43. دالة إصلاح الهيدر والمودالات
+// ============================================================
+window.fixHeaderAndModals = function() {
+    document.querySelectorAll('.header, .logo, .header-actions, .modal-content, .fullscreen-modal, .admin-panel').forEach(el => {
+        el.style.direction = 'ltr';
+        el.style.textAlign = 'left';
+    });
+    document.querySelectorAll('.modal-close').forEach(el => {
+        el.style.right = 'auto';
+        el.style.left = '10px';
+    });
+};
+
+// ============================================================
+// 44. تبديل الثيم - إصلاح نهائي
 // ============================================================
 document.addEventListener('DOMContentLoaded', function() {
     const themeBtn = document.querySelector('.theme-toggle');
     if (themeBtn) {
-        // استعادة الإعداد المحفوظ
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme === 'light') {
             document.body.classList.add('light');
@@ -4208,7 +4251,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================================
-// 43. تصدير الدوال إلى النطاق العام (window) للاستخدام في HTML
+// 45. تصدير الدوال إلى النطاق العام (window) للاستخدام في HTML
 // ============================================================
 
 window.toggleLicencesList = toggleLicencesList;
@@ -4322,9 +4365,6 @@ window.loadMarqueeSettings = loadMarqueeSettings;
 window.saveMarqueeSettings = saveMarqueeSettings;
 window.renderMarqueeSettingsUI = renderMarqueeSettingsUI;
 window.applyMarqueeSettings = applyMarqueeSettings;
-
-// تصدير دالة exportOrders بشكل صحيح
-window.exportOrders = exportOrders;
 
 // ============================================================
 // END OF SCRIPT.JS
