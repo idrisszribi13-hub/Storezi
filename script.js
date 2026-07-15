@@ -1,5 +1,6 @@
 // ============================================================
-// SCRIPT.JS - ZI Store النسخة النهائية الكاملة
+// SCRIPT.JS - ZI Store النسخة النهائية المستقرة
+// مع إصلاح مشكلة توقف شاشة التحميل
 // ============================================================
 
 import { initializeApp } from "firebase/app";
@@ -530,7 +531,6 @@ function updateFullUserMenu() {
         if (totalBadge > 0) { orderBadge.style.display = 'inline-block'; orderBadge.textContent = totalBadge; } else { orderBadge.style.display = 'none'; }
         if (unreadNotifications > 0) { notifBadge.style.display = 'inline-block'; notifBadge.textContent = unreadNotifications; } else { notifBadge.style.display = 'none'; }
 
-        // إظهار زر الأدمن بناءً على isAdminCached
         if (isAdminCached) {
             adminMenuItem.style.display = 'flex';
             if (pendingCount > 0) { adminBadge.style.display = 'inline-block'; adminBadge.textContent = pendingCount; } else { adminBadge.style.display = 'none'; }
@@ -3758,7 +3758,40 @@ async function uploadToCloudinary(file) {
 }
 
 // ============================================================
-// 33. حالة المصادقة
+// 33. دوال الإكمال والتصدير
+// ============================================================
+
+window.fixHeaderAndModals = function() {
+    document.querySelectorAll('.header, .logo, .header-actions, .modal-content, .fullscreen-modal, .admin-panel').forEach(el => {
+        el.style.direction = 'ltr';
+        el.style.textAlign = 'left';
+    });
+    document.querySelectorAll('.modal-close').forEach(el => {
+        el.style.right = 'auto';
+        el.style.left = '10px';
+    });
+};
+
+window.exportOrders = function() {
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (!allOrders || allOrders.length === 0) { showToast('📭 No orders to export', 'info'); return; }
+    try {
+        let csv = 'Order ID,User,Email,Total,Status,Date,Items\n';
+        allOrders.forEach(order => {
+            const items = order.items ? order.items.map(i => i.name).join('; ') : '';
+            csv += `${order.orderId || ''},${order.userName || ''},${order.userEmail || ''},${order.total || 0},${order.status || 'pending'},${new Date(order.date).toLocaleDateString()},${items}\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `orders_${new Date().toISOString().slice(0,10)}.csv`;
+        a.click(); URL.revokeObjectURL(url);
+        showToast('📥 Orders exported!', 'success');
+    } catch (error) { showToast('❌ Export failed', 'error'); }
+};
+
+// ============================================================
+// 34. حالة المصادقة
 // ============================================================
 
 onAuthStateChanged(auth, async (user) => {
@@ -3805,70 +3838,48 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// 34. التهيئة (Init)
+// 35. التهيئة (Init) - مع إصلاح شاشة التحميل
 // ============================================================
 
 async function init() {
     showLoadingScreen();
-    updateLoadingBar(10);
-    updateLoadingBar(30);
-    const productsFromFirestore = await loadProductsFromFirestore();
-    products = productsFromFirestore.length > 0 ? productsFromFirestore : fallbackProducts;
-    updateLoadingBar(50);
-    startProductsRealtimeListener();
-    updateLoadingBar(70);
-    await loadUserData();
-    updateLoadingBar(85);
-    renderProducts(products, false);
-    renderFeaturedProducts();
-    generateRecommendations(products);
-    updateBottomCartBar();
-    updateDropdownStats();
-    loadDownloads();
-    loadNotifications();
-    fetchCryptoPrices();
-    loadFeaturedSettings();
-    loadSliderSettings();
-    loadMarqueeSettings();
-    setInterval(fetchCryptoPrices, 60000);
-    updateLoadingBar(100);
-    console.log('✅ ZI Store ready with all features!');
-    setTimeout(fixHeaderAndModals, 100);
-    setTimeout(() => { hideLoadingScreen(); setTimeout(showTelegramBanner, 500); startSocialProof(); }, 500);
-}
-
-// ============================================================
-// 35. دوال الإكمال والتصدير
-// ============================================================
-
-window.fixHeaderAndModals = function() {
-    document.querySelectorAll('.header, .logo, .header-actions, .modal-content, .fullscreen-modal, .admin-panel').forEach(el => {
-        el.style.direction = 'ltr';
-        el.style.textAlign = 'left';
-    });
-    document.querySelectorAll('.modal-close').forEach(el => {
-        el.style.right = 'auto';
-        el.style.left = '10px';
-    });
-};
-
-window.exportOrders = function() {
-    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
-    if (!allOrders || allOrders.length === 0) { showToast('📭 No orders to export', 'info'); return; }
     try {
-        let csv = 'Order ID,User,Email,Total,Status,Date,Items\n';
-        allOrders.forEach(order => {
-            const items = order.items ? order.items.map(i => i.name).join('; ') : '';
-            csv += `${order.orderId || ''},${order.userName || ''},${order.userEmail || ''},${order.total || 0},${order.status || 'pending'},${new Date(order.date).toLocaleDateString()},${items}\n`;
-        });
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = `orders_${new Date().toISOString().slice(0,10)}.csv`;
-        a.click(); URL.revokeObjectURL(url);
-        showToast('📥 Orders exported!', 'success');
-    } catch (error) { showToast('❌ Export failed', 'error'); }
-};
+        updateLoadingBar(10);
+        updateLoadingBar(30);
+        const productsFromFirestore = await loadProductsFromFirestore();
+        products = productsFromFirestore.length > 0 ? productsFromFirestore : fallbackProducts;
+        updateLoadingBar(50);
+        startProductsRealtimeListener();
+        updateLoadingBar(70);
+        await loadUserData();
+        updateLoadingBar(85);
+        renderProducts(products, false);
+        renderFeaturedProducts();
+        generateRecommendations(products);
+        updateBottomCartBar();
+        updateDropdownStats();
+        loadDownloads();
+        loadNotifications();
+        fetchCryptoPrices();
+        loadFeaturedSettings();
+        loadSliderSettings();
+        loadMarqueeSettings();
+        setInterval(fetchCryptoPrices, 60000);
+        updateLoadingBar(100);
+        console.log('✅ ZI Store ready with all features!');
+        setTimeout(fixHeaderAndModals, 100);
+    } catch (error) {
+        console.error('❌ Initialization error:', error);
+        showToast('⚠️ Error loading store. Please refresh.', 'error');
+    } finally {
+        // تأكد من إخفاء شاشة التحميل في جميع الأحوال
+        setTimeout(() => {
+            hideLoadingScreen();
+            setTimeout(showTelegramBanner, 500);
+            startSocialProof();
+        }, 500);
+    }
+}
 
 // ============================================================
 // 36. تبديل الثيم
