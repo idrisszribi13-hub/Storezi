@@ -1,6 +1,7 @@
 // ============================================================
 // SCRIPT.JS - ZI Store النسخة النهائية الكاملة
 // مع جميع التصحيحات والتصديرات اللازمة للـ HTML
+// تم إصلاح: تعديل الترخيص (editLicence) لجلب البيانات مباشرة من Supabase
 // ============================================================
 
 // ============================================================
@@ -656,7 +657,7 @@ window.sendResetLinkInline = async function() { if (!currentUser) return; try { 
 window.changePasswordInline = async function() { if (!currentUser) return; const currentPwd = document.getElementById('currentPasswordInline').value; const newPwd = document.getElementById('newPasswordInline').value; const confirmPwd = document.getElementById('confirmNewPasswordInline').value; const errorEl = document.getElementById('passwordErrorInline'); const successEl = document.getElementById('passwordSuccessInline'); errorEl.textContent = ''; successEl.textContent = ''; if (!currentPwd || !newPwd || !confirmPwd) { errorEl.textContent = 'Please fill all fields'; return; } if (newPwd.length < 6) { errorEl.textContent = 'New password must be at least 6 characters'; return; } if (newPwd !== confirmPwd) { errorEl.textContent = 'Passwords do not match'; return; } try { const credential = EmailAuthProvider.credential(currentUser.email, currentPwd); await reauthenticateWithCredential(currentUser, credential); await updatePassword(currentUser, newPwd); successEl.textContent = '✅ Password changed successfully!'; showToast('✅ Password updated!', 'success'); document.getElementById('currentPasswordInline').value = ''; document.getElementById('newPasswordInline').value = ''; document.getElementById('confirmNewPasswordInline').value = ''; setTimeout(() => { successEl.textContent = ''; }, 3000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); } };
 
 // ============================================================
-// 14. المنتجات (ملخص - نفس الوظائف السابقة)
+// 14. المنتجات
 // ============================================================
 
 async function loadProductsFromFirestore() {
@@ -779,7 +780,7 @@ function generateRecommendations(productsList) {
 }
 
 // ============================================================
-// 15. المنتجات المميزة و السلة والمفضلة (ملخص)
+// 15. المنتجات المميزة و السلة والمفضلة
 // ============================================================
 
 function renderFeaturedProducts() {
@@ -1173,7 +1174,7 @@ window.shareToFacebook = function() { if (!shareProduct) return; window.open(`ht
 window.copyShareLink = function() { const url = window.location.href; navigator.clipboard.writeText(url).then(() => { showToast('✅ Link copied!', 'success'); closeShareModal(); }).catch(() => { const textArea = document.createElement('textarea'); textArea.value = url; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); showToast('✅ Link copied!', 'success'); closeShareModal(); }); };
 
 // ============================================================
-// 18. التصفية والبحث (ملخص)
+// 18. التصفية والبحث
 // ============================================================
 
 window.filterProducts = function(filter) {
@@ -1230,7 +1231,7 @@ function closeSearchResults() { searchResults.classList.remove('active'); search
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeSearchResults(); closeUserMenuFull(); closeCartFull(); closeWishlistFull(); closeProfileFull(); closeHistoryFull(); } });
 
 // ============================================================
-// 19. الدفع (ملخص)
+// 19. الدفع
 // ============================================================
 
 async function fetchCryptoPrices() {
@@ -1652,7 +1653,7 @@ window.checkTelegramStatus = async function() {
 };
 
 // ============================================================
-// 22. التحميلات والإشعارات (ملخص)
+// 22. التحميلات والإشعارات
 // ============================================================
 
 function loadDownloads() {
@@ -1837,7 +1838,7 @@ window.openCreateNotificationModal = function() { if (!currentUser || currentUse
 window.closeCreateNotificationModal = function() { document.getElementById('createNotificationModal').classList.remove('open'); };
 
 // ============================================================
-// 23. الطلبات والإحالات (ملخص)
+// 23. الطلبات والإحالات
 // ============================================================
 
 window.openRequestsModal = function() {
@@ -2066,7 +2067,7 @@ window.switchAdminTab = function(tab) {
 };
 
 // ============================================================
-// 25. إدارة المنتجات (Admin Products) - ملخص
+// 25. إدارة المنتجات (Admin Products)
 // ============================================================
 
 function renderAdminProducts(productsList) {
@@ -2203,7 +2204,7 @@ async function deleteProductFromFirestore(productId) {
 }
 
 // ============================================================
-// 26. الطلبات (Admin Orders) - ملخص
+// 26. الطلبات (Admin Orders)
 // ============================================================
 
 function startAdminRealtimeListener() {
@@ -2465,7 +2466,7 @@ window.clearAdminSearch = function() { document.getElementById('adminSearchInput
 window.refreshAdminOrders = function() { loadAdminOrders(); showToast('🔄 Refreshed', 'info'); };
 
 // ============================================================
-// 29. المستخدمين (Admin Users) - ملخص
+// 29. المستخدمين (Admin Users)
 // ============================================================
 
 async function loadAdminUsers() {
@@ -2955,28 +2956,44 @@ async function deleteLicence(licenceId) {
     }
 }
 
-function editLicence(licenceId) {
-    const licence = allLicences.find(l => l.id === licenceId);
-    if (!licence) {
-        showToast('❌ Licence not found', 'error');
-        return;
+// ============================================================
+// ✅ دالة تعديل الترخيص (تعديل مباشر لجلب البيانات من Supabase)
+// ============================================================
+
+async function editLicence(licenceId) {
+    try {
+        // جلب الترخيص مباشرة من Supabase
+        const { data: licence, error } = await supabase
+            .from('licenses')
+            .select('*')
+            .eq('id', licenceId)
+            .single();
+
+        if (error || !licence) {
+            showToast('❌ Licence not found', 'error');
+            return;
+        }
+
+        document.getElementById('editLicenceId').value = licenceId;
+        document.getElementById('editLicenceCode').value = licence.code || '';
+        document.getElementById('editLicenceScript').value = licence.script_name || '';
+        if (licence.expiry_date) {
+            const date = new Date(licence.expiry_date);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            document.getElementById('editLicenceExpiry').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+        } else {
+            document.getElementById('editLicenceExpiry').value = '';
+        }
+        document.getElementById('editLicenceStatus').value = licence.status || 'active';
+        document.getElementById('editLicenceModal').classList.add('open');
+    } catch (error) {
+        console.error('Error fetching licence:', error);
+        showToast('❌ Failed to load licence details', 'error');
     }
-    document.getElementById('editLicenceId').value = licenceId;
-    document.getElementById('editLicenceCode').value = licence.code || '';
-    document.getElementById('editLicenceScript').value = licence.script_name || '';
-    if (licence.expiry_date) {
-        const date = new Date(licence.expiry_date);
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        document.getElementById('editLicenceExpiry').value = `${year}-${month}-${day}T${hours}:${minutes}`;
-    } else {
-        document.getElementById('editLicenceExpiry').value = '';
-    }
-    document.getElementById('editLicenceStatus').value = licence.status || 'active';
-    document.getElementById('editLicenceModal').classList.add('open');
 }
 
 async function saveLicenceEdit() {
@@ -3187,7 +3204,7 @@ async function activateLicence() {
 }
 
 // ============================================================
-// 32. Banner تيليجرام و Social Proof (ملخص)
+// 32. Banner تيليجرام و Social Proof
 // ============================================================
 
 function showTelegramBanner() {
@@ -3690,7 +3707,7 @@ async function generateInvoice(orderData) {
 }
 
 // ============================================================
-// 35. إحصائيات المدير (ملخص)
+// 35. إحصائيات المدير
 // ============================================================
 
 async function loadDashboardStats() {
@@ -3759,7 +3776,7 @@ async function loadAuditLogs() {
 window.loadAuditLogs = loadAuditLogs;
 
 // ============================================================
-// 36. التقييمات (Ratings) - ملخص
+// 36. التقييمات (Ratings)
 // ============================================================
 
 let currentRating = 0;
