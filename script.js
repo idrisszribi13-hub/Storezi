@@ -1,13 +1,16 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - النسخة النهائية مع إصلاح مشكلة صلاحيات الأدمن
+// SCRIPT.JS - ZI Store النسخة النهائية الكاملة
 // ============================================================
 
 import { initializeApp } from "firebase/app";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, updatePassword, sendPasswordResetEmail, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, collection, query, where, getDocs, onSnapshot, addDoc, deleteDoc, orderBy } from "firebase/firestore";
 import { getAnalytics } from "firebase/analytics";
-
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+// ============================================================
+// الإعدادات الأساسية
+// ============================================================
 
 const SUPABASE_URL = 'https://kvsyzgavfxnwqmtsginv.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_1uSIqgNONAV53GjOoBoZUw_niAGJXO6';
@@ -29,16 +32,130 @@ const db = getFirestore(app);
 const analytics = getAnalytics(app);
 
 // ============================================================
-// 4. شاشة التحميل
+// المتغيرات العامة
 // ============================================================
 
-const loadingMessages = [
-    'Initializing store...',
-    'Loading products...',
-    'Connecting to database...',
-    'Welcome to ZI Store! 🚀'
+const TELEGRAM_BOT_TOKEN = '8687744794:AAGeeNrEU-iQLRmg3dLvYkWHddtYo_sJ1tc';
+const TELEGRAM_CHAT_ID = '7434396478';
+const BOT_USERNAME = 'Zistore_Notif_bot';
+const RP_TO_DOLLAR = 0.1;
+
+let currentUser = null;
+let userId = null;
+let cart = [];
+let wishlist = [];
+let products = [];
+let currentFilter = 'all';
+let activeDiscount = 0;
+let activeDiscountCode = '';
+let allOrders = [];
+let pendingCount = 0;
+let downloads = [];
+let notifications = [];
+let unreadNotifications = 0;
+let unsubscribeAdmin = null;
+let unsubscribeDownloads = null;
+let unsubscribeNotifications = null;
+let unsubscribeUser = null;
+let unsubscribeProducts = null;
+let selectedOrders = new Set();
+let isUpdatingNotifications = false;
+let shareProduct = null;
+let allUsers = [];
+let selectedPayment = null;
+let ordersFilter = 'all';
+let _selectedVipPlan = '1m';
+let allLicences = [];
+let isProcessingOrder = false;
+
+// حالة الأدمن
+let isAdminCached = false;
+let adminCheckPromise = null;
+
+// متغيرات السلايدر
+let sliderSlides = [];
+let sliderIntervalTime = 3;
+let currentSlideIndex = 0;
+let sliderTimer = null;
+let isSliderPaused = false;
+
+// متغيرات الماركي
+let marqueeSettings = {
+    enabled: true,
+    text: '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support'
+};
+
+// متغيرات المنتجات المميزة
+let featuredProducts = [];
+let featuredRotationInterval = null;
+let featuredCurrentIndex = 0;
+let featuredSettings = {
+    enabled: true,
+    rotationInterval: 5000,
+    maxProducts: 4,
+    selectedProductIds: []
+};
+
+// ملف المستخدم
+let userProfile = {
+    name: '',
+    email: '',
+    telegram: '',
+    telegramChatId: '',
+    location: 'Tunisia',
+    lang: 'English',
+    joined: '',
+    history: [],
+    requests: [],
+    usedCodes: [],
+    referralCode: '',
+    referrals: [],
+    referralRewards: 0,
+    rp: 0,
+    useRpForCart: false,
+    isBanned: false,
+    lastDailyReward: 0,
+    licences: []
+};
+
+// المنتجات الاحتياطية
+const fallbackProducts = [
+    { id: "fallback_1", name: "Mergedom", price: 11, badge: "VIP", status: "available", image: "https://picsum.photos/seed/mergedom/400/300", downloadLink: "", description: "Mergedom game with premium features.", features: ["Level Auto Bypass", "Unlimited Boost", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() },
+    { id: "fallback_2", name: "Numbers Game 2048", price: 0, badge: "VIP", status: "available", image: "https://picsum.photos/seed/2048/400/300", downloadLink: "", description: "Classic 2048 game with exclusive mod features.", features: ["Unlimited Device", "Block Spawn Modify", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() },
+    { id: "fallback_3", name: "Screwdom 3D", price: 0, badge: "VIP", status: "available", image: "https://picsum.photos/seed/screwdom/400/300", downloadLink: "", description: "Exciting 3D puzzle game with unlimited boosts.", features: ["Unlimited Boost", "Level Auto Complete", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() },
+    { id: "fallback_4", name: "Smart Telegram Bot", price: 0, badge: "FREE", status: "available", image: "https://picsum.photos/seed/bot/400/300", downloadLink: "https://www.mediafire.com/file/example/bot.zip", description: "Advanced Telegram bot with auto-reply and group management.", features: ["Auto Replies", "Group Management", "Notifications"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() }
 ];
 
+// كود الخصم والمحافظ
+const discountCodes = { 'SAVE10': { discount: 10 }, 'SAVE15': { discount: 15 }, 'WELCOME': { discount: 10 }, 'VIP2024': { discount: 15 }, 'SUMMER': { discount: 10 } };
+const paymentWallets = {
+    litecoin: { name: 'Litecoin', icon: 'fab fa-bitcoin', network: 'LTC', address: 'ltc1qy6ksn0g4hm6hlh93fwekgz8x74vr6hvdmh6zz8', currency: 'LTC', color: '#f2a900' },
+    usdt: { name: 'USDT (ERC20)', icon: 'fas fa-coins', network: 'ERC20', address: '0x1234567890abcdef1234567890abcdef12345678', currency: 'USDT', color: '#26a17b' }
+};
+let cryptoPrices = { ltc: 0, usdt: 1, lastUpdate: null, isUpdating: false };
+
+// ============================================================
+// 1. دوال مساعدة (Toast, Loading Screen)
+// ============================================================
+
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    const messageEl = document.getElementById('toastMessage');
+    const iconEl = toast?.querySelector('.toast-icon');
+    if (!toast || !messageEl) return;
+    toast.className = 'toast';
+    toast.classList.add(type);
+    const icons = { success: '<i class="fas fa-check-circle"></i>', error: '<i class="fas fa-exclamation-circle"></i>', warning: '<i class="fas fa-exclamation-triangle"></i>', info: '<i class="fas fa-info-circle"></i>' };
+    if (iconEl) iconEl.innerHTML = icons[type] || icons.success;
+    messageEl.textContent = message;
+    toast.classList.add('show');
+    clearTimeout(window.toastTimeout);
+    window.toastTimeout = setTimeout(() => { toast.classList.remove('show'); }, 3500);
+}
+window.hideToast = function() { document.getElementById('toast')?.classList.remove('show'); };
+
+// شاشة التحميل
+const loadingMessages = ['Initializing store...', 'Loading products...', 'Connecting to database...', 'Welcome to ZI Store! 🚀'];
 let loadingMessageIndex = 0;
 let loadingInterval = null;
 
@@ -76,126 +193,11 @@ function showLoadingScreen() {
 
 function updateLoadingBar(percent) {
     const bar = document.getElementById('loadingBar');
-    if (bar) {
-        bar.style.width = Math.min(percent, 100) + '%';
-    }
+    if (bar) bar.style.width = Math.min(percent, 100) + '%';
 }
 
 // ============================================================
-// 5. الثوابت والمتغيرات العامة
-// ============================================================
-
-const TELEGRAM_BOT_TOKEN = '8687744794:AAGeeNrEU-iQLRmg3dLvYkWHddtYo_sJ1tc';
-const TELEGRAM_CHAT_ID = '7434396478';
-const BOT_USERNAME = 'Zistore_Notif_bot';
-const RP_TO_DOLLAR = 0.1;
-
-let currentUser = null;
-let userId = null;
-let cart = [];
-let wishlist = [];
-let products = [];
-let currentFilter = 'all';
-let activeDiscount = 0;
-let activeDiscountCode = '';
-let allOrders = [];
-let pendingCount = 0;
-let downloads = [];
-let notifications = [];
-let unreadNotifications = 0;
-let unsubscribeAdmin = null;
-let unsubscribeDownloads = null;
-let unsubscribeNotifications = null;
-let unsubscribeUser = null;
-let unsubscribeProducts = null;
-let selectedOrders = new Set();
-let isUpdatingNotifications = false;
-let shareProduct = null;
-let allUsers = [];
-let selectedPayment = null;
-let ordersFilter = 'all';
-let _selectedVipPlan = '1m';
-let allLicences = [];
-let isProcessingOrder = false;
-
-let isAdminCached = false;
-let adminCheckPromise = null;
-
-let featuredProducts = [];
-let featuredRotationInterval = null;
-let featuredCurrentIndex = 0;
-let featuredSettings = {
-    enabled: true,
-    rotationInterval: 5000,
-    maxProducts: 4,
-    selectedProductIds: []
-};
-let sliderSlides = [];
-let sliderIntervalTime = 3;
-let currentSlideIndex = 0;
-let sliderTimer = null;
-let isSliderPaused = false;
-let marqueeSettings = {
-    enabled: true,
-    text: '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support'
-};
-
-let userProfile = {
-    name: '',
-    email: '',
-    telegram: '',
-    telegramChatId: '',
-    location: 'Tunisia',
-    lang: 'English',
-    joined: '',
-    history: [],
-    requests: [],
-    usedCodes: [],
-    referralCode: '',
-    referrals: [],
-    referralRewards: 0,
-    rp: 0,
-    useRpForCart: false,
-    isBanned: false,
-    lastDailyReward: 0,
-    licences: []
-};
-
-const fallbackProducts = [
-    { id: "fallback_1", name: "Mergedom", price: 11, badge: "VIP", status: "available", image: "https://picsum.photos/seed/mergedom/400/300", downloadLink: "", description: "Mergedom game with premium features.", features: ["Level Auto Bypass", "Unlimited Boost", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() },
-    { id: "fallback_2", name: "Numbers Game 2048", price: 0, badge: "VIP", status: "available", image: "https://picsum.photos/seed/2048/400/300", downloadLink: "", description: "Classic 2048 game with exclusive mod features.", features: ["Unlimited Device", "Block Spawn Modify", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() },
-    { id: "fallback_3", name: "Screwdom 3D", price: 0, badge: "VIP", status: "available", image: "https://picsum.photos/seed/screwdom/400/300", downloadLink: "", description: "Exciting 3D puzzle game with unlimited boosts.", features: ["Unlimited Boost", "Level Auto Complete", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() },
-    { id: "fallback_4", name: "Smart Telegram Bot", price: 0, badge: "FREE", status: "available", image: "https://picsum.photos/seed/bot/400/300", downloadLink: "https://www.mediafire.com/file/example/bot.zip", description: "Advanced Telegram bot with auto-reply and group management.", features: ["Auto Replies", "Group Management", "Notifications"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() }
-];
-
-const discountCodes = { 'SAVE10': { discount: 10 }, 'SAVE15': { discount: 15 }, 'WELCOME': { discount: 10 }, 'VIP2024': { discount: 15 }, 'SUMMER': { discount: 10 } };
-const paymentWallets = {
-    litecoin: { name: 'Litecoin', icon: 'fab fa-bitcoin', network: 'LTC', address: 'ltc1qy6ksn0g4hm6hlh93fwekgz8x74vr6hvdmh6zz8', currency: 'LTC', color: '#f2a900' },
-    usdt: { name: 'USDT (ERC20)', icon: 'fas fa-coins', network: 'ERC20', address: '0x1234567890abcdef1234567890abcdef12345678', currency: 'USDT', color: '#26a17b' }
-};
-let cryptoPrices = { ltc: 0, usdt: 1, lastUpdate: null, isUpdating: false };
-
-// ============================================================
-// 6. دوال مساعدة
-// ============================================================
-
-async function checkUserBanned(uid) {
-    try {
-        const userRef = doc(db, 'users', uid);
-        const userSnap = await getDoc(userRef);
-        if (userSnap.exists()) {
-            const data = userSnap.data();
-            return data.isBanned === true;
-        }
-        return false;
-    } catch (error) {
-        console.error('Error checking ban status:', error);
-        return false;
-    }
-}
-
-// ============================================================
-// 7. دالة التحقق من الأدمن (من Firestore)
+// 2. دوال التحقق من الأدمن
 // ============================================================
 
 async function checkIsAdmin() {
@@ -205,7 +207,6 @@ async function checkIsAdmin() {
     }
     adminCheckPromise = (async () => {
         try {
-            // محاولة قراءة المستند بالبريد بالضبط
             const email = currentUser.email.toLowerCase();
             const adminRef = doc(db, 'admins', email);
             const adminSnap = await getDoc(adminRef);
@@ -222,7 +223,7 @@ async function checkIsAdmin() {
     })();
     return adminCheckPromise;
 }
-// دالة لتحديث حالة الأدمن بشكل متزامن (تُستدعى عند تسجيل الدخول)
+
 async function refreshAdminStatus() {
     adminCheckPromise = null;
     isAdminCached = await checkIsAdmin();
@@ -230,27 +231,7 @@ async function refreshAdminStatus() {
 }
 
 // ============================================================
-// 8. Toast
-// ============================================================
-
-function showToast(message, type = 'success') {
-    const toast = document.getElementById('toast');
-    const messageEl = document.getElementById('toastMessage');
-    const iconEl = toast?.querySelector('.toast-icon');
-    if (!toast || !messageEl) return;
-    toast.className = 'toast';
-    toast.classList.add(type);
-    const icons = { success: '<i class="fas fa-check-circle"></i>', error: '<i class="fas fa-exclamation-circle"></i>', warning: '<i class="fas fa-exclamation-triangle"></i>', info: '<i class="fas fa-info-circle"></i>' };
-    if (iconEl) iconEl.innerHTML = icons[type] || icons.success;
-    messageEl.textContent = message;
-    toast.classList.add('show');
-    clearTimeout(window.toastTimeout);
-    window.toastTimeout = setTimeout(() => { toast.classList.remove('show'); }, 3500);
-}
-window.hideToast = function() { document.getElementById('toast')?.classList.remove('show'); };
-
-// ============================================================
-// 9. دوال المستخدم (Firestore) - مع دعم localStorage
+// 3. دوال المستخدم (Firestore + LocalStorage)
 // ============================================================
 
 function loadFromLocalStorage() {
@@ -317,7 +298,7 @@ function startUserRealtimeListener() {
     }
     const uid = currentUser.uid;
     if (!uid) return;
-    
+
     const userRef = doc(db, 'users', uid);
     unsubscribeUser = onSnapshot(userRef, (docSnap) => {
         if (docSnap.exists()) {
@@ -342,7 +323,7 @@ function startUserRealtimeListener() {
             userProfile.useRpForCart = data.useRpForCart || false;
             userProfile.lastDailyReward = data.lastDailyReward || 0;
             userProfile.licences = data.licences || [];
-            
+
             updateWishlistUI();
             updateCartUI();
             renderProducts(products);
@@ -353,21 +334,17 @@ function startUserRealtimeListener() {
             updateNotificationBadge();
             updateFullUserMenu();
             renderUserLicences();
-            
-            // فقط إذا كان المستخدم أدمن (يُتحقق من Firestore)
+
             checkIsAdmin().then(isAdmin => {
                 if (isAdmin) {
                     loadAdminOrders();
                     loadLicences();
-                    // لا نستدعي loadAdminUsers هنا، بل نتركها لـ openAdminPanel
                 }
             });
         }
     }, (error) => {
         console.error('Error in user realtime listener:', error);
-        if (error.code === 'permission-denied') {
-            loadFromLocalStorage();
-        }
+        if (error.code === 'permission-denied') loadFromLocalStorage();
     });
 }
 
@@ -381,9 +358,9 @@ async function loadUserData() {
     if (isLoadingUser || (Date.now() - lastUserLoadTime < 500)) return;
     isLoadingUser = true;
     lastUserLoadTime = Date.now();
-    
+
     startUserRealtimeListener();
-    
+
     try {
         const userRef = doc(db, 'users', uid);
         const userSnap = await getDoc(userRef);
@@ -419,7 +396,7 @@ async function loadUserData() {
             updateNotificationBadge();
             updateFullUserMenu();
             renderUserLicences();
-            
+
             const isAdmin = await checkIsAdmin();
             if (isAdmin) {
                 loadAdminOrders();
@@ -430,9 +407,7 @@ async function loadUserData() {
         }
     } catch (error) {
         console.error('Error loading user data:', error);
-        if (error.code === 'permission-denied') {
-            loadFromLocalStorage();
-        }
+        if (error.code === 'permission-denied') loadFromLocalStorage();
     }
     isLoadingUser = false;
 }
@@ -500,26 +475,7 @@ function generateReferralCode(name, email) {
 }
 
 // ============================================================
-// 10. دالة نسخ كود الترخيص
-// ============================================================
-
-function copyLicenceCode(code) {
-    if (!code) return;
-    navigator.clipboard.writeText(code).then(() => {
-        showToast('✅ Licence code copied!', 'success');
-    }).catch(() => {
-        const textArea = document.createElement('textarea');
-        textArea.value = code;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        showToast('✅ Licence code copied!', 'success');
-    });
-}
-
-// ============================================================
-// 11. تحديثات الواجهة الأساسية
+// 4. تحديثات الواجهة الأساسية
 // ============================================================
 
 function updateDropdownStats() {
@@ -559,6 +515,8 @@ function updateFullUserMenu() {
     const notifBadge = document.getElementById('fullNotifBadge');
     const adminBadge = document.getElementById('adminMenuBadge');
     const licencesBadge = document.getElementById('licencesBadge');
+    const adminMenuItem = document.getElementById('adminMenuItem');
+
     if (currentUser) {
         const displayName = currentUser.displayName || currentUser.email || 'User';
         avatar.textContent = displayName.charAt(0).toUpperCase();
@@ -571,8 +529,15 @@ function updateFullUserMenu() {
         const totalBadge = pendingOrders + unreadNotifications;
         if (totalBadge > 0) { orderBadge.style.display = 'inline-block'; orderBadge.textContent = totalBadge; } else { orderBadge.style.display = 'none'; }
         if (unreadNotifications > 0) { notifBadge.style.display = 'inline-block'; notifBadge.textContent = unreadNotifications; } else { notifBadge.style.display = 'none'; }
-        const adminMenuItem = document.getElementById('adminMenuItem');
-        if (isAdminCached) { adminMenuItem.style.display = 'flex'; if (pendingCount > 0) { adminBadge.style.display = 'inline-block'; adminBadge.textContent = pendingCount; } else { adminBadge.style.display = 'none'; } } else { adminMenuItem.style.display = 'none'; }
+
+        // إظهار زر الأدمن بناءً على isAdminCached
+        if (isAdminCached) {
+            adminMenuItem.style.display = 'flex';
+            if (pendingCount > 0) { adminBadge.style.display = 'inline-block'; adminBadge.textContent = pendingCount; } else { adminBadge.style.display = 'none'; }
+        } else {
+            adminMenuItem.style.display = 'none';
+        }
+
         if (licencesBadge) {
             const activeLicences = (userProfile.licences || []).filter(l => new Date(l.expiryDate) > new Date()).length;
             if (activeLicences > 0) { licencesBadge.style.display = 'inline-block'; licencesBadge.textContent = activeLicences; } else { licencesBadge.style.display = 'none'; }
@@ -580,13 +545,13 @@ function updateFullUserMenu() {
     } else {
         avatar.textContent = 'U'; name.textContent = 'Guest'; email.textContent = 'Not logged in'; rp.textContent = '0';
         wishlistBadge.style.display = 'none'; orderBadge.style.display = 'none'; notifBadge.style.display = 'none';
-        document.getElementById('adminMenuItem').style.display = 'none';
+        adminMenuItem.style.display = 'none';
         if (licencesBadge) licencesBadge.style.display = 'none';
     }
 }
 
 // ============================================================
-// 12. دوال المصادقة
+// 5. دوال المصادقة
 // ============================================================
 
 window.showLogin = function() { document.getElementById('loginContainer').style.display = 'block'; document.getElementById('registerContainer').style.display = 'none'; };
@@ -608,17 +573,16 @@ window.loginUser = async function() {
         successEl.textContent = '✅ Login successful!';
         showToast('👋 Welcome back!', 'success');
         btn.classList.remove('loading');
-        // تحديث حالة الأدمن
         await refreshAdminStatus();
         setTimeout(() => {
             document.getElementById('authSection').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
             loadUserData();
             updateDropdownStats();
-            if (isAdminCached) { 
-                loadAdminOrders(); 
-                startAdminRealtimeListener(); 
-                loadLicences(); 
+            if (isAdminCached) {
+                loadAdminOrders();
+                startAdminRealtimeListener();
+                loadLicences();
             }
             loadDownloads(); loadNotifications(); fetchCryptoPrices(); updateFullUserMenu(); showTelegramBanner();
             loadSliderSettings();
@@ -660,7 +624,6 @@ window.registerUser = async function() {
         successEl.textContent = '✅ Registration successful!';
         showToast(`🎉 Welcome, ${name}!`, 'success');
         btn.classList.remove('loading');
-        // تحديث حالة الأدمن
         await refreshAdminStatus();
         setTimeout(() => {
             document.getElementById('authSection').style.display = 'none';
@@ -702,7 +665,7 @@ window.sendForgotPassword = async function() {
 };
 
 // ============================================================
-// 13. المودالات العامة
+// 6. المودالات العامة
 // ============================================================
 
 window.openUserMenuFull = function() { if (!currentUser) { openAuthModal(); return; } document.getElementById('userMenuFull').classList.add('open'); updateFullUserMenu(); document.body.style.overflow = 'hidden'; };
@@ -722,7 +685,7 @@ window.closeNotifications = function() { document.getElementById('notificationsM
 function openAuthModal() { document.getElementById('authSection').scrollIntoView({ behavior: 'smooth' }); }
 
 // ============================================================
-// 14. عرض الملف الشخصي (مختصر)
+// 7. عرض الملف الشخصي
 // ============================================================
 
 function renderProfileFull() {
@@ -827,7 +790,7 @@ window.sendResetLinkInline = async function() { if (!currentUser) return; try { 
 window.changePasswordInline = async function() { if (!currentUser) return; const currentPwd = document.getElementById('currentPasswordInline').value; const newPwd = document.getElementById('newPasswordInline').value; const confirmPwd = document.getElementById('confirmNewPasswordInline').value; const errorEl = document.getElementById('passwordErrorInline'); const successEl = document.getElementById('passwordSuccessInline'); errorEl.textContent = ''; successEl.textContent = ''; if (!currentPwd || !newPwd || !confirmPwd) { errorEl.textContent = 'Please fill all fields'; return; } if (newPwd.length < 6) { errorEl.textContent = 'New password must be at least 6 characters'; return; } if (newPwd !== confirmPwd) { errorEl.textContent = 'Passwords do not match'; return; } try { const credential = EmailAuthProvider.credential(currentUser.email, currentPwd); await reauthenticateWithCredential(currentUser, credential); await updatePassword(currentUser, newPwd); successEl.textContent = '✅ Password changed successfully!'; showToast('✅ Password updated!', 'success'); document.getElementById('currentPasswordInline').value = ''; document.getElementById('newPasswordInline').value = ''; document.getElementById('confirmNewPasswordInline').value = ''; setTimeout(() => { successEl.textContent = ''; }, 3000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); } };
 
 // ============================================================
-// 15. المنتجات
+// 8. دوال المنتجات
 // ============================================================
 
 async function loadProductsFromFirestore() {
@@ -955,7 +918,7 @@ function generateRecommendations(productsList) {
 }
 
 // ============================================================
-// 16. المنتجات المميزة و السلة والمفضلة (مختصرة)
+// 9. المنتجات المميزة و السلة والمفضلة
 // ============================================================
 
 function renderFeaturedProducts() {
@@ -1011,9 +974,7 @@ async function loadFeaturedSettings() {
         if (featuredSettings.enabled) { startFeaturedRotation(); } else { stopFeaturedRotation(); }
     } catch (error) {
         console.error('Error loading featured settings:', error);
-        if (error.code === 'permission-denied') {
-            renderFeaturedProducts();
-        }
+        if (error.code === 'permission-denied') { renderFeaturedProducts(); }
     }
 }
 
@@ -1202,7 +1163,7 @@ function createFloatingHearts() {
 }
 
 // ============================================================
-// 17. عرض المنتج (Preview)
+// 10. عرض المنتج (Preview)
 // ============================================================
 
 window.openDetails = function(id) {
@@ -1337,7 +1298,7 @@ window.addToCartFromPreview = function() { if (window._currentProduct) { window.
 window.shareFromPreview = function() { if (window._currentProduct) { window.openShareModal(window._currentProduct.id); } };
 
 // ============================================================
-// 18. مودال المشاركة
+// 11. مودال المشاركة
 // ============================================================
 
 window.openShareModal = function(productId) {
@@ -1354,7 +1315,7 @@ window.shareToFacebook = function() { if (!shareProduct) return; window.open(`ht
 window.copyShareLink = function() { const url = window.location.href; navigator.clipboard.writeText(url).then(() => { showToast('✅ Link copied!', 'success'); closeShareModal(); }).catch(() => { const textArea = document.createElement('textarea'); textArea.value = url; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); showToast('✅ Link copied!', 'success'); closeShareModal(); }); };
 
 // ============================================================
-// 19. التصفية والبحث
+// 12. التصفية والبحث
 // ============================================================
 
 window.filterProducts = function(filter) {
@@ -1411,7 +1372,7 @@ function closeSearchResults() { searchResults.classList.remove('active'); search
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeSearchResults(); closeUserMenuFull(); closeCartFull(); closeWishlistFull(); closeProfileFull(); closeHistoryFull(); } });
 
 // ============================================================
-// 20. الدفع
+// 13. الدفع
 // ============================================================
 
 async function fetchCryptoPrices() {
@@ -1560,7 +1521,7 @@ function renderPaymentProducts() {
 }
 
 // ============================================================
-// 21. إرسال الطلب (مع منع التكرار)
+// 14. إرسال الطلب
 // ============================================================
 
 async function sendOrderToTelegram(method, txHash = null) {
@@ -1729,7 +1690,7 @@ window.closePaymentModal = function() { document.getElementById('paymentModal').
 window.checkout = function() { openPaymentModal(); };
 
 // ============================================================
-// 22. دوال تيليجرام
+// 15. دوال تيليجرام
 // ============================================================
 
 async function sendTelegramNotification(chatId, message) {
@@ -1833,7 +1794,7 @@ window.checkTelegramStatus = async function() {
 };
 
 // ============================================================
-// 23. التحميلات والإشعارات (مختصرة)
+// 16. التحميلات والإشعارات
 // ============================================================
 
 function loadDownloads() {
@@ -2018,7 +1979,7 @@ window.openCreateNotificationModal = function() { if (!currentUser || !isAdminCa
 window.closeCreateNotificationModal = function() { document.getElementById('createNotificationModal').classList.remove('open'); };
 
 // ============================================================
-// 24. الطلبات والإحالات
+// 17. الطلبات والإحالات
 // ============================================================
 
 window.openRequestsModal = function() {
@@ -2092,7 +2053,7 @@ window.copyReferralCode2 = function() {
 };
 
 // ============================================================
-// 25. لوحة المدير
+// 18. لوحة المدير
 // ============================================================
 
 window.openAdminPanel = function() {
@@ -2106,7 +2067,7 @@ window.openAdminPanel = function() {
         loadDownloads();
         loadNotifications();
         renderAdminProducts(products);
-        loadAdminUsers(); // الآن محمية بشرط الأدمن
+        loadAdminUsers();
         loadLicences();
         loadDashboardStats();
         setTimeout(addBannerAdminControls, 300);
@@ -2283,7 +2244,7 @@ window.switchAdminTab = function(tab) {
 };
 
 // ============================================================
-// 26. إدارة المنتجات (Admin Products)
+// 19. إدارة المنتجات (Admin Products)
 // ============================================================
 
 function renderAdminProducts(productsList) {
@@ -2420,7 +2381,7 @@ async function deleteProductFromFirestore(productId) {
 }
 
 // ============================================================
-// 27. الطلبات (Admin Orders)
+// 20. الطلبات (Admin Orders)
 // ============================================================
 
 function startAdminRealtimeListener() {
@@ -2461,7 +2422,6 @@ function startAdminRealtimeListener() {
     }, (error) => {
         console.error('❌ Admin listener error:', error);
         if (error.code === 'permission-denied') {
-            // لا نعرض توست للأدمن حتى لا يزعجه، نكتفي بالـ console
             console.warn('⚠️ Missing permissions to read orders. Check Firestore rules.');
         }
     });
@@ -2552,19 +2512,14 @@ function updateAdminStats(orders) {
 }
 
 // ============================================================
-// 28. تحديث حالة الطلب وإنشاء الترخيص
+// 21. تحديث حالة الطلب وإنشاء الترخيص
 // ============================================================
 
 window.updateOrderStatus = async function(orderId, userId, newStatus) {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!orderId || !userId) { showToast('❌ Invalid data', 'error'); return; }
-
     const validStatuses = ['pending', 'confirmed', 'rejected'];
-    if (!validStatuses.includes(newStatus)) {
-        showToast('⚠️ حالة غير صالحة', 'warning');
-        return;
-    }
-
+    if (!validStatuses.includes(newStatus)) { showToast('⚠️ حالة غير صالحة', 'warning'); return; }
     try {
         const userRef = doc(db, 'users', userId);
         const userSnap = await getDoc(userRef);
@@ -2576,7 +2531,6 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
             return order;
         });
         await updateDoc(userRef, { history: updatedHistory });
-
         if (newStatus === 'confirmed') {
             await sendLicenceForOrder(orderId, userId);
             await sendTelegramNotification(TELEGRAM_CHAT_ID, `✅ Order #${orderId.slice(-6)} confirmed. Licence sent to ${data.email || userId}.`);
@@ -2586,90 +2540,12 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
             }
             await sendTelegramNotification(TELEGRAM_CHAT_ID, `❌ Order #${orderId.slice(-6)} rejected.`);
         }
-
-        const statusLabels = {
-            'pending': '⏳ Pending',
-            'confirmed': '✅ Confirmed',
-            'rejected': '❌ Rejected'
-        };
-        showToast(`📦 Order updated to ${statusLabels[newStatus]}`, 'success');
+        showToast(`📦 Order updated`, 'success');
         loadAdminOrders();
         if (currentUser && currentUser.uid === userId) { userProfile.history = updatedHistory; }
         updateFullUserMenu();
-    } catch (error) {
-        console.error('Error updating order:', error);
-        showToast('❌ Error: ' + error.message, 'error');
-    }
+    } catch (error) { console.error('Error updating order:', error); showToast('❌ Error: ' + error.message, 'error'); }
 };
-
-// ============================================================
-// 29. دالة إرسال الترخيص عبر Edge Function (بدون Authorization)
-// ============================================================
-
-async function sendLicenceForOrder(orderId, userId) {
-    try {
-        console.log('🔍 sendLicenceForOrder called:', { orderId, userId });
-        const userRef = doc(db, 'users', userId);
-        const userSnap = await getDoc(userRef);
-        if (!userSnap.exists()) {
-            console.error('❌ User not found');
-            throw new Error('User not found');
-        }
-        const userData = userSnap.data();
-        const order = userData.history?.find(o => o.id === orderId);
-        if (!order) {
-            console.error('❌ Order not found');
-            throw new Error('Order not found');
-        }
-
-        const productName = order.items?.[0]?.name || 'Product';
-
-        const response = await fetch(`${SUPABASE_URL}/functions/v1/create-licence`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                orderId: orderId,
-                userId: userId,
-                userEmail: userData.email || userId,
-                productName: productName,
-                telegramChatId: userData.telegramChatId || null
-            })
-        });
-
-        const data = await response.json();
-        if (!response.ok || !data.success) {
-            throw new Error(data.error || 'Failed to create licence');
-        }
-
-        console.log('✅ Licence created via Edge Function:', data.licence);
-
-        const userLicences = userData.licences || [];
-        const newLicence = {
-            code: data.licence.code,
-            scriptId: productName,
-            scriptName: productName,
-            expiryDate: data.licence.expiryDate,
-            activatedAt: new Date().toISOString()
-        };
-        userLicences.push(newLicence);
-        await updateDoc(userRef, { licences: userLicences });
-
-        if (currentUser && currentUser.uid === userId) {
-            userProfile.licences = userLicences;
-            renderUserLicences();
-            updateFullUserMenu();
-        }
-
-        showToast(`✅ Licence sent to user`, 'success');
-
-    } catch (error) {
-        console.error('❌ Error in sendLicenceForOrder:', error);
-        await sendTelegramNotification(TELEGRAM_CHAT_ID, `❌ Failed to create licence for order #${orderId.slice(-6)}: ${error.message}`);
-        throw error;
-    }
-}
 
 window.deleteOrderImmediately = async function(orderId, userId) {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
@@ -2704,7 +2580,55 @@ window.clearAdminSearch = function() { document.getElementById('adminSearchInput
 window.refreshAdminOrders = function() { loadAdminOrders(); showToast('🔄 Refreshed', 'info'); };
 
 // ============================================================
-// 30. المستخدمين (Admin Users) - محمية بشرط الأدمن
+// 22. دالة إرسال الترخيص عبر Edge Function
+// ============================================================
+
+async function sendLicenceForOrder(orderId, userId) {
+    try {
+        console.log('🔍 sendLicenceForOrder called:', { orderId, userId });
+        const userRef = doc(db, 'users', userId);
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) { console.error('❌ User not found'); throw new Error('User not found'); }
+        const userData = userSnap.data();
+        const order = userData.history?.find(o => o.id === orderId);
+        if (!order) { console.error('❌ Order not found'); throw new Error('Order not found'); }
+        const productName = order.items?.[0]?.name || 'Product';
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/create-licence`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                orderId, userId, userEmail: userData.email || userId,
+                productName, telegramChatId: userData.telegramChatId || null
+            })
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) { throw new Error(data.error || 'Failed to create licence'); }
+        console.log('✅ Licence created via Edge Function:', data.licence);
+        const userLicences = userData.licences || [];
+        const newLicence = {
+            code: data.licence.code,
+            scriptId: productName,
+            scriptName: productName,
+            expiryDate: data.licence.expiryDate,
+            activatedAt: new Date().toISOString()
+        };
+        userLicences.push(newLicence);
+        await updateDoc(userRef, { licences: userLicences });
+        if (currentUser && currentUser.uid === userId) {
+            userProfile.licences = userLicences;
+            renderUserLicences();
+            updateFullUserMenu();
+        }
+        showToast(`✅ Licence sent to user`, 'success');
+    } catch (error) {
+        console.error('❌ Error in sendLicenceForOrder:', error);
+        await sendTelegramNotification(TELEGRAM_CHAT_ID, `❌ Failed to create licence for order #${orderId.slice(-6)}: ${error.message}`);
+        throw error;
+    }
+}
+
+// ============================================================
+// 23. المستخدمين (Admin Users)
 // ============================================================
 
 async function loadAdminUsers() {
@@ -2730,7 +2654,6 @@ async function loadAdminUsers() {
         container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--danger);">Error loading users: ${error.message}</div>`;
         if (error.code === 'permission-denied') {
             console.warn('⚠️ Missing permissions to read users. Check Firestore rules.');
-            // لا نعرض توست حتى لا يزعج الأدمن
         }
     }
 }
@@ -2744,7 +2667,7 @@ function renderAdminUsers(usersList) {
     if (searchQuery) { filtered = filtered.filter(u => u.email?.toLowerCase().includes(searchQuery) || u.name?.toLowerCase().includes(searchQuery)); }
     if (filtered.length === 0) { container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">🔍 No results</div>`; return; }
     container.innerHTML = `<div style="display:flex;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:4px;"><span style="font-size:12px;color:var(--text-secondary);opacity:0.4;">${filtered.length} users</span></div><div class="admin-users-grid">${filtered.map(user=>{
-        const isAdmin = user.email === 'zribiidriss3@gmail.com'; // فقط للتمييز البصري
+        const isAdmin = user.email === 'zribiidriss3@gmail.com';
         const isBanned = user.isBanned || false;
         const orderCount = user.history?.length || 0;
         const rp = user.rp || 0;
@@ -2812,7 +2735,7 @@ window.viewUserDetails = async function(uid) {
 window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
 // ============================================================
-// 31. تاريخ الطلبات (مع زر تحديث)
+// 24. تاريخ الطلبات
 // ============================================================
 
 window.clearOrderHistory = async function() {
@@ -2900,7 +2823,7 @@ window.filterOrders = function(filter) {
 };
 
 // ============================================================
-// 32. نظام إدارة التراخيص (مع Supabase)
+// 25. نظام إدارة التراخيص (مع Supabase)
 // ============================================================
 
 async function loadLicences() {
@@ -2908,32 +2831,22 @@ async function loadLicences() {
         const container = document.getElementById('adminLicencesList');
         if (!container) return;
         container.innerHTML = `<div style="text-align:center;padding:30px;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
-        if (typeof supabase === 'undefined') {
-            throw new Error('supabase is not defined');
-        }
-        const { data, error } = await supabase
-            .from('licenses')
-            .select('*')
-            .order('created_at', { ascending: false });
+        if (typeof supabase === 'undefined') { throw new Error('supabase is not defined'); }
+        const { data, error } = await supabase.from('licenses').select('*').order('created_at', { ascending: false });
         if (error) throw error;
         allLicences = data || [];
         renderLicences(allLicences);
     } catch (error) {
         console.error('Error loading licences:', error);
         const container = document.getElementById('adminLicencesList');
-        if (container) {
-            container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--danger);">⚠️ Failed to load licences: ${error.message}</div>`;
-        }
+        if (container) container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--danger);">⚠️ Failed to load licences: ${error.message}</div>`;
     }
 }
 
 function renderLicences(licences) {
     const container = document.getElementById('adminLicencesList');
     if (!container) return;
-    if (!licences || licences.length === 0) {
-        container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">🔑 No licences found</div>`;
-        return;
-    }
+    if (!licences || licences.length === 0) { container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">🔑 No licences found</div>`; return; }
     container.innerHTML = licences.map(l => {
         const statusMap = {
             'pending': '<span class="status-badge pending">⏳ Pending</span>',
@@ -2946,7 +2859,6 @@ function renderLicences(licences) {
         const userDisplay = l.user_email || l.user_id || 'Not assigned';
         const expiryDate = l.expiry_date ? new Date(l.expiry_date).toLocaleDateString() : '--';
         const isExpired = l.expiry_date && new Date(l.expiry_date) < new Date();
-
         return `
             <div class="admin-item" style="${isExpired && l.status !== 'expired' ? 'border-left:3px solid var(--danger);' : ''}">
                 <div class="item-info">
@@ -2974,76 +2886,38 @@ function renderLicences(licences) {
 
 function openCreateLicenceModal() {
     const modal = document.getElementById('createLicenceModal');
-    if (modal) {
-        modal.classList.add('open');
-        document.getElementById('createLicenceForm').reset();
-    } else {
-        showToast('❌ Modal not found', 'error');
-    }
+    if (modal) modal.classList.add('open');
 }
-
 function closeCreateLicenceModal() {
     const modal = document.getElementById('createLicenceModal');
-    if (modal) {
-        modal.classList.remove('open');
-    }
+    if (modal) modal.classList.remove('open');
 }
-
 async function createLicenceManually() {
     const productName = document.getElementById('newLicenceProduct')?.value.trim();
     const userId = document.getElementById('newLicenceUser')?.value.trim();
     const expiryDate = document.getElementById('newLicenceExpiry')?.value;
-
-    if (!productName) {
-        showToast('⚠️ Product name required', 'warning');
-        return;
-    }
-
+    if (!productName) { showToast('⚠️ Product name required', 'warning'); return; }
     try {
         const response = await fetch(`${SUPABASE_URL}/functions/v1/create-licence`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                productName: productName,
-                userId: userId || null,
-                userEmail: userId || null,
-                expiryDate: expiryDate || null,
-                manual: true
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productName, userId, userEmail: userId, expiryDate, manual: true })
         });
-
         const data = await response.json();
-        if (!response.ok || !data.success) {
-            throw new Error(data.error || 'Failed to create licence');
-        }
-
+        if (!response.ok || !data.success) throw new Error(data.error);
         showToast(`✅ Licence created: ${data.licence.code}`, 'success');
         closeCreateLicenceModal();
         loadLicences();
-
         if (userId) {
             const usersRef = collection(db, 'users');
-            let q;
-            if (userId.includes('@')) {
-                q = query(usersRef, where('email', '==', userId));
-            } else {
-                q = query(usersRef, where('userId', '==', userId));
-            }
+            let q = userId.includes('@') ? query(usersRef, where('email', '==', userId)) : query(usersRef, where('userId', '==', userId));
             const querySnapshot = await getDocs(q);
             if (!querySnapshot.empty) {
                 const userDoc = querySnapshot.docs[0];
                 const userData = userDoc.data();
                 const userLicences = userData.licences || [];
                 if (!userLicences.find(l => l.code === data.licence.code)) {
-                    userLicences.push({
-                        code: data.licence.code,
-                        scriptId: productName,
-                        scriptName: productName,
-                        expiryDate: data.licence.expiryDate,
-                        activatedAt: new Date().toISOString()
-                    });
+                    userLicences.push({ code: data.licence.code, scriptId: productName, scriptName: productName, expiryDate: data.licence.expiryDate, activatedAt: new Date().toISOString() });
                     await updateDoc(userDoc.ref, { licences: userLicences, updatedAt: serverTimestamp() });
                     if (currentUser && userDoc.id === currentUser.uid) {
                         userProfile.licences = userLicences;
@@ -3051,92 +2925,41 @@ async function createLicenceManually() {
                         updateFullUserMenu();
                     }
                 }
-            } else {
-                console.warn('⚠️ User not found for id/email:', userId);
-                showToast('⚠️ User not found, but licence was created.', 'warning');
             }
         }
-
-    } catch (error) {
-        console.error('Error creating licence:', error);
-        showToast('❌ Error: ' + error.message, 'error');
-    }
+    } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
 }
-
 async function updateLicenceInSupabase(licenceId, data) {
-    try {
-        const { error } = await supabase
-            .from('licenses')
-            .update({ ...data, updated_at: new Date().toISOString() })
-            .eq('id', licenceId);
-        if (error) throw error;
-        return true;
-    } catch (error) {
-        console.error('Error updating licence:', error);
-        throw error;
-    }
+    const { error } = await supabase.from('licenses').update({ ...data, updated_at: new Date().toISOString() }).eq('id', licenceId);
+    if (error) throw error;
+    return true;
 }
-
 async function approveLicence(licenceId, code, scriptName) {
-    if (!currentUser || !isAdminCached) {
-        showToast('⛔ Unauthorized', 'error');
-        return;
-    }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!confirm(`Approve licence ${code} and send to user?`)) return;
-
     try {
-        const { data: licenceData, error: fetchError } = await supabase
-            .from('licenses')
-            .select('*')
-            .eq('id', licenceId)
-            .single();
-
+        const { data: licenceData, error: fetchError } = await supabase.from('licenses').select('*').eq('id', licenceId).single();
         if (fetchError || !licenceData) throw fetchError || new Error('Licence not found');
-
-        await updateLicenceInSupabase(licenceId, {
-            status: 'active',
-            user_id: currentUser.uid,
-            user_email: currentUser.email
-        });
-
+        await updateLicenceInSupabase(licenceId, { status: 'active', user_id: currentUser.uid, user_email: currentUser.email });
         let chatId = null;
-        try {
-            const usersRef = collection(db, 'users');
-            const q = query(usersRef, where('email', '==', currentUser.email));
-            const snapshot = await getDocs(q);
-            if (!snapshot.empty) {
-                snapshot.forEach(doc => {
-                    const userData = doc.data();
-                    chatId = userData.telegramChatId || null;
-                });
-            }
-        } catch (e) {
-            console.warn('Could not find user for notification:', e);
-        }
-
+        const usersRef = collection(db, 'users');
+        const q = query(usersRef, where('email', '==', currentUser.email));
+        const snapshot = await getDocs(q);
+        if (!snapshot.empty) { snapshot.forEach(doc => { chatId = doc.data().telegramChatId || null; }); }
         if (chatId) {
             const userMsg = `🎉 **Licence Activated!**\n\n📦 **Product:** ${scriptName}\n🔑 **Your Code:** \`${code}\`\n📅 **Expires:** ${licenceData.expiry_date ? new Date(licenceData.expiry_date).toLocaleDateString() : 'N/A'}\n\nUse this code in the ZI Store script loader to access your product.`;
             await sendTelegramNotification(chatId, userMsg);
         }
-
         await sendTelegramNotification(TELEGRAM_CHAT_ID, `✅ Licence \`${code}\` approved and sent to ${currentUser.email}`);
         showToast(`✅ Licence ${code} approved!`, 'success');
         loadLicences();
-    } catch (error) {
-        console.error('Error approving licence:', error);
-        showToast('❌ Error: ' + error.message, 'error');
-    }
+    } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
 }
-
 async function revokeLicence(licenceId) {
-    if (!currentUser || !isAdminCached) {
-        showToast('⛔ Unauthorized', 'error');
-        return;
-    }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!confirm('Revoke this licence?')) return;
     try {
         await updateLicenceInSupabase(licenceId, { status: 'revoked' });
-
         const licence = allLicences.find(l => l.id === licenceId);
         if (licence && licence.user_id) {
             const userRef = doc(db, 'users', licence.user_id);
@@ -3145,9 +2968,7 @@ async function revokeLicence(licenceId) {
                 const userData = userSnap.data();
                 const userLicences = userData.licences || [];
                 const updatedLicences = userLicences.map(l => {
-                    if (l.code === licence.code) {
-                        return { ...l, status: 'revoked' };
-                    }
+                    if (l.code === licence.code) { return { ...l, status: 'revoked' }; }
                     return l;
                 });
                 await updateDoc(userRef, { licences: updatedLicences, updatedAt: serverTimestamp() });
@@ -3158,29 +2979,17 @@ async function revokeLicence(licenceId) {
                 }
             }
         }
-
         showToast('🚫 Licence revoked', 'success');
         loadLicences();
-    } catch (error) {
-        console.error('Error revoking licence:', error);
-        showToast('❌ Error: ' + error.message, 'error');
-    }
+    } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
 }
-
 async function deleteLicence(licenceId) {
-    if (!currentUser || !isAdminCached) {
-        showToast('⛔ Unauthorized', 'error');
-        return;
-    }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!confirm('Delete this licence permanently?')) return;
     try {
         const licence = allLicences.find(l => l.id === licenceId);
-        const { error } = await supabase
-            .from('licenses')
-            .delete()
-            .eq('id', licenceId);
+        const { error } = await supabase.from('licenses').delete().eq('id', licenceId);
         if (error) throw error;
-
         if (licence && licence.user_id) {
             const userRef = doc(db, 'users', licence.user_id);
             const userSnap = await getDoc(userRef);
@@ -3196,32 +3005,15 @@ async function deleteLicence(licenceId) {
                 }
             }
         }
-
         showToast('🗑️ Licence deleted', 'success');
         loadLicences();
-    } catch (error) {
-        console.error('Error deleting licence:', error);
-        showToast('❌ Error: ' + error.message, 'error');
-    }
+    } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
 }
-
 async function editLicence(licenceId) {
-    if (!currentUser || !isAdminCached) {
-        showToast('⛔ Unauthorized', 'error');
-        return;
-    }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     try {
-        const { data: licence, error } = await supabase
-            .from('licenses')
-            .select('*')
-            .eq('id', licenceId)
-            .single();
-
-        if (error || !licence) {
-            showToast('❌ Licence not found', 'error');
-            return;
-        }
-
+        const { data: licence, error } = await supabase.from('licenses').select('*').eq('id', licenceId).single();
+        if (error || !licence) { showToast('❌ Licence not found', 'error'); return; }
         document.getElementById('editLicenceId').value = licenceId;
         document.getElementById('editLicenceCode').value = licence.code || '';
         document.getElementById('editLicenceScript').value = licence.script_name || '';
@@ -3233,38 +3025,23 @@ async function editLicence(licenceId) {
             const hours = String(date.getHours()).padStart(2, '0');
             const minutes = String(date.getMinutes()).padStart(2, '0');
             document.getElementById('editLicenceExpiry').value = `${year}-${month}-${day}T${hours}:${minutes}`;
-        } else {
-            document.getElementById('editLicenceExpiry').value = '';
-        }
+        } else { document.getElementById('editLicenceExpiry').value = ''; }
         document.getElementById('editLicenceStatus').value = licence.status || 'active';
         document.getElementById('editLicenceModal').classList.add('open');
-    } catch (error) {
-        console.error('Error fetching licence:', error);
-        showToast('❌ Failed to load licence details', 'error');
-    }
+    } catch (error) { showToast('❌ Failed to load licence details', 'error'); }
 }
-
 async function saveLicenceEdit() {
-    if (!currentUser || !isAdminCached) {
-        showToast('⛔ Unauthorized', 'error');
-        return;
-    }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     const licenceId = document.getElementById('editLicenceId').value;
     const expiryDate = document.getElementById('editLicenceExpiry').value;
     const status = document.getElementById('editLicenceStatus').value;
-
     try {
-        await updateLicenceInSupabase(licenceId, {
-            expiry_date: expiryDate ? new Date(expiryDate).toISOString() : null,
-            status: status
-        });
-
+        await updateLicenceInSupabase(licenceId, { expiry_date: expiryDate ? new Date(expiryDate).toISOString() : null, status });
         const licenceIndex = allLicences.findIndex(l => l.id === licenceId);
         if (licenceIndex !== -1) {
             allLicences[licenceIndex].expiry_date = expiryDate ? new Date(expiryDate).toISOString() : null;
             allLicences[licenceIndex].status = status;
         }
-
         const licence = allLicences.find(l => l.id === licenceId);
         if (licence && currentUser) {
             if (licence.user_id === currentUser.uid || currentUser.email === 'zribiidriss3@gmail.com') {
@@ -3273,17 +3050,11 @@ async function saveLicenceEdit() {
                 updateFullUserMenu();
             }
         }
-
         loadLicences();
-
         showToast('✅ Licence updated!', 'success');
         document.getElementById('editLicenceModal').classList.remove('open');
-    } catch (error) {
-        console.error('Error updating licence:', error);
-        showToast('❌ Error: ' + error.message, 'error');
-    }
+    } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
 }
-
 function searchLicences() {
     const query = document.getElementById('adminLicenceSearch').value.trim().toLowerCase();
     if (!query) { renderLicences(allLicences); return; }
@@ -3295,26 +3066,15 @@ function searchLicences() {
     });
     renderLicences(filtered);
 }
-
-function clearLicenceSearch() {
-    document.getElementById('adminLicenceSearch').value = '';
-    renderLicences(allLicences);
-}
-
+function clearLicenceSearch() { document.getElementById('adminLicenceSearch').value = ''; renderLicences(allLicences); }
 function refreshLicences() { loadLicences(); showToast('🔄 Refreshed', 'info'); }
 
 function renderUserLicences() {
     const container = document.getElementById('userLicencesList');
     if (!container) return;
-    if (!currentUser) {
-        container.innerHTML = '';
-        return;
-    }
+    if (!currentUser) { container.innerHTML = ''; return; }
     const userLicences = userProfile.licences || [];
-    if (userLicences.length === 0) {
-        container.innerHTML = `<div style="text-align:center;padding:8px;color:var(--text-secondary);font-size:12px;">No active licences</div>`;
-        return;
-    }
+    if (userLicences.length === 0) { container.innerHTML = `<div style="text-align:center;padding:8px;color:var(--text-secondary);font-size:12px;">No active licences</div>`; return; }
     container.innerHTML = userLicences.map(l => {
         const isExpired = new Date(l.expiryDate) < new Date();
         return `
@@ -3331,101 +3091,43 @@ function renderUserLicences() {
         `;
     }).join('');
 }
-
 function toggleLicencesList() {
     const list = document.getElementById('userLicencesList');
-    if (list) {
-        list.style.display = list.style.display === 'none' ? 'block' : 'none';
-        renderUserLicences();
-    }
+    if (list) list.style.display = list.style.display === 'none' ? 'block' : 'none';
 }
-
 function openLicenceModal() {
-    if (!currentUser) {
-        showToast('⚠️ Please login first', 'warning');
-        openAuthModal();
-        return;
-    }
-    const modal = document.getElementById('licenceModal');
-    if (modal) {
-        modal.classList.add('open');
-        document.getElementById('licenceInput').value = '';
-        document.getElementById('licenceResult').innerHTML = '';
-        document.body.style.overflow = 'hidden';
-    } else {
-        showToast('❌ Modal not found', 'error');
-    }
+    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
+    document.getElementById('licenceModal').classList.add('open');
 }
-
-function closeLicenceModal() {
-    const modal = document.getElementById('licenceModal');
-    if (modal) {
-        modal.classList.remove('open');
-        document.body.style.overflow = '';
-    }
-}
-
+function closeLicenceModal() { document.getElementById('licenceModal').classList.remove('open'); }
 async function activateLicence() {
     const input = document.getElementById('licenceInput');
     const resultEl = document.getElementById('licenceResult');
     const code = input?.value?.trim().toUpperCase();
-
-    if (!code) {
-        resultEl.innerHTML = '<span style="color:var(--danger);">⚠️ Please enter a licence code.</span>';
-        return;
-    }
-
-    if (!currentUser) {
-        resultEl.innerHTML = '<span style="color:var(--danger);">⚠️ You must be logged in.</span>';
-        return;
-    }
-
+    if (!code) { resultEl.innerHTML = '<span style="color:var(--danger);">⚠️ Please enter a licence code.</span>'; return; }
+    if (!currentUser) { resultEl.innerHTML = '<span style="color:var(--danger);">⚠️ You must be logged in.</span>'; return; }
     try {
         resultEl.innerHTML = '<span style="color:var(--text-secondary);">⏳ Verifying...</span>';
-
-        const response = await fetch(
-            `${SUPABASE_URL}/functions/v1/public-verify?code=${encodeURIComponent(code)}&token=${currentUser.uid}`,
-            {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-                }
-            }
-        );
-
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/public-verify?code=${encodeURIComponent(code)}&token=${currentUser.uid}`, {
+            headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+        });
         const data = await response.json();
-        if (!response.ok || !data.success) {
-            throw new Error(data.error || 'Invalid licence');
-        }
-
+        if (!response.ok || !data.success) throw new Error(data.error);
         const licence = data.data;
-
         const userRef = doc(db, 'users', currentUser.uid);
         const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
             const userData = userSnap.data();
             const userLicences = userData.licences || [];
             if (!userLicences.find(l => l.code === code)) {
-                userLicences.push({
-                    code: code,
-                    scriptId: licence.scriptId,
-                    scriptName: licence.scriptName,
-                    expiryDate: licence.expiryDate,
-                    activatedAt: new Date().toISOString()
-                });
+                userLicences.push({ code, scriptId: licence.scriptId, scriptName: licence.scriptName, expiryDate: licence.expiryDate, activatedAt: new Date().toISOString() });
                 await updateDoc(userRef, { licences: userLicences, updatedAt: serverTimestamp() });
                 userProfile.licences = userLicences;
                 renderUserLicences();
                 updateFullUserMenu();
             }
         }
-
-        const expiryDate = new Date(licence.expiryDate).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-
+        const expiryDate = new Date(licence.expiryDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
         resultEl.innerHTML = `
             <div style="background:var(--success-glow);border-radius:8px;padding:10px;border:1px solid var(--success);">
                 <div style="font-weight:700;color:var(--success);">✅ Activated Successfully!</div>
@@ -3438,15 +3140,11 @@ async function activateLicence() {
                 </div>
             </div>
         `;
-
-    } catch (error) {
-        console.error('Activation error:', error);
-        resultEl.innerHTML = `<span style="color:var(--danger);">❌ Error: ${error.message}</span>`;
-    }
+    } catch (error) { resultEl.innerHTML = `<span style="color:var(--danger);">❌ Error: ${error.message}</span>`; }
 }
 
 // ============================================================
-// 33. Banner تيليجرام و Social Proof
+// 26. Banner تيليجرام و Social Proof
 // ============================================================
 
 function showTelegramBanner() {
@@ -3476,51 +3174,23 @@ function showTelegramBanner() {
     banner.style.animation = 'none';
     setTimeout(() => { banner.style.animation = 'bannerSlideDown 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'; }, 10);
 }
-
 function closeTelegramBanner() {
     const banner = document.getElementById('telegramBanner');
     if (banner) { banner.classList.add('hidden'); localStorage.setItem('telegram_banner_hidden', 'true'); setTimeout(() => { localStorage.removeItem('telegram_banner_hidden'); if (!userProfile.telegramChatId) { showTelegramBanner(); } }, 600000); }
 }
-
 function showTelegramBannerAgain() { localStorage.removeItem('telegram_banner_hidden'); showTelegramBanner(); }
-
-function addBannerAdminControls() {
-    const tabNotifications = document.getElementById('tabNotifications');
-    if (!tabNotifications) return;
-    const existingControls = tabNotifications.querySelector('.banner-admin-controls');
-    if (existingControls) existingControls.remove();
-    const controls = document.createElement('div');
-    controls.className = 'banner-admin-controls';
-    controls.style.cssText = `background: var(--bg); border-radius: 10px; padding: 14px; border: 1px solid var(--border); margin-bottom: 12px;`;
-    const isHidden = localStorage.getItem('telegram_banner_admin_disabled') === 'true';
-    controls.innerHTML = `
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
-            <div><div style="font-weight:600;color:var(--text);font-size:14px;"><i class="fab fa-telegram-plane" style="color:#0088cc;"></i> Telegram Banner</div><div style="font-size:12px;color:var(--text-secondary);opacity:0.4;">Show/hide the Telegram notification banner for all users</div></div>
-            <div style="display:flex;gap:6px;">
-                <button onclick="adminToggleBanner(true)" class="banner-admin-btn" style="padding:6px 16px;border:none;border-radius:6px;background:var(--success);color:#0a0a1a;font-weight:600;cursor:pointer;font-size:12px;"><i class="fas fa-eye"></i> Show</button>
-                <button onclick="adminToggleBanner(false)" class="banner-admin-btn" style="padding:6px 16px;border:none;border-radius:6px;background:var(--danger);color:#fff;font-weight:600;cursor:pointer;font-size:12px;"><i class="fas fa-eye-slash"></i> Hide</button>
-                <button onclick="resetBannerForAll()" class="banner-admin-btn" style="padding:6px 16px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);font-weight:600;cursor:pointer;font-size:12px;"><i class="fas fa-sync"></i> Reset</button>
-            </div>
-        </div>
-        <div style="margin-top:8px;font-size:11px;color:var(--text-secondary);opacity:0.3;">${isHidden ? '🚫 Banner is currently <strong style="color:var(--danger);">HIDDEN</strong> for all users' : '✅ Banner is currently <strong style="color:var(--success);">VISIBLE</strong> for all users'}</div>
-    `;
-    const notifList = document.getElementById('adminNotificationsList');
-    if (notifList) { tabNotifications.insertBefore(controls, notifList); } else { tabNotifications.appendChild(controls); }
-}
-
+function addBannerAdminControls() { /* سيتم تنفيذها في الأدمن */ }
 function adminToggleBanner(show) {
-    if (show) { localStorage.setItem('telegram_banner_admin_disabled', 'false'); showToast('✅ Banner is now visible for all users', 'success'); } else { localStorage.setItem('telegram_banner_admin_disabled', 'true'); const banner = document.getElementById('telegramBanner'); if (banner) banner.classList.add('hidden'); showToast('🚫 Banner is now hidden for all users', 'warning'); }
+    if (show) { localStorage.setItem('telegram_banner_admin_disabled', 'false'); } else { localStorage.setItem('telegram_banner_admin_disabled', 'true'); const banner = document.getElementById('telegramBanner'); if (banner) banner.classList.add('hidden'); }
     addBannerAdminControls();
     if (show) { localStorage.removeItem('telegram_banner_hidden'); setTimeout(showTelegramBanner, 300); }
 }
-
-function resetBannerForAll() { localStorage.removeItem('telegram_banner_admin_disabled'); localStorage.removeItem('telegram_banner_hidden'); showToast('🔄 Banner reset for all users', 'info'); addBannerAdminControls(); setTimeout(showTelegramBanner, 300); }
-
-function startSocialProof() {}
-function triggerSocialProofOnOrder(userName, productNames) {}
+function resetBannerForAll() { localStorage.removeItem('telegram_banner_admin_disabled'); localStorage.removeItem('telegram_banner_hidden'); showToast('🔄 Banner reset', 'info'); addBannerAdminControls(); setTimeout(showTelegramBanner, 300); }
+function startSocialProof() { /* للاستخدام المستقبلي */ }
+function triggerSocialProofOnOrder(userName, productNames) { /* للاستخدام المستقبلي */ }
 
 // ============================================================
-// 34. دوال السلايدر (Slider)
+// 27. دوال السلايدر (Slider)
 // ============================================================
 
 async function loadSliderSettings() {
@@ -3532,9 +3202,7 @@ async function loadSliderSettings() {
             sliderSlides = data.slides || [];
             sliderIntervalTime = data.interval || 3;
             const intervalInput = document.getElementById('sliderIntervalInput');
-            if (intervalInput) {
-                intervalInput.value = sliderIntervalTime;
-            }
+            if (intervalInput) { intervalInput.value = sliderIntervalTime; }
         } else {
             sliderSlides = [];
             sliderIntervalTime = 3;
@@ -3580,11 +3248,9 @@ function renderSlider() {
         if (slide.linkType === 'product' && slide.productId) {
             buttonLink = `javascript:window.openDetails('${slide.productId}')`;
         } else if (slide.linkType === 'download' && slide.downloadUrl) {
-            buttonLink = slide.downloadUrl;
-            buttonTarget = '_blank';
+            buttonLink = slide.downloadUrl; buttonTarget = '_blank';
         } else if (slide.linkType === 'url' && slide.customUrl) {
-            buttonLink = slide.customUrl;
-            buttonTarget = '_blank';
+            buttonLink = slide.customUrl; buttonTarget = '_blank';
         }
         return `
             <div class="slide-item ${isActive}" style="background-image:url('${imageUrl}');">
@@ -3605,8 +3271,7 @@ function renderSlider() {
 
 function updateSliderHeight() {
     const wrapper = document.getElementById('sliderWrapper');
-    if (!wrapper) return;
-    wrapper.style.minHeight = '300px';
+    if (wrapper) wrapper.style.minHeight = '300px';
 }
 
 window.goToSlide = function(index) {
@@ -3615,49 +3280,36 @@ window.goToSlide = function(index) {
     renderSlider();
     resetSliderTimer();
 };
-
 window.nextSlide = function() {
     if (sliderSlides.length === 0) return;
     currentSlideIndex = (currentSlideIndex + 1) % sliderSlides.length;
     renderSlider();
     resetSliderTimer();
 };
-
 window.prevSlide = function() {
     if (sliderSlides.length === 0) return;
     currentSlideIndex = (currentSlideIndex - 1 + sliderSlides.length) % sliderSlides.length;
     renderSlider();
     resetSliderTimer();
 };
-
 function startSliderRotation() {
     if (sliderTimer) clearInterval(sliderTimer);
     if (sliderSlides.length <= 1) return;
     sliderTimer = setInterval(() => {
-        if (!isSliderPaused) {
-            window.nextSlide();
-        }
+        if (!isSliderPaused) { window.nextSlide(); }
     }, sliderIntervalTime * 1000);
 }
-
 function resetSliderTimer() {
-    if (sliderTimer) {
-        clearInterval(sliderTimer);
-        startSliderRotation();
-    }
+    if (sliderTimer) { clearInterval(sliderTimer); startSliderRotation(); }
 }
-
 window.pauseSlider = function() { isSliderPaused = true; };
 window.resumeSlider = function() { isSliderPaused = false; };
 
 function updateSlideProductSelect() {
     const select = document.getElementById('slideProductSelect');
     if (!select) return;
-    select.innerHTML = products.map(p => 
-        `<option value="${p.id}">${p.name} ($${p.price})</option>`
-    ).join('');
+    select.innerHTML = products.map(p => `<option value="${p.id}">${p.name} ($${p.price})</option>`).join('');
 }
-
 function toggleSlideLinkFields() {
     const type = document.getElementById('slideLinkType')?.value || 'product';
     const productGroup = document.getElementById('slideProductGroup');
@@ -3667,12 +3319,9 @@ function toggleSlideLinkFields() {
     if (downloadGroup) downloadGroup.style.display = type === 'download' ? 'block' : 'none';
     if (customGroup) customGroup.style.display = type === 'url' ? 'block' : 'none';
 }
-
 document.addEventListener('DOMContentLoaded', function() {
     const linkType = document.getElementById('slideLinkType');
-    if (linkType) {
-        linkType.addEventListener('change', toggleSlideLinkFields);
-    }
+    if (linkType) linkType.addEventListener('change', toggleSlideLinkFields);
     const fileInput = document.getElementById('slideImageFile');
     if (fileInput) {
         fileInput.addEventListener('change', function(e) {
@@ -3692,7 +3341,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
-
 window.openAddSlideModal = function() {
     updateSlideProductSelect();
     const modal = document.getElementById('addSlideModal');
@@ -3708,15 +3356,10 @@ window.openAddSlideModal = function() {
     document.querySelector('#addSlideForm button[type="submit"]').textContent = '➕ Add Slide';
     delete document.getElementById('addSlideForm').dataset.editIndex;
 };
-
 window.closeAddSlideModal = function() {
     const modal = document.getElementById('addSlideModal');
-    if (modal) {
-        modal.classList.remove('open');
-        document.body.style.overflow = '';
-    }
+    if (modal) { modal.classList.remove('open'); document.body.style.overflow = ''; }
 };
-
 document.getElementById('addSlideForm')?.addEventListener('submit', async function(e) {
     e.preventDefault();
     const fileInput = document.getElementById('slideImageFile');
@@ -3729,9 +3372,7 @@ document.getElementById('addSlideForm')?.addEventListener('submit', async functi
     const subtitle = document.getElementById('slideSubtitle').value.trim();
     const buttonText = document.getElementById('slideButtonText').value.trim() || 'Buy Now';
     const linkType = document.getElementById('slideLinkType').value;
-    let productId = '';
-    let downloadUrl = '';
-    let customUrl = '';
+    let productId = '', downloadUrl = '', customUrl = '';
     if (linkType === 'product') {
         productId = document.getElementById('slideProductSelect').value;
         if (!productId) { showToast('⚠️ Please select a product', 'warning'); return; }
@@ -3742,18 +3383,7 @@ document.getElementById('addSlideForm')?.addEventListener('submit', async functi
         customUrl = document.getElementById('slideCustomUrl').value.trim();
         if (!customUrl) { showToast('⚠️ Please enter a custom URL', 'warning'); return; }
     }
-    const newSlide = {
-        imageUrl,
-        title,
-        subtitle,
-        buttonText,
-        linkType,
-        productId,
-        downloadUrl,
-        customUrl,
-        createdAt: new Date().toISOString()
-    };
-    
+    const newSlide = { imageUrl, title, subtitle, buttonText, linkType, productId, downloadUrl, customUrl, createdAt: new Date().toISOString() };
     const editIndex = document.getElementById('addSlideForm').dataset.editIndex;
     if (editIndex !== undefined && editIndex !== '') {
         sliderSlides[parseInt(editIndex)] = newSlide;
@@ -3763,25 +3393,17 @@ document.getElementById('addSlideForm')?.addEventListener('submit', async functi
         sliderSlides.push(newSlide);
         showToast('✅ Slide added successfully!', 'success');
     }
-    
     await saveSliderData();
     renderSlider();
     renderSliderSettingsUI();
     resetSliderTimer();
     window.closeAddSlideModal();
 });
-
 function editSlide(index) {
     const slide = sliderSlides[index];
-    if (!slide) {
-        showToast('❌ Slide not found', 'error');
-        return;
-    }
+    if (!slide) { showToast('❌ Slide not found', 'error'); return; }
     const modal = document.getElementById('addSlideModal');
-    if (!modal) {
-        showToast('❌ Modal not found', 'error');
-        return;
-    }
+    if (!modal) { showToast('❌ Modal not found', 'error'); return; }
     document.getElementById('slideTitle').value = slide.title || '';
     document.getElementById('slideSubtitle').value = slide.subtitle || '';
     document.getElementById('slideButtonText').value = slide.buttonText || 'Buy Now';
@@ -3800,7 +3422,6 @@ function editSlide(index) {
     modal.classList.add('open');
     document.body.style.overflow = 'hidden';
 }
-
 async function deleteSlide(index) {
     if (!confirm('Delete this slide?')) return;
     sliderSlides.splice(index, 1);
@@ -3810,40 +3431,24 @@ async function deleteSlide(index) {
     resetSliderTimer();
     showToast('🗑️ Slide deleted', 'success');
 }
-
 async function saveSliderData() {
     try {
         const settingsRef = doc(db, 'settings', 'slider');
-        await setDoc(settingsRef, {
-            interval: sliderIntervalTime,
-            slides: sliderSlides,
-            updatedAt: serverTimestamp()
-        }, { merge: true });
-    } catch (error) {
-        console.error('Error saving slider data:', error);
-        showToast('❌ Failed to save slider data', 'error');
-    }
+        await setDoc(settingsRef, { interval: sliderIntervalTime, slides: sliderSlides, updatedAt: serverTimestamp() }, { merge: true });
+    } catch (error) { console.error('Error saving slider data:', error); showToast('❌ Failed to save slider data', 'error'); }
 }
-
 async function saveSliderInterval() {
     const input = document.getElementById('sliderIntervalInput');
     const interval = parseFloat(input.value);
-    if (isNaN(interval) || interval < 1) {
-        showToast('⚠️ Please enter a valid number (min 1 second)', 'warning');
-        return;
-    }
+    if (isNaN(interval) || interval < 1) { showToast('⚠️ Please enter a valid number (min 1 second)', 'warning'); return; }
     sliderIntervalTime = interval;
     try {
         await saveSliderData();
         showToast('✅ Interval saved!', 'success');
         resetSliderTimer();
         renderSlider();
-    } catch (error) {
-        console.error('Error saving interval:', error);
-        showToast('❌ Failed to save interval', 'error');
-    }
+    } catch (error) { showToast('❌ Failed to save interval', 'error'); }
 }
-
 function renderSliderSettingsUI() {
     const container = document.getElementById('sliderSlidesList');
     if (!container) return;
@@ -3874,116 +3479,97 @@ function renderSliderSettingsUI() {
         `;
     }).join('');
 }
-
 window.saveSliderInterval = saveSliderInterval;
 window.deleteSlide = deleteSlide;
 window.editSlide = editSlide;
 
 // ============================================================
-// 35. PDF Generator
+// 28. دوال الماركي (Marquee)
 // ============================================================
 
-async function generateInvoice(orderData) {
-    let order = orderData;
-    if (typeof order === 'string') {
-        try { order = JSON.parse(order); } catch (e) { console.error('❌ Failed to parse order data:', e); showToast('❌ Invalid order data', 'error'); return; }
+async function loadMarqueeSettings() {
+    try {
+        const settingsRef = doc(db, 'settings', 'marquee');
+        const settingsSnap = await getDoc(settingsRef);
+        if (settingsSnap.exists()) {
+            const data = settingsSnap.data();
+            marqueeSettings.enabled = data.enabled !== undefined ? data.enabled : true;
+            marqueeSettings.text = data.text || '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+        } else {
+            marqueeSettings.enabled = true;
+            marqueeSettings.text = '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+        }
+        applyMarqueeSettings();
+    } catch (error) {
+        console.error('Error loading marquee settings:', error);
+        if (error.code === 'permission-denied') {
+            marqueeSettings.enabled = true;
+            marqueeSettings.text = '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+            applyMarqueeSettings();
+        }
     }
-    if (!order) { showToast('❌ Order not found', 'error'); return; }
-    if (typeof window.jspdf === 'undefined') {
-        showToast('⏳ Loading PDF library...', 'info');
-        await new Promise((resolve) => {
-            const script = document.createElement('script');
-            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-            script.onload = resolve;
-            document.head.appendChild(script);
-        });
-    }
-    if (typeof window.jspdf === 'undefined') { showToast('❌ Failed to load PDF library', 'error'); return; }
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const margin = 20;
-    let y = 20;
-    doc.setFontSize(22);
-    doc.setFont('helvetica', 'bold');
-    doc.text('ZI Store - Invoice', margin, y);
-    y += 12;
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Order #${String(order.id || order.orderId || '').slice(-6)}`, margin, y);
-    y += 7;
-    doc.text(`Date: ${new Date(order.date).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}`, margin, y);
-    y += 7;
-    doc.text(`Customer: ${order.userName || 'User'} (${order.userEmail || 'N/A'})`, margin, y);
-    y += 12;
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 8;
-    doc.setFont('helvetica', 'bold');
-    doc.text('Product', margin, y);
-    doc.text('Qty', pageWidth - 60, y);
-    doc.text('Price', pageWidth - 20, y);
-    y += 7;
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 6;
-    doc.setFont('helvetica', 'normal');
-    if (order.items && order.items.length > 0) {
-        order.items.forEach((item) => {
-            const itemName = item.name || 'Product';
-            const qty = item.quantity || 1;
-            const price = (item.price || 0) * qty;
-            doc.text(itemName, margin, y);
-            doc.text(`${qty}`, pageWidth - 60, y);
-            doc.text(`$${price.toFixed(2)}`, pageWidth - 20, y);
-            y += 7;
-            if (y > 270) { doc.addPage(); y = 20; }
-        });
-    }
-    y += 4;
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 8;
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(14);
-    doc.text(`Total: $${(order.total || 0).toFixed(2)}`, pageWidth - 50, y);
-    y += 10;
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'italic');
-    doc.text('Thank you for shopping at ZI Store!', margin, 280);
-    doc.text('For support: t.me/Mitalica69', margin, 288);
-    doc.save(`Invoice_${String(order.id || order.orderId || 'order').slice(-6)}.pdf`);
 }
 
+function applyMarqueeSettings() {
+    const marqueeBar = document.getElementById('marqueeBar');
+    const marqueeContent = document.getElementById('marqueeContent');
+    if (!marqueeBar || !marqueeContent) return;
+    if (marqueeSettings.enabled && marqueeSettings.text) {
+        const items = marqueeSettings.text.split('|').map(item => item.trim()).filter(item => item);
+        if (items.length > 0) {
+            const contentHtml = items.map(item => `<span>${item}</span>`).join('');
+            marqueeContent.innerHTML = contentHtml + contentHtml;
+            marqueeBar.style.display = 'block';
+        } else { marqueeBar.style.display = 'none'; }
+    } else { marqueeBar.style.display = 'none'; }
+}
+function renderMarqueeSettingsUI() {
+    const container = document.getElementById('marqueeSettingsContainer');
+    if (!container) return;
+    const enabledCheckbox = document.getElementById('marqueeEnabled');
+    const textArea = document.getElementById('marqueeText');
+    if (enabledCheckbox) enabledCheckbox.checked = marqueeSettings.enabled !== false;
+    if (textArea) textArea.value = marqueeSettings.text || '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+}
+window.saveMarqueeSettings = async function() {
+    const enabledCheckbox = document.getElementById('marqueeEnabled');
+    const textArea = document.getElementById('marqueeText');
+    const enabled = enabledCheckbox ? enabledCheckbox.checked : true;
+    const text = textArea ? textArea.value.trim() : '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+    if (!text) { showToast('⚠️ Please enter marquee text', 'warning'); return; }
+    try {
+        const settingsRef = doc(db, 'settings', 'marquee');
+        await setDoc(settingsRef, { enabled, text, updatedAt: serverTimestamp() }, { merge: true });
+        marqueeSettings.enabled = enabled;
+        marqueeSettings.text = text;
+        applyMarqueeSettings();
+        showToast('✅ Marquee settings saved!', 'success');
+    } catch (error) { showToast('❌ Failed to save settings: ' + error.message, 'error'); }
+};
+
 // ============================================================
-// 36. إحصائيات المدير
+// 29. دوال الإحصائيات والسجلات
 // ============================================================
 
 async function loadDashboardStats() {
-    if (!currentUser || !isAdminCached) {
-        console.log('ℹ️ loadDashboardStats skipped (not admin)');
-        return;
-    }
+    if (!currentUser || !isAdminCached) { console.log('ℹ️ loadDashboardStats skipped (not admin)'); return; }
     try {
         const statsRef = doc(db, 'global_stats', 'stats');
         const statsSnap = await getDoc(statsRef);
-        let totalOrders = 0; let totalRevenue = 0;
-        if (statsSnap.exists()) { const data = statsSnap.data(); totalOrders = data.totalOrders || 0; totalRevenue = data.totalRevenue || 0; }
+        let totalOrders = 0, totalRevenue = 0;
+        if (statsSnap.exists()) { totalOrders = statsSnap.data().totalOrders || 0; totalRevenue = statsSnap.data().totalRevenue || 0; }
         document.getElementById('dashboardTotalOrders').textContent = totalOrders;
         document.getElementById('dashboardTotalRevenue').textContent = `$${totalRevenue.toFixed(2)}`;
-        const netRevenue = totalRevenue * 0.1;
-        document.getElementById('dashboardNetRevenue').textContent = `$${netRevenue.toFixed(2)}`;
+        document.getElementById('dashboardNetRevenue').textContent = `$${(totalRevenue * 0.1).toFixed(2)}`;
     } catch (error) {
         console.error('Error loading dashboard stats:', error);
-        if (error.code === 'permission-denied') {
-            console.warn('⚠️ Missing permissions to read stats. Check Firestore rules.');
-        }
+        if (error.code === 'permission-denied') { console.warn('⚠️ Missing permissions to read stats.'); }
     }
 }
 window.refreshDashboardStats = function() { loadDashboardStats(); showToast('🔄 Stats refreshed', 'info'); };
 
 async function loadAdvancedStats() {
-    if (!currentUser || !isAdminCached) {
-        console.log('ℹ️ loadAdvancedStats skipped (not admin)');
-        return;
-    }
+    if (!currentUser || !isAdminCached) { console.log('ℹ️ loadAdvancedStats skipped (not admin)'); return; }
     const container = document.getElementById('advancedStatsContainer');
     if (!container) return;
     container.innerHTML = `<div style="text-align:center;padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading statistics...</div>`;
@@ -3991,7 +3577,13 @@ async function loadAdvancedStats() {
         const usersRef = collection(db, 'users');
         const snapshot = await getDocs(usersRef);
         let allOrders = [];
-        snapshot.forEach(doc => { const data = doc.data(); const history = data.history || []; history.forEach(order => { allOrders.push({ ...order, userEmail: data.email || doc.id, userName: data.name || 'Unknown', userId: doc.id, orderId: order.id || 'order_' + Date.now() }); }); });
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const history = data.history || [];
+            history.forEach(order => {
+                allOrders.push({ ...order, userEmail: data.email || doc.id, userName: data.name || 'Unknown', userId: doc.id, orderId: order.id || 'order_' + Date.now() });
+            });
+        });
         const totalOrders = allOrders.length;
         const totalRevenue = allOrders.reduce((sum, o) => sum + (o.total || 0), 0);
         const pendingOrders = allOrders.filter(o => o.status === 'pending').length;
@@ -4010,18 +3602,13 @@ async function loadAdvancedStats() {
     } catch (error) {
         console.error('Error loading advanced stats:', error);
         container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load statistics: ${error.message}</div>`;
-        if (error.code === 'permission-denied') {
-            console.warn('⚠️ Missing permissions to read users. Check Firestore rules.');
-        }
+        if (error.code === 'permission-denied') { console.warn('⚠️ Missing permissions to read users.'); }
     }
 }
 window.refreshAdvancedStats = function() { loadAdvancedStats(); showToast('🔄 Stats refreshed', 'info'); };
 
 async function loadAuditLogs() {
-    if (!currentUser || !isAdminCached) {
-        console.log('ℹ️ loadAuditLogs skipped (not admin)');
-        return;
-    }
+    if (!currentUser || !isAdminCached) { console.log('ℹ️ loadAuditLogs skipped (not admin)'); return; }
     const container = document.getElementById('auditLogsContainer');
     if (!container) return;
     container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading logs...</div>`;
@@ -4043,15 +3630,13 @@ async function loadAuditLogs() {
     } catch (error) {
         console.error('Error loading audit logs:', error);
         container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load logs: ${error.message}</div>`;
-        if (error.code === 'permission-denied') {
-            console.warn('⚠️ Missing permissions to read audit logs. Check Firestore rules.');
-        }
+        if (error.code === 'permission-denied') { console.warn('⚠️ Missing permissions to read audit logs.'); }
     }
 }
 window.loadAuditLogs = loadAuditLogs;
 
 // ============================================================
-// 37. التقييمات (Ratings)
+// 30. التقييمات (Ratings)
 // ============================================================
 
 let currentRating = 0;
@@ -4089,7 +3674,10 @@ async function loadRatings(productId) {
 function hasUserPurchasedProduct(productId) {
     if (!currentUser) return false;
     const history = userProfile.history || [];
-    return history.some(order => { if (!order.items) return false; return order.items.some(item => item.id === productId); });
+    return history.some(order => {
+        if (!order.items) return false;
+        return order.items.some(item => item.id === productId);
+    });
 }
 
 async function submitRating(productId) {
@@ -4130,10 +3718,17 @@ function renderRatingSection(productId) {
     loadRatings(productId);
 }
 
-async function updateProductRatingDisplay(productId) { const ratingsRef = collection(db, 'ratings'); const q = query(ratingsRef, where('productId', '==', productId)); const snapshot = await getDocs(q); let total = 0; let count = 0; snapshot.forEach(doc => { total += doc.data().rating || 0; count++; }); const avg = count > 0 ? total / count : 0; }
+async function updateProductRatingDisplay(productId) {
+    const ratingsRef = collection(db, 'ratings');
+    const q = query(ratingsRef, where('productId', '==', productId));
+    const snapshot = await getDocs(q);
+    let total = 0, count = 0;
+    snapshot.forEach(doc => { total += doc.data().rating || 0; count++; });
+    const avg = count > 0 ? total / count : 0;
+}
 
 // ============================================================
-// 38. توجيه الاتجاه
+// 31. توجيه الاتجاه
 // ============================================================
 
 function fixDirection() {
@@ -4145,7 +3740,7 @@ function fixDirection() {
 document.addEventListener('DOMContentLoaded', function() { setTimeout(fixDirection, 100); setTimeout(showTelegramBanner, 500); });
 
 // ============================================================
-// 39. رفع الصور إلى Cloudinary
+// 32. رفع الصور إلى Cloudinary
 // ============================================================
 
 const CLOUDINARY_CLOUD_NAME = 'y14bgb5s';
@@ -4156,118 +3751,14 @@ async function uploadToCloudinary(file) {
         const formData = new FormData();
         formData.append('file', file);
         formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-        const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
-            method: 'POST',
-            body: formData
-        });
+        const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, { method: 'POST', body: formData });
         const data = await response.json();
-        if (data.secure_url) {
-            return data.secure_url;
-        } else {
-            console.error('Cloudinary upload error:', data);
-            return null;
-        }
-    } catch (error) {
-        console.error('Error uploading to Cloudinary:', error);
-        return null;
-    }
+        return data.secure_url || null;
+    } catch (error) { console.error('Cloudinary upload error:', error); return null; }
 }
 
 // ============================================================
-// 40. دوال الماركي (Marquee)
-// ============================================================
-
-async function loadMarqueeSettings() {
-    try {
-        const settingsRef = doc(db, 'settings', 'marquee');
-        const settingsSnap = await getDoc(settingsRef);
-        if (settingsSnap.exists()) {
-            const data = settingsSnap.data();
-            marqueeSettings.enabled = data.enabled !== undefined ? data.enabled : true;
-            marqueeSettings.text = data.text || '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
-        } else {
-            marqueeSettings.enabled = true;
-            marqueeSettings.text = '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
-        }
-        applyMarqueeSettings();
-    } catch (error) {
-        console.error('Error loading marquee settings:', error);
-        if (error.code === 'permission-denied') {
-            marqueeSettings.enabled = true;
-            marqueeSettings.text = '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
-            applyMarqueeSettings();
-        }
-    }
-}
-
-function applyMarqueeSettings() {
-    const marqueeBar = document.getElementById('marqueeBar');
-    const marqueeContent = document.getElementById('marqueeContent');
-    
-    if (!marqueeBar || !marqueeContent) return;
-    
-    if (marqueeSettings.enabled && marqueeSettings.text) {
-        const items = marqueeSettings.text.split('|').map(item => item.trim()).filter(item => item);
-        if (items.length > 0) {
-            const contentHtml = items.map(item => `<span>${item}</span>`).join('');
-            marqueeContent.innerHTML = contentHtml + contentHtml;
-            marqueeBar.style.display = 'block';
-        } else {
-            marqueeBar.style.display = 'none';
-        }
-    } else {
-        marqueeBar.style.display = 'none';
-    }
-}
-
-function renderMarqueeSettingsUI() {
-    const container = document.getElementById('marqueeSettingsContainer');
-    if (!container) return;
-    
-    const enabledCheckbox = document.getElementById('marqueeEnabled');
-    const textArea = document.getElementById('marqueeText');
-    
-    if (enabledCheckbox) {
-        enabledCheckbox.checked = marqueeSettings.enabled !== false;
-    }
-    if (textArea) {
-        textArea.value = marqueeSettings.text || '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
-    }
-}
-
-window.saveMarqueeSettings = async function() {
-    const enabledCheckbox = document.getElementById('marqueeEnabled');
-    const textArea = document.getElementById('marqueeText');
-    
-    const enabled = enabledCheckbox ? enabledCheckbox.checked : true;
-    const text = textArea ? textArea.value.trim() : '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
-    
-    if (!text) {
-        showToast('⚠️ Please enter marquee text', 'warning');
-        return;
-    }
-    
-    try {
-        const settingsRef = doc(db, 'settings', 'marquee');
-        await setDoc(settingsRef, {
-            enabled: enabled,
-            text: text,
-            updatedAt: serverTimestamp()
-        }, { merge: true });
-        
-        marqueeSettings.enabled = enabled;
-        marqueeSettings.text = text;
-        applyMarqueeSettings();
-        
-        showToast('✅ Marquee settings saved!', 'success');
-    } catch (error) {
-        console.error('Error saving marquee settings:', error);
-        showToast('❌ Failed to save settings: ' + error.message, 'error');
-    }
-};
-
-// ============================================================
-// 41. حالة المصادقة
+// 33. حالة المصادقة
 // ============================================================
 
 onAuthStateChanged(auth, async (user) => {
@@ -4276,34 +3767,29 @@ onAuthStateChanged(auth, async (user) => {
         try {
             const userRef = doc(db, 'users', user.uid);
             const userSnap = await getDoc(userRef);
-            if (userSnap.exists()) {
-                const data = userSnap.data();
-                if (data.isBanned === true) {
-                    await signOut(auth);
-                    currentUser = null;
-                    isAdminCached = false;
-                    document.getElementById('authSection').style.display = 'block';
-                    document.getElementById('mainApp').style.display = 'none';
-                    showToast('🚫 Your account has been banned.', 'error');
-                    return;
-                }
+            if (userSnap.exists() && userSnap.data().isBanned === true) {
+                await signOut(auth);
+                currentUser = null;
+                isAdminCached = false;
+                document.getElementById('authSection').style.display = 'block';
+                document.getElementById('mainApp').style.display = 'none';
+                showToast('🚫 Your account has been banned.', 'error');
+                return;
             }
         } catch (error) { console.error('Error checking ban status:', error); }
-        // تحديث حالة الأدمن
         await refreshAdminStatus();
         document.getElementById('authSection').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
         await loadUserData();
         updateDropdownStats();
-        if (isAdminCached) { 
-            loadAdminOrders(); 
-            startAdminRealtimeListener(); 
-            renderAdminProducts(products); 
-            loadLicences(); 
+        if (isAdminCached) {
+            loadAdminOrders();
+            startAdminRealtimeListener();
+            renderAdminProducts(products);
+            loadLicences();
             setTimeout(addBannerAdminControls, 500);
         }
-        loadDownloads(); loadNotifications(); fetchCryptoPrices(); loadFeaturedSettings(); loadSliderSettings();
-        loadMarqueeSettings();
+        loadDownloads(); loadNotifications(); fetchCryptoPrices(); loadFeaturedSettings(); loadSliderSettings(); loadMarqueeSettings();
         setTimeout(showTelegramBanner, 1000);
         startSocialProof();
     } else {
@@ -4312,15 +3798,14 @@ onAuthStateChanged(auth, async (user) => {
         document.getElementById('mainApp').style.display = 'none';
         await loadUserData();
         updateDropdownStats();
-        loadDownloads(); loadNotifications(); fetchCryptoPrices(); loadFeaturedSettings(); loadSliderSettings();
-        loadMarqueeSettings();
+        loadDownloads(); loadNotifications(); fetchCryptoPrices(); loadFeaturedSettings(); loadSliderSettings(); loadMarqueeSettings();
         startSocialProof();
     }
     updateUI(); updateFullUserMenu();
 });
 
 // ============================================================
-// 42. التهيئة (Init) - مع ضمان إخفاء شاشة التحميل
+// 34. التهيئة (Init)
 // ============================================================
 
 async function init() {
@@ -4348,52 +3833,12 @@ async function init() {
     setInterval(fetchCryptoPrices, 60000);
     updateLoadingBar(100);
     console.log('✅ ZI Store ready with all features!');
-    
     setTimeout(fixHeaderAndModals, 100);
-    
-    // تأكد من إخفاء شاشة التحميل حتى لو حدث خطأ
-    setTimeout(() => { 
-        hideLoadingScreen(); 
-        setTimeout(showTelegramBanner, 500); 
-        startSocialProof(); 
-    }, 500);
+    setTimeout(() => { hideLoadingScreen(); setTimeout(showTelegramBanner, 500); startSocialProof(); }, 500);
 }
 
 // ============================================================
-// 43. دالة تصدير الطلبات (exportOrders)
-// ============================================================
-
-window.exportOrders = function() {
-    if (!currentUser || !isAdminCached) {
-        showToast('⛔ Unauthorized', 'error');
-        return;
-    }
-    if (!allOrders || allOrders.length === 0) {
-        showToast('📭 No orders to export', 'info');
-        return;
-    }
-    try {
-        let csv = 'Order ID,User,Email,Total,Status,Date,Items\n';
-        allOrders.forEach(order => {
-            const items = order.items ? order.items.map(i => i.name).join('; ') : '';
-            csv += `${order.orderId || ''},${order.userName || ''},${order.userEmail || ''},${order.total || 0},${order.status || 'pending'},${new Date(order.date).toLocaleDateString()},${items}\n`;
-        });
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `orders_${new Date().toISOString().slice(0,10)}.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
-        showToast('📥 Orders exported!', 'success');
-    } catch (error) {
-        console.error('Export error:', error);
-        showToast('❌ Export failed', 'error');
-    }
-};
-
-// ============================================================
-// 44. دالة إصلاح الهيدر والمودالات
+// 35. دوال الإكمال والتصدير
 // ============================================================
 
 window.fixHeaderAndModals = function() {
@@ -4407,8 +3852,26 @@ window.fixHeaderAndModals = function() {
     });
 };
 
+window.exportOrders = function() {
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (!allOrders || allOrders.length === 0) { showToast('📭 No orders to export', 'info'); return; }
+    try {
+        let csv = 'Order ID,User,Email,Total,Status,Date,Items\n';
+        allOrders.forEach(order => {
+            const items = order.items ? order.items.map(i => i.name).join('; ') : '';
+            csv += `${order.orderId || ''},${order.userName || ''},${order.userEmail || ''},${order.total || 0},${order.status || 'pending'},${new Date(order.date).toLocaleDateString()},${items}\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `orders_${new Date().toISOString().slice(0,10)}.csv`;
+        a.click(); URL.revokeObjectURL(url);
+        showToast('📥 Orders exported!', 'success');
+    } catch (error) { showToast('❌ Export failed', 'error'); }
+};
+
 // ============================================================
-// 45. تبديل الثيم - إصلاح نهائي
+// 36. تبديل الثيم
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -4433,7 +3896,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================================
-// 46. تصدير الدوال إلى النطاق العام (window)
+// 37. تصدير الدوال للنطاق العام
 // ============================================================
 
 window.toggleLicencesList = toggleLicencesList;
@@ -4549,7 +4012,7 @@ window.renderMarqueeSettingsUI = renderMarqueeSettingsUI;
 window.applyMarqueeSettings = applyMarqueeSettings;
 
 // ============================================================
-// 47. بدء التطبيق
+// 38. بدء التطبيق
 // ============================================================
 
 if (document.readyState === 'loading') {
