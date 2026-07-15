@@ -1,5 +1,9 @@
 // ============================================================
-// SCRIPT.JS - ZI Store النسخة النهائية مع الإصلاحات
+// SCRIPT.JS - ZI Store النسخة النهائية الكاملة
+// مع إضافة:
+// - شريط النص المتحرك (Marquee) مع إعدادات في لوحة الأدمن
+// - أيقونات الخدمات تحت كل منتج (Instant Delivery, Secure Payment, 24/7 Support)
+// - جميع الوظائف السابقة: التراخيص، الطلبات، المنتجات، الدفع، إلخ
 // ============================================================
 
 // ============================================================
@@ -147,6 +151,12 @@ let currentSlideIndex = 0;
 let sliderTimer = null;
 let isSliderPaused = false;
 
+// 🆕 إعدادات الماركي
+let marqueeSettings = {
+    enabled: true,
+    text: '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support'
+};
+
 let userProfile = {
     name: '',
     email: '',
@@ -238,7 +248,6 @@ async function getUserId() {
 let isLoadingUser = false;
 let lastUserLoadTime = 0;
 
-// ✅ دالة تحميل بيانات المستخدم مع مستمع فوري (Realtime Listener)
 function startUserRealtimeListener() {
     if (unsubscribeUser) {
         unsubscribeUser();
@@ -272,7 +281,6 @@ function startUserRealtimeListener() {
             userProfile.lastDailyReward = data.lastDailyReward || 0;
             userProfile.licences = data.licences || [];
             
-            // تحديث الواجهة
             updateWishlistUI();
             updateCartUI();
             renderProducts(products);
@@ -302,10 +310,8 @@ async function loadUserData() {
     isLoadingUser = true;
     lastUserLoadTime = Date.now();
     
-    // بدء المستمع الفوري
     startUserRealtimeListener();
     
-    // جلب البيانات مرة واحدة للتأكد من وجود المستخدم
     try {
         const userRef = doc(db, 'users', uid);
         const userSnap = await getDoc(userRef);
@@ -516,6 +522,7 @@ window.loginUser = async function() {
             if (currentUser.email === ADMIN_EMAIL) { loadAdminOrders(); startAdminRealtimeListener(); loadAdminUsers(); loadLicences(); }
             loadDownloads(); loadNotifications(); fetchCryptoPrices(); updateFullUserMenu(); showTelegramBanner();
             loadSliderSettings();
+            loadMarqueeSettings();
         }, 500);
     } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Login failed', 'error'); btn.classList.remove('loading'); }
 };
@@ -558,6 +565,7 @@ window.registerUser = async function() {
             document.getElementById('mainApp').style.display = 'block';
             loadUserData(); updateDropdownStats(); loadDownloads(); loadNotifications(); fetchCryptoPrices(); updateFullUserMenu(); showTelegramBanner();
             loadSliderSettings();
+            loadMarqueeSettings();
         }, 500);
     } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Registration failed', 'error'); btn.classList.remove('loading'); }
 };
@@ -808,6 +816,12 @@ function renderProducts(productsList, isLoading = false) {
         <div class="card-actions">
           <button class="btn-details" onclick="event.stopPropagation(); window.openDetails('${p.id}')"><i class="fas fa-info-circle"></i></button>
           ${isUnavailable?`<button class="btn-download" style="background:var(--text-secondary);color:#fff;cursor:not-allowed;opacity:0.4;" onclick="event.preventDefault();showToast('⛔ Unavailable','warning')"><i class="fas fa-times-circle"></i></button>`:(isFree?`<a href="${p.downloadLink||'#'}" class="btn-download" ${p.downloadLink?'target="_blank"':'onclick="event.preventDefault();showToast(\'⏳ Coming soon\',\'info\')"'}><i class="fas fa-download"></i></a>`:`<button class="btn-add-cart ${inCart?'added':''}" onclick="event.stopPropagation(); window.addToCart('${p.id}')"><i class="fas ${inCart?'fa-check':'fa-cart-plus'}"></i> ${inCart?qty:''}</button>`)}
+        </div>
+        <!-- 🆕 أيقونات الخدمات تحت المنتج -->
+        <div class="product-footer-icons">
+          <span class="icon-item"><i class="fas fa-bolt"></i> Instant</span>
+          <span class="icon-item"><i class="fas fa-lock"></i> Secure</span>
+          <span class="icon-item"><i class="fas fa-headset"></i> 24/7</span>
         </div>
       </div>
     `;
@@ -1971,7 +1985,7 @@ window.copyReferralCode2 = function() {
 };
 
 // ============================================================
-// 24. لوحة المدير (مع أزرار تحديث)
+// 24. لوحة المدير (مع أزرار تحديث وتبويب الماركي)
 // ============================================================
 
 window.openAdminPanel = function() {
@@ -1997,6 +2011,9 @@ window.openAdminPanel = function() {
         if (statsTab && statsTab.classList.contains('active')) { loadAdvancedStats(); }
         const logsTab = document.getElementById('tabLogs');
         if (logsTab && logsTab.classList.contains('active')) { loadAuditLogs(); }
+        // 🆕 تحميل إعدادات الماركي
+        loadMarqueeSettings();
+        renderMarqueeSettingsUI();
     }
 };
 
@@ -2014,6 +2031,13 @@ function ensureSliderTab() {
         licencesTab.setAttribute('onclick', "switchAdminTab('licences')");
         licencesTab.textContent = '🔑 Licences';
         tabsContainer.appendChild(licencesTab);
+    }
+    // 🆕 تبويب الماركي
+    if (!document.querySelector('.admin-panel .tabs button[onclick="switchAdminTab(\'marquee\')"]')) {
+        const marqueeTab = document.createElement('button');
+        marqueeTab.setAttribute('onclick', "switchAdminTab('marquee')");
+        marqueeTab.textContent = '🎬 Marquee';
+        tabsContainer.appendChild(marqueeTab);
     }
     const panelContent = document.querySelector('.admin-panel .modal-content');
     if (panelContent && !document.getElementById('tabSlider')) {
@@ -2070,6 +2094,34 @@ function ensureSliderTab() {
             panelContent.appendChild(tabContent);
         }
     }
+    // 🆕 تبويب الماركي
+    if (panelContent && !document.getElementById('tabMarquee')) {
+        const tabContent = document.createElement('div');
+        tabContent.className = 'tab-content';
+        tabContent.id = 'tabMarquee';
+        tabContent.innerHTML = `
+            <h3 style="font-size:16px;font-weight:700;margin-bottom:12px;"><i class="fas fa-scroll"></i> Marquee Settings</h3>
+            <div id="marqueeSettingsContainer">
+                <div class="admin-form-group">
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                        <input type="checkbox" id="marqueeEnabled" checked />
+                        <span style="font-weight:600;color:var(--text);">Enable Marquee</span>
+                    </label>
+                </div>
+                <div class="admin-form-group">
+                    <label for="marqueeText">Marquee Text (separate items with | )</label>
+                    <textarea id="marqueeText" rows="3" placeholder="🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support" style="width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-size:14px;outline:none;font-family:var(--font);">🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support</textarea>
+                </div>
+                <button class="admin-submit-btn" onclick="saveMarqueeSettings()" style="margin-top:8px;"><i class="fas fa-save"></i> Save Settings</button>
+            </div>
+        `;
+        const lastTab = panelContent.querySelector('.tab-content:last-of-type');
+        if (lastTab) {
+            lastTab.parentNode.insertBefore(tabContent, lastTab.nextSibling);
+        } else {
+            panelContent.appendChild(tabContent);
+        }
+    }
 }
 
 window.closeAdminPanel = function() { document.getElementById('adminPanel').classList.remove('open'); if (unsubscribeAdmin) { unsubscribeAdmin(); unsubscribeAdmin = null; } };
@@ -2087,7 +2139,8 @@ window.switchAdminTab = function(tab) {
         'stats': 'tabStats',
         'logs': 'tabLogs',
         'slider': 'tabSlider',
-        'licences': 'tabLicences'
+        'licences': 'tabLicences',
+        'marquee': 'tabMarquee'
     };
     const tabId = tabMap[tab] || tabMap['dashboard'];
     document.getElementById(tabId).classList.add('active');
@@ -2103,6 +2156,7 @@ window.switchAdminTab = function(tab) {
         document.getElementById('sliderIntervalInput').value = sliderIntervalTime;
     }
     if (tab === 'licences') { loadLicences(); }
+    if (tab === 'marquee') { renderMarqueeSettingsUI(); }
     
     if (tab === 'orders') {
         loadAdminOrders();
@@ -3015,7 +3069,6 @@ async function deleteLicence(licenceId) {
     }
 }
 
-// ✅ دالة تعديل الترخيص (تعديل مباشر لجلب البيانات من Supabase)
 async function editLicence(licenceId) {
     try {
         const { data: licence, error } = await supabase
@@ -3080,7 +3133,6 @@ async function saveLicenceEdit() {
                     return l;
                 });
                 await updateDoc(userRef, { licences: updatedLicences, updatedAt: serverTimestamp() });
-                // ✅ تحديث userProfile للمستخدم الحالي إذا كان هو صاحب الترخيص
                 if (currentUser && currentUser.uid === licence.user_id) {
                     userProfile.licences = updatedLicences;
                     renderUserLicences();
@@ -3955,7 +4007,106 @@ async function uploadToCloudinary(file) {
 }
 
 // ============================================================
-// 39. حالة المصادقة
+// 39. دوال الماركي (Marquee)
+// ============================================================
+
+// تحميل إعدادات الماركي من Firestore
+async function loadMarqueeSettings() {
+    try {
+        const settingsRef = doc(db, 'settings', 'marquee');
+        const settingsSnap = await getDoc(settingsRef);
+        if (settingsSnap.exists()) {
+            const data = settingsSnap.data();
+            marqueeSettings.enabled = data.enabled !== undefined ? data.enabled : true;
+            marqueeSettings.text = data.text || '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+        } else {
+            // القيم الافتراضية
+            marqueeSettings.enabled = true;
+            marqueeSettings.text = '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+        }
+        applyMarqueeSettings();
+    } catch (error) {
+        console.error('Error loading marquee settings:', error);
+        marqueeSettings.enabled = true;
+        marqueeSettings.text = '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+        applyMarqueeSettings();
+    }
+}
+
+// تطبيق إعدادات الماركي على الواجهة
+function applyMarqueeSettings() {
+    const marqueeBar = document.getElementById('marqueeBar');
+    const marqueeContent = document.getElementById('marqueeContent');
+    
+    if (!marqueeBar || !marqueeContent) return;
+    
+    if (marqueeSettings.enabled && marqueeSettings.text) {
+        // تقسيم النص إلى أجزاء
+        const items = marqueeSettings.text.split('|').map(item => item.trim()).filter(item => item);
+        if (items.length > 0) {
+            // تكرار النص مرتين للحركة المستمرة
+            const contentHtml = items.map(item => `<span>${item}</span>`).join('');
+            marqueeContent.innerHTML = contentHtml + contentHtml;
+            marqueeBar.style.display = 'block';
+        } else {
+            marqueeBar.style.display = 'none';
+        }
+    } else {
+        marqueeBar.style.display = 'none';
+    }
+}
+
+// عرض إعدادات الماركي في لوحة الأدمن
+function renderMarqueeSettingsUI() {
+    const container = document.getElementById('marqueeSettingsContainer');
+    if (!container) return;
+    
+    // التحقق من وجود العناصر
+    const enabledCheckbox = document.getElementById('marqueeEnabled');
+    const textArea = document.getElementById('marqueeText');
+    
+    if (enabledCheckbox) {
+        enabledCheckbox.checked = marqueeSettings.enabled !== false;
+    }
+    if (textArea) {
+        textArea.value = marqueeSettings.text || '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+    }
+}
+
+// حفظ إعدادات الماركي
+window.saveMarqueeSettings = async function() {
+    const enabledCheckbox = document.getElementById('marqueeEnabled');
+    const textArea = document.getElementById('marqueeText');
+    
+    const enabled = enabledCheckbox ? enabledCheckbox.checked : true;
+    const text = textArea ? textArea.value.trim() : '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+    
+    if (!text) {
+        showToast('⚠️ Please enter marquee text', 'warning');
+        return;
+    }
+    
+    try {
+        const settingsRef = doc(db, 'settings', 'marquee');
+        await setDoc(settingsRef, {
+            enabled: enabled,
+            text: text,
+            updatedAt: serverTimestamp()
+        }, { merge: true });
+        
+        marqueeSettings.enabled = enabled;
+        marqueeSettings.text = text;
+        applyMarqueeSettings();
+        
+        showToast('✅ Marquee settings saved!', 'success');
+    } catch (error) {
+        console.error('Error saving marquee settings:', error);
+        showToast('❌ Failed to save settings: ' + error.message, 'error');
+    }
+};
+
+// ============================================================
+// 40. حالة المصادقة
 // ============================================================
 
 onAuthStateChanged(auth, async (user) => {
@@ -3982,6 +4133,7 @@ onAuthStateChanged(auth, async (user) => {
         updateDropdownStats();
         if (user.email === ADMIN_EMAIL) { loadAdminOrders(); startAdminRealtimeListener(); renderAdminProducts(products); loadAdminUsers(); loadLicences(); setTimeout(addBannerAdminControls, 500); }
         loadDownloads(); loadNotifications(); fetchCryptoPrices(); loadFeaturedSettings(); loadSliderSettings();
+        loadMarqueeSettings();
         setTimeout(showTelegramBanner, 1000);
         startSocialProof();
     } else {
@@ -3990,13 +4142,14 @@ onAuthStateChanged(auth, async (user) => {
         await loadUserData();
         updateDropdownStats();
         loadDownloads(); loadNotifications(); fetchCryptoPrices(); loadFeaturedSettings(); loadSliderSettings();
+        loadMarqueeSettings();
         startSocialProof();
     }
     updateUI(); updateFullUserMenu();
 });
 
 // ============================================================
-// 40. التهيئة (Init) - Anonymous معطل تماماً
+// 41. التهيئة (Init) - Anonymous معطل تماماً
 // ============================================================
 
 async function init() {
@@ -4022,6 +4175,7 @@ async function init() {
     fetchCryptoPrices();
     loadFeaturedSettings();
     loadSliderSettings();
+    loadMarqueeSettings();
     setInterval(fetchCryptoPrices, 60000);
     updateLoadingBar(100);
     console.log('✅ ZI Store ready with all features!');
@@ -4035,7 +4189,7 @@ init();
 setTimeout(() => { hideLoadingScreen(); console.log('⚠️ Force hiding loading screen (timeout)'); }, 5000);
 
 // ============================================================
-// 41. تصدير الدوال إلى النطاق العام (window) للاستخدام في HTML
+// 42. تصدير الدوال إلى النطاق العام (window) للاستخدام في HTML
 // ============================================================
 
 window.toggleLicencesList = toggleLicencesList;
@@ -4145,8 +4299,12 @@ window.addBannerAdminControls = addBannerAdminControls;
 window.showTelegramBanner = showTelegramBanner;
 window.showTelegramBannerAgain = showTelegramBannerAgain;
 window.fixHeaderAndModals = fixHeaderAndModals;
+window.loadMarqueeSettings = loadMarqueeSettings;
+window.saveMarqueeSettings = saveMarqueeSettings;
+window.renderMarqueeSettingsUI = renderMarqueeSettingsUI;
+window.applyMarqueeSettings = applyMarqueeSettings;
 
-// ✅ تصدير دالة exportOrders بشكل صحيح (تم إصلاحها)
+// تصدير دالة exportOrders بشكل صحيح
 window.exportOrders = exportOrders;
 
 // ============================================================
