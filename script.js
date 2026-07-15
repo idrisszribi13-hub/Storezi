@@ -2,6 +2,7 @@
 // SCRIPT.JS - ZI Store النسخة النهائية الكاملة
 // مع إصلاح مشكلة تبديل الثيم (Theme) وإخفاء شاشة التحميل
 // وإصلاح تحديث التراخيص في My Licences عند تعديلها من الأدمن
+// وإصلاح مشكلة الصلاحيات (Missing or insufficient permissions)
 // ============================================================
 
 // ============================================================
@@ -229,8 +230,51 @@ function showToast(message, type = 'success') {
 window.hideToast = function() { document.getElementById('toast')?.classList.remove('show'); };
 
 // ============================================================
-// 8. دوال المستخدم (Firestore)
+// 8. دوال المستخدم (Firestore) - مع إصلاح الصلاحيات
 // ============================================================
+
+// دالة لتحميل البيانات من localStorage (للمستخدمين غير المسجلين أو عند رفض الصلاحيات)
+function loadFromLocalStorage() {
+    try {
+        const wishlistData = localStorage.getItem('zi_wishlist_backup');
+        const cartData = localStorage.getItem('zi_cart_backup');
+        const historyData = localStorage.getItem('zi_history_backup');
+        const requestsData = localStorage.getItem('zi_requests_backup');
+        const usedCodesData = localStorage.getItem('zi_usedcodes_backup');
+        const referralsData = localStorage.getItem('zi_referrals_backup');
+        const referralRewardsData = localStorage.getItem('zi_referralRewards_backup');
+        const rpData = localStorage.getItem('zi_rp_backup');
+        const isBannedData = localStorage.getItem('zi_isBanned_backup');
+        const lastDailyRewardData = localStorage.getItem('zi_lastDailyReward_backup');
+        const licencesData = localStorage.getItem('zi_licences_backup');
+
+        wishlist = wishlistData ? JSON.parse(wishlistData) : [];
+        cart = cartData ? JSON.parse(cartData) : [];
+        userProfile.history = historyData ? JSON.parse(historyData) : [];
+        userProfile.requests = requestsData ? JSON.parse(requestsData) : [];
+        userProfile.usedCodes = usedCodesData ? JSON.parse(usedCodesData) : [];
+        userProfile.referrals = referralsData ? JSON.parse(referralsData) : [];
+        userProfile.referralRewards = referralRewardsData ? parseFloat(referralRewardsData) : 0;
+        userProfile.rp = rpData ? parseFloat(rpData) : 0;
+        userProfile.isBanned = isBannedData ? JSON.parse(isBannedData) : false;
+        userProfile.lastDailyReward = lastDailyRewardData ? parseInt(lastDailyRewardData) : 0;
+        userProfile.licences = licencesData ? JSON.parse(licencesData) : [];
+
+        // تحديث الواجهة
+        updateWishlistUI();
+        updateCartUI();
+        renderProducts(products);
+        updateStatsFromProducts(products);
+        generateRecommendations(products);
+        updateBottomCartBar();
+        updateDropdownStats();
+        updateNotificationBadge();
+        updateFullUserMenu();
+        renderUserLicences();
+    } catch (e) {
+        console.error('Error loading from localStorage:', e);
+    }
+}
 
 async function getUserId() {
     if (userId) return userId;
@@ -238,7 +282,6 @@ async function getUserId() {
     if (savedId) { userId = savedId; return userId; }
     userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
     localStorage.setItem('zi_userId', userId);
-    try { await setDoc(doc(db, 'users', userId), { userId, wishlist: [], cart: [], history: [], requests: [], usedCodes: [], referrals: [], referralRewards: 0, rp: 0, isBanned: false, lastDailyReward: 0, licences: [], createdAt: serverTimestamp(), updatedAt: serverTimestamp() }, { merge: true }); } catch (e) { console.error(e); }
     return userId;
 }
 
@@ -250,7 +293,11 @@ function startUserRealtimeListener() {
         unsubscribeUser();
         unsubscribeUser = null;
     }
-    const uid = currentUser ? currentUser.uid : null;
+    if (!currentUser) {
+        console.log('ℹ️ No authenticated user, skipping realtime listener');
+        return;
+    }
+    const uid = currentUser.uid;
     if (!uid) return;
     
     const userRef = doc(db, 'users', uid);
@@ -297,12 +344,21 @@ function startUserRealtimeListener() {
         }
     }, (error) => {
         console.error('Error in user realtime listener:', error);
+        // إذا كان الخطأ بسبب الصلاحيات، نستخدم localStorage
+        if (error.code === 'permission-denied') {
+            loadFromLocalStorage();
+        }
     });
 }
 
 async function loadUserData() {
-    const uid = currentUser ? currentUser.uid : await getUserId();
-    if (!uid) return;
+    // إذا لم يكن هناك مستخدم مصادق، استخدم localStorage ولا تحاول القراءة من Firestore
+    if (!currentUser) {
+        console.log('ℹ️ No authenticated user, loading from localStorage');
+        loadFromLocalStorage();
+        return;
+    }
+    const uid = currentUser.uid;
     if (isLoadingUser || (Date.now() - lastUserLoadTime < 500)) return;
     isLoadingUser = true;
     lastUserLoadTime = Date.now();
@@ -350,13 +406,32 @@ async function loadUserData() {
         }
     } catch (error) {
         console.error('Error loading user data:', error);
+        // إذا كان الخطأ بسبب الصلاحيات، استخدم localStorage
+        if (error.code === 'permission-denied') {
+            loadFromLocalStorage();
+        }
     }
     isLoadingUser = false;
 }
 
 async function saveUserData(silent = false) {
-    const uid = currentUser ? currentUser.uid : await getUserId();
-    if (!uid) return;
+    // إذا لم يكن هناك مستخدم مصادق، احفظ في localStorage فقط
+    if (!currentUser) {
+        localStorage.setItem('zi_wishlist_backup', JSON.stringify(wishlist));
+        localStorage.setItem('zi_cart_backup', JSON.stringify(cart));
+        localStorage.setItem('zi_history_backup', JSON.stringify(userProfile.history));
+        localStorage.setItem('zi_requests_backup', JSON.stringify(userProfile.requests));
+        localStorage.setItem('zi_usedcodes_backup', JSON.stringify(userProfile.usedCodes));
+        localStorage.setItem('zi_referrals_backup', JSON.stringify(userProfile.referrals));
+        localStorage.setItem('zi_referralRewards_backup', JSON.stringify(userProfile.referralRewards));
+        localStorage.setItem('zi_rp_backup', JSON.stringify(userProfile.rp));
+        localStorage.setItem('zi_isBanned_backup', JSON.stringify(userProfile.isBanned));
+        localStorage.setItem('zi_lastDailyReward_backup', JSON.stringify(userProfile.lastDailyReward || 0));
+        localStorage.setItem('zi_licences_backup', JSON.stringify(userProfile.licences || []));
+        return true;
+    }
+    const uid = currentUser.uid;
+    if (!uid) return false;
     try {
         await setDoc(doc(db, 'users', uid), {
             wishlist,
@@ -904,7 +979,13 @@ async function loadFeaturedSettings() {
         if (settingsSnap.exists()) { const data = settingsSnap.data(); featuredSettings = { ...featuredSettings, ...data }; }
         renderFeaturedProducts();
         if (featuredSettings.enabled) { startFeaturedRotation(); } else { stopFeaturedRotation(); }
-    } catch (error) { console.error('Error loading featured settings:', error); }
+    } catch (error) {
+        console.error('Error loading featured settings:', error);
+        if (error.code === 'permission-denied') {
+            // استخدم الإعدادات الافتراضية
+            renderFeaturedProducts();
+        }
+    }
 }
 
 window.addToCart = async function(productId) {
@@ -2008,7 +2089,6 @@ window.openAdminPanel = function() {
         if (statsTab && statsTab.classList.contains('active')) { loadAdvancedStats(); }
         const logsTab = document.getElementById('tabLogs');
         if (logsTab && logsTab.classList.contains('active')) { loadAuditLogs(); }
-        // 🆕 تحميل إعدادات الماركي
         loadMarqueeSettings();
         renderMarqueeSettingsUI();
     }
@@ -2029,7 +2109,6 @@ function ensureSliderTab() {
         licencesTab.textContent = '🔑 Licences';
         tabsContainer.appendChild(licencesTab);
     }
-    // 🆕 تبويب الماركي
     if (!document.querySelector('.admin-panel .tabs button[onclick="switchAdminTab(\'marquee\')"]')) {
         const marqueeTab = document.createElement('button');
         marqueeTab.setAttribute('onclick', "switchAdminTab('marquee')");
@@ -2091,7 +2170,6 @@ function ensureSliderTab() {
             panelContent.appendChild(tabContent);
         }
     }
-    // 🆕 تبويب الماركي
     if (panelContent && !document.getElementById('tabMarquee')) {
         const tabContent = document.createElement('div');
         tabContent.className = 'tab-content';
@@ -3101,9 +3179,7 @@ async function editLicence(licenceId) {
     }
 }
 
-// ============================================================
 // 🔧 إصلاح: تحديث userProfile.licences عند تعديل الترخيص
-// ============================================================
 async function saveLicenceEdit() {
     const licenceId = document.getElementById('editLicenceId').value;
     const expiryDate = document.getElementById('editLicenceExpiry').value;
@@ -3380,7 +3456,7 @@ function startSocialProof() {}
 function triggerSocialProofOnOrder(userName, productNames) {}
 
 // ============================================================
-// 33. دوال السلايدر (Slider) - مع editSlide
+// 33. دوال السلايدر (Slider) - مع إصلاح loadSliderSettings
 // ============================================================
 
 async function loadSliderSettings() {
@@ -3404,8 +3480,12 @@ async function loadSliderSettings() {
         renderSliderSettingsUI();
     } catch (error) {
         console.error('Error loading slider settings:', error);
-        sliderSlides = [];
-        renderSlider();
+        if (error.code === 'permission-denied') {
+            sliderSlides = [];
+            sliderIntervalTime = 3;
+            renderSlider();
+            renderSliderSettingsUI();
+        }
     }
 }
 
@@ -4001,10 +4081,9 @@ async function uploadToCloudinary(file) {
 }
 
 // ============================================================
-// 39. دوال الماركي (Marquee)
+// 39. دوال الماركي (Marquee) - مع إصلاح loadMarqueeSettings
 // ============================================================
 
-// تحميل إعدادات الماركي من Firestore
 async function loadMarqueeSettings() {
     try {
         const settingsRef = doc(db, 'settings', 'marquee');
@@ -4014,20 +4093,20 @@ async function loadMarqueeSettings() {
             marqueeSettings.enabled = data.enabled !== undefined ? data.enabled : true;
             marqueeSettings.text = data.text || '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
         } else {
-            // القيم الافتراضية
             marqueeSettings.enabled = true;
             marqueeSettings.text = '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
         }
         applyMarqueeSettings();
     } catch (error) {
         console.error('Error loading marquee settings:', error);
-        marqueeSettings.enabled = true;
-        marqueeSettings.text = '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
-        applyMarqueeSettings();
+        if (error.code === 'permission-denied') {
+            marqueeSettings.enabled = true;
+            marqueeSettings.text = '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+            applyMarqueeSettings();
+        }
     }
 }
 
-// تطبيق إعدادات الماركي على الواجهة
 function applyMarqueeSettings() {
     const marqueeBar = document.getElementById('marqueeBar');
     const marqueeContent = document.getElementById('marqueeContent');
@@ -4035,10 +4114,8 @@ function applyMarqueeSettings() {
     if (!marqueeBar || !marqueeContent) return;
     
     if (marqueeSettings.enabled && marqueeSettings.text) {
-        // تقسيم النص إلى أجزاء
         const items = marqueeSettings.text.split('|').map(item => item.trim()).filter(item => item);
         if (items.length > 0) {
-            // تكرار النص مرتين للحركة المستمرة
             const contentHtml = items.map(item => `<span>${item}</span>`).join('');
             marqueeContent.innerHTML = contentHtml + contentHtml;
             marqueeBar.style.display = 'block';
@@ -4050,12 +4127,10 @@ function applyMarqueeSettings() {
     }
 }
 
-// عرض إعدادات الماركي في لوحة الأدمن
 function renderMarqueeSettingsUI() {
     const container = document.getElementById('marqueeSettingsContainer');
     if (!container) return;
     
-    // التحقق من وجود العناصر
     const enabledCheckbox = document.getElementById('marqueeEnabled');
     const textArea = document.getElementById('marqueeText');
     
@@ -4067,7 +4142,6 @@ function renderMarqueeSettingsUI() {
     }
 }
 
-// حفظ إعدادات الماركي
 window.saveMarqueeSettings = async function() {
     const enabledCheckbox = document.getElementById('marqueeEnabled');
     const textArea = document.getElementById('marqueeText');
@@ -4143,14 +4217,12 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// 41. التهيئة (Init) - Anonymous معطل تماماً
+// 41. التهيئة (Init)
 // ============================================================
 
 async function init() {
     showLoadingScreen();
     updateLoadingBar(10);
-    // ✅ تم تعطيل Anonymous sign-in نهائياً
-    // try { await signInAnonymously(auth); updateLoadingBar(30); } catch (e) { console.log('ℹ️ Anonymous sign-in'); }
     updateLoadingBar(30);
     const productsFromFirestore = await loadProductsFromFirestore();
     products = productsFromFirestore.length > 0 ? productsFromFirestore : fallbackProducts;
@@ -4174,7 +4246,6 @@ async function init() {
     updateLoadingBar(100);
     console.log('✅ ZI Store ready with all features!');
     
-    // ✅ تثبيت الشريط العلوي بعد تحميل الصفحة
     setTimeout(fixHeaderAndModals, 100);
     
     setTimeout(() => { hideLoadingScreen(); setTimeout(showTelegramBanner, 500); startSocialProof(); }, 500);
@@ -4183,6 +4254,7 @@ async function init() {
 // ============================================================
 // 42. دالة تصدير الطلبات (exportOrders)
 // ============================================================
+
 window.exportOrders = function() {
     if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
         showToast('⛔ Unauthorized', 'error');
@@ -4215,6 +4287,7 @@ window.exportOrders = function() {
 // ============================================================
 // 43. دالة إصلاح الهيدر والمودالات
 // ============================================================
+
 window.fixHeaderAndModals = function() {
     document.querySelectorAll('.header, .logo, .header-actions, .modal-content, .fullscreen-modal, .admin-panel').forEach(el => {
         el.style.direction = 'ltr';
@@ -4229,6 +4302,7 @@ window.fixHeaderAndModals = function() {
 // ============================================================
 // 44. تبديل الثيم - إصلاح نهائي
 // ============================================================
+
 document.addEventListener('DOMContentLoaded', function() {
     const themeBtn = document.querySelector('.theme-toggle');
     if (themeBtn) {
@@ -4251,7 +4325,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================================
-// 45. تصدير الدوال إلى النطاق العام (window) للاستخدام في HTML
+// 45. تصدير الدوال إلى النطاق العام (window)
 // ============================================================
 
 window.toggleLicencesList = toggleLicencesList;
@@ -4365,6 +4439,17 @@ window.loadMarqueeSettings = loadMarqueeSettings;
 window.saveMarqueeSettings = saveMarqueeSettings;
 window.renderMarqueeSettingsUI = renderMarqueeSettingsUI;
 window.applyMarqueeSettings = applyMarqueeSettings;
+
+// ============================================================
+// 46. بدء التطبيق
+// ============================================================
+
+// تأكد من بدء التطبيق بعد تحميل الصفحة بالكامل
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
 
 // ============================================================
 // END OF SCRIPT.JS
