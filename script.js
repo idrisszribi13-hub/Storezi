@@ -151,7 +151,6 @@ let currentSlideIndex = 0;
 let sliderTimer = null;
 let isSliderPaused = false;
 
-// 🆕 إعدادات الماركي
 let marqueeSettings = {
     enabled: true,
     text: '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support'
@@ -3104,6 +3103,9 @@ async function editLicence(licenceId) {
     }
 }
 
+// ============================================================
+// 🔧 إصلاح: تحديث userProfile.licences عند تعديل الترخيص
+// ============================================================
 async function saveLicenceEdit() {
     const licenceId = document.getElementById('editLicenceId').value;
     const expiryDate = document.getElementById('editLicenceExpiry').value;
@@ -3115,35 +3117,29 @@ async function saveLicenceEdit() {
             status: status
         });
 
+        // تحديث allLicences محلياً
+        const licenceIndex = allLicences.findIndex(l => l.id === licenceId);
+        if (licenceIndex !== -1) {
+            allLicences[licenceIndex].expiry_date = expiryDate ? new Date(expiryDate).toISOString() : null;
+            allLicences[licenceIndex].status = status;
+        }
+
+        // إذا كان المستخدم الحالي هو صاحب الترخيص أو الأدمن، نقوم بتحديث licences
         const licence = allLicences.find(l => l.id === licenceId);
-        if (licence && licence.user_id) {
-            const userRef = doc(db, 'users', licence.user_id);
-            const userSnap = await getDoc(userRef);
-            if (userSnap.exists()) {
-                const userData = userSnap.data();
-                const userLicences = userData.licences || [];
-                const updatedLicences = userLicences.map(l => {
-                    if (l.code === licence.code) {
-                        return {
-                            ...l,
-                            expiryDate: expiryDate || l.expiryDate,
-                            status: status || l.status
-                        };
-                    }
-                    return l;
-                });
-                await updateDoc(userRef, { licences: updatedLicences, updatedAt: serverTimestamp() });
-                if (currentUser && currentUser.uid === licence.user_id) {
-                    userProfile.licences = updatedLicences;
-                    renderUserLicences();
-                    updateFullUserMenu();
-                }
+        if (licence && currentUser) {
+            if (licence.user_id === currentUser.uid || currentUser.email === ADMIN_EMAIL) {
+                // إعادة تحميل بيانات المستخدم من Firestore لتحديث licences
+                await loadUserData(); // هذا سيجلب licences من Firestore ويحدث userProfile.licences
+                renderUserLicences();
+                updateFullUserMenu();
             }
         }
 
+        // إعادة تحميل قائمة التراخيص في لوحة الأدمن
+        loadLicences();
+
         showToast('✅ Licence updated!', 'success');
         document.getElementById('editLicenceModal').classList.remove('open');
-        loadLicences();
     } catch (error) {
         console.error('Error updating licence:', error);
         showToast('❌ Error: ' + error.message, 'error');
@@ -4185,11 +4181,34 @@ async function init() {
     
     setTimeout(() => { hideLoadingScreen(); setTimeout(showTelegramBanner, 500); startSocialProof(); }, 500);
 }
-init();
-setTimeout(() => { hideLoadingScreen(); console.log('⚠️ Force hiding loading screen (timeout)'); }, 5000);
 
 // ============================================================
-// 42. تصدير الدوال إلى النطاق العام (window) للاستخدام في HTML
+// 42. تبديل الثيم (Theme) - إصلاح المشكلة
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+    const themeBtn = document.querySelector('.theme-toggle');
+    if (themeBtn) {
+        // استعادة الإعداد المحفوظ
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light') {
+            document.body.classList.add('light');
+            const icon = themeBtn.querySelector('i');
+            if (icon) icon.className = 'fas fa-moon';
+        }
+        themeBtn.addEventListener('click', function() {
+            document.body.classList.toggle('light');
+            const isLight = document.body.classList.contains('light');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            const icon = this.querySelector('i');
+            if (icon) {
+                icon.className = isLight ? 'fas fa-moon' : 'fas fa-sun';
+            }
+        });
+    }
+});
+
+// ============================================================
+// 43. تصدير الدوال إلى النطاق العام (window) للاستخدام في HTML
 // ============================================================
 
 window.toggleLicencesList = toggleLicencesList;
