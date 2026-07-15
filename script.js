@@ -1,7 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store النسخة النهائية المستقرة
-// مع دعم مجموعة admins في Firestore للتحقق من صلاحيات الأدمن
-// وإصلاح شامل لمشاكل الصلاحيات
+// SCRIPT.JS - ZI Store - النسخة النهائية مع إصلاح مشكلة صلاحيات الأدمن
 // ============================================================
 
 import { initializeApp } from "firebase/app";
@@ -203,24 +201,31 @@ async function checkUserBanned(uid) {
 async function checkIsAdmin() {
     if (!currentUser) return false;
     // إذا كانت النتيجة مخزنة مسبقاً ولم يتغير المستخدم
-    if (isAdminCached !== undefined && isAdminCached !== null && adminCheckPromise) {
-        // نعيد النتيجة المخزنة
-        return isAdminCached;
+    if (adminCheckPromise) {
+        return adminCheckPromise;
     }
-    try {
-        const adminRef = doc(db, 'admins', currentUser.email);
-        const adminSnap = await getDoc(adminRef);
-        const isAdmin = adminSnap.exists() && adminSnap.data().isAdmin === true;
-        isAdminCached = isAdmin;
-        return isAdmin;
-    } catch (error) {
-        console.error('Error checking admin status:', error);
-        return false;
-    }
+    adminCheckPromise = (async () => {
+        try {
+            const adminRef = doc(db, 'admins', currentUser.email);
+            const adminSnap = await getDoc(adminRef);
+            const isAdmin = adminSnap.exists() && adminSnap.data().isAdmin === true;
+            isAdminCached = isAdmin;
+            return isAdmin;
+        } catch (error) {
+            console.error('Error checking admin status:', error);
+            isAdminCached = false;
+            return false;
+        } finally {
+            // إعادة تعيين الـ promise بعد الانتهاء
+            setTimeout(() => { adminCheckPromise = null; }, 1000);
+        }
+    })();
+    return adminCheckPromise;
 }
 
 // دالة لتحديث حالة الأدمن بشكل متزامن (تُستدعى عند تسجيل الدخول)
 async function refreshAdminStatus() {
+    adminCheckPromise = null;
     isAdminCached = await checkIsAdmin();
     return isAdminCached;
 }
@@ -355,6 +360,7 @@ function startUserRealtimeListener() {
                 if (isAdmin) {
                     loadAdminOrders();
                     loadLicences();
+                    // لا نستدعي loadAdminUsers هنا، بل نتركها لـ openAdminPanel
                 }
             });
         }
@@ -2101,7 +2107,7 @@ window.openAdminPanel = function() {
         loadDownloads();
         loadNotifications();
         renderAdminProducts(products);
-        loadAdminUsers();
+        loadAdminUsers(); // الآن محمية بشرط الأدمن
         loadLicences();
         loadDashboardStats();
         setTimeout(addBannerAdminControls, 300);
@@ -2456,7 +2462,8 @@ function startAdminRealtimeListener() {
     }, (error) => {
         console.error('❌ Admin listener error:', error);
         if (error.code === 'permission-denied') {
-            showToast('⚠️ Missing permissions to read orders. Check Firestore rules.', 'warning');
+            // لا نعرض توست للأدمن حتى لا يزعجه، نكتفي بالـ console
+            console.warn('⚠️ Missing permissions to read orders. Check Firestore rules.');
         }
     });
 }
@@ -2500,7 +2507,7 @@ function loadAdminOrders() {
         console.error('Error loading admin orders:', error);
         tbody.innerHTML = `<tr><td colspan="7"><div style="text-align:center;padding:30px;color:var(--danger);">${error.message}</div></td></tr>`;
         if (error.code === 'permission-denied') {
-            showToast('⚠️ Missing permissions to read orders. Check Firestore rules.', 'warning');
+            console.warn('⚠️ Missing permissions to read orders. Check Firestore rules.');
         }
     });
 }
@@ -2723,7 +2730,8 @@ async function loadAdminUsers() {
         console.error('Error loading users:', error);
         container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--danger);">Error loading users: ${error.message}</div>`;
         if (error.code === 'permission-denied') {
-            showToast('⚠️ Missing permissions to read users. Check Firestore rules.', 'warning');
+            console.warn('⚠️ Missing permissions to read users. Check Firestore rules.');
+            // لا نعرض توست حتى لا يزعج الأدمن
         }
     }
 }
@@ -3966,7 +3974,7 @@ async function loadDashboardStats() {
     } catch (error) {
         console.error('Error loading dashboard stats:', error);
         if (error.code === 'permission-denied') {
-            showToast('⚠️ Missing permissions to read stats. Check Firestore rules.', 'warning');
+            console.warn('⚠️ Missing permissions to read stats. Check Firestore rules.');
         }
     }
 }
@@ -4004,7 +4012,7 @@ async function loadAdvancedStats() {
         console.error('Error loading advanced stats:', error);
         container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load statistics: ${error.message}</div>`;
         if (error.code === 'permission-denied') {
-            showToast('⚠️ Missing permissions to read users. Check Firestore rules.', 'warning');
+            console.warn('⚠️ Missing permissions to read users. Check Firestore rules.');
         }
     }
 }
@@ -4037,7 +4045,7 @@ async function loadAuditLogs() {
         console.error('Error loading audit logs:', error);
         container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load logs: ${error.message}</div>`;
         if (error.code === 'permission-denied') {
-            showToast('⚠️ Missing permissions to read audit logs. Check Firestore rules.', 'warning');
+            console.warn('⚠️ Missing permissions to read audit logs. Check Firestore rules.');
         }
     }
 }
