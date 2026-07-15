@@ -1,32 +1,18 @@
 // ============================================================
-// SCRIPT.JS - ZI Store النسخة النهائية الكاملة
-// مع إصلاح مشكلة تبديل الثيم (Theme) وإخفاء شاشة التحميل
-// وإصلاح تحديث التراخيص في My Licences عند تعديلها من الأدمن
-// وإصلاح مشكلة الصلاحيات (Missing or insufficient permissions)
-// ============================================================
-
-// ============================================================
-// 1. إعدادات Firebase (Auth & Firestore)
+// SCRIPT.JS - ZI Store النسخة النهائية المستقرة
+// مع إصلاح شامل لمشاكل الصلاحيات والمصادقة
 // ============================================================
 
 import { initializeApp } from "firebase/app";
-import { getAuth, onAuthStateChanged, signInAnonymously, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, updatePassword, sendPasswordResetEmail, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, increment, collection, query, where, getDocs, onSnapshot, addDoc, deleteDoc, orderBy } from "firebase/firestore";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, updatePassword, sendPasswordResetEmail, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, collection, query, where, getDocs, onSnapshot, addDoc, deleteDoc, orderBy } from "firebase/firestore";
 import { getAnalytics } from "firebase/analytics";
-
-// ============================================================
-// 2. إعدادات Supabase (للاستدعاءات عبر Edge Functions فقط)
-// ============================================================
 
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
 const SUPABASE_URL = 'https://kvsyzgavfxnwqmtsginv.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_1uSIqgNONAV53GjOoBoZUw_niAGJXO6';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-// ============================================================
-// 3. تهيئة Firebase
-// ============================================================
 
 const firebaseConfig = {
     apiKey: "AIzaSyBwDTCxzd6aoue-NTLI2u4ouK-M37alwUw",
@@ -133,7 +119,6 @@ let ordersFilter = 'all';
 let _selectedVipPlan = '1m';
 let allLicences = [];
 let isProcessingOrder = false;
-
 let featuredProducts = [];
 let featuredRotationInterval = null;
 let featuredCurrentIndex = 0;
@@ -143,13 +128,11 @@ let featuredSettings = {
     maxProducts: 4,
     selectedProductIds: []
 };
-
 let sliderSlides = [];
 let sliderIntervalTime = 3;
 let currentSlideIndex = 0;
 let sliderTimer = null;
 let isSliderPaused = false;
-
 let marqueeSettings = {
     enabled: true,
     text: '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support'
@@ -233,7 +216,6 @@ window.hideToast = function() { document.getElementById('toast')?.classList.remo
 // 8. دوال المستخدم (Firestore) - مع إصلاح الصلاحيات
 // ============================================================
 
-// دالة لتحميل البيانات من localStorage (للمستخدمين غير المسجلين أو عند رفض الصلاحيات)
 function loadFromLocalStorage() {
     try {
         const wishlistData = localStorage.getItem('zi_wishlist_backup');
@@ -260,7 +242,6 @@ function loadFromLocalStorage() {
         userProfile.lastDailyReward = lastDailyRewardData ? parseInt(lastDailyRewardData) : 0;
         userProfile.licences = licencesData ? JSON.parse(licencesData) : [];
 
-        // تحديث الواجهة
         updateWishlistUI();
         updateCartUI();
         renderProducts(products);
@@ -344,7 +325,6 @@ function startUserRealtimeListener() {
         }
     }, (error) => {
         console.error('Error in user realtime listener:', error);
-        // إذا كان الخطأ بسبب الصلاحيات، نستخدم localStorage
         if (error.code === 'permission-denied') {
             loadFromLocalStorage();
         }
@@ -352,7 +332,6 @@ function startUserRealtimeListener() {
 }
 
 async function loadUserData() {
-    // إذا لم يكن هناك مستخدم مصادق، استخدم localStorage ولا تحاول القراءة من Firestore
     if (!currentUser) {
         console.log('ℹ️ No authenticated user, loading from localStorage');
         loadFromLocalStorage();
@@ -400,13 +379,16 @@ async function loadUserData() {
             updateNotificationBadge();
             updateFullUserMenu();
             renderUserLicences();
-            if (currentUser && currentUser.email === ADMIN_EMAIL) { loadAdminOrders(); loadAdminUsers(); loadLicences(); }
+            if (currentUser && currentUser.email === ADMIN_EMAIL) { 
+                loadAdminOrders(); 
+                loadAdminUsers(); 
+                loadLicences(); 
+            }
         } else {
             await setDoc(userRef, { userId: uid, wishlist: [], cart: [], history: [], requests: [], usedCodes: [], referrals: [], referralRewards: 0, rp: 0, isBanned: false, useRpForCart: false, lastDailyReward: 0, licences: [], createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
         }
     } catch (error) {
         console.error('Error loading user data:', error);
-        // إذا كان الخطأ بسبب الصلاحيات، استخدم localStorage
         if (error.code === 'permission-denied') {
             loadFromLocalStorage();
         }
@@ -415,7 +397,6 @@ async function loadUserData() {
 }
 
 async function saveUserData(silent = false) {
-    // إذا لم يكن هناك مستخدم مصادق، احفظ في localStorage فقط
     if (!currentUser) {
         localStorage.setItem('zi_wishlist_backup', JSON.stringify(wishlist));
         localStorage.setItem('zi_cart_backup', JSON.stringify(cart));
@@ -497,7 +478,7 @@ function copyLicenceCode(code) {
 }
 
 // ============================================================
-// 10. تحديثات الواجهة
+// 10. تحديثات الواجهة الأساسية (مختصرة)
 // ============================================================
 
 function updateDropdownStats() {
@@ -564,7 +545,7 @@ function updateFullUserMenu() {
 }
 
 // ============================================================
-// 11. دوال المصادقة
+// 11. دوال المصادقة (مختصرة)
 // ============================================================
 
 window.showLogin = function() { document.getElementById('loginContainer').style.display = 'block'; document.getElementById('registerContainer').style.display = 'none'; };
@@ -591,7 +572,12 @@ window.loginUser = async function() {
             document.getElementById('mainApp').style.display = 'block';
             loadUserData();
             updateDropdownStats();
-            if (currentUser.email === ADMIN_EMAIL) { loadAdminOrders(); startAdminRealtimeListener(); loadAdminUsers(); loadLicences(); }
+            if (currentUser.email === ADMIN_EMAIL) { 
+                loadAdminOrders(); 
+                startAdminRealtimeListener(); 
+                loadAdminUsers(); 
+                loadLicences(); 
+            }
             loadDownloads(); loadNotifications(); fetchCryptoPrices(); updateFullUserMenu(); showTelegramBanner();
             loadSliderSettings();
             loadMarqueeSettings();
@@ -671,7 +657,7 @@ window.sendForgotPassword = async function() {
 };
 
 // ============================================================
-// 12. المودالات العامة
+// 12. المودالات العامة (مختصرة)
 // ============================================================
 
 window.openUserMenuFull = function() { if (!currentUser) { openAuthModal(); return; } document.getElementById('userMenuFull').classList.add('open'); updateFullUserMenu(); document.body.style.overflow = 'hidden'; };
@@ -691,7 +677,7 @@ window.closeNotifications = function() { document.getElementById('notificationsM
 function openAuthModal() { document.getElementById('authSection').scrollIntoView({ behavior: 'smooth' }); }
 
 // ============================================================
-// 13. عرض الملف الشخصي
+// 13. عرض الملف الشخصي (مختصر)
 // ============================================================
 
 function renderProfileFull() {
@@ -796,7 +782,7 @@ window.sendResetLinkInline = async function() { if (!currentUser) return; try { 
 window.changePasswordInline = async function() { if (!currentUser) return; const currentPwd = document.getElementById('currentPasswordInline').value; const newPwd = document.getElementById('newPasswordInline').value; const confirmPwd = document.getElementById('confirmNewPasswordInline').value; const errorEl = document.getElementById('passwordErrorInline'); const successEl = document.getElementById('passwordSuccessInline'); errorEl.textContent = ''; successEl.textContent = ''; if (!currentPwd || !newPwd || !confirmPwd) { errorEl.textContent = 'Please fill all fields'; return; } if (newPwd.length < 6) { errorEl.textContent = 'New password must be at least 6 characters'; return; } if (newPwd !== confirmPwd) { errorEl.textContent = 'Passwords do not match'; return; } try { const credential = EmailAuthProvider.credential(currentUser.email, currentPwd); await reauthenticateWithCredential(currentUser, credential); await updatePassword(currentUser, newPwd); successEl.textContent = '✅ Password changed successfully!'; showToast('✅ Password updated!', 'success'); document.getElementById('currentPasswordInline').value = ''; document.getElementById('newPasswordInline').value = ''; document.getElementById('confirmNewPasswordInline').value = ''; setTimeout(() => { successEl.textContent = ''; }, 3000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); } };
 
 // ============================================================
-// 14. المنتجات
+// 14. المنتجات (جميع الدوال الأساسية)
 // ============================================================
 
 async function loadProductsFromFirestore() {
@@ -889,7 +875,6 @@ function renderProducts(productsList, isLoading = false) {
           <button class="btn-details" onclick="event.stopPropagation(); window.openDetails('${p.id}')"><i class="fas fa-info-circle"></i></button>
           ${isUnavailable?`<button class="btn-download" style="background:var(--text-secondary);color:#fff;cursor:not-allowed;opacity:0.4;" onclick="event.preventDefault();showToast('⛔ Unavailable','warning')"><i class="fas fa-times-circle"></i></button>`:(isFree?`<a href="${p.downloadLink||'#'}" class="btn-download" ${p.downloadLink?'target="_blank"':'onclick="event.preventDefault();showToast(\'⏳ Coming soon\',\'info\')"'}><i class="fas fa-download"></i></a>`:`<button class="btn-add-cart ${inCart?'added':''}" onclick="event.stopPropagation(); window.addToCart('${p.id}')"><i class="fas ${inCart?'fa-check':'fa-cart-plus'}"></i> ${inCart?qty:''}</button>`)}
         </div>
-        <!-- 🆕 أيقونات الخدمات تحت المنتج -->
         <div class="product-footer-icons">
           <span class="icon-item"><i class="fas fa-bolt"></i> Instant</span>
           <span class="icon-item"><i class="fas fa-lock"></i> Secure</span>
@@ -925,7 +910,7 @@ function generateRecommendations(productsList) {
 }
 
 // ============================================================
-// 15. المنتجات المميزة و السلة والمفضلة
+// 15. المنتجات المميزة و السلة والمفضلة (مختصرة)
 // ============================================================
 
 function renderFeaturedProducts() {
@@ -982,7 +967,6 @@ async function loadFeaturedSettings() {
     } catch (error) {
         console.error('Error loading featured settings:', error);
         if (error.code === 'permission-denied') {
-            // استخدم الإعدادات الافتراضية
             renderFeaturedProducts();
         }
     }
@@ -1173,7 +1157,7 @@ function createFloatingHearts() {
 }
 
 // ============================================================
-// 16. عرض المنتج (Preview)
+// 16. عرض المنتج (Preview) - مختصر
 // ============================================================
 
 window.openDetails = function(id) {
@@ -1382,7 +1366,7 @@ function closeSearchResults() { searchResults.classList.remove('active'); search
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeSearchResults(); closeUserMenuFull(); closeCartFull(); closeWishlistFull(); closeProfileFull(); closeHistoryFull(); } });
 
 // ============================================================
-// 19. الدفع
+// 19. الدفع (مختصر)
 // ============================================================
 
 async function fetchCryptoPrices() {
@@ -1804,7 +1788,7 @@ window.checkTelegramStatus = async function() {
 };
 
 // ============================================================
-// 22. التحميلات والإشعارات
+// 22. التحميلات والإشعارات (مختصرة)
 // ============================================================
 
 function loadDownloads() {
@@ -1989,7 +1973,7 @@ window.openCreateNotificationModal = function() { if (!currentUser || currentUse
 window.closeCreateNotificationModal = function() { document.getElementById('createNotificationModal').classList.remove('open'); };
 
 // ============================================================
-// 23. الطلبات والإحالات
+// 23. الطلبات والإحالات (مختصرة)
 // ============================================================
 
 window.openRequestsModal = function() {
@@ -2063,7 +2047,7 @@ window.copyReferralCode2 = function() {
 };
 
 // ============================================================
-// 24. لوحة المدير (مع أزرار تحديث وتبويب الماركي)
+// 24. لوحة المدير
 // ============================================================
 
 window.openAdminPanel = function() {
@@ -2232,7 +2216,6 @@ window.switchAdminTab = function(tab) {
     }
     if (tab === 'licences') { loadLicences(); }
     if (tab === 'marquee') { renderMarqueeSettingsUI(); }
-    
     if (tab === 'orders') {
         loadAdminOrders();
         const refreshBtn = document.getElementById('adminRefreshOrdersBtn');
@@ -2255,7 +2238,7 @@ window.switchAdminTab = function(tab) {
 };
 
 // ============================================================
-// 25. إدارة المنتجات (Admin Products)
+// 25. إدارة المنتجات (Admin Products) - مختصرة
 // ============================================================
 
 function renderAdminProducts(productsList) {
@@ -2397,6 +2380,10 @@ async function deleteProductFromFirestore(productId) {
 
 function startAdminRealtimeListener() {
     if (unsubscribeAdmin) { unsubscribeAdmin(); }
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
+        console.log('ℹ️ Admin listener skipped (not admin)');
+        return;
+    }
     const usersRef = collection(db, 'users');
     console.log('🔄 Admin listener starting...');
     unsubscribeAdmin = onSnapshot(usersRef, (snapshot) => {
@@ -2426,11 +2413,21 @@ function startAdminRealtimeListener() {
         const badge = document.getElementById('adminPanelBadge');
         if (badge) { if (pendingCount > 0) { badge.style.display = 'inline-block'; badge.textContent = pendingCount; } else { badge.style.display = 'none'; } }
         updateFullUserMenu();
-    }, (error) => { console.error('❌ Admin listener error:', error); });
+    }, (error) => {
+        console.error('❌ Admin listener error:', error);
+        if (error.code === 'permission-denied') {
+            showToast('⚠️ Missing permissions. Make sure you are logged in as admin.', 'warning');
+        }
+    });
 }
 
 function loadAdminOrders() {
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
+        console.log('ℹ️ loadAdminOrders skipped (not admin)');
+        return;
+    }
     const tbody = document.getElementById('adminOrdersBody');
+    if (!tbody) return;
     tbody.innerHTML = '<tr><td colspan="7"><div style="text-align:center;padding:30px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading...</div></td></tr>';
     const usersRef = collection(db, 'users');
     getDocs(usersRef).then((snapshot) => {
@@ -2459,11 +2456,18 @@ function loadAdminOrders() {
         const badge = document.getElementById('adminPanelBadge');
         if (badge) { if (pendingCount > 0) { badge.style.display = 'inline-block'; badge.textContent = pendingCount; } else { badge.style.display = 'none'; } }
         updateFullUserMenu();
-    }).catch(error => { tbody.innerHTML = `<tr><td colspan="7"><div style="text-align:center;padding:30px;color:var(--danger);">${error.message}</div></td></tr>`; });
+    }).catch(error => {
+        console.error('Error loading admin orders:', error);
+        tbody.innerHTML = `<tr><td colspan="7"><div style="text-align:center;padding:30px;color:var(--danger);">${error.message}</div></td></tr>`;
+        if (error.code === 'permission-denied') {
+            showToast('⚠️ Missing permissions to read orders. Check Firestore rules.', 'warning');
+        }
+    });
 }
 
 function renderAdminOrders(orders) {
     const tbody = document.getElementById('adminOrdersBody');
+    if (!tbody) return;
     if (!orders || orders.length === 0) { tbody.innerHTML = `<tr><td colspan="7"><div style="text-align:center;padding:30px;color:var(--text-secondary);"><i class="fas fa-inbox"></i> No orders</div></td></tr>`; return; }
     const uniqueOrders = []; const seen = new Set();
     orders.forEach(order => {
@@ -2658,6 +2662,10 @@ window.refreshAdminOrders = function() { loadAdminOrders(); showToast('🔄 Refr
 // ============================================================
 
 async function loadAdminUsers() {
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
+        console.log('ℹ️ loadAdminUsers skipped (not admin)');
+        return;
+    }
     const container = document.getElementById('adminUsersContainer');
     if (!container) return;
     container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
@@ -2671,7 +2679,13 @@ async function loadAdminUsers() {
         });
         allUsers = usersList;
         renderAdminUsers(usersList);
-    } catch (error) { console.error('Error loading users:', error); container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--danger);">Error loading users</div>`; }
+    } catch (error) {
+        console.error('Error loading users:', error);
+        container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--danger);">Error loading users: ${error.message}</div>`;
+        if (error.code === 'permission-denied') {
+            showToast('⚠️ Missing permissions to read users. Check Firestore rules.', 'warning');
+        }
+    }
 }
 
 function renderAdminUsers(usersList) {
@@ -3179,7 +3193,6 @@ async function editLicence(licenceId) {
     }
 }
 
-// 🔧 إصلاح: تحديث userProfile.licences عند تعديل الترخيص
 async function saveLicenceEdit() {
     const licenceId = document.getElementById('editLicenceId').value;
     const expiryDate = document.getElementById('editLicenceExpiry').value;
@@ -3191,25 +3204,21 @@ async function saveLicenceEdit() {
             status: status
         });
 
-        // تحديث allLicences محلياً
         const licenceIndex = allLicences.findIndex(l => l.id === licenceId);
         if (licenceIndex !== -1) {
             allLicences[licenceIndex].expiry_date = expiryDate ? new Date(expiryDate).toISOString() : null;
             allLicences[licenceIndex].status = status;
         }
 
-        // إذا كان المستخدم الحالي هو صاحب الترخيص أو الأدمن، نقوم بتحديث licences
         const licence = allLicences.find(l => l.id === licenceId);
         if (licence && currentUser) {
             if (licence.user_id === currentUser.uid || currentUser.email === ADMIN_EMAIL) {
-                // إعادة تحميل بيانات المستخدم من Firestore لتحديث licences
-                await loadUserData(); // هذا سيجلب licences من Firestore ويحدث userProfile.licences
+                await loadUserData();
                 renderUserLicences();
                 updateFullUserMenu();
             }
         }
 
-        // إعادة تحميل قائمة التراخيص في لوحة الأدمن
         loadLicences();
 
         showToast('✅ Licence updated!', 'success');
@@ -3456,7 +3465,7 @@ function startSocialProof() {}
 function triggerSocialProofOnOrder(userName, productNames) {}
 
 // ============================================================
-// 33. دوال السلايدر (Slider) - مع إصلاح loadSliderSettings
+// 33. دوال السلايدر (Slider)
 // ============================================================
 
 async function loadSliderSettings() {
@@ -3893,6 +3902,10 @@ async function generateInvoice(orderData) {
 // ============================================================
 
 async function loadDashboardStats() {
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
+        console.log('ℹ️ loadDashboardStats skipped (not admin)');
+        return;
+    }
     try {
         const statsRef = doc(db, 'global_stats', 'stats');
         const statsSnap = await getDoc(statsRef);
@@ -3902,11 +3915,20 @@ async function loadDashboardStats() {
         document.getElementById('dashboardTotalRevenue').textContent = `$${totalRevenue.toFixed(2)}`;
         const netRevenue = totalRevenue * 0.1;
         document.getElementById('dashboardNetRevenue').textContent = `$${netRevenue.toFixed(2)}`;
-    } catch (error) { console.error('Error loading dashboard stats:', error); }
+    } catch (error) {
+        console.error('Error loading dashboard stats:', error);
+        if (error.code === 'permission-denied') {
+            showToast('⚠️ Missing permissions to read stats. Check Firestore rules.', 'warning');
+        }
+    }
 }
 window.refreshDashboardStats = function() { loadDashboardStats(); showToast('🔄 Stats refreshed', 'info'); };
 
 async function loadAdvancedStats() {
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
+        console.log('ℹ️ loadAdvancedStats skipped (not admin)');
+        return;
+    }
     const container = document.getElementById('advancedStatsContainer');
     if (!container) return;
     container.innerHTML = `<div style="text-align:center;padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading statistics...</div>`;
@@ -3930,11 +3952,21 @@ async function loadAdvancedStats() {
                 <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--danger);">${rejectedOrders}</div><div style="font-size:12px;color:var(--text-secondary);">Rejected</div></div>
                 <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--text);">${totalUsers}</div><div style="font-size:12px;color:var(--text-secondary);">Total Users</div></div>
             </div>`;
-    } catch (error) { console.error('Error loading advanced stats:', error); container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load statistics</div>`; }
+    } catch (error) {
+        console.error('Error loading advanced stats:', error);
+        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load statistics: ${error.message}</div>`;
+        if (error.code === 'permission-denied') {
+            showToast('⚠️ Missing permissions to read users. Check Firestore rules.', 'warning');
+        }
+    }
 }
 window.refreshAdvancedStats = function() { loadAdvancedStats(); showToast('🔄 Stats refreshed', 'info'); };
 
 async function loadAuditLogs() {
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
+        console.log('ℹ️ loadAuditLogs skipped (not admin)');
+        return;
+    }
     const container = document.getElementById('auditLogsContainer');
     if (!container) return;
     container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading logs...</div>`;
@@ -3953,7 +3985,13 @@ async function loadAuditLogs() {
             html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg);border-radius:8px;border:1px solid var(--border);font-size:13px;"><div><span style="font-weight:600;color:var(--text);">${admin}</span><span style="color:var(--text-secondary);opacity:0.5;margin:0 4px;">→</span><span style="color:var(--primary);font-weight:500;">${action}</span>${details ? `<span style="color:var(--text-secondary);opacity:0.4;margin-left:4px;">${details}</span>` : ''}</div><span style="font-size:11px;color:var(--text-secondary);opacity:0.3;">${date}</span></div>`;
         });
         html += `</div>`; container.innerHTML = html;
-    } catch (error) { console.error('Error loading audit logs:', error); container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load logs</div>`; }
+    } catch (error) {
+        console.error('Error loading audit logs:', error);
+        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load logs: ${error.message}</div>`;
+        if (error.code === 'permission-denied') {
+            showToast('⚠️ Missing permissions to read audit logs. Check Firestore rules.', 'warning');
+        }
+    }
 }
 window.loadAuditLogs = loadAuditLogs;
 
@@ -4081,7 +4119,7 @@ async function uploadToCloudinary(file) {
 }
 
 // ============================================================
-// 39. دوال الماركي (Marquee) - مع إصلاح loadMarqueeSettings
+// 39. دوال الماركي (Marquee)
 // ============================================================
 
 async function loadMarqueeSettings() {
@@ -4199,7 +4237,14 @@ onAuthStateChanged(auth, async (user) => {
         document.getElementById('mainApp').style.display = 'block';
         await loadUserData();
         updateDropdownStats();
-        if (user.email === ADMIN_EMAIL) { loadAdminOrders(); startAdminRealtimeListener(); renderAdminProducts(products); loadAdminUsers(); loadLicences(); setTimeout(addBannerAdminControls, 500); }
+        if (user.email === ADMIN_EMAIL) { 
+            loadAdminOrders(); 
+            startAdminRealtimeListener(); 
+            renderAdminProducts(products); 
+            loadAdminUsers(); 
+            loadLicences(); 
+            setTimeout(addBannerAdminControls, 500);
+        }
         loadDownloads(); loadNotifications(); fetchCryptoPrices(); loadFeaturedSettings(); loadSliderSettings();
         loadMarqueeSettings();
         setTimeout(showTelegramBanner, 1000);
@@ -4217,7 +4262,7 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// 41. التهيئة (Init)
+// 41. التهيئة (Init) - مع ضمان إخفاء شاشة التحميل
 // ============================================================
 
 async function init() {
@@ -4248,7 +4293,12 @@ async function init() {
     
     setTimeout(fixHeaderAndModals, 100);
     
-    setTimeout(() => { hideLoadingScreen(); setTimeout(showTelegramBanner, 500); startSocialProof(); }, 500);
+    // تأكد من إخفاء شاشة التحميل حتى لو حدث خطأ
+    setTimeout(() => { 
+        hideLoadingScreen(); 
+        setTimeout(showTelegramBanner, 500); 
+        startSocialProof(); 
+    }, 500);
 }
 
 // ============================================================
@@ -4444,7 +4494,6 @@ window.applyMarqueeSettings = applyMarqueeSettings;
 // 46. بدء التطبيق
 // ============================================================
 
-// تأكد من بدء التطبيق بعد تحميل الصفحة بالكامل
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
 } else {
