@@ -1,7 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store النسخة النهائية الكاملة
-// مع جميع التصحيحات والتصديرات اللازمة للـ HTML
-// تم إصلاح: تعديل الترخيص (editLicence) لجلب البيانات مباشرة من Supabase
+// SCRIPT.JS - ZI Store النسخة النهائية مع الإصلاحات
 // ============================================================
 
 // ============================================================
@@ -240,13 +238,74 @@ async function getUserId() {
 let isLoadingUser = false;
 let lastUserLoadTime = 0;
 
+// ✅ دالة تحميل بيانات المستخدم مع مستمع فوري (Realtime Listener)
+function startUserRealtimeListener() {
+    if (unsubscribeUser) {
+        unsubscribeUser();
+        unsubscribeUser = null;
+    }
+    const uid = currentUser ? currentUser.uid : null;
+    if (!uid) return;
+    
+    const userRef = doc(db, 'users', uid);
+    unsubscribeUser = onSnapshot(userRef, (docSnap) => {
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            wishlist = data.wishlist || [];
+            cart = data.cart || [];
+            userProfile.history = data.history || [];
+            userProfile.requests = data.requests || [];
+            userProfile.usedCodes = data.usedCodes || [];
+            userProfile.referrals = data.referrals || [];
+            userProfile.referralRewards = data.referralRewards || 0;
+            userProfile.rp = data.rp || 0;
+            userProfile.referralCode = data.referralCode || '';
+            userProfile.name = data.name || '';
+            userProfile.email = data.email || '';
+            userProfile.telegram = data.telegram || '';
+            userProfile.telegramChatId = data.telegramChatId || '';
+            userProfile.location = data.location || data.country || 'Tunisia';
+            userProfile.lang = data.lang || 'English';
+            userProfile.isBanned = data.isBanned || false;
+            userProfile.joined = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '--';
+            userProfile.useRpForCart = data.useRpForCart || false;
+            userProfile.lastDailyReward = data.lastDailyReward || 0;
+            userProfile.licences = data.licences || [];
+            
+            // تحديث الواجهة
+            updateWishlistUI();
+            updateCartUI();
+            renderProducts(products);
+            updateStatsFromProducts(products);
+            generateRecommendations(products);
+            updateBottomCartBar();
+            updateDropdownStats();
+            updateNotificationBadge();
+            updateFullUserMenu();
+            renderUserLicences();
+            
+            if (currentUser && currentUser.email === ADMIN_EMAIL) {
+                loadAdminOrders();
+                loadAdminUsers();
+                loadLicences();
+            }
+        }
+    }, (error) => {
+        console.error('Error in user realtime listener:', error);
+    });
+}
+
 async function loadUserData() {
     const uid = currentUser ? currentUser.uid : await getUserId();
     if (!uid) return;
     if (isLoadingUser || (Date.now() - lastUserLoadTime < 500)) return;
     isLoadingUser = true;
     lastUserLoadTime = Date.now();
-    if (unsubscribeUser) { unsubscribeUser(); unsubscribeUser = null; }
+    
+    // بدء المستمع الفوري
+    startUserRealtimeListener();
+    
+    // جلب البيانات مرة واحدة للتأكد من وجود المستخدم
     try {
         const userRef = doc(db, 'users', uid);
         const userSnap = await getDoc(userRef);
@@ -2956,13 +3015,9 @@ async function deleteLicence(licenceId) {
     }
 }
 
-// ============================================================
 // ✅ دالة تعديل الترخيص (تعديل مباشر لجلب البيانات من Supabase)
-// ============================================================
-
 async function editLicence(licenceId) {
     try {
-        // جلب الترخيص مباشرة من Supabase
         const { data: licence, error } = await supabase
             .from('licenses')
             .select('*')
@@ -3025,6 +3080,7 @@ async function saveLicenceEdit() {
                     return l;
                 });
                 await updateDoc(userRef, { licences: updatedLicences, updatedAt: serverTimestamp() });
+                // ✅ تحديث userProfile للمستخدم الحالي إذا كان هو صاحب الترخيص
                 if (currentUser && currentUser.uid === licence.user_id) {
                     userProfile.licences = updatedLicences;
                     renderUserLicences();
@@ -3969,6 +4025,10 @@ async function init() {
     setInterval(fetchCryptoPrices, 60000);
     updateLoadingBar(100);
     console.log('✅ ZI Store ready with all features!');
+    
+    // ✅ تثبيت الشريط العلوي بعد تحميل الصفحة
+    setTimeout(fixHeaderAndModals, 100);
+    
     setTimeout(() => { hideLoadingScreen(); setTimeout(showTelegramBanner, 500); startSocialProof(); }, 500);
 }
 init();
@@ -4084,6 +4144,10 @@ window.updateSlideProductSelect = updateSlideProductSelect;
 window.addBannerAdminControls = addBannerAdminControls;
 window.showTelegramBanner = showTelegramBanner;
 window.showTelegramBannerAgain = showTelegramBannerAgain;
+window.fixHeaderAndModals = fixHeaderAndModals;
+
+// ✅ تصدير دالة exportOrders بشكل صحيح (تم إصلاحها)
+window.exportOrders = exportOrders;
 
 // ============================================================
 // END OF SCRIPT.JS
