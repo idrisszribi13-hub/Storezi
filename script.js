@@ -199,14 +199,14 @@ function updateLoadingBar(percent) {
 // 2. دوال التحقق من الأدمن (باستخدام doc مع البريد كمعرف)
 // ============================================================
 
+// استبدل الدالة القديمة بهذه:
 async function checkIsAdmin() {
     if (!currentUser) return false;
     if (adminCheckPromise) return adminCheckPromise;
     adminCheckPromise = (async () => {
         try {
-            const email = currentUser.email.toLowerCase();
-            // استخدام doc مع البريد كمعرف للوثيقة (يجب أن يكون المعرف هو البريد الإلكتروني)
-            const adminRef = doc(db, 'admins', email);
+            const uid = currentUser.uid;
+            const adminRef = doc(db, 'admins', uid);
             const adminSnap = await getDoc(adminRef);
             const isAdmin = adminSnap.exists() && adminSnap.data().isAdmin === true;
             isAdminCached = isAdmin;
