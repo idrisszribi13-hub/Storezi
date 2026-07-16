@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - إصلاح نهائي لشاشة التحميل
+// SCRIPT.JS - ZI Store - إصلاح نهائي لشاشة التحميل (إزالة التوقف)
 // ============================================================
 
 import { initializeApp } from "firebase/app";
@@ -154,50 +154,25 @@ function showToast(message, type = 'success') {
 }
 window.hideToast = function() { document.getElementById('toast')?.classList.remove('show'); };
 
-// شاشة التحميل
-const loadingMessages = ['Initializing store...', 'Loading products...', 'Connecting to database...', 'Welcome to ZI Store! 🚀'];
-let loadingMessageIndex = 0;
-let loadingInterval = null;
-
-function updateLoadingMessage() {
-    const statusEl = document.getElementById('loadingStatus');
-    if (statusEl) {
-        loadingMessageIndex = (loadingMessageIndex + 1) % loadingMessages.length;
-        statusEl.textContent = loadingMessages[loadingMessageIndex];
-    }
-}
-
-function startLoadingMessages() {
-    if (loadingInterval) clearInterval(loadingInterval);
-    loadingInterval = setInterval(updateLoadingMessage, 2000);
-}
-
+// شاشة التحميل - تم تبسيطها إلى أقصى حد
 function hideLoadingScreen() {
     console.log('🔥 hideLoadingScreen called');
     const screen = document.getElementById('loadingScreen');
     if (screen) {
         screen.style.display = 'none';
         console.log('✅ Loading screen hidden');
-        if (loadingInterval) {
-            clearInterval(loadingInterval);
-            loadingInterval = null;
-        }
     } else {
         console.warn('⚠️ Loading screen element not found');
     }
 }
 
 function showLoadingScreen() {
-    const screen = document.getElementById('loadingScreen');
-    if (screen) {
-        screen.style.display = 'flex';
-        startLoadingMessages();
-    }
+    // لا نستخدم هذه الدالة بعد الآن، ولكن نتركها فارغة لتجنب الأخطاء
+    console.log('ℹ️ showLoadingScreen called but ignored');
 }
 
 function updateLoadingBar(percent) {
-    const bar = document.getElementById('loadingBar');
-    if (bar) bar.style.width = Math.min(percent, 100) + '%';
+    // لا حاجة لتحديث شريط التحميل بعد الآن، نتركها فارغة
 }
 
 // ============================================================
@@ -233,7 +208,7 @@ async function refreshAdminStatus() {
 }
 
 // ============================================================
-// 3. دوال المستخدم (اختصار)
+// 3. دوال المستخدم (Firestore + LocalStorage) - مختصرة
 // ============================================================
 
 function loadFromLocalStorage() {
@@ -788,7 +763,7 @@ window.sendResetLinkInline = async function() { if (!currentUser) return; try { 
 window.changePasswordInline = async function() { if (!currentUser) return; const currentPwd = document.getElementById('currentPasswordInline').value; const newPwd = document.getElementById('newPasswordInline').value; const confirmPwd = document.getElementById('confirmNewPasswordInline').value; const errorEl = document.getElementById('passwordErrorInline'); const successEl = document.getElementById('passwordSuccessInline'); errorEl.textContent = ''; successEl.textContent = ''; if (!currentPwd || !newPwd || !confirmPwd) { errorEl.textContent = 'Please fill all fields'; return; } if (newPwd.length < 6) { errorEl.textContent = 'New password must be at least 6 characters'; return; } if (newPwd !== confirmPwd) { errorEl.textContent = 'Passwords do not match'; return; } try { const credential = EmailAuthProvider.credential(currentUser.email, currentPwd); await reauthenticateWithCredential(currentUser, credential); await updatePassword(currentUser, newPwd); successEl.textContent = '✅ Password changed successfully!'; showToast('✅ Password updated!', 'success'); document.getElementById('currentPasswordInline').value = ''; document.getElementById('newPasswordInline').value = ''; document.getElementById('confirmNewPasswordInline').value = ''; setTimeout(() => { successEl.textContent = ''; }, 3000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); } };
 
 // ============================================================
-// 8. دوال المنتجات (مختصرة جداً، سيتم الاحتفاظ بالوظائف الرئيسية)
+// 8. دوال المنتجات (مختصرة جداً)
 // ============================================================
 
 async function loadProductsFromFirestore() {
@@ -3836,29 +3811,26 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// 35. التهيئة (Init) - مع ضمان إخفاء شاشة التحميل
+// 35. التهيئة (Init) - مع ضمان إخفاء شاشة التحميل فوراً
 // ============================================================
 
 async function init() {
     console.log('🚀 Initializing ZI Store...');
-    showLoadingScreen();
     
-    // حل احتياطي: إخفاء شاشة التحميل بعد 5 ثواني بغض النظر عن أي شيء
+    // 🔥 إخفاء شاشة التحميل فوراً
+    hideLoadingScreen();
+
+    // حل احتياطي: إخفاء شاشة التحميل بعد 2 ثانية بغض النظر عن أي شيء
     const forceHideTimeout = setTimeout(() => {
-        console.warn('⚠️ Force hiding loading screen after 5 seconds.');
+        console.warn('⚠️ Force hiding loading screen after 2 seconds.');
         hideLoadingScreen();
-    }, 5000);
+    }, 2000);
 
     try {
-        updateLoadingBar(10);
-        updateLoadingBar(30);
         const productsFromFirestore = await loadProductsFromFirestore();
         products = productsFromFirestore.length > 0 ? productsFromFirestore : fallbackProducts;
-        updateLoadingBar(50);
         startProductsRealtimeListener();
-        updateLoadingBar(70);
         await loadUserData();
-        updateLoadingBar(85);
         renderProducts(products, false);
         renderFeaturedProducts();
         generateRecommendations(products);
@@ -3871,7 +3843,6 @@ async function init() {
         loadSliderSettings();
         loadMarqueeSettings();
         setInterval(fetchCryptoPrices, 60000);
-        updateLoadingBar(100);
         console.log('✅ ZI Store ready with all features!');
         setTimeout(fixHeaderAndModals, 100);
     } catch (error) {
@@ -3879,7 +3850,7 @@ async function init() {
         showToast('⚠️ Error loading store. Please refresh.', 'error');
     } finally {
         clearTimeout(forceHideTimeout);
-        // إخفاء شاشة التحميل بعد 500ms إضافية للتأكد من أن كل شيء تم عرضه
+        // إخفاء شاشة التحميل بعد 500ms إضافية للتأكد
         setTimeout(() => {
             hideLoadingScreen();
             setTimeout(showTelegramBanner, 500);
