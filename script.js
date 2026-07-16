@@ -3659,7 +3659,97 @@ window.exportOrders = function() {
 };
 
 // ============================================================
-// 31. حالة المصادقة (النسخة النهائية)
+// 31. دوال clearOrderHistory, renderHistoryFull, filterOrders
+// ============================================================
+
+window.clearOrderHistory = async function() {
+    if (!currentUser) {
+        showToast('⚠️ Please login first', 'warning');
+        return;
+    }
+    if (!confirm('⚠️ Are you sure you want to clear all order history? This cannot be undone!')) {
+        return;
+    }
+    try {
+        const userRef = doc(db, 'users', currentUser.uid);
+        await updateDoc(userRef, { history: [] });
+        userProfile.history = [];
+        renderHistoryFull();
+        updateFullUserMenu();
+        showToast('🗑️ Order history cleared successfully!', 'success');
+    } catch (error) {
+        console.error('Error clearing order history:', error);
+        showToast('❌ Failed to clear order history', 'error');
+    }
+};
+
+window.renderHistoryFull = function() {
+    const container = document.getElementById('historyFullContent');
+    if (!container) return;
+    const history = userProfile.history || [];
+    if (history.length === 0) {
+        container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
+            <i class="fas fa-shopping-bag" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i>
+            <div style="font-size:18px;font-weight:600;">No orders yet</div>
+            <div style="font-size:13px;opacity:0.4;margin-top:4px;">Your orders will appear here</div>
+        </div>`;
+        return;
+    }
+    let html = `<div style="display:flex;flex-direction:column;gap:8px;">`;
+    const sortedHistory = [...history].reverse();
+    sortedHistory.forEach((order) => {
+        const status = order.status || 'pending';
+        const statusColors = { 'pending': '#fbbf24', 'confirmed': '#34d399', 'rejected': '#f87171' };
+        const statusLabels = { 'pending': '⏳ Pending', 'confirmed': '✅ Confirmed', 'rejected': '❌ Rejected' };
+        const date = order.date ? new Date(order.date) : new Date();
+        const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const itemsList = order.items ? order.items.map(i => i.name).join(', ') : 'Order';
+        const total = order.total || 0;
+        html += `<div style="background:var(--bg);border-radius:10px;padding:12px 14px;border:1px solid var(--border);">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;">
+                <div><div style="font-weight:600;color:var(--text);font-size:14px;">${itemsList}</div>
+                <div style="font-size:11px;color:var(--text-secondary);opacity:0.4;">${dateStr}</div></div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="font-size:14px;font-weight:700;color:var(--primary);">$${total.toFixed(2)}</span>
+                    <span style="padding:2px 10px;border-radius:12px;font-size:10px;font-weight:600;background:${statusColors[status] || '#6b7280'};color:#0a0a1a;">${statusLabels[status] || status}</span>
+                </div>
+            </div>
+        </div>`;
+    });
+    html += `</div>`;
+    container.innerHTML = html;
+};
+
+window.filterOrders = function(filter) {
+    ordersFilter = filter;
+    document.querySelectorAll('.orders-filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.filter === filter);
+    });
+    renderHistoryFull();
+};
+
+// ============================================================
+// 32. دوال التراخيص الإضافية
+// ============================================================
+
+window.openLicenceModal = function() {
+    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
+    const modal = document.getElementById('licenceModal');
+    if (modal) modal.classList.add('open');
+};
+window.closeLicenceModal = function() {
+    const modal = document.getElementById('licenceModal');
+    if (modal) modal.classList.remove('open');
+};
+window.toggleLicencesList = function() {
+    const list = document.getElementById('userLicencesList');
+    if (list) {
+        list.style.display = list.style.display === 'none' ? 'block' : 'none';
+    }
+};
+
+// ============================================================
+// 33. حالة المصادقة (النسخة النهائية)
 // ============================================================
 
 onAuthStateChanged(auth, async (user) => {
@@ -3723,7 +3813,7 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// 32. استدعاء تلقائي للتأكد من ظهور لوحة الأدمن (حل احتياطي)
+// 34. استدعاء تلقائي للتأكد من ظهور لوحة الأدمن (حل احتياطي)
 // ============================================================
 setInterval(() => {
     if (currentUser && !isAdminCached) {
@@ -3732,7 +3822,7 @@ setInterval(() => {
 }, 5000);
 
 // ============================================================
-// 33. التهيئة (Init)
+// 35. التهيئة (Init)
 // ============================================================
 
 async function init() {
@@ -3778,7 +3868,7 @@ async function init() {
 }
 
 // ============================================================
-// 34. تبديل الثيم
+// 36. تبديل الثيم
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -3803,7 +3893,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================================
-// 35. تصدير جميع الدوال للنطاق العام
+// 37. تصدير جميع الدوال للنطاق العام
 // ============================================================
 
 window.toggleLicencesList = toggleLicencesList;
@@ -3909,9 +3999,22 @@ window.saveMarqueeSettings = saveMarqueeSettings;
 window.renderMarqueeSettingsUI = renderMarqueeSettingsUI;
 window.applyMarqueeSettings = applyMarqueeSettings;
 window.ensureAdminPanel = ensureAdminPanel;
+window.renderHistoryFull = renderHistoryFull;
+window.renderLicences = renderLicences;
+window.loadLicences = loadLicences;
+window.openLicenceModal = openLicenceModal;
+window.closeLicenceModal = closeLicenceModal;
+window.toggleLicencesList = toggleLicencesList;
+window.activateLicence = activateLicence;
+window.renderWishlistFull = renderWishlistFull;
+window.renderCartFull = renderCartFull;
+window.renderProfileFull = renderProfileFull;
+window.openAuthModal = openAuthModal;
+window.showLogin = showLogin;
+window.showRegister = showRegister;
 
 // ============================================================
-// 36. بدء التطبيق
+// 38. بدء التطبيق
 // ============================================================
 
 if (document.readyState === 'loading') {
@@ -3919,94 +4022,6 @@ if (document.readyState === 'loading') {
 } else {
     init();
 }
-
-// ============================================================
-// إصلاح الدوال المفقودة
-// ============================================================
-
-// 1. clearOrderHistory
-window.clearOrderHistory = async function() {
-    if (!currentUser) {
-        showToast('⚠️ Please login first', 'warning');
-        return;
-    }
-    if (!confirm('⚠️ Are you sure you want to clear all order history?')) return;
-    try {
-        const userRef = doc(db, 'users', currentUser.uid);
-        await updateDoc(userRef, { history: [] });
-        userProfile.history = [];
-        renderHistoryFull();
-        updateFullUserMenu();
-        showToast('🗑️ Order history cleared!', 'success');
-    } catch (error) {
-        console.error('Error clearing order history:', error);
-        showToast('❌ Failed to clear order history', 'error');
-    }
-};
-
-// 2. renderHistoryFull
-window.renderHistoryFull = function() {
-    const container = document.getElementById('historyFullContent');
-    if (!container) return;
-    const history = userProfile.history || [];
-    if (history.length === 0) {
-        container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
-            <i class="fas fa-shopping-bag" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i>
-            <div style="font-size:18px;font-weight:600;">No orders yet</div>
-            <div style="font-size:13px;opacity:0.4;margin-top:4px;">Your orders will appear here</div>
-        </div>`;
-        return;
-    }
-    let html = `<div style="display:flex;flex-direction:column;gap:8px;">`;
-    const sortedHistory = [...history].reverse();
-    sortedHistory.forEach((order) => {
-        const status = order.status || 'pending';
-        const statusColors = { 'pending': '#fbbf24', 'confirmed': '#34d399', 'rejected': '#f87171' };
-        const statusLabels = { 'pending': '⏳ Pending', 'confirmed': '✅ Confirmed', 'rejected': '❌ Rejected' };
-        const date = order.date ? new Date(order.date) : new Date();
-        const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-        const itemsList = order.items ? order.items.map(i => i.name).join(', ') : 'Order';
-        const total = order.total || 0;
-        html += `<div style="background:var(--bg);border-radius:10px;padding:12px 14px;border:1px solid var(--border);">
-            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;">
-                <div><div style="font-weight:600;color:var(--text);font-size:14px;">${itemsList}</div>
-                <div style="font-size:11px;color:var(--text-secondary);opacity:0.4;">${dateStr}</div></div>
-                <div style="display:flex;align-items:center;gap:8px;">
-                    <span style="font-size:14px;font-weight:700;color:var(--primary);">$${total.toFixed(2)}</span>
-                    <span style="padding:2px 10px;border-radius:12px;font-size:10px;font-weight:600;background:${statusColors[status] || '#6b7280'};color:#0a0a1a;">${statusLabels[status] || status}</span>
-                </div>
-            </div>
-        </div>`;
-    });
-    html += `</div>`;
-    container.innerHTML = html;
-};
-
-// 3. filterOrders
-window.filterOrders = function(filter) {
-    ordersFilter = filter;
-    document.querySelectorAll('.orders-filter-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.filter === filter);
-    });
-    renderHistoryFull();
-};
-
-// 4. دوال الترخيص
-window.openLicenceModal = function() {
-    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
-    const modal = document.getElementById('licenceModal');
-    if (modal) modal.classList.add('open');
-};
-window.closeLicenceModal = function() {
-    const modal = document.getElementById('licenceModal');
-    if (modal) modal.classList.remove('open');
-};
-window.toggleLicencesList = function() {
-    const list = document.getElementById('userLicencesList');
-    if (list) {
-        list.style.display = list.style.display === 'none' ? 'block' : 'none';
-    }
-};
 
 // ============================================================
 // END OF SCRIPT.JS
