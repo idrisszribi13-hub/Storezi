@@ -201,7 +201,7 @@ function updateLoadingBar(percent) {
 }
 
 // ============================================================
-// 2. دوال التحقق من الأدمن (اختصاراً)
+// 2. دوال التحقق من الأدمن - إصلاح: استخدام استعلام بدلاً من doc
 // ============================================================
 
 async function checkIsAdmin() {
@@ -210,9 +210,11 @@ async function checkIsAdmin() {
     adminCheckPromise = (async () => {
         try {
             const email = currentUser.email.toLowerCase();
-            const adminRef = doc(db, 'admins', email);
-            const adminSnap = await getDoc(adminRef);
-            const isAdmin = adminSnap.exists() && adminSnap.data().isAdmin === true;
+            // استخدام استعلام على مجموعة admins بدلاً من doc (لأن المستخدم مخزّن كوثيقة مع حقل email)
+            const adminsRef = collection(db, 'admins');
+            const q = query(adminsRef, where('email', '==', email));
+            const querySnapshot = await getDocs(q);
+            const isAdmin = !querySnapshot.empty && querySnapshot.docs[0].data().isAdmin === true;
             isAdminCached = isAdmin;
             return isAdmin;
         } catch (error) {
