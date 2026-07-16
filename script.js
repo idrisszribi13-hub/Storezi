@@ -1,7 +1,32 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - إصلاح نهائي لشاشة التحميل (إزالة التوقف)
+// SCRIPT.JS - ZI Store - إصلاح نهائي لشاشة التحميل وإضافة الدوال المفقودة
 // ============================================================
 
+// ============================================================
+// 0. إخفاء فوري لشاشة التحميل (أولوية قصوى)
+// ============================================================
+(function() {
+    // محاولة إخفاء شاشة التحميل فوراً بعد تحميل DOM
+    function hideLoadingScreenImmediate() {
+        var screen = document.getElementById('loadingScreen');
+        if (screen) {
+            screen.style.display = 'none';
+            console.log('✅ Loading screen hidden immediately');
+        }
+    }
+    // تنفيذ فوري إذا كان DOM جاهزاً
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', hideLoadingScreenImmediate);
+    } else {
+        hideLoadingScreenImmediate();
+    }
+    // حل احتياطي بعد 300ms
+    setTimeout(hideLoadingScreenImmediate, 300);
+})();
+
+// ============================================================
+// استيرادات Firebase و Supabase
+// ============================================================
 import { initializeApp } from "firebase/app";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, updatePassword, sendPasswordResetEmail, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, collection, query, where, getDocs, onSnapshot, addDoc, deleteDoc, orderBy } from "firebase/firestore";
@@ -154,7 +179,7 @@ function showToast(message, type = 'success') {
 }
 window.hideToast = function() { document.getElementById('toast')?.classList.remove('show'); };
 
-// شاشة التحميل - تم تبسيطها إلى أقصى حد
+// شاشة التحميل - دوال محسنة
 function hideLoadingScreen() {
     console.log('🔥 hideLoadingScreen called');
     const screen = document.getElementById('loadingScreen');
@@ -3731,9 +3756,108 @@ async function uploadToCloudinary(file) {
 }
 
 // ============================================================
-// 33. دوال الإكمال والتصدير
+// 33. دوال الإكمال والتصدير - إضافة الدوال المفقودة
 // ============================================================
 
+// تعريف دالة copyLicenceCode (كانت مفقودة)
+window.copyLicenceCode = function(code) {
+    if (!code) {
+        showToast('⚠️ No code to copy', 'warning');
+        return;
+    }
+    // محاولة النسخ عبر Clipboard API
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code)
+            .then(() => showToast('✅ Licence code copied!', 'success'))
+            .catch(() => fallbackCopyText(code));
+    } else {
+        fallbackCopyText(code);
+    }
+};
+
+function fallbackCopyText(text) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+        document.execCommand('copy');
+        showToast('✅ Licence code copied!', 'success');
+    } catch (e) {
+        showToast('❌ Failed to copy. Please copy manually.', 'error');
+    }
+    document.body.removeChild(textarea);
+}
+
+// تعريف دالة generateInvoice (كانت مفقودة)
+window.generateInvoice = function(orderData) {
+    if (!orderData) {
+        showToast('❌ No order data for invoice', 'error');
+        return;
+    }
+    try {
+        // orderData قد يكون string JSON من data-order attribute
+        let order = typeof orderData === 'string' ? JSON.parse(orderData) : orderData;
+        if (!order.id) {
+            order.id = 'INV-' + Date.now().toString().slice(-6);
+        }
+        const invoiceHtml = `
+            <html>
+                <head>
+                    <title>Invoice #${order.id}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 40px; background: #fff; color: #000; }
+                        h1 { color: #333; }
+                        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                        th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
+                        th { background: #f5f5f5; }
+                        .total { font-size: 18px; font-weight: bold; }
+                        .status { margin-top: 20px; }
+                    </style>
+                </head>
+                <body>
+                    <h1>🧾 Invoice</h1>
+                    <p><strong>Order ID:</strong> ${order.id}</p>
+                    <p><strong>Date:</strong> ${order.date ? new Date(order.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '--'}</p>
+                    <p><strong>Status:</strong> ${order.status || 'Pending'}</p>
+                    <table>
+                        <thead><tr><th>Product</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead>
+                        <tbody>
+                            ${(order.items || []).map(item => `
+                                <tr>
+                                    <td>${item.name}</td>
+                                    <td>${item.quantity || 1}</td>
+                                    <td>$${(item.price || 0).toFixed(2)}</td>
+                                    <td>$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    <div class="total">Total: $${(order.total || 0).toFixed(2)}</div>
+                    <div class="status">Payment Method: ${order.method || 'N/A'}</div>
+                    <hr>
+                    <p style="color:gray;">Thank you for your purchase at ZI Store!</p>
+                </body>
+            </html>
+        `;
+        const win = window.open('', '_blank');
+        if (!win) {
+            showToast('⚠️ Please allow popups to generate invoice', 'warning');
+            return;
+        }
+        win.document.write(invoiceHtml);
+        win.document.close();
+        win.print();
+        showToast('📄 Invoice generated!', 'success');
+    } catch (error) {
+        console.error('Invoice generation error:', error);
+        showToast('❌ Failed to generate invoice', 'error');
+    }
+};
+
+// دالة fixHeaderAndModals موجودة بالفعل، نؤكد تصديرها
 window.fixHeaderAndModals = function() {
     document.querySelectorAll('.header, .logo, .header-actions, .modal-content, .fullscreen-modal, .admin-panel').forEach(el => {
         el.style.direction = 'ltr';
@@ -3745,6 +3869,7 @@ window.fixHeaderAndModals = function() {
     });
 };
 
+// دالة exportOrders (موجودة بالفعل لكن نضمنها)
 window.exportOrders = function() {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!allOrders || allOrders.length === 0) { showToast('📭 No orders to export', 'info'); return; }
@@ -3817,7 +3942,7 @@ onAuthStateChanged(auth, async (user) => {
 async function init() {
     console.log('🚀 Initializing ZI Store...');
     
-    // 🔥 إخفاء شاشة التحميل فوراً
+    // 🔥 إخفاء شاشة التحميل فوراً (تم بالفعل في الجزء العلوي، لكن نكرر للتأكيد)
     hideLoadingScreen();
 
     // حل احتياطي: إخفاء شاشة التحميل بعد 2 ثانية بغض النظر عن أي شيء
@@ -3888,11 +4013,17 @@ document.addEventListener('DOMContentLoaded', function() {
 // 37. تصدير الدوال للنطاق العام
 // ============================================================
 
+// دوال التراخيص
+window.copyLicenceCode = copyLicenceCode;
+window.generateInvoice = generateInvoice;
+window.exportOrders = exportOrders;
+window.fixHeaderAndModals = fixHeaderAndModals;
+
+// الدوال الموجودة مسبقاً (نضمنها)
 window.toggleLicencesList = toggleLicencesList;
 window.openLicenceModal = openLicenceModal;
 window.closeLicenceModal = closeLicenceModal;
 window.activateLicence = activateLicence;
-window.copyLicenceCode = copyLicenceCode;
 window.editLicence = editLicence;
 window.saveLicenceEdit = saveLicenceEdit;
 window.approveLicence = approveLicence;
@@ -3911,7 +4042,6 @@ window.deleteSlide = deleteSlide;
 window.saveSliderInterval = saveSliderInterval;
 window.openAddSlideModal = openAddSlideModal;
 window.closeAddSlideModal = closeAddSlideModal;
-window.exportOrders = exportOrders;
 window.switchAdminTab = switchAdminTab;
 window.loadAdminOrders = loadAdminOrders;
 window.updateOrderStatus = updateOrderStatus;
@@ -3983,7 +4113,6 @@ window.refreshAdvancedStats = refreshAdvancedStats;
 window.setRating = setRating;
 window.submitRating = submitRating;
 window.loadAuditLogs = loadAuditLogs;
-window.generateInvoice = generateInvoice;
 window.pauseSlider = pauseSlider;
 window.resumeSlider = resumeSlider;
 window.goToSlide = goToSlide;
@@ -3994,7 +4123,6 @@ window.updateSlideProductSelect = updateSlideProductSelect;
 window.addBannerAdminControls = addBannerAdminControls;
 window.showTelegramBanner = showTelegramBanner;
 window.showTelegramBannerAgain = showTelegramBannerAgain;
-window.fixHeaderAndModals = fixHeaderAndModals;
 window.loadMarqueeSettings = loadMarqueeSettings;
 window.saveMarqueeSettings = saveMarqueeSettings;
 window.renderMarqueeSettingsUI = renderMarqueeSettingsUI;
