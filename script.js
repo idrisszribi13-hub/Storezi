@@ -1,12 +1,11 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - إصلاح نهائي لشاشة التحميل وإضافة الدوال المفقودة
+// SCRIPT.JS - ZI Store - إصلاح شامل مع دعم الأدمن عبر المعرف بالبريد
 // ============================================================
 
 // ============================================================
 // 0. إخفاء فوري لشاشة التحميل (أولوية قصوى)
 // ============================================================
 (function() {
-    // محاولة إخفاء شاشة التحميل فوراً بعد تحميل DOM
     function hideLoadingScreenImmediate() {
         var screen = document.getElementById('loadingScreen');
         if (screen) {
@@ -14,13 +13,11 @@
             console.log('✅ Loading screen hidden immediately');
         }
     }
-    // تنفيذ فوري إذا كان DOM جاهزاً
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', hideLoadingScreenImmediate);
     } else {
         hideLoadingScreenImmediate();
     }
-    // حل احتياطي بعد 300ms
     setTimeout(hideLoadingScreenImmediate, 300);
 })();
 
@@ -179,7 +176,6 @@ function showToast(message, type = 'success') {
 }
 window.hideToast = function() { document.getElementById('toast')?.classList.remove('show'); };
 
-// شاشة التحميل - دوال محسنة
 function hideLoadingScreen() {
     console.log('🔥 hideLoadingScreen called');
     const screen = document.getElementById('loadingScreen');
@@ -192,16 +188,15 @@ function hideLoadingScreen() {
 }
 
 function showLoadingScreen() {
-    // لا نستخدم هذه الدالة بعد الآن، ولكن نتركها فارغة لتجنب الأخطاء
     console.log('ℹ️ showLoadingScreen called but ignored');
 }
 
 function updateLoadingBar(percent) {
-    // لا حاجة لتحديث شريط التحميل بعد الآن، نتركها فارغة
+    // لا حاجة لتحديث شريط التحميل
 }
 
 // ============================================================
-// 2. دوال التحقق من الأدمن - إصلاح: استخدام استعلام بدلاً من doc
+// 2. دوال التحقق من الأدمن (باستخدام doc مع البريد كمعرف)
 // ============================================================
 
 async function checkIsAdmin() {
@@ -210,11 +205,10 @@ async function checkIsAdmin() {
     adminCheckPromise = (async () => {
         try {
             const email = currentUser.email.toLowerCase();
-            // استخدام استعلام على مجموعة admins بدلاً من doc (لأن المستخدم مخزّن كوثيقة مع حقل email)
-            const adminsRef = collection(db, 'admins');
-            const q = query(adminsRef, where('email', '==', email));
-            const querySnapshot = await getDocs(q);
-            const isAdmin = !querySnapshot.empty && querySnapshot.docs[0].data().isAdmin === true;
+            // استخدام doc مع البريد كمعرف للوثيقة (يجب أن يكون المعرف هو البريد الإلكتروني)
+            const adminRef = doc(db, 'admins', email);
+            const adminSnap = await getDoc(adminRef);
+            const isAdmin = adminSnap.exists() && adminSnap.data().isAdmin === true;
             isAdminCached = isAdmin;
             return isAdmin;
         } catch (error) {
@@ -233,6 +227,7 @@ async function refreshAdminStatus() {
     isAdminCached = await checkIsAdmin();
     return isAdminCached;
 }
+
 
 // ============================================================
 // 3. دوال المستخدم (Firestore + LocalStorage) - مختصرة
