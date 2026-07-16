@@ -247,7 +247,6 @@ window.ensureAdminPanel = function() {
         return true;
     }
     
-    // محاولة التحقق مرة أخرى
     checkIsAdmin().then((isAdmin) => {
         if (isAdmin) {
             isAdminCached = true;
@@ -258,7 +257,6 @@ window.ensureAdminPanel = function() {
             updateFullUserMenu();
             updateUI();
             showToast('👑 Admin panel activated', 'success');
-            // تحميل بيانات الأدمن
             loadAdminOrders();
             startAdminRealtimeListener();
             renderAdminProducts(products);
@@ -272,7 +270,9 @@ window.ensureAdminPanel = function() {
     }).catch((error) => {
         console.error('❌ Error ensuring admin panel:', error);
     });
-};// ============================================================
+};
+
+// ============================================================
 // 3. دوال المستخدم (Firestore + LocalStorage)
 // ============================================================
 
@@ -572,7 +572,7 @@ function updateFullUserMenu() {
         if (isAdminCached) {
             adminMenuItem.style.display = 'flex';
             if (pendingCount > 0) { adminBadge.style.display = 'inline-block'; adminBadge.textContent = pendingCount; } else { adminBadge.style.display = 'none'; }
-            console.log('✅ Admin menu displayed in updateFullUserMenu');
+            console.log('✅ Admin menu displayed');
         } else {
             adminMenuItem.style.display = 'none';
         }
@@ -587,9 +587,264 @@ function updateFullUserMenu() {
         adminMenuItem.style.display = 'none';
         if (licencesBadge) licencesBadge.style.display = 'none';
     }
-        }
+}
+
 // ============================================================
-// 5. دوال المنتجات
+// 5. دوال المصادقة
+// ============================================================
+
+window.showLogin = function() { document.getElementById('loginContainer').style.display = 'block'; document.getElementById('registerContainer').style.display = 'none'; };
+window.showRegister = function() { document.getElementById('loginContainer').style.display = 'none'; document.getElementById('registerContainer').style.display = 'block'; };
+window.toggleReferral = function() { document.getElementById('referralField').classList.toggle('show'); };
+
+window.loginUser = async function() {
+    const btn = document.getElementById('loginBtn');
+    btn.classList.add('loading');
+    const errorEl = document.getElementById('loginError');
+    const successEl = document.getElementById('loginSuccess');
+    errorEl.textContent = ''; successEl.textContent = '';
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    if (!email || !password) { errorEl.textContent = 'Please fill in all fields'; btn.classList.remove('loading'); return; }
+    try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        currentUser = userCredential.user;
+        successEl.textContent = '✅ Login successful!';
+        showToast('👋 Welcome back!', 'success');
+        btn.classList.remove('loading');
+        await refreshAdminStatus();
+        
+        setTimeout(() => {
+            document.getElementById('authSection').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            loadUserData();
+            updateDropdownStats();
+            
+            if (isAdminCached) {
+                console.log('✅ Admin detected, loading admin features');
+                loadAdminOrders();
+                startAdminRealtimeListener();
+                loadLicences();
+                setTimeout(() => {
+                    const adminMenuItem = document.getElementById('adminMenuItem');
+                    if (adminMenuItem) {
+                        adminMenuItem.style.display = 'flex';
+                        console.log('✅ Admin menu button displayed');
+                    }
+                    updateFullUserMenu();
+                }, 200);
+            }
+            
+            loadDownloads(); loadNotifications(); fetchCryptoPrices(); updateFullUserMenu(); showTelegramBanner();
+            loadSliderSettings();
+            loadMarqueeSettings();
+            window.ensureAdminPanel();
+        }, 500);
+    } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Login failed', 'error'); btn.classList.remove('loading'); }
+};
+
+window.registerUser = async function() {
+    const btn = document.getElementById('registerBtn');
+    btn.classList.add('loading');
+    const errorEl = document.getElementById('registerError');
+    const successEl = document.getElementById('registerSuccess');
+    errorEl.textContent = ''; successEl.textContent = '';
+    const name = document.getElementById('registerName').value.trim();
+    const email = document.getElementById('registerEmail').value.trim();
+    const password = document.getElementById('registerPassword').value;
+    const confirmPassword = document.getElementById('registerConfirmPassword').value;
+    const country = document.getElementById('registerCountry').value;
+    const lang = document.getElementById('registerLang').value;
+    const referralCode = document.getElementById('registerReferral').value.trim().toUpperCase();
+    const termsChecked = document.getElementById('termsCheck').checked;
+    if (!name || !email || !password || !confirmPassword) { errorEl.textContent = 'Please fill in all fields'; btn.classList.remove('loading'); return; }
+    if (password.length < 6) { errorEl.textContent = 'Password must be at least 6 characters'; btn.classList.remove('loading'); return; }
+    if (password !== confirmPassword) { errorEl.textContent = 'Passwords do not match'; btn.classList.remove('loading'); return; }
+    if (!termsChecked) { errorEl.textContent = 'Please agree to the terms'; btn.classList.remove('loading'); return; }
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(userCredential.user, { displayName: name });
+        currentUser = userCredential.user;
+        const newReferralCode = generateReferralCode(name, email);
+        const userRef = doc(db, 'users', currentUser.uid);
+        await setDoc(userRef, {
+            userId: currentUser.uid, name, email, country, lang, telegram: '', telegramChatId: '', location: country,
+            wishlist: [], cart: [], history: [], requests: [], usedCodes: [], referrals: [], referralRewards: 0, rp: 0, useRpForCart: false,
+            referralCode: newReferralCode, isBanned: false, lastDailyReward: 0, licences: [],
+            createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+        });
+        successEl.textContent = '✅ Registration successful!';
+        showToast(`🎉 Welcome, ${name}!`, 'success');
+        btn.classList.remove('loading');
+        await refreshAdminStatus();
+        
+        setTimeout(() => {
+            document.getElementById('authSection').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            loadUserData(); updateDropdownStats(); loadDownloads(); loadNotifications(); fetchCryptoPrices(); updateFullUserMenu(); showTelegramBanner();
+            loadSliderSettings();
+            loadMarqueeSettings();
+            window.ensureAdminPanel();
+        }, 500);
+    } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Registration failed', 'error'); btn.classList.remove('loading'); }
+};
+
+window.logoutUser = async function() {
+    try {
+        await signOut(auth);
+        currentUser = null;
+        isAdminCached = false;
+        activeDiscount = 0; activeDiscountCode = '';
+        document.getElementById('adminPanel').classList.remove('open');
+        closeUserMenuFull();
+        if (unsubscribeAdmin) { unsubscribeAdmin(); unsubscribeAdmin = null; }
+        if (unsubscribeUser) { unsubscribeUser(); unsubscribeUser = null; }
+        pendingCount = 0; unreadNotifications = 0;
+        document.getElementById('authSection').style.display = 'block';
+        document.getElementById('mainApp').style.display = 'none';
+        showToast('👋 Logged out', 'info');
+        updateUI(); updateNotificationBadge(); loadUserData(); updateFullUserMenu();
+    } catch (error) { showToast('❌ Logout error', 'error'); }
+};
+
+window.openForgotPassword = function() { document.getElementById('forgotPasswordModal').classList.add('open'); document.getElementById('forgotError').textContent = ''; document.getElementById('forgotSuccess').textContent = ''; };
+window.closeForgotPasswordModal = function() { document.getElementById('forgotPasswordModal').classList.remove('open'); document.getElementById('authSection').style.display = 'block'; };
+window.sendForgotPassword = async function() {
+    const email = document.getElementById('forgotEmail').value.trim();
+    const errorEl = document.getElementById('forgotError');
+    const successEl = document.getElementById('forgotSuccess');
+    errorEl.textContent = ''; successEl.textContent = '';
+    if (!email) { errorEl.textContent = 'Please enter your email'; return; }
+    try { await sendPasswordResetEmail(auth, email); successEl.textContent = '✅ Reset link sent to ' + email; showToast('📧 Password reset link sent!', 'success'); setTimeout(() => { closeForgotPasswordModal(); }, 2000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); }
+};
+
+// ============================================================
+// 6. المودالات العامة
+// ============================================================
+
+window.openUserMenuFull = function() { if (!currentUser) { openAuthModal(); return; } document.getElementById('userMenuFull').classList.add('open'); updateFullUserMenu(); document.body.style.overflow = 'hidden'; };
+window.closeUserMenuFull = function() { document.getElementById('userMenuFull').classList.remove('open'); document.body.style.overflow = ''; };
+window.openCartFull = function() { document.getElementById('cartFull').classList.add('open'); renderCartFull(); document.body.style.overflow = 'hidden'; };
+window.closeCartFull = function() { document.getElementById('cartFull').classList.remove('open'); document.body.style.overflow = ''; };
+window.openWishlistFull = function() { document.getElementById('wishlistFull').classList.add('open'); renderWishlistFull(); document.body.style.overflow = 'hidden'; };
+window.closeWishlistFull = function() { document.getElementById('wishlistFull').classList.remove('open'); document.body.style.overflow = ''; };
+window.openProfileFull = function() { if (!currentUser) { showToast('⚠️ Please login first', 'warning'); openAuthModal(); return; } document.getElementById('profileFull').classList.add('open'); renderProfileFull(); document.body.style.overflow = 'hidden'; };
+window.closeProfileFull = function() { document.getElementById('profileFull').classList.remove('open'); document.body.style.overflow = ''; };
+window.openHistoryFull = function() { if (!currentUser) { showToast('⚠️ Please login first', 'warning'); openAuthModal(); return; } document.getElementById('historyFull').classList.add('open'); renderHistoryFull(); document.body.style.overflow = 'hidden'; };
+window.closeHistoryFull = function() { document.getElementById('historyFull').classList.remove('open'); document.body.style.overflow = ''; };
+window.openDownloads = function() { document.getElementById('downloadsModal').classList.add('open'); };
+window.closeDownloads = function() { document.getElementById('downloadsModal').classList.remove('open'); };
+window.openNotifications = function() { document.getElementById('notificationsModal').classList.add('open'); };
+window.closeNotifications = function() { document.getElementById('notificationsModal').classList.remove('open'); };
+window.openAuthModal = function() { document.getElementById('authSection').scrollIntoView({ behavior: 'smooth' }); };
+
+// ============================================================
+// 7. عرض الملف الشخصي
+// ============================================================
+
+function renderProfileFull() {
+    const container = document.getElementById('profileFullContent');
+    if (!currentUser) {
+        container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-user-circle" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">Please login</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Login to view your profile</div></div>`;
+        return;
+    }
+    const displayName = currentUser.displayName || currentUser.email || 'User';
+    const maskedChatId = userProfile.telegramChatId ? userProfile.telegramChatId.slice(0, 4) + '***' + userProfile.telegramChatId.slice(-4) : 'Not linked';
+    const activeLicences = (userProfile.licences || []).filter(l => new Date(l.expiryDate) > new Date()).length;
+    container.innerHTML = `
+    <div style="background:var(--card-bg);border-radius:14px;border:1px solid var(--border);padding:16px;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border);">
+        <div style="width:56px;height:56px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;flex-shrink:0;">${displayName.charAt(0).toUpperCase()}</div>
+        <div>
+          <div style="font-size:16px;font-weight:700;color:var(--text);">${displayName}</div>
+          <div style="font-size:13px;color:var(--text-secondary);">${currentUser.email || 'No email'}</div>
+          <div style="font-size:13px;color:var(--text-secondary);">📍 Country: ${userProfile.location || 'Not specified'}</div>
+          <div style="font-size:13px;color:var(--vip-color);font-weight:700;">🎯 RP: ${userProfile.rp || 0}</div>
+          <div style="font-size:13px;color:var(--success);font-weight:600;">🔑 Licences: ${activeLicences}</div>
+          ${userProfile.isBanned ? '<div style="font-size:13px;color:var(--danger);font-weight:700;">🚫 BANNED</div>' : ''}
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+        <div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center;border:1px solid var(--border);"><div style="font-size:18px;font-weight:700;color:var(--text);">${userProfile.history.length}</div><div style="font-size:10px;color:var(--text-secondary);">Orders</div></div>
+        <div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center;border:1px solid var(--border);"><div style="font-size:18px;font-weight:700;color:var(--vip-color);">${userProfile.rp || 0}</div><div style="font-size:10px;color:var(--text-secondary);">RP Points</div></div>
+        <div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center;border:1px solid var(--border);"><div style="font-size:18px;font-weight:700;color:var(--heart-color);">${wishlist.length}</div><div style="font-size:10px;color:var(--text-secondary);">Favorites</div></div>
+      </div>
+    </div>
+    <div class="edit-profile-inline">
+      <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px;"><i class="fas fa-edit"></i> Edit Profile</div>
+      <form onsubmit="saveProfileChangesInline(event)">
+        <label>Name</label><input id="editNameInline" value="${userProfile.name || currentUser.displayName || ''}" placeholder="Enter your name" type="text" />
+        <label>Telegram Username</label><input id="editTelegramInline" value="${userProfile.telegram || ''}" placeholder="@username" type="text" />
+        <label>Country</label><select id="editLocationInline">
+          <option value="Tunisia" ${userProfile.location==='Tunisia'?'selected':''}>🇹🇳 Tunisia</option>
+          <option value="Algeria" ${userProfile.location==='Algeria'?'selected':''}>🇩🇿 Algeria</option>
+          <option value="Morocco" ${userProfile.location==='Morocco'?'selected':''}>🇲🇦 Morocco</option>
+          <option value="Egypt" ${userProfile.location==='Egypt'?'selected':''}>🇪🇬 Egypt</option>
+          <option value="Saudi Arabia" ${userProfile.location==='Saudi Arabia'?'selected':''}>🇸🇦 Saudi Arabia</option>
+          <option value="UAE" ${userProfile.location==='UAE'?'selected':''}>🇦🇪 UAE</option>
+          <option value="Other" ${userProfile.location==='Other'?'selected':''}>🌍 Other</option>
+        </select>
+        <label>Language</label><select id="editLangInline">
+          <option value="English" ${userProfile.lang==='English'?'selected':''}>🇬🇧 English</option>
+          <option value="Arabic" ${userProfile.lang==='Arabic'?'selected':''}>🇸🇦 العربية</option>
+          <option value="French" ${userProfile.lang==='French'?'selected':''}>🇫🇷 Français</option>
+        </select>
+        <div class="form-actions"><button type="button" class="btn-cancel" onclick="renderProfileFull()">Cancel</button><button type="submit" class="btn-save"><i class="fas fa-save"></i> Save</button></div>
+      </form>
+    </div>
+    <div class="password-inline">
+      <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px;"><i class="fas fa-lock"></i> Password & Security</div>
+      <div class="ps-email"><span>${currentUser.email || 'No email'}</span><button onclick="sendResetLinkInline()"><i class="fas fa-paper-plane"></i> Send Reset Link</button></div>
+      <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:8px;">
+        <div style="font-size:12px;color:var(--text-secondary);opacity:0.4;margin-bottom:6px;">Use your current password to set a new one instantly.</div>
+        <div class="auth-field"><label>Current Password</label><input id="currentPasswordInline" placeholder="Enter current password" type="password" /></div>
+        <div class="auth-field"><label>New Password</label><input id="newPasswordInline" placeholder="Enter new password (min 6 chars)" type="password" /></div>
+        <div class="auth-field"><label>Confirm New Password</label><input id="confirmNewPasswordInline" placeholder="Confirm new password" type="password" /></div>
+        <button class="auth-btn" onclick="changePasswordInline()"><i class="fas fa-key"></i> Change Password</button>
+        <div class="auth-error" id="passwordErrorInline"></div><div class="auth-success" id="passwordSuccessInline"></div>
+      </div>
+    </div>
+    <div class="telegram-bind-section" style="margin-top:12px;">
+      <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;"><i class="fab fa-telegram-plane" style="color:#0088cc;"></i> Telegram Notifications</div>
+      <div class="tb-row"><span class="tb-label">Status</span><span class="tb-value"><span class="tb-status ${userProfile.telegramChatId?'linked':'unlinked'}">${userProfile.telegramChatId?'✅ Linked':'❌ Unlinked'}</span></span></div>
+      ${userProfile.telegramChatId?`<div class="tb-row"><span class="tb-label">Bound Chat ID</span><span class="tb-value" style="font-family:monospace;letter-spacing:1px;">${maskedChatId}</span></div><div class="tb-row"><span class="tb-label">Bot</span><span class="tb-value" style="color:#0088cc;">@${BOT_USERNAME}</span></div>`:''}
+      <div style="background:var(--card-bg);padding:10px;border-radius:8px;margin:8px 0;border:1px solid var(--border);">
+        <div style="font-size:13px;color:var(--text-secondary);"><i class="fas fa-info-circle" style="color:var(--primary);"></i> ${userProfile.telegramChatId ? 'You will receive order notifications here.' : 'Click "Link Bot" to connect your Telegram account.'}</div>
+      </div>
+      <div class="tb-actions">
+        <button class="btn-bind" onclick="bindTelegram()" style="flex:1;background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;gap:8px;"><i class="fab fa-telegram-plane"></i> ${userProfile.telegramChatId?'Re-link':'Link Bot'}</button>
+        ${userProfile.telegramChatId ? `<button class="btn-test" onclick="testTelegramNotification()" style="background:var(--success);color:#0a0a1a;border:none;border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:6px;"><i class="fas fa-paper-plane"></i> Test</button>` : ''}
+        <button class="btn-check" onclick="checkTelegramStatus()" style="background:var(--card-bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:6px;"><i class="fas fa-sync-alt"></i> Check</button>
+        ${userProfile.telegramChatId ? `<button class="btn-unlink" onclick="unlinkTelegram()" style="background:var(--danger);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:6px;"><i class="fas fa-unlink"></i> Unlink</button>` : ''}
+      </div>
+      <div style="font-size:11px;color:var(--text-secondary);opacity:0.4;margin-top:6px;display:flex;align-items:center;gap:4px;"><i class="fab fa-telegram-plane" style="color:#0088cc;"></i> ${userProfile.telegramChatId ? `Connected to @${BOT_USERNAME}` : `Start @${BOT_USERNAME} and click "Link Bot" to connect`}</div>
+    </div>`;
+    setTimeout(showTelegramBanner, 300);
+}
+
+window.saveProfileChangesInline = async function(e) {
+    e.preventDefault();
+    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
+    const name = document.getElementById('editNameInline').value.trim();
+    const telegram = document.getElementById('editTelegramInline').value.trim();
+    const location = document.getElementById('editLocationInline').value;
+    const lang = document.getElementById('editLangInline').value;
+    if (!name) { showToast('⚠️ Name is required', 'warning'); return; }
+    try {
+        await updateProfile(currentUser, { displayName: name });
+        const userRef = doc(db, 'users', currentUser.uid);
+        await updateDoc(userRef, { name, telegram, location, lang, updatedAt: serverTimestamp() });
+        userProfile.name = name; userProfile.telegram = telegram; userProfile.location = location; userProfile.lang = lang;
+        showToast('✅ Profile updated!', 'success');
+        updateUI(); renderProfileFull(); updateFullUserMenu();
+    } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
+};
+
+window.sendResetLinkInline = async function() { if (!currentUser) return; try { await sendPasswordResetEmail(auth, currentUser.email); showToast(`📧 Reset link sent to ${currentUser.email}`, 'success'); } catch (error) { showToast('❌ ' + error.message, 'error'); } };
+window.changePasswordInline = async function() { if (!currentUser) return; const currentPwd = document.getElementById('currentPasswordInline').value; const newPwd = document.getElementById('newPasswordInline').value; const confirmPwd = document.getElementById('confirmNewPasswordInline').value; const errorEl = document.getElementById('passwordErrorInline'); const successEl = document.getElementById('passwordSuccessInline'); errorEl.textContent = ''; successEl.textContent = ''; if (!currentPwd || !newPwd || !confirmPwd) { errorEl.textContent = 'Please fill all fields'; return; } if (newPwd.length < 6) { errorEl.textContent = 'New password must be at least 6 characters'; return; } if (newPwd !== confirmPwd) { errorEl.textContent = 'Passwords do not match'; return; } try { const credential = EmailAuthProvider.credential(currentUser.email, currentPwd); await reauthenticateWithCredential(currentUser, credential); await updatePassword(currentUser, newPwd); successEl.textContent = '✅ Password changed successfully!'; showToast('✅ Password updated!', 'success'); document.getElementById('currentPasswordInline').value = ''; document.getElementById('newPasswordInline').value = ''; document.getElementById('confirmNewPasswordInline').value = ''; setTimeout(() => { successEl.textContent = ''; }, 3000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); } };
+
+// ============================================================
+// 8. دوال المنتجات
 // ============================================================
 
 async function loadProductsFromFirestore() {
@@ -717,7 +972,7 @@ function generateRecommendations(productsList) {
 }
 
 // ============================================================
-// 6. المنتجات المميزة
+// 9. المنتجات المميزة والسلة والمفضلة
 // ============================================================
 
 function renderFeaturedProducts() {
@@ -776,10 +1031,6 @@ async function loadFeaturedSettings() {
         if (error.code === 'permission-denied') { renderFeaturedProducts(); }
     }
 }
-
-// ============================================================
-// 7. السلة والمفضلة
-// ============================================================
 
 window.addToCart = async function(productId) {
     const product = products.find(p => p.id === productId);
@@ -963,8 +1214,10 @@ function createFloatingHearts() {
         container.appendChild(heart);
         setTimeout(() => heart.remove(), 2000);
     }
-}// ============================================================
-// 8. عرض المنتج (Preview) مع VIP Pricing و Rating
+}
+
+// ============================================================
+// 10. عرض المنتج (Preview)
 // ============================================================
 
 window.openDetails = function(id) {
@@ -1099,7 +1352,7 @@ window.addToCartFromPreview = function() { if (window._currentProduct) { window.
 window.shareFromPreview = function() { if (window._currentProduct) { window.openShareModal(window._currentProduct.id); } };
 
 // ============================================================
-// 9. مودال المشاركة
+// 11. مودال المشاركة
 // ============================================================
 
 window.openShareModal = function(productId) {
@@ -1116,7 +1369,7 @@ window.shareToFacebook = function() { if (!shareProduct) return; window.open(`ht
 window.copyShareLink = function() { const url = window.location.href; navigator.clipboard.writeText(url).then(() => { showToast('✅ Link copied!', 'success'); closeShareModal(); }).catch(() => { const textArea = document.createElement('textarea'); textArea.value = url; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); showToast('✅ Link copied!', 'success'); closeShareModal(); }); };
 
 // ============================================================
-// 10. التصفية والبحث
+// 12. التصفية والبحث
 // ============================================================
 
 window.filterProducts = function(filter) {
@@ -1173,7 +1426,7 @@ function closeSearchResults() { searchResults.classList.remove('active'); search
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeSearchResults(); closeUserMenuFull(); closeCartFull(); closeWishlistFull(); closeProfileFull(); closeHistoryFull(); } });
 
 // ============================================================
-// 11. الدفع (Payment)
+// 13. الدفع (Payment)
 // ============================================================
 
 async function fetchCryptoPrices() {
@@ -1322,7 +1575,7 @@ function renderPaymentProducts() {
 }
 
 // ============================================================
-// 12. إرسال الطلب (Order)
+// 14. إرسال الطلب (Order)
 // ============================================================
 
 async function sendOrderToTelegram(method, txHash = null) {
@@ -1491,7 +1744,7 @@ window.closePaymentModal = function() { document.getElementById('paymentModal').
 window.checkout = function() { openPaymentModal(); };
 
 // ============================================================
-// 13. دوال تيليجرام
+// 15. دوال تيليجرام
 // ============================================================
 
 async function sendTelegramNotification(chatId, message) {
@@ -1595,7 +1848,7 @@ window.checkTelegramStatus = async function() {
 };
 
 // ============================================================
-// 14. التحميلات والإشعارات
+// 16. التحميلات والإشعارات
 // ============================================================
 
 function loadDownloads() {
@@ -1780,7 +2033,7 @@ window.openCreateNotificationModal = function() { if (!currentUser || !isAdminCa
 window.closeCreateNotificationModal = function() { document.getElementById('createNotificationModal').classList.remove('open'); };
 
 // ============================================================
-// 15. الطلبات والإحالات
+// 17. الطلبات والإحالات
 // ============================================================
 
 window.openRequestsModal = function() {
@@ -1854,7 +2107,7 @@ window.copyReferralCode2 = function() {
 };
 
 // ============================================================
-// 16. لوحة المدير (Admin Panel)
+// 18. لوحة المدير (Admin Panel)
 // ============================================================
 
 window.openAdminPanel = function() {
@@ -2041,13 +2294,11 @@ window.switchAdminTab = function(tab) {
                 container.insertBefore(btn, container.firstChild);
             }
         }
-
-        
     }
 };
 
 // ============================================================
-// 17. إدارة المنتجات (Admin Products)
+// 19. إدارة المنتجات (Admin Products)
 // ============================================================
 
 function renderAdminProducts(productsList) {
@@ -2184,7 +2435,7 @@ async function deleteProductFromFirestore(productId) {
 }
 
 // ============================================================
-// 18. الطلبات (Admin Orders)
+// 20. الطلبات (Admin Orders)
 // ============================================================
 
 function startAdminRealtimeListener() {
@@ -2315,7 +2566,7 @@ function updateAdminStats(orders) {
 }
 
 // ============================================================
-// 19. تحديث حالة الطلب
+// 21. تحديث حالة الطلب
 // ============================================================
 
 window.updateOrderStatus = async function(orderId, userId, newStatus) {
@@ -2383,7 +2634,7 @@ window.clearAdminSearch = function() { document.getElementById('adminSearchInput
 window.refreshAdminOrders = function() { loadAdminOrders(); showToast('🔄 Refreshed', 'info'); };
 
 // ============================================================
-// 20. إرسال الترخيص عبر Edge Function
+// 22. إرسال الترخيص عبر Edge Function
 // ============================================================
 
 async function sendLicenceForOrder(orderId, userId) {
@@ -2431,7 +2682,7 @@ async function sendLicenceForOrder(orderId, userId) {
 }
 
 // ============================================================
-// 21. المستخدمين (Admin Users)
+// 23. المستخدمين (Admin Users)
 // ============================================================
 
 async function loadAdminUsers() {
@@ -2538,7 +2789,7 @@ window.viewUserDetails = async function(uid) {
 window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
 // ============================================================
-// 22. نظام إدارة التراخيص (مع Supabase)
+// 24. نظام إدارة التراخيص (مع Supabase)
 // ============================================================
 
 async function loadLicences() {
@@ -2859,7 +3110,7 @@ async function activateLicence() {
 }
 
 // ============================================================
-// 23. التقييمات (Ratings)
+// 25. التقييمات (Ratings)
 // ============================================================
 
 let currentRating = 0;
@@ -2948,11 +3199,10 @@ async function updateProductRatingDisplay(productId) {
     let total = 0, count = 0;
     snapshot.forEach(doc => { total += doc.data().rating || 0; count++; });
     const avg = count > 0 ? total / count : 0;
-        }
-
+}
 
 // ============================================================
-// 24. دوال السلايدر والماركي والإحصائيات
+// 26. دوال السلايدر والماركي والإحصائيات
 // ============================================================
 
 // دوال السلايدر (Slider)
@@ -3270,8 +3520,9 @@ async function loadAuditLogs() {
     } catch (error) { console.error('Error loading audit logs:', error); container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load logs: ${error.message}</div>`; if (error.code === 'permission-denied') { console.warn('⚠️ Missing permissions to read audit logs.'); } }
 }
 window.loadAuditLogs = loadAuditLogs;
+
 // ============================================================
-// 25. دوال الإضافية (Telegram Banner, Social Proof, Upload)
+// 27. دوال الإضافية (Telegram Banner, Social Proof, Upload)
 // ============================================================
 
 function showTelegramBanner() {
@@ -3317,7 +3568,7 @@ function startSocialProof() { /* للاستخدام المستقبلي */ }
 function triggerSocialProofOnOrder(userName, productNames) { /* للاستخدام المستقبلي */ }
 
 // ============================================================
-// 26. رفع الصور إلى Cloudinary
+// 28. رفع الصور إلى Cloudinary
 // ============================================================
 
 const CLOUDINARY_CLOUD_NAME = 'y14bgb5s';
@@ -3335,7 +3586,80 @@ async function uploadToCloudinary(file) {
 }
 
 // ============================================================
-// 27. حالة المصادقة (النسخة النهائية)
+// 29. دوال التوجيه والإصلاح
+// ============================================================
+
+function fixDirection() {
+    document.querySelectorAll('.header, .logo, .header-actions, .modal-content, .fullscreen-modal, .admin-panel').forEach(el => {
+        el.style.direction = 'ltr'; el.style.textAlign = 'left';
+    });
+    document.querySelectorAll('.modal-close').forEach(el => { el.style.right = 'auto'; el.style.left = '10px'; });
+}
+window.fixHeaderAndModals = fixDirection;
+
+// ============================================================
+// 30. نسخ الترخيص والتصدير
+// ============================================================
+
+window.copyLicenceCode = function(code) {
+    if (!code) { showToast('⚠️ No code to copy', 'warning'); return; }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code)
+            .then(() => showToast('✅ Licence code copied!', 'success'))
+            .catch(() => fallbackCopyText(code));
+    } else {
+        fallbackCopyText(code);
+    }
+};
+function fallbackCopyText(text) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+        document.execCommand('copy');
+        showToast('✅ Licence code copied!', 'success');
+    } catch (e) {
+        showToast('❌ Failed to copy. Please copy manually.', 'error');
+    }
+    document.body.removeChild(textarea);
+}
+window.generateInvoice = function(orderData) {
+    if (!orderData) { showToast('❌ No order data for invoice', 'error'); return; }
+    try {
+        let order = typeof orderData === 'string' ? JSON.parse(orderData) : orderData;
+        if (!order.id) { order.id = 'INV-' + Date.now().toString().slice(-6); }
+        const invoiceHtml = `<html><head><title>Invoice #${order.id}</title><style>body{font-family:Arial;padding:40px;background:#fff;color:#000;}h1{color:#333;}table{width:100%;border-collapse:collapse;margin:20px 0;}th,td{padding:10px;border:1px solid #ddd;text-align:left;}th{background:#f5f5f5;}.total{font-size:18px;font-weight:bold;}</style></head><body><h1>🧾 Invoice</h1><p><strong>Order ID:</strong> ${order.id}</p><p><strong>Date:</strong> ${order.date ? new Date(order.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '--'}</p><p><strong>Status:</strong> ${order.status || 'Pending'}</p><table><thead><tr><th>Product</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead><tbody>${(order.items || []).map(item => `<tr><td>${item.name}</td><td>${item.quantity || 1}</td><td>$${(item.price || 0).toFixed(2)}</td><td>$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td></tr>`).join('')}</tbody></table><div class="total">Total: $${(order.total || 0).toFixed(2)}</div><div class="status">Payment Method: ${order.method || 'N/A'}</div><hr><p style="color:gray;">Thank you for your purchase at ZI Store!</p></body></html>`;
+        const win = window.open('', '_blank');
+        if (!win) { showToast('⚠️ Please allow popups to generate invoice', 'warning'); return; }
+        win.document.write(invoiceHtml);
+        win.document.close();
+        win.print();
+        showToast('📄 Invoice generated!', 'success');
+    } catch (error) { console.error('Invoice generation error:', error); showToast('❌ Failed to generate invoice', 'error'); }
+};
+window.exportOrders = function() {
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (!allOrders || allOrders.length === 0) { showToast('📭 No orders to export', 'info'); return; }
+    try {
+        let csv = 'Order ID,User,Email,Total,Status,Date,Items\n';
+        allOrders.forEach(order => {
+            const items = order.items ? order.items.map(i => i.name).join('; ') : '';
+            csv += `${order.orderId || ''},${order.userName || ''},${order.userEmail || ''},${order.total || 0},${order.status || 'pending'},${new Date(order.date).toLocaleDateString()},${items}\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `orders_${new Date().toISOString().slice(0,10)}.csv`;
+        a.click(); URL.revokeObjectURL(url);
+        showToast('📥 Orders exported!', 'success');
+    } catch (error) { showToast('❌ Export failed', 'error'); }
+};
+
+// ============================================================
+// 31. حالة المصادقة (النسخة النهائية)
 // ============================================================
 
 onAuthStateChanged(auth, async (user) => {
@@ -3399,7 +3723,7 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// 28. استدعاء تلقائي للتأكد من ظهور لوحة الأدمن (حل احتياطي)
+// 32. استدعاء تلقائي للتأكد من ظهور لوحة الأدمن (حل احتياطي)
 // ============================================================
 setInterval(() => {
     if (currentUser && !isAdminCached) {
@@ -3408,7 +3732,7 @@ setInterval(() => {
 }, 5000);
 
 // ============================================================
-// 29. التهيئة (Init)
+// 33. التهيئة (Init)
 // ============================================================
 
 async function init() {
@@ -3454,7 +3778,7 @@ async function init() {
 }
 
 // ============================================================
-// 30. تبديل الثيم
+// 34. تبديل الثيم
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -3479,77 +3803,9 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================================
-// 31. دوال التوجيه والإصلاح
+// 35. تصدير جميع الدوال للنطاق العام
 // ============================================================
 
-function fixDirection() {
-    document.querySelectorAll('.header, .logo, .header-actions, .modal-content, .fullscreen-modal, .admin-panel').forEach(el => {
-        el.style.direction = 'ltr'; el.style.textAlign = 'left';
-    });
-    document.querySelectorAll('.modal-close').forEach(el => { el.style.right = 'auto'; el.style.left = '10px'; });
-}
-window.fixHeaderAndModals = fixDirection;
-
-// ============================================================
-// 32. تصدير جميع الدوال للنطاق العام
-// ============================================================
-
-window.copyLicenceCode = function(code) {
-    if (!code) { showToast('⚠️ No code to copy', 'warning'); return; }
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(code)
-            .then(() => showToast('✅ Licence code copied!', 'success'))
-            .catch(() => fallbackCopyText(code));
-    } else {
-        fallbackCopyText(code);
-    }
-};
-function fallbackCopyText(text) {
-    const textarea = document.createElement('textarea');
-    textarea.value = text;
-    textarea.style.position = 'fixed';
-    textarea.style.opacity = '0';
-    document.body.appendChild(textarea);
-    textarea.select();
-    try {
-        document.execCommand('copy');
-        showToast('✅ Licence code copied!', 'success');
-    } catch (e) {
-        showToast('❌ Failed to copy. Please copy manually.', 'error');
-    }
-    document.body.removeChild(textarea);
-}
-window.generateInvoice = function(orderData) {
-    if (!orderData) { showToast('❌ No order data for invoice', 'error'); return; }
-    try {
-        let order = typeof orderData === 'string' ? JSON.parse(orderData) : orderData;
-        if (!order.id) { order.id = 'INV-' + Date.now().toString().slice(-6); }
-        const invoiceHtml = `<html><head><title>Invoice #${order.id}</title><style>body{font-family:Arial;padding:40px;background:#fff;color:#000;}h1{color:#333;}table{width:100%;border-collapse:collapse;margin:20px 0;}th,td{padding:10px;border:1px solid #ddd;text-align:left;}th{background:#f5f5f5;}.total{font-size:18px;font-weight:bold;}</style></head><body><h1>🧾 Invoice</h1><p><strong>Order ID:</strong> ${order.id}</p><p><strong>Date:</strong> ${order.date ? new Date(order.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '--'}</p><p><strong>Status:</strong> ${order.status || 'Pending'}</p><table><thead><tr><th>Product</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead><tbody>${(order.items || []).map(item => `<tr><td>${item.name}</td><td>${item.quantity || 1}</td><td>$${(item.price || 0).toFixed(2)}</td><td>$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td></tr>`).join('')}</tbody></table><div class="total">Total: $${(order.total || 0).toFixed(2)}</div><div class="status">Payment Method: ${order.method || 'N/A'}</div><hr><p style="color:gray;">Thank you for your purchase at ZI Store!</p></body></html>`;
-        const win = window.open('', '_blank');
-        if (!win) { showToast('⚠️ Please allow popups to generate invoice', 'warning'); return; }
-        win.document.write(invoiceHtml);
-        win.document.close();
-        win.print();
-        showToast('📄 Invoice generated!', 'success');
-    } catch (error) { console.error('Invoice generation error:', error); showToast('❌ Failed to generate invoice', 'error'); }
-};
-window.exportOrders = function() {
-    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
-    if (!allOrders || allOrders.length === 0) { showToast('📭 No orders to export', 'info'); return; }
-    try {
-        let csv = 'Order ID,User,Email,Total,Status,Date,Items\n';
-        allOrders.forEach(order => {
-            const items = order.items ? order.items.map(i => i.name).join('; ') : '';
-            csv += `${order.orderId || ''},${order.userName || ''},${order.userEmail || ''},${order.total || 0},${order.status || 'pending'},${new Date(order.date).toLocaleDateString()},${items}\n`;
-        });
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = `orders_${new Date().toISOString().slice(0,10)}.csv`;
-        a.click(); URL.revokeObjectURL(url);
-        showToast('📥 Orders exported!', 'success');
-    } catch (error) { showToast('❌ Export failed', 'error'); }
-};
 window.toggleLicencesList = toggleLicencesList;
 window.openLicenceModal = openLicenceModal;
 window.closeLicenceModal = closeLicenceModal;
@@ -3655,7 +3911,7 @@ window.applyMarqueeSettings = applyMarqueeSettings;
 window.ensureAdminPanel = ensureAdminPanel;
 
 // ============================================================
-// 33. بدء التطبيق
+// 36. بدء التطبيق
 // ============================================================
 
 if (document.readyState === 'loading') {
@@ -3664,150 +3920,6 @@ if (document.readyState === 'loading') {
     init();
 }
 
-// ============================================================
-// دوال المودالات المفقودة (تم إضافتها)
-// ============================================================
-
-window.openCartFull = function() {
-    const modal = document.getElementById('cartFull');
-    if (modal) {
-        modal.classList.add('open');
-        document.body.style.overflow = 'hidden';
-        if (typeof renderCartFull === 'function') renderCartFull();
-    }
-};
-
-window.closeCartFull = function() {
-    const modal = document.getElementById('cartFull');
-    if (modal) {
-        modal.classList.remove('open');
-        document.body.style.overflow = '';
-    }
-};
-
-window.openWishlistFull = function() {
-    const modal = document.getElementById('wishlistFull');
-    if (modal) {
-        modal.classList.add('open');
-        document.body.style.overflow = 'hidden';
-        if (typeof renderWishlistFull === 'function') renderWishlistFull();
-    }
-};
-
-window.closeWishlistFull = function() {
-    const modal = document.getElementById('wishlistFull');
-    if (modal) {
-        modal.classList.remove('open');
-        document.body.style.overflow = '';
-    }
-};
-
-window.openUserMenuFull = function() {
-    if (!currentUser) {
-        openAuthModal();
-        return;
-    }
-    const modal = document.getElementById('userMenuFull');
-    if (modal) {
-        modal.classList.add('open');
-        if (typeof updateFullUserMenu === 'function') updateFullUserMenu();
-        document.body.style.overflow = 'hidden';
-    }
-};
-
-window.closeUserMenuFull = function() {
-    const modal = document.getElementById('userMenuFull');
-    if (modal) {
-        modal.classList.remove('open');
-        document.body.style.overflow = '';
-    }
-};
-
-window.openProfileFull = function() {
-    if (!currentUser) {
-        showToast('⚠️ Please login first', 'warning');
-        openAuthModal();
-        return;
-    }
-    const modal = document.getElementById('profileFull');
-    if (modal) {
-        modal.classList.add('open');
-        if (typeof renderProfileFull === 'function') renderProfileFull();
-        document.body.style.overflow = 'hidden';
-    }
-};
-
-window.closeProfileFull = function() {
-    const modal = document.getElementById('profileFull');
-    if (modal) {
-        modal.classList.remove('open');
-        document.body.style.overflow = '';
-    }
-};
-
-window.openHistoryFull = function() {
-    if (!currentUser) {
-        showToast('⚠️ Please login first', 'warning');
-        openAuthModal();
-        return;
-    }
-    const modal = document.getElementById('historyFull');
-    if (modal) {
-        modal.classList.add('open');
-        if (typeof renderHistoryFull === 'function') renderHistoryFull();
-        document.body.style.overflow = 'hidden';
-    }
-};
-
-window.closeHistoryFull = function() {
-    const modal = document.getElementById('historyFull');
-    if (modal) {
-        modal.classList.remove('open');
-        document.body.style.overflow = '';
-    }
-};
-
-window.openAuthModal = function() {
-    const authSection = document.getElementById('authSection');
-    if (authSection) {
-        authSection.style.display = 'block';
-        authSection.scrollIntoView({ behavior: 'smooth' });
-    }
-};
-
-window.openDownloads = function() {
-    const modal = document.getElementById('downloadsModal');
-    if (modal) modal.classList.add('open');
-};
-
-window.closeDownloads = function() {
-    const modal = document.getElementById('downloadsModal');
-    if (modal) modal.classList.remove('open');
-};
-
-window.openNotifications = function() {
-    const modal = document.getElementById('notificationsModal');
-    if (modal) modal.classList.add('open');
-};
-
-window.closeNotifications = function() {
-    const modal = document.getElementById('notificationsModal');
-    if (modal) modal.classList.remove('open');
-};
-
-window.showLogin = function() {
-    document.getElementById('loginContainer').style.display = 'block';
-    document.getElementById('registerContainer').style.display = 'none';
-};
-
-window.showRegister = function() {
-    document.getElementById('loginContainer').style.display = 'none';
-    document.getElementById('registerContainer').style.display = 'block';
-};
-
-window.toggleReferral = function() {
-    document.getElementById('referralField').classList.toggle('show');
-};
 // ============================================================
 // END OF SCRIPT.JS
 // ============================================================
