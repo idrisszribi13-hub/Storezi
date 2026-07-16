@@ -4024,5 +4024,154 @@ if (document.readyState === 'loading') {
 }
 
 // ============================================================
+// 🍪 Cookie Consent Functions (أضف هذا الكود هنا)
+// ============================================================
+
+// متغير لتخزين حالة الموافقة
+let cookieConsentStatus = localStorage.getItem('cookieConsent');
+
+// دالة قبول الكل
+window.acceptCookies = function() {
+    localStorage.setItem('cookieConsent', 'accepted');
+    localStorage.setItem('analyticsConsent', 'true');
+    document.getElementById('cookieConsent').classList.remove('show');
+    enableAnalytics();
+    showToast('✅ تم قبول ملفات تعريف الارتباط', 'success');
+};
+
+// دالة رفض الكل
+window.rejectCookies = function() {
+    localStorage.setItem('cookieConsent', 'rejected');
+    localStorage.setItem('analyticsConsent', 'false');
+    document.getElementById('cookieConsent').classList.remove('show');
+    disableAnalytics();
+    showToast('❌ تم رفض ملفات تعريف الارتباط', 'info');
+};
+
+// فتح إعدادات الكوكيز
+window.openCookieSettings = function() {
+    const modal = document.getElementById('cookieSettingsModal');
+    if (modal) {
+        const analyticsToggle = document.getElementById('analyticsToggle');
+        if (analyticsToggle) {
+            const consent = localStorage.getItem('analyticsConsent');
+            analyticsToggle.checked = consent !== 'false';
+        }
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+};
+
+// إغلاق إعدادات الكوكيز
+window.closeCookieSettings = function() {
+    const modal = document.getElementById('cookieSettingsModal');
+    if (modal) {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+};
+
+// حفظ إعدادات الكوكيز
+window.saveCookieSettings = function() {
+    const analyticsToggle = document.getElementById('analyticsToggle');
+    const analyticsEnabled = analyticsToggle ? analyticsToggle.checked : true;
+    
+    localStorage.setItem('cookieConsent', 'custom');
+    localStorage.setItem('analyticsConsent', analyticsEnabled ? 'true' : 'false');
+    
+    if (analyticsEnabled) {
+        enableAnalytics();
+    } else {
+        disableAnalytics();
+    }
+    
+    document.getElementById('cookieConsent').classList.remove('show');
+    closeCookieSettings();
+    showToast('✅ تم حفظ الإعدادات', 'success');
+};
+
+// تفعيل التحليلات
+function enableAnalytics() {
+    try {
+        if (typeof analytics !== 'undefined' && analytics.setAnalyticsCollectionEnabled) {
+            analytics.setAnalyticsCollectionEnabled(true);
+            console.log('✅ Firebase Analytics enabled');
+        }
+        if (typeof gtag !== 'undefined') {
+            gtag('consent', 'update', {
+                'analytics_storage': 'granted'
+            });
+            console.log('✅ Google Analytics enabled');
+        }
+    } catch (e) {
+        console.log('⚠️ Analytics enable error:', e);
+    }
+}
+
+// تعطيل التحليلات
+function disableAnalytics() {
+    try {
+        if (typeof analytics !== 'undefined' && analytics.setAnalyticsCollectionEnabled) {
+            analytics.setAnalyticsCollectionEnabled(false);
+            console.log('❌ Firebase Analytics disabled');
+        }
+        if (typeof gtag !== 'undefined') {
+            gtag('consent', 'update', {
+                'analytics_storage': 'denied'
+            });
+            console.log('❌ Google Analytics disabled');
+        }
+    } catch (e) {
+        console.log('⚠️ Analytics disable error:', e);
+    }
+}
+
+// التحقق من حالة الموافقة عند تحميل الصفحة
+function checkCookieConsent() {
+    const consent = localStorage.getItem('cookieConsent');
+    const analyticsConsent = localStorage.getItem('analyticsConsent');
+    
+    if (!consent) {
+        setTimeout(() => {
+            const banner = document.getElementById('cookieConsent');
+            if (banner) {
+                banner.classList.add('show');
+            }
+        }, 2000);
+    } else if (consent === 'accepted' || analyticsConsent === 'true') {
+        enableAnalytics();
+    } else if (consent === 'rejected' || analyticsConsent === 'false') {
+        disableAnalytics();
+    } else if (consent === 'custom') {
+        if (analyticsConsent === 'true') {
+            enableAnalytics();
+        } else {
+            disableAnalytics();
+        }
+    }
+}
+
+// إغلاق البانر يدوياً
+window.closeCookieBanner = function() {
+    const banner = document.getElementById('cookieConsent');
+    if (banner) {
+        banner.classList.remove('show');
+    }
+};
+
+// تهيئة الكوكيز عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(checkCookieConsent, 500);
+});
+
+// تصدير الدوال للنطاق العام
+window.enableAnalytics = enableAnalytics;
+window.disableAnalytics = disableAnalytics;
+window.checkCookieConsent = checkCookieConsent;
+
+// ============================================================
+// END OF SCRIPT.JS
+// ============================================================
+// ============================================================
 // END OF SCRIPT.JS
 // ============================================================
