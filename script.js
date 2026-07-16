@@ -3665,5 +3665,149 @@ if (document.readyState === 'loading') {
 }
 
 // ============================================================
+// دوال المودالات المفقودة (تم إضافتها)
+// ============================================================
+
+window.openCartFull = function() {
+    const modal = document.getElementById('cartFull');
+    if (modal) {
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+        if (typeof renderCartFull === 'function') renderCartFull();
+    }
+};
+
+window.closeCartFull = function() {
+    const modal = document.getElementById('cartFull');
+    if (modal) {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+};
+
+window.openWishlistFull = function() {
+    const modal = document.getElementById('wishlistFull');
+    if (modal) {
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+        if (typeof renderWishlistFull === 'function') renderWishlistFull();
+    }
+};
+
+window.closeWishlistFull = function() {
+    const modal = document.getElementById('wishlistFull');
+    if (modal) {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+};
+
+window.openUserMenuFull = function() {
+    if (!currentUser) {
+        openAuthModal();
+        return;
+    }
+    const modal = document.getElementById('userMenuFull');
+    if (modal) {
+        modal.classList.add('open');
+        if (typeof updateFullUserMenu === 'function') updateFullUserMenu();
+        document.body.style.overflow = 'hidden';
+    }
+};
+
+window.closeUserMenuFull = function() {
+    const modal = document.getElementById('userMenuFull');
+    if (modal) {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+};
+
+window.openProfileFull = function() {
+    if (!currentUser) {
+        showToast('⚠️ Please login first', 'warning');
+        openAuthModal();
+        return;
+    }
+    const modal = document.getElementById('profileFull');
+    if (modal) {
+        modal.classList.add('open');
+        if (typeof renderProfileFull === 'function') renderProfileFull();
+        document.body.style.overflow = 'hidden';
+    }
+};
+
+window.closeProfileFull = function() {
+    const modal = document.getElementById('profileFull');
+    if (modal) {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+};
+
+window.openHistoryFull = function() {
+    if (!currentUser) {
+        showToast('⚠️ Please login first', 'warning');
+        openAuthModal();
+        return;
+    }
+    const modal = document.getElementById('historyFull');
+    if (modal) {
+        modal.classList.add('open');
+        if (typeof renderHistoryFull === 'function') renderHistoryFull();
+        document.body.style.overflow = 'hidden';
+    }
+};
+
+window.closeHistoryFull = function() {
+    const modal = document.getElementById('historyFull');
+    if (modal) {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+};
+
+window.openAuthModal = function() {
+    const authSection = document.getElementById('authSection');
+    if (authSection) {
+        authSection.style.display = 'block';
+        authSection.scrollIntoView({ behavior: 'smooth' });
+    }
+};
+
+window.openDownloads = function() {
+    const modal = document.getElementById('downloadsModal');
+    if (modal) modal.classList.add('open');
+};
+
+window.closeDownloads = function() {
+    const modal = document.getElementById('downloadsModal');
+    if (modal) modal.classList.remove('open');
+};
+
+window.openNotifications = function() {
+    const modal = document.getElementById('notificationsModal');
+    if (modal) modal.classList.add('open');
+};
+
+window.closeNotifications = function() {
+    const modal = document.getElementById('notificationsModal');
+    if (modal) modal.classList.remove('open');
+};
+
+window.showLogin = function() {
+    document.getElementById('loginContainer').style.display = 'block';
+    document.getElementById('registerContainer').style.display = 'none';
+};
+
+window.showRegister = function() {
+    document.getElementById('loginContainer').style.display = 'none';
+    document.getElementById('registerContainer').style.display = 'block';
+};
+
+window.toggleReferral = function() {
+    document.getElementById('referralField').classList.toggle('show');
+};
+// ============================================================
 // END OF SCRIPT.JS
 // ============================================================
