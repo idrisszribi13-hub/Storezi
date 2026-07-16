@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - إصلاح شامل مع دعم الأدمن عبر المعرف بالبريد
+// SCRIPT.JS - ZI Store - الإصدار النهائي الكامل
 // ============================================================
 
 // ============================================================
@@ -196,19 +196,20 @@ function updateLoadingBar(percent) {
 }
 
 // ============================================================
-// 2. دوال التحقق من الأدمن (باستخدام doc مع البريد كمعرف)
+// 2. دوال التحقق من الأدمن (باستخدام UID)
 // ============================================================
 
-// استبدل الدالة القديمة بهذه:
 async function checkIsAdmin() {
     if (!currentUser) return false;
     if (adminCheckPromise) return adminCheckPromise;
     adminCheckPromise = (async () => {
         try {
             const uid = currentUser.uid;
+            console.log('🔍 Checking admin for UID:', uid);
             const adminRef = doc(db, 'admins', uid);
             const adminSnap = await getDoc(adminRef);
             const isAdmin = adminSnap.exists() && adminSnap.data().isAdmin === true;
+            console.log('✅ Admin status:', isAdmin);
             isAdminCached = isAdmin;
             return isAdmin;
         } catch (error) {
@@ -228,9 +229,51 @@ async function refreshAdminStatus() {
     return isAdminCached;
 }
 
-
 // ============================================================
-// 3. دوال المستخدم (Firestore + LocalStorage) - مختصرة
+// دالة强制 لتحديث ظهور لوحة الأدمن
+// ============================================================
+window.ensureAdminPanel = function() {
+    if (!currentUser) {
+        console.warn('⚠️ No user logged in');
+        return false;
+    }
+    
+    const adminMenuItem = document.getElementById('adminMenuItem');
+    if (isAdminCached) {
+        if (adminMenuItem) {
+            adminMenuItem.style.display = 'flex';
+            console.log('✅ Admin panel already active');
+        }
+        return true;
+    }
+    
+    // محاولة التحقق مرة أخرى
+    checkIsAdmin().then((isAdmin) => {
+        if (isAdmin) {
+            isAdminCached = true;
+            if (adminMenuItem) {
+                adminMenuItem.style.display = 'flex';
+                console.log('✅ Admin panel activated successfully');
+            }
+            updateFullUserMenu();
+            updateUI();
+            showToast('👑 Admin panel activated', 'success');
+            // تحميل بيانات الأدمن
+            loadAdminOrders();
+            startAdminRealtimeListener();
+            renderAdminProducts(products);
+            loadLicences();
+        } else {
+            console.warn('⚠️ User is not an admin');
+            if (adminMenuItem) {
+                adminMenuItem.style.display = 'none';
+            }
+        }
+    }).catch((error) => {
+        console.error('❌ Error ensuring admin panel:', error);
+    });
+};// ============================================================
+// 3. دوال المستخدم (Firestore + LocalStorage)
 // ============================================================
 
 function loadFromLocalStorage() {
@@ -471,7 +514,7 @@ function generateReferralCode(name, email) {
 }
 
 // ============================================================
-// 4. تحديثات الواجهة الأساسية (مختصرة)
+// 4. تحديثات الواجهة الأساسية
 // ============================================================
 
 function updateDropdownStats() {
@@ -529,6 +572,7 @@ function updateFullUserMenu() {
         if (isAdminCached) {
             adminMenuItem.style.display = 'flex';
             if (pendingCount > 0) { adminBadge.style.display = 'inline-block'; adminBadge.textContent = pendingCount; } else { adminBadge.style.display = 'none'; }
+            console.log('✅ Admin menu displayed in updateFullUserMenu');
         } else {
             adminMenuItem.style.display = 'none';
         }
@@ -543,249 +587,9 @@ function updateFullUserMenu() {
         adminMenuItem.style.display = 'none';
         if (licencesBadge) licencesBadge.style.display = 'none';
     }
-}
-
+        }
 // ============================================================
-// 5. دوال المصادقة (مختصرة)
-// ============================================================
-
-window.showLogin = function() { document.getElementById('loginContainer').style.display = 'block'; document.getElementById('registerContainer').style.display = 'none'; };
-window.showRegister = function() { document.getElementById('loginContainer').style.display = 'none'; document.getElementById('registerContainer').style.display = 'block'; };
-window.toggleReferral = function() { document.getElementById('referralField').classList.toggle('show'); };
-
-window.loginUser = async function() {
-    const btn = document.getElementById('loginBtn');
-    btn.classList.add('loading');
-    const errorEl = document.getElementById('loginError');
-    const successEl = document.getElementById('loginSuccess');
-    errorEl.textContent = ''; successEl.textContent = '';
-    const email = document.getElementById('loginEmail').value.trim();
-    const password = document.getElementById('loginPassword').value;
-    if (!email || !password) { errorEl.textContent = 'Please fill in all fields'; btn.classList.remove('loading'); return; }
-    try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        currentUser = userCredential.user;
-        successEl.textContent = '✅ Login successful!';
-        showToast('👋 Welcome back!', 'success');
-        btn.classList.remove('loading');
-        await refreshAdminStatus();
-        setTimeout(() => {
-            document.getElementById('authSection').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'block';
-            loadUserData();
-            updateDropdownStats();
-            if (isAdminCached) {
-                loadAdminOrders();
-                startAdminRealtimeListener();
-                loadLicences();
-            }
-            loadDownloads(); loadNotifications(); fetchCryptoPrices(); updateFullUserMenu(); showTelegramBanner();
-            loadSliderSettings();
-            loadMarqueeSettings();
-        }, 500);
-    } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Login failed', 'error'); btn.classList.remove('loading'); }
-};
-
-window.registerUser = async function() {
-    const btn = document.getElementById('registerBtn');
-    btn.classList.add('loading');
-    const errorEl = document.getElementById('registerError');
-    const successEl = document.getElementById('registerSuccess');
-    errorEl.textContent = ''; successEl.textContent = '';
-    const name = document.getElementById('registerName').value.trim();
-    const email = document.getElementById('registerEmail').value.trim();
-    const password = document.getElementById('registerPassword').value;
-    const confirmPassword = document.getElementById('registerConfirmPassword').value;
-    const country = document.getElementById('registerCountry').value;
-    const lang = document.getElementById('registerLang').value;
-    const referralCode = document.getElementById('registerReferral').value.trim().toUpperCase();
-    const termsChecked = document.getElementById('termsCheck').checked;
-    if (!name || !email || !password || !confirmPassword) { errorEl.textContent = 'Please fill in all fields'; btn.classList.remove('loading'); return; }
-    if (password.length < 6) { errorEl.textContent = 'Password must be at least 6 characters'; btn.classList.remove('loading'); return; }
-    if (password !== confirmPassword) { errorEl.textContent = 'Passwords do not match'; btn.classList.remove('loading'); return; }
-    if (!termsChecked) { errorEl.textContent = 'Please agree to the terms'; btn.classList.remove('loading'); return; }
-    try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        await updateProfile(userCredential.user, { displayName: name });
-        currentUser = userCredential.user;
-        const newReferralCode = generateReferralCode(name, email);
-        const userRef = doc(db, 'users', currentUser.uid);
-        await setDoc(userRef, {
-            userId: currentUser.uid, name, email, country, lang, telegram: '', telegramChatId: '', location: country,
-            wishlist: [], cart: [], history: [], requests: [], usedCodes: [], referrals: [], referralRewards: 0, rp: 0, useRpForCart: false,
-            referralCode: newReferralCode, isBanned: false, lastDailyReward: 0, licences: [],
-            createdAt: serverTimestamp(), updatedAt: serverTimestamp()
-        });
-        successEl.textContent = '✅ Registration successful!';
-        showToast(`🎉 Welcome, ${name}!`, 'success');
-        btn.classList.remove('loading');
-        await refreshAdminStatus();
-        setTimeout(() => {
-            document.getElementById('authSection').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'block';
-            loadUserData(); updateDropdownStats(); loadDownloads(); loadNotifications(); fetchCryptoPrices(); updateFullUserMenu(); showTelegramBanner();
-            loadSliderSettings();
-            loadMarqueeSettings();
-        }, 500);
-    } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Registration failed', 'error'); btn.classList.remove('loading'); }
-};
-
-window.logoutUser = async function() {
-    try {
-        await signOut(auth);
-        currentUser = null;
-        isAdminCached = false;
-        activeDiscount = 0; activeDiscountCode = '';
-        document.getElementById('adminPanel').classList.remove('open');
-        closeUserMenuFull();
-        if (unsubscribeAdmin) { unsubscribeAdmin(); unsubscribeAdmin = null; }
-        if (unsubscribeUser) { unsubscribeUser(); unsubscribeUser = null; }
-        pendingCount = 0; unreadNotifications = 0;
-        document.getElementById('authSection').style.display = 'block';
-        document.getElementById('mainApp').style.display = 'none';
-        showToast('👋 Logged out', 'info');
-        updateUI(); updateNotificationBadge(); loadUserData(); updateFullUserMenu();
-    } catch (error) { showToast('❌ Logout error', 'error'); }
-};
-
-window.openForgotPassword = function() { document.getElementById('forgotPasswordModal').classList.add('open'); document.getElementById('forgotError').textContent = ''; document.getElementById('forgotSuccess').textContent = ''; };
-window.closeForgotPasswordModal = function() { document.getElementById('forgotPasswordModal').classList.remove('open'); document.getElementById('authSection').style.display = 'block'; };
-window.sendForgotPassword = async function() {
-    const email = document.getElementById('forgotEmail').value.trim();
-    const errorEl = document.getElementById('forgotError');
-    const successEl = document.getElementById('forgotSuccess');
-    errorEl.textContent = ''; successEl.textContent = '';
-    if (!email) { errorEl.textContent = 'Please enter your email'; return; }
-    try { await sendPasswordResetEmail(auth, email); successEl.textContent = '✅ Reset link sent to ' + email; showToast('📧 Password reset link sent!', 'success'); setTimeout(() => { closeForgotPasswordModal(); }, 2000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); }
-};
-
-// ============================================================
-// 6. المودالات العامة (مختصرة)
-// ============================================================
-
-window.openUserMenuFull = function() { if (!currentUser) { openAuthModal(); return; } document.getElementById('userMenuFull').classList.add('open'); updateFullUserMenu(); document.body.style.overflow = 'hidden'; };
-window.closeUserMenuFull = function() { document.getElementById('userMenuFull').classList.remove('open'); document.body.style.overflow = ''; };
-window.openCartFull = function() { document.getElementById('cartFull').classList.add('open'); renderCartFull(); document.body.style.overflow = 'hidden'; };
-window.closeCartFull = function() { document.getElementById('cartFull').classList.remove('open'); document.body.style.overflow = ''; };
-window.openWishlistFull = function() { document.getElementById('wishlistFull').classList.add('open'); renderWishlistFull(); document.body.style.overflow = 'hidden'; };
-window.closeWishlistFull = function() { document.getElementById('wishlistFull').classList.remove('open'); document.body.style.overflow = ''; };
-window.openProfileFull = function() { if (!currentUser) { showToast('⚠️ Please login first', 'warning'); openAuthModal(); return; } document.getElementById('profileFull').classList.add('open'); renderProfileFull(); document.body.style.overflow = 'hidden'; };
-window.closeProfileFull = function() { document.getElementById('profileFull').classList.remove('open'); document.body.style.overflow = ''; };
-window.openHistoryFull = function() { if (!currentUser) { showToast('⚠️ Please login first', 'warning'); openAuthModal(); return; } document.getElementById('historyFull').classList.add('open'); renderHistoryFull(); document.body.style.overflow = 'hidden'; };
-window.closeHistoryFull = function() { document.getElementById('historyFull').classList.remove('open'); document.body.style.overflow = ''; };
-window.openDownloads = function() { document.getElementById('downloadsModal').classList.add('open'); };
-window.closeDownloads = function() { document.getElementById('downloadsModal').classList.remove('open'); };
-window.openNotifications = function() { document.getElementById('notificationsModal').classList.add('open'); };
-window.closeNotifications = function() { document.getElementById('notificationsModal').classList.remove('open'); };
-function openAuthModal() { document.getElementById('authSection').scrollIntoView({ behavior: 'smooth' }); }
-
-// ============================================================
-// 7. عرض الملف الشخصي (مختصر جداً)
-// ============================================================
-
-function renderProfileFull() {
-    const container = document.getElementById('profileFullContent');
-    if (!currentUser) {
-        container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-user-circle" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">Please login</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Login to view your profile</div></div>`;
-        return;
-    }
-    const displayName = currentUser.displayName || currentUser.email || 'User';
-    const maskedChatId = userProfile.telegramChatId ? userProfile.telegramChatId.slice(0, 4) + '***' + userProfile.telegramChatId.slice(-4) : 'Not linked';
-    const activeLicences = (userProfile.licences || []).filter(l => new Date(l.expiryDate) > new Date()).length;
-    container.innerHTML = `
-    <div style="background:var(--card-bg);border-radius:14px;border:1px solid var(--border);padding:16px;margin-bottom:12px;">
-      <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border);">
-        <div style="width:56px;height:56px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;flex-shrink:0;">${displayName.charAt(0).toUpperCase()}</div>
-        <div>
-          <div style="font-size:16px;font-weight:700;color:var(--text);">${displayName}</div>
-          <div style="font-size:13px;color:var(--text-secondary);">${currentUser.email || 'No email'}</div>
-          <div style="font-size:13px;color:var(--text-secondary);">📍 Country: ${userProfile.location || 'Not specified'}</div>
-          <div style="font-size:13px;color:var(--vip-color);font-weight:700;">🎯 RP: ${userProfile.rp || 0}</div>
-          <div style="font-size:13px;color:var(--success);font-weight:600;">🔑 Licences: ${activeLicences}</div>
-          ${userProfile.isBanned ? '<div style="font-size:13px;color:var(--danger);font-weight:700;">🚫 BANNED</div>' : ''}
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
-        <div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center;border:1px solid var(--border);"><div style="font-size:18px;font-weight:700;color:var(--text);">${userProfile.history.length}</div><div style="font-size:10px;color:var(--text-secondary);">Orders</div></div>
-        <div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center;border:1px solid var(--border);"><div style="font-size:18px;font-weight:700;color:var(--vip-color);">${userProfile.rp || 0}</div><div style="font-size:10px;color:var(--text-secondary);">RP Points</div></div>
-        <div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center;border:1px solid var(--border);"><div style="font-size:18px;font-weight:700;color:var(--heart-color);">${wishlist.length}</div><div style="font-size:10px;color:var(--text-secondary);">Favorites</div></div>
-      </div>
-    </div>
-    <div class="edit-profile-inline">
-      <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px;"><i class="fas fa-edit"></i> Edit Profile</div>
-      <form onsubmit="saveProfileChangesInline(event)">
-        <label>Name</label><input id="editNameInline" value="${userProfile.name || currentUser.displayName || ''}" placeholder="Enter your name" type="text" />
-        <label>Telegram Username</label><input id="editTelegramInline" value="${userProfile.telegram || ''}" placeholder="@username" type="text" />
-        <label>Country</label><select id="editLocationInline">
-          <option value="Tunisia" ${userProfile.location==='Tunisia'?'selected':''}>🇹🇳 Tunisia</option>
-          <option value="Algeria" ${userProfile.location==='Algeria'?'selected':''}>🇩🇿 Algeria</option>
-          <option value="Morocco" ${userProfile.location==='Morocco'?'selected':''}>🇲🇦 Morocco</option>
-          <option value="Egypt" ${userProfile.location==='Egypt'?'selected':''}>🇪🇬 Egypt</option>
-          <option value="Saudi Arabia" ${userProfile.location==='Saudi Arabia'?'selected':''}>🇸🇦 Saudi Arabia</option>
-          <option value="UAE" ${userProfile.location==='UAE'?'selected':''}>🇦🇪 UAE</option>
-          <option value="Other" ${userProfile.location==='Other'?'selected':''}>🌍 Other</option>
-        </select>
-        <label>Language</label><select id="editLangInline">
-          <option value="English" ${userProfile.lang==='English'?'selected':''}>🇬🇧 English</option>
-          <option value="Arabic" ${userProfile.lang==='Arabic'?'selected':''}>🇸🇦 العربية</option>
-          <option value="French" ${userProfile.lang==='French'?'selected':''}>🇫🇷 Français</option>
-        </select>
-        <div class="form-actions"><button type="button" class="btn-cancel" onclick="renderProfileFull()">Cancel</button><button type="submit" class="btn-save"><i class="fas fa-save"></i> Save</button></div>
-      </form>
-    </div>
-    <div class="password-inline">
-      <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px;"><i class="fas fa-lock"></i> Password & Security</div>
-      <div class="ps-email"><span>${currentUser.email || 'No email'}</span><button onclick="sendResetLinkInline()"><i class="fas fa-paper-plane"></i> Send Reset Link</button></div>
-      <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:8px;">
-        <div style="font-size:12px;color:var(--text-secondary);opacity:0.4;margin-bottom:6px;">Use your current password to set a new one instantly.</div>
-        <div class="auth-field"><label>Current Password</label><input id="currentPasswordInline" placeholder="Enter current password" type="password" /></div>
-        <div class="auth-field"><label>New Password</label><input id="newPasswordInline" placeholder="Enter new password (min 6 chars)" type="password" /></div>
-        <div class="auth-field"><label>Confirm New Password</label><input id="confirmNewPasswordInline" placeholder="Confirm new password" type="password" /></div>
-        <button class="auth-btn" onclick="changePasswordInline()"><i class="fas fa-key"></i> Change Password</button>
-        <div class="auth-error" id="passwordErrorInline"></div><div class="auth-success" id="passwordSuccessInline"></div>
-      </div>
-    </div>
-    <div class="telegram-bind-section" style="margin-top:12px;">
-      <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;"><i class="fab fa-telegram-plane" style="color:#0088cc;"></i> Telegram Notifications</div>
-      <div class="tb-row"><span class="tb-label">Status</span><span class="tb-value"><span class="tb-status ${userProfile.telegramChatId?'linked':'unlinked'}">${userProfile.telegramChatId?'✅ Linked':'❌ Unlinked'}</span></span></div>
-      ${userProfile.telegramChatId?`<div class="tb-row"><span class="tb-label">Bound Chat ID</span><span class="tb-value" style="font-family:monospace;letter-spacing:1px;">${maskedChatId}</span></div><div class="tb-row"><span class="tb-label">Bot</span><span class="tb-value" style="color:#0088cc;">@${BOT_USERNAME}</span></div>`:''}
-      <div style="background:var(--card-bg);padding:10px;border-radius:8px;margin:8px 0;border:1px solid var(--border);">
-        <div style="font-size:13px;color:var(--text-secondary);"><i class="fas fa-info-circle" style="color:var(--primary);"></i> ${userProfile.telegramChatId ? 'You will receive order notifications here.' : 'Click "Link Bot" to connect your Telegram account.'}</div>
-      </div>
-      <div class="tb-actions">
-        <button class="btn-bind" onclick="bindTelegram()" style="flex:1;background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;gap:8px;"><i class="fab fa-telegram-plane"></i> ${userProfile.telegramChatId?'Re-link':'Link Bot'}</button>
-        ${userProfile.telegramChatId ? `<button class="btn-test" onclick="testTelegramNotification()" style="background:var(--success);color:#0a0a1a;border:none;border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:6px;"><i class="fas fa-paper-plane"></i> Test</button>` : ''}
-        <button class="btn-check" onclick="checkTelegramStatus()" style="background:var(--card-bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:6px;"><i class="fas fa-sync-alt"></i> Check</button>
-        ${userProfile.telegramChatId ? `<button class="btn-unlink" onclick="unlinkTelegram()" style="background:var(--danger);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:6px;"><i class="fas fa-unlink"></i> Unlink</button>` : ''}
-      </div>
-      <div style="font-size:11px;color:var(--text-secondary);opacity:0.4;margin-top:6px;display:flex;align-items:center;gap:4px;"><i class="fab fa-telegram-plane" style="color:#0088cc;"></i> ${userProfile.telegramChatId ? `Connected to @${BOT_USERNAME}` : `Start @${BOT_USERNAME} and click "Link Bot" to connect`}</div>
-    </div>`;
-    setTimeout(showTelegramBanner, 300);
-}
-
-window.saveProfileChangesInline = async function(e) {
-    e.preventDefault();
-    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
-    const name = document.getElementById('editNameInline').value.trim();
-    const telegram = document.getElementById('editTelegramInline').value.trim();
-    const location = document.getElementById('editLocationInline').value;
-    const lang = document.getElementById('editLangInline').value;
-    if (!name) { showToast('⚠️ Name is required', 'warning'); return; }
-    try {
-        await updateProfile(currentUser, { displayName: name });
-        const userRef = doc(db, 'users', currentUser.uid);
-        await updateDoc(userRef, { name, telegram, location, lang, updatedAt: serverTimestamp() });
-        userProfile.name = name; userProfile.telegram = telegram; userProfile.location = location; userProfile.lang = lang;
-        showToast('✅ Profile updated!', 'success');
-        updateUI(); renderProfileFull(); updateFullUserMenu();
-    } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
-};
-
-window.sendResetLinkInline = async function() { if (!currentUser) return; try { await sendPasswordResetEmail(auth, currentUser.email); showToast(`📧 Reset link sent to ${currentUser.email}`, 'success'); } catch (error) { showToast('❌ ' + error.message, 'error'); } };
-window.changePasswordInline = async function() { if (!currentUser) return; const currentPwd = document.getElementById('currentPasswordInline').value; const newPwd = document.getElementById('newPasswordInline').value; const confirmPwd = document.getElementById('confirmNewPasswordInline').value; const errorEl = document.getElementById('passwordErrorInline'); const successEl = document.getElementById('passwordSuccessInline'); errorEl.textContent = ''; successEl.textContent = ''; if (!currentPwd || !newPwd || !confirmPwd) { errorEl.textContent = 'Please fill all fields'; return; } if (newPwd.length < 6) { errorEl.textContent = 'New password must be at least 6 characters'; return; } if (newPwd !== confirmPwd) { errorEl.textContent = 'Passwords do not match'; return; } try { const credential = EmailAuthProvider.credential(currentUser.email, currentPwd); await reauthenticateWithCredential(currentUser, credential); await updatePassword(currentUser, newPwd); successEl.textContent = '✅ Password changed successfully!'; showToast('✅ Password updated!', 'success'); document.getElementById('currentPasswordInline').value = ''; document.getElementById('newPasswordInline').value = ''; document.getElementById('confirmNewPasswordInline').value = ''; setTimeout(() => { successEl.textContent = ''; }, 3000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); } };
-
-// ============================================================
-// 8. دوال المنتجات (مختصرة جداً)
+// 5. دوال المنتجات
 // ============================================================
 
 async function loadProductsFromFirestore() {
@@ -913,7 +717,7 @@ function generateRecommendations(productsList) {
 }
 
 // ============================================================
-// 9. المنتجات المميزة و السلة والمفضلة (مختصرة)
+// 6. المنتجات المميزة
 // ============================================================
 
 function renderFeaturedProducts() {
@@ -972,6 +776,10 @@ async function loadFeaturedSettings() {
         if (error.code === 'permission-denied') { renderFeaturedProducts(); }
     }
 }
+
+// ============================================================
+// 7. السلة والمفضلة
+// ============================================================
 
 window.addToCart = async function(productId) {
     const product = products.find(p => p.id === productId);
@@ -1155,10 +963,8 @@ function createFloatingHearts() {
         container.appendChild(heart);
         setTimeout(() => heart.remove(), 2000);
     }
-}
-
-// ============================================================
-// 10. عرض المنتج (Preview) - مختصر
+}// ============================================================
+// 8. عرض المنتج (Preview) مع VIP Pricing و Rating
 // ============================================================
 
 window.openDetails = function(id) {
@@ -1293,7 +1099,7 @@ window.addToCartFromPreview = function() { if (window._currentProduct) { window.
 window.shareFromPreview = function() { if (window._currentProduct) { window.openShareModal(window._currentProduct.id); } };
 
 // ============================================================
-// 11. مودال المشاركة
+// 9. مودال المشاركة
 // ============================================================
 
 window.openShareModal = function(productId) {
@@ -1310,7 +1116,7 @@ window.shareToFacebook = function() { if (!shareProduct) return; window.open(`ht
 window.copyShareLink = function() { const url = window.location.href; navigator.clipboard.writeText(url).then(() => { showToast('✅ Link copied!', 'success'); closeShareModal(); }).catch(() => { const textArea = document.createElement('textarea'); textArea.value = url; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); showToast('✅ Link copied!', 'success'); closeShareModal(); }); };
 
 // ============================================================
-// 12. التصفية والبحث
+// 10. التصفية والبحث
 // ============================================================
 
 window.filterProducts = function(filter) {
@@ -1367,7 +1173,7 @@ function closeSearchResults() { searchResults.classList.remove('active'); search
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeSearchResults(); closeUserMenuFull(); closeCartFull(); closeWishlistFull(); closeProfileFull(); closeHistoryFull(); } });
 
 // ============================================================
-// 13. الدفع (مختصر)
+// 11. الدفع (Payment)
 // ============================================================
 
 async function fetchCryptoPrices() {
@@ -1516,7 +1322,7 @@ function renderPaymentProducts() {
 }
 
 // ============================================================
-// 14. إرسال الطلب (مع منع التكرار) - مختصر
+// 12. إرسال الطلب (Order)
 // ============================================================
 
 async function sendOrderToTelegram(method, txHash = null) {
@@ -1685,7 +1491,7 @@ window.closePaymentModal = function() { document.getElementById('paymentModal').
 window.checkout = function() { openPaymentModal(); };
 
 // ============================================================
-// 15. دوال تيليجرام
+// 13. دوال تيليجرام
 // ============================================================
 
 async function sendTelegramNotification(chatId, message) {
@@ -1789,7 +1595,7 @@ window.checkTelegramStatus = async function() {
 };
 
 // ============================================================
-// 16. التحميلات والإشعارات (مختصرة)
+// 14. التحميلات والإشعارات
 // ============================================================
 
 function loadDownloads() {
@@ -1974,7 +1780,7 @@ window.openCreateNotificationModal = function() { if (!currentUser || !isAdminCa
 window.closeCreateNotificationModal = function() { document.getElementById('createNotificationModal').classList.remove('open'); };
 
 // ============================================================
-// 17. الطلبات والإحالات (مختصرة)
+// 15. الطلبات والإحالات
 // ============================================================
 
 window.openRequestsModal = function() {
@@ -2048,7 +1854,7 @@ window.copyReferralCode2 = function() {
 };
 
 // ============================================================
-// 18. لوحة المدير (كاملة مع كل الدوال)
+// 16. لوحة المدير (Admin Panel)
 // ============================================================
 
 window.openAdminPanel = function() {
@@ -2235,11 +2041,13 @@ window.switchAdminTab = function(tab) {
                 container.insertBefore(btn, container.firstChild);
             }
         }
+
+        
     }
 };
 
 // ============================================================
-// 19. إدارة المنتجات (Admin Products) - مختصر
+// 17. إدارة المنتجات (Admin Products)
 // ============================================================
 
 function renderAdminProducts(productsList) {
@@ -2376,7 +2184,7 @@ async function deleteProductFromFirestore(productId) {
 }
 
 // ============================================================
-// 20. الطلبات (Admin Orders) - مختصر لكن شامل
+// 18. الطلبات (Admin Orders)
 // ============================================================
 
 function startAdminRealtimeListener() {
@@ -2507,7 +2315,7 @@ function updateAdminStats(orders) {
 }
 
 // ============================================================
-// 21. تحديث حالة الطلب وإنشاء الترخيص (مع إرسال الترخيص)
+// 19. تحديث حالة الطلب
 // ============================================================
 
 window.updateOrderStatus = async function(orderId, userId, newStatus) {
@@ -2575,7 +2383,7 @@ window.clearAdminSearch = function() { document.getElementById('adminSearchInput
 window.refreshAdminOrders = function() { loadAdminOrders(); showToast('🔄 Refreshed', 'info'); };
 
 // ============================================================
-// 22. دالة إرسال الترخيص عبر Edge Function (بدون Authorization)
+// 20. إرسال الترخيص عبر Edge Function
 // ============================================================
 
 async function sendLicenceForOrder(orderId, userId) {
@@ -2623,7 +2431,7 @@ async function sendLicenceForOrder(orderId, userId) {
 }
 
 // ============================================================
-// 23. المستخدمين (Admin Users) - محمية بشرط الأدمن
+// 21. المستخدمين (Admin Users)
 // ============================================================
 
 async function loadAdminUsers() {
@@ -2730,95 +2538,7 @@ window.viewUserDetails = async function(uid) {
 window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
 // ============================================================
-// 24. تاريخ الطلبات (مع زر تحديث) - مختصر
-// ============================================================
-
-window.clearOrderHistory = async function() {
-    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
-    try {
-        userProfile.history = [];
-        const userRef = doc(db, 'users', currentUser.uid);
-        await updateDoc(userRef, { history: [] });
-        renderHistoryFull();
-        updateFullUserMenu();
-        showToast('🗑️ Order history cleared successfully!', 'success');
-    } catch (error) { console.error('Error clearing order history:', error); showToast('❌ Failed to clear order history', 'error'); }
-};
-
-function renderHistoryFull() {
-    const container = document.getElementById('historyFullContent');
-    if (!container) return;
-    const history = userProfile.history || [];
-    const total = history.length;
-    const confirmed = history.filter(o => o.status === 'confirmed').length;
-    const pending = history.filter(o => o.status === 'pending').length;
-    const rejected = history.filter(o => o.status === 'rejected').length;
-    let html = `
-        <div class="orders-stats">
-            <div class="orders-stat-card"><div class="orders-stat-number">${total}</div><div class="orders-stat-label">All</div></div>
-            <div class="orders-stat-card approved"><div class="orders-stat-number" style="color:var(--success);">${confirmed}</div><div class="orders-stat-label">Confirmed</div></div>
-            <div class="orders-stat-card pending"><div class="orders-stat-number" style="color:var(--pending-color);">${pending}</div><div class="orders-stat-label">Pending</div></div>
-            <div class="orders-stat-card rejected"><div class="orders-stat-number" style="color:var(--danger);">${rejected}</div><div class="orders-stat-label">Rejected</div></div>
-        </div>
-        <div class="orders-filter-bar">
-            <button class="orders-filter-btn ${ordersFilter === 'all' ? 'active' : ''}" data-filter="all" onclick="filterOrders('all')">📋 All Orders</button>
-            <button class="orders-filter-btn ${ordersFilter === 'newest' ? 'active' : ''}" data-filter="newest" onclick="filterOrders('newest')">🔄 Newest</button>
-            <button class="orders-filter-btn ${ordersFilter === 'pending' ? 'active' : ''}" data-filter="pending" onclick="filterOrders('pending')">⏳ Pending</button>
-            <button class="orders-filter-btn ${ordersFilter === 'confirmed' ? 'active' : ''}" data-filter="confirmed" onclick="filterOrders('confirmed')">✅ Confirmed</button>
-        </div>
-        <div style="margin-bottom:10px;">
-            <button id="refreshHistoryBtn" onclick="loadUserData(); renderHistoryFull(); showToast('🔄 تم التحديث', 'info');" style="padding:6px 14px;background:var(--primary);color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;">
-                🔄 تحديث الطلبات
-            </button>
-        </div>
-        <div class="orders-list" id="ordersList">`;
-    let filteredHistory = [...history];
-    if (ordersFilter === 'pending') { filteredHistory = filteredHistory.filter(o => o.status === 'pending'); }
-    else if (ordersFilter === 'confirmed') { filteredHistory = filteredHistory.filter(o => o.status === 'confirmed'); }
-    else if (ordersFilter === 'newest') { filteredHistory = filteredHistory.sort((a, b) => new Date(b.date) - new Date(a.date)); } else { filteredHistory = filteredHistory.slice().reverse(); }
-    if (filteredHistory.length === 0) { html += `<div class="orders-empty"><i class="fas fa-shopping-bag"></i><p>No orders found.</p></div>`; } else {
-        filteredHistory.forEach(item => {
-            const status = item.status || 'pending';
-            const statusMap = {
-                'pending': { label: '⏳ Pending', class: 'pending' },
-                'confirmed': { label: '✅ Confirmed', class: 'confirmed' },
-                'rejected': { label: '❌ Rejected', class: 'rejected' }
-            };
-            const info = statusMap[status] || statusMap['pending'];
-            const date = item.date ? new Date(item.date) : new Date();
-            const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            const itemsNames = item.items ? item.items.map(i => i.name).join(', ') : 'Order';
-            const totalPrice = item.total || 0;
-            const orderData = JSON.stringify(item);
-            html += `
-                <div class="orders-item" data-order='${orderData}'>
-                    <div class="orders-item-info">
-                        <div class="orders-item-name">${itemsNames}</div>
-                        <div class="orders-item-date">${dateStr}</div>
-                        <span class="status-badge ${info.class}">${info.label}</span>
-                    </div>
-                    <div style="display:flex;align-items:center;gap:10px;">
-                        <div class="orders-item-price">${totalPrice > 0 ? '$' + totalPrice.toFixed(2) : 'FREE'}</div>
-                        <button onclick="generateInvoice(this.closest('.orders-item').dataset.order)" class="btn-download-invoice" style="padding:4px 10px;border:none;border-radius:6px;background:var(--vip-color);color:#0a0a1a;font-weight:600;cursor:pointer;font-size:11px;display:flex;align-items:center;gap:4px;">
-                            <i class="fas fa-file-pdf"></i> PDF
-                        </button>
-                    </div>
-                </div>
-            `;
-        });
-    }
-    html += `</div>`;
-    container.innerHTML = html;
-}
-
-window.filterOrders = function(filter) {
-    ordersFilter = filter;
-    document.querySelectorAll('.orders-filter-btn').forEach(btn => { btn.classList.toggle('active', btn.dataset.filter === filter); });
-    renderHistoryFull();
-};
-
-// ============================================================
-// 25. نظام إدارة التراخيص (مع Supabase) - مختصر
+// 22. نظام إدارة التراخيص (مع Supabase)
 // ============================================================
 
 async function loadLicences() {
@@ -3139,499 +2859,7 @@ async function activateLicence() {
 }
 
 // ============================================================
-// 26. Banner تيليجرام و Social Proof
-// ============================================================
-
-function showTelegramBanner() {
-    const banner = document.getElementById('telegramBanner');
-    if (!banner) return;
-    const bannerHidden = localStorage.getItem('telegram_banner_hidden') === 'true';
-    const adminDisabled = localStorage.getItem('telegram_banner_admin_disabled') === 'true';
-    if (userProfile.telegramChatId) {
-        banner.classList.add('linked');
-        banner.querySelector('.banner-title').textContent = '✅ Connected!';
-        banner.querySelector('.banner-subtitle').textContent = 'You will receive order notifications here.';
-        banner.querySelector('.banner-action').innerHTML = '<i class="fas fa-check"></i> Linked';
-        banner.querySelector('.banner-action').onclick = () => openProfileFull();
-        banner.querySelector('.banner-icon i').className = 'fas fa-check-circle';
-        banner.style.display = 'block';
-        setTimeout(() => { banner.classList.add('hidden'); }, 3000);
-        return;
-    }
-    if (bannerHidden || adminDisabled) { banner.classList.add('hidden'); return; }
-    banner.classList.remove('linked', 'hidden');
-    banner.querySelector('.banner-title').innerHTML = '🔔 Stay Connected! <span class="badge-new">New</span>';
-    banner.querySelector('.banner-subtitle').textContent = 'Link your Telegram account to receive instant order notifications';
-    banner.querySelector('.banner-action').innerHTML = '<i class="fab fa-telegram-plane"></i> Link Now';
-    banner.querySelector('.banner-action').onclick = () => bindTelegram();
-    banner.querySelector('.banner-icon i').className = 'fab fa-telegram-plane';
-    banner.style.display = 'block';
-    banner.style.animation = 'none';
-    setTimeout(() => { banner.style.animation = 'bannerSlideDown 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'; }, 10);
-}
-function closeTelegramBanner() {
-    const banner = document.getElementById('telegramBanner');
-    if (banner) { banner.classList.add('hidden'); localStorage.setItem('telegram_banner_hidden', 'true'); setTimeout(() => { localStorage.removeItem('telegram_banner_hidden'); if (!userProfile.telegramChatId) { showTelegramBanner(); } }, 600000); }
-}
-function showTelegramBannerAgain() { localStorage.removeItem('telegram_banner_hidden'); showTelegramBanner(); }
-function addBannerAdminControls() { /* سيتم تنفيذها في الأدمن */ }
-function adminToggleBanner(show) {
-    if (show) { localStorage.setItem('telegram_banner_admin_disabled', 'false'); } else { localStorage.setItem('telegram_banner_admin_disabled', 'true'); const banner = document.getElementById('telegramBanner'); if (banner) banner.classList.add('hidden'); }
-    addBannerAdminControls();
-    if (show) { localStorage.removeItem('telegram_banner_hidden'); setTimeout(showTelegramBanner, 300); }
-}
-function resetBannerForAll() { localStorage.removeItem('telegram_banner_admin_disabled'); localStorage.removeItem('telegram_banner_hidden'); showToast('🔄 Banner reset', 'info'); addBannerAdminControls(); setTimeout(showTelegramBanner, 300); }
-function startSocialProof() { /* للاستخدام المستقبلي */ }
-function triggerSocialProofOnOrder(userName, productNames) { /* للاستخدام المستقبلي */ }
-
-// ============================================================
-// 27. دوال السلايدر (Slider)
-// ============================================================
-
-async function loadSliderSettings() {
-    try {
-        const settingsRef = doc(db, 'settings', 'slider');
-        const settingsSnap = await getDoc(settingsRef);
-        if (settingsSnap.exists()) {
-            const data = settingsSnap.data();
-            sliderSlides = data.slides || [];
-            sliderIntervalTime = data.interval || 3;
-            const intervalInput = document.getElementById('sliderIntervalInput');
-            if (intervalInput) { intervalInput.value = sliderIntervalTime; }
-        } else {
-            sliderSlides = [];
-            sliderIntervalTime = 3;
-        }
-        renderSlider();
-        startSliderRotation();
-        renderSliderSettingsUI();
-    } catch (error) {
-        console.error('Error loading slider settings:', error);
-        if (error.code === 'permission-denied') {
-            sliderSlides = [];
-            sliderIntervalTime = 3;
-            renderSlider();
-            renderSliderSettingsUI();
-        }
-    }
-}
-
-function renderSlider() {
-    const wrapper = document.getElementById('sliderWrapper');
-    const dots = document.getElementById('sliderDots');
-    if (!wrapper) return;
-    if (sliderSlides.length === 0) {
-        wrapper.innerHTML = `
-            <div class="slide-item" style="background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;min-height:200px;border-radius:var(--radius-md);">
-                <div style="text-align:center;color:var(--text-secondary);opacity:0.4;">
-                    <i class="fas fa-images" style="font-size:48px;display:block;margin-bottom:8px;"></i>
-                    <p>No slides available. Add slides from admin panel.</p>
-                </div>
-            </div>
-        `;
-        dots.innerHTML = '';
-        return;
-    }
-    wrapper.innerHTML = sliderSlides.map((slide, index) => {
-        const isActive = index === currentSlideIndex ? 'active' : '';
-        const imageUrl = slide.imageUrl || '';
-        const title = slide.title || '';
-        const subtitle = slide.subtitle || '';
-        const buttonText = slide.buttonText || 'Learn More';
-        let buttonLink = '#';
-        let buttonTarget = '_self';
-        if (slide.linkType === 'product' && slide.productId) {
-            buttonLink = `javascript:window.openDetails('${slide.productId}')`;
-        } else if (slide.linkType === 'download' && slide.downloadUrl) {
-            buttonLink = slide.downloadUrl; buttonTarget = '_blank';
-        } else if (slide.linkType === 'url' && slide.customUrl) {
-            buttonLink = slide.customUrl; buttonTarget = '_blank';
-        }
-        return `
-            <div class="slide-item ${isActive}" style="background-image:url('${imageUrl}');">
-                <div class="slide-overlay">
-                    ${title ? `<h2 class="slide-title">${title}</h2>` : ''}
-                    ${subtitle ? `<p class="slide-subtitle">${subtitle}</p>` : ''}
-                    ${buttonText ? `<a href="${buttonLink}" target="${buttonTarget}" class="slide-btn">${buttonText}</a>` : ''}
-                </div>
-            </div>
-        `;
-    }).join('');
-    dots.innerHTML = sliderSlides.map((_, index) => {
-        const isActive = index === currentSlideIndex ? 'active' : '';
-        return `<span class="dot ${isActive}" onclick="goToSlide(${index})"></span>`;
-    }).join('');
-    updateSliderHeight();
-}
-
-function updateSliderHeight() {
-    const wrapper = document.getElementById('sliderWrapper');
-    if (wrapper) wrapper.style.minHeight = '300px';
-}
-
-window.goToSlide = function(index) {
-    if (index < 0 || index >= sliderSlides.length) return;
-    currentSlideIndex = index;
-    renderSlider();
-    resetSliderTimer();
-};
-window.nextSlide = function() {
-    if (sliderSlides.length === 0) return;
-    currentSlideIndex = (currentSlideIndex + 1) % sliderSlides.length;
-    renderSlider();
-    resetSliderTimer();
-};
-window.prevSlide = function() {
-    if (sliderSlides.length === 0) return;
-    currentSlideIndex = (currentSlideIndex - 1 + sliderSlides.length) % sliderSlides.length;
-    renderSlider();
-    resetSliderTimer();
-};
-function startSliderRotation() {
-    if (sliderTimer) clearInterval(sliderTimer);
-    if (sliderSlides.length <= 1) return;
-    sliderTimer = setInterval(() => {
-        if (!isSliderPaused) { window.nextSlide(); }
-    }, sliderIntervalTime * 1000);
-}
-function resetSliderTimer() {
-    if (sliderTimer) { clearInterval(sliderTimer); startSliderRotation(); }
-}
-window.pauseSlider = function() { isSliderPaused = true; };
-window.resumeSlider = function() { isSliderPaused = false; };
-
-function updateSlideProductSelect() {
-    const select = document.getElementById('slideProductSelect');
-    if (!select) return;
-    select.innerHTML = products.map(p => `<option value="${p.id}">${p.name} ($${p.price})</option>`).join('');
-}
-function toggleSlideLinkFields() {
-    const type = document.getElementById('slideLinkType')?.value || 'product';
-    const productGroup = document.getElementById('slideProductGroup');
-    const downloadGroup = document.getElementById('slideDownloadGroup');
-    const customGroup = document.getElementById('slideCustomUrlGroup');
-    if (productGroup) productGroup.style.display = type === 'product' ? 'block' : 'none';
-    if (downloadGroup) downloadGroup.style.display = type === 'download' ? 'block' : 'none';
-    if (customGroup) customGroup.style.display = type === 'url' ? 'block' : 'none';
-}
-document.addEventListener('DOMContentLoaded', function() {
-    const linkType = document.getElementById('slideLinkType');
-    if (linkType) linkType.addEventListener('change', toggleSlideLinkFields);
-    const fileInput = document.getElementById('slideImageFile');
-    if (fileInput) {
-        fileInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    const preview = document.getElementById('slideImagePreview');
-                    if (preview) {
-                        const img = preview.querySelector('img');
-                        if (img) img.src = event.target.result;
-                        preview.style.display = 'block';
-                    }
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-    }
-});
-window.openAddSlideModal = function() {
-    updateSlideProductSelect();
-    const modal = document.getElementById('addSlideModal');
-    if (!modal) { showToast('❌ Modal not found', 'error'); return; }
-    modal.classList.add('open');
-    document.body.style.overflow = 'hidden';
-    const form = document.getElementById('addSlideForm');
-    if (form) form.reset();
-    const preview = document.getElementById('slideImagePreview');
-    if (preview) preview.style.display = 'none';
-    toggleSlideLinkFields();
-    document.querySelector('#addSlideModal .modal-title').textContent = '➕ Add Slide';
-    document.querySelector('#addSlideForm button[type="submit"]').textContent = '➕ Add Slide';
-    delete document.getElementById('addSlideForm').dataset.editIndex;
-};
-window.closeAddSlideModal = function() {
-    const modal = document.getElementById('addSlideModal');
-    if (modal) { modal.classList.remove('open'); document.body.style.overflow = ''; }
-};
-document.getElementById('addSlideForm')?.addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const fileInput = document.getElementById('slideImageFile');
-    const file = fileInput.files[0];
-    if (!file) { showToast('⚠️ Please select an image', 'warning'); return; }
-    showToast('⏳ Uploading image...', 'info');
-    const imageUrl = await uploadToCloudinary(file);
-    if (!imageUrl) { showToast('❌ Failed to upload image', 'error'); return; }
-    const title = document.getElementById('slideTitle').value.trim();
-    const subtitle = document.getElementById('slideSubtitle').value.trim();
-    const buttonText = document.getElementById('slideButtonText').value.trim() || 'Buy Now';
-    const linkType = document.getElementById('slideLinkType').value;
-    let productId = '', downloadUrl = '', customUrl = '';
-    if (linkType === 'product') {
-        productId = document.getElementById('slideProductSelect').value;
-        if (!productId) { showToast('⚠️ Please select a product', 'warning'); return; }
-    } else if (linkType === 'download') {
-        downloadUrl = document.getElementById('slideDownloadUrl').value.trim();
-        if (!downloadUrl) { showToast('⚠️ Please enter a download URL', 'warning'); return; }
-    } else if (linkType === 'url') {
-        customUrl = document.getElementById('slideCustomUrl').value.trim();
-        if (!customUrl) { showToast('⚠️ Please enter a custom URL', 'warning'); return; }
-    }
-    const newSlide = { imageUrl, title, subtitle, buttonText, linkType, productId, downloadUrl, customUrl, createdAt: new Date().toISOString() };
-    const editIndex = document.getElementById('addSlideForm').dataset.editIndex;
-    if (editIndex !== undefined && editIndex !== '') {
-        sliderSlides[parseInt(editIndex)] = newSlide;
-        delete document.getElementById('addSlideForm').dataset.editIndex;
-        showToast('✅ Slide updated successfully!', 'success');
-    } else {
-        sliderSlides.push(newSlide);
-        showToast('✅ Slide added successfully!', 'success');
-    }
-    await saveSliderData();
-    renderSlider();
-    renderSliderSettingsUI();
-    resetSliderTimer();
-    window.closeAddSlideModal();
-});
-function editSlide(index) {
-    const slide = sliderSlides[index];
-    if (!slide) { showToast('❌ Slide not found', 'error'); return; }
-    const modal = document.getElementById('addSlideModal');
-    if (!modal) { showToast('❌ Modal not found', 'error'); return; }
-    document.getElementById('slideTitle').value = slide.title || '';
-    document.getElementById('slideSubtitle').value = slide.subtitle || '';
-    document.getElementById('slideButtonText').value = slide.buttonText || 'Buy Now';
-    document.getElementById('slideLinkType').value = slide.linkType || 'product';
-    toggleSlideLinkFields();
-    if (slide.linkType === 'product') {
-        document.getElementById('slideProductSelect').value = slide.productId || '';
-    } else if (slide.linkType === 'download') {
-        document.getElementById('slideDownloadUrl').value = slide.downloadUrl || '';
-    } else if (slide.linkType === 'url') {
-        document.getElementById('slideCustomUrl').value = slide.customUrl || '';
-    }
-    document.getElementById('addSlideForm').dataset.editIndex = index;
-    document.querySelector('#addSlideModal .modal-title').textContent = '✏️ Edit Slide';
-    document.querySelector('#addSlideForm button[type="submit"]').textContent = '💾 Update Slide';
-    modal.classList.add('open');
-    document.body.style.overflow = 'hidden';
-}
-async function deleteSlide(index) {
-    if (!confirm('Delete this slide?')) return;
-    sliderSlides.splice(index, 1);
-    await saveSliderData();
-    renderSlider();
-    renderSliderSettingsUI();
-    resetSliderTimer();
-    showToast('🗑️ Slide deleted', 'success');
-}
-async function saveSliderData() {
-    try {
-        const settingsRef = doc(db, 'settings', 'slider');
-        await setDoc(settingsRef, { interval: sliderIntervalTime, slides: sliderSlides, updatedAt: serverTimestamp() }, { merge: true });
-    } catch (error) { console.error('Error saving slider data:', error); showToast('❌ Failed to save slider data', 'error'); }
-}
-async function saveSliderInterval() {
-    const input = document.getElementById('sliderIntervalInput');
-    const interval = parseFloat(input.value);
-    if (isNaN(interval) || interval < 1) { showToast('⚠️ Please enter a valid number (min 1 second)', 'warning'); return; }
-    sliderIntervalTime = interval;
-    try {
-        await saveSliderData();
-        showToast('✅ Interval saved!', 'success');
-        resetSliderTimer();
-        renderSlider();
-    } catch (error) { showToast('❌ Failed to save interval', 'error'); }
-}
-function renderSliderSettingsUI() {
-    const container = document.getElementById('sliderSlidesList');
-    if (!container) return;
-    if (sliderSlides.length === 0) {
-        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);opacity:0.5;">No slides yet. Click "Add Slide" to get started.</div>`;
-        return;
-    }
-    container.innerHTML = sliderSlides.map((slide, index) => {
-        const product = products.find(p => p.id === slide.productId);
-        const productName = product ? product.name : 'Unknown';
-        return `
-            <div class="admin-item">
-                <div class="item-info">
-                    <div class="item-title">
-                        <img src="${slide.imageUrl || 'https://picsum.photos/seed/default/60/60'}" style="width:40px;height:40px;border-radius:var(--radius-sm);object-fit:cover;margin-right:8px;" />
-                        ${slide.title || 'Slide ' + (index+1)}
-                        <span style="font-size:11px;opacity:0.4;font-weight:400;">
-                            ${slide.linkType === 'product' ? '📦 Product: ' + productName : slide.linkType === 'download' ? '📥 Download' : '🔗 Custom URL'}
-                        </span>
-                    </div>
-                    <div class="item-meta">${slide.subtitle || ''}</div>
-                </div>
-                <div class="item-actions">
-                    <button class="btn-edit" onclick="editSlide(${index})"><i class="fas fa-edit"></i></button>
-                    <button class="btn-delete" onclick="deleteSlide(${index})"><i class="fas fa-trash"></i></button>
-                </div>
-            </div>
-        `;
-    }).join('');
-}
-window.saveSliderInterval = saveSliderInterval;
-window.deleteSlide = deleteSlide;
-window.editSlide = editSlide;
-
-// ============================================================
-// 28. دوال الماركي (Marquee)
-// ============================================================
-
-async function loadMarqueeSettings() {
-    try {
-        const settingsRef = doc(db, 'settings', 'marquee');
-        const settingsSnap = await getDoc(settingsRef);
-        if (settingsSnap.exists()) {
-            const data = settingsSnap.data();
-            marqueeSettings.enabled = data.enabled !== undefined ? data.enabled : true;
-            marqueeSettings.text = data.text || '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
-        } else {
-            marqueeSettings.enabled = true;
-            marqueeSettings.text = '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
-        }
-        applyMarqueeSettings();
-    } catch (error) {
-        console.error('Error loading marquee settings:', error);
-        if (error.code === 'permission-denied') {
-            marqueeSettings.enabled = true;
-            marqueeSettings.text = '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
-            applyMarqueeSettings();
-        }
-    }
-}
-
-function applyMarqueeSettings() {
-    const marqueeBar = document.getElementById('marqueeBar');
-    const marqueeContent = document.getElementById('marqueeContent');
-    if (!marqueeBar || !marqueeContent) return;
-    if (marqueeSettings.enabled && marqueeSettings.text) {
-        const items = marqueeSettings.text.split('|').map(item => item.trim()).filter(item => item);
-        if (items.length > 0) {
-            const contentHtml = items.map(item => `<span>${item}</span>`).join('');
-            marqueeContent.innerHTML = contentHtml + contentHtml;
-            marqueeBar.style.display = 'block';
-        } else { marqueeBar.style.display = 'none'; }
-    } else { marqueeBar.style.display = 'none'; }
-}
-function renderMarqueeSettingsUI() {
-    const container = document.getElementById('marqueeSettingsContainer');
-    if (!container) return;
-    const enabledCheckbox = document.getElementById('marqueeEnabled');
-    const textArea = document.getElementById('marqueeText');
-    if (enabledCheckbox) enabledCheckbox.checked = marqueeSettings.enabled !== false;
-    if (textArea) textArea.value = marqueeSettings.text || '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
-}
-window.saveMarqueeSettings = async function() {
-    const enabledCheckbox = document.getElementById('marqueeEnabled');
-    const textArea = document.getElementById('marqueeText');
-    const enabled = enabledCheckbox ? enabledCheckbox.checked : true;
-    const text = textArea ? textArea.value.trim() : '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
-    if (!text) { showToast('⚠️ Please enter marquee text', 'warning'); return; }
-    try {
-        const settingsRef = doc(db, 'settings', 'marquee');
-        await setDoc(settingsRef, { enabled, text, updatedAt: serverTimestamp() }, { merge: true });
-        marqueeSettings.enabled = enabled;
-        marqueeSettings.text = text;
-        applyMarqueeSettings();
-        showToast('✅ Marquee settings saved!', 'success');
-    } catch (error) { showToast('❌ Failed to save settings: ' + error.message, 'error'); }
-};
-
-// ============================================================
-// 29. دوال الإحصائيات والسجلات (مختصرة)
-// ============================================================
-
-async function loadDashboardStats() {
-    if (!currentUser || !isAdminCached) { console.log('ℹ️ loadDashboardStats skipped (not admin)'); return; }
-    try {
-        const statsRef = doc(db, 'global_stats', 'stats');
-        const statsSnap = await getDoc(statsRef);
-        let totalOrders = 0, totalRevenue = 0;
-        if (statsSnap.exists()) { totalOrders = statsSnap.data().totalOrders || 0; totalRevenue = statsSnap.data().totalRevenue || 0; }
-        document.getElementById('dashboardTotalOrders').textContent = totalOrders;
-        document.getElementById('dashboardTotalRevenue').textContent = `$${totalRevenue.toFixed(2)}`;
-        document.getElementById('dashboardNetRevenue').textContent = `$${(totalRevenue * 0.1).toFixed(2)}`;
-    } catch (error) {
-        console.error('Error loading dashboard stats:', error);
-        if (error.code === 'permission-denied') { console.warn('⚠️ Missing permissions to read stats.'); }
-    }
-}
-window.refreshDashboardStats = function() { loadDashboardStats(); showToast('🔄 Stats refreshed', 'info'); };
-
-async function loadAdvancedStats() {
-    if (!currentUser || !isAdminCached) { console.log('ℹ️ loadAdvancedStats skipped (not admin)'); return; }
-    const container = document.getElementById('advancedStatsContainer');
-    if (!container) return;
-    container.innerHTML = `<div style="text-align:center;padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading statistics...</div>`;
-    try {
-        const usersRef = collection(db, 'users');
-        const snapshot = await getDocs(usersRef);
-        let allOrders = [];
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            const history = data.history || [];
-            history.forEach(order => {
-                allOrders.push({ ...order, userEmail: data.email || doc.id, userName: data.name || 'Unknown', userId: doc.id, orderId: order.id || 'order_' + Date.now() });
-            });
-        });
-        const totalOrders = allOrders.length;
-        const totalRevenue = allOrders.reduce((sum, o) => sum + (o.total || 0), 0);
-        const pendingOrders = allOrders.filter(o => o.status === 'pending').length;
-        const confirmedOrders = allOrders.filter(o => o.status === 'confirmed').length;
-        const rejectedOrders = allOrders.filter(o => o.status === 'rejected').length;
-        const totalUsers = snapshot.size;
-        container.innerHTML = `
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px;">
-                <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--primary);">${totalOrders}</div><div style="font-size:12px;color:var(--text-secondary);">Total Orders</div></div>
-                <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--vip-color);">$${totalRevenue.toFixed(2)}</div><div style="font-size:12px;color:var(--text-secondary);">Revenue</div></div>
-                <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--pending-color);">${pendingOrders}</div><div style="font-size:12px;color:var(--text-secondary);">Pending</div></div>
-                <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--success);">${confirmedOrders}</div><div style="font-size:12px;color:var(--text-secondary);">Confirmed</div></div>
-                <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--danger);">${rejectedOrders}</div><div style="font-size:12px;color:var(--text-secondary);">Rejected</div></div>
-                <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--text);">${totalUsers}</div><div style="font-size:12px;color:var(--text-secondary);">Total Users</div></div>
-            </div>`;
-    } catch (error) {
-        console.error('Error loading advanced stats:', error);
-        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load statistics: ${error.message}</div>`;
-        if (error.code === 'permission-denied') { console.warn('⚠️ Missing permissions to read users.'); }
-    }
-}
-window.refreshAdvancedStats = function() { loadAdvancedStats(); showToast('🔄 Stats refreshed', 'info'); };
-
-async function loadAuditLogs() {
-    if (!currentUser || !isAdminCached) { console.log('ℹ️ loadAuditLogs skipped (not admin)'); return; }
-    const container = document.getElementById('auditLogsContainer');
-    if (!container) return;
-    container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading logs...</div>`;
-    try {
-        const logsRef = collection(db, 'auditLogs');
-        const q = query(logsRef, orderBy('timestamp', 'desc'));
-        const snapshot = await getDocs(q);
-        if (snapshot.empty) { container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">📭 No audit logs yet</div>`; return; }
-        let html = `<div style="display:flex;flex-direction:column;gap:6px;max-height:400px;overflow-y:auto;">`;
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            const date = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '--';
-            const admin = data.adminName || data.adminEmail || 'Admin';
-            const action = data.action || 'Action';
-            const details = data.details || '';
-            html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg);border-radius:8px;border:1px solid var(--border);font-size:13px;"><div><span style="font-weight:600;color:var(--text);">${admin}</span><span style="color:var(--text-secondary);opacity:0.5;margin:0 4px;">→</span><span style="color:var(--primary);font-weight:500;">${action}</span>${details ? `<span style="color:var(--text-secondary);opacity:0.4;margin-left:4px;">${details}</span>` : ''}</div><span style="font-size:11px;color:var(--text-secondary);opacity:0.3;">${date}</span></div>`;
-        });
-        html += `</div>`; container.innerHTML = html;
-    } catch (error) {
-        console.error('Error loading audit logs:', error);
-        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load logs: ${error.message}</div>`;
-        if (error.code === 'permission-denied') { console.warn('⚠️ Missing permissions to read audit logs.'); }
-    }
-}
-window.loadAuditLogs = loadAuditLogs;
-
-// ============================================================
-// 30. التقييمات (Ratings) - مختصر
+// 23. التقييمات (Ratings)
 // ============================================================
 
 let currentRating = 0;
@@ -3720,22 +2948,376 @@ async function updateProductRatingDisplay(productId) {
     let total = 0, count = 0;
     snapshot.forEach(doc => { total += doc.data().rating || 0; count++; });
     const avg = count > 0 ? total / count : 0;
+        }
+
+
+// ============================================================
+// 24. دوال السلايدر والماركي والإحصائيات
+// ============================================================
+
+// دوال السلايدر (Slider)
+window.goToSlide = function(index) {
+    if (index < 0 || index >= sliderSlides.length) return;
+    currentSlideIndex = index;
+    renderSlider();
+    resetSliderTimer();
+};
+window.nextSlide = function() {
+    if (sliderSlides.length === 0) return;
+    currentSlideIndex = (currentSlideIndex + 1) % sliderSlides.length;
+    renderSlider();
+    resetSliderTimer();
+};
+window.prevSlide = function() {
+    if (sliderSlides.length === 0) return;
+    currentSlideIndex = (currentSlideIndex - 1 + sliderSlides.length) % sliderSlides.length;
+    renderSlider();
+    resetSliderTimer();
+};
+window.pauseSlider = function() { isSliderPaused = true; };
+window.resumeSlider = function() { isSliderPaused = false; };
+window.saveSliderInterval = function() {
+    const input = document.getElementById('sliderIntervalInput');
+    const interval = parseFloat(input.value);
+    if (isNaN(interval) || interval < 1) { showToast('⚠️ Please enter a valid number (min 1 second)', 'warning'); return; }
+    sliderIntervalTime = interval;
+    saveSliderData();
+    showToast('✅ Interval saved!', 'success');
+    resetSliderTimer();
+    renderSlider();
+};
+window.deleteSlide = function(index) {
+    if (!confirm('Delete this slide?')) return;
+    sliderSlides.splice(index, 1);
+    saveSliderData();
+    renderSlider();
+    renderSliderSettingsUI();
+    resetSliderTimer();
+    showToast('🗑️ Slide deleted', 'success');
+};
+window.editSlide = function(index) {
+    const slide = sliderSlides[index];
+    if (!slide) { showToast('❌ Slide not found', 'error'); return; }
+    const modal = document.getElementById('addSlideModal');
+    if (!modal) { showToast('❌ Modal not found', 'error'); return; }
+    document.getElementById('slideTitle').value = slide.title || '';
+    document.getElementById('slideSubtitle').value = slide.subtitle || '';
+    document.getElementById('slideButtonText').value = slide.buttonText || 'Buy Now';
+    document.getElementById('slideLinkType').value = slide.linkType || 'product';
+    toggleSlideLinkFields();
+    if (slide.linkType === 'product') {
+        document.getElementById('slideProductSelect').value = slide.productId || '';
+    } else if (slide.linkType === 'download') {
+        document.getElementById('slideDownloadUrl').value = slide.downloadUrl || '';
+    } else if (slide.linkType === 'url') {
+        document.getElementById('slideCustomUrl').value = slide.customUrl || '';
+    }
+    document.getElementById('addSlideForm').dataset.editIndex = index;
+    document.querySelector('#addSlideModal .modal-title').textContent = '✏️ Edit Slide';
+    document.querySelector('#addSlideForm button[type="submit"]').textContent = '💾 Update Slide';
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+};
+window.openAddSlideModal = function() {
+    updateSlideProductSelect();
+    const modal = document.getElementById('addSlideModal');
+    if (!modal) { showToast('❌ Modal not found', 'error'); return; }
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    const form = document.getElementById('addSlideForm');
+    if (form) form.reset();
+    const preview = document.getElementById('slideImagePreview');
+    if (preview) preview.style.display = 'none';
+    toggleSlideLinkFields();
+    document.querySelector('#addSlideModal .modal-title').textContent = '➕ Add Slide';
+    document.querySelector('#addSlideForm button[type="submit"]').textContent = '➕ Add Slide';
+    delete document.getElementById('addSlideForm').dataset.editIndex;
+};
+window.closeAddSlideModal = function() {
+    const modal = document.getElementById('addSlideModal');
+    if (modal) { modal.classList.remove('open'); document.body.style.overflow = ''; }
+};
+function updateSlideProductSelect() {
+    const select = document.getElementById('slideProductSelect');
+    if (!select) return;
+    select.innerHTML = products.map(p => `<option value="${p.id}">${p.name} ($${p.price})</option>`).join('');
+}
+function toggleSlideLinkFields() {
+    const type = document.getElementById('slideLinkType')?.value || 'product';
+    const productGroup = document.getElementById('slideProductGroup');
+    const downloadGroup = document.getElementById('slideDownloadGroup');
+    const customGroup = document.getElementById('slideCustomUrlGroup');
+    if (productGroup) productGroup.style.display = type === 'product' ? 'block' : 'none';
+    if (downloadGroup) downloadGroup.style.display = type === 'download' ? 'block' : 'none';
+    if (customGroup) customGroup.style.display = type === 'url' ? 'block' : 'none';
+}
+async function saveSliderData() {
+    try {
+        const settingsRef = doc(db, 'settings', 'slider');
+        await setDoc(settingsRef, { interval: sliderIntervalTime, slides: sliderSlides, updatedAt: serverTimestamp() }, { merge: true });
+    } catch (error) { console.error('Error saving slider data:', error); showToast('❌ Failed to save slider data', 'error'); }
+}
+async function loadSliderSettings() {
+    try {
+        const settingsRef = doc(db, 'settings', 'slider');
+        const settingsSnap = await getDoc(settingsRef);
+        if (settingsSnap.exists()) {
+            const data = settingsSnap.data();
+            sliderSlides = data.slides || [];
+            sliderIntervalTime = data.interval || 3;
+            const intervalInput = document.getElementById('sliderIntervalInput');
+            if (intervalInput) { intervalInput.value = sliderIntervalTime; }
+        } else {
+            sliderSlides = [];
+            sliderIntervalTime = 3;
+        }
+        renderSlider();
+        startSliderRotation();
+        renderSliderSettingsUI();
+    } catch (error) {
+        console.error('Error loading slider settings:', error);
+        if (error.code === 'permission-denied') {
+            sliderSlides = [];
+            sliderIntervalTime = 3;
+            renderSlider();
+            renderSliderSettingsUI();
+        }
+    }
+}
+function renderSlider() {
+    const wrapper = document.getElementById('sliderWrapper');
+    const dots = document.getElementById('sliderDots');
+    if (!wrapper) return;
+    if (sliderSlides.length === 0) {
+        wrapper.innerHTML = `<div class="slide-item" style="background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;min-height:200px;border-radius:var(--radius-md);"><div style="text-align:center;color:var(--text-secondary);opacity:0.4;"><i class="fas fa-images" style="font-size:48px;display:block;margin-bottom:8px;"></i><p>No slides available. Add slides from admin panel.</p></div></div>`;
+        dots.innerHTML = '';
+        return;
+    }
+    wrapper.innerHTML = sliderSlides.map((slide, index) => {
+        const isActive = index === currentSlideIndex ? 'active' : '';
+        const imageUrl = slide.imageUrl || '';
+        const title = slide.title || '';
+        const subtitle = slide.subtitle || '';
+        const buttonText = slide.buttonText || 'Learn More';
+        let buttonLink = '#';
+        let buttonTarget = '_self';
+        if (slide.linkType === 'product' && slide.productId) {
+            buttonLink = `javascript:window.openDetails('${slide.productId}')`;
+        } else if (slide.linkType === 'download' && slide.downloadUrl) {
+            buttonLink = slide.downloadUrl; buttonTarget = '_blank';
+        } else if (slide.linkType === 'url' && slide.customUrl) {
+            buttonLink = slide.customUrl; buttonTarget = '_blank';
+        }
+        return `<div class="slide-item ${isActive}" style="background-image:url('${imageUrl}');"><div class="slide-overlay">${title ? `<h2 class="slide-title">${title}</h2>` : ''}${subtitle ? `<p class="slide-subtitle">${subtitle}</p>` : ''}${buttonText ? `<a href="${buttonLink}" target="${buttonTarget}" class="slide-btn">${buttonText}</a>` : ''}</div></div>`;
+    }).join('');
+    dots.innerHTML = sliderSlides.map((_, index) => {
+        const isActive = index === currentSlideIndex ? 'active' : '';
+        return `<span class="dot ${isActive}" onclick="goToSlide(${index})"></span>`;
+    }).join('');
+    updateSliderHeight();
+}
+function updateSliderHeight() {
+    const wrapper = document.getElementById('sliderWrapper');
+    if (wrapper) wrapper.style.minHeight = '300px';
+}
+function startSliderRotation() {
+    if (sliderTimer) clearInterval(sliderTimer);
+    if (sliderSlides.length <= 1) return;
+    sliderTimer = setInterval(() => {
+        if (!isSliderPaused) { window.nextSlide(); }
+    }, sliderIntervalTime * 1000);
+}
+function resetSliderTimer() {
+    if (sliderTimer) { clearInterval(sliderTimer); startSliderRotation(); }
+}
+function renderSliderSettingsUI() {
+    const container = document.getElementById('sliderSlidesList');
+    if (!container) return;
+    if (sliderSlides.length === 0) {
+        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);opacity:0.5;">No slides yet. Click "Add Slide" to get started.</div>`;
+        return;
+    }
+    container.innerHTML = sliderSlides.map((slide, index) => {
+        const product = products.find(p => p.id === slide.productId);
+        const productName = product ? product.name : 'Unknown';
+        return `<div class="admin-item"><div class="item-info"><div class="item-title"><img src="${slide.imageUrl || 'https://picsum.photos/seed/default/60/60'}" style="width:40px;height:40px;border-radius:var(--radius-sm);object-fit:cover;margin-right:8px;" />${slide.title || 'Slide ' + (index+1)}<span style="font-size:11px;opacity:0.4;font-weight:400;">${slide.linkType === 'product' ? '📦 Product: ' + productName : slide.linkType === 'download' ? '📥 Download' : '🔗 Custom URL'}</span></div><div class="item-meta">${slide.subtitle || ''}</div></div><div class="item-actions"><button class="btn-edit" onclick="editSlide(${index})"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="deleteSlide(${index})"><i class="fas fa-trash"></i></button></div></div>`;
+    }).join('');
 }
 
-// ============================================================
-// 31. توجيه الاتجاه
-// ============================================================
-
-function fixDirection() {
-    document.querySelectorAll('.header, .logo, .header-actions, .modal-content, .fullscreen-modal, .admin-panel').forEach(el => {
-        el.style.direction = 'ltr'; el.style.textAlign = 'left';
-    });
-    document.querySelectorAll('.modal-close').forEach(el => { el.style.right = 'auto'; el.style.left = '10px'; });
+// دوال الماركي (Marquee)
+window.saveMarqueeSettings = async function() {
+    const enabledCheckbox = document.getElementById('marqueeEnabled');
+    const textArea = document.getElementById('marqueeText');
+    const enabled = enabledCheckbox ? enabledCheckbox.checked : true;
+    const text = textArea ? textArea.value.trim() : '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+    if (!text) { showToast('⚠️ Please enter marquee text', 'warning'); return; }
+    try {
+        const settingsRef = doc(db, 'settings', 'marquee');
+        await setDoc(settingsRef, { enabled, text, updatedAt: serverTimestamp() }, { merge: true });
+        marqueeSettings.enabled = enabled;
+        marqueeSettings.text = text;
+        applyMarqueeSettings();
+        showToast('✅ Marquee settings saved!', 'success');
+    } catch (error) { showToast('❌ Failed to save settings: ' + error.message, 'error'); }
+};
+window.applyMarqueeSettings = function() {
+    const marqueeBar = document.getElementById('marqueeBar');
+    const marqueeContent = document.getElementById('marqueeContent');
+    if (!marqueeBar || !marqueeContent) return;
+    if (marqueeSettings.enabled && marqueeSettings.text) {
+        const items = marqueeSettings.text.split('|').map(item => item.trim()).filter(item => item);
+        if (items.length > 0) {
+            const contentHtml = items.map(item => `<span>${item}</span>`).join('');
+            marqueeContent.innerHTML = contentHtml + contentHtml;
+            marqueeBar.style.display = 'block';
+        } else { marqueeBar.style.display = 'none'; }
+    } else { marqueeBar.style.display = 'none'; }
+};
+function renderMarqueeSettingsUI() {
+    const container = document.getElementById('marqueeSettingsContainer');
+    if (!container) return;
+    const enabledCheckbox = document.getElementById('marqueeEnabled');
+    const textArea = document.getElementById('marqueeText');
+    if (enabledCheckbox) enabledCheckbox.checked = marqueeSettings.enabled !== false;
+    if (textArea) textArea.value = marqueeSettings.text || '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
 }
-document.addEventListener('DOMContentLoaded', function() { setTimeout(fixDirection, 100); setTimeout(showTelegramBanner, 500); });
+async function loadMarqueeSettings() {
+    try {
+        const settingsRef = doc(db, 'settings', 'marquee');
+        const settingsSnap = await getDoc(settingsRef);
+        if (settingsSnap.exists()) {
+            const data = settingsSnap.data();
+            marqueeSettings.enabled = data.enabled !== undefined ? data.enabled : true;
+            marqueeSettings.text = data.text || '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+        } else {
+            marqueeSettings.enabled = true;
+            marqueeSettings.text = '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+        }
+        applyMarqueeSettings();
+    } catch (error) {
+        console.error('Error loading marquee settings:', error);
+        if (error.code === 'permission-denied') {
+            marqueeSettings.enabled = true;
+            marqueeSettings.text = '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+            applyMarqueeSettings();
+        }
+    }
+}
+
+// دوال الإحصائيات
+async function loadDashboardStats() {
+    if (!currentUser || !isAdminCached) { console.log('ℹ️ loadDashboardStats skipped (not admin)'); return; }
+    try {
+        const statsRef = doc(db, 'global_stats', 'stats');
+        const statsSnap = await getDoc(statsRef);
+        let totalOrders = 0, totalRevenue = 0;
+        if (statsSnap.exists()) { totalOrders = statsSnap.data().totalOrders || 0; totalRevenue = statsSnap.data().totalRevenue || 0; }
+        document.getElementById('dashboardTotalOrders').textContent = totalOrders;
+        document.getElementById('dashboardTotalRevenue').textContent = `$${totalRevenue.toFixed(2)}`;
+        document.getElementById('dashboardNetRevenue').textContent = `$${(totalRevenue * 0.1).toFixed(2)}`;
+    } catch (error) {
+        console.error('Error loading dashboard stats:', error);
+        if (error.code === 'permission-denied') { console.warn('⚠️ Missing permissions to read stats.'); }
+    }
+}
+window.refreshDashboardStats = function() { loadDashboardStats(); showToast('🔄 Stats refreshed', 'info'); };
+async function loadAdvancedStats() {
+    if (!currentUser || !isAdminCached) { console.log('ℹ️ loadAdvancedStats skipped (not admin)'); return; }
+    const container = document.getElementById('advancedStatsContainer');
+    if (!container) return;
+    container.innerHTML = `<div style="text-align:center;padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading statistics...</div>`;
+    try {
+        const usersRef = collection(db, 'users');
+        const snapshot = await getDocs(usersRef);
+        let allOrders = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const history = data.history || [];
+            history.forEach(order => {
+                allOrders.push({ ...order, userEmail: data.email || doc.id, userName: data.name || 'Unknown', userId: doc.id, orderId: order.id || 'order_' + Date.now() });
+            });
+        });
+        const totalOrders = allOrders.length;
+        const totalRevenue = allOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+        const pendingOrders = allOrders.filter(o => o.status === 'pending').length;
+        const confirmedOrders = allOrders.filter(o => o.status === 'confirmed').length;
+        const rejectedOrders = allOrders.filter(o => o.status === 'rejected').length;
+        const totalUsers = snapshot.size;
+        container.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px;"><div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--primary);">${totalOrders}</div><div style="font-size:12px;color:var(--text-secondary);">Total Orders</div></div><div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--vip-color);">$${totalRevenue.toFixed(2)}</div><div style="font-size:12px;color:var(--text-secondary);">Revenue</div></div><div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--pending-color);">${pendingOrders}</div><div style="font-size:12px;color:var(--text-secondary);">Pending</div></div><div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--success);">${confirmedOrders}</div><div style="font-size:12px;color:var(--text-secondary);">Confirmed</div></div><div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--danger);">${rejectedOrders}</div><div style="font-size:12px;color:var(--text-secondary);">Rejected</div></div><div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--text);">${totalUsers}</div><div style="font-size:12px;color:var(--text-secondary);">Total Users</div></div></div>`;
+    } catch (error) { console.error('Error loading advanced stats:', error); container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load statistics: ${error.message}</div>`; if (error.code === 'permission-denied') { console.warn('⚠️ Missing permissions to read users.'); } }
+}
+window.refreshAdvancedStats = function() { loadAdvancedStats(); showToast('🔄 Stats refreshed', 'info'); };
+async function loadAuditLogs() {
+    if (!currentUser || !isAdminCached) { console.log('ℹ️ loadAuditLogs skipped (not admin)'); return; }
+    const container = document.getElementById('auditLogsContainer');
+    if (!container) return;
+    container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading logs...</div>`;
+    try {
+        const logsRef = collection(db, 'auditLogs');
+        const q = query(logsRef, orderBy('timestamp', 'desc'));
+        const snapshot = await getDocs(q);
+        if (snapshot.empty) { container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">📭 No audit logs yet</div>`; return; }
+        let html = `<div style="display:flex;flex-direction:column;gap:6px;max-height:400px;overflow-y:auto;">`;
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const date = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '--';
+            const admin = data.adminName || data.adminEmail || 'Admin';
+            const action = data.action || 'Action';
+            const details = data.details || '';
+            html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg);border-radius:8px;border:1px solid var(--border);font-size:13px;"><div><span style="font-weight:600;color:var(--text);">${admin}</span><span style="color:var(--text-secondary);opacity:0.5;margin:0 4px;">→</span><span style="color:var(--primary);font-weight:500;">${action}</span>${details ? `<span style="color:var(--text-secondary);opacity:0.4;margin-left:4px;">${details}</span>` : ''}</div><span style="font-size:11px;color:var(--text-secondary);opacity:0.3;">${date}</span></div>`;
+        });
+        html += `</div>`; container.innerHTML = html;
+    } catch (error) { console.error('Error loading audit logs:', error); container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load logs: ${error.message}</div>`; if (error.code === 'permission-denied') { console.warn('⚠️ Missing permissions to read audit logs.'); } }
+}
+window.loadAuditLogs = loadAuditLogs;
+// ============================================================
+// 25. دوال الإضافية (Telegram Banner, Social Proof, Upload)
+// ============================================================
+
+function showTelegramBanner() {
+    const banner = document.getElementById('telegramBanner');
+    if (!banner) return;
+    const bannerHidden = localStorage.getItem('telegram_banner_hidden') === 'true';
+    const adminDisabled = localStorage.getItem('telegram_banner_admin_disabled') === 'true';
+    if (userProfile.telegramChatId) {
+        banner.classList.add('linked');
+        banner.querySelector('.banner-title').textContent = '✅ Connected!';
+        banner.querySelector('.banner-subtitle').textContent = 'You will receive order notifications here.';
+        banner.querySelector('.banner-action').innerHTML = '<i class="fas fa-check"></i> Linked';
+        banner.querySelector('.banner-action').onclick = () => openProfileFull();
+        banner.querySelector('.banner-icon i').className = 'fas fa-check-circle';
+        banner.style.display = 'block';
+        setTimeout(() => { banner.classList.add('hidden'); }, 3000);
+        return;
+    }
+    if (bannerHidden || adminDisabled) { banner.classList.add('hidden'); return; }
+    banner.classList.remove('linked', 'hidden');
+    banner.querySelector('.banner-title').innerHTML = '🔔 Stay Connected! <span class="badge-new">New</span>';
+    banner.querySelector('.banner-subtitle').textContent = 'Link your Telegram account to receive instant order notifications';
+    banner.querySelector('.banner-action').innerHTML = '<i class="fab fa-telegram-plane"></i> Link Now';
+    banner.querySelector('.banner-action').onclick = () => bindTelegram();
+    banner.querySelector('.banner-icon i').className = 'fab fa-telegram-plane';
+    banner.style.display = 'block';
+    banner.style.animation = 'none';
+    setTimeout(() => { banner.style.animation = 'bannerSlideDown 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'; }, 10);
+}
+function closeTelegramBanner() {
+    const banner = document.getElementById('telegramBanner');
+    if (banner) { banner.classList.add('hidden'); localStorage.setItem('telegram_banner_hidden', 'true'); setTimeout(() => { localStorage.removeItem('telegram_banner_hidden'); if (!userProfile.telegramChatId) { showTelegramBanner(); } }, 600000); }
+}
+function showTelegramBannerAgain() { localStorage.removeItem('telegram_banner_hidden'); showTelegramBanner(); }
+function addBannerAdminControls() { /* سيتم تنفيذها في الأدمن */ }
+function adminToggleBanner(show) {
+    if (show) { localStorage.setItem('telegram_banner_admin_disabled', 'false'); } else { localStorage.setItem('telegram_banner_admin_disabled', 'true'); const banner = document.getElementById('telegramBanner'); if (banner) banner.classList.add('hidden'); }
+    addBannerAdminControls();
+    if (show) { localStorage.removeItem('telegram_banner_hidden'); setTimeout(showTelegramBanner, 300); }
+}
+function resetBannerForAll() { localStorage.removeItem('telegram_banner_admin_disabled'); localStorage.removeItem('telegram_banner_hidden'); showToast('🔄 Banner reset', 'info'); addBannerAdminControls(); setTimeout(showTelegramBanner, 300); }
+function startSocialProof() { /* للاستخدام المستقبلي */ }
+function triggerSocialProofOnOrder(userName, productNames) { /* للاستخدام المستقبلي */ }
 
 // ============================================================
-// 32. رفع الصور إلى Cloudinary
+// 26. رفع الصور إلى Cloudinary
 // ============================================================
 
 const CLOUDINARY_CLOUD_NAME = 'y14bgb5s';
@@ -3753,140 +3335,7 @@ async function uploadToCloudinary(file) {
 }
 
 // ============================================================
-// 33. دوال الإكمال والتصدير - إضافة الدوال المفقودة
-// ============================================================
-
-// تعريف دالة copyLicenceCode (كانت مفقودة)
-window.copyLicenceCode = function(code) {
-    if (!code) {
-        showToast('⚠️ No code to copy', 'warning');
-        return;
-    }
-    // محاولة النسخ عبر Clipboard API
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(code)
-            .then(() => showToast('✅ Licence code copied!', 'success'))
-            .catch(() => fallbackCopyText(code));
-    } else {
-        fallbackCopyText(code);
-    }
-};
-
-function fallbackCopyText(text) {
-    const textarea = document.createElement('textarea');
-    textarea.value = text;
-    textarea.style.position = 'fixed';
-    textarea.style.opacity = '0';
-    document.body.appendChild(textarea);
-    textarea.select();
-    try {
-        document.execCommand('copy');
-        showToast('✅ Licence code copied!', 'success');
-    } catch (e) {
-        showToast('❌ Failed to copy. Please copy manually.', 'error');
-    }
-    document.body.removeChild(textarea);
-}
-
-// تعريف دالة generateInvoice (كانت مفقودة)
-window.generateInvoice = function(orderData) {
-    if (!orderData) {
-        showToast('❌ No order data for invoice', 'error');
-        return;
-    }
-    try {
-        // orderData قد يكون string JSON من data-order attribute
-        let order = typeof orderData === 'string' ? JSON.parse(orderData) : orderData;
-        if (!order.id) {
-            order.id = 'INV-' + Date.now().toString().slice(-6);
-        }
-        const invoiceHtml = `
-            <html>
-                <head>
-                    <title>Invoice #${order.id}</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; padding: 40px; background: #fff; color: #000; }
-                        h1 { color: #333; }
-                        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-                        th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
-                        th { background: #f5f5f5; }
-                        .total { font-size: 18px; font-weight: bold; }
-                        .status { margin-top: 20px; }
-                    </style>
-                </head>
-                <body>
-                    <h1>🧾 Invoice</h1>
-                    <p><strong>Order ID:</strong> ${order.id}</p>
-                    <p><strong>Date:</strong> ${order.date ? new Date(order.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '--'}</p>
-                    <p><strong>Status:</strong> ${order.status || 'Pending'}</p>
-                    <table>
-                        <thead><tr><th>Product</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead>
-                        <tbody>
-                            ${(order.items || []).map(item => `
-                                <tr>
-                                    <td>${item.name}</td>
-                                    <td>${item.quantity || 1}</td>
-                                    <td>$${(item.price || 0).toFixed(2)}</td>
-                                    <td>$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                    <div class="total">Total: $${(order.total || 0).toFixed(2)}</div>
-                    <div class="status">Payment Method: ${order.method || 'N/A'}</div>
-                    <hr>
-                    <p style="color:gray;">Thank you for your purchase at ZI Store!</p>
-                </body>
-            </html>
-        `;
-        const win = window.open('', '_blank');
-        if (!win) {
-            showToast('⚠️ Please allow popups to generate invoice', 'warning');
-            return;
-        }
-        win.document.write(invoiceHtml);
-        win.document.close();
-        win.print();
-        showToast('📄 Invoice generated!', 'success');
-    } catch (error) {
-        console.error('Invoice generation error:', error);
-        showToast('❌ Failed to generate invoice', 'error');
-    }
-};
-
-// دالة fixHeaderAndModals موجودة بالفعل، نؤكد تصديرها
-window.fixHeaderAndModals = function() {
-    document.querySelectorAll('.header, .logo, .header-actions, .modal-content, .fullscreen-modal, .admin-panel').forEach(el => {
-        el.style.direction = 'ltr';
-        el.style.textAlign = 'left';
-    });
-    document.querySelectorAll('.modal-close').forEach(el => {
-        el.style.right = 'auto';
-        el.style.left = '10px';
-    });
-};
-
-// دالة exportOrders (موجودة بالفعل لكن نضمنها)
-window.exportOrders = function() {
-    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
-    if (!allOrders || allOrders.length === 0) { showToast('📭 No orders to export', 'info'); return; }
-    try {
-        let csv = 'Order ID,User,Email,Total,Status,Date,Items\n';
-        allOrders.forEach(order => {
-            const items = order.items ? order.items.map(i => i.name).join('; ') : '';
-            csv += `${order.orderId || ''},${order.userName || ''},${order.userEmail || ''},${order.total || 0},${order.status || 'pending'},${new Date(order.date).toLocaleDateString()},${items}\n`;
-        });
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = `orders_${new Date().toISOString().slice(0,10)}.csv`;
-        a.click(); URL.revokeObjectURL(url);
-        showToast('📥 Orders exported!', 'success');
-    } catch (error) { showToast('❌ Export failed', 'error'); }
-};
-
-// ============================================================
-// 34. حالة المصادقة
+// 27. حالة المصادقة (النسخة النهائية)
 // ============================================================
 
 onAuthStateChanged(auth, async (user) => {
@@ -3905,21 +3354,38 @@ onAuthStateChanged(auth, async (user) => {
                 return;
             }
         } catch (error) { console.error('Error checking ban status:', error); }
+        
         await refreshAdminStatus();
+        console.log('🔍 Admin status after login:', isAdminCached);
+        
         document.getElementById('authSection').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
         await loadUserData();
         updateDropdownStats();
+        
         if (isAdminCached) {
+            console.log('✅ Admin detected, loading admin features');
             loadAdminOrders();
             startAdminRealtimeListener();
             renderAdminProducts(products);
             loadLicences();
             setTimeout(addBannerAdminControls, 500);
+            setTimeout(() => {
+                const adminMenuItem = document.getElementById('adminMenuItem');
+                if (adminMenuItem) {
+                    adminMenuItem.style.display = 'flex';
+                    console.log('✅ Admin menu button displayed');
+                }
+                updateFullUserMenu();
+                updateUI();
+            }, 300);
         }
+        
         loadDownloads(); loadNotifications(); fetchCryptoPrices(); loadFeaturedSettings(); loadSliderSettings(); loadMarqueeSettings();
         setTimeout(showTelegramBanner, 1000);
         startSocialProof();
+        setTimeout(window.ensureAdminPanel, 2000);
+        
     } else {
         isAdminCached = false;
         document.getElementById('authSection').style.display = 'block';
@@ -3933,16 +3399,22 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// 35. التهيئة (Init) - مع ضمان إخفاء شاشة التحميل فوراً
+// 28. استدعاء تلقائي للتأكد من ظهور لوحة الأدمن (حل احتياطي)
+// ============================================================
+setInterval(() => {
+    if (currentUser && !isAdminCached) {
+        window.ensureAdminPanel();
+    }
+}, 5000);
+
+// ============================================================
+// 29. التهيئة (Init)
 // ============================================================
 
 async function init() {
     console.log('🚀 Initializing ZI Store...');
-    
-    // 🔥 إخفاء شاشة التحميل فوراً (تم بالفعل في الجزء العلوي، لكن نكرر للتأكيد)
     hideLoadingScreen();
 
-    // حل احتياطي: إخفاء شاشة التحميل بعد 2 ثانية بغض النظر عن أي شيء
     const forceHideTimeout = setTimeout(() => {
         console.warn('⚠️ Force hiding loading screen after 2 seconds.');
         hideLoadingScreen();
@@ -3966,13 +3438,13 @@ async function init() {
         loadMarqueeSettings();
         setInterval(fetchCryptoPrices, 60000);
         console.log('✅ ZI Store ready with all features!');
-        setTimeout(fixHeaderAndModals, 100);
+        setTimeout(fixDirection, 100);
+        setTimeout(window.ensureAdminPanel, 3000);
     } catch (error) {
         console.error('❌ Initialization error:', error);
         showToast('⚠️ Error loading store. Please refresh.', 'error');
     } finally {
         clearTimeout(forceHideTimeout);
-        // إخفاء شاشة التحميل بعد 500ms إضافية للتأكد
         setTimeout(() => {
             hideLoadingScreen();
             setTimeout(showTelegramBanner, 500);
@@ -3982,7 +3454,7 @@ async function init() {
 }
 
 // ============================================================
-// 36. تبديل الثيم
+// 30. تبديل الثيم
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -4007,16 +3479,77 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================================
-// 37. تصدير الدوال للنطاق العام
+// 31. دوال التوجيه والإصلاح
 // ============================================================
 
-// دوال التراخيص
-window.copyLicenceCode = copyLicenceCode;
-window.generateInvoice = generateInvoice;
-window.exportOrders = exportOrders;
-window.fixHeaderAndModals = fixHeaderAndModals;
+function fixDirection() {
+    document.querySelectorAll('.header, .logo, .header-actions, .modal-content, .fullscreen-modal, .admin-panel').forEach(el => {
+        el.style.direction = 'ltr'; el.style.textAlign = 'left';
+    });
+    document.querySelectorAll('.modal-close').forEach(el => { el.style.right = 'auto'; el.style.left = '10px'; });
+}
+window.fixHeaderAndModals = fixDirection;
 
-// الدوال الموجودة مسبقاً (نضمنها)
+// ============================================================
+// 32. تصدير جميع الدوال للنطاق العام
+// ============================================================
+
+window.copyLicenceCode = function(code) {
+    if (!code) { showToast('⚠️ No code to copy', 'warning'); return; }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code)
+            .then(() => showToast('✅ Licence code copied!', 'success'))
+            .catch(() => fallbackCopyText(code));
+    } else {
+        fallbackCopyText(code);
+    }
+};
+function fallbackCopyText(text) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+        document.execCommand('copy');
+        showToast('✅ Licence code copied!', 'success');
+    } catch (e) {
+        showToast('❌ Failed to copy. Please copy manually.', 'error');
+    }
+    document.body.removeChild(textarea);
+}
+window.generateInvoice = function(orderData) {
+    if (!orderData) { showToast('❌ No order data for invoice', 'error'); return; }
+    try {
+        let order = typeof orderData === 'string' ? JSON.parse(orderData) : orderData;
+        if (!order.id) { order.id = 'INV-' + Date.now().toString().slice(-6); }
+        const invoiceHtml = `<html><head><title>Invoice #${order.id}</title><style>body{font-family:Arial;padding:40px;background:#fff;color:#000;}h1{color:#333;}table{width:100%;border-collapse:collapse;margin:20px 0;}th,td{padding:10px;border:1px solid #ddd;text-align:left;}th{background:#f5f5f5;}.total{font-size:18px;font-weight:bold;}</style></head><body><h1>🧾 Invoice</h1><p><strong>Order ID:</strong> ${order.id}</p><p><strong>Date:</strong> ${order.date ? new Date(order.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '--'}</p><p><strong>Status:</strong> ${order.status || 'Pending'}</p><table><thead><tr><th>Product</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead><tbody>${(order.items || []).map(item => `<tr><td>${item.name}</td><td>${item.quantity || 1}</td><td>$${(item.price || 0).toFixed(2)}</td><td>$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td></tr>`).join('')}</tbody></table><div class="total">Total: $${(order.total || 0).toFixed(2)}</div><div class="status">Payment Method: ${order.method || 'N/A'}</div><hr><p style="color:gray;">Thank you for your purchase at ZI Store!</p></body></html>`;
+        const win = window.open('', '_blank');
+        if (!win) { showToast('⚠️ Please allow popups to generate invoice', 'warning'); return; }
+        win.document.write(invoiceHtml);
+        win.document.close();
+        win.print();
+        showToast('📄 Invoice generated!', 'success');
+    } catch (error) { console.error('Invoice generation error:', error); showToast('❌ Failed to generate invoice', 'error'); }
+};
+window.exportOrders = function() {
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (!allOrders || allOrders.length === 0) { showToast('📭 No orders to export', 'info'); return; }
+    try {
+        let csv = 'Order ID,User,Email,Total,Status,Date,Items\n';
+        allOrders.forEach(order => {
+            const items = order.items ? order.items.map(i => i.name).join('; ') : '';
+            csv += `${order.orderId || ''},${order.userName || ''},${order.userEmail || ''},${order.total || 0},${order.status || 'pending'},${new Date(order.date).toLocaleDateString()},${items}\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `orders_${new Date().toISOString().slice(0,10)}.csv`;
+        a.click(); URL.revokeObjectURL(url);
+        showToast('📥 Orders exported!', 'success');
+    } catch (error) { showToast('❌ Export failed', 'error'); }
+};
 window.toggleLicencesList = toggleLicencesList;
 window.openLicenceModal = openLicenceModal;
 window.closeLicenceModal = closeLicenceModal;
@@ -4034,11 +3567,6 @@ window.clearLicenceSearch = clearLicenceSearch;
 window.refreshLicences = refreshLicences;
 window.loadLicences = loadLicences;
 window.renderLicences = renderLicences;
-window.editSlide = editSlide;
-window.deleteSlide = deleteSlide;
-window.saveSliderInterval = saveSliderInterval;
-window.openAddSlideModal = openAddSlideModal;
-window.closeAddSlideModal = closeAddSlideModal;
 window.switchAdminTab = switchAdminTab;
 window.loadAdminOrders = loadAdminOrders;
 window.updateOrderStatus = updateOrderStatus;
@@ -4124,9 +3652,10 @@ window.loadMarqueeSettings = loadMarqueeSettings;
 window.saveMarqueeSettings = saveMarqueeSettings;
 window.renderMarqueeSettingsUI = renderMarqueeSettingsUI;
 window.applyMarqueeSettings = applyMarqueeSettings;
+window.ensureAdminPanel = ensureAdminPanel;
 
 // ============================================================
-// 38. بدء التطبيق
+// 33. بدء التطبيق
 // ============================================================
 
 if (document.readyState === 'loading') {
