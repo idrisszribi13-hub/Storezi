@@ -9,6 +9,15 @@
     <link rel="stylesheet" href="style.css" />
     <link rel="manifest" href="manifest.json" />
 
+    <!-- Google Analytics Consent Mode -->
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('consent', 'default', {
+            'analytics_storage': 'denied'
+        });
+    </script>
+
     <style>
         /* ============================================
            🆕 شريط النص المتحرك (Marquee)
@@ -70,82 +79,255 @@
         }
 
         /* ============================================
-           تنسيق مودال الترخيص
+           🍪 Cookie Consent Banner
            ============================================ */
-        #licenceModal .modal-content {
-            max-width: 420px;
+        .cookie-consent {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--card-bg);
+            border-top: 2px solid var(--primary);
+            padding: 16px 20px;
+            z-index: 999999;
+            display: none;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
-        #licenceModal .modal-title i {
-            color: var(--vip-color);
+        .cookie-consent.show { 
+            display: flex; 
+            animation: cookieSlideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
-
-        /* ============================================
-           زر تفعيل الترخيص في القائمة
-           ============================================ */
-        .menu-item .fa-key {
-            color: var(--vip-color);
+        @keyframes cookieSlideUp {
+            0% { transform: translateY(100%); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
         }
-
-        /* ============================================
-           تحسينات إضافية
-           ============================================ */
-        .menu-divider {
-            height: 1px;
-            background: var(--border);
-            margin: 6px 12px;
+        .cookie-consent .cookie-text {
+            flex: 1;
+            min-width: 200px;
+            font-size: 14px;
+            color: var(--text);
+            line-height: 1.6;
         }
-        .admin-form-row {
+        .cookie-consent .cookie-text strong {
+            color: var(--primary);
+        }
+        .cookie-consent .cookie-text small {
+            display: block;
+            opacity: 0.5;
+            font-size: 12px;
+            margin-top: 2px;
+        }
+        .cookie-consent .cookie-buttons {
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
+            align-items: center;
         }
-        .admin-form-row .admin-form-group {
-            flex: 1;
-            min-width: 120px;
-        }
-        #imagePreviewContainer {
-            margin-top: 8px;
-            display: none;
-        }
-        #imagePreviewContainer img {
-            max-width: 100px;
-            max-height: 100px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-        }
-        .btn-export {
-            padding: 6px 14px;
+        .cookie-consent .btn-accept {
+            padding: 10px 28px;
             border: none;
-            border-radius: 6px;
-            background: var(--success);
-            color: #0a0a1a;
+            border-radius: 10px;
+            background: var(--primary-gradient);
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 14px;
+            transition: 0.3s;
+            box-shadow: 0 4px 15px var(--primary-glow);
+        }
+        .cookie-consent .btn-accept:hover {
+            transform: scale(1.03);
+            box-shadow: 0 6px 25px var(--primary-glow);
+        }
+        .cookie-consent .btn-reject {
+            padding: 10px 20px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: transparent;
+            color: var(--text-secondary);
             font-weight: 600;
             cursor: pointer;
-            font-size: 12px;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
+            font-size: 13px;
+            transition: 0.3s;
         }
-        .btn-export:hover {
+        .cookie-consent .btn-reject:hover {
+            background: var(--bg);
+            border-color: var(--text-secondary);
+        }
+        .cookie-consent .btn-settings {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 10px;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 13px;
+            text-decoration: underline;
+            opacity: 0.6;
+            transition: 0.3s;
+        }
+        .cookie-consent .btn-settings:hover {
+            opacity: 1;
+        }
+        .cookie-consent .cookie-icon {
+            font-size: 28px;
+            margin-right: 4px;
+        }
+
+        /* Cookie Settings Modal */
+        .cookie-settings-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 9999999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .cookie-settings-modal.open {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        .cookie-settings-modal .modal-content {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 480px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        .cookie-settings-modal .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 16px;
+        }
+        .cookie-settings-modal .modal-title i {
+            color: var(--primary);
+        }
+        .cookie-settings-modal .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .cookie-settings-modal .setting-item:last-child {
+            border-bottom: none;
+        }
+        .cookie-settings-modal .setting-info h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            margin: 0 0 2px 0;
+        }
+        .cookie-settings-modal .setting-info p {
+            font-size: 12px;
+            color: var(--text-secondary);
+            opacity: 0.6;
+            margin: 0;
+        }
+        .cookie-settings-modal .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 26px;
+            flex-shrink: 0;
+        }
+        .cookie-settings-modal .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .cookie-settings-modal .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--border);
+            border-radius: 26px;
+            transition: 0.3s;
+        }
+        .cookie-settings-modal .toggle-slider:before {
+            content: "";
+            position: absolute;
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background: #fff;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+        .cookie-settings-modal .toggle-switch input:checked + .toggle-slider {
+            background: var(--primary);
+        }
+        .cookie-settings-modal .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(22px);
+        }
+        .cookie-settings-modal .toggle-switch input:disabled + .toggle-slider {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .cookie-settings-modal .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+        .cookie-settings-modal .modal-actions .btn-save {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            background: var(--primary);
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+        .cookie-settings-modal .modal-actions .btn-save:hover {
             opacity: 0.8;
         }
-        .notification-dot {
-            background: var(--notification-red) !important;
-            animation: pulse-dot 1.5s ease-in-out infinite;
+        .cookie-settings-modal .modal-actions .btn-close-modal {
+            padding: 10px 20px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: transparent;
+            color: var(--text);
+            cursor: pointer;
+            font-size: 14px;
+            transition: 0.3s;
         }
-        @keyframes pulse-dot {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.4); opacity: 0.7; }
-        }
-        .guest .user-dot {
-            background: var(--text-secondary);
-            opacity: 0.3;
+        .cookie-settings-modal .modal-actions .btn-close-modal:hover {
+            background: var(--bg);
         }
     </style>
 
     <!-- إخفاء فوري لشاشة التحميل قبل تحميل أي شيء -->
     <script>
-        // إخفاء شاشة التحميل فوراً بمجرد تحميل DOM
         (function() {
             function hideNow() {
                 var screen = document.getElementById('loadingScreen');
@@ -183,6 +365,64 @@
         <span class="toast-icon"><i class="fas fa-check-circle"></i></span>
         <span class="toast-message" id="toastMessage">Success!</span>
         <button class="toast-close" onclick="hideToast()"><i class="fas fa-times"></i></button>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- 🍪 Cookie Consent Banner -->
+    <!-- ============================================ -->
+    <div id="cookieConsent" class="cookie-consent">
+        <div class="cookie-text">
+            <span class="cookie-icon">🍪</span>
+            <strong>نحن نستخدم ملفات تعريف الارتباط! 😊</strong>
+            <small>لتحسين تجربتك، نستخدم ملفات تعريف الارتباط الأساسية التي تحافظ على تشغيل موقعنا بسلاسة. نود أيضًا استخدام ملفات تعريف الارتباط التحليلية لفهم كيفية استخدامك لموقعنا - ولكن فقط بموافقتك.</small>
+        </div>
+        <div class="cookie-buttons">
+            <button class="btn-settings" onclick="openCookieSettings()">
+                <i class="fas fa-cog"></i> إعدادات
+            </button>
+            <button class="btn-reject" onclick="rejectCookies()">
+                رفض الكل
+            </button>
+            <button class="btn-accept" onclick="acceptCookies()">
+                ✅ قبول الكل
+            </button>
+        </div>
+    </div>
+
+    <!-- Cookie Settings Modal -->
+    <div id="cookieSettingsModal" class="cookie-settings-modal">
+        <div class="modal-content">
+            <div class="modal-title">
+                <i class="fas fa-cookie-bite"></i> إعدادات ملفات تعريف الارتباط
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h4>🛡️ الأساسية (Essential)</h4>
+                    <p>مطلوبة لتشغيل الموقع. لا يمكن تعطيلها.</p>
+                </div>
+                <div class="toggle-switch">
+                    <input type="checkbox" checked disabled />
+                    <span class="toggle-slider"></span>
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h4>📊 التحليلية (Analytics)</h4>
+                    <p>تساعدنا على فهم كيفية استخدامك للموقع لتحسينه.</p>
+                </div>
+                <div class="toggle-switch">
+                    <input type="checkbox" id="analyticsToggle" checked />
+                    <span class="toggle-slider" onclick="document.getElementById('analyticsToggle').click()"></span>
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="btn-close-modal" onclick="closeCookieSettings()">إلغاء</button>
+                <button class="btn-save" onclick="saveCookieSettings()">💾 حفظ الإعدادات</button>
+            </div>
+        </div>
     </div>
 
     <!-- ============================================ -->
@@ -686,7 +926,7 @@
                 <div class="admin-form-group">
                     <label for="productImageFile">Upload Product Image</label>
                     <input type="file" id="productImageFile" accept="image/*" />
-                    <div id="imagePreviewContainer"><img id="imagePreview" src="#" alt="Image preview" style="max-width:100px;max-height:100px;border-radius:8px;border:1px solid var(--border);" /></div>
+                    <div id="imagePreviewContainer" style="margin-top: 8px; display: none;"><img id="imagePreview" src="#" alt="Image preview" style="max-width: 100px; max-height: 100px; border-radius: 8px; border: 1px solid var(--border);" /></div>
                     <small style="color: var(--text-secondary); opacity: 0.5;">Or enter a URL below:</small>
                     <input type="url" id="productImage" placeholder="https://example.com/image.jpg" style="margin-top: 4px;" />
                 </div>
