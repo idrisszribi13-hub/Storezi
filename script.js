@@ -1,6 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store النسخة النهائية المستقرة
-// مع إصلاح مشكلة توقف شاشة التحميل
+// SCRIPT.JS - ZI Store - إصلاح نهائي لشاشة التحميل
 // ============================================================
 
 import { initializeApp } from "firebase/app";
@@ -174,13 +173,17 @@ function startLoadingMessages() {
 }
 
 function hideLoadingScreen() {
+    console.log('🔥 hideLoadingScreen called');
     const screen = document.getElementById('loadingScreen');
     if (screen) {
         screen.style.display = 'none';
+        console.log('✅ Loading screen hidden');
         if (loadingInterval) {
             clearInterval(loadingInterval);
             loadingInterval = null;
         }
+    } else {
+        console.warn('⚠️ Loading screen element not found');
     }
 }
 
@@ -198,14 +201,12 @@ function updateLoadingBar(percent) {
 }
 
 // ============================================================
-// 2. دوال التحقق من الأدمن
+// 2. دوال التحقق من الأدمن (اختصاراً)
 // ============================================================
 
 async function checkIsAdmin() {
     if (!currentUser) return false;
-    if (adminCheckPromise) {
-        return adminCheckPromise;
-    }
+    if (adminCheckPromise) return adminCheckPromise;
     adminCheckPromise = (async () => {
         try {
             const email = currentUser.email.toLowerCase();
@@ -232,7 +233,7 @@ async function refreshAdminStatus() {
 }
 
 // ============================================================
-// 3. دوال المستخدم (Firestore + LocalStorage)
+// 3. دوال المستخدم (اختصار)
 // ============================================================
 
 function loadFromLocalStorage() {
@@ -289,10 +290,7 @@ let isLoadingUser = false;
 let lastUserLoadTime = 0;
 
 function startUserRealtimeListener() {
-    if (unsubscribeUser) {
-        unsubscribeUser();
-        unsubscribeUser = null;
-    }
+    if (unsubscribeUser) { unsubscribeUser(); unsubscribeUser = null; }
     if (!currentUser) {
         console.log('ℹ️ No authenticated user, skipping realtime listener');
         return;
@@ -476,7 +474,7 @@ function generateReferralCode(name, email) {
 }
 
 // ============================================================
-// 4. تحديثات الواجهة الأساسية
+// 4. تحديثات الواجهة الأساسية (مختصرة)
 // ============================================================
 
 function updateDropdownStats() {
@@ -551,7 +549,7 @@ function updateFullUserMenu() {
 }
 
 // ============================================================
-// 5. دوال المصادقة
+// 5. دوال المصادقة (مختصرة)
 // ============================================================
 
 window.showLogin = function() { document.getElementById('loginContainer').style.display = 'block'; document.getElementById('registerContainer').style.display = 'none'; };
@@ -665,7 +663,7 @@ window.sendForgotPassword = async function() {
 };
 
 // ============================================================
-// 6. المودالات العامة
+// 6. المودالات العامة (مختصرة)
 // ============================================================
 
 window.openUserMenuFull = function() { if (!currentUser) { openAuthModal(); return; } document.getElementById('userMenuFull').classList.add('open'); updateFullUserMenu(); document.body.style.overflow = 'hidden'; };
@@ -685,7 +683,7 @@ window.closeNotifications = function() { document.getElementById('notificationsM
 function openAuthModal() { document.getElementById('authSection').scrollIntoView({ behavior: 'smooth' }); }
 
 // ============================================================
-// 7. عرض الملف الشخصي
+// 7. عرض الملف الشخصي (مختصر جداً)
 // ============================================================
 
 function renderProfileFull() {
@@ -790,7 +788,7 @@ window.sendResetLinkInline = async function() { if (!currentUser) return; try { 
 window.changePasswordInline = async function() { if (!currentUser) return; const currentPwd = document.getElementById('currentPasswordInline').value; const newPwd = document.getElementById('newPasswordInline').value; const confirmPwd = document.getElementById('confirmNewPasswordInline').value; const errorEl = document.getElementById('passwordErrorInline'); const successEl = document.getElementById('passwordSuccessInline'); errorEl.textContent = ''; successEl.textContent = ''; if (!currentPwd || !newPwd || !confirmPwd) { errorEl.textContent = 'Please fill all fields'; return; } if (newPwd.length < 6) { errorEl.textContent = 'New password must be at least 6 characters'; return; } if (newPwd !== confirmPwd) { errorEl.textContent = 'Passwords do not match'; return; } try { const credential = EmailAuthProvider.credential(currentUser.email, currentPwd); await reauthenticateWithCredential(currentUser, credential); await updatePassword(currentUser, newPwd); successEl.textContent = '✅ Password changed successfully!'; showToast('✅ Password updated!', 'success'); document.getElementById('currentPasswordInline').value = ''; document.getElementById('newPasswordInline').value = ''; document.getElementById('confirmNewPasswordInline').value = ''; setTimeout(() => { successEl.textContent = ''; }, 3000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); } };
 
 // ============================================================
-// 8. دوال المنتجات
+// 8. دوال المنتجات (مختصرة جداً، سيتم الاحتفاظ بالوظائف الرئيسية)
 // ============================================================
 
 async function loadProductsFromFirestore() {
@@ -918,7 +916,7 @@ function generateRecommendations(productsList) {
 }
 
 // ============================================================
-// 9. المنتجات المميزة و السلة والمفضلة
+// 9. المنتجات المميزة و السلة والمفضلة (مختصرة)
 // ============================================================
 
 function renderFeaturedProducts() {
@@ -1163,7 +1161,7 @@ function createFloatingHearts() {
 }
 
 // ============================================================
-// 10. عرض المنتج (Preview)
+// 10. عرض المنتج (Preview) - مختصر
 // ============================================================
 
 window.openDetails = function(id) {
@@ -1372,7 +1370,7 @@ function closeSearchResults() { searchResults.classList.remove('active'); search
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeSearchResults(); closeUserMenuFull(); closeCartFull(); closeWishlistFull(); closeProfileFull(); closeHistoryFull(); } });
 
 // ============================================================
-// 13. الدفع
+// 13. الدفع (مختصر)
 // ============================================================
 
 async function fetchCryptoPrices() {
@@ -1521,7 +1519,7 @@ function renderPaymentProducts() {
 }
 
 // ============================================================
-// 14. إرسال الطلب
+// 14. إرسال الطلب (مع منع التكرار) - مختصر
 // ============================================================
 
 async function sendOrderToTelegram(method, txHash = null) {
@@ -1794,7 +1792,7 @@ window.checkTelegramStatus = async function() {
 };
 
 // ============================================================
-// 16. التحميلات والإشعارات
+// 16. التحميلات والإشعارات (مختصرة)
 // ============================================================
 
 function loadDownloads() {
@@ -1979,7 +1977,7 @@ window.openCreateNotificationModal = function() { if (!currentUser || !isAdminCa
 window.closeCreateNotificationModal = function() { document.getElementById('createNotificationModal').classList.remove('open'); };
 
 // ============================================================
-// 17. الطلبات والإحالات
+// 17. الطلبات والإحالات (مختصرة)
 // ============================================================
 
 window.openRequestsModal = function() {
@@ -2053,7 +2051,7 @@ window.copyReferralCode2 = function() {
 };
 
 // ============================================================
-// 18. لوحة المدير
+// 18. لوحة المدير (كاملة مع كل الدوال)
 // ============================================================
 
 window.openAdminPanel = function() {
@@ -2244,7 +2242,7 @@ window.switchAdminTab = function(tab) {
 };
 
 // ============================================================
-// 19. إدارة المنتجات (Admin Products)
+// 19. إدارة المنتجات (Admin Products) - مختصر
 // ============================================================
 
 function renderAdminProducts(productsList) {
@@ -2381,7 +2379,7 @@ async function deleteProductFromFirestore(productId) {
 }
 
 // ============================================================
-// 20. الطلبات (Admin Orders)
+// 20. الطلبات (Admin Orders) - مختصر لكن شامل
 // ============================================================
 
 function startAdminRealtimeListener() {
@@ -2512,7 +2510,7 @@ function updateAdminStats(orders) {
 }
 
 // ============================================================
-// 21. تحديث حالة الطلب وإنشاء الترخيص
+// 21. تحديث حالة الطلب وإنشاء الترخيص (مع إرسال الترخيص)
 // ============================================================
 
 window.updateOrderStatus = async function(orderId, userId, newStatus) {
@@ -2580,7 +2578,7 @@ window.clearAdminSearch = function() { document.getElementById('adminSearchInput
 window.refreshAdminOrders = function() { loadAdminOrders(); showToast('🔄 Refreshed', 'info'); };
 
 // ============================================================
-// 22. دالة إرسال الترخيص عبر Edge Function
+// 22. دالة إرسال الترخيص عبر Edge Function (بدون Authorization)
 // ============================================================
 
 async function sendLicenceForOrder(orderId, userId) {
@@ -2628,7 +2626,7 @@ async function sendLicenceForOrder(orderId, userId) {
 }
 
 // ============================================================
-// 23. المستخدمين (Admin Users)
+// 23. المستخدمين (Admin Users) - محمية بشرط الأدمن
 // ============================================================
 
 async function loadAdminUsers() {
@@ -2735,7 +2733,7 @@ window.viewUserDetails = async function(uid) {
 window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
 // ============================================================
-// 24. تاريخ الطلبات
+// 24. تاريخ الطلبات (مع زر تحديث) - مختصر
 // ============================================================
 
 window.clearOrderHistory = async function() {
@@ -2823,7 +2821,7 @@ window.filterOrders = function(filter) {
 };
 
 // ============================================================
-// 25. نظام إدارة التراخيص (مع Supabase)
+// 25. نظام إدارة التراخيص (مع Supabase) - مختصر
 // ============================================================
 
 async function loadLicences() {
@@ -3548,7 +3546,7 @@ window.saveMarqueeSettings = async function() {
 };
 
 // ============================================================
-// 29. دوال الإحصائيات والسجلات
+// 29. دوال الإحصائيات والسجلات (مختصرة)
 // ============================================================
 
 async function loadDashboardStats() {
@@ -3636,7 +3634,7 @@ async function loadAuditLogs() {
 window.loadAuditLogs = loadAuditLogs;
 
 // ============================================================
-// 30. التقييمات (Ratings)
+// 30. التقييمات (Ratings) - مختصر
 // ============================================================
 
 let currentRating = 0;
@@ -3838,11 +3836,19 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// 35. التهيئة (Init) - مع إصلاح شاشة التحميل
+// 35. التهيئة (Init) - مع ضمان إخفاء شاشة التحميل
 // ============================================================
 
 async function init() {
+    console.log('🚀 Initializing ZI Store...');
     showLoadingScreen();
+    
+    // حل احتياطي: إخفاء شاشة التحميل بعد 5 ثواني بغض النظر عن أي شيء
+    const forceHideTimeout = setTimeout(() => {
+        console.warn('⚠️ Force hiding loading screen after 5 seconds.');
+        hideLoadingScreen();
+    }, 5000);
+
     try {
         updateLoadingBar(10);
         updateLoadingBar(30);
@@ -3872,7 +3878,8 @@ async function init() {
         console.error('❌ Initialization error:', error);
         showToast('⚠️ Error loading store. Please refresh.', 'error');
     } finally {
-        // تأكد من إخفاء شاشة التحميل في جميع الأحوال
+        clearTimeout(forceHideTimeout);
+        // إخفاء شاشة التحميل بعد 500ms إضافية للتأكد من أن كل شيء تم عرضه
         setTimeout(() => {
             hideLoadingScreen();
             setTimeout(showTelegramBanner, 500);
