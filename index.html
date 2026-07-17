@@ -439,6 +439,16 @@
         .binance-instructions-box strong {
             color: var(--text);
         }
+
+        /* ============================================
+           تعديل اتجاه أزرار حفظ/إلغاء في الملف الشخصي
+           ============================================ */
+        #profileFull .edit-profile-section .form-actions {
+            display: flex;
+            flex-direction: row-reverse;
+            gap: 8px;
+            margin-top: 12px;
+        }
     </style>
 
     <!-- إخفاء فوري لشاشة التحميل قبل تحميل أي شيء -->
@@ -822,7 +832,7 @@
     </div>
 
     <!-- ============================================ -->
-    <!-- المودالات الكاملة (Fullscreen) -->
+    <!-- المودالات الكاملة (Fullscreen) - مع إضافة class="modal-body" -->
     <!-- ============================================ -->
 
     <!-- قائمة المستخدم -->
@@ -860,40 +870,40 @@
         </div>
     </div>
 
-    <!-- الملف الشخصي -->
+    <!-- الملف الشخصي (Profile) - مع إضافة class="modal-body" -->
     <div class="fullscreen-modal" id="profileFull">
         <div class="modal-header">
             <h2><i class="fas fa-user-cog"></i> Profile</h2>
             <button class="modal-close" onclick="closeProfileFull()"><i class="fas fa-times"></i></button>
         </div>
-        <div id="profileFullContent"></div>
+        <div class="modal-body" id="profileFullContent"></div>
     </div>
 
-    <!-- تاريخ الطلبات -->
+    <!-- تاريخ الطلبات (History) - مع إضافة class="modal-body" -->
     <div class="fullscreen-modal" id="historyFull">
         <div class="modal-header">
             <h2><i class="fas fa-history"></i> Order History</h2>
             <button class="modal-close" onclick="closeHistoryFull()"><i class="fas fa-times"></i></button>
         </div>
-        <div id="historyFullContent"></div>
+        <div class="modal-body" id="historyFullContent"></div>
     </div>
 
-    <!-- السلة -->
+    <!-- السلة (Cart) - مع إضافة class="modal-body" -->
     <div class="fullscreen-modal" id="cartFull">
         <div class="modal-header">
             <h2><i class="fas fa-shopping-cart"></i> Cart</h2>
             <button class="modal-close" onclick="closeCartFull()"><i class="fas fa-times"></i></button>
         </div>
-        <div id="cartFullContent"></div>
+        <div class="modal-body" id="cartFullContent"></div>
     </div>
 
-    <!-- المفضلة -->
+    <!-- المفضلة (Wishlist) - مع إضافة class="modal-body" -->
     <div class="fullscreen-modal" id="wishlistFull">
         <div class="modal-header">
             <h2><i class="fas fa-heart"></i> Favorites</h2>
             <button class="modal-close" onclick="closeWishlistFull()"><i class="fas fa-times"></i></button>
         </div>
-        <div id="wishlistFullContent"></div>
+        <div class="modal-body" id="wishlistFullContent"></div>
     </div>
 
     <!-- مودال الطلبات -->
