@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - الإصدار النهائي الكامل مع إصلاحات السلايدر (background-image)
+// SCRIPT.JS - ZI Store - الإصدار الكامل مع ميزات العملة والكميات والشارات
 // ============================================================
 
 // ============================================================
@@ -961,6 +961,30 @@ function startProductsRealtimeListener() {
     }, (error) => { console.error('Products listener error:', error); products = fallbackProducts; renderProducts(products, false); renderAdminProducts(products); updateStatsFromProducts(products); renderFeaturedProducts(); });
 }
 
+// دالة للحصول على رمز العملة
+function getCurrencySymbol(currency) {
+    const symbols = {
+        'USD': '$',
+        'TND': 'د.ت',
+        'OTHER': '💱'
+    };
+    return symbols[currency] || '$';
+}
+
+// دالة عرض الشارات
+function renderBadges(badges) {
+    if (!badges || badges.length === 0) return '';
+    const badgeMap = {
+        'new': 'mb-new',
+        'hot': 'mb-hot',
+        'exclusive': 'mb-exclusive',
+        'important': 'mb-important',
+        'limited': 'mb-limited',
+        'best': 'mb-best'
+    };
+    return `<div class="product-badges">${badges.map(b => `<span class="mini-badge ${badgeMap[b] || ''}">${b}</span>`).join('')}</div>`;
+}
+
 function renderProducts(productsList, isLoading = false) {
     const container = document.getElementById('productList');
     if (!container) return;
@@ -996,9 +1020,12 @@ function renderProducts(productsList, isLoading = false) {
         if (activeDiscount > 0 && p.price > 0) {
             const discounted = displayPrice - (displayPrice * activeDiscount / 100);
             displayPrice = discounted;
-            originalPrice = `<span class="original-price">${p.price} $</span>`;
+            originalPrice = `<span class="original-price">${getCurrencySymbol(p.currency || 'USD')}${p.price.toFixed(2)}</span>`;
             discountBadge = `<span class="discount-badge">-${activeDiscount}%</span>`;
         }
+        const currencySymbol = getCurrencySymbol(p.currency || 'USD');
+        const priceDisplay = isUnavailable ? '⛔ Unavailable' : (isFree ? 'FREE' : `${currencySymbol}${displayPrice.toFixed(2)}`);
+        
         return `
       <div class="product-card" onclick="window.openDetails('${p.id}')">
         <div class="product-actions-top">
@@ -1010,12 +1037,13 @@ function renderProducts(productsList, isLoading = false) {
           <div class="image-badge ${badgeClass}">${badgeLabel}</div>
         </div>
         <div class="product-name">${p.name}</div>
+        ${p.badges && p.badges.length > 0 ? renderBadges(p.badges) : ''}
         <div class="features-list">
           ${displayFeatures.map(f=>`<span class="feature-item"><i class="fas fa-circle"></i> ${f}</span>`).join('')}
           ${displayFeatures.length>0 && p.features && p.features.length>3?`<span class="feature-item" style="opacity:0.2;">+${p.features.length-3}</span>`:''}
         </div>
         <div class="price">
-          ${isUnavailable?'⛔ Unavailable':(isFree?'FREE':(displayPrice.toFixed(2)+' $'))}
+          ${priceDisplay}
           ${originalPrice} ${discountBadge}
         </div>
         <div class="card-actions">
@@ -1053,11 +1081,149 @@ function generateRecommendations(productsList) {
     const shuffled = [...list].sort(() => 0.5 - Math.random());
     const top = shuffled.slice(0, 4);
     if (top.length === 0) { grid.innerHTML = `<div class="rec-empty" style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text-secondary);font-size:13px;"><i class="fas fa-lightbulb" style="display:block;font-size:24px;opacity:0.2;margin-bottom:4px;"></i><p>Start exploring scripts!</p></div>`; return; }
-    grid.innerHTML = top.map(p => `<div class="rec-item" onclick="window.openDetails('${p.id}')"><img src="${p.image||'https://picsum.photos/seed/default/200/120'}" alt="${p.name}" /><div class="r-name">${p.name}</div><div class="r-price">${p.price===0?'FREE':p.price+' $'}</div></div>`).join('');
+    grid.innerHTML = top.map(p => `<div class="rec-item" onclick="window.openDetails('${p.id}')"><img src="${p.image||'https://picsum.photos/seed/default/200/120'}" alt="${p.name}" /><div class="r-name">${p.name}</div><div class="r-price">${p.price===0?'FREE':getCurrencySymbol(p.currency || 'USD') + p.price.toFixed(2)}</div></div>`).join('');
 }
 
 // ============================================================
-// 9. المنتجات المميزة والسلة والمفضلة
+// 9. دوال العملة ونوع المنتج والكميات والشارات (جديدة)
+// ============================================================
+
+// اختيار العملة
+window.selectCurrency = function(currency) {
+    document.querySelectorAll('.currency-option').forEach(el => {
+        el.classList.toggle('active', el.dataset.currency === currency);
+    });
+    document.getElementById('productCurrency').value = currency;
+};
+
+// اختيار نوع المنتج
+window.selectProductType = function(type) {
+    document.querySelectorAll('.type-option').forEach(el => {
+        el.classList.toggle('active', el.dataset.type === type);
+    });
+    document.getElementById('productType').value = type;
+    
+    const container = document.getElementById('quantityOptionsContainer');
+    if (type === 'quantity') {
+        container.style.display = 'block';
+        container.style.animation = 'slideIn 0.3s ease';
+        if (document.querySelectorAll('.quantity-option-item').length === 0) {
+            addQuantityOption();
+        }
+    } else {
+        container.style.display = 'none';
+    }
+};
+
+// إضافة خيار كمية جديد
+window.addQuantityOption = function() {
+    const list = document.getElementById('quantityOptionsList');
+    const index = document.querySelectorAll('.quantity-option-item').length;
+    const div = document.createElement('div');
+    div.className = 'quantity-option-item';
+    div.innerHTML = `
+        <span class="qty-label">Option ${index + 1}</span>
+        <input type="number" class="qty-input" placeholder="Quantity" min="1" value="${index === 0 ? 500 : index === 1 ? 1000 : 5000}" />
+        <div class="qty-price-group">
+            <input type="number" class="qty-price" placeholder="Price" step="0.01" min="0" value="${index === 0 ? 5 : index === 1 ? 9 : 35}" />
+            <input type="number" class="qty-original-price" placeholder="Original" step="0.01" min="0" value="${index === 0 ? 7 : index === 1 ? 12 : 50}" />
+        </div>
+        <button class="qty-remove" onclick="removeQuantityOption(this)"><i class="fas fa-times"></i></button>
+    `;
+    list.appendChild(div);
+    updateQuantityOptionsUI();
+};
+
+// إزالة خيار كمية
+window.removeQuantityOption = function(btn) {
+    const item = btn.closest('.quantity-option-item');
+    if (document.querySelectorAll('.quantity-option-item').length > 1) {
+        item.remove();
+        updateQuantityOptionsUI();
+    } else {
+        showToast('⚠️ You need at least one quantity option', 'warning');
+    }
+};
+
+// تحديث تسميات الخيارات
+function updateQuantityOptionsUI() {
+    document.querySelectorAll('.quantity-option-item').forEach((el, i) => {
+        const label = el.querySelector('.qty-label');
+        if (label) label.textContent = `Option ${i + 1}`;
+    });
+}
+
+// جلب خيارات الكميات ككائن
+function getQuantityOptions() {
+    const options = [];
+    document.querySelectorAll('.quantity-option-item').forEach(el => {
+        const quantity = parseInt(el.querySelector('.qty-input').value) || 0;
+        const price = parseFloat(el.querySelector('.qty-price').value) || 0;
+        const originalPrice = parseFloat(el.querySelector('.qty-original-price').value) || 0;
+        if (quantity > 0 && price > 0) {
+            options.push({ quantity, price, originalPrice });
+        }
+    });
+    return options;
+}
+
+// تعبئة خيارات الكميات في النموذج عند التعديل
+function setQuantityOptions(options) {
+    const list = document.getElementById('quantityOptionsList');
+    list.innerHTML = '';
+    if (!options || options.length === 0) {
+        addQuantityOption();
+        return;
+    }
+    options.forEach((opt, index) => {
+        const div = document.createElement('div');
+        div.className = 'quantity-option-item';
+        div.innerHTML = `
+            <span class="qty-label">Option ${index + 1}</span>
+            <input type="number" class="qty-input" placeholder="Quantity" min="1" value="${opt.quantity}" />
+            <div class="qty-price-group">
+                <input type="number" class="qty-price" placeholder="Price" step="0.01" min="0" value="${opt.price}" />
+                <input type="number" class="qty-original-price" placeholder="Original" step="0.01" min="0" value="${opt.originalPrice || ''}" />
+            </div>
+            <button class="qty-remove" onclick="removeQuantityOption(this)"><i class="fas fa-times"></i></button>
+        `;
+        list.appendChild(div);
+    });
+    updateQuantityOptionsUI();
+}
+
+// تبديل الشارة
+window.toggleBadge = function(badge) {
+    const option = document.querySelector(`.badge-option[data-badge="${badge}"]`);
+    if (!option) return;
+    option.classList.toggle('selected');
+    updateBadgesInput();
+};
+
+// تحديث حقل الشارات المخفي
+function updateBadgesInput() {
+    const selected = [];
+    document.querySelectorAll('.badge-option.selected').forEach(el => {
+        selected.push(el.dataset.badge);
+    });
+    document.getElementById('productBadges').value = selected.join(',');
+}
+
+// تعبئة الشارات عند التعديل
+function setBadges(badges) {
+    document.querySelectorAll('.badge-option').forEach(el => {
+        const badge = el.dataset.badge;
+        if (badges && badges.includes(badge)) {
+            el.classList.add('selected');
+        } else {
+            el.classList.remove('selected');
+        }
+    });
+    updateBadgesInput();
+}
+
+// ============================================================
+// 10. المنتجات المميزة والسلة والمفضلة
 // ============================================================
 
 function renderFeaturedProducts() {
@@ -1096,7 +1262,7 @@ function displayFeaturedSlice() {
                 <span class="featured-item-badge ${badgeClass}">${badgeText}</span>
             </div>
             <div class="featured-item-name">${p.name}</div>
-            <div class="featured-item-price">${p.price === 0 ? 'FREE' : '$' + p.price.toFixed(2)}</div>
+            <div class="featured-item-price">${p.price === 0 ? 'FREE' : getCurrencySymbol(p.currency || 'USD') + p.price.toFixed(2)}</div>
         </div>
     `}).join('');
 }
@@ -1117,9 +1283,44 @@ async function loadFeaturedSettings() {
     }
 }
 
+// ============================================================
+// 11. إدارة السلة (مع دعم المنتجات الكمية)
+// ============================================================
+
 window.addToCart = async function(productId) {
     const product = products.find(p => p.id === productId);
-    if (!product || product.price === 0) { showToast('⚠️ This script is free', 'warning'); return; }
+    if (!product) { showToast('⚠️ Product not found', 'warning'); return; }
+    
+    // إذا كان المنتج من نوع quantity
+    if (product.productType === 'quantity') {
+        const selectedQty = window._selectedQuantity || product.quantityOptions?.[0]?.quantity;
+        const selectedPrice = window._selectedQuantityPrice || product.quantityOptions?.[0]?.price;
+        if (!selectedQty || !selectedPrice) {
+            showToast('⚠️ Please select a quantity option', 'warning');
+            return;
+        }
+        const existing = cart.find(item => item.id === productId && item.selectedQuantity === selectedQty);
+        if (existing) {
+            existing.quantity = (existing.quantity || 1) + 1;
+        } else {
+            cart.push({ 
+                ...product, 
+                price: selectedPrice, 
+                quantity: 1,
+                selectedQuantity: selectedQty,
+                isQuantityProduct: true
+            });
+        }
+        await saveUserData(true);
+        updateCartUI();
+        renderProducts(products);
+        updateBottomCartBar();
+        showToast(`✅ Added ${product.name} (${selectedQty}) to cart`, 'success');
+        return;
+    }
+    
+    // المنتجات العادية
+    if (product.price === 0) { showToast('⚠️ This script is free', 'warning'); return; }
     const existing = cart.find(item => item.id === productId && !item.isVip);
     if (existing) { existing.quantity = (existing.quantity || 1) + 1; } else { cart.push({ ...product, quantity: 1 }); }
     await saveUserData(true);
@@ -1186,7 +1387,8 @@ function renderCartFull() {
         const product = products.find(p => p.id === item.id);
         const image = product?.image || item.image || 'https://picsum.photos/seed/default/100/100';
         const vipLabel = item.isVip ? `👑 ${item.vipPlanLabel || 'VIP'}` : '';
-        html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);margin-bottom:8px;"><div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;"><img src="${image}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" /><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.name} ${vipLabel}</div><div style="font-size:12px;color:var(--primary);font-weight:700;">$${itemTotal.toFixed(2)}</div></div></div><div style="display:flex;align-items:center;gap:6px;"><button onclick="updateCartQuantity('${item.id}',-1)" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;">-</button><span style="min-width:20px;text-align:center;font-size:14px;font-weight:700;">${qty}</span><button onclick="updateCartQuantity('${item.id}',1)" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;">+</button><button onclick="removeFromCart('${item.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:14px;opacity:0.3;padding:4px;"><i class="fas fa-trash-alt"></i></button></div></div>`;
+        const qtyLabel = item.isQuantityProduct ? `📦 ${item.selectedQuantity || ''}` : '';
+        html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);margin-bottom:8px;"><div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;"><img src="${image}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" /><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.name} ${vipLabel} ${qtyLabel}</div><div style="font-size:12px;color:var(--primary);font-weight:700;">${getCurrencySymbol(item.currency || 'USD')}${itemTotal.toFixed(2)}</div></div></div><div style="display:flex;align-items:center;gap:6px;"><button onclick="updateCartQuantity('${item.id}',-1)" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;">-</button><span style="min-width:20px;text-align:center;font-size:14px;font-weight:700;">${qty}</span><button onclick="updateCartQuantity('${item.id}',1)" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;">+</button><button onclick="removeFromCart('${item.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:14px;opacity:0.3;padding:4px;"><i class="fas fa-trash-alt"></i></button></div></div>`;
     });
     let rpDiscountAmount = 0;
     let promoDiscountAmount = 0;
@@ -1213,15 +1415,15 @@ function renderCartFull() {
       <div class="promo-status" id="cartPromoStatus" style="font-size:11px;color:var(--text-secondary);opacity:0.4;margin-top:4px;">${activeDiscount>0?`✅ ${activeDiscount}% discount active`:'Enter a promo code for a discount'}</div>
     </div>
     <div style="margin-top:12px;padding-top:12px;border-top:2px solid var(--border);">
-      <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;"><span style="color:var(--text-secondary);opacity:0.5;">Subtotal</span><span style="color:var(--text);font-weight:600;">$${total.toFixed(2)}</span></div>
-      ${rpDiscountAmount>0?`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;color:var(--success);"><span style="color:var(--text-secondary);opacity:0.5;">🎯 RP discount (${Math.floor(rpDiscountAmount/RP_TO_DOLLAR)} RP)</span><span style="font-weight:600;">-$${rpDiscountAmount.toFixed(2)}</span></div>`:''}
-      ${activeDiscount>0?`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;color:var(--success);"><span style="color:var(--text-secondary);opacity:0.5;">🎫 Promo (${activeDiscount}%)</span><span style="font-weight:600;">-$${promoDiscountAmount.toFixed(2)}</span></div>`:''}
-      <div style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid var(--border);margin-top:4px;padding-top:6px;font-size:18px;font-weight:700;"><span style="color:var(--text-secondary);opacity:0.5;">Total</span><span style="color:var(--primary);">$${finalTotal.toFixed(2)}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;"><span style="color:var(--text-secondary);opacity:0.5;">Subtotal</span><span style="color:var(--text);font-weight:600;">${getCurrencySymbol('USD')}${total.toFixed(2)}</span></div>
+      ${rpDiscountAmount>0?`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;color:var(--success);"><span style="color:var(--text-secondary);opacity:0.5;">🎯 RP discount (${Math.floor(rpDiscountAmount/RP_TO_DOLLAR)} RP)</span><span style="font-weight:600;">-${getCurrencySymbol('USD')}${rpDiscountAmount.toFixed(2)}</span></div>`:''}
+      ${activeDiscount>0?`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;color:var(--success);"><span style="color:var(--text-secondary);opacity:0.5;">🎫 Promo (${activeDiscount}%)</span><span style="font-weight:600;">-${getCurrencySymbol('USD')}${promoDiscountAmount.toFixed(2)}</span></div>`:''}
+      <div style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid var(--border);margin-top:4px;padding-top:6px;font-size:18px;font-weight:700;"><span style="color:var(--text-secondary);opacity:0.5;">Total</span><span style="color:var(--primary);">${getCurrencySymbol('USD')}${finalTotal.toFixed(2)}</span></div>
       <div style="display:flex;align-items:center;gap:12px;margin-top:16px;">
         <button onclick="closeCartFull();checkout();" style="flex:1;padding:14px 20px;border:none;border-radius:12px;background:var(--primary);color:#fff;font-weight:700;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;gap:8px;transition:0.3s;">
           <i class="fas fa-shopping-cart"></i> Checkout
         </button>
-        <span style="font-size:22px;font-weight:800;color:var(--primary);min-width:80px;text-align:right;">$${finalTotal.toFixed(2)}</span>
+        <span style="font-size:22px;font-weight:800;color:var(--primary);min-width:80px;text-align:right;">${getCurrencySymbol('USD')}${finalTotal.toFixed(2)}</span>
       </div>
     </div>
   `;
@@ -1271,7 +1473,7 @@ function updateWishlistUI() {
     if (wlCount === 0) { if (section) section.style.display = 'none'; if (grid) grid.innerHTML = `<div class="wishlist-empty"><i class="fas fa-heart"></i><p>No favorites yet</p></div>`; return; }
     if (section) section.style.display = 'block';
     const wlProducts = products.filter(p => wishlist.includes(p.id));
-    if (grid) { grid.innerHTML = wlProducts.map(p => `<div class="wishlist-item" style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:var(--bg);border-radius:8px;border:1px solid var(--border);transition:0.3s;"><img src="${p.image || 'https://picsum.photos/seed/default/60/60'}" style="width:30px;height:30px;border-radius:6px;object-fit:cover;" /><div class="info" style="flex:1;min-width:0;"><h4 style="font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</h4><div class="price" style="font-size:10px;color:var(--primary);font-weight:700;">${p.price===0?'FREE':p.price+' $'}</div></div><button class="remove-btn" onclick="window.removeFromWishlist('${p.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:11px;opacity:0.3;transition:0.3s;"><i class="fas fa-times"></i></button></div>`).join(''); }
+    if (grid) { grid.innerHTML = wlProducts.map(p => `<div class="wishlist-item" style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:var(--bg);border-radius:8px;border:1px solid var(--border);transition:0.3s;"><img src="${p.image || 'https://picsum.photos/seed/default/60/60'}" style="width:30px;height:30px;border-radius:6px;object-fit:cover;" /><div class="info" style="flex:1;min-width:0;"><h4 style="font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</h4><div class="price" style="font-size:10px;color:var(--primary);font-weight:700;">${p.price===0?'FREE':getCurrencySymbol(p.currency || 'USD') + p.price.toFixed(2)}</div></div><button class="remove-btn" onclick="window.removeFromWishlist('${p.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:11px;opacity:0.3;transition:0.3s;"><i class="fas fa-times"></i></button></div>`).join(''); }
     updateFullUserMenu();
 }
 
@@ -1282,7 +1484,7 @@ function renderWishlistFull() {
         return;
     }
     const wlProducts = products.filter(p => wishlist.includes(p.id));
-    container.innerHTML = `<div style="display:grid;gap:8px;">${wlProducts.map(p=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);cursor:pointer;" onclick="window.openDetails('${p.id}');closeWishlistFull();"><img src="${p.image||'https://picsum.photos/seed/default/60/60'}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" /><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div><div style="font-size:12px;color:var(--primary);font-weight:700;">${p.price===0?'FREE':'$'+p.price}</div></div><button onclick="event.stopPropagation();removeFromWishlist('${p.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:14px;opacity:0.3;padding:8px;transition:0.3s;"><i class="fas fa-times"></i></button></div>`).join('')}</div>`;
+    container.innerHTML = `<div style="display:grid;gap:8px;">${wlProducts.map(p=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);cursor:pointer;" onclick="window.openDetails('${p.id}');closeWishlistFull();"><img src="${p.image||'https://picsum.photos/seed/default/60/60'}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" /><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div><div style="font-size:12px;color:var(--primary);font-weight:700;">${p.price===0?'FREE':getCurrencySymbol(p.currency || 'USD') + p.price.toFixed(2)}</div></div><button onclick="event.stopPropagation();removeFromWishlist('${p.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:14px;opacity:0.3;padding:8px;transition:0.3s;"><i class="fas fa-times"></i></button></div>`).join('')}</div>`;
 }
 
 function createFloatingHearts() {
@@ -1302,7 +1504,7 @@ function createFloatingHearts() {
 }
 
 // ============================================================
-// 10. عرض المنتج (Preview)
+// 12. عرض المنتج (Preview) - مع دعم الكميات والشارات
 // ============================================================
 
 window.openDetails = function(id) {
@@ -1329,7 +1531,8 @@ window.openDetails = function(id) {
         featuresContainer.innerHTML = `<div class="features-header"><i class="fas fa-check-circle"></i> Features</div><ul class="features-list">${featuresHtml}</ul>`;
         featuresContainer.style.display = 'block';
     } else { featuresContainer.style.display = 'none'; }
-    let priceDisplay = p.price === 0 ? 'FREE' : `$${p.price.toFixed(2)}`;
+    
+    let priceDisplay = p.price === 0 ? 'FREE' : `${getCurrencySymbol(p.currency || 'USD')}${p.price.toFixed(2)}`;
     document.getElementById('previewPrice').textContent = priceDisplay;
     const addBtn = document.getElementById('previewAddBtn');
     const inCart = cart.some(item => item.id === id && !item.isVip);
@@ -1385,8 +1588,8 @@ window.openDetails = function(id) {
                          onclick="window.selectVipPlan(this, '${plan.key}')">
                         <div class="vip-plan-check"><i class="fas fa-check-circle"></i></div>
                         <div class="vip-plan-label">${plan.label}</div>
-                        <div class="vip-plan-price">$${priceNum.toFixed(2)}</div>
-                        ${hasDiscount ? `<div class="vip-plan-original">$${originalNum.toFixed(2)}</div><div class="vip-plan-discount">SAVE ${discount}%</div>` : ''}
+                        <div class="vip-plan-price">${getCurrencySymbol(p.currency || 'USD')}${priceNum.toFixed(2)}</div>
+                        ${hasDiscount ? `<div class="vip-plan-original">${getCurrencySymbol(p.currency || 'USD')}${originalNum.toFixed(2)}</div><div class="vip-plan-discount">SAVE ${discount}%</div>` : ''}
                     </div>
                 `;
             }
@@ -1402,6 +1605,54 @@ window.openDetails = function(id) {
             }
         } else { vipSection.style.display = 'none'; }
     } else { vipSection.style.display = 'none'; }
+    
+    // ====== عرض خيارات الكميات (للمنتجات من نوع quantity) ======
+    const existingQuantitySection = document.getElementById('previewQuantitySection');
+    if (existingQuantitySection) existingQuantitySection.remove();
+    
+    if (p.productType === 'quantity' && p.quantityOptions && p.quantityOptions.length > 0) {
+        const section = document.createElement('div');
+        section.id = 'previewQuantitySection';
+        section.className = 'preview-quantity-section';
+        section.innerHTML = `
+            <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;">
+                <i class="fas fa-cubes"></i> Select Quantity
+            </div>
+            <div class="preview-quantity-options" id="previewQuantityOptions"></div>
+            <div style="margin-top:8px;font-size:12px;color:var(--text-secondary);opacity:0.4;">
+                Click on a quantity to select it
+            </div>
+        `;
+        const vipSectionEl = document.getElementById('previewVipPricing');
+        if (vipSectionEl && vipSectionEl.style.display !== 'none') {
+            vipSectionEl.parentNode.insertBefore(section, vipSectionEl.nextSibling);
+        } else {
+            document.querySelector('.preview-body').appendChild(section);
+        }
+        
+        const container = document.getElementById('previewQuantityOptions');
+        if (container) {
+            container.innerHTML = p.quantityOptions.map((opt, index) => `
+                <div class="preview-quantity-option ${index === 0 ? 'selected' : ''}" 
+                     data-index="${index}" 
+                     data-quantity="${opt.quantity}" 
+                     data-price="${opt.price}"
+                     onclick="selectQuantityOption(this, '${p.id}')">
+                    <div class="qty-value">${opt.quantity}</div>
+                    <div class="qty-price">${getCurrencySymbol(p.currency || 'USD')}${opt.price.toFixed(2)}</div>
+                    ${opt.originalPrice ? `<div class="qty-original">${getCurrencySymbol(p.currency || 'USD')}${opt.originalPrice.toFixed(2)}</div>` : ''}
+                    <div class="qty-check"><i class="fas fa-check-circle"></i></div>
+                </div>
+            `).join('');
+            const firstOpt = p.quantityOptions[0];
+            if (firstOpt) {
+                document.getElementById('previewPrice').textContent = getCurrencySymbol(p.currency || 'USD') + firstOpt.price.toFixed(2);
+                window._selectedQuantity = firstOpt.quantity;
+                window._selectedQuantityPrice = firstOpt.price;
+            }
+        }
+    }
+    
     document.getElementById('previewModal').classList.add('open');
     document.body.style.overflow = 'hidden';
     setTimeout(() => {
@@ -1409,6 +1660,19 @@ window.openDetails = function(id) {
         currentProductIdForRating = id;
         currentRating = 0;
     }, 150);
+};
+
+// دالة اختيار كمية في المعاينة
+window.selectQuantityOption = function(element, productId) {
+    document.querySelectorAll('.preview-quantity-option').forEach(el => el.classList.remove('selected'));
+    element.classList.add('selected');
+    const price = parseFloat(element.dataset.price);
+    const quantity = parseInt(element.dataset.quantity);
+    window._selectedQuantity = quantity;
+    window._selectedQuantityPrice = price;
+    const product = products.find(p => p.id === productId);
+    const currency = product?.currency || 'USD';
+    document.getElementById('previewPrice').textContent = getCurrencySymbol(currency) + price.toFixed(2);
 };
 
 window.selectVipPlan = function(element, planKey) {
@@ -1437,14 +1701,14 @@ window.addToCartFromPreview = function() { if (window._currentProduct) { window.
 window.shareFromPreview = function() { if (window._currentProduct) { window.openShareModal(window._currentProduct.id); } };
 
 // ============================================================
-// 11. مودال المشاركة
+// 13. مودال المشاركة
 // ============================================================
 
 window.openShareModal = function(productId) {
     const product = products.find(p => p.id === productId);
     if (!product) return;
     shareProduct = product;
-    document.getElementById('shareProductInfo').innerHTML = `<div style="display:flex;align-items:center;gap:10px;justify-content:center;"><img src="${product.image||'https://picsum.photos/seed/default/80/80'}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" /><div><div style="font-size:15px;font-weight:600;color:var(--text);">${product.name}</div><div style="font-size:13px;color:var(--primary);font-weight:700;">${product.price===0?'FREE':product.price+' $'}</div></div></div>`;
+    document.getElementById('shareProductInfo').innerHTML = `<div style="display:flex;align-items:center;gap:10px;justify-content:center;"><img src="${product.image||'https://picsum.photos/seed/default/80/80'}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" /><div><div style="font-size:15px;font-weight:600;color:var(--text);">${product.name}</div><div style="font-size:13px;color:var(--primary);font-weight:700;">${product.price===0?'FREE':getCurrencySymbol(product.currency || 'USD') + product.price.toFixed(2)}</div></div></div>`;
     document.getElementById('shareModal').classList.add('open');
 };
 window.closeShareModal = function() { document.getElementById('shareModal').classList.remove('open'); shareProduct = null; };
@@ -1454,7 +1718,7 @@ window.shareToFacebook = function() { if (!shareProduct) return; window.open(`ht
 window.copyShareLink = function() { const url = window.location.href; navigator.clipboard.writeText(url).then(() => { showToast('✅ Link copied!', 'success'); closeShareModal(); }).catch(() => { const textArea = document.createElement('textarea'); textArea.value = url; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); showToast('✅ Link copied!', 'success'); closeShareModal(); }); };
 
 // ============================================================
-// 12. التصفية والبحث
+// 14. التصفية والبحث
 // ============================================================
 
 window.filterProducts = function(filter) {
@@ -1487,7 +1751,7 @@ function performLiveSearch(query) {
     searchResults.innerHTML = results.slice(0, 10).map(p => {
         const isFree = p.price === 0;
         const isUnavailable = p.status === 'unavailable';
-        const priceDisplay = isUnavailable ? '⛔ Unavailable' : (isFree ? 'FREE' : '$' + p.price);
+        const priceDisplay = isUnavailable ? '⛔ Unavailable' : (isFree ? 'FREE' : getCurrencySymbol(p.currency || 'USD') + p.price.toFixed(2));
         const badgeClass = isUnavailable ? 'unavailable' : (isFree ? 'free' : 'vip');
         const badgeText = isUnavailable ? '⛔' : (isFree ? 'FREE' : 'VIP');
         return `
@@ -1511,7 +1775,7 @@ function closeSearchResults() { searchResults.classList.remove('active'); search
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeSearchResults(); closeUserMenuFull(); closeCartFull(); closeWishlistFull(); closeProfileFull(); closeHistoryFull(); } });
 
 // ============================================================
-// 13. الدفع (Payment)
+// 15. الدفع (Payment)
 // ============================================================
 
 async function fetchCryptoPrices() {
@@ -1646,12 +1910,13 @@ function renderPaymentProducts() {
         const product = products.find(p => p.id === item.id);
         const image = product?.image || item.image || 'https://picsum.photos/seed/default/80/80';
         const name = item.isVip ? `${item.name} 👑 ${item.vipPlanLabel || 'VIP'}` : item.name;
+        const qtyLabel = item.isQuantityProduct ? `📦 ${item.selectedQuantity || ''}` : '';
         return `
             <div class="payment-product-item">
                 <img src="${image}" alt="${item.name}" />
                 <div class="pp-info">
-                    <div class="pp-name">${name}</div>
-                    <div class="pp-price">${total.toFixed(2)} $</div>
+                    <div class="pp-name">${name} ${qtyLabel}</div>
+                    <div class="pp-price">${getCurrencySymbol(item.currency || 'USD')}${total.toFixed(2)}</div>
                 </div>
                 <div class="pp-qty">×${qty}</div>
             </div>
@@ -1660,7 +1925,7 @@ function renderPaymentProducts() {
 }
 
 // ============================================================
-// 14. إرسال الطلب (Order)
+// 16. إرسال الطلب (Order)
 // ============================================================
 
 async function sendOrderToTelegram(method, txHash = null) {
@@ -1687,7 +1952,8 @@ async function sendOrderToTelegram(method, txHash = null) {
             const qty = item.quantity || 1;
             const sub = item.price * qty;
             total += sub;
-            itemsList += `${i+1}. ${item.name} × ${qty} = ${sub.toFixed(2)} $\n`;
+            const qtyLabel = item.isQuantityProduct ? ` (${item.selectedQuantity})` : '';
+            itemsList += `${i+1}. ${item.name}${qtyLabel} × ${qty} = ${getCurrencySymbol(item.currency || 'USD')}${sub.toFixed(2)}\n`;
             productNames.push(item.name);
         });
 
@@ -1697,12 +1963,12 @@ async function sendOrderToTelegram(method, txHash = null) {
         if (userProfile.useRpForCart) {
             rpDiscountAmount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total);
             finalTotal = total - rpDiscountAmount;
-            discountText += `\n🎯 RP discount (${Math.floor(rpDiscountAmount/RP_TO_DOLLAR)} RP): -${rpDiscountAmount.toFixed(2)}$`;
+            discountText += `\n🎯 RP discount (${Math.floor(rpDiscountAmount/RP_TO_DOLLAR)} RP): -$${rpDiscountAmount.toFixed(2)}`;
         }
         if (activeDiscount > 0 && total > 0) {
             const discountAmount = (finalTotal * activeDiscount) / 100;
             finalTotal = finalTotal - discountAmount;
-            discountText += `\n🎫 Promo (${activeDiscount}%): -${discountAmount.toFixed(2)}$`;
+            discountText += `\n🎫 Promo (${activeDiscount}%): -$${discountAmount.toFixed(2)}`;
         }
 
         let adminMsg = '🛒 **New Order**\n\n';
@@ -1711,7 +1977,7 @@ async function sendOrderToTelegram(method, txHash = null) {
         adminMsg += `📧 **Email:** ${currentUser.email || 'N/A'}\n`;
         adminMsg += `📅 **Date:** ${new Date().toLocaleString()}\n\n`;
         adminMsg += `📦 **Products:**\n${itemsList}\n`;
-        adminMsg += `💰 **Total:** ${finalTotal.toFixed(2)}$\n`;
+        adminMsg += `💰 **Total:** $${finalTotal.toFixed(2)}\n`;
         adminMsg += `💬 **Payment Method:** ${method}\n`;
         if (txHash) adminMsg += `🔍 **Tx Hash:** ${txHash}\n`;
 
@@ -1736,7 +2002,15 @@ async function sendOrderToTelegram(method, txHash = null) {
 
         const orderItem = {
             id: orderId,
-            items: cart.map(item => ({ id: item.id, name: item.name, price: item.price, quantity: item.quantity || 1 })),
+            items: cart.map(item => ({ 
+                id: item.id, 
+                name: item.name, 
+                price: item.price, 
+                quantity: item.quantity || 1,
+                selectedQuantity: item.selectedQuantity || null,
+                isQuantityProduct: item.isQuantityProduct || false,
+                currency: item.currency || 'USD'
+            })),
             total: finalTotal,
             method: method,
             date: new Date().toISOString(),
@@ -1829,7 +2103,7 @@ window.closePaymentModal = function() { document.getElementById('paymentModal').
 window.checkout = function() { openPaymentModal(); };
 
 // ============================================================
-// 15. دوال تيليجرام
+// 17. دوال تيليجرام
 // ============================================================
 
 async function sendTelegramNotification(chatId, message) {
@@ -1933,7 +2207,7 @@ window.checkTelegramStatus = async function() {
 };
 
 // ============================================================
-// 16. التحميلات والإشعارات
+// 18. التحميلات والإشعارات
 // ============================================================
 
 function loadDownloads() {
@@ -2118,7 +2392,7 @@ window.openCreateNotificationModal = function() { if (!currentUser || !isAdminCa
 window.closeCreateNotificationModal = function() { document.getElementById('createNotificationModal').classList.remove('open'); };
 
 // ============================================================
-// 17. الطلبات والإحالات
+// 19. الطلبات والإحالات
 // ============================================================
 
 window.openRequestsModal = function() {
@@ -2192,7 +2466,7 @@ window.copyReferralCode2 = function() {
 };
 
 // ============================================================
-// 18. لوحة المدير (Admin Panel)
+// 20. لوحة المدير (Admin Panel)
 // ============================================================
 
 window.openAdminPanel = function() {
@@ -2383,7 +2657,7 @@ window.switchAdminTab = function(tab) {
 };
 
 // ============================================================
-// 19. إدارة المنتجات (Admin Products)
+// 21. إدارة المنتجات (Admin Products) - مع تحديثات العملة والكميات والشارات
 // ============================================================
 
 function renderAdminProducts(productsList) {
@@ -2393,7 +2667,9 @@ function renderAdminProducts(productsList) {
     container.innerHTML = productsList.map(p => {
         const isUnavailable = p.status === 'unavailable';
         const vipBadge = p.vipEnabled ? '👑 VIP' : '';
-        return `<div class="admin-item" style="${isUnavailable?'opacity:0.5;':''}"><div class="item-info"><div class="item-title">${p.name} ${isUnavailable?'⛔':''} ${vipBadge}</div><div class="item-meta">${p.price===0?'🎁 FREE':`💰 $${p.price}`} • ${p.badge||'FREE'} ${isUnavailable?'• Unavailable':''}</div></div><div class="item-actions"><button class="btn-edit" onclick="openEditProductModal('${p.id}')"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="deleteProduct('${p.id}')"><i class="fas fa-trash"></i></button></div></div>`;
+        const typeBadge = p.productType === 'quantity' ? '📦 Qty' : '📦 Std';
+        const badges = p.badges && p.badges.length > 0 ? p.badges.slice(0, 2).join(', ') : '';
+        return `<div class="admin-item" style="${isUnavailable?'opacity:0.5;':''}"><div class="item-info"><div class="item-title">${p.name} ${isUnavailable?'⛔':''} ${vipBadge} <span style="font-size:10px;opacity:0.4;">${typeBadge}</span></div><div class="item-meta">${p.price===0?'🎁 FREE':`${getCurrencySymbol(p.currency || 'USD')} ${p.price}`} • ${p.badge||'FREE'} ${isUnavailable?'• Unavailable':''} ${badges ? '🏷️ '+badges : ''}</div></div><div class="item-actions"><button class="btn-edit" onclick="openEditProductModal('${p.id}')"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="deleteProduct('${p.id}')"><i class="fas fa-trash"></i></button></div></div>`;
     }).join('');
 }
 
@@ -2401,10 +2677,12 @@ window.openEditProductModal = function(productId) {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     const product = products.find(p => p.id === productId);
     if (!product) { showToast('❌ Product not found', 'error'); return; }
+    
     document.getElementById('productFormTitle').textContent = '✏️ Edit Product: ' + product.name;
     document.getElementById('productIdField').value = productId;
     document.getElementById('productName').value = product.name || '';
     document.getElementById('productPrice').value = product.price !== undefined ? product.price : '';
+    document.getElementById('productOriginalPrice').value = product.originalPrice || '';
     document.getElementById('productBadge').value = product.badge || 'FREE';
     document.getElementById('productStatus').value = product.status || 'available';
     document.getElementById('productImage').value = product.image || '';
@@ -2412,7 +2690,32 @@ window.openEditProductModal = function(productId) {
     document.getElementById('productFeatures').value = (product.features || []).join(', ');
     document.getElementById('productVideo').value = product.video || 'https://www.youtube.com/embed/dQw4w9WgXcQ';
     document.getElementById('productDuration').value = product.duration || '';
-    document.getElementById('productOriginalPrice').value = product.originalPrice || '';
+    
+    // العملة
+    const currency = product.currency || 'USD';
+    document.getElementById('productCurrency').value = currency;
+    document.querySelectorAll('.currency-option').forEach(el => {
+        el.classList.toggle('active', el.dataset.currency === currency);
+    });
+    
+    // نوع المنتج
+    const productType = product.productType || 'standard';
+    document.getElementById('productType').value = productType;
+    document.querySelectorAll('.type-option').forEach(el => {
+        el.classList.toggle('active', el.dataset.type === productType);
+    });
+    const container = document.getElementById('quantityOptionsContainer');
+    if (productType === 'quantity') {
+        container.style.display = 'block';
+        setQuantityOptions(product.quantityOptions || []);
+    } else {
+        container.style.display = 'none';
+    }
+    
+    // الشارات
+    setBadges(product.badges || []);
+    
+    // VIP Pricing
     const vipEnabled = product.vipEnabled || false;
     document.getElementById('vipEnabled').checked = vipEnabled;
     document.getElementById('vipPricingFields').style.display = vipEnabled ? 'block' : 'none';
@@ -2426,17 +2729,9 @@ window.openEditProductModal = function(productId) {
         document.getElementById('vipPriceLifetime').value = product.vipPrices['lifetime'] || '';
         document.getElementById('vipOriginalPriceLifetime').value = product.vipPrices['lifetime_original'] || '';
     }
+    
     document.getElementById('productModal').classList.add('open');
 };
-
-document.addEventListener('DOMContentLoaded', function() {
-    const vipToggle = document.getElementById('vipEnabled');
-    if (vipToggle) {
-        vipToggle.addEventListener('change', function() {
-            document.getElementById('vipPricingFields').style.display = this.checked ? 'block' : 'none';
-        });
-    }
-});
 
 window.openAddProductModal = function() {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
@@ -2444,32 +2739,76 @@ window.openAddProductModal = function() {
     document.getElementById('productForm').reset();
     document.getElementById('productIdField').value = '';
     document.getElementById('productPrice').value = '';
+    document.getElementById('productOriginalPrice').value = '';
     document.getElementById('productBadge').value = 'FREE';
     document.getElementById('productStatus').value = 'available';
     document.getElementById('productFeatures').value = '';
     document.getElementById('productDescription').value = '';
     document.getElementById('productVideo').value = 'https://www.youtube.com/embed/dQw4w9WgXcQ';
     document.getElementById('productDuration').value = '';
-    document.getElementById('productOriginalPrice').value = '';
+    
+    // العملة - افتراضي USD
+    document.getElementById('productCurrency').value = 'USD';
+    document.querySelectorAll('.currency-option').forEach(el => {
+        el.classList.toggle('active', el.dataset.currency === 'USD');
+    });
+    
+    // نوع المنتج - افتراضي standard
+    document.getElementById('productType').value = 'standard';
+    document.querySelectorAll('.type-option').forEach(el => {
+        el.classList.toggle('active', el.dataset.type === 'standard');
+    });
+    document.getElementById('quantityOptionsContainer').style.display = 'none';
+    document.getElementById('quantityOptionsList').innerHTML = '';
+    
+    // الشارات - إعادة تعيين
+    document.querySelectorAll('.badge-option').forEach(el => el.classList.remove('selected'));
+    document.getElementById('productBadges').value = '';
+    
+    // VIP Pricing
     document.getElementById('vipEnabled').checked = false;
     document.getElementById('vipPricingFields').style.display = 'none';
+    
     document.getElementById('productModal').classList.add('open');
 };
+
 window.closeProductModal = function() { document.getElementById('productModal').classList.remove('open'); };
 
 window.saveProduct = async function(event) {
     event.preventDefault();
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
+    
     const productId = document.getElementById('productIdField').value;
     const name = document.getElementById('productName').value.trim();
     const price = parseFloat(document.getElementById('productPrice').value) || 0;
+    const originalPrice = parseFloat(document.getElementById('productOriginalPrice').value) || 0;
     const badge = document.getElementById('productBadge').value;
     const status = document.getElementById('productStatus').value;
     const description = document.getElementById('productDescription').value.trim();
     const featuresText = document.getElementById('productFeatures').value.trim();
     const video = document.getElementById('productVideo').value.trim();
     const duration = document.getElementById('productDuration').value.trim();
-    const originalPrice = parseFloat(document.getElementById('productOriginalPrice').value) || 0;
+    
+    // العملة
+    const currency = document.getElementById('productCurrency').value || 'USD';
+    
+    // نوع المنتج
+    const productType = document.getElementById('productType').value || 'standard';
+    
+    // خيارات الكميات
+    let quantityOptions = [];
+    if (productType === 'quantity') {
+        quantityOptions = getQuantityOptions();
+        if (quantityOptions.length === 0) {
+            showToast('⚠️ Please add at least one quantity option', 'warning');
+            return;
+        }
+    }
+    
+    // الشارات
+    const badges = document.getElementById('productBadges').value.split(',').filter(b => b.trim() !== '');
+    
+    // VIP Pricing
     const vipEnabled = document.getElementById('vipEnabled').checked;
     const vipPrices = {
         '1m': parseFloat(document.getElementById('vipPrice1m').value) || 0,
@@ -2481,17 +2820,37 @@ window.saveProduct = async function(event) {
         'lifetime': parseFloat(document.getElementById('vipPriceLifetime').value) || 0,
         'lifetime_original': parseFloat(document.getElementById('vipOriginalPriceLifetime').value) || 0
     };
+    
     let imageUrl = document.getElementById('productImage').value.trim();
     const fileInput = document.getElementById('productImageFile');
     if (fileInput && fileInput.files && fileInput.files[0]) {
         const uploadedUrl = await uploadToCloudinary(fileInput.files[0]);
         if (uploadedUrl) { imageUrl = uploadedUrl; }
     }
+    
     if (!name) { showToast('⚠️ Product name is required', 'warning'); return; }
+    
     const features = featuresText ? featuresText.split(',').map(f => f.trim()).filter(f => f) : [];
-    const productData = { name, price, badge, status, image: imageUrl, description, features, video, vipEnabled, vipPrices };
-    if (duration) productData.duration = duration;
-    if (originalPrice > 0) productData.originalPrice = originalPrice;
+    
+    const productData = { 
+        name, 
+        price, 
+        originalPrice,
+        badge, 
+        status, 
+        image: imageUrl, 
+        description, 
+        features, 
+        video, 
+        vipEnabled, 
+        vipPrices,
+        currency,
+        productType,
+        quantityOptions,
+        badges,
+        duration
+    };
+    
     try {
         if (productId) {
             await updateProductInFirestore(productId, productData);
@@ -2501,7 +2860,10 @@ window.saveProduct = async function(event) {
             showToast('✅ Product added', 'success');
         }
         closeProductModal();
-    } catch (error) { console.error('Save product error:', error); showToast('❌ Error: ' + error.message, 'error'); }
+    } catch (error) { 
+        console.error('Save product error:', error); 
+        showToast('❌ Error: ' + error.message, 'error'); 
+    }
 };
 
 window.deleteProduct = async function(productId) {
@@ -2520,7 +2882,7 @@ async function deleteProductFromFirestore(productId) {
 }
 
 // ============================================================
-// 20. الطلبات (Admin Orders)
+// 22. الطلبات (Admin Orders)
 // ============================================================
 
 function startAdminRealtimeListener() {
@@ -2630,7 +2992,7 @@ function renderAdminOrders(orders) {
         const info = statusMap[status] || statusMap['pending'];
         const date = order.date ? new Date(order.date) : new Date();
         const dateStr = date.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
-        const itemsList = order.items ? order.items.map(item => `<span style="display:inline-block;background:var(--bg);padding:2px 8px;border-radius:10px;font-size:11px;border:1px solid var(--border);margin:1px;">${item.name} ×${item.quantity||1}</span>`).join('') : '—';
+        const itemsList = order.items ? order.items.map(item => `<span style="display:inline-block;background:var(--bg);padding:2px 8px;border-radius:10px;font-size:11px;border:1px solid var(--border);margin:1px;">${item.name} ${item.selectedQuantity ? '📦'+item.selectedQuantity : ''} ×${item.quantity||1}</span>`).join('') : '—';
         const total = order.total || 0;
         const orderIdStr = String(order.orderId || order.id || '');
         const orderIdDisplay = orderIdStr.slice(-6) || '------';
@@ -2651,7 +3013,7 @@ function updateAdminStats(orders) {
 }
 
 // ============================================================
-// 21. تحديث حالة الطلب
+// 23. تحديث حالة الطلب
 // ============================================================
 
 window.updateOrderStatus = async function(orderId, userId, newStatus) {
@@ -2719,7 +3081,7 @@ window.clearAdminSearch = function() { document.getElementById('adminSearchInput
 window.refreshAdminOrders = function() { loadAdminOrders(); showToast('🔄 Refreshed', 'info'); };
 
 // ============================================================
-// 22. إرسال الترخيص عبر Edge Function
+// 24. إرسال الترخيص عبر Edge Function
 // ============================================================
 
 async function sendLicenceForOrder(orderId, userId) {
@@ -2767,7 +3129,7 @@ async function sendLicenceForOrder(orderId, userId) {
 }
 
 // ============================================================
-// 23. المستخدمين (Admin Users)
+// 25. المستخدمين (Admin Users)
 // ============================================================
 
 async function loadAdminUsers() {
@@ -2874,7 +3236,7 @@ window.viewUserDetails = async function(uid) {
 window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
 // ============================================================
-// 24. نظام إدارة التراخيص (مع Supabase)
+// 26. نظام إدارة التراخيص (مع Supabase)
 // ============================================================
 
 async function loadLicences() {
@@ -3195,7 +3557,7 @@ async function activateLicence() {
 }
 
 // ============================================================
-// 25. التقييمات (Ratings)
+// 27. التقييمات (Ratings)
 // ============================================================
 
 let currentRating = 0;
@@ -3287,10 +3649,10 @@ async function updateProductRatingDisplay(productId) {
 }
 
 // ============================================================
-// 26. دوال السلايدر والماركي والإحصائيات (مع إصلاحات background-image)
+// 28. دوال السلايدر والماركي والإحصائيات
 // ============================================================
 
-// دوال السلايدر (Slider) - باستخدام background-image
+// دوال السلايدر (Slider)
 window.goToSlide = function(index) {
     if (index < 0 || index >= sliderSlides.length) return;
     currentSlideIndex = index;
@@ -3312,7 +3674,6 @@ window.prevSlide = function() {
 window.pauseSlider = function() { isSliderPaused = true; };
 window.resumeSlider = function() { isSliderPaused = false; };
 
-// دالة حفظ بيانات السلايدر
 window.saveSliderData = async function() {
     try {
         const settingsRef = doc(db, 'settings', 'slider');
@@ -3330,7 +3691,6 @@ window.saveSliderData = async function() {
     }
 };
 
-// دالة حفظ الفاصل الزمني
 window.saveSliderInterval = async function() {
     const input = document.getElementById('sliderIntervalInput');
     if (!input) {
@@ -3349,7 +3709,6 @@ window.saveSliderInterval = async function() {
     showToast('✅ تم حفظ الفاصل الزمني: ' + interval + ' ثانية', 'success');
 };
 
-// دالة حفظ تعديل الشريحة (لا تحدث الصفحة)
 window.saveSlideEdit = async function() {
     const editIndex = document.getElementById('addSlideForm')?.dataset.editIndex;
     if (editIndex === undefined || editIndex === '') {
@@ -3383,7 +3742,6 @@ window.saveSlideEdit = async function() {
         }
     }
 
-    // الحصول على الصورة الجديدة إذا تم تحميلها
     const fileInput = document.getElementById('slideImageFile');
     let imageUrl = sliderSlides[parseInt(editIndex)]?.imageUrl || '';
     if (fileInput && fileInput.files && fileInput.files[0]) {
@@ -3478,7 +3836,7 @@ window.closeAddSlideModal = function() {
 function updateSlideProductSelect() {
     const select = document.getElementById('slideProductSelect');
     if (!select) return;
-    select.innerHTML = products.map(p => `<option value="${p.id}">${p.name} ($${p.price})</option>`).join('');
+    select.innerHTML = products.map(p => `<option value="${p.id}">${p.name} (${getCurrencySymbol(p.currency || 'USD')}${p.price})</option>`).join('');
 }
 
 function toggleSlideLinkFields() {
@@ -3519,7 +3877,6 @@ async function loadSliderSettings() {
     }
 }
 
-// دالة renderSlider المعدلة لاستخدام background-image بدلاً من img
 function renderSlider() {
     const wrapper = document.getElementById('sliderWrapper');
     const dots = document.getElementById('sliderDots');
@@ -3544,7 +3901,6 @@ function renderSlider() {
         } else if (slide.linkType === 'url' && slide.customUrl) {
             buttonLink = slide.customUrl; buttonTarget = '_blank';
         }
-        // ✅ استخدام background-image بدلاً من img
         return `
             <div class="slide-item ${isActive}" style="background-image: url('${imageUrl}');">
                 <div class="slide-overlay">
@@ -3559,10 +3915,6 @@ function renderSlider() {
         const isActive = index === currentSlideIndex ? 'active' : '';
         return `<span class="dot ${isActive}" onclick="goToSlide(${index})"></span>`;
     }).join('');
-}
-
-function updateSliderHeight() {
-    // ليست هناك حاجة لتحديث ارتفاع معين، لأن الـ CSS يتحكم بالارتفاع
 }
 
 function startSliderRotation() {
@@ -3654,7 +4006,6 @@ async function loadMarqueeSettings() {
     }
 }
 
-// دوال الإحصائيات
 async function loadDashboardStats() {
     if (!currentUser || !isAdminCached) { console.log('ℹ️ loadDashboardStats skipped (not admin)'); return; }
     try {
@@ -3760,7 +4111,7 @@ async function loadAuditLogs() {
 window.loadAuditLogs = loadAuditLogs;
 
 // ============================================================
-// 27. دوال clearOrderHistory, renderHistoryFull, filterOrders
+// 29. دوال clearOrderHistory, renderHistoryFull, filterOrders
 // ============================================================
 
 window.clearOrderHistory = async function() {
@@ -3804,7 +4155,7 @@ window.renderHistoryFull = function() {
         const statusLabels = { 'pending': '⏳ Pending', 'confirmed': '✅ Confirmed', 'rejected': '❌ Rejected' };
         const date = order.date ? new Date(order.date) : new Date();
         const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-        const itemsList = order.items ? order.items.map(i => i.name).join(', ') : 'Order';
+        const itemsList = order.items ? order.items.map(i => i.name + (i.selectedQuantity ? ' 📦'+i.selectedQuantity : '')).join(', ') : 'Order';
         const total = order.total || 0;
         html += `<div style="background:var(--bg);border-radius:10px;padding:12px 14px;border:1px solid var(--border);">
             <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;">
@@ -3830,7 +4181,7 @@ window.filterOrders = function(filter) {
 };
 
 // ============================================================
-// 28. Cookie Consent Functions
+// 30. Cookie Consent Functions
 // ============================================================
 
 // متغير لتخزين حالة الموافقة
@@ -3971,7 +4322,7 @@ window.disableAnalytics = disableAnalytics;
 window.checkCookieConsent = checkCookieConsent;
 
 // ============================================================
-// 29. دوال الإضافية (Telegram Banner, Social Proof, Upload)
+// 31. دوال الإضافية (Telegram Banner, Social Proof, Upload)
 // ============================================================
 
 function showTelegramBanner() {
@@ -4017,7 +4368,7 @@ function startSocialProof() { /* للاستخدام المستقبلي */ }
 function triggerSocialProofOnOrder(userName, productNames) { /* للاستخدام المستقبلي */ }
 
 // ============================================================
-// 30. رفع الصور إلى Cloudinary
+// 32. رفع الصور إلى Cloudinary
 // ============================================================
 
 const CLOUDINARY_CLOUD_NAME = 'y14bgb5s';
@@ -4035,7 +4386,7 @@ async function uploadToCloudinary(file) {
 }
 
 // ============================================================
-// 31. دوال التوجيه والإصلاح
+// 33. دوال التوجيه والإصلاح
 // ============================================================
 
 function fixDirection() {
@@ -4047,7 +4398,7 @@ function fixDirection() {
 window.fixHeaderAndModals = fixDirection;
 
 // ============================================================
-// 32. نسخ الترخيص والتصدير
+// 34. نسخ الترخيص والتصدير
 // ============================================================
 
 window.copyLicenceCode = function(code) {
@@ -4080,7 +4431,7 @@ window.generateInvoice = function(orderData) {
     try {
         let order = typeof orderData === 'string' ? JSON.parse(orderData) : orderData;
         if (!order.id) { order.id = 'INV-' + Date.now().toString().slice(-6); }
-        const invoiceHtml = `<html><head><title>Invoice #${order.id}</title><style>body{font-family:Arial;padding:40px;background:#fff;color:#000;}h1{color:#333;}table{width:100%;border-collapse:collapse;margin:20px 0;}th,td{padding:10px;border:1px solid #ddd;text-align:left;}th{background:#f5f5f5;}.total{font-size:18px;font-weight:bold;}</style></head><body><h1>🧾 Invoice</h1><p><strong>Order ID:</strong> ${order.id}</p><p><strong>Date:</strong> ${order.date ? new Date(order.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '--'}</p><p><strong>Status:</strong> ${order.status || 'Pending'}</p><table><thead><tr><th>Product</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead><tbody>${(order.items || []).map(item => `<tr><td>${item.name}</td><td>${item.quantity || 1}</td><td>$${(item.price || 0).toFixed(2)}</td><td>$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td></tr>`).join('')}</tbody></table><div class="total">Total: $${(order.total || 0).toFixed(2)}</div><div class="status">Payment Method: ${order.method || 'N/A'}</div><hr><p style="color:gray;">Thank you for your purchase at ZI Store!</p></body></html>`;
+        const invoiceHtml = `<html><head><title>Invoice #${order.id}</title><style>body{font-family:Arial;padding:40px;background:#fff;color:#000;}h1{color:#333;}table{width:100%;border-collapse:collapse;margin:20px 0;}th,td{padding:10px;border:1px solid #ddd;text-align:left;}th{background:#f5f5f5;}.total{font-size:18px;font-weight:bold;}</style></head><body><h1>🧾 Invoice</h1><p><strong>Order ID:</strong> ${order.id}</p><p><strong>Date:</strong> ${order.date ? new Date(order.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '--'}</p><p><strong>Status:</strong> ${order.status || 'Pending'}</p><table><thead><tr><th>Product</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead><tbody>${(order.items || []).map(item => `<tr><td>${item.name}${item.selectedQuantity ? ' (x'+item.selectedQuantity+')' : ''}</td><td>${item.quantity || 1}</td><td>$${(item.price || 0).toFixed(2)}</td><td>$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td></tr>`).join('')}</tbody></table><div class="total">Total: $${(order.total || 0).toFixed(2)}</div><div class="status">Payment Method: ${order.method || 'N/A'}</div><hr><p style="color:gray;">Thank you for your purchase at ZI Store!</p></body></html>`;
         const win = window.open('', '_blank');
         if (!win) { showToast('⚠️ Please allow popups to generate invoice', 'warning'); return; }
         win.document.write(invoiceHtml);
@@ -4095,7 +4446,7 @@ window.exportOrders = function() {
     try {
         let csv = 'Order ID,User,Email,Total,Status,Date,Items\n';
         allOrders.forEach(order => {
-            const items = order.items ? order.items.map(i => i.name).join('; ') : '';
+            const items = order.items ? order.items.map(i => i.name + (i.selectedQuantity ? ' ('+i.selectedQuantity+')' : '')).join('; ') : '';
             csv += `${order.orderId || ''},${order.userName || ''},${order.userEmail || ''},${order.total || 0},${order.status || 'pending'},${new Date(order.date).toLocaleDateString()},${items}\n`;
         });
         const blob = new Blob([csv], { type: 'text/csv' });
@@ -4110,7 +4461,7 @@ window.exportOrders = function() {
 };
 
 // ============================================================
-// حالة المصادقة (النسخة النهائية مع إصلاح ظهور login)
+// 35. حالة المصادقة (النسخة النهائية مع إصلاح ظهور login)
 // ============================================================
 onAuthStateChanged(auth, async (user) => {
     currentUser = user;
@@ -4171,7 +4522,7 @@ onAuthStateChanged(auth, async (user) => {
 
         // إظهار التطبيق الرئيسي (في حالة كان مخفياً)
         window.showMainApp();
-        hideLoadingScreen(); // إخفاء شاشة التحميل (أو تحويلها إلى شفافة)
+        hideLoadingScreen();
 
     } else {
         isAdminCached = false;
@@ -4201,7 +4552,7 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// 34. استدعاء تلقائي للتأكد من ظهور لوحة الأدمن وحل مشكلة التحميل
+// 36. استدعاء تلقائي للتأكد من ظهور لوحة الأدمن وحل مشكلة التحميل
 // ============================================================
 setInterval(() => {
     if (currentUser && !isAdminCached) {
@@ -4215,9 +4566,8 @@ setInterval(() => {
     }
 }, 5000);
 
-
 // ============================================================
-// التهيئة (Init) - مع إخفاء authSection في البداية
+// 37. التهيئة (Init)
 // ============================================================
 async function init() {
     console.log('🚀 Initializing ZI Store...');
@@ -4259,7 +4609,7 @@ async function init() {
         window.showMainApp();
         hideLoadingScreen();
 
-        // تغيير شكل شاشة التحميل لتظهر كـ "جاهز" (إذا أردت إبقاءها ظاهرة)
+        // تغيير شكل شاشة التحميل لتظهر كـ "جاهز"
         setTimeout(function() {
             const screen = document.getElementById('loadingScreen');
             if (screen) {
@@ -4290,7 +4640,7 @@ async function init() {
 }
 
 // ============================================================
-// 36. تبديل الثيم
+// 38. تبديل الثيم
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -4315,7 +4665,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================================
-// 37. تصدير جميع الدوال للنطاق العام
+// 39. تصدير جميع الدوال للنطاق العام
 // ============================================================
 
 window.toggleLicencesList = toggleLicencesList;
@@ -4450,9 +4800,15 @@ window.editSlide = editSlide;
 window.deleteSlide = deleteSlide;
 window.openAddSlideModal = openAddSlideModal;
 window.closeAddSlideModal = closeAddSlideModal;
+window.selectCurrency = selectCurrency;
+window.selectProductType = selectProductType;
+window.addQuantityOption = addQuantityOption;
+window.removeQuantityOption = removeQuantityOption;
+window.toggleBadge = toggleBadge;
+window.selectQuantityOption = selectQuantityOption;
 
 // ============================================================
-// 38. بدء التطبيق
+// 40. بدء التطبيق
 // ============================================================
 
 if (document.readyState === 'loading') {
