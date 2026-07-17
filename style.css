@@ -1,5 +1,5 @@
 /* ============================================
-   STYLE.CSS - ZI Store - الإصدار النهائي مع جميع الإصلاحات والإضافات
+   STYLE.CSS - ZI Store - الإصدار النهائي مع جميع الإصلاحات
    ============================================ */
 
 /* ============================================
@@ -69,29 +69,13 @@ body {
     text-align: left;
 }
 
-::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-}
-::-webkit-scrollbar-track {
-    background: var(--bg);
-}
-::-webkit-scrollbar-thumb {
-    background: var(--primary);
-    border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-    background: var(--vip-color);
-}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--vip-color); }
 
-a {
-    color: var(--primary);
-    text-decoration: none;
-    cursor: pointer;
-}
-a:hover {
-    color: var(--vip-color);
-}
+a { color: var(--primary); text-decoration: none; cursor: pointer; }
+a:hover { color: var(--vip-color); }
 
 button {
     font-family: var(--font);
@@ -122,9 +106,7 @@ input, select, textarea {
     justify-content: center;
     z-index: 999999;
 }
-#loadingScreen.hidden {
-    display: flex !important;
-}
+#loadingScreen.hidden { display: flex !important; }
 
 .loader-container {
     text-align: center;
@@ -215,13 +197,11 @@ input, select, textarea {
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
 }
-
 .toast.show {
     opacity: 1;
     visibility: visible;
     transform: translateX(-50%) translateY(0);
 }
-
 .toast .toast-icon { font-size: 20px; flex-shrink: 0; }
 .toast .toast-message { font-size: 14px; font-weight: 500; color: var(--text); flex: 1; }
 .toast .toast-close {
@@ -419,9 +399,7 @@ input, select, textarea {
     opacity: 0.5;
     pointer-events: auto;
 }
-.search-clear.visible:hover {
-    opacity: 1;
-}
+.search-clear.visible:hover { opacity: 1; }
 
 .search-results {
     position: absolute;
@@ -437,9 +415,7 @@ input, select, textarea {
     display: none;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
 }
-.search-results.active {
-    display: block;
-}
+.search-results.active { display: block; }
 
 /* ============================================
    8. السلايدر (Slider) - إصلاح الإطار بنفس حجم الصورة
@@ -469,14 +445,20 @@ input, select, textarea {
     position: relative;
     flex-shrink: 0;
     width: 100%;
+    /* إضافة خلفية افتراضية حتى تظهر الصورة دائماً */
+    background: var(--bg-secondary);
 }
 
 .slider-track .slide-item img {
     width: 100%;
     height: auto;          /* ← يجعل الارتفاع متناسباً مع العرض */
     display: block;
+    /* احتياطي: إذا لم يتم تحميل الصورة، تظهر خلفية */
+    background: var(--bg-secondary);
+    object-fit: contain;   /* تظهر الصورة كاملة بدون قص */
 }
 
+/* طبقة النص فوق الصورة */
 .slider-track .slide-item .slide-overlay {
     position: absolute;
     inset: 0;
@@ -489,6 +471,7 @@ input, select, textarea {
     text-align: center;
     color: #fff;
     border-radius: var(--radius-md);
+    pointer-events: none; /* لا تمنع الضغط على الصورة */
 }
 
 .slider-track .slide-item .slide-title {
@@ -497,14 +480,12 @@ input, select, textarea {
     margin-bottom: 4px;
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
-
 .slider-track .slide-item .slide-subtitle {
     font-size: 13px;
     opacity: 0.8;
     margin-bottom: 10px;
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
-
 .slider-track .slide-item .slide-btn {
     padding: 6px 20px;
     border-radius: 8px;
@@ -515,6 +496,7 @@ input, select, textarea {
     transition: all var(--transition);
     box-shadow: 0 4px 15px var(--primary-glow);
     text-decoration: none;
+    pointer-events: auto; /* الزر قابل للنقر */
 }
 .slider-track .slide-item .slide-btn:hover {
     transform: scale(1.05);
@@ -891,9 +873,7 @@ input, select, textarea {
     text-decoration: none;
     transition: all var(--transition);
 }
-.product-card .card-actions .btn-download:hover {
-    opacity: 0.8;
-}
+.product-card .card-actions .btn-download:hover { opacity: 0.8; }
 .product-card .card-actions .btn-add-cart {
     flex: 1;
     padding: 4px;
@@ -904,9 +884,7 @@ input, select, textarea {
     font-size: 12px;
     transition: all var(--transition);
 }
-.product-card .card-actions .btn-add-cart:hover {
-    opacity: 0.8;
-}
+.product-card .card-actions .btn-add-cart:hover { opacity: 0.8; }
 .product-card .card-actions .btn-add-cart.added {
     background: var(--success);
     color: #0a0a1a;
@@ -953,9 +931,7 @@ input, select, textarea {
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
 }
-.bottom-cart-bar.open {
-    transform: translateY(0);
-}
+.bottom-cart-bar.open { transform: translateY(0); }
 
 .bottom-cart-bar .cart-info {
     display: flex;
@@ -994,9 +970,7 @@ input, select, textarea {
     font-size: 12px;
     transition: all var(--transition);
 }
-.bottom-cart-bar .view-cart-btn:hover {
-    opacity: 0.8;
-}
+.bottom-cart-bar .view-cart-btn:hover { opacity: 0.8; }
 .bottom-cart-bar .clear-cart-btn {
     padding: 6px 12px;
     border-radius: 8px;
@@ -1039,9 +1013,7 @@ input, select, textarea {
     border: 1px solid var(--border);
     color: var(--text-secondary);
 }
-.footer .social-links a:hover {
-    transform: translateY(-2px);
-}
+.footer .social-links a:hover { transform: translateY(-2px); }
 .footer .social-links a.telegram:hover { border-color: #0088cc; color: #0088cc; }
 .footer .social-links a.youtube:hover { border-color: #ff0000; color: #ff0000; }
 .footer .social-links a.twitter:hover { border-color: #1da1f2; color: #1da1f2; }
@@ -1096,9 +1068,7 @@ input, select, textarea {
     margin-bottom: 20px;
 }
 
-.auth-field {
-    margin-bottom: 14px;
-}
+.auth-field { margin-bottom: 14px; }
 .auth-field label {
     display: block;
     font-size: 12px;
@@ -1134,10 +1104,7 @@ input, select, textarea {
     opacity: 0.5;
     transition: all var(--transition);
 }
-.forgot-link a:hover {
-    opacity: 1;
-    color: var(--primary);
-}
+.forgot-link a:hover { opacity: 1; color: var(--primary); }
 
 .auth-btn {
     width: 100%;
@@ -1153,10 +1120,7 @@ input, select, textarea {
     align-items: center;
     justify-content: center;
 }
-.auth-btn:hover {
-    opacity: 0.8;
-    transform: scale(1.01);
-}
+.auth-btn:hover { opacity: 0.8; transform: scale(1.01); }
 .auth-btn.loading .btn-text { opacity: 0; }
 .auth-btn .btn-loader {
     display: none;
@@ -1223,7 +1187,7 @@ input, select, textarea {
 }
 
 /* ============================================
-   17. المودالات العامة (Modals)
+   17. المودالات العامة (Modals) - أزرار الإغلاق على اليمين
    ============================================ */
 .modal-overlay {
     position: fixed;
@@ -1265,10 +1229,16 @@ input, select, textarea {
 }
 
 /* ====== زر الإغلاق في المودال ====== */
-.modal-close {
+.modal-close,
+.modal-content .modal-close,
+.fullscreen-modal .modal-close,
+.preview-modal .modal-close,
+.admin-panel .modal-close,
+#profileFull .modal-close {
     position: absolute;
     top: 12px;
-    right: 12px;       /* ← على اليمين */
+    right: 12px !important;   /* ← على اليمين بالقوة */
+    left: auto !important;    /* إلغاء أي left */
     width: 32px;
     height: 32px;
     border-radius: 50%;
@@ -1282,10 +1252,18 @@ input, select, textarea {
     background: var(--bg);
     border: 1px solid var(--border);
 }
-.modal-close:hover {
+.modal-close:hover,
+.modal-content .modal-close:hover {
     background: var(--danger);
     color: #fff;
     border-color: var(--danger);
+}
+
+/* تأكيد عام لأي عنصر يحتوي على 'close' */
+[class*="close"],
+[class*="Close"] {
+    right: 12px !important;
+    left: auto !important;
 }
 
 .modal-title {
@@ -1311,9 +1289,7 @@ input, select, textarea {
     flex-direction: column;
     animation: slideIn 0.3s ease;
 }
-.fullscreen-modal.open {
-    display: flex;
-}
+.fullscreen-modal.open { display: flex; }
 @keyframes slideIn {
     0% { transform: translateX(100%); }
     100% { transform: translateX(0); }
@@ -1337,8 +1313,8 @@ input, select, textarea {
 }
 .fullscreen-modal .modal-header h2 i { color: var(--primary); }
 .fullscreen-modal .modal-header .modal-close {
-    position: static;
-    right: auto;        /* في الفل سكرين نجعله static لكن يبقى في اليمين بفضل flex */
+    position: static;   /* في الفل سكرين نجعله static لكن يبقى في اليمين بفضل flex */
+    right: auto;
     width: 36px;
     height: 36px;
 }
@@ -1596,9 +1572,7 @@ input, select, textarea {
     cursor: pointer;
     transition: all var(--transition);
 }
-#profileFull .edit-profile-section .form-actions .btn-save:hover {
-    opacity: 0.8;
-}
+#profileFull .edit-profile-section .form-actions .btn-save:hover { opacity: 0.8; }
 
 /* ====== قسم كلمة المرور ====== */
 #profileFull .password-section {
@@ -1632,9 +1606,7 @@ input, select, textarea {
     cursor: pointer;
     transition: all var(--transition);
 }
-#profileFull .password-section .ps-email button:hover {
-    opacity: 0.8;
-}
+#profileFull .password-section .ps-email button:hover { opacity: 0.8; }
 
 /* ====== قسم تيليجرام ====== */
 #profileFull .telegram-section {
@@ -1798,9 +1770,7 @@ input, select, textarea {
     color: #0a0a1a;
 }
 
-.preview-modal .preview-body {
-    padding: 16px;
-}
+.preview-modal .preview-body { padding: 16px; }
 .preview-modal .preview-body .preview-verified {
     font-size: 12px;
     color: var(--success);
@@ -1876,9 +1846,7 @@ input, select, textarea {
     font-size: 14px;
     transition: all var(--transition);
 }
-.preview-modal .preview-body .preview-action .preview-add-btn:hover {
-    opacity: 0.8;
-}
+.preview-modal .preview-body .preview-action .preview-add-btn:hover { opacity: 0.8; }
 .preview-modal .preview-body .preview-action .preview-price {
     font-size: 20px;
     font-weight: 700;
@@ -1921,17 +1889,13 @@ input, select, textarea {
     transition: all var(--transition);
     position: relative;
 }
-.vip-pricing-section .vip-plan:hover {
-    border-color: var(--vip-color);
-}
+.vip-pricing-section .vip-plan:hover { border-color: var(--vip-color); }
 .vip-pricing-section .vip-plan.selected {
     border-color: var(--vip-color);
     background: var(--vip-color);
     color: #0a0a1a;
 }
-.vip-pricing-section .vip-plan.selected .vip-plan-price {
-    color: #0a0a1a;
-}
+.vip-pricing-section .vip-plan.selected .vip-plan-price { color: #0a0a1a; }
 .vip-pricing-section .vip-plan .vip-plan-check { display: none; }
 .vip-pricing-section .vip-plan.selected .vip-plan-check {
     display: block;
@@ -2008,9 +1972,7 @@ input, select, textarea {
     justify-content: center;
     gap: 6px;
 }
-.share-modal .share-options button:hover {
-    transform: translateY(-2px);
-}
+.share-modal .share-options button:hover { transform: translateY(-2px); }
 .share-modal .share-options button .whatsapp { color: #25d366; }
 .share-modal .share-options button .telegram { color: #0088cc; }
 .share-modal .share-options button .facebook { color: #1877f2; }
@@ -3388,7 +3350,7 @@ input, select, textarea {
 }
 
 /* ============================================
-   41. زر العودة للأعلى (Scroll to Top) - إضافة جديدة
+   41. زر العودة للأعلى (Scroll to Top)
    ============================================ */
 .scroll-top {
     position: fixed;
@@ -3522,4 +3484,8 @@ input, select, textarea {
     .slider-dots .dot { width: 5px; height: 5px; }
     .slider-dots .dot.active { width: 12px; }
     .scroll-top { width: 38px; height: 38px; font-size: 16px; bottom: 80px; right: 14px; }
-   }
+}
+
+/* ============================================
+   نهاية الملف - جميع الإصلاحات مطبقة
+   ============================================ */
