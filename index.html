@@ -324,6 +324,100 @@
         .cookie-settings-modal .modal-actions .btn-close-modal:hover {
             background: var(--bg);
         }
+
+        /* ============================================
+           🌀 شاشة التحميل الجديدة - Spinner
+           ============================================ */
+        #loadingScreen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999999;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+        #loadingScreen.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .loader-container {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loader-spinner {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 24px;
+        }
+
+        .loader-spinner .spinner-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            animation: spin 1.5s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+        }
+
+        .loader-spinner .spinner-ring:nth-child(1) {
+            border-top-color: var(--primary);
+            animation-delay: 0s;
+        }
+        .loader-spinner .spinner-ring:nth-child(2) {
+            border-right-color: var(--vip-color);
+            animation-delay: 0.2s;
+        }
+        .loader-spinner .spinner-ring:nth-child(3) {
+            border-bottom-color: var(--success);
+            animation-delay: 0.4s;
+        }
+        .loader-spinner .spinner-ring:nth-child(4) {
+            border-left-color: #f472b6;
+            animation-delay: 0.6s;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loader-spinner .loader-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 32px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+        }
+
+        .loader-text {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 4px;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .loader-subtext {
+            font-size: 13px;
+            color: var(--text-secondary);
+            opacity: 0.4;
+            font-weight: 500;
+            letter-spacing: 4px;
+        }
     </style>
 
     <!-- إخفاء فوري لشاشة التحميل قبل تحميل أي شيء -->
@@ -332,7 +426,10 @@
             function hideNow() {
                 var screen = document.getElementById('loadingScreen');
                 if (screen) {
-                    screen.style.display = 'none';
+                    screen.classList.add('hidden');
+                    setTimeout(function() {
+                        screen.style.display = 'none';
+                    }, 600);
                     console.log('✅ Loading screen hidden immediately');
                 }
             }
@@ -348,13 +445,19 @@
 <body>
 
     <!-- ============================================ -->
-    <!-- شاشة التحميل (Loading Screen) -->
+    <!-- شاشة التحميل (Loading Screen) - تصميم جديد -->
     <!-- ============================================ -->
     <div id="loadingScreen">
         <div class="loader-container">
-            <div class="loader-icon">🚀</div>
-            <div class="loader-bar"><div class="loader-progress" id="loadingBar"></div></div>
-            <div class="loader-text" id="loadingStatus">Loading...</div>
+            <div class="loader-spinner">
+                <div class="spinner-ring"></div>
+                <div class="spinner-ring"></div>
+                <div class="spinner-ring"></div>
+                <div class="spinner-ring"></div>
+                <div class="loader-icon">🚀</div>
+            </div>
+            <div class="loader-text" id="loadingStatus">جاري التحميل...</div>
+            <div class="loader-subtext">ZI STORE</div>
         </div>
     </div>
 
