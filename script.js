@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - الإصدار النهائي الكامل مع إصلاحات السلايدر والبروفايل
+// SCRIPT.JS - ZI Store - الإصدار النهائي الكامل مع إصلاحات السلايدر (background-image)
 // ============================================================
 
 // ============================================================
@@ -3287,10 +3287,10 @@ async function updateProductRatingDisplay(productId) {
 }
 
 // ============================================================
-// 26. دوال السلايدر والماركي والإحصائيات (مع إصلاح Save)
+// 26. دوال السلايدر والماركي والإحصائيات (مع إصلاحات background-image)
 // ============================================================
 
-// دوال السلايدر (Slider) - تم إصلاحها لإضافة <img>
+// دوال السلايدر (Slider) - باستخدام background-image
 window.goToSlide = function(index) {
     if (index < 0 || index >= sliderSlides.length) return;
     currentSlideIndex = index;
@@ -3519,13 +3519,13 @@ async function loadSliderSettings() {
     }
 }
 
-// دالة renderSlider المعدلة لإضافة <img>
+// دالة renderSlider المعدلة لاستخدام background-image بدلاً من img
 function renderSlider() {
     const wrapper = document.getElementById('sliderWrapper');
     const dots = document.getElementById('sliderDots');
     if (!wrapper) return;
     if (sliderSlides.length === 0) {
-        wrapper.innerHTML = `<div class="slide-item" style="background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;min-height:200px;border-radius:var(--radius-md);"><div style="text-align:center;color:var(--text-secondary);opacity:0.4;"><i class="fas fa-images" style="font-size:48px;display:block;margin-bottom:8px;"></i><p>لا توجد شرائح. أضف شرائح من لوحة التحكم.</p></div></div>`;
+        wrapper.innerHTML = `<div class="slide-item" style="background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;min-height:180px;border-radius:var(--radius-md);"><div style="text-align:center;color:var(--text-secondary);opacity:0.4;"><i class="fas fa-images" style="font-size:48px;display:block;margin-bottom:8px;"></i><p>لا توجد شرائح. أضف شرائح من لوحة التحكم.</p></div></div>`;
         dots.innerHTML = '';
         return;
     }
@@ -3544,10 +3544,9 @@ function renderSlider() {
         } else if (slide.linkType === 'url' && slide.customUrl) {
             buttonLink = slide.customUrl; buttonTarget = '_blank';
         }
-        // ✅ التعديل الجوهري: استخدام <img> بدلاً من background-image
+        // ✅ استخدام background-image بدلاً من img
         return `
-            <div class="slide-item ${isActive}">
-                <img src="${imageUrl}" alt="${title || 'Slide'}" />
+            <div class="slide-item ${isActive}" style="background-image: url('${imageUrl}');">
                 <div class="slide-overlay">
                     ${title ? `<h2 class="slide-title">${title}</h2>` : ''}
                     ${subtitle ? `<p class="slide-subtitle">${subtitle}</p>` : ''}
@@ -3560,12 +3559,10 @@ function renderSlider() {
         const isActive = index === currentSlideIndex ? 'active' : '';
         return `<span class="dot ${isActive}" onclick="goToSlide(${index})"></span>`;
     }).join('');
-    updateSliderHeight();
 }
 
 function updateSliderHeight() {
-    const wrapper = document.getElementById('sliderWrapper');
-    if (wrapper) wrapper.style.minHeight = '300px';
+    // ليست هناك حاجة لتحديث ارتفاع معين، لأن الـ CSS يتحكم بالارتفاع
 }
 
 function startSliderRotation() {
