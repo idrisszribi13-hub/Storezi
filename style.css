@@ -3519,5 +3519,423 @@ input, select, textarea {
 }
 
 /* ============================================
+   Currency Selector
+   ============================================ */
+.currency-selector {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+
+.currency-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: var(--bg);
+    position: relative;
+    min-width: 80px;
+    justify-content: center;
+}
+
+.currency-option:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px var(--primary-glow);
+}
+
+.currency-option.active {
+    border-color: var(--primary);
+    background: var(--primary-glow);
+    box-shadow: 0 0 20px var(--primary-glow);
+}
+
+.currency-option .currency-symbol {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.currency-option .currency-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.currency-option .currency-check {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+}
+
+.currency-option.active .currency-check {
+    display: flex;
+}
+
+/* ============================================
+   Product Type Selector
+   ============================================ */
+.product-type-selector {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.type-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: var(--bg);
+    flex: 1;
+    justify-content: center;
+}
+
+.type-option:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+}
+
+.type-option.active {
+    border-color: var(--primary);
+    background: var(--primary-glow);
+    box-shadow: 0 0 20px var(--primary-glow);
+}
+
+.type-option i {
+    font-size: 18px;
+    color: var(--primary);
+}
+
+.type-option span {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+/* ============================================
+   Quantity Options
+   ============================================ */
+.quantity-option-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    margin-bottom: 6px;
+    transition: all 0.3s ease;
+    animation: slideIn 0.3s ease;
+}
+
+.quantity-option-item:hover {
+    border-color: var(--primary);
+}
+
+.quantity-option-item .qty-input {
+    flex: 1;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--card-bg);
+    color: var(--text);
+    font-size: 13px;
+    min-width: 80px;
+}
+
+.quantity-option-item .qty-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+.quantity-option-item .qty-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    min-width: 60px;
+}
+
+.quantity-option-item .qty-price-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+}
+
+.quantity-option-item .qty-price-group input {
+    width: 80px;
+    padding: 6px 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--card-bg);
+    color: var(--text);
+    font-size: 12px;
+}
+
+.quantity-option-item .qty-price-group input:focus {
+    border-color: var(--primary);
+}
+
+.quantity-option-item .qty-remove {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--danger);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.quantity-option-item .qty-remove:hover {
+    transform: scale(1.1);
+    opacity: 0.8;
+}
+
+.add-quantity-btn {
+    padding: 4px 14px;
+    border-radius: var(--radius-sm);
+    background: var(--primary);
+    color: #fff;
+    font-weight: 600;
+    font-size: 11px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-left: 8px;
+}
+
+.add-quantity-btn:hover {
+    opacity: 0.8;
+    transform: scale(1.02);
+}
+
+@keyframes slideIn {
+    0% { transform: translateX(-20px); opacity: 0; }
+    100% { transform: translateX(0); opacity: 1; }
+}
+
+/* ============================================
+   Badge Selector
+   ============================================ */
+.badge-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.badge-option {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    opacity: 0.5;
+    transform: scale(0.95);
+}
+
+.badge-option:hover {
+    transform: scale(1.05);
+    opacity: 0.8;
+}
+
+.badge-option.selected {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.badge-option.selected .badge-tag {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.badge-tag {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 2px solid transparent;
+}
+
+.badge-tag.badge-new {
+    background: linear-gradient(135deg, #00b894, #00cec9);
+    color: #fff;
+}
+
+.badge-tag.badge-hot {
+    background: linear-gradient(135deg, #e17055, #d63031);
+    color: #fff;
+}
+
+.badge-tag.badge-exclusive {
+    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+    color: #fff;
+}
+
+.badge-tag.badge-important {
+    background: linear-gradient(135deg, #fdcb6e, #f39c12);
+    color: #0a0a1a;
+}
+
+.badge-tag.badge-limited {
+    background: linear-gradient(135deg, #fd79a8, #e84393);
+    color: #fff;
+}
+
+.badge-tag.badge-best {
+    background: linear-gradient(135deg, #f9ca24, #f0932b);
+    color: #0a0a1a;
+}
+
+.badge-option.selected .badge-tag {
+    border-color: #fff;
+    transform: scale(1.05);
+}
+
+/* ============================================
+   عرض الشارات على بطاقة المنتج
+   ============================================ */
+.product-card .product-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    padding: 0 10px;
+    margin-top: 2px;
+}
+
+.product-card .product-badges .mini-badge {
+    font-size: 8px;
+    font-weight: 700;
+    padding: 1px 8px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.product-card .product-badges .mini-badge.mb-new {
+    background: #00b894;
+    color: #fff;
+}
+
+.product-card .product-badges .mini-badge.mb-hot {
+    background: #e17055;
+    color: #fff;
+}
+
+.product-card .product-badges .mini-badge.mb-exclusive {
+    background: #6c5ce7;
+    color: #fff;
+}
+
+.product-card .product-badges .mini-badge.mb-important {
+    background: #fdcb6e;
+    color: #0a0a1a;
+}
+
+.product-card .product-badges .mini-badge.mb-limited {
+    background: #fd79a8;
+    color: #fff;
+}
+
+.product-card .product-badges .mini-badge.mb-best {
+    background: #f9ca24;
+    color: #0a0a1a;
+}
+
+/* ============================================
+   عرض العملة
+   ============================================ */
+.product-card .price .currency-symbol {
+    font-size: 12px;
+    opacity: 0.6;
+}
+
+/* ============================================
+   Quantity Options في صفحة المنتج (Preview)
+   ============================================ */
+.preview-quantity-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+    margin: 10px 0;
+}
+
+.preview-quantity-option {
+    background: var(--bg);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.preview-quantity-option:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+}
+
+.preview-quantity-option.selected {
+    border-color: var(--primary);
+    background: var(--primary-glow);
+    box-shadow: 0 0 20px var(--primary-glow);
+}
+
+.preview-quantity-option .qty-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.preview-quantity-option .qty-price {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--primary);
+    margin-top: 2px;
+}
+
+.preview-quantity-option .qty-original {
+    font-size: 11px;
+    text-decoration: line-through;
+    opacity: 0.3;
+}
+
+.preview-quantity-option .qty-check {
+    display: none;
+    margin-top: 4px;
+    color: var(--success);
+    font-size: 16px;
+}
+
+.preview-quantity-option.selected .qty-check {
+    display: block;
+   }
+/* ============================================
    نهاية الملف - جميع الإصلاحات مطبقة
    ============================================ */
