@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - الإصدار النهائي الكامل مع إصلاحات السلايدر
+// SCRIPT.JS - ZI Store - الإصدار النهائي الكامل مع إصلاحات السلايدر والبروفايل
 // ============================================================
 
 // ============================================================
@@ -774,7 +774,7 @@ window.closeNotifications = function() { document.getElementById('notificationsM
 window.openAuthModal = function() { document.getElementById('authSection').scrollIntoView({ behavior: 'smooth' }); };
 
 // ============================================================
-// 7. عرض الملف الشخصي
+// 7. عرض الملف الشخصي (مع إصلاح تنسيق الأزرار)
 // ============================================================
 
 function renderProfileFull() {
@@ -3290,7 +3290,7 @@ async function updateProductRatingDisplay(productId) {
 // 26. دوال السلايدر والماركي والإحصائيات (مع إصلاح Save)
 // ============================================================
 
-// دوال السلايدر (Slider)
+// دوال السلايدر (Slider) - تم إصلاحها لإضافة <img>
 window.goToSlide = function(index) {
     if (index < 0 || index >= sliderSlides.length) return;
     currentSlideIndex = index;
@@ -3519,6 +3519,7 @@ async function loadSliderSettings() {
     }
 }
 
+// دالة renderSlider المعدلة لإضافة <img>
 function renderSlider() {
     const wrapper = document.getElementById('sliderWrapper');
     const dots = document.getElementById('sliderDots');
@@ -3543,7 +3544,17 @@ function renderSlider() {
         } else if (slide.linkType === 'url' && slide.customUrl) {
             buttonLink = slide.customUrl; buttonTarget = '_blank';
         }
-        return `<div class="slide-item ${isActive}" style="background-image:url('${imageUrl}');"><div class="slide-overlay">${title ? `<h2 class="slide-title">${title}</h2>` : ''}${subtitle ? `<p class="slide-subtitle">${subtitle}</p>` : ''}${buttonText ? `<a href="${buttonLink}" target="${buttonTarget}" class="slide-btn">${buttonText}</a>` : ''}</div></div>`;
+        // ✅ التعديل الجوهري: استخدام <img> بدلاً من background-image
+        return `
+            <div class="slide-item ${isActive}">
+                <img src="${imageUrl}" alt="${title || 'Slide'}" />
+                <div class="slide-overlay">
+                    ${title ? `<h2 class="slide-title">${title}</h2>` : ''}
+                    ${subtitle ? `<p class="slide-subtitle">${subtitle}</p>` : ''}
+                    ${buttonText ? `<a href="${buttonLink}" target="${buttonTarget}" class="slide-btn">${buttonText}</a>` : ''}
+                </div>
+            </div>
+        `;
     }).join('');
     dots.innerHTML = sliderSlides.map((_, index) => {
         const isActive = index === currentSlideIndex ? 'active' : '';
