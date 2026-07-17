@@ -418,7 +418,7 @@ input, select, textarea {
 .search-results.active { display: block; }
 
 /* ============================================
-   8. السلايدر (Slider) - إصلاح الإطار وحجم الصورة
+   8. السلايدر (Slider) - الصورة حسب حجم الإطار (ارتفاع 180px)
    ============================================ */
 .slider-container {
     position: relative;
@@ -445,16 +445,18 @@ input, select, textarea {
     position: relative;
     flex-shrink: 0;
     width: 100%;
+    height: 180px;               /* ← ارتفاع الإطار ثابت */
     background: var(--bg-secondary);
+    overflow: hidden;
 }
 
-/* ✅ إصلاح الصورة: تحديد ارتفاع مناسب مع object-fit */
 .slider-track .slide-item img {
     width: 100%;
-    height: 300px;
+    height: 100%;
     display: block;
     background: var(--bg-secondary);
-    object-fit: cover;
+    object-fit: contain;         /* ← تظهر الصورة كاملة داخل الإطار */
+    object-position: center;     /* ← توسيط الصورة */
 }
 
 /* طبقة النص فوق الصورة */
@@ -501,7 +503,7 @@ input, select, textarea {
     transform: scale(1.05);
 }
 
-/* أزرار السلايدر - تبقى في اليمين واليسار */
+/* أزرار السلايدر */
 .slider-btn {
     position: absolute;
     top: 50%;
@@ -3486,22 +3488,22 @@ input, select, textarea {
     .slider-dots .dot.active { width: 12px; }
     .scroll-top { width: 38px; height: 38px; font-size: 16px; bottom: 80px; right: 14px; }
 
-    /* استجابة إضافية للسلايدر */
-    .slider-track .slide-item img {
-        height: 200px;
+    /* استجابة السلايدر للهواتف */
+    .slider-track .slide-item {
+        height: 150px;  /* ارتفاع أصغر للهواتف */
     }
 }
 
 /* استجابة إضافية للشاشات المتوسطة والكبيرة */
 @media (min-width: 768px) and (max-width: 1024px) {
-    .slider-track .slide-item img {
-        height: 350px;
+    .slider-track .slide-item {
+        height: 200px;
     }
 }
 
 @media (min-width: 1025px) {
-    .slider-track .slide-item img {
-        height: 400px;
+    .slider-track .slide-item {
+        height: 220px;
     }
 }
 
