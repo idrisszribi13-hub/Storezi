@@ -420,27 +420,11 @@
         }
     </style>
 
-    <!-- إخفاء فوري لشاشة التحميل قبل تحميل أي شيء -->
-    <script>
-        (function() {
-            function hideNow() {
-                var screen = document.getElementById('loadingScreen');
-                if (screen) {
-                    screen.classList.add('hidden');
-                    setTimeout(function() {
-                        screen.style.display = 'none';
-                    }, 600);
-                    console.log('✅ Loading screen hidden immediately');
-                }
-            }
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', hideNow);
-            } else {
-                hideNow();
-            }
-            setTimeout(hideNow, 300);
-        })();
-    </script>
+    
+    <!-- شاشة التحميل تبقى ظاهرة حتى يتم تحميل التطبيق -->
+<script>
+    console.log('⏳ Loading screen visible...');
+</script>
 </head>
 <body>
 
