@@ -113,6 +113,9 @@ input, select, textarea {
 /* ============================================
    4. شاشة التحميل (Loading Screen)
    ============================================ */
+/* ============================================
+   شاشة التحميل - تبقى ظاهرة دائماً
+   ============================================ */
 #loadingScreen {
     position: fixed;
     inset: 0;
@@ -121,12 +124,11 @@ input, select, textarea {
     align-items: center;
     justify-content: center;
     z-index: 999999;
-    transition: opacity 0.6s ease, visibility 0.6s ease;
 }
+
 #loadingScreen.hidden {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
+    /* لا نخفي الشاشة أبداً */
+    display: flex !important;
 }
 
 .loader-container {
