@@ -480,7 +480,6 @@
         /* ============================================
            أنماط جديدة للعملة والكميات والشارات
            ============================================ */
-        /* Currency Selector */
         .currency-selector {
             display: flex;
             gap: 8px;
@@ -539,7 +538,6 @@
             display: flex;
         }
 
-        /* Product Type Selector */
         .product-type-selector {
             display: flex;
             gap: 8px;
@@ -577,7 +575,6 @@
             color: var(--text);
         }
 
-        /* Quantity Options */
         .quantity-option-item {
             display: flex;
             align-items: center;
@@ -671,7 +668,6 @@
             100% { transform: translateX(0); opacity: 1; }
         }
 
-        /* Badge Selector */
         .badge-selector {
             display: flex;
             flex-wrap: wrap;
@@ -736,7 +732,6 @@
             transform: scale(1.05);
         }
 
-        /* Preview Quantity Options */
         .preview-quantity-options {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
@@ -787,7 +782,6 @@
             display: block;
         }
 
-        /* Mini badges on product cards */
         .product-card .product-badges {
             display: flex;
             flex-wrap: wrap;
@@ -978,8 +972,17 @@
     <!-- ============================================ -->
     <div id="mainApp" style="display:none;">
 
-        <!-- ================== HEADER ================== -->
-        <div id="header-placeholder"></div>
+        <!-- ================== HEADER (مدمج) ================== -->
+        <header class="header">
+            <div class="logo"><i class="fas fa-bolt"></i><span>ZI</span> Store</div>
+            <div class="header-actions">
+                <button class="header-btn" onclick="openNotifications()" title="Notifications"><i class="fas fa-bell"></i><span class="badge notification" id="notifBadge">0</span></button>
+                <button class="header-btn" onclick="openWishlistFull()" title="Wishlist"><i class="fas fa-heart"></i><span class="badge heart" id="wishlistBadge">0</span></button>
+                <button class="header-btn" onclick="openCartFull()" title="Cart"><i class="fas fa-shopping-cart"></i><span class="badge cart" id="cartBadge">0</span></button>
+                <button class="user-btn" onclick="openUserMenuFull()" title="Profile"><span id="userAvatarText">U</span><span class="user-dot" id="userDot"></span></button>
+                <button class="theme-toggle" id="themeToggle" title="Theme"><i class="fas fa-moon"></i></button>
+            </div>
+        </header>
 
         <!-- ================== شريط النص المتحرك ================== -->
         <div id="marqueeBar" class="marquee-bar" style="display: none;">
@@ -1053,8 +1056,16 @@
         <div class="section-title"><i class="fas fa-cubes"></i> All Scripts</div>
         <div class="products-grid" id="productList"></div>
 
-        <!-- ================== الفوتر ================== -->
-        <div id="footer-placeholder"></div>
+        <!-- ================== FOOTER (مدمج) ================== -->
+        <footer class="footer">
+            <div class="social-links">
+                <a href="https://t.me/Mitalica69" target="_blank" class="telegram" title="Telegram"><i class="fab fa-telegram-plane"></i></a>
+                <a href="#" target="_blank" class="youtube" title="YouTube"><i class="fab fa-youtube"></i></a>
+                <a href="#" target="_blank" class="twitter" title="Twitter"><i class="fab fa-twitter"></i></a>
+            </div>
+            <div class="copyright">© 2026 <span>ZI Store</span>. All rights reserved.</div>
+        </footer>
+
     </div>
 
     <!-- ============================================ -->
