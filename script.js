@@ -1,25 +1,27 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - الإصدار النهائي الكامل مع جميع الإصلاحات
+// SCRIPT.JS - ZI Store - الإصدار النهائي الكامل مع إصلاحات السلايدر
 // ============================================================
 
 // ============================================================
-// 0. شاشة التحميل - تبقى ظاهرة مع إمكانية التفاعل خلفها
+// 0. إخفاء فوري لشاشة التحميل
 // ============================================================
 (function() {
-    // نجعل شاشة التحميل ظاهرة
-    var screen = document.getElementById('loadingScreen');
-    if (screen) {
-        screen.style.display = 'flex';
-        screen.classList.remove('hidden');
-        console.log('✅ Loading screen is visible');
+    function hideLoadingScreenImmediate() {
+        var screen = document.getElementById('loadingScreen');
+        if (screen) {
+            screen.classList.add('hidden');
+            setTimeout(function() {
+                screen.style.display = 'none';
+            }, 600);
+            console.log('✅ Loading screen hidden immediately');
+        }
     }
-    
-    // التأكد من أن mainApp مخفي في البداية
-    var mainApp = document.getElementById('mainApp');
-    if (mainApp) {
-        mainApp.style.display = 'none';
-        console.log('ℹ️ Main app hidden initially');
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', hideLoadingScreenImmediate);
+    } else {
+        hideLoadingScreenImmediate();
     }
+    setTimeout(hideLoadingScreenImmediate, 300);
 })();
 
 // ============================================================
@@ -177,19 +179,14 @@ function showToast(message, type = 'success') {
 }
 window.hideToast = function() { document.getElementById('toast')?.classList.remove('show'); };
 
-// شاشة التحميل - دوال محسنة
 function hideLoadingScreen() {
-    console.log('🔥 hideLoadingScreen called');
     const screen = document.getElementById('loadingScreen');
     if (screen) {
-        // لا نخفيها تماماً، نجعلها شفافة وغير قابلة للتفاعل
-        screen.style.opacity = '0.3';
-        screen.style.pointerEvents = 'none';
-        screen.style.background = 'rgba(10,10,26,0.5)';
-        screen.style.backdropFilter = 'blur(4px)';
-        console.log('✅ Loading screen softened');
-    } else {
-        console.warn('⚠️ Loading screen element not found');
+        screen.classList.add('hidden');
+        setTimeout(() => {
+            screen.style.display = 'none';
+        }, 600);
+        console.log('✅ Loading screen hidden');
     }
 }
 
@@ -197,12 +194,7 @@ function showLoadingScreen() {
     const screen = document.getElementById('loadingScreen');
     if (screen) {
         screen.style.display = 'flex';
-        screen.style.opacity = '1';
-        screen.style.pointerEvents = 'auto';
-        screen.style.background = 'var(--bg)';
-        screen.style.backdropFilter = 'none';
         screen.classList.remove('hidden');
-        console.log('✅ Loading screen shown');
     }
 }
 
@@ -210,7 +202,6 @@ function updateLoadingText(text) {
     const statusEl = document.getElementById('loadingStatus');
     if (statusEl) {
         statusEl.textContent = text || 'جاري التحميل...';
-        console.log('📝 Loading text updated:', text);
     }
 }
 
@@ -218,7 +209,6 @@ window.hideLoadingScreenManually = function() {
     const screen = document.getElementById('loadingScreen');
     if (screen) {
         screen.style.display = 'none';
-        console.log('✅ Loading screen hidden manually');
         showToast('تم إخفاء شاشة التحميل', 'info');
     }
 };
@@ -278,7 +268,6 @@ window.ensureAdminPanel = function() {
         console.warn('⚠️ No user logged in');
         return false;
     }
-    
     const adminMenuItem = document.getElementById('adminMenuItem');
     if (isAdminCached) {
         if (adminMenuItem) {
@@ -287,7 +276,6 @@ window.ensureAdminPanel = function() {
         }
         return true;
     }
-    
     checkIsAdmin().then((isAdmin) => {
         if (isAdmin) {
             isAdminCached = true;
@@ -3361,20 +3349,20 @@ window.saveSliderInterval = async function() {
     showToast('✅ تم حفظ الفاصل الزمني: ' + interval + ' ثانية', 'success');
 };
 
-// دالة حفظ تعديل الشريحة
+// دالة حفظ تعديل الشريحة (لا تحدث الصفحة)
 window.saveSlideEdit = async function() {
     const editIndex = document.getElementById('addSlideForm')?.dataset.editIndex;
     if (editIndex === undefined || editIndex === '') {
         showToast('❌ لا توجد شريحة للتعديل', 'error');
         return;
     }
-    
+
     const title = document.getElementById('slideTitle')?.value.trim() || '';
     const subtitle = document.getElementById('slideSubtitle')?.value.trim() || '';
     const buttonText = document.getElementById('slideButtonText')?.value.trim() || 'Buy Now';
     const linkType = document.getElementById('slideLinkType')?.value || 'product';
     let productId = '', downloadUrl = '', customUrl = '';
-    
+
     if (linkType === 'product') {
         productId = document.getElementById('slideProductSelect')?.value || '';
         if (!productId) {
@@ -3394,7 +3382,7 @@ window.saveSlideEdit = async function() {
             return;
         }
     }
-    
+
     // الحصول على الصورة الجديدة إذا تم تحميلها
     const fileInput = document.getElementById('slideImageFile');
     let imageUrl = sliderSlides[parseInt(editIndex)]?.imageUrl || '';
@@ -3408,7 +3396,7 @@ window.saveSlideEdit = async function() {
             return;
         }
     }
-    
+
     const updatedSlide = {
         imageUrl,
         title,
@@ -3420,10 +3408,10 @@ window.saveSlideEdit = async function() {
         customUrl,
         updatedAt: new Date().toISOString()
     };
-    
+
     sliderSlides[parseInt(editIndex)] = updatedSlide;
     delete document.getElementById('addSlideForm').dataset.editIndex;
-    
+
     await window.saveSliderData();
     renderSlider();
     renderSliderSettingsUI();
@@ -3461,7 +3449,7 @@ window.editSlide = function(index) {
     }
     document.getElementById('addSlideForm').dataset.editIndex = index;
     document.querySelector('#addSlideModal .modal-title').textContent = '✏️ تعديل الشريحة';
-    document.querySelector('#addSlideForm button[type="submit"]').textContent = '💾 تحديث الشريحة';
+    document.querySelector('#addSlideForm button[type="button"]').textContent = '💾 حفظ التعديلات';
     modal.classList.add('open');
     document.body.style.overflow = 'hidden';
 };
@@ -3478,7 +3466,7 @@ window.openAddSlideModal = function() {
     if (preview) preview.style.display = 'none';
     toggleSlideLinkFields();
     document.querySelector('#addSlideModal .modal-title').textContent = '➕ إضافة شريحة جديدة';
-    document.querySelector('#addSlideForm button[type="submit"]').textContent = '➕ إضافة شريحة';
+    document.querySelector('#addSlideForm button[type="button"]').textContent = '➕ إضافة شريحة';
     delete document.getElementById('addSlideForm').dataset.editIndex;
 };
 
@@ -4431,6 +4419,10 @@ window.saveSlideEdit = saveSlideEdit;
 window.hideLoadingScreenManually = hideLoadingScreenManually;
 window.updateLoadingText = updateLoadingText;
 window.showMainApp = showMainApp;
+window.editSlide = editSlide;
+window.deleteSlide = deleteSlide;
+window.openAddSlideModal = openAddSlideModal;
+window.closeAddSlideModal = closeAddSlideModal;
 
 // ============================================================
 // 38. بدء التطبيق
