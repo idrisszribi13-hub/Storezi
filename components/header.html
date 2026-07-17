@@ -1,0 +1,22 @@
+<!-- components/header.html -->
+<header class="header">
+    <div class="logo"><i class="fas fa-bolt"></i><span>ZI</span> Store</div>
+    <div class="header-actions">
+        <button class="header-btn" onclick="openNotifications()" title="Notifications">
+            <i class="fas fa-bell"></i><span class="badge notification" id="notifBadge">0</span>
+        </button>
+        <button class="header-btn" onclick="openWishlistFull()" title="Wishlist">
+            <i class="fas fa-heart"></i><span class="badge heart" id="wishlistBadge">0</span>
+        </button>
+        <button class="header-btn" onclick="openCartFull()" title="Cart">
+            <i class="fas fa-shopping-cart"></i><span class="badge cart" id="cartBadge">0</span>
+        </button>
+        <button class="user-btn" onclick="openUserMenuFull()" title="Profile">
+            <span id="userAvatarText">U</span>
+            <span class="user-dot" id="userDot"></span>
+        </button>
+        <button class="theme-toggle" id="themeToggle" title="Theme">
+            <i class="fas fa-moon"></i>
+        </button>
+    </div>
+</header>
