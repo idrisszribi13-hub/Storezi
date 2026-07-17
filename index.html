@@ -20,7 +20,7 @@
 
     <style>
         /* ============================================
-           🆕 شريط النص المتحرك (Marquee)
+           شريط النص المتحرك (Marquee)
            ============================================ */
         .marquee-bar {
             background: var(--primary-gradient);
@@ -55,7 +55,7 @@
         }
 
         /* ============================================
-           🆕 أيقونات الخدمات تحت المنتج
+           أيقونات الخدمات تحت المنتج
            ============================================ */
         .product-footer-icons {
             display: flex;
@@ -79,7 +79,7 @@
         }
 
         /* ============================================
-           🍪 Cookie Consent Banner
+           Cookie Consent Banner
            ============================================ */
         .cookie-consent {
             position: fixed;
@@ -326,7 +326,7 @@
         }
 
         /* ============================================
-           🌀 شاشة التحميل الجديدة - Spinner
+           شاشة التحميل الجديدة - Spinner
            ============================================ */
         #loadingScreen {
             position: fixed;
@@ -419,6 +419,26 @@
             font-weight: 500;
             letter-spacing: 4px;
         }
+
+        /* ============================================
+           تنسيق مودال Binance
+           ============================================ */
+        .binance-instructions-box {
+            margin-top: 8px;
+            padding: 10px 14px;
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        .binance-instructions-box i {
+            color: var(--pending-color);
+        }
+        .binance-instructions-box strong {
+            color: var(--text);
+        }
     </style>
 
     <!-- إخفاء فوري لشاشة التحميل قبل تحميل أي شيء -->
@@ -446,7 +466,7 @@
 <body>
 
     <!-- ============================================ -->
-    <!-- شاشة التحميل (Loading Screen) - تصميم جديد -->
+    <!-- شاشة التحميل (Loading Screen) -->
     <!-- ============================================ -->
     <div id="loadingScreen">
         <div class="loader-container">
@@ -472,7 +492,7 @@
     </div>
 
     <!-- ============================================ -->
-    <!-- 🍪 Cookie Consent Banner -->
+    <!-- Cookie Consent Banner -->
     <!-- ============================================ -->
     <div id="cookieConsent" class="cookie-consent">
         <div class="cookie-text">
@@ -499,7 +519,6 @@
             <div class="modal-title">
                 <i class="fas fa-cookie-bite"></i> إعدادات ملفات تعريف الارتباط
             </div>
-            
             <div class="setting-item">
                 <div class="setting-info">
                     <h4>🛡️ الأساسية (Essential)</h4>
@@ -510,7 +529,6 @@
                     <span class="toggle-slider"></span>
                 </div>
             </div>
-            
             <div class="setting-item">
                 <div class="setting-info">
                     <h4>📊 التحليلية (Analytics)</h4>
@@ -521,11 +539,45 @@
                     <span class="toggle-slider" onclick="document.getElementById('analyticsToggle').click()"></span>
                 </div>
             </div>
-            
             <div class="modal-actions">
                 <button class="btn-close-modal" onclick="closeCookieSettings()">إلغاء</button>
                 <button class="btn-save" onclick="saveCookieSettings()">💾 حفظ الإعدادات</button>
             </div>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- واجهة تسجيل الدخول (مخفية في البداية) -->
+    <!-- ============================================ -->
+    <div id="authSection" style="display:none;">
+        <div class="auth-container" id="loginContainer">
+            <div class="auth-title">👋 Welcome Back</div>
+            <div class="auth-subtitle">Login to access your scripts</div>
+            <div class="auth-field"><label>Email</label><input type="email" id="loginEmail" placeholder="your@email.com" /></div>
+            <div class="auth-field"><label>Password</label><input type="password" id="loginPassword" placeholder="••••••••" /></div>
+            <div class="forgot-link"><a onclick="openForgotPassword()">Forgot password?</a></div>
+            <button class="auth-btn" id="loginBtn" onclick="loginUser()"><span class="btn-text">Login</span><span class="btn-loader"></span></button>
+            <div class="auth-error" id="loginError"></div>
+            <div class="auth-success" id="loginSuccess"></div>
+            <div class="auth-footer">Don't have an account? <a onclick="showRegister()">Sign up</a></div>
+        </div>
+
+        <div class="auth-container" id="registerContainer" style="display:none;">
+            <div class="auth-title">✨ Create Account</div>
+            <div class="auth-subtitle">Join ZI Store today</div>
+            <div class="auth-field"><label>Full Name</label><input type="text" id="registerName" placeholder="Your name" /></div>
+            <div class="auth-field"><label>Email</label><input type="email" id="registerEmail" placeholder="your@email.com" /></div>
+            <div class="auth-field"><label>Password</label><input type="password" id="registerPassword" placeholder="Min 6 characters" /></div>
+            <div class="auth-field"><label>Confirm Password</label><input type="password" id="registerConfirmPassword" placeholder="••••••••" /></div>
+            <div class="auth-field"><label>Country</label><select id="registerCountry"><option value="Tunisia">🇹🇳 Tunisia</option><option value="Algeria">🇩🇿 Algeria</option><option value="Morocco">🇲🇦 Morocco</option><option value="Egypt">🇪🇬 Egypt</option><option value="Saudi Arabia">🇸🇦 Saudi Arabia</option><option value="UAE">🇦🇪 UAE</option><option value="Other">🌍 Other</option></select></div>
+            <div class="auth-field"><label>Language</label><select id="registerLang"><option value="English">🇬🇧 English</option><option value="Arabic">🇸🇦 العربية</option><option value="French">🇫🇷 Français</option></select></div>
+            <div class="referral-toggle" onclick="toggleReferral()"><i class="fas fa-gift"></i> Have a referral code?</div>
+            <div class="referral-field" id="referralField"><input type="text" id="registerReferral" placeholder="Enter referral code" /></div>
+            <div class="terms-check"><input type="checkbox" id="termsCheck" /><label for="termsCheck">I agree to the Terms & Conditions</label></div>
+            <button class="auth-btn" id="registerBtn" onclick="registerUser()"><span class="btn-text">Create Account</span><span class="btn-loader"></span></button>
+            <div class="auth-error" id="registerError"></div>
+            <div class="auth-success" id="registerSuccess"></div>
+            <div class="auth-footer">Already have an account? <a onclick="showLogin()">Login</a></div>
         </div>
     </div>
 
@@ -648,42 +700,7 @@
     <!-- جميع المودالات -->
     <!-- ============================================ -->
 
-    <!-- مودال تسجيل الدخول -->
-    <div id="authSection" style="display:block;">
-        <div class="auth-container" id="loginContainer">
-            <div class="auth-title">👋 Welcome Back</div>
-            <div class="auth-subtitle">Login to access your scripts</div>
-            <div class="auth-field"><label>Email</label><input type="email" id="loginEmail" placeholder="your@email.com" /></div>
-            <div class="auth-field"><label>Password</label><input type="password" id="loginPassword" placeholder="••••••••" /></div>
-            <div class="forgot-link"><a onclick="openForgotPassword()">Forgot password?</a></div>
-            <button class="auth-btn" id="loginBtn" onclick="loginUser()"><span class="btn-text">Login</span><span class="btn-loader"></span></button>
-            <div class="auth-error" id="loginError"></div>
-            <div class="auth-success" id="loginSuccess"></div>
-            <div class="auth-footer">Don't have an account? <a onclick="showRegister()">Sign up</a></div>
-        </div>
-
-        <div class="auth-container" id="registerContainer" style="display:none;">
-            <div class="auth-title">✨ Create Account</div>
-            <div class="auth-subtitle">Join ZI Store today</div>
-            <div class="auth-field"><label>Full Name</label><input type="text" id="registerName" placeholder="Your name" /></div>
-            <div class="auth-field"><label>Email</label><input type="email" id="registerEmail" placeholder="your@email.com" /></div>
-            <div class="auth-field"><label>Password</label><input type="password" id="registerPassword" placeholder="Min 6 characters" /></div>
-            <div class="auth-field"><label>Confirm Password</label><input type="password" id="registerConfirmPassword" placeholder="••••••••" /></div>
-            <div class="auth-field"><label>Country</label><select id="registerCountry"><option value="Tunisia">🇹🇳 Tunisia</option><option value="Algeria">🇩🇿 Algeria</option><option value="Morocco">🇲🇦 Morocco</option><option value="Egypt">🇪🇬 Egypt</option><option value="Saudi Arabia">🇸🇦 Saudi Arabia</option><option value="UAE">🇦🇪 UAE</option><option value="Other">🌍 Other</option></select></div>
-            <div class="auth-field"><label>Language</label><select id="registerLang"><option value="English">🇬🇧 English</option><option value="Arabic">🇸🇦 العربية</option><option value="French">🇫🇷 Français</option></select></div>
-            <div class="referral-toggle" onclick="toggleReferral()"><i class="fas fa-gift"></i> Have a referral code?</div>
-            <div class="referral-field" id="referralField"><input type="text" id="registerReferral" placeholder="Enter referral code" /></div>
-            <div class="terms-check"><input type="checkbox" id="termsCheck" /><label for="termsCheck">I agree to the Terms & Conditions</label></div>
-            <button class="auth-btn" id="registerBtn" onclick="registerUser()"><span class="btn-text">Create Account</span><span class="btn-loader"></span></button>
-            <div class="auth-error" id="registerError"></div>
-            <div class="auth-success" id="registerSuccess"></div>
-            <div class="auth-footer">Already have an account? <a onclick="showLogin()">Login</a></div>
-        </div>
-    </div>
-
-    <!-- ============================================ -->
-    <!-- مودال عرض المنتج (Preview) مع VIP Pricing و Ratings وفيديو -->
-    <!-- ============================================ -->
+    <!-- مودال عرض المنتج (Preview) -->
     <div class="modal-overlay preview-modal" id="previewModal">
         <div class="preview-content">
             <div class="preview-header">
@@ -699,19 +716,15 @@
                 <div class="preview-verified" id="previewVerified">✅ 100% VERIFIED WORKING PRODUCT</div>
                 <h2 class="preview-name" id="previewName">Product Name</h2>
                 <p class="preview-desc" id="previewDescription">Description here</p>
-
-                <!-- ====== قسم فيديو YouTube ====== -->
                 <div class="preview-video" id="previewVideoContainer" style="display:none;">
                     <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:var(--radius-md);">
                         <iframe id="previewVideo" src="" frameborder="0" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
                     </div>
                 </div>
-
                 <div class="preview-features" id="previewFeatures">
                     <div class="features-header"><i class="fas fa-check-circle"></i> Features</div>
                     <ul class="features-list"></ul>
                 </div>
-
                 <div id="previewVipPricing" style="display:none;">
                     <div class="vip-pricing-section">
                         <div class="vip-pricing-header"><i class="fas fa-crown"></i> VIP Pricing</div>
@@ -720,10 +733,7 @@
                         <div class="vip-footer">Checkout via Telegram <a href="https://t.me/Mitalica69" target="_blank">@Mitalica69</a>. By purchasing you agree to the <a href="#">Terms</a>. See the <a href="#">refund policy</a>.</div>
                     </div>
                 </div>
-
-                <!-- ====== قسم التقييمات ====== -->
                 <div id="ratingSection"></div>
-
                 <div class="preview-action">
                     <button class="preview-add-btn" id="previewAddBtn" onclick="addToCartFromPreview()"><i class="fas fa-cart-plus"></i> Add to Cart</button>
                     <span class="preview-price" id="previewPrice">$0.00</span>
@@ -747,7 +757,9 @@
         </div>
     </div>
 
-    <!-- مودال الدفع -->
+    <!-- ============================================ -->
+    <!-- مودال الدفع (مع خيار Binance) -->
+    <!-- ============================================ -->
     <div class="modal-overlay" id="paymentModal">
         <div class="modal-content" style="max-width:420px;">
             <button class="modal-close" onclick="closePaymentModal()"><i class="fas fa-times"></i></button>
@@ -757,6 +769,7 @@
                     <div class="payment-option" id="optionLitecoin" onclick="selectPayment('litecoin')"><i class="fab fa-bitcoin"></i><div class="p-label">Litecoin</div><div class="p-sub">LTC</div><div class="p-check"><i class="fas fa-check"></i></div></div>
                     <div class="payment-option" id="optionUsdt" onclick="selectPayment('usdt')"><i class="fas fa-coins"></i><div class="p-label">USDT</div><div class="p-sub">ERC20</div><div class="p-check"><i class="fas fa-check"></i></div></div>
                     <div class="payment-option" id="optionTelegram" onclick="selectPayment('telegram')"><i class="fab fa-telegram-plane"></i><div class="p-label">Telegram</div><div class="p-sub">Direct</div><div class="p-check"><i class="fas fa-check"></i></div></div>
+                    <div class="payment-option" id="optionBinance" onclick="selectPayment('binance')"><i class="fab fa-bitcoin" style="color:#f2a900;"></i><div class="p-label">Binance</div><div class="p-sub">USDT (Manual)</div><div class="p-check"><i class="fas fa-check"></i></div></div>
                 </div>
                 <div class="payment-summary">
                     <div class="ps-row"><span class="ps-label">Total</span><span class="ps-value" id="payableTotal">$0.00</span></div>
@@ -833,9 +846,7 @@
             <div class="menu-item" onclick="openNotifications();closeUserMenuFull();"><i class="fas fa-bell"></i><span class="menu-label">Notifications</span><span class="menu-badge" id="fullNotifBadge">0</span></div>
             <div class="menu-item" onclick="openRequestsModal();closeUserMenuFull();"><i class="fas fa-file-alt"></i><span class="menu-label">Requests</span></div>
             <div class="menu-item" onclick="openReferralModal();closeUserMenuFull();"><i class="fas fa-gift"></i><span class="menu-label">Referrals</span></div>
-            <!-- 🆕 Activate Script -->
             <div class="menu-item" onclick="openLicenceModal()"><i class="fas fa-key"></i><span class="menu-label">🔑 Activate Script</span></div>
-            <!-- 🆕 My Licences -->
             <div class="menu-divider"></div>
             <div class="menu-item" onclick="toggleLicencesList()">
                 <i class="fas fa-key"></i>
@@ -956,9 +967,7 @@
         </div>
     </div>
 
-    <!-- ============================================ -->
-    <!-- 🆕 مودال تفعيل رمز الترخيص (Licence Activation) -->
-    <!-- ============================================ -->
+    <!-- مودال تفعيل رمز الترخيص (Licence Activation) -->
     <div class="modal-overlay" id="licenceModal">
         <div class="modal-content" style="max-width:420px;">
             <button class="modal-close" onclick="closeLicenceModal()"><i class="fas fa-times"></i></button>
@@ -1131,7 +1140,7 @@
     </div>
 
     <!-- ============================================ -->
-    <!-- مودال إضافة شريحة جديدة (Slider) - زر Save معدل -->
+    <!-- مودال إضافة شريحة جديدة (Slider) -->
     <!-- ============================================ -->
     <div class="modal-overlay" id="addSlideModal">
         <div class="modal-content" style="max-width:480px;">
@@ -1175,7 +1184,6 @@
                     <label>Custom URL</label>
                     <input type="url" id="slideCustomUrl" placeholder="https://example.com/page" />
                 </div>
-                <!-- زر Save من نوع button وليس submit -->
                 <button type="button" class="admin-submit-btn" onclick="saveSlideEdit()"><i class="fas fa-save"></i> حفظ التعديلات</button>
             </form>
         </div>
@@ -1204,9 +1212,10 @@
                 <button onclick="switchAdminTab('slider')">🎨 Slider</button>
                 <button onclick="switchAdminTab('licences')">🔑 Licences</button>
                 <button onclick="switchAdminTab('marquee')">🎬 Marquee</button>
+                <button onclick="switchAdminTab('payments')">💳 Payments</button>
             </div>
 
-            <!-- ======== تبويب Dashboard ======== -->
+            <!-- Dashboard -->
             <div class="tab-content" id="tabDashboard">
                 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">
                     <div class="admin-stat-card"><div style="font-size:28px;font-weight:800;color:var(--primary);" id="dashboardTotalOrders">0</div><div style="font-size:12px;color:var(--text-secondary);opacity:0.6;margin-top:2px;">Total Orders</div></div>
@@ -1216,7 +1225,7 @@
                 <button onclick="refreshDashboardStats()" class="admin-submit-btn" style="width:100%;"><i class="fas fa-sync"></i> Refresh Stats</button>
             </div>
 
-            <!-- ======== تبويب الطلبات ======== -->
+            <!-- Orders -->
             <div class="tab-content active" id="tabOrders">
                 <div class="admin-stats-grid">
                     <div class="admin-stat-card"><div class="stat-number" id="adminTotalOrders">0</div><div class="stat-label">Total</div></div>
@@ -1239,7 +1248,7 @@
                 </div>
             </div>
 
-            <!-- ======== تبويب المنتجات ======== -->
+            <!-- Products -->
             <div class="tab-content" id="tabProducts">
                 <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
                     <button class="add-btn" onclick="openAddProductModal()"><i class="fas fa-plus"></i> Add Product</button>
@@ -1248,7 +1257,7 @@
                 <div id="adminProductsList"></div>
             </div>
 
-            <!-- ======== تبويب المستخدمين ======== -->
+            <!-- Users -->
             <div class="tab-content" id="tabUsers">
                 <div class="admin-search-bar">
                     <input type="text" id="adminUserSearchInput" placeholder="🔍 Search users..." onkeyup="searchAdminUsers()" />
@@ -1259,19 +1268,19 @@
                 <div id="adminUsersContainer"></div>
             </div>
 
-            <!-- ======== تبويب التحميلات ======== -->
+            <!-- Downloads -->
             <div class="tab-content" id="tabDownloads">
                 <button class="add-btn" onclick="openCreateDownloadModal()"><i class="fas fa-plus"></i> Add Download</button>
                 <div id="adminDownloadsList"></div>
             </div>
 
-            <!-- ======== تبويب الإشعارات ======== -->
+            <!-- Notifications -->
             <div class="tab-content" id="tabNotifications">
                 <button class="add-btn" onclick="openCreateNotificationModal()"><i class="fas fa-plus"></i> Send Notification</button>
                 <div id="adminNotificationsList"></div>
             </div>
 
-            <!-- ======== تبويب الإحصائيات المتقدمة ======== -->
+            <!-- Stats -->
             <div class="tab-content" id="tabStats">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
                     <h3 style="font-size:16px;font-weight:700;margin:0;"><i class="fas fa-chart-line"></i> Advanced Statistics</h3>
@@ -1280,7 +1289,7 @@
                 <div id="advancedStatsContainer"><div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading statistics...</div></div>
             </div>
 
-            <!-- ======== تبويب سجل النشاط (Logs) ======== -->
+            <!-- Logs -->
             <div class="tab-content" id="tabLogs">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
                     <h3 style="font-size:16px;font-weight:700;margin:0;"><i class="fas fa-clipboard-list"></i> Audit Logs</h3>
@@ -1291,7 +1300,7 @@
                 </div>
             </div>
 
-            <!-- ======== تبويب السلايدر ======== -->
+            <!-- Slider -->
             <div class="tab-content" id="tabSlider">
                 <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
                     <h3 style="font-size:16px;font-weight:700;margin:0;"><i class="fas fa-images"></i> Slider Settings</h3>
@@ -1309,7 +1318,7 @@
                 </div>
             </div>
 
-            <!-- ======== تبويب التراخيص ======== -->
+            <!-- Licences -->
             <div class="tab-content" id="tabLicences">
                 <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
                     <button class="add-btn" onclick="openCreateLicenceModal()"><i class="fas fa-plus"></i> Create Licence</button>
@@ -1327,7 +1336,7 @@
                 </div>
             </div>
 
-            <!-- ======== تبويب الماركي (Marquee) ======== -->
+            <!-- Marquee -->
             <div class="tab-content" id="tabMarquee">
                 <h3 style="font-size:16px;font-weight:700;margin-bottom:12px;"><i class="fas fa-scroll"></i> Marquee Settings</h3>
                 <div id="marqueeSettingsContainer">
@@ -1342,6 +1351,21 @@
                         <textarea id="marqueeText" rows="3" placeholder="🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support" style="width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-size:14px;outline:none;font-family:var(--font);">🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support</textarea>
                     </div>
                     <button class="admin-submit-btn" onclick="saveMarqueeSettings()" style="margin-top:8px;"><i class="fas fa-save"></i> Save Settings</button>
+                </div>
+            </div>
+
+            <!-- Payments (Binance) -->
+            <div class="tab-content" id="tabPayments">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+                    <h3 style="font-size:16px;font-weight:700;margin:0;"><i class="fas fa-coins"></i> Binance Payment Requests</h3>
+                    <button class="add-btn" onclick="loadPaymentRequests()" style="background:var(--card-bg);">
+                        <i class="fas fa-sync"></i> Refresh
+                    </button>
+                </div>
+                <div id="adminPaymentRequestsList">
+                    <div style="text-align:center;padding:30px;color:var(--text-secondary);">
+                        <i class="fas fa-info-circle"></i> Loading...
+                    </div>
                 </div>
             </div>
         </div>
@@ -1376,4 +1400,4 @@
     </script>
     <script type="module" src="script.js"></script>
 </body>
-    </html>
+</html>
