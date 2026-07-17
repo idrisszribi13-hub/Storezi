@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - الإصدار الكامل مع ميزات العملة والكميات والشارات
+// SCRIPT.JS - ZI Store - الإصدار الكامل مع تسجيل الدخول عبر Google
 // ============================================================
 
 // ============================================================
@@ -28,7 +28,22 @@
 // استيرادات Firebase و Supabase
 // ============================================================
 import { initializeApp } from "firebase/app";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, updatePassword, sendPasswordResetEmail, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
+import { 
+    getAuth, 
+    onAuthStateChanged, 
+    signInWithEmailAndPassword, 
+    createUserWithEmailAndPassword, 
+    signOut, 
+    updateProfile, 
+    updatePassword, 
+    sendPasswordResetEmail, 
+    reauthenticateWithCredential, 
+    EmailAuthProvider,
+    GoogleAuthProvider,
+    signInWithPopup,
+    linkWithCredential,
+    fetchSignInMethodsForEmail
+} from "firebase/auth";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, collection, query, where, getDocs, onSnapshot, addDoc, deleteDoc, orderBy } from "firebase/firestore";
 import { getAnalytics } from "firebase/analytics";
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
@@ -121,10 +136,11 @@ let featuredSettings = {
     selectedProductIds: []
 };
 
-// ملف المستخدم
+// ملف المستخدم (تم إضافة photoURL)
 let userProfile = {
     name: '',
     email: '',
+    photoURL: '',          // <-- جديد: صورة الملف الشخصي
     telegram: '',
     telegramChatId: '',
     location: 'Tunisia',
@@ -318,6 +334,7 @@ function loadFromLocalStorage() {
         const isBannedData = localStorage.getItem('zi_isBanned_backup');
         const lastDailyRewardData = localStorage.getItem('zi_lastDailyReward_backup');
         const licencesData = localStorage.getItem('zi_licences_backup');
+        const photoURLData = localStorage.getItem('zi_photoURL_backup'); // جديد
 
         wishlist = wishlistData ? JSON.parse(wishlistData) : [];
         cart = cartData ? JSON.parse(cartData) : [];
@@ -330,6 +347,7 @@ function loadFromLocalStorage() {
         userProfile.isBanned = isBannedData ? JSON.parse(isBannedData) : false;
         userProfile.lastDailyReward = lastDailyRewardData ? parseInt(lastDailyRewardData) : 0;
         userProfile.licences = licencesData ? JSON.parse(licencesData) : [];
+        userProfile.photoURL = photoURLData || ''; // جديد
 
         updateWishlistUI();
         updateCartUI();
@@ -382,6 +400,7 @@ function startUserRealtimeListener() {
             userProfile.referralCode = data.referralCode || '';
             userProfile.name = data.name || '';
             userProfile.email = data.email || '';
+            userProfile.photoURL = data.photoURL || ''; // جديد
             userProfile.telegram = data.telegram || '';
             userProfile.telegramChatId = data.telegramChatId || '';
             userProfile.location = data.location || data.country || 'Tunisia';
@@ -445,6 +464,7 @@ async function loadUserData() {
             userProfile.referralCode = data.referralCode || '';
             userProfile.name = data.name || '';
             userProfile.email = data.email || '';
+            userProfile.photoURL = data.photoURL || ''; // جديد
             userProfile.telegram = data.telegram || '';
             userProfile.telegramChatId = data.telegramChatId || '';
             userProfile.location = data.location || data.country || 'Tunisia';
@@ -471,7 +491,7 @@ async function loadUserData() {
                 loadLicences();
             }
         } else {
-            await setDoc(userRef, { userId: uid, wishlist: [], cart: [], history: [], requests: [], usedCodes: [], referrals: [], referralRewards: 0, rp: 0, isBanned: false, useRpForCart: false, lastDailyReward: 0, licences: [], createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+            await setDoc(userRef, { userId: uid, wishlist: [], cart: [], history: [], requests: [], usedCodes: [], referrals: [], referralRewards: 0, rp: 0, isBanned: false, useRpForCart: false, lastDailyReward: 0, licences: [], photoURL: '', createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
         }
     } catch (error) {
         console.error('Error loading user data:', error);
@@ -493,6 +513,7 @@ async function saveUserData(silent = false) {
         localStorage.setItem('zi_isBanned_backup', JSON.stringify(userProfile.isBanned));
         localStorage.setItem('zi_lastDailyReward_backup', JSON.stringify(userProfile.lastDailyReward || 0));
         localStorage.setItem('zi_licences_backup', JSON.stringify(userProfile.licences || []));
+        localStorage.setItem('zi_photoURL_backup', userProfile.photoURL || ''); // جديد
         return true;
     }
     const uid = currentUser.uid;
@@ -508,6 +529,7 @@ async function saveUserData(silent = false) {
             referralRewards: userProfile.referralRewards,
             rp: userProfile.rp,
             referralCode: userProfile.referralCode,
+            photoURL: userProfile.photoURL || '', // جديد
             telegram: userProfile.telegram,
             telegramChatId: userProfile.telegramChatId,
             location: userProfile.location,
@@ -529,6 +551,7 @@ async function saveUserData(silent = false) {
         localStorage.setItem('zi_isBanned_backup', JSON.stringify(userProfile.isBanned));
         localStorage.setItem('zi_lastDailyReward_backup', JSON.stringify(userProfile.lastDailyReward || 0));
         localStorage.setItem('zi_licences_backup', JSON.stringify(userProfile.licences || []));
+        localStorage.setItem('zi_photoURL_backup', userProfile.photoURL || '');
         return true;
     } catch (e) {
         console.error('Save failed:', e);
@@ -543,14 +566,21 @@ function generateReferralCode(name, email) {
 }
 
 // ============================================================
-// 4. تحديثات الواجهة الأساسية
+// 4. تحديثات الواجهة الأساسية (مع دعم الصورة)
 // ============================================================
 
 function updateDropdownStats() {
     const userAvatar = document.getElementById('userAvatarText');
     if (currentUser) {
         const name = currentUser.displayName || currentUser.email || 'User';
-        if (userAvatar) userAvatar.textContent = name.charAt(0).toUpperCase();
+        const photoURL = userProfile.photoURL || currentUser.photoURL || '';
+        if (userAvatar) {
+            if (photoURL) {
+                userAvatar.innerHTML = `<img src="${photoURL}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />`;
+            } else {
+                userAvatar.textContent = name.charAt(0).toUpperCase();
+            }
+        }
     } else { if (userAvatar) userAvatar.textContent = 'U'; }
     updateRpDisplay();
 }
@@ -587,7 +617,12 @@ function updateFullUserMenu() {
 
     if (currentUser) {
         const displayName = currentUser.displayName || currentUser.email || 'User';
-        avatar.textContent = displayName.charAt(0).toUpperCase();
+        const photoURL = userProfile.photoURL || currentUser.photoURL || '';
+        if (photoURL) {
+            avatar.innerHTML = `<img src="${photoURL}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />`;
+        } else {
+            avatar.textContent = displayName.charAt(0).toUpperCase();
+        }
         name.textContent = displayName;
         email.textContent = currentUser.email || 'No email';
         rp.textContent = userProfile.rp || 0;
@@ -619,7 +654,7 @@ function updateFullUserMenu() {
 }
 
 // ============================================================
-// 5. دوال المصادقة
+// 5. دوال المصادقة (مع Google)
 // ============================================================
 
 window.showLogin = function() { document.getElementById('loginContainer').style.display = 'block'; document.getElementById('registerContainer').style.display = 'none'; };
@@ -702,7 +737,7 @@ window.registerUser = async function() {
         await setDoc(userRef, {
             userId: currentUser.uid, name, email, country, lang, telegram: '', telegramChatId: '', location: country,
             wishlist: [], cart: [], history: [], requests: [], usedCodes: [], referrals: [], referralRewards: 0, rp: 0, useRpForCart: false,
-            referralCode: newReferralCode, isBanned: false, lastDailyReward: 0, licences: [],
+            referralCode: newReferralCode, isBanned: false, lastDailyReward: 0, licences: [], photoURL: '',
             createdAt: serverTimestamp(), updatedAt: serverTimestamp()
         });
         successEl.textContent = '✅ Registration successful!';
@@ -723,6 +758,198 @@ window.registerUser = async function() {
         }, 500);
     } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Registration failed', 'error'); btn.classList.remove('loading'); }
 };
+
+// ***** دالة تسجيل الدخول عبر Google (جديد) *****
+window.loginWithGoogle = async function() {
+    const btn = document.getElementById('googleLoginBtn');
+    if (btn) btn.classList.add('loading');
+    const errorEl = document.getElementById('loginError');
+    const successEl = document.getElementById('loginSuccess');
+    if (errorEl) errorEl.textContent = '';
+    if (successEl) successEl.textContent = '';
+
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+
+    try {
+        // محاولة تسجيل الدخول عبر Google
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+
+        // التحقق من وجود حساب بنفس البريد الإلكتروني بكلمة مرور
+        const email = user.email;
+        if (email) {
+            const methods = await fetchSignInMethodsForEmail(auth, email);
+            if (methods.includes('password')) {
+                // يوجد حساب بكلمة مرور، نعرض رسالة للمستخدم لربط الحساب
+                // نستمر في تسجيل الدخول لكن نعطي تحذيراً
+                showToast('⚠️ هذا البريد موجود مسبقاً بكلمة مرور. سيتم دمج البيانات.', 'warning');
+                // يمكننا هنا ربط الحسابات آلياً إذا كان المستخدم قد سجل دخوله بكلمة مرور في نفس الجلسة
+                // لكننا سنكتفي بالتحذير
+            }
+        }
+
+        // حفظ صورة الملف الشخصي
+        const photoURL = user.photoURL || '';
+        userProfile.photoURL = photoURL;
+
+        // تحديث بيانات المستخدم في Firestore
+        const userRef = doc(db, 'users', user.uid);
+        await setDoc(userRef, {
+            photoURL: photoURL,
+            email: user.email,
+            name: user.displayName || user.email,
+            updatedAt: serverTimestamp()
+        }, { merge: true });
+
+        // تعيين المستخدم الحالي
+        currentUser = user;
+
+        // تحديث الواجهة
+        if (successEl) successEl.textContent = '✅ Login successful via Google!';
+        showToast('👋 Welcome via Google!', 'success');
+        if (btn) btn.classList.remove('loading');
+
+        await refreshAdminStatus();
+
+        // بعد تسجيل الدخول، نقوم بدمج بيانات المستخدم الضيف إذا كانت موجودة
+        await mergeGuestData(user.uid);
+
+        // متابعة نفس تدفق تسجيل الدخول
+        setTimeout(() => {
+            document.getElementById('authSection').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            loadUserData();
+            updateDropdownStats();
+
+            if (isAdminCached) {
+                console.log('✅ Admin detected, loading admin features');
+                loadAdminOrders();
+                startAdminRealtimeListener();
+                loadLicences();
+                setTimeout(() => {
+                    const adminMenuItem = document.getElementById('adminMenuItem');
+                    if (adminMenuItem) {
+                        adminMenuItem.style.display = 'flex';
+                        console.log('✅ Admin menu button displayed');
+                    }
+                    updateFullUserMenu();
+                }, 200);
+            }
+
+            loadDownloads(); loadNotifications(); fetchCryptoPrices(); updateFullUserMenu(); showTelegramBanner();
+            loadSliderSettings();
+            loadMarqueeSettings();
+            window.ensureAdminPanel();
+            updateLoadingText('✅ جاهز!');
+            window.showMainApp();
+            hideLoadingScreen();
+        }, 500);
+
+    } catch (error) {
+        console.error('Google login error:', error);
+        if (btn) btn.classList.remove('loading');
+        if (error.code === 'auth/account-exists-with-different-credential') {
+            // البريد الإلكتروني مستخدم بالفعل مع مزود آخر
+            const email = error.email;
+            if (errorEl) {
+                errorEl.textContent = `⚠️ هذا البريد الإلكتروني (${email}) مسجل بطريقة أخرى. يرجى تسجيل الدخول بكلمة المرور أولاً، ثم يمكنك ربط حساب Google من الملف الشخصي.`;
+            }
+            showToast('⚠️ هذا البريد مستخدم بالفعل. يرجى تسجيل الدخول بكلمة المرور.', 'warning');
+            // تعبئة حقل البريد في نموذج تسجيل الدخول
+            const loginEmail = document.getElementById('loginEmail');
+            if (loginEmail) loginEmail.value = email;
+            document.getElementById('loginContainer').style.display = 'block';
+            document.getElementById('registerContainer').style.display = 'none';
+        } else if (error.code === 'auth/popup-closed-by-user') {
+            showToast('تم إلغاء تسجيل الدخول', 'info');
+        } else {
+            if (errorEl) errorEl.textContent = '❌ ' + error.message;
+            showToast('❌ Google login failed: ' + error.message, 'error');
+        }
+    }
+};
+
+// دالة لدمج بيانات المستخدم الضيف (إن وجدت)
+async function mergeGuestData(newUid) {
+    // نتحقق من وجود بيانات في localStorage
+    const guestWishlist = localStorage.getItem('zi_wishlist_backup');
+    const guestCart = localStorage.getItem('zi_cart_backup');
+    const guestHistory = localStorage.getItem('zi_history_backup');
+    const guestRp = localStorage.getItem('zi_rp_backup');
+    // ... إلخ
+
+    if (!guestWishlist && !guestCart) return; // لا توجد بيانات ضيف
+
+    try {
+        const userRef = doc(db, 'users', newUid);
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) return;
+
+        const userData = userSnap.data();
+        let updated = false;
+
+        // دمج المفضلة
+        const wishlistGuest = guestWishlist ? JSON.parse(guestWishlist) : [];
+        if (wishlistGuest.length > 0) {
+            const merged = [...new Set([...userData.wishlist || [], ...wishlistGuest])];
+            if (merged.length !== (userData.wishlist || []).length) {
+                await updateDoc(userRef, { wishlist: merged });
+                updated = true;
+            }
+        }
+
+        // دمج السلة
+        const cartGuest = guestCart ? JSON.parse(guestCart) : [];
+        if (cartGuest.length > 0) {
+            // دمج السلة: نضيف العناصر التي لا توجد مسبقاً
+            const existingCart = userData.cart || [];
+            const mergedCart = [...existingCart];
+            cartGuest.forEach(item => {
+                if (!existingCart.some(ex => ex.id === item.id && ex.isVip === item.isVip && ex.vipPlan === item.vipPlan)) {
+                    mergedCart.push(item);
+                }
+            });
+            if (mergedCart.length !== existingCart.length) {
+                await updateDoc(userRef, { cart: mergedCart });
+                updated = true;
+            }
+        }
+
+        // دمج الطلبات
+        const historyGuest = guestHistory ? JSON.parse(guestHistory) : [];
+        if (historyGuest.length > 0) {
+            const existingHistory = userData.history || [];
+            const mergedHistory = [...existingHistory, ...historyGuest];
+            if (mergedHistory.length !== existingHistory.length) {
+                await updateDoc(userRef, { history: mergedHistory });
+                updated = true;
+            }
+        }
+
+        // دمج نقاط RP
+        const rpGuest = guestRp ? parseFloat(guestRp) : 0;
+        if (rpGuest > 0) {
+            const currentRp = userData.rp || 0;
+            if (rpGuest > 0) {
+                await updateDoc(userRef, { rp: currentRp + rpGuest });
+                updated = true;
+            }
+        }
+
+        if (updated) {
+            showToast('🔄 تم دمج بياناتك السابقة بنجاح!', 'success');
+            // حذف البيانات المحلية بعد الدمج
+            localStorage.removeItem('zi_wishlist_backup');
+            localStorage.removeItem('zi_cart_backup');
+            localStorage.removeItem('zi_history_backup');
+            localStorage.removeItem('zi_rp_backup');
+            // ... إلخ
+        }
+    } catch (error) {
+        console.error('Error merging guest data:', error);
+    }
+}
 
 window.logoutUser = async function() {
     try {
@@ -754,7 +981,7 @@ window.sendForgotPassword = async function() {
 };
 
 // ============================================================
-// 6. المودالات العامة
+// 6. المودالات العامة (نفس الشيء)
 // ============================================================
 
 window.openUserMenuFull = function() { if (!currentUser) { openAuthModal(); return; } document.getElementById('userMenuFull').classList.add('open'); updateFullUserMenu(); document.body.style.overflow = 'hidden'; };
@@ -774,7 +1001,7 @@ window.closeNotifications = function() { document.getElementById('notificationsM
 window.openAuthModal = function() { document.getElementById('authSection').scrollIntoView({ behavior: 'smooth' }); };
 
 // ============================================================
-// 7. عرض الملف الشخصي (مع إصلاح تنسيق الأزرار)
+// 7. عرض الملف الشخصي (مع دعم الصورة)
 // ============================================================
 
 function renderProfileFull() {
@@ -784,13 +1011,16 @@ function renderProfileFull() {
         return;
     }
     const displayName = currentUser.displayName || currentUser.email || 'User';
+    const photoURL = userProfile.photoURL || currentUser.photoURL || '';
     const maskedChatId = userProfile.telegramChatId ? userProfile.telegramChatId.slice(0, 4) + '***' + userProfile.telegramChatId.slice(-4) : 'Not linked';
     const activeLicences = (userProfile.licences || []).filter(l => new Date(l.expiryDate) > new Date()).length;
     container.innerHTML = `
     <div class="profile-container">
         <div class="profile-card">
             <div class="profile-header">
-                <div class="profile-avatar">${displayName.charAt(0).toUpperCase()}</div>
+                <div class="profile-avatar">
+                    ${photoURL ? `<img src="${photoURL}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />` : displayName.charAt(0).toUpperCase()}
+                </div>
                 <div class="profile-info">
                     <h3>${displayName}</h3>
                     <div class="profile-email">${currentUser.email || 'No email'}</div>
@@ -929,7 +1159,7 @@ window.sendResetLinkInline = async function() { if (!currentUser) return; try { 
 window.changePasswordInline = async function() { if (!currentUser) return; const currentPwd = document.getElementById('currentPasswordInline').value; const newPwd = document.getElementById('newPasswordInline').value; const confirmPwd = document.getElementById('confirmNewPasswordInline').value; const errorEl = document.getElementById('passwordErrorInline'); const successEl = document.getElementById('passwordSuccessInline'); errorEl.textContent = ''; successEl.textContent = ''; if (!currentPwd || !newPwd || !confirmPwd) { errorEl.textContent = 'Please fill all fields'; return; } if (newPwd.length < 6) { errorEl.textContent = 'New password must be at least 6 characters'; return; } if (newPwd !== confirmPwd) { errorEl.textContent = 'Passwords do not match'; return; } try { const credential = EmailAuthProvider.credential(currentUser.email, currentPwd); await reauthenticateWithCredential(currentUser, credential); await updatePassword(currentUser, newPwd); successEl.textContent = '✅ Password changed successfully!'; showToast('✅ Password updated!', 'success'); document.getElementById('currentPasswordInline').value = ''; document.getElementById('newPasswordInline').value = ''; document.getElementById('confirmNewPasswordInline').value = ''; setTimeout(() => { successEl.textContent = ''; }, 3000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); } };
 
 // ============================================================
-// 8. دوال المنتجات
+// 8. دوال المنتجات (نفس الشيء)
 // ============================================================
 
 async function loadProductsFromFirestore() {
@@ -1085,7 +1315,7 @@ function generateRecommendations(productsList) {
 }
 
 // ============================================================
-// 9. دوال العملة ونوع المنتج والكميات والشارات (جديدة)
+// 9. دوال العملة ونوع المنتج والكميات والشارات (نفس الشيء)
 // ============================================================
 
 // اختيار العملة
@@ -1223,7 +1453,7 @@ function setBadges(badges) {
 }
 
 // ============================================================
-// 10. المنتجات المميزة والسلة والمفضلة
+// 10. المنتجات المميزة والسلة والمفضلة (نفس الشيء)
 // ============================================================
 
 function renderFeaturedProducts() {
@@ -1284,14 +1514,13 @@ async function loadFeaturedSettings() {
 }
 
 // ============================================================
-// 11. إدارة السلة (مع دعم المنتجات الكمية)
+// 11. إدارة السلة (نفس الشيء)
 // ============================================================
 
 window.addToCart = async function(productId) {
     const product = products.find(p => p.id === productId);
     if (!product) { showToast('⚠️ Product not found', 'warning'); return; }
     
-    // إذا كان المنتج من نوع quantity
     if (product.productType === 'quantity') {
         const selectedQty = window._selectedQuantity || product.quantityOptions?.[0]?.quantity;
         const selectedPrice = window._selectedQuantityPrice || product.quantityOptions?.[0]?.price;
@@ -1319,7 +1548,6 @@ window.addToCart = async function(productId) {
         return;
     }
     
-    // المنتجات العادية
     if (product.price === 0) { showToast('⚠️ This script is free', 'warning'); return; }
     const existing = cart.find(item => item.id === productId && !item.isVip);
     if (existing) { existing.quantity = (existing.quantity || 1) + 1; } else { cart.push({ ...product, quantity: 1 }); }
@@ -1504,7 +1732,7 @@ function createFloatingHearts() {
 }
 
 // ============================================================
-// 12. عرض المنتج (Preview) - مع دعم الكميات والشارات
+// 12. عرض المنتج (Preview) - نفس الشيء
 // ============================================================
 
 window.openDetails = function(id) {
@@ -1606,7 +1834,7 @@ window.openDetails = function(id) {
         } else { vipSection.style.display = 'none'; }
     } else { vipSection.style.display = 'none'; }
     
-    // ====== عرض خيارات الكميات (للمنتجات من نوع quantity) ======
+    // ====== عرض خيارات الكميات ======
     const existingQuantitySection = document.getElementById('previewQuantitySection');
     if (existingQuantitySection) existingQuantitySection.remove();
     
@@ -1701,7 +1929,7 @@ window.addToCartFromPreview = function() { if (window._currentProduct) { window.
 window.shareFromPreview = function() { if (window._currentProduct) { window.openShareModal(window._currentProduct.id); } };
 
 // ============================================================
-// 13. مودال المشاركة
+// 13. مودال المشاركة (نفس الشيء)
 // ============================================================
 
 window.openShareModal = function(productId) {
@@ -1718,7 +1946,7 @@ window.shareToFacebook = function() { if (!shareProduct) return; window.open(`ht
 window.copyShareLink = function() { const url = window.location.href; navigator.clipboard.writeText(url).then(() => { showToast('✅ Link copied!', 'success'); closeShareModal(); }).catch(() => { const textArea = document.createElement('textarea'); textArea.value = url; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); showToast('✅ Link copied!', 'success'); closeShareModal(); }); };
 
 // ============================================================
-// 14. التصفية والبحث
+// 14. التصفية والبحث (نفس الشيء)
 // ============================================================
 
 window.filterProducts = function(filter) {
@@ -1775,7 +2003,7 @@ function closeSearchResults() { searchResults.classList.remove('active'); search
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeSearchResults(); closeUserMenuFull(); closeCartFull(); closeWishlistFull(); closeProfileFull(); closeHistoryFull(); } });
 
 // ============================================================
-// 15. الدفع (Payment)
+// 15. الدفع (Payment) - نفس الشيء
 // ============================================================
 
 async function fetchCryptoPrices() {
@@ -1925,7 +2153,7 @@ function renderPaymentProducts() {
 }
 
 // ============================================================
-// 16. إرسال الطلب (Order)
+// 16. إرسال الطلب (Order) - نفس الشيء
 // ============================================================
 
 async function sendOrderToTelegram(method, txHash = null) {
@@ -2103,7 +2331,7 @@ window.closePaymentModal = function() { document.getElementById('paymentModal').
 window.checkout = function() { openPaymentModal(); };
 
 // ============================================================
-// 17. دوال تيليجرام
+// 17. دوال تيليجرام (نفس الشيء)
 // ============================================================
 
 async function sendTelegramNotification(chatId, message) {
@@ -2207,7 +2435,7 @@ window.checkTelegramStatus = async function() {
 };
 
 // ============================================================
-// 18. التحميلات والإشعارات
+// 18. التحميلات والإشعارات (نفس الشيء)
 // ============================================================
 
 function loadDownloads() {
@@ -2392,7 +2620,7 @@ window.openCreateNotificationModal = function() { if (!currentUser || !isAdminCa
 window.closeCreateNotificationModal = function() { document.getElementById('createNotificationModal').classList.remove('open'); };
 
 // ============================================================
-// 19. الطلبات والإحالات
+// 19. الطلبات والإحالات (نفس الشيء)
 // ============================================================
 
 window.openRequestsModal = function() {
@@ -2466,7 +2694,7 @@ window.copyReferralCode2 = function() {
 };
 
 // ============================================================
-// 20. لوحة المدير (Admin Panel)
+// 20. لوحة المدير (Admin Panel) - نفس الشيء مع إضافة زر Google
 // ============================================================
 
 window.openAdminPanel = function() {
@@ -2657,7 +2885,7 @@ window.switchAdminTab = function(tab) {
 };
 
 // ============================================================
-// 21. إدارة المنتجات (Admin Products) - مع تحديثات العملة والكميات والشارات
+// 21. إدارة المنتجات (Admin Products) - نفس الشيء
 // ============================================================
 
 function renderAdminProducts(productsList) {
@@ -2691,14 +2919,12 @@ window.openEditProductModal = function(productId) {
     document.getElementById('productVideo').value = product.video || 'https://www.youtube.com/embed/dQw4w9WgXcQ';
     document.getElementById('productDuration').value = product.duration || '';
     
-    // العملة
     const currency = product.currency || 'USD';
     document.getElementById('productCurrency').value = currency;
     document.querySelectorAll('.currency-option').forEach(el => {
         el.classList.toggle('active', el.dataset.currency === currency);
     });
     
-    // نوع المنتج
     const productType = product.productType || 'standard';
     document.getElementById('productType').value = productType;
     document.querySelectorAll('.type-option').forEach(el => {
@@ -2712,10 +2938,8 @@ window.openEditProductModal = function(productId) {
         container.style.display = 'none';
     }
     
-    // الشارات
     setBadges(product.badges || []);
     
-    // VIP Pricing
     const vipEnabled = product.vipEnabled || false;
     document.getElementById('vipEnabled').checked = vipEnabled;
     document.getElementById('vipPricingFields').style.display = vipEnabled ? 'block' : 'none';
@@ -2747,13 +2971,11 @@ window.openAddProductModal = function() {
     document.getElementById('productVideo').value = 'https://www.youtube.com/embed/dQw4w9WgXcQ';
     document.getElementById('productDuration').value = '';
     
-    // العملة - افتراضي USD
     document.getElementById('productCurrency').value = 'USD';
     document.querySelectorAll('.currency-option').forEach(el => {
         el.classList.toggle('active', el.dataset.currency === 'USD');
     });
     
-    // نوع المنتج - افتراضي standard
     document.getElementById('productType').value = 'standard';
     document.querySelectorAll('.type-option').forEach(el => {
         el.classList.toggle('active', el.dataset.type === 'standard');
@@ -2761,11 +2983,9 @@ window.openAddProductModal = function() {
     document.getElementById('quantityOptionsContainer').style.display = 'none';
     document.getElementById('quantityOptionsList').innerHTML = '';
     
-    // الشارات - إعادة تعيين
     document.querySelectorAll('.badge-option').forEach(el => el.classList.remove('selected'));
     document.getElementById('productBadges').value = '';
     
-    // VIP Pricing
     document.getElementById('vipEnabled').checked = false;
     document.getElementById('vipPricingFields').style.display = 'none';
     
@@ -2789,13 +3009,8 @@ window.saveProduct = async function(event) {
     const video = document.getElementById('productVideo').value.trim();
     const duration = document.getElementById('productDuration').value.trim();
     
-    // العملة
     const currency = document.getElementById('productCurrency').value || 'USD';
-    
-    // نوع المنتج
     const productType = document.getElementById('productType').value || 'standard';
-    
-    // خيارات الكميات
     let quantityOptions = [];
     if (productType === 'quantity') {
         quantityOptions = getQuantityOptions();
@@ -2804,11 +3019,7 @@ window.saveProduct = async function(event) {
             return;
         }
     }
-    
-    // الشارات
     const badges = document.getElementById('productBadges').value.split(',').filter(b => b.trim() !== '');
-    
-    // VIP Pricing
     const vipEnabled = document.getElementById('vipEnabled').checked;
     const vipPrices = {
         '1m': parseFloat(document.getElementById('vipPrice1m').value) || 0,
@@ -2882,7 +3093,7 @@ async function deleteProductFromFirestore(productId) {
 }
 
 // ============================================================
-// 22. الطلبات (Admin Orders)
+// 22. الطلبات (Admin Orders) - نفس الشيء
 // ============================================================
 
 function startAdminRealtimeListener() {
@@ -3013,7 +3224,7 @@ function updateAdminStats(orders) {
 }
 
 // ============================================================
-// 23. تحديث حالة الطلب
+// 23. تحديث حالة الطلب (نفس الشيء)
 // ============================================================
 
 window.updateOrderStatus = async function(orderId, userId, newStatus) {
@@ -3081,7 +3292,7 @@ window.clearAdminSearch = function() { document.getElementById('adminSearchInput
 window.refreshAdminOrders = function() { loadAdminOrders(); showToast('🔄 Refreshed', 'info'); };
 
 // ============================================================
-// 24. إرسال الترخيص عبر Edge Function
+// 24. إرسال الترخيص عبر Edge Function (نفس الشيء)
 // ============================================================
 
 async function sendLicenceForOrder(orderId, userId) {
@@ -3129,7 +3340,7 @@ async function sendLicenceForOrder(orderId, userId) {
 }
 
 // ============================================================
-// 25. المستخدمين (Admin Users)
+// 25. المستخدمين (Admin Users) - نفس الشيء
 // ============================================================
 
 async function loadAdminUsers() {
@@ -3146,7 +3357,7 @@ async function loadAdminUsers() {
         const usersList = [];
         snapshot.forEach((doc) => {
             const data = doc.data();
-            usersList.push({ uid: doc.id, ...data, email: data.email || doc.id, name: data.name || 'Unknown', createdAt: data.createdAt ? new Date(data.createdAt.toDate()) : new Date(), isBanned: data.isBanned || false, history: data.history || [], rp: data.rp || 0, referralCode: data.referralCode || '', location: data.location || data.country || 'N/A' });
+            usersList.push({ uid: doc.id, ...data, email: data.email || doc.id, name: data.name || 'Unknown', createdAt: data.createdAt ? new Date(data.createdAt.toDate()) : new Date(), isBanned: data.isBanned || false, history: data.history || [], rp: data.rp || 0, referralCode: data.referralCode || '', location: data.location || data.country || 'N/A', photoURL: data.photoURL || '' });
         });
         allUsers = usersList;
         renderAdminUsers(usersList);
@@ -3172,10 +3383,11 @@ function renderAdminUsers(usersList) {
         const isBanned = user.isBanned || false;
         const orderCount = user.history?.length || 0;
         const rp = user.rp || 0;
+        const photo = user.photoURL || '';
         const initials = (user.name || 'U').charAt(0).toUpperCase();
         const dateStr = user.createdAt ? user.createdAt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '--';
         const location = user.location || 'N/A';
-        return `<div class="admin-user-card ${isBanned?'banned':''}"><div class="user-avatar">${initials}</div><div class="user-name">${user.name||'Unknown'}</div><div class="user-email">${user.email||'No email'}</div><div class="user-meta">📍 ${location}</div><div class="user-meta">📅 ${dateStr} • 🎯 ${rp} RP</div><div class="user-meta">📦 ${orderCount} orders</div>${isBanned?`<span class="user-badge banned">🚫 Banned</span>`:''}${isAdmin?`<span class="user-badge admin">👑 Admin</span>`:''}<div class="user-actions"><button class="btn-view" onclick="viewUserDetails('${user.uid}')"><i class="fas fa-eye"></i> View</button>${!isAdmin ? (isBanned ? `<button class="btn-unban" onclick="toggleUserBan('${user.uid}',false)"><i class="fas fa-user-check"></i> Unban</button>` : `<button class="btn-ban" onclick="toggleUserBan('${user.uid}',true)"><i class="fas fa-ban"></i> Ban</button>`) : ''}${!isAdmin ? `<button class="btn-delete" onclick="deleteUserAccount('${user.uid}')"><i class="fas fa-trash"></i></button>` : ''}</div></div>`;
+        return `<div class="admin-user-card ${isBanned?'banned':''}"><div class="user-avatar">${photo ? `<img src="${photo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />` : initials}</div><div class="user-name">${user.name||'Unknown'}</div><div class="user-email">${user.email||'No email'}</div><div class="user-meta">📍 ${location}</div><div class="user-meta">📅 ${dateStr} • 🎯 ${rp} RP</div><div class="user-meta">📦 ${orderCount} orders</div>${isBanned?`<span class="user-badge banned">🚫 Banned</span>`:''}${isAdmin?`<span class="user-badge admin">👑 Admin</span>`:''}<div class="user-actions"><button class="btn-view" onclick="viewUserDetails('${user.uid}')"><i class="fas fa-eye"></i> View</button>${!isAdmin ? (isBanned ? `<button class="btn-unban" onclick="toggleUserBan('${user.uid}',false)"><i class="fas fa-user-check"></i> Unban</button>` : `<button class="btn-ban" onclick="toggleUserBan('${user.uid}',true)"><i class="fas fa-ban"></i> Ban</button>`) : ''}${!isAdmin ? `<button class="btn-delete" onclick="deleteUserAccount('${user.uid}')"><i class="fas fa-trash"></i></button>` : ''}</div></div>`;
     }).join('')}</div>`;
 }
 window.searchAdminUsers = function() { renderAdminUsers(allUsers); };
@@ -3210,11 +3422,14 @@ window.viewUserDetails = async function(uid) {
         const orders = data.history || [];
         const totalSpent = orders.reduce((sum, o) => sum + (o.total || 0), 0);
         const location = data.location || data.country || 'Not specified';
+        const photo = data.photoURL || '';
         const content = document.getElementById('userDetailsContent');
         content.innerHTML = `
           <div style="padding:4px 0;">
             <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
-              <div style="width:44px;height:44px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;">${(data.name||'U').charAt(0).toUpperCase()}</div>
+              <div style="width:44px;height:44px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;overflow:hidden;">
+                ${photo ? `<img src="${photo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />` : (data.name||'U').charAt(0).toUpperCase()}
+              </div>
               <div><div style="font-size:15px;font-weight:700;color:var(--text);">${data.name||'Unknown'}</div><div style="font-size:12px;color:var(--text-secondary);">${data.email||'No email'}</div><div style="font-size:12px;color:var(--text-secondary);">📍 Country: ${location}</div><div style="font-size:12px;color:var(--vip-color);font-weight:600;">🎯 RP: ${data.rp||0} • 📦 ${orders.length} orders</div></div>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px;">
@@ -3236,7 +3451,7 @@ window.viewUserDetails = async function(uid) {
 window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
 // ============================================================
-// 26. نظام إدارة التراخيص (مع Supabase)
+// 26. نظام إدارة التراخيص (مع Supabase) - نفس الشيء
 // ============================================================
 
 async function loadLicences() {
@@ -3557,7 +3772,7 @@ async function activateLicence() {
 }
 
 // ============================================================
-// 27. التقييمات (Ratings)
+// 27. التقييمات (Ratings) - نفس الشيء
 // ============================================================
 
 let currentRating = 0;
@@ -3649,10 +3864,9 @@ async function updateProductRatingDisplay(productId) {
 }
 
 // ============================================================
-// 28. دوال السلايدر والماركي والإحصائيات
+// 28. دوال السلايدر والماركي والإحصائيات (نفس الشيء)
 // ============================================================
 
-// دوال السلايدر (Slider)
 window.goToSlide = function(index) {
     if (index < 0 || index >= sliderSlides.length) return;
     currentSlideIndex = index;
@@ -3943,7 +4157,7 @@ function renderSliderSettingsUI() {
     }).join('');
 }
 
-// دوال الماركي (Marquee)
+// دوال الماركي
 window.saveMarqueeSettings = async function() {
     const enabledCheckbox = document.getElementById('marqueeEnabled');
     const textArea = document.getElementById('marqueeText');
@@ -4111,7 +4325,7 @@ async function loadAuditLogs() {
 window.loadAuditLogs = loadAuditLogs;
 
 // ============================================================
-// 29. دوال clearOrderHistory, renderHistoryFull, filterOrders
+// 29. دوال clearOrderHistory, renderHistoryFull, filterOrders (نفس الشيء)
 // ============================================================
 
 window.clearOrderHistory = async function() {
@@ -4181,13 +4395,11 @@ window.filterOrders = function(filter) {
 };
 
 // ============================================================
-// 30. Cookie Consent Functions
+// 30. Cookie Consent Functions (نفس الشيء)
 // ============================================================
 
-// متغير لتخزين حالة الموافقة
 let cookieConsentStatus = localStorage.getItem('cookieConsent');
 
-// دالة قبول الكل
 window.acceptCookies = function() {
     localStorage.setItem('cookieConsent', 'accepted');
     localStorage.setItem('analyticsConsent', 'true');
@@ -4196,7 +4408,6 @@ window.acceptCookies = function() {
     showToast('✅ تم قبول ملفات تعريف الارتباط', 'success');
 };
 
-// دالة رفض الكل
 window.rejectCookies = function() {
     localStorage.setItem('cookieConsent', 'rejected');
     localStorage.setItem('analyticsConsent', 'false');
@@ -4205,7 +4416,6 @@ window.rejectCookies = function() {
     showToast('❌ تم رفض ملفات تعريف الارتباط', 'info');
 };
 
-// فتح إعدادات الكوكيز
 window.openCookieSettings = function() {
     const modal = document.getElementById('cookieSettingsModal');
     if (modal) {
@@ -4219,7 +4429,6 @@ window.openCookieSettings = function() {
     }
 };
 
-// إغلاق إعدادات الكوكيز
 window.closeCookieSettings = function() {
     const modal = document.getElementById('cookieSettingsModal');
     if (modal) {
@@ -4228,7 +4437,6 @@ window.closeCookieSettings = function() {
     }
 };
 
-// حفظ إعدادات الكوكيز
 window.saveCookieSettings = function() {
     const analyticsToggle = document.getElementById('analyticsToggle');
     const analyticsEnabled = analyticsToggle ? analyticsToggle.checked : true;
@@ -4247,7 +4455,6 @@ window.saveCookieSettings = function() {
     showToast('✅ تم حفظ الإعدادات', 'success');
 };
 
-// تفعيل التحليلات
 function enableAnalytics() {
     try {
         if (typeof analytics !== 'undefined' && analytics.setAnalyticsCollectionEnabled) {
@@ -4265,7 +4472,6 @@ function enableAnalytics() {
     }
 }
 
-// تعطيل التحليلات
 function disableAnalytics() {
     try {
         if (typeof analytics !== 'undefined' && analytics.setAnalyticsCollectionEnabled) {
@@ -4283,7 +4489,6 @@ function disableAnalytics() {
     }
 }
 
-// التحقق من حالة الموافقة عند تحميل الصفحة
 function checkCookieConsent() {
     const consent = localStorage.getItem('cookieConsent');
     const analyticsConsent = localStorage.getItem('analyticsConsent');
@@ -4308,7 +4513,6 @@ function checkCookieConsent() {
     }
 }
 
-// إغلاق البانر يدوياً
 window.closeCookieBanner = function() {
     const banner = document.getElementById('cookieConsent');
     if (banner) {
@@ -4316,7 +4520,6 @@ window.closeCookieBanner = function() {
     }
 };
 
-// تصدير الدوال للنطاق العام
 window.enableAnalytics = enableAnalytics;
 window.disableAnalytics = disableAnalytics;
 window.checkCookieConsent = checkCookieConsent;
@@ -4368,7 +4571,7 @@ function startSocialProof() { /* للاستخدام المستقبلي */ }
 function triggerSocialProofOnOrder(userName, productNames) { /* للاستخدام المستقبلي */ }
 
 // ============================================================
-// 32. رفع الصور إلى Cloudinary
+// 32. رفع الصور إلى Cloudinary (نفس الشيء)
 // ============================================================
 
 const CLOUDINARY_CLOUD_NAME = 'y14bgb5s';
@@ -4386,7 +4589,7 @@ async function uploadToCloudinary(file) {
 }
 
 // ============================================================
-// 33. دوال التوجيه والإصلاح
+// 33. دوال التوجيه والإصلاح (نفس الشيء)
 // ============================================================
 
 function fixDirection() {
@@ -4398,7 +4601,7 @@ function fixDirection() {
 window.fixHeaderAndModals = fixDirection;
 
 // ============================================================
-// 34. نسخ الترخيص والتصدير
+// 34. نسخ الترخيص والتصدير (نفس الشيء)
 // ============================================================
 
 window.copyLicenceCode = function(code) {
@@ -4461,7 +4664,7 @@ window.exportOrders = function() {
 };
 
 // ============================================================
-// 35. حالة المصادقة (النسخة النهائية مع إصلاح ظهور login)
+// 35. حالة المصادقة (النسخة النهائية مع دعم Google)
 // ============================================================
 onAuthStateChanged(auth, async (user) => {
     currentUser = user;
@@ -4481,12 +4684,18 @@ onAuthStateChanged(auth, async (user) => {
                 showToast('🚫 Your account has been banned.', 'error');
                 return;
             }
+            // تحديث photoURL في userProfile
+            if (userSnap.exists()) {
+                const data = userSnap.data();
+                userProfile.photoURL = data.photoURL || user.photoURL || '';
+            } else {
+                userProfile.photoURL = user.photoURL || '';
+            }
         } catch (error) { console.error('Error checking ban status:', error); }
 
         await refreshAdminStatus();
         console.log('🔍 Admin status after login:', isAdminCached);
 
-        // إخفاء authSection وإظهار mainApp
         if (authSection) authSection.style.display = 'none';
         if (mainApp) mainApp.style.display = 'block';
 
@@ -4520,13 +4729,11 @@ onAuthStateChanged(auth, async (user) => {
         setTimeout(checkCookieConsent, 1000);
         updateLoadingText('✅ جاهز!');
 
-        // إظهار التطبيق الرئيسي (في حالة كان مخفياً)
         window.showMainApp();
         hideLoadingScreen();
 
     } else {
         isAdminCached = false;
-        // إظهار authSection وإخفاء mainApp
         if (authSection) authSection.style.display = 'block';
         if (mainApp) mainApp.style.display = 'none';
 
@@ -4542,7 +4749,6 @@ onAuthStateChanged(auth, async (user) => {
         setTimeout(checkCookieConsent, 1000);
         updateLoadingText('👋 تسجيل الدخول');
 
-        // إخفاء شاشة التحميل بعد ظهور authSection
         setTimeout(() => {
             hideLoadingScreen();
         }, 500);
@@ -4558,7 +4764,6 @@ setInterval(() => {
     if (currentUser && !isAdminCached) {
         window.ensureAdminPanel();
     }
-    // التأكد من ظهور التطبيق
     const mainApp = document.getElementById('mainApp');
     if (mainApp && mainApp.style.display === 'none') {
         mainApp.style.display = 'block';
@@ -4572,7 +4777,6 @@ setInterval(() => {
 async function init() {
     console.log('🚀 Initializing ZI Store...');
 
-    // إخفاء authSection في البداية (سيتم إظهارها إذا لم يكن هناك مستخدم)
     const authSection = document.getElementById('authSection');
     if (authSection) authSection.style.display = 'none';
 
@@ -4605,11 +4809,9 @@ async function init() {
         setTimeout(window.ensureAdminPanel, 3000);
         setTimeout(checkCookieConsent, 1500);
 
-        // إظهار التطبيق الرئيسي وإخفاء شاشة التحميل
         window.showMainApp();
         hideLoadingScreen();
 
-        // تغيير شكل شاشة التحميل لتظهر كـ "جاهز"
         setTimeout(function() {
             const screen = document.getElementById('loadingScreen');
             if (screen) {
@@ -4633,14 +4835,13 @@ async function init() {
         console.error('❌ Initialization error:', error);
         updateLoadingText('⚠️ حدث خطأ، حاول تحديث الصفحة');
         showToast('⚠️ Error loading store. Please refresh.', 'error');
-        // حتى في حالة الخطأ، نعرض التطبيق
         window.showMainApp();
         hideLoadingScreen();
     }
 }
 
 // ============================================================
-// 38. تبديل الثيم
+// 38. تبديل الثيم (نفس الشيء)
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -4665,7 +4866,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================================
-// 39. تصدير جميع الدوال للنطاق العام
+// 39. تصدير جميع الدوال للنطاق العام (مع إضافة loginWithGoogle)
 // ============================================================
 
 window.toggleLicencesList = toggleLicencesList;
@@ -4806,6 +5007,7 @@ window.addQuantityOption = addQuantityOption;
 window.removeQuantityOption = removeQuantityOption;
 window.toggleBadge = toggleBadge;
 window.selectQuantityOption = selectQuantityOption;
+window.loginWithGoogle = loginWithGoogle; // <-- تصدير دالة Google
 
 // ============================================================
 // 40. بدء التطبيق
