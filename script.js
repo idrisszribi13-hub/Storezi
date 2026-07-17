@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - الإصدار النهائي الكامل مع شاشة تحميل دائمة
+// SCRIPT.JS - ZI Store - الإصدار النهائي الكامل مع جميع الإصلاحات
 // ============================================================
 
 // ============================================================
@@ -170,15 +170,11 @@ function showToast(message, type = 'success') {
 }
 window.hideToast = function() { document.getElementById('toast')?.classList.remove('show'); };
 
-// ============================================================
 // شاشة التحميل - تبقى ظاهرة (لا تخفى)
-// ============================================================
 function hideLoadingScreen() {
-    // لا تفعل شيئاً - نريد أن تبقى الشاشة ظاهرة
     console.log('ℹ️ Loading screen will remain visible');
 }
 
-// دالة لإظهار شاشة التحميل (إذا لزم الأمر)
 function showLoadingScreen() {
     const screen = document.getElementById('loadingScreen');
     if (screen) {
@@ -188,7 +184,6 @@ function showLoadingScreen() {
     }
 }
 
-// دالة لتحديث نص التحميل
 function updateLoadingText(text) {
     const statusEl = document.getElementById('loadingStatus');
     if (statusEl) {
@@ -197,7 +192,6 @@ function updateLoadingText(text) {
     }
 }
 
-// دالة لإخفاء شاشة التحميل يدوياً (اختياري)
 window.hideLoadingScreenManually = function() {
     const screen = document.getElementById('loadingScreen');
     if (screen) {
@@ -245,9 +239,6 @@ async function refreshAdminStatus() {
     return isAdminCached;
 }
 
-// ============================================================
-// دالة强制 لتحديث ظهور لوحة الأدمن
-// ============================================================
 window.ensureAdminPanel = function() {
     if (!currentUser) {
         console.warn('⚠️ No user logged in');
@@ -3403,6 +3394,337 @@ window.saveSlideEdit = async function() {
     showToast('✅ تم تحديث الشريحة بنجاح!', 'success');
 };
 
+window.deleteSlide = function(index) {
+    if (!confirm('هل أنت متأكد من حذف هذه الشريحة؟')) return;
+    sliderSlides.splice(index, 1);
+    window.saveSliderData();
+    renderSlider();
+    renderSliderSettingsUI();
+    resetSliderTimer();
+    showToast('🗑️ تم حذف الشريحة', 'success');
+};
+
+window.editSlide = function(index) {
+    const slide = sliderSlides[index];
+    if (!slide) { showToast('❌ الشريحة غير موجودة', 'error'); return; }
+    const modal = document.getElementById('addSlideModal');
+    if (!modal) { showToast('❌ المودال غير موجود', 'error'); return; }
+    document.getElementById('slideTitle').value = slide.title || '';
+    document.getElementById('slideSubtitle').value = slide.subtitle || '';
+    document.getElementById('slideButtonText').value = slide.buttonText || 'Buy Now';
+    document.getElementById('slideLinkType').value = slide.linkType || 'product';
+    toggleSlideLinkFields();
+    if (slide.linkType === 'product') {
+        document.getElementById('slideProductSelect').value = slide.productId || '';
+    } else if (slide.linkType === 'download') {
+        document.getElementById('slideDownloadUrl').value = slide.downloadUrl || '';
+    } else if (slide.linkType === 'url') {
+        document.getElementById('slideCustomUrl').value = slide.customUrl || '';
+    }
+    document.getElementById('addSlideForm').dataset.editIndex = index;
+    document.querySelector('#addSlideModal .modal-title').textContent = '✏️ تعديل الشريحة';
+    document.querySelector('#addSlideForm button[type="submit"]').textContent = '💾 تحديث الشريحة';
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+};
+
+window.openAddSlideModal = function() {
+    updateSlideProductSelect();
+    const modal = document.getElementById('addSlideModal');
+    if (!modal) { showToast('❌ المودال غير موجود', 'error'); return; }
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    const form = document.getElementById('addSlideForm');
+    if (form) form.reset();
+    const preview = document.getElementById('slideImagePreview');
+    if (preview) preview.style.display = 'none';
+    toggleSlideLinkFields();
+    document.querySelector('#addSlideModal .modal-title').textContent = '➕ إضافة شريحة جديدة';
+    document.querySelector('#addSlideForm button[type="submit"]').textContent = '➕ إضافة شريحة';
+    delete document.getElementById('addSlideForm').dataset.editIndex;
+};
+
+window.closeAddSlideModal = function() {
+    const modal = document.getElementById('addSlideModal');
+    if (modal) { modal.classList.remove('open'); document.body.style.overflow = ''; }
+};
+
+function updateSlideProductSelect() {
+    const select = document.getElementById('slideProductSelect');
+    if (!select) return;
+    select.innerHTML = products.map(p => `<option value="${p.id}">${p.name} ($${p.price})</option>`).join('');
+}
+
+function toggleSlideLinkFields() {
+    const type = document.getElementById('slideLinkType')?.value || 'product';
+    const productGroup = document.getElementById('slideProductGroup');
+    const downloadGroup = document.getElementById('slideDownloadGroup');
+    const customGroup = document.getElementById('slideCustomUrlGroup');
+    if (productGroup) productGroup.style.display = type === 'product' ? 'block' : 'none';
+    if (downloadGroup) downloadGroup.style.display = type === 'download' ? 'block' : 'none';
+    if (customGroup) customGroup.style.display = type === 'url' ? 'block' : 'none';
+}
+
+async function loadSliderSettings() {
+    try {
+        const settingsRef = doc(db, 'settings', 'slider');
+        const settingsSnap = await getDoc(settingsRef);
+        if (settingsSnap.exists()) {
+            const data = settingsSnap.data();
+            sliderSlides = data.slides || [];
+            sliderIntervalTime = data.interval || 3;
+            const intervalInput = document.getElementById('sliderIntervalInput');
+            if (intervalInput) { intervalInput.value = sliderIntervalTime; }
+        } else {
+            sliderSlides = [];
+            sliderIntervalTime = 3;
+        }
+        renderSlider();
+        startSliderRotation();
+        renderSliderSettingsUI();
+    } catch (error) {
+        console.error('Error loading slider settings:', error);
+        if (error.code === 'permission-denied') {
+            sliderSlides = [];
+            sliderIntervalTime = 3;
+            renderSlider();
+            renderSliderSettingsUI();
+        }
+    }
+}
+
+function renderSlider() {
+    const wrapper = document.getElementById('sliderWrapper');
+    const dots = document.getElementById('sliderDots');
+    if (!wrapper) return;
+    if (sliderSlides.length === 0) {
+        wrapper.innerHTML = `<div class="slide-item" style="background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;min-height:200px;border-radius:var(--radius-md);"><div style="text-align:center;color:var(--text-secondary);opacity:0.4;"><i class="fas fa-images" style="font-size:48px;display:block;margin-bottom:8px;"></i><p>لا توجد شرائح. أضف شرائح من لوحة التحكم.</p></div></div>`;
+        dots.innerHTML = '';
+        return;
+    }
+    wrapper.innerHTML = sliderSlides.map((slide, index) => {
+        const isActive = index === currentSlideIndex ? 'active' : '';
+        const imageUrl = slide.imageUrl || '';
+        const title = slide.title || '';
+        const subtitle = slide.subtitle || '';
+        const buttonText = slide.buttonText || 'Learn More';
+        let buttonLink = '#';
+        let buttonTarget = '_self';
+        if (slide.linkType === 'product' && slide.productId) {
+            buttonLink = `javascript:window.openDetails('${slide.productId}')`;
+        } else if (slide.linkType === 'download' && slide.downloadUrl) {
+            buttonLink = slide.downloadUrl; buttonTarget = '_blank';
+        } else if (slide.linkType === 'url' && slide.customUrl) {
+            buttonLink = slide.customUrl; buttonTarget = '_blank';
+        }
+        return `<div class="slide-item ${isActive}" style="background-image:url('${imageUrl}');"><div class="slide-overlay">${title ? `<h2 class="slide-title">${title}</h2>` : ''}${subtitle ? `<p class="slide-subtitle">${subtitle}</p>` : ''}${buttonText ? `<a href="${buttonLink}" target="${buttonTarget}" class="slide-btn">${buttonText}</a>` : ''}</div></div>`;
+    }).join('');
+    dots.innerHTML = sliderSlides.map((_, index) => {
+        const isActive = index === currentSlideIndex ? 'active' : '';
+        return `<span class="dot ${isActive}" onclick="goToSlide(${index})"></span>`;
+    }).join('');
+    updateSliderHeight();
+}
+
+function updateSliderHeight() {
+    const wrapper = document.getElementById('sliderWrapper');
+    if (wrapper) wrapper.style.minHeight = '300px';
+}
+
+function startSliderRotation() {
+    if (sliderTimer) clearInterval(sliderTimer);
+    if (sliderSlides.length <= 1) return;
+    sliderTimer = setInterval(() => {
+        if (!isSliderPaused) { window.nextSlide(); }
+    }, sliderIntervalTime * 1000);
+}
+
+function resetSliderTimer() {
+    if (sliderTimer) { clearInterval(sliderTimer); startSliderRotation(); }
+}
+
+function renderSliderSettingsUI() {
+    const container = document.getElementById('sliderSlidesList');
+    if (!container) return;
+    if (sliderSlides.length === 0) {
+        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);opacity:0.5;">لا توجد شرائح. اضغط "إضافة شريحة" للبدء.</div>`;
+        return;
+    }
+    container.innerHTML = sliderSlides.map((slide, index) => {
+        const product = products.find(p => p.id === slide.productId);
+        const productName = product ? product.name : 'غير معروف';
+        return `<div class="admin-item"><div class="item-info"><div class="item-title"><img src="${slide.imageUrl || 'https://picsum.photos/seed/default/60/60'}" style="width:40px;height:40px;border-radius:var(--radius-sm);object-fit:cover;margin-right:8px;" />${slide.title || 'شريحة ' + (index+1)}<span style="font-size:11px;opacity:0.4;font-weight:400;">${slide.linkType === 'product' ? '📦 منتج: ' + productName : slide.linkType === 'download' ? '📥 تحميل' : '🔗 رابط مخصص'}</span></div><div class="item-meta">${slide.subtitle || ''}</div></div><div class="item-actions"><button class="btn-edit" onclick="editSlide(${index})"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="deleteSlide(${index})"><i class="fas fa-trash"></i></button></div></div>`;
+    }).join('');
+}
+
+// دوال الماركي (Marquee)
+window.saveMarqueeSettings = async function() {
+    const enabledCheckbox = document.getElementById('marqueeEnabled');
+    const textArea = document.getElementById('marqueeText');
+    const enabled = enabledCheckbox ? enabledCheckbox.checked : true;
+    const text = textArea ? textArea.value.trim() : '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+    if (!text) { showToast('⚠️ الرجاء إدخال نص الماركي', 'warning'); return; }
+    try {
+        const settingsRef = doc(db, 'settings', 'marquee');
+        await setDoc(settingsRef, { enabled, text, updatedAt: serverTimestamp() }, { merge: true });
+        marqueeSettings.enabled = enabled;
+        marqueeSettings.text = text;
+        applyMarqueeSettings();
+        showToast('✅ تم حفظ إعدادات الماركي!', 'success');
+    } catch (error) { showToast('❌ فشل حفظ الإعدادات: ' + error.message, 'error'); }
+};
+
+window.applyMarqueeSettings = function() {
+    const marqueeBar = document.getElementById('marqueeBar');
+    const marqueeContent = document.getElementById('marqueeContent');
+    if (!marqueeBar || !marqueeContent) return;
+    if (marqueeSettings.enabled && marqueeSettings.text) {
+        const items = marqueeSettings.text.split('|').map(item => item.trim()).filter(item => item);
+        if (items.length > 0) {
+            const contentHtml = items.map(item => `<span>${item}</span>`).join('');
+            marqueeContent.innerHTML = contentHtml + contentHtml;
+            marqueeBar.style.display = 'block';
+        } else { marqueeBar.style.display = 'none'; }
+    } else { marqueeBar.style.display = 'none'; }
+};
+
+function renderMarqueeSettingsUI() {
+    const container = document.getElementById('marqueeSettingsContainer');
+    if (!container) return;
+    const enabledCheckbox = document.getElementById('marqueeEnabled');
+    const textArea = document.getElementById('marqueeText');
+    if (enabledCheckbox) enabledCheckbox.checked = marqueeSettings.enabled !== false;
+    if (textArea) textArea.value = marqueeSettings.text || '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+}
+
+async function loadMarqueeSettings() {
+    try {
+        const settingsRef = doc(db, 'settings', 'marquee');
+        const settingsSnap = await getDoc(settingsRef);
+        if (settingsSnap.exists()) {
+            const data = settingsSnap.data();
+            marqueeSettings.enabled = data.enabled !== undefined ? data.enabled : true;
+            marqueeSettings.text = data.text || '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+        } else {
+            marqueeSettings.enabled = true;
+            marqueeSettings.text = '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+        }
+        applyMarqueeSettings();
+    } catch (error) {
+        console.error('Error loading marquee settings:', error);
+        if (error.code === 'permission-denied') {
+            marqueeSettings.enabled = true;
+            marqueeSettings.text = '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+            applyMarqueeSettings();
+        }
+    }
+}
+
+// دوال الإحصائيات
+async function loadDashboardStats() {
+    if (!currentUser || !isAdminCached) { console.log('ℹ️ loadDashboardStats skipped (not admin)'); return; }
+    try {
+        const statsRef = doc(db, 'global_stats', 'stats');
+        const statsSnap = await getDoc(statsRef);
+        let totalOrders = 0, totalRevenue = 0;
+        if (statsSnap.exists()) { totalOrders = statsSnap.data().totalOrders || 0; totalRevenue = statsSnap.data().totalRevenue || 0; }
+        document.getElementById('dashboardTotalOrders').textContent = totalOrders;
+        document.getElementById('dashboardTotalRevenue').textContent = `$${totalRevenue.toFixed(2)}`;
+        document.getElementById('dashboardNetRevenue').textContent = `$${(totalRevenue * 0.1).toFixed(2)}`;
+    } catch (error) {
+        console.error('Error loading dashboard stats:', error);
+        if (error.code === 'permission-denied') { console.warn('⚠️ Missing permissions to read stats.'); }
+    }
+}
+window.refreshDashboardStats = function() { loadDashboardStats(); showToast('🔄 تم تحديث الإحصائيات', 'success'); };
+async function loadAdvancedStats() {
+    if (!currentUser || !isAdminCached) { console.log('ℹ️ loadAdvancedStats skipped (not admin)'); return; }
+    const container = document.getElementById('advancedStatsContainer');
+    if (!container) return;
+    container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> جاري تحميل الإحصائيات...</div>`;
+    try {
+        const usersRef = collection(db, 'users');
+        const snapshot = await getDocs(usersRef);
+        let allOrders = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const history = data.history || [];
+            history.forEach(order => {
+                allOrders.push({ ...order, userEmail: data.email || doc.id, userName: data.name || 'Unknown', userId: doc.id, orderId: order.id || 'order_' + Date.now() });
+            });
+        });
+        const totalOrders = allOrders.length;
+        const totalRevenue = allOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+        const pendingOrders = allOrders.filter(o => o.status === 'pending').length;
+        const confirmedOrders = allOrders.filter(o => o.status === 'confirmed').length;
+        const rejectedOrders = allOrders.filter(o => o.status === 'rejected').length;
+        const totalUsers = snapshot.size;
+        container.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px;">
+            <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
+                <div style="font-size:28px;font-weight:700;color:var(--primary);">${totalOrders}</div>
+                <div style="font-size:12px;color:var(--text-secondary);">إجمالي الطلبات</div>
+            </div>
+            <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
+                <div style="font-size:28px;font-weight:700;color:var(--vip-color);">$${totalRevenue.toFixed(2)}</div>
+                <div style="font-size:12px;color:var(--text-secondary);">الإيرادات</div>
+            </div>
+            <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
+                <div style="font-size:28px;font-weight:700;color:var(--pending-color);">${pendingOrders}</div>
+                <div style="font-size:12px;color:var(--text-secondary);">قيد الانتظار</div>
+            </div>
+            <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
+                <div style="font-size:28px;font-weight:700;color:var(--success);">${confirmedOrders}</div>
+                <div style="font-size:12px;color:var(--text-secondary);">مؤكدة</div>
+            </div>
+            <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
+                <div style="font-size:28px;font-weight:700;color:var(--danger);">${rejectedOrders}</div>
+                <div style="font-size:12px;color:var(--text-secondary);">مرفوضة</div>
+            </div>
+            <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
+                <div style="font-size:28px;font-weight:700;color:var(--text);">${totalUsers}</div>
+                <div style="font-size:12px;color:var(--text-secondary);">المستخدمين</div>
+            </div>
+        </div>`;
+    } catch (error) {
+        console.error('Error loading advanced stats:', error);
+        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">فشل تحميل الإحصائيات: ${error.message}</div>`;
+    }
+}
+window.refreshAdvancedStats = function() { loadAdvancedStats(); showToast('🔄 تم تحديث الإحصائيات المتقدمة', 'success'); };
+async function loadAuditLogs() {
+    if (!currentUser || !isAdminCached) { console.log('ℹ️ loadAuditLogs skipped (not admin)'); return; }
+    const container = document.getElementById('auditLogsContainer');
+    if (!container) return;
+    container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> جاري تحميل السجلات...</div>`;
+    try {
+        const logsRef = collection(db, 'auditLogs');
+        const q = query(logsRef, orderBy('timestamp', 'desc'));
+        const snapshot = await getDocs(q);
+        if (snapshot.empty) {
+            container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">📭 لا توجد سجلات تدقيق</div>`;
+            return;
+        }
+        let html = `<div style="display:flex;flex-direction:column;gap:6px;max-height:400px;overflow-y:auto;">`;
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const date = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '--';
+            const admin = data.adminName || data.adminEmail || 'Admin';
+            const action = data.action || 'Action';
+            const details = data.details || '';
+            html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg);border-radius:8px;border:1px solid var(--border);font-size:13px;">
+                <div><span style="font-weight:600;color:var(--text);">${admin}</span><span style="color:var(--text-secondary);opacity:0.5;margin:0 4px;">→</span><span style="color:var(--primary);font-weight:500;">${action}</span>${details ? `<span style="color:var(--text-secondary);opacity:0.4;margin-left:4px;">${details}</span>` : ''}</div>
+                <span style="font-size:11px;color:var(--text-secondary);opacity:0.3;">${date}</span>
+            </div>`;
+        });
+        html += `</div>`;
+        container.innerHTML = html;
+    } catch (error) {
+        console.error('Error loading audit logs:', error);
+        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">فشل تحميل السجلات: ${error.message}</div>`;
+    }
+}
+window.loadAuditLogs = loadAuditLogs;
+
 // ============================================================
 // 27. دوال clearOrderHistory, renderHistoryFull, filterOrders
 // ============================================================
@@ -3745,10 +4067,12 @@ window.exportOrders = function() {
         const blob = new Blob([csv], { type: 'text/csv' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url; a.download = `orders_${new Date().toISOString().slice(0,10)}.csv`;
-        a.click(); URL.revokeObjectURL(url);
-        showToast('📥 Orders exported!', 'success');
-    } catch (error) { showToast('❌ Export failed', 'error'); }
+        a.href = url;
+        a.download = `orders_${new Date().toISOString().slice(0,10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('📥 تم تصدير الطلبات!', 'success');
+    } catch (error) { showToast('❌ فشل التصدير', 'error'); }
 };
 
 // ============================================================
@@ -3802,9 +4126,7 @@ onAuthStateChanged(auth, async (user) => {
         setTimeout(showTelegramBanner, 1000);
         startSocialProof();
         setTimeout(window.ensureAdminPanel, 2000);
-        // تهيئة الكوكيز
         setTimeout(checkCookieConsent, 1000);
-        // تحديث شاشة التحميل
         updateLoadingText('✅ جاهز!');
         
     } else {
@@ -3837,7 +4159,6 @@ setInterval(() => {
 async function init() {
     console.log('🚀 Initializing ZI Store...');
     
-    // تحديث نص التحميل
     updateLoadingText('جاري التحميل...');
 
     try {
@@ -3885,7 +4206,6 @@ async function init() {
                 if (subtext) {
                     subtext.textContent = 'يمكنك البدء الآن';
                 }
-                // إزالة الحلقات الدوارة
                 document.querySelectorAll('.spinner-ring').forEach(function(el) {
                     el.style.display = 'none';
                 });
