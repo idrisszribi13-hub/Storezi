@@ -4102,11 +4102,13 @@ window.exportOrders = function() {
 };
 
 // ============================================================
-// 33. حالة المصادقة (النسخة النهائية مع إظهار التطبيق)
+// حالة المصادقة (النسخة النهائية مع إصلاح ظهور login)
 // ============================================================
-
 onAuthStateChanged(auth, async (user) => {
     currentUser = user;
+    const authSection = document.getElementById('authSection');
+    const mainApp = document.getElementById('mainApp');
+
     if (user) {
         try {
             const userRef = doc(db, 'users', user.uid);
@@ -4115,21 +4117,23 @@ onAuthStateChanged(auth, async (user) => {
                 await signOut(auth);
                 currentUser = null;
                 isAdminCached = false;
-                document.getElementById('authSection').style.display = 'block';
-                document.getElementById('mainApp').style.display = 'none';
+                if (authSection) authSection.style.display = 'block';
+                if (mainApp) mainApp.style.display = 'none';
                 showToast('🚫 Your account has been banned.', 'error');
                 return;
             }
         } catch (error) { console.error('Error checking ban status:', error); }
-        
+
         await refreshAdminStatus();
         console.log('🔍 Admin status after login:', isAdminCached);
-        
-        document.getElementById('authSection').style.display = 'none';
-        document.getElementById('mainApp').style.display = 'block';
+
+        // إخفاء authSection وإظهار mainApp
+        if (authSection) authSection.style.display = 'none';
+        if (mainApp) mainApp.style.display = 'block';
+
         await loadUserData();
         updateDropdownStats();
-        
+
         if (isAdminCached) {
             console.log('✅ Admin detected, loading admin features');
             loadAdminOrders();
@@ -4139,38 +4143,53 @@ onAuthStateChanged(auth, async (user) => {
             setTimeout(addBannerAdminControls, 500);
             setTimeout(() => {
                 const adminMenuItem = document.getElementById('adminMenuItem');
-                if (adminMenuItem) {
-                    adminMenuItem.style.display = 'flex';
-                    console.log('✅ Admin menu button displayed');
-                }
+                if (adminMenuItem) adminMenuItem.style.display = 'flex';
                 updateFullUserMenu();
                 updateUI();
             }, 300);
         }
-        
-        loadDownloads(); loadNotifications(); fetchCryptoPrices(); loadFeaturedSettings(); loadSliderSettings(); loadMarqueeSettings();
+
+        loadDownloads();
+        loadNotifications();
+        fetchCryptoPrices();
+        loadFeaturedSettings();
+        loadSliderSettings();
+        loadMarqueeSettings();
         setTimeout(showTelegramBanner, 1000);
         startSocialProof();
         setTimeout(window.ensureAdminPanel, 2000);
         setTimeout(checkCookieConsent, 1000);
         updateLoadingText('✅ جاهز!');
-        
-        // ✅ إظهار التطبيق الرئيسي بعد التحميل
+
+        // إظهار التطبيق الرئيسي (في حالة كان مخفياً)
         window.showMainApp();
-        hideLoadingScreen();
-        
+        hideLoadingScreen(); // إخفاء شاشة التحميل (أو تحويلها إلى شفافة)
+
     } else {
         isAdminCached = false;
-        document.getElementById('authSection').style.display = 'block';
-        document.getElementById('mainApp').style.display = 'none';
+        // إظهار authSection وإخفاء mainApp
+        if (authSection) authSection.style.display = 'block';
+        if (mainApp) mainApp.style.display = 'none';
+
         await loadUserData();
         updateDropdownStats();
-        loadDownloads(); loadNotifications(); fetchCryptoPrices(); loadFeaturedSettings(); loadSliderSettings(); loadMarqueeSettings();
+        loadDownloads();
+        loadNotifications();
+        fetchCryptoPrices();
+        loadFeaturedSettings();
+        loadSliderSettings();
+        loadMarqueeSettings();
         startSocialProof();
         setTimeout(checkCookieConsent, 1000);
         updateLoadingText('👋 تسجيل الدخول');
+
+        // إخفاء شاشة التحميل بعد ظهور authSection
+        setTimeout(() => {
+            hideLoadingScreen();
+        }, 500);
     }
-    updateUI(); updateFullUserMenu();
+    updateUI();
+    updateFullUserMenu();
 });
 
 // ============================================================
@@ -4188,20 +4207,24 @@ setInterval(() => {
     }
 }, 5000);
 
-// ============================================================
-// 35. التهيئة (Init) - مع شاشة تحميل دائمة وإظهار التطبيق
-// ============================================================
 
+// ============================================================
+// التهيئة (Init) - مع إخفاء authSection في البداية
+// ============================================================
 async function init() {
     console.log('🚀 Initializing ZI Store...');
-    
+
+    // إخفاء authSection في البداية (سيتم إظهارها إذا لم يكن هناك مستخدم)
+    const authSection = document.getElementById('authSection');
+    if (authSection) authSection.style.display = 'none';
+
     updateLoadingText('جاري التحميل...');
 
     try {
         updateLoadingText('جاري تحميل المنتجات...');
         const productsFromFirestore = await loadProductsFromFirestore();
         products = productsFromFirestore.length > 0 ? productsFromFirestore : fallbackProducts;
-        
+
         updateLoadingText('جاري تهيئة التطبيق...');
         startProductsRealtimeListener();
         await loadUserData();
@@ -4217,18 +4240,18 @@ async function init() {
         loadSliderSettings();
         loadMarqueeSettings();
         setInterval(fetchCryptoPrices, 60000);
-        
+
         updateLoadingText('✅ جاهز!');
         console.log('✅ ZI Store ready with all features!');
         setTimeout(fixDirection, 100);
         setTimeout(window.ensureAdminPanel, 3000);
         setTimeout(checkCookieConsent, 1500);
-        
-        // ✅ إظهار التطبيق الرئيسي
+
+        // إظهار التطبيق الرئيسي وإخفاء شاشة التحميل
         window.showMainApp();
         hideLoadingScreen();
-        
-        // تغيير شكل شاشة التحميل لتظهر كـ "جاهز"
+
+        // تغيير شكل شاشة التحميل لتظهر كـ "جاهز" (إذا أردت إبقاءها ظاهرة)
         setTimeout(function() {
             const screen = document.getElementById('loadingScreen');
             if (screen) {
@@ -4243,15 +4266,11 @@ async function init() {
                     text.style.webkitTextFillColor = 'var(--success)';
                 }
                 const subtext = document.querySelector('.loader-subtext');
-                if (subtext) {
-                    subtext.textContent = 'يمكنك البدء الآن';
-                }
-                document.querySelectorAll('.spinner-ring').forEach(function(el) {
-                    el.style.display = 'none';
-                });
+                if (subtext) subtext.textContent = 'يمكنك البدء الآن';
+                document.querySelectorAll('.spinner-ring').forEach(el => el.style.display = 'none');
             }
         }, 2000);
-        
+
     } catch (error) {
         console.error('❌ Initialization error:', error);
         updateLoadingText('⚠️ حدث خطأ، حاول تحديث الصفحة');
