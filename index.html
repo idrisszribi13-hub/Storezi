@@ -441,8 +441,35 @@
         }
 
         /* ============================================
-           تعديل اتجاه أزرار حفظ/إلغاء في الملف الشخصي
+           تعديلات إضافية للسلايدر والإحصائيات
            ============================================ */
+        /* جعل السلايدر أكبر */
+        .slider-container {
+            margin: 0 16px 16px;
+        }
+        .slider-track .slide-item {
+            height: 300px !important;  /* زيادة الارتفاع */
+        }
+        .slider-track .slide-item img {
+            height: 100%;
+            width: 100%;
+            object-fit: cover;
+        }
+        /* تصغير الإحصائيات */
+        .stats-grid .stat-card {
+            padding: 4px 2px !important;
+        }
+        .stats-grid .stat-number {
+            font-size: 14px !important;
+        }
+        .stats-grid .stat-label {
+            font-size: 9px !important;
+        }
+        .stats-grid .stat-icon {
+            font-size: 14px !important;
+        }
+
+        /* تعديل اتجاه أزرار حفظ/إلغاء في الملف الشخصي */
         #profileFull .edit-profile-section .form-actions {
             display: flex;
             flex-direction: row-reverse;
@@ -654,7 +681,7 @@
             </div>
         </div>
 
-        <!-- ================== الإحصائيات ================== -->
+        <!-- ================== الإحصائيات (مصغرة) ================== -->
         <div class="stats-grid">
             <div class="stat-card"><div class="stat-icon">📦</div><div class="stat-number" id="totalScripts">0</div><div class="stat-label">Total</div></div>
             <div class="stat-card"><div class="stat-icon">🎁</div><div class="stat-number" id="freeScripts">0</div><div class="stat-label">Free</div></div>
@@ -1410,4 +1437,4 @@
     </script>
     <script type="module" src="script.js"></script>
 </body>
-</html>
+    </html>
