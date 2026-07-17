@@ -448,7 +448,7 @@
             margin: 0 16px 16px;
         }
         .slider-track .slide-item {
-            height: 300px !important;  /* زيادة الارتفاع */
+            height: 300px !important;
         }
         .slider-track .slide-item img {
             height: 100%;
@@ -475,6 +475,361 @@
             flex-direction: row-reverse;
             gap: 8px;
             margin-top: 12px;
+        }
+
+        /* ============================================
+           أنماط جديدة للعملة والكميات والشارات
+           ============================================ */
+        /* Currency Selector */
+        .currency-selector {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+        .currency-option {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--bg);
+            position: relative;
+            min-width: 80px;
+            justify-content: center;
+        }
+        .currency-option:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px var(--primary-glow);
+        }
+        .currency-option.active {
+            border-color: var(--primary);
+            background: var(--primary-glow);
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+        .currency-option .currency-symbol {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .currency-option .currency-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        .currency-option .currency-check {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: #fff;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+        }
+        .currency-option.active .currency-check {
+            display: flex;
+        }
+
+        /* Product Type Selector */
+        .product-type-selector {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+        }
+        .type-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--bg);
+            flex: 1;
+            justify-content: center;
+        }
+        .type-option:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+        .type-option.active {
+            border-color: var(--primary);
+            background: var(--primary-glow);
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+        .type-option i {
+            font-size: 18px;
+            color: var(--primary);
+        }
+        .type-option span {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        /* Quantity Options */
+        .quantity-option-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            margin-bottom: 6px;
+            transition: all 0.3s ease;
+            animation: slideIn 0.3s ease;
+        }
+        .quantity-option-item:hover {
+            border-color: var(--primary);
+        }
+        .quantity-option-item .qty-input {
+            flex: 1;
+            padding: 6px 10px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background: var(--card-bg);
+            color: var(--text);
+            font-size: 13px;
+            min-width: 80px;
+        }
+        .quantity-option-item .qty-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+        .quantity-option-item .qty-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            min-width: 60px;
+        }
+        .quantity-option-item .qty-price-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex: 1;
+        }
+        .quantity-option-item .qty-price-group input {
+            width: 80px;
+            padding: 6px 8px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background: var(--card-bg);
+            color: var(--text);
+            font-size: 12px;
+        }
+        .quantity-option-item .qty-price-group input:focus {
+            border-color: var(--primary);
+        }
+        .quantity-option-item .qty-remove {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--danger);
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+        .quantity-option-item .qty-remove:hover {
+            transform: scale(1.1);
+            opacity: 0.8;
+        }
+        .add-quantity-btn {
+            padding: 4px 14px;
+            border-radius: var(--radius-sm);
+            background: var(--primary);
+            color: #fff;
+            font-weight: 600;
+            font-size: 11px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-left: 8px;
+        }
+        .add-quantity-btn:hover {
+            opacity: 0.8;
+            transform: scale(1.02);
+        }
+        @keyframes slideIn {
+            0% { transform: translateX(-20px); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Badge Selector */
+        .badge-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 4px;
+        }
+        .badge-option {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            opacity: 0.5;
+            transform: scale(0.95);
+        }
+        .badge-option:hover {
+            transform: scale(1.05);
+            opacity: 0.8;
+        }
+        .badge-option.selected {
+            opacity: 1;
+            transform: scale(1);
+        }
+        .badge-option.selected .badge-tag {
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .badge-tag {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        .badge-tag.badge-new {
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            color: #fff;
+        }
+        .badge-tag.badge-hot {
+            background: linear-gradient(135deg, #e17055, #d63031);
+            color: #fff;
+        }
+        .badge-tag.badge-exclusive {
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            color: #fff;
+        }
+        .badge-tag.badge-important {
+            background: linear-gradient(135deg, #fdcb6e, #f39c12);
+            color: #0a0a1a;
+        }
+        .badge-tag.badge-limited {
+            background: linear-gradient(135deg, #fd79a8, #e84393);
+            color: #fff;
+        }
+        .badge-tag.badge-best {
+            background: linear-gradient(135deg, #f9ca24, #f0932b);
+            color: #0a0a1a;
+        }
+        .badge-option.selected .badge-tag {
+            border-color: #fff;
+            transform: scale(1.05);
+        }
+
+        /* Preview Quantity Options */
+        .preview-quantity-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 8px;
+            margin: 10px 0;
+        }
+        .preview-quantity-option {
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 10px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .preview-quantity-option:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+        .preview-quantity-option.selected {
+            border-color: var(--primary);
+            background: var(--primary-glow);
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+        .preview-quantity-option .qty-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .preview-quantity-option .qty-price {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-top: 2px;
+        }
+        .preview-quantity-option .qty-original {
+            font-size: 11px;
+            text-decoration: line-through;
+            opacity: 0.3;
+        }
+        .preview-quantity-option .qty-check {
+            display: none;
+            margin-top: 4px;
+            color: var(--success);
+            font-size: 16px;
+        }
+        .preview-quantity-option.selected .qty-check {
+            display: block;
+        }
+
+        /* Mini badges on product cards */
+        .product-card .product-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 3px;
+            padding: 0 10px;
+            margin-top: 2px;
+        }
+        .product-card .product-badges .mini-badge {
+            font-size: 8px;
+            font-weight: 700;
+            padding: 1px 8px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .product-card .product-badges .mini-badge.mb-new {
+            background: #00b894;
+            color: #fff;
+        }
+        .product-card .product-badges .mini-badge.mb-hot {
+            background: #e17055;
+            color: #fff;
+        }
+        .product-card .product-badges .mini-badge.mb-exclusive {
+            background: #6c5ce7;
+            color: #fff;
+        }
+        .product-card .product-badges .mini-badge.mb-important {
+            background: #fdcb6e;
+            color: #0a0a1a;
+        }
+        .product-card .product-badges .mini-badge.mb-limited {
+            background: #fd79a8;
+            color: #fff;
+        }
+        .product-card .product-badges .mini-badge.mb-best {
+            background: #f9ca24;
+            color: #0a0a1a;
+        }
+        .product-card .price .currency-symbol {
+            font-size: 12px;
+            opacity: 0.6;
         }
     </style>
 
@@ -624,16 +979,7 @@
     <div id="mainApp" style="display:none;">
 
         <!-- ================== HEADER ================== -->
-        <header class="header">
-            <div class="logo"><i class="fas fa-bolt"></i><span>ZI</span> Store</div>
-            <div class="header-actions">
-                <button class="header-btn" onclick="openNotifications()" title="Notifications"><i class="fas fa-bell"></i><span class="badge notification" id="notifBadge">0</span></button>
-                <button class="header-btn" onclick="openWishlistFull()" title="Wishlist"><i class="fas fa-heart"></i><span class="badge heart" id="wishlistBadge">0</span></button>
-                <button class="header-btn" onclick="openCartFull()" title="Cart"><i class="fas fa-shopping-cart"></i><span class="badge cart" id="cartBadge">0</span></button>
-                <button class="user-btn" onclick="openUserMenuFull()" title="Profile"><span id="userAvatarText">U</span><span class="user-dot" id="userDot"></span></button>
-                <button class="theme-toggle" id="themeToggle" title="Theme"><i class="fas fa-moon"></i></button>
-            </div>
-        </header>
+        <div id="header-placeholder"></div>
 
         <!-- ================== شريط النص المتحرك ================== -->
         <div id="marqueeBar" class="marquee-bar" style="display: none;">
@@ -708,14 +1054,7 @@
         <div class="products-grid" id="productList"></div>
 
         <!-- ================== الفوتر ================== -->
-        <footer class="footer">
-            <div class="social-links">
-                <a href="https://t.me/Mitalica69" target="_blank" class="telegram" title="Telegram"><i class="fab fa-telegram-plane"></i></a>
-                <a href="#" target="_blank" class="youtube" title="YouTube"><i class="fab fa-youtube"></i></a>
-                <a href="#" target="_blank" class="twitter" title="Twitter"><i class="fab fa-twitter"></i></a>
-            </div>
-            <div class="copyright">© 2026 <span>ZI Store</span>. All rights reserved.</div>
-        </footer>
+        <div id="footer-placeholder"></div>
     </div>
 
     <!-- ============================================ -->
@@ -770,6 +1109,7 @@
                         <div class="vip-footer">Checkout via Telegram <a href="https://t.me/Mitalica69" target="_blank">@Mitalica69</a>. By purchasing you agree to the <a href="#">Terms</a>. See the <a href="#">refund policy</a>.</div>
                     </div>
                 </div>
+                <!-- قسم الكميات سينشأ ديناميكياً بواسطة JavaScript -->
                 <div id="ratingSection"></div>
                 <div class="preview-action">
                     <button class="preview-add-btn" id="previewAddBtn" onclick="addToCartFromPreview()"><i class="fas fa-cart-plus"></i> Add to Cart</button>
@@ -1060,35 +1400,166 @@
         </div>
     </div>
 
-    <!-- مودال إضافة/تعديل منتج -->
+    <!-- ============================================ -->
+    <!-- مودال إضافة/تعديل منتج (مع جميع الميزات الجديدة) -->
+    <!-- ============================================ -->
     <div class="modal-overlay" id="productModal">
         <div class="modal-content" style="max-width:540px;">
             <button class="modal-close" onclick="closeProductModal()"><i class="fas fa-times"></i></button>
             <div class="modal-title" id="productFormTitle">Add Product</div>
             <form id="productForm" onsubmit="saveProduct(event)" class="admin-form">
                 <input type="hidden" id="productIdField" />
-                <div class="admin-form-group"><label for="productName">Product Name</label><input type="text" id="productName" required placeholder="Enter product name" /></div>
-                <div class="admin-form-group"><label for="productPrice">Price ($)</label><input type="number" id="productPrice" step="0.01" min="0" placeholder="0.00" /></div>
-                <div class="admin-form-row">
-                    <div class="admin-form-group" style="flex:1;"><label for="productBadge">Badge</label><select id="productBadge"><option value="FREE">FREE</option><option value="VIP">VIP</option><option value="PRO">PRO</option></select></div>
-                    <div class="admin-form-group" style="flex:1;"><label for="productStatus">Status</label><select id="productStatus"><option value="available">Available</option><option value="unavailable">Unavailable</option></select></div>
+                
+                <div class="admin-form-group">
+                    <label for="productName">Product Name</label>
+                    <input type="text" id="productName" required placeholder="Enter product name" />
                 </div>
+
+                <!-- ====== العملة ====== -->
+                <div class="admin-form-group">
+                    <label style="display:block;margin-bottom:6px;font-weight:600;">Currency</label>
+                    <div class="currency-selector" id="currencySelector">
+                        <div class="currency-option active" data-currency="USD" onclick="selectCurrency('USD')">
+                            <span class="currency-symbol">$</span>
+                            <span class="currency-name">USD</span>
+                            <span class="currency-check"><i class="fas fa-check"></i></span>
+                        </div>
+                        <div class="currency-option" data-currency="TND" onclick="selectCurrency('TND')">
+                            <span class="currency-symbol">د.ت</span>
+                            <span class="currency-name">TND</span>
+                            <span class="currency-check"><i class="fas fa-check"></i></span>
+                        </div>
+                        <div class="currency-option" data-currency="OTHER" onclick="selectCurrency('OTHER')">
+                            <span class="currency-symbol">💱</span>
+                            <span class="currency-name">Other</span>
+                            <span class="currency-check"><i class="fas fa-check"></i></span>
+                        </div>
+                    </div>
+                    <input type="hidden" id="productCurrency" value="USD" />
+                </div>
+
+                <!-- السعر والسعر الأصلي -->
+                <div class="admin-form-row">
+                    <div class="admin-form-group" style="flex:1;">
+                        <label for="productPrice">Price</label>
+                        <input type="number" id="productPrice" step="0.01" min="0" placeholder="0.00" />
+                    </div>
+                    <div class="admin-form-group" style="flex:1;">
+                        <label for="productOriginalPrice">Original Price</label>
+                        <input type="number" id="productOriginalPrice" step="0.01" min="0" placeholder="0.00" />
+                    </div>
+                </div>
+
+                <!-- ====== نوع المنتج ====== -->
+                <div class="admin-form-group">
+                    <label style="display:block;margin-bottom:6px;font-weight:600;">Product Type</label>
+                    <div class="product-type-selector" id="productTypeSelector">
+                        <div class="type-option active" data-type="standard" onclick="selectProductType('standard')">
+                            <i class="fas fa-box"></i>
+                            <span>Standard</span>
+                        </div>
+                        <div class="type-option" data-type="quantity" onclick="selectProductType('quantity')">
+                            <i class="fas fa-layer-group"></i>
+                            <span>Quantity-based</span>
+                        </div>
+                    </div>
+                    <input type="hidden" id="productType" value="standard" />
+                </div>
+
+                <!-- ====== خيارات الكميات (تظهر فقط عند اختيار Quantity-based) ====== -->
+                <div class="admin-form-group" id="quantityOptionsContainer" style="display:none;">
+                    <label style="display:block;margin-bottom:6px;font-weight:600;">
+                        <i class="fas fa-cubes"></i> Quantity Options
+                        <button type="button" class="add-quantity-btn" onclick="addQuantityOption()">
+                            <i class="fas fa-plus"></i> Add Option
+                        </button>
+                    </label>
+                    <div id="quantityOptionsList">
+                        <!-- سيتم إضافة الخيارات هنا ديناميكياً بواسطة JavaScript -->
+                    </div>
+                    <small style="color:var(--text-secondary);opacity:0.5;">Add different quantity levels with their prices</small>
+                </div>
+
+                <!-- ====== الشارات (Badges) ====== -->
+                <div class="admin-form-group">
+                    <label style="display:block;margin-bottom:6px;font-weight:600;">
+                        <i class="fas fa-tags"></i> Badges
+                        <small style="color:var(--text-secondary);opacity:0.5;font-weight:400;">(Click to toggle)</small>
+                    </label>
+                    <div class="badge-selector" id="badgeSelector">
+                        <div class="badge-option" data-badge="new" onclick="toggleBadge('new')">
+                            <span class="badge-tag badge-new">🆕 New</span>
+                        </div>
+                        <div class="badge-option" data-badge="hot" onclick="toggleBadge('hot')">
+                            <span class="badge-tag badge-hot">🔥 Hot</span>
+                        </div>
+                        <div class="badge-option" data-badge="exclusive" onclick="toggleBadge('exclusive')">
+                            <span class="badge-tag badge-exclusive">💎 Exclusive</span>
+                        </div>
+                        <div class="badge-option" data-badge="important" onclick="toggleBadge('important')">
+                            <span class="badge-tag badge-important">⭐ Important</span>
+                        </div>
+                        <div class="badge-option" data-badge="limited" onclick="toggleBadge('limited')">
+                            <span class="badge-tag badge-limited">⏳ Limited</span>
+                        </div>
+                        <div class="badge-option" data-badge="best" onclick="toggleBadge('best')">
+                            <span class="badge-tag badge-best">🏆 Best</span>
+                        </div>
+                    </div>
+                    <input type="hidden" id="productBadges" value="" />
+                </div>
+
+                <!-- باقي الحقول (الصورة، الوصف، المميزات، الفيديو) -->
+                <div class="admin-form-row">
+                    <div class="admin-form-group" style="flex:1;">
+                        <label for="productBadge">Badge Label</label>
+                        <select id="productBadge">
+                            <option value="FREE">FREE</option>
+                            <option value="VIP">VIP</option>
+                            <option value="PRO">PRO</option>
+                        </select>
+                    </div>
+                    <div class="admin-form-group" style="flex:1;">
+                        <label for="productStatus">Status</label>
+                        <select id="productStatus">
+                            <option value="available">Available</option>
+                            <option value="unavailable">Unavailable</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="admin-form-group">
                     <label for="productImageFile">Upload Product Image</label>
                     <input type="file" id="productImageFile" accept="image/*" />
-                    <div id="imagePreviewContainer" style="margin-top: 8px; display: none;"><img id="imagePreview" src="#" alt="Image preview" style="max-width: 100px; max-height: 100px; border-radius: 8px; border: 1px solid var(--border);" /></div>
+                    <div id="imagePreviewContainer" style="margin-top: 8px; display: none;">
+                        <img id="imagePreview" src="#" alt="Image preview" style="max-width: 100px; max-height: 100px; border-radius: 8px; border: 1px solid var(--border);" />
+                    </div>
                     <small style="color: var(--text-secondary); opacity: 0.5;">Or enter a URL below:</small>
                     <input type="url" id="productImage" placeholder="https://example.com/image.jpg" style="margin-top: 4px;" />
                 </div>
-                <div class="admin-form-group"><label for="productDescription">Description</label><textarea id="productDescription" rows="3" placeholder="Product description..."></textarea></div>
-                <div class="admin-form-group"><label for="productFeatures">Features (comma separated)</label><input type="text" id="productFeatures" placeholder="Feature 1, Feature 2, Feature 3" /></div>
-                <div class="admin-form-group"><label for="productVideo">Video URL</label><input type="url" id="productVideo" placeholder="https://www.youtube.com/embed/..." /></div>
+
+                <div class="admin-form-group">
+                    <label for="productDescription">Description</label>
+                    <textarea id="productDescription" rows="3" placeholder="Product description..."></textarea>
+                </div>
+
+                <div class="admin-form-group">
+                    <label for="productFeatures">Features (comma separated)</label>
+                    <input type="text" id="productFeatures" placeholder="Feature 1, Feature 2, Feature 3" />
+                </div>
+
+                <div class="admin-form-group">
+                    <label for="productVideo">Video URL</label>
+                    <input type="url" id="productVideo" placeholder="https://www.youtube.com/embed/..." />
+                </div>
 
                 <!-- VIP Pricing -->
                 <div class="admin-form-group" style="border-top:1px solid var(--border);padding-top:12px;margin-top:8px;">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
                         <input type="checkbox" id="vipEnabled" style="width:20px;height:20px;accent-color:var(--vip-color);cursor:pointer;" />
-                        <label for="vipEnabled" style="font-weight:700;color:var(--vip-color);cursor:pointer;font-size:14px;"><i class="fas fa-crown"></i> Enable VIP Pricing</label>
+                        <label for="vipEnabled" style="font-weight:700;color:var(--vip-color);cursor:pointer;font-size:14px;">
+                            <i class="fas fa-crown"></i> Enable VIP Pricing
+                        </label>
                     </div>
                     <div id="vipPricingFields" style="display:none;margin-top:8px;">
                         <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;background:var(--bg);border-radius:8px;padding:10px;border:1px solid var(--border);">
@@ -1115,10 +1586,12 @@
                         </div>
                     </div>
                 </div>
-                <div class="admin-form-row">
-                    <div class="admin-form-group" style="flex:1;"><label for="productDuration">Duration</label><input type="text" id="productDuration" placeholder="e.g., 30 days" /></div>
-                    <div class="admin-form-group" style="flex:1;"><label for="productOriginalPrice">Original Price</label><input type="number" id="productOriginalPrice" step="0.01" min="0" placeholder="0.00" /></div>
+
+                <div class="admin-form-group">
+                    <label for="productDuration">Duration (optional)</label>
+                    <input type="text" id="productDuration" placeholder="e.g., 30 days" />
                 </div>
+
                 <button type="submit" class="admin-submit-btn"><i class="fas fa-save"></i> Save Product</button>
             </form>
         </div>
