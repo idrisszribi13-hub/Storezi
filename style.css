@@ -1,5 +1,5 @@
 /* ============================================
-   STYLE.CSS - ZI Store - الإصدار النهائي
+   STYLE.CSS - ZI Store - الإصدار النهائي مع جميع الإصلاحات
    ============================================ */
 
 /* ============================================
@@ -206,13 +206,13 @@ input, select, textarea {
 }
 
 /* ============================================
-   5. Toast (إشعارات)
+   5. Toast (إشعارات) - من الأعلى
    ============================================ */
 .toast {
     position: fixed;
-    bottom: 30px;
+    top: 80px;
     left: 50%;
-    transform: translateX(-50%) translateY(80px);
+    transform: translateX(-50%) translateY(-20px);
     background: var(--card-bg);
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
@@ -479,7 +479,7 @@ input, select, textarea {
 }
 
 /* ============================================
-   8. السلايدر (Slider)
+   8. السلايدر (Slider) - إصلاح الإطار
    ============================================ */
 .slider-container {
     position: relative;
@@ -492,29 +492,30 @@ input, select, textarea {
 
 .slider-wrapper {
     position: relative;
-    min-height: 200px;
+    width: 100%;
     overflow: hidden;
     border-radius: var(--radius-md);
 }
 
-.slide-item {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    transition: opacity 0.8s ease;
+.slider-wrapper .slide-item {
+    position: relative;
+    width: 100%;
+    padding-top: 45%;
     background-size: cover;
     background-position: center;
+    opacity: 0;
+    transition: opacity 0.8s ease;
     border-radius: var(--radius-md);
-    min-height: 200px;
 }
-.slide-item.active {
+
+.slider-wrapper .slide-item.active {
     opacity: 1;
-    position: relative;
 }
-.slide-item .slide-overlay {
+
+.slider-wrapper .slide-item .slide-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.2) 100%);
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.2) 100%);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -524,69 +525,51 @@ input, select, textarea {
     color: #fff;
     border-radius: var(--radius-md);
 }
-.slide-item .slide-title {
-    font-size: 24px;
+
+.slider-wrapper .slide-item .slide-title {
+    font-size: 22px;
     font-weight: 700;
     margin-bottom: 4px;
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
-.slide-item .slide-subtitle {
-    font-size: 14px;
+
+.slider-wrapper .slide-item .slide-subtitle {
+    font-size: 13px;
     opacity: 0.8;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
-.slide-item .slide-btn {
-    padding: 8px 24px;
+
+.slider-wrapper .slide-item .slide-btn {
+    padding: 6px 20px;
     border-radius: 8px;
     background: var(--primary-gradient);
     color: #fff;
     font-weight: 600;
-    font-size: 14px;
+    font-size: 13px;
     transition: all var(--transition);
     box-shadow: 0 4px 15px var(--primary-glow);
     text-decoration: none;
 }
-.slide-item .slide-btn:hover {
+
+.slider-wrapper .slide-item .slide-btn:hover {
     transform: scale(1.05);
 }
 
-.slider-dots {
-    position: absolute;
-    bottom: 12px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 6px;
-    z-index: 5;
-}
-.slider-dots .dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
-    cursor: pointer;
-    transition: all var(--transition);
-}
-.slider-dots .dot.active {
-    background: #fff;
-    width: 20px;
-    border-radius: 4px;
-}
-
+/* أزرار السلايدر */
 .slider-btn {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: #fff;
-    font-size: 14px;
+    font-size: 12px;
     cursor: pointer;
     transition: all var(--transition);
     z-index: 5;
@@ -594,14 +577,43 @@ input, select, textarea {
     align-items: center;
     justify-content: center;
 }
+
 .slider-btn:hover {
     background: var(--primary);
 }
+
 .slider-btn.prev {
     left: 8px;
 }
+
 .slider-btn.next {
     right: 8px;
+}
+
+/* نقاط السلايدر */
+.slider-dots {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 5px;
+    z-index: 5;
+}
+
+.slider-dots .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.slider-dots .dot.active {
+    background: #fff;
+    width: 16px;
+    border-radius: 4px;
 }
 
 /* ============================================
@@ -1539,7 +1551,345 @@ input, select, textarea {
 }
 
 /* ============================================
-   20. مودال عرض المنتج (Preview)
+   20. الملف الشخصي (Profile) - متناسق وجميل
+   ============================================ */
+#profileFull .profile-container {
+    padding: 16px;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+#profileFull .profile-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin-bottom: 16px;
+}
+
+#profileFull .profile-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+#profileFull .profile-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--primary-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+#profileFull .profile-info h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0;
+}
+
+#profileFull .profile-info .profile-email {
+    font-size: 13px;
+    color: var(--text-secondary);
+    opacity: 0.5;
+}
+
+#profileFull .profile-info .profile-badge {
+    display: inline-block;
+    padding: 2px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 4px;
+}
+
+#profileFull .profile-info .profile-badge.rp {
+    background: var(--vip-color);
+    color: #0a0a1a;
+}
+
+#profileFull .profile-info .profile-badge.licence {
+    background: var(--success);
+    color: #0a0a1a;
+}
+
+#profileFull .profile-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding-top: 12px;
+}
+
+#profileFull .profile-stats .stat-item {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px;
+    text-align: center;
+}
+
+#profileFull .profile-stats .stat-item .stat-number {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+#profileFull .profile-stats .stat-item .stat-label {
+    font-size: 10px;
+    color: var(--text-secondary);
+    opacity: 0.4;
+}
+
+/* ============================================
+   تنسيق نموذج تحرير الملف الشخصي
+   ============================================ */
+#profileFull .edit-profile-section {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin-bottom: 16px;
+}
+
+#profileFull .edit-profile-section .section-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#profileFull .edit-profile-section .section-title i {
+    color: var(--primary);
+}
+
+#profileFull .edit-profile-section .form-group {
+    margin-bottom: 12px;
+}
+
+#profileFull .edit-profile-section .form-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    opacity: 0.5;
+    margin-bottom: 4px;
+}
+
+#profileFull .edit-profile-section .form-group input,
+#profileFull .edit-profile-section .form-group select {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 14px;
+    transition: all var(--transition);
+}
+
+#profileFull .edit-profile-section .form-group input:focus,
+#profileFull .edit-profile-section .form-group select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+#profileFull .edit-profile-section .form-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+#profileFull .edit-profile-section .form-actions .btn-cancel {
+    flex: 1;
+    padding: 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-secondary);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+#profileFull .edit-profile-section .form-actions .btn-cancel:hover {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+#profileFull .edit-profile-section .form-actions .btn-save {
+    flex: 2;
+    padding: 10px;
+    border-radius: var(--radius-sm);
+    background: var(--primary-gradient);
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+#profileFull .edit-profile-section .form-actions .btn-save:hover {
+    opacity: 0.8;
+}
+
+/* ============================================
+   تنسيق قسم كلمة المرور
+   ============================================ */
+#profileFull .password-section {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin-bottom: 16px;
+}
+
+#profileFull .password-section .ps-email {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    margin-bottom: 12px;
+}
+
+#profileFull .password-section .ps-email span {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+#profileFull .password-section .ps-email button {
+    padding: 4px 14px;
+    border-radius: var(--radius-sm);
+    background: var(--primary);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+#profileFull .password-section .ps-email button:hover {
+    opacity: 0.8;
+}
+
+/* ============================================
+   تنسيق قسم تيليجرام
+   ============================================ */
+#profileFull .telegram-section {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin-bottom: 16px;
+}
+
+#profileFull .telegram-section .tb-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 13px;
+}
+
+#profileFull .telegram-section .tb-row .tb-label {
+    color: var(--text-secondary);
+    opacity: 0.5;
+}
+
+#profileFull .telegram-section .tb-row .tb-value {
+    font-weight: 600;
+}
+
+#profileFull .telegram-section .tb-row .tb-status.linked {
+    color: var(--success);
+}
+
+#profileFull .telegram-section .tb-row .tb-status.unlinked {
+    color: var(--danger);
+}
+
+#profileFull .telegram-section .tb-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+#profileFull .telegram-section .tb-actions button {
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all var(--transition);
+    flex: 1;
+    min-width: 80px;
+}
+
+#profileFull .telegram-section .tb-actions .btn-bind {
+    background: var(--primary);
+    color: #fff;
+}
+
+#profileFull .telegram-section .tb-actions .btn-bind:hover {
+    opacity: 0.8;
+}
+
+#profileFull .telegram-section .tb-actions .btn-test {
+    background: var(--success);
+    color: #0a0a1a;
+}
+
+#profileFull .telegram-section .tb-actions .btn-test:hover {
+    opacity: 0.8;
+}
+
+#profileFull .telegram-section .tb-actions .btn-check {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+}
+
+#profileFull .telegram-section .tb-actions .btn-check:hover {
+    border-color: var(--primary);
+}
+
+#profileFull .telegram-section .tb-actions .btn-unlink {
+    background: var(--danger);
+    color: #fff;
+}
+
+#profileFull .telegram-section .tb-actions .btn-unlink:hover {
+    opacity: 0.8;
+}
+
+#profileFull .telegram-section .tb-info {
+    background: var(--bg);
+    padding: 10px;
+    border-radius: var(--radius-sm);
+    margin: 8px 0;
+    border: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+#profileFull .telegram-section .tb-info i {
+    color: var(--primary);
+}
+
+/* ============================================
+   21. مودال عرض المنتج (Preview)
    ============================================ */
 .preview-modal .preview-content {
     background: var(--card-bg);
@@ -1720,7 +2070,7 @@ input, select, textarea {
 }
 
 /* ============================================
-   21. VIP Pricing في الـ Preview
+   22. VIP Pricing في الـ Preview
    ============================================ */
 .vip-pricing-section {
     background: var(--bg);
@@ -1823,7 +2173,7 @@ input, select, textarea {
 }
 
 /* ============================================
-   22. مودال المشاركة (Share)
+   23. مودال المشاركة (Share)
    ============================================ */
 .share-modal .share-options {
     display: grid;
@@ -1854,7 +2204,7 @@ input, select, textarea {
 .share-modal .share-options button .copy-link { color: var(--primary); }
 
 /* ============================================
-   23. مودال الدفع (Payment)
+   24. مودال الدفع (Payment)
    ============================================ */
 .payment-options {
     display: grid;
@@ -2062,7 +2412,7 @@ input, select, textarea {
 }
 
 /* ============================================
-   24. مودال التراخيص (Licences)
+   25. مودال التراخيص (Licences)
    ============================================ */
 #licenceModal .modal-content {
     max-width: 420px;
@@ -2086,7 +2436,7 @@ input, select, textarea {
 }
 
 /* ============================================
-   25. لوحة المدير (Admin Panel)
+   26. لوحة المدير (Admin Panel)
    ============================================ */
 .admin-panel .modal-content {
     max-width: 900px;
@@ -2258,7 +2608,7 @@ input, select, textarea {
 }
 
 /* ============================================
-   26. جدول الطلبات (Admin Orders Table)
+   27. جدول الطلبات (Admin Orders Table)
    ============================================ */
 .admin-orders-table {
     width: 100%;
@@ -2333,7 +2683,7 @@ input, select, textarea {
 }
 
 /* ============================================
-   27. عناصر الإدارة (Admin Items)
+   28. عناصر الإدارة (Admin Items)
    ============================================ */
 .admin-item {
     display: flex;
@@ -2408,7 +2758,7 @@ input, select, textarea {
 }
 
 /* ============================================
-   28. مستخدمين الإدارة (Admin Users)
+   29. مستخدمين الإدارة (Admin Users)
    ============================================ */
 .admin-users-grid {
     display: grid;
@@ -2518,7 +2868,7 @@ input, select, textarea {
 }
 
 /* ============================================
-   29. نموذج الإدارة (Admin Form)
+   30. نموذج الإدارة (Admin Form)
    ============================================ */
 .admin-form .admin-form-group {
     margin-bottom: 12px;
@@ -2593,7 +2943,7 @@ input, select, textarea {
 }
 
 /* ============================================
-   30. مودال التقييمات (Ratings)
+   31. مودال التقييمات (Ratings)
    ============================================ */
 .rating-section {
     margin-top: 10px;
@@ -2697,7 +3047,7 @@ input, select, textarea {
 }
 
 /* ============================================
-   31. الإشعارات (Notifications)
+   32. الإشعارات (Notifications)
    ============================================ */
 .notifications-header-actions {
     display: flex;
@@ -2733,7 +3083,7 @@ input, select, textarea {
 }
 
 /* ============================================
-   32. الطلبات (Orders History)
+   33. الطلبات (Orders History)
    ============================================ */
 .orders-stats {
     display: grid;
@@ -2826,7 +3176,7 @@ input, select, textarea {
 }
 
 /* ============================================
-   33. الإحالات (Referrals)
+   34. الإحالات (Referrals)
    ============================================ */
 .referral-steps {
     display: flex;
@@ -2902,7 +3252,7 @@ input, select, textarea {
 }
 
 /* ============================================
-   34. Banner تيليجرام (Telegram Banner)
+   35. Banner تيليجرام (Telegram Banner)
    ============================================ */
 .telegram-banner {
     margin: 0 16px 12px;
@@ -2993,7 +3343,7 @@ input, select, textarea {
 }
 
 /* ============================================
-   35. Social Proof Toast
+   36. Social Proof Toast
    ============================================ */
 .social-proof-toast {
     position: fixed;
@@ -3039,7 +3389,7 @@ input, select, textarea {
 }
 
 /* ============================================
-   36. Hearts المتطايرة (Floating Hearts)
+   37. Hearts المتطايرة (Floating Hearts)
    ============================================ */
 .floating-hearts {
     position: fixed;
@@ -3060,7 +3410,297 @@ input, select, textarea {
 }
 
 /* ============================================
-   37. الأدوات المساعدة (Utilities)
+   38. Cookie Consent Banner
+   ============================================ */
+.cookie-consent {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--card-bg);
+    border-top: 2px solid var(--primary);
+    padding: 16px 20px;
+    z-index: 999999;
+    display: none;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+.cookie-consent.show { 
+    display: flex; 
+    animation: cookieSlideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+@keyframes cookieSlideUp {
+    0% { transform: translateY(100%); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+}
+.cookie-consent .cookie-text {
+    flex: 1;
+    min-width: 200px;
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.6;
+}
+.cookie-consent .cookie-text strong {
+    color: var(--primary);
+}
+.cookie-consent .cookie-text small {
+    display: block;
+    opacity: 0.5;
+    font-size: 12px;
+    margin-top: 2px;
+}
+.cookie-consent .cookie-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+.cookie-consent .btn-accept {
+    padding: 10px 28px;
+    border: none;
+    border-radius: 10px;
+    background: var(--primary-gradient);
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 14px;
+    transition: 0.3s;
+    box-shadow: 0 4px 15px var(--primary-glow);
+}
+.cookie-consent .btn-accept:hover {
+    transform: scale(1.03);
+    box-shadow: 0 6px 25px var(--primary-glow);
+}
+.cookie-consent .btn-reject {
+    padding: 10px 20px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 13px;
+    transition: 0.3s;
+}
+.cookie-consent .btn-reject:hover {
+    background: var(--bg);
+    border-color: var(--text-secondary);
+}
+.cookie-consent .btn-settings {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 13px;
+    text-decoration: underline;
+    opacity: 0.6;
+    transition: 0.3s;
+}
+.cookie-consent .btn-settings:hover {
+    opacity: 1;
+}
+.cookie-consent .cookie-icon {
+    font-size: 28px;
+    margin-right: 4px;
+}
+
+/* Cookie Settings Modal */
+.cookie-settings-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 9999999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.cookie-settings-modal.open {
+    display: flex;
+    animation: fadeIn 0.3s ease;
+}
+.cookie-settings-modal .modal-content {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 30px;
+    max-width: 480px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+.cookie-settings-modal .modal-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 16px;
+}
+.cookie-settings-modal .modal-title i {
+    color: var(--primary);
+}
+.cookie-settings-modal .setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+}
+.cookie-settings-modal .setting-item:last-child {
+    border-bottom: none;
+}
+.cookie-settings-modal .setting-info h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 2px 0;
+}
+.cookie-settings-modal .setting-info p {
+    font-size: 12px;
+    color: var(--text-secondary);
+    opacity: 0.6;
+    margin: 0;
+}
+.cookie-settings-modal .toggle-switch {
+    position: relative;
+    width: 48px;
+    height: 26px;
+    flex-shrink: 0;
+}
+.cookie-settings-modal .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.cookie-settings-modal .toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--border);
+    border-radius: 26px;
+    transition: 0.3s;
+}
+.cookie-settings-modal .toggle-slider:before {
+    content: "";
+    position: absolute;
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: 0.3s;
+}
+.cookie-settings-modal .toggle-switch input:checked + .toggle-slider {
+    background: var(--primary);
+}
+.cookie-settings-modal .toggle-switch input:checked + .toggle-slider:before {
+    transform: translateX(22px);
+}
+.cookie-settings-modal .toggle-switch input:disabled + .toggle-slider {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.cookie-settings-modal .modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+}
+.cookie-settings-modal .modal-actions .btn-save {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    background: var(--primary);
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 14px;
+    transition: 0.3s;
+}
+.cookie-settings-modal .modal-actions .btn-save:hover {
+    opacity: 0.8;
+}
+.cookie-settings-modal .modal-actions .btn-close-modal {
+    padding: 10px 20px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 14px;
+    transition: 0.3s;
+}
+.cookie-settings-modal .modal-actions .btn-close-modal:hover {
+    background: var(--bg);
+}
+
+/* ============================================
+   39. تنسيقات الماركي (Marquee) في الـ Admin
+   ============================================ */
+#marqueeSettingsContainer .admin-form-group {
+    margin-bottom: 12px;
+}
+#marqueeSettingsContainer .admin-form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+#marqueeSettingsContainer .admin-form-group textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+    font-family: var(--font);
+    resize: vertical;
+    min-height: 80px;
+    transition: all var(--transition);
+}
+#marqueeSettingsContainer .admin-form-group textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+/* ============================================
+   40. تنسيقات السلايدر (Slider) في الـ Admin
+   ============================================ */
+#sliderSlidesList .admin-item .item-title {
+    display: flex;
+    align-items: center;
+}
+#sliderSlidesList .admin-item .item-title img {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    object-fit: cover;
+    margin-right: 8px;
+}
+
+/* ============================================
+   41. الأدوات المساعدة (Utilities)
    ============================================ */
 .text-center { text-align: center; }
 .text-primary { color: var(--primary); }
@@ -3094,54 +3734,7 @@ input, select, textarea {
 .rounded-lg { border-radius: var(--radius-lg); }
 
 /* ============================================
-   38. تنسيقات الماركي (Marquee) في الـ Admin
-   ============================================ */
-#marqueeSettingsContainer .admin-form-group {
-    margin-bottom: 12px;
-}
-#marqueeSettingsContainer .admin-form-group label {
-    display: block;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    margin-bottom: 4px;
-}
-#marqueeSettingsContainer .admin-form-group textarea {
-    width: 100%;
-    padding: 10px 14px;
-    border: 2px solid var(--border);
-    border-radius: var(--radius-sm);
-    background: var(--bg);
-    color: var(--text);
-    font-size: 14px;
-    outline: none;
-    font-family: var(--font);
-    resize: vertical;
-    min-height: 80px;
-    transition: all var(--transition);
-}
-#marqueeSettingsContainer .admin-form-group textarea:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px var(--primary-glow);
-}
-
-/* ============================================
-   39. تنسيقات السلايدر (Slider) في الـ Admin
-   ============================================ */
-#sliderSlidesList .admin-item .item-title {
-    display: flex;
-    align-items: center;
-}
-#sliderSlidesList .admin-item .item-title img {
-    width: 40px;
-    height: 40px;
-    border-radius: var(--radius-sm);
-    object-fit: cover;
-    margin-right: 8px;
-}
-
-/* ============================================
-   40. تنسيقات الهواتف (Responsive)
+   42. تنسيقات الهواتف (Responsive)
    ============================================ */
 @media (max-width: 768px) {
     .stats-grid {
@@ -3214,6 +3807,19 @@ input, select, textarea {
     .fullscreen-modal .modal-header h2 {
         font-size: 16px;
     }
+    .slider-wrapper .slide-item {
+        padding-top: 55%;
+    }
+    .slider-wrapper .slide-item .slide-title {
+        font-size: 18px;
+    }
+    .slider-wrapper .slide-item .slide-subtitle {
+        font-size: 12px;
+    }
+    .slider-wrapper .slide-item .slide-btn {
+        font-size: 11px;
+        padding: 4px 14px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -3229,12 +3835,6 @@ input, select, textarea {
         width: 34px;
         height: 34px;
         font-size: 14px;
-    }
-    .slider-item .slide-title {
-        font-size: 18px;
-    }
-    .slider-item .slide-subtitle {
-        font-size: 12px;
     }
     .products-grid {
         grid-template-columns: repeat(2, 1fr);
@@ -3257,7 +3857,7 @@ input, select, textarea {
     .toast {
         max-width: 95%;
         padding: 10px 14px;
-        bottom: 16px;
+        top: 60px;
     }
     .bottom-cart-bar {
         padding: 8px 12px;
@@ -3308,5 +3908,32 @@ input, select, textarea {
     }
     .orders-item .orders-item-price {
         font-size: 12px;
+    }
+    .slider-wrapper .slide-item {
+        padding-top: 65%;
+    }
+    .slider-wrapper .slide-item .slide-title {
+        font-size: 16px;
+    }
+    .slider-wrapper .slide-item .slide-subtitle {
+        font-size: 11px;
+    }
+    .slider-btn {
+        width: 26px;
+        height: 26px;
+        font-size: 10px;
+    }
+    .slider-btn.prev {
+        left: 4px;
+    }
+    .slider-btn.next {
+        right: 4px;
+    }
+    .slider-dots .dot {
+        width: 5px;
+        height: 5px;
+    }
+    .slider-dots .dot.active {
+        width: 12px;
     }
 }
