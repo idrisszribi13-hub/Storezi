@@ -1,5 +1,5 @@
 /* ============================================
-   STYLE.CSS - ZI Store - الإصدار النهائي مع جميع الإصلاحات
+   STYLE.CSS - ZI Store - الإصدار النهائي مع إصلاح السلايدر (background)
    ============================================ */
 
 /* ============================================
@@ -418,7 +418,7 @@ input, select, textarea {
 .search-results.active { display: block; }
 
 /* ============================================
-   8. السلايدر (Slider) - الصورة حسب حجم الإطار (ارتفاع 180px)
+   8. السلايدر (Slider) - باستخدام background-image مع حجم مناسب
    ============================================ */
 .slider-container {
     position: relative;
@@ -445,18 +445,21 @@ input, select, textarea {
     position: relative;
     flex-shrink: 0;
     width: 100%;
-    height: 180px;               /* ← ارتفاع الإطار ثابت */
-    background: var(--bg-secondary);
-    overflow: hidden;
+    height: 180px;               /* ارتفاع الإطار 180px */
+    background-size: contain;    /* تظهر الصورة كاملة داخل الإطار */
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: var(--bg-secondary);
+    /* سيتم تعيين background-image عبر خاصية style المضمنة من JavaScript */
 }
 
+/* في حال استخدام عنصر img بدلاً من background، نجعله يغطي الإطار بشكل مناسب */
 .slider-track .slide-item img {
     width: 100%;
     height: 100%;
+    object-fit: contain;
     display: block;
     background: var(--bg-secondary);
-    object-fit: contain;         /* ← تظهر الصورة كاملة داخل الإطار */
-    object-position: center;     /* ← توسيط الصورة */
 }
 
 /* طبقة النص فوق الصورة */
@@ -3490,11 +3493,10 @@ input, select, textarea {
 
     /* استجابة السلايدر للهواتف */
     .slider-track .slide-item {
-        height: 150px;  /* ارتفاع أصغر للهواتف */
+        height: 150px;
     }
 }
 
-/* استجابة إضافية للشاشات المتوسطة والكبيرة */
 @media (min-width: 768px) and (max-width: 1024px) {
     .slider-track .slide-item {
         height: 200px;
