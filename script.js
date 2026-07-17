@@ -3,15 +3,22 @@
 // ============================================================
 
 // ============================================================
-// 0. شاشة التحميل - تبقى ظاهرة دائماً
+// 0. شاشة التحميل - تبقى ظاهرة مع إمكانية التفاعل خلفها
 // ============================================================
 (function() {
-    // نجعل شاشة التحميل ظاهرة دائماً
+    // نجعل شاشة التحميل ظاهرة
     var screen = document.getElementById('loadingScreen');
     if (screen) {
         screen.style.display = 'flex';
         screen.classList.remove('hidden');
         console.log('✅ Loading screen is visible');
+    }
+    
+    // التأكد من أن mainApp مخفي في البداية
+    var mainApp = document.getElementById('mainApp');
+    if (mainApp) {
+        mainApp.style.display = 'none';
+        console.log('ℹ️ Main app hidden initially');
     }
 })();
 
@@ -170,15 +177,30 @@ function showToast(message, type = 'success') {
 }
 window.hideToast = function() { document.getElementById('toast')?.classList.remove('show'); };
 
-// شاشة التحميل - تبقى ظاهرة (لا تخفى)
+// شاشة التحميل - دوال محسنة
 function hideLoadingScreen() {
-    console.log('ℹ️ Loading screen will remain visible');
+    console.log('🔥 hideLoadingScreen called');
+    const screen = document.getElementById('loadingScreen');
+    if (screen) {
+        // لا نخفيها تماماً، نجعلها شفافة وغير قابلة للتفاعل
+        screen.style.opacity = '0.3';
+        screen.style.pointerEvents = 'none';
+        screen.style.background = 'rgba(10,10,26,0.5)';
+        screen.style.backdropFilter = 'blur(4px)';
+        console.log('✅ Loading screen softened');
+    } else {
+        console.warn('⚠️ Loading screen element not found');
+    }
 }
 
 function showLoadingScreen() {
     const screen = document.getElementById('loadingScreen');
     if (screen) {
         screen.style.display = 'flex';
+        screen.style.opacity = '1';
+        screen.style.pointerEvents = 'auto';
+        screen.style.background = 'var(--bg)';
+        screen.style.backdropFilter = 'none';
         screen.classList.remove('hidden');
         console.log('✅ Loading screen shown');
     }
@@ -201,9 +223,21 @@ window.hideLoadingScreenManually = function() {
     }
 };
 
-function updateLoadingBar(percent) {
-    // لا حاجة لتحديث شريط التحميل
-}
+// ============================================================
+// دالة إظهار التطبيق الرئيسي
+// ============================================================
+window.showMainApp = function() {
+    const mainApp = document.getElementById('mainApp');
+    if (mainApp) {
+        mainApp.style.display = 'block';
+        mainApp.style.visibility = 'visible';
+        mainApp.style.opacity = '1';
+        console.log('✅ Main app shown');
+        return true;
+    }
+    console.warn('⚠️ Main app element not found');
+    return false;
+};
 
 // ============================================================
 // 2. دوال التحقق من الأدمن (باستخدام UID)
@@ -647,6 +681,8 @@ window.loginUser = async function() {
             loadMarqueeSettings();
             window.ensureAdminPanel();
             updateLoadingText('✅ جاهز!');
+            window.showMainApp();
+            hideLoadingScreen();
         }, 500);
     } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Login failed', 'error'); btn.classList.remove('loading'); }
 };
@@ -694,6 +730,8 @@ window.registerUser = async function() {
             loadMarqueeSettings();
             window.ensureAdminPanel();
             updateLoadingText('✅ جاهز!');
+            window.showMainApp();
+            hideLoadingScreen();
         }, 500);
     } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Registration failed', 'error'); btn.classList.remove('loading'); }
 };
@@ -4076,7 +4114,7 @@ window.exportOrders = function() {
 };
 
 // ============================================================
-// 33. حالة المصادقة (النسخة النهائية)
+// 33. حالة المصادقة (النسخة النهائية مع إظهار التطبيق)
 // ============================================================
 
 onAuthStateChanged(auth, async (user) => {
@@ -4129,6 +4167,10 @@ onAuthStateChanged(auth, async (user) => {
         setTimeout(checkCookieConsent, 1000);
         updateLoadingText('✅ جاهز!');
         
+        // ✅ إظهار التطبيق الرئيسي بعد التحميل
+        window.showMainApp();
+        hideLoadingScreen();
+        
     } else {
         isAdminCached = false;
         document.getElementById('authSection').style.display = 'block';
@@ -4144,16 +4186,22 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// 34. استدعاء تلقائي للتأكد من ظهور لوحة الأدمن (حل احتياطي)
+// 34. استدعاء تلقائي للتأكد من ظهور لوحة الأدمن وحل مشكلة التحميل
 // ============================================================
 setInterval(() => {
     if (currentUser && !isAdminCached) {
         window.ensureAdminPanel();
     }
+    // التأكد من ظهور التطبيق
+    const mainApp = document.getElementById('mainApp');
+    if (mainApp && mainApp.style.display === 'none') {
+        mainApp.style.display = 'block';
+        console.log('✅ Main app forced visible');
+    }
 }, 5000);
 
 // ============================================================
-// 35. التهيئة (Init) - مع شاشة تحميل دائمة
+// 35. التهيئة (Init) - مع شاشة تحميل دائمة وإظهار التطبيق
 // ============================================================
 
 async function init() {
@@ -4188,6 +4236,10 @@ async function init() {
         setTimeout(window.ensureAdminPanel, 3000);
         setTimeout(checkCookieConsent, 1500);
         
+        // ✅ إظهار التطبيق الرئيسي
+        window.showMainApp();
+        hideLoadingScreen();
+        
         // تغيير شكل شاشة التحميل لتظهر كـ "جاهز"
         setTimeout(function() {
             const screen = document.getElementById('loadingScreen');
@@ -4216,6 +4268,9 @@ async function init() {
         console.error('❌ Initialization error:', error);
         updateLoadingText('⚠️ حدث خطأ، حاول تحديث الصفحة');
         showToast('⚠️ Error loading store. Please refresh.', 'error');
+        // حتى في حالة الخطأ، نعرض التطبيق
+        window.showMainApp();
+        hideLoadingScreen();
     }
 }
 
@@ -4375,6 +4430,7 @@ window.saveSliderInterval = saveSliderInterval;
 window.saveSlideEdit = saveSlideEdit;
 window.hideLoadingScreenManually = hideLoadingScreenManually;
 window.updateLoadingText = updateLoadingText;
+window.showMainApp = showMainApp;
 
 // ============================================================
 // 38. بدء التطبيق
