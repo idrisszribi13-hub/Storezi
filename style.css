@@ -445,17 +445,16 @@ input, select, textarea {
     position: relative;
     flex-shrink: 0;
     width: 100%;
-    /* إضافة خلفية افتراضية حتى تظهر الصورة دائماً */
     background: var(--bg-secondary);
 }
 
+/* ✅ إصلاح الصورة: استخدام <img> بدلاً من background-image */
 .slider-track .slide-item img {
     width: 100%;
-    height: auto;          /* ← يجعل الارتفاع متناسباً مع العرض */
+    height: auto;
     display: block;
-    /* احتياطي: إذا لم يتم تحميل الصورة، تظهر خلفية */
     background: var(--bg-secondary);
-    object-fit: contain;   /* تظهر الصورة كاملة بدون قص */
+    object-fit: contain;
 }
 
 /* طبقة النص فوق الصورة */
@@ -471,7 +470,7 @@ input, select, textarea {
     text-align: center;
     color: #fff;
     border-radius: var(--radius-md);
-    pointer-events: none; /* لا تمنع الضغط على الصورة */
+    pointer-events: none;
 }
 
 .slider-track .slide-item .slide-title {
@@ -496,7 +495,7 @@ input, select, textarea {
     transition: all var(--transition);
     box-shadow: 0 4px 15px var(--primary-glow);
     text-decoration: none;
-    pointer-events: auto; /* الزر قابل للنقر */
+    pointer-events: auto;
 }
 .slider-track .slide-item .slide-btn:hover {
     transform: scale(1.05);
@@ -1237,8 +1236,8 @@ input, select, textarea {
 #profileFull .modal-close {
     position: absolute;
     top: 12px;
-    right: 12px !important;   /* ← على اليمين بالقوة */
-    left: auto !important;    /* إلغاء أي left */
+    right: 12px !important;
+    left: auto !important;
     width: 32px;
     height: 32px;
     border-radius: 50%;
@@ -1313,7 +1312,7 @@ input, select, textarea {
 }
 .fullscreen-modal .modal-header h2 i { color: var(--primary); }
 .fullscreen-modal .modal-header .modal-close {
-    position: static;   /* في الفل سكرين نجعله static لكن يبقى في اليمين بفضل flex */
+    position: static;
     right: auto;
     width: 36px;
     height: 36px;
@@ -1542,8 +1541,10 @@ input, select, textarea {
     box-shadow: 0 0 0 3px var(--primary-glow);
 }
 
+/* ✅ تعديل اتجاه أزرار حفظ/إلغاء */
 #profileFull .edit-profile-section .form-actions {
     display: flex;
+    flex-direction: row-reverse;
     gap: 8px;
     margin-top: 12px;
 }
