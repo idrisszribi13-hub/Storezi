@@ -9,7 +9,10 @@
     function hideLoadingScreenImmediate() {
         var screen = document.getElementById('loadingScreen');
         if (screen) {
-            screen.style.display = 'none';
+            screen.classList.add('hidden');
+            setTimeout(function() {
+                screen.style.display = 'none';
+            }, 600);
             console.log('✅ Loading screen hidden immediately');
         }
     }
@@ -180,15 +183,22 @@ function hideLoadingScreen() {
     console.log('🔥 hideLoadingScreen called');
     const screen = document.getElementById('loadingScreen');
     if (screen) {
-        screen.style.display = 'none';
-        console.log('✅ Loading screen hidden');
+        screen.classList.add('hidden');
+        setTimeout(function() {
+            screen.style.display = 'none';
+        }, 600);
+        console.log('✅ Loading screen hidden with animation');
     } else {
         console.warn('⚠️ Loading screen element not found');
     }
 }
 
 function showLoadingScreen() {
-    console.log('ℹ️ showLoadingScreen called but ignored');
+    const screen = document.getElementById('loadingScreen');
+    if (screen) {
+        screen.style.display = 'flex';
+        screen.classList.remove('hidden');
+    }
 }
 
 function updateLoadingBar(percent) {
@@ -3202,7 +3212,7 @@ async function updateProductRatingDisplay(productId) {
 }
 
 // ============================================================
-// 26. دوال السلايدر والماركي والإحصائيات
+// 26. دوال السلايدر والماركي والإحصائيات (مع إصلاح Save)
 // ============================================================
 
 // دوال السلايدر (Slider)
@@ -3226,30 +3236,130 @@ window.prevSlide = function() {
 };
 window.pauseSlider = function() { isSliderPaused = true; };
 window.resumeSlider = function() { isSliderPaused = false; };
-window.saveSliderInterval = function() {
+
+// دالة حفظ بيانات السلايدر
+window.saveSliderData = async function() {
+    try {
+        const settingsRef = doc(db, 'settings', 'slider');
+        await setDoc(settingsRef, { 
+            interval: sliderIntervalTime, 
+            slides: sliderSlides, 
+            updatedAt: serverTimestamp() 
+        }, { merge: true });
+        showToast('✅ تم حفظ السلايدر بنجاح!', 'success');
+        return true;
+    } catch (error) {
+        console.error('Error saving slider data:', error);
+        showToast('❌ فشل حفظ السلايدر: ' + error.message, 'error');
+        return false;
+    }
+};
+
+// دالة حفظ الفاصل الزمني
+window.saveSliderInterval = async function() {
     const input = document.getElementById('sliderIntervalInput');
+    if (!input) {
+        showToast('❌ حقل الفاصل الزمني غير موجود', 'error');
+        return;
+    }
     const interval = parseFloat(input.value);
-    if (isNaN(interval) || interval < 1) { showToast('⚠️ Please enter a valid number (min 1 second)', 'warning'); return; }
+    if (isNaN(interval) || interval < 1) {
+        showToast('⚠️ الرجاء إدخال رقم صحيح (دقيقة واحدة على الأقل)', 'warning');
+        return;
+    }
     sliderIntervalTime = interval;
-    saveSliderData();
-    showToast('✅ Interval saved!', 'success');
+    await window.saveSliderData();
     resetSliderTimer();
     renderSlider();
+    showToast('✅ تم حفظ الفاصل الزمني: ' + interval + ' ثانية', 'success');
 };
-window.deleteSlide = function(index) {
-    if (!confirm('Delete this slide?')) return;
-    sliderSlides.splice(index, 1);
-    saveSliderData();
+
+// دالة حفظ تعديل الشريحة
+window.saveSlideEdit = async function() {
+    const editIndex = document.getElementById('addSlideForm')?.dataset.editIndex;
+    if (editIndex === undefined || editIndex === '') {
+        showToast('❌ لا توجد شريحة للتعديل', 'error');
+        return;
+    }
+    
+    const title = document.getElementById('slideTitle')?.value.trim() || '';
+    const subtitle = document.getElementById('slideSubtitle')?.value.trim() || '';
+    const buttonText = document.getElementById('slideButtonText')?.value.trim() || 'Buy Now';
+    const linkType = document.getElementById('slideLinkType')?.value || 'product';
+    let productId = '', downloadUrl = '', customUrl = '';
+    
+    if (linkType === 'product') {
+        productId = document.getElementById('slideProductSelect')?.value || '';
+        if (!productId) {
+            showToast('⚠️ الرجاء اختيار منتج', 'warning');
+            return;
+        }
+    } else if (linkType === 'download') {
+        downloadUrl = document.getElementById('slideDownloadUrl')?.value.trim() || '';
+        if (!downloadUrl) {
+            showToast('⚠️ الرجاء إدخال رابط التحميل', 'warning');
+            return;
+        }
+    } else if (linkType === 'url') {
+        customUrl = document.getElementById('slideCustomUrl')?.value.trim() || '';
+        if (!customUrl) {
+            showToast('⚠️ الرجاء إدخال رابط مخصص', 'warning');
+            return;
+        }
+    }
+    
+    // الحصول على الصورة الجديدة إذا تم تحميلها
+    const fileInput = document.getElementById('slideImageFile');
+    let imageUrl = sliderSlides[parseInt(editIndex)]?.imageUrl || '';
+    if (fileInput && fileInput.files && fileInput.files[0]) {
+        showToast('⏳ جاري رفع الصورة...', 'info');
+        const uploadedUrl = await uploadToCloudinary(fileInput.files[0]);
+        if (uploadedUrl) {
+            imageUrl = uploadedUrl;
+        } else {
+            showToast('❌ فشل رفع الصورة', 'error');
+            return;
+        }
+    }
+    
+    const updatedSlide = {
+        imageUrl,
+        title,
+        subtitle,
+        buttonText,
+        linkType,
+        productId,
+        downloadUrl,
+        customUrl,
+        updatedAt: new Date().toISOString()
+    };
+    
+    sliderSlides[parseInt(editIndex)] = updatedSlide;
+    delete document.getElementById('addSlideForm').dataset.editIndex;
+    
+    await window.saveSliderData();
     renderSlider();
     renderSliderSettingsUI();
     resetSliderTimer();
-    showToast('🗑️ Slide deleted', 'success');
+    window.closeAddSlideModal();
+    showToast('✅ تم تحديث الشريحة بنجاح!', 'success');
 };
+
+window.deleteSlide = function(index) {
+    if (!confirm('هل أنت متأكد من حذف هذه الشريحة؟')) return;
+    sliderSlides.splice(index, 1);
+    window.saveSliderData();
+    renderSlider();
+    renderSliderSettingsUI();
+    resetSliderTimer();
+    showToast('🗑️ تم حذف الشريحة', 'success');
+};
+
 window.editSlide = function(index) {
     const slide = sliderSlides[index];
-    if (!slide) { showToast('❌ Slide not found', 'error'); return; }
+    if (!slide) { showToast('❌ الشريحة غير موجودة', 'error'); return; }
     const modal = document.getElementById('addSlideModal');
-    if (!modal) { showToast('❌ Modal not found', 'error'); return; }
+    if (!modal) { showToast('❌ المودال غير موجود', 'error'); return; }
     document.getElementById('slideTitle').value = slide.title || '';
     document.getElementById('slideSubtitle').value = slide.subtitle || '';
     document.getElementById('slideButtonText').value = slide.buttonText || 'Buy Now';
@@ -3263,15 +3373,16 @@ window.editSlide = function(index) {
         document.getElementById('slideCustomUrl').value = slide.customUrl || '';
     }
     document.getElementById('addSlideForm').dataset.editIndex = index;
-    document.querySelector('#addSlideModal .modal-title').textContent = '✏️ Edit Slide';
-    document.querySelector('#addSlideForm button[type="submit"]').textContent = '💾 Update Slide';
+    document.querySelector('#addSlideModal .modal-title').textContent = '✏️ تعديل الشريحة';
+    document.querySelector('#addSlideForm button[type="submit"]').textContent = '💾 تحديث الشريحة';
     modal.classList.add('open');
     document.body.style.overflow = 'hidden';
 };
+
 window.openAddSlideModal = function() {
     updateSlideProductSelect();
     const modal = document.getElementById('addSlideModal');
-    if (!modal) { showToast('❌ Modal not found', 'error'); return; }
+    if (!modal) { showToast('❌ المودال غير موجود', 'error'); return; }
     modal.classList.add('open');
     document.body.style.overflow = 'hidden';
     const form = document.getElementById('addSlideForm');
@@ -3279,19 +3390,22 @@ window.openAddSlideModal = function() {
     const preview = document.getElementById('slideImagePreview');
     if (preview) preview.style.display = 'none';
     toggleSlideLinkFields();
-    document.querySelector('#addSlideModal .modal-title').textContent = '➕ Add Slide';
-    document.querySelector('#addSlideForm button[type="submit"]').textContent = '➕ Add Slide';
+    document.querySelector('#addSlideModal .modal-title').textContent = '➕ إضافة شريحة جديدة';
+    document.querySelector('#addSlideForm button[type="submit"]').textContent = '➕ إضافة شريحة';
     delete document.getElementById('addSlideForm').dataset.editIndex;
 };
+
 window.closeAddSlideModal = function() {
     const modal = document.getElementById('addSlideModal');
     if (modal) { modal.classList.remove('open'); document.body.style.overflow = ''; }
 };
+
 function updateSlideProductSelect() {
     const select = document.getElementById('slideProductSelect');
     if (!select) return;
     select.innerHTML = products.map(p => `<option value="${p.id}">${p.name} ($${p.price})</option>`).join('');
 }
+
 function toggleSlideLinkFields() {
     const type = document.getElementById('slideLinkType')?.value || 'product';
     const productGroup = document.getElementById('slideProductGroup');
@@ -3301,12 +3415,7 @@ function toggleSlideLinkFields() {
     if (downloadGroup) downloadGroup.style.display = type === 'download' ? 'block' : 'none';
     if (customGroup) customGroup.style.display = type === 'url' ? 'block' : 'none';
 }
-async function saveSliderData() {
-    try {
-        const settingsRef = doc(db, 'settings', 'slider');
-        await setDoc(settingsRef, { interval: sliderIntervalTime, slides: sliderSlides, updatedAt: serverTimestamp() }, { merge: true });
-    } catch (error) { console.error('Error saving slider data:', error); showToast('❌ Failed to save slider data', 'error'); }
-}
+
 async function loadSliderSettings() {
     try {
         const settingsRef = doc(db, 'settings', 'slider');
@@ -3334,12 +3443,13 @@ async function loadSliderSettings() {
         }
     }
 }
+
 function renderSlider() {
     const wrapper = document.getElementById('sliderWrapper');
     const dots = document.getElementById('sliderDots');
     if (!wrapper) return;
     if (sliderSlides.length === 0) {
-        wrapper.innerHTML = `<div class="slide-item" style="background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;min-height:200px;border-radius:var(--radius-md);"><div style="text-align:center;color:var(--text-secondary);opacity:0.4;"><i class="fas fa-images" style="font-size:48px;display:block;margin-bottom:8px;"></i><p>No slides available. Add slides from admin panel.</p></div></div>`;
+        wrapper.innerHTML = `<div class="slide-item" style="background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;min-height:200px;border-radius:var(--radius-md);"><div style="text-align:center;color:var(--text-secondary);opacity:0.4;"><i class="fas fa-images" style="font-size:48px;display:block;margin-bottom:8px;"></i><p>لا توجد شرائح. أضف شرائح من لوحة التحكم.</p></div></div>`;
         dots.innerHTML = '';
         return;
     }
@@ -3366,10 +3476,12 @@ function renderSlider() {
     }).join('');
     updateSliderHeight();
 }
+
 function updateSliderHeight() {
     const wrapper = document.getElementById('sliderWrapper');
     if (wrapper) wrapper.style.minHeight = '300px';
 }
+
 function startSliderRotation() {
     if (sliderTimer) clearInterval(sliderTimer);
     if (sliderSlides.length <= 1) return;
@@ -3377,20 +3489,22 @@ function startSliderRotation() {
         if (!isSliderPaused) { window.nextSlide(); }
     }, sliderIntervalTime * 1000);
 }
+
 function resetSliderTimer() {
     if (sliderTimer) { clearInterval(sliderTimer); startSliderRotation(); }
 }
+
 function renderSliderSettingsUI() {
     const container = document.getElementById('sliderSlidesList');
     if (!container) return;
     if (sliderSlides.length === 0) {
-        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);opacity:0.5;">No slides yet. Click "Add Slide" to get started.</div>`;
+        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);opacity:0.5;">لا توجد شرائح. اضغط "إضافة شريحة" للبدء.</div>`;
         return;
     }
     container.innerHTML = sliderSlides.map((slide, index) => {
         const product = products.find(p => p.id === slide.productId);
-        const productName = product ? product.name : 'Unknown';
-        return `<div class="admin-item"><div class="item-info"><div class="item-title"><img src="${slide.imageUrl || 'https://picsum.photos/seed/default/60/60'}" style="width:40px;height:40px;border-radius:var(--radius-sm);object-fit:cover;margin-right:8px;" />${slide.title || 'Slide ' + (index+1)}<span style="font-size:11px;opacity:0.4;font-weight:400;">${slide.linkType === 'product' ? '📦 Product: ' + productName : slide.linkType === 'download' ? '📥 Download' : '🔗 Custom URL'}</span></div><div class="item-meta">${slide.subtitle || ''}</div></div><div class="item-actions"><button class="btn-edit" onclick="editSlide(${index})"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="deleteSlide(${index})"><i class="fas fa-trash"></i></button></div></div>`;
+        const productName = product ? product.name : 'غير معروف';
+        return `<div class="admin-item"><div class="item-info"><div class="item-title"><img src="${slide.imageUrl || 'https://picsum.photos/seed/default/60/60'}" style="width:40px;height:40px;border-radius:var(--radius-sm);object-fit:cover;margin-right:8px;" />${slide.title || 'شريحة ' + (index+1)}<span style="font-size:11px;opacity:0.4;font-weight:400;">${slide.linkType === 'product' ? '📦 منتج: ' + productName : slide.linkType === 'download' ? '📥 تحميل' : '🔗 رابط مخصص'}</span></div><div class="item-meta">${slide.subtitle || ''}</div></div><div class="item-actions"><button class="btn-edit" onclick="editSlide(${index})"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="deleteSlide(${index})"><i class="fas fa-trash"></i></button></div></div>`;
     }).join('');
 }
 
@@ -3400,16 +3514,17 @@ window.saveMarqueeSettings = async function() {
     const textArea = document.getElementById('marqueeText');
     const enabled = enabledCheckbox ? enabledCheckbox.checked : true;
     const text = textArea ? textArea.value.trim() : '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
-    if (!text) { showToast('⚠️ Please enter marquee text', 'warning'); return; }
+    if (!text) { showToast('⚠️ الرجاء إدخال نص الماركي', 'warning'); return; }
     try {
         const settingsRef = doc(db, 'settings', 'marquee');
         await setDoc(settingsRef, { enabled, text, updatedAt: serverTimestamp() }, { merge: true });
         marqueeSettings.enabled = enabled;
         marqueeSettings.text = text;
         applyMarqueeSettings();
-        showToast('✅ Marquee settings saved!', 'success');
-    } catch (error) { showToast('❌ Failed to save settings: ' + error.message, 'error'); }
+        showToast('✅ تم حفظ إعدادات الماركي!', 'success');
+    } catch (error) { showToast('❌ فشل حفظ الإعدادات: ' + error.message, 'error'); }
 };
+
 window.applyMarqueeSettings = function() {
     const marqueeBar = document.getElementById('marqueeBar');
     const marqueeContent = document.getElementById('marqueeContent');
@@ -3423,6 +3538,7 @@ window.applyMarqueeSettings = function() {
         } else { marqueeBar.style.display = 'none'; }
     } else { marqueeBar.style.display = 'none'; }
 };
+
 function renderMarqueeSettingsUI() {
     const container = document.getElementById('marqueeSettingsContainer');
     if (!container) return;
@@ -3431,6 +3547,7 @@ function renderMarqueeSettingsUI() {
     if (enabledCheckbox) enabledCheckbox.checked = marqueeSettings.enabled !== false;
     if (textArea) textArea.value = marqueeSettings.text || '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
 }
+
 async function loadMarqueeSettings() {
     try {
         const settingsRef = doc(db, 'settings', 'marquee');
@@ -3749,282 +3866,7 @@ window.toggleLicencesList = function() {
 };
 
 // ============================================================
-// 33. حالة المصادقة (النسخة النهائية)
-// ============================================================
-
-onAuthStateChanged(auth, async (user) => {
-    currentUser = user;
-    if (user) {
-        try {
-            const userRef = doc(db, 'users', user.uid);
-            const userSnap = await getDoc(userRef);
-            if (userSnap.exists() && userSnap.data().isBanned === true) {
-                await signOut(auth);
-                currentUser = null;
-                isAdminCached = false;
-                document.getElementById('authSection').style.display = 'block';
-                document.getElementById('mainApp').style.display = 'none';
-                showToast('🚫 Your account has been banned.', 'error');
-                return;
-            }
-        } catch (error) { console.error('Error checking ban status:', error); }
-        
-        await refreshAdminStatus();
-        console.log('🔍 Admin status after login:', isAdminCached);
-        
-        document.getElementById('authSection').style.display = 'none';
-        document.getElementById('mainApp').style.display = 'block';
-        await loadUserData();
-        updateDropdownStats();
-        
-        if (isAdminCached) {
-            console.log('✅ Admin detected, loading admin features');
-            loadAdminOrders();
-            startAdminRealtimeListener();
-            renderAdminProducts(products);
-            loadLicences();
-            setTimeout(addBannerAdminControls, 500);
-            setTimeout(() => {
-                const adminMenuItem = document.getElementById('adminMenuItem');
-                if (adminMenuItem) {
-                    adminMenuItem.style.display = 'flex';
-                    console.log('✅ Admin menu button displayed');
-                }
-                updateFullUserMenu();
-                updateUI();
-            }, 300);
-        }
-        
-        loadDownloads(); loadNotifications(); fetchCryptoPrices(); loadFeaturedSettings(); loadSliderSettings(); loadMarqueeSettings();
-        setTimeout(showTelegramBanner, 1000);
-        startSocialProof();
-        setTimeout(window.ensureAdminPanel, 2000);
-        
-    } else {
-        isAdminCached = false;
-        document.getElementById('authSection').style.display = 'block';
-        document.getElementById('mainApp').style.display = 'none';
-        await loadUserData();
-        updateDropdownStats();
-        loadDownloads(); loadNotifications(); fetchCryptoPrices(); loadFeaturedSettings(); loadSliderSettings(); loadMarqueeSettings();
-        startSocialProof();
-    }
-    updateUI(); updateFullUserMenu();
-});
-
-// ============================================================
-// 34. استدعاء تلقائي للتأكد من ظهور لوحة الأدمن (حل احتياطي)
-// ============================================================
-setInterval(() => {
-    if (currentUser && !isAdminCached) {
-        window.ensureAdminPanel();
-    }
-}, 5000);
-
-// ============================================================
-// 35. التهيئة (Init)
-// ============================================================
-
-async function init() {
-    console.log('🚀 Initializing ZI Store...');
-    hideLoadingScreen();
-
-    const forceHideTimeout = setTimeout(() => {
-        console.warn('⚠️ Force hiding loading screen after 2 seconds.');
-        hideLoadingScreen();
-    }, 2000);
-
-    try {
-        const productsFromFirestore = await loadProductsFromFirestore();
-        products = productsFromFirestore.length > 0 ? productsFromFirestore : fallbackProducts;
-        startProductsRealtimeListener();
-        await loadUserData();
-        renderProducts(products, false);
-        renderFeaturedProducts();
-        generateRecommendations(products);
-        updateBottomCartBar();
-        updateDropdownStats();
-        loadDownloads();
-        loadNotifications();
-        fetchCryptoPrices();
-        loadFeaturedSettings();
-        loadSliderSettings();
-        loadMarqueeSettings();
-        setInterval(fetchCryptoPrices, 60000);
-        console.log('✅ ZI Store ready with all features!');
-        setTimeout(fixDirection, 100);
-        setTimeout(window.ensureAdminPanel, 3000);
-    } catch (error) {
-        console.error('❌ Initialization error:', error);
-        showToast('⚠️ Error loading store. Please refresh.', 'error');
-    } finally {
-        clearTimeout(forceHideTimeout);
-        setTimeout(() => {
-            hideLoadingScreen();
-            setTimeout(showTelegramBanner, 500);
-            startSocialProof();
-        }, 500);
-    }
-}
-
-// ============================================================
-// 36. تبديل الثيم
-// ============================================================
-
-document.addEventListener('DOMContentLoaded', function() {
-    const themeBtn = document.querySelector('.theme-toggle');
-    if (themeBtn) {
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'light') {
-            document.body.classList.add('light');
-            const icon = themeBtn.querySelector('i');
-            if (icon) icon.className = 'fas fa-moon';
-        }
-        themeBtn.addEventListener('click', function() {
-            document.body.classList.toggle('light');
-            const isLight = document.body.classList.contains('light');
-            localStorage.setItem('theme', isLight ? 'light' : 'dark');
-            const icon = this.querySelector('i');
-            if (icon) {
-                icon.className = isLight ? 'fas fa-moon' : 'fas fa-sun';
-            }
-        });
-    }
-});
-
-// ============================================================
-// 37. تصدير جميع الدوال للنطاق العام
-// ============================================================
-
-window.toggleLicencesList = toggleLicencesList;
-window.openLicenceModal = openLicenceModal;
-window.closeLicenceModal = closeLicenceModal;
-window.activateLicence = activateLicence;
-window.editLicence = editLicence;
-window.saveLicenceEdit = saveLicenceEdit;
-window.approveLicence = approveLicence;
-window.revokeLicence = revokeLicence;
-window.deleteLicence = deleteLicence;
-window.openCreateLicenceModal = openCreateLicenceModal;
-window.closeCreateLicenceModal = closeCreateLicenceModal;
-window.createLicenceManually = createLicenceManually;
-window.searchLicences = searchLicences;
-window.clearLicenceSearch = clearLicenceSearch;
-window.refreshLicences = refreshLicences;
-window.loadLicences = loadLicences;
-window.renderLicences = renderLicences;
-window.switchAdminTab = switchAdminTab;
-window.loadAdminOrders = loadAdminOrders;
-window.updateOrderStatus = updateOrderStatus;
-window.filterProducts = filterProducts;
-window.openDetails = openDetails;
-window.addToCart = addToCart;
-window.toggleWishlist = toggleWishlist;
-window.openCartFull = openCartFull;
-window.closeCartFull = closeCartFull;
-window.openWishlistFull = openWishlistFull;
-window.closeWishlistFull = closeWishlistFull;
-window.openUserMenuFull = openUserMenuFull;
-window.closeUserMenuFull = closeUserMenuFull;
-window.openProfileFull = openProfileFull;
-window.closeProfileFull = closeProfileFull;
-window.openHistoryFull = openHistoryFull;
-window.closeHistoryFull = closeHistoryFull;
-window.openShareModal = openShareModal;
-window.closeShareModal = closeShareModal;
-window.shareToWhatsApp = shareToWhatsApp;
-window.shareToTelegram = shareToTelegram;
-window.shareToFacebook = shareToFacebook;
-window.copyShareLink = copyShareLink;
-window.clearSearch = clearSearch;
-window.closeSearchResults = closeSearchResults;
-window.performLiveSearch = performLiveSearch;
-window.openDownloads = openDownloads;
-window.closeDownloads = closeDownloads;
-window.openNotifications = openNotifications;
-window.closeNotifications = closeNotifications;
-window.clearOrderHistory = clearOrderHistory;
-window.filterOrders = filterOrders;
-window.openReferralModal = openReferralModal;
-window.closeReferralModal = closeReferralModal;
-window.copyReferralCode2 = copyReferralCode2;
-window.openRequestsModal = openRequestsModal;
-window.closeRequestsModal = closeRequestsModal;
-window.openNewRequestModal = openNewRequestModal;
-window.closeNewRequestModal = closeNewRequestModal;
-window.submitRequest = submitRequest;
-window.selectPayment = selectPayment;
-window.continuePayment = continuePayment;
-window.goToStep1 = goToStep1;
-window.copyWalletAddress = copyWalletAddress;
-window.placeOrder = placeOrder;
-window.openPaymentModal = openPaymentModal;
-window.closePaymentModal = closePaymentModal;
-window.checkout = checkout;
-window.bindTelegram = bindTelegram;
-window.checkTelegramStatus = checkTelegramStatus;
-window.testTelegramNotification = testTelegramNotification;
-window.unlinkTelegram = unlinkTelegram;
-window.saveProfileChangesInline = saveProfileChangesInline;
-window.sendResetLinkInline = sendResetLinkInline;
-window.changePasswordInline = changePasswordInline;
-window.toggleRpInCart = toggleRpInCart;
-window.applyCartPromo = applyCartPromo;
-window.showTelegramBannerAgain = showTelegramBannerAgain;
-window.adminToggleBanner = adminToggleBanner;
-window.resetBannerForAll = resetBannerForAll;
-window.closePreviewModal = closePreviewModal;
-window.addToCartFromPreview = addToCartFromPreview;
-window.shareFromPreview = shareFromPreview;
-window.refreshDashboardStats = refreshDashboardStats;
-window.loadDashboardStats = loadDashboardStats;
-window.selectVipPlan = selectVipPlan;
-window.addVipPlanToCart = addVipPlanToCart;
-window.refreshAdvancedStats = refreshAdvancedStats;
-window.setRating = setRating;
-window.submitRating = submitRating;
-window.loadAuditLogs = loadAuditLogs;
-window.pauseSlider = pauseSlider;
-window.resumeSlider = resumeSlider;
-window.goToSlide = goToSlide;
-window.nextSlide = nextSlide;
-window.prevSlide = prevSlide;
-window.loadSliderSettings = loadSliderSettings;
-window.updateSlideProductSelect = updateSlideProductSelect;
-window.addBannerAdminControls = addBannerAdminControls;
-window.showTelegramBanner = showTelegramBanner;
-window.showTelegramBannerAgain = showTelegramBannerAgain;
-window.loadMarqueeSettings = loadMarqueeSettings;
-window.saveMarqueeSettings = saveMarqueeSettings;
-window.renderMarqueeSettingsUI = renderMarqueeSettingsUI;
-window.applyMarqueeSettings = applyMarqueeSettings;
-window.ensureAdminPanel = ensureAdminPanel;
-window.renderHistoryFull = renderHistoryFull;
-window.renderLicences = renderLicences;
-window.loadLicences = loadLicences;
-window.openLicenceModal = openLicenceModal;
-window.closeLicenceModal = closeLicenceModal;
-window.toggleLicencesList = toggleLicencesList;
-window.activateLicence = activateLicence;
-window.renderWishlistFull = renderWishlistFull;
-window.renderCartFull = renderCartFull;
-window.renderProfileFull = renderProfileFull;
-window.openAuthModal = openAuthModal;
-window.showLogin = showLogin;
-window.showRegister = showRegister;
-
-// ============================================================
-// 38. بدء التطبيق
-// ============================================================
-
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-} else {
-    init();
-}
-
-// ============================================================
-// 🍪 Cookie Consent Functions (أضف هذا الكود هنا)
+// 33. Cookie Consent Functions
 // ============================================================
 
 // متغير لتخزين حالة الموافقة
@@ -4159,19 +4001,299 @@ window.closeCookieBanner = function() {
     }
 };
 
-// تهيئة الكوكيز عند تحميل الصفحة
-document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(checkCookieConsent, 500);
-});
-
 // تصدير الدوال للنطاق العام
 window.enableAnalytics = enableAnalytics;
 window.disableAnalytics = disableAnalytics;
 window.checkCookieConsent = checkCookieConsent;
 
 // ============================================================
-// END OF SCRIPT.JS
+// 34. حالة المصادقة (النسخة النهائية)
 // ============================================================
+
+onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    if (user) {
+        try {
+            const userRef = doc(db, 'users', user.uid);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists() && userSnap.data().isBanned === true) {
+                await signOut(auth);
+                currentUser = null;
+                isAdminCached = false;
+                document.getElementById('authSection').style.display = 'block';
+                document.getElementById('mainApp').style.display = 'none';
+                showToast('🚫 Your account has been banned.', 'error');
+                return;
+            }
+        } catch (error) { console.error('Error checking ban status:', error); }
+        
+        await refreshAdminStatus();
+        console.log('🔍 Admin status after login:', isAdminCached);
+        
+        document.getElementById('authSection').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'block';
+        await loadUserData();
+        updateDropdownStats();
+        
+        if (isAdminCached) {
+            console.log('✅ Admin detected, loading admin features');
+            loadAdminOrders();
+            startAdminRealtimeListener();
+            renderAdminProducts(products);
+            loadLicences();
+            setTimeout(addBannerAdminControls, 500);
+            setTimeout(() => {
+                const adminMenuItem = document.getElementById('adminMenuItem');
+                if (adminMenuItem) {
+                    adminMenuItem.style.display = 'flex';
+                    console.log('✅ Admin menu button displayed');
+                }
+                updateFullUserMenu();
+                updateUI();
+            }, 300);
+        }
+        
+        loadDownloads(); loadNotifications(); fetchCryptoPrices(); loadFeaturedSettings(); loadSliderSettings(); loadMarqueeSettings();
+        setTimeout(showTelegramBanner, 1000);
+        startSocialProof();
+        setTimeout(window.ensureAdminPanel, 2000);
+        // تهيئة الكوكيز
+        setTimeout(checkCookieConsent, 1000);
+        
+    } else {
+        isAdminCached = false;
+        document.getElementById('authSection').style.display = 'block';
+        document.getElementById('mainApp').style.display = 'none';
+        await loadUserData();
+        updateDropdownStats();
+        loadDownloads(); loadNotifications(); fetchCryptoPrices(); loadFeaturedSettings(); loadSliderSettings(); loadMarqueeSettings();
+        startSocialProof();
+        setTimeout(checkCookieConsent, 1000);
+    }
+    updateUI(); updateFullUserMenu();
+});
+
+// ============================================================
+// 35. استدعاء تلقائي للتأكد من ظهور لوحة الأدمن (حل احتياطي)
+// ============================================================
+setInterval(() => {
+    if (currentUser && !isAdminCached) {
+        window.ensureAdminPanel();
+    }
+}, 5000);
+
+// ============================================================
+// 36. التهيئة (Init)
+// ============================================================
+
+async function init() {
+    console.log('🚀 Initializing ZI Store...');
+    hideLoadingScreen();
+
+    const forceHideTimeout = setTimeout(() => {
+        console.warn('⚠️ Force hiding loading screen after 2 seconds.');
+        hideLoadingScreen();
+    }, 2000);
+
+    try {
+        const productsFromFirestore = await loadProductsFromFirestore();
+        products = productsFromFirestore.length > 0 ? productsFromFirestore : fallbackProducts;
+        startProductsRealtimeListener();
+        await loadUserData();
+        renderProducts(products, false);
+        renderFeaturedProducts();
+        generateRecommendations(products);
+        updateBottomCartBar();
+        updateDropdownStats();
+        loadDownloads();
+        loadNotifications();
+        fetchCryptoPrices();
+        loadFeaturedSettings();
+        loadSliderSettings();
+        loadMarqueeSettings();
+        setInterval(fetchCryptoPrices, 60000);
+        console.log('✅ ZI Store ready with all features!');
+        setTimeout(fixDirection, 100);
+        setTimeout(window.ensureAdminPanel, 3000);
+        setTimeout(checkCookieConsent, 1500);
+    } catch (error) {
+        console.error('❌ Initialization error:', error);
+        showToast('⚠️ Error loading store. Please refresh.', 'error');
+    } finally {
+        clearTimeout(forceHideTimeout);
+        setTimeout(() => {
+            hideLoadingScreen();
+            setTimeout(showTelegramBanner, 500);
+            startSocialProof();
+        }, 500);
+    }
+}
+
+// ============================================================
+// 37. تبديل الثيم
+// ============================================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    const themeBtn = document.querySelector('.theme-toggle');
+    if (themeBtn) {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light') {
+            document.body.classList.add('light');
+            const icon = themeBtn.querySelector('i');
+            if (icon) icon.className = 'fas fa-moon';
+        }
+        themeBtn.addEventListener('click', function() {
+            document.body.classList.toggle('light');
+            const isLight = document.body.classList.contains('light');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            const icon = this.querySelector('i');
+            if (icon) {
+                icon.className = isLight ? 'fas fa-moon' : 'fas fa-sun';
+            }
+        });
+    }
+});
+
+// ============================================================
+// 38. تصدير جميع الدوال للنطاق العام
+// ============================================================
+
+window.toggleLicencesList = toggleLicencesList;
+window.openLicenceModal = openLicenceModal;
+window.closeLicenceModal = closeLicenceModal;
+window.activateLicence = activateLicence;
+window.editLicence = editLicence;
+window.saveLicenceEdit = saveLicenceEdit;
+window.approveLicence = approveLicence;
+window.revokeLicence = revokeLicence;
+window.deleteLicence = deleteLicence;
+window.openCreateLicenceModal = openCreateLicenceModal;
+window.closeCreateLicenceModal = closeCreateLicenceModal;
+window.createLicenceManually = createLicenceManually;
+window.searchLicences = searchLicences;
+window.clearLicenceSearch = clearLicenceSearch;
+window.refreshLicences = refreshLicences;
+window.loadLicences = loadLicences;
+window.renderLicences = renderLicences;
+window.switchAdminTab = switchAdminTab;
+window.loadAdminOrders = loadAdminOrders;
+window.updateOrderStatus = updateOrderStatus;
+window.filterProducts = filterProducts;
+window.openDetails = openDetails;
+window.addToCart = addToCart;
+window.toggleWishlist = toggleWishlist;
+window.openCartFull = openCartFull;
+window.closeCartFull = closeCartFull;
+window.openWishlistFull = openWishlistFull;
+window.closeWishlistFull = closeWishlistFull;
+window.openUserMenuFull = openUserMenuFull;
+window.closeUserMenuFull = closeUserMenuFull;
+window.openProfileFull = openProfileFull;
+window.closeProfileFull = closeProfileFull;
+window.openHistoryFull = openHistoryFull;
+window.closeHistoryFull = closeHistoryFull;
+window.openShareModal = openShareModal;
+window.closeShareModal = closeShareModal;
+window.shareToWhatsApp = shareToWhatsApp;
+window.shareToTelegram = shareToTelegram;
+window.shareToFacebook = shareToFacebook;
+window.copyShareLink = copyShareLink;
+window.clearSearch = clearSearch;
+window.closeSearchResults = closeSearchResults;
+window.performLiveSearch = performLiveSearch;
+window.openDownloads = openDownloads;
+window.closeDownloads = closeDownloads;
+window.openNotifications = openNotifications;
+window.closeNotifications = closeNotifications;
+window.clearOrderHistory = clearOrderHistory;
+window.filterOrders = filterOrders;
+window.openReferralModal = openReferralModal;
+window.closeReferralModal = closeReferralModal;
+window.copyReferralCode2 = copyReferralCode2;
+window.openRequestsModal = openRequestsModal;
+window.closeRequestsModal = closeRequestsModal;
+window.openNewRequestModal = openNewRequestModal;
+window.closeNewRequestModal = closeNewRequestModal;
+window.submitRequest = submitRequest;
+window.selectPayment = selectPayment;
+window.continuePayment = continuePayment;
+window.goToStep1 = goToStep1;
+window.copyWalletAddress = copyWalletAddress;
+window.placeOrder = placeOrder;
+window.openPaymentModal = openPaymentModal;
+window.closePaymentModal = closePaymentModal;
+window.checkout = checkout;
+window.bindTelegram = bindTelegram;
+window.checkTelegramStatus = checkTelegramStatus;
+window.testTelegramNotification = testTelegramNotification;
+window.unlinkTelegram = unlinkTelegram;
+window.saveProfileChangesInline = saveProfileChangesInline;
+window.sendResetLinkInline = sendResetLinkInline;
+window.changePasswordInline = changePasswordInline;
+window.toggleRpInCart = toggleRpInCart;
+window.applyCartPromo = applyCartPromo;
+window.showTelegramBannerAgain = showTelegramBannerAgain;
+window.adminToggleBanner = adminToggleBanner;
+window.resetBannerForAll = resetBannerForAll;
+window.closePreviewModal = closePreviewModal;
+window.addToCartFromPreview = addToCartFromPreview;
+window.shareFromPreview = shareFromPreview;
+window.refreshDashboardStats = refreshDashboardStats;
+window.loadDashboardStats = loadDashboardStats;
+window.selectVipPlan = selectVipPlan;
+window.addVipPlanToCart = addVipPlanToCart;
+window.refreshAdvancedStats = refreshAdvancedStats;
+window.setRating = setRating;
+window.submitRating = submitRating;
+window.loadAuditLogs = loadAuditLogs;
+window.pauseSlider = pauseSlider;
+window.resumeSlider = resumeSlider;
+window.goToSlide = goToSlide;
+window.nextSlide = nextSlide;
+window.prevSlide = prevSlide;
+window.loadSliderSettings = loadSliderSettings;
+window.updateSlideProductSelect = updateSlideProductSelect;
+window.addBannerAdminControls = addBannerAdminControls;
+window.showTelegramBanner = showTelegramBanner;
+window.showTelegramBannerAgain = showTelegramBannerAgain;
+window.loadMarqueeSettings = loadMarqueeSettings;
+window.saveMarqueeSettings = saveMarqueeSettings;
+window.renderMarqueeSettingsUI = renderMarqueeSettingsUI;
+window.applyMarqueeSettings = applyMarqueeSettings;
+window.ensureAdminPanel = ensureAdminPanel;
+window.renderHistoryFull = renderHistoryFull;
+window.renderLicences = renderLicences;
+window.loadLicences = loadLicences;
+window.openLicenceModal = openLicenceModal;
+window.closeLicenceModal = closeLicenceModal;
+window.toggleLicencesList = toggleLicencesList;
+window.activateLicence = activateLicence;
+window.renderWishlistFull = renderWishlistFull;
+window.renderCartFull = renderCartFull;
+window.renderProfileFull = renderProfileFull;
+window.openAuthModal = openAuthModal;
+window.showLogin = showLogin;
+window.showRegister = showRegister;
+window.acceptCookies = acceptCookies;
+window.rejectCookies = rejectCookies;
+window.openCookieSettings = openCookieSettings;
+window.closeCookieSettings = closeCookieSettings;
+window.saveCookieSettings = saveCookieSettings;
+window.closeCookieBanner = closeCookieBanner;
+window.saveSliderData = saveSliderData;
+window.saveSliderInterval = saveSliderInterval;
+window.saveSlideEdit = saveSlideEdit;
+
+// ============================================================
+// 39. بدء التطبيق
+// ============================================================
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
+
 // ============================================================
 // END OF SCRIPT.JS
 // ============================================================
