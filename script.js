@@ -1,27 +1,18 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - الإصدار النهائي الكامل
+// SCRIPT.JS - ZI Store - الإصدار النهائي الكامل مع شاشة تحميل دائمة
 // ============================================================
 
 // ============================================================
-// 0. إخفاء فوري لشاشة التحميل (أولوية قصوى)
+// 0. شاشة التحميل - تبقى ظاهرة دائماً
 // ============================================================
 (function() {
-    function hideLoadingScreenImmediate() {
-        var screen = document.getElementById('loadingScreen');
-        if (screen) {
-            screen.classList.add('hidden');
-            setTimeout(function() {
-                screen.style.display = 'none';
-            }, 600);
-            console.log('✅ Loading screen hidden immediately');
-        }
+    // نجعل شاشة التحميل ظاهرة دائماً
+    var screen = document.getElementById('loadingScreen');
+    if (screen) {
+        screen.style.display = 'flex';
+        screen.classList.remove('hidden');
+        console.log('✅ Loading screen is visible');
     }
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', hideLoadingScreenImmediate);
-    } else {
-        hideLoadingScreenImmediate();
-    }
-    setTimeout(hideLoadingScreenImmediate, 300);
 })();
 
 // ============================================================
@@ -179,27 +170,42 @@ function showToast(message, type = 'success') {
 }
 window.hideToast = function() { document.getElementById('toast')?.classList.remove('show'); };
 
+// ============================================================
+// شاشة التحميل - تبقى ظاهرة (لا تخفى)
+// ============================================================
 function hideLoadingScreen() {
-    console.log('🔥 hideLoadingScreen called');
-    const screen = document.getElementById('loadingScreen');
-    if (screen) {
-        screen.classList.add('hidden');
-        setTimeout(function() {
-            screen.style.display = 'none';
-        }, 600);
-        console.log('✅ Loading screen hidden with animation');
-    } else {
-        console.warn('⚠️ Loading screen element not found');
-    }
+    // لا تفعل شيئاً - نريد أن تبقى الشاشة ظاهرة
+    console.log('ℹ️ Loading screen will remain visible');
 }
 
+// دالة لإظهار شاشة التحميل (إذا لزم الأمر)
 function showLoadingScreen() {
     const screen = document.getElementById('loadingScreen');
     if (screen) {
         screen.style.display = 'flex';
         screen.classList.remove('hidden');
+        console.log('✅ Loading screen shown');
     }
 }
+
+// دالة لتحديث نص التحميل
+function updateLoadingText(text) {
+    const statusEl = document.getElementById('loadingStatus');
+    if (statusEl) {
+        statusEl.textContent = text || 'جاري التحميل...';
+        console.log('📝 Loading text updated:', text);
+    }
+}
+
+// دالة لإخفاء شاشة التحميل يدوياً (اختياري)
+window.hideLoadingScreenManually = function() {
+    const screen = document.getElementById('loadingScreen');
+    if (screen) {
+        screen.style.display = 'none';
+        console.log('✅ Loading screen hidden manually');
+        showToast('تم إخفاء شاشة التحميل', 'info');
+    }
+};
 
 function updateLoadingBar(percent) {
     // لا حاجة لتحديث شريط التحميل
@@ -649,6 +655,7 @@ window.loginUser = async function() {
             loadSliderSettings();
             loadMarqueeSettings();
             window.ensureAdminPanel();
+            updateLoadingText('✅ جاهز!');
         }, 500);
     } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Login failed', 'error'); btn.classList.remove('loading'); }
 };
@@ -695,6 +702,7 @@ window.registerUser = async function() {
             loadSliderSettings();
             loadMarqueeSettings();
             window.ensureAdminPanel();
+            updateLoadingText('✅ جاهز!');
         }, 500);
     } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Registration failed', 'error'); btn.classList.remove('loading'); }
 };
@@ -762,72 +770,122 @@ function renderProfileFull() {
     const maskedChatId = userProfile.telegramChatId ? userProfile.telegramChatId.slice(0, 4) + '***' + userProfile.telegramChatId.slice(-4) : 'Not linked';
     const activeLicences = (userProfile.licences || []).filter(l => new Date(l.expiryDate) > new Date()).length;
     container.innerHTML = `
-    <div style="background:var(--card-bg);border-radius:14px;border:1px solid var(--border);padding:16px;margin-bottom:12px;">
-      <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border);">
-        <div style="width:56px;height:56px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;flex-shrink:0;">${displayName.charAt(0).toUpperCase()}</div>
-        <div>
-          <div style="font-size:16px;font-weight:700;color:var(--text);">${displayName}</div>
-          <div style="font-size:13px;color:var(--text-secondary);">${currentUser.email || 'No email'}</div>
-          <div style="font-size:13px;color:var(--text-secondary);">📍 Country: ${userProfile.location || 'Not specified'}</div>
-          <div style="font-size:13px;color:var(--vip-color);font-weight:700;">🎯 RP: ${userProfile.rp || 0}</div>
-          <div style="font-size:13px;color:var(--success);font-weight:600;">🔑 Licences: ${activeLicences}</div>
-          ${userProfile.isBanned ? '<div style="font-size:13px;color:var(--danger);font-weight:700;">🚫 BANNED</div>' : ''}
+    <div class="profile-container">
+        <div class="profile-card">
+            <div class="profile-header">
+                <div class="profile-avatar">${displayName.charAt(0).toUpperCase()}</div>
+                <div class="profile-info">
+                    <h3>${displayName}</h3>
+                    <div class="profile-email">${currentUser.email || 'No email'}</div>
+                    <div>
+                        <span class="profile-badge rp">🎯 RP: ${userProfile.rp || 0}</span>
+                        <span class="profile-badge licence">🔑 Licences: ${activeLicences}</span>
+                    </div>
+                    ${userProfile.isBanned ? '<div style="font-size:13px;color:var(--danger);font-weight:700;margin-top:4px;">🚫 BANNED</div>' : ''}
+                </div>
+            </div>
+            <div class="profile-stats">
+                <div class="stat-item">
+                    <div class="stat-number">${userProfile.history.length}</div>
+                    <div class="stat-label">Orders</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">${userProfile.rp || 0}</div>
+                    <div class="stat-label">RP Points</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">${wishlist.length}</div>
+                    <div class="stat-label">Favorites</div>
+                </div>
+            </div>
         </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
-        <div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center;border:1px solid var(--border);"><div style="font-size:18px;font-weight:700;color:var(--text);">${userProfile.history.length}</div><div style="font-size:10px;color:var(--text-secondary);">Orders</div></div>
-        <div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center;border:1px solid var(--border);"><div style="font-size:18px;font-weight:700;color:var(--vip-color);">${userProfile.rp || 0}</div><div style="font-size:10px;color:var(--text-secondary);">RP Points</div></div>
-        <div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center;border:1px solid var(--border);"><div style="font-size:18px;font-weight:700;color:var(--heart-color);">${wishlist.length}</div><div style="font-size:10px;color:var(--text-secondary);">Favorites</div></div>
-      </div>
-    </div>
-    <div class="edit-profile-inline">
-      <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px;"><i class="fas fa-edit"></i> Edit Profile</div>
-      <form onsubmit="saveProfileChangesInline(event)">
-        <label>Name</label><input id="editNameInline" value="${userProfile.name || currentUser.displayName || ''}" placeholder="Enter your name" type="text" />
-        <label>Telegram Username</label><input id="editTelegramInline" value="${userProfile.telegram || ''}" placeholder="@username" type="text" />
-        <label>Country</label><select id="editLocationInline">
-          <option value="Tunisia" ${userProfile.location==='Tunisia'?'selected':''}>🇹🇳 Tunisia</option>
-          <option value="Algeria" ${userProfile.location==='Algeria'?'selected':''}>🇩🇿 Algeria</option>
-          <option value="Morocco" ${userProfile.location==='Morocco'?'selected':''}>🇲🇦 Morocco</option>
-          <option value="Egypt" ${userProfile.location==='Egypt'?'selected':''}>🇪🇬 Egypt</option>
-          <option value="Saudi Arabia" ${userProfile.location==='Saudi Arabia'?'selected':''}>🇸🇦 Saudi Arabia</option>
-          <option value="UAE" ${userProfile.location==='UAE'?'selected':''}>🇦🇪 UAE</option>
-          <option value="Other" ${userProfile.location==='Other'?'selected':''}>🌍 Other</option>
-        </select>
-        <label>Language</label><select id="editLangInline">
-          <option value="English" ${userProfile.lang==='English'?'selected':''}>🇬🇧 English</option>
-          <option value="Arabic" ${userProfile.lang==='Arabic'?'selected':''}>🇸🇦 العربية</option>
-          <option value="French" ${userProfile.lang==='French'?'selected':''}>🇫🇷 Français</option>
-        </select>
-        <div class="form-actions"><button type="button" class="btn-cancel" onclick="renderProfileFull()">Cancel</button><button type="submit" class="btn-save"><i class="fas fa-save"></i> Save</button></div>
-      </form>
-    </div>
-    <div class="password-inline">
-      <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px;"><i class="fas fa-lock"></i> Password & Security</div>
-      <div class="ps-email"><span>${currentUser.email || 'No email'}</span><button onclick="sendResetLinkInline()"><i class="fas fa-paper-plane"></i> Send Reset Link</button></div>
-      <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:8px;">
-        <div style="font-size:12px;color:var(--text-secondary);opacity:0.4;margin-bottom:6px;">Use your current password to set a new one instantly.</div>
-        <div class="auth-field"><label>Current Password</label><input id="currentPasswordInline" placeholder="Enter current password" type="password" /></div>
-        <div class="auth-field"><label>New Password</label><input id="newPasswordInline" placeholder="Enter new password (min 6 chars)" type="password" /></div>
-        <div class="auth-field"><label>Confirm New Password</label><input id="confirmNewPasswordInline" placeholder="Confirm new password" type="password" /></div>
-        <button class="auth-btn" onclick="changePasswordInline()"><i class="fas fa-key"></i> Change Password</button>
-        <div class="auth-error" id="passwordErrorInline"></div><div class="auth-success" id="passwordSuccessInline"></div>
-      </div>
-    </div>
-    <div class="telegram-bind-section" style="margin-top:12px;">
-      <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;"><i class="fab fa-telegram-plane" style="color:#0088cc;"></i> Telegram Notifications</div>
-      <div class="tb-row"><span class="tb-label">Status</span><span class="tb-value"><span class="tb-status ${userProfile.telegramChatId?'linked':'unlinked'}">${userProfile.telegramChatId?'✅ Linked':'❌ Unlinked'}</span></span></div>
-      ${userProfile.telegramChatId?`<div class="tb-row"><span class="tb-label">Bound Chat ID</span><span class="tb-value" style="font-family:monospace;letter-spacing:1px;">${maskedChatId}</span></div><div class="tb-row"><span class="tb-label">Bot</span><span class="tb-value" style="color:#0088cc;">@${BOT_USERNAME}</span></div>`:''}
-      <div style="background:var(--card-bg);padding:10px;border-radius:8px;margin:8px 0;border:1px solid var(--border);">
-        <div style="font-size:13px;color:var(--text-secondary);"><i class="fas fa-info-circle" style="color:var(--primary);"></i> ${userProfile.telegramChatId ? 'You will receive order notifications here.' : 'Click "Link Bot" to connect your Telegram account.'}</div>
-      </div>
-      <div class="tb-actions">
-        <button class="btn-bind" onclick="bindTelegram()" style="flex:1;background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;gap:8px;"><i class="fab fa-telegram-plane"></i> ${userProfile.telegramChatId?'Re-link':'Link Bot'}</button>
-        ${userProfile.telegramChatId ? `<button class="btn-test" onclick="testTelegramNotification()" style="background:var(--success);color:#0a0a1a;border:none;border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:6px;"><i class="fas fa-paper-plane"></i> Test</button>` : ''}
-        <button class="btn-check" onclick="checkTelegramStatus()" style="background:var(--card-bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:6px;"><i class="fas fa-sync-alt"></i> Check</button>
-        ${userProfile.telegramChatId ? `<button class="btn-unlink" onclick="unlinkTelegram()" style="background:var(--danger);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:6px;"><i class="fas fa-unlink"></i> Unlink</button>` : ''}
-      </div>
-      <div style="font-size:11px;color:var(--text-secondary);opacity:0.4;margin-top:6px;display:flex;align-items:center;gap:4px;"><i class="fab fa-telegram-plane" style="color:#0088cc;"></i> ${userProfile.telegramChatId ? `Connected to @${BOT_USERNAME}` : `Start @${BOT_USERNAME} and click "Link Bot" to connect`}</div>
+        
+        <div class="edit-profile-section">
+            <div class="section-title"><i class="fas fa-edit"></i> Edit Profile</div>
+            <form onsubmit="saveProfileChangesInline(event)">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input id="editNameInline" value="${userProfile.name || currentUser.displayName || ''}" placeholder="Enter your name" type="text" />
+                </div>
+                <div class="form-group">
+                    <label>Telegram Username</label>
+                    <input id="editTelegramInline" value="${userProfile.telegram || ''}" placeholder="@username" type="text" />
+                </div>
+                <div class="form-group">
+                    <label>Country</label>
+                    <select id="editLocationInline">
+                        <option value="Tunisia" ${userProfile.location==='Tunisia'?'selected':''}>🇹🇳 Tunisia</option>
+                        <option value="Algeria" ${userProfile.location==='Algeria'?'selected':''}>🇩🇿 Algeria</option>
+                        <option value="Morocco" ${userProfile.location==='Morocco'?'selected':''}>🇲🇦 Morocco</option>
+                        <option value="Egypt" ${userProfile.location==='Egypt'?'selected':''}>🇪🇬 Egypt</option>
+                        <option value="Saudi Arabia" ${userProfile.location==='Saudi Arabia'?'selected':''}>🇸🇦 Saudi Arabia</option>
+                        <option value="UAE" ${userProfile.location==='UAE'?'selected':''}>🇦🇪 UAE</option>
+                        <option value="Other" ${userProfile.location==='Other'?'selected':''}>🌍 Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Language</label>
+                    <select id="editLangInline">
+                        <option value="English" ${userProfile.lang==='English'?'selected':''}>🇬🇧 English</option>
+                        <option value="Arabic" ${userProfile.lang==='Arabic'?'selected':''}>🇸🇦 العربية</option>
+                        <option value="French" ${userProfile.lang==='French'?'selected':''}>🇫🇷 Français</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="renderProfileFull()">Cancel</button>
+                    <button type="submit" class="btn-save"><i class="fas fa-save"></i> Save</button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="password-section">
+            <div class="section-title"><i class="fas fa-lock"></i> Password & Security</div>
+            <div class="ps-email">
+                <span>${currentUser.email || 'No email'}</span>
+                <button onclick="sendResetLinkInline()"><i class="fas fa-paper-plane"></i> Send Reset Link</button>
+            </div>
+            <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:8px;">
+                <div style="font-size:12px;color:var(--text-secondary);opacity:0.4;margin-bottom:6px;">Use your current password to set a new one instantly.</div>
+                <div class="form-group"><label>Current Password</label><input id="currentPasswordInline" placeholder="Enter current password" type="password" /></div>
+                <div class="form-group"><label>New Password</label><input id="newPasswordInline" placeholder="Enter new password (min 6 chars)" type="password" /></div>
+                <div class="form-group"><label>Confirm New Password</label><input id="confirmNewPasswordInline" placeholder="Confirm new password" type="password" /></div>
+                <button class="btn-save" onclick="changePasswordInline()" style="width:100%;"><i class="fas fa-key"></i> Change Password</button>
+                <div class="auth-error" id="passwordErrorInline"></div>
+                <div class="auth-success" id="passwordSuccessInline"></div>
+            </div>
+        </div>
+        
+        <div class="telegram-section">
+            <div class="section-title"><i class="fab fa-telegram-plane" style="color:#0088cc;"></i> Telegram Notifications</div>
+            <div class="tb-row">
+                <span class="tb-label">Status</span>
+                <span class="tb-value"><span class="tb-status ${userProfile.telegramChatId?'linked':'unlinked'}">${userProfile.telegramChatId?'✅ Linked':'❌ Unlinked'}</span></span>
+            </div>
+            ${userProfile.telegramChatId ? `
+                <div class="tb-row">
+                    <span class="tb-label">Bound Chat ID</span>
+                    <span class="tb-value" style="font-family:monospace;letter-spacing:1px;">${maskedChatId}</span>
+                </div>
+                <div class="tb-row">
+                    <span class="tb-label">Bot</span>
+                    <span class="tb-value" style="color:#0088cc;">@${BOT_USERNAME}</span>
+                </div>
+            ` : ''}
+            <div class="tb-info">
+                <i class="fas fa-info-circle" style="color:var(--primary);"></i> 
+                ${userProfile.telegramChatId ? 'You will receive order notifications here.' : 'Click "Link Bot" to connect your Telegram account.'}
+            </div>
+            <div class="tb-actions">
+                <button class="btn-bind" onclick="bindTelegram()"><i class="fab fa-telegram-plane"></i> ${userProfile.telegramChatId?'Re-link':'Link Bot'}</button>
+                ${userProfile.telegramChatId ? `<button class="btn-test" onclick="testTelegramNotification()"><i class="fas fa-paper-plane"></i> Test</button>` : ''}
+                <button class="btn-check" onclick="checkTelegramStatus()"><i class="fas fa-sync-alt"></i> Check</button>
+                ${userProfile.telegramChatId ? `<button class="btn-unlink" onclick="unlinkTelegram()"><i class="fas fa-unlink"></i> Unlink</button>` : ''}
+            </div>
+            <div style="font-size:11px;color:var(--text-secondary);opacity:0.4;margin-top:6px;display:flex;align-items:center;gap:4px;">
+                <i class="fab fa-telegram-plane" style="color:#0088cc;"></i> 
+                ${userProfile.telegramChatId ? `Connected to @${BOT_USERNAME}` : `Start @${BOT_USERNAME} and click "Link Bot" to connect`}
+            </div>
+        </div>
     </div>`;
     setTimeout(showTelegramBanner, 300);
 }
@@ -3345,438 +3403,8 @@ window.saveSlideEdit = async function() {
     showToast('✅ تم تحديث الشريحة بنجاح!', 'success');
 };
 
-window.deleteSlide = function(index) {
-    if (!confirm('هل أنت متأكد من حذف هذه الشريحة؟')) return;
-    sliderSlides.splice(index, 1);
-    window.saveSliderData();
-    renderSlider();
-    renderSliderSettingsUI();
-    resetSliderTimer();
-    showToast('🗑️ تم حذف الشريحة', 'success');
-};
-
-window.editSlide = function(index) {
-    const slide = sliderSlides[index];
-    if (!slide) { showToast('❌ الشريحة غير موجودة', 'error'); return; }
-    const modal = document.getElementById('addSlideModal');
-    if (!modal) { showToast('❌ المودال غير موجود', 'error'); return; }
-    document.getElementById('slideTitle').value = slide.title || '';
-    document.getElementById('slideSubtitle').value = slide.subtitle || '';
-    document.getElementById('slideButtonText').value = slide.buttonText || 'Buy Now';
-    document.getElementById('slideLinkType').value = slide.linkType || 'product';
-    toggleSlideLinkFields();
-    if (slide.linkType === 'product') {
-        document.getElementById('slideProductSelect').value = slide.productId || '';
-    } else if (slide.linkType === 'download') {
-        document.getElementById('slideDownloadUrl').value = slide.downloadUrl || '';
-    } else if (slide.linkType === 'url') {
-        document.getElementById('slideCustomUrl').value = slide.customUrl || '';
-    }
-    document.getElementById('addSlideForm').dataset.editIndex = index;
-    document.querySelector('#addSlideModal .modal-title').textContent = '✏️ تعديل الشريحة';
-    document.querySelector('#addSlideForm button[type="submit"]').textContent = '💾 تحديث الشريحة';
-    modal.classList.add('open');
-    document.body.style.overflow = 'hidden';
-};
-
-window.openAddSlideModal = function() {
-    updateSlideProductSelect();
-    const modal = document.getElementById('addSlideModal');
-    if (!modal) { showToast('❌ المودال غير موجود', 'error'); return; }
-    modal.classList.add('open');
-    document.body.style.overflow = 'hidden';
-    const form = document.getElementById('addSlideForm');
-    if (form) form.reset();
-    const preview = document.getElementById('slideImagePreview');
-    if (preview) preview.style.display = 'none';
-    toggleSlideLinkFields();
-    document.querySelector('#addSlideModal .modal-title').textContent = '➕ إضافة شريحة جديدة';
-    document.querySelector('#addSlideForm button[type="submit"]').textContent = '➕ إضافة شريحة';
-    delete document.getElementById('addSlideForm').dataset.editIndex;
-};
-
-window.closeAddSlideModal = function() {
-    const modal = document.getElementById('addSlideModal');
-    if (modal) { modal.classList.remove('open'); document.body.style.overflow = ''; }
-};
-
-function updateSlideProductSelect() {
-    const select = document.getElementById('slideProductSelect');
-    if (!select) return;
-    select.innerHTML = products.map(p => `<option value="${p.id}">${p.name} ($${p.price})</option>`).join('');
-}
-
-function toggleSlideLinkFields() {
-    const type = document.getElementById('slideLinkType')?.value || 'product';
-    const productGroup = document.getElementById('slideProductGroup');
-    const downloadGroup = document.getElementById('slideDownloadGroup');
-    const customGroup = document.getElementById('slideCustomUrlGroup');
-    if (productGroup) productGroup.style.display = type === 'product' ? 'block' : 'none';
-    if (downloadGroup) downloadGroup.style.display = type === 'download' ? 'block' : 'none';
-    if (customGroup) customGroup.style.display = type === 'url' ? 'block' : 'none';
-}
-
-async function loadSliderSettings() {
-    try {
-        const settingsRef = doc(db, 'settings', 'slider');
-        const settingsSnap = await getDoc(settingsRef);
-        if (settingsSnap.exists()) {
-            const data = settingsSnap.data();
-            sliderSlides = data.slides || [];
-            sliderIntervalTime = data.interval || 3;
-            const intervalInput = document.getElementById('sliderIntervalInput');
-            if (intervalInput) { intervalInput.value = sliderIntervalTime; }
-        } else {
-            sliderSlides = [];
-            sliderIntervalTime = 3;
-        }
-        renderSlider();
-        startSliderRotation();
-        renderSliderSettingsUI();
-    } catch (error) {
-        console.error('Error loading slider settings:', error);
-        if (error.code === 'permission-denied') {
-            sliderSlides = [];
-            sliderIntervalTime = 3;
-            renderSlider();
-            renderSliderSettingsUI();
-        }
-    }
-}
-
-function renderSlider() {
-    const wrapper = document.getElementById('sliderWrapper');
-    const dots = document.getElementById('sliderDots');
-    if (!wrapper) return;
-    if (sliderSlides.length === 0) {
-        wrapper.innerHTML = `<div class="slide-item" style="background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;min-height:200px;border-radius:var(--radius-md);"><div style="text-align:center;color:var(--text-secondary);opacity:0.4;"><i class="fas fa-images" style="font-size:48px;display:block;margin-bottom:8px;"></i><p>لا توجد شرائح. أضف شرائح من لوحة التحكم.</p></div></div>`;
-        dots.innerHTML = '';
-        return;
-    }
-    wrapper.innerHTML = sliderSlides.map((slide, index) => {
-        const isActive = index === currentSlideIndex ? 'active' : '';
-        const imageUrl = slide.imageUrl || '';
-        const title = slide.title || '';
-        const subtitle = slide.subtitle || '';
-        const buttonText = slide.buttonText || 'Learn More';
-        let buttonLink = '#';
-        let buttonTarget = '_self';
-        if (slide.linkType === 'product' && slide.productId) {
-            buttonLink = `javascript:window.openDetails('${slide.productId}')`;
-        } else if (slide.linkType === 'download' && slide.downloadUrl) {
-            buttonLink = slide.downloadUrl; buttonTarget = '_blank';
-        } else if (slide.linkType === 'url' && slide.customUrl) {
-            buttonLink = slide.customUrl; buttonTarget = '_blank';
-        }
-        return `<div class="slide-item ${isActive}" style="background-image:url('${imageUrl}');"><div class="slide-overlay">${title ? `<h2 class="slide-title">${title}</h2>` : ''}${subtitle ? `<p class="slide-subtitle">${subtitle}</p>` : ''}${buttonText ? `<a href="${buttonLink}" target="${buttonTarget}" class="slide-btn">${buttonText}</a>` : ''}</div></div>`;
-    }).join('');
-    dots.innerHTML = sliderSlides.map((_, index) => {
-        const isActive = index === currentSlideIndex ? 'active' : '';
-        return `<span class="dot ${isActive}" onclick="goToSlide(${index})"></span>`;
-    }).join('');
-    updateSliderHeight();
-}
-
-function updateSliderHeight() {
-    const wrapper = document.getElementById('sliderWrapper');
-    if (wrapper) wrapper.style.minHeight = '300px';
-}
-
-function startSliderRotation() {
-    if (sliderTimer) clearInterval(sliderTimer);
-    if (sliderSlides.length <= 1) return;
-    sliderTimer = setInterval(() => {
-        if (!isSliderPaused) { window.nextSlide(); }
-    }, sliderIntervalTime * 1000);
-}
-
-function resetSliderTimer() {
-    if (sliderTimer) { clearInterval(sliderTimer); startSliderRotation(); }
-}
-
-function renderSliderSettingsUI() {
-    const container = document.getElementById('sliderSlidesList');
-    if (!container) return;
-    if (sliderSlides.length === 0) {
-        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);opacity:0.5;">لا توجد شرائح. اضغط "إضافة شريحة" للبدء.</div>`;
-        return;
-    }
-    container.innerHTML = sliderSlides.map((slide, index) => {
-        const product = products.find(p => p.id === slide.productId);
-        const productName = product ? product.name : 'غير معروف';
-        return `<div class="admin-item"><div class="item-info"><div class="item-title"><img src="${slide.imageUrl || 'https://picsum.photos/seed/default/60/60'}" style="width:40px;height:40px;border-radius:var(--radius-sm);object-fit:cover;margin-right:8px;" />${slide.title || 'شريحة ' + (index+1)}<span style="font-size:11px;opacity:0.4;font-weight:400;">${slide.linkType === 'product' ? '📦 منتج: ' + productName : slide.linkType === 'download' ? '📥 تحميل' : '🔗 رابط مخصص'}</span></div><div class="item-meta">${slide.subtitle || ''}</div></div><div class="item-actions"><button class="btn-edit" onclick="editSlide(${index})"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="deleteSlide(${index})"><i class="fas fa-trash"></i></button></div></div>`;
-    }).join('');
-}
-
-// دوال الماركي (Marquee)
-window.saveMarqueeSettings = async function() {
-    const enabledCheckbox = document.getElementById('marqueeEnabled');
-    const textArea = document.getElementById('marqueeText');
-    const enabled = enabledCheckbox ? enabledCheckbox.checked : true;
-    const text = textArea ? textArea.value.trim() : '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
-    if (!text) { showToast('⚠️ الرجاء إدخال نص الماركي', 'warning'); return; }
-    try {
-        const settingsRef = doc(db, 'settings', 'marquee');
-        await setDoc(settingsRef, { enabled, text, updatedAt: serverTimestamp() }, { merge: true });
-        marqueeSettings.enabled = enabled;
-        marqueeSettings.text = text;
-        applyMarqueeSettings();
-        showToast('✅ تم حفظ إعدادات الماركي!', 'success');
-    } catch (error) { showToast('❌ فشل حفظ الإعدادات: ' + error.message, 'error'); }
-};
-
-window.applyMarqueeSettings = function() {
-    const marqueeBar = document.getElementById('marqueeBar');
-    const marqueeContent = document.getElementById('marqueeContent');
-    if (!marqueeBar || !marqueeContent) return;
-    if (marqueeSettings.enabled && marqueeSettings.text) {
-        const items = marqueeSettings.text.split('|').map(item => item.trim()).filter(item => item);
-        if (items.length > 0) {
-            const contentHtml = items.map(item => `<span>${item}</span>`).join('');
-            marqueeContent.innerHTML = contentHtml + contentHtml;
-            marqueeBar.style.display = 'block';
-        } else { marqueeBar.style.display = 'none'; }
-    } else { marqueeBar.style.display = 'none'; }
-};
-
-function renderMarqueeSettingsUI() {
-    const container = document.getElementById('marqueeSettingsContainer');
-    if (!container) return;
-    const enabledCheckbox = document.getElementById('marqueeEnabled');
-    const textArea = document.getElementById('marqueeText');
-    if (enabledCheckbox) enabledCheckbox.checked = marqueeSettings.enabled !== false;
-    if (textArea) textArea.value = marqueeSettings.text || '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
-}
-
-async function loadMarqueeSettings() {
-    try {
-        const settingsRef = doc(db, 'settings', 'marquee');
-        const settingsSnap = await getDoc(settingsRef);
-        if (settingsSnap.exists()) {
-            const data = settingsSnap.data();
-            marqueeSettings.enabled = data.enabled !== undefined ? data.enabled : true;
-            marqueeSettings.text = data.text || '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
-        } else {
-            marqueeSettings.enabled = true;
-            marqueeSettings.text = '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
-        }
-        applyMarqueeSettings();
-    } catch (error) {
-        console.error('Error loading marquee settings:', error);
-        if (error.code === 'permission-denied') {
-            marqueeSettings.enabled = true;
-            marqueeSettings.text = '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
-            applyMarqueeSettings();
-        }
-    }
-}
-
-// دوال الإحصائيات
-async function loadDashboardStats() {
-    if (!currentUser || !isAdminCached) { console.log('ℹ️ loadDashboardStats skipped (not admin)'); return; }
-    try {
-        const statsRef = doc(db, 'global_stats', 'stats');
-        const statsSnap = await getDoc(statsRef);
-        let totalOrders = 0, totalRevenue = 0;
-        if (statsSnap.exists()) { totalOrders = statsSnap.data().totalOrders || 0; totalRevenue = statsSnap.data().totalRevenue || 0; }
-        document.getElementById('dashboardTotalOrders').textContent = totalOrders;
-        document.getElementById('dashboardTotalRevenue').textContent = `$${totalRevenue.toFixed(2)}`;
-        document.getElementById('dashboardNetRevenue').textContent = `$${(totalRevenue * 0.1).toFixed(2)}`;
-    } catch (error) {
-        console.error('Error loading dashboard stats:', error);
-        if (error.code === 'permission-denied') { console.warn('⚠️ Missing permissions to read stats.'); }
-    }
-}
-window.refreshDashboardStats = function() { loadDashboardStats(); showToast('🔄 Stats refreshed', 'info'); };
-async function loadAdvancedStats() {
-    if (!currentUser || !isAdminCached) { console.log('ℹ️ loadAdvancedStats skipped (not admin)'); return; }
-    const container = document.getElementById('advancedStatsContainer');
-    if (!container) return;
-    container.innerHTML = `<div style="text-align:center;padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading statistics...</div>`;
-    try {
-        const usersRef = collection(db, 'users');
-        const snapshot = await getDocs(usersRef);
-        let allOrders = [];
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            const history = data.history || [];
-            history.forEach(order => {
-                allOrders.push({ ...order, userEmail: data.email || doc.id, userName: data.name || 'Unknown', userId: doc.id, orderId: order.id || 'order_' + Date.now() });
-            });
-        });
-        const totalOrders = allOrders.length;
-        const totalRevenue = allOrders.reduce((sum, o) => sum + (o.total || 0), 0);
-        const pendingOrders = allOrders.filter(o => o.status === 'pending').length;
-        const confirmedOrders = allOrders.filter(o => o.status === 'confirmed').length;
-        const rejectedOrders = allOrders.filter(o => o.status === 'rejected').length;
-        const totalUsers = snapshot.size;
-        container.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px;"><div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--primary);">${totalOrders}</div><div style="font-size:12px;color:var(--text-secondary);">Total Orders</div></div><div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--vip-color);">$${totalRevenue.toFixed(2)}</div><div style="font-size:12px;color:var(--text-secondary);">Revenue</div></div><div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--pending-color);">${pendingOrders}</div><div style="font-size:12px;color:var(--text-secondary);">Pending</div></div><div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--success);">${confirmedOrders}</div><div style="font-size:12px;color:var(--text-secondary);">Confirmed</div></div><div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--danger);">${rejectedOrders}</div><div style="font-size:12px;color:var(--text-secondary);">Rejected</div></div><div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--text);">${totalUsers}</div><div style="font-size:12px;color:var(--text-secondary);">Total Users</div></div></div>`;
-    } catch (error) { console.error('Error loading advanced stats:', error); container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load statistics: ${error.message}</div>`; if (error.code === 'permission-denied') { console.warn('⚠️ Missing permissions to read users.'); } }
-}
-window.refreshAdvancedStats = function() { loadAdvancedStats(); showToast('🔄 Stats refreshed', 'info'); };
-async function loadAuditLogs() {
-    if (!currentUser || !isAdminCached) { console.log('ℹ️ loadAuditLogs skipped (not admin)'); return; }
-    const container = document.getElementById('auditLogsContainer');
-    if (!container) return;
-    container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading logs...</div>`;
-    try {
-        const logsRef = collection(db, 'auditLogs');
-        const q = query(logsRef, orderBy('timestamp', 'desc'));
-        const snapshot = await getDocs(q);
-        if (snapshot.empty) { container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">📭 No audit logs yet</div>`; return; }
-        let html = `<div style="display:flex;flex-direction:column;gap:6px;max-height:400px;overflow-y:auto;">`;
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            const date = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '--';
-            const admin = data.adminName || data.adminEmail || 'Admin';
-            const action = data.action || 'Action';
-            const details = data.details || '';
-            html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg);border-radius:8px;border:1px solid var(--border);font-size:13px;"><div><span style="font-weight:600;color:var(--text);">${admin}</span><span style="color:var(--text-secondary);opacity:0.5;margin:0 4px;">→</span><span style="color:var(--primary);font-weight:500;">${action}</span>${details ? `<span style="color:var(--text-secondary);opacity:0.4;margin-left:4px;">${details}</span>` : ''}</div><span style="font-size:11px;color:var(--text-secondary);opacity:0.3;">${date}</span></div>`;
-        });
-        html += `</div>`; container.innerHTML = html;
-    } catch (error) { console.error('Error loading audit logs:', error); container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load logs: ${error.message}</div>`; if (error.code === 'permission-denied') { console.warn('⚠️ Missing permissions to read audit logs.'); } }
-}
-window.loadAuditLogs = loadAuditLogs;
-
 // ============================================================
-// 27. دوال الإضافية (Telegram Banner, Social Proof, Upload)
-// ============================================================
-
-function showTelegramBanner() {
-    const banner = document.getElementById('telegramBanner');
-    if (!banner) return;
-    const bannerHidden = localStorage.getItem('telegram_banner_hidden') === 'true';
-    const adminDisabled = localStorage.getItem('telegram_banner_admin_disabled') === 'true';
-    if (userProfile.telegramChatId) {
-        banner.classList.add('linked');
-        banner.querySelector('.banner-title').textContent = '✅ Connected!';
-        banner.querySelector('.banner-subtitle').textContent = 'You will receive order notifications here.';
-        banner.querySelector('.banner-action').innerHTML = '<i class="fas fa-check"></i> Linked';
-        banner.querySelector('.banner-action').onclick = () => openProfileFull();
-        banner.querySelector('.banner-icon i').className = 'fas fa-check-circle';
-        banner.style.display = 'block';
-        setTimeout(() => { banner.classList.add('hidden'); }, 3000);
-        return;
-    }
-    if (bannerHidden || adminDisabled) { banner.classList.add('hidden'); return; }
-    banner.classList.remove('linked', 'hidden');
-    banner.querySelector('.banner-title').innerHTML = '🔔 Stay Connected! <span class="badge-new">New</span>';
-    banner.querySelector('.banner-subtitle').textContent = 'Link your Telegram account to receive instant order notifications';
-    banner.querySelector('.banner-action').innerHTML = '<i class="fab fa-telegram-plane"></i> Link Now';
-    banner.querySelector('.banner-action').onclick = () => bindTelegram();
-    banner.querySelector('.banner-icon i').className = 'fab fa-telegram-plane';
-    banner.style.display = 'block';
-    banner.style.animation = 'none';
-    setTimeout(() => { banner.style.animation = 'bannerSlideDown 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'; }, 10);
-}
-function closeTelegramBanner() {
-    const banner = document.getElementById('telegramBanner');
-    if (banner) { banner.classList.add('hidden'); localStorage.setItem('telegram_banner_hidden', 'true'); setTimeout(() => { localStorage.removeItem('telegram_banner_hidden'); if (!userProfile.telegramChatId) { showTelegramBanner(); } }, 600000); }
-}
-function showTelegramBannerAgain() { localStorage.removeItem('telegram_banner_hidden'); showTelegramBanner(); }
-function addBannerAdminControls() { /* سيتم تنفيذها في الأدمن */ }
-function adminToggleBanner(show) {
-    if (show) { localStorage.setItem('telegram_banner_admin_disabled', 'false'); } else { localStorage.setItem('telegram_banner_admin_disabled', 'true'); const banner = document.getElementById('telegramBanner'); if (banner) banner.classList.add('hidden'); }
-    addBannerAdminControls();
-    if (show) { localStorage.removeItem('telegram_banner_hidden'); setTimeout(showTelegramBanner, 300); }
-}
-function resetBannerForAll() { localStorage.removeItem('telegram_banner_admin_disabled'); localStorage.removeItem('telegram_banner_hidden'); showToast('🔄 Banner reset', 'info'); addBannerAdminControls(); setTimeout(showTelegramBanner, 300); }
-function startSocialProof() { /* للاستخدام المستقبلي */ }
-function triggerSocialProofOnOrder(userName, productNames) { /* للاستخدام المستقبلي */ }
-
-// ============================================================
-// 28. رفع الصور إلى Cloudinary
-// ============================================================
-
-const CLOUDINARY_CLOUD_NAME = 'y14bgb5s';
-const CLOUDINARY_UPLOAD_PRESET = 'zi_store_uploads';
-
-async function uploadToCloudinary(file) {
-    try {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-        const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, { method: 'POST', body: formData });
-        const data = await response.json();
-        return data.secure_url || null;
-    } catch (error) { console.error('Cloudinary upload error:', error); return null; }
-}
-
-// ============================================================
-// 29. دوال التوجيه والإصلاح
-// ============================================================
-
-function fixDirection() {
-    document.querySelectorAll('.header, .logo, .header-actions, .modal-content, .fullscreen-modal, .admin-panel').forEach(el => {
-        el.style.direction = 'ltr'; el.style.textAlign = 'left';
-    });
-    document.querySelectorAll('.modal-close').forEach(el => { el.style.right = 'auto'; el.style.left = '10px'; });
-}
-window.fixHeaderAndModals = fixDirection;
-
-// ============================================================
-// 30. نسخ الترخيص والتصدير
-// ============================================================
-
-window.copyLicenceCode = function(code) {
-    if (!code) { showToast('⚠️ No code to copy', 'warning'); return; }
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(code)
-            .then(() => showToast('✅ Licence code copied!', 'success'))
-            .catch(() => fallbackCopyText(code));
-    } else {
-        fallbackCopyText(code);
-    }
-};
-function fallbackCopyText(text) {
-    const textarea = document.createElement('textarea');
-    textarea.value = text;
-    textarea.style.position = 'fixed';
-    textarea.style.opacity = '0';
-    document.body.appendChild(textarea);
-    textarea.select();
-    try {
-        document.execCommand('copy');
-        showToast('✅ Licence code copied!', 'success');
-    } catch (e) {
-        showToast('❌ Failed to copy. Please copy manually.', 'error');
-    }
-    document.body.removeChild(textarea);
-}
-window.generateInvoice = function(orderData) {
-    if (!orderData) { showToast('❌ No order data for invoice', 'error'); return; }
-    try {
-        let order = typeof orderData === 'string' ? JSON.parse(orderData) : orderData;
-        if (!order.id) { order.id = 'INV-' + Date.now().toString().slice(-6); }
-        const invoiceHtml = `<html><head><title>Invoice #${order.id}</title><style>body{font-family:Arial;padding:40px;background:#fff;color:#000;}h1{color:#333;}table{width:100%;border-collapse:collapse;margin:20px 0;}th,td{padding:10px;border:1px solid #ddd;text-align:left;}th{background:#f5f5f5;}.total{font-size:18px;font-weight:bold;}</style></head><body><h1>🧾 Invoice</h1><p><strong>Order ID:</strong> ${order.id}</p><p><strong>Date:</strong> ${order.date ? new Date(order.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '--'}</p><p><strong>Status:</strong> ${order.status || 'Pending'}</p><table><thead><tr><th>Product</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead><tbody>${(order.items || []).map(item => `<tr><td>${item.name}</td><td>${item.quantity || 1}</td><td>$${(item.price || 0).toFixed(2)}</td><td>$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td></tr>`).join('')}</tbody></table><div class="total">Total: $${(order.total || 0).toFixed(2)}</div><div class="status">Payment Method: ${order.method || 'N/A'}</div><hr><p style="color:gray;">Thank you for your purchase at ZI Store!</p></body></html>`;
-        const win = window.open('', '_blank');
-        if (!win) { showToast('⚠️ Please allow popups to generate invoice', 'warning'); return; }
-        win.document.write(invoiceHtml);
-        win.document.close();
-        win.print();
-        showToast('📄 Invoice generated!', 'success');
-    } catch (error) { console.error('Invoice generation error:', error); showToast('❌ Failed to generate invoice', 'error'); }
-};
-window.exportOrders = function() {
-    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
-    if (!allOrders || allOrders.length === 0) { showToast('📭 No orders to export', 'info'); return; }
-    try {
-        let csv = 'Order ID,User,Email,Total,Status,Date,Items\n';
-        allOrders.forEach(order => {
-            const items = order.items ? order.items.map(i => i.name).join('; ') : '';
-            csv += `${order.orderId || ''},${order.userName || ''},${order.userEmail || ''},${order.total || 0},${order.status || 'pending'},${new Date(order.date).toLocaleDateString()},${items}\n`;
-        });
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = `orders_${new Date().toISOString().slice(0,10)}.csv`;
-        a.click(); URL.revokeObjectURL(url);
-        showToast('📥 Orders exported!', 'success');
-    } catch (error) { showToast('❌ Export failed', 'error'); }
-};
-
-// ============================================================
-// 31. دوال clearOrderHistory, renderHistoryFull, filterOrders
+// 27. دوال clearOrderHistory, renderHistoryFull, filterOrders
 // ============================================================
 
 window.clearOrderHistory = async function() {
@@ -3846,27 +3474,7 @@ window.filterOrders = function(filter) {
 };
 
 // ============================================================
-// 32. دوال التراخيص الإضافية
-// ============================================================
-
-window.openLicenceModal = function() {
-    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
-    const modal = document.getElementById('licenceModal');
-    if (modal) modal.classList.add('open');
-};
-window.closeLicenceModal = function() {
-    const modal = document.getElementById('licenceModal');
-    if (modal) modal.classList.remove('open');
-};
-window.toggleLicencesList = function() {
-    const list = document.getElementById('userLicencesList');
-    if (list) {
-        list.style.display = list.style.display === 'none' ? 'block' : 'none';
-    }
-};
-
-// ============================================================
-// 33. Cookie Consent Functions
+// 28. Cookie Consent Functions
 // ============================================================
 
 // متغير لتخزين حالة الموافقة
@@ -4007,7 +3615,144 @@ window.disableAnalytics = disableAnalytics;
 window.checkCookieConsent = checkCookieConsent;
 
 // ============================================================
-// 34. حالة المصادقة (النسخة النهائية)
+// 29. دوال الإضافية (Telegram Banner, Social Proof, Upload)
+// ============================================================
+
+function showTelegramBanner() {
+    const banner = document.getElementById('telegramBanner');
+    if (!banner) return;
+    const bannerHidden = localStorage.getItem('telegram_banner_hidden') === 'true';
+    const adminDisabled = localStorage.getItem('telegram_banner_admin_disabled') === 'true';
+    if (userProfile.telegramChatId) {
+        banner.classList.add('linked');
+        banner.querySelector('.banner-title').textContent = '✅ Connected!';
+        banner.querySelector('.banner-subtitle').textContent = 'You will receive order notifications here.';
+        banner.querySelector('.banner-action').innerHTML = '<i class="fas fa-check"></i> Linked';
+        banner.querySelector('.banner-action').onclick = () => openProfileFull();
+        banner.querySelector('.banner-icon i').className = 'fas fa-check-circle';
+        banner.style.display = 'block';
+        setTimeout(() => { banner.classList.add('hidden'); }, 3000);
+        return;
+    }
+    if (bannerHidden || adminDisabled) { banner.classList.add('hidden'); return; }
+    banner.classList.remove('linked', 'hidden');
+    banner.querySelector('.banner-title').innerHTML = '🔔 Stay Connected! <span class="badge-new">New</span>';
+    banner.querySelector('.banner-subtitle').textContent = 'Link your Telegram account to receive instant order notifications';
+    banner.querySelector('.banner-action').innerHTML = '<i class="fab fa-telegram-plane"></i> Link Now';
+    banner.querySelector('.banner-action').onclick = () => bindTelegram();
+    banner.querySelector('.banner-icon i').className = 'fab fa-telegram-plane';
+    banner.style.display = 'block';
+    banner.style.animation = 'none';
+    setTimeout(() => { banner.style.animation = 'bannerSlideDown 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'; }, 10);
+}
+function closeTelegramBanner() {
+    const banner = document.getElementById('telegramBanner');
+    if (banner) { banner.classList.add('hidden'); localStorage.setItem('telegram_banner_hidden', 'true'); setTimeout(() => { localStorage.removeItem('telegram_banner_hidden'); if (!userProfile.telegramChatId) { showTelegramBanner(); } }, 600000); }
+}
+function showTelegramBannerAgain() { localStorage.removeItem('telegram_banner_hidden'); showTelegramBanner(); }
+function addBannerAdminControls() { /* سيتم تنفيذها في الأدمن */ }
+function adminToggleBanner(show) {
+    if (show) { localStorage.setItem('telegram_banner_admin_disabled', 'false'); } else { localStorage.setItem('telegram_banner_admin_disabled', 'true'); const banner = document.getElementById('telegramBanner'); if (banner) banner.classList.add('hidden'); }
+    addBannerAdminControls();
+    if (show) { localStorage.removeItem('telegram_banner_hidden'); setTimeout(showTelegramBanner, 300); }
+}
+function resetBannerForAll() { localStorage.removeItem('telegram_banner_admin_disabled'); localStorage.removeItem('telegram_banner_hidden'); showToast('🔄 Banner reset', 'info'); addBannerAdminControls(); setTimeout(showTelegramBanner, 300); }
+function startSocialProof() { /* للاستخدام المستقبلي */ }
+function triggerSocialProofOnOrder(userName, productNames) { /* للاستخدام المستقبلي */ }
+
+// ============================================================
+// 30. رفع الصور إلى Cloudinary
+// ============================================================
+
+const CLOUDINARY_CLOUD_NAME = 'y14bgb5s';
+const CLOUDINARY_UPLOAD_PRESET = 'zi_store_uploads';
+
+async function uploadToCloudinary(file) {
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+        const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, { method: 'POST', body: formData });
+        const data = await response.json();
+        return data.secure_url || null;
+    } catch (error) { console.error('Cloudinary upload error:', error); return null; }
+}
+
+// ============================================================
+// 31. دوال التوجيه والإصلاح
+// ============================================================
+
+function fixDirection() {
+    document.querySelectorAll('.header, .logo, .header-actions, .modal-content, .fullscreen-modal, .admin-panel').forEach(el => {
+        el.style.direction = 'ltr'; el.style.textAlign = 'left';
+    });
+    document.querySelectorAll('.modal-close').forEach(el => { el.style.right = 'auto'; el.style.left = '10px'; });
+}
+window.fixHeaderAndModals = fixDirection;
+
+// ============================================================
+// 32. نسخ الترخيص والتصدير
+// ============================================================
+
+window.copyLicenceCode = function(code) {
+    if (!code) { showToast('⚠️ No code to copy', 'warning'); return; }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code)
+            .then(() => showToast('✅ Licence code copied!', 'success'))
+            .catch(() => fallbackCopyText(code));
+    } else {
+        fallbackCopyText(code);
+    }
+};
+function fallbackCopyText(text) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+        document.execCommand('copy');
+        showToast('✅ Licence code copied!', 'success');
+    } catch (e) {
+        showToast('❌ Failed to copy. Please copy manually.', 'error');
+    }
+    document.body.removeChild(textarea);
+}
+window.generateInvoice = function(orderData) {
+    if (!orderData) { showToast('❌ No order data for invoice', 'error'); return; }
+    try {
+        let order = typeof orderData === 'string' ? JSON.parse(orderData) : orderData;
+        if (!order.id) { order.id = 'INV-' + Date.now().toString().slice(-6); }
+        const invoiceHtml = `<html><head><title>Invoice #${order.id}</title><style>body{font-family:Arial;padding:40px;background:#fff;color:#000;}h1{color:#333;}table{width:100%;border-collapse:collapse;margin:20px 0;}th,td{padding:10px;border:1px solid #ddd;text-align:left;}th{background:#f5f5f5;}.total{font-size:18px;font-weight:bold;}</style></head><body><h1>🧾 Invoice</h1><p><strong>Order ID:</strong> ${order.id}</p><p><strong>Date:</strong> ${order.date ? new Date(order.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '--'}</p><p><strong>Status:</strong> ${order.status || 'Pending'}</p><table><thead><tr><th>Product</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead><tbody>${(order.items || []).map(item => `<tr><td>${item.name}</td><td>${item.quantity || 1}</td><td>$${(item.price || 0).toFixed(2)}</td><td>$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td></tr>`).join('')}</tbody></table><div class="total">Total: $${(order.total || 0).toFixed(2)}</div><div class="status">Payment Method: ${order.method || 'N/A'}</div><hr><p style="color:gray;">Thank you for your purchase at ZI Store!</p></body></html>`;
+        const win = window.open('', '_blank');
+        if (!win) { showToast('⚠️ Please allow popups to generate invoice', 'warning'); return; }
+        win.document.write(invoiceHtml);
+        win.document.close();
+        win.print();
+        showToast('📄 Invoice generated!', 'success');
+    } catch (error) { console.error('Invoice generation error:', error); showToast('❌ Failed to generate invoice', 'error'); }
+};
+window.exportOrders = function() {
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (!allOrders || allOrders.length === 0) { showToast('📭 No orders to export', 'info'); return; }
+    try {
+        let csv = 'Order ID,User,Email,Total,Status,Date,Items\n';
+        allOrders.forEach(order => {
+            const items = order.items ? order.items.map(i => i.name).join('; ') : '';
+            csv += `${order.orderId || ''},${order.userName || ''},${order.userEmail || ''},${order.total || 0},${order.status || 'pending'},${new Date(order.date).toLocaleDateString()},${items}\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `orders_${new Date().toISOString().slice(0,10)}.csv`;
+        a.click(); URL.revokeObjectURL(url);
+        showToast('📥 Orders exported!', 'success');
+    } catch (error) { showToast('❌ Export failed', 'error'); }
+};
+
+// ============================================================
+// 33. حالة المصادقة (النسخة النهائية)
 // ============================================================
 
 onAuthStateChanged(auth, async (user) => {
@@ -4059,6 +3804,8 @@ onAuthStateChanged(auth, async (user) => {
         setTimeout(window.ensureAdminPanel, 2000);
         // تهيئة الكوكيز
         setTimeout(checkCookieConsent, 1000);
+        // تحديث شاشة التحميل
+        updateLoadingText('✅ جاهز!');
         
     } else {
         isAdminCached = false;
@@ -4069,12 +3816,13 @@ onAuthStateChanged(auth, async (user) => {
         loadDownloads(); loadNotifications(); fetchCryptoPrices(); loadFeaturedSettings(); loadSliderSettings(); loadMarqueeSettings();
         startSocialProof();
         setTimeout(checkCookieConsent, 1000);
+        updateLoadingText('👋 تسجيل الدخول');
     }
     updateUI(); updateFullUserMenu();
 });
 
 // ============================================================
-// 35. استدعاء تلقائي للتأكد من ظهور لوحة الأدمن (حل احتياطي)
+// 34. استدعاء تلقائي للتأكد من ظهور لوحة الأدمن (حل احتياطي)
 // ============================================================
 setInterval(() => {
     if (currentUser && !isAdminCached) {
@@ -4083,21 +3831,21 @@ setInterval(() => {
 }, 5000);
 
 // ============================================================
-// 36. التهيئة (Init)
+// 35. التهيئة (Init) - مع شاشة تحميل دائمة
 // ============================================================
 
 async function init() {
     console.log('🚀 Initializing ZI Store...');
-    hideLoadingScreen();
-
-    const forceHideTimeout = setTimeout(() => {
-        console.warn('⚠️ Force hiding loading screen after 2 seconds.');
-        hideLoadingScreen();
-    }, 2000);
+    
+    // تحديث نص التحميل
+    updateLoadingText('جاري التحميل...');
 
     try {
+        updateLoadingText('جاري تحميل المنتجات...');
         const productsFromFirestore = await loadProductsFromFirestore();
         products = productsFromFirestore.length > 0 ? productsFromFirestore : fallbackProducts;
+        
+        updateLoadingText('جاري تهيئة التطبيق...');
         startProductsRealtimeListener();
         await loadUserData();
         renderProducts(products, false);
@@ -4112,25 +3860,47 @@ async function init() {
         loadSliderSettings();
         loadMarqueeSettings();
         setInterval(fetchCryptoPrices, 60000);
+        
+        updateLoadingText('✅ جاهز!');
         console.log('✅ ZI Store ready with all features!');
         setTimeout(fixDirection, 100);
         setTimeout(window.ensureAdminPanel, 3000);
         setTimeout(checkCookieConsent, 1500);
+        
+        // تغيير شكل شاشة التحميل لتظهر كـ "جاهز"
+        setTimeout(function() {
+            const screen = document.getElementById('loadingScreen');
+            if (screen) {
+                const icon = screen.querySelector('.loader-icon');
+                if (icon) {
+                    icon.textContent = '✅';
+                    icon.style.animation = 'none';
+                }
+                const text = document.getElementById('loadingStatus');
+                if (text) {
+                    text.textContent = 'تم التحميل بنجاح! 🎉';
+                    text.style.webkitTextFillColor = 'var(--success)';
+                }
+                const subtext = document.querySelector('.loader-subtext');
+                if (subtext) {
+                    subtext.textContent = 'يمكنك البدء الآن';
+                }
+                // إزالة الحلقات الدوارة
+                document.querySelectorAll('.spinner-ring').forEach(function(el) {
+                    el.style.display = 'none';
+                });
+            }
+        }, 2000);
+        
     } catch (error) {
         console.error('❌ Initialization error:', error);
+        updateLoadingText('⚠️ حدث خطأ، حاول تحديث الصفحة');
         showToast('⚠️ Error loading store. Please refresh.', 'error');
-    } finally {
-        clearTimeout(forceHideTimeout);
-        setTimeout(() => {
-            hideLoadingScreen();
-            setTimeout(showTelegramBanner, 500);
-            startSocialProof();
-        }, 500);
     }
 }
 
 // ============================================================
-// 37. تبديل الثيم
+// 36. تبديل الثيم
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -4155,7 +3925,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================================
-// 38. تصدير جميع الدوال للنطاق العام
+// 37. تصدير جميع الدوال للنطاق العام
 // ============================================================
 
 window.toggleLicencesList = toggleLicencesList;
@@ -4283,9 +4053,11 @@ window.closeCookieBanner = closeCookieBanner;
 window.saveSliderData = saveSliderData;
 window.saveSliderInterval = saveSliderInterval;
 window.saveSlideEdit = saveSlideEdit;
+window.hideLoadingScreenManually = hideLoadingScreenManually;
+window.updateLoadingText = updateLoadingText;
 
 // ============================================================
-// 39. بدء التطبيق
+// 38. بدء التطبيق
 // ============================================================
 
 if (document.readyState === 'loading') {
