@@ -1,5 +1,5 @@
 /* ============================================
-   STYLE.CSS - ZI Store - الإصدار النهائي مع جميع الإصلاحات
+   STYLE.CSS - ZI Store - الإصدار النهائي مع جميع الإصلاحات والإضافات
    ============================================ */
 
 /* ============================================
@@ -111,10 +111,7 @@ input, select, textarea {
 }
 
 /* ============================================
-   4. شاشة التحميل (Loading Screen)
-   ============================================ */
-/* ============================================
-   شاشة التحميل - تبقى ظاهرة دائماً
+   4. شاشة التحميل (Loading Screen) - تبقى ظاهرة دائماً
    ============================================ */
 #loadingScreen {
     position: fixed;
@@ -125,9 +122,7 @@ input, select, textarea {
     justify-content: center;
     z-index: 999999;
 }
-
 #loadingScreen.hidden {
-    /* لا نخفي الشاشة أبداً */
     display: flex !important;
 }
 
@@ -152,22 +147,10 @@ input, select, textarea {
     animation: spin 1.5s cubic-bezier(0.5, 0, 0.5, 1) infinite;
 }
 
-.loader-spinner .spinner-ring:nth-child(1) {
-    border-top-color: var(--primary);
-    animation-delay: 0s;
-}
-.loader-spinner .spinner-ring:nth-child(2) {
-    border-right-color: var(--vip-color);
-    animation-delay: 0.2s;
-}
-.loader-spinner .spinner-ring:nth-child(3) {
-    border-bottom-color: var(--success);
-    animation-delay: 0.4s;
-}
-.loader-spinner .spinner-ring:nth-child(4) {
-    border-left-color: #f472b6;
-    animation-delay: 0.6s;
-}
+.loader-spinner .spinner-ring:nth-child(1) { border-top-color: var(--primary); animation-delay: 0s; }
+.loader-spinner .spinner-ring:nth-child(2) { border-right-color: var(--vip-color); animation-delay: 0.2s; }
+.loader-spinner .spinner-ring:nth-child(3) { border-bottom-color: var(--success); animation-delay: 0.4s; }
+.loader-spinner .spinner-ring:nth-child(4) { border-left-color: #f472b6; animation-delay: 0.6s; }
 
 @keyframes spin {
     0% { transform: rotate(0deg); }
@@ -239,16 +222,8 @@ input, select, textarea {
     transform: translateX(-50%) translateY(0);
 }
 
-.toast .toast-icon {
-    font-size: 20px;
-    flex-shrink: 0;
-}
-.toast .toast-message {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text);
-    flex: 1;
-}
+.toast .toast-icon { font-size: 20px; flex-shrink: 0; }
+.toast .toast-message { font-size: 14px; font-weight: 500; color: var(--text); flex: 1; }
 .toast .toast-close {
     background: none;
     border: none;
@@ -259,9 +234,7 @@ input, select, textarea {
     opacity: 0.5;
     transition: opacity 0.3s;
 }
-.toast .toast-close:hover {
-    opacity: 1;
-}
+.toast .toast-close:hover { opacity: 1; }
 
 .toast.success .toast-icon { color: var(--success); }
 .toast.error .toast-icon { color: var(--danger); }
@@ -294,10 +267,7 @@ input, select, textarea {
     gap: 6px;
     color: var(--text);
 }
-.logo i {
-    color: var(--primary);
-    font-size: 22px;
-}
+.logo i { color: var(--primary); font-size: 22px; }
 .logo span {
     background: var(--primary-gradient);
     -webkit-background-clip: text;
@@ -343,15 +313,9 @@ input, select, textarea {
     text-align: center;
     color: #fff;
 }
-.header-btn .badge.notification {
-    background: var(--notification-red);
-}
-.header-btn .badge.heart {
-    background: var(--heart-color);
-}
-.header-btn .badge.cart {
-    background: var(--primary);
-}
+.header-btn .badge.notification { background: var(--notification-red); }
+.header-btn .badge.heart { background: var(--heart-color); }
+.header-btn .badge.cart { background: var(--primary); }
 
 .user-btn {
     width: 40px;
@@ -383,10 +347,7 @@ input, select, textarea {
     border-radius: 50%;
     border: 2px solid var(--card-bg);
 }
-.user-dot.guest {
-    background: var(--text-secondary);
-    opacity: 0.3;
-}
+.user-dot.guest { background: var(--text-secondary); opacity: 0.3; }
 .user-dot.notification-dot {
     background: var(--notification-red);
     animation: pulse-dot 1.5s ease-in-out infinite;
@@ -481,7 +442,7 @@ input, select, textarea {
 }
 
 /* ============================================
-   8. السلايدر (Slider) - إصلاح الإطار
+   8. السلايدر (Slider) - إصلاح الإطار بنفس حجم الصورة
    ============================================ */
 .slider-container {
     position: relative;
@@ -499,22 +460,24 @@ input, select, textarea {
     border-radius: var(--radius-md);
 }
 
-.slider-wrapper .slide-item {
+.slider-track {
+    display: flex;
+    transition: transform 0.5s ease;
+}
+
+.slider-track .slide-item {
     position: relative;
+    flex-shrink: 0;
     width: 100%;
-    padding-top: 45%;
-    background-size: cover;
-    background-position: center;
-    opacity: 0;
-    transition: opacity 0.8s ease;
-    border-radius: var(--radius-md);
 }
 
-.slider-wrapper .slide-item.active {
-    opacity: 1;
+.slider-track .slide-item img {
+    width: 100%;
+    height: auto;          /* ← يجعل الارتفاع متناسباً مع العرض */
+    display: block;
 }
 
-.slider-wrapper .slide-item .slide-overlay {
+.slider-track .slide-item .slide-overlay {
     position: absolute;
     inset: 0;
     background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.2) 100%);
@@ -528,21 +491,21 @@ input, select, textarea {
     border-radius: var(--radius-md);
 }
 
-.slider-wrapper .slide-item .slide-title {
+.slider-track .slide-item .slide-title {
     font-size: 22px;
     font-weight: 700;
     margin-bottom: 4px;
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
-.slider-wrapper .slide-item .slide-subtitle {
+.slider-track .slide-item .slide-subtitle {
     font-size: 13px;
     opacity: 0.8;
     margin-bottom: 10px;
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
-.slider-wrapper .slide-item .slide-btn {
+.slider-track .slide-item .slide-btn {
     padding: 6px 20px;
     border-radius: 8px;
     background: var(--primary-gradient);
@@ -553,12 +516,11 @@ input, select, textarea {
     box-shadow: 0 4px 15px var(--primary-glow);
     text-decoration: none;
 }
-
-.slider-wrapper .slide-item .slide-btn:hover {
+.slider-track .slide-item .slide-btn:hover {
     transform: scale(1.05);
 }
 
-/* أزرار السلايدر */
+/* أزرار السلايدر - تبقى في اليمين واليسار */
 .slider-btn {
     position: absolute;
     top: 50%;
@@ -579,18 +541,11 @@ input, select, textarea {
     align-items: center;
     justify-content: center;
 }
-
 .slider-btn:hover {
     background: var(--primary);
 }
-
-.slider-btn.prev {
-    left: 8px;
-}
-
-.slider-btn.next {
-    right: 8px;
-}
+.slider-btn.prev { left: 8px; }
+.slider-btn.next { right: 8px; }
 
 /* نقاط السلايدر */
 .slider-dots {
@@ -602,7 +557,6 @@ input, select, textarea {
     gap: 5px;
     z-index: 5;
 }
-
 .slider-dots .dot {
     width: 6px;
     height: 6px;
@@ -611,7 +565,6 @@ input, select, textarea {
     cursor: pointer;
     transition: all var(--transition);
 }
-
 .slider-dots .dot.active {
     background: #fff;
     width: 16px;
@@ -642,22 +595,9 @@ input, select, textarea {
     transform: translateY(-2px);
 }
 
-.stat-card .stat-icon {
-    font-size: 18px;
-    display: block;
-    margin-bottom: 2px;
-}
-.stat-card .stat-number {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--text);
-}
-.stat-card .stat-label {
-    font-size: 10px;
-    color: var(--text-secondary);
-    opacity: 0.5;
-    margin-top: 2px;
-}
+.stat-card .stat-icon { font-size: 18px; display: block; margin-bottom: 2px; }
+.stat-card .stat-number { font-size: 18px; font-weight: 700; color: var(--text); }
+.stat-card .stat-label { font-size: 10px; color: var(--text-secondary); opacity: 0.5; margin-top: 2px; }
 
 /* ============================================
    10. أزرار التصفية (Filter)
@@ -700,9 +640,7 @@ input, select, textarea {
     align-items: center;
     gap: 4px;
 }
-.browse-all i {
-    font-size: 10px;
-}
+.browse-all i { font-size: 10px; }
 
 /* ============================================
    11. التوصيات (Recommendations)
@@ -721,9 +659,7 @@ input, select, textarea {
     align-items: center;
     gap: 6px;
 }
-.rec-title i {
-    color: var(--vip-color);
-}
+.rec-title i { color: var(--vip-color); }
 
 .rec-grid {
     display: grid;
@@ -743,7 +679,6 @@ input, select, textarea {
     transform: translateY(-2px);
     border-color: var(--primary);
 }
-
 .rec-item img {
     width: 100%;
     height: 70px;
@@ -777,9 +712,7 @@ input, select, textarea {
     align-items: center;
     gap: 8px;
 }
-.section-title i {
-    color: var(--primary);
-}
+.section-title i { color: var(--primary); }
 
 .products-grid {
     display: grid;
@@ -841,18 +774,9 @@ input, select, textarea {
     font-weight: 700;
     text-transform: uppercase;
 }
-.product-card .image-badge.vip {
-    background: var(--vip-color);
-    color: #0a0a1a;
-}
-.product-card .image-badge.free {
-    background: var(--free-color);
-    color: #0a0a1a;
-}
-.product-card .image-badge.unavailable {
-    background: var(--danger);
-    color: #fff;
-}
+.product-card .image-badge.vip { background: var(--vip-color); color: #0a0a1a; }
+.product-card .image-badge.free { background: var(--free-color); color: #0a0a1a; }
+.product-card .image-badge.unavailable { background: var(--danger); color: #fff; }
 
 .product-card .product-actions-top {
     position: absolute;
@@ -955,7 +879,6 @@ input, select, textarea {
     border-color: var(--primary);
     color: var(--text);
 }
-
 .product-card .card-actions .btn-download {
     flex: 1;
     padding: 4px;
@@ -971,7 +894,6 @@ input, select, textarea {
 .product-card .card-actions .btn-download:hover {
     opacity: 0.8;
 }
-
 .product-card .card-actions .btn-add-cart {
     flex: 1;
     padding: 4px;
@@ -1120,18 +1042,9 @@ input, select, textarea {
 .footer .social-links a:hover {
     transform: translateY(-2px);
 }
-.footer .social-links a.telegram:hover {
-    border-color: #0088cc;
-    color: #0088cc;
-}
-.footer .social-links a.youtube:hover {
-    border-color: #ff0000;
-    color: #ff0000;
-}
-.footer .social-links a.twitter:hover {
-    border-color: #1da1f2;
-    color: #1da1f2;
-}
+.footer .social-links a.telegram:hover { border-color: #0088cc; color: #0088cc; }
+.footer .social-links a.youtube:hover { border-color: #ff0000; color: #ff0000; }
+.footer .social-links a.twitter:hover { border-color: #1da1f2; color: #1da1f2; }
 
 .footer .copyright {
     font-size: 12px;
@@ -1244,9 +1157,7 @@ input, select, textarea {
     opacity: 0.8;
     transform: scale(1.01);
 }
-.auth-btn.loading .btn-text {
-    opacity: 0;
-}
+.auth-btn.loading .btn-text { opacity: 0; }
 .auth-btn .btn-loader {
     display: none;
     width: 20px;
@@ -1257,22 +1168,10 @@ input, select, textarea {
     animation: spin 0.8s linear infinite;
     position: absolute;
 }
-.auth-btn.loading .btn-loader {
-    display: block;
-}
+.auth-btn.loading .btn-loader { display: block; }
 
-.auth-error {
-    color: var(--danger);
-    font-size: 13px;
-    margin-top: 8px;
-    text-align: center;
-}
-.auth-success {
-    color: var(--success);
-    font-size: 13px;
-    margin-top: 8px;
-    text-align: center;
-}
+.auth-error { color: var(--danger); font-size: 13px; margin-top: 8px; text-align: center; }
+.auth-success { color: var(--success); font-size: 13px; margin-top: 8px; text-align: center; }
 
 .auth-footer {
     text-align: center;
@@ -1286,9 +1185,7 @@ input, select, textarea {
     opacity: 1;
     font-weight: 600;
 }
-.auth-footer a:hover {
-    color: var(--vip-color);
-}
+.auth-footer a:hover { color: var(--vip-color); }
 
 .referral-toggle {
     text-align: center;
@@ -1299,21 +1196,15 @@ input, select, textarea {
     opacity: 0.5;
     transition: all var(--transition);
 }
-.referral-toggle:hover {
-    opacity: 1;
-}
-.referral-toggle i {
-    color: var(--primary);
-}
+.referral-toggle:hover { opacity: 1; }
+.referral-toggle i { color: var(--primary); }
 
 .referral-field {
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.3s ease;
 }
-.referral-field.show {
-    max-height: 80px;
-}
+.referral-field.show { max-height: 80px; }
 
 .terms-check {
     display: flex;
@@ -1373,10 +1264,11 @@ input, select, textarea {
     100% { transform: translateY(0); opacity: 1; }
 }
 
+/* ====== زر الإغلاق في المودال ====== */
 .modal-close {
     position: absolute;
     top: 12px;
-    right: 12px;
+    right: 12px;       /* ← على اليمين */
     width: 32px;
     height: 32px;
     border-radius: 50%;
@@ -1405,9 +1297,7 @@ input, select, textarea {
     gap: 8px;
     color: var(--text);
 }
-.modal-title i {
-    color: var(--primary);
-}
+.modal-title i { color: var(--primary); }
 
 /* ============================================
    18. المودالات الكاملة (Fullscreen)
@@ -1445,11 +1335,10 @@ input, select, textarea {
     align-items: center;
     gap: 8px;
 }
-.fullscreen-modal .modal-header h2 i {
-    color: var(--primary);
-}
+.fullscreen-modal .modal-header h2 i { color: var(--primary); }
 .fullscreen-modal .modal-header .modal-close {
     position: static;
+    right: auto;        /* في الفل سكرين نجعله static لكن يبقى في اليمين بفضل flex */
     width: 36px;
     height: 36px;
 }
@@ -1521,15 +1410,8 @@ input, select, textarea {
     background: var(--bg-secondary);
     color: var(--text);
 }
-.menu-item i {
-    width: 20px;
-    text-align: center;
-    font-size: 16px;
-}
-.menu-item .menu-label {
-    font-size: 14px;
-    font-weight: 500;
-}
+.menu-item i { width: 20px; text-align: center; font-size: 16px; }
+.menu-item .menu-label { font-size: 14px; font-weight: 500; }
 .menu-item .menu-badge {
     margin-left: auto;
     background: var(--notification-red);
@@ -1539,12 +1421,8 @@ input, select, textarea {
     padding: 1px 8px;
     border-radius: 10px;
 }
-.menu-item.admin-btn {
-    color: var(--vip-color);
-}
-.menu-item.logout {
-    color: var(--danger);
-}
+.menu-item.admin-btn { color: var(--vip-color); }
+.menu-item.logout { color: var(--danger); }
 .menu-divider {
     height: 1px;
     background: var(--border);
@@ -1553,7 +1431,7 @@ input, select, textarea {
 }
 
 /* ============================================
-   20. الملف الشخصي (Profile) - متناسق وجميل
+   20. الملف الشخصي (Profile) - كامل وجميل
    ============================================ */
 #profileFull .profile-container {
     padding: 16px;
@@ -1597,13 +1475,11 @@ input, select, textarea {
     color: var(--text);
     margin: 0;
 }
-
 #profileFull .profile-info .profile-email {
     font-size: 13px;
     color: var(--text-secondary);
     opacity: 0.5;
 }
-
 #profileFull .profile-info .profile-badge {
     display: inline-block;
     padding: 2px 12px;
@@ -1612,12 +1488,10 @@ input, select, textarea {
     font-weight: 600;
     margin-top: 4px;
 }
-
 #profileFull .profile-info .profile-badge.rp {
     background: var(--vip-color);
     color: #0a0a1a;
 }
-
 #profileFull .profile-info .profile-badge.licence {
     background: var(--success);
     color: #0a0a1a;
@@ -1629,7 +1503,6 @@ input, select, textarea {
     gap: 8px;
     padding-top: 12px;
 }
-
 #profileFull .profile-stats .stat-item {
     background: var(--bg);
     border: 1px solid var(--border);
@@ -1637,22 +1510,18 @@ input, select, textarea {
     padding: 10px;
     text-align: center;
 }
-
 #profileFull .profile-stats .stat-item .stat-number {
     font-size: 20px;
     font-weight: 700;
     color: var(--text);
 }
-
 #profileFull .profile-stats .stat-item .stat-label {
     font-size: 10px;
     color: var(--text-secondary);
     opacity: 0.4;
 }
 
-/* ============================================
-   تنسيق نموذج تحرير الملف الشخصي
-   ============================================ */
+/* ====== نموذج تحرير الملف الشخصي ====== */
 #profileFull .edit-profile-section {
     background: var(--card-bg);
     border: 1px solid var(--border);
@@ -1660,7 +1529,6 @@ input, select, textarea {
     padding: 20px;
     margin-bottom: 16px;
 }
-
 #profileFull .edit-profile-section .section-title {
     font-size: 15px;
     font-weight: 700;
@@ -1670,15 +1538,9 @@ input, select, textarea {
     align-items: center;
     gap: 8px;
 }
+#profileFull .edit-profile-section .section-title i { color: var(--primary); }
 
-#profileFull .edit-profile-section .section-title i {
-    color: var(--primary);
-}
-
-#profileFull .edit-profile-section .form-group {
-    margin-bottom: 12px;
-}
-
+#profileFull .edit-profile-section .form-group { margin-bottom: 12px; }
 #profileFull .edit-profile-section .form-group label {
     display: block;
     font-size: 12px;
@@ -1687,7 +1549,6 @@ input, select, textarea {
     opacity: 0.5;
     margin-bottom: 4px;
 }
-
 #profileFull .edit-profile-section .form-group input,
 #profileFull .edit-profile-section .form-group select {
     width: 100%;
@@ -1699,7 +1560,6 @@ input, select, textarea {
     font-size: 14px;
     transition: all var(--transition);
 }
-
 #profileFull .edit-profile-section .form-group input:focus,
 #profileFull .edit-profile-section .form-group select:focus {
     border-color: var(--primary);
@@ -1711,7 +1571,6 @@ input, select, textarea {
     gap: 8px;
     margin-top: 12px;
 }
-
 #profileFull .edit-profile-section .form-actions .btn-cancel {
     flex: 1;
     padding: 10px;
@@ -1723,12 +1582,10 @@ input, select, textarea {
     cursor: pointer;
     transition: all var(--transition);
 }
-
 #profileFull .edit-profile-section .form-actions .btn-cancel:hover {
     border-color: var(--danger);
     color: var(--danger);
 }
-
 #profileFull .edit-profile-section .form-actions .btn-save {
     flex: 2;
     padding: 10px;
@@ -1739,14 +1596,11 @@ input, select, textarea {
     cursor: pointer;
     transition: all var(--transition);
 }
-
 #profileFull .edit-profile-section .form-actions .btn-save:hover {
     opacity: 0.8;
 }
 
-/* ============================================
-   تنسيق قسم كلمة المرور
-   ============================================ */
+/* ====== قسم كلمة المرور ====== */
 #profileFull .password-section {
     background: var(--card-bg);
     border: 1px solid var(--border);
@@ -1754,7 +1608,6 @@ input, select, textarea {
     padding: 20px;
     margin-bottom: 16px;
 }
-
 #profileFull .password-section .ps-email {
     display: flex;
     align-items: center;
@@ -1765,12 +1618,10 @@ input, select, textarea {
     border: 1px solid var(--border);
     margin-bottom: 12px;
 }
-
 #profileFull .password-section .ps-email span {
     font-size: 13px;
     color: var(--text-secondary);
 }
-
 #profileFull .password-section .ps-email button {
     padding: 4px 14px;
     border-radius: var(--radius-sm);
@@ -1781,14 +1632,11 @@ input, select, textarea {
     cursor: pointer;
     transition: all var(--transition);
 }
-
 #profileFull .password-section .ps-email button:hover {
     opacity: 0.8;
 }
 
-/* ============================================
-   تنسيق قسم تيليجرام
-   ============================================ */
+/* ====== قسم تيليجرام ====== */
 #profileFull .telegram-section {
     background: var(--card-bg);
     border: 1px solid var(--border);
@@ -1796,30 +1644,19 @@ input, select, textarea {
     padding: 20px;
     margin-bottom: 16px;
 }
-
 #profileFull .telegram-section .tb-row {
     display: flex;
     justify-content: space-between;
     padding: 6px 0;
     font-size: 13px;
 }
-
 #profileFull .telegram-section .tb-row .tb-label {
     color: var(--text-secondary);
     opacity: 0.5;
 }
-
-#profileFull .telegram-section .tb-row .tb-value {
-    font-weight: 600;
-}
-
-#profileFull .telegram-section .tb-row .tb-status.linked {
-    color: var(--success);
-}
-
-#profileFull .telegram-section .tb-row .tb-status.unlinked {
-    color: var(--danger);
-}
+#profileFull .telegram-section .tb-row .tb-value { font-weight: 600; }
+#profileFull .telegram-section .tb-row .tb-status.linked { color: var(--success); }
+#profileFull .telegram-section .tb-row .tb-status.unlinked { color: var(--danger); }
 
 #profileFull .telegram-section .tb-actions {
     display: flex;
@@ -1827,7 +1664,6 @@ input, select, textarea {
     margin-top: 8px;
     flex-wrap: wrap;
 }
-
 #profileFull .telegram-section .tb-actions button {
     padding: 8px 16px;
     border-radius: var(--radius-sm);
@@ -1838,43 +1674,29 @@ input, select, textarea {
     flex: 1;
     min-width: 80px;
 }
-
 #profileFull .telegram-section .tb-actions .btn-bind {
     background: var(--primary);
     color: #fff;
 }
-
-#profileFull .telegram-section .tb-actions .btn-bind:hover {
-    opacity: 0.8;
-}
-
+#profileFull .telegram-section .tb-actions .btn-bind:hover { opacity: 0.8; }
 #profileFull .telegram-section .tb-actions .btn-test {
     background: var(--success);
     color: #0a0a1a;
 }
-
-#profileFull .telegram-section .tb-actions .btn-test:hover {
-    opacity: 0.8;
-}
-
+#profileFull .telegram-section .tb-actions .btn-test:hover { opacity: 0.8; }
 #profileFull .telegram-section .tb-actions .btn-check {
     background: var(--bg);
     border: 1px solid var(--border);
     color: var(--text);
 }
-
 #profileFull .telegram-section .tb-actions .btn-check:hover {
     border-color: var(--primary);
 }
-
 #profileFull .telegram-section .tb-actions .btn-unlink {
     background: var(--danger);
     color: #fff;
 }
-
-#profileFull .telegram-section .tb-actions .btn-unlink:hover {
-    opacity: 0.8;
-}
+#profileFull .telegram-section .tb-actions .btn-unlink:hover { opacity: 0.8; }
 
 #profileFull .telegram-section .tb-info {
     background: var(--bg);
@@ -1885,10 +1707,7 @@ input, select, textarea {
     font-size: 13px;
     color: var(--text-secondary);
 }
-
-#profileFull .telegram-section .tb-info i {
-    color: var(--primary);
-}
+#profileFull .telegram-section .tb-info i { color: var(--primary); }
 
 /* ============================================
    21. مودال عرض المنتج (Preview)
@@ -2000,7 +1819,6 @@ input, select, textarea {
     line-height: 1.5;
     margin-bottom: 10px;
 }
-
 .preview-modal .preview-body .preview-features {
     background: var(--bg);
     border-radius: var(--radius-sm);
@@ -2035,9 +1853,7 @@ input, select, textarea {
     font-size: 12px;
 }
 
-.preview-modal .preview-body .preview-video {
-    margin-bottom: 10px;
-}
+.preview-modal .preview-body .preview-video { margin-bottom: 10px; }
 .preview-modal .preview-body .preview-video iframe {
     border-radius: var(--radius-sm);
 }
@@ -2116,9 +1932,7 @@ input, select, textarea {
 .vip-pricing-section .vip-plan.selected .vip-plan-price {
     color: #0a0a1a;
 }
-.vip-pricing-section .vip-plan .vip-plan-check {
-    display: none;
-}
+.vip-pricing-section .vip-plan .vip-plan-check { display: none; }
 .vip-pricing-section .vip-plan.selected .vip-plan-check {
     display: block;
     position: absolute;
@@ -2152,7 +1966,6 @@ input, select, textarea {
     border-radius: 4px;
     display: inline-block;
 }
-
 .vip-pricing-section .vip-add-to-cart {
     width: 100%;
     padding: 8px;
@@ -2163,9 +1976,7 @@ input, select, textarea {
     margin-top: 8px;
     transition: all var(--transition);
 }
-.vip-pricing-section .vip-add-to-cart:hover {
-    opacity: 0.8;
-}
+.vip-pricing-section .vip-add-to-cart:hover { opacity: 0.8; }
 .vip-pricing-section .vip-footer {
     font-size: 10px;
     color: var(--text-secondary);
@@ -2224,9 +2035,7 @@ input, select, textarea {
     transition: all var(--transition);
     position: relative;
 }
-.payment-option:hover {
-    border-color: var(--primary);
-}
+.payment-option:hover { border-color: var(--primary); }
 .payment-option.selected {
     border-color: var(--primary);
     background: var(--primary-glow);
@@ -2237,13 +2046,8 @@ input, select, textarea {
     margin-bottom: 4px;
     color: var(--text-secondary);
 }
-.payment-option.selected i {
-    color: var(--primary);
-}
-.payment-option .p-label {
-    font-size: 13px;
-    font-weight: 600;
-}
+.payment-option.selected i { color: var(--primary); }
+.payment-option .p-label { font-size: 13px; font-weight: 600; }
 .payment-option .p-sub {
     font-size: 10px;
     color: var(--text-secondary);
@@ -2257,9 +2061,7 @@ input, select, textarea {
     font-size: 14px;
     color: var(--primary);
 }
-.payment-option.selected .p-check {
-    display: block;
-}
+.payment-option.selected .p-check { display: block; }
 
 .payment-summary {
     background: var(--bg);
@@ -2278,9 +2080,7 @@ input, select, textarea {
     color: var(--text-secondary);
     opacity: 0.5;
 }
-.payment-summary .ps-row .ps-value {
-    font-weight: 600;
-}
+.payment-summary .ps-row .ps-value { font-weight: 600; }
 .payment-summary .ps-total .ps-value {
     font-size: 18px;
     color: var(--primary);
@@ -2296,16 +2096,10 @@ input, select, textarea {
     font-size: 16px;
     transition: all var(--transition);
 }
-.payment-btn:hover {
-    opacity: 0.8;
-}
+.payment-btn:hover { opacity: 0.8; }
 
-.payment-step2 {
-    display: none;
-}
-.payment-step2.active {
-    display: block;
-}
+.payment-step2 { display: none; }
+.payment-step2.active { display: block; }
 
 .payment-products-list {
     max-height: 150px;
@@ -2328,9 +2122,7 @@ input, select, textarea {
     border-radius: 6px;
     object-fit: cover;
 }
-.payment-product-item .pp-info {
-    flex: 1;
-}
+.payment-product-item .pp-info { flex: 1; }
 .payment-product-item .pp-info .pp-name {
     font-size: 13px;
     font-weight: 600;
@@ -2362,9 +2154,7 @@ input, select, textarea {
     color: var(--text-secondary);
     opacity: 0.5;
 }
-.wallet-info .w-row .w-value {
-    font-weight: 600;
-}
+.wallet-info .w-row .w-value { font-weight: 600; }
 .wallet-info .w-address {
     display: flex;
     align-items: center;
@@ -2394,9 +2184,7 @@ input, select, textarea {
     cursor: pointer;
     transition: all var(--transition);
 }
-.wallet-info .w-address button:hover {
-    opacity: 0.8;
-}
+.wallet-info .w-address button:hover { opacity: 0.8; }
 
 .payment-tx-input {
     width: 100%;
@@ -2416,26 +2204,16 @@ input, select, textarea {
 /* ============================================
    25. مودال التراخيص (Licences)
    ============================================ */
-#licenceModal .modal-content {
-    max-width: 420px;
-}
-#licenceModal .modal-title i {
-    color: var(--vip-color);
-}
+#licenceModal .modal-content { max-width: 420px; }
+#licenceModal .modal-title i { color: var(--vip-color); }
 #licenceResult {
     margin-top: 12px;
     font-size: 14px;
     text-align: center;
 }
-#licenceResult .success {
-    color: var(--success);
-}
-#licenceResult .error {
-    color: var(--danger);
-}
-#licenceResult .pending {
-    color: var(--pending-color);
-}
+#licenceResult .success { color: var(--success); }
+#licenceResult .error { color: var(--danger); }
+#licenceResult .pending { color: var(--pending-color); }
 
 /* ============================================
    26. لوحة المدير (Admin Panel)
@@ -2465,9 +2243,7 @@ input, select, textarea {
     align-items: center;
     gap: 8px;
 }
-.admin-panel .panel-header h2 i {
-    color: var(--vip-color);
-}
+.admin-panel .panel-header h2 i { color: var(--vip-color); }
 .admin-panel .panel-header .header-actions .btn-close {
     width: 36px;
     height: 36px;
@@ -2508,9 +2284,7 @@ input, select, textarea {
     white-space: nowrap;
     cursor: pointer;
 }
-.admin-panel .tabs button:hover {
-    color: var(--text);
-}
+.admin-panel .tabs button:hover { color: var(--text); }
 .admin-panel .tabs button.active {
     background: var(--primary-gradient);
     color: #fff;
@@ -2522,9 +2296,7 @@ input, select, textarea {
     overflow-y: auto;
     flex: 1;
 }
-.admin-panel .tab-content.active {
-    display: block;
-}
+.admin-panel .tab-content.active { display: block; }
 
 .admin-panel .admin-stats-grid {
     display: grid;
@@ -2565,9 +2337,7 @@ input, select, textarea {
     font-size: 13px;
     min-width: 150px;
 }
-.admin-panel .admin-search-bar input:focus {
-    border-color: var(--primary);
-}
+.admin-panel .admin-search-bar input:focus { border-color: var(--primary); }
 .admin-panel .admin-search-bar button {
     padding: 8px 14px;
     border-radius: var(--radius-sm);
@@ -2580,9 +2350,7 @@ input, select, textarea {
     background: var(--primary);
     color: #fff;
 }
-.admin-panel .admin-search-bar .btn-search:hover {
-    opacity: 0.8;
-}
+.admin-panel .admin-search-bar .btn-search:hover { opacity: 0.8; }
 .admin-panel .admin-search-bar .btn-clear {
     background: var(--bg);
     border: 1px solid var(--border);
@@ -2605,9 +2373,7 @@ input, select, textarea {
     background: var(--success);
     color: #0a0a1a;
 }
-.admin-panel .admin-search-bar .btn-export:hover {
-    opacity: 0.8;
-}
+.admin-panel .admin-search-bar .btn-export:hover { opacity: 0.8; }
 
 /* ============================================
    27. جدول الطلبات (Admin Orders Table)
@@ -2680,9 +2446,7 @@ input, select, textarea {
     font-weight: 600;
     transition: all var(--transition);
 }
-.admin-orders-table .btn-delete-order:hover {
-    opacity: 0.8;
-}
+.admin-orders-table .btn-delete-order:hover { opacity: 0.8; }
 
 /* ============================================
    28. عناصر الإدارة (Admin Items)
@@ -2698,13 +2462,8 @@ input, select, textarea {
     margin-bottom: 6px;
     transition: all var(--transition);
 }
-.admin-item:hover {
-    border-color: var(--primary);
-}
-.admin-item .item-info {
-    flex: 1;
-    min-width: 0;
-}
+.admin-item:hover { border-color: var(--primary); }
+.admin-item .item-info { flex: 1; min-width: 0; }
 .admin-item .item-info .item-title {
     font-size: 14px;
     font-weight: 600;
@@ -2734,30 +2493,22 @@ input, select, textarea {
     background: var(--primary);
     color: #fff;
 }
-.admin-item .item-actions .btn-edit:hover {
-    opacity: 0.8;
-}
+.admin-item .item-actions .btn-edit:hover { opacity: 0.8; }
 .admin-item .item-actions .btn-delete {
     background: var(--danger);
     color: #fff;
 }
-.admin-item .item-actions .btn-delete:hover {
-    opacity: 0.8;
-}
+.admin-item .item-actions .btn-delete:hover { opacity: 0.8; }
 .admin-item .item-actions .btn-approve {
     background: var(--success);
     color: #0a0a1a;
 }
-.admin-item .item-actions .btn-approve:hover {
-    opacity: 0.8;
-}
+.admin-item .item-actions .btn-approve:hover { opacity: 0.8; }
 .admin-item .item-actions .btn-revoke {
     background: var(--danger);
     color: #fff;
 }
-.admin-item .item-actions .btn-revoke:hover {
-    opacity: 0.8;
-}
+.admin-item .item-actions .btn-revoke:hover { opacity: 0.8; }
 
 /* ============================================
    29. مستخدمين الإدارة (Admin Users)
@@ -2779,9 +2530,7 @@ input, select, textarea {
     border-color: var(--primary);
     transform: translateY(-2px);
 }
-.admin-user-card.banned {
-    opacity: 0.5;
-}
+.admin-user-card.banned { opacity: 0.5; }
 .admin-user-card .user-avatar {
     width: 48px;
     height: 48px;
@@ -2844,37 +2593,27 @@ input, select, textarea {
     background: var(--primary);
     color: #fff;
 }
-.admin-user-card .user-actions .btn-view:hover {
-    opacity: 0.8;
-}
+.admin-user-card .user-actions .btn-view:hover { opacity: 0.8; }
 .admin-user-card .user-actions .btn-ban {
     background: var(--danger);
     color: #fff;
 }
-.admin-user-card .user-actions .btn-ban:hover {
-    opacity: 0.8;
-}
+.admin-user-card .user-actions .btn-ban:hover { opacity: 0.8; }
 .admin-user-card .user-actions .btn-unban {
     background: var(--success);
     color: #0a0a1a;
 }
-.admin-user-card .user-actions .btn-unban:hover {
-    opacity: 0.8;
-}
+.admin-user-card .user-actions .btn-unban:hover { opacity: 0.8; }
 .admin-user-card .user-actions .btn-delete {
     background: var(--danger);
     color: #fff;
 }
-.admin-user-card .user-actions .btn-delete:hover {
-    opacity: 0.8;
-}
+.admin-user-card .user-actions .btn-delete:hover { opacity: 0.8; }
 
 /* ============================================
    30. نموذج الإدارة (Admin Form)
    ============================================ */
-.admin-form .admin-form-group {
-    margin-bottom: 12px;
-}
+.admin-form .admin-form-group { margin-bottom: 12px; }
 .admin-form .admin-form-group label {
     display: block;
     font-size: 12px;
@@ -2926,9 +2665,7 @@ input, select, textarea {
     transition: all var(--transition);
     cursor: pointer;
 }
-.admin-submit-btn:hover {
-    opacity: 0.8;
-}
+.admin-submit-btn:hover { opacity: 0.8; }
 
 .add-btn {
     padding: 6px 16px;
@@ -2940,9 +2677,7 @@ input, select, textarea {
     transition: all var(--transition);
     cursor: pointer;
 }
-.add-btn:hover {
-    opacity: 0.8;
-}
+.add-btn:hover { opacity: 0.8; }
 
 /* ============================================
    31. مودال التقييمات (Ratings)
@@ -2977,12 +2712,8 @@ input, select, textarea {
 .rating-section .rating-stars .star {
     transition: all var(--transition);
 }
-.rating-section .rating-stars .star.active {
-    color: var(--vip-color);
-}
-.rating-section .rating-stars .star:hover {
-    transform: scale(1.1);
-}
+.rating-section .rating-stars .star.active { color: var(--vip-color); }
+.rating-section .rating-stars .star:hover { transform: scale(1.1); }
 .rating-section .rating-comment-input {
     width: 100%;
     padding: 6px 10px;
@@ -2994,9 +2725,7 @@ input, select, textarea {
     margin-top: 6px;
     resize: vertical;
 }
-.rating-section .rating-comment-input:focus {
-    border-color: var(--primary);
-}
+.rating-section .rating-comment-input:focus { border-color: var(--primary); }
 .rating-section .rating-submit-btn {
     padding: 6px 16px;
     border-radius: var(--radius-sm);
@@ -3008,9 +2737,7 @@ input, select, textarea {
     transition: all var(--transition);
     cursor: pointer;
 }
-.rating-section .rating-submit-btn:hover {
-    opacity: 0.8;
-}
+.rating-section .rating-submit-btn:hover { opacity: 0.8; }
 .rating-section .rating-review-item {
     background: var(--bg);
     border-radius: var(--radius-sm);
@@ -3067,9 +2794,7 @@ input, select, textarea {
     transition: all var(--transition);
     cursor: pointer;
 }
-.notifications-header-actions .btn-mark-read:hover {
-    opacity: 0.8;
-}
+.notifications-header-actions .btn-mark-read:hover { opacity: 0.8; }
 .notifications-header-actions .btn-clear-all {
     padding: 4px 12px;
     border-radius: var(--radius-sm);
@@ -3080,9 +2805,7 @@ input, select, textarea {
     transition: all var(--transition);
     cursor: pointer;
 }
-.notifications-header-actions .btn-clear-all:hover {
-    opacity: 0.8;
-}
+.notifications-header-actions .btn-clear-all:hover { opacity: 0.8; }
 
 /* ============================================
    33. الطلبات (Orders History)
@@ -3132,9 +2855,7 @@ input, select, textarea {
     color: #fff;
     border-color: var(--primary);
 }
-.orders-filter-btn:hover:not(.active) {
-    border-color: var(--primary);
-}
+.orders-filter-btn:hover:not(.active) { border-color: var(--primary); }
 
 .orders-item {
     display: flex;
@@ -3146,9 +2867,7 @@ input, select, textarea {
     border: 1px solid var(--border);
     margin-bottom: 6px;
 }
-.orders-item .orders-item-info {
-    flex: 1;
-}
+.orders-item .orders-item-info { flex: 1; }
 .orders-item .orders-item-name {
     font-size: 14px;
     font-weight: 600;
@@ -3173,9 +2892,7 @@ input, select, textarea {
     font-size: 11px;
     transition: all var(--transition);
 }
-.orders-item .btn-download-invoice:hover {
-    opacity: 0.8;
-}
+.orders-item .btn-download-invoice:hover { opacity: 0.8; }
 
 /* ============================================
    34. الإحالات (Referrals)
@@ -3235,9 +2952,7 @@ input, select, textarea {
     justify-content: center;
     color: var(--primary);
 }
-.referral-activity-item .referral-activity-info {
-    flex: 1;
-}
+.referral-activity-item .referral-activity-info { flex: 1; }
 .referral-activity-item .referral-activity-info .referral-activity-name {
     font-size: 13px;
     font-weight: 600;
@@ -3264,12 +2979,8 @@ input, select, textarea {
     overflow: hidden;
     transition: all var(--transition);
 }
-.telegram-banner.hidden {
-    display: none !important;
-}
-.telegram-banner.linked {
-    border-color: var(--success);
-}
+.telegram-banner.hidden { display: none !important; }
+.telegram-banner.linked { border-color: var(--success); }
 
 .telegram-banner .banner-content {
     display: flex;
@@ -3295,10 +3006,7 @@ input, select, textarea {
     0% { transform: scale(0.8); opacity: 1; }
     100% { transform: scale(1.4); opacity: 0; }
 }
-.telegram-banner .banner-content .banner-text {
-    flex: 1;
-    min-width: 120px;
-}
+.telegram-banner .banner-content .banner-text { flex: 1; min-width: 120px; }
 .telegram-banner .banner-content .banner-text .banner-title {
     font-size: 14px;
     font-weight: 700;
@@ -3327,9 +3035,7 @@ input, select, textarea {
     cursor: pointer;
     white-space: nowrap;
 }
-.telegram-banner .banner-content .banner-action:hover {
-    opacity: 0.8;
-}
+.telegram-banner .banner-content .banner-action:hover { opacity: 0.8; }
 .telegram-banner .banner-content .banner-close {
     background: none;
     border: none;
@@ -3340,9 +3046,7 @@ input, select, textarea {
     opacity: 0.3;
     transition: all var(--transition);
 }
-.telegram-banner .banner-content .banner-close:hover {
-    opacity: 1;
-}
+.telegram-banner .banner-content .banner-close:hover { opacity: 1; }
 
 /* ============================================
    36. Social Proof Toast
@@ -3369,16 +3073,12 @@ input, select, textarea {
     opacity: 1;
     transform: translateX(0);
 }
-.social-proof-toast .sp-icon {
-    font-size: 24px;
-}
+.social-proof-toast .sp-icon { font-size: 24px; }
 .social-proof-toast .sp-text {
     font-size: 12px;
     color: var(--text-secondary);
 }
-.social-proof-toast .sp-text strong {
-    color: var(--text);
-}
+.social-proof-toast .sp-text strong { color: var(--text); }
 .social-proof-toast .sp-text .sp-product {
     color: var(--primary);
     font-weight: 600;
@@ -3432,8 +3132,8 @@ input, select, textarea {
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
 }
-.cookie-consent.show { 
-    display: flex; 
+.cookie-consent.show {
+    display: flex;
     animation: cookieSlideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 @keyframes cookieSlideUp {
@@ -3447,9 +3147,7 @@ input, select, textarea {
     color: var(--text);
     line-height: 1.6;
 }
-.cookie-consent .cookie-text strong {
-    color: var(--primary);
-}
+.cookie-consent .cookie-text strong { color: var(--primary); }
 .cookie-consent .cookie-text small {
     display: block;
     opacity: 0.5;
@@ -3505,9 +3203,7 @@ input, select, textarea {
     opacity: 0.6;
     transition: 0.3s;
 }
-.cookie-consent .btn-settings:hover {
-    opacity: 1;
-}
+.cookie-consent .btn-settings:hover { opacity: 1; }
 .cookie-consent .cookie-icon {
     font-size: 28px;
     margin-right: 4px;
@@ -3550,9 +3246,7 @@ input, select, textarea {
     color: var(--text);
     margin-bottom: 16px;
 }
-.cookie-settings-modal .modal-title i {
-    color: var(--primary);
-}
+.cookie-settings-modal .modal-title i { color: var(--primary); }
 .cookie-settings-modal .setting-item {
     display: flex;
     justify-content: space-between;
@@ -3560,9 +3254,7 @@ input, select, textarea {
     padding: 12px 0;
     border-bottom: 1px solid var(--border);
 }
-.cookie-settings-modal .setting-item:last-child {
-    border-bottom: none;
-}
+.cookie-settings-modal .setting-item:last-child { border-bottom: none; }
 .cookie-settings-modal .setting-info h4 {
     font-size: 14px;
     font-weight: 600;
@@ -3637,9 +3329,7 @@ input, select, textarea {
     font-size: 14px;
     transition: 0.3s;
 }
-.cookie-settings-modal .modal-actions .btn-save:hover {
-    opacity: 0.8;
-}
+.cookie-settings-modal .modal-actions .btn-save:hover { opacity: 0.8; }
 .cookie-settings-modal .modal-actions .btn-close-modal {
     padding: 10px 20px;
     border: 1px solid var(--border);
@@ -3650,16 +3340,12 @@ input, select, textarea {
     font-size: 14px;
     transition: 0.3s;
 }
-.cookie-settings-modal .modal-actions .btn-close-modal:hover {
-    background: var(--bg);
-}
+.cookie-settings-modal .modal-actions .btn-close-modal:hover { background: var(--bg); }
 
 /* ============================================
    39. تنسيقات الماركي (Marquee) في الـ Admin
    ============================================ */
-#marqueeSettingsContainer .admin-form-group {
-    margin-bottom: 12px;
-}
+#marqueeSettingsContainer .admin-form-group { margin-bottom: 12px; }
 #marqueeSettingsContainer .admin-form-group label {
     display: block;
     font-size: 13px;
@@ -3702,7 +3388,42 @@ input, select, textarea {
 }
 
 /* ============================================
-   41. الأدوات المساعدة (Utilities)
+   41. زر العودة للأعلى (Scroll to Top) - إضافة جديدة
+   ============================================ */
+.scroll-top {
+    position: fixed;
+    bottom: 90px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--primary-gradient);
+    color: #fff;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px var(--primary-glow);
+    z-index: 900;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    opacity: 0;
+    transform: scale(0.8);
+    pointer-events: none;
+    border: none;
+}
+.scroll-top.visible {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto;
+}
+.scroll-top:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 25px var(--primary-glow);
+}
+
+/* ============================================
+   42. الأدوات المساعدة (Utilities)
    ============================================ */
 .text-center { text-align: center; }
 .text-primary { color: var(--primary); }
@@ -3736,206 +3457,69 @@ input, select, textarea {
 .rounded-lg { border-radius: var(--radius-lg); }
 
 /* ============================================
-   42. تنسيقات الهواتف (Responsive)
+   43. تنسيقات الهواتف (Responsive)
    ============================================ */
 @media (max-width: 768px) {
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    .products-grid {
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    }
-    .rec-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    .menu-grid {
-        grid-template-columns: 1fr;
-    }
-    .admin-panel .admin-stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    .admin-panel .tabs {
-        gap: 2px;
-    }
-    .admin-panel .tabs button {
-        font-size: 10px;
-        padding: 4px 10px;
-    }
-    .payment-options {
-        grid-template-columns: 1fr;
-    }
-    .orders-stats {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    .referral-steps {
-        flex-direction: column;
-    }
-    .vip-pricing-section .vip-pricing-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    .admin-users-grid {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    }
-    .admin-orders-table {
-        font-size: 10px;
-    }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .products-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+    .rec-grid { grid-template-columns: repeat(2, 1fr); }
+    .menu-grid { grid-template-columns: 1fr; }
+    .admin-panel .admin-stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .admin-panel .tabs { gap: 2px; }
+    .admin-panel .tabs button { font-size: 10px; padding: 4px 10px; }
+    .payment-options { grid-template-columns: 1fr; }
+    .orders-stats { grid-template-columns: repeat(2, 1fr); }
+    .referral-steps { flex-direction: column; }
+    .vip-pricing-section .vip-pricing-grid { grid-template-columns: repeat(2, 1fr); }
+    .admin-users-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+    .admin-orders-table { font-size: 10px; }
     .admin-orders-table th,
-    .admin-orders-table td {
-        padding: 4px 6px;
-    }
-    .admin-orders-table .actions-cell {
-        flex-direction: column;
-        gap: 2px;
-    }
-    .admin-search-bar {
-        flex-wrap: wrap;
-    }
-    .admin-search-bar input {
-        min-width: 100px;
-        font-size: 12px;
-    }
-    .admin-search-bar button {
-        font-size: 10px;
-        padding: 4px 10px;
-    }
-    .cookie-consent .cookie-text {
-        font-size: 12px;
-    }
+    .admin-orders-table td { padding: 4px 6px; }
+    .admin-orders-table .actions-cell { flex-direction: column; gap: 2px; }
+    .admin-search-bar { flex-wrap: wrap; }
+    .admin-search-bar input { min-width: 100px; font-size: 12px; }
+    .admin-search-bar button { font-size: 10px; padding: 4px 10px; }
+    .cookie-consent .cookie-text { font-size: 12px; }
     .cookie-consent .btn-accept,
-    .cookie-consent .btn-reject {
-        padding: 6px 14px;
-        font-size: 12px;
-    }
-    .fullscreen-modal .modal-header h2 {
-        font-size: 16px;
-    }
-    .slider-wrapper .slide-item {
-        padding-top: 55%;
-    }
-    .slider-wrapper .slide-item .slide-title {
-        font-size: 18px;
-    }
-    .slider-wrapper .slide-item .slide-subtitle {
-        font-size: 12px;
-    }
-    .slider-wrapper .slide-item .slide-btn {
-        font-size: 11px;
-        padding: 4px 14px;
-    }
+    .cookie-consent .btn-reject { padding: 6px 14px; font-size: 12px; }
+    .fullscreen-modal .modal-header h2 { font-size: 16px; }
+    .slider-track .slide-item .slide-title { font-size: 18px; }
+    .slider-track .slide-item .slide-subtitle { font-size: 12px; }
+    .slider-track .slide-item .slide-btn { font-size: 11px; padding: 4px 14px; }
 }
 
 @media (max-width: 480px) {
-    .header {
-        padding: 8px 12px;
-    }
-    .logo {
-        font-size: 16px;
-    }
+    .header { padding: 8px 12px; }
+    .logo { font-size: 16px; }
     .header-btn,
     .user-btn,
-    .theme-toggle {
-        width: 34px;
-        height: 34px;
-        font-size: 14px;
-    }
-    .products-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 6px;
-        padding: 0 10px 10px;
-    }
-    .product-card .product-name {
-        font-size: 11px;
-    }
-    .product-card .price {
-        font-size: 12px;
-    }
-    .product-card .features-list .feature-item {
-        font-size: 8px;
-    }
-    .modal-content {
-        padding: 16px 14px;
-        margin: 10px;
-    }
-    .toast {
-        max-width: 95%;
-        padding: 10px 14px;
-        top: 60px;
-    }
-    .bottom-cart-bar {
-        padding: 8px 12px;
-    }
-    .bottom-cart-bar .cart-total-price {
-        font-size: 14px;
-    }
-    .bottom-cart-bar .view-cart-btn {
-        padding: 4px 12px;
-        font-size: 11px;
-    }
-    .auth-container {
-        padding: 20px 16px;
-    }
-    .auth-title {
-        font-size: 20px;
-    }
-    .cookie-consent {
-        padding: 12px 14px;
-    }
-    .cookie-consent .cookie-buttons {
-        width: 100%;
-    }
+    .theme-toggle { width: 34px; height: 34px; font-size: 14px; }
+    .products-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 0 10px 10px; }
+    .product-card .product-name { font-size: 11px; }
+    .product-card .price { font-size: 12px; }
+    .product-card .features-list .feature-item { font-size: 8px; }
+    .modal-content { padding: 16px 14px; margin: 10px; }
+    .toast { max-width: 95%; padding: 10px 14px; top: 60px; }
+    .bottom-cart-bar { padding: 8px 12px; }
+    .bottom-cart-bar .cart-total-price { font-size: 14px; }
+    .bottom-cart-bar .view-cart-btn { padding: 4px 12px; font-size: 11px; }
+    .auth-container { padding: 20px 16px; }
+    .auth-title { font-size: 20px; }
+    .cookie-consent { padding: 12px 14px; }
+    .cookie-consent .cookie-buttons { width: 100%; }
     .cookie-consent .btn-accept,
-    .cookie-consent .btn-reject {
-        flex: 1;
-    }
-    .telegram-banner .banner-content {
-        padding: 8px 10px;
-    }
-    .telegram-banner .banner-content .banner-text .banner-title {
-        font-size: 12px;
-    }
-    .telegram-banner .banner-content .banner-text .banner-subtitle {
-        font-size: 11px;
-    }
-    .telegram-banner .banner-content .banner-action {
-        font-size: 11px;
-        padding: 4px 12px;
-    }
-    .orders-filter-btn {
-        font-size: 10px;
-        padding: 2px 8px;
-    }
-    .orders-item {
-        flex-wrap: wrap;
-        gap: 4px;
-    }
-    .orders-item .orders-item-price {
-        font-size: 12px;
-    }
-    .slider-wrapper .slide-item {
-        padding-top: 65%;
-    }
-    .slider-wrapper .slide-item .slide-title {
-        font-size: 16px;
-    }
-    .slider-wrapper .slide-item .slide-subtitle {
-        font-size: 11px;
-    }
-    .slider-btn {
-        width: 26px;
-        height: 26px;
-        font-size: 10px;
-    }
-    .slider-btn.prev {
-        left: 4px;
-    }
-    .slider-btn.next {
-        right: 4px;
-    }
-    .slider-dots .dot {
-        width: 5px;
-        height: 5px;
-    }
-    .slider-dots .dot.active {
-        width: 12px;
-    }
-}
+    .cookie-consent .btn-reject { flex: 1; }
+    .telegram-banner .banner-content { padding: 8px 10px; }
+    .telegram-banner .banner-content .banner-text .banner-title { font-size: 12px; }
+    .telegram-banner .banner-content .banner-text .banner-subtitle { font-size: 11px; }
+    .telegram-banner .banner-content .banner-action { font-size: 11px; padding: 4px 12px; }
+    .orders-filter-btn { font-size: 10px; padding: 2px 8px; }
+    .orders-item { flex-wrap: wrap; gap: 4px; }
+    .orders-item .orders-item-price { font-size: 12px; }
+    .slider-btn { width: 26px; height: 26px; font-size: 10px; }
+    .slider-btn.prev { left: 4px; }
+    .slider-btn.next { right: 4px; }
+    .slider-dots .dot { width: 5px; height: 5px; }
+    .slider-dots .dot.active { width: 12px; }
+    .scroll-top { width: 38px; height: 38px; font-size: 16px; bottom: 80px; right: 14px; }
+   }
