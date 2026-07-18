@@ -1,9 +1,9 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - النسخة الكاملة مع تسجيل الدخول عبر Google (Popup)
+// SCRIPT.JS - ZI Store - Full Version with User Notification Fix
 // ============================================================
 
 // ============================================================
-// 0. إخفاء فوري لشاشة التحميل
+// 0. Hide Loading Screen Immediately
 // ============================================================
 (function() {
     function hideLoadingScreenImmediate() {
@@ -25,7 +25,7 @@
 })();
 
 // ============================================================
-// استيرادات Firebase و Supabase
+// Firebase & Supabase Imports
 // ============================================================
 import { initializeApp } from "firebase/app";
 import { 
@@ -48,7 +48,7 @@ import { getAnalytics } from "firebase/analytics";
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
 // ============================================================
-// الإعدادات الأساسية
+// Configuration
 // ============================================================
 
 const SUPABASE_URL = 'https://kvsyzgavfxnwqmtsginv.supabase.co';
@@ -71,7 +71,7 @@ const db = getFirestore(app);
 const analytics = getAnalytics(app);
 
 // ============================================================
-// المتغيرات العامة
+// Global Variables
 // ============================================================
 
 const TELEGRAM_BOT_TOKEN = '8687744794:AAGeeNrEU-iQLRmg3dLvYkWHddtYo_sJ1tc';
@@ -107,24 +107,24 @@ let _selectedVipPlan = '1m';
 let allLicences = [];
 let isProcessingOrder = false;
 
-// حالة الأدمن
+// Admin state
 let isAdminCached = false;
 let adminCheckPromise = null;
 
-// متغيرات السلايدر
+// Slider variables
 let sliderSlides = [];
 let sliderIntervalTime = 3;
 let currentSlideIndex = 0;
 let sliderTimer = null;
 let isSliderPaused = false;
 
-// متغيرات الماركي
+// Marquee variables
 let marqueeSettings = {
     enabled: true,
     text: '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support'
 };
 
-// متغيرات المنتجات المميزة
+// Featured products variables
 let featuredProducts = [];
 let featuredRotationInterval = null;
 let featuredCurrentIndex = 0;
@@ -135,7 +135,7 @@ let featuredSettings = {
     selectedProductIds: []
 };
 
-// ملف المستخدم
+// User profile
 let userProfile = {
     name: '',
     email: '',
@@ -158,7 +158,7 @@ let userProfile = {
     licences: []
 };
 
-// المنتجات الاحتياطية
+// Fallback products
 const fallbackProducts = [
     { id: "fallback_1", name: "Mergedom", price: 11, badge: "VIP", status: "available", image: "https://picsum.photos/seed/mergedom/400/300", downloadLink: "", description: "Mergedom game with premium features.", features: ["Level Auto Bypass", "Unlimited Boost", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() },
     { id: "fallback_2", name: "Numbers Game 2048", price: 0, badge: "VIP", status: "available", image: "https://picsum.photos/seed/2048/400/300", downloadLink: "", description: "Classic 2048 game with exclusive mod features.", features: ["Unlimited Device", "Block Spawn Modify", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() },
@@ -166,7 +166,7 @@ const fallbackProducts = [
     { id: "fallback_4", name: "Smart Telegram Bot", price: 0, badge: "FREE", status: "available", image: "https://picsum.photos/seed/bot/400/300", downloadLink: "https://www.mediafire.com/file/example/bot.zip", description: "Advanced Telegram bot with auto-reply and group management.", features: ["Auto Replies", "Group Management", "Notifications"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() }
 ];
 
-// كود الخصم والمحافظ
+// Discount codes and wallets
 const discountCodes = { 'SAVE10': { discount: 10 }, 'SAVE15': { discount: 15 }, 'WELCOME': { discount: 10 }, 'VIP2024': { discount: 15 }, 'SUMMER': { discount: 10 } };
 const paymentWallets = {
     litecoin: { name: 'Litecoin', icon: 'fab fa-bitcoin', network: 'LTC', address: 'ltc1qy6ksn0g4hm6hlh93fwekgz8x74vr6hvdmh6zz8', currency: 'LTC', color: '#f2a900' },
@@ -175,7 +175,7 @@ const paymentWallets = {
 let cryptoPrices = { ltc: 0, usdt: 1, lastUpdate: null, isUpdating: false };
 
 // ============================================================
-// 1. دوال مساعدة (Toast, Loading Screen)
+// 1. Helper Functions (Toast, Loading Screen)
 // ============================================================
 
 function showToast(message, type = 'success') {
@@ -216,7 +216,7 @@ function showLoadingScreen() {
 function updateLoadingText(text) {
     const statusEl = document.getElementById('loadingStatus');
     if (statusEl) {
-        statusEl.textContent = text || 'جاري التحميل...';
+        statusEl.textContent = text || 'Loading...';
     }
 }
 
@@ -224,12 +224,12 @@ window.hideLoadingScreenManually = function() {
     const screen = document.getElementById('loadingScreen');
     if (screen) {
         screen.style.display = 'none';
-        showToast('تم إخفاء شاشة التحميل', 'info');
+        showToast('Loading screen hidden', 'info');
     }
 };
 
 // ============================================================
-// دالة إظهار التطبيق الرئيسي
+// Show Main App
 // ============================================================
 window.showMainApp = function() {
     const mainApp = document.getElementById('mainApp');
@@ -245,7 +245,7 @@ window.showMainApp = function() {
 };
 
 // ============================================================
-// 2. دوال التحقق من الأدمن (باستخدام UID)
+// 2. Admin Check Functions
 // ============================================================
 
 async function checkIsAdmin() {
@@ -317,7 +317,7 @@ window.ensureAdminPanel = function() {
 };
 
 // ============================================================
-// 3. دوال المستخدم (Firestore + LocalStorage)
+// 3. User Functions (Firestore + LocalStorage)
 // ============================================================
 
 function loadFromLocalStorage() {
@@ -565,7 +565,7 @@ function generateReferralCode(name, email) {
 }
 
 // ============================================================
-// 4. تحديثات الواجهة الأساسية
+// 4. UI Updates
 // ============================================================
 
 function updateDropdownStats() {
@@ -653,7 +653,7 @@ function updateFullUserMenu() {
 }
 
 // ============================================================
-// 5. دوال المصادقة (مع Google Popup)
+// 5. Auth Functions (with Google Popup)
 // ============================================================
 
 window.showLogin = function() { document.getElementById('loginContainer').style.display = 'block'; document.getElementById('registerContainer').style.display = 'none'; };
@@ -702,7 +702,7 @@ window.loginUser = async function() {
             loadSliderSettings();
             loadMarqueeSettings();
             window.ensureAdminPanel();
-            updateLoadingText('✅ جاهز!');
+            updateLoadingText('✅ Ready!');
             window.showMainApp();
             hideLoadingScreen();
         }, 500);
@@ -751,14 +751,14 @@ window.registerUser = async function() {
             loadSliderSettings();
             loadMarqueeSettings();
             window.ensureAdminPanel();
-            updateLoadingText('✅ جاهز!');
+            updateLoadingText('✅ Ready!');
             window.showMainApp();
             hideLoadingScreen();
         }, 500);
     } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Registration failed', 'error'); btn.classList.remove('loading'); }
 };
 
-// ***** دالة تسجيل الدخول عبر Google (باستخدام Popup) *****
+// Google Login with Popup
 window.loginWithGoogle = function() {
     const btn = document.getElementById('googleLoginBtn');
     if (btn) btn.classList.add('loading');
@@ -770,15 +770,12 @@ window.loginWithGoogle = function() {
     
     signInWithPopup(auth, provider)
         .then(async (result) => {
-            // تسجيل الدخول ناجح
             const user = result.user;
             if (btn) btn.classList.remove('loading');
             
-            // حفظ صورة الملف الشخصي
             const photoURL = user.photoURL || '';
             userProfile.photoURL = photoURL;
 
-            // تحديث بيانات المستخدم في Firestore
             const userRef = doc(db, 'users', user.uid);
             await setDoc(userRef, {
                 photoURL: photoURL,
@@ -788,11 +785,8 @@ window.loginWithGoogle = function() {
             }, { merge: true });
 
             currentUser = user;
-
             showToast('👋 Welcome via Google!', 'success');
-            
             await refreshAdminStatus();
-
             await mergeGuestData(user.uid);
 
             setTimeout(() => {
@@ -820,7 +814,7 @@ window.loginWithGoogle = function() {
                 loadSliderSettings();
                 loadMarqueeSettings();
                 window.ensureAdminPanel();
-                updateLoadingText('✅ جاهز!');
+                updateLoadingText('✅ Ready!');
                 window.showMainApp();
                 hideLoadingScreen();
             }, 500);
@@ -829,18 +823,17 @@ window.loginWithGoogle = function() {
             console.error('Google login error:', error);
             if (btn) btn.classList.remove('loading');
             if (error.code === 'auth/account-exists-with-different-credential') {
-                // البريد الإلكتروني مستخدم بالفعل مع مزود آخر
                 const email = error.email;
                 if (errorEl) {
-                    errorEl.textContent = `⚠️ هذا البريد الإلكتروني (${email}) مسجل بطريقة أخرى. يرجى تسجيل الدخول بكلمة المرور أولاً، ثم يمكنك ربط حساب Google من الملف الشخصي.`;
+                    errorEl.textContent = `⚠️ This email (${email}) is already registered with another method. Please login with password first, then you can link your Google account from profile.`;
                 }
-                showToast('⚠️ هذا البريد مستخدم بالفعل. يرجى تسجيل الدخول بكلمة المرور.', 'warning');
+                showToast('⚠️ This email is already in use. Please login with password.', 'warning');
                 const loginEmail = document.getElementById('loginEmail');
                 if (loginEmail) loginEmail.value = email;
                 document.getElementById('loginContainer').style.display = 'block';
                 document.getElementById('registerContainer').style.display = 'none';
             } else if (error.code === 'auth/popup-closed-by-user') {
-                showToast('تم إلغاء تسجيل الدخول', 'info');
+                showToast('Login cancelled', 'info');
             } else {
                 if (errorEl) errorEl.textContent = '❌ ' + error.message;
                 showToast('❌ Google login failed: ' + error.message, 'error');
@@ -848,7 +841,6 @@ window.loginWithGoogle = function() {
         });
 };
 
-// دالة لدمج بيانات المستخدم الضيف
 async function mergeGuestData(newUid) {
     const guestWishlist = localStorage.getItem('zi_wishlist_backup');
     const guestCart = localStorage.getItem('zi_cart_backup');
@@ -909,7 +901,7 @@ async function mergeGuestData(newUid) {
         }
 
         if (updated) {
-            showToast('🔄 تم دمج بياناتك السابقة بنجاح!', 'success');
+            showToast('🔄 Your previous data has been merged successfully!', 'success');
             localStorage.removeItem('zi_wishlist_backup');
             localStorage.removeItem('zi_cart_backup');
             localStorage.removeItem('zi_history_backup');
@@ -950,7 +942,7 @@ window.sendForgotPassword = async function() {
 };
 
 // ============================================================
-// 6. المودالات العامة
+// 6. General Modals
 // ============================================================
 
 window.openUserMenuFull = function() { if (!currentUser) { openAuthModal(); return; } document.getElementById('userMenuFull').classList.add('open'); updateFullUserMenu(); document.body.style.overflow = 'hidden'; };
@@ -970,7 +962,7 @@ window.closeNotifications = function() { document.getElementById('notificationsM
 window.openAuthModal = function() { document.getElementById('authSection').scrollIntoView({ behavior: 'smooth' }); };
 
 // ============================================================
-// 7. عرض الملف الشخصي
+// 7. Render Profile Full
 // ============================================================
 
 function renderProfileFull() {
@@ -1128,7 +1120,7 @@ window.sendResetLinkInline = async function() { if (!currentUser) return; try { 
 window.changePasswordInline = async function() { if (!currentUser) return; const currentPwd = document.getElementById('currentPasswordInline').value; const newPwd = document.getElementById('newPasswordInline').value; const confirmPwd = document.getElementById('confirmNewPasswordInline').value; const errorEl = document.getElementById('passwordErrorInline'); const successEl = document.getElementById('passwordSuccessInline'); errorEl.textContent = ''; successEl.textContent = ''; if (!currentPwd || !newPwd || !confirmPwd) { errorEl.textContent = 'Please fill all fields'; return; } if (newPwd.length < 6) { errorEl.textContent = 'New password must be at least 6 characters'; return; } if (newPwd !== confirmPwd) { errorEl.textContent = 'Passwords do not match'; return; } try { const credential = EmailAuthProvider.credential(currentUser.email, currentPwd); await reauthenticateWithCredential(currentUser, credential); await updatePassword(currentUser, newPwd); successEl.textContent = '✅ Password changed successfully!'; showToast('✅ Password updated!', 'success'); document.getElementById('currentPasswordInline').value = ''; document.getElementById('newPasswordInline').value = ''; document.getElementById('confirmNewPasswordInline').value = ''; setTimeout(() => { successEl.textContent = ''; }, 3000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); } };
 
 // ============================================================
-// 8. دوال المنتجات
+// 8. Product Functions
 // ============================================================
 
 async function loadProductsFromFirestore() {
@@ -1282,7 +1274,7 @@ function generateRecommendations(productsList) {
 }
 
 // ============================================================
-// 9. دوال العملة ونوع المنتج والكميات والشارات
+// 9. Currency, Product Type, Quantity, Badge Functions
 // ============================================================
 
 window.selectCurrency = function(currency) {
@@ -1410,7 +1402,7 @@ function setBadges(badges) {
 }
 
 // ============================================================
-// 10. المنتجات المميزة والسلة والمفضلة
+// 10. Featured Products, Cart, Wishlist
 // ============================================================
 
 function renderFeaturedProducts() {
@@ -1471,7 +1463,7 @@ async function loadFeaturedSettings() {
 }
 
 // ============================================================
-// 11. إدارة السلة
+// 11. Cart Management
 // ============================================================
 
 window.addToCart = async function(productId) {
@@ -1689,7 +1681,7 @@ function createFloatingHearts() {
 }
 
 // ============================================================
-// 12. عرض المنتج (Preview)
+// 12. Product Preview
 // ============================================================
 
 window.openDetails = function(id) {
@@ -1791,7 +1783,7 @@ window.openDetails = function(id) {
         } else { vipSection.style.display = 'none'; }
     } else { vipSection.style.display = 'none'; }
     
-    // ====== عرض خيارات الكميات ======
+    // Quantity options
     const existingQuantitySection = document.getElementById('previewQuantitySection');
     if (existingQuantitySection) existingQuantitySection.remove();
     
@@ -1885,7 +1877,7 @@ window.addToCartFromPreview = function() { if (window._currentProduct) { window.
 window.shareFromPreview = function() { if (window._currentProduct) { window.openShareModal(window._currentProduct.id); } };
 
 // ============================================================
-// 13. مودال المشاركة
+// 13. Share Modal
 // ============================================================
 
 window.openShareModal = function(productId) {
@@ -1902,7 +1894,7 @@ window.shareToFacebook = function() { if (!shareProduct) return; window.open(`ht
 window.copyShareLink = function() { const url = window.location.href; navigator.clipboard.writeText(url).then(() => { showToast('✅ Link copied!', 'success'); closeShareModal(); }).catch(() => { const textArea = document.createElement('textarea'); textArea.value = url; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); showToast('✅ Link copied!', 'success'); closeShareModal(); }); };
 
 // ============================================================
-// 14. التصفية والبحث
+// 14. Filter & Search
 // ============================================================
 
 window.filterProducts = function(filter) {
@@ -1959,7 +1951,7 @@ function closeSearchResults() { searchResults.classList.remove('active'); search
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeSearchResults(); closeUserMenuFull(); closeCartFull(); closeWishlistFull(); closeProfileFull(); closeHistoryFull(); } });
 
 // ============================================================
-// 15. الدفع (Payment)
+// 15. Payment
 // ============================================================
 
 async function fetchCryptoPrices() {
@@ -2109,8 +2101,62 @@ function renderPaymentProducts() {
 }
 
 // ============================================================
-// 16. إرسال الطلب (Order)
+// 16. Order Functions with User Notification
 // ============================================================
+
+/**
+ * Send notification to user's in-app notification icon
+ * Only the specific user who placed the order will receive it
+ */
+async function sendUserNotification(userId, title, message) {
+    if (!userId) return;
+    try {
+        // Check if user exists
+        const userRef = doc(db, 'users', userId);
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) {
+            console.log('ℹ️ User not found, skipping notification');
+            return;
+        }
+        
+        // Add notification to Firestore with userId
+        await addDoc(collection(db, 'notifications'), {
+            title: title,
+            message: message,
+            userId: userId, // Only this user will see it
+            readBy: [],
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        });
+        console.log('✅ User notification sent to:', userId);
+    } catch (error) {
+        console.error('Error sending user notification:', error);
+    }
+}
+
+/**
+ * Send order confirmation to both Telegram and in-app notification
+ */
+async function sendOrderConfirmations(userId, orderId, productsList, total, method) {
+    // 1. Send in-app notification (only to this user)
+    const productNames = productsList.map(item => {
+        const qtyLabel = item.selectedQuantity ? ` (${item.selectedQuantity})` : '';
+        return `${item.name}${qtyLabel} × ${item.quantity || 1}`;
+    }).join(', ');
+    
+    await sendUserNotification(
+        userId,
+        '📦 Order Confirmed!',
+        `Your order #${orderId.slice(-6)} has been confirmed.\nProducts: ${productNames}\nTotal: $${total.toFixed(2)}\nPayment: ${method}`
+    );
+    
+    // 2. Send Telegram notification if user has linked Telegram
+    if (userProfile.telegramChatId) {
+        const userMsg = `📦 **Order Confirmed!**\n\n📎 **Order #${orderId.slice(-6)}**\n📅 ${new Date().toLocaleString()}\n💰 Total: $${total.toFixed(2)}\n💳 Method: ${method}\n\nThank you for your purchase! 🎉`;
+        await sendTelegramNotification(userProfile.telegramChatId, userMsg);
+        console.log('✅ Telegram notification sent to user');
+    }
+}
 
 async function sendOrderToTelegram(method, txHash = null) {
     if (isProcessingOrder) {
@@ -2172,15 +2218,14 @@ async function sendOrderToTelegram(method, txHash = null) {
             console.error('❌ Failed to send admin notification:', e);
         }
 
-        if (userProfile.telegramChatId) {
-            const userMsg = `📦 **Order Placed!**\n\n📎 **Order #${orderId.slice(-6)}**\n📅 ${new Date().toLocaleString()}\n💰 Total: $${finalTotal.toFixed(2)}\n\nThank you for your purchase! You will receive a confirmation soon.`;
-            try {
-                await sendTelegramNotification(userProfile.telegramChatId, userMsg);
-                console.log('✅ User notification sent');
-            } catch (e) {
-                console.error('❌ Failed to send user notification:', e);
-            }
-        }
+        // Send confirmation to user (both in-app and Telegram)
+        await sendOrderConfirmations(
+            currentUser.uid,
+            orderId,
+            cart,
+            finalTotal,
+            method
+        );
 
         window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(adminMsg)}`, '_blank');
 
@@ -2287,7 +2332,7 @@ window.closePaymentModal = function() { document.getElementById('paymentModal').
 window.checkout = function() { openPaymentModal(); };
 
 // ============================================================
-// 17. دوال تيليجرام
+// 17. Telegram Functions
 // ============================================================
 
 async function sendTelegramNotification(chatId, message) {
@@ -2391,7 +2436,7 @@ window.checkTelegramStatus = async function() {
 };
 
 // ============================================================
-// 18. التحميلات والإشعارات
+// 18. Downloads & Notifications
 // ============================================================
 
 function loadDownloads() {
@@ -2455,6 +2500,7 @@ function loadNotifications() {
             notifications = [];
             snapshot.forEach((doc) => {
                 const data = doc.data();
+                // Only show notifications that are either global (no userId) or specifically for this user
                 if (!data.userId || data.userId === currentUser?.uid) {
                     notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] });
                 }
@@ -2472,6 +2518,7 @@ function loadNotifications() {
             notifications = [];
             snapshot.forEach((doc) => {
                 const data = doc.data();
+                // Only show notifications that are either global (no userId) or specifically for this user
                 if (!data.userId || data.userId === currentUser?.uid) {
                     notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] });
                 }
@@ -2576,7 +2623,7 @@ window.openCreateNotificationModal = function() { if (!currentUser || !isAdminCa
 window.closeCreateNotificationModal = function() { document.getElementById('createNotificationModal').classList.remove('open'); };
 
 // ============================================================
-// 19. الطلبات والإحالات
+// 19. Requests & Referrals
 // ============================================================
 
 window.openRequestsModal = function() {
@@ -2650,7 +2697,7 @@ window.copyReferralCode2 = function() {
 };
 
 // ============================================================
-// 20. لوحة المدير (Admin Panel)
+// 20. Admin Panel
 // ============================================================
 
 window.openAdminPanel = function() {
@@ -2825,11 +2872,11 @@ window.switchAdminTab = function(tab) {
         if (!refreshBtn) {
             const btn = document.createElement('button');
             btn.id = 'adminRefreshOrdersBtn';
-            btn.textContent = '🔄 تحديث الطلبات';
+            btn.textContent = '🔄 Refresh Orders';
             btn.className = 'admin-refresh-btn';
             btn.style.cssText = 'padding:8px 16px;background:var(--primary);color:#fff;border:none;border-radius:8px;cursor:pointer;margin-bottom:12px;font-weight:600;';
             btn.onclick = function() {
-                showToast('⏳ جاري التحديث...', 'info');
+                showToast('⏳ Refreshing...', 'info');
                 loadAdminOrders();
             };
             const container = document.getElementById('tabOrders');
@@ -2841,7 +2888,7 @@ window.switchAdminTab = function(tab) {
 };
 
 // ============================================================
-// 21. إدارة المنتجات (Admin Products)
+// 21. Admin Products
 // ============================================================
 
 function renderAdminProducts(productsList) {
@@ -3049,7 +3096,7 @@ async function deleteProductFromFirestore(productId) {
 }
 
 // ============================================================
-// 22. الطلبات (Admin Orders)
+// 22. Admin Orders
 // ============================================================
 
 function startAdminRealtimeListener() {
@@ -3180,35 +3227,57 @@ function updateAdminStats(orders) {
 }
 
 // ============================================================
-// 23. تحديث حالة الطلب
+// 23. Update Order Status with User Notification
 // ============================================================
 
 window.updateOrderStatus = async function(orderId, userId, newStatus) {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!orderId || !userId) { showToast('❌ Invalid data', 'error'); return; }
     const validStatuses = ['pending', 'confirmed', 'rejected'];
-    if (!validStatuses.includes(newStatus)) { showToast('⚠️ حالة غير صالحة', 'warning'); return; }
+    if (!validStatuses.includes(newStatus)) { showToast('⚠️ Invalid status', 'warning'); return; }
     try {
         const userRef = doc(db, 'users', userId);
         const userSnap = await getDoc(userRef);
         if (!userSnap.exists()) { showToast('❌ User not found', 'error'); return; }
         const data = userSnap.data();
         const history = data.history || [];
+        let orderFound = null;
         const updatedHistory = history.map(order => {
-            if (order.id === orderId) { return { ...order, status: newStatus, updatedAt: new Date().toISOString() }; }
+            if (order.id === orderId) {
+                orderFound = { ...order, status: newStatus };
+                return { ...order, status: newStatus, updatedAt: new Date().toISOString() };
+            }
             return order;
         });
         await updateDoc(userRef, { history: updatedHistory });
+        
+        // Send notification to user when order status changes
         if (newStatus === 'confirmed') {
+            // Send confirmation notification to user's in-app icon
+            await sendUserNotification(
+                userId,
+                '✅ Order Confirmed!',
+                `Your order #${orderId.slice(-6)} has been confirmed and is ready.`
+            );
+            
+            // Send licence via Edge Function
             await sendLicenceForOrder(orderId, userId);
             await sendTelegramNotification(TELEGRAM_CHAT_ID, `✅ Order #${orderId.slice(-6)} confirmed. Licence sent to ${data.email || userId}.`);
         } else if (newStatus === 'rejected') {
+            // Send rejection notification to user's in-app icon
+            await sendUserNotification(
+                userId,
+                '❌ Order Rejected',
+                `Your order #${orderId.slice(-6)} has been rejected. Please contact support for more information.`
+            );
+            
             if (data.telegramChatId) {
                 await sendTelegramNotification(data.telegramChatId, `❌ Your order #${orderId.slice(-6)} has been rejected.`);
             }
             await sendTelegramNotification(TELEGRAM_CHAT_ID, `❌ Order #${orderId.slice(-6)} rejected.`);
         }
-        showToast(`📦 Order updated`, 'success');
+        
+        showToast(`📦 Order updated to ${newStatus}`, 'success');
         loadAdminOrders();
         if (currentUser && currentUser.uid === userId) { userProfile.history = updatedHistory; }
         updateFullUserMenu();
@@ -3248,7 +3317,7 @@ window.clearAdminSearch = function() { document.getElementById('adminSearchInput
 window.refreshAdminOrders = function() { loadAdminOrders(); showToast('🔄 Refreshed', 'info'); };
 
 // ============================================================
-// 24. إرسال الترخيص عبر Edge Function
+// 24. Send Licence via Edge Function
 // ============================================================
 
 async function sendLicenceForOrder(orderId, userId) {
@@ -3296,7 +3365,7 @@ async function sendLicenceForOrder(orderId, userId) {
 }
 
 // ============================================================
-// 25. المستخدمين (Admin Users)
+// 25. Admin Users
 // ============================================================
 
 async function loadAdminUsers() {
@@ -3407,7 +3476,7 @@ window.viewUserDetails = async function(uid) {
 window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
 // ============================================================
-// 26. نظام إدارة التراخيص (مع Supabase)
+// 26. Licence Management System (with Supabase)
 // ============================================================
 
 async function loadLicences() {
@@ -3525,6 +3594,14 @@ async function approveLicence(licenceId, code, scriptName) {
         const { data: licenceData, error: fetchError } = await supabase.from('licenses').select('*').eq('id', licenceId).single();
         if (fetchError || !licenceData) throw fetchError || new Error('Licence not found');
         await updateLicenceInSupabase(licenceId, { status: 'active', user_id: currentUser.uid, user_email: currentUser.email });
+        
+        // Send notification to user
+        await sendUserNotification(
+            currentUser.uid,
+            '🔑 Licence Activated!',
+            `Your licence for ${scriptName} has been activated. Code: ${code}`
+        );
+        
         let chatId = null;
         const usersRef = collection(db, 'users');
         const q = query(usersRef, where('email', '==', currentUser.email));
@@ -3546,6 +3623,13 @@ async function revokeLicence(licenceId) {
         await updateLicenceInSupabase(licenceId, { status: 'revoked' });
         const licence = allLicences.find(l => l.id === licenceId);
         if (licence && licence.user_id) {
+            // Notify user
+            await sendUserNotification(
+                licence.user_id,
+                '🚫 Licence Revoked',
+                `Your licence for ${licence.script_name || 'product'} has been revoked.`
+            );
+            
             const userRef = doc(db, 'users', licence.user_id);
             const userSnap = await getDoc(userRef);
             if (userSnap.exists()) {
@@ -3709,6 +3793,13 @@ async function activateLicence() {
                 userProfile.licences = userLicences;
                 renderUserLicences();
                 updateFullUserMenu();
+                
+                // Send in-app notification
+                await sendUserNotification(
+                    currentUser.uid,
+                    '🔑 Licence Activated',
+                    `Your licence for ${licence.scriptName} has been activated successfully!`
+                );
             }
         }
         const expiryDate = new Date(licence.expiryDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -3728,7 +3819,7 @@ async function activateLicence() {
 }
 
 // ============================================================
-// 27. التقييمات (Ratings)
+// 27. Ratings
 // ============================================================
 
 let currentRating = 0;
@@ -3820,7 +3911,7 @@ async function updateProductRatingDisplay(productId) {
 }
 
 // ============================================================
-// 28. دوال السلايدر والماركي والإحصائيات
+// 28. Slider & Marquee Functions
 // ============================================================
 
 window.goToSlide = function(index) {
@@ -3852,11 +3943,11 @@ window.saveSliderData = async function() {
             slides: sliderSlides, 
             updatedAt: serverTimestamp() 
         }, { merge: true });
-        showToast('✅ تم حفظ السلايدر بنجاح!', 'success');
+        showToast('✅ Slider saved successfully!', 'success');
         return true;
     } catch (error) {
         console.error('Error saving slider data:', error);
-        showToast('❌ فشل حفظ السلايدر: ' + error.message, 'error');
+        showToast('❌ Failed to save slider: ' + error.message, 'error');
         return false;
     }
 };
@@ -3864,33 +3955,29 @@ window.saveSliderData = async function() {
 window.saveSliderInterval = async function() {
     const input = document.getElementById('sliderIntervalInput');
     if (!input) {
-        showToast('❌ حقل الفاصل الزمني غير موجود', 'error');
+        showToast('❌ Interval field not found', 'error');
         return;
     }
     const interval = parseFloat(input.value);
     if (isNaN(interval) || interval < 1) {
-        showToast('⚠️ الرجاء إدخال رقم صحيح (دقيقة واحدة على الأقل)', 'warning');
+        showToast('⚠️ Please enter a valid number (minimum 1 second)', 'warning');
         return;
     }
     sliderIntervalTime = interval;
     await window.saveSliderData();
     resetSliderTimer();
     renderSlider();
-    showToast('✅ تم حفظ الفاصل الزمني: ' + interval + ' ثانية', 'success');
+    showToast('✅ Interval saved: ' + interval + ' seconds', 'success');
 };
 
-// ============================================================
-// *** دالة حفظ الشريحة (إضافة أو تعديل) - تم إصلاحها ***
-// ============================================================
 window.saveSlideEdit = async function() {
     const editIndex = document.getElementById('addSlideForm')?.dataset.editIndex;
     const isEdit = editIndex !== undefined && editIndex !== '';
     
-    // إذا كان تعديلاً، تأكد من وجود الشريحة
     if (isEdit) {
         const idx = parseInt(editIndex);
         if (isNaN(idx) || idx < 0 || idx >= sliderSlides.length) {
-            showToast('❌ الشريحة غير موجودة للتعديل', 'error');
+            showToast('❌ Slide not found for editing', 'error');
             return;
         }
     }
@@ -3904,19 +3991,19 @@ window.saveSlideEdit = async function() {
     if (linkType === 'product') {
         productId = document.getElementById('slideProductSelect')?.value || '';
         if (!productId) {
-            showToast('⚠️ الرجاء اختيار منتج', 'warning');
+            showToast('⚠️ Please select a product', 'warning');
             return;
         }
     } else if (linkType === 'download') {
         downloadUrl = document.getElementById('slideDownloadUrl')?.value.trim() || '';
         if (!downloadUrl) {
-            showToast('⚠️ الرجاء إدخال رابط التحميل', 'warning');
+            showToast('⚠️ Please enter download URL', 'warning');
             return;
         }
     } else if (linkType === 'url') {
         customUrl = document.getElementById('slideCustomUrl')?.value.trim() || '';
         if (!customUrl) {
-            showToast('⚠️ الرجاء إدخال رابط مخصص', 'warning');
+            showToast('⚠️ Please enter custom URL', 'warning');
             return;
         }
     }
@@ -3924,24 +4011,21 @@ window.saveSlideEdit = async function() {
     const fileInput = document.getElementById('slideImageFile');
     let imageUrl = '';
     
-    // إذا كان تعديلاً، نستخدم الصورة القديمة كقيمة افتراضية
     if (isEdit) {
         imageUrl = sliderSlides[parseInt(editIndex)]?.imageUrl || '';
     }
     
-    // إذا تم اختيار ملف جديد، نرفعه
     if (fileInput && fileInput.files && fileInput.files[0]) {
-        showToast('⏳ جاري رفع الصورة...', 'info');
+        showToast('⏳ Uploading image...', 'info');
         const uploadedUrl = await uploadToCloudinary(fileInput.files[0]);
         if (uploadedUrl) {
             imageUrl = uploadedUrl;
         } else {
-            showToast('❌ فشل رفع الصورة', 'error');
+            showToast('❌ Failed to upload image', 'error');
             return;
         }
     } else if (!imageUrl) {
-        // لا صورة قديمة ولا جديدة
-        showToast('⚠️ الرجاء اختيار صورة للشريحة', 'warning');
+        showToast('⚠️ Please select an image for the slide', 'warning');
         return;
     }
 
@@ -3958,19 +4042,15 @@ window.saveSlideEdit = async function() {
     };
 
     if (isEdit) {
-        // تعديل شريحة موجودة
         sliderSlides[parseInt(editIndex)] = updatedSlide;
-        showToast('✅ تم تحديث الشريحة بنجاح!', 'success');
+        showToast('✅ Slide updated successfully!', 'success');
     } else {
-        // إضافة شريحة جديدة
         sliderSlides.push(updatedSlide);
-        showToast('✅ تم إضافة الشريحة بنجاح!', 'success');
+        showToast('✅ Slide added successfully!', 'success');
     }
     
-    // حذف حالة التعديل من النموذج
     delete document.getElementById('addSlideForm').dataset.editIndex;
     
-    // حفظ البيانات وعرض التحديثات
     await window.saveSliderData();
     renderSlider();
     renderSliderSettingsUI();
@@ -3979,22 +4059,21 @@ window.saveSlideEdit = async function() {
 };
 
 window.deleteSlide = function(index) {
-    if (!confirm('هل أنت متأكد من حذف هذه الشريحة؟')) return;
+    if (!confirm('Are you sure you want to delete this slide?')) return;
     sliderSlides.splice(index, 1);
     window.saveSliderData();
     renderSlider();
     renderSliderSettingsUI();
     resetSliderTimer();
-    showToast('🗑️ تم حذف الشريحة', 'success');
+    showToast('🗑️ Slide deleted', 'success');
 };
 
 window.editSlide = function(index) {
     const slide = sliderSlides[index];
-    if (!slide) { showToast('❌ الشريحة غير موجودة', 'error'); return; }
+    if (!slide) { showToast('❌ Slide not found', 'error'); return; }
     const modal = document.getElementById('addSlideModal');
-    if (!modal) { showToast('❌ المودال غير موجود', 'error'); return; }
+    if (!modal) { showToast('❌ Modal not found', 'error'); return; }
     
-    // تعبئة الحقول
     document.getElementById('slideTitle').value = slide.title || '';
     document.getElementById('slideSubtitle').value = slide.subtitle || '';
     document.getElementById('slideButtonText').value = slide.buttonText || 'Buy Now';
@@ -4008,13 +4087,11 @@ window.editSlide = function(index) {
         document.getElementById('slideCustomUrl').value = slide.customUrl || '';
     }
     
-    // تعيين حالة التعديل
     document.getElementById('addSlideForm').dataset.editIndex = index;
-    document.querySelector('#addSlideModal .modal-title').textContent = '✏️ تعديل الشريحة';
+    document.querySelector('#addSlideModal .modal-title').textContent = '✏️ Edit Slide';
     const submitBtn = document.querySelector('#addSlideForm button[type="button"]');
-    if (submitBtn) submitBtn.textContent = '💾 حفظ التعديلات';
+    if (submitBtn) submitBtn.textContent = '💾 Save Changes';
     
-    // إظهار المودال
     modal.classList.add('open');
     document.body.style.overflow = 'hidden';
 };
@@ -4022,19 +4099,17 @@ window.editSlide = function(index) {
 window.openAddSlideModal = function() {
     updateSlideProductSelect();
     const modal = document.getElementById('addSlideModal');
-    if (!modal) { showToast('❌ المودال غير موجود', 'error'); return; }
+    if (!modal) { showToast('❌ Modal not found', 'error'); return; }
     
-    // إعادة تعيين النموذج
     const form = document.getElementById('addSlideForm');
     if (form) form.reset();
     const preview = document.getElementById('slideImagePreview');
     if (preview) preview.style.display = 'none';
     
-    // إزالة حالة التعديل
     delete document.getElementById('addSlideForm').dataset.editIndex;
-    document.querySelector('#addSlideModal .modal-title').textContent = '➕ إضافة شريحة جديدة';
+    document.querySelector('#addSlideModal .modal-title').textContent = '➕ Add New Slide';
     const submitBtn = document.querySelector('#addSlideForm button[type="button"]');
-    if (submitBtn) submitBtn.textContent = '➕ إضافة شريحة';
+    if (submitBtn) submitBtn.textContent = '➕ Add Slide';
     
     toggleSlideLinkFields();
     modal.classList.add('open');
@@ -4046,7 +4121,6 @@ window.closeAddSlideModal = function() {
     if (modal) { 
         modal.classList.remove('open'); 
         document.body.style.overflow = ''; 
-        // إعادة تعيين حالة التعديل
         delete document.getElementById('addSlideForm')?.dataset.editIndex;
     }
 };
@@ -4100,7 +4174,7 @@ function renderSlider() {
     const dots = document.getElementById('sliderDots');
     if (!wrapper) return;
     if (sliderSlides.length === 0) {
-        wrapper.innerHTML = `<div class="slide-item" style="background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;min-height:180px;border-radius:var(--radius-md);"><div style="text-align:center;color:var(--text-secondary);opacity:0.4;"><i class="fas fa-images" style="font-size:48px;display:block;margin-bottom:8px;"></i><p>لا توجد شرائح. أضف شرائح من لوحة التحكم.</p></div></div>`;
+        wrapper.innerHTML = `<div class="slide-item" style="background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;min-height:180px;border-radius:var(--radius-md);"><div style="text-align:center;color:var(--text-secondary);opacity:0.4;"><i class="fas fa-images" style="font-size:48px;display:block;margin-bottom:8px;"></i><p>No slides. Add slides from admin panel.</p></div></div>`;
         dots.innerHTML = '';
         return;
     }
@@ -4151,18 +4225,18 @@ function renderSliderSettingsUI() {
     const container = document.getElementById('sliderSlidesList');
     if (!container) return;
     if (sliderSlides.length === 0) {
-        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);opacity:0.5;">لا توجد شرائح. اضغط "إضافة شريحة" للبدء.</div>`;
+        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);opacity:0.5;">No slides. Click "Add Slide" to get started.</div>`;
         return;
     }
     container.innerHTML = sliderSlides.map((slide, index) => {
         const product = products.find(p => p.id === slide.productId);
-        const productName = product ? product.name : 'غير معروف';
-        return `<div class="admin-item"><div class="item-info"><div class="item-title"><img src="${slide.imageUrl || 'https://picsum.photos/seed/default/60/60'}" style="width:40px;height:40px;border-radius:var(--radius-sm);object-fit:cover;margin-right:8px;" />${slide.title || 'شريحة ' + (index+1)}<span style="font-size:11px;opacity:0.4;font-weight:400;">${slide.linkType === 'product' ? '📦 منتج: ' + productName : slide.linkType === 'download' ? '📥 تحميل' : '🔗 رابط مخصص'}</span></div><div class="item-meta">${slide.subtitle || ''}</div></div><div class="item-actions"><button class="btn-edit" onclick="editSlide(${index})"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="deleteSlide(${index})"><i class="fas fa-trash"></i></button></div></div>`;
+        const productName = product ? product.name : 'Unknown';
+        return `<div class="admin-item"><div class="item-info"><div class="item-title"><img src="${slide.imageUrl || 'https://picsum.photos/seed/default/60/60'}" style="width:40px;height:40px;border-radius:var(--radius-sm);object-fit:cover;margin-right:8px;" />${slide.title || 'Slide ' + (index+1)}<span style="font-size:11px;opacity:0.4;font-weight:400;">${slide.linkType === 'product' ? '📦 Product: ' + productName : slide.linkType === 'download' ? '📥 Download' : '🔗 Custom Link'}</span></div><div class="item-meta">${slide.subtitle || ''}</div></div><div class="item-actions"><button class="btn-edit" onclick="editSlide(${index})"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="deleteSlide(${index})"><i class="fas fa-trash"></i></button></div></div>`;
     }).join('');
 }
 
 // ============================================================
-// دوال الماركي
+// Marquee Functions
 // ============================================================
 
 window.saveMarqueeSettings = async function() {
@@ -4170,15 +4244,15 @@ window.saveMarqueeSettings = async function() {
     const textArea = document.getElementById('marqueeText');
     const enabled = enabledCheckbox ? enabledCheckbox.checked : true;
     const text = textArea ? textArea.value.trim() : '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
-    if (!text) { showToast('⚠️ الرجاء إدخال نص الماركي', 'warning'); return; }
+    if (!text) { showToast('⚠️ Please enter marquee text', 'warning'); return; }
     try {
         const settingsRef = doc(db, 'settings', 'marquee');
         await setDoc(settingsRef, { enabled, text, updatedAt: serverTimestamp() }, { merge: true });
         marqueeSettings.enabled = enabled;
         marqueeSettings.text = text;
         applyMarqueeSettings();
-        showToast('✅ تم حفظ إعدادات الماركي!', 'success');
-    } catch (error) { showToast('❌ فشل حفظ الإعدادات: ' + error.message, 'error'); }
+        showToast('✅ Marquee settings saved!', 'success');
+    } catch (error) { showToast('❌ Failed to save settings: ' + error.message, 'error'); }
 };
 
 window.applyMarqueeSettings = function() {
@@ -4227,6 +4301,10 @@ async function loadMarqueeSettings() {
     }
 }
 
+// ============================================================
+// 29. Dashboard Stats, Advanced Stats, Audit Logs
+// ============================================================
+
 async function loadDashboardStats() {
     if (!currentUser || !isAdminCached) { console.log('ℹ️ loadDashboardStats skipped (not admin)'); return; }
     try {
@@ -4242,12 +4320,12 @@ async function loadDashboardStats() {
         if (error.code === 'permission-denied') { console.warn('⚠️ Missing permissions to read stats.'); }
     }
 }
-window.refreshDashboardStats = function() { loadDashboardStats(); showToast('🔄 تم تحديث الإحصائيات', 'success'); };
+window.refreshDashboardStats = function() { loadDashboardStats(); showToast('🔄 Stats refreshed', 'success'); };
 async function loadAdvancedStats() {
     if (!currentUser || !isAdminCached) { console.log('ℹ️ loadAdvancedStats skipped (not admin)'); return; }
     const container = document.getElementById('advancedStatsContainer');
     if (!container) return;
-    container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> جاري تحميل الإحصائيات...</div>`;
+    container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading statistics...</div>`;
     try {
         const usersRef = collection(db, 'users');
         const snapshot = await getDocs(usersRef);
@@ -4268,46 +4346,46 @@ async function loadAdvancedStats() {
         container.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px;">
             <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
                 <div style="font-size:28px;font-weight:700;color:var(--primary);">${totalOrders}</div>
-                <div style="font-size:12px;color:var(--text-secondary);">إجمالي الطلبات</div>
+                <div style="font-size:12px;color:var(--text-secondary);">Total Orders</div>
             </div>
             <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
                 <div style="font-size:28px;font-weight:700;color:var(--vip-color);">$${totalRevenue.toFixed(2)}</div>
-                <div style="font-size:12px;color:var(--text-secondary);">الإيرادات</div>
+                <div style="font-size:12px;color:var(--text-secondary);">Revenue</div>
             </div>
             <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
                 <div style="font-size:28px;font-weight:700;color:var(--pending-color);">${pendingOrders}</div>
-                <div style="font-size:12px;color:var(--text-secondary);">قيد الانتظار</div>
+                <div style="font-size:12px;color:var(--text-secondary);">Pending</div>
             </div>
             <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
                 <div style="font-size:28px;font-weight:700;color:var(--success);">${confirmedOrders}</div>
-                <div style="font-size:12px;color:var(--text-secondary);">مؤكدة</div>
+                <div style="font-size:12px;color:var(--text-secondary);">Confirmed</div>
             </div>
             <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
                 <div style="font-size:28px;font-weight:700;color:var(--danger);">${rejectedOrders}</div>
-                <div style="font-size:12px;color:var(--text-secondary);">مرفوضة</div>
+                <div style="font-size:12px;color:var(--text-secondary);">Rejected</div>
             </div>
             <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
                 <div style="font-size:28px;font-weight:700;color:var(--text);">${totalUsers}</div>
-                <div style="font-size:12px;color:var(--text-secondary);">المستخدمين</div>
+                <div style="font-size:12px;color:var(--text-secondary);">Users</div>
             </div>
         </div>`;
     } catch (error) {
         console.error('Error loading advanced stats:', error);
-        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">فشل تحميل الإحصائيات: ${error.message}</div>`;
+        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load statistics: ${error.message}</div>`;
     }
 }
-window.refreshAdvancedStats = function() { loadAdvancedStats(); showToast('🔄 تم تحديث الإحصائيات المتقدمة', 'success'); };
+window.refreshAdvancedStats = function() { loadAdvancedStats(); showToast('🔄 Advanced stats refreshed', 'success'); };
 async function loadAuditLogs() {
     if (!currentUser || !isAdminCached) { console.log('ℹ️ loadAuditLogs skipped (not admin)'); return; }
     const container = document.getElementById('auditLogsContainer');
     if (!container) return;
-    container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> جاري تحميل السجلات...</div>`;
+    container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading logs...</div>`;
     try {
         const logsRef = collection(db, 'auditLogs');
         const q = query(logsRef, orderBy('timestamp', 'desc'));
         const snapshot = await getDocs(q);
         if (snapshot.empty) {
-            container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">📭 لا توجد سجلات تدقيق</div>`;
+            container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">📭 No audit logs</div>`;
             return;
         }
         let html = `<div style="display:flex;flex-direction:column;gap:6px;max-height:400px;overflow-y:auto;">`;
@@ -4326,13 +4404,13 @@ async function loadAuditLogs() {
         container.innerHTML = html;
     } catch (error) {
         console.error('Error loading audit logs:', error);
-        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">فشل تحميل السجلات: ${error.message}</div>`;
+        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load logs: ${error.message}</div>`;
     }
 }
 window.loadAuditLogs = loadAuditLogs;
 
 // ============================================================
-// 29. دوال clearOrderHistory, renderHistoryFull, filterOrders
+// 30. Clear Order History, Render History, Filter Orders
 // ============================================================
 
 window.clearOrderHistory = async function() {
@@ -4402,7 +4480,7 @@ window.filterOrders = function(filter) {
 };
 
 // ============================================================
-// 30. Cookie Consent Functions
+// 31. Cookie Consent Functions
 // ============================================================
 
 let cookieConsentStatus = localStorage.getItem('cookieConsent');
@@ -4412,7 +4490,7 @@ window.acceptCookies = function() {
     localStorage.setItem('analyticsConsent', 'true');
     document.getElementById('cookieConsent').classList.remove('show');
     enableAnalytics();
-    showToast('✅ تم قبول ملفات تعريف الارتباط', 'success');
+    showToast('✅ Cookies accepted', 'success');
 };
 
 window.rejectCookies = function() {
@@ -4420,7 +4498,7 @@ window.rejectCookies = function() {
     localStorage.setItem('analyticsConsent', 'false');
     document.getElementById('cookieConsent').classList.remove('show');
     disableAnalytics();
-    showToast('❌ تم رفض ملفات تعريف الارتباط', 'info');
+    showToast('❌ Cookies rejected', 'info');
 };
 
 window.openCookieSettings = function() {
@@ -4459,7 +4537,7 @@ window.saveCookieSettings = function() {
     
     document.getElementById('cookieConsent').classList.remove('show');
     closeCookieSettings();
-    showToast('✅ تم حفظ الإعدادات', 'success');
+    showToast('✅ Settings saved', 'success');
 };
 
 function enableAnalytics() {
@@ -4532,7 +4610,7 @@ window.disableAnalytics = disableAnalytics;
 window.checkCookieConsent = checkCookieConsent;
 
 // ============================================================
-// 31. دوال الإضافية (Telegram Banner, Social Proof, Upload)
+// 32. Telegram Banner, Social Proof, Upload
 // ============================================================
 
 function showTelegramBanner() {
@@ -4567,18 +4645,18 @@ function closeTelegramBanner() {
     if (banner) { banner.classList.add('hidden'); localStorage.setItem('telegram_banner_hidden', 'true'); setTimeout(() => { localStorage.removeItem('telegram_banner_hidden'); if (!userProfile.telegramChatId) { showTelegramBanner(); } }, 600000); }
 }
 function showTelegramBannerAgain() { localStorage.removeItem('telegram_banner_hidden'); showTelegramBanner(); }
-function addBannerAdminControls() { /* سيتم تنفيذها في الأدمن */ }
+function addBannerAdminControls() { /* Will be implemented in admin */ }
 function adminToggleBanner(show) {
     if (show) { localStorage.setItem('telegram_banner_admin_disabled', 'false'); } else { localStorage.setItem('telegram_banner_admin_disabled', 'true'); const banner = document.getElementById('telegramBanner'); if (banner) banner.classList.add('hidden'); }
     addBannerAdminControls();
     if (show) { localStorage.removeItem('telegram_banner_hidden'); setTimeout(showTelegramBanner, 300); }
 }
 function resetBannerForAll() { localStorage.removeItem('telegram_banner_admin_disabled'); localStorage.removeItem('telegram_banner_hidden'); showToast('🔄 Banner reset', 'info'); addBannerAdminControls(); setTimeout(showTelegramBanner, 300); }
-function startSocialProof() { /* للاستخدام المستقبلي */ }
-function triggerSocialProofOnOrder(userName, productNames) { /* للاستخدام المستقبلي */ }
+function startSocialProof() { /* For future use */ }
+function triggerSocialProofOnOrder(userName, productNames) { /* For future use */ }
 
 // ============================================================
-// 32. رفع الصور إلى Cloudinary
+// 33. Cloudinary Upload
 // ============================================================
 
 const CLOUDINARY_CLOUD_NAME = 'y14bgb5s';
@@ -4596,7 +4674,7 @@ async function uploadToCloudinary(file) {
 }
 
 // ============================================================
-// 33. دوال التوجيه والإصلاح
+// 34. Direction Fix
 // ============================================================
 
 function fixDirection() {
@@ -4608,7 +4686,7 @@ function fixDirection() {
 window.fixHeaderAndModals = fixDirection;
 
 // ============================================================
-// 34. نسخ الترخيص والتصدير
+// 35. Copy Licence & Export
 // ============================================================
 
 window.copyLicenceCode = function(code) {
@@ -4666,13 +4744,14 @@ window.exportOrders = function() {
         a.download = `orders_${new Date().toISOString().slice(0,10)}.csv`;
         a.click();
         URL.revokeObjectURL(url);
-        showToast('📥 تم تصدير الطلبات!', 'success');
-    } catch (error) { showToast('❌ فشل التصدير', 'error'); }
+        showToast('📥 Orders exported!', 'success');
+    } catch (error) { showToast('❌ Export failed', 'error'); }
 };
 
 // ============================================================
-// 35. حالة المصادقة (مع دعم Google Popup)
+// 36. Auth State Listener
 // ============================================================
+
 onAuthStateChanged(auth, async (user) => {
     currentUser = user;
     const authSection = document.getElementById('authSection');
@@ -4733,7 +4812,7 @@ onAuthStateChanged(auth, async (user) => {
         startSocialProof();
         setTimeout(window.ensureAdminPanel, 2000);
         setTimeout(checkCookieConsent, 1000);
-        updateLoadingText('✅ جاهز!');
+        updateLoadingText('✅ Ready!');
 
         window.showMainApp();
         hideLoadingScreen();
@@ -4753,7 +4832,7 @@ onAuthStateChanged(auth, async (user) => {
         loadMarqueeSettings();
         startSocialProof();
         setTimeout(checkCookieConsent, 1000);
-        updateLoadingText('👋 تسجيل الدخول');
+        updateLoadingText('👋 Please login');
 
         setTimeout(() => {
             hideLoadingScreen();
@@ -4764,8 +4843,9 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// 36. استدعاء تلقائي للتأكد من ظهور لوحة الأدمن وحل مشكلة التحميل
+// 37. Auto-check Admin Panel
 // ============================================================
+
 setInterval(() => {
     if (currentUser) {
         const mainApp = document.getElementById('mainApp');
@@ -4786,22 +4866,23 @@ setInterval(() => {
 }, 5000);
 
 // ============================================================
-// 37. التهيئة (Init) - مع Popup (لا نحتاج لمعالجة Redirect)
+// 38. Init
 // ============================================================
+
 async function init() {
     console.log('🚀 Initializing ZI Store...');
 
     const authSection = document.getElementById('authSection');
     if (authSection) authSection.style.display = 'none';
 
-    updateLoadingText('جاري التحميل...');
+    updateLoadingText('Loading...');
 
     try {
-        updateLoadingText('جاري تحميل المنتجات...');
+        updateLoadingText('Loading products...');
         const productsFromFirestore = await loadProductsFromFirestore();
         products = productsFromFirestore.length > 0 ? productsFromFirestore : fallbackProducts;
 
-        updateLoadingText('جاري تهيئة التطبيق...');
+        updateLoadingText('Initializing app...');
         startProductsRealtimeListener();
         await loadUserData();
         renderProducts(products, false);
@@ -4817,7 +4898,7 @@ async function init() {
         loadMarqueeSettings();
         setInterval(fetchCryptoPrices, 60000);
 
-        updateLoadingText('✅ جاهز!');
+        updateLoadingText('✅ Ready!');
         console.log('✅ ZI Store ready with all features!');
         setTimeout(fixDirection, 100);
         setTimeout(window.ensureAdminPanel, 3000);
@@ -4841,18 +4922,18 @@ async function init() {
                 }
                 const text = document.getElementById('loadingStatus');
                 if (text) {
-                    text.textContent = 'تم التحميل بنجاح! 🎉';
+                    text.textContent = 'Ready! 🎉';
                     text.style.webkitTextFillColor = 'var(--success)';
                 }
                 const subtext = document.querySelector('.loader-subtext');
-                if (subtext) subtext.textContent = 'يمكنك البدء الآن';
+                if (subtext) subtext.textContent = 'You can start now';
                 document.querySelectorAll('.spinner-ring').forEach(el => el.style.display = 'none');
             }
         }, 2000);
 
     } catch (error) {
         console.error('❌ Initialization error:', error);
-        updateLoadingText('⚠️ حدث خطأ، حاول تحديث الصفحة');
+        updateLoadingText('⚠️ Error occurred, please refresh');
         showToast('⚠️ Error loading store. Please refresh.', 'error');
         if (authSection) authSection.style.display = 'block';
         document.getElementById('mainApp').style.display = 'none';
@@ -4861,7 +4942,7 @@ async function init() {
 }
 
 // ============================================================
-// 38. تبديل الثيم
+// 39. Theme Toggle
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -4886,7 +4967,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================================
-// 39. تصدير جميع الدوال للنطاق العام
+// 40. Export all functions to global scope
 // ============================================================
 
 window.toggleLicencesList = toggleLicencesList;
@@ -5030,22 +5111,9 @@ window.selectQuantityOption = selectQuantityOption;
 window.loginWithGoogle = loginWithGoogle;
 
 // ============================================================
-// 40. بدء التطبيق
+// 41. Support Functions
 // ============================================================
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-} else {
-    init();
-}
-
-// ============================================================
-// 41. دوال الدعم الفني (Support) - إضافة جديدة
-// ============================================================
-
-/**
- * تبديل قائمة الدعم العائمة (فتح/إغلاق)
- */
 window.toggleSupportMenu = function() {
     const float = document.getElementById('supportFloat');
     if (float) {
@@ -5053,25 +5121,18 @@ window.toggleSupportMenu = function() {
     }
 };
 
-/**
- * فتح مودال الدعم الفني
- */
 window.openSupportModal = function() {
     const modal = document.getElementById('supportModal');
     if (modal) {
         modal.classList.add('open');
         document.body.style.overflow = 'hidden';
     }
-    // إغلاق القائمة العائمة إذا كانت مفتوحة
     const float = document.getElementById('supportFloat');
     if (float) {
         float.classList.remove('open');
     }
 };
 
-/**
- * إغلاق مودال الدعم الفني
- */
 window.closeSupportModal = function() {
     const modal = document.getElementById('supportModal');
     if (modal) {
@@ -5080,44 +5141,30 @@ window.closeSupportModal = function() {
     }
 };
 
-/**
- * فتح الدعم عبر واتساب
- */
 window.openWhatsAppSupport = function() {
-    const phone = '1234567890'; // غيّر إلى رقم هاتفك
-    const message = 'مرحباً، أحتاج مساعدة';
+    const phone = '1234567890';
+    const message = 'Hi, I need help';
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
 };
 
-/**
- * فتح الدعم عبر تيليجرام
- */
 window.openTelegramSupport = function() {
-    const username = 'Mitalica69'; // غيّر إلى اسم المستخدم الخاص بك
-    const message = 'مرحباً، أحتاج مساعدة';
+    const username = 'Mitalica69';
+    const message = 'Hi, I need help';
     window.open(`https://t.me/${username}?start=support`, '_blank');
 };
 
-/**
- * فتح الدعم عبر البريد الإلكتروني
- */
 window.openEmailSupport = function() {
     const email = 'support@zi-store.online';
-    const subject = 'طلب مساعدة';
+    const subject = 'Help Request';
     window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}`;
 };
 
-/**
- * فتح الدعم عبر الهاتف
- */
 window.openPhoneSupport = function() {
-    const phone = '1234567890'; // غيّر إلى رقم هاتفك
+    const phone = '1234567890';
     window.location.href = `tel:${phone}`;
 };
 
-// ============================================================
-// إغلاق القائمة العائمة عند النقر خارجها
-// ============================================================
+// Close floating menu on outside click
 document.addEventListener('click', function(e) {
     const float = document.getElementById('supportFloat');
     if (float) {
@@ -5128,9 +5175,7 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// ============================================================
-// إغلاق مودال الدعم عند الضغط على ESC
-// ============================================================
+// Close support modal on ESC
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         const modal = document.getElementById('supportModal');
@@ -5145,6 +5190,16 @@ document.addEventListener('keydown', function(e) {
 });
 
 console.log('✅ Support system loaded successfully!');
+
+// ============================================================
+// 42. Start App
+// ============================================================
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
 
 // ============================================================
 // END OF SCRIPT.JS
