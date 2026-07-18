@@ -249,8 +249,8 @@ input, select, textarea {
 }
 
 .logo .logo-icon {
-    width: 28px;          /* اضبط الحجم حسب رغبتك */
-    height: 28px;
+    width: 32px;          /* اضبط الحجم حسب رغبتك */
+    height: 32px;
     object-fit: contain;
     border-radius: 6px;   /* اختياري: لجعل الزوايا دائرية قليلاً */
     display: block;
