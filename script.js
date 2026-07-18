@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - الإصدار الكامل مع تسجيل الدخول عبر Google (redirect)
+// SCRIPT.JS - ZI Store - الإصدار الكامل مع تسجيل الدخول عبر Google (redirect) + إصلاح ظهور الموقع بعد الخروج
 // ============================================================
 
 // ============================================================
@@ -136,7 +136,7 @@ let featuredSettings = {
     selectedProductIds: []
 };
 
-// ملف المستخدم (تم إضافة photoURL)
+// ملف المستخدم
 let userProfile = {
     name: '',
     email: '',
@@ -769,7 +769,6 @@ window.loginWithGoogle = function() {
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
     
-    // استخدام redirect بدلاً من popup لضمان عمل أفضل على الهواتف
     signInWithRedirect(auth, provider).catch((error) => {
         console.error('Google redirect error:', error);
         if (btn) btn.classList.remove('loading');
@@ -783,11 +782,9 @@ async function handleUserAfterGoogleLogin(user) {
     const btn = document.getElementById('googleLoginBtn');
     if (btn) btn.classList.remove('loading');
     
-    // حفظ صورة الملف الشخصي
     const photoURL = user.photoURL || '';
     userProfile.photoURL = photoURL;
 
-    // تحديث بيانات المستخدم في Firestore
     const userRef = doc(db, 'users', user.uid);
     await setDoc(userRef, {
         photoURL: photoURL,
@@ -796,17 +793,14 @@ async function handleUserAfterGoogleLogin(user) {
         updatedAt: serverTimestamp()
     }, { merge: true });
 
-    // تعيين المستخدم الحالي
     currentUser = user;
 
     showToast('👋 Welcome via Google!', 'success');
     
     await refreshAdminStatus();
 
-    // دمج بيانات المستخدم الضيف إن وجدت
     await mergeGuestData(user.uid);
 
-    // متابعة نفس تدفق تسجيل الدخول
     setTimeout(() => {
         document.getElementById('authSection').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
@@ -921,6 +915,7 @@ window.logoutUser = async function() {
         if (unsubscribeAdmin) { unsubscribeAdmin(); unsubscribeAdmin = null; }
         if (unsubscribeUser) { unsubscribeUser(); unsubscribeUser = null; }
         pendingCount = 0; unreadNotifications = 0;
+        // إظهار شاشة تسجيل الدخول وإخفاء التطبيق
         document.getElementById('authSection').style.display = 'block';
         document.getElementById('mainApp').style.display = 'none';
         showToast('👋 Logged out', 'info');
@@ -4692,6 +4687,7 @@ onAuthStateChanged(auth, async (user) => {
 
     } else {
         isAdminCached = false;
+        // إظهار شاشة تسجيل الدخول وإخفاء التطبيق
         if (authSection) authSection.style.display = 'block';
         if (mainApp) mainApp.style.display = 'none';
 
@@ -4719,23 +4715,35 @@ onAuthStateChanged(auth, async (user) => {
 // 36. استدعاء تلقائي للتأكد من ظهور لوحة الأدمن وحل مشكلة التحميل
 // ============================================================
 setInterval(() => {
-    if (currentUser && !isAdminCached) {
-        window.ensureAdminPanel();
-    }
-    const mainApp = document.getElementById('mainApp');
-    if (mainApp && mainApp.style.display === 'none') {
-        mainApp.style.display = 'block';
-        console.log('✅ Main app forced visible');
+    // إظهار التطبيق فقط إذا كان هناك مستخدم مسجل
+    if (currentUser) {
+        const mainApp = document.getElementById('mainApp');
+        if (mainApp && mainApp.style.display === 'none') {
+            mainApp.style.display = 'block';
+            console.log('✅ Main app forced visible (user logged in)');
+        }
+        // التحقق من الأدمن
+        if (!isAdminCached) {
+            window.ensureAdminPanel();
+        }
+    } else {
+        // إذا لم يكن هناك مستخدم، تأكد من إخفاء التطبيق
+        const mainApp = document.getElementById('mainApp');
+        if (mainApp && mainApp.style.display !== 'none') {
+            mainApp.style.display = 'none';
+            console.log('✅ Main app hidden (no user)');
+        }
     }
 }, 5000);
 
 // ============================================================
-// 37. التهيئة (Init) - مع معالجة Redirect
+// 37. التهيئة (Init) - مع معالجة Redirect وإظهار التطبيق فقط للمستخدم
 // ============================================================
 async function init() {
     console.log('🚀 Initializing ZI Store...');
 
     const authSection = document.getElementById('authSection');
+    // في البداية نخفي authSection حتى يتحدد المستخدم
     if (authSection) authSection.style.display = 'none';
 
     updateLoadingText('جاري التحميل...');
@@ -4744,11 +4752,9 @@ async function init() {
     try {
         const redirectResult = await getRedirectResult(auth);
         if (redirectResult) {
-            // تم تسجيل الدخول بنجاح عبر redirect
             const user = redirectResult.user;
             console.log('✅ Redirect login successful:', user.email);
             await handleUserAfterGoogleLogin(user);
-            // نمنع الاستمرار في التهيئة العادية لأن handleUserAfterGoogleLogin ستقوم بكل شيء
             return;
         }
     } catch (error) {
@@ -4790,7 +4796,14 @@ async function init() {
         setTimeout(window.ensureAdminPanel, 3000);
         setTimeout(checkCookieConsent, 1500);
 
-        window.showMainApp();
+        // إظهار التطبيق فقط إذا كان هناك مستخدم مسجل
+        if (auth.currentUser) {
+            window.showMainApp();
+        } else {
+            // إظهار شاشة تسجيل الدخول
+            if (authSection) authSection.style.display = 'block';
+            document.getElementById('mainApp').style.display = 'none';
+        }
         hideLoadingScreen();
 
         setTimeout(function() {
@@ -4816,7 +4829,9 @@ async function init() {
         console.error('❌ Initialization error:', error);
         updateLoadingText('⚠️ حدث خطأ، حاول تحديث الصفحة');
         showToast('⚠️ Error loading store. Please refresh.', 'error');
-        window.showMainApp();
+        // في حالة الخطأ نعرض شاشة تسجيل الدخول
+        if (authSection) authSection.style.display = 'block';
+        document.getElementById('mainApp').style.display = 'none';
         hideLoadingScreen();
     }
 }
