@@ -240,14 +240,22 @@ input, select, textarea {
 }
 
 .logo {
-    font-size: 20px;
-    font-weight: 800;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
+    font-size: 20px;
+    font-weight: 800;
     color: var(--text);
 }
-.logo i { color: var(--primary); font-size: 22px; }
+
+.logo .logo-icon {
+    width: 28px;          /* اضبط الحجم حسب رغبتك */
+    height: 28px;
+    object-fit: contain;
+    border-radius: 6px;   /* اختياري: لجعل الزوايا دائرية قليلاً */
+    display: block;
+}
+
 .logo span {
     background: var(--primary-gradient);
     -webkit-background-clip: text;
