@@ -57,7 +57,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const firebaseConfig = {
     apiKey: "AIzaSyBwDTCxzd6aoue-NTLI2u4ouK-M37alwUw",
-    authDomain: "zi-script-store.firebaseapp.com",
+    authDomain: "auth.zi-store.online",
     projectId: "zi-script-store",
     storageBucket: "zi-script-store.firebasestorage.app",
     messagingSenderId: "925432917209",
@@ -5038,6 +5038,113 @@ if (document.readyState === 'loading') {
 } else {
     init();
 }
+
+// ============================================================
+// 41. دوال الدعم الفني (Support) - إضافة جديدة
+// ============================================================
+
+/**
+ * تبديل قائمة الدعم العائمة (فتح/إغلاق)
+ */
+window.toggleSupportMenu = function() {
+    const float = document.getElementById('supportFloat');
+    if (float) {
+        float.classList.toggle('open');
+    }
+};
+
+/**
+ * فتح مودال الدعم الفني
+ */
+window.openSupportModal = function() {
+    const modal = document.getElementById('supportModal');
+    if (modal) {
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    // إغلاق القائمة العائمة إذا كانت مفتوحة
+    const float = document.getElementById('supportFloat');
+    if (float) {
+        float.classList.remove('open');
+    }
+};
+
+/**
+ * إغلاق مودال الدعم الفني
+ */
+window.closeSupportModal = function() {
+    const modal = document.getElementById('supportModal');
+    if (modal) {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+};
+
+/**
+ * فتح الدعم عبر واتساب
+ */
+window.openWhatsAppSupport = function() {
+    const phone = '1234567890'; // غيّر إلى رقم هاتفك
+    const message = 'مرحباً، أحتاج مساعدة';
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
+};
+
+/**
+ * فتح الدعم عبر تيليجرام
+ */
+window.openTelegramSupport = function() {
+    const username = 'Mitalica69'; // غيّر إلى اسم المستخدم الخاص بك
+    const message = 'مرحباً، أحتاج مساعدة';
+    window.open(`https://t.me/${username}?start=support`, '_blank');
+};
+
+/**
+ * فتح الدعم عبر البريد الإلكتروني
+ */
+window.openEmailSupport = function() {
+    const email = 'support@zi-store.online';
+    const subject = 'طلب مساعدة';
+    window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}`;
+};
+
+/**
+ * فتح الدعم عبر الهاتف
+ */
+window.openPhoneSupport = function() {
+    const phone = '1234567890'; // غيّر إلى رقم هاتفك
+    window.location.href = `tel:${phone}`;
+};
+
+// ============================================================
+// إغلاق القائمة العائمة عند النقر خارجها
+// ============================================================
+document.addEventListener('click', function(e) {
+    const float = document.getElementById('supportFloat');
+    if (float) {
+        const isClickInside = float.contains(e.target);
+        if (!isClickInside && float.classList.contains('open')) {
+            float.classList.remove('open');
+        }
+    }
+});
+
+// ============================================================
+// إغلاق مودال الدعم عند الضغط على ESC
+// ============================================================
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('supportModal');
+        if (modal && modal.classList.contains('open')) {
+            closeSupportModal();
+        }
+        const float = document.getElementById('supportFloat');
+        if (float && float.classList.contains('open')) {
+            float.classList.remove('open');
+        }
+    }
+});
+
+console.log('✅ Support system loaded successfully!');
 
 // ============================================================
 // END OF SCRIPT.JS
