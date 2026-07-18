@@ -3944,6 +3944,91 @@ input, select, textarea {
 .preview-quantity-option.selected .qty-check {
     display: block;
 }
+
+/* ============================================
+   زر اختيار اللغة
+   ============================================ */
+.language-selector {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    user-select: none;
+    position: relative;
+}
+.language-selector:hover {
+    border-color: var(--primary);
+    background: var(--bg);
+}
+.language-selector .fa-chevron-down {
+    font-size: 10px;
+    opacity: 0.5;
+    transition: var(--transition);
+}
+.language-selector.open .fa-chevron-down {
+    transform: rotate(180deg);
+}
+
+/* قائمة اللغات */
+.language-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 6px;
+    min-width: 180px;
+    box-shadow: var(--shadow);
+    z-index: 9999;
+    display: none;
+    animation: fadeIn 0.2s ease;
+}
+.language-menu.open {
+    display: block;
+}
+.language-menu .lang-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: var(--transition);
+    color: var(--text-secondary);
+}
+.language-menu .lang-option:hover {
+    background: var(--bg-secondary);
+    color: var(--text);
+}
+.language-menu .lang-option.active {
+    background: var(--primary-glow);
+    color: var(--text);
+}
+.language-menu .lang-option .lang-flag {
+    font-size: 20px;
+}
+.language-menu .lang-option .lang-name {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 500;
+}
+.language-menu .lang-option .lang-check {
+    display: none;
+    color: var(--success);
+    font-size: 14px;
+}
+.language-menu .lang-option.active .lang-check {
+    display: block;
+}
 /* ============================================
    نهاية الملف - جميع الإصلاحات مطبقة
    ============================================ */
