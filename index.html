@@ -1166,6 +1166,51 @@
     <img src="favicon.png" alt="ZI Store Logo" class="logo-icon" />
     <span>ZI Store</span>
             </div>
+            <!-- زر اختيار اللغة -->
+<div class="language-selector" onclick="showLanguageMenu()">
+    <span id="currentLangFlag">🇬🇧</span>
+    <span id="currentLangCode">EN</span>
+    <i class="fas fa-chevron-down"></i>
+</div>
+
+<!-- قائمة اللغات -->
+<div class="language-menu" id="languageMenu">
+    <div class="lang-option" data-lang="ar" onclick="setLanguage('ar')">
+        <span class="lang-flag">🇸🇦</span>
+        <span class="lang-name">العربية</span>
+        <span class="lang-check"><i class="fas fa-check"></i></span>
+    </div>
+    <div class="lang-option active" data-lang="en" onclick="setLanguage('en')">
+        <span class="lang-flag">🇬🇧</span>
+        <span class="lang-name">English</span>
+        <span class="lang-check"><i class="fas fa-check"></i></span>
+    </div>
+    <div class="lang-option" data-lang="fr" onclick="setLanguage('fr')">
+        <span class="lang-flag">🇫🇷</span>
+        <span class="lang-name">Français</span>
+        <span class="lang-check"><i class="fas fa-check"></i></span>
+    </div>
+    <div class="lang-option" data-lang="it" onclick="setLanguage('it')">
+        <span class="lang-flag">🇮🇹</span>
+        <span class="lang-name">Italiano</span>
+        <span class="lang-check"><i class="fas fa-check"></i></span>
+    </div>
+    <div class="lang-option" data-lang="de" onclick="setLanguage('de')">
+        <span class="lang-flag">🇩🇪</span>
+        <span class="lang-name">Deutsch</span>
+        <span class="lang-check"><i class="fas fa-check"></i></span>
+    </div>
+    <div class="lang-option" data-lang="es" onclick="setLanguage('es')">
+        <span class="lang-flag">🇪🇸</span>
+        <span class="lang-name">Español</span>
+        <span class="lang-check"><i class="fas fa-check"></i></span>
+    </div>
+    <div class="lang-option" data-lang="pt" onclick="setLanguage('pt')">
+        <span class="lang-flag">🇵🇹</span>
+        <span class="lang-name">Português</span>
+        <span class="lang-check"><i class="fas fa-check"></i></span>
+    </div>
+</div>
             <div class="header-actions">
                 <button class="header-btn" onclick="openNotifications()" title="Notifications"><i class="fas fa-bell"></i><span class="badge notification" id="notifBadge">0</span></button>
                 <button class="header-btn" onclick="openWishlistFull()" title="Wishlist"><i class="fas fa-heart"></i><span class="badge heart" id="wishlistBadge">0</span></button>
