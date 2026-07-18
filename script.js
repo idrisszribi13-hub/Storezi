@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - الإصدار الكامل مع تسجيل الدخول عبر Google (redirect) + إصلاح ظهور الموقع بعد الخروج
+// SCRIPT.JS - ZI Store - النسخة الكاملة مع تسجيل الدخول عبر Google (Popup)
 // ============================================================
 
 // ============================================================
@@ -40,8 +40,7 @@ import {
     reauthenticateWithCredential, 
     EmailAuthProvider,
     GoogleAuthProvider,
-    signInWithRedirect,
-    getRedirectResult,
+    signInWithPopup,
     fetchSignInMethodsForEmail
 } from "firebase/auth";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, collection, query, where, getDocs, onSnapshot, addDoc, deleteDoc, orderBy } from "firebase/firestore";
@@ -566,7 +565,7 @@ function generateReferralCode(name, email) {
 }
 
 // ============================================================
-// 4. تحديثات الواجهة الأساسية (مع دعم الصورة)
+// 4. تحديثات الواجهة الأساسية
 // ============================================================
 
 function updateDropdownStats() {
@@ -654,7 +653,7 @@ function updateFullUserMenu() {
 }
 
 // ============================================================
-// 5. دوال المصادقة (مع Google Redirect)
+// 5. دوال المصادقة (مع Google Popup)
 // ============================================================
 
 window.showLogin = function() { document.getElementById('loginContainer').style.display = 'block'; document.getElementById('registerContainer').style.display = 'none'; };
@@ -759,7 +758,7 @@ window.registerUser = async function() {
     } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Registration failed', 'error'); btn.classList.remove('loading'); }
 };
 
-// ***** دالة تسجيل الدخول عبر Google (باستخدام Redirect) *****
+// ***** دالة تسجيل الدخول عبر Google (باستخدام Popup) *****
 window.loginWithGoogle = function() {
     const btn = document.getElementById('googleLoginBtn');
     if (btn) btn.classList.add('loading');
@@ -769,70 +768,87 @@ window.loginWithGoogle = function() {
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
     
-    signInWithRedirect(auth, provider).catch((error) => {
-        console.error('Google redirect error:', error);
-        if (btn) btn.classList.remove('loading');
-        if (errorEl) errorEl.textContent = '❌ ' + error.message;
-        showToast('❌ فشل تسجيل الدخول عبر Google: ' + error.message, 'error');
-    });
+    signInWithPopup(auth, provider)
+        .then(async (result) => {
+            // تسجيل الدخول ناجح
+            const user = result.user;
+            if (btn) btn.classList.remove('loading');
+            
+            // حفظ صورة الملف الشخصي
+            const photoURL = user.photoURL || '';
+            userProfile.photoURL = photoURL;
+
+            // تحديث بيانات المستخدم في Firestore
+            const userRef = doc(db, 'users', user.uid);
+            await setDoc(userRef, {
+                photoURL: photoURL,
+                email: user.email,
+                name: user.displayName || user.email,
+                updatedAt: serverTimestamp()
+            }, { merge: true });
+
+            currentUser = user;
+
+            showToast('👋 Welcome via Google!', 'success');
+            
+            await refreshAdminStatus();
+
+            await mergeGuestData(user.uid);
+
+            setTimeout(() => {
+                document.getElementById('authSection').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'block';
+                loadUserData();
+                updateDropdownStats();
+
+                if (isAdminCached) {
+                    console.log('✅ Admin detected, loading admin features');
+                    loadAdminOrders();
+                    startAdminRealtimeListener();
+                    loadLicences();
+                    setTimeout(() => {
+                        const adminMenuItem = document.getElementById('adminMenuItem');
+                        if (adminMenuItem) {
+                            adminMenuItem.style.display = 'flex';
+                            console.log('✅ Admin menu button displayed');
+                        }
+                        updateFullUserMenu();
+                    }, 200);
+                }
+
+                loadDownloads(); loadNotifications(); fetchCryptoPrices(); updateFullUserMenu(); showTelegramBanner();
+                loadSliderSettings();
+                loadMarqueeSettings();
+                window.ensureAdminPanel();
+                updateLoadingText('✅ جاهز!');
+                window.showMainApp();
+                hideLoadingScreen();
+            }, 500);
+        })
+        .catch((error) => {
+            console.error('Google login error:', error);
+            if (btn) btn.classList.remove('loading');
+            if (error.code === 'auth/account-exists-with-different-credential') {
+                // البريد الإلكتروني مستخدم بالفعل مع مزود آخر
+                const email = error.email;
+                if (errorEl) {
+                    errorEl.textContent = `⚠️ هذا البريد الإلكتروني (${email}) مسجل بطريقة أخرى. يرجى تسجيل الدخول بكلمة المرور أولاً، ثم يمكنك ربط حساب Google من الملف الشخصي.`;
+                }
+                showToast('⚠️ هذا البريد مستخدم بالفعل. يرجى تسجيل الدخول بكلمة المرور.', 'warning');
+                const loginEmail = document.getElementById('loginEmail');
+                if (loginEmail) loginEmail.value = email;
+                document.getElementById('loginContainer').style.display = 'block';
+                document.getElementById('registerContainer').style.display = 'none';
+            } else if (error.code === 'auth/popup-closed-by-user') {
+                showToast('تم إلغاء تسجيل الدخول', 'info');
+            } else {
+                if (errorEl) errorEl.textContent = '❌ ' + error.message;
+                showToast('❌ Google login failed: ' + error.message, 'error');
+            }
+        });
 };
 
-// دالة لمعالجة المستخدم بعد المصادقة (مستخدمة في login و redirect)
-async function handleUserAfterGoogleLogin(user) {
-    const btn = document.getElementById('googleLoginBtn');
-    if (btn) btn.classList.remove('loading');
-    
-    const photoURL = user.photoURL || '';
-    userProfile.photoURL = photoURL;
-
-    const userRef = doc(db, 'users', user.uid);
-    await setDoc(userRef, {
-        photoURL: photoURL,
-        email: user.email,
-        name: user.displayName || user.email,
-        updatedAt: serverTimestamp()
-    }, { merge: true });
-
-    currentUser = user;
-
-    showToast('👋 Welcome via Google!', 'success');
-    
-    await refreshAdminStatus();
-
-    await mergeGuestData(user.uid);
-
-    setTimeout(() => {
-        document.getElementById('authSection').style.display = 'none';
-        document.getElementById('mainApp').style.display = 'block';
-        loadUserData();
-        updateDropdownStats();
-
-        if (isAdminCached) {
-            console.log('✅ Admin detected, loading admin features');
-            loadAdminOrders();
-            startAdminRealtimeListener();
-            loadLicences();
-            setTimeout(() => {
-                const adminMenuItem = document.getElementById('adminMenuItem');
-                if (adminMenuItem) {
-                    adminMenuItem.style.display = 'flex';
-                    console.log('✅ Admin menu button displayed');
-                }
-                updateFullUserMenu();
-            }, 200);
-        }
-
-        loadDownloads(); loadNotifications(); fetchCryptoPrices(); updateFullUserMenu(); showTelegramBanner();
-        loadSliderSettings();
-        loadMarqueeSettings();
-        window.ensureAdminPanel();
-        updateLoadingText('✅ جاهز!');
-        window.showMainApp();
-        hideLoadingScreen();
-    }, 500);
-}
-
-// دالة لدمج بيانات المستخدم الضيف (إن وجدت)
+// دالة لدمج بيانات المستخدم الضيف
 async function mergeGuestData(newUid) {
     const guestWishlist = localStorage.getItem('zi_wishlist_backup');
     const guestCart = localStorage.getItem('zi_cart_backup');
@@ -915,7 +931,6 @@ window.logoutUser = async function() {
         if (unsubscribeAdmin) { unsubscribeAdmin(); unsubscribeAdmin = null; }
         if (unsubscribeUser) { unsubscribeUser(); unsubscribeUser = null; }
         pendingCount = 0; unreadNotifications = 0;
-        // إظهار شاشة تسجيل الدخول وإخفاء التطبيق
         document.getElementById('authSection').style.display = 'block';
         document.getElementById('mainApp').style.display = 'none';
         showToast('👋 Logged out', 'info');
@@ -935,7 +950,7 @@ window.sendForgotPassword = async function() {
 };
 
 // ============================================================
-// 6. المودالات العامة (نفس الشيء)
+// 6. المودالات العامة
 // ============================================================
 
 window.openUserMenuFull = function() { if (!currentUser) { openAuthModal(); return; } document.getElementById('userMenuFull').classList.add('open'); updateFullUserMenu(); document.body.style.overflow = 'hidden'; };
@@ -955,7 +970,7 @@ window.closeNotifications = function() { document.getElementById('notificationsM
 window.openAuthModal = function() { document.getElementById('authSection').scrollIntoView({ behavior: 'smooth' }); };
 
 // ============================================================
-// 7. عرض الملف الشخصي (مع دعم الصورة) - نفس الشيء
+// 7. عرض الملف الشخصي
 // ============================================================
 
 function renderProfileFull() {
@@ -1113,7 +1128,7 @@ window.sendResetLinkInline = async function() { if (!currentUser) return; try { 
 window.changePasswordInline = async function() { if (!currentUser) return; const currentPwd = document.getElementById('currentPasswordInline').value; const newPwd = document.getElementById('newPasswordInline').value; const confirmPwd = document.getElementById('confirmNewPasswordInline').value; const errorEl = document.getElementById('passwordErrorInline'); const successEl = document.getElementById('passwordSuccessInline'); errorEl.textContent = ''; successEl.textContent = ''; if (!currentPwd || !newPwd || !confirmPwd) { errorEl.textContent = 'Please fill all fields'; return; } if (newPwd.length < 6) { errorEl.textContent = 'New password must be at least 6 characters'; return; } if (newPwd !== confirmPwd) { errorEl.textContent = 'Passwords do not match'; return; } try { const credential = EmailAuthProvider.credential(currentUser.email, currentPwd); await reauthenticateWithCredential(currentUser, credential); await updatePassword(currentUser, newPwd); successEl.textContent = '✅ Password changed successfully!'; showToast('✅ Password updated!', 'success'); document.getElementById('currentPasswordInline').value = ''; document.getElementById('newPasswordInline').value = ''; document.getElementById('confirmNewPasswordInline').value = ''; setTimeout(() => { successEl.textContent = ''; }, 3000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); } };
 
 // ============================================================
-// 8. دوال المنتجات (نفس الشيء)
+// 8. دوال المنتجات
 // ============================================================
 
 async function loadProductsFromFirestore() {
@@ -1145,7 +1160,6 @@ function startProductsRealtimeListener() {
     }, (error) => { console.error('Products listener error:', error); products = fallbackProducts; renderProducts(products, false); renderAdminProducts(products); updateStatsFromProducts(products); renderFeaturedProducts(); });
 }
 
-// دالة للحصول على رمز العملة
 function getCurrencySymbol(currency) {
     const symbols = {
         'USD': '$',
@@ -1155,7 +1169,6 @@ function getCurrencySymbol(currency) {
     return symbols[currency] || '$';
 }
 
-// دالة عرض الشارات
 function renderBadges(badges) {
     if (!badges || badges.length === 0) return '';
     const badgeMap = {
@@ -1269,10 +1282,9 @@ function generateRecommendations(productsList) {
 }
 
 // ============================================================
-// 9. دوال العملة ونوع المنتج والكميات والشارات (نفس الشيء)
+// 9. دوال العملة ونوع المنتج والكميات والشارات
 // ============================================================
 
-// اختيار العملة
 window.selectCurrency = function(currency) {
     document.querySelectorAll('.currency-option').forEach(el => {
         el.classList.toggle('active', el.dataset.currency === currency);
@@ -1280,7 +1292,6 @@ window.selectCurrency = function(currency) {
     document.getElementById('productCurrency').value = currency;
 };
 
-// اختيار نوع المنتج
 window.selectProductType = function(type) {
     document.querySelectorAll('.type-option').forEach(el => {
         el.classList.toggle('active', el.dataset.type === type);
@@ -1299,7 +1310,6 @@ window.selectProductType = function(type) {
     }
 };
 
-// إضافة خيار كمية جديد
 window.addQuantityOption = function() {
     const list = document.getElementById('quantityOptionsList');
     const index = document.querySelectorAll('.quantity-option-item').length;
@@ -1318,7 +1328,6 @@ window.addQuantityOption = function() {
     updateQuantityOptionsUI();
 };
 
-// إزالة خيار كمية
 window.removeQuantityOption = function(btn) {
     const item = btn.closest('.quantity-option-item');
     if (document.querySelectorAll('.quantity-option-item').length > 1) {
@@ -1329,7 +1338,6 @@ window.removeQuantityOption = function(btn) {
     }
 };
 
-// تحديث تسميات الخيارات
 function updateQuantityOptionsUI() {
     document.querySelectorAll('.quantity-option-item').forEach((el, i) => {
         const label = el.querySelector('.qty-label');
@@ -1337,7 +1345,6 @@ function updateQuantityOptionsUI() {
     });
 }
 
-// جلب خيارات الكميات ككائن
 function getQuantityOptions() {
     const options = [];
     document.querySelectorAll('.quantity-option-item').forEach(el => {
@@ -1351,7 +1358,6 @@ function getQuantityOptions() {
     return options;
 }
 
-// تعبئة خيارات الكميات في النموذج عند التعديل
 function setQuantityOptions(options) {
     const list = document.getElementById('quantityOptionsList');
     list.innerHTML = '';
@@ -1376,7 +1382,6 @@ function setQuantityOptions(options) {
     updateQuantityOptionsUI();
 }
 
-// تبديل الشارة
 window.toggleBadge = function(badge) {
     const option = document.querySelector(`.badge-option[data-badge="${badge}"]`);
     if (!option) return;
@@ -1384,7 +1389,6 @@ window.toggleBadge = function(badge) {
     updateBadgesInput();
 };
 
-// تحديث حقل الشارات المخفي
 function updateBadgesInput() {
     const selected = [];
     document.querySelectorAll('.badge-option.selected').forEach(el => {
@@ -1393,7 +1397,6 @@ function updateBadgesInput() {
     document.getElementById('productBadges').value = selected.join(',');
 }
 
-// تعبئة الشارات عند التعديل
 function setBadges(badges) {
     document.querySelectorAll('.badge-option').forEach(el => {
         const badge = el.dataset.badge;
@@ -1407,7 +1410,7 @@ function setBadges(badges) {
 }
 
 // ============================================================
-// 10. المنتجات المميزة والسلة والمفضلة (نفس الشيء)
+// 10. المنتجات المميزة والسلة والمفضلة
 // ============================================================
 
 function renderFeaturedProducts() {
@@ -1468,7 +1471,7 @@ async function loadFeaturedSettings() {
 }
 
 // ============================================================
-// 11. إدارة السلة (نفس الشيء)
+// 11. إدارة السلة
 // ============================================================
 
 window.addToCart = async function(productId) {
@@ -1686,7 +1689,7 @@ function createFloatingHearts() {
 }
 
 // ============================================================
-// 12. عرض المنتج (Preview) - نفس الشيء
+// 12. عرض المنتج (Preview)
 // ============================================================
 
 window.openDetails = function(id) {
@@ -1844,7 +1847,6 @@ window.openDetails = function(id) {
     }, 150);
 };
 
-// دالة اختيار كمية في المعاينة
 window.selectQuantityOption = function(element, productId) {
     document.querySelectorAll('.preview-quantity-option').forEach(el => el.classList.remove('selected'));
     element.classList.add('selected');
@@ -1883,7 +1885,7 @@ window.addToCartFromPreview = function() { if (window._currentProduct) { window.
 window.shareFromPreview = function() { if (window._currentProduct) { window.openShareModal(window._currentProduct.id); } };
 
 // ============================================================
-// 13. مودال المشاركة (نفس الشيء)
+// 13. مودال المشاركة
 // ============================================================
 
 window.openShareModal = function(productId) {
@@ -1900,7 +1902,7 @@ window.shareToFacebook = function() { if (!shareProduct) return; window.open(`ht
 window.copyShareLink = function() { const url = window.location.href; navigator.clipboard.writeText(url).then(() => { showToast('✅ Link copied!', 'success'); closeShareModal(); }).catch(() => { const textArea = document.createElement('textarea'); textArea.value = url; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); showToast('✅ Link copied!', 'success'); closeShareModal(); }); };
 
 // ============================================================
-// 14. التصفية والبحث (نفس الشيء)
+// 14. التصفية والبحث
 // ============================================================
 
 window.filterProducts = function(filter) {
@@ -1957,7 +1959,7 @@ function closeSearchResults() { searchResults.classList.remove('active'); search
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeSearchResults(); closeUserMenuFull(); closeCartFull(); closeWishlistFull(); closeProfileFull(); closeHistoryFull(); } });
 
 // ============================================================
-// 15. الدفع (Payment) - نفس الشيء
+// 15. الدفع (Payment)
 // ============================================================
 
 async function fetchCryptoPrices() {
@@ -2107,7 +2109,7 @@ function renderPaymentProducts() {
 }
 
 // ============================================================
-// 16. إرسال الطلب (Order) - نفس الشيء
+// 16. إرسال الطلب (Order)
 // ============================================================
 
 async function sendOrderToTelegram(method, txHash = null) {
@@ -2285,7 +2287,7 @@ window.closePaymentModal = function() { document.getElementById('paymentModal').
 window.checkout = function() { openPaymentModal(); };
 
 // ============================================================
-// 17. دوال تيليجرام (نفس الشيء)
+// 17. دوال تيليجرام
 // ============================================================
 
 async function sendTelegramNotification(chatId, message) {
@@ -2389,7 +2391,7 @@ window.checkTelegramStatus = async function() {
 };
 
 // ============================================================
-// 18. التحميلات والإشعارات (نفس الشيء)
+// 18. التحميلات والإشعارات
 // ============================================================
 
 function loadDownloads() {
@@ -2574,7 +2576,7 @@ window.openCreateNotificationModal = function() { if (!currentUser || !isAdminCa
 window.closeCreateNotificationModal = function() { document.getElementById('createNotificationModal').classList.remove('open'); };
 
 // ============================================================
-// 19. الطلبات والإحالات (نفس الشيء)
+// 19. الطلبات والإحالات
 // ============================================================
 
 window.openRequestsModal = function() {
@@ -2648,7 +2650,7 @@ window.copyReferralCode2 = function() {
 };
 
 // ============================================================
-// 20. لوحة المدير (Admin Panel) - نفس الشيء مع إضافة زر Google
+// 20. لوحة المدير (Admin Panel)
 // ============================================================
 
 window.openAdminPanel = function() {
@@ -2839,7 +2841,7 @@ window.switchAdminTab = function(tab) {
 };
 
 // ============================================================
-// 21. إدارة المنتجات (Admin Products) - نفس الشيء
+// 21. إدارة المنتجات (Admin Products)
 // ============================================================
 
 function renderAdminProducts(productsList) {
@@ -3047,7 +3049,7 @@ async function deleteProductFromFirestore(productId) {
 }
 
 // ============================================================
-// 22. الطلبات (Admin Orders) - نفس الشيء
+// 22. الطلبات (Admin Orders)
 // ============================================================
 
 function startAdminRealtimeListener() {
@@ -3178,7 +3180,7 @@ function updateAdminStats(orders) {
 }
 
 // ============================================================
-// 23. تحديث حالة الطلب (نفس الشيء)
+// 23. تحديث حالة الطلب
 // ============================================================
 
 window.updateOrderStatus = async function(orderId, userId, newStatus) {
@@ -3246,7 +3248,7 @@ window.clearAdminSearch = function() { document.getElementById('adminSearchInput
 window.refreshAdminOrders = function() { loadAdminOrders(); showToast('🔄 Refreshed', 'info'); };
 
 // ============================================================
-// 24. إرسال الترخيص عبر Edge Function (نفس الشيء)
+// 24. إرسال الترخيص عبر Edge Function
 // ============================================================
 
 async function sendLicenceForOrder(orderId, userId) {
@@ -3294,7 +3296,7 @@ async function sendLicenceForOrder(orderId, userId) {
 }
 
 // ============================================================
-// 25. المستخدمين (Admin Users) - نفس الشيء
+// 25. المستخدمين (Admin Users)
 // ============================================================
 
 async function loadAdminUsers() {
@@ -3405,7 +3407,7 @@ window.viewUserDetails = async function(uid) {
 window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
 // ============================================================
-// 26. نظام إدارة التراخيص (مع Supabase) - نفس الشيء
+// 26. نظام إدارة التراخيص (مع Supabase)
 // ============================================================
 
 async function loadLicences() {
@@ -3726,7 +3728,7 @@ async function activateLicence() {
 }
 
 // ============================================================
-// 27. التقييمات (Ratings) - نفس الشيء
+// 27. التقييمات (Ratings)
 // ============================================================
 
 let currentRating = 0;
@@ -3818,7 +3820,7 @@ async function updateProductRatingDisplay(productId) {
 }
 
 // ============================================================
-// 28. دوال السلايدر والماركي والإحصائيات (نفس الشيء)
+// 28. دوال السلايدر والماركي والإحصائيات
 // ============================================================
 
 window.goToSlide = function(index) {
@@ -3877,11 +3879,20 @@ window.saveSliderInterval = async function() {
     showToast('✅ تم حفظ الفاصل الزمني: ' + interval + ' ثانية', 'success');
 };
 
+// ============================================================
+// *** دالة حفظ الشريحة (إضافة أو تعديل) - تم إصلاحها ***
+// ============================================================
 window.saveSlideEdit = async function() {
     const editIndex = document.getElementById('addSlideForm')?.dataset.editIndex;
-    if (editIndex === undefined || editIndex === '') {
-        showToast('❌ لا توجد شريحة للتعديل', 'error');
-        return;
+    const isEdit = editIndex !== undefined && editIndex !== '';
+    
+    // إذا كان تعديلاً، تأكد من وجود الشريحة
+    if (isEdit) {
+        const idx = parseInt(editIndex);
+        if (isNaN(idx) || idx < 0 || idx >= sliderSlides.length) {
+            showToast('❌ الشريحة غير موجودة للتعديل', 'error');
+            return;
+        }
     }
 
     const title = document.getElementById('slideTitle')?.value.trim() || '';
@@ -3911,7 +3922,14 @@ window.saveSlideEdit = async function() {
     }
 
     const fileInput = document.getElementById('slideImageFile');
-    let imageUrl = sliderSlides[parseInt(editIndex)]?.imageUrl || '';
+    let imageUrl = '';
+    
+    // إذا كان تعديلاً، نستخدم الصورة القديمة كقيمة افتراضية
+    if (isEdit) {
+        imageUrl = sliderSlides[parseInt(editIndex)]?.imageUrl || '';
+    }
+    
+    // إذا تم اختيار ملف جديد، نرفعه
     if (fileInput && fileInput.files && fileInput.files[0]) {
         showToast('⏳ جاري رفع الصورة...', 'info');
         const uploadedUrl = await uploadToCloudinary(fileInput.files[0]);
@@ -3921,6 +3939,10 @@ window.saveSlideEdit = async function() {
             showToast('❌ فشل رفع الصورة', 'error');
             return;
         }
+    } else if (!imageUrl) {
+        // لا صورة قديمة ولا جديدة
+        showToast('⚠️ الرجاء اختيار صورة للشريحة', 'warning');
+        return;
     }
 
     const updatedSlide = {
@@ -3935,15 +3957,25 @@ window.saveSlideEdit = async function() {
         updatedAt: new Date().toISOString()
     };
 
-    sliderSlides[parseInt(editIndex)] = updatedSlide;
+    if (isEdit) {
+        // تعديل شريحة موجودة
+        sliderSlides[parseInt(editIndex)] = updatedSlide;
+        showToast('✅ تم تحديث الشريحة بنجاح!', 'success');
+    } else {
+        // إضافة شريحة جديدة
+        sliderSlides.push(updatedSlide);
+        showToast('✅ تم إضافة الشريحة بنجاح!', 'success');
+    }
+    
+    // حذف حالة التعديل من النموذج
     delete document.getElementById('addSlideForm').dataset.editIndex;
-
+    
+    // حفظ البيانات وعرض التحديثات
     await window.saveSliderData();
     renderSlider();
     renderSliderSettingsUI();
     resetSliderTimer();
     window.closeAddSlideModal();
-    showToast('✅ تم تحديث الشريحة بنجاح!', 'success');
 };
 
 window.deleteSlide = function(index) {
@@ -3961,6 +3993,8 @@ window.editSlide = function(index) {
     if (!slide) { showToast('❌ الشريحة غير موجودة', 'error'); return; }
     const modal = document.getElementById('addSlideModal');
     if (!modal) { showToast('❌ المودال غير موجود', 'error'); return; }
+    
+    // تعبئة الحقول
     document.getElementById('slideTitle').value = slide.title || '';
     document.getElementById('slideSubtitle').value = slide.subtitle || '';
     document.getElementById('slideButtonText').value = slide.buttonText || 'Buy Now';
@@ -3973,9 +4007,14 @@ window.editSlide = function(index) {
     } else if (slide.linkType === 'url') {
         document.getElementById('slideCustomUrl').value = slide.customUrl || '';
     }
+    
+    // تعيين حالة التعديل
     document.getElementById('addSlideForm').dataset.editIndex = index;
     document.querySelector('#addSlideModal .modal-title').textContent = '✏️ تعديل الشريحة';
-    document.querySelector('#addSlideForm button[type="button"]').textContent = '💾 حفظ التعديلات';
+    const submitBtn = document.querySelector('#addSlideForm button[type="button"]');
+    if (submitBtn) submitBtn.textContent = '💾 حفظ التعديلات';
+    
+    // إظهار المودال
     modal.classList.add('open');
     document.body.style.overflow = 'hidden';
 };
@@ -3984,21 +4023,32 @@ window.openAddSlideModal = function() {
     updateSlideProductSelect();
     const modal = document.getElementById('addSlideModal');
     if (!modal) { showToast('❌ المودال غير موجود', 'error'); return; }
-    modal.classList.add('open');
-    document.body.style.overflow = 'hidden';
+    
+    // إعادة تعيين النموذج
     const form = document.getElementById('addSlideForm');
     if (form) form.reset();
     const preview = document.getElementById('slideImagePreview');
     if (preview) preview.style.display = 'none';
-    toggleSlideLinkFields();
-    document.querySelector('#addSlideModal .modal-title').textContent = '➕ إضافة شريحة جديدة';
-    document.querySelector('#addSlideForm button[type="button"]').textContent = '➕ إضافة شريحة';
+    
+    // إزالة حالة التعديل
     delete document.getElementById('addSlideForm').dataset.editIndex;
+    document.querySelector('#addSlideModal .modal-title').textContent = '➕ إضافة شريحة جديدة';
+    const submitBtn = document.querySelector('#addSlideForm button[type="button"]');
+    if (submitBtn) submitBtn.textContent = '➕ إضافة شريحة';
+    
+    toggleSlideLinkFields();
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
 };
 
 window.closeAddSlideModal = function() {
     const modal = document.getElementById('addSlideModal');
-    if (modal) { modal.classList.remove('open'); document.body.style.overflow = ''; }
+    if (modal) { 
+        modal.classList.remove('open'); 
+        document.body.style.overflow = ''; 
+        // إعادة تعيين حالة التعديل
+        delete document.getElementById('addSlideForm')?.dataset.editIndex;
+    }
 };
 
 function updateSlideProductSelect() {
@@ -4111,7 +4161,10 @@ function renderSliderSettingsUI() {
     }).join('');
 }
 
+// ============================================================
 // دوال الماركي
+// ============================================================
+
 window.saveMarqueeSettings = async function() {
     const enabledCheckbox = document.getElementById('marqueeEnabled');
     const textArea = document.getElementById('marqueeText');
@@ -4279,7 +4332,7 @@ async function loadAuditLogs() {
 window.loadAuditLogs = loadAuditLogs;
 
 // ============================================================
-// 29. دوال clearOrderHistory, renderHistoryFull, filterOrders (نفس الشيء)
+// 29. دوال clearOrderHistory, renderHistoryFull, filterOrders
 // ============================================================
 
 window.clearOrderHistory = async function() {
@@ -4349,7 +4402,7 @@ window.filterOrders = function(filter) {
 };
 
 // ============================================================
-// 30. Cookie Consent Functions (نفس الشيء)
+// 30. Cookie Consent Functions
 // ============================================================
 
 let cookieConsentStatus = localStorage.getItem('cookieConsent');
@@ -4525,7 +4578,7 @@ function startSocialProof() { /* للاستخدام المستقبلي */ }
 function triggerSocialProofOnOrder(userName, productNames) { /* للاستخدام المستقبلي */ }
 
 // ============================================================
-// 32. رفع الصور إلى Cloudinary (نفس الشيء)
+// 32. رفع الصور إلى Cloudinary
 // ============================================================
 
 const CLOUDINARY_CLOUD_NAME = 'y14bgb5s';
@@ -4543,7 +4596,7 @@ async function uploadToCloudinary(file) {
 }
 
 // ============================================================
-// 33. دوال التوجيه والإصلاح (نفس الشيء)
+// 33. دوال التوجيه والإصلاح
 // ============================================================
 
 function fixDirection() {
@@ -4555,7 +4608,7 @@ function fixDirection() {
 window.fixHeaderAndModals = fixDirection;
 
 // ============================================================
-// 34. نسخ الترخيص والتصدير (نفس الشيء)
+// 34. نسخ الترخيص والتصدير
 // ============================================================
 
 window.copyLicenceCode = function(code) {
@@ -4618,7 +4671,7 @@ window.exportOrders = function() {
 };
 
 // ============================================================
-// 35. حالة المصادقة (مع دعم Google Redirect)
+// 35. حالة المصادقة (مع دعم Google Popup)
 // ============================================================
 onAuthStateChanged(auth, async (user) => {
     currentUser = user;
@@ -4687,7 +4740,6 @@ onAuthStateChanged(auth, async (user) => {
 
     } else {
         isAdminCached = false;
-        // إظهار شاشة تسجيل الدخول وإخفاء التطبيق
         if (authSection) authSection.style.display = 'block';
         if (mainApp) mainApp.style.display = 'none';
 
@@ -4715,19 +4767,16 @@ onAuthStateChanged(auth, async (user) => {
 // 36. استدعاء تلقائي للتأكد من ظهور لوحة الأدمن وحل مشكلة التحميل
 // ============================================================
 setInterval(() => {
-    // إظهار التطبيق فقط إذا كان هناك مستخدم مسجل
     if (currentUser) {
         const mainApp = document.getElementById('mainApp');
         if (mainApp && mainApp.style.display === 'none') {
             mainApp.style.display = 'block';
             console.log('✅ Main app forced visible (user logged in)');
         }
-        // التحقق من الأدمن
         if (!isAdminCached) {
             window.ensureAdminPanel();
         }
     } else {
-        // إذا لم يكن هناك مستخدم، تأكد من إخفاء التطبيق
         const mainApp = document.getElementById('mainApp');
         if (mainApp && mainApp.style.display !== 'none') {
             mainApp.style.display = 'none';
@@ -4737,37 +4786,15 @@ setInterval(() => {
 }, 5000);
 
 // ============================================================
-// 37. التهيئة (Init) - مع معالجة Redirect وإظهار التطبيق فقط للمستخدم
+// 37. التهيئة (Init) - مع Popup (لا نحتاج لمعالجة Redirect)
 // ============================================================
 async function init() {
     console.log('🚀 Initializing ZI Store...');
 
     const authSection = document.getElementById('authSection');
-    // في البداية نخفي authSection حتى يتحدد المستخدم
     if (authSection) authSection.style.display = 'none';
 
     updateLoadingText('جاري التحميل...');
-
-    // ====== معالجة نتيجة تسجيل الدخول عبر Redirect ======
-    try {
-        const redirectResult = await getRedirectResult(auth);
-        if (redirectResult) {
-            const user = redirectResult.user;
-            console.log('✅ Redirect login successful:', user.email);
-            await handleUserAfterGoogleLogin(user);
-            return;
-        }
-    } catch (error) {
-        console.error('❌ Error getting redirect result:', error);
-        if (error.code === 'auth/account-exists-with-different-credential') {
-            showToast('⚠️ هذا البريد مستخدم بالفعل. يرجى تسجيل الدخول بكلمة المرور.', 'warning');
-            document.getElementById('loginEmail').value = error.email || '';
-            document.getElementById('loginContainer').style.display = 'block';
-            document.getElementById('registerContainer').style.display = 'none';
-        } else {
-            showToast('❌ فشل تسجيل الدخول عبر Google: ' + error.message, 'error');
-        }
-    }
 
     try {
         updateLoadingText('جاري تحميل المنتجات...');
@@ -4796,11 +4823,9 @@ async function init() {
         setTimeout(window.ensureAdminPanel, 3000);
         setTimeout(checkCookieConsent, 1500);
 
-        // إظهار التطبيق فقط إذا كان هناك مستخدم مسجل
         if (auth.currentUser) {
             window.showMainApp();
         } else {
-            // إظهار شاشة تسجيل الدخول
             if (authSection) authSection.style.display = 'block';
             document.getElementById('mainApp').style.display = 'none';
         }
@@ -4829,7 +4854,6 @@ async function init() {
         console.error('❌ Initialization error:', error);
         updateLoadingText('⚠️ حدث خطأ، حاول تحديث الصفحة');
         showToast('⚠️ Error loading store. Please refresh.', 'error');
-        // في حالة الخطأ نعرض شاشة تسجيل الدخول
         if (authSection) authSection.style.display = 'block';
         document.getElementById('mainApp').style.display = 'none';
         hideLoadingScreen();
@@ -4837,7 +4861,7 @@ async function init() {
 }
 
 // ============================================================
-// 38. تبديل الثيم (نفس الشيء)
+// 38. تبديل الثيم
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -4862,7 +4886,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================================
-// 39. تصدير جميع الدوال للنطاق العام (مع إضافة loginWithGoogle)
+// 39. تصدير جميع الدوال للنطاق العام
 // ============================================================
 
 window.toggleLicencesList = toggleLicencesList;
