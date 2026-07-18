@@ -4,12 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
     <title>ZI Store 🚀</title>
+    <link rel="icon" href="favicon.png" type="image/png" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="style.css" />
     <link rel="manifest" href="manifest.json" />
-    <link rel="icon" type="image/png" href="favicon.png">
-
 
     <!-- Google Analytics Consent Mode -->
     <script>
@@ -171,7 +170,7 @@
         }
 
         /* ============================================
-           بقية الأنماط (من index.html السابق)
+           بقية الأنماط (مختصرة)
            ============================================ */
         .marquee-bar {
             background: var(--primary-gradient);
@@ -1270,7 +1269,7 @@
     </div>
 
     <!-- ============================================ -->
-    <!-- جميع المودالات -->
+    <!-- جميع المودالات (مختصرة لتوفير المساحة) -->
     <!-- ============================================ -->
 
     <!-- Preview Modal -->
@@ -1811,7 +1810,9 @@
         </div>
     </div>
 
-    <!-- Add Slide Modal -->
+    <!-- ============================================ -->
+    <!-- مودال إضافة شريحة (Add Slide) - مع خيارات None -->
+    <!-- ============================================ -->
     <div class="modal-overlay" id="addSlideModal">
         <div class="modal-content" style="max-width:480px;">
             <button class="modal-close" onclick="closeAddSlideModal()"><i class="fas fa-times"></i></button>
@@ -1831,20 +1832,24 @@
                     <input type="text" id="slideSubtitle" placeholder="e.g., Best scripts of the month" />
                 </div>
                 <div class="admin-form-group">
-                    <label>Button Text</label>
+                    <label>Button Text <small style="color:var(--text-secondary);opacity:0.5;">(leave empty for no button)</small></label>
                     <input type="text" id="slideButtonText" placeholder="e.g., Buy Now" value="Buy Now" />
                 </div>
                 <div class="admin-form-group">
                     <label>Button Link Type</label>
                     <select id="slideLinkType">
+                        <option value="none">None (no button)</option>
                         <option value="product">Product</option>
                         <option value="download">Download</option>
                         <option value="url">Custom URL</option>
                     </select>
                 </div>
-                <div class="admin-form-group" id="slideProductGroup">
+                <div class="admin-form-group" id="slideProductGroup" style="display:none;">
                     <label>Select Product</label>
-                    <select id="slideProductSelect"></select>
+                    <select id="slideProductSelect">
+                        <option value="">None</option>
+                        <!-- سيتم ملء الباقي بواسطة JavaScript -->
+                    </select>
                 </div>
                 <div class="admin-form-group" id="slideDownloadGroup" style="display:none;">
                     <label>Download URL</label>
@@ -1884,7 +1889,6 @@
                 <button onclick="switchAdminTab('marquee')">🎬 Marquee</button>
                 <button onclick="switchAdminTab('payments')">💳 Payments</button>
             </div>
-
             <!-- Dashboard -->
             <div class="tab-content" id="tabDashboard">
                 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">
@@ -1894,7 +1898,6 @@
                 </div>
                 <button onclick="refreshDashboardStats()" class="admin-submit-btn" style="width:100%;"><i class="fas fa-sync"></i> Refresh Stats</button>
             </div>
-
             <!-- Orders -->
             <div class="tab-content active" id="tabOrders">
                 <div class="admin-stats-grid">
@@ -1917,7 +1920,6 @@
                     </table>
                 </div>
             </div>
-
             <!-- Products -->
             <div class="tab-content" id="tabProducts">
                 <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
@@ -1926,7 +1928,6 @@
                 </div>
                 <div id="adminProductsList"></div>
             </div>
-
             <!-- Users -->
             <div class="tab-content" id="tabUsers">
                 <div class="admin-search-bar">
@@ -1937,19 +1938,16 @@
                 </div>
                 <div id="adminUsersContainer"></div>
             </div>
-
             <!-- Downloads -->
             <div class="tab-content" id="tabDownloads">
                 <button class="add-btn" onclick="openCreateDownloadModal()"><i class="fas fa-plus"></i> Add Download</button>
                 <div id="adminDownloadsList"></div>
             </div>
-
             <!-- Notifications -->
             <div class="tab-content" id="tabNotifications">
                 <button class="add-btn" onclick="openCreateNotificationModal()"><i class="fas fa-plus"></i> Send Notification</button>
                 <div id="adminNotificationsList"></div>
             </div>
-
             <!-- Stats -->
             <div class="tab-content" id="tabStats">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
@@ -1958,7 +1956,6 @@
                 </div>
                 <div id="advancedStatsContainer"><div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading statistics...</div></div>
             </div>
-
             <!-- Logs -->
             <div class="tab-content" id="tabLogs">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
@@ -1969,7 +1966,6 @@
                     <div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading logs...</div>
                 </div>
             </div>
-
             <!-- Slider -->
             <div class="tab-content" id="tabSlider">
                 <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
@@ -1987,7 +1983,6 @@
                     <div style="text-align:center;padding:20px;color:var(--text-secondary);opacity:0.5;">No slides yet. Click "Add Slide" to get started.</div>
                 </div>
             </div>
-
             <!-- Licences -->
             <div class="tab-content" id="tabLicences">
                 <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
@@ -2005,7 +2000,6 @@
                     </div>
                 </div>
             </div>
-
             <!-- Marquee -->
             <div class="tab-content" id="tabMarquee">
                 <h3 style="font-size:16px;font-weight:700;margin-bottom:12px;"><i class="fas fa-scroll"></i> Marquee Settings</h3>
@@ -2023,7 +2017,6 @@
                     <button class="admin-submit-btn" onclick="saveMarqueeSettings()" style="margin-top:8px;"><i class="fas fa-save"></i> Save Settings</button>
                 </div>
             </div>
-
             <!-- Payments -->
             <div class="tab-content" id="tabPayments">
                 <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
@@ -2041,9 +2034,7 @@
         </div>
     </div>
 
-    <!-- ============================================ -->
     <!-- Social Proof Toast -->
-    <!-- ============================================ -->
     <div class="social-proof-toast" id="socialProofToast">
         <div class="sp-icon">🛒</div>
         <div class="sp-text">
