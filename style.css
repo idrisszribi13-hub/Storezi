@@ -446,7 +446,7 @@ input, select, textarea {
     flex-shrink: 0;
     width: 100%;
     height: 260px;               /* تكبير الارتفاع */
-    background-size: cover;      /* تغطية الإطار بالكامل */
+    background-size: contain;    /* إظهار الصورة كاملة داخل الإطار بدون قص */
     background-position: center;
     background-repeat: no-repeat;
     background-color: var(--bg-secondary);
@@ -3935,7 +3935,7 @@ input, select, textarea {
 
 .preview-quantity-option.selected .qty-check {
     display: block;
-   }
+}
 /* ============================================
    نهاية الملف - جميع الإصلاحات مطبقة
    ============================================ */
