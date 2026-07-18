@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - الإصدار الكامل مع تسجيل الدخول عبر Google
+// SCRIPT.JS - ZI Store - الإصدار الكامل مع تسجيل الدخول عبر Google (redirect)
 // ============================================================
 
 // ============================================================
@@ -40,8 +40,8 @@ import {
     reauthenticateWithCredential, 
     EmailAuthProvider,
     GoogleAuthProvider,
-    signInWithPopup,
-    linkWithCredential,
+    signInWithRedirect,
+    getRedirectResult,
     fetchSignInMethodsForEmail
 } from "firebase/auth";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, collection, query, where, getDocs, onSnapshot, addDoc, deleteDoc, orderBy } from "firebase/firestore";
@@ -140,7 +140,7 @@ let featuredSettings = {
 let userProfile = {
     name: '',
     email: '',
-    photoURL: '',          // <-- جديد: صورة الملف الشخصي
+    photoURL: '',
     telegram: '',
     telegramChatId: '',
     location: 'Tunisia',
@@ -334,7 +334,7 @@ function loadFromLocalStorage() {
         const isBannedData = localStorage.getItem('zi_isBanned_backup');
         const lastDailyRewardData = localStorage.getItem('zi_lastDailyReward_backup');
         const licencesData = localStorage.getItem('zi_licences_backup');
-        const photoURLData = localStorage.getItem('zi_photoURL_backup'); // جديد
+        const photoURLData = localStorage.getItem('zi_photoURL_backup');
 
         wishlist = wishlistData ? JSON.parse(wishlistData) : [];
         cart = cartData ? JSON.parse(cartData) : [];
@@ -347,7 +347,7 @@ function loadFromLocalStorage() {
         userProfile.isBanned = isBannedData ? JSON.parse(isBannedData) : false;
         userProfile.lastDailyReward = lastDailyRewardData ? parseInt(lastDailyRewardData) : 0;
         userProfile.licences = licencesData ? JSON.parse(licencesData) : [];
-        userProfile.photoURL = photoURLData || ''; // جديد
+        userProfile.photoURL = photoURLData || '';
 
         updateWishlistUI();
         updateCartUI();
@@ -400,7 +400,7 @@ function startUserRealtimeListener() {
             userProfile.referralCode = data.referralCode || '';
             userProfile.name = data.name || '';
             userProfile.email = data.email || '';
-            userProfile.photoURL = data.photoURL || ''; // جديد
+            userProfile.photoURL = data.photoURL || '';
             userProfile.telegram = data.telegram || '';
             userProfile.telegramChatId = data.telegramChatId || '';
             userProfile.location = data.location || data.country || 'Tunisia';
@@ -464,7 +464,7 @@ async function loadUserData() {
             userProfile.referralCode = data.referralCode || '';
             userProfile.name = data.name || '';
             userProfile.email = data.email || '';
-            userProfile.photoURL = data.photoURL || ''; // جديد
+            userProfile.photoURL = data.photoURL || '';
             userProfile.telegram = data.telegram || '';
             userProfile.telegramChatId = data.telegramChatId || '';
             userProfile.location = data.location || data.country || 'Tunisia';
@@ -513,7 +513,7 @@ async function saveUserData(silent = false) {
         localStorage.setItem('zi_isBanned_backup', JSON.stringify(userProfile.isBanned));
         localStorage.setItem('zi_lastDailyReward_backup', JSON.stringify(userProfile.lastDailyReward || 0));
         localStorage.setItem('zi_licences_backup', JSON.stringify(userProfile.licences || []));
-        localStorage.setItem('zi_photoURL_backup', userProfile.photoURL || ''); // جديد
+        localStorage.setItem('zi_photoURL_backup', userProfile.photoURL || '');
         return true;
     }
     const uid = currentUser.uid;
@@ -529,7 +529,7 @@ async function saveUserData(silent = false) {
             referralRewards: userProfile.referralRewards,
             rp: userProfile.rp,
             referralCode: userProfile.referralCode,
-            photoURL: userProfile.photoURL || '', // جديد
+            photoURL: userProfile.photoURL || '',
             telegram: userProfile.telegram,
             telegramChatId: userProfile.telegramChatId,
             location: userProfile.location,
@@ -654,7 +654,7 @@ function updateFullUserMenu() {
 }
 
 // ============================================================
-// 5. دوال المصادقة (مع Google)
+// 5. دوال المصادقة (مع Google Redirect)
 // ============================================================
 
 window.showLogin = function() { document.getElementById('loginContainer').style.display = 'block'; document.getElementById('registerContainer').style.display = 'none'; };
@@ -759,127 +759,93 @@ window.registerUser = async function() {
     } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Registration failed', 'error'); btn.classList.remove('loading'); }
 };
 
-// ***** دالة تسجيل الدخول عبر Google (جديد) *****
-window.loginWithGoogle = async function() {
+// ***** دالة تسجيل الدخول عبر Google (باستخدام Redirect) *****
+window.loginWithGoogle = function() {
     const btn = document.getElementById('googleLoginBtn');
     if (btn) btn.classList.add('loading');
     const errorEl = document.getElementById('loginError');
-    const successEl = document.getElementById('loginSuccess');
     if (errorEl) errorEl.textContent = '';
-    if (successEl) successEl.textContent = '';
-
+    
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
-
-    try {
-        // محاولة تسجيل الدخول عبر Google
-        const result = await signInWithPopup(auth, provider);
-        const user = result.user;
-
-        // التحقق من وجود حساب بنفس البريد الإلكتروني بكلمة مرور
-        const email = user.email;
-        if (email) {
-            const methods = await fetchSignInMethodsForEmail(auth, email);
-            if (methods.includes('password')) {
-                // يوجد حساب بكلمة مرور، نعرض رسالة للمستخدم لربط الحساب
-                // نستمر في تسجيل الدخول لكن نعطي تحذيراً
-                showToast('⚠️ هذا البريد موجود مسبقاً بكلمة مرور. سيتم دمج البيانات.', 'warning');
-                // يمكننا هنا ربط الحسابات آلياً إذا كان المستخدم قد سجل دخوله بكلمة مرور في نفس الجلسة
-                // لكننا سنكتفي بالتحذير
-            }
-        }
-
-        // حفظ صورة الملف الشخصي
-        const photoURL = user.photoURL || '';
-        userProfile.photoURL = photoURL;
-
-        // تحديث بيانات المستخدم في Firestore
-        const userRef = doc(db, 'users', user.uid);
-        await setDoc(userRef, {
-            photoURL: photoURL,
-            email: user.email,
-            name: user.displayName || user.email,
-            updatedAt: serverTimestamp()
-        }, { merge: true });
-
-        // تعيين المستخدم الحالي
-        currentUser = user;
-
-        // تحديث الواجهة
-        if (successEl) successEl.textContent = '✅ Login successful via Google!';
-        showToast('👋 Welcome via Google!', 'success');
+    
+    // استخدام redirect بدلاً من popup لضمان عمل أفضل على الهواتف
+    signInWithRedirect(auth, provider).catch((error) => {
+        console.error('Google redirect error:', error);
         if (btn) btn.classList.remove('loading');
-
-        await refreshAdminStatus();
-
-        // بعد تسجيل الدخول، نقوم بدمج بيانات المستخدم الضيف إذا كانت موجودة
-        await mergeGuestData(user.uid);
-
-        // متابعة نفس تدفق تسجيل الدخول
-        setTimeout(() => {
-            document.getElementById('authSection').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'block';
-            loadUserData();
-            updateDropdownStats();
-
-            if (isAdminCached) {
-                console.log('✅ Admin detected, loading admin features');
-                loadAdminOrders();
-                startAdminRealtimeListener();
-                loadLicences();
-                setTimeout(() => {
-                    const adminMenuItem = document.getElementById('adminMenuItem');
-                    if (adminMenuItem) {
-                        adminMenuItem.style.display = 'flex';
-                        console.log('✅ Admin menu button displayed');
-                    }
-                    updateFullUserMenu();
-                }, 200);
-            }
-
-            loadDownloads(); loadNotifications(); fetchCryptoPrices(); updateFullUserMenu(); showTelegramBanner();
-            loadSliderSettings();
-            loadMarqueeSettings();
-            window.ensureAdminPanel();
-            updateLoadingText('✅ جاهز!');
-            window.showMainApp();
-            hideLoadingScreen();
-        }, 500);
-
-    } catch (error) {
-        console.error('Google login error:', error);
-        if (btn) btn.classList.remove('loading');
-        if (error.code === 'auth/account-exists-with-different-credential') {
-            // البريد الإلكتروني مستخدم بالفعل مع مزود آخر
-            const email = error.email;
-            if (errorEl) {
-                errorEl.textContent = `⚠️ هذا البريد الإلكتروني (${email}) مسجل بطريقة أخرى. يرجى تسجيل الدخول بكلمة المرور أولاً، ثم يمكنك ربط حساب Google من الملف الشخصي.`;
-            }
-            showToast('⚠️ هذا البريد مستخدم بالفعل. يرجى تسجيل الدخول بكلمة المرور.', 'warning');
-            // تعبئة حقل البريد في نموذج تسجيل الدخول
-            const loginEmail = document.getElementById('loginEmail');
-            if (loginEmail) loginEmail.value = email;
-            document.getElementById('loginContainer').style.display = 'block';
-            document.getElementById('registerContainer').style.display = 'none';
-        } else if (error.code === 'auth/popup-closed-by-user') {
-            showToast('تم إلغاء تسجيل الدخول', 'info');
-        } else {
-            if (errorEl) errorEl.textContent = '❌ ' + error.message;
-            showToast('❌ Google login failed: ' + error.message, 'error');
-        }
-    }
+        if (errorEl) errorEl.textContent = '❌ ' + error.message;
+        showToast('❌ فشل تسجيل الدخول عبر Google: ' + error.message, 'error');
+    });
 };
+
+// دالة لمعالجة المستخدم بعد المصادقة (مستخدمة في login و redirect)
+async function handleUserAfterGoogleLogin(user) {
+    const btn = document.getElementById('googleLoginBtn');
+    if (btn) btn.classList.remove('loading');
+    
+    // حفظ صورة الملف الشخصي
+    const photoURL = user.photoURL || '';
+    userProfile.photoURL = photoURL;
+
+    // تحديث بيانات المستخدم في Firestore
+    const userRef = doc(db, 'users', user.uid);
+    await setDoc(userRef, {
+        photoURL: photoURL,
+        email: user.email,
+        name: user.displayName || user.email,
+        updatedAt: serverTimestamp()
+    }, { merge: true });
+
+    // تعيين المستخدم الحالي
+    currentUser = user;
+
+    showToast('👋 Welcome via Google!', 'success');
+    
+    await refreshAdminStatus();
+
+    // دمج بيانات المستخدم الضيف إن وجدت
+    await mergeGuestData(user.uid);
+
+    // متابعة نفس تدفق تسجيل الدخول
+    setTimeout(() => {
+        document.getElementById('authSection').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'block';
+        loadUserData();
+        updateDropdownStats();
+
+        if (isAdminCached) {
+            console.log('✅ Admin detected, loading admin features');
+            loadAdminOrders();
+            startAdminRealtimeListener();
+            loadLicences();
+            setTimeout(() => {
+                const adminMenuItem = document.getElementById('adminMenuItem');
+                if (adminMenuItem) {
+                    adminMenuItem.style.display = 'flex';
+                    console.log('✅ Admin menu button displayed');
+                }
+                updateFullUserMenu();
+            }, 200);
+        }
+
+        loadDownloads(); loadNotifications(); fetchCryptoPrices(); updateFullUserMenu(); showTelegramBanner();
+        loadSliderSettings();
+        loadMarqueeSettings();
+        window.ensureAdminPanel();
+        updateLoadingText('✅ جاهز!');
+        window.showMainApp();
+        hideLoadingScreen();
+    }, 500);
+}
 
 // دالة لدمج بيانات المستخدم الضيف (إن وجدت)
 async function mergeGuestData(newUid) {
-    // نتحقق من وجود بيانات في localStorage
     const guestWishlist = localStorage.getItem('zi_wishlist_backup');
     const guestCart = localStorage.getItem('zi_cart_backup');
     const guestHistory = localStorage.getItem('zi_history_backup');
     const guestRp = localStorage.getItem('zi_rp_backup');
-    // ... إلخ
 
-    if (!guestWishlist && !guestCart) return; // لا توجد بيانات ضيف
+    if (!guestWishlist && !guestCart) return;
 
     try {
         const userRef = doc(db, 'users', newUid);
@@ -889,7 +855,6 @@ async function mergeGuestData(newUid) {
         const userData = userSnap.data();
         let updated = false;
 
-        // دمج المفضلة
         const wishlistGuest = guestWishlist ? JSON.parse(guestWishlist) : [];
         if (wishlistGuest.length > 0) {
             const merged = [...new Set([...userData.wishlist || [], ...wishlistGuest])];
@@ -899,10 +864,8 @@ async function mergeGuestData(newUid) {
             }
         }
 
-        // دمج السلة
         const cartGuest = guestCart ? JSON.parse(guestCart) : [];
         if (cartGuest.length > 0) {
-            // دمج السلة: نضيف العناصر التي لا توجد مسبقاً
             const existingCart = userData.cart || [];
             const mergedCart = [...existingCart];
             cartGuest.forEach(item => {
@@ -916,7 +879,6 @@ async function mergeGuestData(newUid) {
             }
         }
 
-        // دمج الطلبات
         const historyGuest = guestHistory ? JSON.parse(guestHistory) : [];
         if (historyGuest.length > 0) {
             const existingHistory = userData.history || [];
@@ -927,7 +889,6 @@ async function mergeGuestData(newUid) {
             }
         }
 
-        // دمج نقاط RP
         const rpGuest = guestRp ? parseFloat(guestRp) : 0;
         if (rpGuest > 0) {
             const currentRp = userData.rp || 0;
@@ -939,12 +900,10 @@ async function mergeGuestData(newUid) {
 
         if (updated) {
             showToast('🔄 تم دمج بياناتك السابقة بنجاح!', 'success');
-            // حذف البيانات المحلية بعد الدمج
             localStorage.removeItem('zi_wishlist_backup');
             localStorage.removeItem('zi_cart_backup');
             localStorage.removeItem('zi_history_backup');
             localStorage.removeItem('zi_rp_backup');
-            // ... إلخ
         }
     } catch (error) {
         console.error('Error merging guest data:', error);
@@ -1001,7 +960,7 @@ window.closeNotifications = function() { document.getElementById('notificationsM
 window.openAuthModal = function() { document.getElementById('authSection').scrollIntoView({ behavior: 'smooth' }); };
 
 // ============================================================
-// 7. عرض الملف الشخصي (مع دعم الصورة)
+// 7. عرض الملف الشخصي (مع دعم الصورة) - نفس الشيء
 // ============================================================
 
 function renderProfileFull() {
@@ -4664,7 +4623,7 @@ window.exportOrders = function() {
 };
 
 // ============================================================
-// 35. حالة المصادقة (النسخة النهائية مع دعم Google)
+// 35. حالة المصادقة (مع دعم Google Redirect)
 // ============================================================
 onAuthStateChanged(auth, async (user) => {
     currentUser = user;
@@ -4684,7 +4643,6 @@ onAuthStateChanged(auth, async (user) => {
                 showToast('🚫 Your account has been banned.', 'error');
                 return;
             }
-            // تحديث photoURL في userProfile
             if (userSnap.exists()) {
                 const data = userSnap.data();
                 userProfile.photoURL = data.photoURL || user.photoURL || '';
@@ -4772,7 +4730,7 @@ setInterval(() => {
 }, 5000);
 
 // ============================================================
-// 37. التهيئة (Init)
+// 37. التهيئة (Init) - مع معالجة Redirect
 // ============================================================
 async function init() {
     console.log('🚀 Initializing ZI Store...');
@@ -4781,6 +4739,29 @@ async function init() {
     if (authSection) authSection.style.display = 'none';
 
     updateLoadingText('جاري التحميل...');
+
+    // ====== معالجة نتيجة تسجيل الدخول عبر Redirect ======
+    try {
+        const redirectResult = await getRedirectResult(auth);
+        if (redirectResult) {
+            // تم تسجيل الدخول بنجاح عبر redirect
+            const user = redirectResult.user;
+            console.log('✅ Redirect login successful:', user.email);
+            await handleUserAfterGoogleLogin(user);
+            // نمنع الاستمرار في التهيئة العادية لأن handleUserAfterGoogleLogin ستقوم بكل شيء
+            return;
+        }
+    } catch (error) {
+        console.error('❌ Error getting redirect result:', error);
+        if (error.code === 'auth/account-exists-with-different-credential') {
+            showToast('⚠️ هذا البريد مستخدم بالفعل. يرجى تسجيل الدخول بكلمة المرور.', 'warning');
+            document.getElementById('loginEmail').value = error.email || '';
+            document.getElementById('loginContainer').style.display = 'block';
+            document.getElementById('registerContainer').style.display = 'none';
+        } else {
+            showToast('❌ فشل تسجيل الدخول عبر Google: ' + error.message, 'error');
+        }
+    }
 
     try {
         updateLoadingText('جاري تحميل المنتجات...');
@@ -5007,7 +4988,7 @@ window.addQuantityOption = addQuantityOption;
 window.removeQuantityOption = removeQuantityOption;
 window.toggleBadge = toggleBadge;
 window.selectQuantityOption = selectQuantityOption;
-window.loginWithGoogle = loginWithGoogle; // <-- تصدير دالة Google
+window.loginWithGoogle = loginWithGoogle;
 
 // ============================================================
 // 40. بدء التطبيق
