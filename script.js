@@ -5864,5 +5864,103 @@ if (document.readyState === 'loading') {
 }
 
 // ============================================================
+// إصلاح الدوال المفقودة نهائياً - أضف هذا في نهاية الملف
+// ============================================================
+
+// دالة shareFromPreview
+window.shareFromPreview = function() {
+    if (window._currentProduct) {
+        window.openShareModal(window._currentProduct.id);
+    } else {
+        showToast('⚠️ No product to share', 'warning');
+    }
+};
+
+// دالة closePreviewModal
+window.closePreviewModal = function() {
+    const modal = document.getElementById('previewModal');
+    if (modal) {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+};
+
+// دالة addToCartFromPreview
+window.addToCartFromPreview = function() {
+    if (window._currentProduct) {
+        window.addToCart(window._currentProduct.id);
+        window.closePreviewModal();
+    } else {
+        showToast('⚠️ No product to add', 'warning');
+    }
+};
+
+// دالة selectVipPlan
+window.selectVipPlan = function(element, planKey) {
+    document.querySelectorAll('.vip-plan').forEach(el => el.classList.remove('selected'));
+    if (element) {
+        element.classList.add('selected');
+    } else {
+        const plan = document.querySelector(`.vip-plan[data-plan="${planKey}"]`);
+        if (plan) plan.classList.add('selected');
+    }
+    window._selectedVipPlan = planKey;
+};
+
+// دالة addVipPlanToCart
+window.addVipPlanToCart = function(product) {
+    if (!product) {
+        product = window._currentProduct;
+        if (!product) {
+            showToast('⚠️ Product not found', 'warning');
+            return;
+        }
+    }
+    
+    const selectedPlan = window._selectedVipPlan || '1m';
+    const vipPrices = product.vipPrices;
+    if (!vipPrices || !vipPrices[selectedPlan]) {
+        showToast('⚠️ Invalid VIP plan', 'warning');
+        return;
+    }
+    
+    const price = parseFloat(vipPrices[selectedPlan]);
+    if (isNaN(price) || price <= 0) {
+        showToast('⚠️ Invalid price', 'warning');
+        return;
+    }
+    
+    const planLabels = { '1m': '1 Month', '3m': '3 Months', '1y': '1 Year', 'lifetime': 'LIFETIME' };
+    const existing = cart.find(item => 
+        item.id === product.id && 
+        item.isVip && 
+        item.vipPlan === selectedPlan
+    );
+    
+    if (existing) {
+        existing.quantity = (existing.quantity || 1) + 1;
+    } else {
+        cart.push({
+            ...product,
+            price: price,
+            quantity: 1,
+            isVip: true,
+            vipPlan: selectedPlan,
+            vipPlanLabel: planLabels[selectedPlan] || selectedPlan,
+            originalPrice: product.price
+        });
+    }
+    
+    saveUserData(true);
+    updateCartUI();
+    renderProducts(products);
+    updateBottomCartBar();
+    showToast(`✅ Added ${planLabels[selectedPlan]} VIP plan for ${product.name}`, 'success');
+    window.closePreviewModal();
+};
+
+console.log('✅ All missing functions fixed!');
+
+// ============================================================
 // END OF SCRIPT.JS
 // ============================================================
