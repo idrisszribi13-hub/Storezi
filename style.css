@@ -959,6 +959,148 @@ body.light .header .language-selector {
 }
 
 /* ============================================
+   LOADER DOTS - شاشة تحميل المنتجات
+   ============================================ */
+.loader-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.loader-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--primary);
+    animation: dotPulse 1.4s ease-in-out infinite both;
+}
+
+.loader-dot:nth-child(1) {
+    animation-delay: -0.32s;
+}
+
+.loader-dot:nth-child(2) {
+    animation-delay: -0.16s;
+}
+
+.loader-dot:nth-child(3) {
+    animation-delay: 0s;
+}
+
+@keyframes dotPulse {
+    0%, 80%, 100% {
+        transform: scale(0.6);
+        opacity: 0.3;
+    }
+    40% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* ============================================
+   EMPTY PRODUCTS MESSAGE
+   ============================================ */
+.empty-products-message {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 80px 20px;
+}
+
+.empty-products-message .icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    opacity: 0.3;
+}
+
+.empty-products-message .title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+}
+
+.empty-products-message .subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+    opacity: 0.5;
+    margin-bottom: 20px;
+}
+
+.empty-products-message .actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.empty-products-message .btn-telegram {
+    padding: 10px 24px;
+    border: none;
+    border-radius: 8px;
+    background: #0088cc;
+    color: #fff;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.empty-products-message .btn-telegram:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 136, 204, 0.3);
+}
+
+.empty-products-message .btn-refresh {
+    padding: 10px 24px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.empty-products-message .btn-refresh:hover {
+    border-color: var(--primary);
+    color: var(--text);
+}
+
+.empty-products-message .btn-refresh:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.empty-products-message .status-message {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    opacity: 0.3;
+}
+
+.empty-products-message .status-message.success {
+    color: var(--success);
+    opacity: 1;
+}
+
+.empty-products-message .status-message.error {
+    color: var(--danger);
+    opacity: 1;
+}
+
+.empty-products-message .status-message.warning {
+    color: var(--warning);
+    opacity: 1;
+}
+
+/* ============================================
    MARQUEE
    ============================================ */
 .marquee-bar {
