@@ -3186,6 +3186,57 @@
             }
         }, 1000);
     </script>
+        <!-- ============================================ -->
+    <!-- Scripts -->
+    <!-- ============================================ -->
+    <script type="module" src="languages.js"></script>
+    <script type="module" src="script.js"></script>
+
+    <!-- ============================================ -->
+    <!-- FORCE HIDE LOADING SCREEN - FINAL FIX -->
+    <!-- ============================================ -->
+    <script>
+        (function() {
+            const loadingScreen = document.getElementById('loadingScreen');
+            if (loadingScreen) {
+                loadingScreen.classList.add('hidden');
+                setTimeout(function() {
+                    loadingScreen.style.display = 'none';
+                }, 300);
+                console.log('✅ Loading screen hidden (force)');
+            }
+            
+            const mainApp = document.getElementById('mainApp');
+            if (mainApp) {
+                mainApp.style.display = 'block';
+                console.log('✅ Main app shown (force)');
+            }
+            
+            const authSection = document.getElementById('authSection');
+            if (authSection) {
+                authSection.style.display = 'none';
+            }
+        })();
+        
+        setTimeout(function() {
+            const loadingScreen = document.getElementById('loadingScreen');
+            if (loadingScreen && !loadingScreen.classList.contains('hidden')) {
+                loadingScreen.classList.add('hidden');
+                setTimeout(function() {
+                    loadingScreen.style.display = 'none';
+                }, 300);
+                console.log('✅ Loading screen hidden (retry)');
+            }
+        }, 500);
+        
+        setTimeout(function() {
+            const loadingScreen = document.getElementById('loadingScreen');
+            if (loadingScreen && loadingScreen.style.display !== 'none') {
+                loadingScreen.style.display = 'none';
+                console.log('✅ Loading screen hidden (final)');
+            }
+        }, 1500);
+    </script>
 
 </body>
     </html>
