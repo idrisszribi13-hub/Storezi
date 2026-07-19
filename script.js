@@ -163,10 +163,10 @@ let userProfile = {
 
 // Fallback products
 const fallbackProducts = [
-    { id: "fallback_1", name: "Mergedom VIP", price: 11, badge: "VIP", status: "available", image: "https://picsum.photos/seed/mergedom/400/300", downloadLink: "", description: "Mergedom game with premium features.", features: ["Level Auto Bypass", "Unlimited Boost", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() },
-    { id: "fallback_2", name: "Numbers Game 2048", price: 0, badge: "FREE", status: "available", image: "https://picsum.photos/seed/2048/400/300", downloadLink: "", description: "Classic 2048 game with exclusive mod features.", features: ["Unlimited Device", "Block Spawn Modify", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() },
-    { id: "fallback_3", name: "Screwdom 3D", price: 0, badge: "FREE", status: "available", image: "https://picsum.photos/seed/screwdom/400/300", downloadLink: "", description: "Exciting 3D puzzle game with unlimited boosts.", features: ["Unlimited Boost", "Level Auto Complete", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() },
-    { id: "fallback_4", name: "Smart Telegram Bot", price: 0, badge: "FREE", status: "available", image: "https://picsum.photos/seed/bot/400/300", downloadLink: "https://www.mediafire.com/file/example/bot.zip", description: "Advanced Telegram bot with auto-reply and group management.", features: ["Auto Replies", "Group Management", "Notifications"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() }
+    { id: "fallback_1", name: "Mergedom VIP Tool", price: 11, badge: "VIP", status: "available", image: "https://picsum.photos/seed/mergedom/400/300", downloadLink: "", description: "Mergedom game with premium features.", features: ["Level Auto Bypass", "Unlimited Boost", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", currency: "USD", createdAt: new Date() },
+    { id: "fallback_2", name: "Numbers Game 2048", price: 0, badge: "FREE", status: "available", image: "https://picsum.photos/seed/2048/400/300", downloadLink: "", description: "Classic 2048 game with exclusive mod features.", features: ["Unlimited Device", "Block Spawn Modify", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", currency: "USD", createdAt: new Date() },
+    { id: "fallback_3", name: "Screwdom 3D", price: 0, badge: "FREE", status: "available", image: "https://picsum.photos/seed/screwdom/400/300", downloadLink: "", description: "Exciting 3D puzzle game with unlimited boosts.", features: ["Unlimited Boost", "Level Auto Complete", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", currency: "USD", createdAt: new Date() },
+    { id: "fallback_4", name: "Smart Telegram Bot", price: 0, badge: "FREE", status: "available", image: "https://picsum.photos/seed/bot/400/300", downloadLink: "https://www.mediafire.com/file/example/bot.zip", description: "Advanced Telegram bot with auto-reply and group management.", features: ["Auto Replies", "Group Management", "Notifications"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", currency: "USD", createdAt: new Date() }
 ];
 
 // Discount codes and wallets
@@ -1555,59 +1555,213 @@ window.sendResetLinkInline = async function() { if (!currentUser) return; try { 
 window.changePasswordInline = async function() { if (!currentUser) return; const currentPwd = document.getElementById('currentPasswordInline').value; const newPwd = document.getElementById('newPasswordInline').value; const confirmPwd = document.getElementById('confirmNewPasswordInline').value; const errorEl = document.getElementById('passwordErrorInline'); const successEl = document.getElementById('passwordSuccessInline'); errorEl.textContent = ''; successEl.textContent = ''; if (!currentPwd || !newPwd || !confirmPwd) { errorEl.textContent = 'Please fill all fields'; return; } if (newPwd.length < 6) { errorEl.textContent = 'New password must be at least 6 characters'; return; } if (newPwd !== confirmPwd) { errorEl.textContent = 'Passwords do not match'; return; } try { const credential = EmailAuthProvider.credential(currentUser.email, currentPwd); await reauthenticateWithCredential(currentUser, credential); await updatePassword(currentUser, newPwd); successEl.textContent = '✅ Password changed successfully!'; showToast('✅ Password updated!', 'success'); document.getElementById('currentPasswordInline').value = ''; document.getElementById('newPasswordInline').value = ''; document.getElementById('confirmNewPasswordInline').value = ''; setTimeout(() => { successEl.textContent = ''; }, 3000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); } };
 
 // ============================================================
-// 8. Product Functions
+// 8. Product Functions - Enhanced with Direct Firestore Loading
 // ============================================================
+
+// دالة مباشرة لتحميل المنتجات من Firestore
+async function loadProductsDirectly() {
+    console.log('🔄 جاري تحميل المنتجات من Firestore...');
+    
+    try {
+        const productsRef = collection(db, 'products');
+        const querySnapshot = await getDocs(productsRef);
+        
+        console.log(`📦 عدد المنتجات في Firestore: ${querySnapshot.size}`);
+        
+        if (querySnapshot.empty) {
+            console.log('⚠️ لا توجد منتجات في Firestore');
+            return [];
+        }
+        
+        const productsList = [];
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            console.log(`📦 المنتج: ${data.name || 'Unnamed'} (ID: ${doc.id})`);
+            
+            // تحويل البيانات إلى تنسيق موحد
+            let vipPricing = data.vipPricing || data.vipPrices || {};
+            if (data.vipPrices && !data.vipPricing) {
+                vipPricing = data.vipPrices;
+            }
+            
+            const product = {
+                id: doc.id,
+                name: data.name || 'Unnamed Product',
+                price: typeof data.price === 'number' ? data.price : 0,
+                originalPrice: data.originalPrice || 0,
+                badge: data.badge || 'FREE',
+                status: data.status || 'available',
+                image: data.image || 'https://via.placeholder.com/400x300/1a1a3e/6c5ce7?text=No+Image',
+                description: data.description || '',
+                features: data.features || [],
+                video: data.video || '',
+                currency: data.currency || 'USD',
+                productType: data.productType || 'standard',
+                quantityOptions: data.quantityOptions || [],
+                badges: data.badges || [],
+                vipEnabled: data.vipEnabled || false,
+                vipPricing: vipPricing,
+                vipPrices: data.vipPrices || vipPricing,
+                verified: data.verified !== false,
+                downloadLink: data.downloadLink || '',
+                duration: data.duration || '',
+                createdAt: data.createdAt || new Date()
+            };
+            
+            productsList.push(product);
+        });
+        
+        console.log(`✅ تم تحميل ${productsList.length} منتج بنجاح`);
+        return productsList;
+        
+    } catch (error) {
+        console.error('❌ خطأ في تحميل المنتجات:', error);
+        console.log('⚠️ سيتم استخدام المنتجات الافتراضية');
+        return fallbackProducts;
+    }
+}
 
 async function loadProductsFromFirestore() {
     try {
         const productsRef = collection(db, 'products');
         const querySnapshot = await getDocs(query(productsRef, orderBy('createdAt', 'desc')));
         const productsList = [];
+        
         querySnapshot.forEach((doc) => {
-            productsList.push({ id: doc.id, ...doc.data() });
+            const data = doc.data();
+            
+            // توحيد أسماء الحقول - تحويل vipPrices إلى vipPricing
+            let vipPricing = data.vipPricing || data.vipPrices || {};
+            
+            // إذا كانت vipPrices موجودة ولكن vipPricing غير موجودة
+            if (data.vipPrices && !data.vipPricing) {
+                vipPricing = data.vipPrices;
+            }
+            
+            // التأكد من وجود جميع الحقول المطلوبة
+            const product = {
+                id: doc.id,
+                name: data.name || 'Unnamed Product',
+                price: data.price !== undefined ? data.price : 0,
+                originalPrice: data.originalPrice || 0,
+                badge: data.badge || 'FREE',
+                status: data.status || 'available',
+                image: data.image || 'https://via.placeholder.com/400x300/1a1a3e/6c5ce7?text=No+Image',
+                description: data.description || '',
+                features: data.features || [],
+                video: data.video || '',
+                currency: data.currency || 'USD',
+                productType: data.productType || 'standard',
+                quantityOptions: data.quantityOptions || [],
+                badges: data.badges || [],
+                vipEnabled: data.vipEnabled || false,
+                vipPricing: vipPricing,
+                vipPrices: data.vipPrices || vipPricing,
+                verified: data.verified !== false,
+                downloadLink: data.downloadLink || '',
+                duration: data.duration || '',
+                createdAt: data.createdAt || new Date()
+            };
+            
+            productsList.push(product);
         });
+        
         console.log('✅ Products loaded from Firestore:', productsList.length);
+        console.log('📦 First product:', productsList[0]?.name || 'No products');
         return productsList;
     } catch (error) {
-        console.error('Error loading products:', error);
+        console.error('Error loading products from Firestore:', error);
         console.log('⚠️ Using fallback products');
         return fallbackProducts;
     }
 }
 
 function startProductsRealtimeListener() {
-    if (unsubscribeProducts) { unsubscribeProducts(); }
+    if (unsubscribeProducts) { 
+        unsubscribeProducts(); 
+        unsubscribeProducts = null;
+    }
+    
+    // عرض حالة التحميل
     renderProducts([], true);
+    
     const productsRef = collection(db, 'products');
-    unsubscribeProducts = onSnapshot(query(productsRef, orderBy('createdAt', 'desc')), (snapshot) => {
-        const productsList = [];
-        snapshot.forEach((doc) => {
-            productsList.push({ id: doc.id, ...doc.data() });
+    
+    try {
+        // محاولة الاستماع للتغييرات
+        unsubscribeProducts = onSnapshot(query(productsRef, orderBy('createdAt', 'desc')), (snapshot) => {
+            const productsList = [];
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                // توحيد أسماء الحقول
+                let vipPricing = data.vipPricing || data.vipPrices || {};
+                if (data.vipPrices && !data.vipPricing) {
+                    vipPricing = data.vipPrices;
+                }
+                
+                productsList.push({
+                    id: doc.id,
+                    name: data.name || 'Unnamed Product',
+                    price: data.price !== undefined ? data.price : 0,
+                    originalPrice: data.originalPrice || 0,
+                    badge: data.badge || 'FREE',
+                    status: data.status || 'available',
+                    image: data.image || 'https://via.placeholder.com/400x300/1a1a3e/6c5ce7?text=No+Image',
+                    description: data.description || '',
+                    features: data.features || [],
+                    video: data.video || '',
+                    currency: data.currency || 'USD',
+                    productType: data.productType || 'standard',
+                    quantityOptions: data.quantityOptions || [],
+                    badges: data.badges || [],
+                    vipEnabled: data.vipEnabled || false,
+                    vipPricing: vipPricing,
+                    vipPrices: data.vipPrices || vipPricing,
+                    verified: data.verified !== false,
+                    downloadLink: data.downloadLink || '',
+                    duration: data.duration || '',
+                    createdAt: data.createdAt || new Date()
+                });
+            });
+            
+            products = productsList.length > 0 ? productsList : fallbackProducts;
+            console.log('📦 Products updated from realtime listener:', products.length);
+            renderProducts(products, false);
+            renderAdminProducts(products);
+            updateStatsFromProducts(products);
+            generateRecommendations(products);
+            updateBottomCartBar();
+            updateRpDisplay();
+            renderFeaturedProducts();
+            updateSlideProductSelect();
+            
+        }, (error) => {
+            console.error('Products listener error:', error);
+            // محاولة تحميل المنتجات مرة أخرى
+            loadProductsDirectly().then(productsFromFirestore => {
+                if (productsFromFirestore.length > 0) {
+                    products = productsFromFirestore;
+                    renderProducts(products, false);
+                } else {
+                    products = fallbackProducts;
+                    renderProducts(products, false);
+                }
+            });
         });
-        products = productsList.length > 0 ? productsList : fallbackProducts;
-        console.log('📦 Products updated from realtime listener:', products.length);
-        renderProducts(products, false);
-        renderAdminProducts(products);
-        updateStatsFromProducts(products);
-        generateRecommendations(products);
-        updateBottomCartBar();
-        updateRpDisplay();
-        renderFeaturedProducts();
-        updateSlideProductSelect();
-    }, (error) => {
-        console.error('Products listener error:', error);
+    } catch (error) {
+        console.error('Error setting up products listener:', error);
+        // استخدام المنتجات الافتراضية
         products = fallbackProducts;
         renderProducts(products, false);
-        renderAdminProducts(products);
-        updateStatsFromProducts(products);
-        renderFeaturedProducts();
-    });
+    }
 }
 
 function getCurrencySymbol(currency) {
     const symbols = {
         'USD': '$',
         'TND': 'د.ت',
+        'EUR': '€',
+        'GBP': '£',
         'OTHER': '💱'
     };
     return symbols[currency] || '$';
@@ -1647,35 +1801,43 @@ function renderProducts(productsList, isLoading = false) {
     
     const list = productsList || [];
     console.log('📦 Rendering products:', list.length);
+    console.log('📦 Products data:', list);
     
     if (list.length === 0) {
         container.innerHTML = `
-            <div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--text-secondary);">
-                <i class="fas fa-box-open" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i>
-                <p style="font-size:18px;font-weight:600;">No products available</p>
-                <p style="font-size:13px;opacity:0.4;margin-top:4px;">Check back later for new scripts</p>
+            <div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text-secondary);">
+                <i class="fas fa-box-open" style="font-size:64px;opacity:0.15;display:block;margin-bottom:16px;"></i>
+                <p style="font-size:20px;font-weight:700;">No products available</p>
+                <p style="font-size:14px;opacity:0.5;margin-top:8px;">Check back later for new scripts</p>
+                <button onclick="window.loadProductsDirectly().then(p => { products = p; renderProducts(p, false); showToast('✅ Products reloaded!', 'success'); })" style="margin-top:16px;padding:10px 24px;border:none;border-radius:8px;background:var(--primary);color:#fff;font-weight:600;cursor:pointer;">
+                    <i class="fas fa-sync"></i> Refresh Products
+                </button>
             </div>
         `;
         return;
     }
     
+    // تطبيق الفلتر
     let filtered = [...list];
-    if (currentFilter === 'free') filtered = filtered.filter(p => p.price === 0);
-    else if (currentFilter === 'paid') filtered = filtered.filter(p => p.price > 0);
+    if (currentFilter === 'free') {
+        filtered = filtered.filter(p => p.price === 0 || p.price === '0');
+    } else if (currentFilter === 'paid') {
+        filtered = filtered.filter(p => p.price > 0);
+    }
     
     if (filtered.length === 0) {
         container.innerHTML = `
-            <div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--text-secondary);">
-                <i class="fas fa-search" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i>
-                <p style="font-size:18px;font-weight:600;">No results found</p>
-                <p style="font-size:13px;opacity:0.4;margin-top:4px;">Try changing your filters</p>
+            <div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text-secondary);">
+                <i class="fas fa-search" style="font-size:64px;opacity:0.15;display:block;margin-bottom:16px;"></i>
+                <p style="font-size:20px;font-weight:700;">No results found</p>
+                <p style="font-size:14px;opacity:0.5;margin-top:8px;">Try changing your filters</p>
             </div>
         `;
         return;
     }
     
     container.innerHTML = filtered.map(p => {
-        const isFree = p.price === 0;
+        const isFree = p.price === 0 || p.price === '0';
         const isUnavailable = p.status === 'unavailable';
         const inCart = cart.some(item => item.id === p.id && !item.isVip);
         const inWish = wishlist.includes(p.id);
@@ -1684,7 +1846,8 @@ function renderProducts(productsList, isLoading = false) {
         const badgeClass = isUnavailable ? 'unavailable' : (isFree ? 'free' : 'vip');
         const displayFeatures = p.features ? p.features.slice(0, 3) : [];
         const currencySymbol = getCurrencySymbol(p.currency || 'USD');
-        const priceDisplay = isUnavailable ? '⛔ Unavailable' : (isFree ? 'FREE' : `${currencySymbol}${Number(p.price).toFixed(2)}`);
+        const priceValue = parseFloat(p.price) || 0;
+        const priceDisplay = isUnavailable ? '⛔ Unavailable' : (isFree ? 'FREE' : `${currencySymbol}${priceValue.toFixed(2)}`);
         
         return `
             <div class="product-card" onclick="window.openProductDetailModal('${p.id}')">
@@ -5508,19 +5671,28 @@ async function init() {
     updateLoadingText('Loading products...');
 
     try {
-        // تحميل المنتجات
-        const productsFromFirestore = await loadProductsFromFirestore();
-        products = productsFromFirestore.length > 0 ? productsFromFirestore : fallbackProducts;
-        console.log('✅ Products loaded:', products.length);
+        // تحميل المنتجات مباشرة من Firestore
+        console.log('📦 جاري تحميل المنتجات...');
+        const productsFromFirestore = await loadProductsDirectly();
+        
+        if (productsFromFirestore && productsFromFirestore.length > 0) {
+            products = productsFromFirestore;
+            console.log(`✅ تم تحميل ${products.length} منتج من Firestore`);
+        } else {
+            console.log('⚠️ لا توجد منتجات في Firestore، استخدام المنتجات الافتراضية');
+            products = fallbackProducts;
+        }
+        
+        console.log('📦 المنتجات المحملة:', products);
 
-        // بدء الاستماع للتغييرات
+        // عرض المنتجات فوراً
+        renderProducts(products, false);
+        
+        // بدء الاستماع للتغييرات (Realtime)
         startProductsRealtimeListener();
         
-        // تحميل بيانات المستخدم
+        // تحميل باقي البيانات
         await loadUserData();
-        
-        // عرض المنتجات
-        renderProducts(products, false);
         renderFeaturedProducts();
         generateRecommendations(products);
         updateStatsFromProducts(products);
@@ -5766,6 +5938,7 @@ window.sendEmailVerification = sendEmailVerification;
 window.checkVerificationStatus = checkVerificationStatus;
 window.closeVerificationDialog = closeVerificationDialog;
 window.renderProfileFull = renderProfileFull;
+window.loadProductsDirectly = loadProductsDirectly;
 
 // ============================================================
 // 41. Support Functions
@@ -5862,104 +6035,6 @@ if (document.readyState === 'loading') {
 } else {
     init();
 }
-
-// ============================================================
-// إصلاح الدوال المفقودة نهائياً - أضف هذا في نهاية الملف
-// ============================================================
-
-// دالة shareFromPreview
-window.shareFromPreview = function() {
-    if (window._currentProduct) {
-        window.openShareModal(window._currentProduct.id);
-    } else {
-        showToast('⚠️ No product to share', 'warning');
-    }
-};
-
-// دالة closePreviewModal
-window.closePreviewModal = function() {
-    const modal = document.getElementById('previewModal');
-    if (modal) {
-        modal.classList.remove('open');
-        document.body.style.overflow = '';
-    }
-};
-
-// دالة addToCartFromPreview
-window.addToCartFromPreview = function() {
-    if (window._currentProduct) {
-        window.addToCart(window._currentProduct.id);
-        window.closePreviewModal();
-    } else {
-        showToast('⚠️ No product to add', 'warning');
-    }
-};
-
-// دالة selectVipPlan
-window.selectVipPlan = function(element, planKey) {
-    document.querySelectorAll('.vip-plan').forEach(el => el.classList.remove('selected'));
-    if (element) {
-        element.classList.add('selected');
-    } else {
-        const plan = document.querySelector(`.vip-plan[data-plan="${planKey}"]`);
-        if (plan) plan.classList.add('selected');
-    }
-    window._selectedVipPlan = planKey;
-};
-
-// دالة addVipPlanToCart
-window.addVipPlanToCart = function(product) {
-    if (!product) {
-        product = window._currentProduct;
-        if (!product) {
-            showToast('⚠️ Product not found', 'warning');
-            return;
-        }
-    }
-    
-    const selectedPlan = window._selectedVipPlan || '1m';
-    const vipPrices = product.vipPrices;
-    if (!vipPrices || !vipPrices[selectedPlan]) {
-        showToast('⚠️ Invalid VIP plan', 'warning');
-        return;
-    }
-    
-    const price = parseFloat(vipPrices[selectedPlan]);
-    if (isNaN(price) || price <= 0) {
-        showToast('⚠️ Invalid price', 'warning');
-        return;
-    }
-    
-    const planLabels = { '1m': '1 Month', '3m': '3 Months', '1y': '1 Year', 'lifetime': 'LIFETIME' };
-    const existing = cart.find(item => 
-        item.id === product.id && 
-        item.isVip && 
-        item.vipPlan === selectedPlan
-    );
-    
-    if (existing) {
-        existing.quantity = (existing.quantity || 1) + 1;
-    } else {
-        cart.push({
-            ...product,
-            price: price,
-            quantity: 1,
-            isVip: true,
-            vipPlan: selectedPlan,
-            vipPlanLabel: planLabels[selectedPlan] || selectedPlan,
-            originalPrice: product.price
-        });
-    }
-    
-    saveUserData(true);
-    updateCartUI();
-    renderProducts(products);
-    updateBottomCartBar();
-    showToast(`✅ Added ${planLabels[selectedPlan]} VIP plan for ${product.name}`, 'success');
-    window.closePreviewModal();
-};
-
-console.log('✅ All missing functions fixed!');
 
 // ============================================================
 // END OF SCRIPT.JS
