@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - Full Version
+// SCRIPT.JS - ZI Store - Full Version with Fixes
 // ============================================================
 
 // ============================================================
@@ -163,9 +163,9 @@ let userProfile = {
 
 // Fallback products
 const fallbackProducts = [
-    { id: "fallback_1", name: "Mergedom", price: 11, badge: "VIP", status: "available", image: "https://picsum.photos/seed/mergedom/400/300", downloadLink: "", description: "Mergedom game with premium features.", features: ["Level Auto Bypass", "Unlimited Boost", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() },
-    { id: "fallback_2", name: "Numbers Game 2048", price: 0, badge: "VIP", status: "available", image: "https://picsum.photos/seed/2048/400/300", downloadLink: "", description: "Classic 2048 game with exclusive mod features.", features: ["Unlimited Device", "Block Spawn Modify", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() },
-    { id: "fallback_3", name: "Screwdom 3D", price: 0, badge: "VIP", status: "available", image: "https://picsum.photos/seed/screwdom/400/300", downloadLink: "", description: "Exciting 3D puzzle game with unlimited boosts.", features: ["Unlimited Boost", "Level Auto Complete", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() },
+    { id: "fallback_1", name: "Mergedom VIP", price: 11, badge: "VIP", status: "available", image: "https://picsum.photos/seed/mergedom/400/300", downloadLink: "", description: "Mergedom game with premium features.", features: ["Level Auto Bypass", "Unlimited Boost", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() },
+    { id: "fallback_2", name: "Numbers Game 2048", price: 0, badge: "FREE", status: "available", image: "https://picsum.photos/seed/2048/400/300", downloadLink: "", description: "Classic 2048 game with exclusive mod features.", features: ["Unlimited Device", "Block Spawn Modify", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() },
+    { id: "fallback_3", name: "Screwdom 3D", price: 0, badge: "FREE", status: "available", image: "https://picsum.photos/seed/screwdom/400/300", downloadLink: "", description: "Exciting 3D puzzle game with unlimited boosts.", features: ["Unlimited Boost", "Level Auto Complete", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() },
     { id: "fallback_4", name: "Smart Telegram Bot", price: 0, badge: "FREE", status: "available", image: "https://picsum.photos/seed/bot/400/300", downloadLink: "https://www.mediafire.com/file/example/bot.zip", description: "Advanced Telegram bot with auto-reply and group management.", features: ["Auto Replies", "Group Management", "Notifications"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() }
 ];
 
@@ -1563,9 +1563,16 @@ async function loadProductsFromFirestore() {
         const productsRef = collection(db, 'products');
         const querySnapshot = await getDocs(query(productsRef, orderBy('createdAt', 'desc')));
         const productsList = [];
-        querySnapshot.forEach((doc) => { productsList.push({ id: doc.id, ...doc.data() }); });
+        querySnapshot.forEach((doc) => {
+            productsList.push({ id: doc.id, ...doc.data() });
+        });
+        console.log('✅ Products loaded from Firestore:', productsList.length);
         return productsList;
-    } catch (error) { console.error('Error loading products:', error); return []; }
+    } catch (error) {
+        console.error('Error loading products:', error);
+        console.log('⚠️ Using fallback products');
+        return fallbackProducts;
+    }
 }
 
 function startProductsRealtimeListener() {
@@ -1574,8 +1581,11 @@ function startProductsRealtimeListener() {
     const productsRef = collection(db, 'products');
     unsubscribeProducts = onSnapshot(query(productsRef, orderBy('createdAt', 'desc')), (snapshot) => {
         const productsList = [];
-        snapshot.forEach((doc) => { productsList.push({ id: doc.id, ...doc.data() }); });
+        snapshot.forEach((doc) => {
+            productsList.push({ id: doc.id, ...doc.data() });
+        });
         products = productsList.length > 0 ? productsList : fallbackProducts;
+        console.log('📦 Products updated from realtime listener:', products.length);
         renderProducts(products, false);
         renderAdminProducts(products);
         updateStatsFromProducts(products);
@@ -1584,7 +1594,14 @@ function startProductsRealtimeListener() {
         updateRpDisplay();
         renderFeaturedProducts();
         updateSlideProductSelect();
-    }, (error) => { console.error('Products listener error:', error); products = fallbackProducts; renderProducts(products, false); renderAdminProducts(products); updateStatsFromProducts(products); renderFeaturedProducts(); });
+    }, (error) => {
+        console.error('Products listener error:', error);
+        products = fallbackProducts;
+        renderProducts(products, false);
+        renderAdminProducts(products);
+        updateStatsFromProducts(products);
+        renderFeaturedProducts();
+    });
 }
 
 function getCurrencySymbol(currency) {
@@ -1611,7 +1628,11 @@ function renderBadges(badges) {
 
 function renderProducts(productsList, isLoading = false) {
     const container = document.getElementById('productList');
-    if (!container) return;
+    if (!container) {
+        console.warn('⚠️ productList container not found');
+        return;
+    }
+    
     if (isLoading) {
         container.innerHTML = Array(4).fill(`
             <div class="product-card skeleton">
@@ -1623,12 +1644,36 @@ function renderProducts(productsList, isLoading = false) {
         `).join('');
         return;
     }
+    
     const list = productsList || [];
-    if (list.length === 0) { container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:20px 0;color:var(--text-secondary);font-size:14px;"><i class="fas fa-search" style="font-size:28px;opacity:0.2;display:block;margin-bottom:4px;"></i><p>No products</p></div>`; return; }
+    console.log('📦 Rendering products:', list.length);
+    
+    if (list.length === 0) {
+        container.innerHTML = `
+            <div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--text-secondary);">
+                <i class="fas fa-box-open" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i>
+                <p style="font-size:18px;font-weight:600;">No products available</p>
+                <p style="font-size:13px;opacity:0.4;margin-top:4px;">Check back later for new scripts</p>
+            </div>
+        `;
+        return;
+    }
+    
     let filtered = [...list];
     if (currentFilter === 'free') filtered = filtered.filter(p => p.price === 0);
     else if (currentFilter === 'paid') filtered = filtered.filter(p => p.price > 0);
-    if (filtered.length === 0) { container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:20px 0;color:var(--text-secondary);font-size:14px;"><i class="fas fa-search" style="font-size:28px;opacity:0.2;display:block;margin-bottom:4px;"></i><p>No results</p></div>`; return; }
+    
+    if (filtered.length === 0) {
+        container.innerHTML = `
+            <div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--text-secondary);">
+                <i class="fas fa-search" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i>
+                <p style="font-size:18px;font-weight:600;">No results found</p>
+                <p style="font-size:13px;opacity:0.4;margin-top:4px;">Try changing your filters</p>
+            </div>
+        `;
+        return;
+    }
+    
     container.innerHTML = filtered.map(p => {
         const isFree = p.price === 0;
         const isUnavailable = p.status === 'unavailable';
@@ -1638,50 +1683,56 @@ function renderProducts(productsList, isLoading = false) {
         const badgeLabel = isFree ? 'FREE' : (isUnavailable ? 'Unavailable' : (p.badge || 'VIP'));
         const badgeClass = isUnavailable ? 'unavailable' : (isFree ? 'free' : 'vip');
         const displayFeatures = p.features ? p.features.slice(0, 3) : [];
-        let displayPrice = p.price;
-        let originalPrice = '';
-        let discountBadge = '';
-        if (activeDiscount > 0 && p.price > 0) {
-            const discounted = displayPrice - (displayPrice * activeDiscount / 100);
-            displayPrice = discounted;
-            originalPrice = `<span class="original-price">${getCurrencySymbol(p.currency || 'USD')}${p.price.toFixed(2)}</span>`;
-            discountBadge = `<span class="discount-badge">-${activeDiscount}%</span>`;
-        }
         const currencySymbol = getCurrencySymbol(p.currency || 'USD');
-        const priceDisplay = isUnavailable ? '⛔ Unavailable' : (isFree ? 'FREE' : `${currencySymbol}${displayPrice.toFixed(2)}`);
+        const priceDisplay = isUnavailable ? '⛔ Unavailable' : (isFree ? 'FREE' : `${currencySymbol}${Number(p.price).toFixed(2)}`);
         
         return `
-      <div class="product-card" onclick="window.openProductDetailModal('${p.id}')">
-        <div class="product-actions-top">
-          <button class="share-btn" onclick="event.stopPropagation(); openShareModal('${p.id}')" title="Share"><i class="fas fa-share-alt"></i></button>
-          <button class="wishlist-btn" onclick="event.stopPropagation(); window.toggleWishlist('${p.id}')"><i class="fas fa-heart heart-icon ${inWish?'liked':''}"></i></button>
-        </div>
-        <div class="image-wrapper">
-          ${p.image?`<img src="${p.image}" alt="${p.name}" loading="lazy" />`:`<div class="placeholder"><i class="fas fa-code"></i></div>`}
-          <div class="image-badge ${badgeClass}">${badgeLabel}</div>
-        </div>
-        <div class="product-name">${p.name}</div>
-        ${p.badges && p.badges.length > 0 ? renderBadges(p.badges) : ''}
-        <div class="features-list">
-          ${displayFeatures.map(f=>`<span class="feature-item"><i class="fas fa-circle"></i> ${f}</span>`).join('')}
-          ${displayFeatures.length>0 && p.features && p.features.length>3?`<span class="feature-item" style="opacity:0.2;">+${p.features.length-3}</span>`:''}
-        </div>
-        <div class="price">
-          ${priceDisplay}
-          ${originalPrice} ${discountBadge}
-        </div>
-        <div class="card-actions">
-          <button class="btn-details" onclick="event.stopPropagation(); window.openProductDetailModal('${p.id}')"><i class="fas fa-info-circle"></i></button>
-          ${isUnavailable?`<button class="btn-download" style="background:var(--text-secondary);color:#fff;cursor:not-allowed;opacity:0.4;" onclick="event.preventDefault();showToast('⛔ Unavailable','warning')"><i class="fas fa-times-circle"></i></button>`:(isFree?`<a href="${p.downloadLink||'#'}" class="btn-download" ${p.downloadLink?'target="_blank"':'onclick="event.preventDefault();showToast(\'⏳ Coming soon\',\'info\')"'}><i class="fas fa-download"></i></a>`:`<button class="btn-add-cart ${inCart?'added':''}" onclick="event.stopPropagation(); window.addToCart('${p.id}')"><i class="fas ${inCart?'fa-check':'fa-cart-plus'}"></i> ${inCart?qty:''}</button>`)}
-        </div>
-        <div class="product-footer-icons">
-          <span class="icon-item"><i class="fas fa-bolt"></i> Instant</span>
-          <span class="icon-item"><i class="fas fa-lock"></i> Secure</span>
-          <span class="icon-item"><i class="fas fa-headset"></i> 24/7</span>
-        </div>
-      </div>
-    `;
+            <div class="product-card" onclick="window.openProductDetailModal('${p.id}')">
+                <div class="product-actions-top">
+                    <button class="share-btn" onclick="event.stopPropagation(); window.openShareModal('${p.id}')" title="Share">
+                        <i class="fas fa-share-alt"></i>
+                    </button>
+                    <button class="wishlist-btn" onclick="event.stopPropagation(); window.toggleWishlist('${p.id}')" title="Wishlist">
+                        <i class="fas fa-heart heart-icon ${inWish ? 'liked' : ''}"></i>
+                    </button>
+                </div>
+                <div class="image-wrapper">
+                    <img src="${p.image || 'https://via.placeholder.com/400x300/1a1a3e/6c5ce7?text=No+Image'}" 
+                         alt="${p.name}" 
+                         loading="lazy"
+                         onerror="this.src='https://via.placeholder.com/400x300/1a1a3e/6c5ce7?text=No+Image'" />
+                    <div class="image-badge ${badgeClass}">${badgeLabel}</div>
+                </div>
+                <div class="product-name">${p.name}</div>
+                ${p.badges && p.badges.length > 0 ? renderBadges(p.badges) : ''}
+                <div class="features-list">
+                    ${displayFeatures.map(f => `<span class="feature-item"><i class="fas fa-circle"></i> ${f}</span>`).join('')}
+                    ${displayFeatures.length > 0 && p.features && p.features.length > 3 ? `<span class="feature-item" style="opacity:0.2;">+${p.features.length - 3}</span>` : ''}
+                </div>
+                <div class="price">${priceDisplay}</div>
+                <div class="card-actions">
+                    <button class="btn-details" onclick="event.stopPropagation(); window.openProductDetailModal('${p.id}')">
+                        <i class="fas fa-info-circle"></i> Details
+                    </button>
+                    ${isUnavailable ? `
+                        <button class="btn-download" style="background:var(--text-secondary);color:#fff;cursor:not-allowed;opacity:0.4;" onclick="event.preventDefault();showToast('⛔ Unavailable','warning')">
+                            <i class="fas fa-times-circle"></i>
+                        </button>
+                    ` : (isFree ? `
+                        <a href="${p.downloadLink || '#'}" class="btn-download" ${p.downloadLink ? 'target="_blank"' : 'onclick="event.preventDefault();showToast(\'⏳ Coming soon\',\'info\')"'}>
+                            <i class="fas fa-download"></i> Download
+                        </a>
+                    ` : `
+                        <button class="btn-add-cart ${inCart ? 'added' : ''}" onclick="event.stopPropagation(); window.addToCart('${p.id}')">
+                            <i class="fas ${inCart ? 'fa-check' : 'fa-cart-plus'}"></i> ${inCart ? 'Added' : 'Add'}
+                        </button>
+                    `)}
+                </div>
+            </div>
+        `;
     }).join('');
+    
+    console.log('✅ Products rendered successfully');
 }
 
 function updateStatsFromProducts(productsList) {
@@ -1704,8 +1755,22 @@ function generateRecommendations(productsList) {
     const list = productsList || [];
     const shuffled = [...list].sort(() => 0.5 - Math.random());
     const top = shuffled.slice(0, 4);
-    if (top.length === 0) { grid.innerHTML = `<div class="rec-empty" style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text-secondary);font-size:13px;"><i class="fas fa-lightbulb" style="display:block;font-size:24px;opacity:0.2;margin-bottom:4px;"></i><p>Start exploring scripts!</p></div>`; return; }
-    grid.innerHTML = top.map(p => `<div class="rec-item" onclick="window.openProductDetailModal('${p.id}')"><img src="${p.image||'https://picsum.photos/seed/default/200/120'}" alt="${p.name}" /><div class="r-name">${p.name}</div><div class="r-price">${p.price===0?'FREE':getCurrencySymbol(p.currency || 'USD') + p.price.toFixed(2)}</div></div>`).join('');
+    if (top.length === 0) {
+        grid.innerHTML = `
+            <div class="rec-empty" style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-secondary);font-size:14px;">
+                <i class="fas fa-lightbulb" style="display:block;font-size:32px;opacity:0.15;margin-bottom:8px;"></i>
+                <p>Start exploring scripts!</p>
+            </div>
+        `;
+        return;
+    }
+    grid.innerHTML = top.map(p => `
+        <div class="rec-item" onclick="window.openProductDetailModal('${p.id}')">
+            <img src="${p.image || 'https://via.placeholder.com/200x120/1a1a3e/6c5ce7?text=No+Image'}" alt="${p.name}" />
+            <div class="r-name">${p.name}</div>
+            <div class="r-price">${p.price === 0 ? 'FREE' : getCurrencySymbol(p.currency || 'USD') + Number(p.price).toFixed(2)}</div>
+        </div>
+    `).join('');
 }
 
 // ============================================================
@@ -1851,7 +1916,7 @@ function renderFeaturedProducts() {
         productsToShow = products.slice(0, 4);
     }
     if (productsToShow.length === 0) {
-        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text-secondary);font-size:13px;">No products available</div>`;
+        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-secondary);font-size:14px;">No products available</div>`;
         return;
     }
     featuredProducts = productsToShow;
@@ -1872,11 +1937,11 @@ function displayFeaturedSlice() {
         return `
         <div class="featured-item" onclick="window.openProductDetailModal('${p.id}')">
             <div class="featured-item-image">
-                <img src="${p.image || 'https://picsum.photos/seed/default/200/150'}" alt="${p.name}" loading="lazy" />
+                <img src="${p.image || 'https://via.placeholder.com/200x150/1a1a3e/6c5ce7?text=No+Image'}" alt="${p.name}" loading="lazy" />
                 <span class="featured-item-badge ${badgeClass}">${badgeText}</span>
             </div>
             <div class="featured-item-name">${p.name}</div>
-            <div class="featured-item-price">${p.price === 0 ? 'FREE' : getCurrencySymbol(p.currency || 'USD') + p.price.toFixed(2)}</div>
+            <div class="featured-item-price">${p.price === 0 ? 'FREE' : getCurrencySymbol(p.currency || 'USD') + Number(p.price).toFixed(2)}</div>
         </div>
     `}).join('');
 }
@@ -1997,7 +2062,7 @@ function renderCartFull() {
         const itemTotal = item.price * qty;
         total += itemTotal;
         const product = products.find(p => p.id === item.id);
-        const image = product?.image || item.image || 'https://picsum.photos/seed/default/100/100';
+        const image = product?.image || item.image || 'https://via.placeholder.com/100x100/1a1a3e/6c5ce7?text=No+Image';
         const vipLabel = item.isVip ? `👑 ${item.vipPlanLabel || 'VIP'}` : '';
         const qtyLabel = item.isQuantityProduct ? `📦 ${item.selectedQuantity || ''}` : '';
         html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);margin-bottom:8px;"><div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;"><img src="${image}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" /><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.name} ${vipLabel} ${qtyLabel}</div><div style="font-size:12px;color:var(--primary);font-weight:700;">${getCurrencySymbol(item.currency || 'USD')}${itemTotal.toFixed(2)}</div></div></div><div style="display:flex;align-items:center;gap:6px;"><button onclick="updateCartQuantity('${item.id}',-1)" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;">-</button><span style="min-width:20px;text-align:center;font-size:14px;font-weight:700;">${qty}</span><button onclick="updateCartQuantity('${item.id}',1)" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;">+</button><button onclick="removeFromCart('${item.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:14px;opacity:0.3;padding:4px;"><i class="fas fa-trash-alt"></i></button></div></div>`;
@@ -2085,7 +2150,7 @@ function updateWishlistUI() {
     if (wlCount === 0) { if (section) section.style.display = 'none'; if (grid) grid.innerHTML = `<div class="wishlist-empty"><i class="fas fa-heart"></i><p>No favorites yet</p></div>`; return; }
     if (section) section.style.display = 'block';
     const wlProducts = products.filter(p => wishlist.includes(p.id));
-    if (grid) { grid.innerHTML = wlProducts.map(p => `<div class="wishlist-item" style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:var(--bg);border-radius:8px;border:1px solid var(--border);transition:0.3s;"><img src="${p.image || 'https://picsum.photos/seed/default/60/60'}" style="width:30px;height:30px;border-radius:6px;object-fit:cover;" /><div class="info" style="flex:1;min-width:0;"><h4 style="font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</h4><div class="price" style="font-size:10px;color:var(--primary);font-weight:700;">${p.price===0?'FREE':getCurrencySymbol(p.currency || 'USD') + p.price.toFixed(2)}</div></div><button class="remove-btn" onclick="window.removeFromWishlist('${p.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:11px;opacity:0.3;transition:0.3s;"><i class="fas fa-times"></i></button></div>`).join(''); }
+    if (grid) { grid.innerHTML = wlProducts.map(p => `<div class="wishlist-item" style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:var(--bg);border-radius:8px;border:1px solid var(--border);transition:0.3s;"><img src="${p.image || 'https://via.placeholder.com/60x60/1a1a3e/6c5ce7?text=No+Image'}" style="width:30px;height:30px;border-radius:6px;object-fit:cover;" /><div class="info" style="flex:1;min-width:0;"><h4 style="font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</h4><div class="price" style="font-size:10px;color:var(--primary);font-weight:700;">${p.price===0?'FREE':getCurrencySymbol(p.currency || 'USD') + p.price.toFixed(2)}</div></div><button class="remove-btn" onclick="window.removeFromWishlist('${p.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:11px;opacity:0.3;transition:0.3s;"><i class="fas fa-times"></i></button></div>`).join(''); }
     updateFullUserMenu();
 }
 
@@ -2096,7 +2161,7 @@ function renderWishlistFull() {
         return;
     }
     const wlProducts = products.filter(p => wishlist.includes(p.id));
-    container.innerHTML = `<div style="display:grid;gap:8px;">${wlProducts.map(p=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);cursor:pointer;" onclick="window.openProductDetailModal('${p.id}');closeWishlistFull();"><img src="${p.image||'https://picsum.photos/seed/default/60/60'}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" /><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div><div style="font-size:12px;color:var(--primary);font-weight:700;">${p.price===0?'FREE':getCurrencySymbol(p.currency || 'USD') + p.price.toFixed(2)}</div></div><button onclick="event.stopPropagation();removeFromWishlist('${p.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:14px;opacity:0.3;padding:8px;transition:0.3s;"><i class="fas fa-times"></i></button></div>`).join('')}</div>`;
+    container.innerHTML = `<div style="display:grid;gap:8px;">${wlProducts.map(p=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);cursor:pointer;" onclick="window.openProductDetailModal('${p.id}');closeWishlistFull();"><img src="${p.image||'https://via.placeholder.com/60x60/1a1a3e/6c5ce7?text=No+Image'}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" /><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div><div style="font-size:12px;color:var(--primary);font-weight:700;">${p.price===0?'FREE':getCurrencySymbol(p.currency || 'USD') + p.price.toFixed(2)}</div></div><button onclick="event.stopPropagation();removeFromWishlist('${p.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:14px;opacity:0.3;padding:8px;transition:0.3s;"><i class="fas fa-times"></i></button></div>`).join('')}</div>`;
 }
 
 function createFloatingHearts() {
@@ -2461,7 +2526,7 @@ window.openShareModal = function(productId) {
     const product = products.find(p => p.id === productId);
     if (!product) return;
     shareProduct = product;
-    document.getElementById('shareProductInfo').innerHTML = `<div style="display:flex;align-items:center;gap:10px;justify-content:center;"><img src="${product.image||'https://picsum.photos/seed/default/80/80'}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" /><div><div style="font-size:15px;font-weight:600;color:var(--text);">${product.name}</div><div style="font-size:13px;color:var(--primary);font-weight:700;">${product.price===0?'FREE':getCurrencySymbol(product.currency || 'USD') + product.price.toFixed(2)}</div></div></div>`;
+    document.getElementById('shareProductInfo').innerHTML = `<div style="display:flex;align-items:center;gap:10px;justify-content:center;"><img src="${product.image||'https://via.placeholder.com/80x80/1a1a3e/6c5ce7?text=No+Image'}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" /><div><div style="font-size:15px;font-weight:600;color:var(--text);">${product.name}</div><div style="font-size:13px;color:var(--primary);font-weight:700;">${product.price===0?'FREE':getCurrencySymbol(product.currency || 'USD') + product.price.toFixed(2)}</div></div></div>`;
     document.getElementById('shareModal').classList.add('open');
 };
 window.closeShareModal = function() { document.getElementById('shareModal').classList.remove('open'); shareProduct = null; };
@@ -2509,7 +2574,7 @@ function performLiveSearch(query) {
         const badgeText = isUnavailable ? '⛔' : (isFree ? 'FREE' : 'VIP');
         return `
       <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;transition:0.2s;border-bottom:1px solid var(--border);" onclick="window.openProductDetailModal('${p.id}'); closeSearchResults();">
-        <img src="${p.image||'https://picsum.photos/seed/default/100/100'}" style="width:36px;height:36px;border-radius:6px;object-fit:cover;" />
+        <img src="${p.image||'https://via.placeholder.com/100x100/1a1a3e/6c5ce7?text=No+Image'}" style="width:36px;height:36px;border-radius:6px;object-fit:cover;" />
         <div style="flex:1;min-width:0;">
           <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${highlightText(p.name,searchTerm)}</div>
           <div style="font-size:12px;color:var(--primary);font-weight:700;">${priceDisplay}</div>
@@ -2661,7 +2726,7 @@ function renderPaymentProducts() {
         const qty = item.quantity || 1;
         const total = item.price * qty;
         const product = products.find(p => p.id === item.id);
-        const image = product?.image || item.image || 'https://picsum.photos/seed/default/80/80';
+        const image = product?.image || item.image || 'https://via.placeholder.com/80x80/1a1a3e/6c5ce7?text=No+Image';
         const name = item.isVip ? `${item.name} 👑 ${item.vipPlanLabel || 'VIP'}` : item.name;
         const qtyLabel = item.isQuantityProduct ? `📦 ${item.selectedQuantity || ''}` : '';
         return `
@@ -4727,7 +4792,14 @@ function renderSlider() {
     const dots = document.getElementById('sliderDots');
     if (!wrapper) return;
     if (sliderSlides.length === 0) {
-        wrapper.innerHTML = `<div class="slide-item" style="background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;min-height:180px;border-radius:var(--radius-md);"><div style="text-align:center;color:var(--text-secondary);opacity:0.4;"><i class="fas fa-images" style="font-size:48px;display:block;margin-bottom:8px;"></i><p>No slides. Add slides from admin panel.</p></div></div>`;
+        wrapper.innerHTML = `
+            <div class="slide-item" style="background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;min-height:180px;border-radius:var(--radius-md);">
+                <div style="text-align:center;color:var(--text-secondary);opacity:0.4;">
+                    <i class="fas fa-images" style="font-size:48px;display:block;margin-bottom:8px;"></i>
+                    <p>No slides. Add slides from admin panel.</p>
+                </div>
+            </div>
+        `;
         dots.innerHTML = '';
         return;
     }
@@ -4742,12 +4814,14 @@ function renderSlider() {
         if (slide.linkType === 'product' && slide.productId) {
             buttonLink = `javascript:window.openProductDetailModal('${slide.productId}')`;
         } else if (slide.linkType === 'download' && slide.downloadUrl) {
-            buttonLink = slide.downloadUrl; buttonTarget = '_blank';
+            buttonLink = slide.downloadUrl; 
+            buttonTarget = '_blank';
         } else if (slide.linkType === 'url' && slide.customUrl) {
-            buttonLink = slide.customUrl; buttonTarget = '_blank';
+            buttonLink = slide.customUrl; 
+            buttonTarget = '_blank';
         }
         return `
-            <div class="slide-item ${isActive}" style="background-image: url('${imageUrl}');">
+            <div class="slide-item ${isActive}" style="background-image: url('${imageUrl}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
                 <div class="slide-overlay">
                     ${title ? `<h2 class="slide-title">${title}</h2>` : ''}
                     ${subtitle ? `<p class="slide-subtitle">${subtitle}</p>` : ''}
@@ -4784,7 +4858,7 @@ function renderSliderSettingsUI() {
     container.innerHTML = sliderSlides.map((slide, index) => {
         const product = products.find(p => p.id === slide.productId);
         const productName = product ? product.name : 'Unknown';
-        return `<div class="admin-item"><div class="item-info"><div class="item-title"><img src="${slide.imageUrl || 'https://picsum.photos/seed/default/60/60'}" style="width:40px;height:40px;border-radius:var(--radius-sm);object-fit:cover;margin-right:8px;" />${slide.title || 'Slide ' + (index+1)}<span style="font-size:11px;opacity:0.4;font-weight:400;">${slide.linkType === 'product' ? '📦 Product: ' + productName : slide.linkType === 'download' ? '📥 Download' : '🔗 Custom Link'}</span></div><div class="item-meta">${slide.subtitle || ''}</div></div><div class="item-actions"><button class="btn-edit" onclick="editSlide(${index})"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="deleteSlide(${index})"><i class="fas fa-trash"></i></button></div></div>`;
+        return `<div class="admin-item"><div class="item-info"><div class="item-title"><img src="${slide.imageUrl || 'https://via.placeholder.com/60x60/1a1a3e/6c5ce7?text=No+Image'}" style="width:40px;height:40px;border-radius:var(--radius-sm);object-fit:cover;margin-right:8px;" />${slide.title || 'Slide ' + (index+1)}<span style="font-size:11px;opacity:0.4;font-weight:400;">${slide.linkType === 'product' ? '📦 Product: ' + productName : slide.linkType === 'download' ? '📥 Download' : '🔗 Custom Link'}</span></div><div class="item-meta">${slide.subtitle || ''}</div></div><div class="item-actions"><button class="btn-edit" onclick="editSlide(${index})"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="deleteSlide(${index})"><i class="fas fa-trash"></i></button></div></div>`;
     }).join('');
 }
 
@@ -5431,19 +5505,25 @@ async function init() {
     const authSection = document.getElementById('authSection');
     if (authSection) authSection.style.display = 'none';
 
-    updateLoadingText('Loading...');
+    updateLoadingText('Loading products...');
 
     try {
-        updateLoadingText('Loading products...');
+        // تحميل المنتجات
         const productsFromFirestore = await loadProductsFromFirestore();
         products = productsFromFirestore.length > 0 ? productsFromFirestore : fallbackProducts;
+        console.log('✅ Products loaded:', products.length);
 
-        updateLoadingText('Initializing app...');
+        // بدء الاستماع للتغييرات
         startProductsRealtimeListener();
+        
+        // تحميل بيانات المستخدم
         await loadUserData();
+        
+        // عرض المنتجات
         renderProducts(products, false);
         renderFeaturedProducts();
         generateRecommendations(products);
+        updateStatsFromProducts(products);
         updateBottomCartBar();
         updateDropdownStats();
         loadDownloads();
@@ -5453,9 +5533,38 @@ async function init() {
         loadSliderSettings();
         loadMarqueeSettings();
         setInterval(fetchCryptoPrices, 60000);
+        
+        // إصلاح الدوال المفقودة
+        if (typeof window.shareFromPreview === 'undefined') {
+            window.shareFromPreview = function() {
+                if (window._currentProduct) {
+                    window.openShareModal(window._currentProduct.id);
+                }
+            };
+        }
+        
+        if (typeof window.closePreviewModal === 'undefined') {
+            window.closePreviewModal = function() {
+                const modal = document.getElementById('previewModal');
+                if (modal) {
+                    modal.classList.remove('open');
+                    document.body.style.overflow = '';
+                }
+            };
+        }
+        
+        if (typeof window.addToCartFromPreview === 'undefined') {
+            window.addToCartFromPreview = function() {
+                if (window._currentProduct) {
+                    window.addToCart(window._currentProduct.id);
+                    window.closePreviewModal();
+                }
+            };
+        }
 
         updateLoadingText('✅ Ready!');
         console.log('✅ ZI Store ready with all features!');
+        
         setTimeout(fixDirection, 100);
         setTimeout(window.ensureAdminPanel, 3000);
         setTimeout(checkCookieConsent, 1500);
@@ -5466,26 +5575,8 @@ async function init() {
             if (authSection) authSection.style.display = 'block';
             document.getElementById('mainApp').style.display = 'none';
         }
+        
         hideLoadingScreen();
-
-        setTimeout(function() {
-            const screen = document.getElementById('loadingScreen');
-            if (screen) {
-                const icon = screen.querySelector('.loader-icon');
-                if (icon) {
-                    icon.textContent = '✅';
-                    icon.style.animation = 'none';
-                }
-                const text = document.getElementById('loadingStatus');
-                if (text) {
-                    text.textContent = 'Ready! 🎉';
-                    text.style.webkitTextFillColor = 'var(--success)';
-                }
-                const subtext = document.querySelector('.loader-subtext');
-                if (subtext) subtext.textContent = 'You can start now';
-                document.querySelectorAll('.spinner-ring').forEach(el => el.style.display = 'none');
-            }
-        }, 2000);
 
     } catch (error) {
         console.error('❌ Initialization error:', error);
