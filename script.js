@@ -42,7 +42,7 @@ import {
     GoogleAuthProvider,
     signInWithPopup,
     fetchSignInMethodsForEmail,
-    sendEmailVerification
+    sendEmailVerification as firebaseSendEmailVerification
 } from "firebase/auth";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, collection, query, where, getDocs, onSnapshot, addDoc, deleteDoc, orderBy } from "firebase/firestore";
 import { getAnalytics } from "firebase/analytics";
@@ -749,8 +749,8 @@ window.registerUser = async function() {
         // إرسال رابط تأكيد البريد الإلكتروني تلقائياً بعد التسجيل
         // ============================================================
         try {
-            await sendEmailVerification(currentUser, {
-                url: 'https://zi-store.online/verify-email.html',
+            await firebaseSendEmailVerification(currentUser, {
+                url: 'https://zi-script-store.firebaseapp.com/__/auth/action?continueUrl=https://zi-store.online/verify-email.html',
                 handleCodeInApp: true
             });
             console.log('📧 Verification email sent to:', currentUser.email);
@@ -4780,7 +4780,7 @@ window.exportOrders = function() {
 };
 
 // ============================================================
-// 36. Email Verification Functions
+// 36. Email Verification Functions (FIXED - No Duplicate)
 // ============================================================
 
 /**
@@ -4799,9 +4799,9 @@ async function sendEmailVerification() {
             return true;
         }
 
-        // إرسال رابط التأكيد
-        await sendEmailVerification(currentUser, {
-            url: 'https://zi-store.online/verify-email.html',
+        // إرسال رابط التأكيد باستخدام الرابط الافتراضي مع continueUrl
+        await firebaseSendEmailVerification(currentUser, {
+            url: 'https://zi-script-store.firebaseapp.com/__/auth/action?continueUrl=https://zi-store.online/verify-email.html',
             handleCodeInApp: true
         });
 
@@ -4831,22 +4831,20 @@ async function checkEmailVerificationStatus() {
             if (!isVerified && currentUser.email) {
                 verificationBanner.style.display = 'block';
                 verificationBanner.innerHTML = `
-                    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:10px 16px; background:rgba(251,191,36,0.1); border:1px solid #fbbf24; border-radius:10px; margin-bottom:12px;">
-                        <i class="fas fa-envelope" style="color:#fbbf24; font-size:20px;"></i>
-                        <div style="flex:1; font-size:13px; color:var(--text);">
+                    <div class="banner-content">
+                        <i class="fas fa-envelope banner-icon"></i>
+                        <div class="banner-text">
                             <strong>يرجى تأكيد بريدك الإلكتروني</strong>
-                            <span style="opacity:0.5; margin-left:4px;">(${currentUser.email})</span>
+                            <span class="email">(${currentUser.email})</span>
                         </div>
-                        <button onclick="sendEmailVerification()" style="padding:6px 16px; border:none; border-radius:8px; background:#fbbf24; color:#0a0a1a; font-weight:600; cursor:pointer; font-size:12px;">
+                        <button onclick="sendEmailVerification()" class="banner-action">
                             <i class="fas fa-paper-plane"></i> إرسال التأكيد
                         </button>
-                        <button onclick="this.closest('.email-verification-banner').style.display='none'" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; opacity:0.3; font-size:14px;">
+                        <button onclick="this.closest('.email-verification-banner').style.display='none'" class="banner-close">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
                 `;
-                // Add class for targeting
-                verificationBanner.className = 'email-verification-banner';
             } else {
                 verificationBanner.style.display = 'none';
             }
