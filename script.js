@@ -476,7 +476,284 @@ const translations = {
         walletCompleted: 'Wallet transaction completed',
         walletFailed: 'Wallet transaction failed',
         walletReversed: 'Wallet transaction reversed',
-        walletNotFound: 'Wallet transaction not found'
+        walletNotFound: 'Wallet transaction not found',
+        browseProducts: 'Browse Products',
+        checkout: 'Checkout',
+        selectPaymentMethod: 'Select payment method',
+        paymentConfirmed: 'Payment confirmed',
+        paymentRejected: 'Payment rejected',
+        orderPlaced: 'Order placed successfully!',
+        productAdded: 'Product added successfully!',
+        productUpdated: 'Product updated successfully!',
+        productDeleted: 'Product deleted successfully!',
+        productNotFound: 'Product not found',
+        confirmDelete: 'Are you sure you want to delete this?',
+        confirmDeleteUser: 'Are you sure you want to delete this user?',
+        userDeleted: 'User deleted successfully!',
+        userNotFound: 'User not found',
+        noUsers: 'No users found',
+        noSlides: 'No slides found',
+        slideAdded: 'Slide added successfully!',
+        errorUploadingImage: 'Error uploading image',
+        licenceCreated: 'Licence created successfully!',
+        licenceUpdated: 'Licence updated successfully!',
+        licenceNotFound: 'Licence not found',
+        enterProductName: 'Please enter product name',
+        noLogs: 'No logs found',
+        marqueeSaved: 'Marquee settings saved!',
+        noPaymentRequests: 'No payment requests found',
+        lastUpdated: 'Last updated',
+        totalProducts: 'Total Products',
+        totalUsers: 'Total Users',
+        freeProducts: 'Free Products',
+        vipProducts: 'VIP Products',
+        memberSince: 'Member since',
+        lastLogin: 'Last login',
+        noItems: 'No items',
+        complete: 'Complete',
+        reject: 'Reject',
+        searchUsers: 'Search users...',
+        searching: 'Searching...',
+        downloadAdded: 'Download added successfully!',
+        notificationSent: 'Notification sent!',
+        addProduct: 'Add Product',
+        editProduct: 'Edit Product',
+        slideDeleted: 'Slide deleted successfully!',
+        licenceDeleted: 'Licence deleted successfully!',
+        paymentConfirmed: 'Payment confirmed',
+        paymentRejected: 'Payment rejected',
+        orderNotFound: 'Order not found',
+        orderDetails: 'Order Details',
+        orderCompleted: 'Order completed',
+        orderRejected: 'Order rejected',
+        addDownload: 'Add Download',
+        sendNotification: 'Send Notification',
+        createLicence: 'Create Licence',
+        editLicence: 'Edit Licence',
+        deleteLicence: 'Delete Licence',
+        refresh: 'Refresh',
+        export: 'Export',
+        import: 'Import',
+        upload: 'Upload',
+        download: 'Download',
+        preview: 'Preview',
+        publish: 'Publish',
+        unpublish: 'Unpublish',
+        draft: 'Draft',
+        live: 'Live',
+        scheduled: 'Scheduled',
+        expired: 'Expired',
+        active: 'Active',
+        inactive: 'Inactive',
+        enabled: 'Enabled',
+        disabled: 'Disabled',
+        yes: 'Yes',
+        no: 'No',
+        ok: 'OK',
+        cancel: 'Cancel',
+        apply: 'Apply',
+        reset: 'Reset',
+        settings: 'Settings',
+        preferences: 'Preferences',
+        account: 'Account',
+        security: 'Security',
+        privacy: 'Privacy',
+        notifications: 'Notifications',
+        language: 'Language',
+        theme: 'Theme',
+        appearance: 'Appearance',
+        advanced: 'Advanced',
+        general: 'General',
+        system: 'System',
+        update: 'Update',
+        install: 'Install',
+        uninstall: 'Uninstall',
+        upgrade: 'Upgrade',
+        downgrade: 'Downgrade',
+        version: 'Version',
+        build: 'Build',
+        release: 'Release',
+        stable: 'Stable',
+        beta: 'Beta',
+        alpha: 'Alpha',
+        dev: 'Development',
+        prod: 'Production',
+        env: 'Environment',
+        debug: 'Debug',
+        trace: 'Trace',
+        verbose: 'Verbose',
+        quiet: 'Quiet',
+        silent: 'Silent',
+        force: 'Force',
+        overwrite: 'Overwrite',
+        skip: 'Skip',
+        retry: 'Retry',
+        abort: 'Abort',
+        ignore: 'Ignore',
+        report: 'Report',
+        feedback: 'Feedback',
+        rating: 'Rating',
+        review: 'Review',
+        comment: 'Comment',
+        reply: 'Reply',
+        like: 'Like',
+        dislike: 'Dislike',
+        vote: 'Vote',
+        share: 'Share',
+        follow: 'Follow',
+        unfollow: 'Unfollow',
+        block: 'Block',
+        unblock: 'Unblock',
+        mute: 'Mute',
+        unmute: 'Unmute',
+        pin: 'Pin',
+        unpin: 'Unpin',
+        archive: 'Archive',
+        unarchive: 'Unarchive',
+        restore: 'Restore',
+        purge: 'Purge',
+        clear: 'Clear',
+        select: 'Select',
+        deselect: 'Deselect',
+        selectAll: 'Select All',
+        deselectAll: 'Deselect All',
+        expand: 'Expand',
+        collapse: 'Collapse',
+        show: 'Show',
+        hide: 'Hide',
+        toggle: 'Toggle',
+        enable: 'Enable',
+        disable: 'Disable',
+        start: 'Start',
+        stop: 'Stop',
+        pause: 'Pause',
+        resume: 'Resume',
+        play: 'Play',
+        pause: 'Pause',
+        stop: 'Stop',
+        next: 'Next',
+        previous: 'Previous',
+        first: 'First',
+        last: 'Last',
+        page: 'Page',
+        of: 'of',
+        rows: 'rows',
+        columns: 'columns',
+        grid: 'Grid',
+        list: 'List',
+        table: 'Table',
+        cards: 'Cards',
+        details: 'Details',
+        summary: 'Summary',
+        total: 'Total',
+        subtotal: 'Subtotal',
+        tax: 'Tax',
+        shipping: 'Shipping',
+        discount: 'Discount',
+        coupon: 'Coupon',
+        gift: 'Gift',
+        promo: 'Promo',
+        promoCode: 'Promo Code',
+        applyCoupon: 'Apply Coupon',
+        removeCoupon: 'Remove Coupon',
+        invalidCoupon: 'Invalid coupon code',
+        expiredCoupon: 'Coupon expired',
+        usedCoupon: 'Coupon already used',
+        couponApplied: 'Coupon applied successfully!',
+        orderSummary: 'Order Summary',
+        continueShopping: 'Continue Shopping',
+        proceedToCheckout: 'Proceed to Checkout',
+        paymentMethod: 'Payment Method',
+        paymentDetails: 'Payment Details',
+        billingAddress: 'Billing Address',
+        shippingAddress: 'Shipping Address',
+        sameAsBilling: 'Same as billing address',
+        orderNote: 'Order Note',
+        orderNotePlaceholder: 'Special instructions for seller...',
+        placeOrder: 'Place Order',
+        thankYou: 'Thank You!',
+        orderReceived: 'Your order has been received',
+        orderNumber: 'Order Number',
+        orderEmail: 'Order Email',
+        orderTotal: 'Order Total',
+        orderStatus: 'Order Status',
+        orderDate: 'Order Date',
+        orderItems: 'Order Items',
+        orderSummary: 'Order Summary',
+        shippingMethod: 'Shipping Method',
+        trackingNumber: 'Tracking Number',
+        estimatedDelivery: 'Estimated Delivery',
+        delivery: 'Delivery',
+        pickup: 'Pickup',
+        inStore: 'In Store',
+        online: 'Online',
+        physical: 'Physical',
+        digital: 'Digital',
+        service: 'Service',
+        subscription: 'Subscription',
+        license: 'License',
+        key: 'Key',
+        code: 'Code',
+        downloadNow: 'Download Now',
+        viewLicense: 'View License',
+        activateLicense: 'Activate License',
+        deactivateLicense: 'Deactivate License',
+        transferLicense: 'Transfer License',
+        renewLicense: 'Renew License',
+        extendLicense: 'Extend License',
+        upgradeLicense: 'Upgrade License',
+        downgradeLicense: 'Downgrade License',
+        licenseDetails: 'License Details',
+        licenseType: 'License Type',
+        licenseKey: 'License Key',
+        licenseStatus: 'License Status',
+        licenseExpiry: 'License Expiry',
+        licenseCreated: 'License Created',
+        licenseUpdated: 'License Updated',
+        licenseActivated: 'License Activated',
+        licenseDeactivated: 'License Deactivated',
+        licenseTransferred: 'License Transferred',
+        licenseRenewed: 'License Renewed',
+        licenseExtended: 'License Extended',
+        licenseUpgraded: 'License Upgraded',
+        licenseDowngraded: 'License Downgraded',
+        noLicenseFound: 'No license found',
+        invalidLicense: 'Invalid license',
+        expiredLicense: 'Expired license',
+        revokedLicense: 'Revoked license',
+        suspendedLicense: 'Suspended license',
+        pendingLicense: 'Pending license',
+        activeLicense: 'Active license',
+        usedLicense: 'Used license',
+        availableLicense: 'Available license',
+        licenseLimit: 'License Limit',
+        licenseCount: 'License Count',
+        licenseUsage: 'License Usage',
+        licenseRemaining: 'License Remaining',
+        licenseRenewal: 'License Renewal',
+        licenseActivation: 'License Activation',
+        licenseDeactivation: 'License Deactivation',
+        licenseTransfer: 'License Transfer',
+        licenseUpgrade: 'License Upgrade',
+        licenseDowngrade: 'License Downgrade',
+        licenseExtend: 'License Extend',
+        licenseRenew: 'License Renew',
+        licenseEdit: 'License Edit',
+        licenseDelete: 'License Delete',
+        licenseCreate: 'License Create',
+        licenseAdd: 'License Add',
+        licenseRemove: 'License Remove',
+        licenseAssign: 'License Assign',
+        licenseUnassign: 'License Unassign',
+        licenseBulk: 'License Bulk',
+        licenseImport: 'License Import',
+        licenseExport: 'License Export',
+        licenseGenerate: 'License Generate',
+        licenseValidate: 'License Validate',
+        licenseCheck: 'License Check',
+        licenseVerify: 'License Verify',
+        licenseConfirm: 'License Confirm',
+        licenseCancel: 'License Cancel'
     },
     ar: {
         welcome: 'مرحباً بك في ZI Store',
@@ -975,7 +1252,6 @@ function getTranslation(key) {
 }
 
 function updateUILanguage() {
-    // Update all text elements with data-lang attribute
     document.querySelectorAll('[data-lang]').forEach(el => {
         const key = el.dataset.lang;
         const translation = getTranslation(key);
@@ -990,10 +1266,8 @@ function updateUILanguage() {
         }
     });
     
-    // Update search placeholder
     if (searchInput) searchInput.placeholder = getTranslation('search');
     
-    // Update filter buttons
     document.querySelectorAll('.filter-btn').forEach(btn => {
         const key = btn.dataset.filter;
         if (key === 'all') btn.textContent = getTranslation('all');
@@ -1047,7 +1321,7 @@ function updateUILanguage() {
 })();
 
 // ============================================================
-// OPEN PRODUCT DETAILS PAGE (NEW)
+// OPEN PRODUCT DETAILS PAGE
 // ============================================================
 window.openProductPage = function(productId) {
     if (!productId) {
@@ -1055,12 +1329,10 @@ window.openProductPage = function(productId) {
         return;
     }
     
-    // Check if product exists in Firebase
     const productRef = doc(db, 'products', productId);
     getDoc(productRef)
         .then((docSnap) => {
             if (docSnap.exists()) {
-                // Product exists, navigate to details page
                 window.location.href = `product.html?id=${productId}`;
             } else {
                 showToast('❌ Product not found', 'error');
@@ -1068,7 +1340,6 @@ window.openProductPage = function(productId) {
         })
         .catch((error) => {
             console.error('Error checking product:', error);
-            // Try to navigate anyway
             window.location.href = `product.html?id=${productId}`;
         });
 };
@@ -1133,9 +1404,9 @@ function displayProducts(products) {
     
     if (!products || products.length === 0) {
         productList.innerHTML = `
-            <div class="empty-state" style="grid-column:1/-1;text-align:center;padding:60px 20px;">
-                <i class="fas fa-box-open" style="font-size:48px;color:rgba(255,255,255,0.1);margin-bottom:16px;"></i>
-                <p style="color:rgba(255,255,255,0.3);font-size:16px;">${getTranslation('noProducts')}</p>
+            <div class="empty-state">
+                <i class="fas fa-box-open"></i>
+                <p>${getTranslation('noProducts')}</p>
             </div>
         `;
         return;
@@ -1150,7 +1421,7 @@ function displayProducts(products) {
         const badgeText = product.badge || (isFree ? getTranslation('free') : '');
         
         return `
-            <div class="product-card" onclick="openProductPage('${product.id}')" style="cursor:pointer;">
+            <div class="product-card" onclick="openProductPage('${product.id}')">
                 <div class="product-image-wrapper">
                     <img src="${product.image || 'https://via.placeholder.com/300x200/1a1a3e/6c5ce7?text=No+Image'}" 
                          alt="${product.name}" 
@@ -1202,7 +1473,6 @@ function applyFilters() {
         filtered = filtered.filter(p => p.isFeatured === true);
     }
     
-    // Apply search query
     if (searchQuery && searchQuery.trim() !== '') {
         const query = searchQuery.toLowerCase().trim();
         filtered = filtered.filter(p => 
@@ -1212,7 +1482,6 @@ function applyFilters() {
         );
     }
     
-    // Apply sorting
     if (sortBy === 'newest') {
         filtered.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
     } else if (sortBy === 'oldest') {
@@ -1240,6 +1509,16 @@ function searchProducts(query) {
     applyFilters();
 }
 
+function clearSearch() {
+    if (searchInput) {
+        searchInput.value = '';
+        searchQuery = '';
+        applyFilters();
+        const clearBtn = document.getElementById('searchClear');
+        if (clearBtn) clearBtn.classList.remove('visible');
+    }
+}
+
 function updateStats() {
     if (totalScripts) totalScripts.textContent = allProducts.length;
     if (freeScripts) freeScripts.textContent = allProducts.filter(p => p.price === 0 || !p.price || p.price === '0').length;
@@ -1250,7 +1529,6 @@ function updateStats() {
 function updateRecommendations() {
     if (!recommendationsGrid) return;
     
-    // Get random products for recommendations
     const shuffled = [...allProducts].sort(() => 0.5 - Math.random());
     const recommendations = shuffled.slice(0, 6);
     
@@ -1264,7 +1542,7 @@ function updateRecommendations() {
         const priceDisplay = isFree ? getTranslation('free') : `${product.currency || '$'}${Number(product.price).toFixed(2)}`;
         
         return `
-            <div class="rec-product" onclick="openProductPage('${product.id}')" style="cursor:pointer;">
+            <div class="rec-product" onclick="openProductPage('${product.id}')">
                 <img src="${product.image || 'https://via.placeholder.com/150x150/1a1a3e/6c5ce7?text=No+Image'}" 
                      alt="${product.name}"
                      loading="lazy"
@@ -1325,7 +1603,6 @@ function updateSlider() {
         <span class="dot ${index === 0 ? 'active' : ''}" onclick="goToSlide(${index})"></span>
     `).join('');
     
-    // Start auto-slide
     startSliderAuto();
 }
 
@@ -1539,16 +1816,7 @@ function updateWishlistUI() {
     if (document.getElementById('fullWishlistBadge')) {
         document.getElementById('fullWishlistBadge').textContent = wishlist.length;
     }
-    // Update heart icons on product cards
-    document.querySelectorAll('.wishlist-btn i').forEach(icon => {
-        const card = icon.closest('.product-card');
-        if (card) {
-            const productId = card.dataset.productId || card.querySelector('[onclick*="openProductPage"]')?.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
-            if (productId) {
-                icon.classList.toggle('liked', wishlist.includes(productId));
-            }
-        }
-    });
+    if (wishlistStats) wishlistStats.textContent = wishlist.length;
 }
 
 function renderWishlistFull() {
@@ -1574,7 +1842,7 @@ function renderWishlistFull() {
                     <img src="${product.image || 'https://via.placeholder.com/100x100/1a1a3e/6c5ce7?text=No+Image'}" alt="${product.name}" />
                     <div class="wishlist-item-info">
                         <h4>${product.name}</h4>
-                        <span class="wishlist-price">${product.price === 0 ? getTranslation('free') : `$${product.price.toFixed(2)}`}</span>
+                        <span class="wishlist-price">${product.price === 0 ? getTranslation('free') : `${product.currency || '$'}${product.price.toFixed(2)}`}</span>
                         <button onclick="event.stopPropagation(); addToCart('${product.id}')" class="add-to-cart-btn">
                             <i class="fas fa-cart-plus"></i> ${getTranslation('addToCart')}
                         </button>
@@ -1885,9 +2153,9 @@ function updateUserUI() {
     
     const adminMenuItem = document.getElementById('adminMenuItem');
     if (adminMenuItem) {
-        const isAdmin = currentUser && (currentUser.email === 'lasmirlmail@gmail.com' || currentUser.email === 'lasmirmita@gmail.com');
-        adminMenuItem.style.display = isAdmin ? 'flex' : 'none';
-        if (isAdmin) {
+        const isAdminUser = currentUser && (currentUser.email === 'lasmirlmail@gmail.com' || currentUser.email === 'lasmirmita@gmail.com' || currentUser.email === 'zribiidriss3@gmail.com');
+        adminMenuItem.style.display = isAdminUser ? 'flex' : 'none';
+        if (isAdminUser) {
             isAdmin = true;
         }
     }
@@ -1897,8 +2165,13 @@ function updateUserUI() {
 // AUTH STATE MONITOR
 // ============================================================
 onAuthStateChanged(auth, (user) => {
+    const authSection = document.getElementById('authSection');
+    const mainApp = document.getElementById('mainApp');
+    
     if (user) {
         currentUser = user;
+        if (mainApp) mainApp.style.display = 'block';
+        if (authSection) authSection.style.display = 'none';
         updateUserUI();
         loadUserData();
         checkEmailVerification();
@@ -1909,6 +2182,8 @@ onAuthStateChanged(auth, (user) => {
         });
     } else {
         currentUser = null;
+        if (mainApp) mainApp.style.display = 'block';
+        if (authSection) authSection.style.display = 'none';
         updateUserUI();
         cart = [];
         wishlist = [];
@@ -2171,7 +2446,6 @@ function searchAdminOrders() {
         (o.userEmail && o.userEmail.toLowerCase().includes(query)) ||
         (o.status && o.status.toLowerCase().includes(query))
     );
-    // Re-render with filtered orders
     const body = document.getElementById('adminOrdersBody');
     if (!body) return;
     
@@ -2208,13 +2482,11 @@ function exportOrders() {
         return;
     }
     
-    // Create CSV
     let csv = 'Order ID,User Email,Items,Total,Date,Status\n';
     orders.forEach(order => {
         csv += `${order.id.substring(0, 8)},${order.userEmail || 'N/A'},${order.items?.length || 0},${order.total || 0},${order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'},${order.status || 'pending'}\n`;
     });
     
-    // Download CSV
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -2248,7 +2520,7 @@ async function loadAdminProducts() {
         }
         
         container.innerHTML = products.map(product => `
-            <div class="admin-product-item" style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--bg);border-radius:8px;margin-bottom:8px;border:1px solid var(--border);">
+            <div class="admin-product-item">
                 <img src="${product.image || 'https://via.placeholder.com/50x50/1a1a3e/6c5ce7?text=No+Image'}" 
                      alt="${product.name}" 
                      style="width:50px;height:50px;border-radius:6px;object-fit:cover;" />
@@ -2597,8 +2869,6 @@ async function deleteUser(userId) {
 
 function searchAdminUsers() {
     const query = document.getElementById('adminUserSearchInput')?.value?.toLowerCase() || '';
-    // This would need to query Firestore with a where clause
-    // For now, we'll just filter the existing list
     showToast('🔍 ' + getTranslation('searching') || 'Searching...', 'info');
 }
 
@@ -2869,7 +3139,6 @@ function closeAddSlideModal() {
 }
 
 async function saveSlideEdit() {
-    // Get form data
     const title = document.getElementById('slideTitle').value;
     const subtitle = document.getElementById('slideSubtitle').value;
     const buttonText = document.getElementById('slideButtonText').value;
@@ -2993,7 +3262,6 @@ async function createLicenceManually() {
     }
     
     try {
-        // Generate unique code
         const code = 'LIC-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase();
         
         await addDoc(collection(db, 'licences'), {
@@ -3082,7 +3350,6 @@ function searchLicences() {
         (l.product && l.product.toLowerCase().includes(query)) ||
         (l.userId && l.userId.toLowerCase().includes(query))
     );
-    // Re-render with filtered licences
     const container = document.getElementById('adminLicencesList');
     if (!container) return;
     
@@ -3132,7 +3399,6 @@ async function refreshDashboardStats() {
         document.getElementById('dashboardTotalRevenue').textContent = `$${totalRevenue.toFixed(2)}`;
         document.getElementById('dashboardNetRevenue').textContent = `$${netRevenue.toFixed(2)}`;
         
-        // Update admin stats
         adminStats.totalOrders = totalOrders;
         adminStats.totalRevenue = totalRevenue;
         adminStats.netRevenue = netRevenue;
@@ -3158,14 +3424,12 @@ async function refreshAdvancedStats() {
         const usersSnap = await getDocs(usersRef);
         const totalUsers = usersSnap.size;
         
-        // Calculate total revenue
         let totalRevenue = 0;
         ordersSnap.forEach(doc => {
             const data = doc.data();
             if (data.total) totalRevenue += data.total;
         });
         
-        // Get product types
         let freeProducts = 0;
         let vipProducts = 0;
         let paidProducts = 0;
@@ -3575,7 +3839,6 @@ async function loadReferralData() {
         document.getElementById('referralCount2').textContent = referralData.count;
         document.getElementById('referralRewards2').textContent = `$${referralData.rewards.toFixed(2)}`;
         
-        // Show referral steps
         const steps = document.getElementById('referralSteps');
         if (steps) {
             steps.innerHTML = `
@@ -3777,7 +4040,6 @@ async function activateLicence() {
             return;
         }
         
-        // Activate licence
         await updateDoc(doc(db, 'licences', licenceId), {
             status: 'used',
             activatedBy: currentUser?.uid || null,
@@ -3788,7 +4050,6 @@ async function activateLicence() {
         showToast('✅ ' + getTranslation('licenceActivated'), 'success');
         logEvent(analytics, 'licence_activated', { code });
         
-        // Close modal after 2 seconds
         setTimeout(() => {
             closeLicenceModal();
         }, 2000);
@@ -3841,7 +4102,6 @@ function setLanguage(lang) {
     localStorage.setItem('language', lang);
     document.querySelector('.language-menu')?.classList.remove('open');
     updateUILanguage();
-    // Re-render UI with new language
     displayProducts(filteredProducts);
     updateStats();
     updateRecommendations();
@@ -3853,7 +4113,6 @@ function setLanguage(lang) {
 function acceptCookies() {
     localStorage.setItem('cookieConsent', 'accepted');
     document.getElementById('cookieConsent')?.classList.remove('show');
-    // Enable analytics
     gtag('consent', 'update', {
         'analytics_storage': 'granted'
     });
@@ -3932,9 +4191,13 @@ function init() {
             const query = e.target.value;
             if (query.length > 2) {
                 searchProducts(query);
+                const clearBtn = document.getElementById('searchClear');
+                if (clearBtn) clearBtn.classList.add('visible');
             } else if (query.length === 0) {
                 searchQuery = '';
                 applyFilters();
+                const clearBtn = document.getElementById('searchClear');
+                if (clearBtn) clearBtn.classList.remove('visible');
             }
         });
     }
@@ -3955,12 +4218,13 @@ function init() {
     if (searchQueryParam && searchInput) {
         searchInput.value = searchQueryParam;
         searchProducts(searchQueryParam);
+        const clearBtn = document.getElementById('searchClear');
+        if (clearBtn) clearBtn.classList.add('visible');
     }
     
     // Check for product ID in URL (for direct product page)
     const productId = urlParams.get('id');
     if (productId && window.location.pathname.includes('product.html')) {
-        // Product page is loaded separately
         console.log('📦 Product page for:', productId);
     }
     
@@ -4088,6 +4352,7 @@ window.toggleTheme = toggleTheme;
 window.showLanguageMenu = showLanguageMenu;
 window.setLanguage = setLanguage;
 window.filterProducts = filterProducts;
+window.clearSearch = clearSearch;
 window.acceptCookies = acceptCookies;
 window.rejectCookies = rejectCookies;
 window.openCookieSettings = openCookieSettings;
@@ -4100,5 +4365,4 @@ window.toggleSliderEnabled = toggleSliderEnabled;
 window.saveSliderInterval = saveSliderInterval;
 
 console.log('✅ All functions exported to global scope');
-console.log('📊 Total lines of code:', document.currentScript?.textContent?.split('\n').length || 'Unknown');
 console.log('🚀 ZI Store is ready!');
