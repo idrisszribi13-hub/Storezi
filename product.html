@@ -514,11 +514,51 @@
         <button class="toast-close" onclick="hideToast()"><i class="fas fa-times"></i></button>
     </div>
 
-    <script>
+    <!-- ============================================ -->
+    <!-- Firebase Import Map -->
+    <!-- ============================================ -->
+    <script type="importmap">
+        {
+            "imports": {
+                "firebase/app": "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js",
+                "firebase/auth": "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js",
+                "firebase/firestore": "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"
+            }
+        }
+    </script>
+
+    <!-- ============================================ -->
+    <!-- Firebase Initialization & Google Login -->
+    <!-- ============================================ -->
+    <script type="module">
+        import { initializeApp } from "firebase/app";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "firebase/auth";
+        import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
+
         // ============================================
-        // PRODUCT DATA (example - replace with Firebase data)
+        // Firebase Configuration (نفس إعدادات مشروعك)
         // ============================================
-        const productData = {
+        const firebaseConfig = {
+            apiKey: "AIzaSyBwDTCxzd6aoue-NTLI2u4ouK-M37alwUw",
+            authDomain: "zi-script-store.firebaseapp.com",
+            projectId: "zi-script-store",
+            storageBucket: "zi-script-store.firebasestorage.app",
+            messagingSenderId: "925432917209",
+            appId: "1:925432917209:web:ee9b329911d95d831622c8",
+            measurementId: "G-J8YFD51CMR"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        console.log('✅ Firebase initialized in product.html');
+
+        // ============================================
+        // PRODUCT DATA
+        // ============================================
+        const defaultProduct = {
             id: 'survive-idle-run',
             name: 'Survive Idle Run',
             badge: 'VIP',
@@ -538,32 +578,32 @@
         function renderProduct(product) {
             const container = document.getElementById('productContainer');
 
-            const featuresHTML = product.features.map(f =>
+            const featuresHTML = product.features ? product.features.map(f =>
                 `<li><i class="fas fa-check-circle"></i> ${f}</li>`
-            ).join('');
+            ).join('') : '';
 
             container.innerHTML = `
                 <div class="product-image">
-                    <img src="${product.image}" alt="${product.name}" />
-                    <span class="badge-top">${product.badge}</span>
+                    <img src="${product.image || 'https://via.placeholder.com/600x350/1a1a3e/6c5ce7?text=No+Image'}" alt="${product.name}" />
+                    <span class="badge-top">${product.badge || 'PRODUCT'}</span>
                 </div>
                 <div class="product-info">
                     ${product.verified ? `<span class="verified"><i class="fas fa-check-circle"></i> 100% VERIFIED WORKING PRODUCT</span>` : ''}
                     <h1>${product.name}</h1>
                     <div class="price">
-                        ${product.currency}${product.price.toFixed(2)}
-                        ${product.originalPrice ? `<span class="original">${product.currency}${product.originalPrice.toFixed(2)}</span>` : ''}
+                        ${product.currency || '$'}${(product.price || 0).toFixed(2)}
+                        ${product.originalPrice ? `<span class="original">${product.currency || '$'}${product.originalPrice.toFixed(2)}</span>` : ''}
                     </div>
                     <p class="description">${product.description || 'No description available.'}</p>
                     <ul class="features">${featuresHTML}</ul>
                     <div class="product-actions">
-                        <button class="btn btn-primary" onclick="addToCart()">
+                        <button class="btn btn-primary" onclick="window.addToCart()">
                             <i class="fas fa-cart-plus"></i> Add to Cart
                         </button>
-                        <button class="btn btn-outline" onclick="buyNow()">
+                        <button class="btn btn-outline" onclick="window.buyNow()">
                             <i class="fas fa-bolt"></i> Buy Now
                         </button>
-                        <button class="btn-heart" id="heartBtn" onclick="toggleLike()">
+                        <button class="btn-heart" id="heartBtn" onclick="window.toggleLike()">
                             <i class="fas fa-heart"></i>
                         </button>
                     </div>
@@ -571,7 +611,7 @@
                     <!-- ====== GOOGLE LOGIN BUTTON ====== -->
                     <div style="margin-top:16px;border-top:1px solid rgba(255,255,255,0.05);padding-top:16px;">
                         <p style="font-size:13px;color:rgba(255,255,255,0.3);margin-bottom:10px;">Sign in to save your purchase history</p>
-                        <button class="google-btn" id="googleLoginBtn" onclick="loginWithGoogle()">
+                        <button class="google-btn" id="googleLoginBtn">
                             <span class="google-icon">
                                 <svg viewBox="0 0 48 48">
                                     <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
@@ -580,94 +620,184 @@
                                     <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
                                 </svg>
                             </span>
-                            <span class="btn-text">Sign in with Google</span>
+                            <span class="btn-text" id="googleBtnText">Sign in with Google</span>
                             <span class="btn-loader"></span>
                         </button>
                     </div>
                 </div>
             `;
 
+            // Add click listener to Google button
+            document.getElementById('googleLoginBtn').addEventListener('click', window.loginWithGoogle);
+
             // Update user button
-            updateUserButton();
+            window.updateUserButton();
         }
 
         // ============================================
         // USER STATE
         // ============================================
-        let currentUser = null;
+        window.currentUser = null;
 
-        function updateUserButton() {
+        window.updateUserButton = function() {
             const btn = document.getElementById('userBtn');
-            if (currentUser) {
-                btn.textContent = currentUser.displayName ? currentUser.displayName.charAt(0).toUpperCase() : 'U';
+            const googleBtnText = document.getElementById('googleBtnText');
+            if (window.currentUser) {
+                const name = window.currentUser.displayName || window.currentUser.email || 'User';
+                btn.textContent = name.charAt(0).toUpperCase();
                 btn.style.background = 'linear-gradient(135deg, #34d399, #6c5ce7)';
+                if (googleBtnText) googleBtnText.textContent = '✅ Signed in as ' + name;
+                // تحديث زر Google
+                const googleBtn = document.getElementById('googleLoginBtn');
+                if (googleBtn) {
+                    googleBtn.style.background = 'rgba(52, 211, 153, 0.1)';
+                    googleBtn.style.border = '2px solid #34d399';
+                }
             } else {
                 btn.textContent = 'U';
                 btn.style.background = 'linear-gradient(135deg, #6c5ce7, #a29bfe)';
+                if (googleBtnText) googleBtnText.textContent = 'Sign in with Google';
+                const googleBtn = document.getElementById('googleLoginBtn');
+                if (googleBtn) {
+                    googleBtn.style.background = '#fff';
+                    googleBtn.style.border = 'none';
+                }
             }
-        }
+        };
 
         // ============================================
-        // GOOGLE LOGIN
+        // GOOGLE LOGIN WITH FIREBASE
         // ============================================
-        function loginWithGoogle() {
+        window.loginWithGoogle = function() {
             const btn = document.getElementById('googleLoginBtn');
             btn.classList.add('loading');
+            const provider = new GoogleAuthProvider();
 
-            // Simulate login (replace with Firebase Google Auth)
-            setTimeout(() => {
-                currentUser = {
-                    displayName: 'Ahmed',
-                    email: 'ahmed@example.com'
-                };
-                updateUserButton();
-                btn.classList.remove('loading');
-                showToast('✅ Signed in with Google!');
-                renderProduct(productData); // Re-render to update UI
-            }, 1500);
+            signInWithPopup(auth, provider)
+                .then((result) => {
+                    btn.classList.remove('loading');
+                    window.currentUser = result.user;
+                    window.updateUserButton();
+                    window.showToast('✅ Signed in with Google!');
+                    
+                    // تحديث واجهة المستخدم
+                    const googleBtnText = document.getElementById('googleBtnText');
+                    if (googleBtnText) googleBtnText.textContent = '✅ Signed in as ' + (result.user.displayName || result.user.email);
+                    const googleBtn = document.getElementById('googleLoginBtn');
+                    if (googleBtn) {
+                        googleBtn.style.background = 'rgba(52, 211, 153, 0.1)';
+                        googleBtn.style.border = '2px solid #34d399';
+                    }
+                })
+                .catch((error) => {
+                    btn.classList.remove('loading');
+                    console.error('Google login error:', error);
+                    window.showToast('❌ ' + error.message);
+                });
+        };
+
+        // ============================================
+        // MONITOR AUTH STATE
+        // ============================================
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                window.currentUser = user;
+                window.updateUserButton();
+                // تحديث زر Google
+                const googleBtnText = document.getElementById('googleBtnText');
+                if (googleBtnText) googleBtnText.textContent = '✅ Signed in as ' + (user.displayName || user.email);
+                const googleBtn = document.getElementById('googleLoginBtn');
+                if (googleBtn) {
+                    googleBtn.style.background = 'rgba(52, 211, 153, 0.1)';
+                    googleBtn.style.border = '2px solid #34d399';
+                }
+            } else {
+                window.currentUser = null;
+                window.updateUserButton();
+            }
+        });
+
+        // ============================================
+        // LOAD PRODUCT FROM FIRESTORE
+        // ============================================
+        async function loadProduct(productId) {
+            try {
+                const productRef = doc(db, 'products', productId);
+                const productSnap = await getDoc(productRef);
+                
+                if (productSnap.exists()) {
+                    const data = productSnap.data();
+                    const product = {
+                        id: productId,
+                        name: data.name || 'Unnamed Product',
+                        badge: data.badge || 'PRODUCT',
+                        price: data.price || 0,
+                        originalPrice: data.originalPrice || null,
+                        currency: data.currency || '$',
+                        image: data.image || 'https://via.placeholder.com/600x350/1a1a3e/6c5ce7?text=No+Image',
+                        description: data.description || 'No description available.',
+                        verified: data.verified !== false,
+                        features: data.features || [],
+                        video: data.video || null
+                    };
+                    renderProduct(product);
+                } else {
+                    // Use default product if not found
+                    renderProduct(defaultProduct);
+                    window.showToast('⚠️ Product not found, showing demo');
+                }
+            } catch (error) {
+                console.error('Error loading product:', error);
+                renderProduct(defaultProduct);
+                window.showToast('⚠️ Error loading product, showing demo');
+            }
         }
 
         // ============================================
         // ACTIONS
         // ============================================
-        function addToCart() {
-            showToast('🛒 Added to cart!');
-        }
+        window.addToCart = function() {
+            window.showToast('🛒 Added to cart!');
+        };
 
-        function buyNow() {
-            showToast('💳 Redirecting to checkout...');
-        }
+        window.buyNow = function() {
+            if (window.currentUser) {
+                window.showToast('💳 Redirecting to checkout...');
+            } else {
+                window.showToast('🔑 Please sign in first!');
+            }
+        };
 
-        function toggleLike() {
+        window.toggleLike = function() {
             const btn = document.getElementById('heartBtn');
             btn.classList.toggle('liked');
             if (btn.classList.contains('liked')) {
-                showToast('❤️ Added to favorites!');
+                window.showToast('❤️ Added to favorites!');
             } else {
-                showToast('💔 Removed from favorites');
+                window.showToast('💔 Removed from favorites');
             }
-        }
+        };
 
-        function openWishlist() {
-            showToast('❤️ Wishlist opened');
-        }
+        window.openWishlist = function() {
+            window.showToast('❤️ Wishlist opened');
+        };
 
-        function openCart() {
-            showToast('🛒 Cart opened');
-        }
+        window.openCart = function() {
+            window.showToast('🛒 Cart opened');
+        };
 
-        function openProfile() {
-            if (currentUser) {
-                showToast(`👋 Hello, ${currentUser.displayName}!`);
+        window.openProfile = function() {
+            if (window.currentUser) {
+                window.showToast(`👋 Hello, ${window.currentUser.displayName || window.currentUser.email}!`);
             } else {
-                showToast('🔑 Please sign in');
+                window.showToast('🔑 Please sign in');
             }
-        }
+        };
 
         // ============================================
         // TOAST
         // ============================================
-        function showToast(message) {
+        window.showToast = function(message) {
             const toast = document.getElementById('toast');
             const messageEl = document.getElementById('toastMessage');
             messageEl.textContent = message;
@@ -676,12 +806,12 @@
             window.toastTimeout = setTimeout(() => {
                 toast.classList.remove('show');
             }, 3000);
-        }
+        };
 
-        function hideToast() {
+        window.hideToast = function() {
             const toast = document.getElementById('toast');
             toast.classList.remove('show');
-        }
+        };
 
         // ============================================
         // SEARCH
@@ -690,7 +820,9 @@
             if (e.key === 'Enter') {
                 const query = e.target.value.trim();
                 if (query) {
-                    showToast(`🔍 Searching for "${query}"...`);
+                    window.showToast(`🔍 Searching for "${query}"...`);
+                    // Redirect to index.html with search query
+                    window.location.href = `index.html?search=${encodeURIComponent(query)}`;
                 }
             }
         });
@@ -698,16 +830,15 @@
         // ============================================
         // INIT
         // ============================================
-        // Load product from URL param or use default
         const urlParams = new URLSearchParams(window.location.search);
         const productId = urlParams.get('id') || 'survive-idle-run';
 
-        // In a real app, fetch from Firebase using productId
-        // For now, use example data
-        renderProduct(productData);
+        // Load product from Firebase
+        loadProduct(productId);
 
-        console.log('✅ Product page loaded');
+        console.log('✅ Product page loaded with Firebase');
+        console.log('🔑 Product ID:', productId);
     </script>
 
 </body>
-</html>
+    </html>
