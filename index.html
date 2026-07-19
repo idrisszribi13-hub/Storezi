@@ -2174,50 +2174,58 @@
     <!-- ============================================ -->
     <script>
         (function interceptVerificationLink() {
-            // Get URL parameters
             const urlParams = new URLSearchParams(window.location.search);
             const mode = urlParams.get('mode');
             const oobCode = urlParams.get('oobCode');
             const apiKey = urlParams.get('apiKey');
 
-            // Check if this is a verification link from Firebase
             if (mode === 'verifyEmail' && oobCode) {
-                // Store the data in localStorage
                 localStorage.setItem('verifyMode', mode);
                 localStorage.setItem('verifyOobCode', oobCode);
-                if (apiKey) {
-                    localStorage.setItem('verifyApiKey', apiKey);
-                }
-
-                // Redirect to the beautiful verification page
+                if (apiKey) localStorage.setItem('verifyApiKey', apiKey);
                 window.location.href = '/verify-email.html';
                 return true;
             }
             
-            // Check for password reset
             if (mode === 'resetPassword' && oobCode) {
                 localStorage.setItem('verifyMode', mode);
                 localStorage.setItem('verifyOobCode', oobCode);
-                if (apiKey) {
-                    localStorage.setItem('verifyApiKey', apiKey);
-                }
+                if (apiKey) localStorage.setItem('verifyApiKey', apiKey);
                 window.location.href = '/verify-email.html';
                 return true;
             }
 
-            // Check for recover email
             if (mode === 'recoverEmail' && oobCode) {
                 localStorage.setItem('verifyMode', mode);
                 localStorage.setItem('verifyOobCode', oobCode);
-                if (apiKey) {
-                    localStorage.setItem('verifyApiKey', apiKey);
-                }
+                if (apiKey) localStorage.setItem('verifyApiKey', apiKey);
                 window.location.href = '/verify-email.html';
                 return true;
+            }
+
+            if (!mode) {
+                localStorage.removeItem('verifyMode');
+                localStorage.removeItem('verifyOobCode');
+                localStorage.removeItem('verifyApiKey');
             }
 
             return false;
         })();
+    </script>
+
+    <!-- ============================================ -->
+    <!-- FIREBASE IMPORT MAP (with Storage) -->
+    <!-- ============================================ -->
+    <script type="importmap">
+    {
+        "imports": {
+            "firebase/app": "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js",
+            "firebase/auth": "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js",
+            "firebase/firestore": "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js",
+            "firebase/storage": "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js",
+            "firebase/analytics": "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js"
+        }
+    }
     </script>
 </head>
 <body>
@@ -2363,43 +2371,43 @@
             </div>
 
             <!-- Language Selector -->
-            <div class="language-selector" onclick="window.showLanguageMenu()">
+            <div class="language-selector" onclick="showLanguageMenu()">
                 <span id="currentLangFlag">🇬🇧</span>
                 <span id="currentLangCode">EN</span>
                 <i class="fas fa-chevron-down"></i>
 
                 <div class="language-menu" id="languageMenu">
-                    <div class="lang-option" data-lang="ar" onclick="window.setLanguage('ar')">
+                    <div class="lang-option" data-lang="ar" onclick="setLanguage('ar')">
                         <span class="lang-flag">🇸🇦</span>
                         <span class="lang-name">العربية</span>
                         <span class="lang-check"><i class="fas fa-check"></i></span>
                     </div>
-                    <div class="lang-option active" data-lang="en" onclick="window.setLanguage('en')">
+                    <div class="lang-option active" data-lang="en" onclick="setLanguage('en')">
                         <span class="lang-flag">🇬🇧</span>
                         <span class="lang-name">English</span>
                         <span class="lang-check"><i class="fas fa-check"></i></span>
                     </div>
-                    <div class="lang-option" data-lang="fr" onclick="window.setLanguage('fr')">
+                    <div class="lang-option" data-lang="fr" onclick="setLanguage('fr')">
                         <span class="lang-flag">🇫🇷</span>
                         <span class="lang-name">Français</span>
                         <span class="lang-check"><i class="fas fa-check"></i></span>
                     </div>
-                    <div class="lang-option" data-lang="it" onclick="window.setLanguage('it')">
+                    <div class="lang-option" data-lang="it" onclick="setLanguage('it')">
                         <span class="lang-flag">🇮🇹</span>
                         <span class="lang-name">Italiano</span>
                         <span class="lang-check"><i class="fas fa-check"></i></span>
                     </div>
-                    <div class="lang-option" data-lang="de" onclick="window.setLanguage('de')">
+                    <div class="lang-option" data-lang="de" onclick="setLanguage('de')">
                         <span class="lang-flag">🇩🇪</span>
                         <span class="lang-name">Deutsch</span>
                         <span class="lang-check"><i class="fas fa-check"></i></span>
                     </div>
-                    <div class="lang-option" data-lang="es" onclick="window.setLanguage('es')">
+                    <div class="lang-option" data-lang="es" onclick="setLanguage('es')">
                         <span class="lang-flag">🇪🇸</span>
                         <span class="lang-name">Español</span>
                         <span class="lang-check"><i class="fas fa-check"></i></span>
                     </div>
-                    <div class="lang-option" data-lang="pt" onclick="window.setLanguage('pt')">
+                    <div class="lang-option" data-lang="pt" onclick="setLanguage('pt')">
                         <span class="lang-flag">🇵🇹</span>
                         <span class="lang-name">Português</span>
                         <span class="lang-check"><i class="fas fa-check"></i></span>
@@ -3499,17 +3507,7 @@
     <!-- ============================================ -->
     <!-- Scripts -->
     <!-- ============================================ -->
-    <script type="importmap">
-        {
-            "imports": {
-                "firebase/app": "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js",
-                "firebase/auth": "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js",
-                "firebase/firestore": "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js",
-                "firebase/analytics": "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js"
-            }
-        }
-    </script>
     <script type="module" src="languages.js"></script>
     <script type="module" src="script.js"></script>
 </body>
-</html>
+    </html>
