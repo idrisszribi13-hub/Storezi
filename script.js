@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - Full Version with Fixes
+// SCRIPT.JS - ZI Store - Full Version
 // ============================================================
 
 // ============================================================
@@ -650,12 +650,12 @@ function updateFullUserMenu() {
             if (activeLicences > 0) { licencesBadge.style.display = 'inline-block'; licencesBadge.textContent = activeLicences; } else { licencesBadge.style.display = 'none'; }
         }
 
-        // تحديث حالة التحقق في القائمة
+        // Update verification status in menu
         if (verifyMenuItem) {
             if (currentUser.emailVerified) {
                 verifyMenuItem.style.display = 'flex';
                 const label = verifyMenuItem.querySelector('.menu-label');
-                if (label) label.textContent = '✅ البريد موثق';
+                if (label) label.textContent = '✅ Email Verified';
                 if (verifyBadge) {
                     verifyBadge.textContent = '✅';
                     verifyBadge.style.background = 'var(--success)';
@@ -664,7 +664,7 @@ function updateFullUserMenu() {
             } else {
                 verifyMenuItem.style.display = 'flex';
                 const label = verifyMenuItem.querySelector('.menu-label');
-                if (label) label.textContent = '📧 توثيق البريد';
+                if (label) label.textContent = '📧 Verify Email';
                 if (verifyBadge) {
                     verifyBadge.textContent = '⚠️';
                     verifyBadge.style.background = 'var(--warning)';
@@ -735,7 +735,7 @@ window.loginUser = async function() {
             window.showMainApp();
             hideLoadingScreen();
             
-            // التحقق من حالة البريد الإلكتروني
+            // Check email verification
             setTimeout(checkVerificationOnLogin, 3000);
         }, 500);
     } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Login failed', 'error'); btn.classList.remove('loading'); }
@@ -776,13 +776,13 @@ window.registerUser = async function() {
         btn.classList.remove('loading');
         await refreshAdminStatus();
         
-        // إرسال بريد التحقق بعد التسجيل
+        // Send verification email after registration
         try {
             await sendEmailVerification(currentUser, {
                 url: window.location.origin + '/verify-email.html',
                 handleCodeInApp: true
             });
-            showToast('📧 تم إرسال رابط التحقق إلى بريدك الإلكتروني', 'success');
+            showToast('📧 Verification email sent!', 'success');
         } catch (verifyError) {
             console.error('Error sending verification email:', verifyError);
         }
@@ -798,7 +798,7 @@ window.registerUser = async function() {
             window.showMainApp();
             hideLoadingScreen();
             
-            // عرض رسالة التحقق
+            // Show verification dialog
             setTimeout(() => {
                 showVerificationDialog(currentUser.email);
             }, 1000);
@@ -837,11 +837,11 @@ window.loginWithGoogle = function() {
             await refreshAdminStatus();
             await mergeGuestData(user.uid);
 
-            // التحقق من حالة البريد الإلكتروني (Google accounts are usually verified)
+            // Check email verification (Google accounts are usually verified)
             if (user.emailVerified) {
                 localStorage.setItem('zi_verification_pending', 'false');
             } else {
-                // إرسال رابط التحقق إذا لم يكن موثقاً
+                // Send verification email if not verified
                 try {
                     await sendEmailVerification(user, {
                         url: window.location.origin + '/verify-email.html',
@@ -881,7 +881,7 @@ window.loginWithGoogle = function() {
                 window.showMainApp();
                 hideLoadingScreen();
                 
-                // عرض رسالة التحقق إذا لم يتم التوثيق
+                // Show verification dialog if not verified
                 setTimeout(() => {
                     if (!user.emailVerified) {
                         showVerificationDialog(user.email);
@@ -1016,17 +1016,17 @@ window.sendForgotPassword = async function() {
 // ============================================================
 
 /**
- * إرسال بريد التحقق للمستخدم الحالي
+ * Send verification email to current user
  */
 window.sendEmailVerification = async function() {
     if (!currentUser) {
-        showToast('⚠️ يرجى تسجيل الدخول أولاً', 'warning');
+        showToast('⚠️ Please login first', 'warning');
         openAuthModal();
         return;
     }
 
     if (currentUser.emailVerified) {
-        showToast('✅ بريدك الإلكتروني موثق بالفعل!', 'success');
+        showToast('✅ Your email is already verified!', 'success');
         updateFullUserMenu();
         return;
     }
@@ -1038,7 +1038,7 @@ window.sendEmailVerification = async function() {
         });
         
         localStorage.setItem('zi_verification_pending', 'true');
-        showToast('📧 تم إرسال رابط التحقق إلى بريدك الإلكتروني', 'success');
+        showToast('📧 Verification email sent!', 'success');
         
         setTimeout(() => {
             showVerificationDialog(currentUser.email);
@@ -1047,7 +1047,7 @@ window.sendEmailVerification = async function() {
     } catch (error) {
         console.error('Error sending verification email:', error);
         
-        // محاولة بديلة باستخدام Firebase مباشرة
+        // Fallback using Firebase directly
         try {
             const user = auth.currentUser;
             if (user) {
@@ -1055,7 +1055,7 @@ window.sendEmailVerification = async function() {
                     url: window.location.origin + '/verify-email.html'
                 });
                 localStorage.setItem('zi_verification_pending', 'true');
-                showToast('📧 تم إرسال رابط التحقق إلى بريدك الإلكتروني', 'success');
+                showToast('📧 Verification email sent!', 'success');
                 setTimeout(() => {
                     showVerificationDialog(user.email);
                 }, 500);
@@ -1065,15 +1065,15 @@ window.sendEmailVerification = async function() {
             console.error('Fallback verification error:', e);
         }
         
-        showToast('❌ فشل إرسال رابط التحقق: ' + error.message, 'error');
+        showToast('❌ Failed to send verification email: ' + error.message, 'error');
     }
 };
 
 /**
- * عرض نافذة تأكيد إرسال رابط التحقق
+ * Show verification dialog
  */
 function showVerificationDialog(email) {
-    // إزالة أي حاوية سابقة
+    // Remove previous container
     closeVerificationDialog();
     
     const dialogHTML = `
@@ -1081,23 +1081,23 @@ function showVerificationDialog(email) {
             <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
                 <span style="font-size:32px;">📧</span>
                 <div>
-                    <div style="font-weight:700; font-size:16px; color:var(--text);">رابط التحقق مرسل</div>
+                    <div style="font-weight:700; font-size:16px; color:var(--text);">Verification Email Sent</div>
                     <div style="font-size:13px; color:var(--text-secondary); opacity:0.6;">${email}</div>
                 </div>
             </div>
             <div style="font-size:14px; color:var(--text-secondary); line-height:1.6; margin-bottom:12px;">
                 <i class="fas fa-info-circle" style="color:var(--primary);"></i>
-                تم إرسال رابط التحقق إلى بريدك الإلكتروني. يرجى فتح البريد والنقر على الرابط لتأكيد حسابك.
+                We've sent a verification link to your email. Please check your inbox and click the link to verify your account.
             </div>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
                 <button onclick="checkVerificationStatus()" class="btn btn-primary" style="padding:8px 20px; font-size:13px; border:none; border-radius:8px; background:var(--primary-gradient); color:#fff; cursor:pointer;">
-                    <i class="fas fa-sync-alt"></i> تحقق الآن
+                    <i class="fas fa-sync-alt"></i> Check Now
                 </button>
                 <button onclick="closeVerificationDialog()" class="btn btn-outline" style="padding:8px 20px; font-size:13px; border:1px solid var(--border); border-radius:8px; background:transparent; color:var(--text-secondary); cursor:pointer;">
-                    <i class="fas fa-times"></i> إغلاق
+                    <i class="fas fa-times"></i> Close
                 </button>
                 <button onclick="window.sendEmailVerification()" class="btn btn-outline" style="padding:8px 20px; font-size:13px; border:1px solid var(--border); border-radius:8px; background:transparent; color:var(--text-secondary); cursor:pointer;">
-                    <i class="fas fa-redo"></i> إعادة الإرسال
+                    <i class="fas fa-redo"></i> Resend
                 </button>
             </div>
             <div id="verificationStatus" style="margin-top:10px; font-size:13px; display:none;"></div>
@@ -1110,14 +1110,14 @@ function showVerificationDialog(email) {
         container.style.display = 'block';
         container.style.animation = 'fadeIn 0.3s ease';
     } else {
-        // إنشاء حاوية مؤقتة
+        // Create temporary container
         const tempContainer = document.createElement('div');
         tempContainer.id = 'verificationDialogContainer';
         tempContainer.style.cssText = 'position:fixed; bottom:80px; left:50%; transform:translateX(-50%); z-index:100000; max-width:500px; width:90%;';
         tempContainer.innerHTML = dialogHTML;
         document.body.appendChild(tempContainer);
         
-        // إضافة زر إغلاق
+        // Add close button
         const closeBtn = tempContainer.querySelector('.btn-outline');
         if (closeBtn) {
             closeBtn.onclick = function() {
@@ -1128,7 +1128,7 @@ function showVerificationDialog(email) {
 }
 
 /**
- * إغلاق نافذة التحقق
+ * Close verification dialog
  */
 window.closeVerificationDialog = function() {
     const container = document.getElementById('verificationDialogContainer');
@@ -1137,7 +1137,7 @@ window.closeVerificationDialog = function() {
         container.style.transition = 'opacity 0.5s ease';
         setTimeout(() => {
             if (container.parentNode) container.remove();
-            // إعادة إنشاء الحاوية الفارغة
+            // Recreate empty container
             const newContainer = document.createElement('div');
             newContainer.id = 'verificationDialogContainer';
             newContainer.style.display = 'none';
@@ -1147,11 +1147,11 @@ window.closeVerificationDialog = function() {
 };
 
 /**
- * التحقق من حالة توثيق البريد الإلكتروني
+ * Check verification status
  */
 window.checkVerificationStatus = async function() {
     if (!currentUser) {
-        showToast('⚠️ يرجى تسجيل الدخول أولاً', 'warning');
+        showToast('⚠️ Please login first', 'warning');
         return;
     }
 
@@ -1161,7 +1161,7 @@ window.checkVerificationStatus = async function() {
         statusEl.innerHTML = `
             <span style="color:var(--warning);">
                 <i class="fas fa-spinner fa-spin"></i> 
-                جاري التحقق...
+                Checking...
             </span>
         `;
     }
@@ -1170,7 +1170,7 @@ window.checkVerificationStatus = async function() {
         await currentUser.reload();
         
         if (currentUser.emailVerified) {
-            showToast('✅ بريدك الإلكتروني موثق بنجاح!', 'success');
+            showToast('✅ Email verified successfully!', 'success');
             localStorage.removeItem('zi_verification_pending');
             
             updateUI();
@@ -1180,14 +1180,14 @@ window.checkVerificationStatus = async function() {
             
             return true;
         } else {
-            showToast('⏳ لم يتم توثيق البريد بعد. يرجى التحقق من صندوق الوارد.', 'warning');
+            showToast('⏳ Email not verified yet. Please check your inbox.', 'warning');
             
             if (statusEl) {
                 statusEl.innerHTML = `
                     <span style="color:var(--warning);">
                         <i class="fas fa-hourglass-half"></i> 
-                        لم يتم توثيق البريد بعد. يرجى التحقق من صندوق الوارد أو البريد المزعج (Spam).
-                        <br><small style="opacity:0.5;">إذا لم تجد الرابط، اضغط "إعادة الإرسال"</small>
+                        Email not verified yet. Please check your inbox or spam folder.
+                        <br><small style="opacity:0.5;">If you didn't receive the email, click "Resend"</small>
                     </span>
                 `;
             }
@@ -1195,7 +1195,7 @@ window.checkVerificationStatus = async function() {
         }
     } catch (error) {
         console.error('Error checking verification status:', error);
-        showToast('❌ فشل التحقق: ' + error.message, 'error');
+        showToast('❌ Verification failed: ' + error.message, 'error');
         if (statusEl) {
             statusEl.innerHTML = `
                 <span style="color:var(--danger);">
@@ -1209,7 +1209,7 @@ window.checkVerificationStatus = async function() {
 };
 
 /**
- * عرض رسالة نجاح التوثيق
+ * Show verification success message
  */
 function showVerificationSuccess() {
     const successHTML = `
@@ -1217,8 +1217,8 @@ function showVerificationSuccess() {
             <div style="display:flex; align-items:center; gap:12px;">
                 <span style="font-size:28px;">🎉</span>
                 <div>
-                    <div style="font-weight:700; font-size:16px; color:var(--success);">تم توثيق البريد الإلكتروني!</div>
-                    <div style="font-size:13px; color:var(--text-secondary);">يمكنك الآن الاستمتاع بجميع مزايا ZI Store.</div>
+                    <div style="font-weight:700; font-size:16px; color:var(--success);">Email Verified!</div>
+                    <div style="font-size:13px; color:var(--text-secondary);">You can now enjoy all ZI Store features.</div>
                 </div>
             </div>
         </div>
@@ -1238,7 +1238,7 @@ function showVerificationSuccess() {
             }, 5000);
         }, 8000);
     } else {
-        // إنشاء حاوية مؤقتة
+        // Create temporary container
         const tempContainer = document.createElement('div');
         tempContainer.id = 'verificationSuccessContainer';
         tempContainer.style.cssText = 'position:fixed; top:80px; left:50%; transform:translateX(-50%); z-index:100000; max-width:500px; width:90%;';
@@ -1256,7 +1256,7 @@ function showVerificationSuccess() {
 }
 
 /**
- * فحص حالة التحقق عند تسجيل الدخول
+ * Check verification on login
  */
 async function checkVerificationOnLogin() {
     if (!currentUser) return;
@@ -1276,21 +1276,21 @@ async function checkVerificationOnLogin() {
 }
 
 /**
- * عرض تذكير بالتحقق من البريد الإلكتروني
+ * Show verification reminder
  */
 function showVerificationReminder() {
-    // التحقق من وجود التذكير بالفعل
+    // Check if reminder already exists
     if (document.getElementById('verificationReminder')) return;
     
     const reminderHTML = `
         <div style="background:rgba(251,191,36,0.1); border-radius:12px; padding:14px 18px; border:1px solid var(--warning); margin:8px 0; display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
             <span style="font-size:20px;">📧</span>
             <div style="flex:1; min-width:150px;">
-                <div style="font-weight:600; font-size:14px; color:var(--text);">تحقق من بريدك الإلكتروني</div>
-                <div style="font-size:12px; color:var(--text-secondary); opacity:0.6;">يرجى توثيق بريدك الإلكتروني لتأمين حسابك</div>
+                <div style="font-weight:600; font-size:14px; color:var(--text);">Verify Your Email</div>
+                <div style="font-size:12px; color:var(--text-secondary); opacity:0.6;">Please verify your email to secure your account</div>
             </div>
             <button onclick="sendEmailVerification()" class="btn btn-primary" style="padding:6px 16px; font-size:12px; border:none; border-radius:8px; background:var(--primary-gradient); color:#fff; cursor:pointer;">
-                <i class="fas fa-envelope"></i> توثيق
+                <i class="fas fa-envelope"></i> Verify
             </button>
             <button onclick="this.parentElement.remove()" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:14px; opacity:0.3;">
                 <i class="fas fa-times"></i>
@@ -1312,7 +1312,7 @@ function showVerificationReminder() {
             mainApp.insertBefore(container, mainApp.firstChild);
         }
         
-        // إخفاء التذكير بعد 15 ثانية
+        // Hide reminder after 15 seconds
         setTimeout(() => {
             if (container.parentNode) {
                 container.style.opacity = '0';
@@ -1326,7 +1326,7 @@ function showVerificationReminder() {
 }
 
 /**
- * إضافة زر التحقق في ملف التعريف
+ * Add verification button to profile
  */
 function addVerificationToProfile() {
     const profileContainer = document.getElementById('profileFullContent');
@@ -1342,7 +1342,7 @@ function addVerificationToProfile() {
         verifySection.innerHTML = `
             <div style="display:flex; align-items:center; gap:8px; color:var(--success);">
                 <i class="fas fa-check-circle" style="font-size:18px;"></i>
-                <span style="font-weight:600;">✅ البريد الإلكتروني موثق</span>
+                <span style="font-weight:600;">✅ Email Verified</span>
             </div>
         `;
     } else {
@@ -1350,14 +1350,14 @@ function addVerificationToProfile() {
             <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                 <span style="color:var(--warning);">
                     <i class="fas fa-exclamation-triangle"></i>
-                    <span style="font-weight:600;">⚠️ البريد الإلكتروني غير موثق</span>
+                    <span style="font-weight:600;">⚠️ Email Not Verified</span>
                 </span>
                 <button onclick="sendEmailVerification()" class="btn btn-primary" style="padding:6px 14px; font-size:12px; margin-left:auto; border:none; border-radius:8px; background:var(--primary-gradient); color:#fff; cursor:pointer;">
-                    <i class="fas fa-envelope"></i> توثيق البريد
+                    <i class="fas fa-envelope"></i> Verify Email
                 </button>
             </div>
             <div style="font-size:12px; color:var(--text-secondary); opacity:0.5; margin-top:4px;">
-                يجب توثيق البريد الإلكتروني لتأمين حسابك والاستفادة من جميع المزايا.
+                Verify your email to secure your account and access all features.
             </div>
         `;
     }
@@ -1527,7 +1527,7 @@ window.renderProfileFull = function() {
         </div>
     </div>`;
     
-    // إضافة قسم التحقق
+    // Add verification section
     setTimeout(() => {
         addVerificationToProfile();
     }, 200);
@@ -1558,27 +1558,27 @@ window.changePasswordInline = async function() { if (!currentUser) return; const
 // 8. Product Functions - Enhanced with Direct Firestore Loading
 // ============================================================
 
-// دالة مباشرة لتحميل المنتجات من Firestore
+// Function to load products directly from Firestore
 async function loadProductsDirectly() {
-    console.log('🔄 جاري تحميل المنتجات من Firestore...');
+    console.log('🔄 Loading products from Firestore...');
     
     try {
         const productsRef = collection(db, 'products');
         const querySnapshot = await getDocs(productsRef);
         
-        console.log(`📦 عدد المنتجات في Firestore: ${querySnapshot.size}`);
+        console.log(`📦 Products found in Firestore: ${querySnapshot.size}`);
         
         if (querySnapshot.empty) {
-            console.log('⚠️ لا توجد منتجات في Firestore');
+            console.log('⚠️ No products found in Firestore');
             return [];
         }
         
         const productsList = [];
         querySnapshot.forEach((doc) => {
             const data = doc.data();
-            console.log(`📦 المنتج: ${data.name || 'Unnamed'} (ID: ${doc.id})`);
+            console.log(`📦 Product: ${data.name || 'Unnamed'} (ID: ${doc.id})`);
             
-            // تحويل البيانات إلى تنسيق موحد
+            // Normalize data
             let vipPricing = data.vipPricing || data.vipPrices || {};
             if (data.vipPrices && !data.vipPricing) {
                 vipPricing = data.vipPrices;
@@ -1611,69 +1611,18 @@ async function loadProductsDirectly() {
             productsList.push(product);
         });
         
-        console.log(`✅ تم تحميل ${productsList.length} منتج بنجاح`);
+        console.log(`✅ Successfully loaded ${productsList.length} products`);
         return productsList;
         
     } catch (error) {
-        console.error('❌ خطأ في تحميل المنتجات:', error);
-        console.log('⚠️ سيتم استخدام المنتجات الافتراضية');
+        console.error('❌ Error loading products:', error);
+        console.log('⚠️ Using fallback products');
         return fallbackProducts;
     }
 }
 
 async function loadProductsFromFirestore() {
-    try {
-        const productsRef = collection(db, 'products');
-        const querySnapshot = await getDocs(query(productsRef, orderBy('createdAt', 'desc')));
-        const productsList = [];
-        
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            
-            // توحيد أسماء الحقول - تحويل vipPrices إلى vipPricing
-            let vipPricing = data.vipPricing || data.vipPrices || {};
-            
-            // إذا كانت vipPrices موجودة ولكن vipPricing غير موجودة
-            if (data.vipPrices && !data.vipPricing) {
-                vipPricing = data.vipPrices;
-            }
-            
-            // التأكد من وجود جميع الحقول المطلوبة
-            const product = {
-                id: doc.id,
-                name: data.name || 'Unnamed Product',
-                price: data.price !== undefined ? data.price : 0,
-                originalPrice: data.originalPrice || 0,
-                badge: data.badge || 'FREE',
-                status: data.status || 'available',
-                image: data.image || 'https://via.placeholder.com/400x300/1a1a3e/6c5ce7?text=No+Image',
-                description: data.description || '',
-                features: data.features || [],
-                video: data.video || '',
-                currency: data.currency || 'USD',
-                productType: data.productType || 'standard',
-                quantityOptions: data.quantityOptions || [],
-                badges: data.badges || [],
-                vipEnabled: data.vipEnabled || false,
-                vipPricing: vipPricing,
-                vipPrices: data.vipPrices || vipPricing,
-                verified: data.verified !== false,
-                downloadLink: data.downloadLink || '',
-                duration: data.duration || '',
-                createdAt: data.createdAt || new Date()
-            };
-            
-            productsList.push(product);
-        });
-        
-        console.log('✅ Products loaded from Firestore:', productsList.length);
-        console.log('📦 First product:', productsList[0]?.name || 'No products');
-        return productsList;
-    } catch (error) {
-        console.error('Error loading products from Firestore:', error);
-        console.log('⚠️ Using fallback products');
-        return fallbackProducts;
-    }
+    return await loadProductsDirectly();
 }
 
 function startProductsRealtimeListener() {
@@ -1682,18 +1631,18 @@ function startProductsRealtimeListener() {
         unsubscribeProducts = null;
     }
     
-    // عرض حالة التحميل
+    // Show loading state
     renderProducts([], true);
     
     const productsRef = collection(db, 'products');
     
     try {
-        // محاولة الاستماع للتغييرات
+        // Listen for changes
         unsubscribeProducts = onSnapshot(query(productsRef, orderBy('createdAt', 'desc')), (snapshot) => {
             const productsList = [];
             snapshot.forEach((doc) => {
                 const data = doc.data();
-                // توحيد أسماء الحقول
+                // Normalize fields
                 let vipPricing = data.vipPricing || data.vipPrices || {};
                 if (data.vipPrices && !data.vipPricing) {
                     vipPricing = data.vipPrices;
@@ -1737,7 +1686,7 @@ function startProductsRealtimeListener() {
             
         }, (error) => {
             console.error('Products listener error:', error);
-            // محاولة تحميل المنتجات مرة أخرى
+            // Try to load products again
             loadProductsDirectly().then(productsFromFirestore => {
                 if (productsFromFirestore.length > 0) {
                     products = productsFromFirestore;
@@ -1750,7 +1699,7 @@ function startProductsRealtimeListener() {
         });
     } catch (error) {
         console.error('Error setting up products listener:', error);
-        // استخدام المنتجات الافتراضية
+        // Use fallback products
         products = fallbackProducts;
         renderProducts(products, false);
     }
@@ -1787,37 +1736,52 @@ function renderProducts(productsList, isLoading = false) {
         return;
     }
     
+    // Show loading state
     if (isLoading) {
-        container.innerHTML = Array(4).fill(`
-            <div class="product-card skeleton">
-                <div class="image-wrapper skeleton-img"></div>
-                <div class="skeleton-text long"></div>
-                <div class="skeleton-text short"></div>
-                <div class="skeleton-btn"></div>
+        container.innerHTML = `
+            <div style="grid-column:1/-1;text-align:center;padding:60px 20px;">
+                <div style="display:flex;justify-content:center;gap:8px;margin-bottom:16px;">
+                    <div class="loader-dot" style="width:12px;height:12px;border-radius:50%;background:var(--primary);animation:dotPulse 1.4s ease-in-out infinite both;animation-delay:-0.32s;"></div>
+                    <div class="loader-dot" style="width:12px;height:12px;border-radius:50%;background:var(--primary);animation:dotPulse 1.4s ease-in-out infinite both;animation-delay:-0.16s;"></div>
+                    <div class="loader-dot" style="width:12px;height:12px;border-radius:50%;background:var(--primary);animation:dotPulse 1.4s ease-in-out infinite both;"></div>
+                </div>
+                <p style="font-size:16px;color:var(--text-secondary);opacity:0.5;">Loading products...</p>
             </div>
-        `).join('');
+            <style>
+                @keyframes dotPulse {
+                    0%, 80%, 100% { transform: scale(0.6); opacity: 0.3; }
+                    40% { transform: scale(1); opacity: 1; }
+                }
+            </style>
+        `;
         return;
     }
     
     const list = productsList || [];
     console.log('📦 Rendering products:', list.length);
-    console.log('📦 Products data:', list);
     
+    // No products - show friendly message
     if (list.length === 0) {
         container.innerHTML = `
-            <div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text-secondary);">
-                <i class="fas fa-box-open" style="font-size:64px;opacity:0.15;display:block;margin-bottom:16px;"></i>
-                <p style="font-size:20px;font-weight:700;">No products available</p>
-                <p style="font-size:14px;opacity:0.5;margin-top:8px;">Check back later for new scripts</p>
-                <button onclick="window.loadProductsDirectly().then(p => { products = p; renderProducts(p, false); showToast('✅ Products reloaded!', 'success'); })" style="margin-top:16px;padding:10px 24px;border:none;border-radius:8px;background:var(--primary);color:#fff;font-weight:600;cursor:pointer;">
-                    <i class="fas fa-sync"></i> Refresh Products
-                </button>
+            <div style="grid-column:1/-1;text-align:center;padding:80px 20px;">
+                <div style="font-size:64px;margin-bottom:16px;">📦</div>
+                <p style="font-size:22px;font-weight:700;color:var(--text);margin-bottom:8px;">No Products Available</p>
+                <p style="font-size:14px;color:var(--text-secondary);opacity:0.5;margin-bottom:20px;">New products will be added soon. Follow us on social media to stay updated!</p>
+                <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+                    <a href="https://t.me/Mitalica69" target="_blank" style="padding:10px 24px;border:none;border-radius:8px;background:#0088cc;color:#fff;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:8px;">
+                        <i class="fab fa-telegram-plane"></i> Follow on Telegram
+                    </a>
+                    <button onclick="window.retryLoadProducts()" style="padding:10px 24px;border:2px solid var(--border);border-radius:8px;background:transparent;color:var(--text-secondary);font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px;">
+                        <i class="fas fa-sync-alt"></i> Retry
+                    </button>
+                </div>
+                <div id="loadingStatusMessage" style="margin-top:12px;font-size:13px;color:var(--text-secondary);opacity:0.3;display:none;"></div>
             </div>
         `;
         return;
     }
     
-    // تطبيق الفلتر
+    // Filter products
     let filtered = [...list];
     if (currentFilter === 'free') {
         filtered = filtered.filter(p => p.price === 0 || p.price === '0');
@@ -1828,14 +1792,15 @@ function renderProducts(productsList, isLoading = false) {
     if (filtered.length === 0) {
         container.innerHTML = `
             <div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text-secondary);">
-                <i class="fas fa-search" style="font-size:64px;opacity:0.15;display:block;margin-bottom:16px;"></i>
-                <p style="font-size:20px;font-weight:700;">No results found</p>
-                <p style="font-size:14px;opacity:0.5;margin-top:8px;">Try changing your filters</p>
+                <i class="fas fa-search" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i>
+                <p style="font-size:18px;font-weight:600;">No Results Found</p>
+                <p style="font-size:14px;opacity:0.4;margin-top:4px;">Try changing your filter</p>
             </div>
         `;
         return;
     }
     
+    // Render products
     container.innerHTML = filtered.map(p => {
         const isFree = p.price === 0 || p.price === '0';
         const isUnavailable = p.status === 'unavailable';
@@ -1847,7 +1812,7 @@ function renderProducts(productsList, isLoading = false) {
         const displayFeatures = p.features ? p.features.slice(0, 3) : [];
         const currencySymbol = getCurrencySymbol(p.currency || 'USD');
         const priceValue = parseFloat(p.price) || 0;
-        const priceDisplay = isUnavailable ? '⛔ Unavailable' : (isFree ? 'FREE' : `${currencySymbol}${priceValue.toFixed(2)}`);
+        const priceDisplay = isUnavailable ? '⛔ Unavailable' : (isFree ? '🎁 Free' : `${currencySymbol}${priceValue.toFixed(2)}`);
         
         return `
             <div class="product-card" onclick="window.openProductDetailModal('${p.id}')">
@@ -1887,7 +1852,7 @@ function renderProducts(productsList, isLoading = false) {
                         </a>
                     ` : `
                         <button class="btn-add-cart ${inCart ? 'added' : ''}" onclick="event.stopPropagation(); window.addToCart('${p.id}')">
-                            <i class="fas ${inCart ? 'fa-check' : 'fa-cart-plus'}"></i> ${inCart ? 'Added' : 'Add'}
+                            <i class="fas ${inCart ? 'fa-check' : 'fa-cart-plus'}"></i> ${inCart ? 'Added' : 'Add to Cart'}
                         </button>
                     `)}
                 </div>
@@ -1896,6 +1861,100 @@ function renderProducts(productsList, isLoading = false) {
     }).join('');
     
     console.log('✅ Products rendered successfully');
+}
+
+// ============================================================
+// 🔥 Retry load function - shows only when needed
+// ============================================================
+
+window.retryLoadProducts = async function() {
+    const statusMsg = document.getElementById('loadingStatusMessage');
+    const retryBtn = document.querySelector('[onclick="window.retryLoadProducts()"]');
+    
+    if (statusMsg) {
+        statusMsg.style.display = 'block';
+        statusMsg.textContent = '⏳ Loading...';
+        statusMsg.className = '';
+    }
+    if (retryBtn) {
+        retryBtn.disabled = true;
+        retryBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+    }
+    
+    try {
+        const productsFromFirestore = await loadProductsDirectly();
+        if (productsFromFirestore && productsFromFirestore.length > 0) {
+            products = productsFromFirestore;
+            renderProducts(products, false);
+            updateStatsFromProducts(products);
+            generateRecommendations(products);
+            if (statusMsg) {
+                statusMsg.textContent = `✅ Loaded ${products.length} products successfully!`;
+                statusMsg.className = 'success';
+                setTimeout(() => { statusMsg.style.display = 'none'; }, 3000);
+            }
+            showToast(`✅ Loaded ${products.length} products`, 'success');
+        } else {
+            products = fallbackProducts;
+            renderProducts(products, false);
+            if (statusMsg) {
+                statusMsg.textContent = '⚠️ No products available';
+                statusMsg.className = 'warning';
+                setTimeout(() => { statusMsg.style.display = 'none'; }, 3000);
+            }
+            showToast('⚠️ No products available', 'warning');
+        }
+    } catch (error) {
+        console.error('Error loading products:', error);
+        if (statusMsg) {
+            statusMsg.textContent = '❌ Failed to load products';
+            statusMsg.className = 'error';
+            setTimeout(() => { statusMsg.style.display = 'none'; }, 3000);
+        }
+        showToast('❌ Failed to load products', 'error');
+        products = fallbackProducts;
+        renderProducts(products, false);
+    } finally {
+        if (retryBtn) {
+            retryBtn.disabled = false;
+            retryBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Retry';
+        }
+    }
+};
+
+// ============================================================
+// 🔥 Auto-load products on startup
+// ============================================================
+
+async function loadProductsAutomatically() {
+    console.log('🔄 Auto-loading products...');
+    
+    try {
+        // Show loading screen
+        renderProducts([], true);
+        
+        // Try to load products from Firestore
+        const productsFromFirestore = await loadProductsDirectly();
+        
+        if (productsFromFirestore && productsFromFirestore.length > 0) {
+            products = productsFromFirestore;
+            console.log(`✅ Auto-loaded ${products.length} products`);
+            renderProducts(products, false);
+            updateStatsFromProducts(products);
+            generateRecommendations(products);
+            return true;
+        } else {
+            console.log('⚠️ No products found, showing friendly message');
+            products = fallbackProducts;
+            renderProducts(products, false);
+            return false;
+        }
+    } catch (error) {
+        console.error('❌ Auto-load error:', error);
+        products = fallbackProducts;
+        renderProducts(products, false);
+        return false;
+    }
 }
 
 function updateStatsFromProducts(productsList) {
@@ -2348,23 +2407,23 @@ function createFloatingHearts() {
 // ============================================================
 
 /**
- * فتح مودال تفاصيل المنتج
- * @param {string} productId - معرف المنتج
+ * Open product detail modal
+ * @param {string} productId - Product ID
  */
 window.openProductDetailModal = async function(productId) {
     const modal = document.getElementById('productDetailModal');
     const content = document.getElementById('productDetailContent');
     
     if (!modal || !content) {
-        showToast('⚠️ عذراً، المودال غير متوفر', 'warning');
+        showToast('⚠️ Modal not available', 'warning');
         return;
     }
     
-    // عرض شاشة تحميل
+    // Show loading
     content.innerHTML = `
         <div style="text-align:center;padding:40px;color:var(--text-secondary);">
             <i class="fas fa-spinner fa-spin" style="font-size:32px;"></i>
-            <p style="margin-top:12px;">جاري تحميل المنتج...</p>
+            <p style="margin-top:12px;">Loading product...</p>
         </div>
     `;
     
@@ -2386,8 +2445,8 @@ window.openProductDetailModal = async function(productId) {
             content.innerHTML = `
                 <div style="text-align:center;padding:40px;color:var(--text-secondary);">
                     <i class="fas fa-exclamation-circle" style="font-size:40px;opacity:0.2;display:block;margin-bottom:12px;"></i>
-                    <h3 style="margin-bottom:8px;">المنتج غير موجود</h3>
-                    <p style="opacity:0.5;">عذراً، لم نتمكن من العثور على هذا المنتج.</p>
+                    <h3 style="margin-bottom:8px;">Product Not Found</h3>
+                    <p style="opacity:0.5;">Sorry, we couldn't find this product.</p>
                 </div>
             `;
             return;
@@ -2401,8 +2460,8 @@ window.openProductDetailModal = async function(productId) {
         content.innerHTML = `
             <div style="text-align:center;padding:40px;color:var(--text-secondary);">
                 <i class="fas fa-exclamation-triangle" style="font-size:40px;opacity:0.2;display:block;margin-bottom:12px;"></i>
-                <h3 style="margin-bottom:8px;">خطأ في التحميل</h3>
-                <p style="opacity:0.5;">${error.message || 'حدث خطأ غير متوقع'}</p>
+                <h3 style="margin-bottom:8px;">Error Loading Product</h3>
+                <p style="opacity:0.5;">${error.message || 'An unexpected error occurred'}</p>
             </div>
         `;
     }
@@ -2415,7 +2474,7 @@ function renderProductDetail(product) {
     const isFree = product.price === 0 || !product.price;
     const isUnavailable = product.status === 'unavailable';
     const currencySymbol = getCurrencySymbol(product.currency || 'USD');
-    const priceDisplay = isUnavailable ? '⛔ غير متوفر' : (isFree ? '🎁 مجاني' : `${currencySymbol}${Number(product.price).toFixed(2)}`);
+    const priceDisplay = isUnavailable ? '⛔ Unavailable' : (isFree ? '🎁 Free' : `${currencySymbol}${Number(product.price).toFixed(2)}`);
     const originalDisplay = product.originalPrice ? `${currencySymbol}${Number(product.originalPrice).toFixed(2)}` : '';
     const badgeClass = product.badge?.toLowerCase() || '';
     const inCart = cart.some(item => item.id === product.id && !item.isVip);
@@ -2427,16 +2486,16 @@ function renderProductDetail(product) {
             `<li><i class="fas fa-check-circle"></i> ${f}</li>`
         ).join('');
     } else {
-        featuresHTML = '<li style="color:rgba(255,255,255,0.2);">لا توجد ميزات مذكورة</li>';
+        featuresHTML = '<li style="color:rgba(255,255,255,0.2);">No features listed</li>';
     }
     
     let vipHTML = '';
     if (product.vipEnabled && product.vipPricing) {
         const plans = [
-            { key: '1m', label: 'شهر' },
-            { key: '3m', label: '3 أشهر' },
-            { key: '1y', label: 'سنة' },
-            { key: 'lifetime', label: 'مدى الحياة' }
+            { key: '1m', label: 'Month' },
+            { key: '3m', label: '3 Months' },
+            { key: '1y', label: 'Year' },
+            { key: 'lifetime', label: 'Lifetime' }
         ];
         
         const vipPlansHTML = plans.map(plan => {
@@ -2459,11 +2518,11 @@ function renderProductDetail(product) {
             vipHTML = `
                 <div class="product-detail-vip" style="margin-top:12px;padding:14px;background:var(--bg-secondary);border-radius:var(--radius-md);border:1px solid var(--border);">
                     <div style="font-size:15px;font-weight:700;color:var(--vip-color);display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-                        <i class="fas fa-crown"></i> باقات VIP
+                        <i class="fas fa-crown"></i> VIP Plans
                     </div>
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:6px;">${vipPlansHTML}</div>
                     <button onclick="addVipToCartFromDetail()" style="width:100%;padding:8px;border:none;border-radius:var(--radius-sm);background:var(--primary-gradient);color:#fff;font-weight:600;font-size:13px;cursor:pointer;transition:var(--transition);margin-top:8px;">
-                        <i class="fas fa-cart-plus"></i> إضافة باقة VIP للسلة
+                        <i class="fas fa-cart-plus"></i> Add VIP Plan
                     </button>
                 </div>
             `;
@@ -2483,7 +2542,7 @@ function renderProductDetail(product) {
             
             ${product.verified !== false ? `
                 <div style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--success);background:rgba(52,211,153,0.1);padding:4px 14px;border-radius:20px;margin-bottom:8px;">
-                    <i class="fas fa-check-circle"></i> منتج موثق 100%
+                    <i class="fas fa-check-circle"></i> 100% Verified Product
                 </div>
             ` : ''}
             
@@ -2492,7 +2551,7 @@ function renderProductDetail(product) {
             <div style="font-size:28px;font-weight:900;color:var(--primary);display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
                 ${priceDisplay}
                 ${originalDisplay ? `<span style="font-size:18px;color:rgba(255,255,255,0.3);text-decoration:line-through;font-weight:400;">${originalDisplay}</span>` : ''}
-                ${isUnavailable ? `<span style="font-size:14px;color:var(--danger);font-weight:600;">⛔ غير متوفر</span>` : ''}
+                ${isUnavailable ? `<span style="font-size:14px;color:var(--danger);font-weight:600;">⛔ Unavailable</span>` : ''}
             </div>
             
             ${product.description ? `<div style="color:var(--text-secondary);line-height:1.8;font-size:14px;margin-bottom:12px;">${product.description}</div>` : ''}
@@ -2504,21 +2563,21 @@ function renderProductDetail(product) {
             <div style="display:flex;gap:10px;flex-wrap:wrap;">
                 ${isUnavailable ? `
                     <button style="padding:12px 28px;border:none;border-radius:var(--radius-md);font-weight:700;font-size:15px;cursor:not-allowed;display:inline-flex;align-items:center;gap:8px;flex:1;justify-content:center;min-width:120px;background:var(--text-secondary);color:#fff;opacity:0.4;">
-                        <i class="fas fa-times-circle"></i> غير متوفر
+                        <i class="fas fa-times-circle"></i> Unavailable
                     </button>
                 ` : (isFree ? `
                     <a href="${product.downloadLink || '#'}" 
                        style="padding:12px 28px;border:none;border-radius:var(--radius-md);font-weight:700;font-size:15px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;flex:1;justify-content:center;min-width:120px;background:var(--primary-gradient);color:#fff;text-decoration:none;"
                        target="${product.downloadLink ? '_blank' : '_self'}"
-                       onclick="${product.downloadLink ? '' : 'event.preventDefault();showToast(\'⏳ قريباً\',\'info\');'}">
-                        <i class="fas fa-download"></i> تحميل مجاني
+                       onclick="${product.downloadLink ? '' : 'event.preventDefault();showToast(\'⏳ Coming soon\',\'info\');'}">
+                        <i class="fas fa-download"></i> Free Download
                     </a>
                 ` : `
                     <button onclick="addToCartFromDetail()" style="padding:12px 28px;border:none;border-radius:var(--radius-md);font-weight:700;font-size:15px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;flex:1;justify-content:center;min-width:120px;background:var(--primary-gradient);color:#fff;transition:var(--transition);">
-                        <i class="fas fa-cart-plus"></i> ${inCart ? 'أضيف للسلة ✅' : 'أضف للسلة'}
+                        <i class="fas fa-cart-plus"></i> ${inCart ? 'Added to Cart ✅' : 'Add to Cart'}
                     </button>
                     <button onclick="buyNowFromDetail()" style="padding:12px 28px;border:none;border-radius:var(--radius-md);font-weight:700;font-size:15px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;flex:1;justify-content:center;min-width:120px;background:transparent;border:2px solid var(--border);color:var(--text-secondary);transition:var(--transition);">
-                        <i class="fas fa-bolt"></i> شراء الآن
+                        <i class="fas fa-bolt"></i> Buy Now
                     </button>
                 `)}
                 <button onclick="toggleWishlistFromDetail()" style="width:50px;height:50px;border-radius:var(--radius-md);background:rgba(255,255,255,0.05);border:2px solid var(--border);color:rgba(255,255,255,0.5);font-size:18px;cursor:pointer;transition:var(--transition);display:flex;align-items:center;justify-content:center;flex:0 0 50px;${inWish ? 'border-color:#e84393;color:#e84393;background:rgba(232,67,147,0.1);' : ''}">
@@ -2539,10 +2598,10 @@ function updateDetailCartButton() {
     const btn = document.querySelector('.product-detail-actions .btn-primary, [onclick="addToCartFromDetail()"]');
     if (btn && currentDetailProduct.price > 0) {
         if (inCart) {
-            btn.innerHTML = '<i class="fas fa-check"></i> أضيف للسلة ✅';
+            btn.innerHTML = '<i class="fas fa-check"></i> Added to Cart ✅';
             btn.style.background = 'var(--success)';
         } else {
-            btn.innerHTML = '<i class="fas fa-cart-plus"></i> أضف للسلة';
+            btn.innerHTML = '<i class="fas fa-cart-plus"></i> Add to Cart';
             btn.style.background = '';
         }
     }
@@ -2558,7 +2617,7 @@ window.selectVipPlanDetail = function(planKey) {
 window.addToCartFromDetail = function() {
     if (!currentDetailProduct) return;
     if (currentDetailProduct.price === 0) {
-        showToast('⚠️ هذا المنتج مجاني، استخدم زر التحميل', 'warning');
+        showToast('⚠️ This product is free, use the download button', 'warning');
         return;
     }
     window.addToCart(currentDetailProduct.id);
@@ -2568,7 +2627,7 @@ window.addToCartFromDetail = function() {
 window.buyNowFromDetail = function() {
     if (!currentDetailProduct) return;
     if (currentDetailProduct.price === 0) {
-        showToast('⚠️ هذا المنتج مجاني، استخدم زر التحميل', 'warning');
+        showToast('⚠️ This product is free, use the download button', 'warning');
         return;
     }
     window.addToCart(currentDetailProduct.id);
@@ -2598,27 +2657,27 @@ window.toggleWishlistFromDetail = function() {
 
 window.addVipToCartFromDetail = function() {
     if (!currentDetailProduct) {
-        showToast('⚠️ لا يوجد منتج محدد', 'warning');
+        showToast('⚠️ No product selected', 'warning');
         return;
     }
     
     const planData = currentDetailProduct.vipPricing;
     if (!planData) {
-        showToast('⚠️ لا توجد باقات VIP متاحة', 'warning');
+        showToast('⚠️ No VIP plans available', 'warning');
         return;
     }
     
     const price = planData[selectedVipPlan];
     if (!price) {
-        showToast('⚠️ يرجى اختيار باقة VIP', 'warning');
+        showToast('⚠️ Please select a VIP plan', 'warning');
         return;
     }
     
     const planLabels = {
-        '1m': 'شهر',
-        '3m': '3 أشهر',
-        '1y': 'سنة',
-        'lifetime': 'مدى الحياة'
+        '1m': 'Month',
+        '3m': '3 Months',
+        '1y': 'Year',
+        'lifetime': 'Lifetime'
     };
     
     const currencySymbol = getCurrencySymbol(currentDetailProduct.currency || 'USD');
@@ -2650,7 +2709,7 @@ window.addVipToCartFromDetail = function() {
     saveUserData(true);
     updateCartUI();
     updateBottomCartBar();
-    showToast(`✅ تمت إضافة باقة ${planLabels[selectedVipPlan]} VIP`, 'success');
+    showToast(`✅ Added ${planLabels[selectedVipPlan]} VIP plan`, 'success');
     closeProductDetailModal();
 };
 
@@ -5607,7 +5666,7 @@ onAuthStateChanged(auth, async (user) => {
         window.showMainApp();
         hideLoadingScreen();
 
-        // التحقق من حالة البريد الإلكتروني
+        // Check email verification
         setTimeout(checkVerificationOnLogin, 3000);
 
     } else {
@@ -5671,31 +5730,13 @@ async function init() {
     updateLoadingText('Loading products...');
 
     try {
-        // تحميل المنتجات مباشرة من Firestore
-        console.log('📦 جاري تحميل المنتجات...');
-        const productsFromFirestore = await loadProductsDirectly();
+        // Auto-load products
+        await loadProductsAutomatically();
         
-        if (productsFromFirestore && productsFromFirestore.length > 0) {
-            products = productsFromFirestore;
-            console.log(`✅ تم تحميل ${products.length} منتج من Firestore`);
-        } else {
-            console.log('⚠️ لا توجد منتجات في Firestore، استخدام المنتجات الافتراضية');
-            products = fallbackProducts;
-        }
-        
-        console.log('📦 المنتجات المحملة:', products);
-
-        // عرض المنتجات فوراً
-        renderProducts(products, false);
-        
-        // بدء الاستماع للتغييرات (Realtime)
-        startProductsRealtimeListener();
-        
-        // تحميل باقي البيانات
+        // Load remaining data
         await loadUserData();
-        renderFeaturedProducts();
-        generateRecommendations(products);
         updateStatsFromProducts(products);
+        generateRecommendations(products);
         updateBottomCartBar();
         updateDropdownStats();
         loadDownloads();
@@ -5706,7 +5747,7 @@ async function init() {
         loadMarqueeSettings();
         setInterval(fetchCryptoPrices, 60000);
         
-        // إصلاح الدوال المفقودة
+        // Fix missing functions
         if (typeof window.shareFromPreview === 'undefined') {
             window.shareFromPreview = function() {
                 if (window._currentProduct) {
@@ -5749,6 +5790,21 @@ async function init() {
         }
         
         hideLoadingScreen();
+
+        // Retry loading in background if failed
+        if (products.length === 0) {
+            setTimeout(async () => {
+                console.log('🔄 Retrying product load in background...');
+                const productsFromFirestore = await loadProductsDirectly();
+                if (productsFromFirestore && productsFromFirestore.length > 0) {
+                    products = productsFromFirestore;
+                    renderProducts(products, false);
+                    updateStatsFromProducts(products);
+                    generateRecommendations(products);
+                    console.log('✅ Products loaded on second attempt');
+                }
+            }, 5000);
+        }
 
     } catch (error) {
         console.error('❌ Initialization error:', error);
@@ -5939,6 +5995,8 @@ window.checkVerificationStatus = checkVerificationStatus;
 window.closeVerificationDialog = closeVerificationDialog;
 window.renderProfileFull = renderProfileFull;
 window.loadProductsDirectly = loadProductsDirectly;
+window.loadProductsAutomatically = loadProductsAutomatically;
+window.retryLoadProducts = retryLoadProducts;
 
 // ============================================================
 // 41. Support Functions
