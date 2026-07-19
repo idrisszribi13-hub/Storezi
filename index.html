@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="ar" dir="ltr">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
     <title>ZI Store 🚀</title>
-    <!-- أيقونة الموقع -->
+    <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon16.png">
     <link rel="apple-touch-icon" href="favicon.png">
@@ -24,7 +24,69 @@
 
     <style>
         /* ============================================
-           إصلاح السلايدر - جعله أكبر
+           TOAST - FIXED (appears on top)
+           ============================================ */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: var(--card-bg);
+            color: var(--text);
+            padding: 14px 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            z-index: 9999999;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-left: 4px solid var(--primary);
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
+            opacity: 0;
+            pointer-events: none;
+            max-width: 90%;
+            min-width: 280px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+        }
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .toast .toast-icon {
+            font-size: 22px;
+            flex-shrink: 0;
+            color: var(--primary);
+        }
+        .toast .toast-message {
+            flex: 1;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .toast .toast-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+        }
+        .toast .toast-close:hover {
+            opacity: 1;
+        }
+        .toast.toast-success .toast-icon { color: var(--success); }
+        .toast.toast-success { border-left-color: var(--success); }
+        .toast.toast-error .toast-icon { color: var(--danger); }
+        .toast.toast-error { border-left-color: var(--danger); }
+        .toast.toast-warning .toast-icon { color: var(--pending-color); }
+        .toast.toast-warning { border-left-color: var(--pending-color); }
+
+        /* ============================================
+           Slider - Buttons at bottom, smaller
            ============================================ */
         .slider-container {
             position: relative;
@@ -46,7 +108,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-size: contain;
+            background-size: cover;
             background-repeat: no-repeat;
             background-position: center;
             background-color: var(--bg-secondary);
@@ -130,35 +192,49 @@
             transform: scale(1.3);
         }
 
+        /* Slider buttons - bottom, small, semi-transparent */
         .slider-btn {
             position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(0,0,0,0.5);
+            bottom: 50px;
+            transform: translateY(0);
+            background: rgba(0,0,0,0.4);
             color: #fff;
             border: none;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            font-size: 18px;
+            width: 32px;
+            height: 32px;
+            font-size: 14px;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: background 0.3s, transform 0.3s;
             z-index: 5;
             display: flex;
             align-items: center;
             justify-content: center;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
         }
 
         .slider-btn:hover {
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.7);
+            transform: scale(1.1);
         }
 
         .slider-btn.prev {
-            left: 8px;
+            left: 12px;
         }
 
         .slider-btn.next {
-            right: 8px;
+            right: 12px;
+        }
+
+        /* Hide buttons on very small screens if needed */
+        @media (max-width: 400px) {
+            .slider-btn {
+                width: 28px;
+                height: 28px;
+                font-size: 12px;
+                bottom: 42px;
+            }
         }
 
         @media (max-width: 600px) {
@@ -172,14 +248,116 @@
                 font-size: 14px;
             }
             .slider-btn {
-                width: 32px;
-                height: 32px;
-                font-size: 14px;
+                width: 28px;
+                height: 28px;
+                font-size: 12px;
+                bottom: 40px;
             }
         }
 
         /* ============================================
-           زر اختيار اللغة - إصلاح
+           MODAL OVERLAY - Highest z-index
+           ============================================ */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 999999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .modal-overlay.open {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+        .modal-overlay .modal-content {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 480px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            position: relative;
+            z-index: 1000000;
+            animation: scaleUp 0.3s ease;
+        }
+
+        /* Admin Panel - Even higher z-index */
+        .admin-panel {
+            z-index: 9999999 !important;
+        }
+        .admin-panel .modal-content {
+            max-width: 1000px !important;
+            max-height: 95vh !important;
+            padding: 16px !important;
+            z-index: 10000000;
+        }
+
+        /* Fullscreen modals */
+        .fullscreen-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg);
+            z-index: 999999;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .fullscreen-modal.open {
+            display: flex;
+            animation: slideUp 0.3s ease;
+        }
+
+        /* Cookie settings modal */
+        .cookie-settings-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 99999999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .cookie-settings-modal.open {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        @keyframes scaleUp {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes slideUp {
+            0% { transform: translateY(30px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        /* ============================================
+           Language Selector
            ============================================ */
         .language-selector {
             display: flex;
@@ -220,7 +398,6 @@
             font-weight: 700;
         }
 
-        /* قائمة اللغات */
         .language-menu {
             position: absolute;
             top: calc(100% + 6px);
@@ -231,7 +408,7 @@
             padding: 4px;
             min-width: 160px;
             box-shadow: var(--shadow);
-            z-index: 9999;
+            z-index: 99999;
             display: none;
             animation: fadeIn 0.2s ease;
         }
@@ -275,7 +452,7 @@
         }
 
         /* ============================================
-           تنسيق الهيدر
+           Header
            ============================================ */
         .header {
             display: flex;
@@ -492,7 +669,7 @@
         }
 
         /* ============================================
-           زر الدعم الفني - عائم ومتحرك
+           Floating Support Button
            ============================================ */
         .support-float {
             position: fixed;
@@ -531,7 +708,6 @@
             transform: scale(0.9);
         }
 
-        /* زر الدعم الرئيسي */
         .support-float .btn-main {
             background: var(--primary-gradient);
             animation: pulse-support 2s infinite;
@@ -553,7 +729,6 @@
             }
         }
 
-        /* الأزرار الفرعية */
         .support-float .sub-buttons {
             display: flex;
             flex-direction: column;
@@ -611,7 +786,6 @@
             50% { transform: scale(1.06); box-shadow: 0 8px 40px rgba(234, 67, 53, 0.6); }
         }
 
-        /* التسمية */
         .support-float .label {
             font-size: 10px;
             font-weight: 700;
@@ -628,7 +802,6 @@
             color: var(--primary);
         }
 
-        /* البادج (العدد) */
         .support-float .badge-count {
             position: absolute;
             top: -4px;
@@ -647,7 +820,6 @@
             border: 2px solid var(--bg);
         }
 
-        /* أيقونة متحركة داخل زر الدعم */
         .support-float .btn-main .pulse-ring {
             position: absolute;
             width: 100%;
@@ -681,7 +853,7 @@
         }
 
         /* ============================================
-           بقية الأنماط
+           Other Styles
            ============================================ */
         .marquee-bar {
             background: var(--primary-gradient);
@@ -745,7 +917,7 @@
             background: var(--card-bg);
             border-top: 2px solid var(--primary);
             padding: 16px 20px;
-            z-index: 999999;
+            z-index: 99999999;
             display: none;
             flex-wrap: wrap;
             align-items: center;
@@ -836,151 +1008,6 @@
             margin-right: 4px;
         }
 
-        /* Cookie Settings Modal */
-        .cookie-settings-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            z-index: 9999999;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .cookie-settings-modal.open {
-            display: flex;
-            animation: fadeIn 0.3s ease;
-        }
-        @keyframes fadeIn {
-            0% { opacity: 0; }
-            100% { opacity: 1; }
-        }
-        .cookie-settings-modal .modal-content {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 30px;
-            max-width: 480px;
-            width: 100%;
-            max-height: 80vh;
-            overflow-y: auto;
-            border: 1px solid var(--border);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-        }
-        .cookie-settings-modal .modal-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--text);
-            margin-bottom: 16px;
-        }
-        .cookie-settings-modal .modal-title i {
-            color: var(--primary);
-        }
-        .cookie-settings-modal .setting-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid var(--border);
-        }
-        .cookie-settings-modal .setting-item:last-child {
-            border-bottom: none;
-        }
-        .cookie-settings-modal .setting-info h4 {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text);
-            margin: 0 0 2px 0;
-        }
-        .cookie-settings-modal .setting-info p {
-            font-size: 12px;
-            color: var(--text-secondary);
-            opacity: 0.6;
-            margin: 0;
-        }
-        .cookie-settings-modal .toggle-switch {
-            position: relative;
-            width: 48px;
-            height: 26px;
-            flex-shrink: 0;
-        }
-        .cookie-settings-modal .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        .cookie-settings-modal .toggle-slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: var(--border);
-            border-radius: 26px;
-            transition: 0.3s;
-        }
-        .cookie-settings-modal .toggle-slider:before {
-            content: "";
-            position: absolute;
-            height: 20px;
-            width: 20px;
-            left: 3px;
-            bottom: 3px;
-            background: #fff;
-            border-radius: 50%;
-            transition: 0.3s;
-        }
-        .cookie-settings-modal .toggle-switch input:checked + .toggle-slider {
-            background: var(--primary);
-        }
-        .cookie-settings-modal .toggle-switch input:checked + .toggle-slider:before {
-            transform: translateX(22px);
-        }
-        .cookie-settings-modal .toggle-switch input:disabled + .toggle-slider {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .cookie-settings-modal .modal-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-            padding-top: 16px;
-            border-top: 1px solid var(--border);
-        }
-        .cookie-settings-modal .modal-actions .btn-save {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            border-radius: 10px;
-            background: var(--primary);
-            color: #fff;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 14px;
-            transition: 0.3s;
-        }
-        .cookie-settings-modal .modal-actions .btn-save:hover {
-            opacity: 0.8;
-        }
-        .cookie-settings-modal .modal-actions .btn-close-modal {
-            padding: 10px 20px;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            background: transparent;
-            color: var(--text);
-            cursor: pointer;
-            font-size: 14px;
-            transition: 0.3s;
-        }
-        .cookie-settings-modal .modal-actions .btn-close-modal:hover {
-            background: var(--bg);
-        }
-
         /* Loading Screen */
         #loadingScreen {
             position: fixed;
@@ -989,7 +1016,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 999999;
+            z-index: 999999999;
             transition: opacity 0.6s ease, visibility 0.6s ease;
         }
         #loadingScreen.hidden {
@@ -1063,24 +1090,6 @@
             opacity: 0.4;
             font-weight: 500;
             letter-spacing: 4px;
-        }
-
-        /* Binance Instructions Box */
-        .binance-instructions-box {
-            margin-top: 8px;
-            padding: 10px 14px;
-            background: var(--bg);
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border);
-            font-size: 12px;
-            color: var(--text-secondary);
-            line-height: 1.6;
-        }
-        .binance-instructions-box i {
-            color: var(--pending-color);
-        }
-        .binance-instructions-box strong {
-            color: var(--text);
         }
 
         /* Stats */
@@ -1510,47 +1519,7 @@
             background: var(--border);
         }
 
-        /* ============================================
-           إصلاح المودالات
-           ============================================ */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            z-index: 99999;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            overflow-y: auto;
-        }
-        .modal-overlay.open {
-            display: flex;
-            animation: fadeIn 0.3s ease;
-        }
-        .modal-overlay .modal-content {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 24px;
-            max-width: 480px;
-            width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
-            border: 1px solid var(--border);
-            box-shadow: var(--shadow);
-            position: relative;
-            z-index: 100000;
-            animation: scaleUp 0.3s ease;
-        }
-        @keyframes scaleUp {
-            0% { transform: scale(0.9); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
+        /* Modal close button */
         .modal-overlay .modal-close {
             position: absolute;
             top: 12px;
@@ -1562,6 +1531,7 @@
             cursor: pointer;
             transition: var(--transition);
             padding: 4px;
+            z-index: 10;
         }
         .modal-overlay .modal-close:hover {
             color: var(--text);
@@ -1579,26 +1549,6 @@
             color: var(--primary);
         }
 
-        .fullscreen-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: var(--bg);
-            z-index: 99999;
-            display: none;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        .fullscreen-modal.open {
-            display: flex;
-            animation: slideUp 0.3s ease;
-        }
-        @keyframes slideUp {
-            0% { transform: translateY(30px); opacity: 0; }
-            100% { transform: translateY(0); opacity: 1; }
-        }
         .fullscreen-modal .modal-header {
             display: flex;
             justify-content: space-between;
@@ -1613,18 +1563,6 @@
             flex: 1;
             overflow-y: auto;
             padding: 16px 20px 80px;
-        }
-
-        .admin-panel {
-            z-index: 99999 !important;
-        }
-        .admin-panel .modal-content {
-            max-width: 1000px !important;
-            max-height: 95vh !important;
-            padding: 16px !important;
-        }
-        #licenceModal .modal-content {
-            z-index: 100000;
         }
 
         .slider-toggle-container {
@@ -1666,9 +1604,7 @@
             color: #fff;
         }
 
-        /* ============================================
-           مودال الدعم الفني
-           ============================================ */
+        /* Support Modal */
         .support-modal .support-options {
             display: flex;
             flex-direction: column;
@@ -1796,9 +1732,6 @@
             margin-right: 4px;
         }
 
-        /* ============================================
-           زر الدعم في الفوتر
-           ============================================ */
         .support-footer-btn {
             display: inline-flex;
             align-items: center;
@@ -1844,9 +1777,377 @@
                 font-size: 11px;
             }
         }
+
+        /* Admin Panel Styles */
+        .admin-panel .modal-content {
+            z-index: 10000000;
+        }
+        .admin-panel .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 12px;
+        }
+        .admin-panel .panel-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+            margin: 0;
+        }
+        .admin-panel .panel-header .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .admin-panel .panel-header .btn-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: var(--transition);
+        }
+        .admin-panel .panel-header .btn-close:hover {
+            background: var(--bg-secondary);
+            color: var(--text);
+        }
+        .admin-panel .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 8px;
+        }
+        .admin-panel .tabs button {
+            padding: 6px 14px;
+            border: none;
+            border-radius: 6px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .admin-panel .tabs button:hover {
+            background: var(--bg-secondary);
+            color: var(--text);
+        }
+        .admin-panel .tabs button.active {
+            background: var(--primary);
+            color: #fff;
+        }
+        .admin-panel .tab-content {
+            display: none;
+        }
+        .admin-panel .tab-content.active {
+            display: block;
+        }
+        .admin-panel .admin-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .admin-panel .admin-stat-card {
+            background: var(--bg);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+        .admin-panel .admin-stat-card .stat-number {
+            font-size: 22px;
+            font-weight: 700;
+        }
+        .admin-panel .admin-stat-card .stat-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            opacity: 0.6;
+        }
+        .admin-panel .admin-search-bar {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        .admin-panel .admin-search-bar input {
+            flex: 1;
+            min-width: 150px;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 13px;
+        }
+        .admin-panel .admin-search-bar input:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+        .admin-panel .admin-search-bar .btn-search,
+        .admin-panel .admin-search-bar .btn-clear,
+        .admin-panel .admin-search-bar .btn-refresh,
+        .admin-panel .admin-search-bar .btn-export {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 12px;
+        }
+        .admin-panel .admin-search-bar .btn-search:hover,
+        .admin-panel .admin-search-bar .btn-refresh:hover {
+            background: var(--primary);
+            color: #fff;
+        }
+        .admin-panel .admin-search-bar .btn-clear:hover {
+            background: var(--danger);
+            color: #fff;
+        }
+        .admin-panel .admin-search-bar .btn-export:hover {
+            background: var(--success);
+            color: #0a0a1a;
+        }
+        .admin-panel .admin-orders-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        .admin-panel .admin-orders-table th {
+            text-align: left;
+            padding: 8px 10px;
+            background: var(--bg-secondary);
+            border-bottom: 2px solid var(--border);
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            opacity: 0.6;
+        }
+        .admin-panel .admin-orders-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+        .admin-panel .admin-orders-table tr:hover td {
+            background: var(--bg-secondary);
+        }
+        .admin-panel .status-badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .admin-panel .status-badge.pending {
+            background: var(--pending-color);
+            color: #0a0a1a;
+        }
+        .admin-panel .status-badge.confirmed {
+            background: var(--success);
+            color: #0a0a1a;
+        }
+        .admin-panel .status-badge.rejected {
+            background: var(--danger);
+            color: #fff;
+        }
+        .admin-panel .status-badge.completed {
+            background: var(--primary);
+            color: #fff;
+        }
+        .admin-panel .admin-btn-small {
+            padding: 4px 10px;
+            border: none;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .admin-panel .admin-btn-small.confirm-btn {
+            background: var(--success);
+            color: #0a0a1a;
+        }
+        .admin-panel .admin-btn-small.confirm-btn:hover {
+            opacity: 0.8;
+        }
+        .admin-panel .admin-btn-small.reject-btn {
+            background: var(--danger);
+            color: #fff;
+        }
+        .admin-panel .admin-btn-small.reject-btn:hover {
+            opacity: 0.8;
+        }
+        .admin-panel .admin-btn-small.delete-btn {
+            background: var(--danger);
+            color: #fff;
+        }
+        .admin-panel .admin-btn-small.delete-btn:hover {
+            opacity: 0.8;
+        }
+        .admin-panel .admin-btn-small.edit-btn {
+            background: var(--primary);
+            color: #fff;
+        }
+        .admin-panel .admin-btn-small.edit-btn:hover {
+            opacity: 0.8;
+        }
+        .admin-panel .admin-btn-small.view-btn {
+            background: var(--vip-color);
+            color: #0a0a1a;
+        }
+        .admin-panel .admin-btn-small.view-btn:hover {
+            opacity: 0.8;
+        }
+        .admin-panel .add-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            background: var(--primary);
+            color: #fff;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .admin-panel .add-btn:hover {
+            opacity: 0.8;
+            transform: scale(1.02);
+        }
+        .admin-panel .admin-form-group {
+            margin-bottom: 10px;
+        }
+        .admin-panel .admin-form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        .admin-panel .admin-form-group input,
+        .admin-panel .admin-form-group textarea,
+        .admin-panel .admin-form-group select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 13px;
+            font-family: var(--font);
+        }
+        .admin-panel .admin-form-group input:focus,
+        .admin-panel .admin-form-group textarea:focus,
+        .admin-panel .admin-form-group select:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+        .admin-panel .admin-form-row {
+            display: flex;
+            gap: 10px;
+        }
+        .admin-panel .admin-submit-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            background: var(--primary);
+            color: #fff;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .admin-panel .admin-submit-btn:hover {
+            opacity: 0.8;
+        }
+        .admin-panel .admin-cancel-btn {
+            padding: 10px 20px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .admin-panel .admin-cancel-btn:hover {
+            background: var(--bg-secondary);
+        }
+
+        /* Email Verification Banner */
+        .email-verification-banner {
+            margin-bottom: 12px;
+        }
+        .email-verification-banner .banner-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding: 10px 16px;
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid #fbbf24;
+            border-radius: 10px;
+        }
+        .email-verification-banner .banner-icon {
+            color: #fbbf24;
+            font-size: 20px;
+        }
+        .email-verification-banner .banner-text {
+            flex: 1;
+            font-size: 13px;
+            color: var(--text);
+        }
+        .email-verification-banner .banner-text strong {
+            font-weight: 700;
+        }
+        .email-verification-banner .banner-text .email {
+            opacity: 0.5;
+            margin-left: 4px;
+        }
+        .email-verification-banner .banner-action {
+            padding: 6px 16px;
+            border: none;
+            border-radius: 8px;
+            background: #fbbf24;
+            color: #0a0a1a;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+        .email-verification-banner .banner-action:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
+        }
+        .email-verification-banner .banner-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            opacity: 0.3;
+            font-size: 14px;
+            transition: opacity 0.3s ease;
+        }
+        .email-verification-banner .banner-close:hover {
+            opacity: 0.8;
+        }
     </style>
 
-    <!-- إخفاء فوري لشاشة التحميل -->
+    <!-- Hide loading screen immediately -->
     <script>
         (function() {
             function hideNow() {
@@ -1871,7 +2172,7 @@
 <body>
 
     <!-- ============================================ -->
-    <!-- شاشة التحميل -->
+    <!-- Loading Screen -->
     <!-- ============================================ -->
     <div id="loadingScreen">
         <div class="loader-container">
@@ -1882,7 +2183,7 @@
                 <div class="spinner-ring"></div>
                 <div class="loader-icon">🚀</div>
             </div>
-            <div class="loader-text" id="loadingStatus">جاري التحميل...</div>
+            <div class="loader-text" id="loadingStatus">Loading...</div>
             <div class="loader-subtext">ZI STORE</div>
         </div>
     </div>
@@ -1902,18 +2203,18 @@
     <div id="cookieConsent" class="cookie-consent">
         <div class="cookie-text">
             <span class="cookie-icon">🍪</span>
-            <strong>نحن نستخدم ملفات تعريف الارتباط! 😊</strong>
-            <small>لتحسين تجربتك، نستخدم ملفات تعريف الارتباط الأساسية التي تحافظ على تشغيل موقعنا بسلاسة. نود أيضًا استخدام ملفات تعريف الارتباط التحليلية لفهم كيفية استخدامك لموقعنا - ولكن فقط بموافقتك.</small>
+            <strong>We use cookies! 😊</strong>
+            <small>To improve your experience, we use essential cookies that keep our site running smoothly. We would also like to use analytics cookies to understand how you use our site - but only with your consent.</small>
         </div>
         <div class="cookie-buttons">
             <button class="btn-settings" onclick="openCookieSettings()">
-                <i class="fas fa-cog"></i> إعدادات
+                <i class="fas fa-cog"></i> Settings
             </button>
             <button class="btn-reject" onclick="rejectCookies()">
-                رفض الكل
+                Reject All
             </button>
             <button class="btn-accept" onclick="acceptCookies()">
-                ✅ قبول الكل
+                ✅ Accept All
             </button>
         </div>
     </div>
@@ -1922,12 +2223,12 @@
     <div id="cookieSettingsModal" class="cookie-settings-modal">
         <div class="modal-content">
             <div class="modal-title">
-                <i class="fas fa-cookie-bite"></i> إعدادات ملفات تعريف الارتباط
+                <i class="fas fa-cookie-bite"></i> Cookie Settings
             </div>
             <div class="setting-item">
                 <div class="setting-info">
-                    <h4>🛡️ الأساسية (Essential)</h4>
-                    <p>مطلوبة لتشغيل الموقع. لا يمكن تعطيلها.</p>
+                    <h4>🛡️ Essential</h4>
+                    <p>Required for the site to function. Cannot be disabled.</p>
                 </div>
                 <div class="toggle-switch">
                     <input type="checkbox" checked disabled />
@@ -1936,8 +2237,8 @@
             </div>
             <div class="setting-item">
                 <div class="setting-info">
-                    <h4>📊 التحليلية (Analytics)</h4>
-                    <p>تساعدنا على فهم كيفية استخدامك للموقع لتحسينه.</p>
+                    <h4>📊 Analytics</h4>
+                    <p>Help us understand how you use the site to improve it.</p>
                 </div>
                 <div class="toggle-switch">
                     <input type="checkbox" id="analyticsToggle" checked />
@@ -1945,61 +2246,61 @@
                 </div>
             </div>
             <div class="modal-actions">
-                <button class="btn-close-modal" onclick="closeCookieSettings()">إلغاء</button>
-                <button class="btn-save" onclick="saveCookieSettings()">💾 حفظ الإعدادات</button>
+                <button class="btn-close-modal" onclick="closeCookieSettings()">Cancel</button>
+                <button class="btn-save" onclick="saveCookieSettings()">💾 Save Settings</button>
             </div>
         </div>
     </div>
 
     <!-- ============================================ -->
-    <!-- واجهة تسجيل الدخول -->
+    <!-- Login Interface -->
     <!-- ============================================ -->
     <div id="authSection" style="display:none;">
         <div class="auth-container" id="loginContainer">
-            <div class="auth-title" data-i18n="welcome_back">👋 Welcome Back</div>
-            <div class="auth-subtitle" data-i18n="login_subtitle">Login to access your scripts</div>
+            <div class="auth-title">👋 Welcome Back</div>
+            <div class="auth-subtitle">Login to access your scripts</div>
             <button class="google-login-btn" id="googleLoginBtn" onclick="loginWithGoogle()">
                 <i class="fab fa-google" style="color:#4285F4;"></i>
-                <span class="btn-text" data-i18n="login_with_google">تسجيل الدخول عبر Google</span>
+                <span class="btn-text">Sign in with Google</span>
                 <span class="btn-loader"></span>
             </button>
-            <div class="auth-divider" data-i18n="or">أو</div>
-            <div class="auth-field"><label data-i18n="email">Email</label><input type="email" id="loginEmail" placeholder="your@email.com" /></div>
-            <div class="auth-field"><label data-i18n="password">Password</label><input type="password" id="loginPassword" placeholder="••••••••" /></div>
-            <div class="forgot-link"><a onclick="openForgotPassword()" data-i18n="forgot_password">Forgot password?</a></div>
-            <button class="auth-btn" id="loginBtn" onclick="loginUser()"><span class="btn-text" data-i18n="login">Login</span><span class="btn-loader"></span></button>
+            <div class="auth-divider">Or</div>
+            <div class="auth-field"><label>Email</label><input type="email" id="loginEmail" placeholder="your@email.com" /></div>
+            <div class="auth-field"><label>Password</label><input type="password" id="loginPassword" placeholder="••••••••" /></div>
+            <div class="forgot-link"><a onclick="openForgotPassword()">Forgot password?</a></div>
+            <button class="auth-btn" id="loginBtn" onclick="loginUser()"><span class="btn-text">Login</span><span class="btn-loader"></span></button>
             <div class="auth-error" id="loginError"></div>
             <div class="auth-success" id="loginSuccess"></div>
-            <div class="auth-footer"><span data-i18n="no_account">Don't have an account?</span> <a onclick="showRegister()" data-i18n="sign_up">Sign up</a></div>
+            <div class="auth-footer"><span>Don't have an account?</span> <a onclick="showRegister()">Sign up</a></div>
         </div>
 
         <div class="auth-container" id="registerContainer" style="display:none;">
-            <div class="auth-title" data-i18n="create_account">✨ Create Account</div>
-            <div class="auth-subtitle" data-i18n="register_subtitle">Join ZI Store today</div>
+            <div class="auth-title">✨ Create Account</div>
+            <div class="auth-subtitle">Join ZI Store today</div>
             <button class="google-login-btn" onclick="loginWithGoogle()">
                 <i class="fab fa-google" style="color:#4285F4;"></i>
-                <span class="btn-text" data-i18n="login_with_google">تسجيل الدخول عبر Google</span>
+                <span class="btn-text">Sign in with Google</span>
                 <span class="btn-loader"></span>
             </button>
-            <div class="auth-divider" data-i18n="or">أو</div>
-            <div class="auth-field"><label data-i18n="full_name">Full Name</label><input type="text" id="registerName" placeholder="Your name" /></div>
-            <div class="auth-field"><label data-i18n="email">Email</label><input type="email" id="registerEmail" placeholder="your@email.com" /></div>
-            <div class="auth-field"><label data-i18n="password">Password</label><input type="password" id="registerPassword" placeholder="Min 6 characters" /></div>
-            <div class="auth-field"><label data-i18n="confirm_password">Confirm Password</label><input type="password" id="registerConfirmPassword" placeholder="••••••••" /></div>
-            <div class="auth-field"><label data-i18n="country">Country</label><select id="registerCountry"><option value="Tunisia">🇹🇳 Tunisia</option><option value="Algeria">🇩🇿 Algeria</option><option value="Morocco">🇲🇦 Morocco</option><option value="Egypt">🇪🇬 Egypt</option><option value="Saudi Arabia">🇸🇦 Saudi Arabia</option><option value="UAE">🇦🇪 UAE</option><option value="Other">🌍 Other</option></select></div>
-            <div class="auth-field"><label data-i18n="language">Language</label><select id="registerLang"><option value="English">🇬🇧 English</option><option value="Arabic">🇸🇦 العربية</option><option value="French">🇫🇷 Français</option></select></div>
-            <div class="referral-toggle" onclick="toggleReferral()"><i class="fas fa-gift"></i> <span data-i18n="referral_code">Have a referral code?</span></div>
+            <div class="auth-divider">Or</div>
+            <div class="auth-field"><label>Full Name</label><input type="text" id="registerName" placeholder="Your name" /></div>
+            <div class="auth-field"><label>Email</label><input type="email" id="registerEmail" placeholder="your@email.com" /></div>
+            <div class="auth-field"><label>Password</label><input type="password" id="registerPassword" placeholder="Min 6 characters" /></div>
+            <div class="auth-field"><label>Confirm Password</label><input type="password" id="registerConfirmPassword" placeholder="••••••••" /></div>
+            <div class="auth-field"><label>Country</label><select id="registerCountry"><option value="Tunisia">🇹🇳 Tunisia</option><option value="Algeria">🇩🇿 Algeria</option><option value="Morocco">🇲🇦 Morocco</option><option value="Egypt">🇪🇬 Egypt</option><option value="Saudi Arabia">🇸🇦 Saudi Arabia</option><option value="UAE">🇦🇪 UAE</option><option value="Other">🌍 Other</option></select></div>
+            <div class="auth-field"><label>Language</label><select id="registerLang"><option value="English">🇬🇧 English</option><option value="Arabic">🇸🇦 العربية</option><option value="French">🇫🇷 Français</option></select></div>
+            <div class="referral-toggle" onclick="toggleReferral()"><i class="fas fa-gift"></i> <span>Have a referral code?</span></div>
             <div class="referral-field" id="referralField"><input type="text" id="registerReferral" placeholder="Enter referral code" /></div>
-            <div class="terms-check"><input type="checkbox" id="termsCheck" /><label for="termsCheck" data-i18n="agree_terms">I agree to the Terms & Conditions</label></div>
-            <button class="auth-btn" id="registerBtn" onclick="registerUser()"><span class="btn-text" data-i18n="create_account">Create Account</span><span class="btn-loader"></span></button>
+            <div class="terms-check"><input type="checkbox" id="termsCheck" /><label for="termsCheck">I agree to the Terms & Conditions</label></div>
+            <button class="auth-btn" id="registerBtn" onclick="registerUser()"><span class="btn-text">Create Account</span><span class="btn-loader"></span></button>
             <div class="auth-error" id="registerError"></div>
             <div class="auth-success" id="registerSuccess"></div>
-            <div class="auth-footer"><span data-i18n="already_have_account">Already have an account?</span> <a onclick="showLogin()" data-i18n="login">Login</a></div>
+            <div class="auth-footer"><span>Already have an account?</span> <a onclick="showLogin()">Login</a></div>
         </div>
     </div>
 
     <!-- ============================================ -->
-    <!-- التطبيق الرئيسي -->
+    <!-- Main Application -->
     <!-- ============================================ -->
     <div id="mainApp" style="display:none;">
 
@@ -2010,13 +2311,12 @@
                 <span>ZI Store</span>
             </div>
 
-            <!-- زر اختيار اللغة -->
+            <!-- Language Selector -->
             <div class="language-selector" onclick="window.showLanguageMenu()">
                 <span id="currentLangFlag">🇬🇧</span>
                 <span id="currentLangCode">EN</span>
                 <i class="fas fa-chevron-down"></i>
 
-                <!-- قائمة اللغات -->
                 <div class="language-menu" id="languageMenu">
                     <div class="lang-option" data-lang="ar" onclick="window.setLanguage('ar')">
                         <span class="lang-flag">🇸🇦</span>
@@ -2083,15 +2383,18 @@
 
         <!-- SEARCH -->
         <div class="search-wrapper">
-            <input type="text" class="search-input" id="liveSearchInput" data-i18n="search_products" placeholder="🔍 Search products..." />
+            <input type="text" class="search-input" id="liveSearchInput" placeholder="🔍 Search products..." />
             <button class="search-clear" id="searchClear" onclick="clearSearch()"><i class="fas fa-times"></i></button>
             <div class="search-results" id="searchResults"></div>
         </div>
 
-        <!-- SLIDER -->
+        <!-- ================== Email Verification Banner ================== -->
+        <div id="emailVerificationBanner" class="email-verification-banner" style="display:none;"></div>
+        
+        <!-- SLIDER - Buttons at bottom, smaller -->
         <div class="slider-container">
             <div class="slider-wrapper" id="sliderWrapper">
-                <!-- سيتم إنشاء الشرائح بواسطة JavaScript -->
+                <!-- Slides will be generated by JavaScript -->
             </div>
             <div class="slider-dots" id="sliderDots"></div>
             <button class="slider-btn prev" onclick="prevSlide()"><i class="fas fa-chevron-left"></i></button>
@@ -2113,28 +2416,28 @@
 
         <!-- STATS -->
         <div class="stats-grid">
-            <div class="stat-card"><div class="stat-icon">📦</div><div class="stat-number" id="totalScripts">0</div><div class="stat-label" data-i18n="total">Total</div></div>
-            <div class="stat-card"><div class="stat-icon">🎁</div><div class="stat-number" id="freeScripts">0</div><div class="stat-label" data-i18n="free">Free</div></div>
-            <div class="stat-card"><div class="stat-icon">👑</div><div class="stat-number" id="vipScripts">0</div><div class="stat-label" data-i18n="vip">VIP</div></div>
-            <div class="stat-card"><div class="stat-icon">❤️</div><div class="stat-number" id="wishlistStats">0</div><div class="stat-label" data-i18n="favorites">Favorites</div></div>
+            <div class="stat-card"><div class="stat-icon">📦</div><div class="stat-number" id="totalScripts">0</div><div class="stat-label">Total</div></div>
+            <div class="stat-card"><div class="stat-icon">🎁</div><div class="stat-number" id="freeScripts">0</div><div class="stat-label">Free</div></div>
+            <div class="stat-card"><div class="stat-icon">👑</div><div class="stat-number" id="vipScripts">0</div><div class="stat-label">VIP</div></div>
+            <div class="stat-card"><div class="stat-icon">❤️</div><div class="stat-number" id="wishlistStats">0</div><div class="stat-label">Favorites</div></div>
         </div>
 
         <!-- FILTERS -->
         <div class="filter-actions">
-            <button class="filter-btn active" data-filter="all" onclick="filterProducts('all')" data-i18n="all">All</button>
-            <button class="filter-btn" data-filter="free" onclick="filterProducts('free')" data-i18n="free">🎁 Free</button>
-            <button class="filter-btn" data-filter="paid" onclick="filterProducts('paid')" data-i18n="vip">👑 VIP</button>
-            <span class="browse-all"><i class="fas fa-arrow-right"></i> <span data-i18n="browse">Browse</span></span>
+            <button class="filter-btn active" data-filter="all" onclick="filterProducts('all')">All</button>
+            <button class="filter-btn" data-filter="free" onclick="filterProducts('free')">🎁 Free</button>
+            <button class="filter-btn" data-filter="paid" onclick="filterProducts('paid')">👑 VIP</button>
+            <span class="browse-all"><i class="fas fa-arrow-right"></i> Browse</span>
         </div>
 
         <!-- RECOMMENDATIONS -->
         <section class="recommendations-section">
-            <div class="rec-title"><i class="fas fa-star"></i> <span data-i18n="recommended">Recommended for You</span></div>
+            <div class="rec-title"><i class="fas fa-star"></i> Recommended for You</div>
             <div class="rec-grid" id="recommendationsGrid"></div>
         </section>
 
         <!-- PRODUCTS -->
-        <div class="section-title"><i class="fas fa-cubes"></i> <span data-i18n="all_scripts">All Scripts</span></div>
+        <div class="section-title"><i class="fas fa-cubes"></i> All Scripts</div>
         <div class="products-grid" id="productList"></div>
 
         <!-- FOOTER -->
@@ -2146,17 +2449,16 @@
             </div>
 
             <div style="display:flex; justify-content:center; gap:16px; flex-wrap:wrap; margin-bottom:12px;">
-                <!-- زر الدعم في الفوتر -->
                 <button class="support-footer-btn" onclick="openSupportModal()">
                     <i class="fas fa-headset"></i>
-                    <span data-i18n="support">الدعم الفني</span>
+                    <span>Support</span>
                 </button>
             </div>
 
             <div class="legal-links" style="display:flex; justify-content:center; gap:16px; flex-wrap:wrap; margin-bottom:12px; font-size:13px;">
-                <a href="privacy.html" style="color:var(--text-secondary); opacity:0.6; text-decoration:none;">سياسة الخصوصية</a>
-                <a href="refund.html" style="color:var(--text-secondary); opacity:0.6; text-decoration:none;">سياسة الاسترداد</a>
-                <a href="terms.html" style="color:var(--text-secondary); opacity:0.6; text-decoration:none;">الشروط والأحكام</a>
+                <a href="privacy.html" style="color:var(--text-secondary); opacity:0.6; text-decoration:none;">Privacy Policy</a>
+                <a href="refund.html" style="color:var(--text-secondary); opacity:0.6; text-decoration:none;">Refund Policy</a>
+                <a href="terms.html" style="color:var(--text-secondary); opacity:0.6; text-decoration:none;">Terms & Conditions</a>
             </div>
             <div class="copyright">© 2026 <span>ZI Store</span>. All rights reserved.</div>
         </footer>
@@ -2164,92 +2466,85 @@
     </div>
 
     <!-- ============================================ -->
-    <!-- شريط السلة السفلي -->
+    <!-- Bottom Cart Bar -->
     <!-- ============================================ -->
     <div class="bottom-cart-bar" id="bottomCartBar">
         <div class="cart-info">
             <span class="cart-items-count" id="bottomCartCount">0</span>
-            <span class="cart-total-label" data-i18n="total">Total:</span>
+            <span class="cart-total-label">Total:</span>
             <span class="cart-total-price" id="bottomCartTotal">$0.00</span>
         </div>
         <div class="cart-actions">
-            <button class="view-cart-btn" onclick="openCartFull()" data-i18n="view_cart"><i class="fas fa-shopping-cart"></i> View</button>
-            <button class="clear-cart-btn" onclick="clearCart()" data-i18n="clear_cart"><i class="fas fa-trash"></i></button>
+            <button class="view-cart-btn" onclick="openCartFull()"><i class="fas fa-shopping-cart"></i> View</button>
+            <button class="clear-cart-btn" onclick="clearCart()"><i class="fas fa-trash"></i></button>
         </div>
     </div>
 
     <!-- ============================================ -->
-    <!-- زر الدعم العائم (Floating Support Button) -->
+    <!-- Floating Support Button -->
     <!-- ============================================ -->
     <div class="support-float" id="supportFloat">
-        <!-- الزر الرئيسي -->
-        <button class="btn btn-main" onclick="toggleSupportMenu()" title="الدعم الفني">
+        <button class="btn btn-main" onclick="toggleSupportMenu()" title="Support">
             <span class="pulse-ring"></span>
             <i class="fas fa-headset"></i>
             <span class="badge-count">!</span>
         </button>
 
-        <!-- الأزرار الفرعية -->
         <div class="sub-buttons">
-            <!-- واتساب -->
-            <a href="https://wa.me/1234567890?text=مرحباً%20أحتاج%20مساعدة" 
+            <a href="https://wa.me/1234567890?text=Hi%20I%20need%20help" 
                target="_blank" 
                class="btn btn-whatsapp" 
-               title="تواصل عبر واتساب">
+               title="Contact via WhatsApp">
                 <i class="fab fa-whatsapp"></i>
             </a>
 
-            <!-- تيليجرام -->
             <a href="https://t.me/Mitalica69?start=support" 
                target="_blank" 
                class="btn btn-telegram" 
-               title="تواصل عبر تيليجرام">
+               title="Contact via Telegram">
                 <i class="fab fa-telegram-plane"></i>
             </a>
 
-            <!-- بريد إلكتروني -->
-            <a href="mailto:support@zi-store.online?subject=طلب%20مساعدة" 
+            <a href="mailto:support@zi-store.online?subject=Help%20Request" 
                class="btn btn-email" 
-               title="أرسل بريداً إلكترونياً">
+               title="Send an email">
                 <i class="fas fa-envelope"></i>
             </a>
         </div>
 
-        <span class="label">دعم</span>
+        <span class="label">Support</span>
     </div>
 
     <!-- ============================================ -->
-    <!-- مودال الدعم الفني (Support Modal) -->
+    <!-- Support Modal -->
     <!-- ============================================ -->
     <div class="modal-overlay support-modal" id="supportModal">
         <div class="modal-content">
             <button class="modal-close" onclick="closeSupportModal()"><i class="fas fa-times"></i></button>
             <div class="modal-title">
                 <i class="fas fa-headset" style="color:var(--primary);"></i>
-                <span data-i18n="support">الدعم الفني</span>
+                <span>Support</span>
             </div>
 
             <p style="font-size:14px; color:var(--text-secondary); opacity:0.5; text-align:center; margin-bottom:4px;">
-                اختر طريقة التواصل المفضلة لديك
+                Choose your preferred contact method
             </p>
 
             <div class="support-options">
-                <!-- واتساب -->
-                <a href="https://wa.me/1234567890?text=مرحباً%20أحتاج%20مساعدة" 
+                <a href="https://wa.me/1234567890?text=Hi%20I%20need%20help" 
                    target="_blank" 
                    class="support-option">
                     <div class="icon-wrapper whatsapp">
                         <i class="fab fa-whatsapp"></i>
                     </div>
                     <div class="info">
-                        <div class="title">واتساب</div>
-                        <div class="subtitle">رد سريع خلال دقائق</div>
+                        <div class="title">WhatsApp</div>
+                        <div class="subtitle">Quick response within minutes</div>
                     </div>
-                    <span class="badge-support">متاح</span>
+                    <span class="badge-support">Available</span>
                     <i class="fas fa-chevron-right arrow"></i>
                 </a>
 
-                <!-- تيليجرام -->
                 <a href="https://t.me/Mitalica69?start=support" 
                    target="_blank" 
                    class="support-option">
@@ -2257,35 +2552,33 @@
                         <i class="fab fa-telegram-plane"></i>
                     </div>
                     <div class="info">
-                        <div class="title">تيليجرام</div>
-                        <div class="subtitle">تواصل مباشر مع الدعم</div>
+                        <div class="title">Telegram</div>
+                        <div class="subtitle">Direct support chat</div>
                     </div>
-                    <span class="badge-support">متاح</span>
+                    <span class="badge-support">Available</span>
                     <i class="fas fa-chevron-right arrow"></i>
                 </a>
 
-                <!-- بريد إلكتروني -->
-                <a href="mailto:support@zi-store.online?subject=طلب%20مساعدة" 
+                <a href="mailto:support@zi-store.online?subject=Help%20Request" 
                    class="support-option">
                     <div class="icon-wrapper email">
                         <i class="fas fa-envelope"></i>
                     </div>
                     <div class="info">
-                        <div class="title">البريد الإلكتروني</div>
-                        <div class="subtitle">دعم خلال 24 ساعة</div>
+                        <div class="title">Email</div>
+                        <div class="subtitle">Support within 24 hours</div>
                     </div>
                     <i class="fas fa-chevron-right arrow"></i>
                 </a>
 
-                <!-- اتصال هاتفي (اختياري) -->
                 <a href="tel:+1234567890" 
                    class="support-option">
                     <div class="icon-wrapper phone">
                         <i class="fas fa-phone"></i>
                     </div>
                     <div class="info">
-                        <div class="title">اتصال هاتفي</div>
-                        <div class="subtitle">تواصل مباشر</div>
+                        <div class="title">Phone Call</div>
+                        <div class="subtitle">Direct contact</div>
                     </div>
                     <i class="fas fa-chevron-right arrow"></i>
                 </a>
@@ -2293,15 +2586,15 @@
 
             <div class="support-footer">
                 <i class="fas fa-clock"></i> 
-                أوقات الدعم: 24/7 · 
+                Support Hours: 24/7 · 
                 <i class="fas fa-reply-all"></i> 
-                نرد خلال 24 ساعة
+                We reply within 24 hours
             </div>
         </div>
     </div>
 
     <!-- ============================================ -->
-    <!-- جميع المودالات الأخرى (مختصرة) -->
+    <!-- All Other Modals -->
     <!-- ============================================ -->
 
     <!-- Preview Modal -->
@@ -2309,15 +2602,15 @@
         <div class="preview-content">
             <div class="preview-header">
                 <button class="preview-back" onclick="closePreviewModal()"><i class="fas fa-arrow-left"></i></button>
-                <div class="preview-header-title" data-i18n="details">Product Details</div>
-                <button class="preview-share" onclick="shareFromPreview()" data-i18n="share"><i class="fas fa-share-alt"></i></button>
+                <div class="preview-header-title">Product Details</div>
+                <button class="preview-share" onclick="shareFromPreview()"><i class="fas fa-share-alt"></i></button>
             </div>
             <div class="preview-image-wrapper">
                 <img id="previewImage" src="" alt="Product" />
                 <div class="preview-badge" id="previewBadge">PREMIUM</div>
             </div>
             <div class="preview-body">
-                <div class="preview-verified" id="previewVerified" data-i18n="verified">✅ 100% VERIFIED WORKING PRODUCT</div>
+                <div class="preview-verified" id="previewVerified">✅ 100% VERIFIED WORKING PRODUCT</div>
                 <h2 class="preview-name" id="previewName">Product Name</h2>
                 <p class="preview-desc" id="previewDescription">Description here</p>
                 <div class="preview-video" id="previewVideoContainer" style="display:none;">
@@ -2326,20 +2619,20 @@
                     </div>
                 </div>
                 <div class="preview-features" id="previewFeatures">
-                    <div class="features-header"><i class="fas fa-check-circle"></i> <span data-i18n="features">Features</span></div>
+                    <div class="features-header"><i class="fas fa-check-circle"></i> Features</div>
                     <ul class="features-list"></ul>
                 </div>
                 <div id="previewVipPricing" style="display:none;">
                     <div class="vip-pricing-section">
                         <div class="vip-pricing-header"><i class="fas fa-crown"></i> VIP Pricing</div>
                         <div class="vip-pricing-grid" id="vipPricingGrid"></div>
-                        <button class="vip-add-to-cart" onclick="addVipPlanToCart(window._currentProduct)"><i class="fas fa-shopping-cart"></i> <span data-i18n="add_to_cart">Add to Cart</span></button>
+                        <button class="vip-add-to-cart" onclick="addVipPlanToCart(window._currentProduct)"><i class="fas fa-shopping-cart"></i> Add to Cart</button>
                         <div class="vip-footer">Checkout via Telegram <a href="https://t.me/Mitalica69" target="_blank">@Mitalica69</a>. By purchasing you agree to the <a href="#">Terms</a>. See the <a href="#">refund policy</a>.</div>
                     </div>
                 </div>
                 <div id="ratingSection"></div>
                 <div class="preview-action">
-                    <button class="preview-add-btn" id="previewAddBtn" onclick="addToCartFromPreview()"><i class="fas fa-cart-plus"></i> <span data-i18n="add_to_cart">Add to Cart</span></button>
+                    <button class="preview-add-btn" id="previewAddBtn" onclick="addToCartFromPreview()"><i class="fas fa-cart-plus"></i> Add to Cart</button>
                     <span class="preview-price" id="previewPrice">$0.00</span>
                 </div>
             </div>
@@ -2350,13 +2643,13 @@
     <div class="modal-overlay share-modal" id="shareModal">
         <div class="modal-content">
             <button class="modal-close" onclick="closeShareModal()"><i class="fas fa-times"></i></button>
-            <div class="modal-title"><i class="fas fa-share-alt"></i> <span data-i18n="share">Share</span></div>
+            <div class="modal-title"><i class="fas fa-share-alt"></i> Share</div>
             <div id="shareProductInfo"></div>
             <div class="share-options">
                 <button onclick="shareToWhatsApp()"><i class="fab fa-whatsapp whatsapp"></i> WhatsApp</button>
                 <button onclick="shareToTelegram()"><i class="fab fa-telegram-plane telegram"></i> Telegram</button>
                 <button onclick="shareToFacebook()"><i class="fab fa-facebook facebook"></i> Facebook</button>
-                <button onclick="copyShareLink()"><i class="fas fa-link copy-link"></i> <span data-i18n="copy_code">Copy Link</span></button>
+                <button onclick="copyShareLink()"><i class="fas fa-link copy-link"></i> Copy Link</button>
             </div>
         </div>
     </div>
@@ -2365,38 +2658,38 @@
     <div class="modal-overlay" id="paymentModal">
         <div class="modal-content" style="max-width:420px;">
             <button class="modal-close" onclick="closePaymentModal()"><i class="fas fa-times"></i></button>
-            <div class="modal-title"><i class="fas fa-credit-card"></i> <span data-i18n="payment">Checkout</span></div>
+            <div class="modal-title"><i class="fas fa-credit-card"></i> Checkout</div>
             <div id="paymentStep1">
                 <div class="payment-options">
-                    <div class="payment-option" id="optionLitecoin" onclick="selectPayment('litecoin')"><i class="fab fa-bitcoin"></i><div class="p-label" data-i18n="litecoin">Litecoin</div><div class="p-sub">LTC</div><div class="p-check"><i class="fas fa-check"></i></div></div>
-                    <div class="payment-option" id="optionUsdt" onclick="selectPayment('usdt')"><i class="fas fa-coins"></i><div class="p-label" data-i18n="usdt">USDT</div><div class="p-sub">ERC20</div><div class="p-check"><i class="fas fa-check"></i></div></div>
-                    <div class="payment-option" id="optionTelegram" onclick="selectPayment('telegram')"><i class="fab fa-telegram-plane"></i><div class="p-label" data-i18n="telegram">Telegram</div><div class="p-sub">Direct</div><div class="p-check"><i class="fas fa-check"></i></div></div>
-                    <div class="payment-option" id="optionBinance" onclick="selectPayment('binance')"><i class="fab fa-bitcoin" style="color:#f2a900;"></i><div class="p-label" data-i18n="binance">Binance</div><div class="p-sub">USDT (Manual)</div><div class="p-check"><i class="fas fa-check"></i></div></div>
+                    <div class="payment-option" id="optionLitecoin" onclick="selectPayment('litecoin')"><i class="fab fa-bitcoin"></i><div class="p-label">Litecoin</div><div class="p-sub">LTC</div><div class="p-check"><i class="fas fa-check"></i></div></div>
+                    <div class="payment-option" id="optionUsdt" onclick="selectPayment('usdt')"><i class="fas fa-coins"></i><div class="p-label">USDT</div><div class="p-sub">ERC20</div><div class="p-check"><i class="fas fa-check"></i></div></div>
+                    <div class="payment-option" id="optionTelegram" onclick="selectPayment('telegram')"><i class="fab fa-telegram-plane"></i><div class="p-label">Telegram</div><div class="p-sub">Direct</div><div class="p-check"><i class="fas fa-check"></i></div></div>
+                    <div class="payment-option" id="optionBinance" onclick="selectPayment('binance')"><i class="fab fa-bitcoin" style="color:#f2a900;"></i><div class="p-label">Binance</div><div class="p-sub">USDT (Manual)</div><div class="p-check"><i class="fas fa-check"></i></div></div>
                 </div>
                 <div class="payment-summary">
-                    <div class="ps-row"><span class="ps-label" data-i18n="total">Total</span><span class="ps-value" id="payableTotal">$0.00</span></div>
-                    <div class="ps-row"><span class="ps-label" data-i18n="exchange_rate">Exchange Rate</span><span class="ps-value" id="exchangeRate">Loading...</span></div>
+                    <div class="ps-row"><span class="ps-label">Total</span><span class="ps-value" id="payableTotal">$0.00</span></div>
+                    <div class="ps-row"><span class="ps-label">Exchange Rate</span><span class="ps-value" id="exchangeRate">Loading...</span></div>
                 </div>
-                <button class="payment-btn" onclick="continuePayment()" data-i18n="continue"><i class="fas fa-arrow-right"></i> Continue</button>
+                <button class="payment-btn" onclick="continuePayment()"><i class="fas fa-arrow-right"></i> Continue</button>
             </div>
             <div class="payment-step2" id="paymentStep2">
                 <div class="payment-products-list" id="paymentProductsList"></div>
                 <div class="payment-summary">
-                    <div class="ps-row"><span class="ps-label" data-i18n="subtotal">Subtotal</span><span class="ps-value" id="step2Subtotal">$0.00</span></div>
-                    <div class="ps-row ps-total"><span class="ps-label" data-i18n="total">Total</span><span class="ps-value" id="step2Total">$0.00</span></div>
+                    <div class="ps-row"><span class="ps-label">Subtotal</span><span class="ps-value" id="step2Subtotal">$0.00</span></div>
+                    <div class="ps-row ps-total"><span class="ps-label">Total</span><span class="ps-value" id="step2Total">$0.00</span></div>
                 </div>
                 <div class="wallet-info">
-                    <div class="w-row"><span class="w-label"><i class="fas fa-wallet"></i> <span data-i18n="payment_method">Method</span></span><span class="w-value" id="paymentMethodName">Litecoin</span></div>
+                    <div class="w-row"><span class="w-label"><i class="fas fa-wallet"></i> Method</span><span class="w-value" id="paymentMethodName">Litecoin</span></div>
                     <div class="w-row"><span class="w-label"><i class="fas fa-network-wired"></i> Network</span><span class="w-value" id="cryptoNetwork">LTC</span></div>
-                    <div class="w-row"><span class="w-label"><i class="fas fa-coins"></i> <span data-i18n="amount">Amount</span></span><span class="w-value" id="cryptoAmount">0.0000 LTC</span></div>
-                    <div class="w-address"><span id="walletAddressDisplay">0x1234...</span><button onclick="copyWalletAddress()"><i class="fas fa-copy"></i> <span data-i18n="copy_address">Copy</span></button></div>
+                    <div class="w-row"><span class="w-label"><i class="fas fa-coins"></i> Amount</span><span class="w-value" id="cryptoAmount">0.0000 LTC</span></div>
+                    <div class="w-address"><span id="walletAddressDisplay">0x1234...</span><button onclick="copyWalletAddress()"><i class="fas fa-copy"></i> Copy</button></div>
                 </div>
                 <div style="margin-top: 8px;">
                     <input class="payment-tx-input" id="transactionHashInput" placeholder="Paste transaction hash..." />
                     <p style="font-size: 12px; color: var(--text-secondary); opacity: 0.5; margin-top: 4px;">📌 Please paste your transaction hash to verify your payment.</p>
                 </div>
-                <button class="payment-btn" onclick="placeOrder()"><i class="fas fa-check"></i> <span data-i18n="confirm_payment">Confirm Payment</span></button>
-                <button class="payment-btn" onclick="goToStep1()" style="background:var(--card-bg);color:var(--text);margin-top:4px;" data-i18n="back"><i class="fas fa-arrow-left"></i> Back</button>
+                <button class="payment-btn" onclick="placeOrder()"><i class="fas fa-check"></i> Confirm Payment</button>
+                <button class="payment-btn" onclick="goToStep1()" style="background:var(--card-bg);color:var(--text);margin-top:4px;"><i class="fas fa-arrow-left"></i> Back</button>
             </div>
         </div>
     </div>
@@ -2405,7 +2698,7 @@
     <div class="modal-overlay" id="downloadsModal">
         <div class="modal-content" style="max-width:440px;">
             <button class="modal-close" onclick="closeDownloads()"><i class="fas fa-times"></i></button>
-            <div class="modal-title"><i class="fas fa-download"></i> <span data-i18n="downloads">Downloads</span></div>
+            <div class="modal-title"><i class="fas fa-download"></i> Downloads</div>
             <div id="downloadsList"></div>
         </div>
     </div>
@@ -2414,10 +2707,10 @@
     <div class="modal-overlay" id="notificationsModal">
         <div class="modal-content" style="max-width:440px;">
             <button class="modal-close" onclick="closeNotifications()"><i class="fas fa-times"></i></button>
-            <div class="modal-title"><i class="fas fa-bell"></i> <span data-i18n="notifications_title">Notifications</span></div>
+            <div class="modal-title"><i class="fas fa-bell"></i> Notifications</div>
             <div class="notifications-header-actions">
-                <button class="btn-mark-read" onclick="markAllNotificationsRead()"><i class="fas fa-check-double"></i> <span data-i18n="mark_all_read">Mark all read</span></button>
-                <button class="btn-clear-all" onclick="clearAllNotifications()"><i class="fas fa-trash"></i> <span data-i18n="clear_all">Clear all</span></button>
+                <button class="btn-mark-read" onclick="markAllNotificationsRead()"><i class="fas fa-check-double"></i> Mark all read</button>
+                <button class="btn-clear-all" onclick="clearAllNotifications()"><i class="fas fa-trash"></i> Clear all</button>
             </div>
             <div id="notificationsList"></div>
         </div>
@@ -2427,7 +2720,7 @@
     <!-- User Menu -->
     <div class="fullscreen-modal user-menu-full" id="userMenuFull">
         <div class="modal-header">
-            <h2><i class="fas fa-user"></i> <span data-i18n="profile">Profile</span></h2>
+            <h2><i class="fas fa-user"></i> Profile</h2>
             <button class="modal-close" onclick="closeUserMenuFull()"><i class="fas fa-times"></i></button>
         </div>
         <div class="user-header">
@@ -2439,30 +2732,30 @@
             </div>
         </div>
         <div class="menu-grid">
-            <div class="menu-item" onclick="openProfileFull();closeUserMenuFull();"><i class="fas fa-user-cog"></i><span class="menu-label" data-i18n="profile">Profile</span></div>
-            <div class="menu-item" onclick="openHistoryFull();closeUserMenuFull();"><i class="fas fa-history"></i><span class="menu-label" data-i18n="order_history">Orders</span><span class="menu-badge" id="fullOrderBadge">0</span></div>
-            <div class="menu-item" onclick="openWishlistFull();closeUserMenuFull();"><i class="fas fa-heart"></i><span class="menu-label" data-i18n="favorites">Favorites</span><span class="menu-badge" id="fullWishlistBadge">0</span></div>
-            <div class="menu-item" onclick="openNotifications();closeUserMenuFull();"><i class="fas fa-bell"></i><span class="menu-label" data-i18n="notifications">Notifications</span><span class="menu-badge" id="fullNotifBadge">0</span></div>
-            <div class="menu-item" onclick="openRequestsModal();closeUserMenuFull();"><i class="fas fa-file-alt"></i><span class="menu-label" data-i18n="requests">Requests</span></div>
-            <div class="menu-item" onclick="openReferralModal();closeUserMenuFull();"><i class="fas fa-gift"></i><span class="menu-label" data-i18n="referrals_title">Referrals</span></div>
-            <div class="menu-item" onclick="openLicenceModal()"><i class="fas fa-key"></i><span class="menu-label" data-i18n="activate_script">🔑 Activate Script</span></div>
+            <div class="menu-item" onclick="openProfileFull();closeUserMenuFull();"><i class="fas fa-user-cog"></i><span class="menu-label">Profile</span></div>
+            <div class="menu-item" onclick="openHistoryFull();closeUserMenuFull();"><i class="fas fa-history"></i><span class="menu-label">Orders</span><span class="menu-badge" id="fullOrderBadge">0</span></div>
+            <div class="menu-item" onclick="openWishlistFull();closeUserMenuFull();"><i class="fas fa-heart"></i><span class="menu-label">Favorites</span><span class="menu-badge" id="fullWishlistBadge">0</span></div>
+            <div class="menu-item" onclick="openNotifications();closeUserMenuFull();"><i class="fas fa-bell"></i><span class="menu-label">Notifications</span><span class="menu-badge" id="fullNotifBadge">0</span></div>
+            <div class="menu-item" onclick="openRequestsModal();closeUserMenuFull();"><i class="fas fa-file-alt"></i><span class="menu-label">Requests</span></div>
+            <div class="menu-item" onclick="openReferralModal();closeUserMenuFull();"><i class="fas fa-gift"></i><span class="menu-label">Referrals</span></div>
+            <div class="menu-item" onclick="openLicenceModal()"><i class="fas fa-key"></i><span class="menu-label">🔑 Activate Script</span></div>
             <div class="menu-divider"></div>
             <div class="menu-item" onclick="toggleLicencesList()">
                 <i class="fas fa-key"></i>
-                <span class="menu-label" data-i18n="my_licences">My Licences</span>
+                <span class="menu-label">My Licences</span>
                 <span class="menu-badge" id="licencesBadge" style="display:none;">0</span>
             </div>
             <div id="userLicencesList" style="padding:0 12px 8px 12px;background:var(--bg);border-radius:0 0 10px 10px;display:none;"></div>
             <div class="menu-divider"></div>
-            <div class="menu-item admin-btn" id="adminMenuItem" onclick="openAdminPanel();closeUserMenuFull();"><i class="fas fa-crown"></i><span class="menu-label" data-i18n="admin_panel">Admin Panel</span><span class="menu-badge" id="adminMenuBadge">0</span></div>
-            <div class="menu-item logout" onclick="logoutUser();closeUserMenuFull();"><i class="fas fa-sign-out-alt"></i><span class="menu-label" data-i18n="logout">Logout</span></div>
+            <div class="menu-item admin-btn" id="adminMenuItem" onclick="openAdminPanel();closeUserMenuFull();"><i class="fas fa-crown"></i><span class="menu-label">Admin Panel</span><span class="menu-badge" id="adminMenuBadge">0</span></div>
+            <div class="menu-item logout" onclick="logoutUser();closeUserMenuFull();"><i class="fas fa-sign-out-alt"></i><span class="menu-label">Logout</span></div>
         </div>
     </div>
 
     <!-- Profile -->
     <div class="fullscreen-modal" id="profileFull">
         <div class="modal-header">
-            <h2><i class="fas fa-user-cog"></i> <span data-i18n="profile">Profile</span></h2>
+            <h2><i class="fas fa-user-cog"></i> Profile</h2>
             <button class="modal-close" onclick="closeProfileFull()"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body" id="profileFullContent"></div>
@@ -2471,7 +2764,7 @@
     <!-- History -->
     <div class="fullscreen-modal" id="historyFull">
         <div class="modal-header">
-            <h2><i class="fas fa-history"></i> <span data-i18n="order_history">Order History</span></h2>
+            <h2><i class="fas fa-history"></i> Order History</h2>
             <button class="modal-close" onclick="closeHistoryFull()"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body" id="historyFullContent"></div>
@@ -2480,7 +2773,7 @@
     <!-- Cart -->
     <div class="fullscreen-modal" id="cartFull">
         <div class="modal-header">
-            <h2><i class="fas fa-shopping-cart"></i> <span data-i18n="cart">Cart</span></h2>
+            <h2><i class="fas fa-shopping-cart"></i> Cart</h2>
             <button class="modal-close" onclick="closeCartFull()"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body" id="cartFullContent"></div>
@@ -2489,7 +2782,7 @@
     <!-- Wishlist -->
     <div class="fullscreen-modal" id="wishlistFull">
         <div class="modal-header">
-            <h2><i class="fas fa-heart"></i> <span data-i18n="favorites">Favorites</span></h2>
+            <h2><i class="fas fa-heart"></i> Favorites</h2>
             <button class="modal-close" onclick="closeWishlistFull()"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body" id="wishlistFullContent"></div>
@@ -2499,8 +2792,8 @@
     <div class="modal-overlay" id="requestsModal">
         <div class="modal-content" style="max-width:420px;">
             <button class="modal-close" onclick="closeRequestsModal()"><i class="fas fa-times"></i></button>
-            <div class="modal-title"><i class="fas fa-file-alt"></i> <span data-i18n="my_requests">My Requests</span></div>
-            <button class="add-btn" onclick="openNewRequestModal()"><i class="fas fa-plus"></i> <span data-i18n="new_request">New Request</span></button>
+            <div class="modal-title"><i class="fas fa-file-alt"></i> My Requests</div>
+            <button class="add-btn" onclick="openNewRequestModal()"><i class="fas fa-plus"></i> New Request</button>
             <div id="requestsList"></div>
         </div>
     </div>
@@ -2509,17 +2802,17 @@
     <div class="modal-overlay" id="newRequestModal">
         <div class="modal-content" style="max-width:420px;">
             <button class="modal-close" onclick="closeNewRequestModal()"><i class="fas fa-times"></i></button>
-            <div class="modal-title"><i class="fas fa-plus-circle"></i> <span data-i18n="new_request">New Request</span></div>
+            <div class="modal-title"><i class="fas fa-plus-circle"></i> New Request</div>
             <form class="request-form" id="requestForm" onsubmit="submitRequest(event)">
-                <label data-i18n="game_name">Game Name</label>
+                <label>Game Name</label>
                 <input type="text" id="reqGameName" placeholder="e.g., Free Fire" required />
-                <label data-i18n="play_store_link">Play Store Link</label>
+                <label>Play Store Link</label>
                 <input type="url" id="reqPlayStore" placeholder="https://play.google.com/..." required />
-                <label data-i18n="features_needed">Features</label>
+                <label>Features Needed</label>
                 <textarea id="reqFeatures" placeholder="List the features you want..." required></textarea>
-                <label data-i18n="budget">Budget</label>
+                <label>Budget</label>
                 <input type="text" id="reqBudget" placeholder="e.g., 50$" required />
-                <button type="submit" class="submit-btn"><i class="fas fa-paper-plane"></i> <span data-i18n="submit_request">Submit Request</span></button>
+                <button type="submit" class="submit-btn"><i class="fas fa-paper-plane"></i> Submit Request</button>
             </form>
         </div>
     </div>
@@ -2528,9 +2821,9 @@
     <div class="modal-overlay" id="referralModal">
         <div class="modal-content" style="max-width:420px;">
             <button class="modal-close" onclick="closeReferralModal()"><i class="fas fa-times"></i></button>
-            <div class="modal-title"><i class="fas fa-gift"></i> <span data-i18n="refer_earn">Refer & Earn</span></div>
+            <div class="modal-title"><i class="fas fa-gift"></i> Refer & Earn</div>
             <div style="background:var(--bg);border-radius:10px;padding:14px;border:1px solid var(--border);margin-bottom:12px;">
-                <div style="font-size:12px;color:var(--text-secondary);opacity:0.5;" data-i18n="referral_code_label">Your Referral Code</div>
+                <div style="font-size:12px;color:var(--text-secondary);opacity:0.5;">Your Referral Code</div>
                 <div style="display:flex;align-items:center;gap:10px;">
                     <code id="referralCodeDisplay2" style="font-size:20px;font-weight:700;color:var(--primary);font-family:monospace;">Loading...</code>
                     <button onclick="copyReferralCode2()" style="padding:4px 12px;border:none;border-radius:6px;background:var(--primary);color:#fff;cursor:pointer;font-size:12px;"><i class="fas fa-copy"></i></button>
@@ -2539,16 +2832,16 @@
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
                 <div style="background:var(--bg);border-radius:8px;padding:8px;text-align:center;border:1px solid var(--border);">
                     <div style="font-size:18px;font-weight:700;color:var(--text);" id="referralCount2">0</div>
-                    <div style="font-size:10px;color:var(--text-secondary);opacity:0.4;" data-i18n="referrals">Referrals</div>
+                    <div style="font-size:10px;color:var(--text-secondary);opacity:0.4;">Referrals</div>
                 </div>
                 <div style="background:var(--bg);border-radius:8px;padding:8px;text-align:center;border:1px solid var(--border);">
                     <div style="font-size:18px;font-weight:700;color:var(--success);" id="referralRewards2">0 $</div>
-                    <div style="font-size:10px;color:var(--text-secondary);opacity:0.4;" data-i18n="earned">Earned</div>
+                    <div style="font-size:10px;color:var(--text-secondary);opacity:0.4;">Earned</div>
                 </div>
             </div>
             <div id="referralSteps"></div>
             <div style="margin-top:12px;">
-                <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;" data-i18n="referral_activity">📋 Referral Activity</div>
+                <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;">📋 Referral Activity</div>
                 <div id="referralActivity"></div>
             </div>
         </div>
@@ -2558,9 +2851,9 @@
     <div class="modal-overlay" id="forgotPasswordModal">
         <div class="modal-content" style="max-width:360px;">
             <button class="modal-close" onclick="closeForgotPasswordModal()"><i class="fas fa-times"></i></button>
-            <div class="modal-title"><i class="fas fa-key"></i> <span data-i18n="reset_password">Reset Password</span></div>
-            <div class="auth-field"><label data-i18n="email">Email</label><input type="email" id="forgotEmail" placeholder="your@email.com" /></div>
-            <button class="auth-btn" onclick="sendForgotPassword()"><i class="fas fa-paper-plane"></i> <span data-i18n="send_link">Send Reset Link</span></button>
+            <div class="modal-title"><i class="fas fa-key"></i> Reset Password</div>
+            <div class="auth-field"><label>Email</label><input type="email" id="forgotEmail" placeholder="your@email.com" /></div>
+            <button class="auth-btn" onclick="sendForgotPassword()"><i class="fas fa-paper-plane"></i> Send Reset Link</button>
             <div class="auth-error" id="forgotError"></div>
             <div class="auth-success" id="forgotSuccess"></div>
         </div>
@@ -2570,13 +2863,13 @@
     <div class="modal-overlay" id="licenceModal">
         <div class="modal-content" style="max-width:420px;">
             <button class="modal-close" onclick="closeLicenceModal()"><i class="fas fa-times"></i></button>
-            <div class="modal-title"><i class="fas fa-key"></i> <span data-i18n="activate_script">Activate Script</span></div>
+            <div class="modal-title"><i class="fas fa-key"></i> Activate Script</div>
             <div style="margin-bottom: 12px;">
-                <label style="font-size:13px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:4px;" data-i18n="enter_licence">Enter your licence code</label>
+                <label style="font-size:13px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:4px;">Enter your licence code</label>
                 <input type="text" id="licenceInput" placeholder="e.g., LIC-TEST-2026" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:14px;outline:none;" />
             </div>
             <button onclick="activateLicence()" style="width:100%;padding:10px;border:none;border-radius:8px;background:var(--primary);color:#fff;font-weight:600;font-size:16px;cursor:pointer;">
-                <i class="fas fa-check"></i> <span data-i18n="activate">Activate</span>
+                <i class="fas fa-check"></i> Activate
             </button>
             <div id="licenceResult" style="margin-top:12px;font-size:14px;text-align:center;"></div>
         </div>
@@ -2586,21 +2879,21 @@
     <div class="modal-overlay" id="editLicenceModal">
         <div class="modal-content" style="max-width:420px;">
             <button class="modal-close" onclick="document.getElementById('editLicenceModal').classList.remove('open')"><i class="fas fa-times"></i></button>
-            <div class="modal-title"><i class="fas fa-edit"></i> <span data-i18n="edit">Edit Licence</span></div>
+            <div class="modal-title"><i class="fas fa-edit"></i> Edit Licence</div>
             <input type="hidden" id="editLicenceId" />
-            <div class="admin-form-group"><label data-i18n="copy_code">Code</label><input type="text" id="editLicenceCode" readonly style="opacity:0.5;font-family:monospace;" /></div>
-            <div class="admin-form-group"><label data-i18n="name">Script Name</label><input type="text" id="editLicenceScript" readonly style="opacity:0.5;" /></div>
-            <div class="admin-form-group"><label data-i18n="expiry_date">Expiry Date</label><input type="datetime-local" id="editLicenceExpiry" /></div>
-            <div class="admin-form-group"><label data-i18n="status">Status</label>
+            <div class="admin-form-group"><label>Code</label><input type="text" id="editLicenceCode" readonly style="opacity:0.5;font-family:monospace;" /></div>
+            <div class="admin-form-group"><label>Script Name</label><input type="text" id="editLicenceScript" readonly style="opacity:0.5;" /></div>
+            <div class="admin-form-group"><label>Expiry Date</label><input type="datetime-local" id="editLicenceExpiry" /></div>
+            <div class="admin-form-group"><label>Status</label>
                 <select id="editLicenceStatus">
-                    <option value="pending" data-i18n="pending">⏳ Pending</option>
-                    <option value="active" data-i18n="active">✅ Active</option>
-                    <option value="used" data-i18n="used">🔒 Used</option>
-                    <option value="expired" data-i18n="expired">⛔ Expired</option>
-                    <option value="revoked" data-i18n="revoked">🚫 Revoked</option>
+                    <option value="pending">⏳ Pending</option>
+                    <option value="active">✅ Active</option>
+                    <option value="used">🔒 Used</option>
+                    <option value="expired">⛔ Expired</option>
+                    <option value="revoked">🚫 Revoked</option>
                 </select>
             </div>
-            <button class="admin-submit-btn" onclick="saveLicenceEdit()"><i class="fas fa-save"></i> <span data-i18n="save">Save</span></button>
+            <button class="admin-submit-btn" onclick="saveLicenceEdit()"><i class="fas fa-save"></i> Save</button>
         </div>
     </div>
 
@@ -2608,12 +2901,12 @@
     <div class="modal-overlay" id="createLicenceModal">
         <div class="modal-content" style="max-width:420px;">
             <button class="modal-close" onclick="closeCreateLicenceModal()"><i class="fas fa-times"></i></button>
-            <div class="modal-title"><i class="fas fa-plus-circle"></i> <span data-i18n="create_licence">Create Licence</span></div>
+            <div class="modal-title"><i class="fas fa-plus-circle"></i> Create Licence</div>
             <form id="createLicenceForm" onsubmit="createLicenceManually();return false;">
-                <div class="admin-form-group"><label data-i18n="name">Product Name</label><input type="text" id="newLicenceProduct" placeholder="e.g., Mergedom VIP Tool" required /></div>
-                <div class="admin-form-group"><label data-i18n="user_id">User ID (optional)</label><input type="text" id="newLicenceUser" placeholder="Firebase UID or email" /></div>
-                <div class="admin-form-group"><label data-i18n="expiry_date">Expiry Date</label><input type="datetime-local" id="newLicenceExpiry" /></div>
-                <button type="submit" class="admin-submit-btn"><i class="fas fa-plus"></i> <span data-i18n="create">Create</span></button>
+                <div class="admin-form-group"><label>Product Name</label><input type="text" id="newLicenceProduct" placeholder="e.g., Mergedom VIP Tool" required /></div>
+                <div class="admin-form-group"><label>User ID (optional)</label><input type="text" id="newLicenceUser" placeholder="Firebase UID or email" /></div>
+                <div class="admin-form-group"><label>Expiry Date</label><input type="datetime-local" id="newLicenceExpiry" /></div>
+                <button type="submit" class="admin-submit-btn"><i class="fas fa-plus"></i> Create</button>
             </form>
         </div>
     </div>
@@ -2622,15 +2915,15 @@
     <div class="modal-overlay" id="productModal">
         <div class="modal-content" style="max-width:540px;">
             <button class="modal-close" onclick="closeProductModal()"><i class="fas fa-times"></i></button>
-            <div class="modal-title" id="productFormTitle"><span data-i18n="add_product">Add Product</span></div>
+            <div class="modal-title" id="productFormTitle">Add Product</div>
             <form id="productForm" onsubmit="saveProduct(event)" class="admin-form">
                 <input type="hidden" id="productIdField" />
                 <div class="admin-form-group">
-                    <label for="productName" data-i18n="name">Product Name</label>
+                    <label for="productName">Product Name</label>
                     <input type="text" id="productName" required placeholder="Enter product name" />
                 </div>
                 <div class="admin-form-group">
-                    <label style="display:block;margin-bottom:6px;font-weight:600;" data-i18n="currency">Currency</label>
+                    <label style="display:block;margin-bottom:6px;font-weight:600;">Currency</label>
                     <div class="currency-selector" id="currencySelector">
                         <div class="currency-option active" data-currency="USD" onclick="selectCurrency('USD')">
                             <span class="currency-symbol">$</span>
@@ -2652,16 +2945,16 @@
                 </div>
                 <div class="admin-form-row">
                     <div class="admin-form-group" style="flex:1;">
-                        <label for="productPrice" data-i18n="price">Price</label>
+                        <label for="productPrice">Price</label>
                         <input type="number" id="productPrice" step="0.01" min="0" placeholder="0.00" />
                     </div>
                     <div class="admin-form-group" style="flex:1;">
-                        <label for="productOriginalPrice" data-i18n="original_price">Original Price</label>
+                        <label for="productOriginalPrice">Original Price</label>
                         <input type="number" id="productOriginalPrice" step="0.01" min="0" placeholder="0.00" />
                     </div>
                 </div>
                 <div class="admin-form-group">
-                    <label style="display:block;margin-bottom:6px;font-weight:600;" data-i18n="product_type">Product Type</label>
+                    <label style="display:block;margin-bottom:6px;font-weight:600;">Product Type</label>
                     <div class="product-type-selector" id="productTypeSelector">
                         <div class="type-option active" data-type="standard" onclick="selectProductType('standard')">
                             <i class="fas fa-box"></i>
@@ -2713,7 +3006,7 @@
                 </div>
                 <div class="admin-form-row">
                     <div class="admin-form-group" style="flex:1;">
-                        <label for="productBadge" data-i18n="badge_label">Badge Label</label>
+                        <label for="productBadge">Badge Label</label>
                         <select id="productBadge">
                             <option value="FREE">FREE</option>
                             <option value="VIP">VIP</option>
@@ -2721,7 +3014,7 @@
                         </select>
                     </div>
                     <div class="admin-form-group" style="flex:1;">
-                        <label for="productStatus" data-i18n="status">Status</label>
+                        <label for="productStatus">Status</label>
                         <select id="productStatus">
                             <option value="available">Available</option>
                             <option value="unavailable">Unavailable</option>
@@ -2729,7 +3022,7 @@
                     </div>
                 </div>
                 <div class="admin-form-group">
-                    <label for="productImageFile" data-i18n="upload_image">Upload Product Image</label>
+                    <label for="productImageFile">Upload Product Image</label>
                     <input type="file" id="productImageFile" accept="image/*" />
                     <div id="imagePreviewContainer" style="margin-top: 8px; display: none;">
                         <img id="imagePreview" src="#" alt="Image preview" style="max-width: 100px; max-height: 100px; border-radius: 8px; border: 1px solid var(--border);" />
@@ -2738,15 +3031,15 @@
                     <input type="url" id="productImage" placeholder="https://example.com/image.jpg" style="margin-top: 4px;" />
                 </div>
                 <div class="admin-form-group">
-                    <label for="productDescription" data-i18n="description">Description</label>
+                    <label for="productDescription">Description</label>
                     <textarea id="productDescription" rows="3" placeholder="Product description..."></textarea>
                 </div>
                 <div class="admin-form-group">
-                    <label for="productFeatures" data-i18n="features">Features (comma separated)</label>
+                    <label for="productFeatures">Features (comma separated)</label>
                     <input type="text" id="productFeatures" placeholder="Feature 1, Feature 2, Feature 3" />
                 </div>
                 <div class="admin-form-group">
-                    <label for="productVideo" data-i18n="video_url">Video URL</label>
+                    <label for="productVideo">Video URL</label>
                     <input type="url" id="productVideo" placeholder="https://www.youtube.com/embed/..." />
                 </div>
                 <div class="admin-form-group" style="border-top:1px solid var(--border);padding-top:12px;margin-top:8px;">
@@ -2782,10 +3075,10 @@
                     </div>
                 </div>
                 <div class="admin-form-group">
-                    <label for="productDuration" data-i18n="duration">Duration (optional)</label>
+                    <label for="productDuration">Duration (optional)</label>
                     <input type="text" id="productDuration" placeholder="e.g., 30 days" />
                 </div>
-                <button type="submit" class="admin-submit-btn"><i class="fas fa-save"></i> <span data-i18n="save">Save Product</span></button>
+                <button type="submit" class="admin-submit-btn"><i class="fas fa-save"></i> Save Product</button>
             </form>
         </div>
     </div>
@@ -2794,12 +3087,12 @@
     <div class="modal-overlay" id="featuredSettingsModal">
         <div class="modal-content" style="max-width:480px;">
             <button class="modal-close" onclick="closeFeaturedSettings()"><i class="fas fa-times"></i></button>
-            <div class="modal-title"><i class="fas fa-star"></i> <span data-i18n="featured_settings">Featured Settings</span></div>
+            <div class="modal-title"><i class="fas fa-star"></i> Featured Settings</div>
             <div style="display:flex;flex-direction:column;gap:12px;">
-                <div style="display:flex;align-items:center;gap:10px;"><label style="font-weight:600;color:var(--text);" data-i18n="enable_featured">Enable Featured:</label><input type="checkbox" id="featuredEnabled" checked /></div>
-                <div style="display:flex;align-items:center;gap:10px;"><label style="font-weight:600;color:var(--text);" data-i18n="rotation_interval">Rotation Interval (seconds):</label><input type="number" id="featuredInterval" value="5" min="2" max="60" /></div>
-                <div><label style="font-weight:600;color:var(--text);display:block;margin-bottom:6px;" data-i18n="select_products">Select Products:</label><div id="featuredProductSelector" style="max-height:200px;overflow-y:auto;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px;"></div></div>
-                <div style="display:flex;gap:8px;margin-top:8px;"><button onclick="saveFeaturedSettings()" class="admin-submit-btn" style="flex:1;"><i class="fas fa-save"></i> <span data-i18n="save_settings">Save Settings</span></button><button onclick="closeFeaturedSettings()" class="admin-cancel-btn"><span data-i18n="cancel">Cancel</span></button></div>
+                <div style="display:flex;align-items:center;gap:10px;"><label style="font-weight:600;color:var(--text);">Enable Featured:</label><input type="checkbox" id="featuredEnabled" checked /></div>
+                <div style="display:flex;align-items:center;gap:10px;"><label style="font-weight:600;color:var(--text);">Rotation Interval (seconds):</label><input type="number" id="featuredInterval" value="5" min="2" max="60" /></div>
+                <div><label style="font-weight:600;color:var(--text);display:block;margin-bottom:6px;">Select Products:</label><div id="featuredProductSelector" style="max-height:200px;overflow-y:auto;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px;"></div></div>
+                <div style="display:flex;gap:8px;margin-top:8px;"><button onclick="saveFeaturedSettings()" class="admin-submit-btn" style="flex:1;"><i class="fas fa-save"></i> Save Settings</button><button onclick="closeFeaturedSettings()" class="admin-cancel-btn">Cancel</button></div>
             </div>
         </div>
     </div>
@@ -2808,14 +3101,14 @@
     <div class="modal-overlay" id="createDownloadModal">
         <div class="modal-content" style="max-width:420px;">
             <button class="modal-close" onclick="closeCreateDownloadModal()"><i class="fas fa-times"></i></button>
-            <div class="modal-title"><i class="fas fa-plus-circle"></i> <span data-i18n="add_download">Add Download</span></div>
+            <div class="modal-title"><i class="fas fa-plus-circle"></i> Add Download</div>
             <form id="createDownloadForm" onsubmit="createDownload(event)" class="admin-form">
-                <div class="admin-form-group"><label for="dlTitle" data-i18n="title">Title</label><input type="text" id="dlTitle" required placeholder="Download title" /></div>
-                <div class="admin-form-group"><label for="dlType" data-i18n="type">Type</label><input type="text" id="dlType" placeholder="e.g., APK, ZIP" required /></div>
-                <div class="admin-form-group"><label for="dlDescription" data-i18n="description">Description</label><textarea id="dlDescription" rows="2" placeholder="Short description"></textarea></div>
-                <div class="admin-form-group"><label for="dlUrl" data-i18n="download_url">Download URL</label><input type="url" id="dlUrl" required placeholder="https://example.com/file.zip" /></div>
-                <div class="admin-form-group"><label for="dlDate" data-i18n="date">Date</label><input type="date" id="dlDate" /></div>
-                <button type="submit" class="admin-submit-btn"><i class="fas fa-save"></i> <span data-i18n="add">Add Download</span></button>
+                <div class="admin-form-group"><label for="dlTitle">Title</label><input type="text" id="dlTitle" required placeholder="Download title" /></div>
+                <div class="admin-form-group"><label for="dlType">Type</label><input type="text" id="dlType" placeholder="e.g., APK, ZIP" required /></div>
+                <div class="admin-form-group"><label for="dlDescription">Description</label><textarea id="dlDescription" rows="2" placeholder="Short description"></textarea></div>
+                <div class="admin-form-group"><label for="dlUrl">Download URL</label><input type="url" id="dlUrl" required placeholder="https://example.com/file.zip" /></div>
+                <div class="admin-form-group"><label for="dlDate">Date</label><input type="date" id="dlDate" /></div>
+                <button type="submit" class="admin-submit-btn"><i class="fas fa-save"></i> Add Download</button>
             </form>
         </div>
     </div>
@@ -2824,11 +3117,11 @@
     <div class="modal-overlay" id="createNotificationModal">
         <div class="modal-content" style="max-width:420px;">
             <button class="modal-close" onclick="closeCreateNotificationModal()"><i class="fas fa-times"></i></button>
-            <div class="modal-title"><i class="fas fa-bell"></i> <span data-i18n="send_notification">Send Notification</span></div>
+            <div class="modal-title"><i class="fas fa-bell"></i> Send Notification</div>
             <form id="createNotificationForm" onsubmit="createNotification(event)" class="admin-form">
-                <div class="admin-form-group"><label for="notifTitle" data-i18n="title">Title</label><input type="text" id="notifTitle" required placeholder="Notification title" /></div>
-                <div class="admin-form-group"><label for="notifMessage" data-i18n="message">Message</label><textarea id="notifMessage" rows="3" required placeholder="Notification message..."></textarea></div>
-                <button type="submit" class="admin-submit-btn"><i class="fas fa-paper-plane"></i> <span data-i18n="send">Send Notification</span></button>
+                <div class="admin-form-group"><label for="notifTitle">Title</label><input type="text" id="notifTitle" required placeholder="Notification title" /></div>
+                <div class="admin-form-group"><label for="notifMessage">Message</label><textarea id="notifMessage" rows="3" required placeholder="Notification message..."></textarea></div>
+                <button type="submit" class="admin-submit-btn"><i class="fas fa-paper-plane"></i> Send Notification</button>
             </form>
         </div>
     </div>
@@ -2837,7 +3130,7 @@
     <div class="modal-overlay" id="userDetailsModal">
         <div class="modal-content" style="max-width:420px;">
             <button class="modal-close" onclick="closeUserDetailsModal()"><i class="fas fa-times"></i></button>
-            <div class="modal-title"><i class="fas fa-user"></i> <span data-i18n="user_details">User Details</span></div>
+            <div class="modal-title"><i class="fas fa-user"></i> User Details</div>
             <div id="userDetailsContent"></div>
         </div>
     </div>
@@ -2846,49 +3139,49 @@
     <div class="modal-overlay" id="addSlideModal">
         <div class="modal-content" style="max-width:480px;">
             <button class="modal-close" onclick="closeAddSlideModal()"><i class="fas fa-times"></i></button>
-            <div class="modal-title"><i class="fas fa-plus-circle"></i> <span data-i18n="add_slide_title">Add Slide</span></div>
+            <div class="modal-title"><i class="fas fa-plus-circle"></i> Add Slide</div>
             <form id="addSlideForm" class="admin-form">
                 <div class="admin-form-group">
-                    <label data-i18n="slide_image">Slide Image</label>
+                    <label>Slide Image</label>
                     <input type="file" id="slideImageFile" accept="image/*" required />
                     <div id="slideImagePreview" style="margin-top:8px;display:none;"><img src="#" alt="Preview" style="max-width:100%;max-height:150px;border-radius:8px;border:1px solid var(--border);" /></div>
                 </div>
                 <div class="admin-form-group">
-                    <label data-i18n="slide_title">Title (optional)</label>
+                    <label>Title (optional)</label>
                     <input type="text" id="slideTitle" placeholder="e.g., New Arrival" />
                 </div>
                 <div class="admin-form-group">
-                    <label data-i18n="slide_subtitle">Subtitle (optional)</label>
+                    <label>Subtitle (optional)</label>
                     <input type="text" id="slideSubtitle" placeholder="e.g., Best scripts of the month" />
                 </div>
                 <div class="admin-form-group">
-                    <label data-i18n="button_text">Button Text <small style="color:var(--text-secondary);opacity:0.5;">(leave empty for no button)</small></label>
+                    <label>Button Text <small style="color:var(--text-secondary);opacity:0.5;">(leave empty for no button)</small></label>
                     <input type="text" id="slideButtonText" placeholder="e.g., Buy Now" value="Buy Now" />
                 </div>
                 <div class="admin-form-group">
-                    <label data-i18n="button_link_type">Button Link Type</label>
+                    <label>Button Link Type</label>
                     <select id="slideLinkType">
-                        <option value="none" data-i18n="none">None (no button)</option>
-                        <option value="product" data-i18n="product">Product</option>
-                        <option value="download" data-i18n="download">Download</option>
-                        <option value="url" data-i18n="custom_url">Custom URL</option>
+                        <option value="none">None (no button)</option>
+                        <option value="product">Product</option>
+                        <option value="download">Download</option>
+                        <option value="url">Custom URL</option>
                     </select>
                 </div>
                 <div class="admin-form-group" id="slideProductGroup" style="display:none;">
-                    <label data-i18n="select_product">Select Product</label>
+                    <label>Select Product</label>
                     <select id="slideProductSelect">
-                        <option value="" data-i18n="none">None</option>
+                        <option value="">None</option>
                     </select>
                 </div>
                 <div class="admin-form-group" id="slideDownloadGroup" style="display:none;">
-                    <label data-i18n="download_url">Download URL</label>
+                    <label>Download URL</label>
                     <input type="url" id="slideDownloadUrl" placeholder="https://example.com/file.zip" />
                 </div>
                 <div class="admin-form-group" id="slideCustomUrlGroup" style="display:none;">
-                    <label data-i18n="custom_url">Custom URL</label>
+                    <label>Custom URL</label>
                     <input type="url" id="slideCustomUrl" placeholder="https://example.com/page" />
                 </div>
-                <button type="button" class="admin-submit-btn" onclick="saveSlideEdit()"><i class="fas fa-save"></i> <span data-i18n="save_changes">Save Changes</span></button>
+                <button type="button" class="admin-submit-btn" onclick="saveSlideEdit()"><i class="fas fa-save"></i> Save Changes</button>
             </form>
         </div>
     </div>
@@ -2899,52 +3192,52 @@
     <div class="modal-overlay admin-panel" id="adminPanel">
         <div class="modal-content">
             <div class="panel-header">
-                <h2><i class="fas fa-crown"></i> <span data-i18n="admin_panel">Admin Panel</span></h2>
+                <h2><i class="fas fa-crown"></i> Admin Panel</h2>
                 <div class="header-actions">
                     <button class="btn-close" onclick="closeAdminPanel()"><i class="fas fa-times"></i></button>
                 </div>
             </div>
             <div class="tabs">
-                <button onclick="switchAdminTab('dashboard')" data-i18n="dashboard">📊 Dashboard</button>
-                <button class="active" onclick="switchAdminTab('orders')" data-i18n="orders">📦 Orders</button>
-                <button onclick="switchAdminTab('products')" data-i18n="products">📦 Products</button>
-                <button onclick="switchAdminTab('users')" data-i18n="users">👥 Users</button>
-                <button onclick="switchAdminTab('downloads')" data-i18n="downloads">📁 Downloads</button>
-                <button onclick="switchAdminTab('notifications')" data-i18n="notifications">🔔 Notifications</button>
-                <button onclick="switchAdminTab('stats')" data-i18n="statistics">📈 Statistics</button>
-                <button onclick="switchAdminTab('logs')" data-i18n="logs">📋 Logs</button>
-                <button onclick="switchAdminTab('slider')" data-i18n="slider">🎨 Slider</button>
-                <button onclick="switchAdminTab('licences')" data-i18n="licences">🔑 Licences</button>
-                <button onclick="switchAdminTab('marquee')" data-i18n="marquee">🎬 Marquee</button>
-                <button onclick="switchAdminTab('payments')" data-i18n="payments">💳 Payments</button>
+                <button onclick="switchAdminTab('dashboard')">📊 Dashboard</button>
+                <button class="active" onclick="switchAdminTab('orders')">📦 Orders</button>
+                <button onclick="switchAdminTab('products')">📦 Products</button>
+                <button onclick="switchAdminTab('users')">👥 Users</button>
+                <button onclick="switchAdminTab('downloads')">📁 Downloads</button>
+                <button onclick="switchAdminTab('notifications')">🔔 Notifications</button>
+                <button onclick="switchAdminTab('stats')">📈 Statistics</button>
+                <button onclick="switchAdminTab('logs')">📋 Logs</button>
+                <button onclick="switchAdminTab('slider')">🎨 Slider</button>
+                <button onclick="switchAdminTab('licences')">🔑 Licences</button>
+                <button onclick="switchAdminTab('marquee')">🎬 Marquee</button>
+                <button onclick="switchAdminTab('payments')">💳 Payments</button>
             </div>
             <!-- Dashboard -->
             <div class="tab-content" id="tabDashboard">
                 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">
-                    <div class="admin-stat-card"><div style="font-size:28px;font-weight:800;color:var(--primary);" id="dashboardTotalOrders">0</div><div style="font-size:12px;color:var(--text-secondary);opacity:0.6;margin-top:2px;" data-i18n="total_orders">Total Orders</div></div>
-                    <div class="admin-stat-card"><div style="font-size:28px;font-weight:800;color:var(--success);" id="dashboardTotalRevenue">$0.00</div><div style="font-size:12px;color:var(--text-secondary);opacity:0.6;margin-top:2px;" data-i18n="total_revenue">Total Revenue</div></div>
-                    <div class="admin-stat-card"><div style="font-size:28px;font-weight:800;color:var(--vip-color);" id="dashboardNetRevenue">$0.00</div><div style="font-size:12px;color:var(--text-secondary);opacity:0.6;margin-top:2px;" data-i18n="net_revenue">Net Revenue (10%)</div></div>
+                    <div class="admin-stat-card"><div style="font-size:28px;font-weight:800;color:var(--primary);" id="dashboardTotalOrders">0</div><div style="font-size:12px;color:var(--text-secondary);opacity:0.6;margin-top:2px;">Total Orders</div></div>
+                    <div class="admin-stat-card"><div style="font-size:28px;font-weight:800;color:var(--success);" id="dashboardTotalRevenue">$0.00</div><div style="font-size:12px;color:var(--text-secondary);opacity:0.6;margin-top:2px;">Total Revenue</div></div>
+                    <div class="admin-stat-card"><div style="font-size:28px;font-weight:800;color:var(--vip-color);" id="dashboardNetRevenue">$0.00</div><div style="font-size:12px;color:var(--text-secondary);opacity:0.6;margin-top:2px;">Net Revenue (10%)</div></div>
                 </div>
-                <button onclick="refreshDashboardStats()" class="admin-submit-btn" style="width:100%;"><i class="fas fa-sync"></i> <span data-i18n="refresh">Refresh Stats</span></button>
+                <button onclick="refreshDashboardStats()" class="admin-submit-btn" style="width:100%;"><i class="fas fa-sync"></i> Refresh Stats</button>
             </div>
             <!-- Orders -->
             <div class="tab-content active" id="tabOrders">
                 <div class="admin-stats-grid">
-                    <div class="admin-stat-card"><div class="stat-number" id="adminTotalOrders">0</div><div class="stat-label" data-i18n="total">Total</div></div>
-                    <div class="admin-stat-card"><div class="stat-number" id="adminPendingOrders" style="color:var(--pending-color);">0</div><div class="stat-label" data-i18n="pending">Pending</div></div>
-                    <div class="admin-stat-card"><div class="stat-number" id="adminConfirmedOrders" style="color:var(--success);">0</div><div class="stat-label" data-i18n="confirmed">Confirmed</div></div>
-                    <div class="admin-stat-card"><div class="stat-number" id="adminRejectedOrders" style="color:var(--danger);">0</div><div class="stat-label" data-i18n="rejected">Rejected</div></div>
+                    <div class="admin-stat-card"><div class="stat-number" id="adminTotalOrders">0</div><div class="stat-label">Total</div></div>
+                    <div class="admin-stat-card"><div class="stat-number" id="adminPendingOrders" style="color:var(--pending-color);">0</div><div class="stat-label">Pending</div></div>
+                    <div class="admin-stat-card"><div class="stat-number" id="adminConfirmedOrders" style="color:var(--success);">0</div><div class="stat-label">Confirmed</div></div>
+                    <div class="admin-stat-card"><div class="stat-number" id="adminRejectedOrders" style="color:var(--danger);">0</div><div class="stat-label">Rejected</div></div>
                 </div>
                 <div class="admin-search-bar">
-                    <input type="text" id="adminSearchInput" data-i18n="search_orders" placeholder="🔍 Search orders..." onkeyup="searchAdminOrders()" />
+                    <input type="text" id="adminSearchInput" placeholder="🔍 Search orders..." onkeyup="searchAdminOrders()" />
                     <button class="btn-search" onclick="searchAdminOrders()"><i class="fas fa-search"></i></button>
                     <button class="btn-clear" onclick="clearAdminSearch()"><i class="fas fa-times"></i></button>
-                    <button class="btn-refresh" onclick="refreshAdminOrders()"><i class="fas fa-sync"></i> <span data-i18n="refresh">Refresh</span></button>
-                    <button class="btn-export" onclick="exportOrders()"><i class="fas fa-file-csv"></i> <span data-i18n="export_csv">Export CSV</span></button>
+                    <button class="btn-refresh" onclick="refreshAdminOrders()"><i class="fas fa-sync"></i> Refresh</button>
+                    <button class="btn-export" onclick="exportOrders()"><i class="fas fa-file-csv"></i> Export CSV</button>
                 </div>
                 <div style="overflow-x:auto;">
                     <table class="admin-orders-table">
-                        <thead><tr><th data-i18n="order_id">Order</th><th data-i18n="user">User</th><th data-i18n="items">Items</th><th data-i18n="total">Total</th><th data-i18n="order_date">Date</th><th data-i18n="status">Status</th><th data-i18n="actions">Actions</th></tr></thead>
+                        <thead><tr><th>Order</th><th>User</th><th>Items</th><th>Total</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
                         <tbody id="adminOrdersBody"></tbody>
                     </table>
                 </div>
@@ -2952,117 +3245,117 @@
             <!-- Products -->
             <div class="tab-content" id="tabProducts">
                 <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
-                    <button class="add-btn" onclick="openAddProductModal()"><i class="fas fa-plus"></i> <span data-i18n="add_product">Add Product</span></button>
-                    <button class="add-btn" onclick="openFeaturedSettings()" style="background:var(--vip-color);color:#0a0a1a;"><i class="fas fa-star"></i> <span data-i18n="manage_featured">Manage Featured</span></button>
+                    <button class="add-btn" onclick="openAddProductModal()"><i class="fas fa-plus"></i> Add Product</button>
+                    <button class="add-btn" onclick="openFeaturedSettings()" style="background:var(--vip-color);color:#0a0a1a;"><i class="fas fa-star"></i> Manage Featured</button>
                 </div>
                 <div id="adminProductsList"></div>
             </div>
             <!-- Users -->
             <div class="tab-content" id="tabUsers">
                 <div class="admin-search-bar">
-                    <input type="text" id="adminUserSearchInput" data-i18n="search_users" placeholder="🔍 Search users..." onkeyup="searchAdminUsers()" />
+                    <input type="text" id="adminUserSearchInput" placeholder="🔍 Search users..." onkeyup="searchAdminUsers()" />
                     <button class="btn-search" onclick="searchAdminUsers()"><i class="fas fa-search"></i></button>
                     <button class="btn-clear" onclick="clearAdminUserSearch()"><i class="fas fa-times"></i></button>
-                    <button class="btn-refresh" onclick="refreshAdminUsers()"><i class="fas fa-sync"></i> <span data-i18n="refresh">Refresh</span></button>
+                    <button class="btn-refresh" onclick="refreshAdminUsers()"><i class="fas fa-sync"></i> Refresh</button>
                 </div>
                 <div id="adminUsersContainer"></div>
             </div>
             <!-- Downloads -->
             <div class="tab-content" id="tabDownloads">
-                <button class="add-btn" onclick="openCreateDownloadModal()"><i class="fas fa-plus"></i> <span data-i18n="add_download">Add Download</span></button>
+                <button class="add-btn" onclick="openCreateDownloadModal()"><i class="fas fa-plus"></i> Add Download</button>
                 <div id="adminDownloadsList"></div>
             </div>
             <!-- Notifications -->
             <div class="tab-content" id="tabNotifications">
-                <button class="add-btn" onclick="openCreateNotificationModal()"><i class="fas fa-plus"></i> <span data-i18n="send_notification">Send Notification</span></button>
+                <button class="add-btn" onclick="openCreateNotificationModal()"><i class="fas fa-plus"></i> Send Notification</button>
                 <div id="adminNotificationsList"></div>
             </div>
             <!-- Stats -->
             <div class="tab-content" id="tabStats">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
-                    <h3 style="font-size:16px;font-weight:700;margin:0;"><i class="fas fa-chart-line"></i> <span data-i18n="advanced_statistics">Advanced Statistics</span></h3>
-                    <button onclick="refreshAdvancedStats()" style="padding:6px 14px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);cursor:pointer;"><i class="fas fa-sync-alt"></i> <span data-i18n="refresh">Refresh</span></button>
+                    <h3 style="font-size:16px;font-weight:700;margin:0;"><i class="fas fa-chart-line"></i> Advanced Statistics</h3>
+                    <button onclick="refreshAdvancedStats()" style="padding:6px 14px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);cursor:pointer;"><i class="fas fa-sync-alt"></i> Refresh</button>
                 </div>
-                <div id="advancedStatsContainer"><div style="text-align:center;padding:20px;color:var(--text-secondary);" data-i18n="loading"><i class="fas fa-spinner fa-spin"></i> Loading statistics...</div></div>
+                <div id="advancedStatsContainer"><div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading statistics...</div></div>
             </div>
             <!-- Logs -->
             <div class="tab-content" id="tabLogs">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
-                    <h3 style="font-size:16px;font-weight:700;margin:0;"><i class="fas fa-clipboard-list"></i> <span data-i18n="audit_logs">Audit Logs</span></h3>
-                    <button onclick="loadAuditLogs()" style="padding:6px 14px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);cursor:pointer;"><i class="fas fa-sync-alt"></i> <span data-i18n="refresh">Refresh</span></button>
+                    <h3 style="font-size:16px;font-weight:700;margin:0;"><i class="fas fa-clipboard-list"></i> Audit Logs</h3>
+                    <button onclick="loadAuditLogs()" style="padding:6px 14px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);cursor:pointer;"><i class="fas fa-sync-alt"></i> Refresh</button>
                 </div>
                 <div id="auditLogsContainer">
-                    <div style="text-align:center;padding:20px;color:var(--text-secondary);" data-i18n="loading"><i class="fas fa-spinner fa-spin"></i> Loading logs...</div>
+                    <div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading logs...</div>
                 </div>
             </div>
             <!-- Slider -->
             <div class="tab-content" id="tabSlider">
                 <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
-                    <h3 style="font-size:16px;font-weight:700;margin:0;"><i class="fas fa-images"></i> <span data-i18n="slider_settings">Slider Settings</span></h3>
-                    <button class="add-btn" onclick="openAddSlideModal()"><i class="fas fa-plus"></i> <span data-i18n="add_slide">Add Slide</span></button>
+                    <h3 style="font-size:16px;font-weight:700;margin:0;"><i class="fas fa-images"></i> Slider Settings</h3>
+                    <button class="add-btn" onclick="openAddSlideModal()"><i class="fas fa-plus"></i> Add Slide</button>
                 </div>
 
                 <div class="slider-toggle-container">
                     <label>
                         <input type="checkbox" id="sliderEnabled" checked onchange="toggleSliderEnabled()" />
-                        <span data-i18n="enable_slider">Enable Slider</span>
+                        Enable Slider
                     </label>
-                    <span class="toggle-status enabled" id="sliderStatusLabel" data-i18n="enabled">Enabled</span>
+                    <span class="toggle-status enabled" id="sliderStatusLabel">Enabled</span>
                 </div>
 
                 <div style="margin-bottom:12px;">
-                    <label style="font-size:13px;font-weight:600;color:var(--text-secondary);opacity:0.6;display:block;margin-bottom:4px;" data-i18n="rotation_interval">Rotation Interval (seconds)</label>
+                    <label style="font-size:13px;font-weight:600;color:var(--text-secondary);opacity:0.6;display:block;margin-bottom:4px;">Rotation Interval (seconds)</label>
                     <div style="display:flex;gap:8px;align-items:center;">
                         <input type="number" id="sliderIntervalInput" value="3" min="1" max="60" style="width:100px;padding:8px 12px;border:2px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-size:14px;" />
-                        <button class="admin-submit-btn" onclick="saveSliderInterval()" style="padding:8px 16px;font-size:13px;"><i class="fas fa-save"></i> <span data-i18n="save">Save</span></button>
+                        <button class="admin-submit-btn" onclick="saveSliderInterval()" style="padding:8px 16px;font-size:13px;"><i class="fas fa-save"></i> Save</button>
                     </div>
                 </div>
                 <div id="sliderSlidesList">
-                    <div style="text-align:center;padding:20px;color:var(--text-secondary);opacity:0.5;" data-i18n="no_slides">No slides yet. Click "Add Slide" to get started.</div>
+                    <div style="text-align:center;padding:20px;color:var(--text-secondary);opacity:0.5;">No slides yet. Click "Add Slide" to get started.</div>
                 </div>
             </div>
             <!-- Licences -->
             <div class="tab-content" id="tabLicences">
                 <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
-                    <button class="add-btn" onclick="openCreateLicenceModal()"><i class="fas fa-plus"></i> <span data-i18n="create_licence">Create Licence</span></button>
-                    <button class="add-btn" onclick="refreshLicences()" style="background:var(--card-bg);"><i class="fas fa-sync"></i> <span data-i18n="refresh">Refresh</span></button>
+                    <button class="add-btn" onclick="openCreateLicenceModal()"><i class="fas fa-plus"></i> Create Licence</button>
+                    <button class="add-btn" onclick="refreshLicences()" style="background:var(--card-bg);"><i class="fas fa-sync"></i> Refresh</button>
                 </div>
                 <div class="admin-search-bar">
-                    <input type="text" id="adminLicenceSearch" data-i18n="search_licences" placeholder="🔍 Search by code, user, product..." onkeyup="searchLicences()" />
+                    <input type="text" id="adminLicenceSearch" placeholder="🔍 Search by code, user, product..." onkeyup="searchLicences()" />
                     <button class="btn-search" onclick="searchLicences()"><i class="fas fa-search"></i></button>
                     <button class="btn-clear" onclick="clearLicenceSearch()"><i class="fas fa-times"></i></button>
                 </div>
                 <div id="adminLicencesList">
-                    <div style="text-align:center;padding:30px;color:var(--text-secondary);" data-i18n="loading"><i class="fas fa-info-circle"></i> Loading licences...</div>
+                    <div style="text-align:center;padding:30px;color:var(--text-secondary);"><i class="fas fa-info-circle"></i> Loading licences...</div>
                 </div>
             </div>
             <!-- Marquee -->
             <div class="tab-content" id="tabMarquee">
-                <h3 style="font-size:16px;font-weight:700;margin-bottom:12px;"><i class="fas fa-scroll"></i> <span data-i18n="marquee_settings">Marquee Settings</span></h3>
+                <h3 style="font-size:16px;font-weight:700;margin-bottom:12px;"><i class="fas fa-scroll"></i> Marquee Settings</h3>
                 <div id="marqueeSettingsContainer">
                     <div class="admin-form-group">
                         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
                             <input type="checkbox" id="marqueeEnabled" checked />
-                            <span style="font-weight:600;color:var(--text);" data-i18n="enable_marquee">Enable Marquee</span>
+                            <span style="font-weight:600;color:var(--text);">Enable Marquee</span>
                         </label>
                     </div>
                     <div class="admin-form-group">
-                        <label for="marqueeText" data-i18n="marquee_text">Marquee Text (separate items with | )</label>
+                        <label for="marqueeText">Marquee Text (separate items with | )</label>
                         <textarea id="marqueeText" rows="3" placeholder="🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support" style="width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-size:14px;outline:none;font-family:var(--font);">🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support</textarea>
                     </div>
-                    <button class="admin-submit-btn" onclick="saveMarqueeSettings()" style="margin-top:8px;"><i class="fas fa-save"></i> <span data-i18n="save_settings">Save Settings</span></button>
+                    <button class="admin-submit-btn" onclick="saveMarqueeSettings()" style="margin-top:8px;"><i class="fas fa-save"></i> Save Settings</button>
                 </div>
             </div>
             <!-- Payments -->
             <div class="tab-content" id="tabPayments">
                 <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
-                    <h3 style="font-size:16px;font-weight:700;margin:0;"><i class="fas fa-coins"></i> <span data-i18n="payment_requests">Payment Requests</span></h3>
+                    <h3 style="font-size:16px;font-weight:700;margin:0;"><i class="fas fa-coins"></i> Payment Requests</h3>
                     <button class="add-btn" onclick="loadPaymentRequests()" style="background:var(--card-bg);">
-                        <i class="fas fa-sync"></i> <span data-i18n="refresh">Refresh</span>
+                        <i class="fas fa-sync"></i> Refresh
                     </button>
                 </div>
                 <div id="adminPaymentRequestsList">
-                    <div style="text-align:center;padding:30px;color:var(--text-secondary);" data-i18n="loading"><i class="fas fa-info-circle"></i> Loading...</div>
+                    <div style="text-align:center;padding:30px;color:var(--text-secondary);"><i class="fas fa-info-circle"></i> Loading...</div>
                 </div>
             </div>
         </div>
@@ -3081,10 +3374,10 @@
     <div class="floating-hearts" id="floatingHearts"></div>
 
     <!-- ============================================ -->
-    <!-- دوال JavaScript للدعم -->
+    <!-- Support JavaScript Functions -->
     <!-- ============================================ -->
     <script>
-        // دوال الدعم الفني
+        // Support functions
         function toggleSupportMenu() {
             const float = document.getElementById('supportFloat');
             if (float) {
@@ -3098,7 +3391,6 @@
                 modal.classList.add('open');
                 document.body.style.overflow = 'hidden';
             }
-            // إغلاق القائمة العائمة إذا كانت مفتوحة
             const float = document.getElementById('supportFloat');
             if (float) {
                 float.classList.remove('open');
@@ -3113,14 +3405,48 @@
             }
         }
 
-        // تصدير الدوال للنطاق العام
+        // Toast functions
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const messageEl = document.getElementById('toastMessage');
+            const icon = toast.querySelector('.toast-icon i');
+            
+            toast.className = 'toast';
+            toast.classList.add(type);
+            messageEl.textContent = message;
+            
+            if (type === 'success') {
+                icon.className = 'fas fa-check-circle';
+            } else if (type === 'error') {
+                icon.className = 'fas fa-exclamation-circle';
+            } else if (type === 'warning') {
+                icon.className = 'fas fa-exclamation-triangle';
+            }
+            
+            toast.classList.add('show');
+            
+            clearTimeout(window.toastTimeout);
+            window.toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4000);
+        }
+
+        function hideToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.remove('show');
+            clearTimeout(window.toastTimeout);
+        }
+
+        // Make functions globally available
+        window.showToast = showToast;
+        window.hideToast = hideToast;
         window.toggleSupportMenu = toggleSupportMenu;
         window.openSupportModal = openSupportModal;
         window.closeSupportModal = closeSupportModal;
     </script>
 
     <!-- ============================================ -->
-    <!-- السكربتات -->
+    <!-- Scripts -->
     <!-- ============================================ -->
     <script type="importmap">
         {
@@ -3135,4 +3461,4 @@
     <script type="module" src="languages.js"></script>
     <script type="module" src="script.js"></script>
 </body>
-    </html>
+</html>
