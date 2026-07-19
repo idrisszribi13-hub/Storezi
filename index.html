@@ -3509,5 +3509,35 @@
     <!-- ============================================ -->
     <script type="module" src="languages.js"></script>
     <script type="module" src="script.js"></script>
+        <!-- ============================================ -->
+    <!-- FORCE SHOW MAIN APP - حل الشاشة السوداء -->
+    <!-- ============================================ -->
+    <script>
+        // إظهار التطبيق الرئيسي فوراً
+        (function() {
+            const mainApp = document.getElementById('mainApp');
+            const authSection = document.getElementById('authSection');
+            const loadingScreen = document.getElementById('loadingScreen');
+            
+            // إظهار التطبيق الرئيسي
+            if (mainApp) {
+                mainApp.style.display = 'block';
+                console.log('✅ Main app shown');
+            }
+            
+            // إخفاء صفحة تسجيل الدخول
+            if (authSection) {
+                authSection.style.display = 'none';
+            }
+            
+            // إخفاء شاشة التحميل
+            if (loadingScreen) {
+                loadingScreen.classList.add('hidden');
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                }, 300);
+            }
+        })();
+    </script>
 </body>
     </html>
