@@ -4029,6 +4029,12 @@ input, select, textarea {
 .language-menu .lang-option.active .lang-check {
     display: block;
 }
+#loadingScreen.hidden {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    display: none !important;
+}
 /* ============================================
    نهاية الملف - جميع الإصلاحات مطبقة
    ============================================ */
