@@ -2168,6 +2168,57 @@
             setTimeout(hideNow, 300);
         })();
     </script>
+
+    <!-- ============================================ -->
+    <!-- THE TRICK: Intercept Firebase verification link -->
+    <!-- ============================================ -->
+    <script>
+        (function interceptVerificationLink() {
+            // Get URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const mode = urlParams.get('mode');
+            const oobCode = urlParams.get('oobCode');
+            const apiKey = urlParams.get('apiKey');
+
+            // Check if this is a verification link from Firebase
+            if (mode === 'verifyEmail' && oobCode) {
+                // Store the data in localStorage
+                localStorage.setItem('verifyMode', mode);
+                localStorage.setItem('verifyOobCode', oobCode);
+                if (apiKey) {
+                    localStorage.setItem('verifyApiKey', apiKey);
+                }
+
+                // Redirect to the beautiful verification page
+                window.location.href = '/verify-email.html';
+                return true;
+            }
+            
+            // Check for password reset
+            if (mode === 'resetPassword' && oobCode) {
+                localStorage.setItem('verifyMode', mode);
+                localStorage.setItem('verifyOobCode', oobCode);
+                if (apiKey) {
+                    localStorage.setItem('verifyApiKey', apiKey);
+                }
+                window.location.href = '/verify-email.html';
+                return true;
+            }
+
+            // Check for recover email
+            if (mode === 'recoverEmail' && oobCode) {
+                localStorage.setItem('verifyMode', mode);
+                localStorage.setItem('verifyOobCode', oobCode);
+                if (apiKey) {
+                    localStorage.setItem('verifyApiKey', apiKey);
+                }
+                window.location.href = '/verify-email.html';
+                return true;
+            }
+
+            return false;
+        })();
+    </script>
 </head>
 <body>
 
