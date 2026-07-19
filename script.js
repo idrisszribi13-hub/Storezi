@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - Full Version with User Notification Fix
+// SCRIPT.JS - ZI Store - Full Version
 // ============================================================
 
 // ============================================================
@@ -37,6 +37,7 @@ import {
     updateProfile, 
     updatePassword, 
     sendPasswordResetEmail, 
+    sendEmailVerification,
     reauthenticateWithCredential, 
     EmailAuthProvider,
     GoogleAuthProvider,
@@ -106,6 +107,8 @@ let ordersFilter = 'all';
 let _selectedVipPlan = '1m';
 let allLicences = [];
 let isProcessingOrder = false;
+let currentDetailProduct = null;
+let selectedVipPlan = '1m';
 
 // Admin state
 let isAdminCached = false;
@@ -613,6 +616,8 @@ function updateFullUserMenu() {
     const adminBadge = document.getElementById('adminMenuBadge');
     const licencesBadge = document.getElementById('licencesBadge');
     const adminMenuItem = document.getElementById('adminMenuItem');
+    const verifyMenuItem = document.getElementById('verifyEmailMenuItem');
+    const verifyBadge = document.getElementById('verifyEmailBadge');
 
     if (currentUser) {
         const displayName = currentUser.displayName || currentUser.email || 'User';
@@ -644,11 +649,35 @@ function updateFullUserMenu() {
             const activeLicences = (userProfile.licences || []).filter(l => new Date(l.expiryDate) > new Date()).length;
             if (activeLicences > 0) { licencesBadge.style.display = 'inline-block'; licencesBadge.textContent = activeLicences; } else { licencesBadge.style.display = 'none'; }
         }
+
+        // تحديث حالة التحقق في القائمة
+        if (verifyMenuItem) {
+            if (currentUser.emailVerified) {
+                verifyMenuItem.style.display = 'flex';
+                const label = verifyMenuItem.querySelector('.menu-label');
+                if (label) label.textContent = '✅ البريد موثق';
+                if (verifyBadge) {
+                    verifyBadge.textContent = '✅';
+                    verifyBadge.style.background = 'var(--success)';
+                    verifyBadge.style.color = '#0a0a1a';
+                }
+            } else {
+                verifyMenuItem.style.display = 'flex';
+                const label = verifyMenuItem.querySelector('.menu-label');
+                if (label) label.textContent = '📧 توثيق البريد';
+                if (verifyBadge) {
+                    verifyBadge.textContent = '⚠️';
+                    verifyBadge.style.background = 'var(--warning)';
+                    verifyBadge.style.color = '#0a0a1a';
+                }
+            }
+        }
     } else {
         avatar.textContent = 'U'; name.textContent = 'Guest'; email.textContent = 'Not logged in'; rp.textContent = '0';
         wishlistBadge.style.display = 'none'; orderBadge.style.display = 'none'; notifBadge.style.display = 'none';
         adminMenuItem.style.display = 'none';
         if (licencesBadge) licencesBadge.style.display = 'none';
+        if (verifyMenuItem) verifyMenuItem.style.display = 'none';
     }
 }
 
@@ -705,6 +734,9 @@ window.loginUser = async function() {
             updateLoadingText('✅ Ready!');
             window.showMainApp();
             hideLoadingScreen();
+            
+            // التحقق من حالة البريد الإلكتروني
+            setTimeout(checkVerificationOnLogin, 3000);
         }, 500);
     } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Login failed', 'error'); btn.classList.remove('loading'); }
 };
@@ -744,6 +776,17 @@ window.registerUser = async function() {
         btn.classList.remove('loading');
         await refreshAdminStatus();
         
+        // إرسال بريد التحقق بعد التسجيل
+        try {
+            await sendEmailVerification(currentUser, {
+                url: window.location.origin + '/verify-email.html',
+                handleCodeInApp: true
+            });
+            showToast('📧 تم إرسال رابط التحقق إلى بريدك الإلكتروني', 'success');
+        } catch (verifyError) {
+            console.error('Error sending verification email:', verifyError);
+        }
+        
         setTimeout(() => {
             document.getElementById('authSection').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
@@ -754,6 +797,11 @@ window.registerUser = async function() {
             updateLoadingText('✅ Ready!');
             window.showMainApp();
             hideLoadingScreen();
+            
+            // عرض رسالة التحقق
+            setTimeout(() => {
+                showVerificationDialog(currentUser.email);
+            }, 1000);
         }, 500);
     } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Registration failed', 'error'); btn.classList.remove('loading'); }
 };
@@ -789,6 +837,21 @@ window.loginWithGoogle = function() {
             await refreshAdminStatus();
             await mergeGuestData(user.uid);
 
+            // التحقق من حالة البريد الإلكتروني (Google accounts are usually verified)
+            if (user.emailVerified) {
+                localStorage.setItem('zi_verification_pending', 'false');
+            } else {
+                // إرسال رابط التحقق إذا لم يكن موثقاً
+                try {
+                    await sendEmailVerification(user, {
+                        url: window.location.origin + '/verify-email.html',
+                        handleCodeInApp: true
+                    });
+                } catch (e) {
+                    console.error('Error sending verification email:', e);
+                }
+            }
+
             setTimeout(() => {
                 document.getElementById('authSection').style.display = 'none';
                 document.getElementById('mainApp').style.display = 'block';
@@ -817,6 +880,13 @@ window.loginWithGoogle = function() {
                 updateLoadingText('✅ Ready!');
                 window.showMainApp();
                 hideLoadingScreen();
+                
+                // عرض رسالة التحقق إذا لم يتم التوثيق
+                setTimeout(() => {
+                    if (!user.emailVerified) {
+                        showVerificationDialog(user.email);
+                    }
+                }, 2000);
             }, 500);
         })
         .catch((error) => {
@@ -942,6 +1012,365 @@ window.sendForgotPassword = async function() {
 };
 
 // ============================================================
+// 5.1 Email Verification Functions
+// ============================================================
+
+/**
+ * إرسال بريد التحقق للمستخدم الحالي
+ */
+window.sendEmailVerification = async function() {
+    if (!currentUser) {
+        showToast('⚠️ يرجى تسجيل الدخول أولاً', 'warning');
+        openAuthModal();
+        return;
+    }
+
+    if (currentUser.emailVerified) {
+        showToast('✅ بريدك الإلكتروني موثق بالفعل!', 'success');
+        updateFullUserMenu();
+        return;
+    }
+
+    try {
+        await sendEmailVerification(currentUser, {
+            url: window.location.origin + '/verify-email.html',
+            handleCodeInApp: true
+        });
+        
+        localStorage.setItem('zi_verification_pending', 'true');
+        showToast('📧 تم إرسال رابط التحقق إلى بريدك الإلكتروني', 'success');
+        
+        setTimeout(() => {
+            showVerificationDialog(currentUser.email);
+        }, 500);
+        
+    } catch (error) {
+        console.error('Error sending verification email:', error);
+        
+        // محاولة بديلة باستخدام Firebase مباشرة
+        try {
+            const user = auth.currentUser;
+            if (user) {
+                await user.sendEmailVerification({
+                    url: window.location.origin + '/verify-email.html'
+                });
+                localStorage.setItem('zi_verification_pending', 'true');
+                showToast('📧 تم إرسال رابط التحقق إلى بريدك الإلكتروني', 'success');
+                setTimeout(() => {
+                    showVerificationDialog(user.email);
+                }, 500);
+                return;
+            }
+        } catch (e) {
+            console.error('Fallback verification error:', e);
+        }
+        
+        showToast('❌ فشل إرسال رابط التحقق: ' + error.message, 'error');
+    }
+};
+
+/**
+ * عرض نافذة تأكيد إرسال رابط التحقق
+ */
+function showVerificationDialog(email) {
+    // إزالة أي حاوية سابقة
+    closeVerificationDialog();
+    
+    const dialogHTML = `
+        <div style="background:var(--bg-secondary); border-radius:12px; padding:20px; border:1px solid var(--border); margin:8px 0; box-shadow:0 10px 40px rgba(0,0,0,0.5);">
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                <span style="font-size:32px;">📧</span>
+                <div>
+                    <div style="font-weight:700; font-size:16px; color:var(--text);">رابط التحقق مرسل</div>
+                    <div style="font-size:13px; color:var(--text-secondary); opacity:0.6;">${email}</div>
+                </div>
+            </div>
+            <div style="font-size:14px; color:var(--text-secondary); line-height:1.6; margin-bottom:12px;">
+                <i class="fas fa-info-circle" style="color:var(--primary);"></i>
+                تم إرسال رابط التحقق إلى بريدك الإلكتروني. يرجى فتح البريد والنقر على الرابط لتأكيد حسابك.
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button onclick="checkVerificationStatus()" class="btn btn-primary" style="padding:8px 20px; font-size:13px; border:none; border-radius:8px; background:var(--primary-gradient); color:#fff; cursor:pointer;">
+                    <i class="fas fa-sync-alt"></i> تحقق الآن
+                </button>
+                <button onclick="closeVerificationDialog()" class="btn btn-outline" style="padding:8px 20px; font-size:13px; border:1px solid var(--border); border-radius:8px; background:transparent; color:var(--text-secondary); cursor:pointer;">
+                    <i class="fas fa-times"></i> إغلاق
+                </button>
+                <button onclick="window.sendEmailVerification()" class="btn btn-outline" style="padding:8px 20px; font-size:13px; border:1px solid var(--border); border-radius:8px; background:transparent; color:var(--text-secondary); cursor:pointer;">
+                    <i class="fas fa-redo"></i> إعادة الإرسال
+                </button>
+            </div>
+            <div id="verificationStatus" style="margin-top:10px; font-size:13px; display:none;"></div>
+        </div>
+    `;
+
+    const container = document.getElementById('verificationDialogContainer');
+    if (container) {
+        container.innerHTML = dialogHTML;
+        container.style.display = 'block';
+        container.style.animation = 'fadeIn 0.3s ease';
+    } else {
+        // إنشاء حاوية مؤقتة
+        const tempContainer = document.createElement('div');
+        tempContainer.id = 'verificationDialogContainer';
+        tempContainer.style.cssText = 'position:fixed; bottom:80px; left:50%; transform:translateX(-50%); z-index:100000; max-width:500px; width:90%;';
+        tempContainer.innerHTML = dialogHTML;
+        document.body.appendChild(tempContainer);
+        
+        // إضافة زر إغلاق
+        const closeBtn = tempContainer.querySelector('.btn-outline');
+        if (closeBtn) {
+            closeBtn.onclick = function() {
+                tempContainer.remove();
+            };
+        }
+    }
+}
+
+/**
+ * إغلاق نافذة التحقق
+ */
+window.closeVerificationDialog = function() {
+    const container = document.getElementById('verificationDialogContainer');
+    if (container) {
+        container.style.opacity = '0';
+        container.style.transition = 'opacity 0.5s ease';
+        setTimeout(() => {
+            if (container.parentNode) container.remove();
+            // إعادة إنشاء الحاوية الفارغة
+            const newContainer = document.createElement('div');
+            newContainer.id = 'verificationDialogContainer';
+            newContainer.style.display = 'none';
+            document.body.appendChild(newContainer);
+        }, 500);
+    }
+};
+
+/**
+ * التحقق من حالة توثيق البريد الإلكتروني
+ */
+window.checkVerificationStatus = async function() {
+    if (!currentUser) {
+        showToast('⚠️ يرجى تسجيل الدخول أولاً', 'warning');
+        return;
+    }
+
+    const statusEl = document.getElementById('verificationStatus');
+    if (statusEl) {
+        statusEl.style.display = 'block';
+        statusEl.innerHTML = `
+            <span style="color:var(--warning);">
+                <i class="fas fa-spinner fa-spin"></i> 
+                جاري التحقق...
+            </span>
+        `;
+    }
+
+    try {
+        await currentUser.reload();
+        
+        if (currentUser.emailVerified) {
+            showToast('✅ بريدك الإلكتروني موثق بنجاح!', 'success');
+            localStorage.removeItem('zi_verification_pending');
+            
+            updateUI();
+            updateFullUserMenu();
+            closeVerificationDialog();
+            showVerificationSuccess();
+            
+            return true;
+        } else {
+            showToast('⏳ لم يتم توثيق البريد بعد. يرجى التحقق من صندوق الوارد.', 'warning');
+            
+            if (statusEl) {
+                statusEl.innerHTML = `
+                    <span style="color:var(--warning);">
+                        <i class="fas fa-hourglass-half"></i> 
+                        لم يتم توثيق البريد بعد. يرجى التحقق من صندوق الوارد أو البريد المزعج (Spam).
+                        <br><small style="opacity:0.5;">إذا لم تجد الرابط، اضغط "إعادة الإرسال"</small>
+                    </span>
+                `;
+            }
+            return false;
+        }
+    } catch (error) {
+        console.error('Error checking verification status:', error);
+        showToast('❌ فشل التحقق: ' + error.message, 'error');
+        if (statusEl) {
+            statusEl.innerHTML = `
+                <span style="color:var(--danger);">
+                    <i class="fas fa-exclamation-circle"></i> 
+                    ${error.message}
+                </span>
+            `;
+        }
+        return false;
+    }
+};
+
+/**
+ * عرض رسالة نجاح التوثيق
+ */
+function showVerificationSuccess() {
+    const successHTML = `
+        <div style="background:rgba(52,211,153,0.1); border-radius:12px; padding:16px; border:1px solid var(--success); margin:8px 0;">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <span style="font-size:28px;">🎉</span>
+                <div>
+                    <div style="font-weight:700; font-size:16px; color:var(--success);">تم توثيق البريد الإلكتروني!</div>
+                    <div style="font-size:13px; color:var(--text-secondary);">يمكنك الآن الاستمتاع بجميع مزايا ZI Store.</div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    const container = document.getElementById('verificationSuccessContainer');
+    if (container) {
+        container.innerHTML = successHTML;
+        container.style.display = 'block';
+        container.style.animation = 'fadeIn 0.3s ease';
+        setTimeout(() => {
+            container.style.opacity = '0';
+            container.style.transition = 'opacity 0.5s ease';
+            setTimeout(() => {
+                container.style.display = 'none';
+                container.style.opacity = '1';
+            }, 5000);
+        }, 8000);
+    } else {
+        // إنشاء حاوية مؤقتة
+        const tempContainer = document.createElement('div');
+        tempContainer.id = 'verificationSuccessContainer';
+        tempContainer.style.cssText = 'position:fixed; top:80px; left:50%; transform:translateX(-50%); z-index:100000; max-width:500px; width:90%;';
+        tempContainer.innerHTML = successHTML;
+        document.body.appendChild(tempContainer);
+        
+        setTimeout(() => {
+            tempContainer.style.opacity = '0';
+            tempContainer.style.transition = 'opacity 0.5s ease';
+            setTimeout(() => {
+                if (tempContainer.parentNode) tempContainer.remove();
+            }, 500);
+        }, 8000);
+    }
+}
+
+/**
+ * فحص حالة التحقق عند تسجيل الدخول
+ */
+async function checkVerificationOnLogin() {
+    if (!currentUser) return;
+    
+    try {
+        await currentUser.reload();
+        if (!currentUser.emailVerified) {
+            setTimeout(() => {
+                showVerificationReminder();
+            }, 3000);
+        } else {
+            localStorage.removeItem('zi_verification_pending');
+        }
+    } catch (error) {
+        console.error('Error checking verification on login:', error);
+    }
+}
+
+/**
+ * عرض تذكير بالتحقق من البريد الإلكتروني
+ */
+function showVerificationReminder() {
+    // التحقق من وجود التذكير بالفعل
+    if (document.getElementById('verificationReminder')) return;
+    
+    const reminderHTML = `
+        <div style="background:rgba(251,191,36,0.1); border-radius:12px; padding:14px 18px; border:1px solid var(--warning); margin:8px 0; display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+            <span style="font-size:20px;">📧</span>
+            <div style="flex:1; min-width:150px;">
+                <div style="font-weight:600; font-size:14px; color:var(--text);">تحقق من بريدك الإلكتروني</div>
+                <div style="font-size:12px; color:var(--text-secondary); opacity:0.6;">يرجى توثيق بريدك الإلكتروني لتأمين حسابك</div>
+            </div>
+            <button onclick="sendEmailVerification()" class="btn btn-primary" style="padding:6px 16px; font-size:12px; border:none; border-radius:8px; background:var(--primary-gradient); color:#fff; cursor:pointer;">
+                <i class="fas fa-envelope"></i> توثيق
+            </button>
+            <button onclick="this.parentElement.remove()" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:14px; opacity:0.3;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `;
+
+    const mainApp = document.getElementById('mainApp');
+    if (mainApp) {
+        const container = document.createElement('div');
+        container.id = 'verificationReminder';
+        container.style.cssText = 'max-width:800px; margin:0 auto; padding:0 16px;';
+        container.innerHTML = reminderHTML;
+        
+        const header = mainApp.querySelector('.header');
+        if (header) {
+            header.parentNode.insertBefore(container, header.nextSibling);
+        } else {
+            mainApp.insertBefore(container, mainApp.firstChild);
+        }
+        
+        // إخفاء التذكير بعد 15 ثانية
+        setTimeout(() => {
+            if (container.parentNode) {
+                container.style.opacity = '0';
+                container.style.transition = 'opacity 0.5s ease';
+                setTimeout(() => {
+                    if (container.parentNode) container.remove();
+                }, 500);
+            }
+        }, 15000);
+    }
+}
+
+/**
+ * إضافة زر التحقق في ملف التعريف
+ */
+function addVerificationToProfile() {
+    const profileContainer = document.getElementById('profileFullContent');
+    if (!profileContainer || !currentUser) return;
+
+    if (document.getElementById('verifyEmailSection')) return;
+
+    const verifySection = document.createElement('div');
+    verifySection.id = 'verifyEmailSection';
+    verifySection.style.cssText = 'margin:12px 0; padding:12px; background:var(--bg); border-radius:10px; border:1px solid var(--border);';
+
+    if (currentUser.emailVerified) {
+        verifySection.innerHTML = `
+            <div style="display:flex; align-items:center; gap:8px; color:var(--success);">
+                <i class="fas fa-check-circle" style="font-size:18px;"></i>
+                <span style="font-weight:600;">✅ البريد الإلكتروني موثق</span>
+            </div>
+        `;
+    } else {
+        verifySection.innerHTML = `
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <span style="color:var(--warning);">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span style="font-weight:600;">⚠️ البريد الإلكتروني غير موثق</span>
+                </span>
+                <button onclick="sendEmailVerification()" class="btn btn-primary" style="padding:6px 14px; font-size:12px; margin-left:auto; border:none; border-radius:8px; background:var(--primary-gradient); color:#fff; cursor:pointer;">
+                    <i class="fas fa-envelope"></i> توثيق البريد
+                </button>
+            </div>
+            <div style="font-size:12px; color:var(--text-secondary); opacity:0.5; margin-top:4px;">
+                يجب توثيق البريد الإلكتروني لتأمين حسابك والاستفادة من جميع المزايا.
+            </div>
+        `;
+    }
+
+    const editSection = profileContainer.querySelector('.edit-profile-section');
+    if (editSection) {
+        editSection.parentNode.insertBefore(verifySection, editSection);
+    } else {
+        profileContainer.appendChild(verifySection);
+    }
+}
+
+// ============================================================
 // 6. General Modals
 // ============================================================
 
@@ -965,8 +1394,9 @@ window.openAuthModal = function() { document.getElementById('authSection').scrol
 // 7. Render Profile Full
 // ============================================================
 
-function renderProfileFull() {
+window.renderProfileFull = function() {
     const container = document.getElementById('profileFullContent');
+    if (!container) return;
     if (!currentUser) {
         container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-user-circle" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">Please login</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Login to view your profile</div></div>`;
         return;
@@ -988,6 +1418,7 @@ function renderProfileFull() {
                     <div>
                         <span class="profile-badge rp">🎯 RP: ${userProfile.rp || 0}</span>
                         <span class="profile-badge licence">🔑 Licences: ${activeLicences}</span>
+                        ${currentUser.emailVerified ? '<span class="profile-badge verified" style="background:var(--success);color:#0a0a1a;">✅ Verified</span>' : '<span class="profile-badge unverified" style="background:var(--warning);color:#0a0a1a;">⚠️ Unverified</span>'}
                     </div>
                     ${userProfile.isBanned ? '<div style="font-size:13px;color:var(--danger);font-weight:700;margin-top:4px;">🚫 BANNED</div>' : ''}
                 </div>
@@ -1095,8 +1526,12 @@ function renderProfileFull() {
             </div>
         </div>
     </div>`;
-    setTimeout(showTelegramBanner, 300);
-}
+    
+    // إضافة قسم التحقق
+    setTimeout(() => {
+        addVerificationToProfile();
+    }, 200);
+};
 
 window.saveProfileChangesInline = async function(e) {
     e.preventDefault();
@@ -1216,7 +1651,7 @@ function renderProducts(productsList, isLoading = false) {
         const priceDisplay = isUnavailable ? '⛔ Unavailable' : (isFree ? 'FREE' : `${currencySymbol}${displayPrice.toFixed(2)}`);
         
         return `
-      <div class="product-card" onclick="window.openDetails('${p.id}')">
+      <div class="product-card" onclick="window.openProductDetailModal('${p.id}')">
         <div class="product-actions-top">
           <button class="share-btn" onclick="event.stopPropagation(); openShareModal('${p.id}')" title="Share"><i class="fas fa-share-alt"></i></button>
           <button class="wishlist-btn" onclick="event.stopPropagation(); window.toggleWishlist('${p.id}')"><i class="fas fa-heart heart-icon ${inWish?'liked':''}"></i></button>
@@ -1236,7 +1671,7 @@ function renderProducts(productsList, isLoading = false) {
           ${originalPrice} ${discountBadge}
         </div>
         <div class="card-actions">
-          <button class="btn-details" onclick="event.stopPropagation(); window.openDetails('${p.id}')"><i class="fas fa-info-circle"></i></button>
+          <button class="btn-details" onclick="event.stopPropagation(); window.openProductDetailModal('${p.id}')"><i class="fas fa-info-circle"></i></button>
           ${isUnavailable?`<button class="btn-download" style="background:var(--text-secondary);color:#fff;cursor:not-allowed;opacity:0.4;" onclick="event.preventDefault();showToast('⛔ Unavailable','warning')"><i class="fas fa-times-circle"></i></button>`:(isFree?`<a href="${p.downloadLink||'#'}" class="btn-download" ${p.downloadLink?'target="_blank"':'onclick="event.preventDefault();showToast(\'⏳ Coming soon\',\'info\')"'}><i class="fas fa-download"></i></a>`:`<button class="btn-add-cart ${inCart?'added':''}" onclick="event.stopPropagation(); window.addToCart('${p.id}')"><i class="fas ${inCart?'fa-check':'fa-cart-plus'}"></i> ${inCart?qty:''}</button>`)}
         </div>
         <div class="product-footer-icons">
@@ -1270,7 +1705,7 @@ function generateRecommendations(productsList) {
     const shuffled = [...list].sort(() => 0.5 - Math.random());
     const top = shuffled.slice(0, 4);
     if (top.length === 0) { grid.innerHTML = `<div class="rec-empty" style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text-secondary);font-size:13px;"><i class="fas fa-lightbulb" style="display:block;font-size:24px;opacity:0.2;margin-bottom:4px;"></i><p>Start exploring scripts!</p></div>`; return; }
-    grid.innerHTML = top.map(p => `<div class="rec-item" onclick="window.openDetails('${p.id}')"><img src="${p.image||'https://picsum.photos/seed/default/200/120'}" alt="${p.name}" /><div class="r-name">${p.name}</div><div class="r-price">${p.price===0?'FREE':getCurrencySymbol(p.currency || 'USD') + p.price.toFixed(2)}</div></div>`).join('');
+    grid.innerHTML = top.map(p => `<div class="rec-item" onclick="window.openProductDetailModal('${p.id}')"><img src="${p.image||'https://picsum.photos/seed/default/200/120'}" alt="${p.name}" /><div class="r-name">${p.name}</div><div class="r-price">${p.price===0?'FREE':getCurrencySymbol(p.currency || 'USD') + p.price.toFixed(2)}</div></div>`).join('');
 }
 
 // ============================================================
@@ -1435,7 +1870,7 @@ function displayFeaturedSlice() {
         const badgeClass = p.price === 0 ? 'free' : (p.status === 'unavailable' ? 'unavailable' : 'vip');
         const badgeText = p.price === 0 ? 'FREE' : (p.badge || 'VIP');
         return `
-        <div class="featured-item" onclick="window.openDetails('${p.id}')">
+        <div class="featured-item" onclick="window.openProductDetailModal('${p.id}')">
             <div class="featured-item-image">
                 <img src="${p.image || 'https://picsum.photos/seed/default/200/150'}" alt="${p.name}" loading="lazy" />
                 <span class="featured-item-badge ${badgeClass}">${badgeText}</span>
@@ -1661,7 +2096,7 @@ function renderWishlistFull() {
         return;
     }
     const wlProducts = products.filter(p => wishlist.includes(p.id));
-    container.innerHTML = `<div style="display:grid;gap:8px;">${wlProducts.map(p=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);cursor:pointer;" onclick="window.openDetails('${p.id}');closeWishlistFull();"><img src="${p.image||'https://picsum.photos/seed/default/60/60'}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" /><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div><div style="font-size:12px;color:var(--primary);font-weight:700;">${p.price===0?'FREE':getCurrencySymbol(p.currency || 'USD') + p.price.toFixed(2)}</div></div><button onclick="event.stopPropagation();removeFromWishlist('${p.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:14px;opacity:0.3;padding:8px;transition:0.3s;"><i class="fas fa-times"></i></button></div>`).join('')}</div>`;
+    container.innerHTML = `<div style="display:grid;gap:8px;">${wlProducts.map(p=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);cursor:pointer;" onclick="window.openProductDetailModal('${p.id}');closeWishlistFull();"><img src="${p.image||'https://picsum.photos/seed/default/60/60'}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" /><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div><div style="font-size:12px;color:var(--primary);font-weight:700;">${p.price===0?'FREE':getCurrencySymbol(p.currency || 'USD') + p.price.toFixed(2)}</div></div><button onclick="event.stopPropagation();removeFromWishlist('${p.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:14px;opacity:0.3;padding:8px;transition:0.3s;"><i class="fas fa-times"></i></button></div>`).join('')}</div>`;
 }
 
 function createFloatingHearts() {
@@ -1681,200 +2116,342 @@ function createFloatingHearts() {
 }
 
 // ============================================================
-// 12. Product Preview
+// 12. Product Detail Modal
 // ============================================================
 
-window.openDetails = function(id) {
-    const p = products.find(x => x.id === id);
-    if (!p) return;
-    window._currentProduct = p;
-    document.getElementById('previewImage').src = p.image || 'https://picsum.photos/seed/default/400/300';
-    document.getElementById('previewName').textContent = p.name;
-    document.getElementById('previewDescription').textContent = p.description || 'No description available.';
-    document.getElementById('previewBadge').textContent = p.badge || 'PREMIUM';
-    document.getElementById('previewVerified').textContent = p.status === 'available' ? '✅ 100% VERIFIED WORKING PRODUCT' : '⛔ UNAVAILABLE';
-    const videoContainer = document.getElementById('previewVideoContainer');
-    const videoIframe = document.getElementById('previewVideo');
-    if (p.video && p.video.includes('youtube.com/embed/')) {
-        videoIframe.src = p.video;
-        videoContainer.style.display = 'block';
-    } else {
-        videoContainer.style.display = 'none';
-        videoIframe.src = '';
+/**
+ * فتح مودال تفاصيل المنتج
+ * @param {string} productId - معرف المنتج
+ */
+window.openProductDetailModal = async function(productId) {
+    const modal = document.getElementById('productDetailModal');
+    const content = document.getElementById('productDetailContent');
+    
+    if (!modal || !content) {
+        showToast('⚠️ عذراً، المودال غير متوفر', 'warning');
+        return;
     }
-    const featuresContainer = document.getElementById('previewFeatures');
-    if (p.features && p.features.length > 0) {
-        const featuresHtml = p.features.map(f => `<li><i class="fas fa-check-circle"></i> ${f}</li>`).join('');
-        featuresContainer.innerHTML = `<div class="features-header"><i class="fas fa-check-circle"></i> Features</div><ul class="features-list">${featuresHtml}</ul>`;
-        featuresContainer.style.display = 'block';
-    } else { featuresContainer.style.display = 'none'; }
     
-    let priceDisplay = p.price === 0 ? 'FREE' : `${getCurrencySymbol(p.currency || 'USD')}${p.price.toFixed(2)}`;
-    document.getElementById('previewPrice').textContent = priceDisplay;
-    const addBtn = document.getElementById('previewAddBtn');
-    const inCart = cart.some(item => item.id === id && !item.isVip);
-    if (inCart) {
-        addBtn.innerHTML = '<i class="fas fa-check"></i> Added to Cart';
-        addBtn.style.background = 'var(--success)';
-        addBtn.style.color = '#0a0a1a';
-        addBtn.onclick = () => { closePreviewModal(); openCartFull(); };
-    } else if (p.price === 0) {
-        addBtn.innerHTML = '<i class="fas fa-download"></i> Download';
-        addBtn.style.background = 'var(--free-color)';
-        addBtn.style.color = '#0a0a1a';
-        addBtn.onclick = () => { if (p.downloadLink) { window.open(p.downloadLink, '_blank'); } else { showToast('⏳ Coming soon', 'info'); } };
-    } else if (p.status === 'unavailable') {
-        addBtn.innerHTML = '<i class="fas fa-times-circle"></i> Unavailable';
-        addBtn.style.background = 'var(--text-secondary)';
-        addBtn.style.cursor = 'not-allowed';
-        addBtn.onclick = () => showToast('⛔ Unavailable', 'warning');
-    } else {
-        addBtn.innerHTML = '<i class="fas fa-cart-plus"></i> Add to Cart';
-        addBtn.style.background = 'var(--primary)';
-        addBtn.style.color = '#fff';
-        addBtn.onclick = () => {
-            window.addToCart(id);
-            const updatedBtn = document.getElementById('previewAddBtn');
-            updatedBtn.innerHTML = '<i class="fas fa-check"></i> Added';
-            updatedBtn.style.background = 'var(--success)';
-            updatedBtn.style.color = '#0a0a1a';
-            updatedBtn.onclick = () => { closePreviewModal(); openCartFull(); };
-        };
-    }
-    const vipSection = document.getElementById('previewVipPricing');
-    if (p.vipEnabled && p.vipPrices) {
-        const vipPrices = p.vipPrices;
-        const plans = [
-            { key: '1m', label: '1 Month', price: vipPrices['1m'], original: vipPrices['1m_original'] },
-            { key: '3m', label: '3 Months', price: vipPrices['3m'], original: vipPrices['3m_original'] },
-            { key: '1y', label: '1 Year', price: vipPrices['1y'], original: vipPrices['1y_original'] },
-            { key: 'lifetime', label: 'LIFETIME', price: vipPrices['lifetime'], original: vipPrices['lifetime_original'] }
-        ];
-        let gridHtml = ''; let hasValidPlans = false; let firstPlanKey = null;
-        plans.forEach((plan, index) => {
-            const priceNum = parseFloat(plan.price);
-            const originalNum = parseFloat(plan.original);
-            if (priceNum > 0) {
-                hasValidPlans = true;
-                if (!firstPlanKey) firstPlanKey = plan.key;
-                const discount = (originalNum > priceNum) ? Math.round((1 - priceNum / originalNum) * 100) : 0;
-                const hasDiscount = discount > 0;
-                gridHtml += `
-                    <div class="vip-plan ${index === 0 ? 'selected' : ''}" 
-                         data-plan="${plan.key}" data-price="${priceNum}"
-                         onclick="window.selectVipPlan(this, '${plan.key}')">
-                        <div class="vip-plan-check"><i class="fas fa-check-circle"></i></div>
-                        <div class="vip-plan-label">${plan.label}</div>
-                        <div class="vip-plan-price">${getCurrencySymbol(p.currency || 'USD')}${priceNum.toFixed(2)}</div>
-                        ${hasDiscount ? `<div class="vip-plan-original">${getCurrencySymbol(p.currency || 'USD')}${originalNum.toFixed(2)}</div><div class="vip-plan-discount">SAVE ${discount}%</div>` : ''}
-                    </div>
-                `;
+    // عرض شاشة تحميل
+    content.innerHTML = `
+        <div style="text-align:center;padding:40px;color:var(--text-secondary);">
+            <i class="fas fa-spinner fa-spin" style="font-size:32px;"></i>
+            <p style="margin-top:12px;">جاري تحميل المنتج...</p>
+        </div>
+    `;
+    
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    
+    try {
+        let product = products.find(p => p.id === productId);
+        
+        if (!product) {
+            const productRef = doc(db, 'products', productId);
+            const productSnap = await getDoc(productRef);
+            if (productSnap.exists()) {
+                product = { id: productId, ...productSnap.data() };
             }
-        });
-        if (hasValidPlans) {
-            document.getElementById('vipPricingGrid').innerHTML = gridHtml;
-            vipSection.style.display = 'block';
-            window._selectedVipPlan = firstPlanKey;
-            const vipAddBtn = document.querySelector('.vip-add-to-cart');
-            if (vipAddBtn) {
-                vipAddBtn.onclick = () => { addVipPlanToCart(p); };
-                vipAddBtn.dataset.productId = p.id;
-            }
-        } else { vipSection.style.display = 'none'; }
-    } else { vipSection.style.display = 'none'; }
-    
-    // Quantity options
-    const existingQuantitySection = document.getElementById('previewQuantitySection');
-    if (existingQuantitySection) existingQuantitySection.remove();
-    
-    if (p.productType === 'quantity' && p.quantityOptions && p.quantityOptions.length > 0) {
-        const section = document.createElement('div');
-        section.id = 'previewQuantitySection';
-        section.className = 'preview-quantity-section';
-        section.innerHTML = `
-            <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;">
-                <i class="fas fa-cubes"></i> Select Quantity
-            </div>
-            <div class="preview-quantity-options" id="previewQuantityOptions"></div>
-            <div style="margin-top:8px;font-size:12px;color:var(--text-secondary);opacity:0.4;">
-                Click on a quantity to select it
-            </div>
-        `;
-        const vipSectionEl = document.getElementById('previewVipPricing');
-        if (vipSectionEl && vipSectionEl.style.display !== 'none') {
-            vipSectionEl.parentNode.insertBefore(section, vipSectionEl.nextSibling);
-        } else {
-            document.querySelector('.preview-body').appendChild(section);
         }
         
-        const container = document.getElementById('previewQuantityOptions');
-        if (container) {
-            container.innerHTML = p.quantityOptions.map((opt, index) => `
-                <div class="preview-quantity-option ${index === 0 ? 'selected' : ''}" 
-                     data-index="${index}" 
-                     data-quantity="${opt.quantity}" 
-                     data-price="${opt.price}"
-                     onclick="selectQuantityOption(this, '${p.id}')">
-                    <div class="qty-value">${opt.quantity}</div>
-                    <div class="qty-price">${getCurrencySymbol(p.currency || 'USD')}${opt.price.toFixed(2)}</div>
-                    ${opt.originalPrice ? `<div class="qty-original">${getCurrencySymbol(p.currency || 'USD')}${opt.originalPrice.toFixed(2)}</div>` : ''}
-                    <div class="qty-check"><i class="fas fa-check-circle"></i></div>
+        if (!product) {
+            content.innerHTML = `
+                <div style="text-align:center;padding:40px;color:var(--text-secondary);">
+                    <i class="fas fa-exclamation-circle" style="font-size:40px;opacity:0.2;display:block;margin-bottom:12px;"></i>
+                    <h3 style="margin-bottom:8px;">المنتج غير موجود</h3>
+                    <p style="opacity:0.5;">عذراً، لم نتمكن من العثور على هذا المنتج.</p>
                 </div>
-            `).join('');
-            const firstOpt = p.quantityOptions[0];
-            if (firstOpt) {
-                document.getElementById('previewPrice').textContent = getCurrencySymbol(p.currency || 'USD') + firstOpt.price.toFixed(2);
-                window._selectedQuantity = firstOpt.quantity;
-                window._selectedQuantityPrice = firstOpt.price;
-            }
+            `;
+            return;
+        }
+        
+        currentDetailProduct = product;
+        renderProductDetail(product);
+        
+    } catch (error) {
+        console.error('Error loading product detail:', error);
+        content.innerHTML = `
+            <div style="text-align:center;padding:40px;color:var(--text-secondary);">
+                <i class="fas fa-exclamation-triangle" style="font-size:40px;opacity:0.2;display:block;margin-bottom:12px;"></i>
+                <h3 style="margin-bottom:8px;">خطأ في التحميل</h3>
+                <p style="opacity:0.5;">${error.message || 'حدث خطأ غير متوقع'}</p>
+            </div>
+        `;
+    }
+};
+
+function renderProductDetail(product) {
+    const content = document.getElementById('productDetailContent');
+    if (!content) return;
+    
+    const isFree = product.price === 0 || !product.price;
+    const isUnavailable = product.status === 'unavailable';
+    const currencySymbol = getCurrencySymbol(product.currency || 'USD');
+    const priceDisplay = isUnavailable ? '⛔ غير متوفر' : (isFree ? '🎁 مجاني' : `${currencySymbol}${Number(product.price).toFixed(2)}`);
+    const originalDisplay = product.originalPrice ? `${currencySymbol}${Number(product.originalPrice).toFixed(2)}` : '';
+    const badgeClass = product.badge?.toLowerCase() || '';
+    const inCart = cart.some(item => item.id === product.id && !item.isVip);
+    const inWish = wishlist.includes(product.id);
+    
+    let featuresHTML = '';
+    if (product.features && product.features.length > 0) {
+        featuresHTML = product.features.map(f => 
+            `<li><i class="fas fa-check-circle"></i> ${f}</li>`
+        ).join('');
+    } else {
+        featuresHTML = '<li style="color:rgba(255,255,255,0.2);">لا توجد ميزات مذكورة</li>';
+    }
+    
+    let vipHTML = '';
+    if (product.vipEnabled && product.vipPricing) {
+        const plans = [
+            { key: '1m', label: 'شهر' },
+            { key: '3m', label: '3 أشهر' },
+            { key: '1y', label: 'سنة' },
+            { key: 'lifetime', label: 'مدى الحياة' }
+        ];
+        
+        const vipPlansHTML = plans.map(plan => {
+            const price = product.vipPricing[plan.key];
+            const original = product.vipPricing[plan.key + '_original'];
+            if (!price) return '';
+            const isSelected = selectedVipPlan === plan.key;
+            return `
+                <div class="vip-plan ${isSelected ? 'selected' : ''}" 
+                     data-plan="${plan.key}" 
+                     onclick="selectVipPlanDetail('${plan.key}')">
+                    <div class="plan-name">${plan.label}</div>
+                    <div class="plan-price">${currencySymbol}${Number(price).toFixed(2)}</div>
+                    ${original ? `<div class="plan-original" style="font-size:11px;text-decoration:line-through;opacity:0.3;">${currencySymbol}${Number(original).toFixed(2)}</div>` : ''}
+                </div>
+            `;
+        }).filter(Boolean).join('');
+        
+        if (vipPlansHTML) {
+            vipHTML = `
+                <div class="product-detail-vip" style="margin-top:12px;padding:14px;background:var(--bg-secondary);border-radius:var(--radius-md);border:1px solid var(--border);">
+                    <div style="font-size:15px;font-weight:700;color:var(--vip-color);display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                        <i class="fas fa-crown"></i> باقات VIP
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:6px;">${vipPlansHTML}</div>
+                    <button onclick="addVipToCartFromDetail()" style="width:100%;padding:8px;border:none;border-radius:var(--radius-sm);background:var(--primary-gradient);color:#fff;font-weight:600;font-size:13px;cursor:pointer;transition:var(--transition);margin-top:8px;">
+                        <i class="fas fa-cart-plus"></i> إضافة باقة VIP للسلة
+                    </button>
+                </div>
+            `;
         }
     }
     
-    document.getElementById('previewModal').classList.add('open');
-    document.body.style.overflow = 'hidden';
-    setTimeout(() => {
-        renderRatingSection(id);
-        currentProductIdForRating = id;
-        currentRating = 0;
-    }, 150);
-};
-
-window.selectQuantityOption = function(element, productId) {
-    document.querySelectorAll('.preview-quantity-option').forEach(el => el.classList.remove('selected'));
-    element.classList.add('selected');
-    const price = parseFloat(element.dataset.price);
-    const quantity = parseInt(element.dataset.quantity);
-    window._selectedQuantity = quantity;
-    window._selectedQuantityPrice = price;
-    const product = products.find(p => p.id === productId);
-    const currency = product?.currency || 'USD';
-    document.getElementById('previewPrice').textContent = getCurrencySymbol(currency) + price.toFixed(2);
-};
-
-window.selectVipPlan = function(element, planKey) {
-    document.querySelectorAll('.vip-plan').forEach(el => el.classList.remove('selected'));
-    element.classList.add('selected');
-    window._selectedVipPlan = planKey;
-};
-
-function addVipPlanToCart(product) {
-    if (!product) { product = window._currentProduct; if (!product) { showToast('⚠️ Product not found', 'warning'); return; } }
-    const selectedPlan = window._selectedVipPlan || '1m';
-    const vipPrices = product.vipPrices;
-    if (!vipPrices || !vipPrices[selectedPlan]) { showToast('⚠️ Invalid VIP plan', 'warning'); return; }
-    const price = parseFloat(vipPrices[selectedPlan]);
-    if (isNaN(price) || price <= 0) { showToast('⚠️ Invalid price', 'warning'); return; }
-    const planLabels = { '1m': '1 Month', '3m': '3 Months', '1y': '1 Year', 'lifetime': 'LIFETIME' };
-    const existing = cart.find(item => item.id === product.id && item.isVip && item.vipPlan === selectedPlan);
-    if (existing) { existing.quantity = (existing.quantity || 1) + 1; } else { cart.push({ ...product, price: price, quantity: 1, isVip: true, vipPlan: selectedPlan, vipPlanLabel: planLabels[selectedPlan] || selectedPlan, originalPrice: product.price }); }
-    saveUserData(true); updateCartUI(); renderProducts(products); updateBottomCartBar();
-    showToast(`✅ Added ${planLabels[selectedPlan]} VIP plan for ${product.name}`, 'success');
-    closePreviewModal();
+    content.innerHTML = `
+        <div style="padding:4px 0;">
+            <div style="width:100%;aspect-ratio:16/9;border-radius:var(--radius-md);overflow:hidden;background:var(--bg-secondary);">
+                <img src="${product.image || 'https://via.placeholder.com/600x350/1a1a3e/6c5ce7?text=No+Image'}" 
+                     alt="${product.name}" 
+                     style="width:100%;height:100%;object-fit:cover;"
+                     onerror="this.src='https://via.placeholder.com/600x350/1a1a3e/6c5ce7?text=No+Image'" />
+            </div>
+            
+            ${product.badge ? `<div style="display:inline-block;padding:4px 16px;border-radius:20px;font-size:12px;font-weight:700;text-transform:uppercase;background:var(--warning);color:#0a0a1a;margin:8px 0 4px;" class="${badgeClass}">${product.badge}</div>` : ''}
+            
+            ${product.verified !== false ? `
+                <div style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--success);background:rgba(52,211,153,0.1);padding:4px 14px;border-radius:20px;margin-bottom:8px;">
+                    <i class="fas fa-check-circle"></i> منتج موثق 100%
+                </div>
+            ` : ''}
+            
+            <div style="font-size:24px;font-weight:800;color:var(--text);margin:4px 0 8px;">${product.name}</div>
+            
+            <div style="font-size:28px;font-weight:900;color:var(--primary);display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
+                ${priceDisplay}
+                ${originalDisplay ? `<span style="font-size:18px;color:rgba(255,255,255,0.3);text-decoration:line-through;font-weight:400;">${originalDisplay}</span>` : ''}
+                ${isUnavailable ? `<span style="font-size:14px;color:var(--danger);font-weight:600;">⛔ غير متوفر</span>` : ''}
+            </div>
+            
+            ${product.description ? `<div style="color:var(--text-secondary);line-height:1.8;font-size:14px;margin-bottom:12px;">${product.description}</div>` : ''}
+            
+            <ul style="list-style:none;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:16px;">
+                ${featuresHTML}
+            </ul>
+            
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                ${isUnavailable ? `
+                    <button style="padding:12px 28px;border:none;border-radius:var(--radius-md);font-weight:700;font-size:15px;cursor:not-allowed;display:inline-flex;align-items:center;gap:8px;flex:1;justify-content:center;min-width:120px;background:var(--text-secondary);color:#fff;opacity:0.4;">
+                        <i class="fas fa-times-circle"></i> غير متوفر
+                    </button>
+                ` : (isFree ? `
+                    <a href="${product.downloadLink || '#'}" 
+                       style="padding:12px 28px;border:none;border-radius:var(--radius-md);font-weight:700;font-size:15px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;flex:1;justify-content:center;min-width:120px;background:var(--primary-gradient);color:#fff;text-decoration:none;"
+                       target="${product.downloadLink ? '_blank' : '_self'}"
+                       onclick="${product.downloadLink ? '' : 'event.preventDefault();showToast(\'⏳ قريباً\',\'info\');'}">
+                        <i class="fas fa-download"></i> تحميل مجاني
+                    </a>
+                ` : `
+                    <button onclick="addToCartFromDetail()" style="padding:12px 28px;border:none;border-radius:var(--radius-md);font-weight:700;font-size:15px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;flex:1;justify-content:center;min-width:120px;background:var(--primary-gradient);color:#fff;transition:var(--transition);">
+                        <i class="fas fa-cart-plus"></i> ${inCart ? 'أضيف للسلة ✅' : 'أضف للسلة'}
+                    </button>
+                    <button onclick="buyNowFromDetail()" style="padding:12px 28px;border:none;border-radius:var(--radius-md);font-weight:700;font-size:15px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;flex:1;justify-content:center;min-width:120px;background:transparent;border:2px solid var(--border);color:var(--text-secondary);transition:var(--transition);">
+                        <i class="fas fa-bolt"></i> شراء الآن
+                    </button>
+                `)}
+                <button onclick="toggleWishlistFromDetail()" style="width:50px;height:50px;border-radius:var(--radius-md);background:rgba(255,255,255,0.05);border:2px solid var(--border);color:rgba(255,255,255,0.5);font-size:18px;cursor:pointer;transition:var(--transition);display:flex;align-items:center;justify-content:center;flex:0 0 50px;${inWish ? 'border-color:#e84393;color:#e84393;background:rgba(232,67,147,0.1);' : ''}">
+                    <i class="fas fa-heart"></i>
+                </button>
+            </div>
+            
+            ${vipHTML}
+        </div>
+    `;
+    
+    updateDetailCartButton();
 }
 
-window.closePreviewModal = function() { document.getElementById('previewModal').classList.remove('open'); document.body.style.overflow = ''; };
-window.addToCartFromPreview = function() { if (window._currentProduct) { window.addToCart(window._currentProduct.id); closePreviewModal(); } };
-window.shareFromPreview = function() { if (window._currentProduct) { window.openShareModal(window._currentProduct.id); } };
+function updateDetailCartButton() {
+    if (!currentDetailProduct) return;
+    const inCart = cart.some(item => item.id === currentDetailProduct.id && !item.isVip);
+    const btn = document.querySelector('.product-detail-actions .btn-primary, [onclick="addToCartFromDetail()"]');
+    if (btn && currentDetailProduct.price > 0) {
+        if (inCart) {
+            btn.innerHTML = '<i class="fas fa-check"></i> أضيف للسلة ✅';
+            btn.style.background = 'var(--success)';
+        } else {
+            btn.innerHTML = '<i class="fas fa-cart-plus"></i> أضف للسلة';
+            btn.style.background = '';
+        }
+    }
+}
+
+window.selectVipPlanDetail = function(planKey) {
+    selectedVipPlan = planKey;
+    document.querySelectorAll('.product-detail-vip .vip-plan').forEach(el => {
+        el.classList.toggle('selected', el.dataset.plan === planKey);
+    });
+};
+
+window.addToCartFromDetail = function() {
+    if (!currentDetailProduct) return;
+    if (currentDetailProduct.price === 0) {
+        showToast('⚠️ هذا المنتج مجاني، استخدم زر التحميل', 'warning');
+        return;
+    }
+    window.addToCart(currentDetailProduct.id);
+    updateDetailCartButton();
+};
+
+window.buyNowFromDetail = function() {
+    if (!currentDetailProduct) return;
+    if (currentDetailProduct.price === 0) {
+        showToast('⚠️ هذا المنتج مجاني، استخدم زر التحميل', 'warning');
+        return;
+    }
+    window.addToCart(currentDetailProduct.id);
+    setTimeout(() => {
+        window.openPaymentModal();
+        closeProductDetailModal();
+    }, 500);
+};
+
+window.toggleWishlistFromDetail = function() {
+    if (!currentDetailProduct) return;
+    window.toggleWishlist(currentDetailProduct.id);
+    const heartBtn = document.querySelector('.product-detail-actions .btn-heart, [onclick="toggleWishlistFromDetail()"]');
+    if (heartBtn) {
+        heartBtn.classList.toggle('liked');
+        if (heartBtn.classList.contains('liked')) {
+            heartBtn.style.borderColor = '#e84393';
+            heartBtn.style.color = '#e84393';
+            heartBtn.style.background = 'rgba(232,67,147,0.1)';
+        } else {
+            heartBtn.style.borderColor = '';
+            heartBtn.style.color = '';
+            heartBtn.style.background = '';
+        }
+    }
+};
+
+window.addVipToCartFromDetail = function() {
+    if (!currentDetailProduct) {
+        showToast('⚠️ لا يوجد منتج محدد', 'warning');
+        return;
+    }
+    
+    const planData = currentDetailProduct.vipPricing;
+    if (!planData) {
+        showToast('⚠️ لا توجد باقات VIP متاحة', 'warning');
+        return;
+    }
+    
+    const price = planData[selectedVipPlan];
+    if (!price) {
+        showToast('⚠️ يرجى اختيار باقة VIP', 'warning');
+        return;
+    }
+    
+    const planLabels = {
+        '1m': 'شهر',
+        '3m': '3 أشهر',
+        '1y': 'سنة',
+        'lifetime': 'مدى الحياة'
+    };
+    
+    const currencySymbol = getCurrencySymbol(currentDetailProduct.currency || 'USD');
+    const itemName = `${currentDetailProduct.name} (VIP ${planLabels[selectedVipPlan] || selectedVipPlan})`;
+    
+    const existing = cart.find(item => 
+        item.id === currentDetailProduct.id && 
+        item.isVip && 
+        item.vipPlan === selectedVipPlan
+    );
+    
+    if (existing) {
+        existing.quantity = (existing.quantity || 1) + 1;
+    } else {
+        cart.push({
+            id: currentDetailProduct.id,
+            name: itemName,
+            price: price,
+            currency: currentDetailProduct.currency || 'USD',
+            image: currentDetailProduct.image,
+            quantity: 1,
+            isVip: true,
+            vipPlan: selectedVipPlan,
+            vipPlanLabel: planLabels[selectedVipPlan] || selectedVipPlan,
+            badge: 'VIP'
+        });
+    }
+    
+    saveUserData(true);
+    updateCartUI();
+    updateBottomCartBar();
+    showToast(`✅ تمت إضافة باقة ${planLabels[selectedVipPlan]} VIP`, 'success');
+    closeProductDetailModal();
+};
+
+window.closeProductDetailModal = function() {
+    const modal = document.getElementById('productDetailModal');
+    if (modal) {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+    currentDetailProduct = null;
+};
+
+document.addEventListener('click', function(e) {
+    const modal = document.getElementById('productDetailModal');
+    if (modal && modal.classList.contains('open')) {
+        if (e.target === modal) {
+            closeProductDetailModal();
+        }
+    }
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('productDetailModal');
+        if (modal && modal.classList.contains('open')) {
+            closeProductDetailModal();
+        }
+    }
+});
 
 // ============================================================
 // 13. Share Modal
@@ -1931,7 +2508,7 @@ function performLiveSearch(query) {
         const badgeClass = isUnavailable ? 'unavailable' : (isFree ? 'free' : 'vip');
         const badgeText = isUnavailable ? '⛔' : (isFree ? 'FREE' : 'VIP');
         return `
-      <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;transition:0.2s;border-bottom:1px solid var(--border);" onclick="window.openDetails('${p.id}'); closeSearchResults();">
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;transition:0.2s;border-bottom:1px solid var(--border);" onclick="window.openProductDetailModal('${p.id}'); closeSearchResults();">
         <img src="${p.image||'https://picsum.photos/seed/default/100/100'}" style="width:36px;height:36px;border-radius:6px;object-fit:cover;" />
         <div style="flex:1;min-width:0;">
           <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${highlightText(p.name,searchTerm)}</div>
@@ -2104,14 +2681,9 @@ function renderPaymentProducts() {
 // 16. Order Functions with User Notification
 // ============================================================
 
-/**
- * Send notification to user's in-app notification icon
- * Only the specific user who placed the order will receive it
- */
 async function sendUserNotification(userId, title, message) {
     if (!userId) return;
     try {
-        // Check if user exists
         const userRef = doc(db, 'users', userId);
         const userSnap = await getDoc(userRef);
         if (!userSnap.exists()) {
@@ -2119,11 +2691,10 @@ async function sendUserNotification(userId, title, message) {
             return;
         }
         
-        // Add notification to Firestore with userId
         await addDoc(collection(db, 'notifications'), {
             title: title,
             message: message,
-            userId: userId, // Only this user will see it
+            userId: userId,
             readBy: [],
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
@@ -2134,11 +2705,7 @@ async function sendUserNotification(userId, title, message) {
     }
 }
 
-/**
- * Send order confirmation to both Telegram and in-app notification
- */
 async function sendOrderConfirmations(userId, orderId, productsList, total, method) {
-    // 1. Send in-app notification (only to this user)
     const productNames = productsList.map(item => {
         const qtyLabel = item.selectedQuantity ? ` (${item.selectedQuantity})` : '';
         return `${item.name}${qtyLabel} × ${item.quantity || 1}`;
@@ -2150,7 +2717,6 @@ async function sendOrderConfirmations(userId, orderId, productsList, total, meth
         `Your order #${orderId.slice(-6)} has been confirmed.\nProducts: ${productNames}\nTotal: $${total.toFixed(2)}\nPayment: ${method}`
     );
     
-    // 2. Send Telegram notification if user has linked Telegram
     if (userProfile.telegramChatId) {
         const userMsg = `📦 **Order Confirmed!**\n\n📎 **Order #${orderId.slice(-6)}**\n📅 ${new Date().toLocaleString()}\n💰 Total: $${total.toFixed(2)}\n💳 Method: ${method}\n\nThank you for your purchase! 🎉`;
         await sendTelegramNotification(userProfile.telegramChatId, userMsg);
@@ -2218,7 +2784,6 @@ async function sendOrderToTelegram(method, txHash = null) {
             console.error('❌ Failed to send admin notification:', e);
         }
 
-        // Send confirmation to user (both in-app and Telegram)
         await sendOrderConfirmations(
             currentUser.uid,
             orderId,
@@ -2500,7 +3065,6 @@ function loadNotifications() {
             notifications = [];
             snapshot.forEach((doc) => {
                 const data = doc.data();
-                // Only show notifications that are either global (no userId) or specifically for this user
                 if (!data.userId || data.userId === currentUser?.uid) {
                     notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] });
                 }
@@ -2518,7 +3082,6 @@ function loadNotifications() {
             notifications = [];
             snapshot.forEach((doc) => {
                 const data = doc.data();
-                // Only show notifications that are either global (no userId) or specifically for this user
                 if (!data.userId || data.userId === currentUser?.uid) {
                     notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] });
                 }
@@ -3251,26 +3814,20 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
         });
         await updateDoc(userRef, { history: updatedHistory });
         
-        // Send notification to user when order status changes
         if (newStatus === 'confirmed') {
-            // Send confirmation notification to user's in-app icon
             await sendUserNotification(
                 userId,
                 '✅ Order Confirmed!',
                 `Your order #${orderId.slice(-6)} has been confirmed and is ready.`
             );
-            
-            // Send licence via Edge Function
             await sendLicenceForOrder(orderId, userId);
             await sendTelegramNotification(TELEGRAM_CHAT_ID, `✅ Order #${orderId.slice(-6)} confirmed. Licence sent to ${data.email || userId}.`);
         } else if (newStatus === 'rejected') {
-            // Send rejection notification to user's in-app icon
             await sendUserNotification(
                 userId,
                 '❌ Order Rejected',
                 `Your order #${orderId.slice(-6)} has been rejected. Please contact support for more information.`
             );
-            
             if (data.telegramChatId) {
                 await sendTelegramNotification(data.telegramChatId, `❌ Your order #${orderId.slice(-6)} has been rejected.`);
             }
@@ -3595,7 +4152,6 @@ async function approveLicence(licenceId, code, scriptName) {
         if (fetchError || !licenceData) throw fetchError || new Error('Licence not found');
         await updateLicenceInSupabase(licenceId, { status: 'active', user_id: currentUser.uid, user_email: currentUser.email });
         
-        // Send notification to user
         await sendUserNotification(
             currentUser.uid,
             '🔑 Licence Activated!',
@@ -3623,13 +4179,11 @@ async function revokeLicence(licenceId) {
         await updateLicenceInSupabase(licenceId, { status: 'revoked' });
         const licence = allLicences.find(l => l.id === licenceId);
         if (licence && licence.user_id) {
-            // Notify user
             await sendUserNotification(
                 licence.user_id,
                 '🚫 Licence Revoked',
                 `Your licence for ${licence.script_name || 'product'} has been revoked.`
             );
-            
             const userRef = doc(db, 'users', licence.user_id);
             const userSnap = await getDoc(userRef);
             if (userSnap.exists()) {
@@ -3794,7 +4348,6 @@ async function activateLicence() {
                 renderUserLicences();
                 updateFullUserMenu();
                 
-                // Send in-app notification
                 await sendUserNotification(
                     currentUser.uid,
                     '🔑 Licence Activated',
@@ -4187,7 +4740,7 @@ function renderSlider() {
         let buttonLink = '#';
         let buttonTarget = '_self';
         if (slide.linkType === 'product' && slide.productId) {
-            buttonLink = `javascript:window.openDetails('${slide.productId}')`;
+            buttonLink = `javascript:window.openProductDetailModal('${slide.productId}')`;
         } else if (slide.linkType === 'download' && slide.downloadUrl) {
             buttonLink = slide.downloadUrl; buttonTarget = '_blank';
         } else if (slide.linkType === 'url' && slide.customUrl) {
@@ -4817,6 +5370,9 @@ onAuthStateChanged(auth, async (user) => {
         window.showMainApp();
         hideLoadingScreen();
 
+        // التحقق من حالة البريد الإلكتروني
+        setTimeout(checkVerificationOnLogin, 3000);
+
     } else {
         isAdminCached = false;
         if (authSection) authSection.style.display = 'block';
@@ -4991,7 +5547,13 @@ window.switchAdminTab = switchAdminTab;
 window.loadAdminOrders = loadAdminOrders;
 window.updateOrderStatus = updateOrderStatus;
 window.filterProducts = filterProducts;
-window.openDetails = openDetails;
+window.openProductDetailModal = openProductDetailModal;
+window.closeProductDetailModal = closeProductDetailModal;
+window.selectVipPlanDetail = selectVipPlanDetail;
+window.addToCartFromDetail = addToCartFromDetail;
+window.buyNowFromDetail = buyNowFromDetail;
+window.toggleWishlistFromDetail = toggleWishlistFromDetail;
+window.addVipToCartFromDetail = addVipToCartFromDetail;
 window.addToCart = addToCart;
 window.toggleWishlist = toggleWishlist;
 window.openCartFull = openCartFull;
@@ -5047,13 +5609,13 @@ window.applyCartPromo = applyCartPromo;
 window.showTelegramBannerAgain = showTelegramBannerAgain;
 window.adminToggleBanner = adminToggleBanner;
 window.resetBannerForAll = resetBannerForAll;
-window.closePreviewModal = closePreviewModal;
-window.addToCartFromPreview = addToCartFromPreview;
+window.closePreviewModal = closeProductDetailModal;
+window.addToCartFromPreview = addToCartFromDetail;
 window.shareFromPreview = shareFromPreview;
 window.refreshDashboardStats = refreshDashboardStats;
 window.loadDashboardStats = loadDashboardStats;
-window.selectVipPlan = selectVipPlan;
-window.addVipPlanToCart = addVipPlanToCart;
+window.selectVipPlan = selectVipPlanDetail;
+window.addVipPlanToCart = addVipToCartFromDetail;
 window.refreshAdvancedStats = refreshAdvancedStats;
 window.setRating = setRating;
 window.submitRating = submitRating;
@@ -5109,6 +5671,10 @@ window.removeQuantityOption = removeQuantityOption;
 window.toggleBadge = toggleBadge;
 window.selectQuantityOption = selectQuantityOption;
 window.loginWithGoogle = loginWithGoogle;
+window.sendEmailVerification = sendEmailVerification;
+window.checkVerificationStatus = checkVerificationStatus;
+window.closeVerificationDialog = closeVerificationDialog;
+window.renderProfileFull = renderProfileFull;
 
 // ============================================================
 // 41. Support Functions
@@ -5185,6 +5751,11 @@ document.addEventListener('keydown', function(e) {
         const float = document.getElementById('supportFloat');
         if (float && float.classList.contains('open')) {
             float.classList.remove('open');
+        }
+        // Close product detail modal on ESC
+        const productModal = document.getElementById('productDetailModal');
+        if (productModal && productModal.classList.contains('open')) {
+            closeProductDetailModal();
         }
     }
 });
