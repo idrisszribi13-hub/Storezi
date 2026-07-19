@@ -1,20 +1,8 @@
 {
   "script1": {
-    "name": "سكربت تجريبي",
-    "description": "سكربت للاختبار",
-    "activeVersion": {
-      "versionNumber": "1.0.0",
-      "date": "2026-07-18",
-      "downloadLink": "https://raw.githubusercontent.com/ldrisszribi13-hub/Storezi/main/script1/1.0.0/script.lua"
-    }
+    "name": "سكربت تجريبي"
   },
   "script2": {
-    "name": "سكربت تعديل",
-    "description": "سكربت لتعديل اللعبة",
-    "activeVersion": {
-      "versionNumber": "2.0.0",
-      "date": "2026-07-18",
-      "downloadLink": "https://raw.githubusercontent.com/ldrisszribi13-hub/Storezi/main/script2/2.0.0/script.lua"
-    }
+    "name": "سكربت تعديل"
   }
 }
