@@ -190,10 +190,29 @@
         // الحصول على معاملات URL
         // ============================================================
         const urlParams = new URLSearchParams(window.location.search);
-        const mode = urlParams.get('mode');
-        const oobCode = urlParams.get('oobCode');
+        let mode = urlParams.get('mode');
+        let oobCode = urlParams.get('oobCode');
         const apiKey = urlParams.get('apiKey');
         const lang = urlParams.get('lang') || 'ar';
+
+        // ============================================================
+        // الحيلة: إذا لم يتم العثور على oobCode في URL، نتحقق من localStorage
+        // ============================================================
+        if (!oobCode) {
+            // محاولة استرجاع البيانات من localStorage (التي تم تخزينها من index.html)
+            const storedMode = localStorage.getItem('verifyMode');
+            const storedOobCode = localStorage.getItem('verifyOobCode');
+            
+            if (storedMode === 'verifyEmail' && storedOobCode) {
+                mode = storedMode;
+                oobCode = storedOobCode;
+                
+                // تنظيف localStorage بعد الاستخدام
+                localStorage.removeItem('verifyMode');
+                localStorage.removeItem('verifyOobCode');
+                localStorage.removeItem('verifyApiKey');
+            }
+        }
 
         // ============================================================
         // عناصر DOM
@@ -285,7 +304,7 @@
                 <span class="icon">🔑</span>
                 <div class="title">إعادة تعيين كلمة المرور</div>
                 <div class="subtitle">قم بتعيين كلمة مرور جديدة لحسابك</div>
-                <div style="background:var(--bg); border-radius:12px; padding:16px; border:1px solid var(--border); margin-bottom:16px;">
+                <div style="background:#0a0a1a; border-radius:12px; padding:16px; border:1px solid #2a2a5a; margin-bottom:16px;">
                     <div style="margin-bottom:12px; text-align:left;">
                         <label style="display:block; font-size:12px; font-weight:600; color:#a0a0c0; opacity:0.6; margin-bottom:4px;">كلمة المرور الجديدة</label>
                         <input type="password" id="newPassword" placeholder="••••••••" style="width:100%; padding:10px 14px; border:2px solid #2a2a5a; border-radius:8px; background:#0a0a1a; color:#fff; font-size:14px; outline:none; transition:0.3s;" />
