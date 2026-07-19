@@ -2087,6 +2087,64 @@
         .admin-panel .admin-cancel-btn:hover {
             background: var(--bg-secondary);
         }
+
+        /* Email Verification Banner */
+        .email-verification-banner {
+            margin-bottom: 12px;
+        }
+        .email-verification-banner .banner-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding: 10px 16px;
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid #fbbf24;
+            border-radius: 10px;
+        }
+        .email-verification-banner .banner-icon {
+            color: #fbbf24;
+            font-size: 20px;
+        }
+        .email-verification-banner .banner-text {
+            flex: 1;
+            font-size: 13px;
+            color: var(--text);
+        }
+        .email-verification-banner .banner-text strong {
+            font-weight: 700;
+        }
+        .email-verification-banner .banner-text .email {
+            opacity: 0.5;
+            margin-left: 4px;
+        }
+        .email-verification-banner .banner-action {
+            padding: 6px 16px;
+            border: none;
+            border-radius: 8px;
+            background: #fbbf24;
+            color: #0a0a1a;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+        .email-verification-banner .banner-action:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
+        }
+        .email-verification-banner .banner-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            opacity: 0.3;
+            font-size: 14px;
+            transition: opacity 0.3s ease;
+        }
+        .email-verification-banner .banner-close:hover {
+            opacity: 0.8;
+        }
     </style>
 
     <!-- Hide loading screen immediately -->
@@ -2329,9 +2387,9 @@
             <button class="search-clear" id="searchClear" onclick="clearSearch()"><i class="fas fa-times"></i></button>
             <div class="search-results" id="searchResults"></div>
         </div>
-        
-<!-- ================== تنبيه تأكيد البريد الإلكتروني ================== -->
-<div id="emailVerificationBanner" class="email-verification-banner" style="display:none; margin-bottom:12px;"></div>
+
+        <!-- ================== Email Verification Banner ================== -->
+        <div id="emailVerificationBanner" class="email-verification-banner" style="display:none;"></div>
         
         <!-- SLIDER - Buttons at bottom, smaller -->
         <div class="slider-container">
@@ -2536,7 +2594,7 @@
     </div>
 
     <!-- ============================================ -->
-    <!-- All Other Modals (abbreviated) -->
+    <!-- All Other Modals -->
     <!-- ============================================ -->
 
     <!-- Preview Modal -->
@@ -3403,4 +3461,4 @@
     <script type="module" src="languages.js"></script>
     <script type="module" src="script.js"></script>
 </body>
-    </html>
+</html>
