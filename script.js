@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - Full Version
+// SCRIPT.JS - ZI Store - Full Version with Auto-Load Fix
 // ============================================================
 
 // ============================================================
@@ -1558,9 +1558,12 @@ window.changePasswordInline = async function() { if (!currentUser) return; const
 // 8. Product Functions - Enhanced with Direct Firestore Loading
 // ============================================================
 
-// Function to load products directly from Firestore
-async function loadProductsDirectly() {
-    console.log('🔄 Loading products from Firestore...');
+// ============================================================
+// 🔥 Strong product loading with retry
+// ============================================================
+
+async function loadProductsWithRetry(retryCount = 0) {
+    console.log(`🔄 Loading products attempt (${retryCount + 1})...`);
     
     try {
         const productsRef = collection(db, 'products');
@@ -1570,21 +1573,28 @@ async function loadProductsDirectly() {
         
         if (querySnapshot.empty) {
             console.log('⚠️ No products found in Firestore');
-            return [];
+            if (retryCount < 3) {
+                console.log(`🔄 Retrying in 1 second... (${retryCount + 1}/3)`);
+                setTimeout(() => loadProductsWithRetry(retryCount + 1), 1000);
+            } else {
+                console.log('❌ Failed to load products after 3 attempts, using fallback');
+                products = fallbackProducts;
+                renderProducts(products, false);
+                updateStatsFromProducts(products);
+                generateRecommendations(products);
+            }
+            return;
         }
         
         const productsList = [];
         querySnapshot.forEach((doc) => {
             const data = doc.data();
-            console.log(`📦 Product: ${data.name || 'Unnamed'} (ID: ${doc.id})`);
-            
-            // Normalize data
             let vipPricing = data.vipPricing || data.vipPrices || {};
             if (data.vipPrices && !data.vipPricing) {
                 vipPricing = data.vipPrices;
             }
             
-            const product = {
+            productsList.push({
                 id: doc.id,
                 name: data.name || 'Unnamed Product',
                 price: typeof data.price === 'number' ? data.price : 0,
@@ -1606,104 +1616,80 @@ async function loadProductsDirectly() {
                 downloadLink: data.downloadLink || '',
                 duration: data.duration || '',
                 createdAt: data.createdAt || new Date()
-            };
-            
-            productsList.push(product);
+            });
         });
         
         console.log(`✅ Successfully loaded ${productsList.length} products`);
-        return productsList;
+        products = productsList;
+        renderProducts(products, false);
+        updateStatsFromProducts(products);
+        generateRecommendations(products);
+        showToast(`✅ Loaded ${products.length} products`, 'success');
         
     } catch (error) {
         console.error('❌ Error loading products:', error);
-        console.log('⚠️ Using fallback products');
-        return fallbackProducts;
+        if (retryCount < 3) {
+            console.log(`🔄 Retrying in 2 seconds... (${retryCount + 1}/3)`);
+            setTimeout(() => loadProductsWithRetry(retryCount + 1), 2000);
+        } else {
+            console.log('❌ Failed to load products, using fallback');
+            products = fallbackProducts;
+            renderProducts(products, false);
+            updateStatsFromProducts(products);
+            generateRecommendations(products);
+            showToast('⚠️ Using fallback products', 'warning');
+        }
     }
 }
 
-async function loadProductsFromFirestore() {
-    return await loadProductsDirectly();
-}
+// ============================================================
+// 🔥 Retry load function - shows only when needed
+// ============================================================
 
-function startProductsRealtimeListener() {
-    if (unsubscribeProducts) { 
-        unsubscribeProducts(); 
-        unsubscribeProducts = null;
+window.retryLoadProducts = async function() {
+    const statusMsg = document.getElementById('loadingStatusMessage');
+    const retryBtn = document.querySelector('[onclick="window.retryLoadProducts()"]');
+    
+    if (statusMsg) {
+        statusMsg.style.display = 'block';
+        statusMsg.textContent = '⏳ Loading...';
+        statusMsg.className = '';
+    }
+    if (retryBtn) {
+        retryBtn.disabled = true;
+        retryBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
     }
     
     // Show loading state
     renderProducts([], true);
     
-    const productsRef = collection(db, 'products');
-    
     try {
-        // Listen for changes
-        unsubscribeProducts = onSnapshot(query(productsRef, orderBy('createdAt', 'desc')), (snapshot) => {
-            const productsList = [];
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                // Normalize fields
-                let vipPricing = data.vipPricing || data.vipPrices || {};
-                if (data.vipPrices && !data.vipPricing) {
-                    vipPricing = data.vipPrices;
-                }
-                
-                productsList.push({
-                    id: doc.id,
-                    name: data.name || 'Unnamed Product',
-                    price: data.price !== undefined ? data.price : 0,
-                    originalPrice: data.originalPrice || 0,
-                    badge: data.badge || 'FREE',
-                    status: data.status || 'available',
-                    image: data.image || 'https://via.placeholder.com/400x300/1a1a3e/6c5ce7?text=No+Image',
-                    description: data.description || '',
-                    features: data.features || [],
-                    video: data.video || '',
-                    currency: data.currency || 'USD',
-                    productType: data.productType || 'standard',
-                    quantityOptions: data.quantityOptions || [],
-                    badges: data.badges || [],
-                    vipEnabled: data.vipEnabled || false,
-                    vipPricing: vipPricing,
-                    vipPrices: data.vipPrices || vipPricing,
-                    verified: data.verified !== false,
-                    downloadLink: data.downloadLink || '',
-                    duration: data.duration || '',
-                    createdAt: data.createdAt || new Date()
-                });
-            });
-            
-            products = productsList.length > 0 ? productsList : fallbackProducts;
-            console.log('📦 Products updated from realtime listener:', products.length);
-            renderProducts(products, false);
-            renderAdminProducts(products);
-            updateStatsFromProducts(products);
-            generateRecommendations(products);
-            updateBottomCartBar();
-            updateRpDisplay();
-            renderFeaturedProducts();
-            updateSlideProductSelect();
-            
-        }, (error) => {
-            console.error('Products listener error:', error);
-            // Try to load products again
-            loadProductsDirectly().then(productsFromFirestore => {
-                if (productsFromFirestore.length > 0) {
-                    products = productsFromFirestore;
-                    renderProducts(products, false);
-                } else {
-                    products = fallbackProducts;
-                    renderProducts(products, false);
-                }
-            });
-        });
+        await loadProductsWithRetry();
+        
+        if (statusMsg) {
+            statusMsg.textContent = `✅ Loaded ${products.length} products successfully!`;
+            statusMsg.className = 'success';
+            setTimeout(() => { statusMsg.style.display = 'none'; }, 3000);
+        }
+        showToast(`✅ Loaded ${products.length} products`, 'success');
+        
     } catch (error) {
-        console.error('Error setting up products listener:', error);
-        // Use fallback products
+        console.error('Error loading products:', error);
+        if (statusMsg) {
+            statusMsg.textContent = '❌ Failed to load products';
+            statusMsg.className = 'error';
+            setTimeout(() => { statusMsg.style.display = 'none'; }, 3000);
+        }
+        showToast('❌ Failed to load products', 'error');
         products = fallbackProducts;
         renderProducts(products, false);
+    } finally {
+        if (retryBtn) {
+            retryBtn.disabled = false;
+            retryBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Retry';
+        }
     }
-}
+};
 
 function getCurrencySymbol(currency) {
     const symbols = {
@@ -1740,19 +1726,13 @@ function renderProducts(productsList, isLoading = false) {
     if (isLoading) {
         container.innerHTML = `
             <div style="grid-column:1/-1;text-align:center;padding:60px 20px;">
-                <div style="display:flex;justify-content:center;gap:8px;margin-bottom:16px;">
-                    <div class="loader-dot" style="width:12px;height:12px;border-radius:50%;background:var(--primary);animation:dotPulse 1.4s ease-in-out infinite both;animation-delay:-0.32s;"></div>
-                    <div class="loader-dot" style="width:12px;height:12px;border-radius:50%;background:var(--primary);animation:dotPulse 1.4s ease-in-out infinite both;animation-delay:-0.16s;"></div>
-                    <div class="loader-dot" style="width:12px;height:12px;border-radius:50%;background:var(--primary);animation:dotPulse 1.4s ease-in-out infinite both;"></div>
+                <div class="loader-dots">
+                    <div class="loader-dot"></div>
+                    <div class="loader-dot"></div>
+                    <div class="loader-dot"></div>
                 </div>
                 <p style="font-size:16px;color:var(--text-secondary);opacity:0.5;">Loading products...</p>
             </div>
-            <style>
-                @keyframes dotPulse {
-                    0%, 80%, 100% { transform: scale(0.6); opacity: 0.3; }
-                    40% { transform: scale(1); opacity: 1; }
-                }
-            </style>
         `;
         return;
     }
@@ -1763,19 +1743,19 @@ function renderProducts(productsList, isLoading = false) {
     // No products - show friendly message
     if (list.length === 0) {
         container.innerHTML = `
-            <div style="grid-column:1/-1;text-align:center;padding:80px 20px;">
-                <div style="font-size:64px;margin-bottom:16px;">📦</div>
-                <p style="font-size:22px;font-weight:700;color:var(--text);margin-bottom:8px;">No Products Available</p>
-                <p style="font-size:14px;color:var(--text-secondary);opacity:0.5;margin-bottom:20px;">New products will be added soon. Follow us on social media to stay updated!</p>
-                <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-                    <a href="https://t.me/Mitalica69" target="_blank" style="padding:10px 24px;border:none;border-radius:8px;background:#0088cc;color:#fff;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:8px;">
+            <div class="empty-products-message">
+                <div class="icon">📦</div>
+                <p class="title">No Products Available</p>
+                <p class="subtitle">New products will be added soon. Follow us on social media to stay updated!</p>
+                <div class="actions">
+                    <a href="https://t.me/Mitalica69" target="_blank" class="btn-telegram">
                         <i class="fab fa-telegram-plane"></i> Follow on Telegram
                     </a>
-                    <button onclick="window.retryLoadProducts()" style="padding:10px 24px;border:2px solid var(--border);border-radius:8px;background:transparent;color:var(--text-secondary);font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px;">
+                    <button onclick="window.retryLoadProducts()" class="btn-refresh">
                         <i class="fas fa-sync-alt"></i> Retry
                     </button>
                 </div>
-                <div id="loadingStatusMessage" style="margin-top:12px;font-size:13px;color:var(--text-secondary);opacity:0.3;display:none;"></div>
+                <div id="loadingStatusMessage" class="status-message"></div>
             </div>
         `;
         return;
@@ -1863,100 +1843,6 @@ function renderProducts(productsList, isLoading = false) {
     console.log('✅ Products rendered successfully');
 }
 
-// ============================================================
-// 🔥 Retry load function - shows only when needed
-// ============================================================
-
-window.retryLoadProducts = async function() {
-    const statusMsg = document.getElementById('loadingStatusMessage');
-    const retryBtn = document.querySelector('[onclick="window.retryLoadProducts()"]');
-    
-    if (statusMsg) {
-        statusMsg.style.display = 'block';
-        statusMsg.textContent = '⏳ Loading...';
-        statusMsg.className = '';
-    }
-    if (retryBtn) {
-        retryBtn.disabled = true;
-        retryBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
-    }
-    
-    try {
-        const productsFromFirestore = await loadProductsDirectly();
-        if (productsFromFirestore && productsFromFirestore.length > 0) {
-            products = productsFromFirestore;
-            renderProducts(products, false);
-            updateStatsFromProducts(products);
-            generateRecommendations(products);
-            if (statusMsg) {
-                statusMsg.textContent = `✅ Loaded ${products.length} products successfully!`;
-                statusMsg.className = 'success';
-                setTimeout(() => { statusMsg.style.display = 'none'; }, 3000);
-            }
-            showToast(`✅ Loaded ${products.length} products`, 'success');
-        } else {
-            products = fallbackProducts;
-            renderProducts(products, false);
-            if (statusMsg) {
-                statusMsg.textContent = '⚠️ No products available';
-                statusMsg.className = 'warning';
-                setTimeout(() => { statusMsg.style.display = 'none'; }, 3000);
-            }
-            showToast('⚠️ No products available', 'warning');
-        }
-    } catch (error) {
-        console.error('Error loading products:', error);
-        if (statusMsg) {
-            statusMsg.textContent = '❌ Failed to load products';
-            statusMsg.className = 'error';
-            setTimeout(() => { statusMsg.style.display = 'none'; }, 3000);
-        }
-        showToast('❌ Failed to load products', 'error');
-        products = fallbackProducts;
-        renderProducts(products, false);
-    } finally {
-        if (retryBtn) {
-            retryBtn.disabled = false;
-            retryBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Retry';
-        }
-    }
-};
-
-// ============================================================
-// 🔥 Auto-load products on startup
-// ============================================================
-
-async function loadProductsAutomatically() {
-    console.log('🔄 Auto-loading products...');
-    
-    try {
-        // Show loading screen
-        renderProducts([], true);
-        
-        // Try to load products from Firestore
-        const productsFromFirestore = await loadProductsDirectly();
-        
-        if (productsFromFirestore && productsFromFirestore.length > 0) {
-            products = productsFromFirestore;
-            console.log(`✅ Auto-loaded ${products.length} products`);
-            renderProducts(products, false);
-            updateStatsFromProducts(products);
-            generateRecommendations(products);
-            return true;
-        } else {
-            console.log('⚠️ No products found, showing friendly message');
-            products = fallbackProducts;
-            renderProducts(products, false);
-            return false;
-        }
-    } catch (error) {
-        console.error('❌ Auto-load error:', error);
-        products = fallbackProducts;
-        renderProducts(products, false);
-        return false;
-    }
-}
-
 function updateStatsFromProducts(productsList) {
     const total = productsList.length;
     const free = productsList.filter(p => p.price === 0).length;
@@ -1993,6 +1879,68 @@ function generateRecommendations(productsList) {
             <div class="r-price">${p.price === 0 ? 'FREE' : getCurrencySymbol(p.currency || 'USD') + Number(p.price).toFixed(2)}</div>
         </div>
     `).join('');
+}
+
+function startProductsRealtimeListener() {
+    if (unsubscribeProducts) { 
+        unsubscribeProducts(); 
+        unsubscribeProducts = null;
+    }
+    
+    const productsRef = collection(db, 'products');
+    
+    try {
+        unsubscribeProducts = onSnapshot(query(productsRef, orderBy('createdAt', 'desc')), (snapshot) => {
+            const productsList = [];
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                let vipPricing = data.vipPricing || data.vipPrices || {};
+                if (data.vipPrices && !data.vipPricing) {
+                    vipPricing = data.vipPrices;
+                }
+                
+                productsList.push({
+                    id: doc.id,
+                    name: data.name || 'Unnamed Product',
+                    price: data.price !== undefined ? data.price : 0,
+                    originalPrice: data.originalPrice || 0,
+                    badge: data.badge || 'FREE',
+                    status: data.status || 'available',
+                    image: data.image || 'https://via.placeholder.com/400x300/1a1a3e/6c5ce7?text=No+Image',
+                    description: data.description || '',
+                    features: data.features || [],
+                    video: data.video || '',
+                    currency: data.currency || 'USD',
+                    productType: data.productType || 'standard',
+                    quantityOptions: data.quantityOptions || [],
+                    badges: data.badges || [],
+                    vipEnabled: data.vipEnabled || false,
+                    vipPricing: vipPricing,
+                    vipPrices: data.vipPrices || vipPricing,
+                    verified: data.verified !== false,
+                    downloadLink: data.downloadLink || '',
+                    duration: data.duration || '',
+                    createdAt: data.createdAt || new Date()
+                });
+            });
+            
+            products = productsList.length > 0 ? productsList : fallbackProducts;
+            console.log('📦 Products updated from realtime listener:', products.length);
+            renderProducts(products, false);
+            renderAdminProducts(products);
+            updateStatsFromProducts(products);
+            generateRecommendations(products);
+            updateBottomCartBar();
+            updateRpDisplay();
+            renderFeaturedProducts();
+            updateSlideProductSelect();
+            
+        }, (error) => {
+            console.error('Products listener error:', error);
+        });
+    } catch (error) {
+        console.error('Error setting up products listener:', error);
+    }
 }
 
 // ============================================================
@@ -5730,13 +5678,14 @@ async function init() {
     updateLoadingText('Loading products...');
 
     try {
-        // Auto-load products
-        await loadProductsAutomatically();
+        // Show loading state
+        renderProducts([], true);
+        
+        // Load products with retry
+        await loadProductsWithRetry();
         
         // Load remaining data
         await loadUserData();
-        updateStatsFromProducts(products);
-        generateRecommendations(products);
         updateBottomCartBar();
         updateDropdownStats();
         loadDownloads();
@@ -5795,15 +5744,15 @@ async function init() {
         if (products.length === 0) {
             setTimeout(async () => {
                 console.log('🔄 Retrying product load in background...');
-                const productsFromFirestore = await loadProductsDirectly();
-                if (productsFromFirestore && productsFromFirestore.length > 0) {
-                    products = productsFromFirestore;
-                    renderProducts(products, false);
-                    updateStatsFromProducts(products);
-                    generateRecommendations(products);
-                    console.log('✅ Products loaded on second attempt');
+                await loadProductsWithRetry();
+            }, 3000);
+            
+            setTimeout(async () => {
+                if (products.length === 0) {
+                    console.log('🔄 Final retry after 6 seconds...');
+                    await loadProductsWithRetry();
                 }
-            }, 5000);
+            }, 6000);
         }
 
     } catch (error) {
@@ -5995,7 +5944,7 @@ window.checkVerificationStatus = checkVerificationStatus;
 window.closeVerificationDialog = closeVerificationDialog;
 window.renderProfileFull = renderProfileFull;
 window.loadProductsDirectly = loadProductsDirectly;
-window.loadProductsAutomatically = loadProductsAutomatically;
+window.loadProductsWithRetry = loadProductsWithRetry;
 window.retryLoadProducts = retryLoadProducts;
 
 // ============================================================
