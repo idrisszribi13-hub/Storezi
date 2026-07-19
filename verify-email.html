@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ar" dir="ltr">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ZI Store - تأكيد البريد الإلكتروني</title>
+    <title>ZI Store - Email Verification</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <style>
@@ -143,11 +143,10 @@
 </head>
 <body>
     <div class="container" id="app">
-        <!-- سيتم تحديث المحتوى بواسطة JavaScript -->
         <div id="content">
             <div class="loader-ring"></div>
-            <div class="title" style="margin-top:12px;">جاري التحقق...</div>
-            <div class="subtitle">يرجى الانتظار أثناء تأكيد بريدك الإلكتروني</div>
+            <div class="title" style="margin-top:12px;">Verifying...</div>
+            <div class="subtitle">Please wait while we verify your email address.</div>
         </div>
     </div>
 
@@ -166,13 +165,9 @@
             getAuth, 
             applyActionCode, 
             checkActionCode,
-            verifyPasswordResetCode,
             confirmPasswordReset
         } from "firebase/auth";
 
-        // ============================================================
-        // إعدادات Firebase (نفس إعدادات المشروع)
-        // ============================================================
         const firebaseConfig = {
             apiKey: "AIzaSyBwDTCxzd6aoue-NTLI2u4ouK-M37alwUw",
             authDomain: "zi-script-store.firebaseapp.com",
@@ -186,69 +181,48 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
 
-        // ============================================================
-        // الحصول على معاملات URL
-        // ============================================================
         const urlParams = new URLSearchParams(window.location.search);
         let mode = urlParams.get('mode');
         let oobCode = urlParams.get('oobCode');
-        const apiKey = urlParams.get('apiKey');
-        const lang = urlParams.get('lang') || 'ar';
 
-        // ============================================================
-        // الحيلة: إذا لم يتم العثور على oobCode في URL، نتحقق من localStorage
-        // ============================================================
         if (!oobCode) {
-            // محاولة استرجاع البيانات من localStorage (التي تم تخزينها من index.html)
             const storedMode = localStorage.getItem('verifyMode');
             const storedOobCode = localStorage.getItem('verifyOobCode');
             
             if (storedMode === 'verifyEmail' && storedOobCode) {
                 mode = storedMode;
                 oobCode = storedOobCode;
-                
-                // تنظيف localStorage بعد الاستخدام
                 localStorage.removeItem('verifyMode');
                 localStorage.removeItem('verifyOobCode');
-                localStorage.removeItem('verifyApiKey');
             }
         }
 
-        // ============================================================
-        // عناصر DOM
-        // ============================================================
         const content = document.getElementById('content');
 
-        // ============================================================
-        // دوال عرض الحالات
-        // ============================================================
         function showLoading() {
             content.innerHTML = `
                 <div class="loader-ring"></div>
-                <div class="title" style="margin-top:12px;">جاري التحقق...</div>
-                <div class="subtitle">يرجى الانتظار أثناء تأكيد بريدك الإلكتروني</div>
+                <div class="title" style="margin-top:12px;">Verifying...</div>
+                <div class="subtitle">Please wait while we process your request.</div>
             `;
         }
 
         function showSuccess(email) {
             content.innerHTML = `
                 <span class="icon">✅</span>
-                <div class="title">تم تأكيد البريد الإلكتروني!</div>
-                <div class="subtitle">${email ? `تم تأكيد البريد الإلكتروني <strong>${email}</strong> بنجاح.` : 'تم تأكيد بريدك الإلكتروني بنجاح.'}</div>
+                <div class="title">Email Verified!</div>
+                <div class="subtitle">${email ? `Email <strong>${email}</strong> successfully verified.` : 'Your email has been verified successfully.'}</div>
                 <div class="status-box success">
                     <i class="fas fa-check-circle" style="color:#34d399; font-size:20px;"></i>
-                    <span style="color:#34d399; font-weight:600; margin-left:8px;">✅ تم التحقق</span>
+                    <span style="color:#34d399; font-weight:600; margin-left:8px;">Verified</span>
                 </div>
                 <div class="btn-group">
                     <a href="index.html" class="btn btn-success">
-                        <i class="fas fa-home"></i> العودة إلى المتجر
-                    </a>
-                    <a href="index.html" class="btn btn-outline" onclick="window.close()">
-                        <i class="fas fa-times"></i> إغلاق
+                        <i class="fas fa-home"></i> Back to Store
                     </a>
                 </div>
                 <div class="footer">
-                    يمكنك الآن تسجيل الدخول والاستفادة من جميع ميزات ZI Store
+                    You can now log in and enjoy all ZI Store features.
                 </div>
             `;
         }
@@ -256,45 +230,16 @@
         function showError(message) {
             content.innerHTML = `
                 <span class="icon">❌</span>
-                <div class="title">حدث خطأ</div>
-                <div class="subtitle">تعذر تأكيد البريد الإلكتروني</div>
+                <div class="title">Error</div>
+                <div class="subtitle">Could not verify email</div>
                 <div class="status-box error">
                     <i class="fas fa-exclamation-circle" style="color:#f87171; font-size:20px;"></i>
-                    <span style="color:#f87171; font-weight:600; margin-left:8px;">${message || 'الرابط غير صالح أو منتهي الصلاحية'}</span>
+                    <span style="color:#f87171; font-weight:600; margin-left:8px;">${message || 'Invalid or expired link.'}</span>
                 </div>
                 <div class="btn-group">
                     <a href="index.html" class="btn btn-primary">
-                        <i class="fas fa-home"></i> العودة إلى المتجر
+                        <i class="fas fa-home"></i> Back to Store
                     </a>
-                    <a href="index.html" class="btn btn-outline" onclick="window.close()">
-                        <i class="fas fa-times"></i> إغلاق
-                    </a>
-                </div>
-                <div class="footer">
-                    إذا استمرت المشكلة، يرجى التواصل مع الدعم الفني
-                </div>
-            `;
-        }
-
-        function showEmailSent(email) {
-            content.innerHTML = `
-                <span class="icon">📧</span>
-                <div class="title">تم إرسال رابط التأكيد</div>
-                <div class="subtitle">تم إرسال رابط تأكيد البريد الإلكتروني إلى <strong>${email || 'بريدك الإلكتروني'}</strong></div>
-                <div class="status-box success">
-                    <i class="fas fa-check-circle" style="color:#34d399; font-size:20px;"></i>
-                    <span style="color:#34d399; font-weight:600; margin-left:8px;">✅ تم الإرسال</span>
-                </div>
-                <div class="btn-group">
-                    <a href="index.html" class="btn btn-success">
-                        <i class="fas fa-home"></i> العودة إلى المتجر
-                    </a>
-                    <a href="index.html" class="btn btn-outline" onclick="window.close()">
-                        <i class="fas fa-times"></i> إغلاق
-                    </a>
-                </div>
-                <div class="footer">
-                    يرجى التحقق من صندوق الوارد (أو مجلد البريد غير المرغوب فيه)
                 </div>
             `;
         }
@@ -302,131 +247,88 @@
         function showResetPassword(email) {
             content.innerHTML = `
                 <span class="icon">🔑</span>
-                <div class="title">إعادة تعيين كلمة المرور</div>
-                <div class="subtitle">قم بتعيين كلمة مرور جديدة لحسابك</div>
+                <div class="title">Reset Password</div>
+                <div class="subtitle">Set a new password for your account</div>
                 <div style="background:#0a0a1a; border-radius:12px; padding:16px; border:1px solid #2a2a5a; margin-bottom:16px;">
                     <div style="margin-bottom:12px; text-align:left;">
-                        <label style="display:block; font-size:12px; font-weight:600; color:#a0a0c0; opacity:0.6; margin-bottom:4px;">كلمة المرور الجديدة</label>
-                        <input type="password" id="newPassword" placeholder="••••••••" style="width:100%; padding:10px 14px; border:2px solid #2a2a5a; border-radius:8px; background:#0a0a1a; color:#fff; font-size:14px; outline:none; transition:0.3s;" />
+                        <label style="display:block; font-size:12px; font-weight:600; color:#a0a0c0; opacity:0.6; margin-bottom:4px;">New Password</label>
+                        <input type="password" id="newPassword" placeholder="••••••••" style="width:100%; padding:10px 14px; border:2px solid #2a2a5a; border-radius:8px; background:#0a0a1a; color:#fff; font-size:14px; outline:none;" />
                     </div>
                     <div style="text-align:left;">
-                        <label style="display:block; font-size:12px; font-weight:600; color:#a0a0c0; opacity:0.6; margin-bottom:4px;">تأكيد كلمة المرور</label>
-                        <input type="password" id="confirmPassword" placeholder="••••••••" style="width:100%; padding:10px 14px; border:2px solid #2a2a5a; border-radius:8px; background:#0a0a1a; color:#fff; font-size:14px; outline:none; transition:0.3s;" />
+                        <label style="display:block; font-size:12px; font-weight:600; color:#a0a0c0; opacity:0.6; margin-bottom:4px;">Confirm Password</label>
+                        <input type="password" id="confirmPassword" placeholder="••••••••" style="width:100%; padding:10px 14px; border:2px solid #2a2a5a; border-radius:8px; background:#0a0a1a; color:#fff; font-size:14px; outline:none;" />
                     </div>
                 </div>
                 <div id="resetError" style="color:#f87171; font-size:13px; margin-bottom:8px; display:none;"></div>
                 <div class="btn-group">
                     <button id="resetBtn" class="btn btn-primary" style="width:100%;">
-                        <i class="fas fa-key"></i> إعادة تعيين كلمة المرور
+                        <i class="fas fa-key"></i> Reset Password
                     </button>
-                </div>
-                <div class="footer">
-                    تأكد من أن كلمة المرور لا تقل عن 6 أحرف
                 </div>
             `;
 
-            // معالج زر إعادة التعيين
             document.getElementById('resetBtn').addEventListener('click', async function() {
                 const newPassword = document.getElementById('newPassword').value;
                 const confirmPassword = document.getElementById('confirmPassword').value;
                 const errorEl = document.getElementById('resetError');
 
-                if (!newPassword || !confirmPassword) {
-                    errorEl.textContent = '⚠️ الرجاء إدخال كلمة المرور الجديدة';
-                    errorEl.style.display = 'block';
-                    return;
-                }
                 if (newPassword.length < 6) {
-                    errorEl.textContent = '⚠️ كلمة المرور يجب أن تكون 6 أحرف على الأقل';
+                    errorEl.textContent = '⚠️ Password must be at least 6 characters.';
                     errorEl.style.display = 'block';
                     return;
                 }
                 if (newPassword !== confirmPassword) {
-                    errorEl.textContent = '⚠️ كلمات المرور غير متطابقة';
+                    errorEl.textContent = '⚠️ Passwords do not match.';
                     errorEl.style.display = 'block';
                     return;
                 }
 
-                errorEl.style.display = 'none';
                 this.disabled = true;
-                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحديث...';
+                this.textContent = 'Updating...';
 
                 try {
                     await confirmPasswordReset(auth, oobCode, newPassword);
                     content.innerHTML = `
                         <span class="icon">✅</span>
-                        <div class="title">تم إعادة تعيين كلمة المرور!</div>
-                        <div class="subtitle">تم تحديث كلمة المرور بنجاح. يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة.</div>
-                        <div class="status-box success">
-                            <i class="fas fa-check-circle" style="color:#34d399; font-size:20px;"></i>
-                            <span style="color:#34d399; font-weight:600; margin-left:8px;">✅ تم التحديث</span>
-                        </div>
+                        <div class="title">Password Reset!</div>
+                        <div class="subtitle">Your password has been updated successfully.</div>
                         <div class="btn-group">
-                            <a href="index.html" class="btn btn-success">
-                                <i class="fas fa-home"></i> العودة إلى المتجر
-                            </a>
+                            <a href="index.html" class="btn btn-success">Back to Store</a>
                         </div>
-                        <div class="footer">يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة</div>
                     `;
                 } catch (error) {
                     errorEl.textContent = '❌ ' + error.message;
                     errorEl.style.display = 'block';
                     this.disabled = false;
-                    this.innerHTML = '<i class="fas fa-key"></i> إعادة تعيين كلمة المرور';
+                    this.textContent = 'Reset Password';
                 }
             });
         }
 
-        // ============================================================
-        // معالجة الرابط
-        // ============================================================
         async function handleAction() {
             showLoading();
-
-            // إذا لم يكن هناك oobCode، نعرض رسالة خطأ
             if (!oobCode) {
-                showError('رابط غير صالح');
+                showError('Invalid link');
                 return;
             }
 
             try {
-                // التحقق من نوع الإجراء
                 const actionInfo = await checkActionCode(auth, oobCode);
-                const actionData = actionInfo.data;
-
-                // معالجة حسب نوع الإجراء
+                
                 if (mode === 'verifyEmail') {
-                    // تأكيد البريد الإلكتروني
                     await applyActionCode(auth, oobCode);
-                    showSuccess(actionData.email);
+                    showSuccess(actionInfo.data.email);
                 } else if (mode === 'resetPassword') {
-                    // إعادة تعيين كلمة المرور
-                    showResetPassword(actionData.email);
-                } else if (mode === 'recoverEmail') {
-                    // استعادة البريد الإلكتروني (نادر الاستخدام)
-                    await applyActionCode(auth, oobCode);
-                    showSuccess('تم استعادة البريد الإلكتروني بنجاح');
+                    showResetPassword(actionInfo.data.email);
                 } else {
-                    // إجراء غير معروف
-                    showError('نوع الإجراء غير معروف');
+                    showError('Unknown action type');
                 }
             } catch (error) {
-                console.error('Verification error:', error);
-                if (error.code === 'auth/invalid-action-code') {
-                    showError('الرابط غير صالح أو منتهي الصلاحية. يرجى طلب رابط تأكيد جديد.');
-                } else if (error.code === 'auth/expired-action-code') {
-                    showError('انتهت صلاحية الرابط. يرجى طلب رابط تأكيد جديد.');
-                } else {
-                    showError(error.message || 'حدث خطأ أثناء التحقق');
-                }
+                showError(error.code === 'auth/expired-action-code' ? 'Link expired.' : error.message);
             }
         }
 
-        // ============================================================
-        // تنفيذ المعالجة
-        // ============================================================
         handleAction();
-
     </script>
 </body>
 </html>
