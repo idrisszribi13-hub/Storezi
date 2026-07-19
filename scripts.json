@@ -2,7 +2,7 @@
   "script1": {
     "activeVersion": {
       "date": "2026-07-18",
-      "downloadLink": "https://raw.githubusercontent.com/ldrisszribi13-hub/Storezi/main/script1.lua",
+      "downloadLink": "https://raw.githubusercontent.com/idrisszribi13-hub/Storezi/refs/heads/main/script1.lua",
       "fixes": "لا يوجد",
       "versionNumber": "1.0.0",
       "whatsNew": "الإصدار الأول"
@@ -13,7 +13,7 @@
     "versions": {
       "v1": {
         "date": "2026-07-18",
-        "downloadLink": "https://raw.githubusercontent.com/ldrisszribi13-hub/Storezi/main/script1.lua",
+        "downloadLink": "https://raw.githubusercontent.com/idrisszribi13-hub/Storezi/refs/heads/main/script1.lua",
         "fixes": "لا يوجد",
         "versionNumber": "1.0.0",
         "whatsNew": "الإصدار الأول"
