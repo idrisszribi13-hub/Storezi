@@ -1,19 +1,19 @@
 {
-  "my_script_1": {
+  "script1": {
     "activeVersion": {
       "date": "2026-07-18",
-      "downloadLink": "https://raw.githubusercontent.com/ldrisszribi13-hub/Storezi/main/script1/1.0.0/script.lua",
+      "downloadLink": "https://raw.githubusercontent.com/ldrisszribi13-hub/Storezi/main/script1.lua",
       "fixes": "لا يوجد",
       "versionNumber": "1.0.0",
       "whatsNew": "الإصدار الأول"
     },
     "activeVersionId": "v1",
-    "imageUrl": "https://raw.githubusercontent.com/ldrisszribi13-hub/Storezi/main/icons/icon1.png",
+    "imageUrl": "",
     "name": "سكربت تجريبي",
     "versions": {
       "v1": {
         "date": "2026-07-18",
-        "downloadLink": "https://raw.githubusercontent.com/ldrisszribi13-hub/Storezi/main/script1/1.0.0/script.lua",
+        "downloadLink": "https://raw.githubusercontent.com/ldrisszribi13-hub/Storezi/main/script1.lua",
         "fixes": "لا يوجد",
         "versionNumber": "1.0.0",
         "whatsNew": "الإصدار الأول"
