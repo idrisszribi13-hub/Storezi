@@ -41,7 +41,8 @@ import {
     EmailAuthProvider,
     GoogleAuthProvider,
     signInWithPopup,
-    fetchSignInMethodsForEmail
+    fetchSignInMethodsForEmail,
+    sendEmailVerification
 } from "firebase/auth";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, collection, query, where, getDocs, onSnapshot, addDoc, deleteDoc, orderBy } from "firebase/firestore";
 import { getAnalytics } from "firebase/analytics";
@@ -744,6 +745,19 @@ window.registerUser = async function() {
         btn.classList.remove('loading');
         await refreshAdminStatus();
         
+        // ============================================================
+        // إرسال رابط تأكيد البريد الإلكتروني تلقائياً بعد التسجيل
+        // ============================================================
+        try {
+            await sendEmailVerification(currentUser, {
+                url: 'https://zi-store.online/verify-email',
+                handleCodeInApp: true
+            });
+            console.log('📧 Verification email sent to:', currentUser.email);
+        } catch (e) {
+            console.warn('Could not send verification email:', e);
+        }
+        
         setTimeout(() => {
             document.getElementById('authSection').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
@@ -962,7 +976,7 @@ window.closeNotifications = function() { document.getElementById('notificationsM
 window.openAuthModal = function() { document.getElementById('authSection').scrollIntoView({ behavior: 'smooth' }); };
 
 // ============================================================
-// 7. Render Profile Full
+// 7. Render Profile Full with Email Verification
 // ============================================================
 
 function renderProfileFull() {
@@ -971,10 +985,18 @@ function renderProfileFull() {
         container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-user-circle" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">Please login</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Login to view your profile</div></div>`;
         return;
     }
+    
+    // التحقق من حالة البريد الإلكتروني
+    const isVerified = currentUser.emailVerified || false;
+    const verificationStatus = isVerified 
+        ? '<span style="color:var(--success);">✅ موثق</span>' 
+        : '<span style="color:var(--danger);">⚠️ غير موثق</span>';
+    
     const displayName = currentUser.displayName || currentUser.email || 'User';
     const photoURL = userProfile.photoURL || currentUser.photoURL || '';
     const maskedChatId = userProfile.telegramChatId ? userProfile.telegramChatId.slice(0, 4) + '***' + userProfile.telegramChatId.slice(-4) : 'Not linked';
     const activeLicences = (userProfile.licences || []).filter(l => new Date(l.expiryDate) > new Date()).length;
+    
     container.innerHTML = `
     <div class="profile-container">
         <div class="profile-card">
@@ -985,6 +1007,11 @@ function renderProfileFull() {
                 <div class="profile-info">
                     <h3>${displayName}</h3>
                     <div class="profile-email">${currentUser.email || 'No email'}</div>
+                    <div style="margin-top:4px; font-size:13px;">
+                        📧 البريد الإلكتروني: ${currentUser.email} 
+                        ${verificationStatus}
+                        ${!isVerified ? `<button onclick="sendEmailVerification()" style="margin-left:8px; padding:2px 12px; border:none; border-radius:6px; background:var(--primary); color:#fff; font-size:11px; cursor:pointer;">إرسال التأكيد</button>` : ''}
+                    </div>
                     <div>
                         <span class="profile-badge rp">🎯 RP: ${userProfile.rp || 0}</span>
                         <span class="profile-badge licence">🔑 Licences: ${activeLicences}</span>
@@ -2329,7 +2356,11 @@ window.openPaymentModal = function() {
     updatePayableTotal(); fetchCryptoPrices();
 };
 window.closePaymentModal = function() { document.getElementById('paymentModal').classList.remove('open'); document.getElementById('paymentStep1').style.display = 'block'; document.getElementById('paymentStep2').classList.remove('active'); selectedPayment = null; document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected')); };
-window.checkout = function() { openPaymentModal(); };
+window.checkout = function() { 
+    // التحقق من توثيق البريد الإلكتروني قبل الشراء
+    if (!checkUserVerified()) return;
+    openPaymentModal(); 
+};
 
 // ============================================================
 // 17. Telegram Functions
@@ -4749,7 +4780,109 @@ window.exportOrders = function() {
 };
 
 // ============================================================
-// 36. Auth State Listener
+// 36. Email Verification Functions
+// ============================================================
+
+/**
+ * إرسال رابط تأكيد البريد الإلكتروني للمستخدم الحالي
+ */
+async function sendEmailVerification() {
+    if (!currentUser) {
+        showToast('⚠️ الرجاء تسجيل الدخول أولاً', 'warning');
+        return false;
+    }
+
+    try {
+        // التحقق من أن البريد الإلكتروني غير موثق بالفعل
+        if (currentUser.emailVerified) {
+            showToast('✅ بريدك الإلكتروني موثق بالفعل', 'success');
+            return true;
+        }
+
+        // إرسال رابط التأكيد
+        await sendEmailVerification(currentUser, {
+            url: 'https://zi-store.online/verify-email',
+            handleCodeInApp: true
+        });
+
+        showToast('📧 تم إرسال رابط التأكيد إلى بريدك الإلكتروني', 'success');
+        return true;
+    } catch (error) {
+        console.error('Error sending email verification:', error);
+        showToast('❌ فشل إرسال رابط التأكيد: ' + error.message, 'error');
+        return false;
+    }
+}
+
+/**
+ * التحقق من حالة البريد الإلكتروني وتحديث الواجهة
+ */
+async function checkEmailVerificationStatus() {
+    if (!currentUser) return;
+
+    try {
+        // تحديث حالة المستخدم من Firebase
+        await currentUser.reload();
+        
+        const isVerified = currentUser.emailVerified;
+        const verificationBanner = document.getElementById('emailVerificationBanner');
+        
+        if (verificationBanner) {
+            if (!isVerified && currentUser.email) {
+                verificationBanner.style.display = 'block';
+                verificationBanner.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:10px 16px; background:rgba(251,191,36,0.1); border:1px solid #fbbf24; border-radius:10px; margin-bottom:12px;">
+                        <i class="fas fa-envelope" style="color:#fbbf24; font-size:20px;"></i>
+                        <div style="flex:1; font-size:13px; color:var(--text);">
+                            <strong>يرجى تأكيد بريدك الإلكتروني</strong>
+                            <span style="opacity:0.5; margin-left:4px;">(${currentUser.email})</span>
+                        </div>
+                        <button onclick="sendEmailVerification()" style="padding:6px 16px; border:none; border-radius:8px; background:#fbbf24; color:#0a0a1a; font-weight:600; cursor:pointer; font-size:12px;">
+                            <i class="fas fa-paper-plane"></i> إرسال التأكيد
+                        </button>
+                        <button onclick="this.closest('.email-verification-banner').style.display='none'" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; opacity:0.3; font-size:14px;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+                // Add class for targeting
+                verificationBanner.className = 'email-verification-banner';
+            } else {
+                verificationBanner.style.display = 'none';
+            }
+        }
+
+        return isVerified;
+    } catch (error) {
+        console.error('Error checking email verification:', error);
+        return false;
+    }
+}
+
+// ============================================================
+// 37. User Verification Check before Checkout
+// ============================================================
+
+/**
+ * التحقق من توثيق البريد الإلكتروني قبل الشراء
+ */
+function checkUserVerified() {
+    if (!currentUser) {
+        showToast('⚠️ الرجاء تسجيل الدخول أولاً', 'warning');
+        return false;
+    }
+    
+    if (!currentUser.emailVerified) {
+        showToast('⚠️ يرجى تأكيد بريدك الإلكتروني أولاً', 'warning');
+        sendEmailVerification();
+        return false;
+    }
+    
+    return true;
+}
+
+// ============================================================
+// 38. Auth State Listener
 // ============================================================
 
 onAuthStateChanged(auth, async (user) => {
@@ -4812,6 +4945,12 @@ onAuthStateChanged(auth, async (user) => {
         startSocialProof();
         setTimeout(window.ensureAdminPanel, 2000);
         setTimeout(checkCookieConsent, 1000);
+        
+        // التحقق من حالة البريد الإلكتروني بعد تسجيل الدخول
+        setTimeout(() => {
+            checkEmailVerificationStatus();
+        }, 2000);
+        
         updateLoadingText('✅ Ready!');
 
         window.showMainApp();
@@ -4843,7 +4982,7 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// 37. Auto-check Admin Panel
+// 39. Auto-check Admin Panel
 // ============================================================
 
 setInterval(() => {
@@ -4866,7 +5005,7 @@ setInterval(() => {
 }, 5000);
 
 // ============================================================
-// 38. Init
+// 40. Init
 // ============================================================
 
 async function init() {
@@ -4942,7 +5081,7 @@ async function init() {
 }
 
 // ============================================================
-// 39. Theme Toggle
+// 41. Theme Toggle
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -4967,7 +5106,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================================
-// 40. Export all functions to global scope
+// 42. Export all functions to global scope
 // ============================================================
 
 window.toggleLicencesList = toggleLicencesList;
@@ -5109,9 +5248,12 @@ window.removeQuantityOption = removeQuantityOption;
 window.toggleBadge = toggleBadge;
 window.selectQuantityOption = selectQuantityOption;
 window.loginWithGoogle = loginWithGoogle;
+window.sendEmailVerification = sendEmailVerification;
+window.checkEmailVerificationStatus = checkEmailVerificationStatus;
+window.checkUserVerified = checkUserVerified;
 
 // ============================================================
-// 41. Support Functions
+// 43. Support Functions
 // ============================================================
 
 window.toggleSupportMenu = function() {
@@ -5192,7 +5334,7 @@ document.addEventListener('keydown', function(e) {
 console.log('✅ Support system loaded successfully!');
 
 // ============================================================
-// 42. Start App
+// 44. Start App
 // ============================================================
 
 if (document.readyState === 'loading') {
