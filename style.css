@@ -4036,5 +4036,276 @@ input, select, textarea {
     display: none !important;
 }
 /* ============================================
+   مودال تفاصيل المنتج
+   ============================================ */
+.product-detail-image {
+    width: 100%;
+    aspect-ratio: 16/9;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: var(--bg-secondary);
+}
+
+.product-detail-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.product-detail-badge {
+    display: inline-block;
+    padding: 4px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    background: var(--warning);
+    color: #0a0a1a;
+    margin-bottom: 8px;
+}
+
+.product-detail-badge.vip {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+}
+
+.product-detail-badge.free {
+    background: var(--success);
+    color: #0a0a1a;
+}
+
+.product-detail-badge.pro {
+    background: var(--primary);
+    color: #fff;
+}
+
+.product-detail-verified {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--success);
+    background: rgba(52,211,153,0.1);
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 8px;
+}
+
+.product-detail-name {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--text);
+    margin: 4px 0 8px;
+}
+
+.product-detail-price {
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.product-detail-price .original {
+    font-size: 18px;
+    color: rgba(255,255,255,0.3);
+    text-decoration: line-through;
+    font-weight: 400;
+}
+
+.product-detail-desc {
+    color: var(--text-secondary);
+    line-height: 1.8;
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
+.product-detail-features {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 16px;
+}
+
+.product-detail-features li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.product-detail-features li i {
+    color: var(--success);
+    font-size: 14px;
+}
+
+.product-detail-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.product-detail-actions .btn {
+    padding: 12px 28px;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    flex: 1;
+    justify-content: center;
+    min-width: 120px;
+}
+
+.product-detail-actions .btn-primary {
+    background: var(--primary-gradient);
+    color: #fff;
+}
+
+.product-detail-actions .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px var(--primary-glow);
+}
+
+.product-detail-actions .btn-outline {
+    background: transparent;
+    border: 2px solid var(--border);
+    color: var(--text-secondary);
+}
+
+.product-detail-actions .btn-outline:hover {
+    border-color: var(--primary);
+    color: #fff;
+}
+
+.product-detail-actions .btn-heart {
+    width: 50px;
+    height: 50px;
+    border-radius: var(--radius-md);
+    background: rgba(255,255,255,0.05);
+    border: 2px solid var(--border);
+    color: rgba(255,255,255,0.5);
+    font-size: 18px;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 50px;
+}
+
+.product-detail-actions .btn-heart:hover {
+    border-color: #e84393;
+    color: #e84393;
+}
+
+.product-detail-actions .btn-heart.liked {
+    border-color: #e84393;
+    color: #e84393;
+    background: rgba(232,67,147,0.1);
+}
+
+.product-detail-vip {
+    margin-top: 12px;
+    padding: 14px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+}
+
+.product-detail-vip .vip-header {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--vip-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.product-detail-vip .vip-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 6px;
+}
+
+.product-detail-vip .vip-plan {
+    background: var(--bg);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 6px;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.product-detail-vip .vip-plan:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+}
+
+.product-detail-vip .vip-plan.selected {
+    border-color: var(--vip-color);
+    background: rgba(251,191,36,0.1);
+}
+
+.product-detail-vip .vip-plan .plan-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    opacity: 0.5;
+}
+
+.product-detail-vip .vip-plan .plan-price {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--vip-color);
+}
+
+.product-detail-vip .vip-add-btn {
+    width: 100%;
+    padding: 8px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: var(--primary-gradient);
+    color: #fff;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: var(--transition);
+    margin-top: 8px;
+}
+
+.product-detail-vip .vip-add-btn:hover {
+    opacity: 0.8;
+}
+
+@media (max-width: 480px) {
+    .product-detail-name {
+        font-size: 20px;
+    }
+    .product-detail-price {
+        font-size: 22px;
+    }
+    .product-detail-features {
+        grid-template-columns: 1fr;
+    }
+    .product-detail-actions .btn {
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+   }
+/* ============================================
    نهاية الملف - جميع الإصلاحات مطبقة
    ============================================ */
