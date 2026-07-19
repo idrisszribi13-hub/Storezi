@@ -750,7 +750,7 @@ window.registerUser = async function() {
         // ============================================================
         try {
             await sendEmailVerification(currentUser, {
-                url: 'https://zi-store.online/verify-email',
+                url: 'https://zi-store.online/verify-email.html',
                 handleCodeInApp: true
             });
             console.log('📧 Verification email sent to:', currentUser.email);
@@ -4801,7 +4801,7 @@ async function sendEmailVerification() {
 
         // إرسال رابط التأكيد
         await sendEmailVerification(currentUser, {
-            url: 'https://zi-store.online/verify-email',
+            url: 'https://zi-store.online/verify-email.html',
             handleCodeInApp: true
         });
 
