@@ -1562,27 +1562,21 @@ window.changePasswordInline = async function() { if (!currentUser) return; const
 // 🔥 Strong product loading with retry
 // ============================================================
 
-async function loadProductsWithRetry(retryCount = 0) {
-    console.log(`🔄 Loading products attempt (${retryCount + 1})...`);
+async function forceLoadProducts() {
+    console.log('🔥 Force loading products...');
     
     try {
         const productsRef = collection(db, 'products');
         const querySnapshot = await getDocs(productsRef);
         
-        console.log(`📦 Products found in Firestore: ${querySnapshot.size}`);
+        console.log(`📦 Products found: ${querySnapshot.size}`);
         
         if (querySnapshot.empty) {
-            console.log('⚠️ No products found in Firestore');
-            if (retryCount < 3) {
-                console.log(`🔄 Retrying in 1 second... (${retryCount + 1}/3)`);
-                setTimeout(() => loadProductsWithRetry(retryCount + 1), 1000);
-            } else {
-                console.log('❌ Failed to load products after 3 attempts, using fallback');
-                products = fallbackProducts;
-                renderProducts(products, false);
-                updateStatsFromProducts(products);
-                generateRecommendations(products);
-            }
+            console.log('⚠️ No products in Firestore, using fallback');
+            products = fallbackProducts;
+            renderProducts(products, false);
+            updateStatsFromProducts(products);
+            generateRecommendations(products);
             return;
         }
         
@@ -1619,26 +1613,18 @@ async function loadProductsWithRetry(retryCount = 0) {
             });
         });
         
-        console.log(`✅ Successfully loaded ${productsList.length} products`);
+        console.log(`✅ Loaded ${productsList.length} products`);
         products = productsList;
         renderProducts(products, false);
         updateStatsFromProducts(products);
         generateRecommendations(products);
-        showToast(`✅ Loaded ${products.length} products`, 'success');
         
     } catch (error) {
-        console.error('❌ Error loading products:', error);
-        if (retryCount < 3) {
-            console.log(`🔄 Retrying in 2 seconds... (${retryCount + 1}/3)`);
-            setTimeout(() => loadProductsWithRetry(retryCount + 1), 2000);
-        } else {
-            console.log('❌ Failed to load products, using fallback');
-            products = fallbackProducts;
-            renderProducts(products, false);
-            updateStatsFromProducts(products);
-            generateRecommendations(products);
-            showToast('⚠️ Using fallback products', 'warning');
-        }
+        console.error('❌ Force load error:', error);
+        products = fallbackProducts;
+        renderProducts(products, false);
+        updateStatsFromProducts(products);
+        generateRecommendations(products);
     }
 }
 
@@ -1664,7 +1650,7 @@ window.retryLoadProducts = async function() {
     renderProducts([], true);
     
     try {
-        await loadProductsWithRetry();
+        await forceLoadProducts();
         
         if (statusMsg) {
             statusMsg.textContent = `✅ Loaded ${products.length} products successfully!`;
@@ -1715,93 +1701,53 @@ function renderBadges(badges) {
     return `<div class="product-badges">${badges.map(b => `<span class="mini-badge ${badgeMap[b] || ''}">${b}</span>`).join('')}</div>`;
 }
 
-function renderProducts(productsList, isLoading = false) {
+// ============================================================
+// إصلاح دالة renderProducts - عرض فوري
+// ============================================================
+
+// دالة فورية لعرض المنتجات
+function renderProductsImmediately(productsList) {
     const container = document.getElementById('productList');
     if (!container) {
         console.warn('⚠️ productList container not found');
         return;
     }
     
-    // Show loading state
-    if (isLoading) {
-        container.innerHTML = `
-            <div style="grid-column:1/-1;text-align:center;padding:60px 20px;">
-                <div class="loader-dots">
-                    <div class="loader-dot"></div>
-                    <div class="loader-dot"></div>
-                    <div class="loader-dot"></div>
-                </div>
-                <p style="font-size:16px;color:var(--text-secondary);opacity:0.5;">Loading products...</p>
-            </div>
-        `;
-        return;
-    }
-    
     const list = productsList || [];
-    console.log('📦 Rendering products:', list.length);
+    console.log('📦 Rendering products immediately:', list.length);
     
-    // No products - show friendly message
     if (list.length === 0) {
         container.innerHTML = `
-            <div class="empty-products-message">
-                <div class="icon">📦</div>
-                <p class="title">No Products Available</p>
-                <p class="subtitle">New products will be added soon. Follow us on social media to stay updated!</p>
-                <div class="actions">
-                    <a href="https://t.me/Mitalica69" target="_blank" class="btn-telegram">
-                        <i class="fab fa-telegram-plane"></i> Follow on Telegram
-                    </a>
-                    <button onclick="window.retryLoadProducts()" class="btn-refresh">
-                        <i class="fas fa-sync-alt"></i> Retry
-                    </button>
-                </div>
-                <div id="loadingStatusMessage" class="status-message"></div>
+            <div style="grid-column:1/-1;text-align:center;padding:60px 20px;">
+                <div style="font-size:64px;margin-bottom:16px;">📦</div>
+                <p style="font-size:22px;font-weight:700;color:var(--text);margin-bottom:8px;">No Products Available</p>
+                <p style="font-size:14px;color:var(--text-secondary);opacity:0.5;margin-bottom:20px;">Loading products...</p>
+                <button onclick="window.forceLoadProducts()" style="padding:10px 24px;border:2px solid var(--border);border-radius:8px;background:var(--primary);color:#fff;font-weight:600;cursor:pointer;">
+                    <i class="fas fa-sync-alt"></i> Load Products
+                </button>
             </div>
         `;
         return;
     }
     
-    // Filter products
-    let filtered = [...list];
-    if (currentFilter === 'free') {
-        filtered = filtered.filter(p => p.price === 0 || p.price === '0');
-    } else if (currentFilter === 'paid') {
-        filtered = filtered.filter(p => p.price > 0);
-    }
-    
-    if (filtered.length === 0) {
-        container.innerHTML = `
-            <div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text-secondary);">
-                <i class="fas fa-search" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i>
-                <p style="font-size:18px;font-weight:600;">No Results Found</p>
-                <p style="font-size:14px;opacity:0.4;margin-top:4px;">Try changing your filter</p>
-            </div>
-        `;
-        return;
-    }
-    
-    // Render products
-    container.innerHTML = filtered.map(p => {
-        const isFree = p.price === 0 || p.price === '0';
+    let html = '';
+    list.forEach(p => {
+        const isFree = p.price === 0;
         const isUnavailable = p.status === 'unavailable';
-        const inCart = cart.some(item => item.id === p.id && !item.isVip);
-        const inWish = wishlist.includes(p.id);
-        const qty = cart.find(item => item.id === p.id)?.quantity || 0;
         const badgeLabel = isFree ? 'FREE' : (isUnavailable ? 'Unavailable' : (p.badge || 'VIP'));
         const badgeClass = isUnavailable ? 'unavailable' : (isFree ? 'free' : 'vip');
-        const displayFeatures = p.features ? p.features.slice(0, 3) : [];
         const currencySymbol = getCurrencySymbol(p.currency || 'USD');
-        const priceValue = parseFloat(p.price) || 0;
-        const priceDisplay = isUnavailable ? '⛔ Unavailable' : (isFree ? '🎁 Free' : `${currencySymbol}${priceValue.toFixed(2)}`);
+        const priceDisplay = isUnavailable ? '⛔ Unavailable' : (isFree ? 'FREE' : `${currencySymbol}${Number(p.price).toFixed(2)}`);
+        const displayFeatures = p.features ? p.features.slice(0, 3) : [];
         
-        return `
+        html += `
             <div class="product-card" onclick="window.openProductDetailModal('${p.id}')">
                 <div class="product-actions-top">
                     <button class="share-btn" onclick="event.stopPropagation(); window.openShareModal('${p.id}')" title="Share">
                         <i class="fas fa-share-alt"></i>
                     </button>
                     <button class="wishlist-btn" onclick="event.stopPropagation(); window.toggleWishlist('${p.id}')" title="Wishlist">
-                        <i class="fas fa-heart heart-icon ${inWish ? 'liked' : ''}"></i>
+                        <i class="fas fa-heart heart-icon"></i>
                     </button>
                 </div>
                 <div class="image-wrapper">
@@ -1812,35 +1758,52 @@ function renderProducts(productsList, isLoading = false) {
                     <div class="image-badge ${badgeClass}">${badgeLabel}</div>
                 </div>
                 <div class="product-name">${p.name}</div>
-                ${p.badges && p.badges.length > 0 ? renderBadges(p.badges) : ''}
                 <div class="features-list">
                     ${displayFeatures.map(f => `<span class="feature-item"><i class="fas fa-circle"></i> ${f}</span>`).join('')}
-                    ${displayFeatures.length > 0 && p.features && p.features.length > 3 ? `<span class="feature-item" style="opacity:0.2;">+${p.features.length - 3}</span>` : ''}
                 </div>
                 <div class="price">${priceDisplay}</div>
                 <div class="card-actions">
                     <button class="btn-details" onclick="event.stopPropagation(); window.openProductDetailModal('${p.id}')">
                         <i class="fas fa-info-circle"></i> Details
                     </button>
-                    ${isUnavailable ? `
-                        <button class="btn-download" style="background:var(--text-secondary);color:#fff;cursor:not-allowed;opacity:0.4;" onclick="event.preventDefault();showToast('⛔ Unavailable','warning')">
-                            <i class="fas fa-times-circle"></i>
-                        </button>
-                    ` : (isFree ? `
+                    ${isFree ? `
                         <a href="${p.downloadLink || '#'}" class="btn-download" ${p.downloadLink ? 'target="_blank"' : 'onclick="event.preventDefault();showToast(\'⏳ Coming soon\',\'info\')"'}>
                             <i class="fas fa-download"></i> Download
                         </a>
                     ` : `
-                        <button class="btn-add-cart ${inCart ? 'added' : ''}" onclick="event.stopPropagation(); window.addToCart('${p.id}')">
-                            <i class="fas ${inCart ? 'fa-check' : 'fa-cart-plus'}"></i> ${inCart ? 'Added' : 'Add to Cart'}
+                        <button class="btn-add-cart" onclick="event.stopPropagation(); window.addToCart('${p.id}')">
+                            <i class="fas fa-cart-plus"></i> Add
                         </button>
                     `)}
                 </div>
             </div>
         `;
-    }).join('');
+    });
     
-    console.log('✅ Products rendered successfully');
+    container.innerHTML = html;
+    console.log('✅ Products rendered immediately');
+}
+
+function renderProducts(productsList, isLoading = false) {
+    if (isLoading) {
+        const container = document.getElementById('productList');
+        if (container) {
+            container.innerHTML = `
+                <div style="grid-column:1/-1;text-align:center;padding:60px 20px;">
+                    <div class="loader-dots">
+                        <div class="loader-dot"></div>
+                        <div class="loader-dot"></div>
+                        <div class="loader-dot"></div>
+                    </div>
+                    <p style="font-size:16px;color:var(--text-secondary);opacity:0.5;">Loading products...</p>
+                </div>
+            `;
+        }
+        return;
+    }
+    
+    // استخدام الدالة السريعة
+    renderProductsImmediately(productsList);
 }
 
 function updateStatsFromProducts(productsList) {
@@ -5681,8 +5644,8 @@ async function init() {
         // Show loading state
         renderProducts([], true);
         
-        // Load products with retry
-        await loadProductsWithRetry();
+        // Load products immediately
+        await forceLoadProducts();
         
         // Load remaining data
         await loadUserData();
@@ -5744,15 +5707,14 @@ async function init() {
         if (products.length === 0) {
             setTimeout(async () => {
                 console.log('🔄 Retrying product load in background...');
-                await loadProductsWithRetry();
-            }, 3000);
-            
-            setTimeout(async () => {
+                await forceLoadProducts();
                 if (products.length === 0) {
-                    console.log('🔄 Final retry after 6 seconds...');
-                    await loadProductsWithRetry();
+                    setTimeout(async () => {
+                        console.log('🔄 Final retry after 4 seconds...');
+                        await forceLoadProducts();
+                    }, 2000);
                 }
-            }, 6000);
+            }, 2000);
         }
 
     } catch (error) {
@@ -5943,9 +5905,7 @@ window.sendEmailVerification = sendEmailVerification;
 window.checkVerificationStatus = checkVerificationStatus;
 window.closeVerificationDialog = closeVerificationDialog;
 window.renderProfileFull = renderProfileFull;
-window.loadProductsDirectly = loadProductsDirectly;
-window.loadProductsWithRetry = loadProductsWithRetry;
-window.retryLoadProducts = retryLoadProducts;
+window.forceLoadProducts = forceLoadProducts;
 
 // ============================================================
 // 41. Support Functions
