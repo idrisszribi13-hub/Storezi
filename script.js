@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - Full Version
+// SCRIPT.JS - ZI Store - Full Version with Binance ID
 // ============================================================
 
 // ============================================================
@@ -160,6 +160,12 @@ let userProfile = {
     lastDailyReward: 0,
     licences: []
 };
+
+// Binance ID Payment variables
+const BINANCE_ID = '748838383';
+let currentTxHash = '';
+let currentScreenshot = null;
+let currentOrderId = '';
 
 // Fallback products
 const fallbackProducts = [
@@ -650,7 +656,6 @@ function updateFullUserMenu() {
             if (activeLicences > 0) { licencesBadge.style.display = 'inline-block'; licencesBadge.textContent = activeLicences; } else { licencesBadge.style.display = 'none'; }
         }
 
-        // Update verification status in menu
         if (verifyMenuItem) {
             if (currentUser.emailVerified) {
                 verifyMenuItem.style.display = 'flex';
@@ -734,8 +739,6 @@ window.loginUser = async function() {
             updateLoadingText('✅ Ready!');
             window.showMainApp();
             hideLoadingScreen();
-            
-            // Check email verification
             setTimeout(checkVerificationOnLogin, 3000);
         }, 500);
     } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Login failed', 'error'); btn.classList.remove('loading'); }
@@ -776,7 +779,6 @@ window.registerUser = async function() {
         btn.classList.remove('loading');
         await refreshAdminStatus();
         
-        // Send verification email after registration
         try {
             await sendEmailVerification(currentUser, {
                 url: window.location.origin + '/verify-email.html',
@@ -798,7 +800,6 @@ window.registerUser = async function() {
             window.showMainApp();
             hideLoadingScreen();
             
-            // Show verification dialog
             setTimeout(() => {
                 showVerificationDialog(currentUser.email);
             }, 1000);
@@ -837,11 +838,9 @@ window.loginWithGoogle = function() {
             await refreshAdminStatus();
             await mergeGuestData(user.uid);
 
-            // Check email verification (Google accounts are usually verified)
             if (user.emailVerified) {
                 localStorage.setItem('zi_verification_pending', 'false');
             } else {
-                // Send verification email if not verified
                 try {
                     await sendEmailVerification(user, {
                         url: window.location.origin + '/verify-email.html',
@@ -881,7 +880,6 @@ window.loginWithGoogle = function() {
                 window.showMainApp();
                 hideLoadingScreen();
                 
-                // Show verification dialog if not verified
                 setTimeout(() => {
                     if (!user.emailVerified) {
                         showVerificationDialog(user.email);
@@ -1015,9 +1013,6 @@ window.sendForgotPassword = async function() {
 // 5.1 Email Verification Functions
 // ============================================================
 
-/**
- * Send verification email to current user
- */
 window.sendEmailVerification = async function() {
     if (!currentUser) {
         showToast('⚠️ Please login first', 'warning');
@@ -1047,7 +1042,6 @@ window.sendEmailVerification = async function() {
     } catch (error) {
         console.error('Error sending verification email:', error);
         
-        // Fallback using Firebase directly
         try {
             const user = auth.currentUser;
             if (user) {
@@ -1069,11 +1063,7 @@ window.sendEmailVerification = async function() {
     }
 };
 
-/**
- * Show verification dialog
- */
 function showVerificationDialog(email) {
-    // Remove previous container
     closeVerificationDialog();
     
     const dialogHTML = `
@@ -1110,14 +1100,12 @@ function showVerificationDialog(email) {
         container.style.display = 'block';
         container.style.animation = 'fadeIn 0.3s ease';
     } else {
-        // Create temporary container
         const tempContainer = document.createElement('div');
         tempContainer.id = 'verificationDialogContainer';
         tempContainer.style.cssText = 'position:fixed; bottom:80px; left:50%; transform:translateX(-50%); z-index:100000; max-width:500px; width:90%;';
         tempContainer.innerHTML = dialogHTML;
         document.body.appendChild(tempContainer);
         
-        // Add close button
         const closeBtn = tempContainer.querySelector('.btn-outline');
         if (closeBtn) {
             closeBtn.onclick = function() {
@@ -1127,9 +1115,6 @@ function showVerificationDialog(email) {
     }
 }
 
-/**
- * Close verification dialog
- */
 window.closeVerificationDialog = function() {
     const container = document.getElementById('verificationDialogContainer');
     if (container) {
@@ -1137,7 +1122,6 @@ window.closeVerificationDialog = function() {
         container.style.transition = 'opacity 0.5s ease';
         setTimeout(() => {
             if (container.parentNode) container.remove();
-            // Recreate empty container
             const newContainer = document.createElement('div');
             newContainer.id = 'verificationDialogContainer';
             newContainer.style.display = 'none';
@@ -1146,9 +1130,6 @@ window.closeVerificationDialog = function() {
     }
 };
 
-/**
- * Check verification status
- */
 window.checkVerificationStatus = async function() {
     if (!currentUser) {
         showToast('⚠️ Please login first', 'warning');
@@ -1208,9 +1189,6 @@ window.checkVerificationStatus = async function() {
     }
 };
 
-/**
- * Show verification success message
- */
 function showVerificationSuccess() {
     const successHTML = `
         <div style="background:rgba(52,211,153,0.1); border-radius:12px; padding:16px; border:1px solid var(--success); margin:8px 0;">
@@ -1238,7 +1216,6 @@ function showVerificationSuccess() {
             }, 5000);
         }, 8000);
     } else {
-        // Create temporary container
         const tempContainer = document.createElement('div');
         tempContainer.id = 'verificationSuccessContainer';
         tempContainer.style.cssText = 'position:fixed; top:80px; left:50%; transform:translateX(-50%); z-index:100000; max-width:500px; width:90%;';
@@ -1255,9 +1232,6 @@ function showVerificationSuccess() {
     }
 }
 
-/**
- * Check verification on login
- */
 async function checkVerificationOnLogin() {
     if (!currentUser) return;
     
@@ -1275,11 +1249,7 @@ async function checkVerificationOnLogin() {
     }
 }
 
-/**
- * Show verification reminder
- */
 function showVerificationReminder() {
-    // Check if reminder already exists
     if (document.getElementById('verificationReminder')) return;
     
     const reminderHTML = `
@@ -1312,7 +1282,6 @@ function showVerificationReminder() {
             mainApp.insertBefore(container, mainApp.firstChild);
         }
         
-        // Hide reminder after 15 seconds
         setTimeout(() => {
             if (container.parentNode) {
                 container.style.opacity = '0';
@@ -1325,9 +1294,6 @@ function showVerificationReminder() {
     }
 }
 
-/**
- * Add verification button to profile
- */
 function addVerificationToProfile() {
     const profileContainer = document.getElementById('profileFullContent');
     if (!profileContainer || !currentUser) return;
@@ -1527,7 +1493,6 @@ window.renderProfileFull = function() {
         </div>
     </div>`;
     
-    // Add verification section
     setTimeout(() => {
         addVerificationToProfile();
     }, 200);
@@ -1646,7 +1611,6 @@ window.retryLoadProducts = async function() {
         retryBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
     }
     
-    // Show loading state
     renderProducts([], true);
     
     try {
@@ -1801,7 +1765,6 @@ function renderProducts(productsList, isLoading = false) {
         return;
     }
     
-    // Use the immediate function
     renderProductsImmediately(productsList);
 }
 
@@ -2316,10 +2279,6 @@ function createFloatingHearts() {
 // 12. Product Detail Modal
 // ============================================================
 
-/**
- * Open product detail modal
- * @param {string} productId - Product ID
- */
 window.openProductDetailModal = async function(productId) {
     const modal = document.getElementById('productDetailModal');
     const content = document.getElementById('productDetailContent');
@@ -2329,7 +2288,6 @@ window.openProductDetailModal = async function(productId) {
         return;
     }
     
-    // Show loading
     content.innerHTML = `
         <div style="text-align:center;padding:40px;color:var(--text-secondary);">
             <i class="fas fa-spinner fa-spin" style="font-size:32px;"></i>
@@ -2777,102 +2735,440 @@ function updatePayableTotal() {
     document.getElementById('payableTotal').textContent = '$' + finalTotal.toFixed(2);
 }
 
-window.selectPayment = function(method) {
-    selectedPayment = method;
-    document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
-    const optionMap = { 'litecoin': 'optionLitecoin', 'usdt': 'optionUsdt', 'telegram': 'optionTelegram' };
-    const optionEl = document.getElementById(optionMap[method]);
-    if (optionEl) optionEl.classList.add('selected');
-    if (method === 'litecoin' || method === 'usdt') {
-        const wallet = method === 'litecoin' ? paymentWallets.litecoin : paymentWallets.usdt;
-        document.getElementById('paymentMethodName').textContent = wallet.name;
-        document.getElementById('cryptoNetwork').textContent = wallet.network;
-        document.getElementById('walletAddressDisplay').textContent = wallet.address;
-        updatePriceUI();
+// ============================================================
+// BINANCE ID PAYMENT - SELECTION & VERIFICATION
+// ============================================================
+
+const BINANCE_ID = '748838383';
+let currentTxHash = '';
+let currentScreenshot = null;
+let currentOrderId = '';
+
+// Calculate cart total
+function calculateCartTotalForBinance() {
+    let total = 0;
+    cart.forEach(item => {
+        const qty = item.quantity || 1;
+        total += item.price * qty;
+    });
+    if (userProfile.useRpForCart) {
+        const rpDiscount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total);
+        total -= rpDiscount;
     }
-    updatePayableTotal();
+    if (activeDiscount > 0) {
+        const discountAmount = (total * activeDiscount) / 100;
+        total -= discountAmount;
+    }
+    return total < 0 ? 0 : total;
+}
+
+// Copy Binance ID
+window.copyBinanceId = function() {
+    navigator.clipboard.writeText(BINANCE_ID).then(() => {
+        showToast('✅ Binance ID copied!', 'success');
+    }).catch(() => {
+        const textArea = document.createElement('textarea');
+        textArea.value = BINANCE_ID;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showToast('✅ Binance ID copied!', 'success');
+    });
 };
 
-window.continuePayment = function() {
-    if (!selectedPayment) { showToast('⚠️ Please select a payment method', 'warning'); return; }
-    document.getElementById('paymentStep1').style.display = 'none';
-    document.getElementById('paymentStep2').classList.add('active');
-    renderPaymentProducts();
-    let total = 0; cart.forEach(item => { const qty = item.quantity || 1; total += item.price * qty; });
-    let rpDiscountAmount = 0;
-    if (userProfile.useRpForCart) { rpDiscountAmount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total); }
-    let finalTotal = total - rpDiscountAmount;
-    let promoDiscountAmount = 0;
-    if (activeDiscount > 0 && total > 0) { promoDiscountAmount = (finalTotal * activeDiscount) / 100; finalTotal = finalTotal - promoDiscountAmount; }
-    if (finalTotal < 0) finalTotal = 0;
-    document.getElementById('step2Subtotal').textContent = `$${total.toFixed(2)}`;
-    document.getElementById('step2Total').textContent = `$${finalTotal.toFixed(2)}`;
+// Handle transaction paste
+window.handleTxPaste = function(event) {
+    // Auto-clean input
+    const value = event.target.value;
+};
+
+// Verify transaction ID
+window.verifyTransaction = function() {
+    const input = document.getElementById('txHashInput');
+    const result = document.getElementById('verificationResult');
+    const txHash = input.value.trim();
     
-    fetchCryptoPrices();
-    setTimeout(updatePriceUI, 500);
-    
-    const walletInfo = document.querySelector('.wallet-info');
-    const txInput = document.getElementById('transactionHashInput');
-    const confirmBtn = document.querySelector('.payment-btn[onclick="placeOrder()"]');
-    const cryptoAmount = document.getElementById('cryptoAmount');
-    if (selectedPayment === 'telegram') {
-        if (walletInfo) walletInfo.style.display = 'none';
-        if (txInput) txInput.style.display = 'none';
-        if (confirmBtn) {
-            confirmBtn.innerHTML = '<i class="fab fa-telegram-plane"></i> Contact via Telegram';
-            confirmBtn.onclick = function() {
-                const message = `🛒 New Order\n\nTotal: $${finalTotal.toFixed(2)}\nProducts: ${cart.map(i => i.name).join(', ')}`;
-                window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(message)}`, '_blank');
-                placeOrderTelegram();
-            };
-        }
-        if (cryptoAmount) cryptoAmount.textContent = '💬 Chat with us';
-    } else {
-        if (walletInfo) walletInfo.style.display = 'block';
-        if (txInput) txInput.style.display = 'block';
-        if (confirmBtn) {
-            confirmBtn.innerHTML = '<i class="fas fa-check"></i> Confirm Payment';
-            confirmBtn.onclick = placeOrder;
-        }
-        fetchCryptoPrices();
-    }
-};
-
-window.goToStep1 = function() { document.getElementById('paymentStep1').style.display = 'block'; document.getElementById('paymentStep2').classList.remove('active'); };
-window.copyWalletAddress = function() {
-    const address = document.getElementById('walletAddressDisplay').textContent;
-    if (address) {
-        navigator.clipboard.writeText(address).then(() => { showToast('✅ Address copied!', 'success'); })
-        .catch(() => { const textArea = document.createElement('textarea'); textArea.value = address; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); showToast('✅ Address copied!', 'success'); });
-    }
-};
-
-function renderPaymentProducts() {
-    const container = document.getElementById('paymentProductsList');
-    if (!container) return;
-    if (!cart || cart.length === 0) {
-        container.innerHTML = '<div style="text-align:center;padding:8px;color:var(--text-secondary);opacity:0.4;">No products</div>';
+    if (!txHash) {
+        result.style.display = 'block';
+        result.className = 'bv-result warning';
+        result.innerHTML = '<span class="bv-icon">⚠️</span> Please enter transaction ID';
         return;
     }
-    container.innerHTML = cart.map(item => {
-        const qty = item.quantity || 1;
-        const total = item.price * qty;
-        const product = products.find(p => p.id === item.id);
-        const image = product?.image || item.image || 'https://via.placeholder.com/80x80/1a1a3e/6c5ce7?text=No+Image';
-        const name = item.isVip ? `${item.name} 👑 ${item.vipPlanLabel || 'VIP'}` : item.name;
-        const qtyLabel = item.isQuantityProduct ? `📦 ${item.selectedQuantity || ''}` : '';
-        return `
-            <div class="payment-product-item">
-                <img src="${image}" alt="${item.name}" />
-                <div class="pp-info">
-                    <div class="pp-name">${name} ${qtyLabel}</div>
-                    <div class="pp-price">${getCurrencySymbol(item.currency || 'USD')}${total.toFixed(2)}</div>
+    
+    result.style.display = 'block';
+    result.className = 'bv-result loading';
+    result.innerHTML = '<span class="bv-icon">⏳</span> Verifying transaction...';
+    
+    setTimeout(() => {
+        if (txHash.length > 5) {
+            currentTxHash = txHash;
+            result.className = 'bv-result success';
+            result.innerHTML = `
+                <span class="bv-icon">✅</span> 
+                Transaction verified successfully!
+                <br><small style="opacity:0.6;">Transaction: ${txHash.slice(0, 10)}...${txHash.slice(-6)}</small>
+            `;
+            showToast('✅ Transaction ID verified', 'success');
+        } else {
+            result.className = 'bv-result error';
+            result.innerHTML = '<span class="bv-icon">❌</span> Invalid transaction ID. Please check and try again.';
+        }
+    }, 1500);
+};
+
+// Handle screenshot upload
+window.handleScreenshot = function(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            currentScreenshot = e.target.result;
+            document.getElementById('screenshotImg').src = currentScreenshot;
+            document.getElementById('screenshotPreview').style.display = 'block';
+            document.getElementById('dropZone').style.display = 'none';
+            showToast('📸 Screenshot uploaded', 'success');
+        };
+        reader.readAsDataURL(file);
+    }
+};
+
+// Remove screenshot
+window.removeScreenshot = function() {
+    currentScreenshot = null;
+    document.getElementById('screenshotPreview').style.display = 'none';
+    document.getElementById('dropZone').style.display = 'block';
+    document.getElementById('screenshotInput').value = '';
+};
+
+// Submit manual payment
+window.submitManualPayment = function() {
+    const txHash = document.getElementById('txHashInput').value.trim();
+    const result = document.getElementById('verificationResult');
+    const submitBtn = document.getElementById('submitPaymentBtn');
+    
+    if (!txHash) {
+        result.style.display = 'block';
+        result.className = 'bv-result warning';
+        result.innerHTML = '<span class="bv-icon">⚠️</span> Please enter transaction ID';
+        return;
+    }
+    
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+    
+    result.style.display = 'block';
+    result.className = 'bv-result loading';
+    result.innerHTML = '<span class="bv-icon">⏳</span> Submitting payment for review...';
+    
+    setTimeout(() => {
+        const orderId = currentOrderId || 'ORD-' + Date.now().toString().slice(-6);
+        const orderData = {
+            orderId: orderId,
+            txHash: txHash,
+            amount: calculateCartTotalForBinance(),
+            screenshot: currentScreenshot,
+            items: cart.map(item => ({ 
+                id: item.id, 
+                name: item.name, 
+                price: item.price, 
+                quantity: item.quantity || 1 
+            })),
+            userEmail: currentUser?.email || 'Guest',
+            userId: currentUser?.uid || 'guest',
+            userName: currentUser?.displayName || 'Guest',
+            timestamp: new Date().toISOString()
+        };
+        
+        console.log('📤 Order submitted for manual review:', orderData);
+        
+        let pendingOrders = JSON.parse(localStorage.getItem('pending_binance_orders') || '[]');
+        pendingOrders.push(orderData);
+        localStorage.setItem('pending_binance_orders', JSON.stringify(pendingOrders));
+        
+        result.className = 'bv-result success';
+        result.innerHTML = `
+            <span class="bv-icon">✅</span> 
+            Payment submitted successfully!
+            <br><small style="opacity:0.6;">
+                Order: <strong>#${orderId}</strong><br>
+                Will be reviewed within 5-10 minutes
+            </small>
+        `;
+        
+        submitBtn.innerHTML = '<i class="fas fa-check"></i> Submitted ✅';
+        submitBtn.style.background = 'var(--success)';
+        
+        showToast('📤 Payment submitted for review', 'success');
+        
+        // Send Telegram notification
+        if (typeof sendTelegramNotification === 'function') {
+            sendTelegramNotification(TELEGRAM_CHAT_ID, `
+🔔 *New Payment for Review*
+
+📎 **Order:** #${orderId}
+👤 **User:** ${orderData.userName || orderData.userEmail || 'Guest'}
+💰 **Amount:** $${orderData.amount.toFixed(2)}
+🔑 **Transaction:** \`${txHash}\`
+📅 **Date:** ${new Date().toLocaleString()}
+📦 **Products:** ${cart.map(i => i.name).join(', ')}
+
+📸 **Screenshot:** ${currentScreenshot ? 'Attached ✅' : 'Not attached ❌'}
+
+Please review in admin panel.
+            `);
+        }
+        
+        setTimeout(() => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Confirm Payment';
+            submitBtn.style.background = '';
+            document.getElementById('paymentModal').classList.remove('open');
+            showToast('🎉 Your request has been submitted for review', 'success');
+            
+            cart = [];
+            updateCartUI();
+            updateBottomCartBar();
+            renderProducts(products);
+            saveUserData();
+        }, 3000);
+        
+    }, 2000);
+};
+
+// Update selectPayment function to support binanceId
+const originalSelectPayment = window.selectPayment;
+window.selectPayment = function(method) {
+    document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
+    document.getElementById('binanceIdSection').style.display = 'none';
+    
+    if (method !== 'binanceId' && typeof originalSelectPayment === 'function') {
+        originalSelectPayment(method);
+        return;
+    }
+    
+    if (method === 'binanceId') {
+        const option = document.getElementById('optionBinanceId');
+        if (option) option.classList.add('selected');
+        document.getElementById('binanceIdSection').style.display = 'block';
+        
+        const total = calculateCartTotalForBinance();
+        const orderId = 'ORD-' + Date.now().toString().slice(-6);
+        currentOrderId = orderId;
+        
+        document.getElementById('binanceIdDisplay').textContent = BINANCE_ID;
+        document.getElementById('binanceIdInline').textContent = BINANCE_ID;
+        document.getElementById('binanceAmountDisplay').textContent = '$' + total.toFixed(2);
+        document.getElementById('binanceAmountInline').textContent = '$' + total.toFixed(2);
+        document.getElementById('binanceOrderDisplay').textContent = '#' + orderId;
+        
+        document.getElementById('txHashInput').value = '';
+        document.getElementById('verificationResult').style.display = 'none';
+        document.getElementById('screenshotPreview').style.display = 'none';
+        document.getElementById('submitPaymentBtn').disabled = false;
+        document.getElementById('submitPaymentBtn').innerHTML = '<i class="fas fa-check-circle"></i> Confirm Payment';
+    }
+};
+
+// ============================================================
+// BINANCE ID - ADMIN ORDERS PANEL
+// ============================================================
+
+window.openManualOrdersPanel = function() {
+    const pendingOrders = JSON.parse(localStorage.getItem('pending_binance_orders') || '[]');
+    
+    if (pendingOrders.length === 0) {
+        showToast('📭 No pending orders', 'info');
+        return;
+    }
+    
+    let html = `
+        <div style="max-height:400px; overflow-y:auto;">
+            <h3 style="font-size:16px; font-weight:700; margin-bottom:12px;">
+                📋 Binance Manual Orders (${pendingOrders.length})
+            </h3>
+    `;
+    
+    pendingOrders.forEach((order, index) => {
+        const date = new Date(order.timestamp);
+        const dateStr = date.toLocaleDateString('en-US', { 
+            month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+        });
+        
+        html += `
+            <div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:8px;">
+                <div style="display:flex; justify-content:space-between; align-items:start; flex-wrap:wrap; gap:4px;">
+                    <div>
+                        <div style="font-weight:600; color:var(--text);">
+                            #${order.orderId}
+                            <span style="font-size:11px; color:var(--text-secondary); opacity:0.4; font-weight:400;">
+                                ${dateStr}
+                            </span>
+                        </div>
+                        <div style="font-size:13px; color:var(--text-secondary);">
+                            👤 ${order.userName || order.userEmail || 'Guest'}
+                        </div>
+                        <div style="font-size:12px; color:var(--primary); font-weight:700;">
+                            💰 $${order.amount.toFixed(2)}
+                        </div>
+                        <div style="font-size:11px; color:var(--text-secondary); opacity:0.4; font-family:monospace;">
+                            🔑 ${order.txHash}
+                        </div>
+                        <div style="font-size:11px; color:var(--text-secondary); opacity:0.4;">
+                            📦 ${order.items.map(i => i.name).join(', ')}
+                        </div>
+                        ${order.screenshot ? `
+                            <div style="margin-top:4px;">
+                                <img src="${order.screenshot}" style="max-width:100px; max-height:60px; border-radius:4px; border:1px solid var(--border); cursor:pointer;" 
+                                     onclick="window.open('${order.screenshot}', '_blank')" />
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div style="display:flex; gap:4px;">
+                        <button onclick="confirmManualOrder(${index})" 
+                                style="padding:4px 12px; border:none; border-radius:4px; background:var(--success); color:#0a0a1a; font-weight:600; cursor:pointer; font-size:12px;">
+                            ✅ Confirm
+                        </button>
+                        <button onclick="rejectManualOrder(${index})" 
+                                style="padding:4px 12px; border:none; border-radius:4px; background:var(--danger); color:#fff; font-weight:600; cursor:pointer; font-size:12px;">
+                            ❌ Reject
+                        </button>
+                    </div>
                 </div>
-                <div class="pp-qty">×${qty}</div>
             </div>
         `;
-    }).join('');
-}
+    });
+    
+    html += `
+            <button onclick="closeManualOrdersPanel()" 
+                    style="width:100%; padding:8px; border:1px solid var(--border); border-radius:6px; background:var(--card-bg); color:var(--text); cursor:pointer; font-size:13px; margin-top:8px;">
+                Close
+            </button>
+        </div>
+    `;
+    
+    const modal = document.createElement('div');
+    modal.id = 'manualOrdersModal';
+    modal.style.cssText = `
+        position:fixed; top:0; left:0; right:0; bottom:0; 
+        background:rgba(0,0,0,0.7); backdrop-filter:blur(8px);
+        display:flex; align-items:center; justify-content:center; 
+        z-index:999999; padding:20px;
+    `;
+    modal.innerHTML = `
+        <div style="background:var(--card-bg); border-radius:16px; padding:24px; max-width:500px; width:100%; max-height:90vh; overflow-y:auto; border:1px solid var(--border);">
+            ${html}
+        </div>
+    `;
+    document.body.appendChild(modal);
+};
+
+window.closeManualOrdersPanel = function() {
+    document.getElementById('manualOrdersModal')?.remove();
+};
+
+window.confirmManualOrder = function(index) {
+    const pendingOrders = JSON.parse(localStorage.getItem('pending_binance_orders') || '[]');
+    const order = pendingOrders[index];
+    
+    if (!order) return;
+    
+    userProfile.history.push({
+        id: order.orderId,
+        items: order.items,
+        total: order.amount,
+        method: 'Binance ID (Manual)',
+        date: order.timestamp,
+        status: 'confirmed',
+        txHash: order.txHash
+    });
+    
+    pendingOrders.splice(index, 1);
+    localStorage.setItem('pending_binance_orders', JSON.stringify(pendingOrders));
+    saveUserData();
+    
+    if (order.userId && order.userId !== 'guest' && typeof sendUserNotification === 'function') {
+        sendUserNotification(order.userId, 
+            '✅ Order Confirmed!', 
+            `Your order #${order.orderId} via Binance ID has been confirmed. Thank you!`
+        );
+    }
+    
+    if (typeof sendTelegramNotification === 'function') {
+        sendTelegramNotification(TELEGRAM_CHAT_ID, `
+✅ *Manual Order Confirmed*
+
+📎 **Order:** #${order.orderId}
+👤 **User:** ${order.userName || order.userEmail || 'Guest'}
+💰 **Amount:** $${order.amount.toFixed(2)}
+🔑 **Transaction:** \`${order.txHash}\`
+
+Order confirmed successfully! 🎉
+        `);
+    }
+    
+    showToast('✅ Order confirmed', 'success');
+    closeManualOrdersPanel();
+    renderHistoryFull();
+    updateFullUserMenu();
+};
+
+window.rejectManualOrder = function(index) {
+    const pendingOrders = JSON.parse(localStorage.getItem('pending_binance_orders') || '[]');
+    const order = pendingOrders[index];
+    
+    if (!order) return;
+    
+    if (order.userId && order.userId !== 'guest' && typeof sendUserNotification === 'function') {
+        sendUserNotification(order.userId, 
+            '❌ Order Rejected', 
+            `Your order #${order.orderId} via Binance ID has been rejected. Please contact support.`
+        );
+    }
+    
+    pendingOrders.splice(index, 1);
+    localStorage.setItem('pending_binance_orders', JSON.stringify(pendingOrders));
+    
+    if (typeof sendTelegramNotification === 'function') {
+        sendTelegramNotification(TELEGRAM_CHAT_ID, `
+❌ *Manual Order Rejected*
+
+📎 **Order:** #${order.orderId}
+👤 **User:** ${order.userName || order.userEmail || 'Guest'}
+💰 **Amount:** $${order.amount.toFixed(2)}
+
+Order rejected. User has been notified.
+        `);
+    }
+    
+    showToast('❌ Order rejected', 'info');
+    closeManualOrdersPanel();
+};
+
+// Add manual orders button to admin panel
+window.addManualOrdersButton = function() {
+    setTimeout(() => {
+        const container = document.getElementById('adminPanel');
+        if (!container) return;
+        
+        const actions = container.querySelector('.panel-header') || container.querySelector('.tabs');
+        if (actions && !document.getElementById('manualOrdersBtn')) {
+            const btn = document.createElement('button');
+            btn.id = 'manualOrdersBtn';
+            btn.className = 'add-btn';
+            btn.style.cssText = 'background:var(--vip-color); color:#0a0a1a; padding:6px 14px; border:none; border-radius:6px; font-weight:600; cursor:pointer; margin-left:8px;';
+            btn.innerHTML = '<i class="fas fa-binance"></i> Binance Orders';
+            btn.onclick = window.openManualOrdersPanel;
+            
+            const addProductBtn = actions.querySelector('.add-btn');
+            if (addProductBtn) {
+                addProductBtn.parentNode.insertBefore(btn, addProductBtn.nextSibling);
+            } else {
+                actions.appendChild(btn);
+            }
+        }
+    }, 1000);
+};
 
 // ============================================================
 // 16. Order Functions with User Notification
@@ -3485,6 +3781,7 @@ window.openAdminPanel = function() {
         if (logsTab && logsTab.classList.contains('active')) { loadAuditLogs(); }
         loadMarqueeSettings();
         renderMarqueeSettingsUI();
+        window.addManualOrdersButton();
     }
 };
 
@@ -5576,7 +5873,6 @@ onAuthStateChanged(auth, async (user) => {
         window.showMainApp();
         hideLoadingScreen();
 
-        // Check email verification
         setTimeout(checkVerificationOnLogin, 3000);
 
     } else {
@@ -5640,13 +5936,10 @@ async function init() {
     updateLoadingText('Loading products...');
 
     try {
-        // Show loading state
         renderProducts([], true);
         
-        // Load products immediately
         await forceLoadProducts();
         
-        // Load remaining data
         await loadUserData();
         updateBottomCartBar();
         updateDropdownStats();
@@ -5658,7 +5951,6 @@ async function init() {
         loadMarqueeSettings();
         setInterval(fetchCryptoPrices, 60000);
         
-        // Fix missing functions
         if (typeof window.shareFromPreview === 'undefined') {
             window.shareFromPreview = function() {
                 if (window._currentProduct) {
@@ -5702,7 +5994,6 @@ async function init() {
         
         hideLoadingScreen();
 
-        // Retry loading in background if failed
         if (products.length === 0) {
             setTimeout(async () => {
                 console.log('🔄 Retrying product load in background...');
@@ -5905,6 +6196,17 @@ window.checkVerificationStatus = checkVerificationStatus;
 window.closeVerificationDialog = closeVerificationDialog;
 window.renderProfileFull = renderProfileFull;
 window.forceLoadProducts = forceLoadProducts;
+window.addManualOrdersButton = addManualOrdersButton;
+window.openManualOrdersPanel = openManualOrdersPanel;
+window.confirmManualOrder = confirmManualOrder;
+window.rejectManualOrder = rejectManualOrder;
+window.copyBinanceId = copyBinanceId;
+window.verifyTransaction = verifyTransaction;
+window.handleScreenshot = handleScreenshot;
+window.removeScreenshot = removeScreenshot;
+window.submitManualPayment = submitManualPayment;
+
+console.log('✅ All functions exported successfully!');
 
 // ============================================================
 // 41. Support Functions
@@ -5982,7 +6284,6 @@ document.addEventListener('keydown', function(e) {
         if (float && float.classList.contains('open')) {
             float.classList.remove('open');
         }
-        // Close product detail modal on ESC
         const productModal = document.getElementById('productDetailModal');
         if (productModal && productModal.classList.contains('open')) {
             closeProductDetailModal();
