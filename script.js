@@ -3295,15 +3295,24 @@ function renderAdminOrders(orders) {
     tbody.innerHTML = html;
 }
 
+// ============================================================
+// 22.1 Update Admin Stats (safe)
+// ============================================================
 function updateAdminStats(orders) {
     const total = orders.length;
     const pending = orders.filter(o => o.status === 'pending').length;
     const confirmed = orders.filter(o => o.status === 'confirmed').length;
     const rejected = orders.filter(o => o.status === 'rejected').length;
-    document.getElementById('adminTotalOrders').textContent = total;
-    document.getElementById('adminPendingOrders').textContent = pending;
-    document.getElementById('adminConfirmedOrders').textContent = confirmed;
-    document.getElementById('adminRejectedOrders').textContent = rejected;
+
+    const totalEl = document.getElementById('adminTotalOrders');
+    const pendingEl = document.getElementById('adminPendingOrders');
+    const confirmedEl = document.getElementById('adminConfirmedOrders');
+    const rejectedEl = document.getElementById('adminRejectedOrders');
+
+    if (totalEl) totalEl.textContent = total;
+    if (pendingEl) pendingEl.textContent = pending;
+    if (confirmedEl) confirmedEl.textContent = confirmed;
+    if (rejectedEl) rejectedEl.textContent = rejected;
 }
 
 // ============================================================
@@ -5096,7 +5105,11 @@ window.closeNewRequestModal = closeNewRequestModal;
 window.submitRequest = submitRequest;
 window.selectPayment = selectPayment;
 window.continuePayment = continuePayment;
-window.goToStep1 = goToStep1;
+// ===== FIX: goToStep1 =====
+window.goToStep1 = function() {
+    document.getElementById('paymentStep1').style.display = 'block';
+    document.getElementById('paymentStep2').classList.remove('active');
+};
 window.copyWalletAddress = copyWalletAddress;
 window.placeOrder = placeOrder;
 window.openPaymentModal = openPaymentModal;
@@ -5178,7 +5191,7 @@ window.selectQuantityOption = selectQuantityOption;
 window.loginWithGoogle = loginWithGoogle;
 
 // ============================================================
-// 41. Support Functions
+// 41. Support Functions (FIX: toggleSupportMenu)
 // ============================================================
 
 window.toggleSupportMenu = function() {
@@ -5231,6 +5244,7 @@ window.openPhoneSupport = function() {
     window.location.href = `tel:${phone}`;
 };
 
+// Close floating menu on outside click
 document.addEventListener('click', function(e) {
     const float = document.getElementById('supportFloat');
     if (float) {
@@ -5241,6 +5255,7 @@ document.addEventListener('click', function(e) {
     }
 });
 
+// Close support modal on ESC
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         const modal = document.getElementById('supportModal');
