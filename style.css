@@ -72,7 +72,7 @@ body.light {
 }
 
 /* ============================================
-   HEADER – Fixed & responsive
+   HEADER
    ============================================ */
 .header {
     display: flex;
@@ -293,7 +293,7 @@ body.light .header .language-selector {
 }
 
 /* ============================================
-   SEARCH WRAPPER – fixed overflow
+   SEARCH
    ============================================ */
 .search-wrapper {
     position: relative;
@@ -355,7 +355,7 @@ body.light .header .language-selector {
 }
 
 /* ============================================
-   SLIDER – responsive
+   SLIDER - FIXED
    ============================================ */
 .slider-container {
     position: relative;
@@ -483,7 +483,7 @@ body.light .header .language-selector {
 }
 
 /* ============================================
-   STATS GRID – compact & clean
+   STATS
    ============================================ */
 .stats-grid {
     display: grid;
@@ -519,7 +519,7 @@ body.light .header .language-selector {
 }
 
 /* ============================================
-   FILTER ACTIONS
+   FILTERS
    ============================================ */
 .filter-actions {
     display: flex;
@@ -575,7 +575,7 @@ body.light .header .language-selector {
 }
 
 /* ============================================
-   PRODUCTS GRID – FIXED: consistent, responsive
+   PRODUCTS GRID - FIXED
    ============================================ */
 .products-grid {
     display: grid;
@@ -591,7 +591,6 @@ body.light .header .language-selector {
         gap: 8px;
     }
 }
-
 @media (max-width: 360px) {
     .products-grid {
         grid-template-columns: 1fr 1fr;
@@ -600,7 +599,7 @@ body.light .header .language-selector {
 }
 
 /* ============================================
-   PRODUCT CARD – FIXED: consistent height, no overflow
+   PRODUCT CARD - FIXED
    ============================================ */
 .product-card {
     background: var(--card-bg);
@@ -615,7 +614,6 @@ body.light .header .language-selector {
     min-height: 260px;
     max-width: 100%;
 }
-
 .product-card:hover {
     transform: translateY(-4px);
     border-color: var(--primary);
@@ -630,7 +628,6 @@ body.light .header .language-selector {
     flex-shrink: 0;
     min-height: 90px;
 }
-
 .product-card .image-wrapper img {
     width: 100%;
     height: 100%;
@@ -640,7 +637,6 @@ body.light .header .language-selector {
 .product-card:hover .image-wrapper img {
     transform: scale(1.05);
 }
-
 .product-card .image-wrapper .placeholder {
     width: 100%;
     height: 100%;
@@ -734,30 +730,12 @@ body.light .header .language-selector {
     border-radius: 10px;
     text-transform: uppercase;
 }
-.product-card .product-badges .mini-badge.mb-new {
-    background: #00b894;
-    color: #fff;
-}
-.product-card .product-badges .mini-badge.mb-hot {
-    background: #e17055;
-    color: #fff;
-}
-.product-card .product-badges .mini-badge.mb-exclusive {
-    background: #6c5ce7;
-    color: #fff;
-}
-.product-card .product-badges .mini-badge.mb-important {
-    background: #fdcb6e;
-    color: #0a0a1a;
-}
-.product-card .product-badges .mini-badge.mb-limited {
-    background: #fd79a8;
-    color: #fff;
-}
-.product-card .product-badges .mini-badge.mb-best {
-    background: #f9ca24;
-    color: #0a0a1a;
-}
+.product-card .product-badges .mini-badge.mb-new { background: #00b894; color: #fff; }
+.product-card .product-badges .mini-badge.mb-hot { background: #e17055; color: #fff; }
+.product-card .product-badges .mini-badge.mb-exclusive { background: #6c5ce7; color: #fff; }
+.product-card .product-badges .mini-badge.mb-important { background: #fdcb6e; color: #0a0a1a; }
+.product-card .product-badges .mini-badge.mb-limited { background: #fd79a8; color: #fff; }
+.product-card .product-badges .mini-badge.mb-best { background: #f9ca24; color: #0a0a1a; }
 
 .product-card .price {
     font-size: 15px;
@@ -930,29 +908,19 @@ body.light .header .language-selector {
     transition: var(--transition);
     text-decoration: none;
 }
-.footer .social-links a.telegram {
-    background: #0088cc;
-}
-.footer .social-links a.youtube {
-    background: #ff0000;
-}
-.footer .social-links a.twitter {
-    background: #1da1f2;
-}
-.footer .social-links a:hover {
-    transform: scale(1.1);
-}
+.footer .social-links a.telegram { background: #0088cc; }
+.footer .social-links a.youtube { background: #ff0000; }
+.footer .social-links a.twitter { background: #1da1f2; }
+.footer .social-links a:hover { transform: scale(1.1); }
 .footer .copyright {
     font-size: 11px;
     color: var(--text-secondary);
     opacity: 0.3;
 }
-.footer .copyright span {
-    color: var(--primary);
-}
+.footer .copyright span { color: var(--primary); }
 
 /* ============================================
-   TOAST – for notifications
+   TOAST
    ============================================ */
 .toast {
     position: fixed;
@@ -981,96 +949,167 @@ body.light .header .language-selector {
     opacity: 1;
     pointer-events: auto;
 }
-.toast .toast-icon i {
-    color: var(--success);
-}
-.toast .toast-message {
-    font-size: 13px;
-    font-weight: 500;
-}
+.toast .toast-icon i { color: var(--success); }
+.toast .toast-message { font-size: 13px; font-weight: 500; }
 
 /* ============================================
-   RESPONSIVE TWEAKS
+   MODAL OVERLAY
    ============================================ */
-@media (max-width: 480px) {
-    body {
-        padding: 0 8px;
-    }
-    .header {
-        padding: 4px 8px;
-        margin: 0 -8px;
-        padding-left: 8px;
-        padding-right: 8px;
-    }
-    .header .logo span {
-        font-size: 15px;
-    }
-    .header .logo .logo-icon {
-        width: 24px;
-        height: 24px;
-    }
-    .header .header-btn {
-        width: 30px;
-        height: 30px;
-        font-size: 14px;
-    }
-    .header .user-btn {
-        width: 30px;
-        height: 30px;
-        font-size: 11px;
-    }
-    .header .language-selector {
-        font-size: 10px;
-        height: 26px;
-        padding: 2px 6px;
-    }
-    .slider-wrapper {
-        height: 150px;
-    }
-    .slide-item .slide-title {
-        font-size: 18px;
-    }
-    .slide-item .slide-subtitle {
-        font-size: 12px;
-    }
-    .slide-item .slide-overlay {
-        padding: 10px 14px;
-    }
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    .products-grid {
-        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-        gap: 6px;
-    }
-    .product-card {
-        min-height: 220px;
-    }
-    .product-card .image-wrapper {
-        min-height: 70px;
-    }
-    .product-card .product-name {
-        font-size: 12px;
-    }
-    .product-card .price {
-        font-size: 13px;
-    }
-    .bottom-cart-bar {
-        padding: 6px 10px;
-    }
-    .bottom-cart-bar .cart-total-price {
-        font-size: 14px;
-    }
-   }
-/* ============================================
-   BINANCE ID PAYMENT SECTION - NEW
-   ============================================ */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 99999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    overflow-y: auto;
+}
+.modal-overlay.open {
+    display: flex;
+    animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+.modal-overlay .modal-content {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 480px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    position: relative;
+    z-index: 100000;
+    animation: scaleUp 0.3s ease;
+}
+@keyframes scaleUp {
+    0% { transform: scale(0.9); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+.modal-overlay .modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 18px;
+    cursor: pointer;
+    transition: var(--transition);
+    padding: 4px;
+}
+.modal-overlay .modal-close:hover {
+    color: var(--text);
+    transform: rotate(90deg);
+}
+.modal-overlay .modal-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.modal-overlay .modal-title i { color: var(--primary); }
 
+/* ============================================
+   PAYMENT OPTIONS
+   ============================================ */
+.payment-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+.payment-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: var(--transition);
+    background: var(--bg);
+    position: relative;
+}
+.payment-option:hover { border-color: var(--primary); }
+.payment-option.selected {
+    border-color: var(--primary);
+    background: var(--primary-glow);
+}
+.payment-option i { font-size: 24px; margin-bottom: 4px; }
+.payment-option .p-label { font-size: 13px; font-weight: 600; color: var(--text); }
+.payment-option .p-sub { font-size: 11px; color: var(--text-secondary); opacity: 0.4; }
+.payment-option .p-check {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+}
+.payment-option.selected .p-check { display: flex; }
+
+.payment-summary {
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    border: 1px solid var(--border);
+    margin-bottom: 12px;
+}
+.payment-summary .ps-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 14px;
+}
+.payment-summary .ps-row .ps-label { color: var(--text-secondary); opacity: 0.5; }
+.payment-summary .ps-row .ps-value { font-weight: 600; color: var(--text); }
+.payment-summary .ps-row.ps-total .ps-value { font-size: 18px; color: var(--primary); }
+
+.payment-btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: var(--primary-gradient);
+    color: #fff;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.payment-btn:hover { opacity: 0.8; }
+
+/* ============================================
+   BINANCE ID SECTION
+   ============================================ */
 .binance-id-section {
     margin-top: 16px;
     animation: fadeIn 0.3s ease;
 }
-
 .binance-id-box {
     background: var(--bg);
     border: 2px solid var(--border);
@@ -1078,7 +1117,6 @@ body.light .header .language-selector {
     overflow: hidden;
     margin-bottom: 16px;
 }
-
 .binance-id-box .bi-header {
     background: linear-gradient(135deg, #f2a900, #f0b90b);
     padding: 12px 16px;
@@ -1089,15 +1127,8 @@ body.light .header .language-selector {
     align-items: center;
     gap: 10px;
 }
-
-.binance-id-box .bi-header i {
-    font-size: 20px;
-}
-
-.binance-id-box .bi-content {
-    padding: 16px;
-}
-
+.binance-id-box .bi-header i { font-size: 20px; }
+.binance-id-box .bi-content { padding: 16px; }
 .binance-id-box .bi-row {
     display: flex;
     align-items: center;
@@ -1106,13 +1137,11 @@ body.light .header .language-selector {
     font-size: 14px;
     flex-wrap: wrap;
 }
-
 .binance-id-box .bi-label {
     color: var(--text-secondary);
     opacity: 0.5;
     min-width: 100px;
 }
-
 .binance-id-box .bi-value {
     font-weight: 700;
     color: var(--text);
@@ -1121,7 +1150,6 @@ body.light .header .language-selector {
     flex: 1;
     word-break: break-all;
 }
-
 .binance-id-box .bi-copy-btn {
     background: none;
     border: none;
@@ -1131,31 +1159,24 @@ body.light .header .language-selector {
     padding: 4px 8px;
     transition: var(--transition);
 }
-
-.binance-id-box .bi-copy-btn:hover {
-    transform: scale(1.1);
-}
-
+.binance-id-box .bi-copy-btn:hover { transform: scale(1.1); }
 .binance-id-box .bi-divider {
     height: 1px;
     background: var(--border);
     margin: 8px 0;
 }
-
 .binance-id-box .bi-instructions {
     background: var(--bg-secondary);
     border-radius: var(--radius-sm);
     padding: 12px 16px;
     margin-top: 4px;
 }
-
 .binance-id-box .bi-instructions p {
     font-weight: 600;
     color: var(--text);
     margin-bottom: 8px;
     font-size: 13px;
 }
-
 .binance-id-box .bi-instructions ol {
     padding-left: 20px;
     margin: 0;
@@ -1163,22 +1184,17 @@ body.light .header .language-selector {
     color: var(--text-secondary);
     line-height: 1.8;
 }
-
-.binance-id-box .bi-instructions ol strong {
-    color: var(--text);
-}
+.binance-id-box .bi-instructions ol strong { color: var(--text); }
 
 /* ============================================
-   BINANCE VERIFICATION SECTION
+   BINANCE VERIFICATION
    ============================================ */
-
 .binance-verification {
     background: var(--bg);
     border: 2px solid var(--border);
     border-radius: var(--radius-md);
     overflow: hidden;
 }
-
 .binance-verification .bv-header {
     background: var(--bg-secondary);
     padding: 12px 16px;
@@ -1190,20 +1206,9 @@ body.light .header .language-selector {
     gap: 10px;
     border-bottom: 1px solid var(--border);
 }
-
-.binance-verification .bv-header i {
-    color: var(--success);
-    font-size: 18px;
-}
-
-.binance-verification .bv-body {
-    padding: 16px;
-}
-
-.binance-verification .bv-field {
-    margin-bottom: 12px;
-}
-
+.binance-verification .bv-header i { color: var(--success); font-size: 18px; }
+.binance-verification .bv-body { padding: 16px; }
+.binance-verification .bv-field { margin-bottom: 12px; }
 .binance-verification .bv-field label {
     display: block;
     font-size: 13px;
@@ -1211,12 +1216,10 @@ body.light .header .language-selector {
     color: var(--text-secondary);
     margin-bottom: 6px;
 }
-
 .binance-verification .bv-input-group {
     display: flex;
     gap: 8px;
 }
-
 .binance-verification .bv-input-group input {
     flex: 1;
     padding: 10px 14px;
@@ -1229,17 +1232,14 @@ body.light .header .language-selector {
     transition: var(--transition);
     font-family: monospace;
 }
-
 .binance-verification .bv-input-group input:focus {
     border-color: var(--primary);
     box-shadow: 0 0 0 3px var(--primary-glow);
 }
-
 .binance-verification .bv-input-group input::placeholder {
     color: var(--text-secondary);
     opacity: 0.3;
 }
-
 .binance-verification .bv-verify-btn {
     padding: 10px 18px;
     border: none;
@@ -1252,12 +1252,10 @@ body.light .header .language-selector {
     transition: var(--transition);
     white-space: nowrap;
 }
-
 .binance-verification .bv-verify-btn:hover {
     transform: scale(1.02);
     box-shadow: 0 4px 15px var(--primary-glow);
 }
-
 .binance-verification .bv-hint {
     font-size: 12px;
     color: var(--text-secondary);
@@ -1267,16 +1265,8 @@ body.light .header .language-selector {
     align-items: center;
     gap: 4px;
 }
-
-.binance-verification .bv-hint i {
-    font-size: 12px;
-}
-
-/* منطقة تحميل الصورة */
-.binance-verification .bv-upload {
-    margin: 12px 0;
-}
-
+.binance-verification .bv-hint i { font-size: 12px; }
+.binance-verification .bv-upload { margin: 12px 0; }
 .binance-verification .bv-upload label {
     display: block;
     font-size: 13px;
@@ -1284,7 +1274,6 @@ body.light .header .language-selector {
     color: var(--text-secondary);
     margin-bottom: 6px;
 }
-
 .binance-verification .bv-drop-zone {
     border: 2px dashed var(--border);
     border-radius: var(--radius-sm);
@@ -1294,12 +1283,10 @@ body.light .header .language-selector {
     transition: var(--transition);
     background: var(--bg-secondary);
 }
-
 .binance-verification .bv-drop-zone:hover {
     border-color: var(--primary);
     background: var(--bg);
 }
-
 .binance-verification .bv-drop-zone i {
     font-size: 32px;
     color: var(--text-secondary);
@@ -1307,55 +1294,42 @@ body.light .header .language-selector {
     display: block;
     margin-bottom: 8px;
 }
-
 .binance-verification .bv-drop-zone p {
     font-size: 13px;
     color: var(--text-secondary);
     opacity: 0.5;
     margin: 0;
 }
+.binance-verification .bv-drop-zone input { display: none; }
 
-.binance-verification .bv-drop-zone input {
-    display: none;
-}
-
-/* نتيجة التحقق */
 .binance-verification .bv-result {
     padding: 12px 16px;
     border-radius: var(--radius-sm);
     margin: 12px 0;
     font-size: 14px;
 }
-
 .binance-verification .bv-result.success {
     background: rgba(52, 211, 153, 0.1);
     border: 1px solid var(--success);
     color: var(--success);
 }
-
 .binance-verification .bv-result.error {
     background: rgba(248, 113, 113, 0.1);
     border: 1px solid var(--danger);
     color: var(--danger);
 }
-
 .binance-verification .bv-result.warning {
     background: rgba(251, 191, 36, 0.1);
     border: 1px solid var(--warning);
     color: var(--warning);
 }
-
 .binance-verification .bv-result.loading {
     background: rgba(108, 92, 231, 0.1);
     border: 1px solid var(--primary);
     color: var(--primary);
 }
+.binance-verification .bv-result .bv-icon { margin-right: 8px; }
 
-.binance-verification .bv-result .bv-icon {
-    margin-right: 8px;
-}
-
-/* زر التأكيد النهائي */
 .binance-verification .bv-submit-btn {
     width: 100%;
     padding: 14px;
@@ -1373,12 +1347,10 @@ body.light .header .language-selector {
     gap: 8px;
     margin-top: 8px;
 }
-
 .binance-verification .bv-submit-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 20px rgba(52, 211, 153, 0.3);
 }
-
 .binance-verification .bv-submit-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -1396,7 +1368,6 @@ body.light .header .language-selector {
     text-align: center;
     line-height: 1.8;
 }
-
 .binance-verification .bv-note a {
     color: var(--primary);
     text-decoration: none;
@@ -1406,29 +1377,123 @@ body.light .header .language-selector {
 /* ============================================
    RESPONSIVE
    ============================================ */
-
 @media (max-width: 480px) {
+    body { padding: 0 8px; }
+    .header {
+        padding: 4px 8px;
+        margin: 0 -8px;
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+    .header .logo span { font-size: 15px; }
+    .header .logo .logo-icon { width: 24px; height: 24px; }
+    .header .header-btn { width: 30px; height: 30px; font-size: 14px; }
+    .header .user-btn { width: 30px; height: 30px; font-size: 11px; }
+    .header .language-selector { font-size: 10px; height: 26px; padding: 2px 6px; }
+    .slider-wrapper { height: 150px; }
+    .slide-item .slide-title { font-size: 18px; }
+    .slide-item .slide-subtitle { font-size: 12px; }
+    .slide-item .slide-overlay { padding: 10px 14px; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .products-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 6px; }
+    .product-card { min-height: 220px; }
+    .product-card .image-wrapper { min-height: 70px; }
+    .product-card .product-name { font-size: 12px; }
+    .product-card .price { font-size: 13px; }
+    .bottom-cart-bar { padding: 6px 10px; }
+    .bottom-cart-bar .cart-total-price { font-size: 14px; }
     .binance-id-box .bi-row {
         flex-direction: column;
         align-items: flex-start;
         gap: 2px;
     }
-    
-    .binance-id-box .bi-label {
-        min-width: auto;
-        font-size: 12px;
-    }
-    
-    .binance-id-box .bi-value {
-        font-size: 14px;
-    }
-    
-    .binance-verification .bv-input-group {
-        flex-direction: column;
-    }
-    
-    .binance-verification .bv-verify-btn {
-        width: 100%;
-        justify-content: center;
-    }
+    .binance-id-box .bi-label { min-width: auto; font-size: 12px; }
+    .binance-id-box .bi-value { font-size: 14px; }
+    .binance-verification .bv-input-group { flex-direction: column; }
+    .binance-verification .bv-verify-btn { width: 100%; justify-content: center; }
+    .payment-options { grid-template-columns: 1fr 1fr; }
+}
+
+/* ============================================
+   COOKIE CONSENT
+   ============================================ */
+.cookie-consent {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--card-bg);
+    border-top: 2px solid var(--primary);
+    padding: 12px 16px;
+    z-index: 999999;
+    display: none;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+.cookie-consent.show { display: flex; }
+.cookie-consent .cookie-text {
+    flex: 1;
+    min-width: 150px;
+    font-size: 13px;
+    color: var(--text);
+}
+.cookie-consent .cookie-buttons {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.cookie-consent .btn-accept {
+    padding: 6px 16px;
+    border: none;
+    border-radius: 8px;
+    background: var(--primary-gradient);
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 13px;
+}
+.cookie-consent .btn-reject {
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+/* ============================================
+   LOADING SCREEN
+   ============================================ */
+#loadingScreen {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999999;
+    transition: opacity 0.6s ease;
+}
+#loadingScreen.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+.loader-spinner {
+    width: 80px;
+    height: 80px;
+    border: 4px solid var(--border);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
    }
