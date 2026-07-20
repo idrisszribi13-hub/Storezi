@@ -68,7 +68,13 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const analytics = getAnalytics(app);
+let analytics = null;
+try {
+    analytics = getAnalytics(app);
+    console.log('✅ Firebase Analytics initialized');
+} catch (e) {
+    console.log('ℹ️ Analytics not available, continuing...');
+}
 
 // ============================================================
 // Global Variables
@@ -5105,11 +5111,13 @@ window.closeNewRequestModal = closeNewRequestModal;
 window.submitRequest = submitRequest;
 window.selectPayment = selectPayment;
 window.continuePayment = continuePayment;
+
 // ===== FIX: goToStep1 =====
 window.goToStep1 = function() {
     document.getElementById('paymentStep1').style.display = 'block';
     document.getElementById('paymentStep2').classList.remove('active');
 };
+
 window.copyWalletAddress = copyWalletAddress;
 window.placeOrder = placeOrder;
 window.openPaymentModal = openPaymentModal;
