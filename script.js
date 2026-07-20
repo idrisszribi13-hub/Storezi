@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - Full Version with Binance ID Payment
+// SCRIPT.JS - ZI Store - Full Version with User Notification Fix
 // ============================================================
 
 // ============================================================
@@ -78,12 +78,6 @@ const TELEGRAM_BOT_TOKEN = '8687744794:AAGeeNrEU-iQLRmg3dLvYkWHddtYo_sJ1tc';
 const TELEGRAM_CHAT_ID = '7434396478';
 const BOT_USERNAME = 'Zistore_Notif_bot';
 const RP_TO_DOLLAR = 0.1;
-
-// Binance ID Configuration
-const BINANCE_ID = '748838383';
-let currentTxHash = '';
-let currentScreenshot = null;
-let currentOrderId = '';
 
 let currentUser = null;
 let userId = null;
@@ -1957,463 +1951,8 @@ function closeSearchResults() { searchResults.classList.remove('active'); search
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeSearchResults(); closeUserMenuFull(); closeCartFull(); closeWishlistFull(); closeProfileFull(); closeHistoryFull(); } });
 
 // ============================================================
-// 15. Payment with Binance ID Support
+// 15. Payment
 // ============================================================
-
-// Calculate cart total
-function calculateCartTotal() {
-    let total = 0;
-    cart.forEach(item => {
-        const qty = item.quantity || 1;
-        total += item.price * qty;
-    });
-    
-    // Apply discounts
-    if (userProfile.useRpForCart) {
-        const rpDiscount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total);
-        total -= rpDiscount;
-    }
-    if (activeDiscount > 0) {
-        const discountAmount = (total * activeDiscount) / 100;
-        total -= discountAmount;
-    }
-    return total < 0 ? 0 : total;
-}
-
-// Copy Binance ID
-window.copyBinanceId = function() {
-    const id = document.getElementById('binanceIdDisplay')?.textContent || BINANCE_ID;
-    navigator.clipboard.writeText(id).then(() => {
-        showToast('✅ Binance ID copied!', 'success');
-    }).catch(() => {
-        const textArea = document.createElement('textarea');
-        textArea.value = id;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        showToast('✅ Binance ID copied!', 'success');
-    });
-};
-
-// Handle transaction ID paste
-window.handleTxPaste = function(event) {
-    // Optional: auto-clean the input
-};
-
-// Verify transaction ID
-window.verifyTransaction = function() {
-    const input = document.getElementById('txHashInput');
-    const result = document.getElementById('verificationResult');
-    const txHash = input?.value?.trim() || '';
-    
-    if (!txHash) {
-        result.style.display = 'block';
-        result.className = 'bv-result warning';
-        result.innerHTML = '<span class="bv-icon">⚠️</span> Please enter a Transaction ID';
-        return;
-    }
-    
-    result.style.display = 'block';
-    result.className = 'bv-result loading';
-    result.innerHTML = '<span class="bv-icon">⏳</span> Verifying transaction...';
-    
-    setTimeout(() => {
-        if (txHash.length > 5) {
-            currentTxHash = txHash;
-            result.className = 'bv-result success';
-            result.innerHTML = `
-                <span class="bv-icon">✅</span> 
-                Transaction verified successfully!
-                <br><small style="opacity:0.6;">TX: ${txHash.slice(0, 10)}...${txHash.slice(-6)}</small>
-            `;
-            showToast('✅ Transaction ID verified', 'success');
-        } else {
-            result.className = 'bv-result error';
-            result.innerHTML = '<span class="bv-icon">❌</span> Invalid Transaction ID. Please check the number.';
-        }
-    }, 1500);
-};
-
-// Handle screenshot upload
-window.handleScreenshot = function(event) {
-    const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            currentScreenshot = e.target.result;
-            document.getElementById('screenshotImg').src = currentScreenshot;
-            document.getElementById('screenshotPreview').style.display = 'block';
-            document.getElementById('dropZone').style.display = 'none';
-            showToast('📸 Screenshot uploaded', 'success');
-        };
-        reader.readAsDataURL(file);
-    }
-};
-
-// Remove screenshot
-window.removeScreenshot = function() {
-    currentScreenshot = null;
-    document.getElementById('screenshotPreview').style.display = 'none';
-    document.getElementById('dropZone').style.display = 'block';
-    document.getElementById('screenshotInput').value = '';
-};
-
-// Submit manual payment for review
-window.submitManualPayment = function() {
-    const txHash = document.getElementById('txHashInput')?.value?.trim() || '';
-    const result = document.getElementById('verificationResult');
-    const submitBtn = document.getElementById('submitPaymentBtn');
-    
-    if (!txHash) {
-        result.style.display = 'block';
-        result.className = 'bv-result warning';
-        result.innerHTML = '<span class="bv-icon">⚠️</span> Please enter a Transaction ID';
-        return;
-    }
-    
-    if (!currentUser || currentUser.isAnonymous) {
-        showToast('⚠️ Please login first', 'warning');
-        openAuthModal();
-        return;
-    }
-    
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
-    
-    result.style.display = 'block';
-    result.className = 'bv-result loading';
-    result.innerHTML = '<span class="bv-icon">⏳</span> Submitting payment request for review...';
-    
-    setTimeout(() => {
-        const orderId = currentOrderId || 'ORD-' + Date.now().toString().slice(-6);
-        const total = calculateCartTotal();
-        
-        const orderData = {
-            orderId: orderId,
-            txHash: txHash,
-            amount: total,
-            screenshot: currentScreenshot,
-            items: cart.map(item => ({ 
-                id: item.id, 
-                name: item.name, 
-                price: item.price, 
-                quantity: item.quantity || 1,
-                selectedQuantity: item.selectedQuantity || null
-            })),
-            userEmail: currentUser.email || 'Guest',
-            userId: currentUser.uid || 'guest',
-            userName: currentUser.displayName || 'Guest',
-            timestamp: new Date().toISOString(),
-            method: 'Binance ID (Manual)'
-        };
-        
-        console.log('📤 Order submitted for manual review:', orderData);
-        
-        // Save to pending orders
-        let pendingOrders = JSON.parse(localStorage.getItem('pending_binance_orders') || '[]');
-        pendingOrders.push(orderData);
-        localStorage.setItem('pending_binance_orders', JSON.stringify(pendingOrders));
-        
-        // Save to user history
-        const orderItem = {
-            id: orderId,
-            items: cart.map(item => ({ 
-                id: item.id, 
-                name: item.name, 
-                price: item.price, 
-                quantity: item.quantity || 1,
-                selectedQuantity: item.selectedQuantity || null,
-                currency: item.currency || 'USD'
-            })),
-            total: total,
-            method: 'Binance ID (Manual)',
-            date: new Date().toISOString(),
-            status: 'pending',
-            txHash: txHash,
-            rpUsed: 0,
-            rpEarned: 0
-        };
-        
-        const userRef = doc(db, 'users', currentUser.uid);
-        updateDoc(userRef, { history: arrayUnion(orderItem) }).catch(console.error);
-        userProfile.history.push(orderItem);
-        
-        // Send notification to admin
-        const adminMsg = `🟡 *Manual Payment Request (Binance ID)*\n\n📎 **Order #${orderId.slice(-6)}**\n👤 **User:** ${orderData.userName}\n📧 **Email:** ${orderData.userEmail}\n💰 **Amount:** $${total.toFixed(2)}\n🔑 **TX Hash:** \`${txHash}\`\n📅 **Date:** ${new Date().toLocaleString()}\n📦 **Items:** ${cart.map(i => i.name).join(', ')}`;
-        sendTelegramNotification(TELEGRAM_CHAT_ID, adminMsg);
-        
-        result.className = 'bv-result success';
-        result.innerHTML = `
-            <span class="bv-icon">✅</span> 
-            Payment request submitted successfully!
-            <br><small style="opacity:0.6;">
-                Order: <strong>#${orderId.slice(-6)}</strong><br>
-                Your request will be reviewed within 5-10 minutes
-            </small>
-        `;
-        
-        submitBtn.innerHTML = '<i class="fas fa-check"></i> Submitted ✅';
-        submitBtn.style.background = 'var(--success)';
-        
-        showToast('📤 Payment request submitted for review', 'success');
-        
-        // Clear cart and close modal
-        setTimeout(() => {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Confirm Payment';
-            submitBtn.style.background = '';
-            document.getElementById('paymentModal').classList.remove('open');
-            showToast('🎉 Your order has been submitted for review', 'success');
-            
-            cart = [];
-            updateCartUI();
-            updateBottomCartBar();
-            renderProducts(products);
-            saveUserData();
-            closePaymentModal();
-        }, 3000);
-        
-    }, 2000);
-};
-
-// Open manual orders panel (admin)
-window.openManualOrdersPanel = function() {
-    if (!currentUser || !isAdminCached) {
-        showToast('⛔ Unauthorized. Admin only.', 'error');
-        return;
-    }
-    
-    const pendingOrders = JSON.parse(localStorage.getItem('pending_binance_orders') || '[]');
-    
-    if (pendingOrders.length === 0) {
-        showToast('📭 No pending manual orders', 'info');
-        return;
-    }
-    
-    let html = `
-        <div style="max-height:400px; overflow-y:auto;">
-            <h3 style="font-size:16px; font-weight:700; margin-bottom:12px;">
-                📋 Manual Binance ID Orders (${pendingOrders.length})
-            </h3>
-    `;
-    
-    pendingOrders.forEach((order, index) => {
-        const date = new Date(order.timestamp);
-        const dateStr = date.toLocaleDateString('en-US', { 
-            month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
-        });
-        
-        html += `
-            <div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:8px;">
-                <div style="display:flex; justify-content:space-between; align-items:start; flex-wrap:wrap; gap:4px;">
-                    <div>
-                        <div style="font-weight:600; color:var(--text);">
-                            #${order.orderId}
-                            <span style="font-size:11px; color:var(--text-secondary); opacity:0.4; font-weight:400;">
-                                ${dateStr}
-                            </span>
-                        </div>
-                        <div style="font-size:13px; color:var(--text-secondary);">
-                            👤 ${order.userName || order.userEmail || 'Guest'}
-                        </div>
-                        <div style="font-size:12px; color:var(--primary); font-weight:700;">
-                            💰 $${order.amount.toFixed(2)}
-                        </div>
-                        <div style="font-size:11px; color:var(--text-secondary); opacity:0.4; font-family:monospace;">
-                            🔑 ${order.txHash}
-                        </div>
-                        <div style="font-size:11px; color:var(--text-secondary); opacity:0.4;">
-                            📦 ${order.items.map(i => i.name).join(', ')}
-                        </div>
-                        ${order.screenshot ? `
-                            <div style="margin-top:4px;">
-                                <img src="${order.screenshot}" style="max-width:100px; max-height:60px; border-radius:4px; border:1px solid var(--border); cursor:pointer;" 
-                                     onclick="window.open('${order.screenshot}', '_blank')" />
-                            </div>
-                        ` : ''}
-                    </div>
-                    <div style="display:flex; gap:4px;">
-                        <button onclick="confirmManualOrder(${index})" 
-                                style="padding:4px 12px; border:none; border-radius:4px; background:var(--success); color:#0a0a1a; font-weight:600; cursor:pointer; font-size:12px;">
-                            ✅ Confirm
-                        </button>
-                        <button onclick="rejectManualOrder(${index})" 
-                                style="padding:4px 12px; border:none; border-radius:4px; background:var(--danger); color:#fff; font-weight:600; cursor:pointer; font-size:12px;">
-                            ❌ Reject
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-    });
-    
-    html += `
-            <button onclick="closeManualOrdersPanel()" 
-                    style="width:100%; padding:8px; border:1px solid var(--border); border-radius:6px; background:var(--card-bg); color:var(--text); cursor:pointer; font-size:13px; margin-top:8px;">
-                Close
-            </button>
-        </div>
-    `;
-    
-    const modal = document.createElement('div');
-    modal.id = 'manualOrdersModal';
-    modal.style.cssText = `
-        position:fixed; top:0; left:0; right:0; bottom:0; 
-        background:rgba(0,0,0,0.7); backdrop-filter:blur(8px);
-        display:flex; align-items:center; justify-content:center; 
-        z-index:999999; padding:20px;
-    `;
-    modal.innerHTML = `
-        <div style="background:var(--card-bg); border-radius:16px; padding:24px; max-width:500px; width:100%; max-height:90vh; overflow-y:auto; border:1px solid var(--border);">
-            ${html}
-        </div>
-    `;
-    document.body.appendChild(modal);
-};
-
-window.closeManualOrdersPanel = function() {
-    document.getElementById('manualOrdersModal')?.remove();
-};
-
-window.confirmManualOrder = function(index) {
-    const pendingOrders = JSON.parse(localStorage.getItem('pending_binance_orders') || '[]');
-    const order = pendingOrders[index];
-    
-    if (!order) return;
-    
-    // Add to user history as confirmed
-    const orderItem = {
-        id: order.orderId,
-        items: order.items,
-        total: order.amount,
-        method: 'Binance ID (Manual)',
-        date: order.timestamp,
-        status: 'confirmed',
-        txHash: order.txHash
-    };
-    
-    // Update user's history
-    if (order.userId && order.userId !== 'guest') {
-        const userRef = doc(db, 'users', order.userId);
-        updateDoc(userRef, { history: arrayUnion(orderItem) }).catch(console.error);
-    }
-    
-    // Send notification to user
-    if (order.userId && order.userId !== 'guest') {
-        sendUserNotification(order.userId, 
-            '✅ Order Confirmed!', 
-            `Your manual Binance ID order #${order.orderId.slice(-6)} has been confirmed. Thank you!`
-        );
-    }
-    
-    // Notify admin
-    const adminMsg = `✅ *Manual Order Confirmed*\n\n📎 **Order #${order.orderId.slice(-6)}**\n👤 **User:** ${order.userName || order.userEmail || 'Guest'}\n💰 **Amount:** $${order.amount.toFixed(2)}`;
-    sendTelegramNotification(TELEGRAM_CHAT_ID, adminMsg);
-    
-    pendingOrders.splice(index, 1);
-    localStorage.setItem('pending_binance_orders', JSON.stringify(pendingOrders));
-    
-    showToast('✅ Order confirmed successfully', 'success');
-    closeManualOrdersPanel();
-    renderHistoryFull();
-    updateFullUserMenu();
-};
-
-window.rejectManualOrder = function(index) {
-    const pendingOrders = JSON.parse(localStorage.getItem('pending_binance_orders') || '[]');
-    const order = pendingOrders[index];
-    
-    if (!order) return;
-    
-    // Send notification to user
-    if (order.userId && order.userId !== 'guest') {
-        sendUserNotification(order.userId, 
-            '❌ Order Rejected', 
-            `Your manual Binance ID order #${order.orderId.slice(-6)} has been rejected. Please contact support.`
-        );
-    }
-    
-    // Notify admin
-    const adminMsg = `❌ *Manual Order Rejected*\n\n📎 **Order #${order.orderId.slice(-6)}**\n👤 **User:** ${order.userName || order.userEmail || 'Guest'}`;
-    sendTelegramNotification(TELEGRAM_CHAT_ID, adminMsg);
-    
-    pendingOrders.splice(index, 1);
-    localStorage.setItem('pending_binance_orders', JSON.stringify(pendingOrders));
-    
-    showToast('❌ Order rejected', 'info');
-    closeManualOrdersPanel();
-};
-
-// Override selectPayment for Binance ID
-const originalSelectPayment = window.selectPayment;
-
-window.selectPayment = function(method) {
-    selectedPayment = method;
-    document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
-    
-    const binanceSection = document.getElementById('binanceIdSection');
-    const continueBtn = document.getElementById('continuePaymentBtn');
-    
-    if (method === 'binanceId') {
-        const option = document.getElementById('optionBinanceId');
-        if (option) option.classList.add('selected');
-        
-        if (binanceSection) {
-            binanceSection.style.display = 'block';
-            binanceSection.style.animation = 'fadeIn 0.3s ease';
-        }
-        if (continueBtn) continueBtn.style.display = 'none';
-        
-        const total = calculateCartTotal();
-        const orderId = 'ORD-' + Date.now().toString().slice(-6);
-        currentOrderId = orderId;
-        
-        document.getElementById('binanceIdDisplay').textContent = BINANCE_ID;
-        document.getElementById('binanceIdInline').textContent = BINANCE_ID;
-        document.getElementById('binanceAmountDisplay').textContent = '$' + total.toFixed(2);
-        document.getElementById('binanceAmountInline').textContent = '$' + total.toFixed(2);
-        document.getElementById('binanceOrderDisplay').textContent = '#' + orderId;
-        
-        document.getElementById('txHashInput').value = '';
-        document.getElementById('verificationResult').style.display = 'none';
-        document.getElementById('screenshotPreview').style.display = 'none';
-        document.getElementById('submitPaymentBtn').disabled = false;
-        document.getElementById('submitPaymentBtn').innerHTML = '<i class="fas fa-check-circle"></i> Confirm Payment';
-        
-        // Show Binance ID section in payment step 1
-        const paymentStep1 = document.getElementById('paymentStep1');
-        if (paymentStep1) {
-            paymentStep1.style.display = 'block';
-            document.getElementById('paymentStep2').classList.remove('active');
-        }
-        
-        updatePayableTotal();
-        return;
-    }
-    
-    // Handle other payment methods
-    if (binanceSection) binanceSection.style.display = 'none';
-    if (continueBtn) continueBtn.style.display = 'block';
-    
-    const optionMap = { 
-        'litecoin': 'optionLitecoin', 
-        'usdt': 'optionUsdt', 
-        'telegram': 'optionTelegram' 
-    };
-    const optionEl = document.getElementById(optionMap[method]);
-    if (optionEl) optionEl.classList.add('selected');
-    
-    if (method === 'litecoin' || method === 'usdt') {
-        const wallet = method === 'litecoin' ? paymentWallets.litecoin : paymentWallets.usdt;
-        document.getElementById('paymentMethodName').textContent = wallet.name;
-        document.getElementById('cryptoNetwork').textContent = wallet.network;
-        document.getElementById('walletAddressDisplay').textContent = wallet.address;
-        updatePriceUI();
-    }
-    
-    updatePayableTotal();
-};
 
 async function fetchCryptoPrices() {
     if (cryptoPrices.isUpdating) return;
@@ -2461,22 +2000,27 @@ function updatePayableTotal() {
     if (userProfile.useRpForCart) { const rpDiscount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total); finalTotal = total - rpDiscount; }
     if (activeDiscount > 0 && total > 0) { const discountAmount = (finalTotal * activeDiscount) / 100; finalTotal = finalTotal - discountAmount; }
     if (finalTotal < 0) finalTotal = 0;
-    const totalEl = document.getElementById('payableTotal');
-    if (totalEl) totalEl.textContent = '$' + finalTotal.toFixed(2);
-    
-    // Update Binance ID display if visible
-    const binanceAmountDisplay = document.getElementById('binanceAmountDisplay');
-    const binanceAmountInline = document.getElementById('binanceAmountInline');
-    if (binanceAmountDisplay) binanceAmountDisplay.textContent = '$' + finalTotal.toFixed(2);
-    if (binanceAmountInline) binanceAmountInline.textContent = '$' + finalTotal.toFixed(2);
+    document.getElementById('payableTotal').textContent = '$' + finalTotal.toFixed(2);
 }
+
+window.selectPayment = function(method) {
+    selectedPayment = method;
+    document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
+    const optionMap = { 'litecoin': 'optionLitecoin', 'usdt': 'optionUsdt', 'telegram': 'optionTelegram' };
+    const optionEl = document.getElementById(optionMap[method]);
+    if (optionEl) optionEl.classList.add('selected');
+    if (method === 'litecoin' || method === 'usdt') {
+        const wallet = method === 'litecoin' ? paymentWallets.litecoin : paymentWallets.usdt;
+        document.getElementById('paymentMethodName').textContent = wallet.name;
+        document.getElementById('cryptoNetwork').textContent = wallet.network;
+        document.getElementById('walletAddressDisplay').textContent = wallet.address;
+        updatePriceUI();
+    }
+    updatePayableTotal();
+};
 
 window.continuePayment = function() {
     if (!selectedPayment) { showToast('⚠️ Please select a payment method', 'warning'); return; }
-    if (selectedPayment === 'binanceId') {
-        showToast('📤 Please complete the Binance ID payment form below', 'info');
-        return;
-    }
     document.getElementById('paymentStep1').style.display = 'none';
     document.getElementById('paymentStep2').classList.add('active');
     renderPaymentProducts();
@@ -2560,9 +2104,14 @@ function renderPaymentProducts() {
 // 16. Order Functions with User Notification
 // ============================================================
 
+/**
+ * Send notification to user's in-app notification icon
+ * Only the specific user who placed the order will receive it
+ */
 async function sendUserNotification(userId, title, message) {
     if (!userId) return;
     try {
+        // Check if user exists
         const userRef = doc(db, 'users', userId);
         const userSnap = await getDoc(userRef);
         if (!userSnap.exists()) {
@@ -2570,10 +2119,11 @@ async function sendUserNotification(userId, title, message) {
             return;
         }
         
+        // Add notification to Firestore with userId
         await addDoc(collection(db, 'notifications'), {
             title: title,
             message: message,
-            userId: userId,
+            userId: userId, // Only this user will see it
             readBy: [],
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
@@ -2584,7 +2134,11 @@ async function sendUserNotification(userId, title, message) {
     }
 }
 
+/**
+ * Send order confirmation to both Telegram and in-app notification
+ */
 async function sendOrderConfirmations(userId, orderId, productsList, total, method) {
+    // 1. Send in-app notification (only to this user)
     const productNames = productsList.map(item => {
         const qtyLabel = item.selectedQuantity ? ` (${item.selectedQuantity})` : '';
         return `${item.name}${qtyLabel} × ${item.quantity || 1}`;
@@ -2596,6 +2150,7 @@ async function sendOrderConfirmations(userId, orderId, productsList, total, meth
         `Your order #${orderId.slice(-6)} has been confirmed.\nProducts: ${productNames}\nTotal: $${total.toFixed(2)}\nPayment: ${method}`
     );
     
+    // 2. Send Telegram notification if user has linked Telegram
     if (userProfile.telegramChatId) {
         const userMsg = `📦 **Order Confirmed!**\n\n📎 **Order #${orderId.slice(-6)}**\n📅 ${new Date().toLocaleString()}\n💰 Total: $${total.toFixed(2)}\n💳 Method: ${method}\n\nThank you for your purchase! 🎉`;
         await sendTelegramNotification(userProfile.telegramChatId, userMsg);
@@ -2663,6 +2218,7 @@ async function sendOrderToTelegram(method, txHash = null) {
             console.error('❌ Failed to send admin notification:', e);
         }
 
+        // Send confirmation to user (both in-app and Telegram)
         await sendOrderConfirmations(
             currentUser.uid,
             orderId,
@@ -2770,8 +2326,6 @@ window.openPaymentModal = function() {
     document.getElementById('paymentStep2').classList.remove('active');
     selectedPayment = null;
     document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
-    document.getElementById('binanceIdSection').style.display = 'none';
-    document.getElementById('continuePaymentBtn').style.display = 'block';
     updatePayableTotal(); fetchCryptoPrices();
 };
 window.closePaymentModal = function() { document.getElementById('paymentModal').classList.remove('open'); document.getElementById('paymentStep1').style.display = 'block'; document.getElementById('paymentStep2').classList.remove('active'); selectedPayment = null; document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected')); };
@@ -2946,6 +2500,7 @@ function loadNotifications() {
             notifications = [];
             snapshot.forEach((doc) => {
                 const data = doc.data();
+                // Only show notifications that are either global (no userId) or specifically for this user
                 if (!data.userId || data.userId === currentUser?.uid) {
                     notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] });
                 }
@@ -2963,6 +2518,7 @@ function loadNotifications() {
             notifications = [];
             snapshot.forEach((doc) => {
                 const data = doc.data();
+                // Only show notifications that are either global (no userId) or specifically for this user
                 if (!data.userId || data.userId === currentUser?.uid) {
                     notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] });
                 }
@@ -3695,16 +3251,20 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
         });
         await updateDoc(userRef, { history: updatedHistory });
         
+        // Send notification to user when order status changes
         if (newStatus === 'confirmed') {
+            // Send confirmation notification to user's in-app icon
             await sendUserNotification(
                 userId,
                 '✅ Order Confirmed!',
                 `Your order #${orderId.slice(-6)} has been confirmed and is ready.`
             );
             
+            // Send licence via Edge Function
             await sendLicenceForOrder(orderId, userId);
             await sendTelegramNotification(TELEGRAM_CHAT_ID, `✅ Order #${orderId.slice(-6)} confirmed. Licence sent to ${data.email || userId}.`);
         } else if (newStatus === 'rejected') {
+            // Send rejection notification to user's in-app icon
             await sendUserNotification(
                 userId,
                 '❌ Order Rejected',
@@ -4035,6 +3595,7 @@ async function approveLicence(licenceId, code, scriptName) {
         if (fetchError || !licenceData) throw fetchError || new Error('Licence not found');
         await updateLicenceInSupabase(licenceId, { status: 'active', user_id: currentUser.uid, user_email: currentUser.email });
         
+        // Send notification to user
         await sendUserNotification(
             currentUser.uid,
             '🔑 Licence Activated!',
@@ -4062,6 +3623,7 @@ async function revokeLicence(licenceId) {
         await updateLicenceInSupabase(licenceId, { status: 'revoked' });
         const licence = allLicences.find(l => l.id === licenceId);
         if (licence && licence.user_id) {
+            // Notify user
             await sendUserNotification(
                 licence.user_id,
                 '🚫 Licence Revoked',
@@ -4232,6 +3794,7 @@ async function activateLicence() {
                 renderUserLicences();
                 updateFullUserMenu();
                 
+                // Send in-app notification
                 await sendUserNotification(
                     currentUser.uid,
                     '🔑 Licence Activated',
@@ -5546,16 +5109,6 @@ window.removeQuantityOption = removeQuantityOption;
 window.toggleBadge = toggleBadge;
 window.selectQuantityOption = selectQuantityOption;
 window.loginWithGoogle = loginWithGoogle;
-window.copyBinanceId = copyBinanceId;
-window.handleTxPaste = handleTxPaste;
-window.verifyTransaction = verifyTransaction;
-window.handleScreenshot = handleScreenshot;
-window.removeScreenshot = removeScreenshot;
-window.submitManualPayment = submitManualPayment;
-window.openManualOrdersPanel = openManualOrdersPanel;
-window.closeManualOrdersPanel = closeManualOrdersPanel;
-window.confirmManualOrder = confirmManualOrder;
-window.rejectManualOrder = rejectManualOrder;
 
 // ============================================================
 // 41. Support Functions
