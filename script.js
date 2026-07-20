@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - Full Version with Auto-Load Fix
+// SCRIPT.JS - ZI Store - Full Version
 // ============================================================
 
 // ============================================================
@@ -1559,7 +1559,7 @@ window.changePasswordInline = async function() { if (!currentUser) return; const
 // ============================================================
 
 // ============================================================
-// 🔥 Strong product loading with retry
+// Force load products
 // ============================================================
 
 async function forceLoadProducts() {
@@ -1629,7 +1629,7 @@ async function forceLoadProducts() {
 }
 
 // ============================================================
-// 🔥 Retry load function - shows only when needed
+// Retry load function
 // ============================================================
 
 window.retryLoadProducts = async function() {
@@ -1702,10 +1702,9 @@ function renderBadges(badges) {
 }
 
 // ============================================================
-// إصلاح دالة renderProducts - عرض فوري
+// Render products immediately
 // ============================================================
 
-// دالة فورية لعرض المنتجات
 function renderProductsImmediately(productsList) {
     const container = document.getElementById('productList');
     if (!container) {
@@ -1802,7 +1801,7 @@ function renderProducts(productsList, isLoading = false) {
         return;
     }
     
-    // استخدام الدالة السريعة
+    // Use the immediate function
     renderProductsImmediately(productsList);
 }
 
