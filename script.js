@@ -1131,12 +1131,17 @@ window.changePasswordInline = async function() { if (!currentUser) return; const
 
 async function loadProductsFromFirestore() {
     try {
+        console.log('🔄 Loading products from Firestore...');
         const productsRef = collection(db, 'products');
         const querySnapshot = await getDocs(query(productsRef, orderBy('createdAt', 'desc')));
         const productsList = [];
         querySnapshot.forEach((doc) => { productsList.push({ id: doc.id, ...doc.data() }); });
+        console.log(`✅ Loaded ${productsList.length} products from Firestore`);
         return productsList;
-    } catch (error) { console.error('Error loading products:', error); return []; }
+    } catch (error) {
+        console.error('Error loading products:', error);
+        return [];
+    }
 }
 
 function startProductsRealtimeListener() {
@@ -1146,7 +1151,9 @@ function startProductsRealtimeListener() {
     unsubscribeProducts = onSnapshot(query(productsRef, orderBy('createdAt', 'desc')), (snapshot) => {
         const productsList = [];
         snapshot.forEach((doc) => { productsList.push({ id: doc.id, ...doc.data() }); });
+        console.log(`🔄 Products updated: ${productsList.length} products`);
         products = productsList.length > 0 ? productsList : fallbackProducts;
+        console.log(`📦 Final products array length: ${products.length}`);
         renderProducts(products, false);
         renderAdminProducts(products);
         updateStatsFromProducts(products);
@@ -1155,7 +1162,15 @@ function startProductsRealtimeListener() {
         updateRpDisplay();
         renderFeaturedProducts();
         updateSlideProductSelect();
-    }, (error) => { console.error('Products listener error:', error); products = fallbackProducts; renderProducts(products, false); renderAdminProducts(products); updateStatsFromProducts(products); renderFeaturedProducts(); });
+    }, (error) => {
+        console.error('Products listener error:', error);
+        products = fallbackProducts;
+        console.log(`⚠️ Using fallback products (${products.length})`);
+        renderProducts(products, false);
+        renderAdminProducts(products);
+        updateStatsFromProducts(products);
+        renderFeaturedProducts();
+    });
 }
 
 function getCurrencySymbol(currency) {
@@ -1182,7 +1197,11 @@ function renderBadges(badges) {
 
 function renderProducts(productsList, isLoading = false) {
     const container = document.getElementById('productList');
-    if (!container) return;
+    if (!container) {
+        console.warn('⚠️ productList element not found!');
+        return;
+    }
+    console.log(`🔄 Rendering products, count: ${productsList.length}, loading: ${isLoading}`);
     if (isLoading) {
         container.innerHTML = Array(4).fill(`
             <div class="product-card skeleton">
@@ -1195,11 +1214,17 @@ function renderProducts(productsList, isLoading = false) {
         return;
     }
     const list = productsList || [];
-    if (list.length === 0) { container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:20px 0;color:var(--text-secondary);font-size:14px;"><i class="fas fa-search" style="font-size:28px;opacity:0.2;display:block;margin-bottom:4px;"></i><p>No products</p></div>`; return; }
+    if (list.length === 0) {
+        container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:20px 0;color:var(--text-secondary);font-size:14px;"><i class="fas fa-search" style="font-size:28px;opacity:0.2;display:block;margin-bottom:4px;"></i><p>No products</p></div>`;
+        return;
+    }
     let filtered = [...list];
     if (currentFilter === 'free') filtered = filtered.filter(p => p.price === 0);
     else if (currentFilter === 'paid') filtered = filtered.filter(p => p.price > 0);
-    if (filtered.length === 0) { container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:20px 0;color:var(--text-secondary);font-size:14px;"><i class="fas fa-search" style="font-size:28px;opacity:0.2;display:block;margin-bottom:4px;"></i><p>No results</p></div>`; return; }
+    if (filtered.length === 0) {
+        container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:20px 0;color:var(--text-secondary);font-size:14px;"><i class="fas fa-search" style="font-size:28px;opacity:0.2;display:block;margin-bottom:4px;"></i><p>No results</p></div>`;
+        return;
+    }
     container.innerHTML = filtered.map(p => {
         const isFree = p.price === 0;
         const isUnavailable = p.status === 'unavailable';
@@ -5118,7 +5143,24 @@ window.goToStep1 = function() {
     document.getElementById('paymentStep2').classList.remove('active');
 };
 
-window.copyWalletAddress = copyWalletAddress;
+// ===== FIX: copyWalletAddress =====
+window.copyWalletAddress = function() {
+    const address = document.getElementById('walletAddressDisplay').textContent;
+    if (address) {
+        navigator.clipboard.writeText(address).then(() => {
+            showToast('✅ Address copied!', 'success');
+        }).catch(() => {
+            const textArea = document.createElement('textarea');
+            textArea.value = address;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            showToast('✅ Address copied!', 'success');
+        });
+    }
+};
+
 window.placeOrder = placeOrder;
 window.openPaymentModal = openPaymentModal;
 window.closePaymentModal = closePaymentModal;
