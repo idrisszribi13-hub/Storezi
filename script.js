@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - Full Version with Binance ID
+// SCRIPT.JS - ZI Store - Full Version with Binance ID - FIXED
 // ============================================================
 
 // ============================================================
@@ -4243,15 +4243,26 @@ function loadAdminOrders() {
     });
 }
 
+// ============================================================
+// 23. Render Admin Orders - FIXED Syntax Error
+// ============================================================
+
 function renderAdminOrders(orders) {
     const tbody = document.getElementById('adminOrdersBody');
     if (!tbody) return;
     if (!orders || orders.length === 0) { tbody.innerHTML = `<tr><td colspan="7"><div style="text-align:center;padding:30px;color:var(--text-secondary);"><i class="fas fa-inbox"></i> No orders</div></td></tr>`; return; }
-    const uniqueOrders = []; const seen = new Set();
+    
+    // Group by orderId to avoid duplicates
+    const uniqueOrders = []; 
+    const seen = new Set();
     orders.forEach(order => {
         const orderId = order.orderId || order.id;
-        if (orderId && !seen.has(orderId)) { seen.add(orderId); uniqueOrders.push(order); }
+        if (orderId && !seen.has(orderId)) { 
+            seen.add(orderId); 
+            uniqueOrders.push(order); 
+        }
     });
+    
     let html = '';
     uniqueOrders.forEach(order => {
         const status = order.status || 'pending';
@@ -4263,11 +4274,39 @@ function renderAdminOrders(orders) {
         const info = statusMap[status] || statusMap['pending'];
         const date = order.date ? new Date(order.date) : new Date();
         const dateStr = date.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
-        const itemsList = order.items ? order.items.map(item => `<span style="display:inline-block;background:var(--bg);padding:2px 8px;border-radius:10px;font-size:11px;border:1px solid var(--border);margin:1px;">${item.name} ${item.selectedQuantity ? '📦'+item.selectedQuantity : ''} ×${item.quantity||1}</span>`).join('') : '—';
+        const itemsList = order.items ? order.items.map(item => 
+            `<span style="display:inline-block;background:var(--bg);padding:2px 8px;border-radius:10px;font-size:11px;border:1px solid var(--border);margin:1px;">${item.name} ${item.selectedQuantity ? '📦'+item.selectedQuantity : ''} ×${item.quantity||1}</span>`
+        ).join('') : '—';
         const total = order.total || 0;
         const orderIdStr = String(order.orderId || order.id || '');
         const orderIdDisplay = orderIdStr.slice(-6) || '------';
-        html += `<tr><td><span class="order-id">#${orderIdDisplay}</span></td><td><div style="font-weight:600;font-size:12px;">${order.userName||'Unknown'}</div><div class="user-email">${order.userEmail||'N/A'}</div></td><td><div style="display:flex;flex-wrap:wrap;gap:2px;">${itemsList}</div></td><td><span class="order-total">${total.toFixed(2)} $</span></td><td><span class="order-date">${dateStr}</span></td><td><span class="status-badge ${info.class}">${info.label}</span></td><td><div class="actions-cell"><select onchange="updateOrderStatus('${order.orderId||order.id}','${order.userId}',this.value)" style="padding:2px 6px;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);font-size:10px;"><option value="pending" ${status==='pending'?'selected':''}>⏳ Pending</option><option value="confirmed" ${status==='confirmed'?'selected':''}>✅ Confirmed</option><option value="rejected" ${status==='rejected'?'selected':''}>❌ Rejected</option></select><button onclick="deleteOrderImmediately('${order.orderId||order.id}','${order.userId}')" class="btn-delete-order"><i class="fas fa-trash"></i> Delete</button></div></td></tr>`;
+        
+        // --- FIXED: Properly escaped template literals ---
+        html += `<tr>
+            <td><span class="order-id">#${orderIdDisplay}</span></td>
+            <td>
+                <div style="font-weight:600;font-size:12px;">${order.userName||'Unknown'}</div>
+                <div class="user-email">${order.userEmail||'N/A'}</div>
+            </td>
+            <td><div style="display:flex;flex-wrap:wrap;gap:2px;">${itemsList}</div></td>
+            <td><span class="order-total">${total.toFixed(2)} $</span></td>
+            <td><span class="order-date">${dateStr}</span></td>
+            <td><span class="status-badge ${info.class}">${info.label}</span></td>
+            <td>
+                <div class="actions-cell">
+                    <select onchange="updateOrderStatus('${order.orderId||order.id}','${order.userId}',this.value)" 
+                            style="padding:2px 6px;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);font-size:10px;">
+                        <option value="pending" ${status==='pending'?'selected':''}>⏳ Pending</option>
+                        <option value="confirmed" ${status==='confirmed'?'selected':''}>✅ Confirmed</option>
+                        <option value="rejected" ${status==='rejected'?'selected':''}>❌ Rejected</option>
+                    </select>
+                    <button onclick="deleteOrderImmediately('${order.orderId||order.id}','${order.userId}')" 
+                            class="btn-delete-order">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+            </td>
+        </tr>`;
     });
     tbody.innerHTML = html;
 }
@@ -4284,7 +4323,7 @@ function updateAdminStats(orders) {
 }
 
 // ============================================================
-// 23. Update Order Status with User Notification
+// 24. Update Order Status with User Notification
 // ============================================================
 
 window.updateOrderStatus = async function(orderId, userId, newStatus) {
@@ -4368,7 +4407,7 @@ window.clearAdminSearch = function() { document.getElementById('adminSearchInput
 window.refreshAdminOrders = function() { loadAdminOrders(); showToast('🔄 Refreshed', 'info'); };
 
 // ============================================================
-// 24. Send Licence via Edge Function
+// 25. Send Licence via Edge Function
 // ============================================================
 
 async function sendLicenceForOrder(orderId, userId) {
@@ -4416,7 +4455,7 @@ async function sendLicenceForOrder(orderId, userId) {
 }
 
 // ============================================================
-// 25. Admin Users
+// 26. Admin Users
 // ============================================================
 
 async function loadAdminUsers() {
@@ -4527,7 +4566,7 @@ window.viewUserDetails = async function(uid) {
 window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
 // ============================================================
-// 26. Licence Management System (with Supabase)
+// 27. Licence Management System (with Supabase)
 // ============================================================
 
 async function loadLicences() {
@@ -4866,7 +4905,7 @@ async function activateLicence() {
 }
 
 // ============================================================
-// 27. Ratings
+// 28. Ratings
 // ============================================================
 
 let currentRating = 0;
@@ -4958,7 +4997,7 @@ async function updateProductRatingDisplay(productId) {
 }
 
 // ============================================================
-// 28. Slider & Marquee Functions
+// 29. Slider & Marquee Functions
 // ============================================================
 
 window.goToSlide = function(index) {
@@ -5358,7 +5397,7 @@ async function loadMarqueeSettings() {
 }
 
 // ============================================================
-// 29. Dashboard Stats, Advanced Stats, Audit Logs
+// 30. Dashboard Stats, Advanced Stats, Audit Logs
 // ============================================================
 
 async function loadDashboardStats() {
@@ -5466,7 +5505,7 @@ async function loadAuditLogs() {
 window.loadAuditLogs = loadAuditLogs;
 
 // ============================================================
-// 30. Clear Order History, Render History, Filter Orders
+// 31. Clear Order History, Render History, Filter Orders
 // ============================================================
 
 window.clearOrderHistory = async function() {
@@ -5536,7 +5575,7 @@ window.filterOrders = function(filter) {
 };
 
 // ============================================================
-// 31. Cookie Consent Functions
+// 32. Cookie Consent Functions
 // ============================================================
 
 let cookieConsentStatus = localStorage.getItem('cookieConsent');
@@ -5666,7 +5705,7 @@ window.disableAnalytics = disableAnalytics;
 window.checkCookieConsent = checkCookieConsent;
 
 // ============================================================
-// 32. Telegram Banner, Social Proof, Upload
+// 33. Telegram Banner, Social Proof, Upload
 // ============================================================
 
 function showTelegramBanner() {
@@ -5712,7 +5751,7 @@ function startSocialProof() { /* For future use */ }
 function triggerSocialProofOnOrder(userName, productNames) { /* For future use */ }
 
 // ============================================================
-// 33. Cloudinary Upload
+// 34. Cloudinary Upload
 // ============================================================
 
 const CLOUDINARY_CLOUD_NAME = 'y14bgb5s';
@@ -5730,7 +5769,7 @@ async function uploadToCloudinary(file) {
 }
 
 // ============================================================
-// 34. Direction Fix
+// 35. Direction Fix
 // ============================================================
 
 function fixDirection() {
@@ -5742,7 +5781,7 @@ function fixDirection() {
 window.fixHeaderAndModals = fixDirection;
 
 // ============================================================
-// 35. Copy Licence & Export
+// 36. Copy Licence & Export
 // ============================================================
 
 window.copyLicenceCode = function(code) {
@@ -5805,7 +5844,7 @@ window.exportOrders = function() {
 };
 
 // ============================================================
-// 36. Auth State Listener
+// 37. Auth State Listener
 // ============================================================
 
 onAuthStateChanged(auth, async (user) => {
@@ -5901,7 +5940,7 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// 37. Auto-check Admin Panel
+// 38. Auto-check Admin Panel
 // ============================================================
 
 setInterval(() => {
@@ -5924,7 +5963,7 @@ setInterval(() => {
 }, 5000);
 
 // ============================================================
-// 38. Init
+// 39. Init
 // ============================================================
 
 async function init() {
@@ -6018,7 +6057,7 @@ async function init() {
 }
 
 // ============================================================
-// 39. Theme Toggle
+// 40. Theme Toggle
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -6043,7 +6082,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================================
-// 40. Export all functions to global scope
+// 41. Export all functions to global scope
 // ============================================================
 
 window.toggleLicencesList = toggleLicencesList;
@@ -6209,7 +6248,7 @@ window.submitManualPayment = submitManualPayment;
 console.log('✅ All functions exported successfully!');
 
 // ============================================================
-// 41. Support Functions
+// 42. Support Functions
 // ============================================================
 
 window.toggleSupportMenu = function() {
@@ -6294,7 +6333,7 @@ document.addEventListener('keydown', function(e) {
 console.log('✅ Support system loaded successfully!');
 
 // ============================================================
-// 42. Start App
+// 43. Start App
 // ============================================================
 
 if (document.readyState === 'loading') {
