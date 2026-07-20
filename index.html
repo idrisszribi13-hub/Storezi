@@ -22,10 +22,6 @@
         });
     </script>
 
-    <style>
-
-    </style>
-
     <!-- إخفاء فوري لشاشة التحميل -->
     <script>
         (function() {
@@ -362,39 +358,22 @@
     <!-- زر الدعم العائم (Floating Support Button) -->
     <!-- ============================================ -->
     <div class="support-float" id="supportFloat">
-        <!-- الزر الرئيسي -->
         <button class="btn btn-main" onclick="toggleSupportMenu()" title="الدعم الفني">
             <span class="pulse-ring"></span>
             <i class="fas fa-headset"></i>
             <span class="badge-count">!</span>
         </button>
-
-        <!-- الأزرار الفرعية -->
         <div class="sub-buttons">
-            <!-- واتساب -->
-            <a href="https://wa.me/1234567890?text=مرحباً%20أحتاج%20مساعدة" 
-               target="_blank" 
-               class="btn btn-whatsapp" 
-               title="تواصل عبر واتساب">
+            <a href="https://wa.me/1234567890?text=مرحباً%20أحتاج%20مساعدة" target="_blank" class="btn btn-whatsapp" title="تواصل عبر واتساب">
                 <i class="fab fa-whatsapp"></i>
             </a>
-
-            <!-- تيليجرام -->
-            <a href="https://t.me/Mitalica69?start=support" 
-               target="_blank" 
-               class="btn btn-telegram" 
-               title="تواصل عبر تيليجرام">
+            <a href="https://t.me/Mitalica69?start=support" target="_blank" class="btn btn-telegram" title="تواصل عبر تيليجرام">
                 <i class="fab fa-telegram-plane"></i>
             </a>
-
-            <!-- بريد إلكتروني -->
-            <a href="mailto:support@zi-store.online?subject=طلب%20مساعدة" 
-               class="btn btn-email" 
-               title="أرسل بريداً إلكترونياً">
+            <a href="mailto:support@zi-store.online?subject=طلب%20مساعدة" class="btn btn-email" title="أرسل بريداً إلكترونياً">
                 <i class="fas fa-envelope"></i>
             </a>
         </div>
-
         <span class="label">دعم</span>
     </div>
 
@@ -408,83 +387,42 @@
                 <i class="fas fa-headset" style="color:var(--primary);"></i>
                 <span data-i18n="support">الدعم الفني</span>
             </div>
-
             <p style="font-size:14px; color:var(--text-secondary); opacity:0.5; text-align:center; margin-bottom:4px;">
                 اختر طريقة التواصل المفضلة لديك
             </p>
-
             <div class="support-options">
-                <!-- واتساب -->
-                <a href="https://wa.me/1234567890?text=مرحباً%20أحتاج%20مساعدة" 
-                   target="_blank" 
-                   class="support-option">
-                    <div class="icon-wrapper whatsapp">
-                        <i class="fab fa-whatsapp"></i>
-                    </div>
-                    <div class="info">
-                        <div class="title">واتساب</div>
-                        <div class="subtitle">رد سريع خلال دقائق</div>
-                    </div>
+                <a href="https://wa.me/1234567890?text=مرحباً%20أحتاج%20مساعدة" target="_blank" class="support-option">
+                    <div class="icon-wrapper whatsapp"><i class="fab fa-whatsapp"></i></div>
+                    <div class="info"><div class="title">واتساب</div><div class="subtitle">رد سريع خلال دقائق</div></div>
                     <span class="badge-support">متاح</span>
                     <i class="fas fa-chevron-right arrow"></i>
                 </a>
-
-                <!-- تيليجرام -->
-                <a href="https://t.me/Mitalica69?start=support" 
-                   target="_blank" 
-                   class="support-option">
-                    <div class="icon-wrapper telegram">
-                        <i class="fab fa-telegram-plane"></i>
-                    </div>
-                    <div class="info">
-                        <div class="title">تيليجرام</div>
-                        <div class="subtitle">تواصل مباشر مع الدعم</div>
-                    </div>
+                <a href="https://t.me/Mitalica69?start=support" target="_blank" class="support-option">
+                    <div class="icon-wrapper telegram"><i class="fab fa-telegram-plane"></i></div>
+                    <div class="info"><div class="title">تيليجرام</div><div class="subtitle">تواصل مباشر مع الدعم</div></div>
                     <span class="badge-support">متاح</span>
                     <i class="fas fa-chevron-right arrow"></i>
                 </a>
-
-                <!-- بريد إلكتروني -->
-                <a href="mailto:support@zi-store.online?subject=طلب%20مساعدة" 
-                   class="support-option">
-                    <div class="icon-wrapper email">
-                        <i class="fas fa-envelope"></i>
-                    </div>
-                    <div class="info">
-                        <div class="title">البريد الإلكتروني</div>
-                        <div class="subtitle">دعم خلال 24 ساعة</div>
-                    </div>
+                <a href="mailto:support@zi-store.online?subject=طلب%20مساعدة" class="support-option">
+                    <div class="icon-wrapper email"><i class="fas fa-envelope"></i></div>
+                    <div class="info"><div class="title">البريد الإلكتروني</div><div class="subtitle">دعم خلال 24 ساعة</div></div>
                     <i class="fas fa-chevron-right arrow"></i>
                 </a>
-
-                <!-- اتصال هاتفي (اختياري) -->
-                <a href="tel:+1234567890" 
-                   class="support-option">
-                    <div class="icon-wrapper phone">
-                        <i class="fas fa-phone"></i>
-                    </div>
-                    <div class="info">
-                        <div class="title">اتصال هاتفي</div>
-                        <div class="subtitle">تواصل مباشر</div>
-                    </div>
+                <a href="tel:+1234567890" class="support-option">
+                    <div class="icon-wrapper phone"><i class="fas fa-phone"></i></div>
+                    <div class="info"><div class="title">اتصال هاتفي</div><div class="subtitle">تواصل مباشر</div></div>
                     <i class="fas fa-chevron-right arrow"></i>
                 </a>
             </div>
-
             <div class="support-footer">
-                <i class="fas fa-clock"></i> 
-                أوقات الدعم: 24/7 · 
-                <i class="fas fa-reply-all"></i> 
-                نرد خلال 24 ساعة
+                <i class="fas fa-clock"></i> أوقات الدعم: 24/7 · <i class="fas fa-reply-all"></i> نرد خلال 24 ساعة
             </div>
         </div>
     </div>
 
     <!-- ============================================ -->
-    <!-- جميع المودالات الأخرى (مختصرة) -->
-    <!-- ============================================ -->
-
     <!-- Preview Modal -->
+    <!-- ============================================ -->
     <div class="modal-overlay preview-modal" id="previewModal">
         <div class="preview-content">
             <div class="preview-header">
@@ -526,7 +464,9 @@
         </div>
     </div>
 
+    <!-- ============================================ -->
     <!-- Share Modal -->
+    <!-- ============================================ -->
     <div class="modal-overlay share-modal" id="shareModal">
         <div class="modal-content">
             <button class="modal-close" onclick="closeShareModal()"><i class="fas fa-times"></i></button>
@@ -542,7 +482,7 @@
     </div>
 
     <!-- ============================================ -->
-    <!-- Payment Modal (UPDATED with Binance ID) -->
+    <!-- Payment Modal (مع Binance ID) -->
     <!-- ============================================ -->
     <div class="modal-overlay" id="paymentModal">
         <div class="modal-content" style="max-width:420px;">
@@ -569,7 +509,7 @@
                         <div class="p-sub">Direct</div>
                         <div class="p-check"><i class="fas fa-check"></i></div>
                     </div>
-                    <!-- New Binance ID Option -->
+                    <!-- Binance ID Option -->
                     <div class="payment-option" id="optionBinanceId" onclick="selectPayment('binanceId')">
                         <i class="fab fa-binance" style="color:#f2a900;"></i>
                         <div class="p-label">Binance ID</div>
@@ -586,7 +526,6 @@
 
                 <!-- Binance ID Detailed Section (hidden by default) -->
                 <div class="binance-id-section" id="binanceIdSection" style="display:none;">
-                    <!-- Binance ID Transfer Box -->
                     <div class="binance-id-box">
                         <div class="bi-header">
                             <i class="fab fa-binance"></i>
@@ -596,9 +535,7 @@
                             <div class="bi-row">
                                 <span class="bi-label">📤 Transfer to:</span>
                                 <span class="bi-value" id="binanceIdDisplay">748838383</span>
-                                <button onclick="copyBinanceId()" class="bi-copy-btn">
-                                    <i class="fas fa-copy"></i>
-                                </button>
+                                <button onclick="copyBinanceId()" class="bi-copy-btn"><i class="fas fa-copy"></i></button>
                             </div>
                             <div class="bi-row">
                                 <span class="bi-label">💰 Amount:</span>
@@ -625,7 +562,6 @@
                         </div>
                     </div>
 
-                    <!-- Payment Verification -->
                     <div class="binance-verification">
                         <div class="bv-header">
                             <i class="fas fa-check-circle"></i>
@@ -648,7 +584,6 @@
                                 </div>
                             </div>
 
-                            <!-- Screenshot Upload -->
                             <div class="bv-upload">
                                 <label>🖼️ Or upload a screenshot:</label>
                                 <div class="bv-drop-zone" id="dropZone" onclick="document.getElementById('screenshotInput').click()">
@@ -682,12 +617,11 @@
                     </div>
                 </div>
 
-                <!-- Continue button (shown for non-Binance methods) -->
                 <button class="payment-btn" onclick="continuePayment()" id="continuePaymentBtn" data-i18n="continue">
                     <i class="fas fa-arrow-right"></i> Continue
                 </button>
             </div>
-            <!-- Payment Step 2 (kept as is for other methods) -->
+            <!-- Payment Step 2 (for other methods) -->
             <div class="payment-step2" id="paymentStep2">
                 <div class="payment-products-list" id="paymentProductsList"></div>
                 <div class="payment-summary">
@@ -710,7 +644,9 @@
         </div>
     </div>
 
-    <!-- Downloads Modal -->
+    <!-- ============================================ -->
+    <!-- باقي المودالات (مختصرة) -->
+    <!-- ============================================ -->
     <div class="modal-overlay" id="downloadsModal">
         <div class="modal-content" style="max-width:440px;">
             <button class="modal-close" onclick="closeDownloads()"><i class="fas fa-times"></i></button>
@@ -719,7 +655,6 @@
         </div>
     </div>
 
-    <!-- Notifications Modal -->
     <div class="modal-overlay" id="notificationsModal">
         <div class="modal-content" style="max-width:440px;">
             <button class="modal-close" onclick="closeNotifications()"><i class="fas fa-times"></i></button>
@@ -732,8 +667,7 @@
         </div>
     </div>
 
-    <!-- Fullscreen Modals -->
-    <!-- User Menu -->
+    <!-- Fullscreen Modals (User Menu, Profile, History, Cart, Wishlist) -->
     <div class="fullscreen-modal user-menu-full" id="userMenuFull">
         <div class="modal-header">
             <h2><i class="fas fa-user"></i> <span data-i18n="profile">Profile</span></h2>
@@ -768,7 +702,6 @@
         </div>
     </div>
 
-    <!-- Profile -->
     <div class="fullscreen-modal" id="profileFull">
         <div class="modal-header">
             <h2><i class="fas fa-user-cog"></i> <span data-i18n="profile">Profile</span></h2>
@@ -777,7 +710,6 @@
         <div class="modal-body" id="profileFullContent"></div>
     </div>
 
-    <!-- History -->
     <div class="fullscreen-modal" id="historyFull">
         <div class="modal-header">
             <h2><i class="fas fa-history"></i> <span data-i18n="order_history">Order History</span></h2>
@@ -786,7 +718,6 @@
         <div class="modal-body" id="historyFullContent"></div>
     </div>
 
-    <!-- Cart -->
     <div class="fullscreen-modal" id="cartFull">
         <div class="modal-header">
             <h2><i class="fas fa-shopping-cart"></i> <span data-i18n="cart">Cart</span></h2>
@@ -795,7 +726,6 @@
         <div class="modal-body" id="cartFullContent"></div>
     </div>
 
-    <!-- Wishlist -->
     <div class="fullscreen-modal" id="wishlistFull">
         <div class="modal-header">
             <h2><i class="fas fa-heart"></i> <span data-i18n="favorites">Favorites</span></h2>
@@ -804,7 +734,9 @@
         <div class="modal-body" id="wishlistFullContent"></div>
     </div>
 
-    <!-- Requests Modal -->
+    <!-- ============================================ -->
+    <!-- باقي المودالات (طلبات، إحالات، نسيت كلمة المرور، تفعيل الترخيص، ...) -->
+    <!-- ============================================ -->
     <div class="modal-overlay" id="requestsModal">
         <div class="modal-content" style="max-width:420px;">
             <button class="modal-close" onclick="closeRequestsModal()"><i class="fas fa-times"></i></button>
@@ -814,7 +746,6 @@
         </div>
     </div>
 
-    <!-- New Request -->
     <div class="modal-overlay" id="newRequestModal">
         <div class="modal-content" style="max-width:420px;">
             <button class="modal-close" onclick="closeNewRequestModal()"><i class="fas fa-times"></i></button>
@@ -833,7 +764,6 @@
         </div>
     </div>
 
-    <!-- Referral Modal -->
     <div class="modal-overlay" id="referralModal">
         <div class="modal-content" style="max-width:420px;">
             <button class="modal-close" onclick="closeReferralModal()"><i class="fas fa-times"></i></button>
@@ -863,7 +793,6 @@
         </div>
     </div>
 
-    <!-- Forgot Password -->
     <div class="modal-overlay" id="forgotPasswordModal">
         <div class="modal-content" style="max-width:360px;">
             <button class="modal-close" onclick="closeForgotPasswordModal()"><i class="fas fa-times"></i></button>
@@ -875,7 +804,6 @@
         </div>
     </div>
 
-    <!-- Licence Activation -->
     <div class="modal-overlay" id="licenceModal">
         <div class="modal-content" style="max-width:420px;">
             <button class="modal-close" onclick="closeLicenceModal()"><i class="fas fa-times"></i></button>
@@ -891,7 +819,6 @@
         </div>
     </div>
 
-    <!-- Edit Licence -->
     <div class="modal-overlay" id="editLicenceModal">
         <div class="modal-content" style="max-width:420px;">
             <button class="modal-close" onclick="document.getElementById('editLicenceModal').classList.remove('open')"><i class="fas fa-times"></i></button>
@@ -913,7 +840,6 @@
         </div>
     </div>
 
-    <!-- Create Licence -->
     <div class="modal-overlay" id="createLicenceModal">
         <div class="modal-content" style="max-width:420px;">
             <button class="modal-close" onclick="closeCreateLicenceModal()"><i class="fas fa-times"></i></button>
@@ -923,281 +849,6 @@
                 <div class="admin-form-group"><label data-i18n="user_id">User ID (optional)</label><input type="text" id="newLicenceUser" placeholder="Firebase UID or email" /></div>
                 <div class="admin-form-group"><label data-i18n="expiry_date">Expiry Date</label><input type="datetime-local" id="newLicenceExpiry" /></div>
                 <button type="submit" class="admin-submit-btn"><i class="fas fa-plus"></i> <span data-i18n="create">Create</span></button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Product Modal -->
-    <div class="modal-overlay" id="productModal">
-        <div class="modal-content" style="max-width:540px;">
-            <button class="modal-close" onclick="closeProductModal()"><i class="fas fa-times"></i></button>
-            <div class="modal-title" id="productFormTitle"><span data-i18n="add_product">Add Product</span></div>
-            <form id="productForm" onsubmit="saveProduct(event)" class="admin-form">
-                <input type="hidden" id="productIdField" />
-                <div class="admin-form-group">
-                    <label for="productName" data-i18n="name">Product Name</label>
-                    <input type="text" id="productName" required placeholder="Enter product name" />
-                </div>
-                <div class="admin-form-group">
-                    <label style="display:block;margin-bottom:6px;font-weight:600;" data-i18n="currency">Currency</label>
-                    <div class="currency-selector" id="currencySelector">
-                        <div class="currency-option active" data-currency="USD" onclick="selectCurrency('USD')">
-                            <span class="currency-symbol">$</span>
-                            <span class="currency-name">USD</span>
-                            <span class="currency-check"><i class="fas fa-check"></i></span>
-                        </div>
-                        <div class="currency-option" data-currency="TND" onclick="selectCurrency('TND')">
-                            <span class="currency-symbol">د.ت</span>
-                            <span class="currency-name">TND</span>
-                            <span class="currency-check"><i class="fas fa-check"></i></span>
-                        </div>
-                        <div class="currency-option" data-currency="OTHER" onclick="selectCurrency('OTHER')">
-                            <span class="currency-symbol">💱</span>
-                            <span class="currency-name">Other</span>
-                            <span class="currency-check"><i class="fas fa-check"></i></span>
-                        </div>
-                    </div>
-                    <input type="hidden" id="productCurrency" value="USD" />
-                </div>
-                <div class="admin-form-row">
-                    <div class="admin-form-group" style="flex:1;">
-                        <label for="productPrice" data-i18n="price">Price</label>
-                        <input type="number" id="productPrice" step="0.01" min="0" placeholder="0.00" />
-                    </div>
-                    <div class="admin-form-group" style="flex:1;">
-                        <label for="productOriginalPrice" data-i18n="original_price">Original Price</label>
-                        <input type="number" id="productOriginalPrice" step="0.01" min="0" placeholder="0.00" />
-                    </div>
-                </div>
-                <div class="admin-form-group">
-                    <label style="display:block;margin-bottom:6px;font-weight:600;" data-i18n="product_type">Product Type</label>
-                    <div class="product-type-selector" id="productTypeSelector">
-                        <div class="type-option active" data-type="standard" onclick="selectProductType('standard')">
-                            <i class="fas fa-box"></i>
-                            <span>Standard</span>
-                        </div>
-                        <div class="type-option" data-type="quantity" onclick="selectProductType('quantity')">
-                            <i class="fas fa-layer-group"></i>
-                            <span>Quantity-based</span>
-                        </div>
-                    </div>
-                    <input type="hidden" id="productType" value="standard" />
-                </div>
-                <div class="admin-form-group" id="quantityOptionsContainer" style="display:none;">
-                    <label style="display:block;margin-bottom:6px;font-weight:600;">
-                        <i class="fas fa-cubes"></i> Quantity Options
-                        <button type="button" class="add-quantity-btn" onclick="addQuantityOption()">
-                            <i class="fas fa-plus"></i> Add Option
-                        </button>
-                    </label>
-                    <div id="quantityOptionsList"></div>
-                    <small style="color:var(--text-secondary);opacity:0.5;">Add different quantity levels with their prices</small>
-                </div>
-                <div class="admin-form-group">
-                    <label style="display:block;margin-bottom:6px;font-weight:600;">
-                        <i class="fas fa-tags"></i> Badges
-                        <small style="color:var(--text-secondary);opacity:0.5;font-weight:400;">(Click to toggle)</small>
-                    </label>
-                    <div class="badge-selector" id="badgeSelector">
-                        <div class="badge-option" data-badge="new" onclick="toggleBadge('new')">
-                            <span class="badge-tag badge-new">🆕 New</span>
-                        </div>
-                        <div class="badge-option" data-badge="hot" onclick="toggleBadge('hot')">
-                            <span class="badge-tag badge-hot">🔥 Hot</span>
-                        </div>
-                        <div class="badge-option" data-badge="exclusive" onclick="toggleBadge('exclusive')">
-                            <span class="badge-tag badge-exclusive">💎 Exclusive</span>
-                        </div>
-                        <div class="badge-option" data-badge="important" onclick="toggleBadge('important')">
-                            <span class="badge-tag badge-important">⭐ Important</span>
-                        </div>
-                        <div class="badge-option" data-badge="limited" onclick="toggleBadge('limited')">
-                            <span class="badge-tag badge-limited">⏳ Limited</span>
-                        </div>
-                        <div class="badge-option" data-badge="best" onclick="toggleBadge('best')">
-                            <span class="badge-tag badge-best">🏆 Best</span>
-                        </div>
-                    </div>
-                    <input type="hidden" id="productBadges" value="" />
-                </div>
-                <div class="admin-form-row">
-                    <div class="admin-form-group" style="flex:1;">
-                        <label for="productBadge" data-i18n="badge_label">Badge Label</label>
-                        <select id="productBadge">
-                            <option value="FREE">FREE</option>
-                            <option value="VIP">VIP</option>
-                            <option value="PRO">PRO</option>
-                        </select>
-                    </div>
-                    <div class="admin-form-group" style="flex:1;">
-                        <label for="productStatus" data-i18n="status">Status</label>
-                        <select id="productStatus">
-                            <option value="available">Available</option>
-                            <option value="unavailable">Unavailable</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="admin-form-group">
-                    <label for="productImageFile" data-i18n="upload_image">Upload Product Image</label>
-                    <input type="file" id="productImageFile" accept="image/*" />
-                    <div id="imagePreviewContainer" style="margin-top: 8px; display: none;">
-                        <img id="imagePreview" src="#" alt="Image preview" style="max-width: 100px; max-height: 100px; border-radius: 8px; border: 1px solid var(--border);" />
-                    </div>
-                    <small style="color: var(--text-secondary); opacity: 0.5;">Or enter a URL below:</small>
-                    <input type="url" id="productImage" placeholder="https://example.com/image.jpg" style="margin-top: 4px;" />
-                </div>
-                <div class="admin-form-group">
-                    <label for="productDescription" data-i18n="description">Description</label>
-                    <textarea id="productDescription" rows="3" placeholder="Product description..."></textarea>
-                </div>
-                <div class="admin-form-group">
-                    <label for="productFeatures" data-i18n="features">Features (comma separated)</label>
-                    <input type="text" id="productFeatures" placeholder="Feature 1, Feature 2, Feature 3" />
-                </div>
-                <div class="admin-form-group">
-                    <label for="productVideo" data-i18n="video_url">Video URL</label>
-                    <input type="url" id="productVideo" placeholder="https://www.youtube.com/embed/..." />
-                </div>
-                <div class="admin-form-group" style="border-top:1px solid var(--border);padding-top:12px;margin-top:8px;">
-                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-                        <input type="checkbox" id="vipEnabled" style="width:20px;height:20px;accent-color:var(--vip-color);cursor:pointer;" />
-                        <label for="vipEnabled" style="font-weight:700;color:var(--vip-color);cursor:pointer;font-size:14px;">
-                            <i class="fas fa-crown"></i> Enable VIP Pricing
-                        </label>
-                    </div>
-                    <div id="vipPricingFields" style="display:none;margin-top:8px;">
-                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;background:var(--bg);border-radius:8px;padding:10px;border:1px solid var(--border);">
-                            <div style="text-align:center;">
-                                <div style="font-size:11px;font-weight:600;color:var(--text-secondary);opacity:0.5;">1 Month</div>
-                                <input type="number" id="vipPrice1m" step="0.01" placeholder="Price" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text);font-size:12px;text-align:center;margin:2px 0;" />
-                                <input type="number" id="vipOriginalPrice1m" step="0.01" placeholder="Original" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text-secondary);font-size:11px;text-align:center;opacity:0.5;text-decoration:line-through;" />
-                            </div>
-                            <div style="text-align:center;">
-                                <div style="font-size:11px;font-weight:600;color:var(--text-secondary);opacity:0.5;">3 Months</div>
-                                <input type="number" id="vipPrice3m" step="0.01" placeholder="Price" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text);font-size:12px;text-align:center;margin:2px 0;" />
-                                <input type="number" id="vipOriginalPrice3m" step="0.01" placeholder="Original" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text-secondary);font-size:11px;text-align:center;opacity:0.5;text-decoration:line-through;" />
-                            </div>
-                            <div style="text-align:center;">
-                                <div style="font-size:11px;font-weight:600;color:var(--text-secondary);opacity:0.5;">1 Year</div>
-                                <input type="number" id="vipPrice1y" step="0.01" placeholder="Price" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text);font-size:12px;text-align:center;margin:2px 0;" />
-                                <input type="number" id="vipOriginalPrice1y" step="0.01" placeholder="Original" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text-secondary);font-size:11px;text-align:center;opacity:0.5;text-decoration:line-through;" />
-                            </div>
-                            <div style="text-align:center;">
-                                <div style="font-size:11px;font-weight:600;color:var(--text-secondary);opacity:0.5;">LIFETIME</div>
-                                <input type="number" id="vipPriceLifetime" step="0.01" placeholder="Price" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text);font-size:12px;text-align:center;margin:2px 0;" />
-                                <input type="number" id="vipOriginalPriceLifetime" step="0.01" placeholder="Original" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--card-bg);color:var(--text-secondary);font-size:11px;text-align:center;opacity:0.5;text-decoration:line-through;" />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="admin-form-group">
-                    <label for="productDuration" data-i18n="duration">Duration (optional)</label>
-                    <input type="text" id="productDuration" placeholder="e.g., 30 days" />
-                </div>
-                <button type="submit" class="admin-submit-btn"><i class="fas fa-save"></i> <span data-i18n="save">Save Product</span></button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Featured Settings Modal -->
-    <div class="modal-overlay" id="featuredSettingsModal">
-        <div class="modal-content" style="max-width:480px;">
-            <button class="modal-close" onclick="closeFeaturedSettings()"><i class="fas fa-times"></i></button>
-            <div class="modal-title"><i class="fas fa-star"></i> <span data-i18n="featured_settings">Featured Settings</span></div>
-            <div style="display:flex;flex-direction:column;gap:12px;">
-                <div style="display:flex;align-items:center;gap:10px;"><label style="font-weight:600;color:var(--text);" data-i18n="enable_featured">Enable Featured:</label><input type="checkbox" id="featuredEnabled" checked /></div>
-                <div style="display:flex;align-items:center;gap:10px;"><label style="font-weight:600;color:var(--text);" data-i18n="rotation_interval">Rotation Interval (seconds):</label><input type="number" id="featuredInterval" value="5" min="2" max="60" /></div>
-                <div><label style="font-weight:600;color:var(--text);display:block;margin-bottom:6px;" data-i18n="select_products">Select Products:</label><div id="featuredProductSelector" style="max-height:200px;overflow-y:auto;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px;"></div></div>
-                <div style="display:flex;gap:8px;margin-top:8px;"><button onclick="saveFeaturedSettings()" class="admin-submit-btn" style="flex:1;"><i class="fas fa-save"></i> <span data-i18n="save_settings">Save Settings</span></button><button onclick="closeFeaturedSettings()" class="admin-cancel-btn"><span data-i18n="cancel">Cancel</span></button></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Create Download Modal -->
-    <div class="modal-overlay" id="createDownloadModal">
-        <div class="modal-content" style="max-width:420px;">
-            <button class="modal-close" onclick="closeCreateDownloadModal()"><i class="fas fa-times"></i></button>
-            <div class="modal-title"><i class="fas fa-plus-circle"></i> <span data-i18n="add_download">Add Download</span></div>
-            <form id="createDownloadForm" onsubmit="createDownload(event)" class="admin-form">
-                <div class="admin-form-group"><label for="dlTitle" data-i18n="title">Title</label><input type="text" id="dlTitle" required placeholder="Download title" /></div>
-                <div class="admin-form-group"><label for="dlType" data-i18n="type">Type</label><input type="text" id="dlType" placeholder="e.g., APK, ZIP" required /></div>
-                <div class="admin-form-group"><label for="dlDescription" data-i18n="description">Description</label><textarea id="dlDescription" rows="2" placeholder="Short description"></textarea></div>
-                <div class="admin-form-group"><label for="dlUrl" data-i18n="download_url">Download URL</label><input type="url" id="dlUrl" required placeholder="https://example.com/file.zip" /></div>
-                <div class="admin-form-group"><label for="dlDate" data-i18n="date">Date</label><input type="date" id="dlDate" /></div>
-                <button type="submit" class="admin-submit-btn"><i class="fas fa-save"></i> <span data-i18n="add">Add Download</span></button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Create Notification Modal -->
-    <div class="modal-overlay" id="createNotificationModal">
-        <div class="modal-content" style="max-width:420px;">
-            <button class="modal-close" onclick="closeCreateNotificationModal()"><i class="fas fa-times"></i></button>
-            <div class="modal-title"><i class="fas fa-bell"></i> <span data-i18n="send_notification">Send Notification</span></div>
-            <form id="createNotificationForm" onsubmit="createNotification(event)" class="admin-form">
-                <div class="admin-form-group"><label for="notifTitle" data-i18n="title">Title</label><input type="text" id="notifTitle" required placeholder="Notification title" /></div>
-                <div class="admin-form-group"><label for="notifMessage" data-i18n="message">Message</label><textarea id="notifMessage" rows="3" required placeholder="Notification message..."></textarea></div>
-                <button type="submit" class="admin-submit-btn"><i class="fas fa-paper-plane"></i> <span data-i18n="send">Send Notification</span></button>
-            </form>
-        </div>
-    </div>
-
-    <!-- User Details Modal -->
-    <div class="modal-overlay" id="userDetailsModal">
-        <div class="modal-content" style="max-width:420px;">
-            <button class="modal-close" onclick="closeUserDetailsModal()"><i class="fas fa-times"></i></button>
-            <div class="modal-title"><i class="fas fa-user"></i> <span data-i18n="user_details">User Details</span></div>
-            <div id="userDetailsContent"></div>
-        </div>
-    </div>
-
-    <!-- Add Slide Modal -->
-    <div class="modal-overlay" id="addSlideModal">
-        <div class="modal-content" style="max-width:480px;">
-            <button class="modal-close" onclick="closeAddSlideModal()"><i class="fas fa-times"></i></button>
-            <div class="modal-title"><i class="fas fa-plus-circle"></i> <span data-i18n="add_slide_title">Add Slide</span></div>
-            <form id="addSlideForm" class="admin-form">
-                <div class="admin-form-group">
-                    <label data-i18n="slide_image">Slide Image</label>
-                    <input type="file" id="slideImageFile" accept="image/*" required />
-                    <div id="slideImagePreview" style="margin-top:8px;display:none;"><img src="#" alt="Preview" style="max-width:100%;max-height:150px;border-radius:8px;border:1px solid var(--border);" /></div>
-                </div>
-                <div class="admin-form-group">
-                    <label data-i18n="slide_title">Title (optional)</label>
-                    <input type="text" id="slideTitle" placeholder="e.g., New Arrival" />
-                </div>
-                <div class="admin-form-group">
-                    <label data-i18n="slide_subtitle">Subtitle (optional)</label>
-                    <input type="text" id="slideSubtitle" placeholder="e.g., Best scripts of the month" />
-                </div>
-                <div class="admin-form-group">
-                    <label data-i18n="button_text">Button Text <small style="color:var(--text-secondary);opacity:0.5;">(leave empty for no button)</small></label>
-                    <input type="text" id="slideButtonText" placeholder="e.g., Buy Now" value="Buy Now" />
-                </div>
-                <div class="admin-form-group">
-                    <label data-i18n="button_link_type">Button Link Type</label>
-                    <select id="slideLinkType">
-                        <option value="none" data-i18n="none">None (no button)</option>
-                        <option value="product" data-i18n="product">Product</option>
-                        <option value="download" data-i18n="download">Download</option>
-                        <option value="url" data-i18n="custom_url">Custom URL</option>
-                    </select>
-                </div>
-                <div class="admin-form-group" id="slideProductGroup" style="display:none;">
-                    <label data-i18n="select_product">Select Product</label>
-                    <select id="slideProductSelect">
-                        <option value="" data-i18n="none">None</option>
-                    </select>
-                </div>
-                <div class="admin-form-group" id="slideDownloadGroup" style="display:none;">
-                    <label data-i18n="download_url">Download URL</label>
-                    <input type="url" id="slideDownloadUrl" placeholder="https://example.com/file.zip" />
-                </div>
-                <div class="admin-form-group" id="slideCustomUrlGroup" style="display:none;">
-                    <label data-i18n="custom_url">Custom URL</label>
-                    <input type="url" id="slideCustomUrl" placeholder="https://example.com/page" />
-                </div>
-                <button type="button" class="admin-submit-btn" onclick="saveSlideEdit()"><i class="fas fa-save"></i> <span data-i18n="save_changes">Save Changes</span></button>
             </form>
         </div>
     </div>
@@ -1377,7 +1028,9 @@
         </div>
     </div>
 
-    <!-- Social Proof Toast -->
+    <!-- ============================================ -->
+    <!-- Social Proof Toast & Floating Hearts -->
+    <!-- ============================================ -->
     <div class="social-proof-toast" id="socialProofToast">
         <div class="sp-icon">🛒</div>
         <div class="sp-text">
@@ -1385,20 +1038,16 @@
             <span class="sp-time" id="spTime">just now</span>
         </div>
     </div>
-
-    <!-- Floating Hearts -->
     <div class="floating-hearts" id="floatingHearts"></div>
 
     <!-- ============================================ -->
-    <!-- دوال JavaScript للدعم -->
+    <!-- JavaScript الأساسي (فقط دوال الواجهة، بدون تكرار دوال Binance ID) -->
     <!-- ============================================ -->
     <script>
-        // دوال الدعم الفني
+        // دوال الدعم الفني (موجودة فقط هنا)
         function toggleSupportMenu() {
             const float = document.getElementById('supportFloat');
-            if (float) {
-                float.classList.toggle('open');
-            }
+            if (float) float.classList.toggle('open');
         }
 
         function openSupportModal() {
@@ -1407,11 +1056,8 @@
                 modal.classList.add('open');
                 document.body.style.overflow = 'hidden';
             }
-            // إغلاق القائمة العائمة إذا كانت مفتوحة
             const float = document.getElementById('supportFloat');
-            if (float) {
-                float.classList.remove('open');
-            }
+            if (float) float.classList.remove('open');
         }
 
         function closeSupportModal() {
@@ -1422,283 +1068,190 @@
             }
         }
 
-        // تصدير الدوال للنطاق العام
-        window.toggleSupportMenu = toggleSupportMenu;
-        window.openSupportModal = openSupportModal;
-        window.closeSupportModal = closeSupportModal;
-
-        // === Payment Modal Functions (for Binance ID) ===
-        let selectedPayment = null;
-        let screenshotFile = null;
-
-        function selectPayment(method) {
-            selectedPayment = method;
-            // Remove selection from all options
-            document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
-            const option = document.getElementById('option' + method.charAt(0).toUpperCase() + method.slice(1));
-            if (option) option.classList.add('selected');
-
-            const binanceSection = document.getElementById('binanceIdSection');
-            const continueBtn = document.getElementById('continuePaymentBtn');
-            if (method === 'binanceId') {
-                binanceSection.style.display = 'block';
-                continueBtn.style.display = 'none';
-                // Update amount
-                const total = document.getElementById('payableTotal').textContent;
-                document.getElementById('binanceAmountDisplay').textContent = total;
-                document.getElementById('binanceAmountInline').textContent = total;
-                // Random order number
-                document.getElementById('binanceOrderDisplay').textContent = '#' + Math.floor(Math.random() * 1000000);
-            } else {
-                binanceSection.style.display = 'none';
-                continueBtn.style.display = 'block';
-            }
+        // دوال Toast
+        function showToast(message, type) {
+            const toast = document.getElementById('toast');
+            const msg = document.getElementById('toastMessage');
+            if (!toast || !msg) return;
+            msg.textContent = message;
+            toast.className = 'toast';
+            if (type) toast.classList.add(type);
+            toast.classList.add('show');
+            clearTimeout(window.toastTimeout);
+            window.toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
         }
 
-        function continuePayment() {
-            if (!selectedPayment) {
-                showToast('Please select a payment method', 'error');
-                return;
-            }
-            // Proceed to step 2 (simulated)
-            showToast('Proceeding to payment...');
-            // In real implementation, you would switch to paymentStep2
+        function hideToast() {
+            document.getElementById('toast')?.classList.remove('show');
         }
 
-        function copyBinanceId() {
-            const id = document.getElementById('binanceIdDisplay').textContent;
-            navigator.clipboard.writeText(id).then(() => {
-                showToast('Binance ID copied!');
-            }).catch(() => {
-                // Fallback
-                const input = document.createElement('input');
-                input.value = id;
-                document.body.appendChild(input);
-                input.select();
-                document.execCommand('copy');
-                document.body.removeChild(input);
-                showToast('Binance ID copied!');
-            });
-        }
-
-        function handleTxPaste(e) {
-            // Optional: handle paste event
-        }
-
-        function verifyTransaction() {
-            const txInput = document.getElementById('txHashInput');
-            const resultDiv = document.getElementById('verificationResult');
-            const tx = txInput.value.trim();
-            if (!tx) {
-                resultDiv.className = 'bv-result error';
-                resultDiv.style.display = 'block';
-                resultDiv.innerHTML = '<i class="fas fa-exclamation-circle bv-icon"></i> Please enter a Transaction ID.';
-                return;
-            }
-            // Simulate verification
-            resultDiv.className = 'bv-result loading';
-            resultDiv.style.display = 'block';
-            resultDiv.innerHTML = '<i class="fas fa-spinner fa-spin bv-icon"></i> Verifying transaction...';
-            setTimeout(() => {
-                if (tx.length > 5) {
-                    resultDiv.className = 'bv-result success';
-                    resultDiv.innerHTML = '<i class="fas fa-check-circle bv-icon"></i> Transaction verified successfully!';
-                } else {
-                    resultDiv.className = 'bv-result error';
-                    resultDiv.innerHTML = '<i class="fas fa-exclamation-circle bv-icon"></i> Invalid Transaction ID. Please check and try again.';
-                }
-            }, 1500);
-        }
-
-        function handleScreenshot(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            screenshotFile = file;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('screenshotImg').src = e.target.result;
-                document.getElementById('screenshotPreview').style.display = 'block';
-                document.getElementById('dropZone').querySelector('p').textContent = 'Image selected: ' + file.name;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function removeScreenshot() {
-            screenshotFile = null;
-            document.getElementById('screenshotPreview').style.display = 'none';
-            document.getElementById('dropZone').querySelector('p').textContent = 'Drag and drop your image here or click to select';
-            document.getElementById('screenshotInput').value = '';
-        }
-
-        function submitManualPayment() {
-            const txInput = document.getElementById('txHashInput');
-            const resultDiv = document.getElementById('verificationResult');
-            const tx = txInput.value.trim();
-            if (!tx && !screenshotFile) {
-                resultDiv.className = 'bv-result error';
-                resultDiv.style.display = 'block';
-                resultDiv.innerHTML = '<i class="fas fa-exclamation-circle bv-icon"></i> Please provide either a Transaction ID or a screenshot.';
-                return;
-            }
-            // Simulate submission
-            const btn = document.getElementById('submitPaymentBtn');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
-            setTimeout(() => {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-check-circle"></i> Confirm Payment';
-                showToast('Payment request submitted successfully! We will review it shortly.', 'success');
-                document.getElementById('paymentModal').classList.remove('open');
-            }, 2000);
-        }
-
-        // Override closePaymentModal if needed
-        function closePaymentModal() {
-            document.getElementById('paymentModal').classList.remove('open');
-        }
-
-        // Helper showToast (if not already defined)
-        if (typeof showToast === 'undefined') {
-            function showToast(message, type = 'success') {
-                const toast = document.getElementById('toast');
-                const msg = document.getElementById('toastMessage');
-                msg.textContent = message;
-                toast.className = 'toast ' + type;
-                toast.classList.add('show');
-                setTimeout(() => { toast.classList.remove('show'); }, 3000);
-            }
-        }
-
-        // If hideToast is not defined, define it
-        if (typeof hideToast === 'undefined') {
-            function hideToast() {
-                document.getElementById('toast').classList.remove('show');
-            }
-        }
-
-        // Accept/Reject Cookies
+        // دوال Cookie (ضرورية)
         function acceptCookies() {
             document.getElementById('cookieConsent').classList.remove('show');
+            localStorage.setItem('cookieConsent', 'accepted');
             showToast('Cookies accepted!');
         }
         function rejectCookies() {
             document.getElementById('cookieConsent').classList.remove('show');
+            localStorage.setItem('cookieConsent', 'rejected');
             showToast('Cookies rejected.');
         }
         function openCookieSettings() {
-            // Open settings modal (if exists)
-            alert('Cookie settings will be shown here.');
+            document.getElementById('cookieSettingsModal').classList.add('open');
         }
         function closeCookieSettings() {
             document.getElementById('cookieSettingsModal').classList.remove('open');
         }
         function saveCookieSettings() {
-            // Save settings logic
             closeCookieSettings();
             showToast('Settings saved!');
         }
 
-        // Placeholder functions for other modal actions
-        function closeShareModal() { document.getElementById('shareModal').classList.remove('open'); }
-        function closeDownloads() { document.getElementById('downloadsModal').classList.remove('open'); }
-        function closeProfileFull() { document.getElementById('profileFull').classList.remove('open'); }
-        function closeHistoryFull() { document.getElementById('historyFull').classList.remove('open'); }
-        function closeUserMenuFull() { document.getElementById('userMenuFull').classList.remove('open'); }
-        function closeWishlistFull() { document.getElementById('wishlistFull').classList.remove('open'); }
-        function closeCartFull() { document.getElementById('cartFull').classList.remove('open'); }
-        function closeNotifications() { document.getElementById('notificationsModal').classList.remove('open'); }
-        function openCartFull() { document.getElementById('cartFull').classList.add('open'); }
-        function openWishlistFull() { document.getElementById('wishlistFull').classList.add('open'); }
-        function openNotifications() { document.getElementById('notificationsModal').classList.add('open'); }
-        function openUserMenuFull() { document.getElementById('userMenuFull').classList.add('open'); }
-        function clearCart() { showToast('Cart cleared'); }
-        function filterProducts(filter) { /* implement filter */ }
-        function prevSlide() { /* implement slider */ }
-        function nextSlide() { /* implement slider */ }
-        function clearSearch() { /* implement search clear */ }
-        function closePreviewModal() { document.getElementById('previewModal').classList.remove('open'); }
-        function shareFromPreview() { /* implement share */ }
-        function addToCartFromPreview() { showToast('Added to cart!'); }
-        function addVipPlanToCart() { showToast('VIP plan added!'); }
-        function openAdminPanel() { document.getElementById('adminPanel').classList.add('open'); }
-        function closeAdminPanel() { document.getElementById('adminPanel').classList.remove('open'); }
-        function openCreateLicenceModal() { document.getElementById('createLicenceModal').classList.add('open'); }
-        function closeCreateLicenceModal() { document.getElementById('createLicenceModal').classList.remove('open'); }
-        function openLicenceModal() { document.getElementById('licenceModal').classList.add('open'); }
-        function closeLicenceModal() { document.getElementById('licenceModal').classList.remove('open'); }
-        function activateLicence() { showToast('Licence activated!'); }
-        function openReferralModal() { document.getElementById('referralModal').classList.add('open'); }
-        function closeReferralModal() { document.getElementById('referralModal').classList.remove('open'); }
-        function openRequestsModal() { document.getElementById('requestsModal').classList.add('open'); }
-        function closeRequestsModal() { document.getElementById('requestsModal').classList.remove('open'); }
-        function openNewRequestModal() { document.getElementById('newRequestModal').classList.add('open'); }
-        function closeNewRequestModal() { document.getElementById('newRequestModal').classList.remove('open'); }
-        function submitRequest(e) { e.preventDefault(); showToast('Request submitted!'); }
-        function openForgotPassword() { document.getElementById('forgotPasswordModal').classList.add('open'); }
-        function closeForgotPasswordModal() { document.getElementById('forgotPasswordModal').classList.remove('open'); }
-        function sendForgotPassword() { showToast('Reset link sent!'); }
-        function loginWithGoogle() { showToast('Google login not implemented.'); }
-        function loginUser() { showToast('Login not implemented.'); }
-        function registerUser() { showToast('Registration not implemented.'); }
-        function showRegister() { /* show register */ }
-        function showLogin() { /* show login */ }
-        function toggleReferral() { /* toggle referral */ }
-        function logoutUser() { showToast('Logged out!'); }
-        function openProfileFull() { document.getElementById('profileFull').classList.add('open'); }
-        function openHistoryFull() { document.getElementById('historyFull').classList.add('open'); }
-        function toggleLicencesList() { /* toggle licences */ }
-        function bindTelegram() { showToast('Telegram linking not implemented.'); }
-        function closeTelegramBanner() { document.getElementById('telegramBanner').style.display = 'none'; }
-        function switchAdminTab(tab) { /* switch admin tabs */ }
-        function refreshAdminOrders() { /* refresh orders */ }
-        function searchAdminOrders() { /* search */ }
-        function clearAdminSearch() { /* clear search */ }
-        function exportOrders() { showToast('Exporting orders...'); }
-        function openAddProductModal() { /* open product modal */ }
-        function openFeaturedSettings() { /* open featured settings */ }
-        function closeFeaturedSettings() { document.getElementById('featuredSettingsModal').classList.remove('open'); }
-        function saveFeaturedSettings() { showToast('Featured settings saved!'); }
-        function openCreateDownloadModal() { document.getElementById('createDownloadModal').classList.add('open'); }
-        function closeCreateDownloadModal() { document.getElementById('createDownloadModal').classList.remove('open'); }
-        function createDownload(e) { e.preventDefault(); showToast('Download added!'); }
-        function openCreateNotificationModal() { document.getElementById('createNotificationModal').classList.add('open'); }
-        function closeCreateNotificationModal() { document.getElementById('createNotificationModal').classList.remove('open'); }
-        function createNotification(e) { e.preventDefault(); showToast('Notification sent!'); }
-        function refreshLicences() { /* refresh licences */ }
-        function searchLicences() { /* search licences */ }
-        function clearLicenceSearch() { /* clear search */ }
-        function saveMarqueeSettings() { showToast('Marquee settings saved!'); }
-        function loadPaymentRequests() { /* load payments */ }
-        function toggleSliderEnabled() { /* toggle slider */ }
-        function saveSliderInterval() { showToast('Slider interval saved!'); }
-        function openAddSlideModal() { document.getElementById('addSlideModal').classList.add('open'); }
-        function closeAddSlideModal() { document.getElementById('addSlideModal').classList.remove('open'); }
-        function saveSlideEdit() { showToast('Slide saved!'); }
-        function selectCurrency(cur) { /* select currency */ }
-        function selectProductType(type) { /* select product type */ }
-        function toggleBadge(badge) { /* toggle badge */ }
-        function addQuantityOption() { /* add quantity option */ }
-        function saveProduct(e) { e.preventDefault(); showToast('Product saved!'); }
-        function closeProductModal() { document.getElementById('productModal').classList.remove('open'); }
-        function refreshDashboardStats() { showToast('Stats refreshed!'); }
-        function refreshAdvancedStats() { showToast('Advanced stats refreshed!'); }
-        function loadAuditLogs() { /* load logs */ }
-        function markAllNotificationsRead() { showToast('All notifications marked as read.'); }
-        function clearAllNotifications() { showToast('Notifications cleared.'); }
-        function copyWalletAddress() { showToast('Wallet address copied!'); }
-        function placeOrder() { showToast('Order placed!'); }
-        function goToStep1() { /* go to step 1 */ }
-        function copyShareLink() { showToast('Share link copied!'); }
-        function shareToWhatsApp() { showToast('Share via WhatsApp'); }
-        function shareToTelegram() { showToast('Share via Telegram'); }
-        function shareToFacebook() { showToast('Share via Facebook'); }
-        function closeUserDetailsModal() { document.getElementById('userDetailsModal').classList.remove('open'); }
-        function saveLicenceEdit() { showToast('Licence updated!'); }
-        function createLicenceManually() { showToast('Licence created!'); }
+        // إظهار دالة showToast في النطاق العام لاستخدامها من script.js
+        window.showToast = showToast;
+
+        // دوال placeholder للوظائف الأخرى (سيتم تجاوزها بواسطة script.js)
+        // ولكن نتركها هنا لتجنب أخطاء الـ onclick في HTML
+        window.closeShareModal = function() { /* will be overridden */ };
+        window.closeDownloads = function() { /* will be overridden */ };
+        window.closeProfileFull = function() { /* will be overridden */ };
+        window.closeHistoryFull = function() { /* will be overridden */ };
+        window.closeUserMenuFull = function() { /* will be overridden */ };
+        window.closeWishlistFull = function() { /* will be overridden */ };
+        window.closeCartFull = function() { /* will be overridden */ };
+        window.closeNotifications = function() { /* will be overridden */ };
+        window.openCartFull = function() { /* will be overridden */ };
+        window.openWishlistFull = function() { /* will be overridden */ };
+        window.openNotifications = function() { /* will be overridden */ };
+        window.openUserMenuFull = function() { /* will be overridden */ };
+        window.clearCart = function() { showToast('Cart cleared'); };
+        window.filterProducts = function(filter) { /* will be overridden */ };
+        window.prevSlide = function() { /* will be overridden */ };
+        window.nextSlide = function() { /* will be overridden */ };
+        window.clearSearch = function() { /* will be overridden */ };
+        window.closePreviewModal = function() { /* will be overridden */ };
+        window.shareFromPreview = function() { /* will be overridden */ };
+        window.addToCartFromPreview = function() { showToast('Added to cart!'); };
+        window.addVipPlanToCart = function() { showToast('VIP plan added!'); };
+        window.openAdminPanel = function() { /* will be overridden */ };
+        window.closeAdminPanel = function() { /* will be overridden */ };
+        window.openCreateLicenceModal = function() { /* will be overridden */ };
+        window.closeCreateLicenceModal = function() { /* will be overridden */ };
+        window.openLicenceModal = function() { /* will be overridden */ };
+        window.closeLicenceModal = function() { /* will be overridden */ };
+        window.activateLicence = function() { showToast('Licence activated!'); };
+        window.openReferralModal = function() { /* will be overridden */ };
+        window.closeReferralModal = function() { /* will be overridden */ };
+        window.openRequestsModal = function() { /* will be overridden */ };
+        window.closeRequestsModal = function() { /* will be overridden */ };
+        window.openNewRequestModal = function() { /* will be overridden */ };
+        window.closeNewRequestModal = function() { /* will be overridden */ };
+        window.submitRequest = function(e) { e.preventDefault(); showToast('Request submitted!'); };
+        window.openForgotPassword = function() { /* will be overridden */ };
+        window.closeForgotPasswordModal = function() { /* will be overridden */ };
+        window.sendForgotPassword = function() { showToast('Reset link sent!'); };
+        window.loginWithGoogle = function() { showToast('Google login not implemented.'); };
+        window.loginUser = function() { showToast('Login not implemented.'); };
+        window.registerUser = function() { showToast('Registration not implemented.'); };
+        window.showRegister = function() { /* will be overridden */ };
+        window.showLogin = function() { /* will be overridden */ };
+        window.toggleReferral = function() { /* will be overridden */ };
+        window.logoutUser = function() { showToast('Logged out!'); };
+        window.openProfileFull = function() { /* will be overridden */ };
+        window.openHistoryFull = function() { /* will be overridden */ };
+        window.toggleLicencesList = function() { /* will be overridden */ };
+        window.bindTelegram = function() { showToast('Telegram linking not implemented.'); };
+        window.closeTelegramBanner = function() { document.getElementById('telegramBanner').style.display = 'none'; };
+        window.switchAdminTab = function(tab) { /* will be overridden */ };
+        window.refreshAdminOrders = function() { /* will be overridden */ };
+        window.searchAdminOrders = function() { /* will be overridden */ };
+        window.clearAdminSearch = function() { /* will be overridden */ };
+        window.exportOrders = function() { showToast('Exporting orders...'); };
+        window.openAddProductModal = function() { /* will be overridden */ };
+        window.openFeaturedSettings = function() { /* will be overridden */ };
+        window.closeFeaturedSettings = function() { /* will be overridden */ };
+        window.saveFeaturedSettings = function() { showToast('Featured settings saved!'); };
+        window.openCreateDownloadModal = function() { /* will be overridden */ };
+        window.closeCreateDownloadModal = function() { /* will be overridden */ };
+        window.createDownload = function(e) { e.preventDefault(); showToast('Download added!'); };
+        window.openCreateNotificationModal = function() { /* will be overridden */ };
+        window.closeCreateNotificationModal = function() { /* will be overridden */ };
+        window.createNotification = function(e) { e.preventDefault(); showToast('Notification sent!'); };
+        window.refreshLicences = function() { /* will be overridden */ };
+        window.searchLicences = function() { /* will be overridden */ };
+        window.clearLicenceSearch = function() { /* will be overridden */ };
+        window.saveMarqueeSettings = function() { showToast('Marquee settings saved!'); };
+        window.loadPaymentRequests = function() { /* will be overridden */ };
+        window.toggleSliderEnabled = function() { /* will be overridden */ };
+        window.saveSliderInterval = function() { showToast('Slider interval saved!'); };
+        window.openAddSlideModal = function() { /* will be overridden */ };
+        window.closeAddSlideModal = function() { /* will be overridden */ };
+        window.saveSlideEdit = function() { showToast('Slide saved!'); };
+        window.selectCurrency = function(cur) { /* will be overridden */ };
+        window.selectProductType = function(type) { /* will be overridden */ };
+        window.toggleBadge = function(badge) { /* will be overridden */ };
+        window.addQuantityOption = function() { /* will be overridden */ };
+        window.saveProduct = function(e) { e.preventDefault(); showToast('Product saved!'); };
+        window.closeProductModal = function() { /* will be overridden */ };
+        window.refreshDashboardStats = function() { showToast('Stats refreshed!'); };
+        window.refreshAdvancedStats = function() { showToast('Advanced stats refreshed!'); };
+        window.loadAuditLogs = function() { /* will be overridden */ };
+        window.markAllNotificationsRead = function() { showToast('All notifications marked as read.'); };
+        window.clearAllNotifications = function() { showToast('Notifications cleared.'); };
+        window.copyWalletAddress = function() { showToast('Wallet address copied!'); };
+        window.placeOrder = function() { showToast('Order placed!'); };
+        window.goToStep1 = function() { /* will be overridden */ };
+        window.copyShareLink = function() { showToast('Share link copied!'); };
+        window.shareToWhatsApp = function() { showToast('Share via WhatsApp'); };
+        window.shareToTelegram = function() { showToast('Share via Telegram'); };
+        window.shareToFacebook = function() { showToast('Share via Facebook'); };
+        window.closeUserDetailsModal = function() { /* will be overridden */ };
+        window.saveLicenceEdit = function() { showToast('Licence updated!'); };
+        window.createLicenceManually = function() { showToast('Licence created!'); };
+        window.closePaymentModal = function() { document.getElementById('paymentModal').classList.remove('open'); };
+
+        // دوال Binance ID سيتم تجاوزها بالكامل من script.js
+        // نضعها هنا فقط كـ placeholders لتجنب أخطاء "undefined" في onclick
+        window.selectPayment = function(method) {
+            // هذه الدالة ستُستبدل في script.js
+            console.warn('selectPayment placeholder called');
+        };
+        window.copyBinanceId = function() {
+            console.warn('copyBinanceId placeholder called');
+        };
+        window.handleTxPaste = function(e) {
+            console.warn('handleTxPaste placeholder called');
+        };
+        window.verifyTransaction = function() {
+            console.warn('verifyTransaction placeholder called');
+        };
+        window.handleScreenshot = function(e) {
+            console.warn('handleScreenshot placeholder called');
+        };
+        window.removeScreenshot = function() {
+            console.warn('removeScreenshot placeholder called');
+        };
+        window.submitManualPayment = function() {
+            console.warn('submitManualPayment placeholder called');
+        };
+        window.continuePayment = function() {
+            console.warn('continuePayment placeholder called');
+        };
+
+        // تأكد من أن `showLanguageMenu` و `setLanguage` موجودة (سيتم تجاوزها أيضاً)
+        window.showLanguageMenu = function() {
+            document.getElementById('languageMenu').classList.toggle('open');
+        };
+        window.setLanguage = function(lang) {
+            // سيتم تجاوزها
+            console.log('setLanguage called with', lang);
+        };
     </script>
 
     <!-- ============================================ -->
-    <!-- السكربتات -->
+    <!-- السكربتات الخارجية -->
     <!-- ============================================ -->
     <script type="importmap">
         {
