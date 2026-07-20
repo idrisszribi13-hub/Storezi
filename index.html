@@ -2033,8 +2033,28 @@
             <button onclick="refreshDashboardStats()" style="margin-top:10px; padding:6px 16px; background:var(--primary); border:none; border-radius:var(--radius-sm); color:#fff; cursor:pointer;">Refresh</button>
         </div>
 
-        <!-- Orders -->
+        <!-- ===== ORDERS TAB (مع إحصائيات الطلبات) ===== -->
         <div class="tab-content" id="tabOrders">
+            <!-- قسم الإحصائيات المفقود (تمت إضافته) -->
+            <div id="adminOrderStats" style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:10px;">
+                <div style="background:var(--bg-secondary); padding:8px; border-radius:var(--radius-sm); text-align:center; border:1px solid var(--border);">
+                    <div style="font-size:18px; font-weight:700; color:var(--primary);" id="adminTotalOrders">0</div>
+                    <div style="font-size:11px; color:var(--text-secondary);">Total</div>
+                </div>
+                <div style="background:var(--bg-secondary); padding:8px; border-radius:var(--radius-sm); text-align:center; border:1px solid var(--border);">
+                    <div style="font-size:18px; font-weight:700; color:var(--pending-color);" id="adminPendingOrders">0</div>
+                    <div style="font-size:11px; color:var(--text-secondary);">Pending</div>
+                </div>
+                <div style="background:var(--bg-secondary); padding:8px; border-radius:var(--radius-sm); text-align:center; border:1px solid var(--border);">
+                    <div style="font-size:18px; font-weight:700; color:var(--success);" id="adminConfirmedOrders">0</div>
+                    <div style="font-size:11px; color:var(--text-secondary);">Confirmed</div>
+                </div>
+                <div style="background:var(--bg-secondary); padding:8px; border-radius:var(--radius-sm); text-align:center; border:1px solid var(--border);">
+                    <div style="font-size:18px; font-weight:700; color:var(--danger);" id="adminRejectedOrders">0</div>
+                    <div style="font-size:11px; color:var(--text-secondary);">Rejected</div>
+                </div>
+            </div>
+
             <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;">
                 <input type="text" id="adminSearchInput" placeholder="🔍 Search by order ID, user..." onkeyup="searchAdminOrders()" style="flex:1; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font);" />
                 <button onclick="searchAdminOrders()" style="padding:8px 16px; background:var(--primary); border:none; border-radius:var(--radius-sm); color:#fff; cursor:pointer;">Search</button>
