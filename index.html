@@ -541,24 +541,153 @@
         </div>
     </div>
 
-    <!-- Payment Modal -->
+    <!-- ============================================ -->
+    <!-- Payment Modal (UPDATED with Binance ID) -->
+    <!-- ============================================ -->
     <div class="modal-overlay" id="paymentModal">
         <div class="modal-content" style="max-width:420px;">
             <button class="modal-close" onclick="closePaymentModal()"><i class="fas fa-times"></i></button>
             <div class="modal-title"><i class="fas fa-credit-card"></i> <span data-i18n="payment">Checkout</span></div>
             <div id="paymentStep1">
+                <!-- Payment Options -->
                 <div class="payment-options">
-                    <div class="payment-option" id="optionLitecoin" onclick="selectPayment('litecoin')"><i class="fab fa-bitcoin"></i><div class="p-label" data-i18n="litecoin">Litecoin</div><div class="p-sub">LTC</div><div class="p-check"><i class="fas fa-check"></i></div></div>
-                    <div class="payment-option" id="optionUsdt" onclick="selectPayment('usdt')"><i class="fas fa-coins"></i><div class="p-label" data-i18n="usdt">USDT</div><div class="p-sub">ERC20</div><div class="p-check"><i class="fas fa-check"></i></div></div>
-                    <div class="payment-option" id="optionTelegram" onclick="selectPayment('telegram')"><i class="fab fa-telegram-plane"></i><div class="p-label" data-i18n="telegram">Telegram</div><div class="p-sub">Direct</div><div class="p-check"><i class="fas fa-check"></i></div></div>
-                    <div class="payment-option" id="optionBinance" onclick="selectPayment('binance')"><i class="fab fa-bitcoin" style="color:#f2a900;"></i><div class="p-label" data-i18n="binance">Binance</div><div class="p-sub">USDT (Manual)</div><div class="p-check"><i class="fas fa-check"></i></div></div>
+                    <div class="payment-option" id="optionLitecoin" onclick="selectPayment('litecoin')">
+                        <i class="fab fa-bitcoin"></i>
+                        <div class="p-label" data-i18n="litecoin">Litecoin</div>
+                        <div class="p-sub">LTC</div>
+                        <div class="p-check"><i class="fas fa-check"></i></div>
+                    </div>
+                    <div class="payment-option" id="optionUsdt" onclick="selectPayment('usdt')">
+                        <i class="fas fa-coins"></i>
+                        <div class="p-label" data-i18n="usdt">USDT</div>
+                        <div class="p-sub">ERC20</div>
+                        <div class="p-check"><i class="fas fa-check"></i></div>
+                    </div>
+                    <div class="payment-option" id="optionTelegram" onclick="selectPayment('telegram')">
+                        <i class="fab fa-telegram-plane"></i>
+                        <div class="p-label" data-i18n="telegram">Telegram</div>
+                        <div class="p-sub">Direct</div>
+                        <div class="p-check"><i class="fas fa-check"></i></div>
+                    </div>
+                    <!-- New Binance ID Option -->
+                    <div class="payment-option" id="optionBinanceId" onclick="selectPayment('binanceId')">
+                        <i class="fab fa-binance" style="color:#f2a900;"></i>
+                        <div class="p-label">Binance ID</div>
+                        <div class="p-sub">Direct Transfer</div>
+                        <div class="p-check"><i class="fas fa-check"></i></div>
+                    </div>
                 </div>
+
+                <!-- Payment Summary -->
                 <div class="payment-summary">
                     <div class="ps-row"><span class="ps-label" data-i18n="total">Total</span><span class="ps-value" id="payableTotal">$0.00</span></div>
                     <div class="ps-row"><span class="ps-label" data-i18n="exchange_rate">Exchange Rate</span><span class="ps-value" id="exchangeRate">Loading...</span></div>
                 </div>
-                <button class="payment-btn" onclick="continuePayment()" data-i18n="continue"><i class="fas fa-arrow-right"></i> Continue</button>
+
+                <!-- Binance ID Detailed Section (hidden by default) -->
+                <div class="binance-id-section" id="binanceIdSection" style="display:none;">
+                    <!-- Binance ID Transfer Box -->
+                    <div class="binance-id-box">
+                        <div class="bi-header">
+                            <i class="fab fa-binance"></i>
+                            <span>Transfer via Binance ID</span>
+                        </div>
+                        <div class="bi-content">
+                            <div class="bi-row">
+                                <span class="bi-label">📤 Transfer to:</span>
+                                <span class="bi-value" id="binanceIdDisplay">748838383</span>
+                                <button onclick="copyBinanceId()" class="bi-copy-btn">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                            <div class="bi-row">
+                                <span class="bi-label">💰 Amount:</span>
+                                <span class="bi-value" id="binanceAmountDisplay">$0.00</span>
+                            </div>
+                            <div class="bi-row">
+                                <span class="bi-label">📝 Order Number:</span>
+                                <span class="bi-value" id="binanceOrderDisplay">#------</span>
+                            </div>
+                            <div class="bi-divider"></div>
+                            <div class="bi-instructions">
+                                <p><i class="fas fa-info-circle" style="color:#f2a900;"></i> Payment Instructions:</p>
+                                <ol>
+                                    <li>Open the Binance application</li>
+                                    <li>Go to <strong>Transfers</strong></li>
+                                    <li>Select <strong>Binance ID</strong></li>
+                                    <li>Paste the ID: <strong id="binanceIdInline">748838383</strong></li>
+                                    <li>Enter the amount: <strong id="binanceAmountInline">$0.00</strong></li>
+                                    <li>Send the transfer</li>
+                                    <li>Copy the <strong>Transaction ID</strong></li>
+                                    <li>Paste it in the field below to confirm</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Verification -->
+                    <div class="binance-verification">
+                        <div class="bv-header">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Payment Confirmation</span>
+                        </div>
+                        <div class="bv-body">
+                            <div class="bv-field">
+                                <label for="txHashInput">📋 Transaction ID:</label>
+                                <div class="bv-input-group">
+                                    <input type="text" id="txHashInput" 
+                                           placeholder="Example: 0x7a8b9c... or 443016893778911232"
+                                           onpaste="handleTxPaste(event)" />
+                                    <button onclick="verifyTransaction()" class="bv-verify-btn">
+                                        <i class="fas fa-search"></i> Verify
+                                    </button>
+                                </div>
+                                <div class="bv-hint">
+                                    <i class="fas fa-lightbulb"></i>
+                                    You can paste the Transaction ID from the Binance application
+                                </div>
+                            </div>
+
+                            <!-- Screenshot Upload -->
+                            <div class="bv-upload">
+                                <label>🖼️ Or upload a screenshot:</label>
+                                <div class="bv-drop-zone" id="dropZone" onclick="document.getElementById('screenshotInput').click()">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p>Drag and drop your image here or click to select</p>
+                                    <input type="file" id="screenshotInput" accept="image/*" onchange="handleScreenshot(event)" />
+                                </div>
+                                <div id="screenshotPreview" style="display:none; margin-top:8px;">
+                                    <img id="screenshotImg" src="#" alt="Screenshot" style="max-width:100%; max-height:150px; border-radius:8px; border:1px solid var(--border);" />
+                                    <button onclick="removeScreenshot()" style="margin-top:4px; background:var(--danger); color:#fff; border:none; padding:4px 12px; border-radius:4px; cursor:pointer; font-size:12px;">
+                                        <i class="fas fa-times"></i> Remove
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div id="verificationResult" class="bv-result" style="display:none;"></div>
+
+                            <button onclick="submitManualPayment()" class="bv-submit-btn" id="submitPaymentBtn">
+                                <i class="fas fa-check-circle"></i> Confirm Payment
+                            </button>
+
+                            <div class="bv-note">
+                                <i class="fas fa-clock"></i>
+                                Your request will be reviewed within 5-10 minutes
+                                <br>
+                                <span style="font-size:11px; opacity:0.4;">
+                                    For inquiries: <a href="https://t.me/Mitalica69" target="_blank" style="color:var(--primary);">@Mitalica69</a>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Continue button (shown for non-Binance methods) -->
+                <button class="payment-btn" onclick="continuePayment()" id="continuePaymentBtn" data-i18n="continue">
+                    <i class="fas fa-arrow-right"></i> Continue
+                </button>
             </div>
+            <!-- Payment Step 2 (kept as is for other methods) -->
             <div class="payment-step2" id="paymentStep2">
                 <div class="payment-products-list" id="paymentProductsList"></div>
                 <div class="payment-summary">
@@ -1297,6 +1426,275 @@
         window.toggleSupportMenu = toggleSupportMenu;
         window.openSupportModal = openSupportModal;
         window.closeSupportModal = closeSupportModal;
+
+        // === Payment Modal Functions (for Binance ID) ===
+        let selectedPayment = null;
+        let screenshotFile = null;
+
+        function selectPayment(method) {
+            selectedPayment = method;
+            // Remove selection from all options
+            document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
+            const option = document.getElementById('option' + method.charAt(0).toUpperCase() + method.slice(1));
+            if (option) option.classList.add('selected');
+
+            const binanceSection = document.getElementById('binanceIdSection');
+            const continueBtn = document.getElementById('continuePaymentBtn');
+            if (method === 'binanceId') {
+                binanceSection.style.display = 'block';
+                continueBtn.style.display = 'none';
+                // Update amount
+                const total = document.getElementById('payableTotal').textContent;
+                document.getElementById('binanceAmountDisplay').textContent = total;
+                document.getElementById('binanceAmountInline').textContent = total;
+                // Random order number
+                document.getElementById('binanceOrderDisplay').textContent = '#' + Math.floor(Math.random() * 1000000);
+            } else {
+                binanceSection.style.display = 'none';
+                continueBtn.style.display = 'block';
+            }
+        }
+
+        function continuePayment() {
+            if (!selectedPayment) {
+                showToast('Please select a payment method', 'error');
+                return;
+            }
+            // Proceed to step 2 (simulated)
+            showToast('Proceeding to payment...');
+            // In real implementation, you would switch to paymentStep2
+        }
+
+        function copyBinanceId() {
+            const id = document.getElementById('binanceIdDisplay').textContent;
+            navigator.clipboard.writeText(id).then(() => {
+                showToast('Binance ID copied!');
+            }).catch(() => {
+                // Fallback
+                const input = document.createElement('input');
+                input.value = id;
+                document.body.appendChild(input);
+                input.select();
+                document.execCommand('copy');
+                document.body.removeChild(input);
+                showToast('Binance ID copied!');
+            });
+        }
+
+        function handleTxPaste(e) {
+            // Optional: handle paste event
+        }
+
+        function verifyTransaction() {
+            const txInput = document.getElementById('txHashInput');
+            const resultDiv = document.getElementById('verificationResult');
+            const tx = txInput.value.trim();
+            if (!tx) {
+                resultDiv.className = 'bv-result error';
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = '<i class="fas fa-exclamation-circle bv-icon"></i> Please enter a Transaction ID.';
+                return;
+            }
+            // Simulate verification
+            resultDiv.className = 'bv-result loading';
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<i class="fas fa-spinner fa-spin bv-icon"></i> Verifying transaction...';
+            setTimeout(() => {
+                if (tx.length > 5) {
+                    resultDiv.className = 'bv-result success';
+                    resultDiv.innerHTML = '<i class="fas fa-check-circle bv-icon"></i> Transaction verified successfully!';
+                } else {
+                    resultDiv.className = 'bv-result error';
+                    resultDiv.innerHTML = '<i class="fas fa-exclamation-circle bv-icon"></i> Invalid Transaction ID. Please check and try again.';
+                }
+            }, 1500);
+        }
+
+        function handleScreenshot(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            screenshotFile = file;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('screenshotImg').src = e.target.result;
+                document.getElementById('screenshotPreview').style.display = 'block';
+                document.getElementById('dropZone').querySelector('p').textContent = 'Image selected: ' + file.name;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeScreenshot() {
+            screenshotFile = null;
+            document.getElementById('screenshotPreview').style.display = 'none';
+            document.getElementById('dropZone').querySelector('p').textContent = 'Drag and drop your image here or click to select';
+            document.getElementById('screenshotInput').value = '';
+        }
+
+        function submitManualPayment() {
+            const txInput = document.getElementById('txHashInput');
+            const resultDiv = document.getElementById('verificationResult');
+            const tx = txInput.value.trim();
+            if (!tx && !screenshotFile) {
+                resultDiv.className = 'bv-result error';
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = '<i class="fas fa-exclamation-circle bv-icon"></i> Please provide either a Transaction ID or a screenshot.';
+                return;
+            }
+            // Simulate submission
+            const btn = document.getElementById('submitPaymentBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check-circle"></i> Confirm Payment';
+                showToast('Payment request submitted successfully! We will review it shortly.', 'success');
+                document.getElementById('paymentModal').classList.remove('open');
+            }, 2000);
+        }
+
+        // Override closePaymentModal if needed
+        function closePaymentModal() {
+            document.getElementById('paymentModal').classList.remove('open');
+        }
+
+        // Helper showToast (if not already defined)
+        if (typeof showToast === 'undefined') {
+            function showToast(message, type = 'success') {
+                const toast = document.getElementById('toast');
+                const msg = document.getElementById('toastMessage');
+                msg.textContent = message;
+                toast.className = 'toast ' + type;
+                toast.classList.add('show');
+                setTimeout(() => { toast.classList.remove('show'); }, 3000);
+            }
+        }
+
+        // If hideToast is not defined, define it
+        if (typeof hideToast === 'undefined') {
+            function hideToast() {
+                document.getElementById('toast').classList.remove('show');
+            }
+        }
+
+        // Accept/Reject Cookies
+        function acceptCookies() {
+            document.getElementById('cookieConsent').classList.remove('show');
+            showToast('Cookies accepted!');
+        }
+        function rejectCookies() {
+            document.getElementById('cookieConsent').classList.remove('show');
+            showToast('Cookies rejected.');
+        }
+        function openCookieSettings() {
+            // Open settings modal (if exists)
+            alert('Cookie settings will be shown here.');
+        }
+        function closeCookieSettings() {
+            document.getElementById('cookieSettingsModal').classList.remove('open');
+        }
+        function saveCookieSettings() {
+            // Save settings logic
+            closeCookieSettings();
+            showToast('Settings saved!');
+        }
+
+        // Placeholder functions for other modal actions
+        function closeShareModal() { document.getElementById('shareModal').classList.remove('open'); }
+        function closeDownloads() { document.getElementById('downloadsModal').classList.remove('open'); }
+        function closeProfileFull() { document.getElementById('profileFull').classList.remove('open'); }
+        function closeHistoryFull() { document.getElementById('historyFull').classList.remove('open'); }
+        function closeUserMenuFull() { document.getElementById('userMenuFull').classList.remove('open'); }
+        function closeWishlistFull() { document.getElementById('wishlistFull').classList.remove('open'); }
+        function closeCartFull() { document.getElementById('cartFull').classList.remove('open'); }
+        function closeNotifications() { document.getElementById('notificationsModal').classList.remove('open'); }
+        function openCartFull() { document.getElementById('cartFull').classList.add('open'); }
+        function openWishlistFull() { document.getElementById('wishlistFull').classList.add('open'); }
+        function openNotifications() { document.getElementById('notificationsModal').classList.add('open'); }
+        function openUserMenuFull() { document.getElementById('userMenuFull').classList.add('open'); }
+        function clearCart() { showToast('Cart cleared'); }
+        function filterProducts(filter) { /* implement filter */ }
+        function prevSlide() { /* implement slider */ }
+        function nextSlide() { /* implement slider */ }
+        function clearSearch() { /* implement search clear */ }
+        function closePreviewModal() { document.getElementById('previewModal').classList.remove('open'); }
+        function shareFromPreview() { /* implement share */ }
+        function addToCartFromPreview() { showToast('Added to cart!'); }
+        function addVipPlanToCart() { showToast('VIP plan added!'); }
+        function openAdminPanel() { document.getElementById('adminPanel').classList.add('open'); }
+        function closeAdminPanel() { document.getElementById('adminPanel').classList.remove('open'); }
+        function openCreateLicenceModal() { document.getElementById('createLicenceModal').classList.add('open'); }
+        function closeCreateLicenceModal() { document.getElementById('createLicenceModal').classList.remove('open'); }
+        function openLicenceModal() { document.getElementById('licenceModal').classList.add('open'); }
+        function closeLicenceModal() { document.getElementById('licenceModal').classList.remove('open'); }
+        function activateLicence() { showToast('Licence activated!'); }
+        function openReferralModal() { document.getElementById('referralModal').classList.add('open'); }
+        function closeReferralModal() { document.getElementById('referralModal').classList.remove('open'); }
+        function openRequestsModal() { document.getElementById('requestsModal').classList.add('open'); }
+        function closeRequestsModal() { document.getElementById('requestsModal').classList.remove('open'); }
+        function openNewRequestModal() { document.getElementById('newRequestModal').classList.add('open'); }
+        function closeNewRequestModal() { document.getElementById('newRequestModal').classList.remove('open'); }
+        function submitRequest(e) { e.preventDefault(); showToast('Request submitted!'); }
+        function openForgotPassword() { document.getElementById('forgotPasswordModal').classList.add('open'); }
+        function closeForgotPasswordModal() { document.getElementById('forgotPasswordModal').classList.remove('open'); }
+        function sendForgotPassword() { showToast('Reset link sent!'); }
+        function loginWithGoogle() { showToast('Google login not implemented.'); }
+        function loginUser() { showToast('Login not implemented.'); }
+        function registerUser() { showToast('Registration not implemented.'); }
+        function showRegister() { /* show register */ }
+        function showLogin() { /* show login */ }
+        function toggleReferral() { /* toggle referral */ }
+        function logoutUser() { showToast('Logged out!'); }
+        function openProfileFull() { document.getElementById('profileFull').classList.add('open'); }
+        function openHistoryFull() { document.getElementById('historyFull').classList.add('open'); }
+        function toggleLicencesList() { /* toggle licences */ }
+        function bindTelegram() { showToast('Telegram linking not implemented.'); }
+        function closeTelegramBanner() { document.getElementById('telegramBanner').style.display = 'none'; }
+        function switchAdminTab(tab) { /* switch admin tabs */ }
+        function refreshAdminOrders() { /* refresh orders */ }
+        function searchAdminOrders() { /* search */ }
+        function clearAdminSearch() { /* clear search */ }
+        function exportOrders() { showToast('Exporting orders...'); }
+        function openAddProductModal() { /* open product modal */ }
+        function openFeaturedSettings() { /* open featured settings */ }
+        function closeFeaturedSettings() { document.getElementById('featuredSettingsModal').classList.remove('open'); }
+        function saveFeaturedSettings() { showToast('Featured settings saved!'); }
+        function openCreateDownloadModal() { document.getElementById('createDownloadModal').classList.add('open'); }
+        function closeCreateDownloadModal() { document.getElementById('createDownloadModal').classList.remove('open'); }
+        function createDownload(e) { e.preventDefault(); showToast('Download added!'); }
+        function openCreateNotificationModal() { document.getElementById('createNotificationModal').classList.add('open'); }
+        function closeCreateNotificationModal() { document.getElementById('createNotificationModal').classList.remove('open'); }
+        function createNotification(e) { e.preventDefault(); showToast('Notification sent!'); }
+        function refreshLicences() { /* refresh licences */ }
+        function searchLicences() { /* search licences */ }
+        function clearLicenceSearch() { /* clear search */ }
+        function saveMarqueeSettings() { showToast('Marquee settings saved!'); }
+        function loadPaymentRequests() { /* load payments */ }
+        function toggleSliderEnabled() { /* toggle slider */ }
+        function saveSliderInterval() { showToast('Slider interval saved!'); }
+        function openAddSlideModal() { document.getElementById('addSlideModal').classList.add('open'); }
+        function closeAddSlideModal() { document.getElementById('addSlideModal').classList.remove('open'); }
+        function saveSlideEdit() { showToast('Slide saved!'); }
+        function selectCurrency(cur) { /* select currency */ }
+        function selectProductType(type) { /* select product type */ }
+        function toggleBadge(badge) { /* toggle badge */ }
+        function addQuantityOption() { /* add quantity option */ }
+        function saveProduct(e) { e.preventDefault(); showToast('Product saved!'); }
+        function closeProductModal() { document.getElementById('productModal').classList.remove('open'); }
+        function refreshDashboardStats() { showToast('Stats refreshed!'); }
+        function refreshAdvancedStats() { showToast('Advanced stats refreshed!'); }
+        function loadAuditLogs() { /* load logs */ }
+        function markAllNotificationsRead() { showToast('All notifications marked as read.'); }
+        function clearAllNotifications() { showToast('Notifications cleared.'); }
+        function copyWalletAddress() { showToast('Wallet address copied!'); }
+        function placeOrder() { showToast('Order placed!'); }
+        function goToStep1() { /* go to step 1 */ }
+        function copyShareLink() { showToast('Share link copied!'); }
+        function shareToWhatsApp() { showToast('Share via WhatsApp'); }
+        function shareToTelegram() { showToast('Share via Telegram'); }
+        function shareToFacebook() { showToast('Share via Facebook'); }
+        function closeUserDetailsModal() { document.getElementById('userDetailsModal').classList.remove('open'); }
+        function saveLicenceEdit() { showToast('Licence updated!'); }
+        function createLicenceManually() { showToast('Licence created!'); }
     </script>
 
     <!-- ============================================ -->
