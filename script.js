@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - Full Version with User Notification Fix
+// SCRIPT.JS - ZI Store - Full Version with Binance ID Integration
 // ============================================================
 
 // ============================================================
@@ -1951,7 +1951,7 @@ function closeSearchResults() { searchResults.classList.remove('active'); search
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeSearchResults(); closeUserMenuFull(); closeCartFull(); closeWishlistFull(); closeProfileFull(); closeHistoryFull(); } });
 
 // ============================================================
-// 15. Payment
+// 15. Payment (with Binance ID Integration)
 // ============================================================
 
 async function fetchCryptoPrices() {
@@ -2003,12 +2003,21 @@ function updatePayableTotal() {
     document.getElementById('payableTotal').textContent = '$' + finalTotal.toFixed(2);
 }
 
+// ============================================================
+// 15.1 Payment Selection (UPDATED for Binance ID)
+// ============================================================
 window.selectPayment = function(method) {
     selectedPayment = method;
     document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
-    const optionMap = { 'litecoin': 'optionLitecoin', 'usdt': 'optionUsdt', 'telegram': 'optionTelegram' };
+    const optionMap = {
+        'litecoin': 'optionLitecoin',
+        'usdt': 'optionUsdt',
+        'telegram': 'optionTelegram',
+        'binanceId': 'optionBinanceId'
+    };
     const optionEl = document.getElementById(optionMap[method]);
     if (optionEl) optionEl.classList.add('selected');
+
     if (method === 'litecoin' || method === 'usdt') {
         const wallet = method === 'litecoin' ? paymentWallets.litecoin : paymentWallets.usdt;
         document.getElementById('paymentMethodName').textContent = wallet.name;
@@ -2019,145 +2028,195 @@ window.selectPayment = function(method) {
     updatePayableTotal();
 };
 
+// ============================================================
+// 15.2 Continue Payment (UPDATED for Binance ID)
+// ============================================================
 window.continuePayment = function() {
-    if (!selectedPayment) { showToast('⚠️ Please select a payment method', 'warning'); return; }
+    if (!selectedPayment) {
+        showToast('⚠️ Please select a payment method', 'warning');
+        return;
+    }
     document.getElementById('paymentStep1').style.display = 'none';
     document.getElementById('paymentStep2').classList.add('active');
     renderPaymentProducts();
-    let total = 0; cart.forEach(item => { const qty = item.quantity || 1; total += item.price * qty; });
+
+    let total = 0;
+    cart.forEach(item => {
+        const qty = item.quantity || 1;
+        total += item.price * qty;
+    });
     let rpDiscountAmount = 0;
-    if (userProfile.useRpForCart) { rpDiscountAmount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total); }
+    if (userProfile.useRpForCart) {
+        rpDiscountAmount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total);
+    }
     let finalTotal = total - rpDiscountAmount;
     let promoDiscountAmount = 0;
-    if (activeDiscount > 0 && total > 0) { promoDiscountAmount = (finalTotal * activeDiscount) / 100; finalTotal = finalTotal - promoDiscountAmount; }
+    if (activeDiscount > 0 && total > 0) {
+        promoDiscountAmount = (finalTotal * activeDiscount) / 100;
+        finalTotal = finalTotal - promoDiscountAmount;
+    }
     if (finalTotal < 0) finalTotal = 0;
     document.getElementById('step2Subtotal').textContent = `$${total.toFixed(2)}`;
     document.getElementById('step2Total').textContent = `$${finalTotal.toFixed(2)}`;
-    
-    fetchCryptoPrices();
-    setTimeout(updatePriceUI, 500);
-    
-    const walletInfo = document.querySelector('.wallet-info');
-    const txInput = document.getElementById('transactionHashInput');
-    const confirmBtn = document.querySelector('.payment-btn[onclick="placeOrder()"]');
-    const cryptoAmount = document.getElementById('cryptoAmount');
-    if (selectedPayment === 'telegram') {
-        if (walletInfo) walletInfo.style.display = 'none';
-        if (txInput) txInput.style.display = 'none';
-        if (confirmBtn) {
-            confirmBtn.innerHTML = '<i class="fab fa-telegram-plane"></i> Contact via Telegram';
-            confirmBtn.onclick = function() {
-                const message = `🛒 New Order\n\nTotal: $${finalTotal.toFixed(2)}\nProducts: ${cart.map(i => i.name).join(', ')}`;
-                window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(message)}`, '_blank');
-                placeOrderTelegram();
-            };
-        }
-        if (cryptoAmount) cryptoAmount.textContent = '💬 Chat with us';
-    } else {
-        if (walletInfo) walletInfo.style.display = 'block';
-        if (txInput) txInput.style.display = 'block';
-        if (confirmBtn) {
-            confirmBtn.innerHTML = '<i class="fas fa-check"></i> Confirm Payment';
-            confirmBtn.onclick = placeOrder;
-        }
+
+    // Hide all sections first
+    document.getElementById('paymentWalletInfo').style.display = 'none';
+    document.getElementById('paymentTxInput').style.display = 'none';
+    document.getElementById('paymentTelegramContact').style.display = 'none';
+    document.getElementById('paymentBinanceIdSection').style.display = 'none';
+    document.getElementById('mainConfirmBtn').style.display = 'none';
+
+    if (selectedPayment === 'litecoin' || selectedPayment === 'usdt') {
+        document.getElementById('paymentWalletInfo').style.display = 'block';
+        document.getElementById('paymentTxInput').style.display = 'block';
+        document.getElementById('mainConfirmBtn').style.display = 'block';
+        document.getElementById('mainConfirmBtn').innerHTML = '<i class="fas fa-check"></i> تأكيد الدفع';
+        document.getElementById('mainConfirmBtn').onclick = placeOrder;
+        fetchCryptoPrices();
+        setTimeout(updatePriceUI, 500);
+    } else if (selectedPayment === 'telegram') {
+        document.getElementById('paymentTelegramContact').style.display = 'block';
+        document.getElementById('mainConfirmBtn').style.display = 'block';
+        document.getElementById('mainConfirmBtn').innerHTML = '<i class="fab fa-telegram-plane"></i> تواصل عبر Telegram';
+        document.getElementById('mainConfirmBtn').onclick = function() {
+            const message = `🛒 طلب جديد\n\nالإجمالي: $${finalTotal.toFixed(2)}\nالمنتجات: ${cart.map(i => i.name).join(', ')}`;
+            window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(message)}`, '_blank');
+            placeOrderTelegram();
+        };
+    } else if (selectedPayment === 'binanceId') {
+        document.getElementById('paymentBinanceIdSection').style.display = 'block';
+        document.getElementById('binanceIdDisplay').textContent = '748838383';
+        document.getElementById('binanceIdInline').textContent = '748838383';
+        const totalDisplay = `$${finalTotal.toFixed(2)}`;
+        document.getElementById('binanceAmountDisplay').textContent = totalDisplay;
+        document.getElementById('binanceAmountInline').textContent = totalDisplay;
+        const orderId = '#' + String(Date.now()).slice(-6);
+        document.getElementById('binanceOrderDisplay').textContent = orderId;
+    }
+
+    if (selectedPayment === 'litecoin' || selectedPayment === 'usdt') {
         fetchCryptoPrices();
     }
 };
 
-window.goToStep1 = function() { document.getElementById('paymentStep1').style.display = 'block'; document.getElementById('paymentStep2').classList.remove('active'); };
-window.copyWalletAddress = function() {
-    const address = document.getElementById('walletAddressDisplay').textContent;
-    if (address) {
-        navigator.clipboard.writeText(address).then(() => { showToast('✅ Address copied!', 'success'); })
-        .catch(() => { const textArea = document.createElement('textarea'); textArea.value = address; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); showToast('✅ Address copied!', 'success'); });
+// ============================================================
+// 15.3 Place Order (UPDATED for Binance ID)
+// ============================================================
+window.placeOrder = function() {
+    if (!currentUser || currentUser.isAnonymous) {
+        showToast('⚠️ Please sign in to confirm payment.', 'warning');
+        openAuthModal();
+        return;
+    }
+
+    let txHash = '';
+    if (selectedPayment === 'binanceId') {
+        txHash = document.getElementById('txHashInput').value.trim();
+        if (!txHash) {
+            showToast('⚠️ Please paste the transaction ID', 'warning');
+            document.getElementById('txHashInput').style.borderColor = 'var(--danger)';
+            setTimeout(() => { document.getElementById('txHashInput').style.borderColor = ''; }, 2000);
+            return;
+        }
+    } else if (selectedPayment === 'litecoin' || selectedPayment === 'usdt') {
+        txHash = document.getElementById('transactionHashInput').value.trim();
+        if (!txHash) {
+            showToast('⚠️ Please paste the transaction hash', 'warning');
+            document.getElementById('transactionHashInput').style.borderColor = 'var(--danger)';
+            setTimeout(() => { document.getElementById('transactionHashInput').style.borderColor = ''; }, 2000);
+            return;
+        }
+    } else if (selectedPayment === 'telegram') {
+        placeOrderTelegram();
+        return;
+    }
+
+    sendOrderToTelegram(selectedPayment, txHash);
+};
+
+// ============================================================
+// 15.4 Binance ID specific functions
+// ============================================================
+window.copyBinanceId = function() {
+    const id = document.getElementById('binanceIdDisplay').textContent;
+    if (!id) return;
+    navigator.clipboard.writeText(id).then(() => {
+        showToast('✅ Binance ID copied!', 'success');
+    }).catch(() => {
+        const textarea = document.createElement('textarea');
+        textarea.value = id;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showToast('✅ Binance ID copied!', 'success');
+    });
+};
+
+window.verifyTransaction = function() {
+    const input = document.getElementById('txHashInput');
+    const result = document.getElementById('verificationResult');
+    const tx = input.value.trim();
+    if (!tx) {
+        result.style.display = 'block';
+        result.className = 'bv-result error';
+        result.textContent = '⚠️ Please enter a transaction ID.';
+        return;
+    }
+    if (tx.length < 6) {
+        result.style.display = 'block';
+        result.className = 'bv-result error';
+        result.textContent = '❌ Transaction ID seems too short. Please check and try again.';
+    } else {
+        result.style.display = 'block';
+        result.className = 'bv-result success';
+        result.textContent = '✅ Transaction ID format looks valid. You can now confirm payment.';
     }
 };
 
-function renderPaymentProducts() {
-    const container = document.getElementById('paymentProductsList');
-    if (!container) return;
-    if (!cart || cart.length === 0) {
-        container.innerHTML = '<div style="text-align:center;padding:8px;color:var(--text-secondary);opacity:0.4;">No products</div>';
+window.handleTxPaste = function(event) {
+    const input = event.target;
+    setTimeout(() => {
+        input.value = input.value.trim();
+    }, 10);
+};
+
+window.handleScreenshot = function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const preview = document.getElementById('screenshotPreview');
+        const img = document.getElementById('screenshotImg');
+        img.src = e.target.result;
+        preview.style.display = 'flex';
+        document.querySelector('.bv-drop-zone p').textContent = '✅ تم اختيار الصورة';
+    };
+    reader.readAsDataURL(file);
+};
+
+window.removeScreenshot = function() {
+    document.getElementById('screenshotPreview').style.display = 'none';
+    document.getElementById('screenshotImg').src = '#';
+    document.getElementById('screenshotInput').value = '';
+    document.querySelector('.bv-drop-zone p').textContent = 'اسحب الصورة هنا أو اضغط للاختيار';
+};
+
+window.submitManualPayment = function() {
+    const txHash = document.getElementById('txHashInput').value.trim();
+    if (!txHash) {
+        showToast('⚠️ Please paste the transaction ID', 'warning');
+        document.getElementById('txHashInput').style.borderColor = 'var(--danger)';
+        setTimeout(() => { document.getElementById('txHashInput').style.borderColor = ''; }, 2000);
         return;
     }
-    container.innerHTML = cart.map(item => {
-        const qty = item.quantity || 1;
-        const total = item.price * qty;
-        const product = products.find(p => p.id === item.id);
-        const image = product?.image || item.image || 'https://picsum.photos/seed/default/80/80';
-        const name = item.isVip ? `${item.name} 👑 ${item.vipPlanLabel || 'VIP'}` : item.name;
-        const qtyLabel = item.isQuantityProduct ? `📦 ${item.selectedQuantity || ''}` : '';
-        return `
-            <div class="payment-product-item">
-                <img src="${image}" alt="${item.name}" />
-                <div class="pp-info">
-                    <div class="pp-name">${name} ${qtyLabel}</div>
-                    <div class="pp-price">${getCurrencySymbol(item.currency || 'USD')}${total.toFixed(2)}</div>
-                </div>
-                <div class="pp-qty">×${qty}</div>
-            </div>
-        `;
-    }).join('');
-}
+    document.getElementById('transactionHashInput').value = txHash;
+    placeOrder();
+};
 
 // ============================================================
-// 16. Order Functions with User Notification
+// 15.5 Original order sending function
 // ============================================================
-
-/**
- * Send notification to user's in-app notification icon
- * Only the specific user who placed the order will receive it
- */
-async function sendUserNotification(userId, title, message) {
-    if (!userId) return;
-    try {
-        // Check if user exists
-        const userRef = doc(db, 'users', userId);
-        const userSnap = await getDoc(userRef);
-        if (!userSnap.exists()) {
-            console.log('ℹ️ User not found, skipping notification');
-            return;
-        }
-        
-        // Add notification to Firestore with userId
-        await addDoc(collection(db, 'notifications'), {
-            title: title,
-            message: message,
-            userId: userId, // Only this user will see it
-            readBy: [],
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp()
-        });
-        console.log('✅ User notification sent to:', userId);
-    } catch (error) {
-        console.error('Error sending user notification:', error);
-    }
-}
-
-/**
- * Send order confirmation to both Telegram and in-app notification
- */
-async function sendOrderConfirmations(userId, orderId, productsList, total, method) {
-    // 1. Send in-app notification (only to this user)
-    const productNames = productsList.map(item => {
-        const qtyLabel = item.selectedQuantity ? ` (${item.selectedQuantity})` : '';
-        return `${item.name}${qtyLabel} × ${item.quantity || 1}`;
-    }).join(', ');
-    
-    await sendUserNotification(
-        userId,
-        '📦 Order Confirmed!',
-        `Your order #${orderId.slice(-6)} has been confirmed.\nProducts: ${productNames}\nTotal: $${total.toFixed(2)}\nPayment: ${method}`
-    );
-    
-    // 2. Send Telegram notification if user has linked Telegram
-    if (userProfile.telegramChatId) {
-        const userMsg = `📦 **Order Confirmed!**\n\n📎 **Order #${orderId.slice(-6)}**\n📅 ${new Date().toLocaleString()}\n💰 Total: $${total.toFixed(2)}\n💳 Method: ${method}\n\nThank you for your purchase! 🎉`;
-        await sendTelegramNotification(userProfile.telegramChatId, userMsg);
-        console.log('✅ Telegram notification sent to user');
-    }
-}
-
 async function sendOrderToTelegram(method, txHash = null) {
     if (isProcessingOrder) {
         showToast('⏳ Order is already being processed...', 'warning');
@@ -2218,7 +2277,6 @@ async function sendOrderToTelegram(method, txHash = null) {
             console.error('❌ Failed to send admin notification:', e);
         }
 
-        // Send confirmation to user (both in-app and Telegram)
         await sendOrderConfirmations(
             currentUser.uid,
             orderId,
@@ -2295,28 +2353,6 @@ function placeOrderTelegram() {
     sendOrderToTelegram('telegram', null);
 }
 
-window.placeOrder = function() {
-    if (!currentUser || currentUser.isAnonymous) {
-        showToast('⚠️ Please sign in to confirm payment.', 'warning');
-        openAuthModal();
-        return;
-    }
-    const txHash = document.getElementById('transactionHashInput').value.trim();
-    if (selectedPayment === 'litecoin' || selectedPayment === 'usdt') {
-        if (!txHash) {
-            showToast('⚠️ Please paste the transaction hash', 'warning');
-            document.getElementById('transactionHashInput').style.borderColor = 'var(--danger)';
-            setTimeout(() => { document.getElementById('transactionHashInput').style.borderColor = ''; }, 2000);
-            return;
-        }
-        sendOrderToTelegram(selectedPayment, txHash);
-    } else if (selectedPayment === 'telegram') {
-        placeOrderTelegram();
-    } else {
-        showToast('⚠️ Please select a payment method', 'warning');
-    }
-};
-
 window.openPaymentModal = function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); openAuthModal(); return; }
     if (currentUser.isAnonymous) { showToast('⚠️ Please sign in to place an order.', 'warning'); openAuthModal(); return; }
@@ -2330,6 +2366,52 @@ window.openPaymentModal = function() {
 };
 window.closePaymentModal = function() { document.getElementById('paymentModal').classList.remove('open'); document.getElementById('paymentStep1').style.display = 'block'; document.getElementById('paymentStep2').classList.remove('active'); selectedPayment = null; document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected')); };
 window.checkout = function() { openPaymentModal(); };
+
+// ============================================================
+// 16. Order Functions with User Notification
+// ============================================================
+
+async function sendUserNotification(userId, title, message) {
+    if (!userId) return;
+    try {
+        const userRef = doc(db, 'users', userId);
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) {
+            console.log('ℹ️ User not found, skipping notification');
+            return;
+        }
+        await addDoc(collection(db, 'notifications'), {
+            title: title,
+            message: message,
+            userId: userId,
+            readBy: [],
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        });
+        console.log('✅ User notification sent to:', userId);
+    } catch (error) {
+        console.error('Error sending user notification:', error);
+    }
+}
+
+async function sendOrderConfirmations(userId, orderId, productsList, total, method) {
+    const productNames = productsList.map(item => {
+        const qtyLabel = item.selectedQuantity ? ` (${item.selectedQuantity})` : '';
+        return `${item.name}${qtyLabel} × ${item.quantity || 1}`;
+    }).join(', ');
+    
+    await sendUserNotification(
+        userId,
+        '📦 Order Confirmed!',
+        `Your order #${orderId.slice(-6)} has been confirmed.\nProducts: ${productNames}\nTotal: $${total.toFixed(2)}\nPayment: ${method}`
+    );
+    
+    if (userProfile.telegramChatId) {
+        const userMsg = `📦 **Order Confirmed!**\n\n📎 **Order #${orderId.slice(-6)}**\n📅 ${new Date().toLocaleString()}\n💰 Total: $${total.toFixed(2)}\n💳 Method: ${method}\n\nThank you for your purchase! 🎉`;
+        await sendTelegramNotification(userProfile.telegramChatId, userMsg);
+        console.log('✅ Telegram notification sent to user');
+    }
+}
 
 // ============================================================
 // 17. Telegram Functions
@@ -2500,7 +2582,6 @@ function loadNotifications() {
             notifications = [];
             snapshot.forEach((doc) => {
                 const data = doc.data();
-                // Only show notifications that are either global (no userId) or specifically for this user
                 if (!data.userId || data.userId === currentUser?.uid) {
                     notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] });
                 }
@@ -2518,7 +2599,6 @@ function loadNotifications() {
             notifications = [];
             snapshot.forEach((doc) => {
                 const data = doc.data();
-                // Only show notifications that are either global (no userId) or specifically for this user
                 if (!data.userId || data.userId === currentUser?.uid) {
                     notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] });
                 }
@@ -3251,26 +3331,20 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
         });
         await updateDoc(userRef, { history: updatedHistory });
         
-        // Send notification to user when order status changes
         if (newStatus === 'confirmed') {
-            // Send confirmation notification to user's in-app icon
             await sendUserNotification(
                 userId,
                 '✅ Order Confirmed!',
                 `Your order #${orderId.slice(-6)} has been confirmed and is ready.`
             );
-            
-            // Send licence via Edge Function
             await sendLicenceForOrder(orderId, userId);
             await sendTelegramNotification(TELEGRAM_CHAT_ID, `✅ Order #${orderId.slice(-6)} confirmed. Licence sent to ${data.email || userId}.`);
         } else if (newStatus === 'rejected') {
-            // Send rejection notification to user's in-app icon
             await sendUserNotification(
                 userId,
                 '❌ Order Rejected',
                 `Your order #${orderId.slice(-6)} has been rejected. Please contact support for more information.`
             );
-            
             if (data.telegramChatId) {
                 await sendTelegramNotification(data.telegramChatId, `❌ Your order #${orderId.slice(-6)} has been rejected.`);
             }
@@ -3594,14 +3668,11 @@ async function approveLicence(licenceId, code, scriptName) {
         const { data: licenceData, error: fetchError } = await supabase.from('licenses').select('*').eq('id', licenceId).single();
         if (fetchError || !licenceData) throw fetchError || new Error('Licence not found');
         await updateLicenceInSupabase(licenceId, { status: 'active', user_id: currentUser.uid, user_email: currentUser.email });
-        
-        // Send notification to user
         await sendUserNotification(
             currentUser.uid,
             '🔑 Licence Activated!',
             `Your licence for ${scriptName} has been activated. Code: ${code}`
         );
-        
         let chatId = null;
         const usersRef = collection(db, 'users');
         const q = query(usersRef, where('email', '==', currentUser.email));
@@ -3623,13 +3694,11 @@ async function revokeLicence(licenceId) {
         await updateLicenceInSupabase(licenceId, { status: 'revoked' });
         const licence = allLicences.find(l => l.id === licenceId);
         if (licence && licence.user_id) {
-            // Notify user
             await sendUserNotification(
                 licence.user_id,
                 '🚫 Licence Revoked',
                 `Your licence for ${licence.script_name || 'product'} has been revoked.`
             );
-            
             const userRef = doc(db, 'users', licence.user_id);
             const userSnap = await getDoc(userRef);
             if (userSnap.exists()) {
@@ -3793,8 +3862,6 @@ async function activateLicence() {
                 userProfile.licences = userLicences;
                 renderUserLicences();
                 updateFullUserMenu();
-                
-                // Send in-app notification
                 await sendUserNotification(
                     currentUser.uid,
                     '🔑 Licence Activated',
@@ -5164,7 +5231,6 @@ window.openPhoneSupport = function() {
     window.location.href = `tel:${phone}`;
 };
 
-// Close floating menu on outside click
 document.addEventListener('click', function(e) {
     const float = document.getElementById('supportFloat');
     if (float) {
@@ -5175,7 +5241,6 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// Close support modal on ESC
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         const modal = document.getElementById('supportModal');
