@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - Full Version with Binance ID - FIXED
+// SCRIPT.JS - ZI Store - Full Version with User Notification Fix
 // ============================================================
 
 // ============================================================
@@ -37,7 +37,6 @@ import {
     updateProfile, 
     updatePassword, 
     sendPasswordResetEmail, 
-    sendEmailVerification,
     reauthenticateWithCredential, 
     EmailAuthProvider,
     GoogleAuthProvider,
@@ -107,8 +106,6 @@ let ordersFilter = 'all';
 let _selectedVipPlan = '1m';
 let allLicences = [];
 let isProcessingOrder = false;
-let currentDetailProduct = null;
-let selectedVipPlan = '1m';
 
 // Admin state
 let isAdminCached = false;
@@ -161,18 +158,12 @@ let userProfile = {
     licences: []
 };
 
-// Binance ID Payment variables
-const BINANCE_ID = '748838383';
-let currentTxHash = '';
-let currentScreenshot = null;
-let currentOrderId = '';
-
 // Fallback products
 const fallbackProducts = [
-    { id: "fallback_1", name: "Mergedom VIP Tool", price: 11, badge: "VIP", status: "available", image: "https://picsum.photos/seed/mergedom/400/300", downloadLink: "", description: "Mergedom game with premium features.", features: ["Level Auto Bypass", "Unlimited Boost", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", currency: "USD", createdAt: new Date() },
-    { id: "fallback_2", name: "Numbers Game 2048", price: 0, badge: "FREE", status: "available", image: "https://picsum.photos/seed/2048/400/300", downloadLink: "", description: "Classic 2048 game with exclusive mod features.", features: ["Unlimited Device", "Block Spawn Modify", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", currency: "USD", createdAt: new Date() },
-    { id: "fallback_3", name: "Screwdom 3D", price: 0, badge: "FREE", status: "available", image: "https://picsum.photos/seed/screwdom/400/300", downloadLink: "", description: "Exciting 3D puzzle game with unlimited boosts.", features: ["Unlimited Boost", "Level Auto Complete", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", currency: "USD", createdAt: new Date() },
-    { id: "fallback_4", name: "Smart Telegram Bot", price: 0, badge: "FREE", status: "available", image: "https://picsum.photos/seed/bot/400/300", downloadLink: "https://www.mediafire.com/file/example/bot.zip", description: "Advanced Telegram bot with auto-reply and group management.", features: ["Auto Replies", "Group Management", "Notifications"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", currency: "USD", createdAt: new Date() }
+    { id: "fallback_1", name: "Mergedom", price: 11, badge: "VIP", status: "available", image: "https://picsum.photos/seed/mergedom/400/300", downloadLink: "", description: "Mergedom game with premium features.", features: ["Level Auto Bypass", "Unlimited Boost", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() },
+    { id: "fallback_2", name: "Numbers Game 2048", price: 0, badge: "VIP", status: "available", image: "https://picsum.photos/seed/2048/400/300", downloadLink: "", description: "Classic 2048 game with exclusive mod features.", features: ["Unlimited Device", "Block Spawn Modify", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() },
+    { id: "fallback_3", name: "Screwdom 3D", price: 0, badge: "VIP", status: "available", image: "https://picsum.photos/seed/screwdom/400/300", downloadLink: "", description: "Exciting 3D puzzle game with unlimited boosts.", features: ["Unlimited Boost", "Level Auto Complete", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() },
+    { id: "fallback_4", name: "Smart Telegram Bot", price: 0, badge: "FREE", status: "available", image: "https://picsum.photos/seed/bot/400/300", downloadLink: "https://www.mediafire.com/file/example/bot.zip", description: "Advanced Telegram bot with auto-reply and group management.", features: ["Auto Replies", "Group Management", "Notifications"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() }
 ];
 
 // Discount codes and wallets
@@ -622,8 +613,6 @@ function updateFullUserMenu() {
     const adminBadge = document.getElementById('adminMenuBadge');
     const licencesBadge = document.getElementById('licencesBadge');
     const adminMenuItem = document.getElementById('adminMenuItem');
-    const verifyMenuItem = document.getElementById('verifyEmailMenuItem');
-    const verifyBadge = document.getElementById('verifyEmailBadge');
 
     if (currentUser) {
         const displayName = currentUser.displayName || currentUser.email || 'User';
@@ -655,34 +644,11 @@ function updateFullUserMenu() {
             const activeLicences = (userProfile.licences || []).filter(l => new Date(l.expiryDate) > new Date()).length;
             if (activeLicences > 0) { licencesBadge.style.display = 'inline-block'; licencesBadge.textContent = activeLicences; } else { licencesBadge.style.display = 'none'; }
         }
-
-        if (verifyMenuItem) {
-            if (currentUser.emailVerified) {
-                verifyMenuItem.style.display = 'flex';
-                const label = verifyMenuItem.querySelector('.menu-label');
-                if (label) label.textContent = '✅ Email Verified';
-                if (verifyBadge) {
-                    verifyBadge.textContent = '✅';
-                    verifyBadge.style.background = 'var(--success)';
-                    verifyBadge.style.color = '#0a0a1a';
-                }
-            } else {
-                verifyMenuItem.style.display = 'flex';
-                const label = verifyMenuItem.querySelector('.menu-label');
-                if (label) label.textContent = '📧 Verify Email';
-                if (verifyBadge) {
-                    verifyBadge.textContent = '⚠️';
-                    verifyBadge.style.background = 'var(--warning)';
-                    verifyBadge.style.color = '#0a0a1a';
-                }
-            }
-        }
     } else {
         avatar.textContent = 'U'; name.textContent = 'Guest'; email.textContent = 'Not logged in'; rp.textContent = '0';
         wishlistBadge.style.display = 'none'; orderBadge.style.display = 'none'; notifBadge.style.display = 'none';
         adminMenuItem.style.display = 'none';
         if (licencesBadge) licencesBadge.style.display = 'none';
-        if (verifyMenuItem) verifyMenuItem.style.display = 'none';
     }
 }
 
@@ -739,7 +705,6 @@ window.loginUser = async function() {
             updateLoadingText('✅ Ready!');
             window.showMainApp();
             hideLoadingScreen();
-            setTimeout(checkVerificationOnLogin, 3000);
         }, 500);
     } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Login failed', 'error'); btn.classList.remove('loading'); }
 };
@@ -779,16 +744,6 @@ window.registerUser = async function() {
         btn.classList.remove('loading');
         await refreshAdminStatus();
         
-        try {
-            await sendEmailVerification(currentUser, {
-                url: window.location.origin + '/verify-email.html',
-                handleCodeInApp: true
-            });
-            showToast('📧 Verification email sent!', 'success');
-        } catch (verifyError) {
-            console.error('Error sending verification email:', verifyError);
-        }
-        
         setTimeout(() => {
             document.getElementById('authSection').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
@@ -799,10 +754,6 @@ window.registerUser = async function() {
             updateLoadingText('✅ Ready!');
             window.showMainApp();
             hideLoadingScreen();
-            
-            setTimeout(() => {
-                showVerificationDialog(currentUser.email);
-            }, 1000);
         }, 500);
     } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Registration failed', 'error'); btn.classList.remove('loading'); }
 };
@@ -838,19 +789,6 @@ window.loginWithGoogle = function() {
             await refreshAdminStatus();
             await mergeGuestData(user.uid);
 
-            if (user.emailVerified) {
-                localStorage.setItem('zi_verification_pending', 'false');
-            } else {
-                try {
-                    await sendEmailVerification(user, {
-                        url: window.location.origin + '/verify-email.html',
-                        handleCodeInApp: true
-                    });
-                } catch (e) {
-                    console.error('Error sending verification email:', e);
-                }
-            }
-
             setTimeout(() => {
                 document.getElementById('authSection').style.display = 'none';
                 document.getElementById('mainApp').style.display = 'block';
@@ -879,12 +817,6 @@ window.loginWithGoogle = function() {
                 updateLoadingText('✅ Ready!');
                 window.showMainApp();
                 hideLoadingScreen();
-                
-                setTimeout(() => {
-                    if (!user.emailVerified) {
-                        showVerificationDialog(user.email);
-                    }
-                }, 2000);
             }, 500);
         })
         .catch((error) => {
@@ -1010,333 +942,6 @@ window.sendForgotPassword = async function() {
 };
 
 // ============================================================
-// 5.1 Email Verification Functions
-// ============================================================
-
-window.sendEmailVerification = async function() {
-    if (!currentUser) {
-        showToast('⚠️ Please login first', 'warning');
-        openAuthModal();
-        return;
-    }
-
-    if (currentUser.emailVerified) {
-        showToast('✅ Your email is already verified!', 'success');
-        updateFullUserMenu();
-        return;
-    }
-
-    try {
-        await sendEmailVerification(currentUser, {
-            url: window.location.origin + '/verify-email.html',
-            handleCodeInApp: true
-        });
-        
-        localStorage.setItem('zi_verification_pending', 'true');
-        showToast('📧 Verification email sent!', 'success');
-        
-        setTimeout(() => {
-            showVerificationDialog(currentUser.email);
-        }, 500);
-        
-    } catch (error) {
-        console.error('Error sending verification email:', error);
-        
-        try {
-            const user = auth.currentUser;
-            if (user) {
-                await user.sendEmailVerification({
-                    url: window.location.origin + '/verify-email.html'
-                });
-                localStorage.setItem('zi_verification_pending', 'true');
-                showToast('📧 Verification email sent!', 'success');
-                setTimeout(() => {
-                    showVerificationDialog(user.email);
-                }, 500);
-                return;
-            }
-        } catch (e) {
-            console.error('Fallback verification error:', e);
-        }
-        
-        showToast('❌ Failed to send verification email: ' + error.message, 'error');
-    }
-};
-
-function showVerificationDialog(email) {
-    closeVerificationDialog();
-    
-    const dialogHTML = `
-        <div style="background:var(--bg-secondary); border-radius:12px; padding:20px; border:1px solid var(--border); margin:8px 0; box-shadow:0 10px 40px rgba(0,0,0,0.5);">
-            <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
-                <span style="font-size:32px;">📧</span>
-                <div>
-                    <div style="font-weight:700; font-size:16px; color:var(--text);">Verification Email Sent</div>
-                    <div style="font-size:13px; color:var(--text-secondary); opacity:0.6;">${email}</div>
-                </div>
-            </div>
-            <div style="font-size:14px; color:var(--text-secondary); line-height:1.6; margin-bottom:12px;">
-                <i class="fas fa-info-circle" style="color:var(--primary);"></i>
-                We've sent a verification link to your email. Please check your inbox and click the link to verify your account.
-            </div>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                <button onclick="checkVerificationStatus()" class="btn btn-primary" style="padding:8px 20px; font-size:13px; border:none; border-radius:8px; background:var(--primary-gradient); color:#fff; cursor:pointer;">
-                    <i class="fas fa-sync-alt"></i> Check Now
-                </button>
-                <button onclick="closeVerificationDialog()" class="btn btn-outline" style="padding:8px 20px; font-size:13px; border:1px solid var(--border); border-radius:8px; background:transparent; color:var(--text-secondary); cursor:pointer;">
-                    <i class="fas fa-times"></i> Close
-                </button>
-                <button onclick="window.sendEmailVerification()" class="btn btn-outline" style="padding:8px 20px; font-size:13px; border:1px solid var(--border); border-radius:8px; background:transparent; color:var(--text-secondary); cursor:pointer;">
-                    <i class="fas fa-redo"></i> Resend
-                </button>
-            </div>
-            <div id="verificationStatus" style="margin-top:10px; font-size:13px; display:none;"></div>
-        </div>
-    `;
-
-    const container = document.getElementById('verificationDialogContainer');
-    if (container) {
-        container.innerHTML = dialogHTML;
-        container.style.display = 'block';
-        container.style.animation = 'fadeIn 0.3s ease';
-    } else {
-        const tempContainer = document.createElement('div');
-        tempContainer.id = 'verificationDialogContainer';
-        tempContainer.style.cssText = 'position:fixed; bottom:80px; left:50%; transform:translateX(-50%); z-index:100000; max-width:500px; width:90%;';
-        tempContainer.innerHTML = dialogHTML;
-        document.body.appendChild(tempContainer);
-        
-        const closeBtn = tempContainer.querySelector('.btn-outline');
-        if (closeBtn) {
-            closeBtn.onclick = function() {
-                tempContainer.remove();
-            };
-        }
-    }
-}
-
-window.closeVerificationDialog = function() {
-    const container = document.getElementById('verificationDialogContainer');
-    if (container) {
-        container.style.opacity = '0';
-        container.style.transition = 'opacity 0.5s ease';
-        setTimeout(() => {
-            if (container.parentNode) container.remove();
-            const newContainer = document.createElement('div');
-            newContainer.id = 'verificationDialogContainer';
-            newContainer.style.display = 'none';
-            document.body.appendChild(newContainer);
-        }, 500);
-    }
-};
-
-window.checkVerificationStatus = async function() {
-    if (!currentUser) {
-        showToast('⚠️ Please login first', 'warning');
-        return;
-    }
-
-    const statusEl = document.getElementById('verificationStatus');
-    if (statusEl) {
-        statusEl.style.display = 'block';
-        statusEl.innerHTML = `
-            <span style="color:var(--warning);">
-                <i class="fas fa-spinner fa-spin"></i> 
-                Checking...
-            </span>
-        `;
-    }
-
-    try {
-        await currentUser.reload();
-        
-        if (currentUser.emailVerified) {
-            showToast('✅ Email verified successfully!', 'success');
-            localStorage.removeItem('zi_verification_pending');
-            
-            updateUI();
-            updateFullUserMenu();
-            closeVerificationDialog();
-            showVerificationSuccess();
-            
-            return true;
-        } else {
-            showToast('⏳ Email not verified yet. Please check your inbox.', 'warning');
-            
-            if (statusEl) {
-                statusEl.innerHTML = `
-                    <span style="color:var(--warning);">
-                        <i class="fas fa-hourglass-half"></i> 
-                        Email not verified yet. Please check your inbox or spam folder.
-                        <br><small style="opacity:0.5;">If you didn't receive the email, click "Resend"</small>
-                    </span>
-                `;
-            }
-            return false;
-        }
-    } catch (error) {
-        console.error('Error checking verification status:', error);
-        showToast('❌ Verification failed: ' + error.message, 'error');
-        if (statusEl) {
-            statusEl.innerHTML = `
-                <span style="color:var(--danger);">
-                    <i class="fas fa-exclamation-circle"></i> 
-                    ${error.message}
-                </span>
-            `;
-        }
-        return false;
-    }
-};
-
-function showVerificationSuccess() {
-    const successHTML = `
-        <div style="background:rgba(52,211,153,0.1); border-radius:12px; padding:16px; border:1px solid var(--success); margin:8px 0;">
-            <div style="display:flex; align-items:center; gap:12px;">
-                <span style="font-size:28px;">🎉</span>
-                <div>
-                    <div style="font-weight:700; font-size:16px; color:var(--success);">Email Verified!</div>
-                    <div style="font-size:13px; color:var(--text-secondary);">You can now enjoy all ZI Store features.</div>
-                </div>
-            </div>
-        </div>
-    `;
-
-    const container = document.getElementById('verificationSuccessContainer');
-    if (container) {
-        container.innerHTML = successHTML;
-        container.style.display = 'block';
-        container.style.animation = 'fadeIn 0.3s ease';
-        setTimeout(() => {
-            container.style.opacity = '0';
-            container.style.transition = 'opacity 0.5s ease';
-            setTimeout(() => {
-                container.style.display = 'none';
-                container.style.opacity = '1';
-            }, 5000);
-        }, 8000);
-    } else {
-        const tempContainer = document.createElement('div');
-        tempContainer.id = 'verificationSuccessContainer';
-        tempContainer.style.cssText = 'position:fixed; top:80px; left:50%; transform:translateX(-50%); z-index:100000; max-width:500px; width:90%;';
-        tempContainer.innerHTML = successHTML;
-        document.body.appendChild(tempContainer);
-        
-        setTimeout(() => {
-            tempContainer.style.opacity = '0';
-            tempContainer.style.transition = 'opacity 0.5s ease';
-            setTimeout(() => {
-                if (tempContainer.parentNode) tempContainer.remove();
-            }, 500);
-        }, 8000);
-    }
-}
-
-async function checkVerificationOnLogin() {
-    if (!currentUser) return;
-    
-    try {
-        await currentUser.reload();
-        if (!currentUser.emailVerified) {
-            setTimeout(() => {
-                showVerificationReminder();
-            }, 3000);
-        } else {
-            localStorage.removeItem('zi_verification_pending');
-        }
-    } catch (error) {
-        console.error('Error checking verification on login:', error);
-    }
-}
-
-function showVerificationReminder() {
-    if (document.getElementById('verificationReminder')) return;
-    
-    const reminderHTML = `
-        <div style="background:rgba(251,191,36,0.1); border-radius:12px; padding:14px 18px; border:1px solid var(--warning); margin:8px 0; display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-            <span style="font-size:20px;">📧</span>
-            <div style="flex:1; min-width:150px;">
-                <div style="font-weight:600; font-size:14px; color:var(--text);">Verify Your Email</div>
-                <div style="font-size:12px; color:var(--text-secondary); opacity:0.6;">Please verify your email to secure your account</div>
-            </div>
-            <button onclick="sendEmailVerification()" class="btn btn-primary" style="padding:6px 16px; font-size:12px; border:none; border-radius:8px; background:var(--primary-gradient); color:#fff; cursor:pointer;">
-                <i class="fas fa-envelope"></i> Verify
-            </button>
-            <button onclick="this.parentElement.remove()" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:14px; opacity:0.3;">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-    `;
-
-    const mainApp = document.getElementById('mainApp');
-    if (mainApp) {
-        const container = document.createElement('div');
-        container.id = 'verificationReminder';
-        container.style.cssText = 'max-width:800px; margin:0 auto; padding:0 16px;';
-        container.innerHTML = reminderHTML;
-        
-        const header = mainApp.querySelector('.header');
-        if (header) {
-            header.parentNode.insertBefore(container, header.nextSibling);
-        } else {
-            mainApp.insertBefore(container, mainApp.firstChild);
-        }
-        
-        setTimeout(() => {
-            if (container.parentNode) {
-                container.style.opacity = '0';
-                container.style.transition = 'opacity 0.5s ease';
-                setTimeout(() => {
-                    if (container.parentNode) container.remove();
-                }, 500);
-            }
-        }, 15000);
-    }
-}
-
-function addVerificationToProfile() {
-    const profileContainer = document.getElementById('profileFullContent');
-    if (!profileContainer || !currentUser) return;
-
-    if (document.getElementById('verifyEmailSection')) return;
-
-    const verifySection = document.createElement('div');
-    verifySection.id = 'verifyEmailSection';
-    verifySection.style.cssText = 'margin:12px 0; padding:12px; background:var(--bg); border-radius:10px; border:1px solid var(--border);';
-
-    if (currentUser.emailVerified) {
-        verifySection.innerHTML = `
-            <div style="display:flex; align-items:center; gap:8px; color:var(--success);">
-                <i class="fas fa-check-circle" style="font-size:18px;"></i>
-                <span style="font-weight:600;">✅ Email Verified</span>
-            </div>
-        `;
-    } else {
-        verifySection.innerHTML = `
-            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                <span style="color:var(--warning);">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <span style="font-weight:600;">⚠️ Email Not Verified</span>
-                </span>
-                <button onclick="sendEmailVerification()" class="btn btn-primary" style="padding:6px 14px; font-size:12px; margin-left:auto; border:none; border-radius:8px; background:var(--primary-gradient); color:#fff; cursor:pointer;">
-                    <i class="fas fa-envelope"></i> Verify Email
-                </button>
-            </div>
-            <div style="font-size:12px; color:var(--text-secondary); opacity:0.5; margin-top:4px;">
-                Verify your email to secure your account and access all features.
-            </div>
-        `;
-    }
-
-    const editSection = profileContainer.querySelector('.edit-profile-section');
-    if (editSection) {
-        editSection.parentNode.insertBefore(verifySection, editSection);
-    } else {
-        profileContainer.appendChild(verifySection);
-    }
-}
-
-// ============================================================
 // 6. General Modals
 // ============================================================
 
@@ -1360,9 +965,8 @@ window.openAuthModal = function() { document.getElementById('authSection').scrol
 // 7. Render Profile Full
 // ============================================================
 
-window.renderProfileFull = function() {
+function renderProfileFull() {
     const container = document.getElementById('profileFullContent');
-    if (!container) return;
     if (!currentUser) {
         container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-user-circle" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">Please login</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Login to view your profile</div></div>`;
         return;
@@ -1384,7 +988,6 @@ window.renderProfileFull = function() {
                     <div>
                         <span class="profile-badge rp">🎯 RP: ${userProfile.rp || 0}</span>
                         <span class="profile-badge licence">🔑 Licences: ${activeLicences}</span>
-                        ${currentUser.emailVerified ? '<span class="profile-badge verified" style="background:var(--success);color:#0a0a1a;">✅ Verified</span>' : '<span class="profile-badge unverified" style="background:var(--warning);color:#0a0a1a;">⚠️ Unverified</span>'}
                     </div>
                     ${userProfile.isBanned ? '<div style="font-size:13px;color:var(--danger);font-weight:700;margin-top:4px;">🚫 BANNED</div>' : ''}
                 </div>
@@ -1492,11 +1095,8 @@ window.renderProfileFull = function() {
             </div>
         </div>
     </div>`;
-    
-    setTimeout(() => {
-        addVerificationToProfile();
-    }, 200);
-};
+    setTimeout(showTelegramBanner, 300);
+}
 
 window.saveProfileChangesInline = async function(e) {
     e.preventDefault();
@@ -1520,133 +1120,42 @@ window.sendResetLinkInline = async function() { if (!currentUser) return; try { 
 window.changePasswordInline = async function() { if (!currentUser) return; const currentPwd = document.getElementById('currentPasswordInline').value; const newPwd = document.getElementById('newPasswordInline').value; const confirmPwd = document.getElementById('confirmNewPasswordInline').value; const errorEl = document.getElementById('passwordErrorInline'); const successEl = document.getElementById('passwordSuccessInline'); errorEl.textContent = ''; successEl.textContent = ''; if (!currentPwd || !newPwd || !confirmPwd) { errorEl.textContent = 'Please fill all fields'; return; } if (newPwd.length < 6) { errorEl.textContent = 'New password must be at least 6 characters'; return; } if (newPwd !== confirmPwd) { errorEl.textContent = 'Passwords do not match'; return; } try { const credential = EmailAuthProvider.credential(currentUser.email, currentPwd); await reauthenticateWithCredential(currentUser, credential); await updatePassword(currentUser, newPwd); successEl.textContent = '✅ Password changed successfully!'; showToast('✅ Password updated!', 'success'); document.getElementById('currentPasswordInline').value = ''; document.getElementById('newPasswordInline').value = ''; document.getElementById('confirmNewPasswordInline').value = ''; setTimeout(() => { successEl.textContent = ''; }, 3000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); } };
 
 // ============================================================
-// 8. Product Functions - Enhanced with Direct Firestore Loading
+// 8. Product Functions
 // ============================================================
 
-// ============================================================
-// Force load products
-// ============================================================
-
-async function forceLoadProducts() {
-    console.log('🔥 Force loading products...');
-    
+async function loadProductsFromFirestore() {
     try {
         const productsRef = collection(db, 'products');
-        const querySnapshot = await getDocs(productsRef);
-        
-        console.log(`📦 Products found: ${querySnapshot.size}`);
-        
-        if (querySnapshot.empty) {
-            console.log('⚠️ No products in Firestore, using fallback');
-            products = fallbackProducts;
-            renderProducts(products, false);
-            updateStatsFromProducts(products);
-            generateRecommendations(products);
-            return;
-        }
-        
+        const querySnapshot = await getDocs(query(productsRef, orderBy('createdAt', 'desc')));
         const productsList = [];
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            let vipPricing = data.vipPricing || data.vipPrices || {};
-            if (data.vipPrices && !data.vipPricing) {
-                vipPricing = data.vipPrices;
-            }
-            
-            productsList.push({
-                id: doc.id,
-                name: data.name || 'Unnamed Product',
-                price: typeof data.price === 'number' ? data.price : 0,
-                originalPrice: data.originalPrice || 0,
-                badge: data.badge || 'FREE',
-                status: data.status || 'available',
-                image: data.image || 'https://via.placeholder.com/400x300/1a1a3e/6c5ce7?text=No+Image',
-                description: data.description || '',
-                features: data.features || [],
-                video: data.video || '',
-                currency: data.currency || 'USD',
-                productType: data.productType || 'standard',
-                quantityOptions: data.quantityOptions || [],
-                badges: data.badges || [],
-                vipEnabled: data.vipEnabled || false,
-                vipPricing: vipPricing,
-                vipPrices: data.vipPrices || vipPricing,
-                verified: data.verified !== false,
-                downloadLink: data.downloadLink || '',
-                duration: data.duration || '',
-                createdAt: data.createdAt || new Date()
-            });
-        });
-        
-        console.log(`✅ Loaded ${productsList.length} products`);
-        products = productsList;
-        renderProducts(products, false);
-        updateStatsFromProducts(products);
-        generateRecommendations(products);
-        
-    } catch (error) {
-        console.error('❌ Force load error:', error);
-        products = fallbackProducts;
-        renderProducts(products, false);
-        updateStatsFromProducts(products);
-        generateRecommendations(products);
-    }
+        querySnapshot.forEach((doc) => { productsList.push({ id: doc.id, ...doc.data() }); });
+        return productsList;
+    } catch (error) { console.error('Error loading products:', error); return []; }
 }
 
-// ============================================================
-// Retry load function
-// ============================================================
-
-window.retryLoadProducts = async function() {
-    const statusMsg = document.getElementById('loadingStatusMessage');
-    const retryBtn = document.querySelector('[onclick="window.retryLoadProducts()"]');
-    
-    if (statusMsg) {
-        statusMsg.style.display = 'block';
-        statusMsg.textContent = '⏳ Loading...';
-        statusMsg.className = '';
-    }
-    if (retryBtn) {
-        retryBtn.disabled = true;
-        retryBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
-    }
-    
+function startProductsRealtimeListener() {
+    if (unsubscribeProducts) { unsubscribeProducts(); }
     renderProducts([], true);
-    
-    try {
-        await forceLoadProducts();
-        
-        if (statusMsg) {
-            statusMsg.textContent = `✅ Loaded ${products.length} products successfully!`;
-            statusMsg.className = 'success';
-            setTimeout(() => { statusMsg.style.display = 'none'; }, 3000);
-        }
-        showToast(`✅ Loaded ${products.length} products`, 'success');
-        
-    } catch (error) {
-        console.error('Error loading products:', error);
-        if (statusMsg) {
-            statusMsg.textContent = '❌ Failed to load products';
-            statusMsg.className = 'error';
-            setTimeout(() => { statusMsg.style.display = 'none'; }, 3000);
-        }
-        showToast('❌ Failed to load products', 'error');
-        products = fallbackProducts;
+    const productsRef = collection(db, 'products');
+    unsubscribeProducts = onSnapshot(query(productsRef, orderBy('createdAt', 'desc')), (snapshot) => {
+        const productsList = [];
+        snapshot.forEach((doc) => { productsList.push({ id: doc.id, ...doc.data() }); });
+        products = productsList.length > 0 ? productsList : fallbackProducts;
         renderProducts(products, false);
-    } finally {
-        if (retryBtn) {
-            retryBtn.disabled = false;
-            retryBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Retry';
-        }
-    }
-};
+        renderAdminProducts(products);
+        updateStatsFromProducts(products);
+        generateRecommendations(products);
+        updateBottomCartBar();
+        updateRpDisplay();
+        renderFeaturedProducts();
+        updateSlideProductSelect();
+    }, (error) => { console.error('Products listener error:', error); products = fallbackProducts; renderProducts(products, false); renderAdminProducts(products); updateStatsFromProducts(products); renderFeaturedProducts(); });
+}
 
 function getCurrencySymbol(currency) {
     const symbols = {
         'USD': '$',
         'TND': 'د.ت',
-        'EUR': '€',
-        'GBP': '£',
         'OTHER': '💱'
     };
     return symbols[currency] || '$';
@@ -1665,107 +1174,79 @@ function renderBadges(badges) {
     return `<div class="product-badges">${badges.map(b => `<span class="mini-badge ${badgeMap[b] || ''}">${b}</span>`).join('')}</div>`;
 }
 
-// ============================================================
-// Render products immediately
-// ============================================================
-
-function renderProductsImmediately(productsList) {
+function renderProducts(productsList, isLoading = false) {
     const container = document.getElementById('productList');
-    if (!container) {
-        console.warn('⚠️ productList container not found');
-        return;
-    }
-    
-    const list = productsList || [];
-    console.log('📦 Rendering products immediately:', list.length);
-    
-    if (list.length === 0) {
-        container.innerHTML = `
-            <div style="grid-column:1/-1;text-align:center;padding:60px 20px;">
-                <div style="font-size:64px;margin-bottom:16px;">📦</div>
-                <p style="font-size:22px;font-weight:700;color:var(--text);margin-bottom:8px;">No Products Available</p>
-                <p style="font-size:14px;color:var(--text-secondary);opacity:0.5;margin-bottom:20px;">Loading products...</p>
-                <button onclick="window.forceLoadProducts()" style="padding:10px 24px;border:2px solid var(--border);border-radius:8px;background:var(--primary);color:#fff;font-weight:600;cursor:pointer;">
-                    <i class="fas fa-sync-alt"></i> Load Products
-                </button>
+    if (!container) return;
+    if (isLoading) {
+        container.innerHTML = Array(4).fill(`
+            <div class="product-card skeleton">
+                <div class="image-wrapper skeleton-img"></div>
+                <div class="skeleton-text long"></div>
+                <div class="skeleton-text short"></div>
+                <div class="skeleton-btn"></div>
             </div>
-        `;
+        `).join('');
         return;
     }
-    
-    let html = '';
-    list.forEach(p => {
+    const list = productsList || [];
+    if (list.length === 0) { container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:20px 0;color:var(--text-secondary);font-size:14px;"><i class="fas fa-search" style="font-size:28px;opacity:0.2;display:block;margin-bottom:4px;"></i><p>No products</p></div>`; return; }
+    let filtered = [...list];
+    if (currentFilter === 'free') filtered = filtered.filter(p => p.price === 0);
+    else if (currentFilter === 'paid') filtered = filtered.filter(p => p.price > 0);
+    if (filtered.length === 0) { container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:20px 0;color:var(--text-secondary);font-size:14px;"><i class="fas fa-search" style="font-size:28px;opacity:0.2;display:block;margin-bottom:4px;"></i><p>No results</p></div>`; return; }
+    container.innerHTML = filtered.map(p => {
         const isFree = p.price === 0;
         const isUnavailable = p.status === 'unavailable';
+        const inCart = cart.some(item => item.id === p.id && !item.isVip);
+        const inWish = wishlist.includes(p.id);
+        const qty = cart.find(item => item.id === p.id)?.quantity || 0;
         const badgeLabel = isFree ? 'FREE' : (isUnavailable ? 'Unavailable' : (p.badge || 'VIP'));
         const badgeClass = isUnavailable ? 'unavailable' : (isFree ? 'free' : 'vip');
-        const currencySymbol = getCurrencySymbol(p.currency || 'USD');
-        const priceDisplay = isUnavailable ? '⛔ Unavailable' : (isFree ? 'FREE' : `${currencySymbol}${Number(p.price).toFixed(2)}`);
         const displayFeatures = p.features ? p.features.slice(0, 3) : [];
-        
-        html += `
-            <div class="product-card" onclick="window.openProductDetailModal('${p.id}')">
-                <div class="product-actions-top">
-                    <button class="share-btn" onclick="event.stopPropagation(); window.openShareModal('${p.id}')" title="Share">
-                        <i class="fas fa-share-alt"></i>
-                    </button>
-                    <button class="wishlist-btn" onclick="event.stopPropagation(); window.toggleWishlist('${p.id}')" title="Wishlist">
-                        <i class="fas fa-heart heart-icon"></i>
-                    </button>
-                </div>
-                <div class="image-wrapper">
-                    <img src="${p.image || 'https://via.placeholder.com/400x300/1a1a3e/6c5ce7?text=No+Image'}" 
-                         alt="${p.name}" 
-                         loading="lazy"
-                         onerror="this.src='https://via.placeholder.com/400x300/1a1a3e/6c5ce7?text=No+Image'" />
-                    <div class="image-badge ${badgeClass}">${badgeLabel}</div>
-                </div>
-                <div class="product-name">${p.name}</div>
-                <div class="features-list">
-                    ${displayFeatures.map(f => `<span class="feature-item"><i class="fas fa-circle"></i> ${f}</span>`).join('')}
-                </div>
-                <div class="price">${priceDisplay}</div>
-                <div class="card-actions">
-                    <button class="btn-details" onclick="event.stopPropagation(); window.openProductDetailModal('${p.id}')">
-                        <i class="fas fa-info-circle"></i> Details
-                    </button>
-                    ${isFree ? `
-                        <a href="${p.downloadLink || '#'}" class="btn-download" ${p.downloadLink ? 'target="_blank"' : 'onclick="event.preventDefault();showToast(\'⏳ Coming soon\',\'info\')"'}>
-                            <i class="fas fa-download"></i> Download
-                        </a>
-                    ` : `
-                        <button class="btn-add-cart" onclick="event.stopPropagation(); window.addToCart('${p.id}')">
-                            <i class="fas fa-cart-plus"></i> Add
-                        </button>
-                    `)}
-                </div>
-            </div>
-        `;
-    });
-    
-    container.innerHTML = html;
-    console.log('✅ Products rendered immediately');
-}
-
-function renderProducts(productsList, isLoading = false) {
-    if (isLoading) {
-        const container = document.getElementById('productList');
-        if (container) {
-            container.innerHTML = `
-                <div style="grid-column:1/-1;text-align:center;padding:60px 20px;">
-                    <div class="loader-dots">
-                        <div class="loader-dot"></div>
-                        <div class="loader-dot"></div>
-                        <div class="loader-dot"></div>
-                    </div>
-                    <p style="font-size:16px;color:var(--text-secondary);opacity:0.5;">Loading products...</p>
-                </div>
-            `;
+        let displayPrice = p.price;
+        let originalPrice = '';
+        let discountBadge = '';
+        if (activeDiscount > 0 && p.price > 0) {
+            const discounted = displayPrice - (displayPrice * activeDiscount / 100);
+            displayPrice = discounted;
+            originalPrice = `<span class="original-price">${getCurrencySymbol(p.currency || 'USD')}${p.price.toFixed(2)}</span>`;
+            discountBadge = `<span class="discount-badge">-${activeDiscount}%</span>`;
         }
-        return;
-    }
-    
-    renderProductsImmediately(productsList);
+        const currencySymbol = getCurrencySymbol(p.currency || 'USD');
+        const priceDisplay = isUnavailable ? '⛔ Unavailable' : (isFree ? 'FREE' : `${currencySymbol}${displayPrice.toFixed(2)}`);
+        
+        return `
+      <div class="product-card" onclick="window.openDetails('${p.id}')">
+        <div class="product-actions-top">
+          <button class="share-btn" onclick="event.stopPropagation(); openShareModal('${p.id}')" title="Share"><i class="fas fa-share-alt"></i></button>
+          <button class="wishlist-btn" onclick="event.stopPropagation(); window.toggleWishlist('${p.id}')"><i class="fas fa-heart heart-icon ${inWish?'liked':''}"></i></button>
+        </div>
+        <div class="image-wrapper">
+          ${p.image?`<img src="${p.image}" alt="${p.name}" loading="lazy" />`:`<div class="placeholder"><i class="fas fa-code"></i></div>`}
+          <div class="image-badge ${badgeClass}">${badgeLabel}</div>
+        </div>
+        <div class="product-name">${p.name}</div>
+        ${p.badges && p.badges.length > 0 ? renderBadges(p.badges) : ''}
+        <div class="features-list">
+          ${displayFeatures.map(f=>`<span class="feature-item"><i class="fas fa-circle"></i> ${f}</span>`).join('')}
+          ${displayFeatures.length>0 && p.features && p.features.length>3?`<span class="feature-item" style="opacity:0.2;">+${p.features.length-3}</span>`:''}
+        </div>
+        <div class="price">
+          ${priceDisplay}
+          ${originalPrice} ${discountBadge}
+        </div>
+        <div class="card-actions">
+          <button class="btn-details" onclick="event.stopPropagation(); window.openDetails('${p.id}')"><i class="fas fa-info-circle"></i></button>
+          ${isUnavailable?`<button class="btn-download" style="background:var(--text-secondary);color:#fff;cursor:not-allowed;opacity:0.4;" onclick="event.preventDefault();showToast('⛔ Unavailable','warning')"><i class="fas fa-times-circle"></i></button>`:(isFree?`<a href="${p.downloadLink||'#'}" class="btn-download" ${p.downloadLink?'target="_blank"':'onclick="event.preventDefault();showToast(\'⏳ Coming soon\',\'info\')"'}><i class="fas fa-download"></i></a>`:`<button class="btn-add-cart ${inCart?'added':''}" onclick="event.stopPropagation(); window.addToCart('${p.id}')"><i class="fas ${inCart?'fa-check':'fa-cart-plus'}"></i> ${inCart?qty:''}</button>`)}
+        </div>
+        <div class="product-footer-icons">
+          <span class="icon-item"><i class="fas fa-bolt"></i> Instant</span>
+          <span class="icon-item"><i class="fas fa-lock"></i> Secure</span>
+          <span class="icon-item"><i class="fas fa-headset"></i> 24/7</span>
+        </div>
+      </div>
+    `;
+    }).join('');
 }
 
 function updateStatsFromProducts(productsList) {
@@ -1788,84 +1269,8 @@ function generateRecommendations(productsList) {
     const list = productsList || [];
     const shuffled = [...list].sort(() => 0.5 - Math.random());
     const top = shuffled.slice(0, 4);
-    if (top.length === 0) {
-        grid.innerHTML = `
-            <div class="rec-empty" style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-secondary);font-size:14px;">
-                <i class="fas fa-lightbulb" style="display:block;font-size:32px;opacity:0.15;margin-bottom:8px;"></i>
-                <p>Start exploring scripts!</p>
-            </div>
-        `;
-        return;
-    }
-    grid.innerHTML = top.map(p => `
-        <div class="rec-item" onclick="window.openProductDetailModal('${p.id}')">
-            <img src="${p.image || 'https://via.placeholder.com/200x120/1a1a3e/6c5ce7?text=No+Image'}" alt="${p.name}" />
-            <div class="r-name">${p.name}</div>
-            <div class="r-price">${p.price === 0 ? 'FREE' : getCurrencySymbol(p.currency || 'USD') + Number(p.price).toFixed(2)}</div>
-        </div>
-    `).join('');
-}
-
-function startProductsRealtimeListener() {
-    if (unsubscribeProducts) { 
-        unsubscribeProducts(); 
-        unsubscribeProducts = null;
-    }
-    
-    const productsRef = collection(db, 'products');
-    
-    try {
-        unsubscribeProducts = onSnapshot(query(productsRef, orderBy('createdAt', 'desc')), (snapshot) => {
-            const productsList = [];
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                let vipPricing = data.vipPricing || data.vipPrices || {};
-                if (data.vipPrices && !data.vipPricing) {
-                    vipPricing = data.vipPrices;
-                }
-                
-                productsList.push({
-                    id: doc.id,
-                    name: data.name || 'Unnamed Product',
-                    price: data.price !== undefined ? data.price : 0,
-                    originalPrice: data.originalPrice || 0,
-                    badge: data.badge || 'FREE',
-                    status: data.status || 'available',
-                    image: data.image || 'https://via.placeholder.com/400x300/1a1a3e/6c5ce7?text=No+Image',
-                    description: data.description || '',
-                    features: data.features || [],
-                    video: data.video || '',
-                    currency: data.currency || 'USD',
-                    productType: data.productType || 'standard',
-                    quantityOptions: data.quantityOptions || [],
-                    badges: data.badges || [],
-                    vipEnabled: data.vipEnabled || false,
-                    vipPricing: vipPricing,
-                    vipPrices: data.vipPrices || vipPricing,
-                    verified: data.verified !== false,
-                    downloadLink: data.downloadLink || '',
-                    duration: data.duration || '',
-                    createdAt: data.createdAt || new Date()
-                });
-            });
-            
-            products = productsList.length > 0 ? productsList : fallbackProducts;
-            console.log('📦 Products updated from realtime listener:', products.length);
-            renderProducts(products, false);
-            renderAdminProducts(products);
-            updateStatsFromProducts(products);
-            generateRecommendations(products);
-            updateBottomCartBar();
-            updateRpDisplay();
-            renderFeaturedProducts();
-            updateSlideProductSelect();
-            
-        }, (error) => {
-            console.error('Products listener error:', error);
-        });
-    } catch (error) {
-        console.error('Error setting up products listener:', error);
-    }
+    if (top.length === 0) { grid.innerHTML = `<div class="rec-empty" style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text-secondary);font-size:13px;"><i class="fas fa-lightbulb" style="display:block;font-size:24px;opacity:0.2;margin-bottom:4px;"></i><p>Start exploring scripts!</p></div>`; return; }
+    grid.innerHTML = top.map(p => `<div class="rec-item" onclick="window.openDetails('${p.id}')"><img src="${p.image||'https://picsum.photos/seed/default/200/120'}" alt="${p.name}" /><div class="r-name">${p.name}</div><div class="r-price">${p.price===0?'FREE':getCurrencySymbol(p.currency || 'USD') + p.price.toFixed(2)}</div></div>`).join('');
 }
 
 // ============================================================
@@ -2011,7 +1416,7 @@ function renderFeaturedProducts() {
         productsToShow = products.slice(0, 4);
     }
     if (productsToShow.length === 0) {
-        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-secondary);font-size:14px;">No products available</div>`;
+        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text-secondary);font-size:13px;">No products available</div>`;
         return;
     }
     featuredProducts = productsToShow;
@@ -2030,13 +1435,13 @@ function displayFeaturedSlice() {
         const badgeClass = p.price === 0 ? 'free' : (p.status === 'unavailable' ? 'unavailable' : 'vip');
         const badgeText = p.price === 0 ? 'FREE' : (p.badge || 'VIP');
         return `
-        <div class="featured-item" onclick="window.openProductDetailModal('${p.id}')">
+        <div class="featured-item" onclick="window.openDetails('${p.id}')">
             <div class="featured-item-image">
-                <img src="${p.image || 'https://via.placeholder.com/200x150/1a1a3e/6c5ce7?text=No+Image'}" alt="${p.name}" loading="lazy" />
+                <img src="${p.image || 'https://picsum.photos/seed/default/200/150'}" alt="${p.name}" loading="lazy" />
                 <span class="featured-item-badge ${badgeClass}">${badgeText}</span>
             </div>
             <div class="featured-item-name">${p.name}</div>
-            <div class="featured-item-price">${p.price === 0 ? 'FREE' : getCurrencySymbol(p.currency || 'USD') + Number(p.price).toFixed(2)}</div>
+            <div class="featured-item-price">${p.price === 0 ? 'FREE' : getCurrencySymbol(p.currency || 'USD') + p.price.toFixed(2)}</div>
         </div>
     `}).join('');
 }
@@ -2157,7 +1562,7 @@ function renderCartFull() {
         const itemTotal = item.price * qty;
         total += itemTotal;
         const product = products.find(p => p.id === item.id);
-        const image = product?.image || item.image || 'https://via.placeholder.com/100x100/1a1a3e/6c5ce7?text=No+Image';
+        const image = product?.image || item.image || 'https://picsum.photos/seed/default/100/100';
         const vipLabel = item.isVip ? `👑 ${item.vipPlanLabel || 'VIP'}` : '';
         const qtyLabel = item.isQuantityProduct ? `📦 ${item.selectedQuantity || ''}` : '';
         html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);margin-bottom:8px;"><div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;"><img src="${image}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" /><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.name} ${vipLabel} ${qtyLabel}</div><div style="font-size:12px;color:var(--primary);font-weight:700;">${getCurrencySymbol(item.currency || 'USD')}${itemTotal.toFixed(2)}</div></div></div><div style="display:flex;align-items:center;gap:6px;"><button onclick="updateCartQuantity('${item.id}',-1)" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;">-</button><span style="min-width:20px;text-align:center;font-size:14px;font-weight:700;">${qty}</span><button onclick="updateCartQuantity('${item.id}',1)" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;">+</button><button onclick="removeFromCart('${item.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:14px;opacity:0.3;padding:4px;"><i class="fas fa-trash-alt"></i></button></div></div>`;
@@ -2245,7 +1650,7 @@ function updateWishlistUI() {
     if (wlCount === 0) { if (section) section.style.display = 'none'; if (grid) grid.innerHTML = `<div class="wishlist-empty"><i class="fas fa-heart"></i><p>No favorites yet</p></div>`; return; }
     if (section) section.style.display = 'block';
     const wlProducts = products.filter(p => wishlist.includes(p.id));
-    if (grid) { grid.innerHTML = wlProducts.map(p => `<div class="wishlist-item" style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:var(--bg);border-radius:8px;border:1px solid var(--border);transition:0.3s;"><img src="${p.image || 'https://via.placeholder.com/60x60/1a1a3e/6c5ce7?text=No+Image'}" style="width:30px;height:30px;border-radius:6px;object-fit:cover;" /><div class="info" style="flex:1;min-width:0;"><h4 style="font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</h4><div class="price" style="font-size:10px;color:var(--primary);font-weight:700;">${p.price===0?'FREE':getCurrencySymbol(p.currency || 'USD') + p.price.toFixed(2)}</div></div><button class="remove-btn" onclick="window.removeFromWishlist('${p.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:11px;opacity:0.3;transition:0.3s;"><i class="fas fa-times"></i></button></div>`).join(''); }
+    if (grid) { grid.innerHTML = wlProducts.map(p => `<div class="wishlist-item" style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:var(--bg);border-radius:8px;border:1px solid var(--border);transition:0.3s;"><img src="${p.image || 'https://picsum.photos/seed/default/60/60'}" style="width:30px;height:30px;border-radius:6px;object-fit:cover;" /><div class="info" style="flex:1;min-width:0;"><h4 style="font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</h4><div class="price" style="font-size:10px;color:var(--primary);font-weight:700;">${p.price===0?'FREE':getCurrencySymbol(p.currency || 'USD') + p.price.toFixed(2)}</div></div><button class="remove-btn" onclick="window.removeFromWishlist('${p.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:11px;opacity:0.3;transition:0.3s;"><i class="fas fa-times"></i></button></div>`).join(''); }
     updateFullUserMenu();
 }
 
@@ -2256,7 +1661,7 @@ function renderWishlistFull() {
         return;
     }
     const wlProducts = products.filter(p => wishlist.includes(p.id));
-    container.innerHTML = `<div style="display:grid;gap:8px;">${wlProducts.map(p=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);cursor:pointer;" onclick="window.openProductDetailModal('${p.id}');closeWishlistFull();"><img src="${p.image||'https://via.placeholder.com/60x60/1a1a3e/6c5ce7?text=No+Image'}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" /><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div><div style="font-size:12px;color:var(--primary);font-weight:700;">${p.price===0?'FREE':getCurrencySymbol(p.currency || 'USD') + p.price.toFixed(2)}</div></div><button onclick="event.stopPropagation();removeFromWishlist('${p.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:14px;opacity:0.3;padding:8px;transition:0.3s;"><i class="fas fa-times"></i></button></div>`).join('')}</div>`;
+    container.innerHTML = `<div style="display:grid;gap:8px;">${wlProducts.map(p=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);cursor:pointer;" onclick="window.openDetails('${p.id}');closeWishlistFull();"><img src="${p.image||'https://picsum.photos/seed/default/60/60'}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" /><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div><div style="font-size:12px;color:var(--primary);font-weight:700;">${p.price===0?'FREE':getCurrencySymbol(p.currency || 'USD') + p.price.toFixed(2)}</div></div><button onclick="event.stopPropagation();removeFromWishlist('${p.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:14px;opacity:0.3;padding:8px;transition:0.3s;"><i class="fas fa-times"></i></button></div>`).join('')}</div>`;
 }
 
 function createFloatingHearts() {
@@ -2276,337 +1681,200 @@ function createFloatingHearts() {
 }
 
 // ============================================================
-// 12. Product Detail Modal
+// 12. Product Preview
 // ============================================================
 
-window.openProductDetailModal = async function(productId) {
-    const modal = document.getElementById('productDetailModal');
-    const content = document.getElementById('productDetailContent');
-    
-    if (!modal || !content) {
-        showToast('⚠️ Modal not available', 'warning');
-        return;
+window.openDetails = function(id) {
+    const p = products.find(x => x.id === id);
+    if (!p) return;
+    window._currentProduct = p;
+    document.getElementById('previewImage').src = p.image || 'https://picsum.photos/seed/default/400/300';
+    document.getElementById('previewName').textContent = p.name;
+    document.getElementById('previewDescription').textContent = p.description || 'No description available.';
+    document.getElementById('previewBadge').textContent = p.badge || 'PREMIUM';
+    document.getElementById('previewVerified').textContent = p.status === 'available' ? '✅ 100% VERIFIED WORKING PRODUCT' : '⛔ UNAVAILABLE';
+    const videoContainer = document.getElementById('previewVideoContainer');
+    const videoIframe = document.getElementById('previewVideo');
+    if (p.video && p.video.includes('youtube.com/embed/')) {
+        videoIframe.src = p.video;
+        videoContainer.style.display = 'block';
+    } else {
+        videoContainer.style.display = 'none';
+        videoIframe.src = '';
     }
+    const featuresContainer = document.getElementById('previewFeatures');
+    if (p.features && p.features.length > 0) {
+        const featuresHtml = p.features.map(f => `<li><i class="fas fa-check-circle"></i> ${f}</li>`).join('');
+        featuresContainer.innerHTML = `<div class="features-header"><i class="fas fa-check-circle"></i> Features</div><ul class="features-list">${featuresHtml}</ul>`;
+        featuresContainer.style.display = 'block';
+    } else { featuresContainer.style.display = 'none'; }
     
-    content.innerHTML = `
-        <div style="text-align:center;padding:40px;color:var(--text-secondary);">
-            <i class="fas fa-spinner fa-spin" style="font-size:32px;"></i>
-            <p style="margin-top:12px;">Loading product...</p>
-        </div>
-    `;
-    
-    modal.classList.add('open');
-    document.body.style.overflow = 'hidden';
-    
-    try {
-        let product = products.find(p => p.id === productId);
-        
-        if (!product) {
-            const productRef = doc(db, 'products', productId);
-            const productSnap = await getDoc(productRef);
-            if (productSnap.exists()) {
-                product = { id: productId, ...productSnap.data() };
+    let priceDisplay = p.price === 0 ? 'FREE' : `${getCurrencySymbol(p.currency || 'USD')}${p.price.toFixed(2)}`;
+    document.getElementById('previewPrice').textContent = priceDisplay;
+    const addBtn = document.getElementById('previewAddBtn');
+    const inCart = cart.some(item => item.id === id && !item.isVip);
+    if (inCart) {
+        addBtn.innerHTML = '<i class="fas fa-check"></i> Added to Cart';
+        addBtn.style.background = 'var(--success)';
+        addBtn.style.color = '#0a0a1a';
+        addBtn.onclick = () => { closePreviewModal(); openCartFull(); };
+    } else if (p.price === 0) {
+        addBtn.innerHTML = '<i class="fas fa-download"></i> Download';
+        addBtn.style.background = 'var(--free-color)';
+        addBtn.style.color = '#0a0a1a';
+        addBtn.onclick = () => { if (p.downloadLink) { window.open(p.downloadLink, '_blank'); } else { showToast('⏳ Coming soon', 'info'); } };
+    } else if (p.status === 'unavailable') {
+        addBtn.innerHTML = '<i class="fas fa-times-circle"></i> Unavailable';
+        addBtn.style.background = 'var(--text-secondary)';
+        addBtn.style.cursor = 'not-allowed';
+        addBtn.onclick = () => showToast('⛔ Unavailable', 'warning');
+    } else {
+        addBtn.innerHTML = '<i class="fas fa-cart-plus"></i> Add to Cart';
+        addBtn.style.background = 'var(--primary)';
+        addBtn.style.color = '#fff';
+        addBtn.onclick = () => {
+            window.addToCart(id);
+            const updatedBtn = document.getElementById('previewAddBtn');
+            updatedBtn.innerHTML = '<i class="fas fa-check"></i> Added';
+            updatedBtn.style.background = 'var(--success)';
+            updatedBtn.style.color = '#0a0a1a';
+            updatedBtn.onclick = () => { closePreviewModal(); openCartFull(); };
+        };
+    }
+    const vipSection = document.getElementById('previewVipPricing');
+    if (p.vipEnabled && p.vipPrices) {
+        const vipPrices = p.vipPrices;
+        const plans = [
+            { key: '1m', label: '1 Month', price: vipPrices['1m'], original: vipPrices['1m_original'] },
+            { key: '3m', label: '3 Months', price: vipPrices['3m'], original: vipPrices['3m_original'] },
+            { key: '1y', label: '1 Year', price: vipPrices['1y'], original: vipPrices['1y_original'] },
+            { key: 'lifetime', label: 'LIFETIME', price: vipPrices['lifetime'], original: vipPrices['lifetime_original'] }
+        ];
+        let gridHtml = ''; let hasValidPlans = false; let firstPlanKey = null;
+        plans.forEach((plan, index) => {
+            const priceNum = parseFloat(plan.price);
+            const originalNum = parseFloat(plan.original);
+            if (priceNum > 0) {
+                hasValidPlans = true;
+                if (!firstPlanKey) firstPlanKey = plan.key;
+                const discount = (originalNum > priceNum) ? Math.round((1 - priceNum / originalNum) * 100) : 0;
+                const hasDiscount = discount > 0;
+                gridHtml += `
+                    <div class="vip-plan ${index === 0 ? 'selected' : ''}" 
+                         data-plan="${plan.key}" data-price="${priceNum}"
+                         onclick="window.selectVipPlan(this, '${plan.key}')">
+                        <div class="vip-plan-check"><i class="fas fa-check-circle"></i></div>
+                        <div class="vip-plan-label">${plan.label}</div>
+                        <div class="vip-plan-price">${getCurrencySymbol(p.currency || 'USD')}${priceNum.toFixed(2)}</div>
+                        ${hasDiscount ? `<div class="vip-plan-original">${getCurrencySymbol(p.currency || 'USD')}${originalNum.toFixed(2)}</div><div class="vip-plan-discount">SAVE ${discount}%</div>` : ''}
+                    </div>
+                `;
             }
-        }
-        
-        if (!product) {
-            content.innerHTML = `
-                <div style="text-align:center;padding:40px;color:var(--text-secondary);">
-                    <i class="fas fa-exclamation-circle" style="font-size:40px;opacity:0.2;display:block;margin-bottom:12px;"></i>
-                    <h3 style="margin-bottom:8px;">Product Not Found</h3>
-                    <p style="opacity:0.5;">Sorry, we couldn't find this product.</p>
-                </div>
-            `;
-            return;
-        }
-        
-        currentDetailProduct = product;
-        renderProductDetail(product);
-        
-    } catch (error) {
-        console.error('Error loading product detail:', error);
-        content.innerHTML = `
-            <div style="text-align:center;padding:40px;color:var(--text-secondary);">
-                <i class="fas fa-exclamation-triangle" style="font-size:40px;opacity:0.2;display:block;margin-bottom:12px;"></i>
-                <h3 style="margin-bottom:8px;">Error Loading Product</h3>
-                <p style="opacity:0.5;">${error.message || 'An unexpected error occurred'}</p>
+        });
+        if (hasValidPlans) {
+            document.getElementById('vipPricingGrid').innerHTML = gridHtml;
+            vipSection.style.display = 'block';
+            window._selectedVipPlan = firstPlanKey;
+            const vipAddBtn = document.querySelector('.vip-add-to-cart');
+            if (vipAddBtn) {
+                vipAddBtn.onclick = () => { addVipPlanToCart(p); };
+                vipAddBtn.dataset.productId = p.id;
+            }
+        } else { vipSection.style.display = 'none'; }
+    } else { vipSection.style.display = 'none'; }
+    
+    // Quantity options
+    const existingQuantitySection = document.getElementById('previewQuantitySection');
+    if (existingQuantitySection) existingQuantitySection.remove();
+    
+    if (p.productType === 'quantity' && p.quantityOptions && p.quantityOptions.length > 0) {
+        const section = document.createElement('div');
+        section.id = 'previewQuantitySection';
+        section.className = 'preview-quantity-section';
+        section.innerHTML = `
+            <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;">
+                <i class="fas fa-cubes"></i> Select Quantity
+            </div>
+            <div class="preview-quantity-options" id="previewQuantityOptions"></div>
+            <div style="margin-top:8px;font-size:12px;color:var(--text-secondary);opacity:0.4;">
+                Click on a quantity to select it
             </div>
         `;
-    }
-};
-
-function renderProductDetail(product) {
-    const content = document.getElementById('productDetailContent');
-    if (!content) return;
-    
-    const isFree = product.price === 0 || !product.price;
-    const isUnavailable = product.status === 'unavailable';
-    const currencySymbol = getCurrencySymbol(product.currency || 'USD');
-    const priceDisplay = isUnavailable ? '⛔ Unavailable' : (isFree ? '🎁 Free' : `${currencySymbol}${Number(product.price).toFixed(2)}`);
-    const originalDisplay = product.originalPrice ? `${currencySymbol}${Number(product.originalPrice).toFixed(2)}` : '';
-    const badgeClass = product.badge?.toLowerCase() || '';
-    const inCart = cart.some(item => item.id === product.id && !item.isVip);
-    const inWish = wishlist.includes(product.id);
-    
-    let featuresHTML = '';
-    if (product.features && product.features.length > 0) {
-        featuresHTML = product.features.map(f => 
-            `<li><i class="fas fa-check-circle"></i> ${f}</li>`
-        ).join('');
-    } else {
-        featuresHTML = '<li style="color:rgba(255,255,255,0.2);">No features listed</li>';
-    }
-    
-    let vipHTML = '';
-    if (product.vipEnabled && product.vipPricing) {
-        const plans = [
-            { key: '1m', label: 'Month' },
-            { key: '3m', label: '3 Months' },
-            { key: '1y', label: 'Year' },
-            { key: 'lifetime', label: 'Lifetime' }
-        ];
-        
-        const vipPlansHTML = plans.map(plan => {
-            const price = product.vipPricing[plan.key];
-            const original = product.vipPricing[plan.key + '_original'];
-            if (!price) return '';
-            const isSelected = selectedVipPlan === plan.key;
-            return `
-                <div class="vip-plan ${isSelected ? 'selected' : ''}" 
-                     data-plan="${plan.key}" 
-                     onclick="selectVipPlanDetail('${plan.key}')">
-                    <div class="plan-name">${plan.label}</div>
-                    <div class="plan-price">${currencySymbol}${Number(price).toFixed(2)}</div>
-                    ${original ? `<div class="plan-original" style="font-size:11px;text-decoration:line-through;opacity:0.3;">${currencySymbol}${Number(original).toFixed(2)}</div>` : ''}
-                </div>
-            `;
-        }).filter(Boolean).join('');
-        
-        if (vipPlansHTML) {
-            vipHTML = `
-                <div class="product-detail-vip" style="margin-top:12px;padding:14px;background:var(--bg-secondary);border-radius:var(--radius-md);border:1px solid var(--border);">
-                    <div style="font-size:15px;font-weight:700;color:var(--vip-color);display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-                        <i class="fas fa-crown"></i> VIP Plans
-                    </div>
-                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:6px;">${vipPlansHTML}</div>
-                    <button onclick="addVipToCartFromDetail()" style="width:100%;padding:8px;border:none;border-radius:var(--radius-sm);background:var(--primary-gradient);color:#fff;font-weight:600;font-size:13px;cursor:pointer;transition:var(--transition);margin-top:8px;">
-                        <i class="fas fa-cart-plus"></i> Add VIP Plan
-                    </button>
-                </div>
-            `;
-        }
-    }
-    
-    content.innerHTML = `
-        <div style="padding:4px 0;">
-            <div style="width:100%;aspect-ratio:16/9;border-radius:var(--radius-md);overflow:hidden;background:var(--bg-secondary);">
-                <img src="${product.image || 'https://via.placeholder.com/600x350/1a1a3e/6c5ce7?text=No+Image'}" 
-                     alt="${product.name}" 
-                     style="width:100%;height:100%;object-fit:cover;"
-                     onerror="this.src='https://via.placeholder.com/600x350/1a1a3e/6c5ce7?text=No+Image'" />
-            </div>
-            
-            ${product.badge ? `<div style="display:inline-block;padding:4px 16px;border-radius:20px;font-size:12px;font-weight:700;text-transform:uppercase;background:var(--warning);color:#0a0a1a;margin:8px 0 4px;" class="${badgeClass}">${product.badge}</div>` : ''}
-            
-            ${product.verified !== false ? `
-                <div style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--success);background:rgba(52,211,153,0.1);padding:4px 14px;border-radius:20px;margin-bottom:8px;">
-                    <i class="fas fa-check-circle"></i> 100% Verified Product
-                </div>
-            ` : ''}
-            
-            <div style="font-size:24px;font-weight:800;color:var(--text);margin:4px 0 8px;">${product.name}</div>
-            
-            <div style="font-size:28px;font-weight:900;color:var(--primary);display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
-                ${priceDisplay}
-                ${originalDisplay ? `<span style="font-size:18px;color:rgba(255,255,255,0.3);text-decoration:line-through;font-weight:400;">${originalDisplay}</span>` : ''}
-                ${isUnavailable ? `<span style="font-size:14px;color:var(--danger);font-weight:600;">⛔ Unavailable</span>` : ''}
-            </div>
-            
-            ${product.description ? `<div style="color:var(--text-secondary);line-height:1.8;font-size:14px;margin-bottom:12px;">${product.description}</div>` : ''}
-            
-            <ul style="list-style:none;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:16px;">
-                ${featuresHTML}
-            </ul>
-            
-            <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                ${isUnavailable ? `
-                    <button style="padding:12px 28px;border:none;border-radius:var(--radius-md);font-weight:700;font-size:15px;cursor:not-allowed;display:inline-flex;align-items:center;gap:8px;flex:1;justify-content:center;min-width:120px;background:var(--text-secondary);color:#fff;opacity:0.4;">
-                        <i class="fas fa-times-circle"></i> Unavailable
-                    </button>
-                ` : (isFree ? `
-                    <a href="${product.downloadLink || '#'}" 
-                       style="padding:12px 28px;border:none;border-radius:var(--radius-md);font-weight:700;font-size:15px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;flex:1;justify-content:center;min-width:120px;background:var(--primary-gradient);color:#fff;text-decoration:none;"
-                       target="${product.downloadLink ? '_blank' : '_self'}"
-                       onclick="${product.downloadLink ? '' : 'event.preventDefault();showToast(\'⏳ Coming soon\',\'info\');'}">
-                        <i class="fas fa-download"></i> Free Download
-                    </a>
-                ` : `
-                    <button onclick="addToCartFromDetail()" style="padding:12px 28px;border:none;border-radius:var(--radius-md);font-weight:700;font-size:15px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;flex:1;justify-content:center;min-width:120px;background:var(--primary-gradient);color:#fff;transition:var(--transition);">
-                        <i class="fas fa-cart-plus"></i> ${inCart ? 'Added to Cart ✅' : 'Add to Cart'}
-                    </button>
-                    <button onclick="buyNowFromDetail()" style="padding:12px 28px;border:none;border-radius:var(--radius-md);font-weight:700;font-size:15px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;flex:1;justify-content:center;min-width:120px;background:transparent;border:2px solid var(--border);color:var(--text-secondary);transition:var(--transition);">
-                        <i class="fas fa-bolt"></i> Buy Now
-                    </button>
-                `)}
-                <button onclick="toggleWishlistFromDetail()" style="width:50px;height:50px;border-radius:var(--radius-md);background:rgba(255,255,255,0.05);border:2px solid var(--border);color:rgba(255,255,255,0.5);font-size:18px;cursor:pointer;transition:var(--transition);display:flex;align-items:center;justify-content:center;flex:0 0 50px;${inWish ? 'border-color:#e84393;color:#e84393;background:rgba(232,67,147,0.1);' : ''}">
-                    <i class="fas fa-heart"></i>
-                </button>
-            </div>
-            
-            ${vipHTML}
-        </div>
-    `;
-    
-    updateDetailCartButton();
-}
-
-function updateDetailCartButton() {
-    if (!currentDetailProduct) return;
-    const inCart = cart.some(item => item.id === currentDetailProduct.id && !item.isVip);
-    const btn = document.querySelector('.product-detail-actions .btn-primary, [onclick="addToCartFromDetail()"]');
-    if (btn && currentDetailProduct.price > 0) {
-        if (inCart) {
-            btn.innerHTML = '<i class="fas fa-check"></i> Added to Cart ✅';
-            btn.style.background = 'var(--success)';
+        const vipSectionEl = document.getElementById('previewVipPricing');
+        if (vipSectionEl && vipSectionEl.style.display !== 'none') {
+            vipSectionEl.parentNode.insertBefore(section, vipSectionEl.nextSibling);
         } else {
-            btn.innerHTML = '<i class="fas fa-cart-plus"></i> Add to Cart';
-            btn.style.background = '';
+            document.querySelector('.preview-body').appendChild(section);
+        }
+        
+        const container = document.getElementById('previewQuantityOptions');
+        if (container) {
+            container.innerHTML = p.quantityOptions.map((opt, index) => `
+                <div class="preview-quantity-option ${index === 0 ? 'selected' : ''}" 
+                     data-index="${index}" 
+                     data-quantity="${opt.quantity}" 
+                     data-price="${opt.price}"
+                     onclick="selectQuantityOption(this, '${p.id}')">
+                    <div class="qty-value">${opt.quantity}</div>
+                    <div class="qty-price">${getCurrencySymbol(p.currency || 'USD')}${opt.price.toFixed(2)}</div>
+                    ${opt.originalPrice ? `<div class="qty-original">${getCurrencySymbol(p.currency || 'USD')}${opt.originalPrice.toFixed(2)}</div>` : ''}
+                    <div class="qty-check"><i class="fas fa-check-circle"></i></div>
+                </div>
+            `).join('');
+            const firstOpt = p.quantityOptions[0];
+            if (firstOpt) {
+                document.getElementById('previewPrice').textContent = getCurrencySymbol(p.currency || 'USD') + firstOpt.price.toFixed(2);
+                window._selectedQuantity = firstOpt.quantity;
+                window._selectedQuantityPrice = firstOpt.price;
+            }
         }
     }
-}
-
-window.selectVipPlanDetail = function(planKey) {
-    selectedVipPlan = planKey;
-    document.querySelectorAll('.product-detail-vip .vip-plan').forEach(el => {
-        el.classList.toggle('selected', el.dataset.plan === planKey);
-    });
-};
-
-window.addToCartFromDetail = function() {
-    if (!currentDetailProduct) return;
-    if (currentDetailProduct.price === 0) {
-        showToast('⚠️ This product is free, use the download button', 'warning');
-        return;
-    }
-    window.addToCart(currentDetailProduct.id);
-    updateDetailCartButton();
-};
-
-window.buyNowFromDetail = function() {
-    if (!currentDetailProduct) return;
-    if (currentDetailProduct.price === 0) {
-        showToast('⚠️ This product is free, use the download button', 'warning');
-        return;
-    }
-    window.addToCart(currentDetailProduct.id);
+    
+    document.getElementById('previewModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
     setTimeout(() => {
-        window.openPaymentModal();
-        closeProductDetailModal();
-    }, 500);
+        renderRatingSection(id);
+        currentProductIdForRating = id;
+        currentRating = 0;
+    }, 150);
 };
 
-window.toggleWishlistFromDetail = function() {
-    if (!currentDetailProduct) return;
-    window.toggleWishlist(currentDetailProduct.id);
-    const heartBtn = document.querySelector('.product-detail-actions .btn-heart, [onclick="toggleWishlistFromDetail()"]');
-    if (heartBtn) {
-        heartBtn.classList.toggle('liked');
-        if (heartBtn.classList.contains('liked')) {
-            heartBtn.style.borderColor = '#e84393';
-            heartBtn.style.color = '#e84393';
-            heartBtn.style.background = 'rgba(232,67,147,0.1)';
-        } else {
-            heartBtn.style.borderColor = '';
-            heartBtn.style.color = '';
-            heartBtn.style.background = '';
-        }
-    }
+window.selectQuantityOption = function(element, productId) {
+    document.querySelectorAll('.preview-quantity-option').forEach(el => el.classList.remove('selected'));
+    element.classList.add('selected');
+    const price = parseFloat(element.dataset.price);
+    const quantity = parseInt(element.dataset.quantity);
+    window._selectedQuantity = quantity;
+    window._selectedQuantityPrice = price;
+    const product = products.find(p => p.id === productId);
+    const currency = product?.currency || 'USD';
+    document.getElementById('previewPrice').textContent = getCurrencySymbol(currency) + price.toFixed(2);
 };
 
-window.addVipToCartFromDetail = function() {
-    if (!currentDetailProduct) {
-        showToast('⚠️ No product selected', 'warning');
-        return;
-    }
-    
-    const planData = currentDetailProduct.vipPricing;
-    if (!planData) {
-        showToast('⚠️ No VIP plans available', 'warning');
-        return;
-    }
-    
-    const price = planData[selectedVipPlan];
-    if (!price) {
-        showToast('⚠️ Please select a VIP plan', 'warning');
-        return;
-    }
-    
-    const planLabels = {
-        '1m': 'Month',
-        '3m': '3 Months',
-        '1y': 'Year',
-        'lifetime': 'Lifetime'
-    };
-    
-    const currencySymbol = getCurrencySymbol(currentDetailProduct.currency || 'USD');
-    const itemName = `${currentDetailProduct.name} (VIP ${planLabels[selectedVipPlan] || selectedVipPlan})`;
-    
-    const existing = cart.find(item => 
-        item.id === currentDetailProduct.id && 
-        item.isVip && 
-        item.vipPlan === selectedVipPlan
-    );
-    
-    if (existing) {
-        existing.quantity = (existing.quantity || 1) + 1;
-    } else {
-        cart.push({
-            id: currentDetailProduct.id,
-            name: itemName,
-            price: price,
-            currency: currentDetailProduct.currency || 'USD',
-            image: currentDetailProduct.image,
-            quantity: 1,
-            isVip: true,
-            vipPlan: selectedVipPlan,
-            vipPlanLabel: planLabels[selectedVipPlan] || selectedVipPlan,
-            badge: 'VIP'
-        });
-    }
-    
-    saveUserData(true);
-    updateCartUI();
-    updateBottomCartBar();
-    showToast(`✅ Added ${planLabels[selectedVipPlan]} VIP plan`, 'success');
-    closeProductDetailModal();
+window.selectVipPlan = function(element, planKey) {
+    document.querySelectorAll('.vip-plan').forEach(el => el.classList.remove('selected'));
+    element.classList.add('selected');
+    window._selectedVipPlan = planKey;
 };
 
-window.closeProductDetailModal = function() {
-    const modal = document.getElementById('productDetailModal');
-    if (modal) {
-        modal.classList.remove('open');
-        document.body.style.overflow = '';
-    }
-    currentDetailProduct = null;
-};
+function addVipPlanToCart(product) {
+    if (!product) { product = window._currentProduct; if (!product) { showToast('⚠️ Product not found', 'warning'); return; } }
+    const selectedPlan = window._selectedVipPlan || '1m';
+    const vipPrices = product.vipPrices;
+    if (!vipPrices || !vipPrices[selectedPlan]) { showToast('⚠️ Invalid VIP plan', 'warning'); return; }
+    const price = parseFloat(vipPrices[selectedPlan]);
+    if (isNaN(price) || price <= 0) { showToast('⚠️ Invalid price', 'warning'); return; }
+    const planLabels = { '1m': '1 Month', '3m': '3 Months', '1y': '1 Year', 'lifetime': 'LIFETIME' };
+    const existing = cart.find(item => item.id === product.id && item.isVip && item.vipPlan === selectedPlan);
+    if (existing) { existing.quantity = (existing.quantity || 1) + 1; } else { cart.push({ ...product, price: price, quantity: 1, isVip: true, vipPlan: selectedPlan, vipPlanLabel: planLabels[selectedPlan] || selectedPlan, originalPrice: product.price }); }
+    saveUserData(true); updateCartUI(); renderProducts(products); updateBottomCartBar();
+    showToast(`✅ Added ${planLabels[selectedPlan]} VIP plan for ${product.name}`, 'success');
+    closePreviewModal();
+}
 
-document.addEventListener('click', function(e) {
-    const modal = document.getElementById('productDetailModal');
-    if (modal && modal.classList.contains('open')) {
-        if (e.target === modal) {
-            closeProductDetailModal();
-        }
-    }
-});
-
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        const modal = document.getElementById('productDetailModal');
-        if (modal && modal.classList.contains('open')) {
-            closeProductDetailModal();
-        }
-    }
-});
+window.closePreviewModal = function() { document.getElementById('previewModal').classList.remove('open'); document.body.style.overflow = ''; };
+window.addToCartFromPreview = function() { if (window._currentProduct) { window.addToCart(window._currentProduct.id); closePreviewModal(); } };
+window.shareFromPreview = function() { if (window._currentProduct) { window.openShareModal(window._currentProduct.id); } };
 
 // ============================================================
 // 13. Share Modal
@@ -2616,7 +1884,7 @@ window.openShareModal = function(productId) {
     const product = products.find(p => p.id === productId);
     if (!product) return;
     shareProduct = product;
-    document.getElementById('shareProductInfo').innerHTML = `<div style="display:flex;align-items:center;gap:10px;justify-content:center;"><img src="${product.image||'https://via.placeholder.com/80x80/1a1a3e/6c5ce7?text=No+Image'}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" /><div><div style="font-size:15px;font-weight:600;color:var(--text);">${product.name}</div><div style="font-size:13px;color:var(--primary);font-weight:700;">${product.price===0?'FREE':getCurrencySymbol(product.currency || 'USD') + product.price.toFixed(2)}</div></div></div>`;
+    document.getElementById('shareProductInfo').innerHTML = `<div style="display:flex;align-items:center;gap:10px;justify-content:center;"><img src="${product.image||'https://picsum.photos/seed/default/80/80'}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" /><div><div style="font-size:15px;font-weight:600;color:var(--text);">${product.name}</div><div style="font-size:13px;color:var(--primary);font-weight:700;">${product.price===0?'FREE':getCurrencySymbol(product.currency || 'USD') + product.price.toFixed(2)}</div></div></div>`;
     document.getElementById('shareModal').classList.add('open');
 };
 window.closeShareModal = function() { document.getElementById('shareModal').classList.remove('open'); shareProduct = null; };
@@ -2663,8 +1931,8 @@ function performLiveSearch(query) {
         const badgeClass = isUnavailable ? 'unavailable' : (isFree ? 'free' : 'vip');
         const badgeText = isUnavailable ? '⛔' : (isFree ? 'FREE' : 'VIP');
         return `
-      <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;transition:0.2s;border-bottom:1px solid var(--border);" onclick="window.openProductDetailModal('${p.id}'); closeSearchResults();">
-        <img src="${p.image||'https://via.placeholder.com/100x100/1a1a3e/6c5ce7?text=No+Image'}" style="width:36px;height:36px;border-radius:6px;object-fit:cover;" />
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;transition:0.2s;border-bottom:1px solid var(--border);" onclick="window.openDetails('${p.id}'); closeSearchResults();">
+        <img src="${p.image||'https://picsum.photos/seed/default/100/100'}" style="width:36px;height:36px;border-radius:6px;object-fit:cover;" />
         <div style="flex:1;min-width:0;">
           <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${highlightText(p.name,searchTerm)}</div>
           <div style="font-size:12px;color:var(--primary);font-weight:700;">${priceDisplay}</div>
@@ -2735,448 +2003,115 @@ function updatePayableTotal() {
     document.getElementById('payableTotal').textContent = '$' + finalTotal.toFixed(2);
 }
 
-// ============================================================
-// BINANCE ID PAYMENT - SELECTION & VERIFICATION
-// ============================================================
-
-const BINANCE_ID = '748838383';
-let currentTxHash = '';
-let currentScreenshot = null;
-let currentOrderId = '';
-
-// Calculate cart total
-function calculateCartTotalForBinance() {
-    let total = 0;
-    cart.forEach(item => {
-        const qty = item.quantity || 1;
-        total += item.price * qty;
-    });
-    if (userProfile.useRpForCart) {
-        const rpDiscount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total);
-        total -= rpDiscount;
-    }
-    if (activeDiscount > 0) {
-        const discountAmount = (total * activeDiscount) / 100;
-        total -= discountAmount;
-    }
-    return total < 0 ? 0 : total;
-}
-
-// Copy Binance ID
-window.copyBinanceId = function() {
-    navigator.clipboard.writeText(BINANCE_ID).then(() => {
-        showToast('✅ Binance ID copied!', 'success');
-    }).catch(() => {
-        const textArea = document.createElement('textarea');
-        textArea.value = BINANCE_ID;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        showToast('✅ Binance ID copied!', 'success');
-    });
-};
-
-// Handle transaction paste
-window.handleTxPaste = function(event) {
-    // Auto-clean input
-    const value = event.target.value;
-};
-
-// Verify transaction ID
-window.verifyTransaction = function() {
-    const input = document.getElementById('txHashInput');
-    const result = document.getElementById('verificationResult');
-    const txHash = input.value.trim();
-    
-    if (!txHash) {
-        result.style.display = 'block';
-        result.className = 'bv-result warning';
-        result.innerHTML = '<span class="bv-icon">⚠️</span> Please enter transaction ID';
-        return;
-    }
-    
-    result.style.display = 'block';
-    result.className = 'bv-result loading';
-    result.innerHTML = '<span class="bv-icon">⏳</span> Verifying transaction...';
-    
-    setTimeout(() => {
-        if (txHash.length > 5) {
-            currentTxHash = txHash;
-            result.className = 'bv-result success';
-            result.innerHTML = `
-                <span class="bv-icon">✅</span> 
-                Transaction verified successfully!
-                <br><small style="opacity:0.6;">Transaction: ${txHash.slice(0, 10)}...${txHash.slice(-6)}</small>
-            `;
-            showToast('✅ Transaction ID verified', 'success');
-        } else {
-            result.className = 'bv-result error';
-            result.innerHTML = '<span class="bv-icon">❌</span> Invalid transaction ID. Please check and try again.';
-        }
-    }, 1500);
-};
-
-// Handle screenshot upload
-window.handleScreenshot = function(event) {
-    const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            currentScreenshot = e.target.result;
-            document.getElementById('screenshotImg').src = currentScreenshot;
-            document.getElementById('screenshotPreview').style.display = 'block';
-            document.getElementById('dropZone').style.display = 'none';
-            showToast('📸 Screenshot uploaded', 'success');
-        };
-        reader.readAsDataURL(file);
-    }
-};
-
-// Remove screenshot
-window.removeScreenshot = function() {
-    currentScreenshot = null;
-    document.getElementById('screenshotPreview').style.display = 'none';
-    document.getElementById('dropZone').style.display = 'block';
-    document.getElementById('screenshotInput').value = '';
-};
-
-// Submit manual payment
-window.submitManualPayment = function() {
-    const txHash = document.getElementById('txHashInput').value.trim();
-    const result = document.getElementById('verificationResult');
-    const submitBtn = document.getElementById('submitPaymentBtn');
-    
-    if (!txHash) {
-        result.style.display = 'block';
-        result.className = 'bv-result warning';
-        result.innerHTML = '<span class="bv-icon">⚠️</span> Please enter transaction ID';
-        return;
-    }
-    
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
-    
-    result.style.display = 'block';
-    result.className = 'bv-result loading';
-    result.innerHTML = '<span class="bv-icon">⏳</span> Submitting payment for review...';
-    
-    setTimeout(() => {
-        const orderId = currentOrderId || 'ORD-' + Date.now().toString().slice(-6);
-        const orderData = {
-            orderId: orderId,
-            txHash: txHash,
-            amount: calculateCartTotalForBinance(),
-            screenshot: currentScreenshot,
-            items: cart.map(item => ({ 
-                id: item.id, 
-                name: item.name, 
-                price: item.price, 
-                quantity: item.quantity || 1 
-            })),
-            userEmail: currentUser?.email || 'Guest',
-            userId: currentUser?.uid || 'guest',
-            userName: currentUser?.displayName || 'Guest',
-            timestamp: new Date().toISOString()
-        };
-        
-        console.log('📤 Order submitted for manual review:', orderData);
-        
-        let pendingOrders = JSON.parse(localStorage.getItem('pending_binance_orders') || '[]');
-        pendingOrders.push(orderData);
-        localStorage.setItem('pending_binance_orders', JSON.stringify(pendingOrders));
-        
-        result.className = 'bv-result success';
-        result.innerHTML = `
-            <span class="bv-icon">✅</span> 
-            Payment submitted successfully!
-            <br><small style="opacity:0.6;">
-                Order: <strong>#${orderId}</strong><br>
-                Will be reviewed within 5-10 minutes
-            </small>
-        `;
-        
-        submitBtn.innerHTML = '<i class="fas fa-check"></i> Submitted ✅';
-        submitBtn.style.background = 'var(--success)';
-        
-        showToast('📤 Payment submitted for review', 'success');
-        
-        // Send Telegram notification
-        if (typeof sendTelegramNotification === 'function') {
-            sendTelegramNotification(TELEGRAM_CHAT_ID, `
-🔔 *New Payment for Review*
-
-📎 **Order:** #${orderId}
-👤 **User:** ${orderData.userName || orderData.userEmail || 'Guest'}
-💰 **Amount:** $${orderData.amount.toFixed(2)}
-🔑 **Transaction:** \`${txHash}\`
-📅 **Date:** ${new Date().toLocaleString()}
-📦 **Products:** ${cart.map(i => i.name).join(', ')}
-
-📸 **Screenshot:** ${currentScreenshot ? 'Attached ✅' : 'Not attached ❌'}
-
-Please review in admin panel.
-            `);
-        }
-        
-        setTimeout(() => {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Confirm Payment';
-            submitBtn.style.background = '';
-            document.getElementById('paymentModal').classList.remove('open');
-            showToast('🎉 Your request has been submitted for review', 'success');
-            
-            cart = [];
-            updateCartUI();
-            updateBottomCartBar();
-            renderProducts(products);
-            saveUserData();
-        }, 3000);
-        
-    }, 2000);
-};
-
-// Update selectPayment function to support binanceId
-const originalSelectPayment = window.selectPayment;
 window.selectPayment = function(method) {
+    selectedPayment = method;
     document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
-    document.getElementById('binanceIdSection').style.display = 'none';
-    
-    if (method !== 'binanceId' && typeof originalSelectPayment === 'function') {
-        originalSelectPayment(method);
-        return;
+    const optionMap = { 'litecoin': 'optionLitecoin', 'usdt': 'optionUsdt', 'telegram': 'optionTelegram' };
+    const optionEl = document.getElementById(optionMap[method]);
+    if (optionEl) optionEl.classList.add('selected');
+    if (method === 'litecoin' || method === 'usdt') {
+        const wallet = method === 'litecoin' ? paymentWallets.litecoin : paymentWallets.usdt;
+        document.getElementById('paymentMethodName').textContent = wallet.name;
+        document.getElementById('cryptoNetwork').textContent = wallet.network;
+        document.getElementById('walletAddressDisplay').textContent = wallet.address;
+        updatePriceUI();
     }
+    updatePayableTotal();
+};
+
+window.continuePayment = function() {
+    if (!selectedPayment) { showToast('⚠️ Please select a payment method', 'warning'); return; }
+    document.getElementById('paymentStep1').style.display = 'none';
+    document.getElementById('paymentStep2').classList.add('active');
+    renderPaymentProducts();
+    let total = 0; cart.forEach(item => { const qty = item.quantity || 1; total += item.price * qty; });
+    let rpDiscountAmount = 0;
+    if (userProfile.useRpForCart) { rpDiscountAmount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total); }
+    let finalTotal = total - rpDiscountAmount;
+    let promoDiscountAmount = 0;
+    if (activeDiscount > 0 && total > 0) { promoDiscountAmount = (finalTotal * activeDiscount) / 100; finalTotal = finalTotal - promoDiscountAmount; }
+    if (finalTotal < 0) finalTotal = 0;
+    document.getElementById('step2Subtotal').textContent = `$${total.toFixed(2)}`;
+    document.getElementById('step2Total').textContent = `$${finalTotal.toFixed(2)}`;
     
-    if (method === 'binanceId') {
-        const option = document.getElementById('optionBinanceId');
-        if (option) option.classList.add('selected');
-        document.getElementById('binanceIdSection').style.display = 'block';
-        
-        const total = calculateCartTotalForBinance();
-        const orderId = 'ORD-' + Date.now().toString().slice(-6);
-        currentOrderId = orderId;
-        
-        document.getElementById('binanceIdDisplay').textContent = BINANCE_ID;
-        document.getElementById('binanceIdInline').textContent = BINANCE_ID;
-        document.getElementById('binanceAmountDisplay').textContent = '$' + total.toFixed(2);
-        document.getElementById('binanceAmountInline').textContent = '$' + total.toFixed(2);
-        document.getElementById('binanceOrderDisplay').textContent = '#' + orderId;
-        
-        document.getElementById('txHashInput').value = '';
-        document.getElementById('verificationResult').style.display = 'none';
-        document.getElementById('screenshotPreview').style.display = 'none';
-        document.getElementById('submitPaymentBtn').disabled = false;
-        document.getElementById('submitPaymentBtn').innerHTML = '<i class="fas fa-check-circle"></i> Confirm Payment';
+    fetchCryptoPrices();
+    setTimeout(updatePriceUI, 500);
+    
+    const walletInfo = document.querySelector('.wallet-info');
+    const txInput = document.getElementById('transactionHashInput');
+    const confirmBtn = document.querySelector('.payment-btn[onclick="placeOrder()"]');
+    const cryptoAmount = document.getElementById('cryptoAmount');
+    if (selectedPayment === 'telegram') {
+        if (walletInfo) walletInfo.style.display = 'none';
+        if (txInput) txInput.style.display = 'none';
+        if (confirmBtn) {
+            confirmBtn.innerHTML = '<i class="fab fa-telegram-plane"></i> Contact via Telegram';
+            confirmBtn.onclick = function() {
+                const message = `🛒 New Order\n\nTotal: $${finalTotal.toFixed(2)}\nProducts: ${cart.map(i => i.name).join(', ')}`;
+                window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(message)}`, '_blank');
+                placeOrderTelegram();
+            };
+        }
+        if (cryptoAmount) cryptoAmount.textContent = '💬 Chat with us';
+    } else {
+        if (walletInfo) walletInfo.style.display = 'block';
+        if (txInput) txInput.style.display = 'block';
+        if (confirmBtn) {
+            confirmBtn.innerHTML = '<i class="fas fa-check"></i> Confirm Payment';
+            confirmBtn.onclick = placeOrder;
+        }
+        fetchCryptoPrices();
     }
 };
 
-// ============================================================
-// BINANCE ID - ADMIN ORDERS PANEL
-// ============================================================
+window.goToStep1 = function() { document.getElementById('paymentStep1').style.display = 'block'; document.getElementById('paymentStep2').classList.remove('active'); };
+window.copyWalletAddress = function() {
+    const address = document.getElementById('walletAddressDisplay').textContent;
+    if (address) {
+        navigator.clipboard.writeText(address).then(() => { showToast('✅ Address copied!', 'success'); })
+        .catch(() => { const textArea = document.createElement('textarea'); textArea.value = address; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); showToast('✅ Address copied!', 'success'); });
+    }
+};
 
-window.openManualOrdersPanel = function() {
-    const pendingOrders = JSON.parse(localStorage.getItem('pending_binance_orders') || '[]');
-    
-    if (pendingOrders.length === 0) {
-        showToast('📭 No pending orders', 'info');
+function renderPaymentProducts() {
+    const container = document.getElementById('paymentProductsList');
+    if (!container) return;
+    if (!cart || cart.length === 0) {
+        container.innerHTML = '<div style="text-align:center;padding:8px;color:var(--text-secondary);opacity:0.4;">No products</div>';
         return;
     }
-    
-    let html = `
-        <div style="max-height:400px; overflow-y:auto;">
-            <h3 style="font-size:16px; font-weight:700; margin-bottom:12px;">
-                📋 Binance Manual Orders (${pendingOrders.length})
-            </h3>
-    `;
-    
-    pendingOrders.forEach((order, index) => {
-        const date = new Date(order.timestamp);
-        const dateStr = date.toLocaleDateString('en-US', { 
-            month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
-        });
-        
-        html += `
-            <div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:8px;">
-                <div style="display:flex; justify-content:space-between; align-items:start; flex-wrap:wrap; gap:4px;">
-                    <div>
-                        <div style="font-weight:600; color:var(--text);">
-                            #${order.orderId}
-                            <span style="font-size:11px; color:var(--text-secondary); opacity:0.4; font-weight:400;">
-                                ${dateStr}
-                            </span>
-                        </div>
-                        <div style="font-size:13px; color:var(--text-secondary);">
-                            👤 ${order.userName || order.userEmail || 'Guest'}
-                        </div>
-                        <div style="font-size:12px; color:var(--primary); font-weight:700;">
-                            💰 $${order.amount.toFixed(2)}
-                        </div>
-                        <div style="font-size:11px; color:var(--text-secondary); opacity:0.4; font-family:monospace;">
-                            🔑 ${order.txHash}
-                        </div>
-                        <div style="font-size:11px; color:var(--text-secondary); opacity:0.4;">
-                            📦 ${order.items.map(i => i.name).join(', ')}
-                        </div>
-                        ${order.screenshot ? `
-                            <div style="margin-top:4px;">
-                                <img src="${order.screenshot}" style="max-width:100px; max-height:60px; border-radius:4px; border:1px solid var(--border); cursor:pointer;" 
-                                     onclick="window.open('${order.screenshot}', '_blank')" />
-                            </div>
-                        ` : ''}
-                    </div>
-                    <div style="display:flex; gap:4px;">
-                        <button onclick="confirmManualOrder(${index})" 
-                                style="padding:4px 12px; border:none; border-radius:4px; background:var(--success); color:#0a0a1a; font-weight:600; cursor:pointer; font-size:12px;">
-                            ✅ Confirm
-                        </button>
-                        <button onclick="rejectManualOrder(${index})" 
-                                style="padding:4px 12px; border:none; border-radius:4px; background:var(--danger); color:#fff; font-weight:600; cursor:pointer; font-size:12px;">
-                            ❌ Reject
-                        </button>
-                    </div>
+    container.innerHTML = cart.map(item => {
+        const qty = item.quantity || 1;
+        const total = item.price * qty;
+        const product = products.find(p => p.id === item.id);
+        const image = product?.image || item.image || 'https://picsum.photos/seed/default/80/80';
+        const name = item.isVip ? `${item.name} 👑 ${item.vipPlanLabel || 'VIP'}` : item.name;
+        const qtyLabel = item.isQuantityProduct ? `📦 ${item.selectedQuantity || ''}` : '';
+        return `
+            <div class="payment-product-item">
+                <img src="${image}" alt="${item.name}" />
+                <div class="pp-info">
+                    <div class="pp-name">${name} ${qtyLabel}</div>
+                    <div class="pp-price">${getCurrencySymbol(item.currency || 'USD')}${total.toFixed(2)}</div>
                 </div>
+                <div class="pp-qty">×${qty}</div>
             </div>
         `;
-    });
-    
-    html += `
-            <button onclick="closeManualOrdersPanel()" 
-                    style="width:100%; padding:8px; border:1px solid var(--border); border-radius:6px; background:var(--card-bg); color:var(--text); cursor:pointer; font-size:13px; margin-top:8px;">
-                Close
-            </button>
-        </div>
-    `;
-    
-    const modal = document.createElement('div');
-    modal.id = 'manualOrdersModal';
-    modal.style.cssText = `
-        position:fixed; top:0; left:0; right:0; bottom:0; 
-        background:rgba(0,0,0,0.7); backdrop-filter:blur(8px);
-        display:flex; align-items:center; justify-content:center; 
-        z-index:999999; padding:20px;
-    `;
-    modal.innerHTML = `
-        <div style="background:var(--card-bg); border-radius:16px; padding:24px; max-width:500px; width:100%; max-height:90vh; overflow-y:auto; border:1px solid var(--border);">
-            ${html}
-        </div>
-    `;
-    document.body.appendChild(modal);
-};
-
-window.closeManualOrdersPanel = function() {
-    document.getElementById('manualOrdersModal')?.remove();
-};
-
-window.confirmManualOrder = function(index) {
-    const pendingOrders = JSON.parse(localStorage.getItem('pending_binance_orders') || '[]');
-    const order = pendingOrders[index];
-    
-    if (!order) return;
-    
-    userProfile.history.push({
-        id: order.orderId,
-        items: order.items,
-        total: order.amount,
-        method: 'Binance ID (Manual)',
-        date: order.timestamp,
-        status: 'confirmed',
-        txHash: order.txHash
-    });
-    
-    pendingOrders.splice(index, 1);
-    localStorage.setItem('pending_binance_orders', JSON.stringify(pendingOrders));
-    saveUserData();
-    
-    if (order.userId && order.userId !== 'guest' && typeof sendUserNotification === 'function') {
-        sendUserNotification(order.userId, 
-            '✅ Order Confirmed!', 
-            `Your order #${order.orderId} via Binance ID has been confirmed. Thank you!`
-        );
-    }
-    
-    if (typeof sendTelegramNotification === 'function') {
-        sendTelegramNotification(TELEGRAM_CHAT_ID, `
-✅ *Manual Order Confirmed*
-
-📎 **Order:** #${order.orderId}
-👤 **User:** ${order.userName || order.userEmail || 'Guest'}
-💰 **Amount:** $${order.amount.toFixed(2)}
-🔑 **Transaction:** \`${order.txHash}\`
-
-Order confirmed successfully! 🎉
-        `);
-    }
-    
-    showToast('✅ Order confirmed', 'success');
-    closeManualOrdersPanel();
-    renderHistoryFull();
-    updateFullUserMenu();
-};
-
-window.rejectManualOrder = function(index) {
-    const pendingOrders = JSON.parse(localStorage.getItem('pending_binance_orders') || '[]');
-    const order = pendingOrders[index];
-    
-    if (!order) return;
-    
-    if (order.userId && order.userId !== 'guest' && typeof sendUserNotification === 'function') {
-        sendUserNotification(order.userId, 
-            '❌ Order Rejected', 
-            `Your order #${order.orderId} via Binance ID has been rejected. Please contact support.`
-        );
-    }
-    
-    pendingOrders.splice(index, 1);
-    localStorage.setItem('pending_binance_orders', JSON.stringify(pendingOrders));
-    
-    if (typeof sendTelegramNotification === 'function') {
-        sendTelegramNotification(TELEGRAM_CHAT_ID, `
-❌ *Manual Order Rejected*
-
-📎 **Order:** #${order.orderId}
-👤 **User:** ${order.userName || order.userEmail || 'Guest'}
-💰 **Amount:** $${order.amount.toFixed(2)}
-
-Order rejected. User has been notified.
-        `);
-    }
-    
-    showToast('❌ Order rejected', 'info');
-    closeManualOrdersPanel();
-};
-
-// Add manual orders button to admin panel
-window.addManualOrdersButton = function() {
-    setTimeout(() => {
-        const container = document.getElementById('adminPanel');
-        if (!container) return;
-        
-        const actions = container.querySelector('.panel-header') || container.querySelector('.tabs');
-        if (actions && !document.getElementById('manualOrdersBtn')) {
-            const btn = document.createElement('button');
-            btn.id = 'manualOrdersBtn';
-            btn.className = 'add-btn';
-            btn.style.cssText = 'background:var(--vip-color); color:#0a0a1a; padding:6px 14px; border:none; border-radius:6px; font-weight:600; cursor:pointer; margin-left:8px;';
-            btn.innerHTML = '<i class="fas fa-binance"></i> Binance Orders';
-            btn.onclick = window.openManualOrdersPanel;
-            
-            const addProductBtn = actions.querySelector('.add-btn');
-            if (addProductBtn) {
-                addProductBtn.parentNode.insertBefore(btn, addProductBtn.nextSibling);
-            } else {
-                actions.appendChild(btn);
-            }
-        }
-    }, 1000);
-};
+    }).join('');
+}
 
 // ============================================================
 // 16. Order Functions with User Notification
 // ============================================================
 
+/**
+ * Send notification to user's in-app notification icon
+ * Only the specific user who placed the order will receive it
+ */
 async function sendUserNotification(userId, title, message) {
     if (!userId) return;
     try {
+        // Check if user exists
         const userRef = doc(db, 'users', userId);
         const userSnap = await getDoc(userRef);
         if (!userSnap.exists()) {
@@ -3184,10 +2119,11 @@ async function sendUserNotification(userId, title, message) {
             return;
         }
         
+        // Add notification to Firestore with userId
         await addDoc(collection(db, 'notifications'), {
             title: title,
             message: message,
-            userId: userId,
+            userId: userId, // Only this user will see it
             readBy: [],
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
@@ -3198,7 +2134,11 @@ async function sendUserNotification(userId, title, message) {
     }
 }
 
+/**
+ * Send order confirmation to both Telegram and in-app notification
+ */
 async function sendOrderConfirmations(userId, orderId, productsList, total, method) {
+    // 1. Send in-app notification (only to this user)
     const productNames = productsList.map(item => {
         const qtyLabel = item.selectedQuantity ? ` (${item.selectedQuantity})` : '';
         return `${item.name}${qtyLabel} × ${item.quantity || 1}`;
@@ -3210,6 +2150,7 @@ async function sendOrderConfirmations(userId, orderId, productsList, total, meth
         `Your order #${orderId.slice(-6)} has been confirmed.\nProducts: ${productNames}\nTotal: $${total.toFixed(2)}\nPayment: ${method}`
     );
     
+    // 2. Send Telegram notification if user has linked Telegram
     if (userProfile.telegramChatId) {
         const userMsg = `📦 **Order Confirmed!**\n\n📎 **Order #${orderId.slice(-6)}**\n📅 ${new Date().toLocaleString()}\n💰 Total: $${total.toFixed(2)}\n💳 Method: ${method}\n\nThank you for your purchase! 🎉`;
         await sendTelegramNotification(userProfile.telegramChatId, userMsg);
@@ -3277,6 +2218,7 @@ async function sendOrderToTelegram(method, txHash = null) {
             console.error('❌ Failed to send admin notification:', e);
         }
 
+        // Send confirmation to user (both in-app and Telegram)
         await sendOrderConfirmations(
             currentUser.uid,
             orderId,
@@ -3558,6 +2500,7 @@ function loadNotifications() {
             notifications = [];
             snapshot.forEach((doc) => {
                 const data = doc.data();
+                // Only show notifications that are either global (no userId) or specifically for this user
                 if (!data.userId || data.userId === currentUser?.uid) {
                     notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] });
                 }
@@ -3575,6 +2518,7 @@ function loadNotifications() {
             notifications = [];
             snapshot.forEach((doc) => {
                 const data = doc.data();
+                // Only show notifications that are either global (no userId) or specifically for this user
                 if (!data.userId || data.userId === currentUser?.uid) {
                     notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] });
                 }
@@ -3781,7 +2725,6 @@ window.openAdminPanel = function() {
         if (logsTab && logsTab.classList.contains('active')) { loadAuditLogs(); }
         loadMarqueeSettings();
         renderMarqueeSettingsUI();
-        window.addManualOrdersButton();
     }
 };
 
@@ -4243,26 +3186,15 @@ function loadAdminOrders() {
     });
 }
 
-// ============================================================
-// 23. Render Admin Orders - FIXED Syntax Error
-// ============================================================
-
 function renderAdminOrders(orders) {
     const tbody = document.getElementById('adminOrdersBody');
     if (!tbody) return;
     if (!orders || orders.length === 0) { tbody.innerHTML = `<tr><td colspan="7"><div style="text-align:center;padding:30px;color:var(--text-secondary);"><i class="fas fa-inbox"></i> No orders</div></td></tr>`; return; }
-    
-    // Group by orderId to avoid duplicates
-    const uniqueOrders = []; 
-    const seen = new Set();
+    const uniqueOrders = []; const seen = new Set();
     orders.forEach(order => {
         const orderId = order.orderId || order.id;
-        if (orderId && !seen.has(orderId)) { 
-            seen.add(orderId); 
-            uniqueOrders.push(order); 
-        }
+        if (orderId && !seen.has(orderId)) { seen.add(orderId); uniqueOrders.push(order); }
     });
-    
     let html = '';
     uniqueOrders.forEach(order => {
         const status = order.status || 'pending';
@@ -4274,39 +3206,11 @@ function renderAdminOrders(orders) {
         const info = statusMap[status] || statusMap['pending'];
         const date = order.date ? new Date(order.date) : new Date();
         const dateStr = date.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
-        const itemsList = order.items ? order.items.map(item => 
-            `<span style="display:inline-block;background:var(--bg);padding:2px 8px;border-radius:10px;font-size:11px;border:1px solid var(--border);margin:1px;">${item.name} ${item.selectedQuantity ? '📦'+item.selectedQuantity : ''} ×${item.quantity||1}</span>`
-        ).join('') : '—';
+        const itemsList = order.items ? order.items.map(item => `<span style="display:inline-block;background:var(--bg);padding:2px 8px;border-radius:10px;font-size:11px;border:1px solid var(--border);margin:1px;">${item.name} ${item.selectedQuantity ? '📦'+item.selectedQuantity : ''} ×${item.quantity||1}</span>`).join('') : '—';
         const total = order.total || 0;
         const orderIdStr = String(order.orderId || order.id || '');
         const orderIdDisplay = orderIdStr.slice(-6) || '------';
-        
-        // --- FIXED: Properly escaped template literals ---
-        html += `<tr>
-            <td><span class="order-id">#${orderIdDisplay}</span></td>
-            <td>
-                <div style="font-weight:600;font-size:12px;">${order.userName||'Unknown'}</div>
-                <div class="user-email">${order.userEmail||'N/A'}</div>
-            </td>
-            <td><div style="display:flex;flex-wrap:wrap;gap:2px;">${itemsList}</div></td>
-            <td><span class="order-total">${total.toFixed(2)} $</span></td>
-            <td><span class="order-date">${dateStr}</span></td>
-            <td><span class="status-badge ${info.class}">${info.label}</span></td>
-            <td>
-                <div class="actions-cell">
-                    <select onchange="updateOrderStatus('${order.orderId||order.id}','${order.userId}',this.value)" 
-                            style="padding:2px 6px;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);font-size:10px;">
-                        <option value="pending" ${status==='pending'?'selected':''}>⏳ Pending</option>
-                        <option value="confirmed" ${status==='confirmed'?'selected':''}>✅ Confirmed</option>
-                        <option value="rejected" ${status==='rejected'?'selected':''}>❌ Rejected</option>
-                    </select>
-                    <button onclick="deleteOrderImmediately('${order.orderId||order.id}','${order.userId}')" 
-                            class="btn-delete-order">
-                        <i class="fas fa-trash"></i> Delete
-                    </button>
-                </div>
-            </td>
-        </tr>`;
+        html += `<tr><td><span class="order-id">#${orderIdDisplay}</span></td><td><div style="font-weight:600;font-size:12px;">${order.userName||'Unknown'}</div><div class="user-email">${order.userEmail||'N/A'}</div></td><td><div style="display:flex;flex-wrap:wrap;gap:2px;">${itemsList}</div></td><td><span class="order-total">${total.toFixed(2)} $</span></td><td><span class="order-date">${dateStr}</span></td><td><span class="status-badge ${info.class}">${info.label}</span></td><td><div class="actions-cell"><select onchange="updateOrderStatus('${order.orderId||order.id}','${order.userId}',this.value)" style="padding:2px 6px;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);font-size:10px;"><option value="pending" ${status==='pending'?'selected':''}>⏳ Pending</option><option value="confirmed" ${status==='confirmed'?'selected':''}>✅ Confirmed</option><option value="rejected" ${status==='rejected'?'selected':''}>❌ Rejected</option></select><button onclick="deleteOrderImmediately('${order.orderId||order.id}','${order.userId}')" class="btn-delete-order"><i class="fas fa-trash"></i> Delete</button></div></td></tr>`;
     });
     tbody.innerHTML = html;
 }
@@ -4323,7 +3227,7 @@ function updateAdminStats(orders) {
 }
 
 // ============================================================
-// 24. Update Order Status with User Notification
+// 23. Update Order Status with User Notification
 // ============================================================
 
 window.updateOrderStatus = async function(orderId, userId, newStatus) {
@@ -4347,20 +3251,26 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
         });
         await updateDoc(userRef, { history: updatedHistory });
         
+        // Send notification to user when order status changes
         if (newStatus === 'confirmed') {
+            // Send confirmation notification to user's in-app icon
             await sendUserNotification(
                 userId,
                 '✅ Order Confirmed!',
                 `Your order #${orderId.slice(-6)} has been confirmed and is ready.`
             );
+            
+            // Send licence via Edge Function
             await sendLicenceForOrder(orderId, userId);
             await sendTelegramNotification(TELEGRAM_CHAT_ID, `✅ Order #${orderId.slice(-6)} confirmed. Licence sent to ${data.email || userId}.`);
         } else if (newStatus === 'rejected') {
+            // Send rejection notification to user's in-app icon
             await sendUserNotification(
                 userId,
                 '❌ Order Rejected',
                 `Your order #${orderId.slice(-6)} has been rejected. Please contact support for more information.`
             );
+            
             if (data.telegramChatId) {
                 await sendTelegramNotification(data.telegramChatId, `❌ Your order #${orderId.slice(-6)} has been rejected.`);
             }
@@ -4407,7 +3317,7 @@ window.clearAdminSearch = function() { document.getElementById('adminSearchInput
 window.refreshAdminOrders = function() { loadAdminOrders(); showToast('🔄 Refreshed', 'info'); };
 
 // ============================================================
-// 25. Send Licence via Edge Function
+// 24. Send Licence via Edge Function
 // ============================================================
 
 async function sendLicenceForOrder(orderId, userId) {
@@ -4455,7 +3365,7 @@ async function sendLicenceForOrder(orderId, userId) {
 }
 
 // ============================================================
-// 26. Admin Users
+// 25. Admin Users
 // ============================================================
 
 async function loadAdminUsers() {
@@ -4566,7 +3476,7 @@ window.viewUserDetails = async function(uid) {
 window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
 // ============================================================
-// 27. Licence Management System (with Supabase)
+// 26. Licence Management System (with Supabase)
 // ============================================================
 
 async function loadLicences() {
@@ -4685,6 +3595,7 @@ async function approveLicence(licenceId, code, scriptName) {
         if (fetchError || !licenceData) throw fetchError || new Error('Licence not found');
         await updateLicenceInSupabase(licenceId, { status: 'active', user_id: currentUser.uid, user_email: currentUser.email });
         
+        // Send notification to user
         await sendUserNotification(
             currentUser.uid,
             '🔑 Licence Activated!',
@@ -4712,11 +3623,13 @@ async function revokeLicence(licenceId) {
         await updateLicenceInSupabase(licenceId, { status: 'revoked' });
         const licence = allLicences.find(l => l.id === licenceId);
         if (licence && licence.user_id) {
+            // Notify user
             await sendUserNotification(
                 licence.user_id,
                 '🚫 Licence Revoked',
                 `Your licence for ${licence.script_name || 'product'} has been revoked.`
             );
+            
             const userRef = doc(db, 'users', licence.user_id);
             const userSnap = await getDoc(userRef);
             if (userSnap.exists()) {
@@ -4881,6 +3794,7 @@ async function activateLicence() {
                 renderUserLicences();
                 updateFullUserMenu();
                 
+                // Send in-app notification
                 await sendUserNotification(
                     currentUser.uid,
                     '🔑 Licence Activated',
@@ -4905,7 +3819,7 @@ async function activateLicence() {
 }
 
 // ============================================================
-// 28. Ratings
+// 27. Ratings
 // ============================================================
 
 let currentRating = 0;
@@ -4997,7 +3911,7 @@ async function updateProductRatingDisplay(productId) {
 }
 
 // ============================================================
-// 29. Slider & Marquee Functions
+// 28. Slider & Marquee Functions
 // ============================================================
 
 window.goToSlide = function(index) {
@@ -5260,14 +4174,7 @@ function renderSlider() {
     const dots = document.getElementById('sliderDots');
     if (!wrapper) return;
     if (sliderSlides.length === 0) {
-        wrapper.innerHTML = `
-            <div class="slide-item" style="background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;min-height:180px;border-radius:var(--radius-md);">
-                <div style="text-align:center;color:var(--text-secondary);opacity:0.4;">
-                    <i class="fas fa-images" style="font-size:48px;display:block;margin-bottom:8px;"></i>
-                    <p>No slides. Add slides from admin panel.</p>
-                </div>
-            </div>
-        `;
+        wrapper.innerHTML = `<div class="slide-item" style="background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;min-height:180px;border-radius:var(--radius-md);"><div style="text-align:center;color:var(--text-secondary);opacity:0.4;"><i class="fas fa-images" style="font-size:48px;display:block;margin-bottom:8px;"></i><p>No slides. Add slides from admin panel.</p></div></div>`;
         dots.innerHTML = '';
         return;
     }
@@ -5280,16 +4187,14 @@ function renderSlider() {
         let buttonLink = '#';
         let buttonTarget = '_self';
         if (slide.linkType === 'product' && slide.productId) {
-            buttonLink = `javascript:window.openProductDetailModal('${slide.productId}')`;
+            buttonLink = `javascript:window.openDetails('${slide.productId}')`;
         } else if (slide.linkType === 'download' && slide.downloadUrl) {
-            buttonLink = slide.downloadUrl; 
-            buttonTarget = '_blank';
+            buttonLink = slide.downloadUrl; buttonTarget = '_blank';
         } else if (slide.linkType === 'url' && slide.customUrl) {
-            buttonLink = slide.customUrl; 
-            buttonTarget = '_blank';
+            buttonLink = slide.customUrl; buttonTarget = '_blank';
         }
         return `
-            <div class="slide-item ${isActive}" style="background-image: url('${imageUrl}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
+            <div class="slide-item ${isActive}" style="background-image: url('${imageUrl}');">
                 <div class="slide-overlay">
                     ${title ? `<h2 class="slide-title">${title}</h2>` : ''}
                     ${subtitle ? `<p class="slide-subtitle">${subtitle}</p>` : ''}
@@ -5326,7 +4231,7 @@ function renderSliderSettingsUI() {
     container.innerHTML = sliderSlides.map((slide, index) => {
         const product = products.find(p => p.id === slide.productId);
         const productName = product ? product.name : 'Unknown';
-        return `<div class="admin-item"><div class="item-info"><div class="item-title"><img src="${slide.imageUrl || 'https://via.placeholder.com/60x60/1a1a3e/6c5ce7?text=No+Image'}" style="width:40px;height:40px;border-radius:var(--radius-sm);object-fit:cover;margin-right:8px;" />${slide.title || 'Slide ' + (index+1)}<span style="font-size:11px;opacity:0.4;font-weight:400;">${slide.linkType === 'product' ? '📦 Product: ' + productName : slide.linkType === 'download' ? '📥 Download' : '🔗 Custom Link'}</span></div><div class="item-meta">${slide.subtitle || ''}</div></div><div class="item-actions"><button class="btn-edit" onclick="editSlide(${index})"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="deleteSlide(${index})"><i class="fas fa-trash"></i></button></div></div>`;
+        return `<div class="admin-item"><div class="item-info"><div class="item-title"><img src="${slide.imageUrl || 'https://picsum.photos/seed/default/60/60'}" style="width:40px;height:40px;border-radius:var(--radius-sm);object-fit:cover;margin-right:8px;" />${slide.title || 'Slide ' + (index+1)}<span style="font-size:11px;opacity:0.4;font-weight:400;">${slide.linkType === 'product' ? '📦 Product: ' + productName : slide.linkType === 'download' ? '📥 Download' : '🔗 Custom Link'}</span></div><div class="item-meta">${slide.subtitle || ''}</div></div><div class="item-actions"><button class="btn-edit" onclick="editSlide(${index})"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="deleteSlide(${index})"><i class="fas fa-trash"></i></button></div></div>`;
     }).join('');
 }
 
@@ -5397,7 +4302,7 @@ async function loadMarqueeSettings() {
 }
 
 // ============================================================
-// 30. Dashboard Stats, Advanced Stats, Audit Logs
+// 29. Dashboard Stats, Advanced Stats, Audit Logs
 // ============================================================
 
 async function loadDashboardStats() {
@@ -5505,7 +4410,7 @@ async function loadAuditLogs() {
 window.loadAuditLogs = loadAuditLogs;
 
 // ============================================================
-// 31. Clear Order History, Render History, Filter Orders
+// 30. Clear Order History, Render History, Filter Orders
 // ============================================================
 
 window.clearOrderHistory = async function() {
@@ -5575,7 +4480,7 @@ window.filterOrders = function(filter) {
 };
 
 // ============================================================
-// 32. Cookie Consent Functions
+// 31. Cookie Consent Functions
 // ============================================================
 
 let cookieConsentStatus = localStorage.getItem('cookieConsent');
@@ -5705,7 +4610,7 @@ window.disableAnalytics = disableAnalytics;
 window.checkCookieConsent = checkCookieConsent;
 
 // ============================================================
-// 33. Telegram Banner, Social Proof, Upload
+// 32. Telegram Banner, Social Proof, Upload
 // ============================================================
 
 function showTelegramBanner() {
@@ -5751,7 +4656,7 @@ function startSocialProof() { /* For future use */ }
 function triggerSocialProofOnOrder(userName, productNames) { /* For future use */ }
 
 // ============================================================
-// 34. Cloudinary Upload
+// 33. Cloudinary Upload
 // ============================================================
 
 const CLOUDINARY_CLOUD_NAME = 'y14bgb5s';
@@ -5769,7 +4674,7 @@ async function uploadToCloudinary(file) {
 }
 
 // ============================================================
-// 35. Direction Fix
+// 34. Direction Fix
 // ============================================================
 
 function fixDirection() {
@@ -5781,7 +4686,7 @@ function fixDirection() {
 window.fixHeaderAndModals = fixDirection;
 
 // ============================================================
-// 36. Copy Licence & Export
+// 35. Copy Licence & Export
 // ============================================================
 
 window.copyLicenceCode = function(code) {
@@ -5844,7 +4749,7 @@ window.exportOrders = function() {
 };
 
 // ============================================================
-// 37. Auth State Listener
+// 36. Auth State Listener
 // ============================================================
 
 onAuthStateChanged(auth, async (user) => {
@@ -5912,8 +4817,6 @@ onAuthStateChanged(auth, async (user) => {
         window.showMainApp();
         hideLoadingScreen();
 
-        setTimeout(checkVerificationOnLogin, 3000);
-
     } else {
         isAdminCached = false;
         if (authSection) authSection.style.display = 'block';
@@ -5940,7 +4843,7 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// 38. Auto-check Admin Panel
+// 37. Auto-check Admin Panel
 // ============================================================
 
 setInterval(() => {
@@ -5963,7 +4866,7 @@ setInterval(() => {
 }, 5000);
 
 // ============================================================
-// 39. Init
+// 38. Init
 // ============================================================
 
 async function init() {
@@ -5972,14 +4875,19 @@ async function init() {
     const authSection = document.getElementById('authSection');
     if (authSection) authSection.style.display = 'none';
 
-    updateLoadingText('Loading products...');
+    updateLoadingText('Loading...');
 
     try {
-        renderProducts([], true);
-        
-        await forceLoadProducts();
-        
+        updateLoadingText('Loading products...');
+        const productsFromFirestore = await loadProductsFromFirestore();
+        products = productsFromFirestore.length > 0 ? productsFromFirestore : fallbackProducts;
+
+        updateLoadingText('Initializing app...');
+        startProductsRealtimeListener();
         await loadUserData();
+        renderProducts(products, false);
+        renderFeaturedProducts();
+        generateRecommendations(products);
         updateBottomCartBar();
         updateDropdownStats();
         loadDownloads();
@@ -5989,37 +4897,9 @@ async function init() {
         loadSliderSettings();
         loadMarqueeSettings();
         setInterval(fetchCryptoPrices, 60000);
-        
-        if (typeof window.shareFromPreview === 'undefined') {
-            window.shareFromPreview = function() {
-                if (window._currentProduct) {
-                    window.openShareModal(window._currentProduct.id);
-                }
-            };
-        }
-        
-        if (typeof window.closePreviewModal === 'undefined') {
-            window.closePreviewModal = function() {
-                const modal = document.getElementById('previewModal');
-                if (modal) {
-                    modal.classList.remove('open');
-                    document.body.style.overflow = '';
-                }
-            };
-        }
-        
-        if (typeof window.addToCartFromPreview === 'undefined') {
-            window.addToCartFromPreview = function() {
-                if (window._currentProduct) {
-                    window.addToCart(window._currentProduct.id);
-                    window.closePreviewModal();
-                }
-            };
-        }
 
         updateLoadingText('✅ Ready!');
         console.log('✅ ZI Store ready with all features!');
-        
         setTimeout(fixDirection, 100);
         setTimeout(window.ensureAdminPanel, 3000);
         setTimeout(checkCookieConsent, 1500);
@@ -6030,21 +4910,26 @@ async function init() {
             if (authSection) authSection.style.display = 'block';
             document.getElementById('mainApp').style.display = 'none';
         }
-        
         hideLoadingScreen();
 
-        if (products.length === 0) {
-            setTimeout(async () => {
-                console.log('🔄 Retrying product load in background...');
-                await forceLoadProducts();
-                if (products.length === 0) {
-                    setTimeout(async () => {
-                        console.log('🔄 Final retry after 4 seconds...');
-                        await forceLoadProducts();
-                    }, 2000);
+        setTimeout(function() {
+            const screen = document.getElementById('loadingScreen');
+            if (screen) {
+                const icon = screen.querySelector('.loader-icon');
+                if (icon) {
+                    icon.textContent = '✅';
+                    icon.style.animation = 'none';
                 }
-            }, 2000);
-        }
+                const text = document.getElementById('loadingStatus');
+                if (text) {
+                    text.textContent = 'Ready! 🎉';
+                    text.style.webkitTextFillColor = 'var(--success)';
+                }
+                const subtext = document.querySelector('.loader-subtext');
+                if (subtext) subtext.textContent = 'You can start now';
+                document.querySelectorAll('.spinner-ring').forEach(el => el.style.display = 'none');
+            }
+        }, 2000);
 
     } catch (error) {
         console.error('❌ Initialization error:', error);
@@ -6057,7 +4942,7 @@ async function init() {
 }
 
 // ============================================================
-// 40. Theme Toggle
+// 39. Theme Toggle
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -6082,7 +4967,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================================
-// 41. Export all functions to global scope
+// 40. Export all functions to global scope
 // ============================================================
 
 window.toggleLicencesList = toggleLicencesList;
@@ -6106,13 +4991,7 @@ window.switchAdminTab = switchAdminTab;
 window.loadAdminOrders = loadAdminOrders;
 window.updateOrderStatus = updateOrderStatus;
 window.filterProducts = filterProducts;
-window.openProductDetailModal = openProductDetailModal;
-window.closeProductDetailModal = closeProductDetailModal;
-window.selectVipPlanDetail = selectVipPlanDetail;
-window.addToCartFromDetail = addToCartFromDetail;
-window.buyNowFromDetail = buyNowFromDetail;
-window.toggleWishlistFromDetail = toggleWishlistFromDetail;
-window.addVipToCartFromDetail = addVipToCartFromDetail;
+window.openDetails = openDetails;
 window.addToCart = addToCart;
 window.toggleWishlist = toggleWishlist;
 window.openCartFull = openCartFull;
@@ -6168,13 +5047,13 @@ window.applyCartPromo = applyCartPromo;
 window.showTelegramBannerAgain = showTelegramBannerAgain;
 window.adminToggleBanner = adminToggleBanner;
 window.resetBannerForAll = resetBannerForAll;
-window.closePreviewModal = closeProductDetailModal;
-window.addToCartFromPreview = addToCartFromDetail;
+window.closePreviewModal = closePreviewModal;
+window.addToCartFromPreview = addToCartFromPreview;
 window.shareFromPreview = shareFromPreview;
 window.refreshDashboardStats = refreshDashboardStats;
 window.loadDashboardStats = loadDashboardStats;
-window.selectVipPlan = selectVipPlanDetail;
-window.addVipPlanToCart = addVipToCartFromDetail;
+window.selectVipPlan = selectVipPlan;
+window.addVipPlanToCart = addVipPlanToCart;
 window.refreshAdvancedStats = refreshAdvancedStats;
 window.setRating = setRating;
 window.submitRating = submitRating;
@@ -6230,25 +5109,9 @@ window.removeQuantityOption = removeQuantityOption;
 window.toggleBadge = toggleBadge;
 window.selectQuantityOption = selectQuantityOption;
 window.loginWithGoogle = loginWithGoogle;
-window.sendEmailVerification = sendEmailVerification;
-window.checkVerificationStatus = checkVerificationStatus;
-window.closeVerificationDialog = closeVerificationDialog;
-window.renderProfileFull = renderProfileFull;
-window.forceLoadProducts = forceLoadProducts;
-window.addManualOrdersButton = addManualOrdersButton;
-window.openManualOrdersPanel = openManualOrdersPanel;
-window.confirmManualOrder = confirmManualOrder;
-window.rejectManualOrder = rejectManualOrder;
-window.copyBinanceId = copyBinanceId;
-window.verifyTransaction = verifyTransaction;
-window.handleScreenshot = handleScreenshot;
-window.removeScreenshot = removeScreenshot;
-window.submitManualPayment = submitManualPayment;
-
-console.log('✅ All functions exported successfully!');
 
 // ============================================================
-// 42. Support Functions
+// 41. Support Functions
 // ============================================================
 
 window.toggleSupportMenu = function() {
@@ -6323,17 +5186,13 @@ document.addEventListener('keydown', function(e) {
         if (float && float.classList.contains('open')) {
             float.classList.remove('open');
         }
-        const productModal = document.getElementById('productDetailModal');
-        if (productModal && productModal.classList.contains('open')) {
-            closeProductDetailModal();
-        }
     }
 });
 
 console.log('✅ Support system loaded successfully!');
 
 // ============================================================
-// 43. Start App
+// 42. Start App
 // ============================================================
 
 if (document.readyState === 'loading') {
