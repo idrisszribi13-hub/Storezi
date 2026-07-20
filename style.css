@@ -5222,7 +5222,376 @@ body.light .header .language-selector {
         padding: 16px;
     }
 }
+/* ============================================
+   BINANCE ID PAYMENT SECTION - NEW
+   ============================================ */
 
+.binance-id-section {
+    margin-top: 16px;
+    animation: fadeIn 0.3s ease;
+}
+
+.binance-id-box {
+    background: var(--bg);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+
+.binance-id-box .bi-header {
+    background: linear-gradient(135deg, #f2a900, #f0b90b);
+    padding: 12px 16px;
+    color: #0a0a1a;
+    font-weight: 700;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.binance-id-box .bi-header i {
+    font-size: 20px;
+}
+
+.binance-id-box .bi-content {
+    padding: 16px;
+}
+
+.binance-id-box .bi-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    font-size: 14px;
+    flex-wrap: wrap;
+}
+
+.binance-id-box .bi-label {
+    color: var(--text-secondary);
+    opacity: 0.5;
+    min-width: 100px;
+}
+
+.binance-id-box .bi-value {
+    font-weight: 700;
+    color: var(--text);
+    font-family: monospace;
+    font-size: 16px;
+    flex: 1;
+    word-break: break-all;
+}
+
+.binance-id-box .bi-copy-btn {
+    background: none;
+    border: none;
+    color: var(--primary);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 4px 8px;
+    transition: var(--transition);
+}
+
+.binance-id-box .bi-copy-btn:hover {
+    transform: scale(1.1);
+}
+
+.binance-id-box .bi-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 8px 0;
+}
+
+.binance-id-box .bi-instructions {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    margin-top: 4px;
+}
+
+.binance-id-box .bi-instructions p {
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+.binance-id-box .bi-instructions ol {
+    padding-left: 20px;
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.8;
+}
+
+.binance-id-box .bi-instructions ol strong {
+    color: var(--text);
+}
+
+/* ============================================
+   BINANCE VERIFICATION SECTION
+   ============================================ */
+
+.binance-verification {
+    background: var(--bg);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.binance-verification .bv-header {
+    background: var(--bg-secondary);
+    padding: 12px 16px;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--border);
+}
+
+.binance-verification .bv-header i {
+    color: var(--success);
+    font-size: 18px;
+}
+
+.binance-verification .bv-body {
+    padding: 16px;
+}
+
+.binance-verification .bv-field {
+    margin-bottom: 12px;
+}
+
+.binance-verification .bv-field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+
+.binance-verification .bv-input-group {
+    display: flex;
+    gap: 8px;
+}
+
+.binance-verification .bv-input-group input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--card-bg);
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+    transition: var(--transition);
+    font-family: monospace;
+}
+
+.binance-verification .bv-input-group input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+.binance-verification .bv-input-group input::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.3;
+}
+
+.binance-verification .bv-verify-btn {
+    padding: 10px 18px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: var(--primary-gradient);
+    color: #fff;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: var(--transition);
+    white-space: nowrap;
+}
+
+.binance-verification .bv-verify-btn:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 15px var(--primary-glow);
+}
+
+.binance-verification .bv-hint {
+    font-size: 12px;
+    color: var(--text-secondary);
+    opacity: 0.4;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.binance-verification .bv-hint i {
+    font-size: 12px;
+}
+
+/* منطقة تحميل الصورة */
+.binance-verification .bv-upload {
+    margin: 12px 0;
+}
+
+.binance-verification .bv-upload label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+
+.binance-verification .bv-drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-sm);
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+    background: var(--bg-secondary);
+}
+
+.binance-verification .bv-drop-zone:hover {
+    border-color: var(--primary);
+    background: var(--bg);
+}
+
+.binance-verification .bv-drop-zone i {
+    font-size: 32px;
+    color: var(--text-secondary);
+    opacity: 0.3;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.binance-verification .bv-drop-zone p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    opacity: 0.5;
+    margin: 0;
+}
+
+.binance-verification .bv-drop-zone input {
+    display: none;
+}
+
+/* نتيجة التحقق */
+.binance-verification .bv-result {
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    margin: 12px 0;
+    font-size: 14px;
+}
+
+.binance-verification .bv-result.success {
+    background: rgba(52, 211, 153, 0.1);
+    border: 1px solid var(--success);
+    color: var(--success);
+}
+
+.binance-verification .bv-result.error {
+    background: rgba(248, 113, 113, 0.1);
+    border: 1px solid var(--danger);
+    color: var(--danger);
+}
+
+.binance-verification .bv-result.warning {
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid var(--warning);
+    color: var(--warning);
+}
+
+.binance-verification .bv-result.loading {
+    background: rgba(108, 92, 231, 0.1);
+    border: 1px solid var(--primary);
+    color: var(--primary);
+}
+
+.binance-verification .bv-result .bv-icon {
+    margin-right: 8px;
+}
+
+/* زر التأكيد النهائي */
+.binance-verification .bv-submit-btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: var(--success);
+    color: #0a0a1a;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.binance-verification .bv-submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(52, 211, 153, 0.3);
+}
+
+.binance-verification .bv-submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.binance-verification .bv-note {
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--text-secondary);
+    opacity: 0.6;
+    text-align: center;
+    line-height: 1.8;
+}
+
+.binance-verification .bv-note a {
+    color: var(--primary);
+    text-decoration: none;
+    opacity: 1;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 480px) {
+    .binance-id-box .bi-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+    }
+    
+    .binance-id-box .bi-label {
+        min-width: auto;
+        font-size: 12px;
+    }
+    
+    .binance-id-box .bi-value {
+        font-size: 14px;
+    }
+    
+    .binance-verification .bv-input-group {
+        flex-direction: column;
+    }
+    
+    .binance-verification .bv-verify-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
 /* ============================================
    END OF STYLE.CSS
    ============================================ */
