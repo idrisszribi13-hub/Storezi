@@ -1,20 +1,15 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="ar" dir="ltr">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
     <title>ZI Store 🚀</title>
-    
-    <!-- Favicons -->
+    <!-- أيقونة الموقع -->
     <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon16.png">
     <link rel="apple-touch-icon" href="favicon.png">
-    
-    <!-- External Libraries -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-    
-    <!-- Main Styles -->
     <link rel="stylesheet" href="style.css" />
     <link rel="manifest" href="manifest.json" />
 
@@ -27,7 +22,11 @@
         });
     </script>
 
-    <!-- Hide loading screen immediately -->
+    <style>
+
+    </style>
+
+    <!-- إخفاء فوري لشاشة التحميل -->
     <script>
         (function() {
             function hideNow() {
@@ -52,7 +51,7 @@
 <body>
 
     <!-- ============================================ -->
-    <!-- Loading Screen -->
+    <!-- شاشة التحميل -->
     <!-- ============================================ -->
     <div id="loadingScreen">
         <div class="loader-container">
@@ -63,13 +62,13 @@
                 <div class="spinner-ring"></div>
                 <div class="loader-icon">🚀</div>
             </div>
-            <div class="loader-text" id="loadingStatus">Loading...</div>
+            <div class="loader-text" id="loadingStatus">جاري التحميل...</div>
             <div class="loader-subtext">ZI STORE</div>
         </div>
     </div>
 
     <!-- ============================================ -->
-    <!-- Toast Notification -->
+    <!-- Toast -->
     <!-- ============================================ -->
     <div id="toast" class="toast">
         <span class="toast-icon"><i class="fas fa-check-circle"></i></span>
@@ -78,46 +77,23 @@
     </div>
 
     <!-- ============================================ -->
-    <!-- Email Verification Containers -->
-    <!-- ============================================ -->
-    <div id="verificationDialogContainer" style="display:none;"></div>
-    <div id="verificationSuccessContainer" style="display:none;"></div>
-
-    <!-- ============================================ -->
-    <!-- Product Detail Modal -->
-    <!-- ============================================ -->
-    <div class="modal-overlay" id="productDetailModal">
-        <div class="modal-content">
-            <button class="modal-close" onclick="closeProductDetailModal()">
-                <i class="fas fa-times"></i>
-            </button>
-            <div id="productDetailContent">
-                <div style="text-align:center;padding:40px;color:var(--text-secondary);">
-                    <i class="fas fa-spinner fa-spin" style="font-size:32px;"></i>
-                    <p style="margin-top:12px;">Loading product...</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ============================================ -->
     <!-- Cookie Consent -->
     <!-- ============================================ -->
     <div id="cookieConsent" class="cookie-consent">
         <div class="cookie-text">
             <span class="cookie-icon">🍪</span>
-            <strong>We use cookies! 😊</strong>
-            <small>To improve your experience, we use essential cookies that keep our site running smoothly. We'd also like to use analytics cookies to understand how you use our site – but only with your consent.</small>
+            <strong>نحن نستخدم ملفات تعريف الارتباط! 😊</strong>
+            <small>لتحسين تجربتك، نستخدم ملفات تعريف الارتباط الأساسية التي تحافظ على تشغيل موقعنا بسلاسة. نود أيضًا استخدام ملفات تعريف الارتباط التحليلية لفهم كيفية استخدامك لموقعنا - ولكن فقط بموافقتك.</small>
         </div>
         <div class="cookie-buttons">
             <button class="btn-settings" onclick="openCookieSettings()">
-                <i class="fas fa-cog"></i> Settings
+                <i class="fas fa-cog"></i> إعدادات
             </button>
             <button class="btn-reject" onclick="rejectCookies()">
-                Reject All
+                رفض الكل
             </button>
             <button class="btn-accept" onclick="acceptCookies()">
-                ✅ Accept All
+                ✅ قبول الكل
             </button>
         </div>
     </div>
@@ -126,12 +102,12 @@
     <div id="cookieSettingsModal" class="cookie-settings-modal">
         <div class="modal-content">
             <div class="modal-title">
-                <i class="fas fa-cookie-bite"></i> Cookie Settings
+                <i class="fas fa-cookie-bite"></i> إعدادات ملفات تعريف الارتباط
             </div>
             <div class="setting-item">
                 <div class="setting-info">
-                    <h4>🛡️ Essential</h4>
-                    <p>Required for the site to function. Cannot be disabled.</p>
+                    <h4>🛡️ الأساسية (Essential)</h4>
+                    <p>مطلوبة لتشغيل الموقع. لا يمكن تعطيلها.</p>
                 </div>
                 <div class="toggle-switch">
                     <input type="checkbox" checked disabled />
@@ -140,8 +116,8 @@
             </div>
             <div class="setting-item">
                 <div class="setting-info">
-                    <h4>📊 Analytics</h4>
-                    <p>Help us understand how you use the site to improve it.</p>
+                    <h4>📊 التحليلية (Analytics)</h4>
+                    <p>تساعدنا على فهم كيفية استخدامك للموقع لتحسينه.</p>
                 </div>
                 <div class="toggle-switch">
                     <input type="checkbox" id="analyticsToggle" checked />
@@ -149,14 +125,14 @@
                 </div>
             </div>
             <div class="modal-actions">
-                <button class="btn-close-modal" onclick="closeCookieSettings()">Cancel</button>
-                <button class="btn-save" onclick="saveCookieSettings()">💾 Save Settings</button>
+                <button class="btn-close-modal" onclick="closeCookieSettings()">إلغاء</button>
+                <button class="btn-save" onclick="saveCookieSettings()">💾 حفظ الإعدادات</button>
             </div>
         </div>
     </div>
 
     <!-- ============================================ -->
-    <!-- Authentication Section -->
+    <!-- واجهة تسجيل الدخول -->
     <!-- ============================================ -->
     <div id="authSection" style="display:none;">
         <div class="auth-container" id="loginContainer">
@@ -164,10 +140,10 @@
             <div class="auth-subtitle" data-i18n="login_subtitle">Login to access your scripts</div>
             <button class="google-login-btn" id="googleLoginBtn" onclick="loginWithGoogle()">
                 <i class="fab fa-google" style="color:#4285F4;"></i>
-                <span class="btn-text" data-i18n="login_with_google">Login with Google</span>
+                <span class="btn-text" data-i18n="login_with_google">تسجيل الدخول عبر Google</span>
                 <span class="btn-loader"></span>
             </button>
-            <div class="auth-divider" data-i18n="or">Or</div>
+            <div class="auth-divider" data-i18n="or">أو</div>
             <div class="auth-field"><label data-i18n="email">Email</label><input type="email" id="loginEmail" placeholder="your@email.com" /></div>
             <div class="auth-field"><label data-i18n="password">Password</label><input type="password" id="loginPassword" placeholder="••••••••" /></div>
             <div class="forgot-link"><a onclick="openForgotPassword()" data-i18n="forgot_password">Forgot password?</a></div>
@@ -182,10 +158,10 @@
             <div class="auth-subtitle" data-i18n="register_subtitle">Join ZI Store today</div>
             <button class="google-login-btn" onclick="loginWithGoogle()">
                 <i class="fab fa-google" style="color:#4285F4;"></i>
-                <span class="btn-text" data-i18n="login_with_google">Login with Google</span>
+                <span class="btn-text" data-i18n="login_with_google">تسجيل الدخول عبر Google</span>
                 <span class="btn-loader"></span>
             </button>
-            <div class="auth-divider" data-i18n="or">Or</div>
+            <div class="auth-divider" data-i18n="or">أو</div>
             <div class="auth-field"><label data-i18n="full_name">Full Name</label><input type="text" id="registerName" placeholder="Your name" /></div>
             <div class="auth-field"><label data-i18n="email">Email</label><input type="email" id="registerEmail" placeholder="your@email.com" /></div>
             <div class="auth-field"><label data-i18n="password">Password</label><input type="password" id="registerPassword" placeholder="Min 6 characters" /></div>
@@ -203,7 +179,7 @@
     </div>
 
     <!-- ============================================ -->
-    <!-- Main Application -->
+    <!-- التطبيق الرئيسي -->
     <!-- ============================================ -->
     <div id="mainApp" style="display:none;">
 
@@ -214,12 +190,13 @@
                 <span>ZI Store</span>
             </div>
 
-            <!-- Language Selector -->
+            <!-- زر اختيار اللغة -->
             <div class="language-selector" onclick="window.showLanguageMenu()">
                 <span id="currentLangFlag">🇬🇧</span>
                 <span id="currentLangCode">EN</span>
                 <i class="fas fa-chevron-down"></i>
 
+                <!-- قائمة اللغات -->
                 <div class="language-menu" id="languageMenu">
                     <div class="lang-option" data-lang="ar" onclick="window.setLanguage('ar')">
                         <span class="lang-flag">🇸🇦</span>
@@ -294,7 +271,7 @@
         <!-- SLIDER -->
         <div class="slider-container">
             <div class="slider-wrapper" id="sliderWrapper">
-                <!-- Slides will be generated by JavaScript -->
+                <!-- سيتم إنشاء الشرائح بواسطة JavaScript -->
             </div>
             <div class="slider-dots" id="sliderDots"></div>
             <button class="slider-btn prev" onclick="prevSlide()"><i class="fas fa-chevron-left"></i></button>
@@ -349,16 +326,17 @@
             </div>
 
             <div style="display:flex; justify-content:center; gap:16px; flex-wrap:wrap; margin-bottom:12px;">
+                <!-- زر الدعم في الفوتر -->
                 <button class="support-footer-btn" onclick="openSupportModal()">
                     <i class="fas fa-headset"></i>
-                    <span data-i18n="support">Support</span>
+                    <span data-i18n="support">الدعم الفني</span>
                 </button>
             </div>
 
             <div class="legal-links" style="display:flex; justify-content:center; gap:16px; flex-wrap:wrap; margin-bottom:12px; font-size:13px;">
-                <a href="privacy.html" style="color:var(--text-secondary); opacity:0.6; text-decoration:none;">Privacy Policy</a>
-                <a href="refund.html" style="color:var(--text-secondary); opacity:0.6; text-decoration:none;">Refund Policy</a>
-                <a href="terms.html" style="color:var(--text-secondary); opacity:0.6; text-decoration:none;">Terms & Conditions</a>
+                <a href="privacy.html" style="color:var(--text-secondary); opacity:0.6; text-decoration:none;">سياسة الخصوصية</a>
+                <a href="refund.html" style="color:var(--text-secondary); opacity:0.6; text-decoration:none;">سياسة الاسترداد</a>
+                <a href="terms.html" style="color:var(--text-secondary); opacity:0.6; text-decoration:none;">الشروط والأحكام</a>
             </div>
             <div class="copyright">© 2026 <span>ZI Store</span>. All rights reserved.</div>
         </footer>
@@ -366,7 +344,7 @@
     </div>
 
     <!-- ============================================ -->
-    <!-- Bottom Cart Bar -->
+    <!-- شريط السلة السفلي -->
     <!-- ============================================ -->
     <div class="bottom-cart-bar" id="bottomCartBar">
         <div class="cart-info">
@@ -381,67 +359,77 @@
     </div>
 
     <!-- ============================================ -->
-    <!-- Floating Support Button -->
+    <!-- زر الدعم العائم (Floating Support Button) -->
     <!-- ============================================ -->
     <div class="support-float" id="supportFloat">
-        <button class="btn btn-main" onclick="toggleSupportMenu()" title="Support">
+        <!-- الزر الرئيسي -->
+        <button class="btn btn-main" onclick="toggleSupportMenu()" title="الدعم الفني">
             <span class="pulse-ring"></span>
             <i class="fas fa-headset"></i>
             <span class="badge-count">!</span>
         </button>
 
+        <!-- الأزرار الفرعية -->
         <div class="sub-buttons">
-            <a href="https://wa.me/1234567890?text=Hello%20I%20need%20help" 
+            <!-- واتساب -->
+            <a href="https://wa.me/1234567890?text=مرحباً%20أحتاج%20مساعدة" 
                target="_blank" 
                class="btn btn-whatsapp" 
-               title="Contact via WhatsApp">
+               title="تواصل عبر واتساب">
                 <i class="fab fa-whatsapp"></i>
             </a>
+
+            <!-- تيليجرام -->
             <a href="https://t.me/Mitalica69?start=support" 
                target="_blank" 
                class="btn btn-telegram" 
-               title="Contact via Telegram">
+               title="تواصل عبر تيليجرام">
                 <i class="fab fa-telegram-plane"></i>
             </a>
-            <a href="mailto:support@zi-store.online?subject=Help%20Request" 
+
+            <!-- بريد إلكتروني -->
+            <a href="mailto:support@zi-store.online?subject=طلب%20مساعدة" 
                class="btn btn-email" 
-               title="Send an email">
+               title="أرسل بريداً إلكترونياً">
                 <i class="fas fa-envelope"></i>
             </a>
         </div>
-        <span class="label">Support</span>
+
+        <span class="label">دعم</span>
     </div>
 
     <!-- ============================================ -->
-    <!-- Support Modal -->
+    <!-- مودال الدعم الفني (Support Modal) -->
     <!-- ============================================ -->
     <div class="modal-overlay support-modal" id="supportModal">
         <div class="modal-content">
             <button class="modal-close" onclick="closeSupportModal()"><i class="fas fa-times"></i></button>
             <div class="modal-title">
                 <i class="fas fa-headset" style="color:var(--primary);"></i>
-                <span data-i18n="support">Support</span>
+                <span data-i18n="support">الدعم الفني</span>
             </div>
 
             <p style="font-size:14px; color:var(--text-secondary); opacity:0.5; text-align:center; margin-bottom:4px;">
-                Choose your preferred contact method
+                اختر طريقة التواصل المفضلة لديك
             </p>
 
             <div class="support-options">
-                <a href="https://wa.me/1234567890?text=Hello%20I%20need%20help" 
+                <!-- واتساب -->
+                <a href="https://wa.me/1234567890?text=مرحباً%20أحتاج%20مساعدة" 
                    target="_blank" 
                    class="support-option">
                     <div class="icon-wrapper whatsapp">
                         <i class="fab fa-whatsapp"></i>
                     </div>
                     <div class="info">
-                        <div class="title">WhatsApp</div>
-                        <div class="subtitle">Fast reply within minutes</div>
+                        <div class="title">واتساب</div>
+                        <div class="subtitle">رد سريع خلال دقائق</div>
                     </div>
-                    <span class="badge-support">Available</span>
+                    <span class="badge-support">متاح</span>
                     <i class="fas fa-chevron-right arrow"></i>
                 </a>
 
+                <!-- تيليجرام -->
                 <a href="https://t.me/Mitalica69?start=support" 
                    target="_blank" 
                    class="support-option">
@@ -449,33 +437,35 @@
                         <i class="fab fa-telegram-plane"></i>
                     </div>
                     <div class="info">
-                        <div class="title">Telegram</div>
-                        <div class="subtitle">Direct support chat</div>
+                        <div class="title">تيليجرام</div>
+                        <div class="subtitle">تواصل مباشر مع الدعم</div>
                     </div>
-                    <span class="badge-support">Available</span>
+                    <span class="badge-support">متاح</span>
                     <i class="fas fa-chevron-right arrow"></i>
                 </a>
 
-                <a href="mailto:support@zi-store.online?subject=Help%20Request" 
+                <!-- بريد إلكتروني -->
+                <a href="mailto:support@zi-store.online?subject=طلب%20مساعدة" 
                    class="support-option">
                     <div class="icon-wrapper email">
                         <i class="fas fa-envelope"></i>
                     </div>
                     <div class="info">
-                        <div class="title">Email</div>
-                        <div class="subtitle">Response within 24 hours</div>
+                        <div class="title">البريد الإلكتروني</div>
+                        <div class="subtitle">دعم خلال 24 ساعة</div>
                     </div>
                     <i class="fas fa-chevron-right arrow"></i>
                 </a>
 
+                <!-- اتصال هاتفي (اختياري) -->
                 <a href="tel:+1234567890" 
                    class="support-option">
                     <div class="icon-wrapper phone">
                         <i class="fas fa-phone"></i>
                     </div>
                     <div class="info">
-                        <div class="title">Phone Call</div>
-                        <div class="subtitle">Direct contact</div>
+                        <div class="title">اتصال هاتفي</div>
+                        <div class="subtitle">تواصل مباشر</div>
                     </div>
                     <i class="fas fa-chevron-right arrow"></i>
                 </a>
@@ -483,16 +473,58 @@
 
             <div class="support-footer">
                 <i class="fas fa-clock"></i> 
-                Support hours: 24/7 · 
+                أوقات الدعم: 24/7 · 
                 <i class="fas fa-reply-all"></i> 
-                We reply within 24 hours
+                نرد خلال 24 ساعة
             </div>
         </div>
     </div>
 
     <!-- ============================================ -->
-    <!-- All Other Modals -->
+    <!-- جميع المودالات الأخرى (مختصرة) -->
     <!-- ============================================ -->
+
+    <!-- Preview Modal -->
+    <div class="modal-overlay preview-modal" id="previewModal">
+        <div class="preview-content">
+            <div class="preview-header">
+                <button class="preview-back" onclick="closePreviewModal()"><i class="fas fa-arrow-left"></i></button>
+                <div class="preview-header-title" data-i18n="details">Product Details</div>
+                <button class="preview-share" onclick="shareFromPreview()" data-i18n="share"><i class="fas fa-share-alt"></i></button>
+            </div>
+            <div class="preview-image-wrapper">
+                <img id="previewImage" src="" alt="Product" />
+                <div class="preview-badge" id="previewBadge">PREMIUM</div>
+            </div>
+            <div class="preview-body">
+                <div class="preview-verified" id="previewVerified" data-i18n="verified">✅ 100% VERIFIED WORKING PRODUCT</div>
+                <h2 class="preview-name" id="previewName">Product Name</h2>
+                <p class="preview-desc" id="previewDescription">Description here</p>
+                <div class="preview-video" id="previewVideoContainer" style="display:none;">
+                    <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:var(--radius-md);">
+                        <iframe id="previewVideo" src="" frameborder="0" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
+                    </div>
+                </div>
+                <div class="preview-features" id="previewFeatures">
+                    <div class="features-header"><i class="fas fa-check-circle"></i> <span data-i18n="features">Features</span></div>
+                    <ul class="features-list"></ul>
+                </div>
+                <div id="previewVipPricing" style="display:none;">
+                    <div class="vip-pricing-section">
+                        <div class="vip-pricing-header"><i class="fas fa-crown"></i> VIP Pricing</div>
+                        <div class="vip-pricing-grid" id="vipPricingGrid"></div>
+                        <button class="vip-add-to-cart" onclick="addVipPlanToCart(window._currentProduct)"><i class="fas fa-shopping-cart"></i> <span data-i18n="add_to_cart">Add to Cart</span></button>
+                        <div class="vip-footer">Checkout via Telegram <a href="https://t.me/Mitalica69" target="_blank">@Mitalica69</a>. By purchasing you agree to the <a href="#">Terms</a>. See the <a href="#">refund policy</a>.</div>
+                    </div>
+                </div>
+                <div id="ratingSection"></div>
+                <div class="preview-action">
+                    <button class="preview-add-btn" id="previewAddBtn" onclick="addToCartFromPreview()"><i class="fas fa-cart-plus"></i> <span data-i18n="add_to_cart">Add to Cart</span></button>
+                    <span class="preview-price" id="previewPrice">$0.00</span>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Share Modal -->
     <div class="modal-overlay share-modal" id="shareModal">
@@ -519,8 +551,7 @@
                     <div class="payment-option" id="optionLitecoin" onclick="selectPayment('litecoin')"><i class="fab fa-bitcoin"></i><div class="p-label" data-i18n="litecoin">Litecoin</div><div class="p-sub">LTC</div><div class="p-check"><i class="fas fa-check"></i></div></div>
                     <div class="payment-option" id="optionUsdt" onclick="selectPayment('usdt')"><i class="fas fa-coins"></i><div class="p-label" data-i18n="usdt">USDT</div><div class="p-sub">ERC20</div><div class="p-check"><i class="fas fa-check"></i></div></div>
                     <div class="payment-option" id="optionTelegram" onclick="selectPayment('telegram')"><i class="fab fa-telegram-plane"></i><div class="p-label" data-i18n="telegram">Telegram</div><div class="p-sub">Direct</div><div class="p-check"><i class="fas fa-check"></i></div></div>
-                    <!-- REPLACED OLD BINANCE WITH BINANCE ID -->
-                    <div class="payment-option" id="optionBinanceId" onclick="selectPayment('binanceId')"><i class="fab fa-binance" style="color:#f2a900;"></i><div class="p-label">Binance ID</div><div class="p-sub">Direct Transfer</div><div class="p-check"><i class="fas fa-check"></i></div></div>
+                    <div class="payment-option" id="optionBinance" onclick="selectPayment('binance')"><i class="fab fa-bitcoin" style="color:#f2a900;"></i><div class="p-label" data-i18n="binance">Binance</div><div class="p-sub">USDT (Manual)</div><div class="p-check"><i class="fas fa-check"></i></div></div>
                 </div>
                 <div class="payment-summary">
                     <div class="ps-row"><span class="ps-label" data-i18n="total">Total</span><span class="ps-value" id="payableTotal">$0.00</span></div>
@@ -595,14 +626,6 @@
             <div class="menu-item" onclick="openRequestsModal();closeUserMenuFull();"><i class="fas fa-file-alt"></i><span class="menu-label" data-i18n="requests">Requests</span></div>
             <div class="menu-item" onclick="openReferralModal();closeUserMenuFull();"><i class="fas fa-gift"></i><span class="menu-label" data-i18n="referrals_title">Referrals</span></div>
             <div class="menu-item" onclick="openLicenceModal()"><i class="fas fa-key"></i><span class="menu-label" data-i18n="activate_script">🔑 Activate Script</span></div>
-            
-            <!-- Email Verification Button -->
-            <div class="menu-item" id="verifyEmailMenuItem" onclick="sendEmailVerification()" style="display:none;">
-                <i class="fas fa-envelope"></i>
-                <span class="menu-label">📧 Verify Email</span>
-                <span class="menu-badge" id="verifyEmailBadge" style="background:var(--warning);color:#0a0a1a;">⚠️</span>
-            </div>
-            
             <div class="menu-divider"></div>
             <div class="menu-item" onclick="toggleLicencesList()">
                 <i class="fas fa-key"></i>
@@ -775,7 +798,7 @@
         </div>
     </div>
 
-    <!-- Product Modal (Admin) -->
+    <!-- Product Modal -->
     <div class="modal-overlay" id="productModal">
         <div class="modal-content" style="max-width:540px;">
             <button class="modal-close" onclick="closeProductModal()"><i class="fas fa-times"></i></button>
@@ -1225,135 +1248,6 @@
         </div>
     </div>
 
-    <!-- ============================================ -->
-    <!-- Binance ID Section (New) - Appears when Binance ID is selected -->
-    <!-- ============================================ -->
-    <div class="binance-id-section" id="binanceIdSection" style="display:none;">
-        <div class="binance-id-box">
-            <div class="bi-header">
-                <i class="fab fa-binance"></i>
-                <span>Transfer via Binance ID</span>
-            </div>
-            <div class="bi-content">
-                <div class="bi-row">
-                    <span class="bi-label">📤 Transfer to:</span>
-                    <span class="bi-value" id="binanceIdDisplay">748838383</span>
-                    <button onclick="copyBinanceId()" class="bi-copy-btn">
-                        <i class="fas fa-copy"></i>
-                    </button>
-                </div>
-                <div class="bi-row">
-                    <span class="bi-label">💰 Amount:</span>
-                    <span class="bi-value" id="binanceAmountDisplay">$0.00</span>
-                </div>
-                <div class="bi-row">
-                    <span class="bi-label">📝 Order ID:</span>
-                    <span class="bi-value" id="binanceOrderDisplay">#------</span>
-                </div>
-                <div class="bi-divider"></div>
-                <div class="bi-instructions">
-                    <p><i class="fas fa-info-circle" style="color:#f2a900;"></i> Payment Instructions:</p>
-                    <ol>
-                        <li>Open the Binance app</li>
-                        <li>Go to <strong>Transfer</strong></li>
-                        <li>Select <strong>Binance ID</strong></li>
-                        <li>Paste the ID: <strong id="binanceIdInline">748838383</strong></li>
-                        <li>Enter amount: <strong id="binanceAmountInline">$0.00</strong></li>
-                        <li>Send the payment</li>
-                        <li>Copy the <strong>Transaction ID</strong></li>
-                        <li>Paste it in the field below to confirm</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-        
-        <div class="binance-verification">
-            <div class="bv-header">
-                <i class="fas fa-check-circle"></i>
-                <span>Confirm Payment</span>
-            </div>
-            <div class="bv-body">
-                <div class="bv-field">
-                    <label for="txHashInput">📋 Transaction ID:</label>
-                    <div class="bv-input-group">
-                        <input type="text" id="txHashInput" 
-                               placeholder="Example: 0x7a8b9c... or 443016893778911232"
-                               onpaste="handleTxPaste(event)" />
-                        <button onclick="verifyTransaction()" class="bv-verify-btn">
-                            <i class="fas fa-search"></i> Verify
-                        </button>
-                    </div>
-                    <div class="bv-hint">
-                        <i class="fas fa-lightbulb"></i>
-                        You can paste the Transaction ID from the Binance app
-                    </div>
-                </div>
-                
-                <!-- Screenshot Upload -->
-                <div class="bv-upload">
-                    <label>🖼️ Or upload a screenshot:</label>
-                    <div class="bv-drop-zone" id="dropZone" onclick="document.getElementById('screenshotInput').click()">
-                        <i class="fas fa-cloud-upload-alt"></i>
-                        <p>Drag image here or click to select</p>
-                        <input type="file" id="screenshotInput" accept="image/*" onchange="handleScreenshot(event)" />
-                    </div>
-                    <div id="screenshotPreview" style="display:none; margin-top:8px;">
-                        <img id="screenshotImg" src="#" alt="Screenshot" style="max-width:100%; max-height:150px; border-radius:8px; border:1px solid var(--border);" />
-                        <button onclick="removeScreenshot()" style="margin-top:4px; background:var(--danger); color:#fff; border:none; padding:4px 12px; border-radius:4px; cursor:pointer; font-size:12px;">
-                            <i class="fas fa-times"></i> Remove
-                        </button>
-                    </div>
-                </div>
-                
-                <div id="verificationResult" class="bv-result" style="display:none;"></div>
-                
-                <button onclick="submitManualPayment()" class="bv-submit-btn" id="submitPaymentBtn">
-                    <i class="fas fa-check-circle"></i> Confirm Payment
-                </button>
-                
-                <div class="bv-note">
-                    <i class="fas fa-clock"></i>
-                    Your request will be reviewed within 5-10 minutes
-                    <br>
-                    <span style="font-size:11px; opacity:0.4;">
-                        For inquiries: <a href="https://t.me/Mitalica69" target="_blank" style="color:var(--primary);">@Mitalica69</a>
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ============================================ -->
-    <!-- Payment Options (Main) -->
-    <!-- ============================================ -->
-    <div class="payment-options">
-        <div class="payment-option" id="optionLitecoin" onclick="selectPayment('litecoin')">
-            <i class="fab fa-bitcoin"></i>
-            <div class="p-label" data-i18n="litecoin">Litecoin</div>
-            <div class="p-sub">LTC</div>
-            <div class="p-check"><i class="fas fa-check"></i></div>
-        </div>
-        <div class="payment-option" id="optionUsdt" onclick="selectPayment('usdt')">
-            <i class="fas fa-coins"></i>
-            <div class="p-label" data-i18n="usdt">USDT</div>
-            <div class="p-sub">ERC20</div>
-            <div class="p-check"><i class="fas fa-check"></i></div>
-        </div>
-        <div class="payment-option" id="optionTelegram" onclick="selectPayment('telegram')">
-            <i class="fab fa-telegram-plane"></i>
-            <div class="p-label" data-i18n="telegram">Telegram</div>
-            <div class="p-sub">Direct</div>
-            <div class="p-check"><i class="fas fa-check"></i></div>
-        </div>
-        <!-- Binance ID option (replaces old Binance) -->
-        <div class="payment-option" id="optionBinanceId" onclick="selectPayment('binanceId')">
-            <i class="fab fa-binance" style="color:#f2a900;"></i>
-            <div class="p-label">Binance ID</div>
-            <div class="p-sub">Direct Transfer</div>
-            <div class="p-check"><i class="fas fa-check"></i></div>
-        </div>
-    </div>
-
     <!-- Social Proof Toast -->
     <div class="social-proof-toast" id="socialProofToast">
         <div class="sp-icon">🛒</div>
@@ -1367,10 +1261,10 @@
     <div class="floating-hearts" id="floatingHearts"></div>
 
     <!-- ============================================ -->
-    <!-- JavaScript Functions for Support -->
+    <!-- دوال JavaScript للدعم -->
     <!-- ============================================ -->
     <script>
-        // Support functions
+        // دوال الدعم الفني
         function toggleSupportMenu() {
             const float = document.getElementById('supportFloat');
             if (float) {
@@ -1384,6 +1278,7 @@
                 modal.classList.add('open');
                 document.body.style.overflow = 'hidden';
             }
+            // إغلاق القائمة العائمة إذا كانت مفتوحة
             const float = document.getElementById('supportFloat');
             if (float) {
                 float.classList.remove('open');
@@ -1398,23 +1293,14 @@
             }
         }
 
-        // Close product detail modal
-        window.closeProductDetailModal = function() {
-            const modal = document.getElementById('productDetailModal');
-            if (modal) {
-                modal.classList.remove('open');
-                document.body.style.overflow = '';
-            }
-        };
-
-        // Expose functions globally
+        // تصدير الدوال للنطاق العام
         window.toggleSupportMenu = toggleSupportMenu;
         window.openSupportModal = openSupportModal;
         window.closeSupportModal = closeSupportModal;
     </script>
 
     <!-- ============================================ -->
-    <!-- Scripts -->
+    <!-- السكربتات -->
     <!-- ============================================ -->
     <script type="importmap">
         {
@@ -1429,4 +1315,4 @@
     <script type="module" src="languages.js"></script>
     <script type="module" src="script.js"></script>
 </body>
-                                        </html>
+    </html>
