@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - Full Version with Binance ID Integration
+// SCRIPT.JS - ZI Store - Full Version with all fixes
 // ============================================================
 
 // ============================================================
@@ -112,8 +112,6 @@ let ordersFilter = 'all';
 let _selectedVipPlan = '1m';
 let allLicences = [];
 let isProcessingOrder = false;
-
-// Admin state
 let isAdminCached = false;
 let adminCheckPromise = null;
 
@@ -130,7 +128,6 @@ let marqueeSettings = {
     text: '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support'
 };
 
-// Featured products variables
 let featuredProducts = [];
 let featuredRotationInterval = null;
 let featuredCurrentIndex = 0;
@@ -141,30 +138,14 @@ let featuredSettings = {
     selectedProductIds: []
 };
 
-// User profile
 let userProfile = {
-    name: '',
-    email: '',
-    photoURL: '',
-    telegram: '',
-    telegramChatId: '',
-    location: 'Tunisia',
-    lang: 'English',
-    joined: '',
-    history: [],
-    requests: [],
-    usedCodes: [],
-    referralCode: '',
-    referrals: [],
-    referralRewards: 0,
-    rp: 0,
-    useRpForCart: false,
-    isBanned: false,
-    lastDailyReward: 0,
-    licences: []
+    name: '', email: '', photoURL: '', telegram: '', telegramChatId: '',
+    location: 'Tunisia', lang: 'English', joined: '',
+    history: [], requests: [], usedCodes: [], referralCode: '',
+    referrals: [], referralRewards: 0, rp: 0, useRpForCart: false,
+    isBanned: false, lastDailyReward: 0, licences: []
 };
 
-// Fallback products
 const fallbackProducts = [
     { id: "fallback_1", name: "Mergedom", price: 11, badge: "VIP", status: "available", image: "https://picsum.photos/seed/mergedom/400/300", downloadLink: "", description: "Mergedom game with premium features.", features: ["Level Auto Bypass", "Unlimited Boost", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() },
     { id: "fallback_2", name: "Numbers Game 2048", price: 0, badge: "VIP", status: "available", image: "https://picsum.photos/seed/2048/400/300", downloadLink: "", description: "Classic 2048 game with exclusive mod features.", features: ["Unlimited Device", "Block Spawn Modify", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() },
@@ -172,7 +153,6 @@ const fallbackProducts = [
     { id: "fallback_4", name: "Smart Telegram Bot", price: 0, badge: "FREE", status: "available", image: "https://picsum.photos/seed/bot/400/300", downloadLink: "https://www.mediafire.com/file/example/bot.zip", description: "Advanced Telegram bot with auto-reply and group management.", features: ["Auto Replies", "Group Management", "Notifications"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() }
 ];
 
-// Discount codes and wallets
 const discountCodes = { 'SAVE10': { discount: 10 }, 'SAVE15': { discount: 15 }, 'WELCOME': { discount: 10 }, 'VIP2024': { discount: 15 }, 'SUMMER': { discount: 10 } };
 const paymentWallets = {
     litecoin: { name: 'Litecoin', icon: 'fab fa-bitcoin', network: 'LTC', address: 'ltc1qy6ksn0g4hm6hlh93fwekgz8x74vr6hvdmh6zz8', currency: 'LTC', color: '#f2a900' },
@@ -234,9 +214,6 @@ window.hideLoadingScreenManually = function() {
     }
 };
 
-// ============================================================
-// Show Main App
-// ============================================================
 window.showMainApp = function() {
     const mainApp = document.getElementById('mainApp');
     if (mainApp) {
@@ -1816,7 +1793,6 @@ window.openDetails = function(id) {
     
     // Quantity options
     const existingQuantitySection = document.getElementById('previewQuantitySection');
-    // إذا كان العنصر غير موجود، لا تحاول إزالته
     if (existingQuantitySection) {
         existingQuantitySection.remove();
     }
@@ -1842,7 +1818,6 @@ window.openDetails = function(id) {
             if (body) {
                 body.appendChild(section);
             } else {
-                // إذا لم يكن هناك .preview-body، أضفه بعد الـ description
                 const desc = document.getElementById('previewDescription');
                 if (desc && desc.parentNode) {
                     desc.parentNode.insertBefore(section, desc.nextSibling);
@@ -2121,7 +2096,7 @@ window.continuePayment = function() {
         if (txInput) txInput.style.display = 'block';
         if (mainBtn) {
             mainBtn.style.display = 'block';
-            mainBtn.innerHTML = '<i class="fas fa-check"></i> تأكيد الدفع';
+            mainBtn.innerHTML = '<i class="fas fa-check"></i> Confirm Payment';
             mainBtn.onclick = placeOrder;
         }
         fetchCryptoPrices();
@@ -2130,9 +2105,9 @@ window.continuePayment = function() {
         if (telegramContact) telegramContact.style.display = 'block';
         if (mainBtn) {
             mainBtn.style.display = 'block';
-            mainBtn.innerHTML = '<i class="fab fa-telegram-plane"></i> تواصل عبر Telegram';
+            mainBtn.innerHTML = '<i class="fab fa-telegram-plane"></i> Contact via Telegram';
             mainBtn.onclick = function() {
-                const message = `🛒 طلب جديد\n\nالإجمالي: $${finalTotal.toFixed(2)}\nالمنتجات: ${cart.map(i => i.name).join(', ')}`;
+                const message = `🛒 New Order\n\nTotal: $${finalTotal.toFixed(2)}\nProducts: ${cart.map(i => i.name).join(', ')}`;
                 window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(message)}`, '_blank');
                 placeOrderTelegram();
             };
@@ -2246,7 +2221,7 @@ window.handleScreenshot = function(event) {
         const img = document.getElementById('screenshotImg');
         img.src = e.target.result;
         preview.style.display = 'flex';
-        document.querySelector('.bv-drop-zone p').textContent = '✅ تم اختيار الصورة';
+        document.querySelector('.bv-drop-zone p').textContent = '✅ Image selected';
     };
     reader.readAsDataURL(file);
 };
@@ -2255,7 +2230,7 @@ window.removeScreenshot = function() {
     document.getElementById('screenshotPreview').style.display = 'none';
     document.getElementById('screenshotImg').src = '#';
     document.getElementById('screenshotInput').value = '';
-    document.querySelector('.bv-drop-zone p').textContent = 'اسحب الصورة هنا أو اضغط للاختيار';
+    document.querySelector('.bv-drop-zone p').textContent = 'Drag image here or click to select';
 };
 
 window.submitManualPayment = function() {
@@ -5161,14 +5136,10 @@ window.closeNewRequestModal = closeNewRequestModal;
 window.submitRequest = submitRequest;
 window.selectPayment = selectPayment;
 window.continuePayment = continuePayment;
-
-// ===== FIX: goToStep1 =====
 window.goToStep1 = function() {
     document.getElementById('paymentStep1').style.display = 'block';
     document.getElementById('paymentStep2').classList.remove('active');
 };
-
-// ===== FIX: copyWalletAddress =====
 window.copyWalletAddress = function() {
     const address = document.getElementById('walletAddressDisplay').textContent;
     if (address) {
@@ -5185,8 +5156,6 @@ window.copyWalletAddress = function() {
         });
     }
 };
-
-// ===== FIX: renderPaymentProducts as global =====
 window.renderPaymentProducts = function() {
     const container = document.getElementById('paymentProductsList');
     if (!container) return;
@@ -5213,7 +5182,6 @@ window.renderPaymentProducts = function() {
         `;
     }).join('');
 };
-
 window.placeOrder = placeOrder;
 window.openPaymentModal = openPaymentModal;
 window.closePaymentModal = closePaymentModal;
@@ -5292,18 +5260,12 @@ window.removeQuantityOption = removeQuantityOption;
 window.toggleBadge = toggleBadge;
 window.selectQuantityOption = selectQuantityOption;
 window.loginWithGoogle = loginWithGoogle;
-
-// ============================================================
-// 41. Support Functions (FIX: toggleSupportMenu)
-// ============================================================
-
 window.toggleSupportMenu = function() {
     const float = document.getElementById('supportFloat');
     if (float) {
         float.classList.toggle('open');
     }
 };
-
 window.openSupportModal = function() {
     const modal = document.getElementById('supportModal');
     if (modal) {
@@ -5315,7 +5277,6 @@ window.openSupportModal = function() {
         float.classList.remove('open');
     }
 };
-
 window.closeSupportModal = function() {
     const modal = document.getElementById('supportModal');
     if (modal) {
@@ -5323,31 +5284,26 @@ window.closeSupportModal = function() {
         document.body.style.overflow = '';
     }
 };
-
 window.openWhatsAppSupport = function() {
     const phone = '1234567890';
     const message = 'Hi, I need help';
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
 };
-
 window.openTelegramSupport = function() {
     const username = 'Mitalica69';
     const message = 'Hi, I need help';
     window.open(`https://t.me/${username}?start=support`, '_blank');
 };
-
 window.openEmailSupport = function() {
     const email = 'support@zi-store.online';
     const subject = 'Help Request';
     window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}`;
 };
-
 window.openPhoneSupport = function() {
     const phone = '1234567890';
     window.location.href = `tel:${phone}`;
 };
 
-// Close floating menu on outside click
 document.addEventListener('click', function(e) {
     const float = document.getElementById('supportFloat');
     if (float) {
@@ -5358,7 +5314,6 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// Close support modal on ESC
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         const modal = document.getElementById('supportModal');
@@ -5373,10 +5328,6 @@ document.addEventListener('keydown', function(e) {
 });
 
 console.log('✅ Support system loaded successfully!');
-
-// ============================================================
-// 42. Start App
-// ============================================================
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
