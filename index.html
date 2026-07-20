@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
@@ -7,9 +7,9 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
 
-    <!-- ===== IMPORT MAP (لحل مشكلة Firebase) ===== -->
+    <!-- ===== IMPORT MAP (Fix Firebase) ===== -->
     <script type="importmap">
         {
             "imports": {
@@ -43,7 +43,7 @@
             --radius-md: 14px;
             --radius-lg: 20px;
             --shadow: 0 8px 30px rgba(0,0,0,0.5);
-            --font: 'Tajawal', sans-serif;
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             --transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
@@ -58,7 +58,7 @@
             font-family: var(--font);
             background: var(--bg);
             color: var(--text);
-            direction: rtl;
+            direction: ltr;
             min-height: 100vh;
             overflow-x: hidden;
             transition: background 0.3s, color 0.3s;
@@ -469,7 +469,7 @@
         .product-card .product-actions-top {
             position: absolute;
             top: 8px;
-            left: 8px;
+            right: 8px;
             display: flex;
             gap: 4px;
         }
@@ -592,7 +592,7 @@
             opacity: 0.3;
             border-top: 1px solid var(--border);
         }
-        .product-card .product-footer-icons .icon-item i { margin-left: 2px; }
+        .product-card .product-footer-icons .icon-item i { margin-right: 2px; }
 
         /* ===== Bottom Cart Bar ===== */
         #bottomCartBar {
@@ -794,6 +794,8 @@
             overflow-x: auto;
             padding: 12px 0;
             flex-wrap: nowrap;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 12px;
         }
         #adminPanel .tabs button {
             padding: 6px 14px;
@@ -805,14 +807,30 @@
             cursor: pointer;
             white-space: nowrap;
             transition: var(--transition);
+            flex-shrink: 0;
         }
         #adminPanel .tabs button.active {
             background: var(--primary);
             color: #fff;
             border-color: var(--primary);
         }
-        #adminPanel .tab-content { display: none; padding-top: 12px; }
-        #adminPanel .tab-content.active { display: block; }
+        #adminPanel .tabs button:hover:not(.active) {
+            border-color: var(--primary);
+            color: var(--text);
+        }
+        #adminPanel .tab-content {
+            display: none;
+            padding-top: 12px;
+            animation: fadeIn 0.25s ease;
+        }
+        #adminPanel .tab-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(6px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
         .admin-item {
             display: flex;
             justify-content: space-between;
@@ -911,7 +929,7 @@
         .modal .modal-close {
             position: absolute;
             top: 12px;
-            left: 16px;
+            right: 16px;
             font-size: 24px;
             color: var(--text-secondary);
             cursor: pointer;
@@ -965,7 +983,7 @@
         }
         .payment-btn:hover { opacity: 0.9; }
 
-        /* ===== Binance ID Section (CSS) ===== */
+        /* ===== Binance ID Section ===== */
         .binance-id-section {
             background: var(--bg-secondary);
             border-radius: var(--radius-md);
@@ -1013,7 +1031,7 @@
             border: 1px solid var(--border);
         }
         .bi-instructions p { font-weight: 600; margin-bottom: 4px; color: var(--text); }
-        .bi-instructions ol { margin: 0; padding-right: 20px; opacity: 0.8; }
+        .bi-instructions ol { margin: 0; padding-left: 20px; opacity: 0.8; }
         .bi-instructions li { margin-bottom: 2px; }
         .binance-verification {
             padding: 16px;
@@ -1149,6 +1167,7 @@
             .stats-bar { grid-template-columns: repeat(2, 1fr); }
             .slide-title { font-size: 16px; }
             .auth-container { padding: 20px 16px; }
+            #adminPanel .tabs button { font-size: 12px; padding: 4px 10px; }
         }
         @media (min-width: 768px) {
             .product-grid { grid-template-columns: repeat(3, 1fr); }
@@ -1255,7 +1274,7 @@
             font-size: 9px;
             padding: 0 8px;
             border-radius: 12px;
-            margin-right: 4px;
+            margin-left: 4px;
         }
         .banner-subtitle { font-size: 12px; color: var(--text-secondary); opacity: 0.7; }
         .banner-action {
@@ -1361,10 +1380,356 @@
             gap: 8px;
             transition: var(--transition);
             width: 100%;
-            text-align: right;
+            text-align: left;
         }
         #supportFloat .support-menu button:hover { background: var(--primary-glow); }
         #supportFloat .support-menu button i { width: 20px; color: var(--primary); }
+
+        /* ===== Footer ===== */
+        .site-footer {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            padding: 24px 16px 16px;
+            margin-top: 20px;
+        }
+        .site-footer .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+        .site-footer .footer-social {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+        .site-footer .footer-social a {
+            color: var(--text-secondary);
+            font-size: 22px;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            text-decoration: none;
+        }
+        .site-footer .footer-social a:hover {
+            color: #fff;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+        .site-footer .footer-social a.youtube:hover { color: #ff0000; border-color: #ff0000; }
+        .site-footer .footer-social a.telegram:hover { color: #0088cc; border-color: #0088cc; }
+        .site-footer .footer-links {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .site-footer .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 13px;
+            transition: var(--transition);
+            opacity: 0.6;
+        }
+        .site-footer .footer-links a:hover {
+            color: var(--primary);
+            opacity: 1;
+        }
+        .site-footer .footer-copyright {
+            font-size: 12px;
+            color: var(--text-secondary);
+            opacity: 0.3;
+            text-align: center;
+        }
+        .site-footer .footer-copyright strong {
+            color: var(--primary);
+            opacity: 0.6;
+        }
+
+        /* ===== Admin users grid ===== */
+        .admin-users-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        .admin-user-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 12px;
+            text-align: center;
+        }
+        .admin-user-card.banned { opacity: 0.5; border-color: var(--danger); }
+        .admin-user-card .user-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--primary);
+            margin: 0 auto 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+            color: #fff;
+            overflow: hidden;
+        }
+        .admin-user-card .user-name { font-weight: 600; font-size: 14px; }
+        .admin-user-card .user-email { font-size: 11px; color: var(--text-secondary); opacity: 0.5; word-break: break-all; }
+        .admin-user-card .user-meta { font-size: 11px; color: var(--text-secondary); opacity: 0.4; }
+        .admin-user-card .user-badge {
+            display: inline-block;
+            font-size: 9px;
+            padding: 1px 8px;
+            border-radius: 10px;
+            margin: 2px 0;
+        }
+        .admin-user-card .user-badge.banned { background: var(--danger); color: #fff; }
+        .admin-user-card .user-badge.admin { background: var(--vip-color); color: #0a0a1a; }
+        .admin-user-card .user-actions {
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 6px;
+        }
+        .admin-user-card .user-actions button {
+            padding: 3px 10px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 11px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .admin-user-card .user-actions .btn-view { background: var(--primary); color: #fff; }
+        .admin-user-card .user-actions .btn-ban { background: var(--danger); color: #fff; }
+        .admin-user-card .user-actions .btn-unban { background: var(--success); color: #0a0a1a; }
+        .admin-user-card .user-actions .btn-delete { background: var(--danger); color: #fff; }
+
+        /* ===== Status badges ===== */
+        .status-badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        .status-badge.pending { background: var(--pending-color); color: #0a0a1a; }
+        .status-badge.confirmed { background: var(--success); color: #0a0a1a; }
+        .status-badge.rejected { background: var(--danger); color: #fff; }
+        .status-badge.active { background: var(--success); color: #0a0a1a; }
+        .status-badge.used { background: var(--text-secondary); color: #0a0a1a; }
+        .status-badge.expired { background: var(--danger); color: #fff; }
+        .status-badge.revoked { background: var(--danger); color: #fff; }
+
+        /* ===== VIP Plans ===== */
+        .vip-plan {
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 8px 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+        }
+        .vip-plan.selected {
+            border-color: var(--vip-color);
+            background: var(--primary-glow);
+        }
+        .vip-plan .vip-plan-check {
+            position: absolute;
+            top: 2px;
+            right: 4px;
+            color: var(--vip-color);
+            opacity: 0;
+        }
+        .vip-plan.selected .vip-plan-check { opacity: 1; }
+        .vip-plan .vip-plan-label { font-weight: 600; font-size: 13px; }
+        .vip-plan .vip-plan-price { font-weight: 700; color: var(--vip-color); }
+        .vip-plan .vip-plan-original { font-size: 11px; text-decoration: line-through; opacity: 0.3; }
+        .vip-plan .vip-plan-discount { font-size: 10px; background: var(--danger); color: #fff; border-radius: 10px; padding: 0 6px; display: inline-block; }
+
+        /* ===== Ratings ===== */
+        .rating-stars .star {
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            opacity: 0.2;
+            transition: var(--transition);
+        }
+        .rating-stars .star.active { color: #fbbf24; opacity: 1; }
+        .rating-review-item {
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .rating-review-item .rr-header {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            align-items: center;
+            font-size: 12px;
+        }
+        .rating-review-item .rr-name { font-weight: 600; }
+        .rating-review-item .rr-stars { color: #fbbf24; }
+        .rating-review-item .rr-badge { background: var(--success); color: #0a0a1a; padding: 0 6px; border-radius: 10px; font-size: 9px; }
+        .rating-review-item .rr-date { opacity: 0.3; font-size: 10px; }
+        .rating-review-item .rr-comment { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+        .rating-comment-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            resize: vertical;
+            margin-top: 4px;
+        }
+        .rating-submit-btn {
+            padding: 6px 16px;
+            border: none;
+            border-radius: var(--radius-sm);
+            background: var(--primary);
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 4px;
+        }
+
+        /* ===== Payment product item ===== */
+        .payment-product-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .payment-product-item img {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-sm);
+            object-fit: cover;
+        }
+        .payment-product-item .pp-info { flex: 1; }
+        .payment-product-item .pp-name { font-size: 13px; font-weight: 600; }
+        .payment-product-item .pp-price { font-size: 12px; color: var(--primary); font-weight: 700; }
+        .payment-product-item .pp-qty { font-size: 13px; color: var(--text-secondary); opacity: 0.5; }
+
+        /* ===== Quantity options ===== */
+        .preview-quantity-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 6px;
+        }
+        .preview-quantity-option {
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 8px 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+        }
+        .preview-quantity-option.selected {
+            border-color: var(--primary);
+            background: var(--primary-glow);
+        }
+        .preview-quantity-option .qty-value { font-size: 18px; font-weight: 700; }
+        .preview-quantity-option .qty-price { font-weight: 600; color: var(--primary); }
+        .preview-quantity-option .qty-original { font-size: 11px; text-decoration: line-through; opacity: 0.3; }
+        .preview-quantity-option .qty-check {
+            position: absolute;
+            top: 2px;
+            right: 4px;
+            color: var(--primary);
+            opacity: 0;
+        }
+        .preview-quantity-option.selected .qty-check { opacity: 1; }
+
+        /* ===== Badge options ===== */
+        .badge-option {
+            display: inline-block;
+            padding: 4px 12px;
+            border: 2px solid var(--border);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: var(--transition);
+            background: var(--bg);
+            color: var(--text-secondary);
+            user-select: none;
+        }
+        .badge-option.selected {
+            border-color: var(--primary);
+            background: var(--primary-glow);
+            color: var(--primary);
+        }
+
+        .currency-option, .type-option {
+            padding: 4px 12px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--bg);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        .currency-option.active, .type-option.active {
+            border-color: var(--primary);
+            background: var(--primary-glow);
+            color: var(--primary);
+        }
+
+        .quantity-option-item {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+            background: var(--bg);
+            padding: 6px 10px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            margin-bottom: 4px;
+        }
+        .quantity-option-item .qty-label { font-weight: 600; font-size: 12px; min-width: 60px; }
+        .quantity-option-item .qty-input {
+            width: 70px;
+            padding: 4px 6px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--card-bg);
+            color: var(--text);
+        }
+        .quantity-option-item .qty-price-group { display: flex; gap: 4px; }
+        .quantity-option-item .qty-price, .quantity-option-item .qty-original-price {
+            width: 70px;
+            padding: 4px 6px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--card-bg);
+            color: var(--text);
+        }
+        .quantity-option-item .qty-remove {
+            background: var(--danger);
+            border: none;
+            color: #fff;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -1420,7 +1785,7 @@
         <div class="search-wrapper">
             <div class="search-box">
                 <i class="fas fa-search"></i>
-                <input type="text" id="liveSearchInput" placeholder="ابحث عن منتج..." aria-label="Search" />
+                <input type="text" id="liveSearchInput" placeholder="Search products..." aria-label="Search" />
                 <button class="clear-btn" id="searchClear" onclick="clearSearch()"><i class="fas fa-times"></i></button>
             </div>
             <div id="searchResults"></div>
@@ -1488,6 +1853,24 @@
                 <button onclick="openWhatsAppSupport()"><i class="fab fa-whatsapp"></i> WhatsApp</button>
             </div>
         </div>
+
+        <!-- ===== FOOTER ===== -->
+        <footer class="site-footer">
+            <div class="footer-content">
+                <div class="footer-social">
+                    <a href="https://youtube.com" target="_blank" class="youtube" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                    <a href="https://t.me/Mitalica69" target="_blank" class="telegram" aria-label="Telegram"><i class="fab fa-telegram-plane"></i></a>
+                </div>
+                <div class="footer-links">
+                    <a href="#" onclick="showToast('Refund policy page coming soon', 'info')">Refund Policy</a>
+                    <a href="#" onclick="showToast('Privacy policy page coming soon', 'info')">Privacy Policy</a>
+                    <a href="#" onclick="showToast('Terms & Conditions page coming soon', 'info')">Terms & Conditions</a>
+                </div>
+                <div class="footer-copyright">
+                    &copy; 2026 <strong>ZI Store</strong> — All rights reserved.
+                </div>
+            </div>
+        </footer>
     </div>
 
     <!-- ============================================================ -->
@@ -1507,7 +1890,7 @@
                     <div id="fullName" style="font-weight:700; font-size:16px;">Guest</div>
                     <div id="fullEmail" style="font-size:12px; color:var(--text-secondary);">Not logged in</div>
                 </div>
-                <div style="text-align:left;">
+                <div style="text-align:right;">
                     <div style="font-size:12px; color:var(--text-secondary);">RP</div>
                     <div id="fullRp" style="font-weight:700; color:var(--vip-color);">0</div>
                 </div>
@@ -1688,7 +2071,7 @@
 
             <!-- Step 1 -->
             <div id="paymentStep1">
-                <p style="font-size:14px; color:var(--text-secondary); margin-bottom:16px;">اختر طريقة الدفع</p>
+                <p style="font-size:14px; color:var(--text-secondary); margin-bottom:16px;">Select payment method</p>
                 <div class="payment-options">
                     <div class="payment-option" id="optionLitecoin" onclick="selectPayment('litecoin')">
                         <i class="fab fa-bitcoin"></i>
@@ -1711,11 +2094,20 @@
                     <div class="payment-option" id="optionBinanceId" onclick="selectPayment('binanceId')">
                         <i class="fab fa-binance" style="color:#f2a900;"></i>
                         <div class="p-label">Binance ID</div>
-                        <div class="p-sub">تحويل مباشر</div>
+                        <div class="p-sub">Direct Transfer</div>
                         <div class="p-check"><i class="fas fa-check"></i></div>
                     </div>
                 </div>
-                <button class="payment-btn" onclick="continuePayment()"><i class="fas fa-arrow-left"></i> متابعة</button>
+
+                <!-- Total Amount -->
+                <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
+                    <div style="display:flex; justify-content:space-between; font-size:16px; font-weight:600;">
+                        <span>Total Amount:</span>
+                        <span id="payableTotal" style="color:var(--primary);">$0.00</span>
+                    </div>
+                </div>
+
+                <button class="payment-btn" onclick="continuePayment()"><i class="fas fa-arrow-right"></i> Continue</button>
             </div>
 
             <!-- Step 2 -->
@@ -1756,39 +2148,39 @@
                     <button class="payment-btn" onclick="placeOrderTelegram()" style="background:#0088cc;"><i class="fab fa-telegram-plane"></i> Contact via Telegram</button>
                 </div>
 
-                <!-- ===== BINANCE ID SECTION (NEW) ===== -->
+                <!-- ===== BINANCE ID SECTION ===== -->
                 <div id="paymentBinanceIdSection" class="binance-id-section" style="display:none; margin-top:8px;">
                     <div class="binance-id-box">
                         <div class="bi-header">
                             <i class="fab fa-binance"></i>
-                            <span>تحويل عبر Binance ID</span>
+                            <span>Transfer via Binance ID</span>
                         </div>
                         <div class="bi-content">
                             <div class="bi-row">
-                                <span class="bi-label">📤 تحويل إلى:</span>
+                                <span class="bi-label">📤 Transfer to:</span>
                                 <span class="bi-value" id="binanceIdDisplay">748838383</span>
                                 <button onclick="copyBinanceId()" class="bi-copy-btn"><i class="fas fa-copy"></i></button>
                             </div>
                             <div class="bi-row">
-                                <span class="bi-label">💰 المبلغ:</span>
+                                <span class="bi-label">💰 Amount:</span>
                                 <span class="bi-value" id="binanceAmountDisplay">$0.00</span>
                             </div>
                             <div class="bi-row">
-                                <span class="bi-label">📝 رقم الطلب:</span>
+                                <span class="bi-label">📝 Order ID:</span>
                                 <span class="bi-value" id="binanceOrderDisplay">#------</span>
                             </div>
                             <div class="bi-divider"></div>
                             <div class="bi-instructions">
-                                <p><i class="fas fa-info-circle" style="color:#f2a900;"></i> تعليمات الدفع:</p>
+                                <p><i class="fas fa-info-circle" style="color:#f2a900;"></i> Payment Instructions:</p>
                                 <ol>
-                                    <li>افتح تطبيق Binance</li>
-                                    <li>اذهب إلى <strong>التحويلات</strong> (Transfer)</li>
-                                    <li>اختر <strong>Binance ID</strong></li>
-                                    <li>الصق الرقم: <strong id="binanceIdInline">748838383</strong></li>
-                                    <li>أدخل المبلغ: <strong id="binanceAmountInline">$0.00</strong></li>
-                                    <li>أرسل المبلغ</li>
-                                    <li>انسخ <strong>معرف المعاملة (Transaction ID)</strong></li>
-                                    <li>الصقه في الحقل أدناه للتأكيد</li>
+                                    <li>Open the Binance app</li>
+                                    <li>Go to <strong>Transfer</strong></li>
+                                    <li>Select <strong>Binance ID</strong></li>
+                                    <li>Paste the ID: <strong id="binanceIdInline">748838383</strong></li>
+                                    <li>Enter the amount: <strong id="binanceAmountInline">$0.00</strong></li>
+                                    <li>Send the payment</li>
+                                    <li>Copy the <strong>Transaction ID</strong></li>
+                                    <li>Paste it in the field below to confirm</li>
                                 </ol>
                             </div>
                         </div>
@@ -1797,45 +2189,45 @@
                     <div class="binance-verification">
                         <div class="bv-header">
                             <i class="fas fa-check-circle"></i>
-                            <span>تأكيد الدفع</span>
+                            <span>Payment Confirmation</span>
                         </div>
                         <div class="bv-body">
                             <div class="bv-field">
-                                <label for="txHashInput">📋 معرف المعاملة (Transaction ID):</label>
+                                <label for="txHashInput">📋 Transaction ID:</label>
                                 <div class="bv-input-group">
-                                    <input type="text" id="txHashInput" placeholder="مثال: 0x7a8b9c... أو 443016893778911232" onpaste="handleTxPaste(event)" />
-                                    <button onclick="verifyTransaction()" class="bv-verify-btn"><i class="fas fa-search"></i> تحقق</button>
+                                    <input type="text" id="txHashInput" placeholder="Example: 0x7a8b9c... or 443016893778911232" onpaste="handleTxPaste(event)" />
+                                    <button onclick="verifyTransaction()" class="bv-verify-btn"><i class="fas fa-search"></i> Verify</button>
                                 </div>
-                                <div class="bv-hint"><i class="fas fa-lightbulb"></i> يمكنك لصق معرف المعاملة من تطبيق Binance</div>
+                                <div class="bv-hint"><i class="fas fa-lightbulb"></i> You can paste the Transaction ID from the Binance app</div>
                             </div>
 
                             <div class="bv-upload">
-                                <label>🖼️ أو قم بتحميل لقطة شاشة:</label>
+                                <label>🖼️ Or upload a screenshot:</label>
                                 <div class="bv-drop-zone" id="dropZone" onclick="document.getElementById('screenshotInput').click()">
                                     <i class="fas fa-cloud-upload-alt"></i>
-                                    <p>اسحب الصورة هنا أو اضغط للاختيار</p>
+                                    <p>Drag image here or click to select</p>
                                     <input type="file" id="screenshotInput" accept="image/*" onchange="handleScreenshot(event)" />
                                 </div>
                                 <div id="screenshotPreview" style="display:none; margin-top:8px;">
                                     <img id="screenshotImg" src="#" alt="Screenshot" style="max-width:100%; max-height:150px; border-radius:var(--radius-sm); border:1px solid var(--border);" />
-                                    <button onclick="removeScreenshot()" style="margin-top:4px; background:var(--danger); color:#fff; border:none; padding:4px 12px; border-radius:var(--radius-sm); cursor:pointer; font-size:12px;"><i class="fas fa-times"></i> إزالة</button>
+                                    <button onclick="removeScreenshot()" style="margin-top:4px; background:var(--danger); color:#fff; border:none; padding:4px 12px; border-radius:var(--radius-sm); cursor:pointer; font-size:12px;"><i class="fas fa-times"></i> Remove</button>
                                 </div>
                             </div>
 
                             <div id="verificationResult" class="bv-result" style="display:none;"></div>
 
-                            <button onclick="submitManualPayment()" class="bv-submit-btn"><i class="fas fa-check-circle"></i> تأكيد الدفع</button>
+                            <button onclick="submitManualPayment()" class="bv-submit-btn"><i class="fas fa-check-circle"></i> Confirm Payment</button>
 
                             <div class="bv-note">
-                                <i class="fas fa-clock"></i> سيتم مراجعة طلبك خلال 5-10 دقائق
+                                <i class="fas fa-clock"></i> Your request will be reviewed within 5-10 minutes
                                 <br>
-                                <span style="font-size:11px; opacity:0.4;">للاستفسارات: <a href="https://t.me/Mitalica69" target="_blank" style="color:var(--primary);">@Mitalica69</a></span>
+                                <span style="font-size:11px; opacity:0.4;">For inquiries: <a href="https://t.me/Mitalica69" target="_blank" style="color:var(--primary);">@Mitalica69</a></span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Main Confirm Button (for LTC/USDT/Telegram) -->
+                <!-- Main Confirm Button -->
                 <button class="payment-btn" id="mainConfirmBtn" style="display:none; margin-top:12px;"><i class="fas fa-check"></i> Confirm Payment</button>
 
                 <button class="payment-btn" onclick="goToStep1()" style="background:transparent; color:var(--text-secondary); border:1px solid var(--border); margin-top:8px;">Back</button>
@@ -2033,9 +2425,8 @@
             <button onclick="refreshDashboardStats()" style="margin-top:10px; padding:6px 16px; background:var(--primary); border:none; border-radius:var(--radius-sm); color:#fff; cursor:pointer;">Refresh</button>
         </div>
 
-        <!-- ===== ORDERS TAB (مع إحصائيات الطلبات) ===== -->
+        <!-- Orders -->
         <div class="tab-content" id="tabOrders">
-            <!-- قسم الإحصائيات المفقود (تمت إضافته) -->
             <div id="adminOrderStats" style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:10px;">
                 <div style="background:var(--bg-secondary); padding:8px; border-radius:var(--radius-sm); text-align:center; border:1px solid var(--border);">
                     <div style="font-size:18px; font-weight:700; color:var(--primary);" id="adminTotalOrders">0</div>
@@ -2505,201 +2896,5 @@
     <!-- ============================================================ -->
     <script type="module" src="script.js"></script>
 
-    <!-- ============================================================ -->
-    <!-- ===== STYLES FOR BADGE-OPTION ===== -->
-    <!-- ============================================================ -->
-    <style>
-        .badge-option {
-            display: inline-block;
-            padding: 4px 12px;
-            border: 2px solid var(--border);
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 500;
-            transition: var(--transition);
-            background: var(--bg);
-            color: var(--text-secondary);
-            user-select: none;
-        }
-        .badge-option.selected {
-            border-color: var(--primary);
-            background: var(--primary-glow);
-            color: var(--primary);
-        }
-        .currency-option, .type-option {
-            padding: 4px 12px;
-            border: 2px solid var(--border);
-            border-radius: var(--radius-sm);
-            background: var(--bg);
-            color: var(--text-secondary);
-            cursor: pointer;
-            font-weight: 500;
-            transition: var(--transition);
-        }
-        .currency-option.active, .type-option.active {
-            border-color: var(--primary);
-            background: var(--primary-glow);
-            color: var(--primary);
-        }
-        .quantity-option-item {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            align-items: center;
-            background: var(--bg);
-            padding: 6px 10px;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border);
-            margin-bottom: 4px;
-        }
-        .quantity-option-item .qty-label {
-            font-weight: 600;
-            font-size: 12px;
-            min-width: 60px;
-        }
-        .quantity-option-item .qty-input {
-            width: 70px;
-            padding: 4px 6px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            background: var(--card-bg);
-            color: var(--text);
-        }
-        .quantity-option-item .qty-price-group {
-            display: flex;
-            gap: 4px;
-        }
-        .quantity-option-item .qty-price, .quantity-option-item .qty-original-price {
-            width: 70px;
-            padding: 4px 6px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            background: var(--card-bg);
-            color: var(--text);
-        }
-        .quantity-option-item .qty-remove {
-            background: var(--danger);
-            border: none;
-            color: #fff;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            cursor: pointer;
-        }
-        .preview-quantity-options {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 6px;
-        }
-        .preview-quantity-option {
-            background: var(--bg);
-            border: 2px solid var(--border);
-            border-radius: var(--radius-sm);
-            padding: 8px 6px;
-            text-align: center;
-            cursor: pointer;
-            transition: var(--transition);
-            position: relative;
-        }
-        .preview-quantity-option.selected {
-            border-color: var(--primary);
-            background: var(--primary-glow);
-        }
-        .preview-quantity-option .qty-value {
-            font-size: 18px;
-            font-weight: 700;
-        }
-        .preview-quantity-option .qty-price {
-            font-weight: 600;
-            color: var(--primary);
-        }
-        .preview-quantity-option .qty-original {
-            font-size: 11px;
-            text-decoration: line-through;
-            opacity: 0.3;
-        }
-        .preview-quantity-option .qty-check {
-            position: absolute;
-            top: 2px;
-            right: 4px;
-            color: var(--primary);
-            opacity: 0;
-        }
-        .preview-quantity-option.selected .qty-check { opacity: 1; }
-
-        .vip-plan {
-            background: var(--bg);
-            border: 2px solid var(--border);
-            border-radius: var(--radius-sm);
-            padding: 8px 6px;
-            text-align: center;
-            cursor: pointer;
-            transition: var(--transition);
-            position: relative;
-        }
-        .vip-plan.selected {
-            border-color: var(--vip-color);
-            background: var(--primary-glow);
-        }
-        .vip-plan .vip-plan-check {
-            position: absolute;
-            top: 2px;
-            right: 4px;
-            color: var(--vip-color);
-            opacity: 0;
-        }
-        .vip-plan.selected .vip-plan-check { opacity: 1; }
-        .vip-plan .vip-plan-label { font-weight: 600; font-size: 13px; }
-        .vip-plan .vip-plan-price { font-weight: 700; color: var(--vip-color); }
-        .vip-plan .vip-plan-original { font-size: 11px; text-decoration: line-through; opacity: 0.3; }
-        .vip-plan .vip-plan-discount { font-size: 10px; background: var(--danger); color: #fff; border-radius: 10px; padding: 0 6px; display: inline-block; }
-
-        .rating-stars .star {
-            font-size: 24px;
-            cursor: pointer;
-            color: var(--text-secondary);
-            opacity: 0.2;
-            transition: var(--transition);
-        }
-        .rating-stars .star.active { color: #fbbf24; opacity: 1; }
-        .rating-review-item {
-            padding: 6px 0;
-            border-bottom: 1px solid var(--border);
-        }
-        .rating-review-item .rr-header {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-            align-items: center;
-            font-size: 12px;
-        }
-        .rating-review-item .rr-name { font-weight: 600; }
-        .rating-review-item .rr-stars { color: #fbbf24; }
-        .rating-review-item .rr-badge { background: var(--success); color: #0a0a1a; padding: 0 6px; border-radius: 10px; font-size: 9px; }
-        .rating-review-item .rr-date { opacity: 0.3; font-size: 10px; }
-        .rating-review-item .rr-comment { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
-        .rating-comment-input {
-            width: 100%;
-            padding: 8px 12px;
-            border: 2px solid var(--border);
-            border-radius: var(--radius-sm);
-            background: var(--bg);
-            color: var(--text);
-            font-family: var(--font);
-            resize: vertical;
-            margin-top: 4px;
-        }
-        .rating-submit-btn {
-            padding: 6px 16px;
-            border: none;
-            border-radius: var(--radius-sm);
-            background: var(--primary);
-            color: #fff;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 4px;
-        }
-    </style>
 </body>
     </html>
