@@ -1816,7 +1816,10 @@ window.openDetails = function(id) {
     
     // Quantity options
     const existingQuantitySection = document.getElementById('previewQuantitySection');
-    if (existingQuantitySection) existingQuantitySection.remove();
+    // إذا كان العنصر غير موجود، لا تحاول إزالته
+    if (existingQuantitySection) {
+        existingQuantitySection.remove();
+    }
     
     if (p.productType === 'quantity' && p.quantityOptions && p.quantityOptions.length > 0) {
         const section = document.createElement('div');
@@ -1835,7 +1838,16 @@ window.openDetails = function(id) {
         if (vipSectionEl && vipSectionEl.style.display !== 'none') {
             vipSectionEl.parentNode.insertBefore(section, vipSectionEl.nextSibling);
         } else {
-            document.querySelector('.preview-body').appendChild(section);
+            const body = document.querySelector('.preview-body');
+            if (body) {
+                body.appendChild(section);
+            } else {
+                // إذا لم يكن هناك .preview-body، أضفه بعد الـ description
+                const desc = document.getElementById('previewDescription');
+                if (desc && desc.parentNode) {
+                    desc.parentNode.insertBefore(section, desc.nextSibling);
+                }
+            }
         }
         
         const container = document.getElementById('previewQuantityOptions');
@@ -2031,7 +2043,8 @@ function updatePayableTotal() {
     if (userProfile.useRpForCart) { const rpDiscount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total); finalTotal = total - rpDiscount; }
     if (activeDiscount > 0 && total > 0) { const discountAmount = (finalTotal * activeDiscount) / 100; finalTotal = finalTotal - discountAmount; }
     if (finalTotal < 0) finalTotal = 0;
-    document.getElementById('payableTotal').textContent = '$' + finalTotal.toFixed(2);
+    const el = document.getElementById('payableTotal');
+    if (el) el.textContent = '$' + finalTotal.toFixed(2);
 }
 
 // ============================================================
@@ -2091,38 +2104,50 @@ window.continuePayment = function() {
     document.getElementById('step2Total').textContent = `$${finalTotal.toFixed(2)}`;
 
     // Hide all sections first
-    document.getElementById('paymentWalletInfo').style.display = 'none';
-    document.getElementById('paymentTxInput').style.display = 'none';
-    document.getElementById('paymentTelegramContact').style.display = 'none';
-    document.getElementById('paymentBinanceIdSection').style.display = 'none';
-    document.getElementById('mainConfirmBtn').style.display = 'none';
+    const walletInfo = document.getElementById('paymentWalletInfo');
+    const txInput = document.getElementById('paymentTxInput');
+    const telegramContact = document.getElementById('paymentTelegramContact');
+    const binanceSection = document.getElementById('paymentBinanceIdSection');
+    const mainBtn = document.getElementById('mainConfirmBtn');
+
+    if (walletInfo) walletInfo.style.display = 'none';
+    if (txInput) txInput.style.display = 'none';
+    if (telegramContact) telegramContact.style.display = 'none';
+    if (binanceSection) binanceSection.style.display = 'none';
+    if (mainBtn) mainBtn.style.display = 'none';
 
     if (selectedPayment === 'litecoin' || selectedPayment === 'usdt') {
-        document.getElementById('paymentWalletInfo').style.display = 'block';
-        document.getElementById('paymentTxInput').style.display = 'block';
-        document.getElementById('mainConfirmBtn').style.display = 'block';
-        document.getElementById('mainConfirmBtn').innerHTML = '<i class="fas fa-check"></i> تأكيد الدفع';
-        document.getElementById('mainConfirmBtn').onclick = placeOrder;
+        if (walletInfo) walletInfo.style.display = 'block';
+        if (txInput) txInput.style.display = 'block';
+        if (mainBtn) {
+            mainBtn.style.display = 'block';
+            mainBtn.innerHTML = '<i class="fas fa-check"></i> تأكيد الدفع';
+            mainBtn.onclick = placeOrder;
+        }
         fetchCryptoPrices();
         setTimeout(updatePriceUI, 500);
     } else if (selectedPayment === 'telegram') {
-        document.getElementById('paymentTelegramContact').style.display = 'block';
-        document.getElementById('mainConfirmBtn').style.display = 'block';
-        document.getElementById('mainConfirmBtn').innerHTML = '<i class="fab fa-telegram-plane"></i> تواصل عبر Telegram';
-        document.getElementById('mainConfirmBtn').onclick = function() {
-            const message = `🛒 طلب جديد\n\nالإجمالي: $${finalTotal.toFixed(2)}\nالمنتجات: ${cart.map(i => i.name).join(', ')}`;
-            window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(message)}`, '_blank');
-            placeOrderTelegram();
-        };
+        if (telegramContact) telegramContact.style.display = 'block';
+        if (mainBtn) {
+            mainBtn.style.display = 'block';
+            mainBtn.innerHTML = '<i class="fab fa-telegram-plane"></i> تواصل عبر Telegram';
+            mainBtn.onclick = function() {
+                const message = `🛒 طلب جديد\n\nالإجمالي: $${finalTotal.toFixed(2)}\nالمنتجات: ${cart.map(i => i.name).join(', ')}`;
+                window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(message)}`, '_blank');
+                placeOrderTelegram();
+            };
+        }
     } else if (selectedPayment === 'binanceId') {
-        document.getElementById('paymentBinanceIdSection').style.display = 'block';
-        document.getElementById('binanceIdDisplay').textContent = '748838383';
-        document.getElementById('binanceIdInline').textContent = '748838383';
-        const totalDisplay = `$${finalTotal.toFixed(2)}`;
-        document.getElementById('binanceAmountDisplay').textContent = totalDisplay;
-        document.getElementById('binanceAmountInline').textContent = totalDisplay;
-        const orderId = '#' + String(Date.now()).slice(-6);
-        document.getElementById('binanceOrderDisplay').textContent = orderId;
+        if (binanceSection) {
+            binanceSection.style.display = 'block';
+            document.getElementById('binanceIdDisplay').textContent = '748838383';
+            document.getElementById('binanceIdInline').textContent = '748838383';
+            const totalDisplay = `$${finalTotal.toFixed(2)}`;
+            document.getElementById('binanceAmountDisplay').textContent = totalDisplay;
+            document.getElementById('binanceAmountInline').textContent = totalDisplay;
+            const orderId = '#' + String(Date.now()).slice(-6);
+            document.getElementById('binanceOrderDisplay').textContent = orderId;
+        }
     }
 
     if (selectedPayment === 'litecoin' || selectedPayment === 'usdt') {
@@ -5159,6 +5184,34 @@ window.copyWalletAddress = function() {
             showToast('✅ Address copied!', 'success');
         });
     }
+};
+
+// ===== FIX: renderPaymentProducts as global =====
+window.renderPaymentProducts = function() {
+    const container = document.getElementById('paymentProductsList');
+    if (!container) return;
+    if (!cart || cart.length === 0) {
+        container.innerHTML = '<div style="text-align:center;padding:8px;color:var(--text-secondary);opacity:0.4;">No products</div>';
+        return;
+    }
+    container.innerHTML = cart.map(item => {
+        const qty = item.quantity || 1;
+        const total = item.price * qty;
+        const product = products.find(p => p.id === item.id);
+        const image = product?.image || item.image || 'https://picsum.photos/seed/default/80/80';
+        const name = item.isVip ? `${item.name} 👑 ${item.vipPlanLabel || 'VIP'}` : item.name;
+        const qtyLabel = item.isQuantityProduct ? `📦 ${item.selectedQuantity || ''}` : '';
+        return `
+            <div class="payment-product-item">
+                <img src="${image}" alt="${item.name}" />
+                <div class="pp-info">
+                    <div class="pp-name">${name} ${qtyLabel}</div>
+                    <div class="pp-price">${getCurrencySymbol(item.currency || 'USD')}${total.toFixed(2)}</div>
+                </div>
+                <div class="pp-qty">×${qty}</div>
+            </div>
+        `;
+    }).join('');
 };
 
 window.placeOrder = placeOrder;
