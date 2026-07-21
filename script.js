@@ -85,6 +85,13 @@ const TELEGRAM_CHAT_ID = '7434396478';
 const BOT_USERNAME = 'Zistore_Notif_bot';
 const RP_TO_DOLLAR = 0.1;
 
+// Cloudinary settings
+const CLOUDINARY_CLOUD_NAME = 'y14bgb5s';
+const CLOUDINARY_UPLOAD_PRESET = 'zi_store_uploads';
+
+// Admin email for notifications
+const ADMIN_EMAIL = 'idriss.zribi13@gmail.com';
+
 let currentUser = null;
 let userId = null;
 let cart = [];
@@ -1973,25 +1980,31 @@ document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { clo
 // ============================================================
 
 // ============================================================
-// 15.0 Visitor Info Functions
+// 15.0 Visitor Info Functions (FIXED)
 // ============================================================
 
 async function getVisitorInfo() {
     try {
+        // First try ipapi.co
         const response = await fetch('https://ipapi.co/json/');
-        const data = await response.json();
-        return {
-            ip: data.ip || 'Unknown',
-            country: data.country_name || 'Unknown',
-            city: data.city || 'Unknown',
-            region: data.region || 'Unknown',
-            timezone: data.timezone || 'Unknown',
-            isp: data.org || 'Unknown'
-        };
-    } catch (error) {
-        console.warn('⚠️ Could not fetch IP info:', error);
-        try {
-            const response = await fetch('http://ip-api.com/json/');
+        if (response.ok) {
+            const data = await response.json();
+            return {
+                ip: data.ip || 'Unknown',
+                country: data.country_name || data.country || 'Unknown',
+                city: data.city || 'Unknown',
+                region: data.region || 'Unknown',
+                timezone: data.timezone || 'Unknown',
+                isp: data.org || data.isp || 'Unknown'
+            };
+        }
+    } catch (e) {
+        console.warn('⚠️ ipapi.co failed:', e);
+    }
+    try {
+        // Fallback: ip-api.com
+        const response = await fetch('https://ip-api.com/json/');
+        if (response.ok) {
             const data = await response.json();
             if (data.status === 'success') {
                 return {
@@ -2003,18 +2016,42 @@ async function getVisitorInfo() {
                     isp: data.isp || 'Unknown'
                 };
             }
-        } catch (e) {
-            console.warn('⚠️ Fallback IP fetch failed:', e);
         }
-        return {
-            ip: 'Unknown',
-            country: 'Unknown',
-            city: 'Unknown',
-            region: 'Unknown',
-            timezone: 'Unknown',
-            isp: 'Unknown'
-        };
+    } catch (e) {
+        console.warn('⚠️ ip-api.com failed:', e);
     }
+    // Last resort: get IP only from ipify, then details from ipapi
+    try {
+        const ipRes = await fetch('https://api.ipify.org?format=json');
+        if (ipRes.ok) {
+            const ipData = await ipRes.json();
+            const ip = ipData.ip;
+            if (ip) {
+                const detailRes = await fetch(`https://ipapi.co/${ip}/json/`);
+                if (detailRes.ok) {
+                    const detailData = await detailRes.json();
+                    return {
+                        ip: ip,
+                        country: detailData.country_name || 'Unknown',
+                        city: detailData.city || 'Unknown',
+                        region: detailData.region || 'Unknown',
+                        timezone: detailData.timezone || 'Unknown',
+                        isp: detailData.org || 'Unknown'
+                    };
+                }
+            }
+        }
+    } catch (e) {
+        console.warn('⚠️ ipify + ipapi fallback failed:', e);
+    }
+    return {
+        ip: 'Unknown',
+        country: 'Unknown',
+        city: 'Unknown',
+        region: 'Unknown',
+        timezone: 'Unknown',
+        isp: 'Unknown'
+    };
 }
 
 function getDeviceInfo() {
@@ -2043,7 +2080,34 @@ function getDeviceInfo() {
 }
 
 // ============================================================
-// 15.1 Payment Products Render
+// 15.1 Upload Screenshot to Cloudinary (FIXED)
+// ============================================================
+
+async function uploadScreenshotToCloudinary(file) {
+    if (!file) return null;
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+        const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+            method: 'POST',
+            body: formData
+        });
+        const data = await response.json();
+        if (data.secure_url) {
+            return data.secure_url;
+        } else {
+            console.error('Cloudinary upload failed:', data);
+            return null;
+        }
+    } catch (error) {
+        console.error('Cloudinary upload error:', error);
+        return null;
+    }
+}
+
+// ============================================================
+// 15.2 Payment Products Render
 // ============================================================
 window.renderPaymentProducts = function() {
     const container = document.getElementById('paymentProductsList');
@@ -2073,7 +2137,7 @@ window.renderPaymentProducts = function() {
 };
 
 // ============================================================
-// 15.2 Crypto Price Functions
+// 15.3 Crypto Price Functions
 // ============================================================
 
 async function fetchCryptoPrices() {
@@ -2127,7 +2191,7 @@ function updatePayableTotal() {
 }
 
 // ============================================================
-// 15.3 Payment Selection
+// 15.4 Payment Selection
 // ============================================================
 window.selectPayment = function(method) {
     selectedPayment = method;
@@ -2152,7 +2216,7 @@ window.selectPayment = function(method) {
 };
 
 // ============================================================
-// 15.4 Continue Payment
+// 15.5 Continue Payment
 // ============================================================
 window.continuePayment = function() {
     if (!selectedPayment) {
@@ -2234,7 +2298,7 @@ window.continuePayment = function() {
 };
 
 // ============================================================
-// 15.5 Place Order
+// 15.6 Place Order
 // ============================================================
 window.placeOrder = function() {
     if (!currentUser || currentUser.isAnonymous) {
@@ -2269,7 +2333,7 @@ window.placeOrder = function() {
 };
 
 // ============================================================
-// 15.6 Binance ID specific functions
+// 15.7 Binance ID specific functions
 // ============================================================
 window.copyBinanceId = function() {
     const id = document.getElementById('binanceIdDisplay').textContent;
@@ -2349,7 +2413,7 @@ window.submitManualPayment = function() {
 };
 
 // ============================================================
-// 15.7 Original order sending function (with Visitor Info)
+// 15.8 Original order sending function (FIXED: Visitor Info, Screenshot, Products)
 // ============================================================
 async function sendOrderToTelegram(method, txHash = null) {
     if (isProcessingOrder) {
@@ -2366,18 +2430,28 @@ async function sendOrderToTelegram(method, txHash = null) {
             return;
         }
 
+        // ===== GET VISITOR INFO (FIXED) =====
         let visitorInfo = await getVisitorInfo();
         let deviceInfo = getDeviceInfo();
 
-        const deviceDetails = `
-🖥️ **Device Details:**
-- IP: ${visitorInfo.ip}
-- Country: ${visitorInfo.country} (${visitorInfo.city || 'N/A'})
-- OS: ${deviceInfo.os} (${deviceInfo.device})
-- Browser: ${deviceInfo.browser}
-- ISP: ${visitorInfo.isp || 'N/A'}
-        `;
+        // ===== UPLOAD SCREENSHOT TO CLOUDINARY (FIXED) =====
+        let screenshotUrl = null;
+        const screenshotInput = document.getElementById('screenshotInput');
+        if (screenshotInput && screenshotInput.files && screenshotInput.files[0]) {
+            try {
+                const file = screenshotInput.files[0];
+                screenshotUrl = await uploadScreenshotToCloudinary(file);
+                console.log('✅ Screenshot uploaded:', screenshotUrl);
+                if (screenshotUrl) {
+                    showToast('📸 Screenshot uploaded successfully', 'success');
+                }
+            } catch (e) {
+                console.error('❌ Screenshot upload failed:', e);
+                showToast('⚠️ Screenshot upload failed, but order continues', 'warning');
+            }
+        }
 
+        // ===== BUILD PRODUCTS LIST (FIXED) =====
         let total = 0;
         let itemsList = '';
         const productNames = [];
@@ -2387,8 +2461,9 @@ async function sendOrderToTelegram(method, txHash = null) {
             const qty = item.quantity || 1;
             const sub = item.price * qty;
             total += sub;
-            const qtyLabel = item.isQuantityProduct ? ` (${item.selectedQuantity})` : '';
-            itemsList += `${i+1}. ${item.name}${qtyLabel} × ${qty} = ${getCurrencySymbol(item.currency || 'USD')}${sub.toFixed(2)}\n`;
+            const qtyLabel = item.isQuantityProduct ? ` (x${item.selectedQuantity})` : '';
+            const vipLabel = item.isVip ? ` 👑 ${item.vipPlanLabel || 'VIP'}` : '';
+            itemsList += `${i+1}. ${item.name}${vipLabel}${qtyLabel} × ${qty} = ${getCurrencySymbol(item.currency || 'USD')}${sub.toFixed(2)}\n`;
             productNames.push(item.name);
         });
 
@@ -2406,6 +2481,7 @@ async function sendOrderToTelegram(method, txHash = null) {
             discountText += `\n🎫 Promo (${activeDiscount}%): -$${discountAmount.toFixed(2)}`;
         }
 
+        // ===== BUILD ADMIN MESSAGE =====
         let adminMsg = '🛒 **New Order**\n\n';
         adminMsg += `📎 **Order ID:** #${orderId.slice(-6)}\n`;
         adminMsg += `👤 **Customer:** ${currentUser.displayName || currentUser.email || 'Unknown'}\n`;
@@ -2415,8 +2491,13 @@ async function sendOrderToTelegram(method, txHash = null) {
         adminMsg += `💰 **Total:** $${finalTotal.toFixed(2)}\n`;
         adminMsg += `💬 **Payment Method:** ${method}\n`;
         if (txHash) adminMsg += `🔍 **Tx Hash:** ${txHash}\n`;
+        if (screenshotUrl) adminMsg += `🖼️ **Screenshot:** ${screenshotUrl}\n`;
         adminMsg += `\n${deviceDetails}`;
 
+        // إضافة البريد الإلكتروني للإدمن في الرسالة
+        adminMsg += `\n📧 **Admin Email:** ${ADMIN_EMAIL}`;
+
+        // ===== SEND TO ADMIN TELEGRAM =====
         try {
             await sendTelegramNotification(TELEGRAM_CHAT_ID, adminMsg);
             console.log('✅ Admin notification sent');
@@ -2424,6 +2505,7 @@ async function sendOrderToTelegram(method, txHash = null) {
             console.error('❌ Failed to send admin notification:', e);
         }
 
+        // ===== SEND CONFIRMATIONS TO USER =====
         await sendOrderConfirmations(
             currentUser.uid,
             orderId,
@@ -2432,8 +2514,10 @@ async function sendOrderToTelegram(method, txHash = null) {
             method
         );
 
+        // ===== OPEN TELEGRAM FOR DIRECT CONTACT =====
         window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(adminMsg)}`, '_blank');
 
+        // ===== SAVE ORDER TO FIRESTORE =====
         const orderItem = {
             id: orderId,
             items: cart.map(item => ({ 
@@ -2450,6 +2534,7 @@ async function sendOrderToTelegram(method, txHash = null) {
             date: new Date().toISOString(),
             status: 'pending',
             txHash: txHash || null,
+            screenshotUrl: screenshotUrl || null,
             rpUsed: Math.floor(rpDiscountAmount / RP_TO_DOLLAR) || 0,
             rpEarned: 0
         };
@@ -2469,6 +2554,7 @@ async function sendOrderToTelegram(method, txHash = null) {
         }
         userProfile.history.push(orderItem);
 
+        // ===== CLEAR CART AND RESET =====
         cart = [];
         activeDiscount = 0;
         activeDiscountCode = '';
@@ -2479,7 +2565,7 @@ async function sendOrderToTelegram(method, txHash = null) {
         generateRecommendations(products);
         updateRpDisplay();
 
-        // إغلاق نافذة الدفع
+        // ===== CLOSE PAYMENT MODAL =====
         document.getElementById('paymentModal').classList.remove('open');
 
         showToast('📤 Order placed!', 'success');
@@ -2546,7 +2632,8 @@ async function sendUserNotification(userId, title, message) {
 async function sendOrderConfirmations(userId, orderId, productsList, total, method) {
     const productNames = productsList.map(item => {
         const qtyLabel = item.selectedQuantity ? ` (${item.selectedQuantity})` : '';
-        return `${item.name}${qtyLabel} × ${item.quantity || 1}`;
+        const vipLabel = item.isVip ? ` 👑 ${item.vipPlanLabel || 'VIP'}` : '';
+        return `${item.name}${vipLabel}${qtyLabel} × ${item.quantity || 1}`;
     }).join(', ');
     
     await sendUserNotification(
@@ -4699,7 +4786,8 @@ window.renderHistoryFull = function() {
             value: `$${amount.toFixed(2)}`,
             status: order.status || 'pending',
             to: toAddress,
-            method: order.method || 'Unknown'
+            method: order.method || 'Unknown',
+            screenshotUrl: order.screenshotUrl || null
         };
     });
 
@@ -4736,56 +4824,26 @@ window.renderHistoryFull = function() {
         const borderColor = p.currency === 'LTC' ? '#3fcb7a' : (p.currency === 'BTC' ? '#f7931a' : (p.currency === 'ETH' ? '#627eea' : '#3e8cff'));
 
         html += `
-            <div class="payment-card" style="
-                background: var(--card-bg);
-                border: 1px solid var(--border);
-                border-radius: var(--radius-md);
-                padding: 16px 18px;
-                margin-bottom: 12px;
-                display: flex;
-                flex-wrap: wrap;
-                align-items: center;
-                justify-content: space-between;
-                border-left: 5px solid ${borderColor};
-                transition: 0.2s;
-            ">
+            <div class="payment-card" style="border-left-color: ${borderColor};">
                 <div style="display:flex; align-items:center; gap:14px; flex:1; min-width:150px;">
-                    <div style="
-                        width:48px; height:48px; border-radius:50%; 
-                        background: var(--bg-secondary); 
-                        display:flex; align-items:center; justify-content:center; 
-                        font-weight:700; font-size:22px; 
-                        color: ${borderColor};
-                        border: 1px solid var(--border);
-                    ">${p.icon}</div>
-                    <div>
-                        <div style="font-weight:600; font-size:18px; color:var(--text);">${p.currency}</div>
-                        <div style="font-size:13px; color:var(--text-secondary);">${p.date}</div>
-                        <div style="
-                            font-size:12px; color:var(--text-secondary); 
-                            font-family:monospace; background:var(--bg); 
-                            padding:0 10px; border-radius:30px; 
-                            display:inline-block; margin-top:2px;
-                            border: 1px solid var(--border);
-                        ">${p.id}</div>
+                    <div class="payment-icon" style="color: ${borderColor};">${p.icon}</div>
+                    <div class="payment-info">
+                        <div class="payment-currency">${p.currency}</div>
+                        <div class="payment-date">${p.date}</div>
+                        <div class="payment-id">${p.id}</div>
                     </div>
                 </div>
                 <div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap; margin-top:6px;">
-                    <div style="text-align:right;">
-                        <div style="font-weight:700; font-size:20px; color:var(--text);">${p.amount} <span style="font-size:13px; opacity:0.4; font-weight:400;">${p.currency}</span></div>
-                        <div style="font-size:14px; color:var(--text-secondary);">${p.value}</div>
+                    <div class="payment-amount">
+                        <div class="payment-coins">${p.amount} <small>${p.currency}</small></div>
+                        <div class="payment-value">${p.value}</div>
                     </div>
-                    <div style="
-                        padding:4px 16px; border-radius:30px; 
-                        font-weight:600; font-size:13px;
-                        background: ${statusClass === 'pending' ? 'var(--pending-color)20' : (statusClass === 'completed' ? 'var(--success)20' : 'var(--danger)20')};
-                        color: ${statusClass === 'pending' ? 'var(--pending-color)' : (statusClass === 'completed' ? 'var(--success)' : 'var(--danger)')};
-                        border: 1px solid ${statusClass === 'pending' ? 'var(--pending-color)40' : (statusClass === 'completed' ? 'var(--success)40' : 'var(--danger)40')};
-                    ">${statusText}</div>
+                    <div class="payment-status ${statusClass}">${statusText}</div>
                 </div>
-                <div style="width:100%; margin-top:10px; padding-top:10px; border-top:1px dashed var(--border); font-size:12px; color:var(--text-secondary); font-family:monospace; word-break:break-all;">
+                <div class="payment-to">
                     <i class="fas fa-arrow-right"></i> To: ${p.to}
-                    ${p.method ? ` • <span style="opacity:0.4;">${p.method}</span>` : ''}
+                    ${p.method ? ` • <span class="payment-method">${p.method}</span>` : ''}
+                    ${p.screenshotUrl ? ` • <a href="${p.screenshotUrl}" target="_blank" style="color:var(--primary);text-decoration:underline;">📸 View Screenshot</a>` : ''}
                 </div>
             </div>
         `;
@@ -4979,7 +5037,7 @@ function startSocialProof() { /* For future use */ }
 function triggerSocialProofOnOrder(userName, productNames) { /* For future use */ }
 
 // ============================================================
-// 33. Cloudinary Upload
+// 33. Cloudinary Upload (for products and slides)
 // ============================================================
 
 const CLOUDINARY_CLOUD_NAME = 'y14bgb5s';
@@ -5072,7 +5130,7 @@ window.exportOrders = function() {
 };
 
 // ============================================================
-// 36. Admin Payments (NEW)
+// 36. Admin Payments
 // ============================================================
 
 function refreshAdminPayments() {
@@ -5100,7 +5158,8 @@ function refreshAdminPayments() {
                     date: order.date || new Date().toISOString(),
                     status: order.status || 'pending',
                     method: order.method || 'Unknown',
-                    txHash: order.txHash || 'N/A'
+                    txHash: order.txHash || 'N/A',
+                    screenshotUrl: order.screenshotUrl || null
                 });
             });
         });
@@ -5138,6 +5197,7 @@ function refreshAdminPayments() {
                              <button onclick="adminRejectPayment('${p.id}','${p.userId}')" style="background:var(--danger); border:none; color:#fff; padding:2px 10px; border-radius:12px; cursor:pointer; font-size:11px; font-weight:600;"><i class="fas fa-times"></i></button>` : 
                             `<button onclick="adminDeletePayment('${p.id}','${p.userId}')" style="background:var(--danger); border:none; color:#fff; padding:2px 10px; border-radius:12px; cursor:pointer; font-size:11px; font-weight:600;"><i class="fas fa-trash"></i></button>`
                         }
+                        ${p.screenshotUrl ? `<a href="${p.screenshotUrl}" target="_blank" style="color:var(--primary);text-decoration:underline;font-size:11px;margin-left:4px;">📸</a>` : ''}
                     </td>
                 </tr>
             `;
@@ -5169,7 +5229,61 @@ window.adminDeletePayment = function(orderId, userId) {
 };
 
 // ============================================================
-// 37. Auth State Listener
+// 37. Support Functions (FIXED)
+// ============================================================
+
+window.toggleSupportMenu = function() {
+    const float = document.getElementById('supportFloat');
+    if (float) {
+        float.classList.toggle('open');
+    }
+};
+
+window.openSupportModal = function() {
+    const modal = document.getElementById('supportModal');
+    if (modal) {
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    const float = document.getElementById('supportFloat');
+    if (float) {
+        float.classList.remove('open');
+    }
+};
+
+window.closeSupportModal = function() {
+    const modal = document.getElementById('supportModal');
+    if (modal) {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+};
+
+window.openWhatsAppSupport = function() {
+    const phone = '1234567890'; // استبدل بالرقم الصحيح
+    const message = 'Hi, I need help';
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
+};
+
+window.openTelegramSupport = function() {
+    const username = 'Mitalica69';
+    const message = 'Hi, I need help';
+    window.open(`https://t.me/${username}?start=support`, '_blank');
+};
+
+window.openEmailSupport = function() {
+    const email = 'idriss.zribi13@gmail.com';
+    const subject = 'Support Request';
+    window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}`;
+};
+
+window.openPhoneSupport = function() {
+    const phone = '1234567890'; // استبدل بالرقم الصحيح
+    window.location.href = `tel:${phone}`;
+};
+
+// ============================================================
+// 38. Auth State Listener
 // ============================================================
 
 onAuthStateChanged(auth, async (user) => {
@@ -5263,7 +5377,7 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// 38. Auto-check Admin Panel
+// 39. Auto-check Admin Panel
 // ============================================================
 
 setInterval(() => {
@@ -5286,7 +5400,7 @@ setInterval(() => {
 }, 5000);
 
 // ============================================================
-// 39. Init
+// 40. Init
 // ============================================================
 
 async function init() {
@@ -5362,7 +5476,7 @@ async function init() {
 }
 
 // ============================================================
-// 40. Theme Toggle
+// 41. Theme Toggle
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -5387,7 +5501,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================================
-// 41. Export all functions to global scope
+// 42. Export all functions to global scope
 // ============================================================
 
 window.toggleLicencesList = toggleLicencesList;
@@ -5547,49 +5661,13 @@ window.removeQuantityOption = removeQuantityOption;
 window.toggleBadge = toggleBadge;
 window.selectQuantityOption = selectQuantityOption;
 window.loginWithGoogle = loginWithGoogle;
-window.toggleSupportMenu = function() {
-    const float = document.getElementById('supportFloat');
-    if (float) {
-        float.classList.toggle('open');
-    }
-};
-window.openSupportModal = function() {
-    const modal = document.getElementById('supportModal');
-    if (modal) {
-        modal.classList.add('open');
-        document.body.style.overflow = 'hidden';
-    }
-    const float = document.getElementById('supportFloat');
-    if (float) {
-        float.classList.remove('open');
-    }
-};
-window.closeSupportModal = function() {
-    const modal = document.getElementById('supportModal');
-    if (modal) {
-        modal.classList.remove('open');
-        document.body.style.overflow = '';
-    }
-};
-window.openWhatsAppSupport = function() {
-    const phone = '1234567890';
-    const message = 'Hi, I need help';
-    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
-};
-window.openTelegramSupport = function() {
-    const username = 'Mitalica69';
-    const message = 'Hi, I need help';
-    window.open(`https://t.me/${username}?start=support`, '_blank');
-};
-window.openEmailSupport = function() {
-    const email = 'support@zi-store.online';
-    const subject = 'Help Request';
-    window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}`;
-};
-window.openPhoneSupport = function() {
-    const phone = '1234567890';
-    window.location.href = `tel:${phone}`;
-};
+window.toggleSupportMenu = toggleSupportMenu;
+window.openSupportModal = openSupportModal;
+window.closeSupportModal = closeSupportModal;
+window.openWhatsAppSupport = openWhatsAppSupport;
+window.openTelegramSupport = openTelegramSupport;
+window.openEmailSupport = openEmailSupport;
+window.openPhoneSupport = openPhoneSupport;
 
 document.addEventListener('click', function(e) {
     const float = document.getElementById('supportFloat');
