@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - Full Version with all fixes
+// SCRIPT.JS - ZI Store - Full Version (FIXED)
 // ============================================================
 
 // ============================================================
@@ -84,7 +84,7 @@ const TELEGRAM_CHAT_ID = '7434396478';
 const BOT_USERNAME = 'Zistore_Notif_bot';
 const RP_TO_DOLLAR = 0.1;
 
-// Cloudinary settings (UNIFIED)
+// Cloudinary settings
 const CLOUDINARY_CLOUD_NAME = 'y14bgb5s';
 const CLOUDINARY_UPLOAD_PRESET = 'zi_store_uploads';
 
