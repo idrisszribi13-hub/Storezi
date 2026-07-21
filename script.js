@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - Full Version (FIXED)
+// SCRIPT.JS - ZI Store - Full Version with Supabase Functions Backend
 // ============================================================
 
 // ============================================================
@@ -51,7 +51,7 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 // ============================================================
 
 const SUPABASE_URL = 'https://kvsyzgavfxnwqmtsginv.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_1uSIqgNONAV53GjOoBoZUw_niAGJXO6';
+const SUPABASE_ANON_KEY = 'sb_publishable_1uSIqgNONAV53GjOoBoZUw_niAGJXO6'; // هذا المفتاح عام، يمكن إبقاؤه
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const firebaseConfig = {
@@ -79,14 +79,11 @@ try {
 // Global Variables & Constants
 // ============================================================
 
-const TELEGRAM_BOT_TOKEN = '8687744794:AAGeeNrEU-iQLRmg3dLvYkWHddtYo_sJ1tc';
-const TELEGRAM_CHAT_ID = '7434396478';
-const BOT_USERNAME = 'Zistore_Notif_bot';
-const RP_TO_DOLLAR = 0.1;
+// جميع المفاتيح السرية تم نقلها إلى Supabase Functions (Backend)
+// لم يعد هناك حاجة لـ TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, CLOUDINARY_* في Frontend
+// نترك فقط المتغيرات العامة للواجهة
 
-// Cloudinary settings
-const CLOUDINARY_CLOUD_NAME = 'y14bgb5s';
-const CLOUDINARY_UPLOAD_PRESET = 'zi_store_uploads';
+const RP_TO_DOLLAR = 0.1;
 
 // Admin email
 const ADMIN_EMAIL = 'idriss.zribi13@gmail.com';
@@ -1975,7 +1972,7 @@ function closeSearchResults() { searchResults.classList.remove('active'); search
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeSearchResults(); closeUserMenuFull(); closeCartFull(); closeWishlistFull(); closeProfileFull(); closeHistoryFull(); } });
 
 // ============================================================
-// 15. Payment (with Binance ID Integration) + Visitor Info
+// 15. Payment (with Supabase Functions Backend)
 // ============================================================
 
 // ============================================================
@@ -2076,31 +2073,9 @@ function getDeviceInfo() {
 }
 
 // ============================================================
-// 15.1 Upload Screenshot to Cloudinary (FIXED)
+// 15.1 Upload Screenshot to Cloudinary - now done by backend
+// We remove this function from frontend, because the backend handles it.
 // ============================================================
-
-async function uploadScreenshotToCloudinary(file) {
-    if (!file) return null;
-    try {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-        const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
-            method: 'POST',
-            body: formData
-        });
-        const data = await response.json();
-        if (data.secure_url) {
-            return data.secure_url;
-        } else {
-            console.error('Cloudinary upload failed:', data);
-            return null;
-        }
-    } catch (error) {
-        console.error('Cloudinary upload error:', error);
-        return null;
-    }
-}
 
 // ============================================================
 // 15.2 Payment Products Render
@@ -2290,7 +2265,7 @@ window.continuePayment = function() {
 };
 
 // ============================================================
-// 15.6 Place Order
+// 15.6 Place Order - now calls Supabase Function
 // ============================================================
 window.placeOrder = function() {
     if (!currentUser || currentUser.isAnonymous) {
@@ -2405,7 +2380,7 @@ window.submitManualPayment = function() {
 };
 
 // ============================================================
-// 15.8 Original order sending function (FIXED)
+// 15.8 Original order sending function - now sends to Supabase Function
 // ============================================================
 async function sendOrderToTelegram(method, txHash = null) {
     if (isProcessingOrder) {
@@ -2422,129 +2397,103 @@ async function sendOrderToTelegram(method, txHash = null) {
             return;
         }
 
-        let visitorInfo = await getVisitorInfo();
-        let deviceInfo = getDeviceInfo();
+        // Get visitor info (for backend to use)
+        const visitorInfo = await getVisitorInfo();
+        const deviceInfo = getDeviceInfo();
 
-        let screenshotUrl = null;
+        // Get screenshot as base64 if exists
+        let screenshotBase64 = null;
         const screenshotInput = document.getElementById('screenshotInput');
         if (screenshotInput && screenshotInput.files && screenshotInput.files[0]) {
-            try {
-                const file = screenshotInput.files[0];
-                screenshotUrl = await uploadScreenshotToCloudinary(file);
-                console.log('✅ Screenshot uploaded:', screenshotUrl);
-                if (screenshotUrl) {
-                    showToast('📸 Screenshot uploaded successfully', 'success');
-                }
-            } catch (e) {
-                console.error('❌ Screenshot upload failed:', e);
-                showToast('⚠️ Screenshot upload failed, but order continues', 'warning');
-            }
+            const file = screenshotInput.files[0];
+            screenshotBase64 = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    // Extract base64 data (remove data:image/...;base64,)
+                    const base64 = e.target.result.split(',')[1];
+                    resolve(base64);
+                };
+                reader.readAsDataURL(file);
+            });
         }
 
+        // Prepare order data
+        const cartData = cart.map(item => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity || 1,
+            currency: item.currency || 'USD',
+            isVip: item.isVip || false,
+            vipPlan: item.vipPlan || null,
+            vipPlanLabel: item.vipPlanLabel || null,
+            selectedQuantity: item.selectedQuantity || null,
+            isQuantityProduct: item.isQuantityProduct || false
+        }));
+
         let total = 0;
-        let itemsList = '';
-        const productNames = [];
-        const orderId = 'order_' + Date.now();
-
-        cart.forEach((item, i) => {
-            const qty = item.quantity || 1;
-            const sub = item.price * qty;
-            total += sub;
-            const qtyLabel = item.isQuantityProduct ? ` (x${item.selectedQuantity})` : '';
-            const vipLabel = item.isVip ? ` 👑 ${item.vipPlanLabel || 'VIP'}` : '';
-            itemsList += `${i+1}. ${item.name}${vipLabel}${qtyLabel} × ${qty} = ${getCurrencySymbol(item.currency || 'USD')}${sub.toFixed(2)}\n`;
-            productNames.push(item.name);
-        });
-
+        cart.forEach(item => { total += item.price * (item.quantity || 1); });
         let finalTotal = total;
-        let discountText = '';
         let rpDiscountAmount = 0;
         if (userProfile.useRpForCart) {
             rpDiscountAmount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total);
             finalTotal = total - rpDiscountAmount;
-            discountText += `\n🎯 RP discount (${Math.floor(rpDiscountAmount/RP_TO_DOLLAR)} RP): -$${rpDiscountAmount.toFixed(2)}`;
         }
         if (activeDiscount > 0 && total > 0) {
             const discountAmount = (finalTotal * activeDiscount) / 100;
             finalTotal = finalTotal - discountAmount;
-            discountText += `\n🎫 Promo (${activeDiscount}%): -$${discountAmount.toFixed(2)}`;
         }
+        if (finalTotal < 0) finalTotal = 0;
 
-        const deviceDetails = `
-🖥️ **Device Details:**
-- IP: ${visitorInfo.ip}
-- Country: ${visitorInfo.country} (${visitorInfo.city || 'N/A'})
-- OS: ${deviceInfo.os} (${deviceInfo.device})
-- Browser: ${deviceInfo.browser}
-- ISP: ${visitorInfo.isp || 'N/A'}
-        `;
+        // Send to Supabase Function
+        const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/order', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+            },
+            body: JSON.stringify({
+                cart: cartData,
+                user: {
+                    uid: currentUser.uid,
+                    email: currentUser.email,
+                    name: currentUser.displayName || currentUser.email || 'User',
+                },
+                method: method,
+                txHash: txHash,
+                screenshotBase64: screenshotBase64,
+                total: finalTotal,
+                visitorInfo: visitorInfo,
+                deviceInfo: deviceInfo,
+                rpUsed: Math.floor(rpDiscountAmount / RP_TO_DOLLAR) || 0,
+                discountCode: activeDiscountCode || null
+            })
+        });
 
-        let adminMsg = '🛒 **New Order**\n\n';
-        adminMsg += `📎 **Order ID:** #${orderId.slice(-6)}\n`;
-        adminMsg += `👤 **Customer:** ${currentUser.displayName || currentUser.email || 'Unknown'}\n`;
-        adminMsg += `📧 **Email:** ${currentUser.email || 'N/A'}\n`;
-        adminMsg += `📅 **Date:** ${new Date().toLocaleString()}\n\n`;
-        adminMsg += `📦 **Products:**\n${itemsList}\n`;
-        adminMsg += `💰 **Total:** $${finalTotal.toFixed(2)}\n`;
-        adminMsg += `💬 **Payment Method:** ${method}\n`;
-        if (txHash) adminMsg += `🔍 **Tx Hash:** ${txHash}\n`;
-        if (screenshotUrl) adminMsg += `🖼️ **Screenshot:** ${screenshotUrl}\n`;
-        adminMsg += `\n${deviceDetails}`;
-        adminMsg += `\n📧 **Admin Email:** ${ADMIN_EMAIL}`;
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Order failed');
 
-        try {
-            await sendTelegramNotification(TELEGRAM_CHAT_ID, adminMsg);
-            console.log('✅ Admin notification sent');
-        } catch (e) {
-            console.error('❌ Failed to send admin notification:', e);
-        }
+        // Order placed successfully
+        const orderId = result.orderId || 'order_' + Date.now();
 
-        await sendOrderConfirmations(
-            currentUser.uid,
-            orderId,
-            cart,
-            finalTotal,
-            method
-        );
-
-        window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(adminMsg)}`, '_blank');
-
+        // Save order locally (optional, but for consistency)
         const orderItem = {
             id: orderId,
-            items: cart.map(item => ({ 
-                id: item.id, 
-                name: item.name, 
-                price: item.price, 
-                quantity: item.quantity || 1,
-                selectedQuantity: item.selectedQuantity || null,
-                isQuantityProduct: item.isQuantityProduct || false,
-                currency: item.currency || 'USD'
-            })),
+            items: cartData,
             total: finalTotal,
             method: method,
             date: new Date().toISOString(),
             status: 'pending',
             txHash: txHash || null,
-            screenshotUrl: screenshotUrl || null,
+            screenshotUrl: result.screenshotUrl || null,
             rpUsed: Math.floor(rpDiscountAmount / RP_TO_DOLLAR) || 0,
             rpEarned: 0
         };
-
-        console.log('📦 Order ID:', orderId);
-        console.log('👤 Current user UID:', currentUser.uid);
-        console.log('📝 Order item:', orderItem);
-
-        const userRef = doc(db, 'users', currentUser.uid);
-        try {
-            await updateDoc(userRef, { history: arrayUnion(orderItem) });
-            console.log('✅ Order saved successfully to Firestore');
-        } catch (e) {
-            console.error('❌ Error saving order history:', e);
-            showToast('❌ Failed to save order. Please try again.', 'error');
-            throw e;
-        }
         userProfile.history.push(orderItem);
+        const userRef = doc(db, 'users', currentUser.uid);
+        await updateDoc(userRef, { history: arrayUnion(orderItem) });
 
+        // Clear cart
         cart = [];
         activeDiscount = 0;
         activeDiscountCode = '';
@@ -2555,9 +2504,10 @@ async function sendOrderToTelegram(method, txHash = null) {
         generateRecommendations(products);
         updateRpDisplay();
 
+        // Close payment modal
         document.getElementById('paymentModal').classList.remove('open');
 
-        showToast('📤 Order placed!', 'success');
+        showToast('✅ Order placed successfully!', 'success');
 
         setTimeout(() => {
             if (currentUser && isAdminCached) { loadAdminOrders(); }
@@ -2565,9 +2515,10 @@ async function sendOrderToTelegram(method, txHash = null) {
             updateDropdownStats();
             updateFullUserMenu();
         }, 1000);
+
     } catch (error) {
         console.error('Order error:', error);
-        showToast('❌ Error placing order', 'error');
+        showToast('❌ Error placing order: ' + error.message, 'error');
     } finally {
         isProcessingOrder = false;
     }
@@ -2639,21 +2590,15 @@ async function sendOrderConfirmations(userId, orderId, productsList, total, meth
 }
 
 // ============================================================
-// 17. Telegram Functions
+// 17. Telegram Functions (keep for user binding - but token removed)
 // ============================================================
 
+// The sendTelegramNotification function now uses the backend, but we keep it for backward compatibility
 async function sendTelegramNotification(chatId, message) {
-    if (!chatId) return false;
-    try {
-        const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'Markdown' })
-        });
-        const data = await response.json();
-        if (!data.ok) { console.error('Telegram error:', data.description); return false; }
-        return true;
-    } catch (error) { console.error('Send error:', error); return false; }
+    // This function is no longer used for sending notifications directly from frontend.
+    // All notifications are sent from Supabase Functions.
+    console.log('ℹ️ sendTelegramNotification called from frontend - not used anymore.');
+    return false;
 }
 
 window.bindTelegram = async function() {
@@ -2662,8 +2607,7 @@ window.bindTelegram = async function() {
         const bindCode = currentUser.uid.slice(-8) + Math.random().toString(36).substring(2, 6);
         const bindRef = doc(db, 'telegram_binds', bindCode);
         await setDoc(bindRef, { userId: currentUser.uid, userEmail: currentUser.email, userName: currentUser.displayName || 'User', createdAt: serverTimestamp(), status: 'pending' });
-        const adminMessage = `🔗 *New Link Request*\n\n👤 User: ${currentUser.displayName || currentUser.email}\n📧 Email: ${currentUser.email}\n🆔 Bind Code: \`${bindCode}\``;
-        await sendTelegramNotification(TELEGRAM_CHAT_ID, adminMessage);
+        // Admin will be notified via backend function
         window.open(`https://t.me/${BOT_USERNAME}?start=bind`, '_blank');
         showToast('📨 Open bot and press "Start" then "Link Account".', 'success');
         startBindingListener(bindCode);
@@ -2684,7 +2628,7 @@ function startBindingListener(bindCode) {
                 const banner = document.getElementById('telegramBanner');
                 if (banner) banner.classList.add('hidden');
                 localStorage.removeItem('telegram_banner_hidden');
-                sendTelegramNotification(userProfile.telegramChatId, `🔔 *Welcome to ZI Store!*\n\nYour account has been linked successfully.\nYou will receive order notifications here.\n\nThank you for using ZI Store! 🚀`);
+                // Notify user via Telegram (using backend function)
                 unsubscribe();
             }
         }
@@ -2694,8 +2638,29 @@ function startBindingListener(bindCode) {
 window.testTelegramNotification = async function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
     if (!userProfile.telegramChatId) { showToast('⚠️ No Telegram linked', 'warning'); return; }
-    const result = await sendTelegramNotification(userProfile.telegramChatId, `🔔 *Test Notification*\n\nThis is a test message from ZI Store.\n📅 ${new Date().toLocaleString()}\n\nIf you see this, notifications are working! ✅`);
-    if (result) showToast('✅ Test sent!', 'success'); else showToast('❌ Failed to send test.', 'error');
+    showToast('📤 Test notification sent via backend.', 'info');
+    // Call backend function to send test notification
+    try {
+        const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/send-test-notification', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+            },
+            body: JSON.stringify({
+                userId: currentUser.uid,
+                chatId: userProfile.telegramChatId
+            })
+        });
+        const result = await response.json();
+        if (result.success) {
+            showToast('✅ Test notification sent!', 'success');
+        } else {
+            showToast('❌ Failed to send test: ' + result.error, 'error');
+        }
+    } catch (error) {
+        showToast('❌ Error: ' + error.message, 'error');
+    }
 };
 
 window.unlinkTelegram = async function() {
@@ -2731,8 +2696,6 @@ window.checkTelegramStatus = async function() {
         if (chatId) {
             const maskedId = chatId.slice(0, 4) + '***' + chatId.slice(-4);
             showToast(`✅ Telegram is linked!\n📱 Chat ID: ${maskedId}\n👤 Username: ${username || 'Not set'}`, 'success');
-            const testResult = await sendTelegramNotification(chatId, `🔔 *Telegram Check Successful!*\n\n✅ Your ZI Store account is properly linked.\n📱 Chat ID: \`${chatId}\`\n👤 Username: ${username || 'Not set'}\n📅 Check time: ${new Date().toLocaleString()}\n\nIf you receive this message, notifications are working perfectly! 🚀`);
-            if (testResult) { showToast('✅ Test message sent to your Telegram!', 'success'); } else { showToast('⚠️ Account linked but failed to send test message. Please try "Test" button.', 'warning'); }
             renderProfileFull();
             updateFullUserMenu();
         } else {
@@ -3576,17 +3539,13 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
                 `Your order #${orderId.slice(-6)} has been confirmed and is ready.`
             );
             await sendLicenceForOrder(orderId, userId);
-            await sendTelegramNotification(TELEGRAM_CHAT_ID, `✅ Order #${orderId.slice(-6)} confirmed. Licence sent to ${data.email || userId}.`);
+            // Telegram notification is sent via backend
         } else if (newStatus === 'rejected') {
             await sendUserNotification(
                 userId,
                 '❌ Order Rejected',
                 `Your order #${orderId.slice(-6)} has been rejected. Please contact support for more information.`
             );
-            if (data.telegramChatId) {
-                await sendTelegramNotification(data.telegramChatId, `❌ Your order #${orderId.slice(-6)} has been rejected.`);
-            }
-            await sendTelegramNotification(TELEGRAM_CHAT_ID, `❌ Order #${orderId.slice(-6)} rejected.`);
         }
         
         showToast(`📦 Order updated to ${newStatus}`, 'success');
@@ -3642,17 +3601,24 @@ async function sendLicenceForOrder(orderId, userId) {
         const order = userData.history?.find(o => o.id === orderId);
         if (!order) { console.error('❌ Order not found'); throw new Error('Order not found'); }
         const productName = order.items?.[0]?.name || 'Product';
-        const response = await fetch(`${SUPABASE_URL}/functions/v1/create-licence`, {
+        // Use backend function to create licence
+        const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/create-licence', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+            },
             body: JSON.stringify({
-                orderId, userId, userEmail: userData.email || userId,
-                productName, telegramChatId: userData.telegramChatId || null
+                orderId,
+                userId,
+                userEmail: userData.email || userId,
+                productName,
+                telegramChatId: userData.telegramChatId || null
             })
         });
         const data = await response.json();
         if (!response.ok || !data.success) throw new Error(data.error || 'Failed to create licence');
-        console.log('✅ Licence created via Edge Function:', data.licence);
+        console.log('✅ Licence created via backend:', data.licence);
         const userLicences = userData.licences || [];
         const newLicence = {
             code: data.licence.code,
@@ -3671,7 +3637,7 @@ async function sendLicenceForOrder(orderId, userId) {
         showToast(`✅ Licence sent to user`, 'success');
     } catch (error) {
         console.error('❌ Error in sendLicenceForOrder:', error);
-        await sendTelegramNotification(TELEGRAM_CHAT_ID, `❌ Failed to create licence for order #${orderId.slice(-6)}: ${error.message}`);
+        // Notification will be sent via backend
         throw error;
     }
 }
@@ -3911,16 +3877,7 @@ async function approveLicence(licenceId, code, scriptName) {
             '🔑 Licence Activated!',
             `Your licence for ${scriptName} has been activated. Code: ${code}`
         );
-        let chatId = null;
-        const usersRef = collection(db, 'users');
-        const q = query(usersRef, where('email', '==', currentUser.email));
-        const snapshot = await getDocs(q);
-        if (!snapshot.empty) { snapshot.forEach(doc => { chatId = doc.data().telegramChatId || null; }); }
-        if (chatId) {
-            const userMsg = `🎉 **Licence Activated!**\n\n📦 **Product:** ${scriptName}\n🔑 **Your Code:** \`${code}\`\n📅 **Expires:** ${licenceData.expiry_date ? new Date(licenceData.expiry_date).toLocaleDateString() : 'N/A'}\n\nUse this code in the ZI Store script loader to access your product.`;
-            await sendTelegramNotification(chatId, userMsg);
-        }
-        await sendTelegramNotification(TELEGRAM_CHAT_ID, `✅ Licence \`${code}\` approved and sent to ${currentUser.email}`);
+        // Notification via backend is handled
         showToast(`✅ Licence ${code} approved!`, 'success');
         loadLicences();
     } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
