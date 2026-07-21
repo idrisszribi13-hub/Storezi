@@ -40,8 +40,7 @@ import {
     reauthenticateWithCredential, 
     EmailAuthProvider,
     GoogleAuthProvider,
-    signInWithPopup,
-    fetchSignInMethodsForEmail
+    signInWithPopup
 } from "firebase/auth";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, collection, query, where, getDocs, onSnapshot, addDoc, deleteDoc, orderBy } from "firebase/firestore";
 import { getAnalytics } from "firebase/analytics";
@@ -77,7 +76,7 @@ try {
 }
 
 // ============================================================
-// Global Variables
+// Global Variables & Constants
 // ============================================================
 
 const TELEGRAM_BOT_TOKEN = '8687744794:AAGeeNrEU-iQLRmg3dLvYkWHddtYo_sJ1tc';
@@ -85,11 +84,11 @@ const TELEGRAM_CHAT_ID = '7434396478';
 const BOT_USERNAME = 'Zistore_Notif_bot';
 const RP_TO_DOLLAR = 0.1;
 
-// Cloudinary settings
+// Cloudinary settings (UNIFIED)
 const CLOUDINARY_CLOUD_NAME = 'y14bgb5s';
 const CLOUDINARY_UPLOAD_PRESET = 'zi_store_uploads';
 
-// Admin email for notifications
+// Admin email
 const ADMIN_EMAIL = 'idriss.zribi13@gmail.com';
 
 let currentUser = null;
@@ -1985,7 +1984,6 @@ document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { clo
 
 async function getVisitorInfo() {
     try {
-        // First try ipapi.co
         const response = await fetch('https://ipapi.co/json/');
         if (response.ok) {
             const data = await response.json();
@@ -2002,7 +2000,6 @@ async function getVisitorInfo() {
         console.warn('⚠️ ipapi.co failed:', e);
     }
     try {
-        // Fallback: ip-api.com
         const response = await fetch('https://ip-api.com/json/');
         if (response.ok) {
             const data = await response.json();
@@ -2020,7 +2017,6 @@ async function getVisitorInfo() {
     } catch (e) {
         console.warn('⚠️ ip-api.com failed:', e);
     }
-    // Last resort: get IP only from ipify, then details from ipapi
     try {
         const ipRes = await fetch('https://api.ipify.org?format=json');
         if (ipRes.ok) {
@@ -2223,12 +2219,10 @@ window.continuePayment = function() {
         showToast('⚠️ Please select a payment method', 'warning');
         return;
     }
-    // إظهار الخطوة الثانية
     document.getElementById('paymentStep1').style.display = 'none';
     document.getElementById('paymentStep2').style.display = 'block';
     window.renderPaymentProducts();
 
-    // حساب المجموع
     let total = 0;
     cart.forEach(item => {
         const qty = item.quantity || 1;
@@ -2248,7 +2242,6 @@ window.continuePayment = function() {
     document.getElementById('step2Subtotal').textContent = `$${total.toFixed(2)}`;
     document.getElementById('step2Total').textContent = `$${finalTotal.toFixed(2)}`;
 
-    // إخفاء جميع الأقسام أولاً
     const walletInfo = document.getElementById('paymentWalletInfo');
     const txInput = document.getElementById('paymentTxInput');
     const telegramContact = document.getElementById('paymentTelegramContact');
@@ -2261,7 +2254,6 @@ window.continuePayment = function() {
     if (binanceSection) binanceSection.style.display = 'none';
     if (mainBtn) mainBtn.style.display = 'none';
 
-    // عرض القسم المناسب حسب طريقة الدفع
     if (selectedPayment === 'litecoin' || selectedPayment === 'usdt') {
         if (walletInfo) walletInfo.style.display = 'block';
         if (txInput) txInput.style.display = 'block';
@@ -2413,7 +2405,7 @@ window.submitManualPayment = function() {
 };
 
 // ============================================================
-// 15.8 Original order sending function (FIXED: Visitor Info, Screenshot, Products)
+// 15.8 Original order sending function (FIXED)
 // ============================================================
 async function sendOrderToTelegram(method, txHash = null) {
     if (isProcessingOrder) {
@@ -2430,11 +2422,9 @@ async function sendOrderToTelegram(method, txHash = null) {
             return;
         }
 
-        // ===== GET VISITOR INFO (FIXED) =====
         let visitorInfo = await getVisitorInfo();
         let deviceInfo = getDeviceInfo();
 
-        // ===== UPLOAD SCREENSHOT TO CLOUDINARY (FIXED) =====
         let screenshotUrl = null;
         const screenshotInput = document.getElementById('screenshotInput');
         if (screenshotInput && screenshotInput.files && screenshotInput.files[0]) {
@@ -2451,7 +2441,6 @@ async function sendOrderToTelegram(method, txHash = null) {
             }
         }
 
-        // ===== BUILD PRODUCTS LIST (FIXED) =====
         let total = 0;
         let itemsList = '';
         const productNames = [];
@@ -2481,7 +2470,15 @@ async function sendOrderToTelegram(method, txHash = null) {
             discountText += `\n🎫 Promo (${activeDiscount}%): -$${discountAmount.toFixed(2)}`;
         }
 
-        // ===== BUILD ADMIN MESSAGE =====
+        const deviceDetails = `
+🖥️ **Device Details:**
+- IP: ${visitorInfo.ip}
+- Country: ${visitorInfo.country} (${visitorInfo.city || 'N/A'})
+- OS: ${deviceInfo.os} (${deviceInfo.device})
+- Browser: ${deviceInfo.browser}
+- ISP: ${visitorInfo.isp || 'N/A'}
+        `;
+
         let adminMsg = '🛒 **New Order**\n\n';
         adminMsg += `📎 **Order ID:** #${orderId.slice(-6)}\n`;
         adminMsg += `👤 **Customer:** ${currentUser.displayName || currentUser.email || 'Unknown'}\n`;
@@ -2493,11 +2490,8 @@ async function sendOrderToTelegram(method, txHash = null) {
         if (txHash) adminMsg += `🔍 **Tx Hash:** ${txHash}\n`;
         if (screenshotUrl) adminMsg += `🖼️ **Screenshot:** ${screenshotUrl}\n`;
         adminMsg += `\n${deviceDetails}`;
-
-        // إضافة البريد الإلكتروني للإدمن في الرسالة
         adminMsg += `\n📧 **Admin Email:** ${ADMIN_EMAIL}`;
 
-        // ===== SEND TO ADMIN TELEGRAM =====
         try {
             await sendTelegramNotification(TELEGRAM_CHAT_ID, adminMsg);
             console.log('✅ Admin notification sent');
@@ -2505,7 +2499,6 @@ async function sendOrderToTelegram(method, txHash = null) {
             console.error('❌ Failed to send admin notification:', e);
         }
 
-        // ===== SEND CONFIRMATIONS TO USER =====
         await sendOrderConfirmations(
             currentUser.uid,
             orderId,
@@ -2514,10 +2507,8 @@ async function sendOrderToTelegram(method, txHash = null) {
             method
         );
 
-        // ===== OPEN TELEGRAM FOR DIRECT CONTACT =====
         window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(adminMsg)}`, '_blank');
 
-        // ===== SAVE ORDER TO FIRESTORE =====
         const orderItem = {
             id: orderId,
             items: cart.map(item => ({ 
@@ -2554,7 +2545,6 @@ async function sendOrderToTelegram(method, txHash = null) {
         }
         userProfile.history.push(orderItem);
 
-        // ===== CLEAR CART AND RESET =====
         cart = [];
         activeDiscount = 0;
         activeDiscountCode = '';
@@ -2565,7 +2555,6 @@ async function sendOrderToTelegram(method, txHash = null) {
         generateRecommendations(products);
         updateRpDisplay();
 
-        // ===== CLOSE PAYMENT MODAL =====
         document.getElementById('paymentModal').classList.remove('open');
 
         showToast('📤 Order placed!', 'success');
@@ -5037,22 +5026,8 @@ function startSocialProof() { /* For future use */ }
 function triggerSocialProofOnOrder(userName, productNames) { /* For future use */ }
 
 // ============================================================
-// 33. Cloudinary Upload (for products and slides)
+// 33. Cloudinary Upload (for products and slides) - Already defined above
 // ============================================================
-
-const CLOUDINARY_CLOUD_NAME = 'y14bgb5s';
-const CLOUDINARY_UPLOAD_PRESET = 'zi_store_uploads';
-
-async function uploadToCloudinary(file) {
-    try {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-        const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, { method: 'POST', body: formData });
-        const data = await response.json();
-        return data.secure_url || null;
-    } catch (error) { console.error('Cloudinary upload error:', error); return null; }
-}
 
 // ============================================================
 // 34. Direction Fix
@@ -5260,7 +5235,7 @@ window.closeSupportModal = function() {
 };
 
 window.openWhatsAppSupport = function() {
-    const phone = '1234567890'; // استبدل بالرقم الصحيح
+    const phone = '1234567890';
     const message = 'Hi, I need help';
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
 };
@@ -5278,7 +5253,7 @@ window.openEmailSupport = function() {
 };
 
 window.openPhoneSupport = function() {
-    const phone = '1234567890'; // استبدل بالرقم الصحيح
+    const phone = '1234567890';
     window.location.href = `tel:${phone}`;
 };
 
