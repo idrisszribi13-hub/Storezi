@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - Full Version with all fixes + Payment History
+// SCRIPT.JS - ZI Store - Full Version with all fixes
 // ============================================================
 
 // ============================================================
@@ -2152,7 +2152,7 @@ window.selectPayment = function(method) {
 };
 
 // ============================================================
-// 15.4 Continue Payment (FIXED)
+// 15.4 Continue Payment
 // ============================================================
 window.continuePayment = function() {
     if (!selectedPayment) {
@@ -3078,7 +3078,8 @@ window.switchAdminTab = function(tab) {
         'logs': 'tabLogs',
         'slider': 'tabSlider',
         'licences': 'tabLicences',
-        'marquee': 'tabMarquee'
+        'marquee': 'tabMarquee',
+        'payments': 'tabPayments'
     };
     const tabId = tabMap[tab] || tabMap['dashboard'];
     document.getElementById(tabId).classList.add('active');
@@ -3113,6 +3114,9 @@ window.switchAdminTab = function(tab) {
                 container.insertBefore(btn, container.firstChild);
             }
         }
+    }
+    if (tab === 'payments') {
+        refreshAdminPayments();
     }
 };
 
@@ -3571,7 +3575,7 @@ async function sendLicenceForOrder(orderId, userId) {
             })
         });
         const data = await response.json();
-        if (!response.ok || !data.success) { throw new Error(data.error || 'Failed to create licence'); }
+        if (!response.ok || !data.success) throw new Error(data.error || 'Failed to create licence');
         console.log('✅ Licence created via Edge Function:', data.licence);
         const userLicences = userData.licences || [];
         const newLicence = {
@@ -4635,7 +4639,7 @@ async function loadAuditLogs() {
 window.loadAuditLogs = loadAuditLogs;
 
 // ============================================================
-// 30. Clear Order History, Render History, Filter Orders
+// 30. Order History (Unified with Payment Design)
 // ============================================================
 
 window.clearOrderHistory = async function() {
@@ -4662,47 +4666,141 @@ window.clearOrderHistory = async function() {
 window.renderHistoryFull = function() {
     const container = document.getElementById('historyFullContent');
     if (!container) return;
+
+    const currency = document.getElementById('historyCurrencyFilter')?.value || 'all';
+    const status = document.getElementById('historyStatusFilter')?.value || 'all';
+
     const history = userProfile.history || [];
     if (history.length === 0) {
-        container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
-            <i class="fas fa-shopping-bag" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i>
-            <div style="font-size:18px;font-weight:600;">No orders yet</div>
-            <div style="font-size:13px;opacity:0.4;margin-top:4px;">Your orders will appear here</div>
+        container.innerHTML = `<div style="text-align:center; padding:40px 20px; color:var(--text-secondary);">
+            <i class="fas fa-shopping-bag" style="font-size:48px; opacity:0.15; display:block; margin-bottom:12px;"></i>
+            <div style="font-size:18px; font-weight:600;">No orders yet</div>
+            <div style="font-size:13px; opacity:0.4; margin-top:4px;">Your orders will appear here</div>
         </div>`;
         return;
     }
-    let html = `<div style="display:flex;flex-direction:column;gap:8px;">`;
-    const sortedHistory = [...history].reverse();
-    sortedHistory.forEach((order) => {
-        const status = order.status || 'pending';
-        const statusColors = { 'pending': '#fbbf24', 'confirmed': '#34d399', 'rejected': '#f87171' };
-        const statusLabels = { 'pending': '⏳ Pending', 'confirmed': '✅ Confirmed', 'rejected': '❌ Rejected' };
-        const date = order.date ? new Date(order.date) : new Date();
-        const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-        const itemsList = order.items ? order.items.map(i => i.name + (i.selectedQuantity ? ' 📦'+i.selectedQuantity : '')).join(', ') : 'Order';
-        const total = order.total || 0;
-        html += `<div style="background:var(--bg);border-radius:10px;padding:12px 14px;border:1px solid var(--border);">
-            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;">
-                <div><div style="font-weight:600;color:var(--text);font-size:14px;">${itemsList}</div>
-                <div style="font-size:11px;color:var(--text-secondary);opacity:0.4;">${dateStr}</div></div>
-                <div style="display:flex;align-items:center;gap:8px;">
-                    <span style="font-size:14px;font-weight:700;color:var(--primary);">$${total.toFixed(2)}</span>
-                    <span style="padding:2px 10px;border-radius:12px;font-size:10px;font-weight:600;background:${statusColors[status] || '#6b7280'};color:#0a0a1a;">${statusLabels[status] || status}</span>
+
+    // تحويل الطلبات إلى صيغة المدفوعات
+    let paymentItems = history.map(order => {
+        let currencyCode = 'LTC';
+        let amount = 0;
+        if (order.items && order.items.length > 0) {
+            const firstItem = order.items[0];
+            currencyCode = firstItem.currency || 'LTC';
+            amount = order.total || 0;
+        }
+        const toAddress = order.txHash ? order.txHash.slice(0, 20) + '...' : 'N/A';
+        return {
+            id: order.id || '#' + String(Date.now()).slice(-6),
+            currency: currencyCode,
+            icon: currencyCode === 'LTC' ? 'L' : (currencyCode === 'BTC' ? '₿' : (currencyCode === 'ETH' ? '⟠' : '₮')),
+            date: order.date ? new Date(order.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '--',
+            amount: amount.toFixed(2),
+            value: `$${amount.toFixed(2)}`,
+            status: order.status || 'pending',
+            to: toAddress,
+            method: order.method || 'Unknown'
+        };
+    });
+
+    // تطبيق الفلاتر
+    let filtered = paymentItems.filter(p => {
+        const matchCurrency = currency === 'all' || p.currency === currency;
+        const matchStatus = status === 'all' || p.status === status;
+        return matchCurrency && matchStatus;
+    });
+
+    const isLtcFilter = (currency === 'LTC');
+
+    // إظهار/إخفاء ملاحظة التأخير
+    const delayNote = document.getElementById('historyDelayNote');
+    if (delayNote) {
+        delayNote.style.display = isLtcFilter ? 'block' : 'none';
+    }
+
+    if (filtered.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-secondary);">No orders match your filters.</div>`;
+        return;
+    }
+
+    filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    let html = '';
+    filtered.forEach(p => {
+        let statusText = p.status === 'pending' ? 'Pending' : (p.status === 'confirmed' ? 'Completed' : 'Rejected');
+        if (isLtcFilter && p.status === 'pending') {
+            statusText = 'Pending (24–48h)';
+        }
+        const statusClass = p.status === 'confirmed' ? 'completed' : p.status;
+
+        const borderColor = p.currency === 'LTC' ? '#3fcb7a' : (p.currency === 'BTC' ? '#f7931a' : (p.currency === 'ETH' ? '#627eea' : '#3e8cff'));
+
+        html += `
+            <div class="payment-card" style="
+                background: var(--card-bg);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-md);
+                padding: 16px 18px;
+                margin-bottom: 12px;
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                justify-content: space-between;
+                border-left: 5px solid ${borderColor};
+                transition: 0.2s;
+            ">
+                <div style="display:flex; align-items:center; gap:14px; flex:1; min-width:150px;">
+                    <div style="
+                        width:48px; height:48px; border-radius:50%; 
+                        background: var(--bg-secondary); 
+                        display:flex; align-items:center; justify-content:center; 
+                        font-weight:700; font-size:22px; 
+                        color: ${borderColor};
+                        border: 1px solid var(--border);
+                    ">${p.icon}</div>
+                    <div>
+                        <div style="font-weight:600; font-size:18px; color:var(--text);">${p.currency}</div>
+                        <div style="font-size:13px; color:var(--text-secondary);">${p.date}</div>
+                        <div style="
+                            font-size:12px; color:var(--text-secondary); 
+                            font-family:monospace; background:var(--bg); 
+                            padding:0 10px; border-radius:30px; 
+                            display:inline-block; margin-top:2px;
+                            border: 1px solid var(--border);
+                        ">${p.id}</div>
+                    </div>
+                </div>
+                <div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap; margin-top:6px;">
+                    <div style="text-align:right;">
+                        <div style="font-weight:700; font-size:20px; color:var(--text);">${p.amount} <span style="font-size:13px; opacity:0.4; font-weight:400;">${p.currency}</span></div>
+                        <div style="font-size:14px; color:var(--text-secondary);">${p.value}</div>
+                    </div>
+                    <div style="
+                        padding:4px 16px; border-radius:30px; 
+                        font-weight:600; font-size:13px;
+                        background: ${statusClass === 'pending' ? 'var(--pending-color)20' : (statusClass === 'completed' ? 'var(--success)20' : 'var(--danger)20')};
+                        color: ${statusClass === 'pending' ? 'var(--pending-color)' : (statusClass === 'completed' ? 'var(--success)' : 'var(--danger)')};
+                        border: 1px solid ${statusClass === 'pending' ? 'var(--pending-color)40' : (statusClass === 'completed' ? 'var(--success)40' : 'var(--danger)40')};
+                    ">${statusText}</div>
+                </div>
+                <div style="width:100%; margin-top:10px; padding-top:10px; border-top:1px dashed var(--border); font-size:12px; color:var(--text-secondary); font-family:monospace; word-break:break-all;">
+                    <i class="fas fa-arrow-right"></i> To: ${p.to}
+                    ${p.method ? ` • <span style="opacity:0.4;">${p.method}</span>` : ''}
                 </div>
             </div>
-        </div>`;
+        `;
     });
-    html += `</div>`;
+
     container.innerHTML = html;
 };
 
-window.filterOrders = function(filter) {
-    ordersFilter = filter;
-    document.querySelectorAll('.orders-filter-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.filter === filter);
-    });
-    renderHistoryFull();
-};
+// ربط أحداث الفلاتر
+document.addEventListener('DOMContentLoaded', function() {
+    const currencyFilter = document.getElementById('historyCurrencyFilter');
+    const statusFilter = document.getElementById('historyStatusFilter');
+    if (currencyFilter) currencyFilter.addEventListener('change', renderHistoryFull);
+    if (statusFilter) statusFilter.addEventListener('change', renderHistoryFull);
+});
 
 // ============================================================
 // 31. Cookie Consent Functions
@@ -4974,7 +5072,104 @@ window.exportOrders = function() {
 };
 
 // ============================================================
-// 36. Auth State Listener
+// 36. Admin Payments (NEW)
+// ============================================================
+
+function refreshAdminPayments() {
+    if (!currentUser || !isAdminCached) return;
+    const tbody = document.getElementById('adminPaymentsBody');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
+
+    const usersRef = collection(db, 'users');
+    getDocs(usersRef).then((snapshot) => {
+        let allPayments = [];
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            const history = data.history || [];
+            history.forEach(order => {
+                const currency = order.items?.[0]?.currency || 'LTC';
+                const amount = order.total || 0;
+                allPayments.push({
+                    id: order.id || '#' + String(Date.now()).slice(-6),
+                    userId: doc.id,
+                    userEmail: data.email || 'Unknown',
+                    userName: data.name || 'Unknown',
+                    amount: amount,
+                    currency: currency,
+                    date: order.date || new Date().toISOString(),
+                    status: order.status || 'pending',
+                    method: order.method || 'Unknown',
+                    txHash: order.txHash || 'N/A'
+                });
+            });
+        });
+        allPayments.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        const total = allPayments.length;
+        const pending = allPayments.filter(p => p.status === 'pending').length;
+        const completed = allPayments.filter(p => p.status === 'confirmed' || p.status === 'completed').length;
+        const rejected = allPayments.filter(p => p.status === 'rejected').length;
+        document.getElementById('adminPaymentTotal').textContent = total;
+        document.getElementById('adminPaymentPending').textContent = pending;
+        document.getElementById('adminPaymentCompleted').textContent = completed;
+        document.getElementById('adminPaymentRejected').textContent = rejected;
+
+        if (allPayments.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-secondary);">No payments found.</td></tr>';
+            return;
+        }
+
+        let rows = '';
+        allPayments.forEach(p => {
+            const statusBadge = `<span class="status-badge ${p.status === 'confirmed' ? 'confirmed' : p.status}">${p.status.charAt(0).toUpperCase()+p.status.slice(1)}</span>`;
+            const dateStr = new Date(p.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            rows += `
+                <tr style="border-bottom:1px solid var(--border);">
+                    <td style="padding:6px 4px; font-family:monospace; font-size:12px;">${p.id}</td>
+                    <td style="padding:6px 4px;">${p.userEmail}</td>
+                    <td style="padding:6px 4px; font-weight:700; color:var(--primary);">$${p.amount.toFixed(2)}</td>
+                    <td style="padding:6px 4px;">${p.currency}</td>
+                    <td style="padding:6px 4px; font-size:12px; color:var(--text-secondary);">${dateStr}</td>
+                    <td style="padding:6px 4px;">${statusBadge}</td>
+                    <td style="padding:6px 4px;">
+                        ${p.status === 'pending' ? 
+                            `<button onclick="adminApprovePayment('${p.id}','${p.userId}')" style="background:var(--success); border:none; color:#0a0a1a; padding:2px 10px; border-radius:12px; cursor:pointer; font-size:11px; font-weight:600;"><i class="fas fa-check"></i></button>
+                             <button onclick="adminRejectPayment('${p.id}','${p.userId}')" style="background:var(--danger); border:none; color:#fff; padding:2px 10px; border-radius:12px; cursor:pointer; font-size:11px; font-weight:600;"><i class="fas fa-times"></i></button>` : 
+                            `<button onclick="adminDeletePayment('${p.id}','${p.userId}')" style="background:var(--danger); border:none; color:#fff; padding:2px 10px; border-radius:12px; cursor:pointer; font-size:11px; font-weight:600;"><i class="fas fa-trash"></i></button>`
+                        }
+                    </td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = rows;
+    }).catch(error => {
+        console.error('Error loading admin payments:', error);
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--danger);">${error.message}</td></tr>`;
+    });
+}
+
+window.adminApprovePayment = function(orderId, userId) {
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
+    updateOrderStatus(orderId, userId, 'confirmed');
+    setTimeout(refreshAdminPayments, 500);
+};
+
+window.adminRejectPayment = function(orderId, userId) {
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
+    updateOrderStatus(orderId, userId, 'rejected');
+    setTimeout(refreshAdminPayments, 500);
+};
+
+window.adminDeletePayment = function(orderId, userId) {
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (!confirm(`Delete payment ${orderId}?`)) return;
+    deleteOrderImmediately(orderId, userId);
+    setTimeout(refreshAdminPayments, 500);
+};
+
+// ============================================================
+// 37. Auth State Listener
 // ============================================================
 
 onAuthStateChanged(auth, async (user) => {
@@ -5068,7 +5263,7 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// 37. Auto-check Admin Panel
+// 38. Auto-check Admin Panel
 // ============================================================
 
 setInterval(() => {
@@ -5091,7 +5286,7 @@ setInterval(() => {
 }, 5000);
 
 // ============================================================
-// 38. Init
+// 39. Init
 // ============================================================
 
 async function init() {
@@ -5167,7 +5362,7 @@ async function init() {
 }
 
 // ============================================================
-// 39. Theme Toggle
+// 40. Theme Toggle
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -5192,176 +5387,241 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================================
-// 40. Payment History Functions (NEW)
+// 41. Export all functions to global scope
 // ============================================================
 
-window.openPaymentHistoryFull = function() {
-    if (!currentUser) {
-        showToast('⚠️ Please login first', 'warning');
-        openAuthModal();
-        return;
+window.toggleLicencesList = toggleLicencesList;
+window.openLicenceModal = openLicenceModal;
+window.closeLicenceModal = closeLicenceModal;
+window.activateLicence = activateLicence;
+window.editLicence = editLicence;
+window.saveLicenceEdit = saveLicenceEdit;
+window.approveLicence = approveLicence;
+window.revokeLicence = revokeLicence;
+window.deleteLicence = deleteLicence;
+window.openCreateLicenceModal = openCreateLicenceModal;
+window.closeCreateLicenceModal = closeCreateLicenceModal;
+window.createLicenceManually = createLicenceManually;
+window.searchLicences = searchLicences;
+window.clearLicenceSearch = clearLicenceSearch;
+window.refreshLicences = refreshLicences;
+window.loadLicences = loadLicences;
+window.renderLicences = renderLicences;
+window.switchAdminTab = switchAdminTab;
+window.loadAdminOrders = loadAdminOrders;
+window.updateOrderStatus = updateOrderStatus;
+window.filterProducts = filterProducts;
+window.openDetails = openDetails;
+window.addToCart = addToCart;
+window.toggleWishlist = toggleWishlist;
+window.openCartFull = openCartFull;
+window.closeCartFull = closeCartFull;
+window.openWishlistFull = openWishlistFull;
+window.closeWishlistFull = closeWishlistFull;
+window.openUserMenuFull = openUserMenuFull;
+window.closeUserMenuFull = closeUserMenuFull;
+window.openProfileFull = openProfileFull;
+window.closeProfileFull = closeProfileFull;
+window.openHistoryFull = openHistoryFull;
+window.closeHistoryFull = closeHistoryFull;
+window.openShareModal = openShareModal;
+window.closeShareModal = closeShareModal;
+window.shareToWhatsApp = shareToWhatsApp;
+window.shareToTelegram = shareToTelegram;
+window.shareToFacebook = shareToFacebook;
+window.copyShareLink = copyShareLink;
+window.clearSearch = clearSearch;
+window.closeSearchResults = closeSearchResults;
+window.performLiveSearch = performLiveSearch;
+window.openDownloads = openDownloads;
+window.closeDownloads = closeDownloads;
+window.openNotifications = openNotifications;
+window.closeNotifications = closeNotifications;
+window.clearOrderHistory = clearOrderHistory;
+window.filterOrders = filterOrders;
+window.openReferralModal = openReferralModal;
+window.closeReferralModal = closeReferralModal;
+window.copyReferralCode2 = copyReferralCode2;
+window.openRequestsModal = openRequestsModal;
+window.closeRequestsModal = closeRequestsModal;
+window.openNewRequestModal = openNewRequestModal;
+window.closeNewRequestModal = closeNewRequestModal;
+window.submitRequest = submitRequest;
+window.selectPayment = selectPayment;
+window.continuePayment = continuePayment;
+window.goToStep1 = function() {
+    document.getElementById('paymentStep1').style.display = 'block';
+    document.getElementById('paymentStep2').style.display = 'none';
+};
+window.copyWalletAddress = function() {
+    const address = document.getElementById('walletAddressDisplay').textContent;
+    if (address) {
+        navigator.clipboard.writeText(address).then(() => {
+            showToast('✅ Address copied!', 'success');
+        }).catch(() => {
+            const textArea = document.createElement('textarea');
+            textArea.value = address;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            showToast('✅ Address copied!', 'success');
+        });
     }
-    document.getElementById('paymentHistoryFull').classList.add('open');
-    document.body.style.overflow = 'hidden';
-    renderPaymentHistory();
+};
+window.placeOrder = placeOrder;
+window.openPaymentModal = openPaymentModal;
+window.closePaymentModal = closePaymentModal;
+window.checkout = checkout;
+window.bindTelegram = bindTelegram;
+window.checkTelegramStatus = checkTelegramStatus;
+window.testTelegramNotification = testTelegramNotification;
+window.unlinkTelegram = unlinkTelegram;
+window.saveProfileChangesInline = saveProfileChangesInline;
+window.sendResetLinkInline = sendResetLinkInline;
+window.changePasswordInline = changePasswordInline;
+window.toggleRpInCart = toggleRpInCart;
+window.applyCartPromo = applyCartPromo;
+window.showTelegramBannerAgain = showTelegramBannerAgain;
+window.adminToggleBanner = adminToggleBanner;
+window.resetBannerForAll = resetBannerForAll;
+window.closePreviewModal = closePreviewModal;
+window.addToCartFromPreview = addToCartFromPreview;
+window.shareFromPreview = shareFromPreview;
+window.refreshDashboardStats = refreshDashboardStats;
+window.loadDashboardStats = loadDashboardStats;
+window.selectVipPlan = selectVipPlan;
+window.addVipPlanToCart = addVipPlanToCart;
+window.refreshAdvancedStats = refreshAdvancedStats;
+window.setRating = setRating;
+window.submitRating = submitRating;
+window.loadAuditLogs = loadAuditLogs;
+window.pauseSlider = pauseSlider;
+window.resumeSlider = resumeSlider;
+window.goToSlide = goToSlide;
+window.nextSlide = nextSlide;
+window.prevSlide = prevSlide;
+window.loadSliderSettings = loadSliderSettings;
+window.updateSlideProductSelect = updateSlideProductSelect;
+window.addBannerAdminControls = addBannerAdminControls;
+window.showTelegramBanner = showTelegramBanner;
+window.showTelegramBannerAgain = showTelegramBannerAgain;
+window.loadMarqueeSettings = loadMarqueeSettings;
+window.saveMarqueeSettings = saveMarqueeSettings;
+window.renderMarqueeSettingsUI = renderMarqueeSettingsUI;
+window.applyMarqueeSettings = applyMarqueeSettings;
+window.ensureAdminPanel = ensureAdminPanel;
+window.renderHistoryFull = renderHistoryFull;
+window.renderLicences = renderLicences;
+window.loadLicences = loadLicences;
+window.openLicenceModal = openLicenceModal;
+window.closeLicenceModal = closeLicenceModal;
+window.toggleLicencesList = toggleLicencesList;
+window.activateLicence = activateLicence;
+window.renderWishlistFull = renderWishlistFull;
+window.renderCartFull = renderCartFull;
+window.renderProfileFull = renderProfileFull;
+window.openAuthModal = openAuthModal;
+window.showLogin = showLogin;
+window.showRegister = showRegister;
+window.acceptCookies = acceptCookies;
+window.rejectCookies = rejectCookies;
+window.openCookieSettings = openCookieSettings;
+window.closeCookieSettings = closeCookieSettings;
+window.saveCookieSettings = saveCookieSettings;
+window.closeCookieBanner = closeCookieBanner;
+window.saveSliderData = saveSliderData;
+window.saveSliderInterval = saveSliderInterval;
+window.saveSlideEdit = saveSlideEdit;
+window.hideLoadingScreenManually = hideLoadingScreenManually;
+window.updateLoadingText = updateLoadingText;
+window.showMainApp = showMainApp;
+window.editSlide = editSlide;
+window.deleteSlide = deleteSlide;
+window.openAddSlideModal = openAddSlideModal;
+window.closeAddSlideModal = closeAddSlideModal;
+window.selectCurrency = selectCurrency;
+window.selectProductType = selectProductType;
+window.addQuantityOption = addQuantityOption;
+window.removeQuantityOption = removeQuantityOption;
+window.toggleBadge = toggleBadge;
+window.selectQuantityOption = selectQuantityOption;
+window.loginWithGoogle = loginWithGoogle;
+window.toggleSupportMenu = function() {
+    const float = document.getElementById('supportFloat');
+    if (float) {
+        float.classList.toggle('open');
+    }
+};
+window.openSupportModal = function() {
+    const modal = document.getElementById('supportModal');
+    if (modal) {
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    const float = document.getElementById('supportFloat');
+    if (float) {
+        float.classList.remove('open');
+    }
+};
+window.closeSupportModal = function() {
+    const modal = document.getElementById('supportModal');
+    if (modal) {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+};
+window.openWhatsAppSupport = function() {
+    const phone = '1234567890';
+    const message = 'Hi, I need help';
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
+};
+window.openTelegramSupport = function() {
+    const username = 'Mitalica69';
+    const message = 'Hi, I need help';
+    window.open(`https://t.me/${username}?start=support`, '_blank');
+};
+window.openEmailSupport = function() {
+    const email = 'support@zi-store.online';
+    const subject = 'Help Request';
+    window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}`;
+};
+window.openPhoneSupport = function() {
+    const phone = '1234567890';
+    window.location.href = `tel:${phone}`;
 };
 
-window.closePaymentHistoryFull = function() {
-    document.getElementById('paymentHistoryFull').classList.remove('open');
-    document.body.style.overflow = '';
-};
-
-function renderPaymentHistory() {
-    const container = document.getElementById('paymentHistoryContent');
-    if (!container) return;
-
-    const currency = document.getElementById('paymentCurrencyFilter').value;
-    const status = document.getElementById('paymentStatusFilter').value;
-
-    // جلب المدفوعات من الـ user history (كل الطلبات تعتبر مدفوعات)
-    const payments = userProfile.history || [];
-    if (payments.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:40px 20px; color:var(--text-secondary);">
-            <i class="fas fa-credit-card" style="font-size:48px; opacity:0.15; display:block; margin-bottom:12px;"></i>
-            <div style="font-size:18px; font-weight:600;">No payments yet</div>
-            <div style="font-size:13px; opacity:0.4; margin-top:4px;">Your payment history will appear here</div>
-        </div>`;
-        return;
-    }
-
-    // تحويل الطلبات إلى صيغة المدفوعات
-    let paymentItems = payments.map(order => {
-        // استخراج العملة من أول منتج في الطلب
-        let currencyCode = 'LTC';
-        let amount = 0;
-        let value = 0;
-        if (order.items && order.items.length > 0) {
-            const firstItem = order.items[0];
-            currencyCode = firstItem.currency || 'LTC';
-            amount = order.total || 0;
-            value = amount;
+document.addEventListener('click', function(e) {
+    const float = document.getElementById('supportFloat');
+    if (float) {
+        const isClickInside = float.contains(e.target);
+        if (!isClickInside && float.classList.contains('open')) {
+            float.classList.remove('open');
         }
-        // إنشاء عنوان مستلم وهمي (أو استخراج من txHash)
-        const toAddress = order.txHash ? order.txHash.slice(0, 20) + '...' : 'N/A';
-        return {
-            id: order.id || '#' + String(Date.now()).slice(-6),
-            currency: currencyCode,
-            icon: currencyCode === 'LTC' ? 'L' : (currencyCode === 'BTC' ? '₿' : (currencyCode === 'ETH' ? '⟠' : '₮')),
-            date: order.date ? new Date(order.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '--',
-            amount: amount.toFixed(2),
-            value: `$${amount.toFixed(2)}`,
-            status: order.status || 'pending',
-            to: toAddress,
-            method: order.method || 'Unknown'
-        };
-    });
-
-    // تطبيق الفلاتر
-    let filtered = paymentItems.filter(p => {
-        const matchCurrency = currency === 'all' || p.currency === currency;
-        const matchStatus = status === 'all' || p.status === status;
-        return matchCurrency && matchStatus;
-    });
-
-    const isLtcFilter = (currency === 'LTC');
-
-    if (filtered.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-secondary);">No payments match your filters.</div>`;
-        return;
     }
-
-    // ترتيب من الأحدث إلى الأقدم
-    filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    let html = '';
-    filtered.forEach(p => {
-        let statusText = p.status === 'pending' ? 'Pending' : (p.status === 'completed' ? 'Completed' : 'Rejected');
-        if (isLtcFilter && p.status === 'pending') {
-            statusText = 'Pending (24–48h)';
-        }
-        const statusClass = p.status;
-
-        // لون الحدود حسب العملة
-        const borderColor = p.currency === 'LTC' ? '#3fcb7a' : (p.currency === 'BTC' ? '#f7931a' : (p.currency === 'ETH' ? '#627eea' : '#3e8cff'));
-
-        html += `
-            <div class="payment-card" style="
-                background: var(--card-bg);
-                border: 1px solid var(--border);
-                border-radius: var(--radius-md);
-                padding: 16px 18px;
-                margin-bottom: 12px;
-                display: flex;
-                flex-wrap: wrap;
-                align-items: center;
-                justify-content: space-between;
-                border-left: 5px solid ${borderColor};
-                transition: 0.2s;
-            ">
-                <div style="display:flex; align-items:center; gap:14px; flex:1; min-width:150px;">
-                    <div style="
-                        width:48px; height:48px; border-radius:50%; 
-                        background: var(--bg-secondary); 
-                        display:flex; align-items:center; justify-content:center; 
-                        font-weight:700; font-size:22px; 
-                        color: ${borderColor};
-                        border: 1px solid var(--border);
-                    ">${p.icon}</div>
-                    <div>
-                        <div style="font-weight:600; font-size:18px; color:var(--text);">${p.currency}</div>
-                        <div style="font-size:13px; color:var(--text-secondary);">${p.date}</div>
-                        <div style="
-                            font-size:12px; color:var(--text-secondary); 
-                            font-family:monospace; background:var(--bg); 
-                            padding:0 10px; border-radius:30px; 
-                            display:inline-block; margin-top:2px;
-                            border: 1px solid var(--border);
-                        ">${p.id}</div>
-                    </div>
-                </div>
-                <div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap; margin-top:6px;">
-                    <div style="text-align:right;">
-                        <div style="font-weight:700; font-size:20px; color:var(--text);">${p.amount} <span style="font-size:13px; opacity:0.4; font-weight:400;">${p.currency}</span></div>
-                        <div style="font-size:14px; color:var(--text-secondary);">${p.value}</div>
-                    </div>
-                    <div style="
-                        padding:4px 16px; border-radius:30px; 
-                        font-weight:600; font-size:13px;
-                        background: ${statusClass === 'pending' ? 'var(--pending-color)20' : (statusClass === 'completed' ? 'var(--success)20' : 'var(--danger)20')};
-                        color: ${statusClass === 'pending' ? 'var(--pending-color)' : (statusClass === 'completed' ? 'var(--success)' : 'var(--danger)')};
-                        border: 1px solid ${statusClass === 'pending' ? 'var(--pending-color)40' : (statusClass === 'completed' ? 'var(--success)40' : 'var(--danger)40')};
-                    ">${statusText}</div>
-                </div>
-                <div style="width:100%; margin-top:10px; padding-top:10px; border-top:1px dashed var(--border); font-size:12px; color:var(--text-secondary); font-family:monospace; word-break:break-all;">
-                    <i class="fas fa-arrow-right"></i> To: ${p.to}
-                    ${p.method ? ` • <span style="opacity:0.4;">${p.method}</span>` : ''}
-                </div>
-            </div>
-        `;
-    });
-
-    container.innerHTML = html;
-}
-
-// ربط أحداث الفلاتر
-document.addEventListener('DOMContentLoaded', function() {
-    const currencyFilter = document.getElementById('paymentCurrencyFilter');
-    const statusFilter = document.getElementById('paymentStatusFilter');
-    if (currencyFilter) currencyFilter.addEventListener('change', renderPaymentHistory);
-    if (statusFilter) statusFilter.addEventListener('change', renderPaymentHistory);
 });
 
-// تعديل دالة renderHistoryFull لتحديث payment history أيضاً عند تغيير orders
-const originalRenderHistoryFull = window.renderHistoryFull;
-window.renderHistoryFull = function() {
-    if (originalRenderHistoryFull) originalRenderHistoryFull();
-    if (document.getElementById('paymentHistoryFull').classList.contains('open')) {
-        renderPaymentHistory();
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('supportModal');
+        if (modal && modal.classList.contains('open')) {
+            closeSupportModal();
+        }
+        const float = document.getElementById('supportFloat');
+        if (float && float.classList.contains('open')) {
+            float.classList.remove('open');
+        }
     }
-};
+});
+
+console.log('✅ Support system loaded successfully!');
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
 
 // ============================================================
 // END OF SCRIPT.JS
 // ============================================================
-
-// Export all functions to global scope (already done above)
