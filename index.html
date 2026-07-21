@@ -1737,6 +1737,123 @@
             height: 24px;
             cursor: pointer;
         }
+
+        /* ===== Payment History Card (used inside Order History) ===== */
+        .payment-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px 18px;
+            margin-bottom: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            border-left: 5px solid #3e8cff;
+            transition: 0.2s;
+        }
+        .payment-card .payment-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--bg-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 22px;
+            border: 1px solid var(--border);
+        }
+        .payment-card .payment-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .payment-card .payment-currency {
+            font-weight: 600;
+            font-size: 18px;
+            color: var(--text);
+        }
+        .payment-card .payment-date {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .payment-card .payment-id {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-family: monospace;
+            background: var(--bg);
+            padding: 0 10px;
+            border-radius: 30px;
+            display: inline-block;
+            margin-top: 2px;
+            border: 1px solid var(--border);
+        }
+        .payment-card .payment-amount {
+            text-align: right;
+        }
+        .payment-card .payment-coins {
+            font-weight: 700;
+            font-size: 20px;
+            color: var(--text);
+        }
+        .payment-card .payment-coins small {
+            font-size: 13px;
+            opacity: 0.4;
+            font-weight: 400;
+        }
+        .payment-card .payment-value {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        .payment-card .payment-status {
+            padding: 4px 16px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+        .payment-card .payment-status.pending {
+            background: var(--pending-color)20;
+            color: var(--pending-color);
+            border: 1px solid var(--pending-color)40;
+        }
+        .payment-card .payment-status.completed {
+            background: var(--success)20;
+            color: var(--success);
+            border: 1px solid var(--success)40;
+        }
+        .payment-card .payment-status.rejected {
+            background: var(--danger)20;
+            color: var(--danger);
+            border: 1px solid var(--danger)40;
+        }
+        .payment-card .payment-to {
+            width: 100%;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed var(--border);
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-family: monospace;
+            word-break: break-all;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .payment-card .payment-to i { color: var(--text-secondary); opacity: 0.4; font-size: 14px; }
+        .payment-card .payment-method {
+            opacity: 0.4;
+        }
+        .payment-delay-note {
+            padding: 12px 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-secondary);
+            opacity: 0.4;
+            display: none;
+        }
+        .payment-delay-note i { color: #3fcb7a; margin-right: 6px; }
     </style>
 </head>
 <body>
@@ -1905,8 +2022,10 @@
 
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
                 <button onclick="openProfileFull()" style="padding:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:6px;"><i class="fas fa-id-card"></i> Profile</button>
-                <button onclick="openHistoryFull()" style="padding:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:6px; position:relative;"><i class="fas fa-history"></i> Orders <span id="fullOrderBadge" style="display:none; background:var(--danger); color:#fff; font-size:9px; padding:0 6px; border-radius:10px;">0</span></button>
-                <button onclick="openPaymentHistoryFull()" style="padding:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:6px;"><i class="fas fa-credit-card"></i> Payments</button>
+                <!-- Only ONE Orders button - combined with Payment History design -->
+                <button onclick="openHistoryFull()" style="padding:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:6px; position:relative;">
+                    <i class="fas fa-history"></i> Orders <span id="fullOrderBadge" style="display:none; background:var(--danger); color:#fff; font-size:9px; padding:0 6px; border-radius:10px;">0</span>
+                </button>
                 <button onclick="openWishlistFull()" style="padding:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:6px;"><i class="fas fa-heart"></i> Favorites <span id="fullWishlistBadge" style="display:none; background:var(--danger); color:#fff; font-size:9px; padding:0 6px; border-radius:10px;">0</span></button>
                 <button onclick="openNotifications()" style="padding:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:6px; position:relative;"><i class="fas fa-bell"></i> Notifications <span id="fullNotifBadge" style="display:none; background:var(--danger); color:#fff; font-size:9px; padding:0 6px; border-radius:10px;">0</span></button>
                 <button onclick="openDownloads()" style="padding:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:6px;"><i class="fas fa-download"></i> Downloads</button>
@@ -1948,30 +2067,15 @@
         <div id="profileFullContent" style="flex:1; overflow-y:auto;"></div>
     </div>
 
-    <!-- ===== HISTORY FULL ===== -->
+    <!-- ===== ORDER HISTORY FULL (Unified with Payment Design) ===== -->
     <div class="fullscreen-modal" id="historyFull">
         <div class="modal-header">
             <h2><i class="fas fa-shopping-bag"></i> Order History</h2>
-            <button class="close-btn" onclick="closeHistoryFull()">&times;</button>
-        </div>
-        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;">
-            <button class="orders-filter-btn active" data-filter="all" onclick="filterOrders('all')" style="padding:4px 12px; border:1px solid var(--border); border-radius:20px; background:transparent; color:var(--text-secondary); cursor:pointer;">All</button>
-            <button class="orders-filter-btn" data-filter="pending" onclick="filterOrders('pending')" style="padding:4px 12px; border:1px solid var(--border); border-radius:20px; background:transparent; color:var(--text-secondary); cursor:pointer;">Pending</button>
-            <button class="orders-filter-btn" data-filter="confirmed" onclick="filterOrders('confirmed')" style="padding:4px 12px; border:1px solid var(--border); border-radius:20px; background:transparent; color:var(--text-secondary); cursor:pointer;">Confirmed</button>
-            <button class="orders-filter-btn" data-filter="rejected" onclick="filterOrders('rejected')" style="padding:4px 12px; border:1px solid var(--border); border-radius:20px; background:transparent; color:var(--text-secondary); cursor:pointer;">Rejected</button>
-            <button onclick="clearOrderHistory()" style="padding:4px 12px; border:1px solid var(--danger); border-radius:20px; background:transparent; color:var(--danger); cursor:pointer;">Clear All</button>
-        </div>
-        <div id="historyFullContent" style="flex:1; overflow-y:auto;"></div>
-    </div>
-
-    <!-- ===== PAYMENT HISTORY FULL (NEW) ===== -->
-    <div class="fullscreen-modal" id="paymentHistoryFull">
-        <div class="modal-header">
-            <h2><i class="fas fa-history"></i> Payment History</h2>
             <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                <!-- Currency Filter -->
                 <div style="display:flex; align-items:center; gap:4px; background:var(--bg); padding:4px 10px; border-radius:30px; border:1px solid var(--border);">
                     <i class="fas fa-coins" style="color:var(--text-secondary); opacity:0.4;"></i>
-                    <select id="paymentCurrencyFilter" style="background:transparent; border:none; color:var(--text); font-family:var(--font); font-size:13px; padding:4px 0; outline:none; cursor:pointer;">
+                    <select id="historyCurrencyFilter" style="background:transparent; border:none; color:var(--text); font-family:var(--font); font-size:13px; padding:4px 0; outline:none; cursor:pointer;">
                         <option value="all">All Currencies</option>
                         <option value="LTC">Litecoin</option>
                         <option value="BTC">Bitcoin</option>
@@ -1979,22 +2083,27 @@
                         <option value="USDT">USDT</option>
                     </select>
                 </div>
+                <!-- Status Filter -->
                 <div style="display:flex; align-items:center; gap:4px; background:var(--bg); padding:4px 10px; border-radius:30px; border:1px solid var(--border);">
                     <i class="fas fa-circle-check" style="color:var(--text-secondary); opacity:0.4;"></i>
-                    <select id="paymentStatusFilter" style="background:transparent; border:none; color:var(--text); font-family:var(--font); font-size:13px; padding:4px 0; outline:none; cursor:pointer;">
+                    <select id="historyStatusFilter" style="background:transparent; border:none; color:var(--text); font-family:var(--font); font-size:13px; padding:4px 0; outline:none; cursor:pointer;">
                         <option value="all">All Status</option>
                         <option value="pending">Pending</option>
-                        <option value="completed">Completed</option>
+                        <option value="confirmed">Confirmed</option>
                         <option value="rejected">Rejected</option>
                     </select>
                 </div>
-                <button class="close-btn" onclick="closePaymentHistoryFull()" style="background:none; border:none; color:var(--text-secondary); font-size:24px; cursor:pointer; padding:0 4px;">&times;</button>
+                <!-- Clear All -->
+                <button onclick="clearOrderHistory()" style="padding:4px 12px; border:1px solid var(--danger); border-radius:20px; background:transparent; color:var(--danger); cursor:pointer; font-size:12px;">Clear All</button>
+                <!-- Close -->
+                <button class="close-btn" onclick="closeHistoryFull()" style="background:none; border:none; color:var(--text-secondary); font-size:24px; cursor:pointer; padding:0 4px;">&times;</button>
             </div>
         </div>
-        <div id="paymentHistoryContent" style="flex:1; overflow-y:auto; padding:8px 0;">
-            <div style="text-align:center; padding:30px; color:var(--text-secondary);">Loading payments...</div>
+        <div id="historyFullContent" style="flex:1; overflow-y:auto; padding:8px 0;">
+            <div style="text-align:center; padding:30px; color:var(--text-secondary);">Loading orders...</div>
         </div>
-        <div style="padding:12px 0; border-top:1px solid var(--border); text-align:center; font-size:13px; color:var(--text-secondary); opacity:0.4;">
+        <!-- Delay Note (shown only when LTC filter is active) -->
+        <div id="historyDelayNote" class="payment-delay-note">
             <i class="fas fa-clock"></i> Payments are reviewed and sent within 24–48 hours
         </div>
     </div>
@@ -2602,7 +2711,7 @@
             </div>
         </div>
 
-        <!-- Payments (NEW) -->
+        <!-- Payments -->
         <div class="tab-content" id="tabPayments">
             <h3 style="margin-bottom:8px;">All Payments</h3>
             <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:8px;">
@@ -2982,4 +3091,4 @@
     <script type="module" src="script.js"></script>
 
 </body>
-    </html>
+</html>
