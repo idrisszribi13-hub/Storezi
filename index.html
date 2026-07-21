@@ -648,6 +648,8 @@
             padding-bottom: 12px;
             border-bottom: 1px solid var(--border);
             margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 8px;
         }
         .fullscreen-modal .modal-header h2 {
             font-size: 20px;
@@ -765,7 +767,7 @@
             accent-color: var(--primary);
         }
 
-        /* ===== Admin Panel ===== */
+        /* ===== Admin Panel (FIXED LAYOUT) ===== */
         #adminPanel {
             position: fixed;
             inset: 0;
@@ -785,6 +787,7 @@
             border-bottom: 1px solid var(--border);
             flex-wrap: wrap;
             gap: 8px;
+            flex-shrink: 0;
         }
         #adminPanel .admin-header h2 { font-size: 20px; font-weight: 700; }
         #adminPanel .admin-header .close-btn { font-size: 24px; background: none; border: none; color: var(--text-secondary); cursor: pointer; }
@@ -796,6 +799,7 @@
             flex-wrap: nowrap;
             border-bottom: 1px solid var(--border);
             margin-bottom: 12px;
+            flex-shrink: 0;
         }
         #adminPanel .tabs button {
             padding: 6px 14px;
@@ -822,6 +826,8 @@
             display: none;
             padding-top: 12px;
             animation: fadeIn 0.25s ease;
+            flex: 1;
+            overflow-y: auto;
         }
         #adminPanel .tab-content.active {
             display: block;
@@ -831,6 +837,7 @@
             100% { opacity: 1; transform: translateY(0); }
         }
 
+        /* ===== Admin Items ===== */
         .admin-item {
             display: flex;
             justify-content: space-between;
@@ -1899,6 +1906,7 @@
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
                 <button onclick="openProfileFull()" style="padding:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:6px;"><i class="fas fa-id-card"></i> Profile</button>
                 <button onclick="openHistoryFull()" style="padding:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:6px; position:relative;"><i class="fas fa-history"></i> Orders <span id="fullOrderBadge" style="display:none; background:var(--danger); color:#fff; font-size:9px; padding:0 6px; border-radius:10px;">0</span></button>
+                <button onclick="openPaymentHistoryFull()" style="padding:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:6px;"><i class="fas fa-credit-card"></i> Payments</button>
                 <button onclick="openWishlistFull()" style="padding:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:6px;"><i class="fas fa-heart"></i> Favorites <span id="fullWishlistBadge" style="display:none; background:var(--danger); color:#fff; font-size:9px; padding:0 6px; border-radius:10px;">0</span></button>
                 <button onclick="openNotifications()" style="padding:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:6px; position:relative;"><i class="fas fa-bell"></i> Notifications <span id="fullNotifBadge" style="display:none; background:var(--danger); color:#fff; font-size:9px; padding:0 6px; border-radius:10px;">0</span></button>
                 <button onclick="openDownloads()" style="padding:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:6px;"><i class="fas fa-download"></i> Downloads</button>
@@ -1954,6 +1962,41 @@
             <button onclick="clearOrderHistory()" style="padding:4px 12px; border:1px solid var(--danger); border-radius:20px; background:transparent; color:var(--danger); cursor:pointer;">Clear All</button>
         </div>
         <div id="historyFullContent" style="flex:1; overflow-y:auto;"></div>
+    </div>
+
+    <!-- ===== PAYMENT HISTORY FULL (NEW) ===== -->
+    <div class="fullscreen-modal" id="paymentHistoryFull">
+        <div class="modal-header">
+            <h2><i class="fas fa-history"></i> Payment History</h2>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                <div style="display:flex; align-items:center; gap:4px; background:var(--bg); padding:4px 10px; border-radius:30px; border:1px solid var(--border);">
+                    <i class="fas fa-coins" style="color:var(--text-secondary); opacity:0.4;"></i>
+                    <select id="paymentCurrencyFilter" style="background:transparent; border:none; color:var(--text); font-family:var(--font); font-size:13px; padding:4px 0; outline:none; cursor:pointer;">
+                        <option value="all">All Currencies</option>
+                        <option value="LTC">Litecoin</option>
+                        <option value="BTC">Bitcoin</option>
+                        <option value="ETH">Ethereum</option>
+                        <option value="USDT">USDT</option>
+                    </select>
+                </div>
+                <div style="display:flex; align-items:center; gap:4px; background:var(--bg); padding:4px 10px; border-radius:30px; border:1px solid var(--border);">
+                    <i class="fas fa-circle-check" style="color:var(--text-secondary); opacity:0.4;"></i>
+                    <select id="paymentStatusFilter" style="background:transparent; border:none; color:var(--text); font-family:var(--font); font-size:13px; padding:4px 0; outline:none; cursor:pointer;">
+                        <option value="all">All Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="completed">Completed</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                </div>
+                <button class="close-btn" onclick="closePaymentHistoryFull()" style="background:none; border:none; color:var(--text-secondary); font-size:24px; cursor:pointer; padding:0 4px;">&times;</button>
+            </div>
+        </div>
+        <div id="paymentHistoryContent" style="flex:1; overflow-y:auto; padding:8px 0;">
+            <div style="text-align:center; padding:30px; color:var(--text-secondary);">Loading payments...</div>
+        </div>
+        <div style="padding:12px 0; border-top:1px solid var(--border); text-align:center; font-size:13px; color:var(--text-secondary); opacity:0.4;">
+            <i class="fas fa-clock"></i> Payments are reviewed and sent within 24–48 hours
+        </div>
     </div>
 
     <!-- ===== NOTIFICATIONS ===== -->
@@ -2385,7 +2428,7 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- ===== ADMIN PANEL ===== -->
+    <!-- ===== ADMIN PANEL (FIXED LAYOUT) ===== -->
     <!-- ============================================================ -->
     <div id="adminPanel">
         <div class="admin-header">
@@ -2404,6 +2447,7 @@
             <button onclick="switchAdminTab('slider')">🎨 Slider</button>
             <button onclick="switchAdminTab('licences')">🔑 Licences</button>
             <button onclick="switchAdminTab('marquee')">🎬 Marquee</button>
+            <button onclick="switchAdminTab('payments')">💳 Payments</button>
         </div>
 
         <!-- Dashboard -->
@@ -2555,6 +2599,47 @@
                     <textarea id="marqueeText" rows="3" placeholder="🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support" style="width:100%; padding:10px 14px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-size:14px; outline:none; font-family:var(--font);">🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support</textarea>
                 </div>
                 <button class="admin-submit-btn" onclick="saveMarqueeSettings()" style="margin-top:8px;"><i class="fas fa-save"></i> Save Settings</button>
+            </div>
+        </div>
+
+        <!-- Payments (NEW) -->
+        <div class="tab-content" id="tabPayments">
+            <h3 style="margin-bottom:8px;">All Payments</h3>
+            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:8px;">
+                <div style="background:var(--bg-secondary); padding:6px; border-radius:var(--radius-sm); text-align:center;">
+                    <span style="font-weight:700; color:var(--primary);" id="adminPaymentTotal">0</span> 
+                    <span style="font-size:11px; color:var(--text-secondary);">Total</span>
+                </div>
+                <div style="background:var(--bg-secondary); padding:6px; border-radius:var(--radius-sm); text-align:center;">
+                    <span style="font-weight:700; color:var(--pending-color);" id="adminPaymentPending">0</span> 
+                    <span style="font-size:11px; color:var(--text-secondary);">Pending</span>
+                </div>
+                <div style="background:var(--bg-secondary); padding:6px; border-radius:var(--radius-sm); text-align:center;">
+                    <span style="font-weight:700; color:var(--success);" id="adminPaymentCompleted">0</span> 
+                    <span style="font-size:11px; color:var(--text-secondary);">Completed</span>
+                </div>
+                <div style="background:var(--bg-secondary); padding:6px; border-radius:var(--radius-sm); text-align:center;">
+                    <span style="font-weight:700; color:var(--danger);" id="adminPaymentRejected">0</span> 
+                    <span style="font-size:11px; color:var(--text-secondary);">Rejected</span>
+                </div>
+            </div>
+            <div style="overflow-x:auto;">
+                <table style="width:100%; border-collapse:collapse; font-size:13px;">
+                    <thead style="background:var(--bg-secondary); border-bottom:2px solid var(--border);">
+                        <tr>
+                            <th>Order #</th>
+                            <th>User</th>
+                            <th>Amount</th>
+                            <th>Currency</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminPaymentsBody">
+                        <tr><td colspan="7" style="text-align:center; padding:20px; color:var(--text-secondary);">Loading...</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
