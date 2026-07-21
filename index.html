@@ -767,7 +767,7 @@
             accent-color: var(--primary);
         }
 
-        /* ===== Admin Panel (FIXED LAYOUT) ===== */
+        /* ===== Admin Panel ===== */
         #adminPanel {
             position: fixed;
             inset: 0;
@@ -1251,6 +1251,67 @@
         .featured-item-badge.unavailable { background: var(--danger); color: #fff; }
         .featured-item-name { font-size: 12px; font-weight: 600; padding: 4px 6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .featured-item-price { font-size: 11px; color: var(--primary); font-weight: 700; padding-bottom: 4px; }
+
+        /* ===== Proxy Store ===== */
+        .proxy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+            padding: 0 16px 20px;
+        }
+        .proxy-card {
+            background: var(--card-bg);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px 12px;
+            text-align: center;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+        }
+        .proxy-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-4px);
+        }
+        .proxy-card .proxy-icon {
+            font-size: 32px;
+            margin-bottom: 4px;
+        }
+        .proxy-card .proxy-name {
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--text);
+        }
+        .proxy-card .proxy-meta {
+            font-size: 13px;
+            color: var(--text-secondary);
+            opacity: 0.5;
+        }
+        .proxy-card .proxy-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 6px 0;
+        }
+        .proxy-card .proxy-btn {
+            width: 100%;
+            padding: 8px;
+            border: none;
+            border-radius: var(--radius-sm);
+            background: var(--primary);
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: auto;
+        }
+        .proxy-card .proxy-btn.added {
+            background: var(--success);
+        }
+        .proxy-card .proxy-btn:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+        }
 
         /* ===== Telegram Banner ===== */
         #telegramBanner {
@@ -1958,6 +2019,10 @@
         <div style="padding:0 16px 8px; font-size:18px; font-weight:700; color:var(--vip-color);">🔥 Recommended for You</div>
         <div id="recommendationsGrid"></div>
 
+        <!-- ===== PROXY STORE ===== -->
+        <div style="padding:0 16px 8px; font-size:18px; font-weight:700; color:var(--primary);">🌐 Proxy Store</div>
+        <div id="proxyPackages" class="proxy-grid"></div>
+
         <!-- ===== BOTTOM CART BAR ===== -->
         <div id="bottomCartBar">
             <div class="cart-info">
@@ -2022,7 +2087,6 @@
 
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
                 <button onclick="openProfileFull()" style="padding:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:6px;"><i class="fas fa-id-card"></i> Profile</button>
-                <!-- Only ONE Orders button - combined with Payment History design -->
                 <button onclick="openHistoryFull()" style="padding:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:6px; position:relative;">
                     <i class="fas fa-history"></i> Orders <span id="fullOrderBadge" style="display:none; background:var(--danger); color:#fff; font-size:9px; padding:0 6px; border-radius:10px;">0</span>
                 </button>
@@ -2537,7 +2601,7 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- ===== ADMIN PANEL (FIXED LAYOUT) ===== -->
+    <!-- ===== ADMIN PANEL ===== -->
     <!-- ============================================================ -->
     <div id="adminPanel">
         <div class="admin-header">
@@ -3091,4 +3155,4 @@
     <script type="module" src="script.js"></script>
 
 </body>
-</html>
+    </html>
