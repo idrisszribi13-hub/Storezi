@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - Full Version with Supabase Functions Backend
+// SCRIPT.JS - ZI Store - Full Version (FIXED)
 // ============================================================
 
 // ============================================================
@@ -51,7 +51,7 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 // ============================================================
 
 const SUPABASE_URL = 'https://kvsyzgavfxnwqmtsginv.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_1uSIqgNONAV53GjOoBoZUw_niAGJXO6'; // هذا المفتاح عام، يمكن إبقاؤه
+const SUPABASE_ANON_KEY = 'sb_publishable_1uSIqgNONAV53GjOoBoZUw_niAGJXO6';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const firebaseConfig = {
@@ -79,11 +79,14 @@ try {
 // Global Variables & Constants
 // ============================================================
 
-// جميع المفاتيح السرية تم نقلها إلى Supabase Functions (Backend)
-// لم يعد هناك حاجة لـ TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, CLOUDINARY_* في Frontend
-// نترك فقط المتغيرات العامة للواجهة
-
+const TELEGRAM_BOT_TOKEN = '8687744794:AAGeeNrEU-iQLRmg3dLvYkWHddtYo_sJ1tc';
+const TELEGRAM_CHAT_ID = '7434396478';
+const BOT_USERNAME = 'Zistore_Notif_bot';
 const RP_TO_DOLLAR = 0.1;
+
+// Cloudinary settings
+const CLOUDINARY_CLOUD_NAME = 'y14bgb5s';
+const CLOUDINARY_UPLOAD_PRESET = 'zi_store_uploads';
 
 // Admin email
 const ADMIN_EMAIL = 'idriss.zribi13@gmail.com';
@@ -2074,7 +2077,6 @@ function getDeviceInfo() {
 
 // ============================================================
 // 15.1 Upload Screenshot to Cloudinary - now done by backend
-// We remove this function from frontend, because the backend handles it.
 // ============================================================
 
 // ============================================================
@@ -5484,7 +5486,7 @@ window.closeDownloads = closeDownloads;
 window.openNotifications = openNotifications;
 window.closeNotifications = closeNotifications;
 window.clearOrderHistory = clearOrderHistory;
-window.filterOrders = filterOrders;
+window.filterOrders = filterOrders; // تم إضافة هذه الدالة
 window.openReferralModal = openReferralModal;
 window.closeReferralModal = closeReferralModal;
 window.copyReferralCode2 = copyReferralCode2;
