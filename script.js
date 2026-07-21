@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - Full Version (FIXED)
+// SCRIPT.JS - ZI Store - Full Version with Proxy Seller & All Fixes
 // ============================================================
 
 // ============================================================
@@ -90,6 +90,14 @@ const CLOUDINARY_UPLOAD_PRESET = 'zi_store_uploads';
 
 // Admin email
 const ADMIN_EMAIL = 'idriss.zribi13@gmail.com';
+
+// Proxy packages definition
+const proxyPackages = [
+    { id: 'proxy_1', name: '1 Proxy - 30 Days', price: 5, duration: 30, quantity: 1, plan: 'residential' },
+    { id: 'proxy_2', name: '5 Proxies - 30 Days', price: 20, duration: 30, quantity: 5, plan: 'residential' },
+    { id: 'proxy_3', name: '10 Proxies - 30 Days', price: 35, duration: 30, quantity: 10, plan: 'residential' },
+    { id: 'proxy_4', name: '1 Proxy - 7 Days', price: 2, duration: 7, quantity: 1, plan: 'datacenter' },
+];
 
 let currentUser = null;
 let userId = null;
@@ -1109,7 +1117,7 @@ window.sendResetLinkInline = async function() { if (!currentUser) return; try { 
 window.changePasswordInline = async function() { if (!currentUser) return; const currentPwd = document.getElementById('currentPasswordInline').value; const newPwd = document.getElementById('newPasswordInline').value; const confirmPwd = document.getElementById('confirmNewPasswordInline').value; const errorEl = document.getElementById('passwordErrorInline'); const successEl = document.getElementById('passwordSuccessInline'); errorEl.textContent = ''; successEl.textContent = ''; if (!currentPwd || !newPwd || !confirmPwd) { errorEl.textContent = 'Please fill all fields'; return; } if (newPwd.length < 6) { errorEl.textContent = 'New password must be at least 6 characters'; return; } if (newPwd !== confirmPwd) { errorEl.textContent = 'Passwords do not match'; return; } try { const credential = EmailAuthProvider.credential(currentUser.email, currentPwd); await reauthenticateWithCredential(currentUser, credential); await updatePassword(currentUser, newPwd); successEl.textContent = '✅ Password changed successfully!'; showToast('✅ Password updated!', 'success'); document.getElementById('currentPasswordInline').value = ''; document.getElementById('newPasswordInline').value = ''; document.getElementById('confirmNewPasswordInline').value = ''; setTimeout(() => { successEl.textContent = ''; }, 3000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); } };
 
 // ============================================================
-// 8. Product Functions
+// 8. Product Functions (FIXED - ensure products load)
 // ============================================================
 
 async function loadProductsFromFirestore() {
@@ -1129,14 +1137,20 @@ async function loadProductsFromFirestore() {
 
 function startProductsRealtimeListener() {
     if (unsubscribeProducts) { unsubscribeProducts(); }
+    // Show loading state
     renderProducts([], true);
     const productsRef = collection(db, 'products');
     unsubscribeProducts = onSnapshot(query(productsRef, orderBy('createdAt', 'desc')), (snapshot) => {
         const productsList = [];
         snapshot.forEach((doc) => { productsList.push({ id: doc.id, ...doc.data() }); });
         console.log(`🔄 Products updated: ${productsList.length} products`);
-        products = productsList.length > 0 ? productsList : fallbackProducts;
-        console.log(`📦 Final products array length: ${products.length}`);
+        // Fallback if empty
+        if (productsList.length === 0) {
+            console.warn('⚠️ No products in Firestore, using fallback');
+            products = fallbackProducts;
+        } else {
+            products = productsList;
+        }
         renderProducts(products, false);
         renderAdminProducts(products);
         updateStatsFromProducts(products);
@@ -1145,6 +1159,7 @@ function startProductsRealtimeListener() {
         updateRpDisplay();
         renderFeaturedProducts();
         updateSlideProductSelect();
+        renderProxyPackages(); // Refresh proxy store if visible
     }, (error) => {
         console.error('Products listener error:', error);
         products = fallbackProducts;
@@ -1153,6 +1168,7 @@ function startProductsRealtimeListener() {
         renderAdminProducts(products);
         updateStatsFromProducts(products);
         renderFeaturedProducts();
+        renderProxyPackages();
     });
 }
 
@@ -1477,7 +1493,7 @@ async function loadFeaturedSettings() {
 }
 
 // ============================================================
-// 11. Cart Management
+// 11. Cart Management (including proxy items)
 // ============================================================
 
 window.addToCart = async function(productId) {
@@ -1561,6 +1577,8 @@ function updateCartUI() {
     updateBottomCartBar();
     renderCartFull();
     updateFullUserMenu();
+    // Also update proxy packages UI if it's rendered
+    renderProxyPackages();
 }
 
 function renderCartFull() {
@@ -1579,7 +1597,8 @@ function renderCartFull() {
         const image = product?.image || item.image || 'https://picsum.photos/seed/default/100/100';
         const vipLabel = item.isVip ? `👑 ${item.vipPlanLabel || 'VIP'}` : '';
         const qtyLabel = item.isQuantityProduct ? `📦 ${item.selectedQuantity || ''}` : '';
-        html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);margin-bottom:8px;"><div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;"><img src="${image}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" /><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.name} ${vipLabel} ${qtyLabel}</div><div style="font-size:12px;color:var(--primary);font-weight:700;">${getCurrencySymbol(item.currency || 'USD')}${itemTotal.toFixed(2)}</div></div></div><div style="display:flex;align-items:center;gap:6px;"><button onclick="updateCartQuantity('${item.id}',-1)" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;">-</button><span style="min-width:20px;text-align:center;font-size:14px;font-weight:700;">${qty}</span><button onclick="updateCartQuantity('${item.id}',1)" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;">+</button><button onclick="removeFromCart('${item.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:14px;opacity:0.3;padding:4px;"><i class="fas fa-trash-alt"></i></button></div></div>`;
+        const proxyLabel = item.isProxy ? ' 🌐' : '';
+        html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);margin-bottom:8px;"><div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;"><img src="${image}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" /><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.name} ${proxyLabel} ${vipLabel} ${qtyLabel}</div><div style="font-size:12px;color:var(--primary);font-weight:700;">${getCurrencySymbol(item.currency || 'USD')}${itemTotal.toFixed(2)}</div></div></div><div style="display:flex;align-items:center;gap:6px;"><button onclick="updateCartQuantity('${item.id}',-1)" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;">-</button><span style="min-width:20px;text-align:center;font-size:14px;font-weight:700;">${qty}</span><button onclick="updateCartQuantity('${item.id}',1)" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;">+</button><button onclick="removeFromCart('${item.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:14px;opacity:0.3;padding:4px;"><i class="fas fa-trash-alt"></i></button></div></div>`;
     });
     let rpDiscountAmount = 0;
     let promoDiscountAmount = 0;
@@ -2096,11 +2115,12 @@ window.renderPaymentProducts = function() {
         const image = product?.image || item.image || 'https://picsum.photos/seed/default/80/80';
         const name = item.isVip ? `${item.name} 👑 ${item.vipPlanLabel || 'VIP'}` : item.name;
         const qtyLabel = item.isQuantityProduct ? `📦 ${item.selectedQuantity || ''}` : '';
+        const proxyLabel = item.isProxy ? ' 🌐' : '';
         return `
             <div class="payment-product-item">
                 <img src="${image}" alt="${item.name}" />
                 <div class="pp-info">
-                    <div class="pp-name">${name} ${qtyLabel}</div>
+                    <div class="pp-name">${name} ${proxyLabel} ${qtyLabel}</div>
                     <div class="pp-price">${getCurrencySymbol(item.currency || 'USD')}${total.toFixed(2)}</div>
                 </div>
                 <div class="pp-qty">×${qty}</div>
@@ -2383,6 +2403,7 @@ window.submitManualPayment = function() {
 
 // ============================================================
 // 15.8 Original order sending function - now sends to Supabase Function
+// and handles proxy creation
 // ============================================================
 async function sendOrderToTelegram(method, txHash = null) {
     if (isProcessingOrder) {
@@ -2411,7 +2432,6 @@ async function sendOrderToTelegram(method, txHash = null) {
             screenshotBase64 = await new Promise((resolve) => {
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    // Extract base64 data (remove data:image/...;base64,)
                     const base64 = e.target.result.split(',')[1];
                     resolve(base64);
                 };
@@ -2430,7 +2450,11 @@ async function sendOrderToTelegram(method, txHash = null) {
             vipPlan: item.vipPlan || null,
             vipPlanLabel: item.vipPlanLabel || null,
             selectedQuantity: item.selectedQuantity || null,
-            isQuantityProduct: item.isQuantityProduct || false
+            isQuantityProduct: item.isQuantityProduct || false,
+            isProxy: item.isProxy || false,
+            proxyPlan: item.plan || null,
+            proxyDuration: item.duration || null,
+            proxyQuantity: item.quantity || 1
         }));
 
         let total = 0;
@@ -2495,6 +2519,40 @@ async function sendOrderToTelegram(method, txHash = null) {
         const userRef = doc(db, 'users', currentUser.uid);
         await updateDoc(userRef, { history: arrayUnion(orderItem) });
 
+        // --- PROXY CREATION LOGIC ---
+        const proxyItems = cart.filter(item => item.isProxy);
+        if (proxyItems.length > 0) {
+            // Create proxies via backend function
+            const proxyPromises = proxyItems.map(async (proxyItem) => {
+                try {
+                    const proxyResponse = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/create-proxy', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                        },
+                        body: JSON.stringify({
+                            plan: proxyItem.plan,
+                            quantity: proxyItem.quantity,
+                            duration: proxyItem.duration,
+                            userId: currentUser.uid,
+                            orderId: orderId
+                        })
+                    });
+                    const proxyResult = await proxyResponse.json();
+                    if (!proxyResponse.ok) throw new Error(proxyResult.error || 'Proxy creation failed');
+                    // Send proxy details to user
+                    await sendProxyDetailsToUser(currentUser.uid, proxyResult.proxy, proxyItem);
+                    // Save proxy data in order for later reference (optional)
+                } catch (error) {
+                    console.error('❌ Proxy creation error:', error);
+                    await sendTelegramNotification(TELEGRAM_CHAT_ID, `❌ Proxy creation failed for user ${currentUser.email}: ${error.message}`);
+                    showToast('⚠️ Some proxies could not be created. Contact support.', 'warning');
+                }
+            });
+            await Promise.all(proxyPromises);
+        }
+
         // Clear cart
         cart = [];
         activeDiscount = 0;
@@ -2526,23 +2584,86 @@ async function sendOrderToTelegram(method, txHash = null) {
     }
 }
 
-function placeOrderTelegram() {
-    sendOrderToTelegram('telegram', null);
+// ============================================================
+// 15.9 Proxy Functions
+// ============================================================
+
+function renderProxyPackages() {
+    const container = document.getElementById('proxyPackages');
+    if (!container) return;
+    container.innerHTML = proxyPackages.map(pkg => {
+        const isInCart = cart.some(item => item.id === pkg.id && item.isProxy);
+        return `
+            <div class="product-card" style="border: 2px solid var(--border); border-radius: var(--radius-md); padding: 12px; text-align: center; background: var(--card-bg);">
+                <div style="font-size: 28px; margin-bottom: 4px;">🌐</div>
+                <div style="font-weight: 700; font-size: 16px; color: var(--text);">${pkg.name}</div>
+                <div style="font-size: 13px; color: var(--text-secondary); opacity: 0.5;">${pkg.quantity} proxy(ies) · ${pkg.duration} days</div>
+                <div style="font-size: 20px; font-weight: 700; color: var(--primary); margin: 6px 0;">$${pkg.price.toFixed(2)}</div>
+                <button class="btn-add-cart ${isInCart ? 'added' : ''}" onclick="addProxyToCart('${pkg.id}')" style="width: 100%; padding: 8px; border: none; border-radius: var(--radius-sm); background: ${isInCart ? 'var(--success)' : 'var(--primary)'}; color: #fff; font-weight: 600; cursor: pointer; transition: 0.2s;">
+                    <i class="fas ${isInCart ? 'fa-check' : 'fa-cart-plus'}"></i> ${isInCart ? 'Added' : 'Add to Cart'}
+                </button>
+            </div>
+        `;
+    }).join('');
 }
 
-window.openPaymentModal = function() {
-    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); openAuthModal(); return; }
-    if (currentUser.isAnonymous) { showToast('⚠️ Please sign in to place an order.', 'warning'); openAuthModal(); return; }
-    if (cart.length === 0) { showToast('⚠️ Cart is empty', 'warning'); return; }
-    document.getElementById('paymentModal').classList.add('open');
-    document.getElementById('paymentStep1').style.display = 'block';
-    document.getElementById('paymentStep2').style.display = 'none';
-    selectedPayment = null;
-    document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
-    updatePayableTotal(); fetchCryptoPrices();
+window.addProxyToCart = function(packageId) {
+    const pkg = proxyPackages.find(p => p.id === packageId);
+    if (!pkg) { showToast('⚠️ Package not found', 'warning'); return; }
+    const existing = cart.find(item => item.id === packageId && item.isProxy);
+    if (existing) {
+        showToast('⚠️ Already in cart', 'warning');
+        return;
+    }
+    cart.push({
+        ...pkg,
+        isProxy: true,
+        quantity: 1,
+        currency: 'USD',
+    });
+    saveUserData(true);
+    updateCartUI();
+    renderProxyPackages();
+    showToast(`✅ Added ${pkg.name} to cart`, 'success');
 };
-window.closePaymentModal = function() { document.getElementById('paymentModal').classList.remove('open'); document.getElementById('paymentStep1').style.display = 'block'; document.getElementById('paymentStep2').style.display = 'none'; selectedPayment = null; document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected')); };
-window.checkout = function() { openPaymentModal(); };
+
+async function sendProxyDetailsToUser(userId, proxyData, proxyItem) {
+    const userRef = doc(db, 'users', userId);
+    const userSnap = await getDoc(userRef);
+    if (!userSnap.exists()) return;
+
+    const userEmail = userSnap.data().email || userId;
+    const chatId = userSnap.data().telegramChatId;
+
+    const message = `
+🌐 **Proxy Details**
+
+📦 Package: ${proxyItem.name}
+🖥️ IP: ${proxyData.ip}
+🔌 Port: ${proxyData.port}
+👤 Username: ${proxyData.username}
+🔑 Password: ${proxyData.password}
+
+💡 Use this proxy with your preferred tool.
+    `;
+
+    // إرسال إشعار في التطبيق
+    await addDoc(collection(db, 'notifications'), {
+        userId: userId,
+        title: '🌐 Proxy Created!',
+        message: `Your proxy (${proxyData.ip}) is ready. Check your email for details.`,
+        readBy: [],
+        createdAt: serverTimestamp()
+    });
+
+    // إرسال تلغرام
+    if (chatId) {
+        await sendTelegramNotification(chatId, message);
+    }
+
+    // إرسال إلى الإدمن أيضاً للتأكيد
+    await sendTelegramNotification(TELEGRAM_CHAT_ID, `✅ Proxy created for ${userEmail}: ${proxyData.ip}`);
+}
 
 // ============================================================
 // 16. Order Functions with User Notification
@@ -2575,7 +2696,8 @@ async function sendOrderConfirmations(userId, orderId, productsList, total, meth
     const productNames = productsList.map(item => {
         const qtyLabel = item.selectedQuantity ? ` (${item.selectedQuantity})` : '';
         const vipLabel = item.isVip ? ` 👑 ${item.vipPlanLabel || 'VIP'}` : '';
-        return `${item.name}${vipLabel}${qtyLabel} × ${item.quantity || 1}`;
+        const proxyLabel = item.isProxy ? ' 🌐' : '';
+        return `${item.name}${vipLabel}${proxyLabel}${qtyLabel} × ${item.quantity || 1}`;
     }).join(', ');
     
     await sendUserNotification(
@@ -5486,7 +5608,7 @@ window.closeDownloads = closeDownloads;
 window.openNotifications = openNotifications;
 window.closeNotifications = closeNotifications;
 window.clearOrderHistory = clearOrderHistory;
-window.filterOrders = filterOrders; // تم إضافة هذه الدالة
+window.filterOrders = filterOrders; // ✅ تعريف دالة filterOrders
 window.openReferralModal = openReferralModal;
 window.closeReferralModal = closeReferralModal;
 window.copyReferralCode2 = copyReferralCode2;
