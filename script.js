@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - Full Version with all fixes + Visitor Info
+// SCRIPT.JS - ZI Store - Full Version with all fixes + Payment History
 // ============================================================
 
 // ============================================================
@@ -1973,7 +1973,7 @@ document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { clo
 // ============================================================
 
 // ============================================================
-// 15.0 Visitor Info Functions (NEW)
+// 15.0 Visitor Info Functions
 // ============================================================
 
 async function getVisitorInfo() {
@@ -2043,7 +2043,7 @@ function getDeviceInfo() {
 }
 
 // ============================================================
-// 15.1 Global renderPaymentProducts (FIX)
+// 15.1 Payment Products Render
 // ============================================================
 window.renderPaymentProducts = function() {
     const container = document.getElementById('paymentProductsList');
@@ -2127,7 +2127,7 @@ function updatePayableTotal() {
 }
 
 // ============================================================
-// 15.3 Payment Selection (UPDATED for Binance ID)
+// 15.3 Payment Selection
 // ============================================================
 window.selectPayment = function(method) {
     selectedPayment = method;
@@ -2152,17 +2152,19 @@ window.selectPayment = function(method) {
 };
 
 // ============================================================
-// 15.4 Continue Payment (UPDATED for Binance ID)
+// 15.4 Continue Payment (FIXED)
 // ============================================================
 window.continuePayment = function() {
     if (!selectedPayment) {
         showToast('⚠️ Please select a payment method', 'warning');
         return;
     }
+    // إظهار الخطوة الثانية
     document.getElementById('paymentStep1').style.display = 'none';
-    document.getElementById('paymentStep2').classList.add('active');
+    document.getElementById('paymentStep2').style.display = 'block';
     window.renderPaymentProducts();
 
+    // حساب المجموع
     let total = 0;
     cart.forEach(item => {
         const qty = item.quantity || 1;
@@ -2182,7 +2184,7 @@ window.continuePayment = function() {
     document.getElementById('step2Subtotal').textContent = `$${total.toFixed(2)}`;
     document.getElementById('step2Total').textContent = `$${finalTotal.toFixed(2)}`;
 
-    // Hide all sections first
+    // إخفاء جميع الأقسام أولاً
     const walletInfo = document.getElementById('paymentWalletInfo');
     const txInput = document.getElementById('paymentTxInput');
     const telegramContact = document.getElementById('paymentTelegramContact');
@@ -2195,6 +2197,7 @@ window.continuePayment = function() {
     if (binanceSection) binanceSection.style.display = 'none';
     if (mainBtn) mainBtn.style.display = 'none';
 
+    // عرض القسم المناسب حسب طريقة الدفع
     if (selectedPayment === 'litecoin' || selectedPayment === 'usdt') {
         if (walletInfo) walletInfo.style.display = 'block';
         if (txInput) txInput.style.display = 'block';
@@ -2228,14 +2231,10 @@ window.continuePayment = function() {
             document.getElementById('binanceOrderDisplay').textContent = orderId;
         }
     }
-
-    if (selectedPayment === 'litecoin' || selectedPayment === 'usdt') {
-        fetchCryptoPrices();
-    }
 };
 
 // ============================================================
-// 15.5 Place Order (UPDATED for Binance ID)
+// 15.5 Place Order
 // ============================================================
 window.placeOrder = function() {
     if (!currentUser || currentUser.isAnonymous) {
@@ -2367,7 +2366,6 @@ async function sendOrderToTelegram(method, txHash = null) {
             return;
         }
 
-        // ===== GET VISITOR INFO =====
         let visitorInfo = await getVisitorInfo();
         let deviceInfo = getDeviceInfo();
 
@@ -2417,7 +2415,6 @@ async function sendOrderToTelegram(method, txHash = null) {
         adminMsg += `💰 **Total:** $${finalTotal.toFixed(2)}\n`;
         adminMsg += `💬 **Payment Method:** ${method}\n`;
         if (txHash) adminMsg += `🔍 **Tx Hash:** ${txHash}\n`;
-        // Add device details
         adminMsg += `\n${deviceDetails}`;
 
         try {
@@ -2481,6 +2478,8 @@ async function sendOrderToTelegram(method, txHash = null) {
         renderProducts(products);
         generateRecommendations(products);
         updateRpDisplay();
+
+        // إغلاق نافذة الدفع
         document.getElementById('paymentModal').classList.remove('open');
 
         showToast('📤 Order placed!', 'success');
@@ -2509,12 +2508,12 @@ window.openPaymentModal = function() {
     if (cart.length === 0) { showToast('⚠️ Cart is empty', 'warning'); return; }
     document.getElementById('paymentModal').classList.add('open');
     document.getElementById('paymentStep1').style.display = 'block';
-    document.getElementById('paymentStep2').classList.remove('active');
+    document.getElementById('paymentStep2').style.display = 'none';
     selectedPayment = null;
     document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
     updatePayableTotal(); fetchCryptoPrices();
 };
-window.closePaymentModal = function() { document.getElementById('paymentModal').classList.remove('open'); document.getElementById('paymentStep1').style.display = 'block'; document.getElementById('paymentStep2').classList.remove('active'); selectedPayment = null; document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected')); };
+window.closePaymentModal = function() { document.getElementById('paymentModal').classList.remove('open'); document.getElementById('paymentStep1').style.display = 'block'; document.getElementById('paymentStep2').style.display = 'none'; selectedPayment = null; document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected')); };
 window.checkout = function() { openPaymentModal(); };
 
 // ============================================================
@@ -5193,241 +5192,176 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================================
-// 40. Export all functions to global scope
+// 40. Payment History Functions (NEW)
 // ============================================================
 
-window.toggleLicencesList = toggleLicencesList;
-window.openLicenceModal = openLicenceModal;
-window.closeLicenceModal = closeLicenceModal;
-window.activateLicence = activateLicence;
-window.editLicence = editLicence;
-window.saveLicenceEdit = saveLicenceEdit;
-window.approveLicence = approveLicence;
-window.revokeLicence = revokeLicence;
-window.deleteLicence = deleteLicence;
-window.openCreateLicenceModal = openCreateLicenceModal;
-window.closeCreateLicenceModal = closeCreateLicenceModal;
-window.createLicenceManually = createLicenceManually;
-window.searchLicences = searchLicences;
-window.clearLicenceSearch = clearLicenceSearch;
-window.refreshLicences = refreshLicences;
-window.loadLicences = loadLicences;
-window.renderLicences = renderLicences;
-window.switchAdminTab = switchAdminTab;
-window.loadAdminOrders = loadAdminOrders;
-window.updateOrderStatus = updateOrderStatus;
-window.filterProducts = filterProducts;
-window.openDetails = openDetails;
-window.addToCart = addToCart;
-window.toggleWishlist = toggleWishlist;
-window.openCartFull = openCartFull;
-window.closeCartFull = closeCartFull;
-window.openWishlistFull = openWishlistFull;
-window.closeWishlistFull = closeWishlistFull;
-window.openUserMenuFull = openUserMenuFull;
-window.closeUserMenuFull = closeUserMenuFull;
-window.openProfileFull = openProfileFull;
-window.closeProfileFull = closeProfileFull;
-window.openHistoryFull = openHistoryFull;
-window.closeHistoryFull = closeHistoryFull;
-window.openShareModal = openShareModal;
-window.closeShareModal = closeShareModal;
-window.shareToWhatsApp = shareToWhatsApp;
-window.shareToTelegram = shareToTelegram;
-window.shareToFacebook = shareToFacebook;
-window.copyShareLink = copyShareLink;
-window.clearSearch = clearSearch;
-window.closeSearchResults = closeSearchResults;
-window.performLiveSearch = performLiveSearch;
-window.openDownloads = openDownloads;
-window.closeDownloads = closeDownloads;
-window.openNotifications = openNotifications;
-window.closeNotifications = closeNotifications;
-window.clearOrderHistory = clearOrderHistory;
-window.filterOrders = filterOrders;
-window.openReferralModal = openReferralModal;
-window.closeReferralModal = closeReferralModal;
-window.copyReferralCode2 = copyReferralCode2;
-window.openRequestsModal = openRequestsModal;
-window.closeRequestsModal = closeRequestsModal;
-window.openNewRequestModal = openNewRequestModal;
-window.closeNewRequestModal = closeNewRequestModal;
-window.submitRequest = submitRequest;
-window.selectPayment = selectPayment;
-window.continuePayment = continuePayment;
-window.goToStep1 = function() {
-    document.getElementById('paymentStep1').style.display = 'block';
-    document.getElementById('paymentStep2').classList.remove('active');
-};
-window.copyWalletAddress = function() {
-    const address = document.getElementById('walletAddressDisplay').textContent;
-    if (address) {
-        navigator.clipboard.writeText(address).then(() => {
-            showToast('✅ Address copied!', 'success');
-        }).catch(() => {
-            const textArea = document.createElement('textarea');
-            textArea.value = address;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
-            showToast('✅ Address copied!', 'success');
-        });
+window.openPaymentHistoryFull = function() {
+    if (!currentUser) {
+        showToast('⚠️ Please login first', 'warning');
+        openAuthModal();
+        return;
     }
-};
-window.placeOrder = placeOrder;
-window.openPaymentModal = openPaymentModal;
-window.closePaymentModal = closePaymentModal;
-window.checkout = checkout;
-window.bindTelegram = bindTelegram;
-window.checkTelegramStatus = checkTelegramStatus;
-window.testTelegramNotification = testTelegramNotification;
-window.unlinkTelegram = unlinkTelegram;
-window.saveProfileChangesInline = saveProfileChangesInline;
-window.sendResetLinkInline = sendResetLinkInline;
-window.changePasswordInline = changePasswordInline;
-window.toggleRpInCart = toggleRpInCart;
-window.applyCartPromo = applyCartPromo;
-window.showTelegramBannerAgain = showTelegramBannerAgain;
-window.adminToggleBanner = adminToggleBanner;
-window.resetBannerForAll = resetBannerForAll;
-window.closePreviewModal = closePreviewModal;
-window.addToCartFromPreview = addToCartFromPreview;
-window.shareFromPreview = shareFromPreview;
-window.refreshDashboardStats = refreshDashboardStats;
-window.loadDashboardStats = loadDashboardStats;
-window.selectVipPlan = selectVipPlan;
-window.addVipPlanToCart = addVipPlanToCart;
-window.refreshAdvancedStats = refreshAdvancedStats;
-window.setRating = setRating;
-window.submitRating = submitRating;
-window.loadAuditLogs = loadAuditLogs;
-window.pauseSlider = pauseSlider;
-window.resumeSlider = resumeSlider;
-window.goToSlide = goToSlide;
-window.nextSlide = nextSlide;
-window.prevSlide = prevSlide;
-window.loadSliderSettings = loadSliderSettings;
-window.updateSlideProductSelect = updateSlideProductSelect;
-window.addBannerAdminControls = addBannerAdminControls;
-window.showTelegramBanner = showTelegramBanner;
-window.showTelegramBannerAgain = showTelegramBannerAgain;
-window.loadMarqueeSettings = loadMarqueeSettings;
-window.saveMarqueeSettings = saveMarqueeSettings;
-window.renderMarqueeSettingsUI = renderMarqueeSettingsUI;
-window.applyMarqueeSettings = applyMarqueeSettings;
-window.ensureAdminPanel = ensureAdminPanel;
-window.renderHistoryFull = renderHistoryFull;
-window.renderLicences = renderLicences;
-window.loadLicences = loadLicences;
-window.openLicenceModal = openLicenceModal;
-window.closeLicenceModal = closeLicenceModal;
-window.toggleLicencesList = toggleLicencesList;
-window.activateLicence = activateLicence;
-window.renderWishlistFull = renderWishlistFull;
-window.renderCartFull = renderCartFull;
-window.renderProfileFull = renderProfileFull;
-window.openAuthModal = openAuthModal;
-window.showLogin = showLogin;
-window.showRegister = showRegister;
-window.acceptCookies = acceptCookies;
-window.rejectCookies = rejectCookies;
-window.openCookieSettings = openCookieSettings;
-window.closeCookieSettings = closeCookieSettings;
-window.saveCookieSettings = saveCookieSettings;
-window.closeCookieBanner = closeCookieBanner;
-window.saveSliderData = saveSliderData;
-window.saveSliderInterval = saveSliderInterval;
-window.saveSlideEdit = saveSlideEdit;
-window.hideLoadingScreenManually = hideLoadingScreenManually;
-window.updateLoadingText = updateLoadingText;
-window.showMainApp = showMainApp;
-window.editSlide = editSlide;
-window.deleteSlide = deleteSlide;
-window.openAddSlideModal = openAddSlideModal;
-window.closeAddSlideModal = closeAddSlideModal;
-window.selectCurrency = selectCurrency;
-window.selectProductType = selectProductType;
-window.addQuantityOption = addQuantityOption;
-window.removeQuantityOption = removeQuantityOption;
-window.toggleBadge = toggleBadge;
-window.selectQuantityOption = selectQuantityOption;
-window.loginWithGoogle = loginWithGoogle;
-window.toggleSupportMenu = function() {
-    const float = document.getElementById('supportFloat');
-    if (float) {
-        float.classList.toggle('open');
-    }
-};
-window.openSupportModal = function() {
-    const modal = document.getElementById('supportModal');
-    if (modal) {
-        modal.classList.add('open');
-        document.body.style.overflow = 'hidden';
-    }
-    const float = document.getElementById('supportFloat');
-    if (float) {
-        float.classList.remove('open');
-    }
-};
-window.closeSupportModal = function() {
-    const modal = document.getElementById('supportModal');
-    if (modal) {
-        modal.classList.remove('open');
-        document.body.style.overflow = '';
-    }
-};
-window.openWhatsAppSupport = function() {
-    const phone = '1234567890';
-    const message = 'Hi, I need help';
-    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
-};
-window.openTelegramSupport = function() {
-    const username = 'Mitalica69';
-    const message = 'Hi, I need help';
-    window.open(`https://t.me/${username}?start=support`, '_blank');
-};
-window.openEmailSupport = function() {
-    const email = 'support@zi-store.online';
-    const subject = 'Help Request';
-    window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}`;
-};
-window.openPhoneSupport = function() {
-    const phone = '1234567890';
-    window.location.href = `tel:${phone}`;
+    document.getElementById('paymentHistoryFull').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    renderPaymentHistory();
 };
 
-document.addEventListener('click', function(e) {
-    const float = document.getElementById('supportFloat');
-    if (float) {
-        const isClickInside = float.contains(e.target);
-        if (!isClickInside && float.classList.contains('open')) {
-            float.classList.remove('open');
+window.closePaymentHistoryFull = function() {
+    document.getElementById('paymentHistoryFull').classList.remove('open');
+    document.body.style.overflow = '';
+};
+
+function renderPaymentHistory() {
+    const container = document.getElementById('paymentHistoryContent');
+    if (!container) return;
+
+    const currency = document.getElementById('paymentCurrencyFilter').value;
+    const status = document.getElementById('paymentStatusFilter').value;
+
+    // جلب المدفوعات من الـ user history (كل الطلبات تعتبر مدفوعات)
+    const payments = userProfile.history || [];
+    if (payments.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:40px 20px; color:var(--text-secondary);">
+            <i class="fas fa-credit-card" style="font-size:48px; opacity:0.15; display:block; margin-bottom:12px;"></i>
+            <div style="font-size:18px; font-weight:600;">No payments yet</div>
+            <div style="font-size:13px; opacity:0.4; margin-top:4px;">Your payment history will appear here</div>
+        </div>`;
+        return;
+    }
+
+    // تحويل الطلبات إلى صيغة المدفوعات
+    let paymentItems = payments.map(order => {
+        // استخراج العملة من أول منتج في الطلب
+        let currencyCode = 'LTC';
+        let amount = 0;
+        let value = 0;
+        if (order.items && order.items.length > 0) {
+            const firstItem = order.items[0];
+            currencyCode = firstItem.currency || 'LTC';
+            amount = order.total || 0;
+            value = amount;
         }
+        // إنشاء عنوان مستلم وهمي (أو استخراج من txHash)
+        const toAddress = order.txHash ? order.txHash.slice(0, 20) + '...' : 'N/A';
+        return {
+            id: order.id || '#' + String(Date.now()).slice(-6),
+            currency: currencyCode,
+            icon: currencyCode === 'LTC' ? 'L' : (currencyCode === 'BTC' ? '₿' : (currencyCode === 'ETH' ? '⟠' : '₮')),
+            date: order.date ? new Date(order.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '--',
+            amount: amount.toFixed(2),
+            value: `$${amount.toFixed(2)}`,
+            status: order.status || 'pending',
+            to: toAddress,
+            method: order.method || 'Unknown'
+        };
+    });
+
+    // تطبيق الفلاتر
+    let filtered = paymentItems.filter(p => {
+        const matchCurrency = currency === 'all' || p.currency === currency;
+        const matchStatus = status === 'all' || p.status === status;
+        return matchCurrency && matchStatus;
+    });
+
+    const isLtcFilter = (currency === 'LTC');
+
+    if (filtered.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-secondary);">No payments match your filters.</div>`;
+        return;
     }
-});
 
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        const modal = document.getElementById('supportModal');
-        if (modal && modal.classList.contains('open')) {
-            closeSupportModal();
+    // ترتيب من الأحدث إلى الأقدم
+    filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    let html = '';
+    filtered.forEach(p => {
+        let statusText = p.status === 'pending' ? 'Pending' : (p.status === 'completed' ? 'Completed' : 'Rejected');
+        if (isLtcFilter && p.status === 'pending') {
+            statusText = 'Pending (24–48h)';
         }
-        const float = document.getElementById('supportFloat');
-        if (float && float.classList.contains('open')) {
-            float.classList.remove('open');
-        }
-    }
-});
+        const statusClass = p.status;
 
-console.log('✅ Support system loaded successfully!');
+        // لون الحدود حسب العملة
+        const borderColor = p.currency === 'LTC' ? '#3fcb7a' : (p.currency === 'BTC' ? '#f7931a' : (p.currency === 'ETH' ? '#627eea' : '#3e8cff'));
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-} else {
-    init();
+        html += `
+            <div class="payment-card" style="
+                background: var(--card-bg);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-md);
+                padding: 16px 18px;
+                margin-bottom: 12px;
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                justify-content: space-between;
+                border-left: 5px solid ${borderColor};
+                transition: 0.2s;
+            ">
+                <div style="display:flex; align-items:center; gap:14px; flex:1; min-width:150px;">
+                    <div style="
+                        width:48px; height:48px; border-radius:50%; 
+                        background: var(--bg-secondary); 
+                        display:flex; align-items:center; justify-content:center; 
+                        font-weight:700; font-size:22px; 
+                        color: ${borderColor};
+                        border: 1px solid var(--border);
+                    ">${p.icon}</div>
+                    <div>
+                        <div style="font-weight:600; font-size:18px; color:var(--text);">${p.currency}</div>
+                        <div style="font-size:13px; color:var(--text-secondary);">${p.date}</div>
+                        <div style="
+                            font-size:12px; color:var(--text-secondary); 
+                            font-family:monospace; background:var(--bg); 
+                            padding:0 10px; border-radius:30px; 
+                            display:inline-block; margin-top:2px;
+                            border: 1px solid var(--border);
+                        ">${p.id}</div>
+                    </div>
+                </div>
+                <div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap; margin-top:6px;">
+                    <div style="text-align:right;">
+                        <div style="font-weight:700; font-size:20px; color:var(--text);">${p.amount} <span style="font-size:13px; opacity:0.4; font-weight:400;">${p.currency}</span></div>
+                        <div style="font-size:14px; color:var(--text-secondary);">${p.value}</div>
+                    </div>
+                    <div style="
+                        padding:4px 16px; border-radius:30px; 
+                        font-weight:600; font-size:13px;
+                        background: ${statusClass === 'pending' ? 'var(--pending-color)20' : (statusClass === 'completed' ? 'var(--success)20' : 'var(--danger)20')};
+                        color: ${statusClass === 'pending' ? 'var(--pending-color)' : (statusClass === 'completed' ? 'var(--success)' : 'var(--danger)')};
+                        border: 1px solid ${statusClass === 'pending' ? 'var(--pending-color)40' : (statusClass === 'completed' ? 'var(--success)40' : 'var(--danger)40')};
+                    ">${statusText}</div>
+                </div>
+                <div style="width:100%; margin-top:10px; padding-top:10px; border-top:1px dashed var(--border); font-size:12px; color:var(--text-secondary); font-family:monospace; word-break:break-all;">
+                    <i class="fas fa-arrow-right"></i> To: ${p.to}
+                    ${p.method ? ` • <span style="opacity:0.4;">${p.method}</span>` : ''}
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
 }
+
+// ربط أحداث الفلاتر
+document.addEventListener('DOMContentLoaded', function() {
+    const currencyFilter = document.getElementById('paymentCurrencyFilter');
+    const statusFilter = document.getElementById('paymentStatusFilter');
+    if (currencyFilter) currencyFilter.addEventListener('change', renderPaymentHistory);
+    if (statusFilter) statusFilter.addEventListener('change', renderPaymentHistory);
+});
+
+// تعديل دالة renderHistoryFull لتحديث payment history أيضاً عند تغيير orders
+const originalRenderHistoryFull = window.renderHistoryFull;
+window.renderHistoryFull = function() {
+    if (originalRenderHistoryFull) originalRenderHistoryFull();
+    if (document.getElementById('paymentHistoryFull').classList.contains('open')) {
+        renderPaymentHistory();
+    }
+};
 
 // ============================================================
 // END OF SCRIPT.JS
 // ============================================================
+
+// Export all functions to global scope (already done above)
