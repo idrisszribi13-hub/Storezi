@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - Full Version with Proxy Seller & All Fixes
+// SCRIPT.JS - ZI Store - Full Version (ALL FIXES INCLUDED)
 // ============================================================
 
 // ============================================================
@@ -1117,7 +1117,7 @@ window.sendResetLinkInline = async function() { if (!currentUser) return; try { 
 window.changePasswordInline = async function() { if (!currentUser) return; const currentPwd = document.getElementById('currentPasswordInline').value; const newPwd = document.getElementById('newPasswordInline').value; const confirmPwd = document.getElementById('confirmNewPasswordInline').value; const errorEl = document.getElementById('passwordErrorInline'); const successEl = document.getElementById('passwordSuccessInline'); errorEl.textContent = ''; successEl.textContent = ''; if (!currentPwd || !newPwd || !confirmPwd) { errorEl.textContent = 'Please fill all fields'; return; } if (newPwd.length < 6) { errorEl.textContent = 'New password must be at least 6 characters'; return; } if (newPwd !== confirmPwd) { errorEl.textContent = 'Passwords do not match'; return; } try { const credential = EmailAuthProvider.credential(currentUser.email, currentPwd); await reauthenticateWithCredential(currentUser, credential); await updatePassword(currentUser, newPwd); successEl.textContent = '✅ Password changed successfully!'; showToast('✅ Password updated!', 'success'); document.getElementById('currentPasswordInline').value = ''; document.getElementById('newPasswordInline').value = ''; document.getElementById('confirmNewPasswordInline').value = ''; setTimeout(() => { successEl.textContent = ''; }, 3000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); } };
 
 // ============================================================
-// 8. Product Functions (FIXED - ensure products load)
+// 8. Product Functions
 // ============================================================
 
 async function loadProductsFromFirestore() {
@@ -1137,14 +1137,12 @@ async function loadProductsFromFirestore() {
 
 function startProductsRealtimeListener() {
     if (unsubscribeProducts) { unsubscribeProducts(); }
-    // Show loading state
     renderProducts([], true);
     const productsRef = collection(db, 'products');
     unsubscribeProducts = onSnapshot(query(productsRef, orderBy('createdAt', 'desc')), (snapshot) => {
         const productsList = [];
         snapshot.forEach((doc) => { productsList.push({ id: doc.id, ...doc.data() }); });
         console.log(`🔄 Products updated: ${productsList.length} products`);
-        // Fallback if empty
         if (productsList.length === 0) {
             console.warn('⚠️ No products in Firestore, using fallback');
             products = fallbackProducts;
@@ -1159,7 +1157,7 @@ function startProductsRealtimeListener() {
         updateRpDisplay();
         renderFeaturedProducts();
         updateSlideProductSelect();
-        renderProxyPackages(); // Refresh proxy store if visible
+        renderProxyPackages();
     }, (error) => {
         console.error('Products listener error:', error);
         products = fallbackProducts;
@@ -1493,7 +1491,7 @@ async function loadFeaturedSettings() {
 }
 
 // ============================================================
-// 11. Cart Management (including proxy items)
+// 11. Cart Management
 // ============================================================
 
 window.addToCart = async function(productId) {
@@ -1577,7 +1575,6 @@ function updateCartUI() {
     updateBottomCartBar();
     renderCartFull();
     updateFullUserMenu();
-    // Also update proxy packages UI if it's rendered
     renderProxyPackages();
 }
 
@@ -2717,10 +2714,8 @@ async function sendOrderConfirmations(userId, orderId, productsList, total, meth
 // 17. Telegram Functions (keep for user binding - but token removed)
 // ============================================================
 
-// The sendTelegramNotification function now uses the backend, but we keep it for backward compatibility
 async function sendTelegramNotification(chatId, message) {
     // This function is no longer used for sending notifications directly from frontend.
-    // All notifications are sent from Supabase Functions.
     console.log('ℹ️ sendTelegramNotification called from frontend - not used anymore.');
     return false;
 }
@@ -2731,7 +2726,6 @@ window.bindTelegram = async function() {
         const bindCode = currentUser.uid.slice(-8) + Math.random().toString(36).substring(2, 6);
         const bindRef = doc(db, 'telegram_binds', bindCode);
         await setDoc(bindRef, { userId: currentUser.uid, userEmail: currentUser.email, userName: currentUser.displayName || 'User', createdAt: serverTimestamp(), status: 'pending' });
-        // Admin will be notified via backend function
         window.open(`https://t.me/${BOT_USERNAME}?start=bind`, '_blank');
         showToast('📨 Open bot and press "Start" then "Link Account".', 'success');
         startBindingListener(bindCode);
@@ -2752,7 +2746,6 @@ function startBindingListener(bindCode) {
                 const banner = document.getElementById('telegramBanner');
                 if (banner) banner.classList.add('hidden');
                 localStorage.removeItem('telegram_banner_hidden');
-                // Notify user via Telegram (using backend function)
                 unsubscribe();
             }
         }
@@ -2763,7 +2756,6 @@ window.testTelegramNotification = async function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
     if (!userProfile.telegramChatId) { showToast('⚠️ No Telegram linked', 'warning'); return; }
     showToast('📤 Test notification sent via backend.', 'info');
-    // Call backend function to send test notification
     try {
         const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/send-test-notification', {
             method: 'POST',
@@ -3663,7 +3655,6 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
                 `Your order #${orderId.slice(-6)} has been confirmed and is ready.`
             );
             await sendLicenceForOrder(orderId, userId);
-            // Telegram notification is sent via backend
         } else if (newStatus === 'rejected') {
             await sendUserNotification(
                 userId,
@@ -3725,7 +3716,6 @@ async function sendLicenceForOrder(orderId, userId) {
         const order = userData.history?.find(o => o.id === orderId);
         if (!order) { console.error('❌ Order not found'); throw new Error('Order not found'); }
         const productName = order.items?.[0]?.name || 'Product';
-        // Use backend function to create licence
         const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/create-licence', {
             method: 'POST',
             headers: {
@@ -3761,7 +3751,6 @@ async function sendLicenceForOrder(orderId, userId) {
         showToast(`✅ Licence sent to user`, 'success');
     } catch (error) {
         console.error('❌ Error in sendLicenceForOrder:', error);
-        // Notification will be sent via backend
         throw error;
     }
 }
@@ -4001,7 +3990,6 @@ async function approveLicence(licenceId, code, scriptName) {
             '🔑 Licence Activated!',
             `Your licence for ${scriptName} has been activated. Code: ${code}`
         );
-        // Notification via backend is handled
         showToast(`✅ Licence ${code} approved!`, 'success');
         loadLicences();
     } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
@@ -5608,7 +5596,7 @@ window.closeDownloads = closeDownloads;
 window.openNotifications = openNotifications;
 window.closeNotifications = closeNotifications;
 window.clearOrderHistory = clearOrderHistory;
-window.filterOrders = filterOrders; // ✅ تعريف دالة filterOrders
+window.filterOrders = filterOrders; // ✅ تعريف الدالة المفقودة
 window.openReferralModal = openReferralModal;
 window.closeReferralModal = closeReferralModal;
 window.copyReferralCode2 = copyReferralCode2;
@@ -5642,7 +5630,7 @@ window.copyWalletAddress = function() {
 window.placeOrder = placeOrder;
 window.openPaymentModal = openPaymentModal;
 window.closePaymentModal = closePaymentModal;
-window.checkout = checkout;
+window.checkout = checkout; // ✅ تعريف الدالة المفقودة
 window.bindTelegram = bindTelegram;
 window.checkTelegramStatus = checkTelegramStatus;
 window.testTelegramNotification = testTelegramNotification;
