@@ -68,7 +68,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 let analytics = null;
-// Initialize analytics only if supported (avoid process is not defined error)
 isSupported().then(supported => {
     if (supported) {
         try {
@@ -1137,7 +1136,6 @@ async function loadProductsFromFirestore() {
         const productsList = [];
         querySnapshot.forEach((doc) => { productsList.push({ id: doc.id, ...doc.data() }); });
         console.log(`✅ Loaded ${productsList.length} products from Firestore`);
-        // إذا كانت القائمة فارغة، استخدم المنتجات الاحتياطية
         if (productsList.length === 0) {
             console.warn('⚠️ No products in Firestore, using fallback');
             return fallbackProducts;
@@ -2125,7 +2123,7 @@ async function fetchCryptoPrices() {
             const data = await response.json();
             if (data.litecoin && data.litecoin.usd) {
                 cryptoPrices.ltc = data.litecoin.usd;
-                cryptoPrices.usdt = 1; // نفترض أن USDT = 1 دولار
+                cryptoPrices.usdt = 1;
                 cryptoPrices.lastUpdate = new Date();
                 updatePriceUI();
                 cryptoPrices.isUpdating = false;
@@ -2156,7 +2154,7 @@ async function fetchCryptoPrices() {
 
     // إذا فشل كل شيء، نترك القيم القديمة أو نضع قيماً افتراضية
     if (!cryptoPrices.ltc) {
-        cryptoPrices.ltc = 42; // قيمة تقريبية
+        cryptoPrices.ltc = 42;
         cryptoPrices.usdt = 1;
     }
     cryptoPrices.isUpdating = false;
@@ -2485,6 +2483,7 @@ async function sendOrderToTelegram(method, txHash = null) {
         if (finalTotal < 0) finalTotal = 0;
 
         // إرسال الطلب إلى Supabase Edge Function مع رؤوس CORS صحيحة
+        // ⚠️ تأكد من أن Edge Function يعالج OPTIONS ويرسل الرؤوس الصحيحة
         const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/order', {
             method: 'POST',
             headers: {
@@ -2492,7 +2491,7 @@ async function sendOrderToTelegram(method, txHash = null) {
                 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
                 'Accept': 'application/json',
             },
-            mode: 'cors', // مهم جداً
+            mode: 'cors',
             body: JSON.stringify({
                 cart: cartData,
                 user: {
@@ -2515,11 +2514,16 @@ async function sendOrderToTelegram(method, txHash = null) {
         if (!response.ok) {
             let errorText = await response.text();
             console.error('Order API error:', response.status, errorText);
-            // محاولة تحليل الخطأ كـ JSON
             try {
                 const errorJson = JSON.parse(errorText);
                 errorText = errorJson.error || errorText;
             } catch (e) {}
+            // رسالة خاصة لمشكلة CORS
+            if (errorText.includes('CORS') || response.status === 0) {
+                showToast('❌ خطأ في الاتصال بالخادم (CORS). يرجى المحاولة لاحقاً.', 'error');
+            } else {
+                showToast('❌ ' + errorText, 'error');
+            }
             throw new Error(`فشل الطلب: ${response.status} - ${errorText}`);
         }
 
@@ -2604,7 +2608,12 @@ async function sendOrderToTelegram(method, txHash = null) {
 
     } catch (error) {
         console.error('Order error:', error);
-        showToast('❌ Error placing order: ' + error.message, 'error');
+        // رسالة خطأ واضحة للمستخدم
+        if (error.message.includes('CORS') || error.message.includes('Failed to fetch')) {
+            showToast('❌ تعذر الاتصال بالخادم. تأكد من اتصالك بالإنترنت وحاول مرة أخرى.', 'error');
+        } else {
+            showToast('❌ Error placing order: ' + error.message, 'error');
+        }
     } finally {
         isProcessingOrder = false;
     }
@@ -5524,12 +5533,12 @@ async function init() {
     try {
         updateLoadingText('Loading products...');
         const productsFromFirestore = await loadProductsFromFirestore();
-        products = productsFromFirestore;  // سيحتوي إما على المنتجات من Firestore أو fallback
+        products = productsFromFirestore;
 
         updateLoadingText('Initializing app...');
         startProductsRealtimeListener();
         await loadUserData();
-        renderProducts(products, false);   // تأكد من عرض المنتجات فوراً
+        renderProducts(products, false);
         renderFeaturedProducts();
         generateRecommendations(products);
         updateBottomCartBar();
@@ -5556,7 +5565,6 @@ async function init() {
         }
         hideLoadingScreen();
 
-        // تأثيرات إضافية بعد التحميل
         setTimeout(function() {
             const screen = document.getElementById('loadingScreen');
             if (screen) {
