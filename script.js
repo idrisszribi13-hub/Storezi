@@ -1137,10 +1137,16 @@ async function loadProductsFromFirestore() {
         const productsList = [];
         querySnapshot.forEach((doc) => { productsList.push({ id: doc.id, ...doc.data() }); });
         console.log(`✅ Loaded ${productsList.length} products from Firestore`);
+        // إذا كانت القائمة فارغة، استخدم المنتجات الاحتياطية
+        if (productsList.length === 0) {
+            console.warn('⚠️ No products in Firestore, using fallback');
+            return fallbackProducts;
+        }
         return productsList;
     } catch (error) {
         console.error('Error loading products:', error);
-        return [];
+        console.warn('⚠️ Using fallback products due to error');
+        return fallbackProducts;
     }
 }
 
@@ -5518,12 +5524,12 @@ async function init() {
     try {
         updateLoadingText('Loading products...');
         const productsFromFirestore = await loadProductsFromFirestore();
-        products = productsFromFirestore.length > 0 ? productsFromFirestore : fallbackProducts;
+        products = productsFromFirestore;  // سيحتوي إما على المنتجات من Firestore أو fallback
 
         updateLoadingText('Initializing app...');
         startProductsRealtimeListener();
         await loadUserData();
-        renderProducts(products, false);
+        renderProducts(products, false);   // تأكد من عرض المنتجات فوراً
         renderFeaturedProducts();
         generateRecommendations(products);
         updateBottomCartBar();
@@ -5550,6 +5556,7 @@ async function init() {
         }
         hideLoadingScreen();
 
+        // تأثيرات إضافية بعد التحميل
         setTimeout(function() {
             const screen = document.getElementById('loadingScreen');
             if (screen) {
@@ -5621,6 +5628,39 @@ window.checkout = function() {
     openPaymentModal();
 };
 
+// Payment Modal Functions (FIX)
+window.openPaymentModal = function() {
+    if (cart.length === 0) {
+        showToast('⚠️ سلة المشتريات فارغة', 'warning');
+        return;
+    }
+    const modal = document.getElementById('paymentModal');
+    if (!modal) {
+        showToast('❌ نافذة الدفع غير موجودة', 'error');
+        return;
+    }
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    // إعادة تعيين الخطوات
+    document.getElementById('paymentStep1').style.display = 'block';
+    document.getElementById('paymentStep2').style.display = 'none';
+    selectedPayment = null;
+    document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
+    window.renderPaymentProducts();
+    updatePayableTotal();
+};
+
+window.closePaymentModal = function() {
+    const modal = document.getElementById('paymentModal');
+    if (modal) modal.classList.remove('open');
+    document.body.style.overflow = '';
+};
+
+window.goToStep1 = function() {
+    document.getElementById('paymentStep1').style.display = 'block';
+    document.getElementById('paymentStep2').style.display = 'none';
+};
+
 window.toggleLicencesList = toggleLicencesList;
 window.openLicenceModal = openLicenceModal;
 window.closeLicenceModal = closeLicenceModal;
@@ -5679,10 +5719,6 @@ window.closeNewRequestModal = closeNewRequestModal;
 window.submitRequest = submitRequest;
 window.selectPayment = selectPayment;
 window.continuePayment = continuePayment;
-window.goToStep1 = function() {
-    document.getElementById('paymentStep1').style.display = 'block';
-    document.getElementById('paymentStep2').style.display = 'none';
-};
 window.copyWalletAddress = function() {
     const address = document.getElementById('walletAddressDisplay').textContent;
     if (address) {
@@ -5700,8 +5736,6 @@ window.copyWalletAddress = function() {
     }
 };
 window.placeOrder = placeOrder;
-window.openPaymentModal = openPaymentModal;
-window.closePaymentModal = closePaymentModal;
 window.bindTelegram = bindTelegram;
 window.checkTelegramStatus = checkTelegramStatus;
 window.testTelegramNotification = testTelegramNotification;
