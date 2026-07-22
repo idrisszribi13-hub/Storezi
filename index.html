@@ -1915,6 +1915,204 @@
             display: none;
         }
         .payment-delay-note i { color: #3fcb7a; margin-right: 6px; }
+
+        /* ===== تحسينات لتنسيق الملف الشخصي ===== */
+        .profile-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .profile-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px;
+        }
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .profile-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: 700;
+            color: #fff;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .profile-info h3 {
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .profile-email {
+            font-size: 13px;
+            color: var(--text-secondary);
+            opacity: 0.6;
+        }
+        .profile-badge {
+            display: inline-block;
+            font-size: 12px;
+            padding: 2px 10px;
+            border-radius: 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            margin-right: 4px;
+        }
+        .profile-badge.rp { color: var(--vip-color); border-color: var(--vip-color); }
+        .profile-badge.licence { color: var(--success); border-color: var(--success); }
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            opacity: 0.4;
+        }
+
+        .edit-profile-section,
+        .password-section,
+        .telegram-section {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--primary);
+        }
+        .form-group {
+            margin-bottom: 12px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--bg);
+            color: var(--text);
+            font-size: 14px;
+            font-family: var(--font);
+            outline: none;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: var(--primary);
+        }
+        .form-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+        }
+        .btn-save {
+            padding: 8px 20px;
+            border: none;
+            border-radius: var(--radius-sm);
+            background: var(--primary);
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .btn-save:hover { opacity: 0.8; }
+        .btn-cancel {
+            padding: 8px 20px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .btn-cancel:hover { background: var(--bg); }
+
+        .ps-email {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg);
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+        .ps-email button {
+            background: var(--primary);
+            border: none;
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+        }
+        .tb-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 14px;
+        }
+        .tb-label { color: var(--text-secondary); opacity: 0.6; }
+        .tb-value { font-weight: 500; }
+        .tb-status.linked { color: var(--success); }
+        .tb-status.unlinked { color: var(--danger); }
+        .tb-info {
+            font-size: 13px;
+            color: var(--text-secondary);
+            background: var(--bg);
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            margin: 8px 0;
+            border: 1px solid var(--border);
+        }
+        .tb-actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .tb-actions button {
+            padding: 6px 14px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .btn-bind { background: #0088cc; color: #fff; }
+        .btn-test { background: var(--primary); color: #fff; }
+        .btn-check { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+        .btn-unlink { background: var(--danger); color: #fff; }
+        .tb-actions button:hover { opacity: 0.8; }
     </style>
 </head>
 <body>
@@ -2520,7 +2718,8 @@
                     <div class="auth-error" id="loginError"></div>
                     <div class="auth-success" id="loginSuccess"></div>
                     <button type="submit" class="auth-btn" id="loginBtn"><i class="fas fa-sign-in-alt"></i> Login</button>
-                    <button type="button" class="auth-btn google-btn" onclick="loginWithGoogle()" style="margin-top:8px;"><i class="fab fa-google"></i> Sign in with Google</button>
+                    <!-- ===== تم إضافة المعرف id="googleLoginBtn" هنا ===== -->
+                    <button type="button" id="googleLoginBtn" class="auth-btn google-btn" onclick="loginWithGoogle()" style="margin-top:8px;"><i class="fab fa-google"></i> Sign in with Google</button>
                     <div class="auth-switch">Don't have an account? <a onclick="showRegister()">Register</a></div>
                     <div style="text-align:center; margin-top:8px;">
                         <a onclick="openForgotPassword()" style="color:var(--primary); cursor:pointer; font-size:13px;">Forgot password?</a>
