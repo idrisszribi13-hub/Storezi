@@ -2014,71 +2014,40 @@ document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { clo
 // ============================================================
 
 async function getVisitorInfo() {
-    try {
-        const response = await fetch('https://ipapi.co/json/');
-        if (response.ok) {
-            const data = await response.json();
-            return {
-                ip: data.ip || 'Unknown',
-                country: data.country_name || data.country || 'Unknown',
-                city: data.city || 'Unknown',
-                region: data.region || 'Unknown',
-                timezone: data.timezone || 'Unknown',
-                isp: data.org || data.isp || 'Unknown'
-            };
-        }
-    } catch (e) {
-        console.warn('⚠️ ipapi.co failed:', e);
-    }
-    try {
-        const response = await fetch('https://ip-api.com/json/');
-        if (response.ok) {
-            const data = await response.json();
-            if (data.status === 'success') {
-                return {
-                    ip: data.query || 'Unknown',
-                    country: data.country || 'Unknown',
-                    city: data.city || 'Unknown',
-                    region: data.regionName || 'Unknown',
-                    timezone: data.timezone || 'Unknown',
-                    isp: data.isp || 'Unknown'
-                };
-            }
-        }
-    } catch (e) {
-        console.warn('⚠️ ip-api.com failed:', e);
-    }
+    // محاولة الحصول على IP أولاً باستخدام ipify
+    let ip = 'Unknown';
     try {
         const ipRes = await fetch('https://api.ipify.org?format=json');
         if (ipRes.ok) {
             const ipData = await ipRes.json();
-            const ip = ipData.ip;
-            if (ip) {
-                const detailRes = await fetch(`https://ipapi.co/${ip}/json/`);
-                if (detailRes.ok) {
-                    const detailData = await detailRes.json();
-                    return {
-                        ip: ip,
-                        country: detailData.country_name || 'Unknown',
-                        city: detailData.city || 'Unknown',
-                        region: detailData.region || 'Unknown',
-                        timezone: detailData.timezone || 'Unknown',
-                        isp: detailData.org || 'Unknown'
-                    };
-                }
-            }
+            ip = ipData.ip || 'Unknown';
         }
     } catch (e) {
-        console.warn('⚠️ ipify + ipapi fallback failed:', e);
+        console.warn('⚠️ ipify failed:', e);
     }
-    return {
-        ip: 'Unknown',
-        country: 'Unknown',
-        city: 'Unknown',
-        region: 'Unknown',
-        timezone: 'Unknown',
-        isp: 'Unknown'
-    };
+
+    // ثم محاولة جلب التفاصيل باستخدام ip-api.com (نسخة مجانية لا تحتاج مفتاح)
+    let country = 'Unknown', city = 'Unknown', region = 'Unknown', timezone = 'Unknown', isp = 'Unknown';
+    if (ip !== 'Unknown') {
+        try {
+            const detailRes = await fetch(`https://ip-api.com/json/${ip}?fields=status,country,city,regionName,timezone,isp`);
+            if (detailRes.ok) {
+                const data = await detailRes.json();
+                if (data.status === 'success') {
+                    country = data.country || 'Unknown';
+                    city = data.city || 'Unknown';
+                    region = data.regionName || 'Unknown';
+                    timezone = data.timezone || 'Unknown';
+                    isp = data.isp || 'Unknown';
+                }
+            }
+        } catch (e) {
+            console.warn('⚠️ ip-api.com detail failed:', e);
+        }
+    }
+
+    // إذا فشلت كل المحاولات، نعيد البيانات الأساسية
+    return { ip, country, city, region, timezone, isp };
 }
 
 function getDeviceInfo() {
@@ -2148,20 +2117,51 @@ window.renderPaymentProducts = function() {
 async function fetchCryptoPrices() {
     if (cryptoPrices.isUpdating) return;
     cryptoPrices.isUpdating = true;
+
+    try {
+        // استخدام CoinGecko أولاً (لا يحتاج مفتاح)
+        const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=litecoin&vs_currencies=usd');
+        if (response.ok) {
+            const data = await response.json();
+            if (data.litecoin && data.litecoin.usd) {
+                cryptoPrices.ltc = data.litecoin.usd;
+                cryptoPrices.usdt = 1; // نفترض أن USDT = 1 دولار
+                cryptoPrices.lastUpdate = new Date();
+                updatePriceUI();
+                cryptoPrices.isUpdating = false;
+                return;
+            }
+        }
+    } catch (e) {
+        console.warn('⚠️ CoinGecko failed, trying Binance...', e);
+    }
+
+    // محاولة Binance كاحتياطي
     try {
         const response = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=LTCUSDT');
-        const data = await response.json();
-        if (data && data.price) { cryptoPrices.ltc = parseFloat(data.price); cryptoPrices.usdt = 1; cryptoPrices.lastUpdate = new Date(); updatePriceUI(); }
-    } catch (error) {
-        console.error('Error fetching crypto prices:', error);
-        try {
-            const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=litecoin,tether&vs_currencies=usd');
+        if (response.ok) {
             const data = await response.json();
-            if (data.litecoin && data.litecoin.usd) { cryptoPrices.ltc = data.litecoin.usd; cryptoPrices.usdt = data.tether?.usd || 1; cryptoPrices.lastUpdate = new Date(); updatePriceUI(); }
-        } catch (e) { console.error('Fallback fetch failed:', e); }
+            if (data && data.price) {
+                cryptoPrices.ltc = parseFloat(data.price);
+                cryptoPrices.usdt = 1;
+                cryptoPrices.lastUpdate = new Date();
+                updatePriceUI();
+                cryptoPrices.isUpdating = false;
+                return;
+            }
+        }
+    } catch (e) {
+        console.warn('⚠️ Binance failed:', e);
+    }
+
+    // إذا فشل كل شيء، نترك القيم القديمة أو نضع قيماً افتراضية
+    if (!cryptoPrices.ltc) {
+        cryptoPrices.ltc = 42; // قيمة تقريبية
+        cryptoPrices.usdt = 1;
     }
     cryptoPrices.isUpdating = false;
 }
+
 function getLTCPrice() { return cryptoPrices.ltc || 42; }
 function getUSDTPrice() { return cryptoPrices.usdt || 1; }
 function updatePriceUI() {
@@ -2432,11 +2432,11 @@ async function sendOrderToTelegram(method, txHash = null) {
             return;
         }
 
-        // Get visitor info (for backend to use)
+        // الحصول على معلومات الزائر (باستخدام الدالة المعدلة)
         const visitorInfo = await getVisitorInfo();
         const deviceInfo = getDeviceInfo();
 
-        // Get screenshot as base64 if exists
+        // قراءة لقطة الشاشة إن وجدت
         let screenshotBase64 = null;
         const screenshotInput = document.getElementById('screenshotInput');
         if (screenshotInput && screenshotInput.files && screenshotInput.files[0]) {
@@ -2451,7 +2451,7 @@ async function sendOrderToTelegram(method, txHash = null) {
             });
         }
 
-        // Prepare order data
+        // إعداد بيانات الطلب
         const cartData = cart.map(item => ({
             id: item.id,
             name: item.name,
@@ -2469,6 +2469,7 @@ async function sendOrderToTelegram(method, txHash = null) {
             proxyQuantity: item.quantity || 1
         }));
 
+        // حساب الإجمالي
         let total = 0;
         cart.forEach(item => { total += item.price * (item.quantity || 1); });
         let finalTotal = total;
@@ -2483,7 +2484,7 @@ async function sendOrderToTelegram(method, txHash = null) {
         }
         if (finalTotal < 0) finalTotal = 0;
 
-        // Send to Supabase Function - with proper CORS headers
+        // إرسال الطلب إلى Supabase Edge Function مع رؤوس CORS صحيحة
         const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/order', {
             method: 'POST',
             headers: {
@@ -2491,7 +2492,7 @@ async function sendOrderToTelegram(method, txHash = null) {
                 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
                 'Accept': 'application/json',
             },
-            mode: 'cors', // explicitly set CORS
+            mode: 'cors', // مهم جداً
             body: JSON.stringify({
                 cart: cartData,
                 user: {
@@ -2510,20 +2511,24 @@ async function sendOrderToTelegram(method, txHash = null) {
             })
         });
 
-        // Check if response is ok
+        // التحقق من الاستجابة
         if (!response.ok) {
-            const errorText = await response.text();
+            let errorText = await response.text();
             console.error('Order API error:', response.status, errorText);
-            throw new Error(`Order failed: ${response.status} ${errorText}`);
+            // محاولة تحليل الخطأ كـ JSON
+            try {
+                const errorJson = JSON.parse(errorText);
+                errorText = errorJson.error || errorText;
+            } catch (e) {}
+            throw new Error(`فشل الطلب: ${response.status} - ${errorText}`);
         }
 
         const result = await response.json();
-        if (!result.success) throw new Error(result.error || 'Order failed');
+        if (!result.success) throw new Error(result.error || 'فشل الطلب');
 
-        // Order placed successfully
         const orderId = result.orderId || 'order_' + Date.now();
 
-        // Save order locally (optional, but for consistency)
+        // حفظ الطلب محلياً
         const orderItem = {
             id: orderId,
             items: cartData,
@@ -2543,8 +2548,7 @@ async function sendOrderToTelegram(method, txHash = null) {
         // --- PROXY CREATION LOGIC ---
         const proxyItems = cart.filter(item => item.isProxy);
         if (proxyItems.length > 0) {
-            // Create proxies via backend function
-            const proxyPromises = proxyItems.map(async (proxyItem) => {
+            for (const proxyItem of proxyItems) {
                 try {
                     const proxyResponse = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/create-proxy', {
                         method: 'POST',
@@ -2563,23 +2567,21 @@ async function sendOrderToTelegram(method, txHash = null) {
                         })
                     });
                     if (!proxyResponse.ok) {
-                        const errorText = await proxyResponse.text();
-                        throw new Error(`Proxy API error: ${proxyResponse.status} ${errorText}`);
+                        const errText = await proxyResponse.text();
+                        throw new Error(`Proxy API error: ${proxyResponse.status} ${errText}`);
                     }
                     const proxyResult = await proxyResponse.json();
                     if (!proxyResult.success) throw new Error(proxyResult.error || 'Proxy creation failed');
-                    // Send proxy details to user
                     await sendProxyDetailsToUser(currentUser.uid, proxyResult.proxy, proxyItem);
                 } catch (error) {
                     console.error('❌ Proxy creation error:', error);
                     await sendTelegramNotification(TELEGRAM_CHAT_ID, `❌ Proxy creation failed for user ${currentUser.email}: ${error.message}`);
                     showToast('⚠️ Some proxies could not be created. Contact support.', 'warning');
                 }
-            });
-            await Promise.all(proxyPromises);
+            }
         }
 
-        // Clear cart
+        // تفريغ السلة
         cart = [];
         activeDiscount = 0;
         activeDiscountCode = '';
@@ -2590,9 +2592,7 @@ async function sendOrderToTelegram(method, txHash = null) {
         generateRecommendations(products);
         updateRpDisplay();
 
-        // Close payment modal
         document.getElementById('paymentModal').classList.remove('open');
-
         showToast('✅ Order placed successfully!', 'success');
 
         setTimeout(() => {
