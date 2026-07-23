@@ -2485,7 +2485,7 @@ async function sendOrderToTelegram(method, txHash = null) {
         if (finalTotal < 0) finalTotal = 0;
 
         // إرسال الطلب إلى Supabase Edge Function مع رؤوس CORS صحيحة
-        const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/order', {
+        const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/place-order', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
