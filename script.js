@@ -87,12 +87,16 @@ isSupported().then(supported => {
 // Global Variables & Constants
 // ============================================================
 
+// TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID removed for security
 const BOT_USERNAME = 'Zistore_Notif_bot';
 const RP_TO_DOLLAR = 0.1;
 
-// Cloudinary settings
+// Cloudinary settings (keep only cloud name, preset is used for uploads)
 const CLOUDINARY_CLOUD_NAME = 'y14bgb5s';
 const CLOUDINARY_UPLOAD_PRESET = 'zi_store_uploads';
+
+// Disable proxy creation temporarily (set to false when ready)
+const DISABLE_PROXY = true;
 
 // Admin email
 const ADMIN_EMAIL = 'idriss.zribi13@gmail.com';
@@ -1184,7 +1188,7 @@ function startProductsRealtimeListener() {
 function getCurrencySymbol(currency) {
     const symbols = {
         'USD': '$',
-        'TND': 'TND',
+        'TND': 'د.ت',
         'OTHER': '💱'
     };
     return symbols[currency] || '$';
@@ -2481,8 +2485,7 @@ async function sendOrderToTelegram(method, txHash = null) {
         if (finalTotal < 0) finalTotal = 0;
 
         // إرسال الطلب إلى Supabase Edge Function مع رؤوس CORS صحيحة
-        // ⚠️ تأكد من أن Edge Function يعالج OPTIONS ويرسل الرؤوس الصحيحة
-        const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/place-order', {
+        const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/order', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -2516,17 +2519,16 @@ async function sendOrderToTelegram(method, txHash = null) {
                 const errorJson = JSON.parse(errorText);
                 errorText = errorJson.error || errorText;
             } catch (e) {}
-            // رسالة خاصة لمشكلة CORS
             if (errorText.includes('CORS') || response.status === 0) {
-                showToast('❌ خطأ في الاتصال بالخادم (CORS). يرجى المحاولة لاحقاً.', 'error');
+                showToast('❌ Failed to connect to server. Please check your internet and try again.', 'error');
             } else {
                 showToast('❌ ' + errorText, 'error');
             }
-            throw new Error(`فشل الطلب: ${response.status} - ${errorText}`);
+            throw new Error(`Request failed: ${response.status} - ${errorText}`);
         }
 
         const result = await response.json();
-        if (!result.success) throw new Error(result.error || 'فشل الطلب');
+        if (!result.success) throw new Error(result.error || 'Request failed');
 
         const orderId = result.orderId || 'order_' + Date.now();
 
@@ -2547,38 +2549,54 @@ async function sendOrderToTelegram(method, txHash = null) {
         const userRef = doc(db, 'users', currentUser.uid);
         await updateDoc(userRef, { history: arrayUnion(orderItem) });
 
-        // --- PROXY CREATION LOGIC ---
+        // --- PROXY CREATION LOGIC (معطل مؤقتاً) ---
         const proxyItems = cart.filter(item => item.isProxy);
         if (proxyItems.length > 0) {
-            for (const proxyItem of proxyItems) {
-                try {
-                    const proxyResponse = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/create-proxy', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                            'Accept': 'application/json',
-                        },
-                        mode: 'cors',
-                        body: JSON.stringify({
-                            plan: proxyItem.plan,
-                            quantity: proxyItem.quantity,
-                            duration: proxyItem.duration,
-                            userId: currentUser.uid,
-                            orderId: orderId
-                        })
-                    });
-                    if (!proxyResponse.ok) {
-                        const errText = await proxyResponse.text();
-                        throw new Error(`Proxy API error: ${proxyResponse.status} ${errText}`);
+            if (DISABLE_PROXY) {
+                console.log('ℹ️ Proxy creation is disabled.');
+                showToast('📦 Proxy details will be sent within 24 hours.', 'info');
+                await addDoc(collection(db, 'notifications'), {
+                    title: 'ℹ️ Proxy request pending',
+                    message: `User: ${currentUser.email} - ${proxyItems.length} proxies`,
+                    readBy: [],
+                    createdAt: serverTimestamp()
+                });
+            } else {
+                for (const proxyItem of proxyItems) {
+                    try {
+                        const proxyResponse = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/create-proxy', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                                'Accept': 'application/json',
+                            },
+                            mode: 'cors',
+                            body: JSON.stringify({
+                                plan: proxyItem.plan,
+                                quantity: proxyItem.quantity,
+                                duration: proxyItem.duration,
+                                userId: currentUser.uid,
+                                orderId: orderId
+                            })
+                        });
+                        if (!proxyResponse.ok) {
+                            const errText = await proxyResponse.text();
+                            throw new Error(`Proxy API error: ${proxyResponse.status} ${errText}`);
+                        }
+                        const proxyResult = await proxyResponse.json();
+                        if (!proxyResult.success) throw new Error(proxyResult.error || 'Proxy creation failed');
+                        await sendProxyDetailsToUser(currentUser.uid, proxyResult.proxy, proxyItem);
+                    } catch (error) {
+                        console.error('❌ Proxy creation error:', error);
+                        await addDoc(collection(db, 'notifications'), {
+                            title: '❌ Proxy creation failed',
+                            message: `User: ${currentUser.email} - Error: ${error.message}`,
+                            readBy: [],
+                            createdAt: serverTimestamp()
+                        });
+                        showToast('⚠️ Could not create proxies. Please contact support.', 'warning');
                     }
-                    const proxyResult = await proxyResponse.json();
-                    if (!proxyResult.success) throw new Error(proxyResult.error || 'Proxy creation failed');
-                    await sendProxyDetailsToUser(currentUser.uid, proxyResult.proxy, proxyItem);
-                } catch (error) {
-                    console.error('❌ Proxy creation error:', error);
-                    await sendTelegramNotification(TELEGRAM_CHAT_ID, `❌ Proxy creation failed for user ${currentUser.email}: ${error.message}`);
-                    showToast('⚠️ Some proxies could not be created. Contact support.', 'warning');
                 }
             }
         }
@@ -2606,9 +2624,8 @@ async function sendOrderToTelegram(method, txHash = null) {
 
     } catch (error) {
         console.error('Order error:', error);
-        // رسالة خطأ واضحة للمستخدم
         if (error.message.includes('CORS') || error.message.includes('Failed to fetch')) {
-            showToast('❌ تعذر الاتصال بالخادم. تأكد من اتصالك بالإنترنت وحاول مرة أخرى.', 'error');
+            showToast('❌ Failed to connect to server. Please check your internet and try again.', 'error');
         } else {
             showToast('❌ Error placing order: ' + error.message, 'error');
         }
@@ -2693,7 +2710,12 @@ async function sendProxyDetailsToUser(userId, proxyData, proxyItem) {
     await sendTelegramNotification(chatId, message);
 
     // إرسال إلى الإدمن أيضاً للتأكيد
-    await sendTelegramNotification(TELEGRAM_CHAT_ID, `✅ Proxy created for ${userEmail}: ${proxyData.ip}`);
+    await addDoc(collection(db, 'notifications'), {
+        title: '✅ Proxy created',
+        message: `User: ${userEmail} - IP: ${proxyData.ip}`,
+        readBy: [],
+        createdAt: serverTimestamp()
+    });
 }
 
 // ============================================================
@@ -2752,8 +2774,7 @@ async function sendOrderConfirmations(userId, orderId, productsList, total, meth
 async function sendTelegramNotification(chatId, message) {
     if (!chatId) return false;
     try {
-        // Use backend function to send Telegram message (to avoid exposing bot token)
-        const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/send-test-notification', {
+        const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/send-telegram', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -3709,12 +3730,14 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
         await updateDoc(userRef, { history: updatedHistory });
         
         if (newStatus === 'confirmed') {
+            // استخراج البريد الإلكتروني من الطلب أو المستخدم
+            const userEmail = orderFound?.userEmail || data.email || userId;
             await sendUserNotification(
                 userId,
                 '✅ Order Confirmed!',
                 `Your order #${orderId.slice(-6)} has been confirmed and is ready.`
             );
-            await sendLicenceForOrder(orderId, userId);
+            await sendLicenceForOrder(orderId, userId, userEmail);
         } else if (newStatus === 'rejected') {
             await sendUserNotification(
                 userId,
@@ -3763,19 +3786,43 @@ window.clearAdminSearch = function() { document.getElementById('adminSearchInput
 window.refreshAdminOrders = function() { loadAdminOrders(); showToast('🔄 Refreshed', 'info'); };
 
 // ============================================================
-// 24. Send Licence via Edge Function
+// 24. Send Licence via Edge Function (مع إصلاح user_email)
 // ============================================================
 
-async function sendLicenceForOrder(orderId, userId) {
+async function sendLicenceForOrder(orderId, userId, userEmail = null) {
     try {
-        console.log('🔍 sendLicenceForOrder called:', { orderId, userId });
+        console.log('🔍 sendLicenceForOrder called:', { orderId, userId, userEmail });
+        
+        // إذا لم يتم تمرير البريد، حاول جلبه من Firestore
+        let email = userEmail;
+        if (!email) {
+            const userRef = doc(db, 'users', userId);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+                const userData = userSnap.data();
+                email = userData.email || userId;
+            } else {
+                email = userId;
+                console.warn('⚠️ User document not found, using UID as email');
+            }
+        }
+
+        // جلب بيانات الطلب
         const userRef = doc(db, 'users', userId);
         const userSnap = await getDoc(userRef);
-        if (!userSnap.exists()) { console.error('❌ User not found'); throw new Error('User not found'); }
+        if (!userSnap.exists()) {
+            console.error('❌ User not found');
+            throw new Error('User not found');
+        }
         const userData = userSnap.data();
         const order = userData.history?.find(o => o.id === orderId);
-        if (!order) { console.error('❌ Order not found'); throw new Error('Order not found'); }
+        if (!order) {
+            console.error('❌ Order not found');
+            throw new Error('Order not found');
+        }
         const productName = order.items?.[0]?.name || 'Product';
+
+        // استدعاء دالة create-licence في Supabase
         const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/create-licence', {
             method: 'POST',
             headers: {
@@ -3787,14 +3834,20 @@ async function sendLicenceForOrder(orderId, userId) {
             body: JSON.stringify({
                 orderId,
                 userId,
-                userEmail: userData.email || userId,
+                userEmail: email, // الآن نرسل البريد الصحيح
                 productName,
                 telegramChatId: userData.telegramChatId || null
             })
         });
+
         const data = await response.json();
-        if (!response.ok || !data.success) throw new Error(data.error || 'Failed to create licence');
+        if (!response.ok || !data.success) {
+            throw new Error(data.error || 'Failed to create licence');
+        }
+
         console.log('✅ Licence created via backend:', data.licence);
+
+        // تحديث licences في Firestore للمستخدم
         const userLicences = userData.licences || [];
         const newLicence = {
             code: data.licence.code,
@@ -3805,14 +3858,24 @@ async function sendLicenceForOrder(orderId, userId) {
         };
         userLicences.push(newLicence);
         await updateDoc(userRef, { licences: userLicences });
+
+        // إذا كان المستخدم الحالي هو صاحب الطلب، حدّث الـ profile
         if (currentUser && currentUser.uid === userId) {
             userProfile.licences = userLicences;
             renderUserLicences();
             updateFullUserMenu();
         }
+
         showToast(`✅ Licence sent to user`, 'success');
     } catch (error) {
         console.error('❌ Error in sendLicenceForOrder:', error);
+        // إرسال إشعار داخلي للإدمن
+        await addDoc(collection(db, 'notifications'), {
+            title: '❌ Failed to send licence',
+            message: `Order: ${orderId} - User: ${userId} - Error: ${error.message}`,
+            readBy: [],
+            createdAt: serverTimestamp()
+        });
         throw error;
     }
 }
@@ -4347,7 +4410,7 @@ async function updateProductRatingDisplay(productId) {
 }
 
 // ============================================================
-// 28. Slider & Marquee Functions (shortened for brevity)
+// 28. Slider & Marquee Functions
 // ============================================================
 
 window.goToSlide = function(index) {
@@ -4738,7 +4801,7 @@ async function loadMarqueeSettings() {
 }
 
 // ============================================================
-// 29. Dashboard Stats, Advanced Stats, Audit Logs (shortened)
+// 29. Dashboard Stats, Advanced Stats, Audit Logs
 // ============================================================
 
 async function loadDashboardStats() {
@@ -4981,7 +5044,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================================
-// 31. Cookie Consent Functions (shortened)
+// 31. Cookie Consent Functions
 // ============================================================
 
 let cookieConsentStatus = localStorage.getItem('cookieConsent');
@@ -5111,7 +5174,7 @@ window.disableAnalytics = disableAnalytics;
 window.checkCookieConsent = checkCookieConsent;
 
 // ============================================================
-// 32. Telegram Banner, Social Proof, Upload (shortened)
+// 32. Telegram Banner, Social Proof, Upload
 // ============================================================
 
 function showTelegramBanner() {
@@ -5346,7 +5409,7 @@ window.adminDeletePayment = function(orderId, userId) {
 };
 
 // ============================================================
-// 37. Support Functions (FIXED)
+// 37. Support Functions
 // ============================================================
 
 window.toggleSupportMenu = function() {
@@ -5621,7 +5684,6 @@ document.addEventListener('DOMContentLoaded', function() {
 // 42. Export all functions to global scope (including missing ones)
 // ============================================================
 
-// تعريف الدوال المفقودة filterOrders و checkout
 window.filterOrders = function(filter) {
     ordersFilter = filter;
     document.querySelectorAll('.orders-filter-btn').forEach(btn => {
@@ -5637,17 +5699,16 @@ window.checkout = function() {
 // Payment Modal Functions (FIX)
 window.openPaymentModal = function() {
     if (cart.length === 0) {
-        showToast('⚠️ سلة المشتريات فارغة', 'warning');
+        showToast('⚠️ Cart is empty', 'warning');
         return;
     }
     const modal = document.getElementById('paymentModal');
     if (!modal) {
-        showToast('❌ نافذة الدفع غير موجودة', 'error');
+        showToast('❌ Payment modal not found', 'error');
         return;
     }
     modal.classList.add('open');
     document.body.style.overflow = 'hidden';
-    // إعادة تعيين الخطوات
     document.getElementById('paymentStep1').style.display = 'block';
     document.getElementById('paymentStep2').style.display = 'none';
     selectedPayment = null;
