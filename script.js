@@ -1184,7 +1184,7 @@ function startProductsRealtimeListener() {
 function getCurrencySymbol(currency) {
     const symbols = {
         'USD': '$',
-        'TND': 'د.ت',
+        'TND': 'TND',
         'OTHER': '💱'
     };
     return symbols[currency] || '$';
@@ -2482,7 +2482,7 @@ async function sendOrderToTelegram(method, txHash = null) {
 
         // إرسال الطلب إلى Supabase Edge Function مع رؤوس CORS صحيحة
         // ⚠️ تأكد من أن Edge Function يعالج OPTIONS ويرسل الرؤوس الصحيحة
-        const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/order', {
+        const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/place-order', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -2753,7 +2753,7 @@ async function sendTelegramNotification(chatId, message) {
     if (!chatId) return false;
     try {
         // Use backend function to send Telegram message (to avoid exposing bot token)
-        const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/send-telegram', {
+        const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/send-test-notification', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
