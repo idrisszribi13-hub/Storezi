@@ -47,6 +47,19 @@
             --transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
+        /* Light Theme */
+        body.light {
+            --bg: #f5f5f9;
+            --bg-secondary: #e8e8f0;
+            --card-bg: #ffffff;
+            --text: #1a1a2e;
+            --text-secondary: #4a4a6a;
+            --border: #d0d0e0;
+            --primary: #6c5ce7;
+            --primary-glow: rgba(108, 92, 231, 0.1);
+            --shadow: 0 8px 30px rgba(0,0,0,0.1);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -62,6 +75,7 @@
             min-height: 100vh;
             overflow-x: hidden;
             transition: background 0.3s, color 0.3s;
+            font-weight: 500;
         }
 
         /* ===== Scrollbar ===== */
@@ -101,7 +115,7 @@
         }
         #loadingStatus {
             font-size: 18px;
-            font-weight: 600;
+            font-weight: 700;
             background: linear-gradient(135deg, var(--primary), var(--vip-color));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -134,7 +148,7 @@
             align-items: center;
             gap: 10px;
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 600;
             opacity: 0;
             pointer-events: none;
             transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -169,7 +183,7 @@
         }
         .logo {
             font-size: 22px;
-            font-weight: 800;
+            font-weight: 900;
             background: linear-gradient(135deg, var(--primary), var(--vip-color));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -258,6 +272,7 @@
             font-size: 15px;
             font-family: var(--font);
             outline: none;
+            font-weight: 500;
         }
         .search-wrapper .search-box input::placeholder {
             color: var(--text-secondary);
@@ -292,7 +307,7 @@
             overflow: hidden;
             white-space: nowrap;
             font-size: 13px;
-            font-weight: 500;
+            font-weight: 600;
             color: var(--text-secondary);
             display: none;
         }
@@ -336,7 +351,7 @@
             text-align: center;
             max-width: 90%;
         }
-        .slide-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+        .slide-title { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
         .slide-subtitle { font-size: 14px; opacity: 0.8; margin-bottom: 8px; }
         .slide-btn {
             display: inline-block;
@@ -345,7 +360,7 @@
             color: #fff;
             border-radius: 30px;
             text-decoration: none;
-            font-weight: 600;
+            font-weight: 700;
             font-size: 14px;
             transition: var(--transition);
         }
@@ -383,8 +398,8 @@
             padding: 10px 6px;
             text-align: center;
         }
-        .stat-card .num { font-size: 20px; font-weight: 700; color: var(--primary); }
-        .stat-card .label { font-size: 11px; color: var(--text-secondary); opacity: 0.6; }
+        .stat-card .num { font-size: 20px; font-weight: 800; color: var(--primary); }
+        .stat-card .label { font-size: 11px; color: var(--text-secondary); opacity: 0.6; font-weight: 600; }
 
         /* ===== Filters ===== */
         .filters {
@@ -400,7 +415,7 @@
             border: 1px solid var(--border);
             background: transparent;
             color: var(--text-secondary);
-            font-weight: 500;
+            font-weight: 600;
             font-size: 13px;
             cursor: pointer;
             white-space: nowrap;
@@ -459,7 +474,7 @@
             padding: 2px 10px;
             border-radius: 20px;
             font-size: 9px;
-            font-weight: 700;
+            font-weight: 800;
             text-transform: uppercase;
             background: var(--vip-color);
             color: #0a0a1a;
@@ -490,7 +505,7 @@
         .product-card .product-actions-top .heart-icon.liked { color: var(--danger); }
         .product-card .product-name {
             padding: 8px 10px 0;
-            font-weight: 600;
+            font-weight: 700;
             font-size: 14px;
             white-space: nowrap;
             overflow: hidden;
@@ -510,6 +525,7 @@
             color: var(--primary);
             border: 1px solid var(--primary);
             opacity: 0.7;
+            font-weight: 700;
         }
         .product-card .features-list {
             padding: 4px 10px;
@@ -519,6 +535,7 @@
             display: flex;
             flex-wrap: wrap;
             gap: 4px;
+            font-weight: 500;
         }
         .product-card .features-list .feature-item {
             display: flex;
@@ -528,7 +545,7 @@
         .product-card .features-list .feature-item i { font-size: 4px; }
         .product-card .price {
             padding: 4px 10px;
-            font-weight: 700;
+            font-weight: 800;
             font-size: 15px;
             color: var(--primary);
         }
@@ -537,6 +554,7 @@
             text-decoration: line-through;
             opacity: 0.3;
             margin-right: 4px;
+            font-weight: 600;
         }
         .product-card .price .discount-badge {
             font-size: 10px;
@@ -545,6 +563,7 @@
             padding: 0 6px;
             border-radius: 10px;
             margin-right: 4px;
+            font-weight: 700;
         }
         .product-card .card-actions {
             padding: 6px 10px 10px;
@@ -561,6 +580,7 @@
             color: var(--text-secondary);
             cursor: pointer;
             font-size: 12px;
+            font-weight: 600;
             transition: var(--transition);
         }
         .product-card .card-actions .btn-details:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
@@ -572,7 +592,7 @@
             border-radius: var(--radius-sm);
             background: var(--primary);
             color: #fff;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
             font-size: 12px;
             transition: var(--transition);
@@ -592,6 +612,7 @@
             color: var(--text-secondary);
             opacity: 0.3;
             border-top: 1px solid var(--border);
+            font-weight: 600;
         }
         .product-card .product-footer-icons .icon-item i { margin-right: 2px; }
 
@@ -614,17 +635,17 @@
         #bottomCartBar .cart-info { display: flex; align-items: center; gap: 8px; }
         #bottomCartBar .cart-info i { font-size: 20px; color: var(--primary); }
         #bottomCartBar .cart-info .count {
-            font-weight: 700;
+            font-weight: 800;
             font-size: 14px;
         }
-        #bottomCartBar .cart-info .total { font-weight: 700; color: var(--primary); font-size: 16px; }
+        #bottomCartBar .cart-info .total { font-weight: 800; color: var(--primary); font-size: 16px; }
         #bottomCartBar .checkout-btn {
             padding: 8px 20px;
             border: none;
             border-radius: var(--radius-sm);
             background: var(--primary);
             color: #fff;
-            font-weight: 700;
+            font-weight: 800;
             cursor: pointer;
             transition: var(--transition);
         }
@@ -644,7 +665,7 @@
         .fullscreen-modal.open { display: flex; }
         .fullscreen-modal .modal-header {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-start;
             align-items: center;
             padding-bottom: 12px;
             border-bottom: 1px solid var(--border);
@@ -652,10 +673,13 @@
             flex-wrap: wrap;
             gap: 8px;
             flex-shrink: 0;
+            position: relative;
         }
         .fullscreen-modal .modal-header h2 {
             font-size: 20px;
-            font-weight: 700;
+            font-weight: 800;
+            flex: 1;
+            margin: 0 12px 0 0;
         }
         .fullscreen-modal .modal-header .close-btn {
             background: none;
@@ -663,6 +687,8 @@
             color: var(--text-secondary);
             font-size: 24px;
             cursor: pointer;
+            padding: 0 4px;
+            margin-left: auto;
         }
         .fullscreen-modal .modal-header .back-btn {
             background: none;
@@ -670,7 +696,7 @@
             color: var(--text);
             font-size: 20px;
             cursor: pointer;
-            padding: 0 8px;
+            padding: 0 8px 0 0;
         }
 
         /* ===== Auth Section ===== */
@@ -695,6 +721,7 @@
             text-align: center;
             margin-bottom: 20px;
             font-size: 24px;
+            font-weight: 800;
             background: linear-gradient(135deg, var(--primary), var(--vip-color));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -706,7 +733,7 @@
         .auth-container .form-group label {
             display: block;
             font-size: 13px;
-            font-weight: 600;
+            font-weight: 700;
             color: var(--text-secondary);
             margin-bottom: 4px;
         }
@@ -722,6 +749,7 @@
             font-family: var(--font);
             outline: none;
             transition: var(--transition);
+            font-weight: 500;
         }
         .auth-container .form-group input:focus,
         .auth-container .form-group select:focus {
@@ -734,7 +762,7 @@
             border-radius: var(--radius-sm);
             background: var(--primary);
             color: #fff;
-            font-weight: 700;
+            font-weight: 800;
             font-size: 16px;
             cursor: pointer;
             transition: var(--transition);
@@ -745,18 +773,19 @@
         }
         .auth-container .auth-btn:hover { opacity: 0.9; transform: scale(1.01); }
         .auth-container .auth-btn.loading { opacity: 0.6; pointer-events: none; }
-        .auth-container .auth-error { color: var(--danger); font-size: 13px; margin-top: 4px; }
-        .auth-container .auth-success { color: var(--success); font-size: 13px; margin-top: 4px; }
+        .auth-container .auth-error { color: var(--danger); font-size: 13px; margin-top: 4px; font-weight: 600; }
+        .auth-container .auth-success { color: var(--success); font-size: 13px; margin-top: 4px; font-weight: 600; }
         .auth-container .auth-switch {
             text-align: center;
             margin-top: 12px;
             font-size: 14px;
             color: var(--text-secondary);
+            font-weight: 500;
         }
         .auth-container .auth-switch a {
             color: var(--primary);
             cursor: pointer;
-            font-weight: 600;
+            font-weight: 700;
         }
         .auth-container .google-btn {
             background: #fff;
@@ -770,6 +799,7 @@
             gap: 6px;
             font-size: 13px;
             color: var(--text-secondary);
+            font-weight: 500;
         }
         .auth-container .terms input[type="checkbox"] {
             width: 16px;
@@ -799,7 +829,7 @@
             gap: 8px;
             flex-shrink: 0;
         }
-        #adminPanel .admin-header h2 { font-size: 20px; font-weight: 700; }
+        #adminPanel .admin-header h2 { font-size: 20px; font-weight: 800; }
         #adminPanel .admin-header .close-btn { font-size: 24px; background: none; border: none; color: var(--text-secondary); cursor: pointer; }
         #adminPanel .tabs {
             display: flex;
@@ -817,7 +847,7 @@
             border-radius: 30px;
             background: transparent;
             color: var(--text-secondary);
-            font-weight: 500;
+            font-weight: 600;
             cursor: pointer;
             white-space: nowrap;
             transition: var(--transition);
@@ -861,8 +891,8 @@
             gap: 6px;
         }
         .admin-item .item-info { flex: 1; min-width: 120px; }
-        .admin-item .item-title { font-weight: 600; font-size: 14px; }
-        .admin-item .item-meta { font-size: 12px; color: var(--text-secondary); opacity: 0.5; }
+        .admin-item .item-title { font-weight: 700; font-size: 14px; }
+        .admin-item .item-meta { font-size: 12px; color: var(--text-secondary); opacity: 0.5; font-weight: 500; }
         .admin-item .item-actions { display: flex; gap: 4px; }
         .admin-item .item-actions button {
             border: none;
@@ -872,6 +902,7 @@
             border-radius: var(--radius-sm);
             cursor: pointer;
             transition: var(--transition);
+            font-weight: 600;
         }
         .admin-item .item-actions .btn-edit:hover { background: var(--primary); }
         .admin-item .item-actions .btn-delete:hover { background: var(--danger); }
@@ -879,7 +910,7 @@
         .admin-item .item-actions .btn-revoke:hover { background: var(--warning); color: #0a0a1a; }
 
         .admin-form-group { margin-bottom: 12px; }
-        .admin-form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; }
+        .admin-form-group label { display: block; font-size: 13px; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px; }
         .admin-form-group input,
         .admin-form-group select,
         .admin-form-group textarea {
@@ -892,6 +923,7 @@
             font-size: 14px;
             font-family: var(--font);
             outline: none;
+            font-weight: 500;
         }
         .admin-form-group input:focus,
         .admin-form-group select:focus,
@@ -902,7 +934,7 @@
             border-radius: var(--radius-sm);
             background: var(--primary);
             color: #fff;
-            font-weight: 700;
+            font-weight: 800;
             cursor: pointer;
             transition: var(--transition);
         }
@@ -913,7 +945,7 @@
             border-radius: var(--radius-sm);
             background: var(--success);
             color: #0a0a1a;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
             transition: var(--transition);
         }
@@ -953,7 +985,7 @@
             background: none;
             border: none;
         }
-        .modal h2 { font-size: 22px; font-weight: 700; margin-bottom: 12px; }
+        .modal h2 { font-size: 22px; font-weight: 800; margin-bottom: 12px; }
 
         .payment-options {
             display: grid;
@@ -973,8 +1005,8 @@
         .payment-option:hover { border-color: var(--primary); }
         .payment-option.selected { border-color: var(--primary); background: var(--primary-glow); }
         .payment-option i { font-size: 28px; display: block; margin-bottom: 4px; }
-        .payment-option .p-label { font-weight: 600; font-size: 14px; }
-        .payment-option .p-sub { font-size: 11px; color: var(--text-secondary); opacity: 0.5; }
+        .payment-option .p-label { font-weight: 700; font-size: 14px; }
+        .payment-option .p-sub { font-size: 11px; color: var(--text-secondary); opacity: 0.5; font-weight: 500; }
         .payment-option .p-check {
             position: absolute;
             top: 6px;
@@ -992,7 +1024,7 @@
             border-radius: var(--radius-sm);
             background: var(--primary);
             color: #fff;
-            font-weight: 700;
+            font-weight: 800;
             font-size: 16px;
             cursor: pointer;
             transition: var(--transition);
@@ -1014,7 +1046,7 @@
             align-items: center;
             gap: 10px;
             font-size: 18px;
-            font-weight: 700;
+            font-weight: 800;
             margin-bottom: 12px;
         }
         .bi-header i { color: #f2a900; font-size: 24px; }
@@ -1025,9 +1057,10 @@
             justify-content: space-between;
             gap: 8px;
             font-size: 14px;
+            font-weight: 500;
         }
-        .bi-label { color: var(--text-secondary); opacity: 0.6; }
-        .bi-value { font-weight: 600; direction: ltr; text-align: left; flex: 1; }
+        .bi-label { color: var(--text-secondary); opacity: 0.6; font-weight: 600; }
+        .bi-value { font-weight: 700; direction: ltr; text-align: left; flex: 1; }
         .bi-copy-btn {
             background: var(--bg);
             border: 1px solid var(--border);
@@ -1036,6 +1069,7 @@
             cursor: pointer;
             color: var(--text-secondary);
             transition: var(--transition);
+            font-weight: 600;
         }
         .bi-copy-btn:hover { background: var(--primary); color: #fff; }
         .bi-divider { height: 1px; background: var(--border); margin: 4px 0; }
@@ -1046,8 +1080,9 @@
             padding: 12px 14px;
             border-radius: var(--radius-sm);
             border: 1px solid var(--border);
+            font-weight: 500;
         }
-        .bi-instructions p { font-weight: 600; margin-bottom: 4px; color: var(--text); }
+        .bi-instructions p { font-weight: 700; margin-bottom: 4px; color: var(--text); }
         .bi-instructions ol { margin: 0; padding-left: 20px; opacity: 0.8; }
         .bi-instructions li { margin-bottom: 2px; }
         .binance-verification {
@@ -1059,12 +1094,12 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            font-weight: 600;
+            font-weight: 700;
             margin-bottom: 10px;
         }
         .bv-header i { color: var(--success); font-size: 18px; }
         .bv-field { margin-bottom: 12px; }
-        .bv-field label { display: block; font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; }
+        .bv-field label { display: block; font-size: 13px; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px; }
         .bv-input-group { display: flex; gap: 6px; }
         .bv-input-group input {
             flex: 1;
@@ -1076,6 +1111,7 @@
             font-size: 14px;
             outline: none;
             font-family: var(--font);
+            font-weight: 500;
         }
         .bv-input-group input:focus { border-color: var(--primary); }
         .bv-verify-btn {
@@ -1084,14 +1120,14 @@
             border-radius: var(--radius-sm);
             background: var(--primary);
             color: #fff;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
             white-space: nowrap;
         }
         .bv-verify-btn:hover { opacity: 0.8; }
-        .bv-hint { font-size: 12px; color: var(--text-secondary); opacity: 0.5; margin-top: 4px; }
+        .bv-hint { font-size: 12px; color: var(--text-secondary); opacity: 0.5; margin-top: 4px; font-weight: 500; }
         .bv-upload { margin: 12px 0; }
-        .bv-upload label { font-size: 13px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px; }
+        .bv-upload label { font-size: 13px; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 4px; }
         .bv-drop-zone {
             border: 2px dashed var(--border);
             border-radius: var(--radius-sm);
@@ -1101,6 +1137,7 @@
             cursor: pointer;
             transition: var(--transition);
             background: var(--card-bg);
+            font-weight: 500;
         }
         .bv-drop-zone:hover { border-color: var(--primary); background: var(--bg); }
         .bv-drop-zone i { font-size: 28px; display: block; margin-bottom: 4px; }
@@ -1124,6 +1161,7 @@
             padding: 8px 12px;
             border-radius: var(--radius-sm);
             font-size: 13px;
+            font-weight: 600;
             background: var(--bg);
             border: 1px solid var(--border);
         }
@@ -1136,7 +1174,7 @@
             border-radius: var(--radius-sm);
             background: var(--primary);
             color: #fff;
-            font-weight: 700;
+            font-weight: 800;
             font-size: 16px;
             cursor: pointer;
             transition: var(--transition);
@@ -1152,6 +1190,7 @@
             opacity: 0.5;
             margin-top: 8px;
             text-align: center;
+            font-weight: 500;
         }
         .bv-note a { color: var(--primary); text-decoration: none; }
 
@@ -1223,9 +1262,9 @@
         }
         .rec-item:hover { transform: translateY(-2px); border-color: var(--primary); }
         .rec-item img { width: 100%; height: 80px; object-fit: cover; }
-        .rec-item .r-name { font-size: 12px; font-weight: 600; padding: 4px 6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .rec-item .r-price { font-size: 11px; color: var(--primary); font-weight: 700; padding-bottom: 4px; }
-        .rec-empty { grid-column: 1 / -1; text-align: center; padding: 12px; color: var(--text-secondary); opacity: 0.4; }
+        .rec-item .r-name { font-size: 12px; font-weight: 700; padding: 4px 6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .rec-item .r-price { font-size: 11px; color: var(--primary); font-weight: 800; padding-bottom: 4px; }
+        .rec-empty { grid-column: 1 / -1; text-align: center; padding: 12px; color: var(--text-secondary); opacity: 0.4; font-weight: 500; }
 
         /* ===== Featured ===== */
         #featuredGrid {
@@ -1253,14 +1292,14 @@
             padding: 1px 8px;
             border-radius: 12px;
             font-size: 8px;
-            font-weight: 700;
+            font-weight: 800;
             background: var(--vip-color);
             color: #0a0a1a;
         }
         .featured-item-badge.free { background: var(--free-color); }
         .featured-item-badge.unavailable { background: var(--danger); color: #fff; }
-        .featured-item-name { font-size: 12px; font-weight: 600; padding: 4px 6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .featured-item-price { font-size: 11px; color: var(--primary); font-weight: 700; padding-bottom: 4px; }
+        .featured-item-name { font-size: 12px; font-weight: 700; padding: 4px 6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .featured-item-price { font-size: 11px; color: var(--primary); font-weight: 800; padding-bottom: 4px; }
 
         /* ===== Proxy Store ===== */
         .proxy-grid {
@@ -1288,7 +1327,7 @@
             margin-bottom: 4px;
         }
         .proxy-card .proxy-name {
-            font-weight: 700;
+            font-weight: 800;
             font-size: 16px;
             color: var(--text);
         }
@@ -1296,10 +1335,11 @@
             font-size: 13px;
             color: var(--text-secondary);
             opacity: 0.5;
+            font-weight: 500;
         }
         .proxy-card .proxy-price {
             font-size: 20px;
-            font-weight: 700;
+            font-weight: 800;
             color: var(--primary);
             margin: 6px 0;
         }
@@ -1310,7 +1350,7 @@
             border-radius: var(--radius-sm);
             background: var(--primary);
             color: #fff;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
             transition: var(--transition);
             margin-top: auto;
@@ -1345,7 +1385,7 @@
         }
         .banner-icon i { font-size: 28px; color: #0088cc; }
         .banner-text { flex: 1; }
-        .banner-title { font-weight: 700; font-size: 15px; }
+        .banner-title { font-weight: 800; font-size: 15px; }
         .banner-title .badge-new {
             background: var(--danger);
             color: #fff;
@@ -1353,15 +1393,16 @@
             padding: 0 8px;
             border-radius: 12px;
             margin-left: 4px;
+            font-weight: 700;
         }
-        .banner-subtitle { font-size: 12px; color: var(--text-secondary); opacity: 0.7; }
+        .banner-subtitle { font-size: 12px; color: var(--text-secondary); opacity: 0.7; font-weight: 500; }
         .banner-action {
             padding: 6px 16px;
             border: none;
             border-radius: 30px;
             background: var(--primary);
             color: #fff;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
             transition: var(--transition);
             white-space: nowrap;
@@ -1392,13 +1433,13 @@
             backdrop-filter: blur(10px);
         }
         #cookieConsent.show { display: flex; }
-        #cookieConsent .cookie-text { font-size: 13px; color: var(--text-secondary); }
+        #cookieConsent .cookie-text { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
         #cookieConsent .cookie-actions { display: flex; gap: 8px; flex-wrap: wrap; }
         #cookieConsent .cookie-actions button {
             padding: 6px 16px;
             border: none;
             border-radius: var(--radius-sm);
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
             transition: var(--transition);
         }
@@ -1450,7 +1491,7 @@
             padding: 8px 12px;
             color: var(--text);
             font-size: 13px;
-            font-weight: 500;
+            font-weight: 600;
             cursor: pointer;
             border-radius: var(--radius-sm);
             display: flex;
@@ -1516,6 +1557,7 @@
             font-size: 13px;
             transition: var(--transition);
             opacity: 0.6;
+            font-weight: 500;
         }
         .site-footer .footer-links a:hover {
             color: var(--primary);
@@ -1526,6 +1568,7 @@
             color: var(--text-secondary);
             opacity: 0.3;
             text-align: center;
+            font-weight: 500;
         }
         .site-footer .footer-copyright strong {
             color: var(--primary);
@@ -1555,20 +1598,21 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 700;
+            font-weight: 800;
             font-size: 18px;
             color: #fff;
             overflow: hidden;
         }
-        .admin-user-card .user-name { font-weight: 600; font-size: 14px; }
-        .admin-user-card .user-email { font-size: 11px; color: var(--text-secondary); opacity: 0.5; word-break: break-all; }
-        .admin-user-card .user-meta { font-size: 11px; color: var(--text-secondary); opacity: 0.4; }
+        .admin-user-card .user-name { font-weight: 700; font-size: 14px; }
+        .admin-user-card .user-email { font-size: 11px; color: var(--text-secondary); opacity: 0.5; word-break: break-all; font-weight: 500; }
+        .admin-user-card .user-meta { font-size: 11px; color: var(--text-secondary); opacity: 0.4; font-weight: 500; }
         .admin-user-card .user-badge {
             display: inline-block;
             font-size: 9px;
             padding: 1px 8px;
             border-radius: 10px;
             margin: 2px 0;
+            font-weight: 700;
         }
         .admin-user-card .user-badge.banned { background: var(--danger); color: #fff; }
         .admin-user-card .user-badge.admin { background: var(--vip-color); color: #0a0a1a; }
@@ -1586,6 +1630,7 @@
             font-size: 11px;
             cursor: pointer;
             transition: var(--transition);
+            font-weight: 600;
         }
         .admin-user-card .user-actions .btn-view { background: var(--primary); color: #fff; }
         .admin-user-card .user-actions .btn-ban { background: var(--danger); color: #fff; }
@@ -1598,7 +1643,7 @@
             padding: 2px 10px;
             border-radius: 12px;
             font-size: 10px;
-            font-weight: 600;
+            font-weight: 700;
         }
         .status-badge.pending { background: var(--pending-color); color: #0a0a1a; }
         .status-badge.confirmed { background: var(--success); color: #0a0a1a; }
@@ -1631,10 +1676,10 @@
             opacity: 0;
         }
         .vip-plan.selected .vip-plan-check { opacity: 1; }
-        .vip-plan .vip-plan-label { font-weight: 600; font-size: 13px; }
-        .vip-plan .vip-plan-price { font-weight: 700; color: var(--vip-color); }
-        .vip-plan .vip-plan-original { font-size: 11px; text-decoration: line-through; opacity: 0.3; }
-        .vip-plan .vip-plan-discount { font-size: 10px; background: var(--danger); color: #fff; border-radius: 10px; padding: 0 6px; display: inline-block; }
+        .vip-plan .vip-plan-label { font-weight: 700; font-size: 13px; }
+        .vip-plan .vip-plan-price { font-weight: 800; color: var(--vip-color); }
+        .vip-plan .vip-plan-original { font-size: 11px; text-decoration: line-through; opacity: 0.3; font-weight: 500; }
+        .vip-plan .vip-plan-discount { font-size: 10px; background: var(--danger); color: #fff; border-radius: 10px; padding: 0 6px; display: inline-block; font-weight: 700; }
 
         /* ===== Ratings ===== */
         .rating-stars .star {
@@ -1655,12 +1700,13 @@
             flex-wrap: wrap;
             align-items: center;
             font-size: 12px;
+            font-weight: 500;
         }
-        .rating-review-item .rr-name { font-weight: 600; }
+        .rating-review-item .rr-name { font-weight: 700; }
         .rating-review-item .rr-stars { color: #fbbf24; }
-        .rating-review-item .rr-badge { background: var(--success); color: #0a0a1a; padding: 0 6px; border-radius: 10px; font-size: 9px; }
+        .rating-review-item .rr-badge { background: var(--success); color: #0a0a1a; padding: 0 6px; border-radius: 10px; font-size: 9px; font-weight: 700; }
         .rating-review-item .rr-date { opacity: 0.3; font-size: 10px; }
-        .rating-review-item .rr-comment { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+        .rating-review-item .rr-comment { font-size: 13px; color: var(--text-secondary); margin-top: 2px; font-weight: 500; }
         .rating-comment-input {
             width: 100%;
             padding: 8px 12px;
@@ -1671,6 +1717,7 @@
             font-family: var(--font);
             resize: vertical;
             margin-top: 4px;
+            font-weight: 500;
         }
         .rating-submit-btn {
             padding: 6px 16px;
@@ -1678,7 +1725,7 @@
             border-radius: var(--radius-sm);
             background: var(--primary);
             color: #fff;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
             margin-top: 4px;
         }
@@ -1698,9 +1745,9 @@
             object-fit: cover;
         }
         .payment-product-item .pp-info { flex: 1; }
-        .payment-product-item .pp-name { font-size: 13px; font-weight: 600; }
-        .payment-product-item .pp-price { font-size: 12px; color: var(--primary); font-weight: 700; }
-        .payment-product-item .pp-qty { font-size: 13px; color: var(--text-secondary); opacity: 0.5; }
+        .payment-product-item .pp-name { font-size: 13px; font-weight: 700; }
+        .payment-product-item .pp-price { font-size: 12px; color: var(--primary); font-weight: 800; }
+        .payment-product-item .pp-qty { font-size: 13px; color: var(--text-secondary); opacity: 0.5; font-weight: 500; }
 
         /* ===== Quantity options ===== */
         .preview-quantity-options {
@@ -1722,9 +1769,9 @@
             border-color: var(--primary);
             background: var(--primary-glow);
         }
-        .preview-quantity-option .qty-value { font-size: 18px; font-weight: 700; }
-        .preview-quantity-option .qty-price { font-weight: 600; color: var(--primary); }
-        .preview-quantity-option .qty-original { font-size: 11px; text-decoration: line-through; opacity: 0.3; }
+        .preview-quantity-option .qty-value { font-size: 18px; font-weight: 800; }
+        .preview-quantity-option .qty-price { font-weight: 700; color: var(--primary); }
+        .preview-quantity-option .qty-original { font-size: 11px; text-decoration: line-through; opacity: 0.3; font-weight: 500; }
         .preview-quantity-option .qty-check {
             position: absolute;
             top: 2px;
@@ -1742,7 +1789,7 @@
             border-radius: 20px;
             cursor: pointer;
             font-size: 12px;
-            font-weight: 500;
+            font-weight: 600;
             transition: var(--transition);
             background: var(--bg);
             color: var(--text-secondary);
@@ -1761,7 +1808,7 @@
             background: var(--bg);
             color: var(--text-secondary);
             cursor: pointer;
-            font-weight: 500;
+            font-weight: 600;
             transition: var(--transition);
         }
         .currency-option.active, .type-option.active {
@@ -1781,7 +1828,7 @@
             border: 1px solid var(--border);
             margin-bottom: 4px;
         }
-        .quantity-option-item .qty-label { font-weight: 600; font-size: 12px; min-width: 60px; }
+        .quantity-option-item .qty-label { font-weight: 700; font-size: 12px; min-width: 60px; }
         .quantity-option-item .qty-input {
             width: 70px;
             padding: 4px 6px;
@@ -1789,6 +1836,7 @@
             border-radius: var(--radius-sm);
             background: var(--card-bg);
             color: var(--text);
+            font-weight: 500;
         }
         .quantity-option-item .qty-price-group { display: flex; gap: 4px; }
         .quantity-option-item .qty-price, .quantity-option-item .qty-original-price {
@@ -1798,6 +1846,7 @@
             border-radius: var(--radius-sm);
             background: var(--card-bg);
             color: var(--text);
+            font-weight: 500;
         }
         .quantity-option-item .qty-remove {
             background: var(--danger);
@@ -1831,7 +1880,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 700;
+            font-weight: 800;
             font-size: 22px;
             border: 1px solid var(--border);
         }
@@ -1840,13 +1889,14 @@
             flex-direction: column;
         }
         .payment-card .payment-currency {
-            font-weight: 600;
+            font-weight: 700;
             font-size: 18px;
             color: var(--text);
         }
         .payment-card .payment-date {
             font-size: 13px;
             color: var(--text-secondary);
+            font-weight: 500;
         }
         .payment-card .payment-id {
             font-size: 12px;
@@ -1858,28 +1908,30 @@
             display: inline-block;
             margin-top: 2px;
             border: 1px solid var(--border);
+            font-weight: 500;
         }
         .payment-card .payment-amount {
             text-align: right;
         }
         .payment-card .payment-coins {
-            font-weight: 700;
+            font-weight: 800;
             font-size: 20px;
             color: var(--text);
         }
         .payment-card .payment-coins small {
             font-size: 13px;
             opacity: 0.4;
-            font-weight: 400;
+            font-weight: 500;
         }
         .payment-card .payment-value {
             font-size: 14px;
             color: var(--text-secondary);
+            font-weight: 500;
         }
         .payment-card .payment-status {
             padding: 4px 16px;
             border-radius: 30px;
-            font-weight: 600;
+            font-weight: 700;
             font-size: 13px;
             white-space: nowrap;
         }
@@ -1910,6 +1962,7 @@
             display: flex;
             align-items: center;
             gap: 6px;
+            font-weight: 500;
         }
         .payment-card .payment-to i { color: var(--text-secondary); opacity: 0.4; font-size: 14px; }
         .payment-card .payment-method {
@@ -1923,10 +1976,11 @@
             color: var(--text-secondary);
             opacity: 0.4;
             display: none;
+            font-weight: 500;
         }
         .payment-delay-note i { color: #3fcb7a; margin-right: 6px; }
 
-        /* ===== تحسينات لتنسيق الملف الشخصي ===== */
+        /* ===== Profile ===== */
         .profile-container {
             display: flex;
             flex-direction: column;
@@ -1952,19 +2006,20 @@
             align-items: center;
             justify-content: center;
             font-size: 28px;
-            font-weight: 700;
+            font-weight: 800;
             color: #fff;
             overflow: hidden;
             flex-shrink: 0;
         }
         .profile-info h3 {
             font-size: 18px;
-            font-weight: 700;
+            font-weight: 800;
         }
         .profile-email {
             font-size: 13px;
             color: var(--text-secondary);
             opacity: 0.6;
+            font-weight: 500;
         }
         .profile-badge {
             display: inline-block;
@@ -1974,6 +2029,7 @@
             background: var(--bg-secondary);
             border: 1px solid var(--border);
             margin-right: 4px;
+            font-weight: 600;
         }
         .profile-badge.rp { color: var(--vip-color); border-color: var(--vip-color); }
         .profile-badge.licence { color: var(--success); border-color: var(--success); }
@@ -1990,13 +2046,14 @@
         }
         .stat-number {
             font-size: 20px;
-            font-weight: 700;
+            font-weight: 800;
             color: var(--primary);
         }
         .stat-label {
             font-size: 11px;
             color: var(--text-secondary);
             opacity: 0.4;
+            font-weight: 500;
         }
 
         .edit-profile-section,
@@ -2009,7 +2066,7 @@
         }
         .section-title {
             font-size: 16px;
-            font-weight: 700;
+            font-weight: 800;
             margin-bottom: 12px;
             color: var(--primary);
         }
@@ -2019,7 +2076,7 @@
         .form-group label {
             display: block;
             font-size: 13px;
-            font-weight: 600;
+            font-weight: 700;
             color: var(--text-secondary);
             margin-bottom: 4px;
         }
@@ -2034,6 +2091,7 @@
             font-size: 14px;
             font-family: var(--font);
             outline: none;
+            font-weight: 500;
         }
         .form-group input:focus,
         .form-group select:focus {
@@ -2050,7 +2108,7 @@
             border-radius: var(--radius-sm);
             background: var(--primary);
             color: #fff;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
             transition: var(--transition);
         }
@@ -2063,6 +2121,7 @@
             color: var(--text-secondary);
             cursor: pointer;
             transition: var(--transition);
+            font-weight: 600;
         }
         .btn-cancel:hover { background: var(--bg); }
 
@@ -2075,6 +2134,7 @@
             padding: 8px 12px;
             border-radius: var(--radius-sm);
             border: 1px solid var(--border);
+            font-weight: 500;
         }
         .ps-email button {
             background: var(--primary);
@@ -2083,7 +2143,7 @@
             padding: 4px 12px;
             border-radius: var(--radius-sm);
             cursor: pointer;
-            font-weight: 600;
+            font-weight: 700;
             font-size: 12px;
         }
         .tb-row {
@@ -2091,9 +2151,10 @@
             justify-content: space-between;
             padding: 4px 0;
             font-size: 14px;
+            font-weight: 500;
         }
-        .tb-label { color: var(--text-secondary); opacity: 0.6; }
-        .tb-value { font-weight: 500; }
+        .tb-label { color: var(--text-secondary); opacity: 0.6; font-weight: 600; }
+        .tb-value { font-weight: 600; }
         .tb-status.linked { color: var(--success); }
         .tb-status.unlinked { color: var(--danger); }
         .tb-info {
@@ -2104,6 +2165,7 @@
             border-radius: var(--radius-sm);
             margin: 8px 0;
             border: 1px solid var(--border);
+            font-weight: 500;
         }
         .tb-actions {
             display: flex;
@@ -2114,7 +2176,7 @@
             padding: 6px 14px;
             border: none;
             border-radius: var(--radius-sm);
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
             transition: var(--transition);
         }
@@ -2132,9 +2194,9 @@
         }
         #productDetailsFull .modal-header h2 {
             font-size: 18px;
-            font-weight: 700;
+            font-weight: 800;
             flex: 1;
-            margin: 0 8px;
+            margin: 0 8px 0 0;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -2153,7 +2215,7 @@
             padding: 2px 14px;
             border-radius: 20px;
             font-size: 11px;
-            font-weight: 700;
+            font-weight: 800;
         }
         #productDetailsContent .image-badge.vip {
             background: var(--vip-color);
@@ -2167,7 +2229,6 @@
             background: var(--danger);
             color: #fff;
         }
-        /* قواعد إضافية لتوافق التصميم */
         .rating-section {
             background: var(--bg-secondary);
             border-radius: var(--radius-md);
@@ -2176,6 +2237,93 @@
         }
         .rating-section .stars-small {
             font-size: 18px;
+        }
+
+        /* ===== Cookie Settings Modal (English) ===== */
+        #cookieSettingsModal .modal-content h3 {
+            font-weight: 800;
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+        #cookieSettingsModal .modal-content .setting-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        #cookieSettingsModal .modal-content .setting-item .setting-label {
+            font-weight: 700;
+            font-size: 14px;
+        }
+        #cookieSettingsModal .modal-content .setting-item .setting-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+            opacity: 0.6;
+            font-weight: 500;
+        }
+        #cookieSettingsModal .modal-content .setting-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        /* ===== Order History ===== */
+        .order-history-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .order-history-item .oh-left {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .order-history-item .oh-id {
+            font-weight: 700;
+            font-size: 14px;
+        }
+        .order-history-item .oh-date {
+            font-size: 12px;
+            color: var(--text-secondary);
+            opacity: 0.5;
+            font-weight: 500;
+        }
+        .order-history-item .oh-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .order-history-item .oh-total {
+            font-weight: 800;
+            color: var(--primary);
+            font-size: 16px;
+        }
+        .order-history-item .oh-status {
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .order-history-item .oh-status.pending {
+            background: var(--pending-color)30;
+            color: var(--pending-color);
+        }
+        .order-history-item .oh-status.confirmed {
+            background: var(--success)30;
+            color: var(--success);
+        }
+        .order-history-item .oh-status.rejected {
+            background: var(--danger)30;
+            color: var(--danger);
         }
     </style>
 </head>
@@ -2217,7 +2365,7 @@
                     <span class="badge" id="cartBadge">0</span>
                 </button>
                 <button onclick="openUserMenuFull()" aria-label="Profile" id="userAvatarBtn">
-                    <span id="userAvatarText" style="font-weight:700;">U</span>
+                    <span id="userAvatarText" style="font-weight:800;">U</span>
                     <span class="user-dot" id="userDot"></span>
                 </button>
             </div>
@@ -2274,15 +2422,15 @@
         <div class="product-grid" id="productList"></div>
 
         <!-- ===== FEATURED ===== -->
-        <div style="padding:0 16px 8px; font-size:18px; font-weight:700; color:var(--primary);">⭐ Featured</div>
+        <div style="padding:0 16px 8px; font-size:18px; font-weight:800; color:var(--primary);">⭐ Featured</div>
         <div id="featuredGrid"></div>
 
         <!-- ===== RECOMMENDED ===== -->
-        <div style="padding:0 16px 8px; font-size:18px; font-weight:700; color:var(--vip-color);">🔥 Recommended for You</div>
+        <div style="padding:0 16px 8px; font-size:18px; font-weight:800; color:var(--vip-color);">🔥 Recommended for You</div>
         <div id="recommendationsGrid"></div>
 
         <!-- ===== PROXY STORE ===== -->
-        <div style="padding:0 16px 8px; font-size:18px; font-weight:700; color:var(--primary);">🌐 Proxy Store</div>
+        <div style="padding:0 16px 8px; font-size:18px; font-weight:800; color:var(--primary);">🌐 Proxy Store</div>
         <div id="proxyPackages" class="proxy-grid"></div>
 
         <!-- ===== BOTTOM CART BAR ===== -->
@@ -2313,9 +2461,9 @@
                     <a href="https://t.me/Mitalica69" target="_blank" class="telegram" aria-label="Telegram"><i class="fab fa-telegram-plane"></i></a>
                 </div>
                 <div class="footer-links">
-                    <a href="#" onclick="showToast('Refund policy page coming soon', 'info')">Refund Policy</a>
-                    <a href="#" onclick="showToast('Privacy policy page coming soon', 'info')">Privacy Policy</a>
-                    <a href="#" onclick="showToast('Terms & Conditions page coming soon', 'info')">Terms & Conditions</a>
+                    <a href="refund.html">Refund Policy</a>
+                    <a href="privacy.html">Privacy Policy</a>
+                    <a href="terms.html">Terms &amp; Conditions</a>
                 </div>
                 <div class="footer-copyright">
                     &copy; 2026 <strong>ZI Store</strong> — All rights reserved.
@@ -2350,33 +2498,33 @@
         </div>
         <div style="display:flex; flex-direction:column; gap:12px;">
             <div style="display:flex; align-items:center; gap:12px; background:var(--card-bg); padding:12px; border-radius:var(--radius-md); border:1px solid var(--border);">
-                <div id="fullAvatar" style="width:48px; height:48px; border-radius:50%; background:var(--primary); display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:700; color:#fff; overflow:hidden;">U</div>
+                <div id="fullAvatar" style="width:48px; height:48px; border-radius:50%; background:var(--primary); display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:800; color:#fff; overflow:hidden;">U</div>
                 <div style="flex:1;">
-                    <div id="fullName" style="font-weight:700; font-size:16px;">Guest</div>
-                    <div id="fullEmail" style="font-size:12px; color:var(--text-secondary);">Not logged in</div>
+                    <div id="fullName" style="font-weight:800; font-size:16px;">Guest</div>
+                    <div id="fullEmail" style="font-size:12px; color:var(--text-secondary); font-weight:500;">Not logged in</div>
                 </div>
                 <div style="text-align:right;">
-                    <div style="font-size:12px; color:var(--text-secondary);">RP</div>
-                    <div id="fullRp" style="font-weight:700; color:var(--vip-color);">0</div>
+                    <div style="font-size:12px; color:var(--text-secondary); font-weight:500;">RP</div>
+                    <div id="fullRp" style="font-weight:800; color:var(--vip-color);">0</div>
                 </div>
             </div>
 
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
-                <button onclick="openProfileFull()" style="padding:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:6px;"><i class="fas fa-id-card"></i> Profile</button>
-                <button onclick="openHistoryFull()" style="padding:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:6px; position:relative;">
-                    <i class="fas fa-history"></i> Orders <span id="fullOrderBadge" style="display:none; background:var(--danger); color:#fff; font-size:9px; padding:0 6px; border-radius:10px;">0</span>
+                <button onclick="openProfileFull()" style="padding:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer; font-weight:700; display:flex; align-items:center; gap:6px;"><i class="fas fa-id-card"></i> Profile</button>
+                <button onclick="openHistoryFull()" style="padding:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer; font-weight:700; display:flex; align-items:center; gap:6px; position:relative;">
+                    <i class="fas fa-history"></i> Orders <span id="fullOrderBadge" style="display:none; background:var(--danger); color:#fff; font-size:9px; padding:0 6px; border-radius:10px; font-weight:700;">0</span>
                 </button>
-                <button onclick="openWishlistFull()" style="padding:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:6px;"><i class="fas fa-heart"></i> Favorites <span id="fullWishlistBadge" style="display:none; background:var(--danger); color:#fff; font-size:9px; padding:0 6px; border-radius:10px;">0</span></button>
-                <button onclick="openNotifications()" style="padding:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:6px; position:relative;"><i class="fas fa-bell"></i> Notifications <span id="fullNotifBadge" style="display:none; background:var(--danger); color:#fff; font-size:9px; padding:0 6px; border-radius:10px;">0</span></button>
-                <button onclick="openDownloads()" style="padding:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:6px;"><i class="fas fa-download"></i> Downloads</button>
-                <button onclick="openLicenceModal()" style="padding:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:6px; position:relative;"><i class="fas fa-key"></i> Licences <span id="licencesBadge" style="display:none; background:var(--success); color:#0a0a1a; font-size:9px; padding:0 6px; border-radius:10px;">0</span></button>
-                <button onclick="openReferralModal()" style="padding:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:6px;"><i class="fas fa-users"></i> Referrals</button>
-                <button onclick="openRequestsModal()" style="padding:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:6px;"><i class="fas fa-pen"></i> Requests</button>
-                <button id="adminMenuItem" onclick="openAdminPanel()" style="display:none; padding:10px; background:var(--vip-color); border:none; border-radius:var(--radius-sm); color:#0a0a1a; cursor:pointer; font-weight:700; display:flex; align-items:center; gap:6px; position:relative;"><i class="fas fa-shield-alt"></i> Admin <span id="adminMenuBadge" style="display:none; background:var(--danger); color:#fff; font-size:9px; padding:0 6px; border-radius:10px;">0</span></button>
-                <button onclick="logoutUser()" style="padding:10px; background:var(--danger); border:none; border-radius:var(--radius-sm); color:#fff; cursor:pointer; font-weight:600; display:flex; align-items:center; gap:6px;"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                <button onclick="openWishlistFull()" style="padding:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer; font-weight:700; display:flex; align-items:center; gap:6px;"><i class="fas fa-heart"></i> Favorites <span id="fullWishlistBadge" style="display:none; background:var(--danger); color:#fff; font-size:9px; padding:0 6px; border-radius:10px; font-weight:700;">0</span></button>
+                <button onclick="openNotifications()" style="padding:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer; font-weight:700; display:flex; align-items:center; gap:6px; position:relative;"><i class="fas fa-bell"></i> Notifications <span id="fullNotifBadge" style="display:none; background:var(--danger); color:#fff; font-size:9px; padding:0 6px; border-radius:10px; font-weight:700;">0</span></button>
+                <button onclick="openDownloads()" style="padding:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer; font-weight:700; display:flex; align-items:center; gap:6px;"><i class="fas fa-download"></i> Downloads</button>
+                <button onclick="openLicenceModal()" style="padding:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer; font-weight:700; display:flex; align-items:center; gap:6px; position:relative;"><i class="fas fa-key"></i> Licences <span id="licencesBadge" style="display:none; background:var(--success); color:#0a0a1a; font-size:9px; padding:0 6px; border-radius:10px; font-weight:700;">0</span></button>
+                <button onclick="openReferralModal()" style="padding:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer; font-weight:700; display:flex; align-items:center; gap:6px;"><i class="fas fa-users"></i> Referrals</button>
+                <button onclick="openRequestsModal()" style="padding:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer; font-weight:700; display:flex; align-items:center; gap:6px;"><i class="fas fa-pen"></i> Requests</button>
+                <button id="adminMenuItem" onclick="openAdminPanel()" style="display:none; padding:10px; background:var(--vip-color); border:none; border-radius:var(--radius-sm); color:#0a0a1a; cursor:pointer; font-weight:800; display:flex; align-items:center; gap:6px; position:relative;"><i class="fas fa-shield-alt"></i> Admin <span id="adminMenuBadge" style="display:none; background:var(--danger); color:#fff; font-size:9px; padding:0 6px; border-radius:10px; font-weight:700;">0</span></button>
+                <button onclick="logoutUser()" style="padding:10px; background:var(--danger); border:none; border-radius:var(--radius-sm); color:#fff; cursor:pointer; font-weight:700; display:flex; align-items:center; gap:6px;"><i class="fas fa-sign-out-alt"></i> Logout</button>
             </div>
 
-            <button onclick="closeUserMenuFull()" style="padding:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text-secondary); cursor:pointer;">Close</button>
+            <button onclick="closeUserMenuFull()" style="padding:10px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text-secondary); cursor:pointer; font-weight:600;">Close</button>
         </div>
     </div>
 
@@ -2411,10 +2559,10 @@
     <div class="fullscreen-modal" id="historyFull">
         <div class="modal-header">
             <h2><i class="fas fa-shopping-bag"></i> Order History</h2>
-            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-left:auto;">
                 <div style="display:flex; align-items:center; gap:4px; background:var(--bg); padding:4px 10px; border-radius:30px; border:1px solid var(--border);">
                     <i class="fas fa-coins" style="color:var(--text-secondary); opacity:0.4;"></i>
-                    <select id="historyCurrencyFilter" style="background:transparent; border:none; color:var(--text); font-family:var(--font); font-size:13px; padding:4px 0; outline:none; cursor:pointer;">
+                    <select id="historyCurrencyFilter" style="background:transparent; border:none; color:var(--text); font-family:var(--font); font-size:13px; padding:4px 0; outline:none; cursor:pointer; font-weight:500;">
                         <option value="all">All Currencies</option>
                         <option value="LTC">Litecoin</option>
                         <option value="BTC">Bitcoin</option>
@@ -2424,19 +2572,19 @@
                 </div>
                 <div style="display:flex; align-items:center; gap:4px; background:var(--bg); padding:4px 10px; border-radius:30px; border:1px solid var(--border);">
                     <i class="fas fa-circle-check" style="color:var(--text-secondary); opacity:0.4;"></i>
-                    <select id="historyStatusFilter" style="background:transparent; border:none; color:var(--text); font-family:var(--font); font-size:13px; padding:4px 0; outline:none; cursor:pointer;">
+                    <select id="historyStatusFilter" style="background:transparent; border:none; color:var(--text); font-family:var(--font); font-size:13px; padding:4px 0; outline:none; cursor:pointer; font-weight:500;">
                         <option value="all">All Status</option>
                         <option value="pending">Pending</option>
                         <option value="confirmed">Confirmed</option>
                         <option value="rejected">Rejected</option>
                     </select>
                 </div>
-                <button onclick="clearOrderHistory()" style="padding:4px 12px; border:1px solid var(--danger); border-radius:20px; background:transparent; color:var(--danger); cursor:pointer; font-size:12px;">Clear All</button>
+                <button onclick="clearOrderHistory()" style="padding:4px 12px; border:1px solid var(--danger); border-radius:20px; background:transparent; color:var(--danger); cursor:pointer; font-size:12px; font-weight:700;">Clear All</button>
                 <button class="close-btn" onclick="closeHistoryFull()" style="background:none; border:none; color:var(--text-secondary); font-size:24px; cursor:pointer; padding:0 4px;">&times;</button>
             </div>
         </div>
         <div id="historyFullContent" style="flex:1; overflow-y:auto; padding:8px 0;">
-            <div style="text-align:center; padding:30px; color:var(--text-secondary);">Loading orders...</div>
+            <div style="text-align:center; padding:30px; color:var(--text-secondary); font-weight:500;">Loading orders...</div>
         </div>
         <div id="historyDelayNote" class="payment-delay-note">
             <i class="fas fa-clock"></i> Payments are reviewed and sent within 24–48 hours
@@ -2447,9 +2595,9 @@
     <div class="fullscreen-modal" id="notificationsModal">
         <div class="modal-header">
             <h2><i class="fas fa-bell"></i> Notifications</h2>
-            <div style="display:flex; gap:6px;">
-                <button onclick="markAllNotificationsRead()" style="background:var(--primary); border:none; color:#fff; padding:4px 12px; border-radius:var(--radius-sm); cursor:pointer; font-size:12px;">Mark all read</button>
-                <button onclick="clearAllNotifications()" style="background:var(--danger); border:none; color:#fff; padding:4px 12px; border-radius:var(--radius-sm); cursor:pointer; font-size:12px;">Clear</button>
+            <div style="display:flex; gap:6px; margin-left:auto;">
+                <button onclick="markAllNotificationsRead()" style="background:var(--primary); border:none; color:#fff; padding:4px 12px; border-radius:var(--radius-sm); cursor:pointer; font-size:12px; font-weight:700;">Mark all read</button>
+                <button onclick="clearAllNotifications()" style="background:var(--danger); border:none; color:#fff; padding:4px 12px; border-radius:var(--radius-sm); cursor:pointer; font-size:12px; font-weight:700;">Clear</button>
                 <button class="close-btn" onclick="closeNotifications()">&times;</button>
             </div>
         </div>
@@ -2472,12 +2620,12 @@
             <button class="close-btn" onclick="closeLicenceModal()">&times;</button>
         </div>
         <div style="display:flex; flex-direction:column; gap:12px;">
-            <p style="color:var(--text-secondary);">Enter your licence code to activate a product.</p>
-            <input type="text" id="licenceInput" placeholder="Enter licence code..." style="padding:12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-size:16px; text-transform:uppercase; font-family:var(--font);" />
-            <button onclick="activateLicence()" style="padding:12px; border:none; border-radius:var(--radius-sm); background:var(--primary); color:#fff; font-weight:700; cursor:pointer;">Activate</button>
+            <p style="color:var(--text-secondary); font-weight:500;">Enter your licence code to activate a product.</p>
+            <input type="text" id="licenceInput" placeholder="Enter licence code..." style="padding:12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-size:16px; text-transform:uppercase; font-family:var(--font); font-weight:600;" />
+            <button onclick="activateLicence()" style="padding:12px; border:none; border-radius:var(--radius-sm); background:var(--primary); color:#fff; font-weight:800; cursor:pointer;">Activate</button>
             <div id="licenceResult"></div>
             <hr style="border-color:var(--border);" />
-            <div style="font-size:14px; font-weight:600;">Your Licences</div>
+            <div style="font-size:14px; font-weight:800;">Your Licences</div>
             <div id="userLicencesList"></div>
         </div>
     </div>
@@ -2486,8 +2634,8 @@
     <div class="fullscreen-modal" id="requestsModal">
         <div class="modal-header">
             <h2><i class="fas fa-pen"></i> My Requests</h2>
-            <div style="display:flex; gap:6px;">
-                <button onclick="openNewRequestModal()" style="background:var(--primary); border:none; color:#fff; padding:4px 12px; border-radius:var(--radius-sm); cursor:pointer;">+ New</button>
+            <div style="display:flex; gap:6px; margin-left:auto;">
+                <button onclick="openNewRequestModal()" style="background:var(--primary); border:none; color:#fff; padding:4px 12px; border-radius:var(--radius-sm); cursor:pointer; font-weight:700;">+ New</button>
                 <button class="close-btn" onclick="closeRequestsModal()">&times;</button>
             </div>
         </div>
@@ -2516,7 +2664,7 @@
                     <label for="reqBudget">Budget ($)</label>
                     <input type="text" id="reqBudget" placeholder="e.g., 50$" required />
                 </div>
-                <button type="submit" style="width:100%; padding:12px; border:none; border-radius:var(--radius-sm); background:var(--primary); color:#fff; font-weight:700; cursor:pointer;">Submit Request</button>
+                <button type="submit" style="width:100%; padding:12px; border:none; border-radius:var(--radius-sm); background:var(--primary); color:#fff; font-weight:800; cursor:pointer;">Submit Request</button>
             </form>
         </div>
     </div>
@@ -2529,18 +2677,18 @@
         </div>
         <div style="display:flex; flex-direction:column; gap:12px;">
             <div style="background:var(--card-bg); padding:16px; border-radius:var(--radius-md); border:1px solid var(--border); text-align:center;">
-                <div style="font-size:12px; color:var(--text-secondary);">Your Referral Code</div>
-                <div style="font-size:24px; font-weight:800; font-family:monospace; direction:ltr; letter-spacing:2px; color:var(--primary);" id="referralCodeDisplay2">Loading...</div>
-                <button onclick="copyReferralCode2()" style="margin-top:4px; background:var(--primary); border:none; color:#fff; padding:4px 16px; border-radius:var(--radius-sm); cursor:pointer;"><i class="fas fa-copy"></i> Copy</button>
+                <div style="font-size:12px; color:var(--text-secondary); font-weight:500;">Your Referral Code</div>
+                <div style="font-size:24px; font-weight:900; font-family:monospace; direction:ltr; letter-spacing:2px; color:var(--primary);" id="referralCodeDisplay2">Loading...</div>
+                <button onclick="copyReferralCode2()" style="margin-top:4px; background:var(--primary); border:none; color:#fff; padding:4px 16px; border-radius:var(--radius-sm); cursor:pointer; font-weight:700;"><i class="fas fa-copy"></i> Copy</button>
             </div>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
                 <div style="background:var(--bg-secondary); padding:12px; border-radius:var(--radius-sm); text-align:center; border:1px solid var(--border);">
-                    <div style="font-size:20px; font-weight:700; color:var(--primary);" id="referralCount2">0</div>
-                    <div style="font-size:12px; color:var(--text-secondary);">Referrals</div>
+                    <div style="font-size:20px; font-weight:800; color:var(--primary);" id="referralCount2">0</div>
+                    <div style="font-size:12px; color:var(--text-secondary); font-weight:500;">Referrals</div>
                 </div>
                 <div style="background:var(--bg-secondary); padding:12px; border-radius:var(--radius-sm); text-align:center; border:1px solid var(--border);">
-                    <div style="font-size:20px; font-weight:700; color:var(--vip-color);" id="referralRewards2">0.00 $</div>
-                    <div style="font-size:12px; color:var(--text-secondary);">Rewards</div>
+                    <div style="font-size:20px; font-weight:800; color:var(--vip-color);" id="referralRewards2">0.00 $</div>
+                    <div style="font-size:12px; color:var(--text-secondary); font-weight:500;">Rewards</div>
                 </div>
             </div>
             <div id="referralActivity" style="flex:1; overflow-y:auto;"></div>
@@ -2558,7 +2706,7 @@
 
             <!-- Step 1 -->
             <div id="paymentStep1">
-                <p style="font-size:14px; color:var(--text-secondary); margin-bottom:16px;">Select payment method</p>
+                <p style="font-size:14px; color:var(--text-secondary); margin-bottom:16px; font-weight:500;">Select payment method</p>
                 <div class="payment-options">
                     <div class="payment-option" id="optionLitecoin" onclick="selectPayment('litecoin')">
                         <i class="fab fa-bitcoin"></i>
@@ -2588,7 +2736,7 @@
 
                 <!-- Total Amount -->
                 <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
-                    <div style="display:flex; justify-content:space-between; font-size:16px; font-weight:600;">
+                    <div style="display:flex; justify-content:space-between; font-size:16px; font-weight:700;">
                         <span>Total Amount:</span>
                         <span id="payableTotal" style="color:var(--primary);">$0.00</span>
                     </div>
@@ -2600,34 +2748,34 @@
             <!-- Step 2 -->
             <div id="paymentStep2" style="display:none;">
                 <div id="paymentProductsList" style="margin-bottom:8px;"></div>
-                <div style="display:flex; justify-content:space-between; margin:4px 0; font-size:14px;">
+                <div style="display:flex; justify-content:space-between; margin:4px 0; font-size:14px; font-weight:500;">
                     <span style="color:var(--text-secondary);">Subtotal</span>
                     <span id="step2Subtotal">$0.00</span>
                 </div>
-                <div style="display:flex; justify-content:space-between; margin:4px 0; font-size:18px; font-weight:700;">
+                <div style="display:flex; justify-content:space-between; margin:4px 0; font-size:18px; font-weight:800;">
                     <span>Total</span>
                     <span id="step2Total">$0.00</span>
                 </div>
 
                 <!-- Wallet Info (LTC/USDT) -->
                 <div id="paymentWalletInfo" style="display:none; background:var(--bg-secondary); border-radius:var(--radius-md); padding:12px; border:1px solid var(--border); margin-top:8px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-weight:600;">
                         <span id="paymentMethodName">Litecoin</span>
                         <span id="cryptoNetwork">LTC</span>
                     </div>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
-                        <span style="font-size:12px; opacity:0.5;">Address</span>
-                        <span id="walletAddressDisplay" style="font-family:monospace; font-size:13px; direction:ltr; text-align:left; word-break:break-all;">ltc1qy6ksn0g4hm6hlh93fwekgz8x74vr6hvdmh6zz8</span>
+                        <span style="font-size:12px; opacity:0.5; font-weight:500;">Address</span>
+                        <span id="walletAddressDisplay" style="font-family:monospace; font-size:13px; direction:ltr; text-align:left; word-break:break-all; font-weight:600;">ltc1qy6ksn0g4hm6hlh93fwekgz8x74vr6hvdmh6zz8</span>
                         <button onclick="copyWalletAddress()" style="background:none; border:none; color:var(--primary); cursor:pointer;"><i class="fas fa-copy"></i></button>
                     </div>
-                    <div style="font-size:12px; color:var(--text-secondary); opacity:0.4; margin-top:4px;" id="exchangeRate">⏳ Loading prices...</div>
-                    <div style="font-size:13px; font-weight:600; color:var(--vip-color); margin-top:2px;" id="cryptoAmount">0.0000 LTC</div>
+                    <div style="font-size:12px; color:var(--text-secondary); opacity:0.4; margin-top:4px; font-weight:500;" id="exchangeRate">⏳ Loading prices...</div>
+                    <div style="font-size:13px; font-weight:700; color:var(--vip-color); margin-top:2px;" id="cryptoAmount">0.0000 LTC</div>
                 </div>
 
                 <!-- Tx Hash Input (LTC/USDT) -->
                 <div id="paymentTxInput" style="display:none; margin-top:8px;">
-                    <label style="font-size:13px; font-weight:600;">📋 Transaction Hash</label>
-                    <input type="text" id="transactionHashInput" placeholder="Paste transaction hash" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--card-bg); color:var(--text); font-size:14px; outline:none; font-family:var(--font);" />
+                    <label style="font-size:13px; font-weight:700;">📋 Transaction Hash</label>
+                    <input type="text" id="transactionHashInput" placeholder="Paste transaction hash" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--card-bg); color:var(--text); font-size:14px; outline:none; font-family:var(--font); font-weight:500;" />
                 </div>
 
                 <!-- Telegram Contact -->
@@ -2682,7 +2830,7 @@
                             <div class="bv-field">
                                 <label for="txHashInput">📋 Transaction ID:</label>
                                 <div class="bv-input-group">
-                                    <input type="text" id="txHashInput" placeholder="Example: 0x7a8b9c... or 443016893778911232" onpaste="handleTxPaste(event)" />
+                                    <input type="text" id="txHashInput" placeholder="Example: 0x7a8b9c... or 443016893778911232" onpaste="handleTxPaste(event)" style="font-weight:500;" />
                                     <button onclick="verifyTransaction()" class="bv-verify-btn"><i class="fas fa-search"></i> Verify</button>
                                 </div>
                                 <div class="bv-hint"><i class="fas fa-lightbulb"></i> You can paste the Transaction ID from the Binance app</div>
@@ -2697,7 +2845,7 @@
                                 </div>
                                 <div id="screenshotPreview" style="display:none; margin-top:8px;">
                                     <img id="screenshotImg" src="#" alt="Screenshot" style="max-width:100%; max-height:150px; border-radius:var(--radius-sm); border:1px solid var(--border);" />
-                                    <button onclick="removeScreenshot()" style="margin-top:4px; background:var(--danger); color:#fff; border:none; padding:4px 12px; border-radius:var(--radius-sm); cursor:pointer; font-size:12px;"><i class="fas fa-times"></i> Remove</button>
+                                    <button onclick="removeScreenshot()" style="margin-top:4px; background:var(--danger); color:#fff; border:none; padding:4px 12px; border-radius:var(--radius-sm); cursor:pointer; font-size:12px; font-weight:700;"><i class="fas fa-times"></i> Remove</button>
                                 </div>
                             </div>
 
@@ -2717,26 +2865,22 @@
                 <!-- Main Confirm Button -->
                 <button class="payment-btn" id="mainConfirmBtn" style="display:none; margin-top:12px;"><i class="fas fa-check"></i> Confirm Payment</button>
 
-                <button class="payment-btn" onclick="goToStep1()" style="background:transparent; color:var(--text-secondary); border:1px solid var(--border); margin-top:8px;">Back</button>
+                <button class="payment-btn" onclick="goToStep1()" style="background:transparent; color:var(--text-secondary); border:1px solid var(--border); margin-top:8px; font-weight:700;">Back</button>
             </div>
         </div>
     </div>
-
-    <!-- ============================================================ -->
-    <!-- ===== PREVIEW MODAL (محذوف) - تم استبداله بصفحة التفاصيل الكاملة ===== -->
-    <!-- ============================================================ -->
 
     <!-- ===== SHARE MODAL ===== -->
     <div class="modal" id="shareModal">
         <div class="modal-content" style="max-width:400px; text-align:center;">
             <span class="modal-close" onclick="closeShareModal()">&times;</span>
-            <h3 style="margin-bottom:8px;">Share</h3>
+            <h3 style="margin-bottom:8px; font-weight:800;">Share</h3>
             <div id="shareProductInfo"></div>
             <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:12px;">
-                <button onclick="shareToWhatsApp()" style="background:#25D366; border:none; color:#fff; padding:8px 16px; border-radius:30px; cursor:pointer; font-weight:600;"><i class="fab fa-whatsapp"></i> WhatsApp</button>
-                <button onclick="shareToTelegram()" style="background:#0088cc; border:none; color:#fff; padding:8px 16px; border-radius:30px; cursor:pointer; font-weight:600;"><i class="fab fa-telegram-plane"></i> Telegram</button>
-                <button onclick="shareToFacebook()" style="background:#1877f2; border:none; color:#fff; padding:8px 16px; border-radius:30px; cursor:pointer; font-weight:600;"><i class="fab fa-facebook"></i> Facebook</button>
-                <button onclick="copyShareLink()" style="background:var(--primary); border:none; color:#fff; padding:8px 16px; border-radius:30px; cursor:pointer; font-weight:600;"><i class="fas fa-copy"></i> Copy Link</button>
+                <button onclick="shareToWhatsApp()" style="background:#25D366; border:none; color:#fff; padding:8px 16px; border-radius:30px; cursor:pointer; font-weight:700;"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+                <button onclick="shareToTelegram()" style="background:#0088cc; border:none; color:#fff; padding:8px 16px; border-radius:30px; cursor:pointer; font-weight:700;"><i class="fab fa-telegram-plane"></i> Telegram</button>
+                <button onclick="shareToFacebook()" style="background:#1877f2; border:none; color:#fff; padding:8px 16px; border-radius:30px; cursor:pointer; font-weight:700;"><i class="fab fa-facebook"></i> Facebook</button>
+                <button onclick="copyShareLink()" style="background:var(--primary); border:none; color:#fff; padding:8px 16px; border-radius:30px; cursor:pointer; font-weight:700;"><i class="fas fa-copy"></i> Copy Link</button>
             </div>
         </div>
     </div>
@@ -2765,7 +2909,7 @@
                     <button type="button" id="googleLoginBtn" class="auth-btn google-btn" onclick="loginWithGoogle()" style="margin-top:8px;"><i class="fab fa-google"></i> Sign in with Google</button>
                     <div class="auth-switch">Don't have an account? <a onclick="showRegister()">Register</a></div>
                     <div style="text-align:center; margin-top:8px;">
-                        <a onclick="openForgotPassword()" style="color:var(--primary); cursor:pointer; font-size:13px;">Forgot password?</a>
+                        <a onclick="openForgotPassword()" style="color:var(--primary); cursor:pointer; font-size:13px; font-weight:700;">Forgot password?</a>
                     </div>
                 </form>
             </div>
@@ -2811,7 +2955,7 @@
                     </div>
                     <div class="form-group" style="display:flex; align-items:center; gap:6px;">
                         <input type="checkbox" id="termsCheck" required />
-                        <label style="font-size:13px; color:var(--text-secondary);">I agree to the <a style="color:var(--primary);">Terms & Conditions</a></label>
+                        <label style="font-size:13px; color:var(--text-secondary); font-weight:500;">I agree to the <a style="color:var(--primary);">Terms & Conditions</a></label>
                     </div>
                     <div class="form-group" id="referralField">
                         <label>Referral Code (optional)</label>
@@ -2830,8 +2974,8 @@
     <div class="modal" id="forgotPasswordModal">
         <div class="modal-content" style="max-width:400px;">
             <span class="modal-close" onclick="closeForgotPasswordModal()">&times;</span>
-            <h3 style="margin-bottom:8px;">Reset Password</h3>
-            <p style="font-size:14px; color:var(--text-secondary);">Enter your email and we'll send you a reset link.</p>
+            <h3 style="margin-bottom:8px; font-weight:800;">Reset Password</h3>
+            <p style="font-size:14px; color:var(--text-secondary); font-weight:500;">Enter your email and we'll send you a reset link.</p>
             <div class="form-group">
                 <label>Email</label>
                 <input type="email" id="forgotEmail" placeholder="your@email.com" required />
@@ -2869,56 +3013,56 @@
         <div class="tab-content active" id="tabDashboard">
             <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px;">
                 <div style="background:var(--card-bg); padding:14px; border-radius:var(--radius-sm); border:1px solid var(--border); text-align:center;">
-                    <div style="font-size:24px; font-weight:700; color:var(--primary);" id="dashboardTotalOrders">0</div>
-                    <div style="font-size:12px; color:var(--text-secondary);">Total Orders</div>
+                    <div style="font-size:24px; font-weight:800; color:var(--primary);" id="dashboardTotalOrders">0</div>
+                    <div style="font-size:12px; color:var(--text-secondary); font-weight:500;">Total Orders</div>
                 </div>
                 <div style="background:var(--card-bg); padding:14px; border-radius:var(--radius-sm); border:1px solid var(--border); text-align:center;">
-                    <div style="font-size:24px; font-weight:700; color:var(--vip-color);" id="dashboardTotalRevenue">$0</div>
-                    <div style="font-size:12px; color:var(--text-secondary);">Revenue</div>
+                    <div style="font-size:24px; font-weight:800; color:var(--vip-color);" id="dashboardTotalRevenue">$0</div>
+                    <div style="font-size:12px; color:var(--text-secondary); font-weight:500;">Revenue</div>
                 </div>
                 <div style="background:var(--card-bg); padding:14px; border-radius:var(--radius-sm); border:1px solid var(--border); text-align:center;">
-                    <div style="font-size:24px; font-weight:700; color:var(--success);" id="dashboardNetRevenue">$0</div>
-                    <div style="font-size:12px; color:var(--text-secondary);">Net (10%)</div>
+                    <div style="font-size:24px; font-weight:800; color:var(--success);" id="dashboardNetRevenue">$0</div>
+                    <div style="font-size:12px; color:var(--text-secondary); font-weight:500;">Net (10%)</div>
                 </div>
             </div>
-            <button onclick="refreshDashboardStats()" style="margin-top:10px; padding:6px 16px; background:var(--primary); border:none; border-radius:var(--radius-sm); color:#fff; cursor:pointer;">Refresh</button>
+            <button onclick="refreshDashboardStats()" style="margin-top:10px; padding:6px 16px; background:var(--primary); border:none; border-radius:var(--radius-sm); color:#fff; cursor:pointer; font-weight:700;">Refresh</button>
         </div>
 
         <!-- Orders -->
         <div class="tab-content" id="tabOrders">
             <div id="adminOrderStats" style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:10px;">
                 <div style="background:var(--bg-secondary); padding:8px; border-radius:var(--radius-sm); text-align:center; border:1px solid var(--border);">
-                    <div style="font-size:18px; font-weight:700; color:var(--primary);" id="adminTotalOrders">0</div>
-                    <div style="font-size:11px; color:var(--text-secondary);">Total</div>
+                    <div style="font-size:18px; font-weight:800; color:var(--primary);" id="adminTotalOrders">0</div>
+                    <div style="font-size:11px; color:var(--text-secondary); font-weight:500;">Total</div>
                 </div>
                 <div style="background:var(--bg-secondary); padding:8px; border-radius:var(--radius-sm); text-align:center; border:1px solid var(--border);">
-                    <div style="font-size:18px; font-weight:700; color:var(--pending-color);" id="adminPendingOrders">0</div>
-                    <div style="font-size:11px; color:var(--text-secondary);">Pending</div>
+                    <div style="font-size:18px; font-weight:800; color:var(--pending-color);" id="adminPendingOrders">0</div>
+                    <div style="font-size:11px; color:var(--text-secondary); font-weight:500;">Pending</div>
                 </div>
                 <div style="background:var(--bg-secondary); padding:8px; border-radius:var(--radius-sm); text-align:center; border:1px solid var(--border);">
-                    <div style="font-size:18px; font-weight:700; color:var(--success);" id="adminConfirmedOrders">0</div>
-                    <div style="font-size:11px; color:var(--text-secondary);">Confirmed</div>
+                    <div style="font-size:18px; font-weight:800; color:var(--success);" id="adminConfirmedOrders">0</div>
+                    <div style="font-size:11px; color:var(--text-secondary); font-weight:500;">Confirmed</div>
                 </div>
                 <div style="background:var(--bg-secondary); padding:8px; border-radius:var(--radius-sm); text-align:center; border:1px solid var(--border);">
-                    <div style="font-size:18px; font-weight:700; color:var(--danger);" id="adminRejectedOrders">0</div>
-                    <div style="font-size:11px; color:var(--text-secondary);">Rejected</div>
+                    <div style="font-size:18px; font-weight:800; color:var(--danger);" id="adminRejectedOrders">0</div>
+                    <div style="font-size:11px; color:var(--text-secondary); font-weight:500;">Rejected</div>
                 </div>
             </div>
 
             <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;">
-                <input type="text" id="adminSearchInput" placeholder="🔍 Search by order ID, user..." onkeyup="searchAdminOrders()" style="flex:1; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font);" />
-                <button onclick="searchAdminOrders()" style="padding:8px 16px; background:var(--primary); border:none; border-radius:var(--radius-sm); color:#fff; cursor:pointer;">Search</button>
-                <button onclick="clearAdminSearch()" style="padding:8px 16px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer;">Clear</button>
-                <button onclick="refreshAdminOrders()" style="padding:8px 16px; background:var(--success); border:none; border-radius:var(--radius-sm); color:#0a0a1a; cursor:pointer;">🔄</button>
-                <button onclick="exportOrders()" style="padding:8px 16px; background:var(--vip-color); border:none; border-radius:var(--radius-sm); color:#0a0a1a; cursor:pointer;">📥 Export</button>
+                <input type="text" id="adminSearchInput" placeholder="🔍 Search by order ID, user..." onkeyup="searchAdminOrders()" style="flex:1; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" />
+                <button onclick="searchAdminOrders()" style="padding:8px 16px; background:var(--primary); border:none; border-radius:var(--radius-sm); color:#fff; cursor:pointer; font-weight:700;">Search</button>
+                <button onclick="clearAdminSearch()" style="padding:8px 16px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer; font-weight:700;">Clear</button>
+                <button onclick="refreshAdminOrders()" style="padding:8px 16px; background:var(--success); border:none; border-radius:var(--radius-sm); color:#0a0a1a; cursor:pointer; font-weight:700;">🔄</button>
+                <button onclick="exportOrders()" style="padding:8px 16px; background:var(--vip-color); border:none; border-radius:var(--radius-sm); color:#0a0a1a; cursor:pointer; font-weight:700;">📥 Export</button>
             </div>
             <div style="overflow-x:auto;">
                 <table style="width:100%; border-collapse:collapse; font-size:13px;">
                     <thead style="background:var(--bg-secondary); border-bottom:2px solid var(--border);">
-                        <tr><th>Order</th><th>User</th><th>Items</th><th>Total</th><th>Date</th><th>Status</th><th>Actions</th></tr>
+                        <tr><th style="font-weight:700;">Order</th><th style="font-weight:700;">User</th><th style="font-weight:700;">Items</th><th style="font-weight:700;">Total</th><th style="font-weight:700;">Date</th><th style="font-weight:700;">Status</th><th style="font-weight:700;">Actions</th></tr>
                     </thead>
                     <tbody id="adminOrdersBody">
-                        <tr><td colspan="7" style="text-align:center; padding:20px; color:var(--text-secondary);">Loading...</td></tr>
+                        <tr><td colspan="7" style="text-align:center; padding:20px; color:var(--text-secondary); font-weight:500;">Loading...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -2933,10 +3077,10 @@
         <!-- Users -->
         <div class="tab-content" id="tabUsers">
             <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;">
-                <input type="text" id="adminUserSearchInput" placeholder="🔍 Search users..." onkeyup="searchAdminUsers()" style="flex:1; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font);" />
-                <button onclick="searchAdminUsers()" style="padding:8px 16px; background:var(--primary); border:none; border-radius:var(--radius-sm); color:#fff; cursor:pointer;">Search</button>
-                <button onclick="clearAdminUserSearch()" style="padding:8px 16px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer;">Clear</button>
-                <button onclick="refreshAdminUsers()" style="padding:8px 16px; background:var(--success); border:none; border-radius:var(--radius-sm); color:#0a0a1a; cursor:pointer;">🔄</button>
+                <input type="text" id="adminUserSearchInput" placeholder="🔍 Search users..." onkeyup="searchAdminUsers()" style="flex:1; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" />
+                <button onclick="searchAdminUsers()" style="padding:8px 16px; background:var(--primary); border:none; border-radius:var(--radius-sm); color:#fff; cursor:pointer; font-weight:700;">Search</button>
+                <button onclick="clearAdminUserSearch()" style="padding:8px 16px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer; font-weight:700;">Clear</button>
+                <button onclick="refreshAdminUsers()" style="padding:8px 16px; background:var(--success); border:none; border-radius:var(--radius-sm); color:#0a0a1a; cursor:pointer; font-weight:700;">🔄</button>
             </div>
             <div id="adminUsersContainer"></div>
         </div>
@@ -2955,31 +3099,31 @@
 
         <!-- Stats -->
         <div class="tab-content" id="tabStats">
-            <button onclick="refreshAdvancedStats()" style="margin-bottom:10px; padding:6px 16px; background:var(--primary); border:none; border-radius:var(--radius-sm); color:#fff; cursor:pointer;">Refresh</button>
+            <button onclick="refreshAdvancedStats()" style="margin-bottom:10px; padding:6px 16px; background:var(--primary); border:none; border-radius:var(--radius-sm); color:#fff; cursor:pointer; font-weight:700;">Refresh</button>
             <div id="advancedStatsContainer"></div>
         </div>
 
         <!-- Logs -->
         <div class="tab-content" id="tabLogs">
-            <button onclick="loadAuditLogs()" style="margin-bottom:10px; padding:6px 16px; background:var(--primary); border:none; border-radius:var(--radius-sm); color:#fff; cursor:pointer;">Refresh</button>
+            <button onclick="loadAuditLogs()" style="margin-bottom:10px; padding:6px 16px; background:var(--primary); border:none; border-radius:var(--radius-sm); color:#fff; cursor:pointer; font-weight:700;">Refresh</button>
             <div id="auditLogsContainer"></div>
         </div>
 
         <!-- Slider -->
         <div class="tab-content" id="tabSlider">
             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
-                <h3 style="font-size:16px; font-weight:700; margin:0;"><i class="fas fa-images"></i> Slider Settings</h3>
+                <h3 style="font-size:16px; font-weight:800; margin:0;"><i class="fas fa-images"></i> Slider Settings</h3>
                 <button class="add-btn" onclick="openAddSlideModal()"><i class="fas fa-plus"></i> Add Slide</button>
             </div>
             <div style="margin-bottom:12px;">
-                <label style="font-size:13px; font-weight:600; color:var(--text-secondary); opacity:0.6; display:block; margin-bottom:4px;">Rotation Interval (seconds)</label>
+                <label style="font-size:13px; font-weight:700; color:var(--text-secondary); opacity:0.6; display:block; margin-bottom:4px;">Rotation Interval (seconds)</label>
                 <div style="display:flex; gap:8px; align-items:center;">
-                    <input type="number" id="sliderIntervalInput" value="3" min="1" max="60" style="width:100px; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-size:14px;" />
+                    <input type="number" id="sliderIntervalInput" value="3" min="1" max="60" style="width:100px; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-size:14px; font-weight:500;" />
                     <button class="admin-submit-btn" onclick="saveSliderInterval()" style="padding:8px 16px; font-size:13px;"><i class="fas fa-save"></i> Save</button>
                 </div>
             </div>
             <div id="sliderSlidesList">
-                <div style="text-align:center; padding:20px; color:var(--text-secondary); opacity:0.5;">No slides yet. Click "Add Slide" to get started.</div>
+                <div style="text-align:center; padding:20px; color:var(--text-secondary); opacity:0.5; font-weight:500;">No slides yet. Click "Add Slide" to get started.</div>
             </div>
         </div>
 
@@ -2990,28 +3134,28 @@
                 <button class="add-btn" onclick="refreshLicences()" style="background:var(--card-bg);"><i class="fas fa-sync"></i> Refresh</button>
             </div>
             <div class="admin-search-bar" style="display:flex; gap:6px; margin-bottom:8px;">
-                <input type="text" id="adminLicenceSearch" placeholder="🔍 Search by code, user, product..." onkeyup="searchLicences()" style="flex:1; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font);" />
-                <button class="btn-search" onclick="searchLicences()" style="padding:8px 16px; background:var(--primary); border:none; border-radius:var(--radius-sm); color:#fff; cursor:pointer;"><i class="fas fa-search"></i></button>
-                <button class="btn-clear" onclick="clearLicenceSearch()" style="padding:8px 16px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer;"><i class="fas fa-times"></i></button>
+                <input type="text" id="adminLicenceSearch" placeholder="🔍 Search by code, user, product..." onkeyup="searchLicences()" style="flex:1; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" />
+                <button class="btn-search" onclick="searchLicences()" style="padding:8px 16px; background:var(--primary); border:none; border-radius:var(--radius-sm); color:#fff; cursor:pointer; font-weight:700;"><i class="fas fa-search"></i></button>
+                <button class="btn-clear" onclick="clearLicenceSearch()" style="padding:8px 16px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); cursor:pointer; font-weight:700;"><i class="fas fa-times"></i></button>
             </div>
             <div id="adminLicencesList">
-                <div style="text-align:center; padding:30px; color:var(--text-secondary);"><i class="fas fa-info-circle"></i> Loading licences...</div>
+                <div style="text-align:center; padding:30px; color:var(--text-secondary); font-weight:500;"><i class="fas fa-info-circle"></i> Loading licences...</div>
             </div>
         </div>
 
         <!-- Marquee -->
         <div class="tab-content" id="tabMarquee">
-            <h3 style="font-size:16px; font-weight:700; margin-bottom:12px;"><i class="fas fa-scroll"></i> Marquee Settings</h3>
+            <h3 style="font-size:16px; font-weight:800; margin-bottom:12px;"><i class="fas fa-scroll"></i> Marquee Settings</h3>
             <div id="marqueeSettingsContainer">
                 <div class="admin-form-group">
                     <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
                         <input type="checkbox" id="marqueeEnabled" checked />
-                        <span style="font-weight:600;">Enable Marquee</span>
+                        <span style="font-weight:700;">Enable Marquee</span>
                     </label>
                 </div>
                 <div class="admin-form-group">
                     <label for="marqueeText">Marquee Text (separate items with | )</label>
-                    <textarea id="marqueeText" rows="3" placeholder="🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support" style="width:100%; padding:10px 14px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-size:14px; outline:none; font-family:var(--font);">🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support</textarea>
+                    <textarea id="marqueeText" rows="3" placeholder="🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support" style="width:100%; padding:10px 14px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-size:14px; outline:none; font-family:var(--font); font-weight:500;">🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support</textarea>
                 </div>
                 <button class="admin-submit-btn" onclick="saveMarqueeSettings()" style="margin-top:8px;"><i class="fas fa-save"></i> Save Settings</button>
             </div>
@@ -3019,40 +3163,40 @@
 
         <!-- Payments -->
         <div class="tab-content" id="tabPayments">
-            <h3 style="margin-bottom:8px;">All Payments</h3>
+            <h3 style="margin-bottom:8px; font-weight:800;">All Payments</h3>
             <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:8px;">
                 <div style="background:var(--bg-secondary); padding:6px; border-radius:var(--radius-sm); text-align:center;">
-                    <span style="font-weight:700; color:var(--primary);" id="adminPaymentTotal">0</span> 
-                    <span style="font-size:11px; color:var(--text-secondary);">Total</span>
+                    <span style="font-weight:800; color:var(--primary);" id="adminPaymentTotal">0</span> 
+                    <span style="font-size:11px; color:var(--text-secondary); font-weight:500;">Total</span>
                 </div>
                 <div style="background:var(--bg-secondary); padding:6px; border-radius:var(--radius-sm); text-align:center;">
-                    <span style="font-weight:700; color:var(--pending-color);" id="adminPaymentPending">0</span> 
-                    <span style="font-size:11px; color:var(--text-secondary);">Pending</span>
+                    <span style="font-weight:800; color:var(--pending-color);" id="adminPaymentPending">0</span> 
+                    <span style="font-size:11px; color:var(--text-secondary); font-weight:500;">Pending</span>
                 </div>
                 <div style="background:var(--bg-secondary); padding:6px; border-radius:var(--radius-sm); text-align:center;">
-                    <span style="font-weight:700; color:var(--success);" id="adminPaymentCompleted">0</span> 
-                    <span style="font-size:11px; color:var(--text-secondary);">Completed</span>
+                    <span style="font-weight:800; color:var(--success);" id="adminPaymentCompleted">0</span> 
+                    <span style="font-size:11px; color:var(--text-secondary); font-weight:500;">Completed</span>
                 </div>
                 <div style="background:var(--bg-secondary); padding:6px; border-radius:var(--radius-sm); text-align:center;">
-                    <span style="font-weight:700; color:var(--danger);" id="adminPaymentRejected">0</span> 
-                    <span style="font-size:11px; color:var(--text-secondary);">Rejected</span>
+                    <span style="font-weight:800; color:var(--danger);" id="adminPaymentRejected">0</span> 
+                    <span style="font-size:11px; color:var(--text-secondary); font-weight:500;">Rejected</span>
                 </div>
             </div>
             <div style="overflow-x:auto;">
                 <table style="width:100%; border-collapse:collapse; font-size:13px;">
                     <thead style="background:var(--bg-secondary); border-bottom:2px solid var(--border);">
                         <tr>
-                            <th>Order #</th>
-                            <th>User</th>
-                            <th>Amount</th>
-                            <th>Currency</th>
-                            <th>Date</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <th style="font-weight:700;">Order #</th>
+                            <th style="font-weight:700;">User</th>
+                            <th style="font-weight:700;">Amount</th>
+                            <th style="font-weight:700;">Currency</th>
+                            <th style="font-weight:700;">Date</th>
+                            <th style="font-weight:700;">Status</th>
+                            <th style="font-weight:700;">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="adminPaymentsBody">
-                        <tr><td colspan="7" style="text-align:center; padding:20px; color:var(--text-secondary);">Loading...</td></tr>
+                        <tr><td colspan="7" style="text-align:center; padding:20px; color:var(--text-secondary); font-weight:500;">Loading...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -3065,7 +3209,7 @@
     <div class="modal" id="createDownloadModal">
         <div class="modal-content" style="max-width:500px;">
             <span class="modal-close" onclick="closeCreateDownloadModal()">&times;</span>
-            <h3><i class="fas fa-plus-circle"></i> Add Download</h3>
+            <h3 style="font-weight:800;"><i class="fas fa-plus-circle"></i> Add Download</h3>
             <form id="createDownloadForm" onsubmit="createDownload(event)">
                 <div class="admin-form-group">
                     <label>Title</label>
@@ -3098,7 +3242,7 @@
     <div class="modal" id="createNotificationModal">
         <div class="modal-content" style="max-width:500px;">
             <span class="modal-close" onclick="closeCreateNotificationModal()">&times;</span>
-            <h3><i class="fas fa-bell"></i> Send Notification</h3>
+            <h3 style="font-weight:800;"><i class="fas fa-bell"></i> Send Notification</h3>
             <form id="createNotificationForm" onsubmit="createNotification(event)">
                 <div class="admin-form-group">
                     <label>Title</label>
@@ -3119,7 +3263,7 @@
     <div class="modal" id="productModal">
         <div class="modal-content" style="max-width:600px; max-height:90vh; overflow-y:auto;">
             <span class="modal-close" onclick="closeProductModal()">&times;</span>
-            <h3 id="productFormTitle">➕ Add Product</h3>
+            <h3 id="productFormTitle" style="font-weight:800;">➕ Add Product</h3>
             <form id="productForm" onsubmit="saveProduct(event)">
                 <input type="hidden" id="productIdField" />
                 <div class="admin-form-group">
@@ -3192,9 +3336,9 @@
                     <input type="hidden" id="productType" value="standard" />
                 </div>
                 <div id="quantityOptionsContainer" style="display:none;">
-                    <label>Quantity Options</label>
+                    <label style="font-weight:700;">Quantity Options</label>
                     <div id="quantityOptionsList"></div>
-                    <button type="button" onclick="addQuantityOption()" style="margin-top:4px; padding:4px 12px; background:var(--primary); border:none; border-radius:var(--radius-sm); color:#fff; cursor:pointer;">+ Add Option</button>
+                    <button type="button" onclick="addQuantityOption()" style="margin-top:4px; padding:4px 12px; background:var(--primary); border:none; border-radius:var(--radius-sm); color:#fff; cursor:pointer; font-weight:700;">+ Add Option</button>
                 </div>
                 <div class="admin-form-group">
                     <label>Mini Badges (click to toggle)</label>
@@ -3211,18 +3355,18 @@
                 <div class="admin-form-group">
                     <label style="display:flex; align-items:center; gap:8px;">
                         <input type="checkbox" id="vipEnabled" onchange="document.getElementById('vipPricingFields').style.display=this.checked?'block':'none'" />
-                        <span>Enable VIP Pricing</span>
+                        <span style="font-weight:700;">Enable VIP Pricing</span>
                     </label>
                 </div>
                 <div id="vipPricingFields" style="display:none;">
-                    <div class="admin-form-group"><label>1 Month Price</label><input type="number" id="vipPrice1m" step="0.01" min="0" /></div>
-                    <div class="admin-form-group"><label>1 Month Original</label><input type="number" id="vipOriginalPrice1m" step="0.01" min="0" /></div>
-                    <div class="admin-form-group"><label>3 Months Price</label><input type="number" id="vipPrice3m" step="0.01" min="0" /></div>
-                    <div class="admin-form-group"><label>3 Months Original</label><input type="number" id="vipOriginalPrice3m" step="0.01" min="0" /></div>
-                    <div class="admin-form-group"><label>1 Year Price</label><input type="number" id="vipPrice1y" step="0.01" min="0" /></div>
-                    <div class="admin-form-group"><label>1 Year Original</label><input type="number" id="vipOriginalPrice1y" step="0.01" min="0" /></div>
-                    <div class="admin-form-group"><label>Lifetime Price</label><input type="number" id="vipPriceLifetime" step="0.01" min="0" /></div>
-                    <div class="admin-form-group"><label>Lifetime Original</label><input type="number" id="vipOriginalPriceLifetime" step="0.01" min="0" /></div>
+                    <div class="admin-form-group"><label style="font-weight:700;">1 Month Price</label><input type="number" id="vipPrice1m" step="0.01" min="0" /></div>
+                    <div class="admin-form-group"><label style="font-weight:700;">1 Month Original</label><input type="number" id="vipOriginalPrice1m" step="0.01" min="0" /></div>
+                    <div class="admin-form-group"><label style="font-weight:700;">3 Months Price</label><input type="number" id="vipPrice3m" step="0.01" min="0" /></div>
+                    <div class="admin-form-group"><label style="font-weight:700;">3 Months Original</label><input type="number" id="vipOriginalPrice3m" step="0.01" min="0" /></div>
+                    <div class="admin-form-group"><label style="font-weight:700;">1 Year Price</label><input type="number" id="vipPrice1y" step="0.01" min="0" /></div>
+                    <div class="admin-form-group"><label style="font-weight:700;">1 Year Original</label><input type="number" id="vipOriginalPrice1y" step="0.01" min="0" /></div>
+                    <div class="admin-form-group"><label style="font-weight:700;">Lifetime Price</label><input type="number" id="vipPriceLifetime" step="0.01" min="0" /></div>
+                    <div class="admin-form-group"><label style="font-weight:700;">Lifetime Original</label><input type="number" id="vipOriginalPriceLifetime" step="0.01" min="0" /></div>
                 </div>
                 <button type="submit" class="admin-submit-btn" style="width:100%;">Save Product</button>
             </form>
@@ -3235,7 +3379,7 @@
     <div class="modal" id="addSlideModal">
         <div class="modal-content" style="max-width:500px;">
             <span class="modal-close" onclick="closeAddSlideModal()">&times;</span>
-            <h3 class="modal-title">➕ Add New Slide</h3>
+            <h3 class="modal-title" style="font-weight:800;">➕ Add New Slide</h3>
             <form id="addSlideForm">
                 <div class="admin-form-group">
                     <label>Image</label>
@@ -3285,7 +3429,7 @@
     <div class="modal" id="createLicenceModal">
         <div class="modal-content" style="max-width:450px;">
             <span class="modal-close" onclick="closeCreateLicenceModal()">&times;</span>
-            <h3><i class="fas fa-key"></i> Create Licence</h3>
+            <h3 style="font-weight:800;"><i class="fas fa-key"></i> Create Licence</h3>
             <div class="admin-form-group">
                 <label>Product Name</label>
                 <input type="text" id="newLicenceProduct" placeholder="e.g., VIP Script" />
@@ -3308,7 +3452,7 @@
     <div class="modal" id="editLicenceModal">
         <div class="modal-content" style="max-width:450px;">
             <span class="modal-close" onclick="document.getElementById('editLicenceModal').classList.remove('open')">&times;</span>
-            <h3><i class="fas fa-edit"></i> Edit Licence</h3>
+            <h3 style="font-weight:800;"><i class="fas fa-edit"></i> Edit Licence</h3>
             <input type="hidden" id="editLicenceId" />
             <div class="admin-form-group">
                 <label>Code</label>
@@ -3342,7 +3486,7 @@
     <div class="modal" id="userDetailsModal">
         <div class="modal-content" style="max-width:480px;">
             <span class="modal-close" onclick="closeUserDetailsModal()">&times;</span>
-            <h3><i class="fas fa-user"></i> User Details</h3>
+            <h3 style="font-weight:800;"><i class="fas fa-user"></i> User Details</h3>
             <div id="userDetailsContent"></div>
         </div>
     </div>
@@ -3351,26 +3495,47 @@
     <!-- ===== COOKIE CONSENT ===== -->
     <!-- ============================================================ -->
     <div id="cookieConsent">
-        <div class="cookie-text">🍪 We use cookies to improve your experience. By using our site, you accept our <a style="color:var(--primary);">Privacy Policy</a>.</div>
+        <div class="cookie-text">🍪 We use cookies to ensure the basic functionality of our site and to improve your browsing experience. You can choose to enable or disable certain categories of cookies at any time. For more information about how we use cookies and handle your data, please review our <a style="color:var(--primary);" href="privacy.html">Privacy Policy</a>.</div>
         <div class="cookie-actions">
-            <button class="accept" onclick="acceptCookies()">Accept</button>
-            <button class="reject" onclick="rejectCookies()">Reject</button>
+            <button class="accept" onclick="acceptCookies()">Accept All</button>
+            <button class="reject" onclick="rejectCookies()">Reject All</button>
             <button class="settings" onclick="openCookieSettings()">Settings</button>
         </div>
     </div>
 
     <!-- ============================================================ -->
-    <!-- ===== COOKIE SETTINGS MODAL ===== -->
+    <!-- ===== COOKIE SETTINGS MODAL (English) ===== -->
     <!-- ============================================================ -->
     <div class="modal" id="cookieSettingsModal">
-        <div class="modal-content" style="max-width:400px;">
+        <div class="modal-content" style="max-width:450px;">
             <span class="modal-close" onclick="closeCookieSettings()">&times;</span>
-            <h3>Cookie Settings</h3>
-            <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border);">
-                <span>Analytics</span>
+            <h3 style="font-weight:800; margin-bottom:4px;">Cookie Preferences</h3>
+            <p style="font-size:13px; color:var(--text-secondary); margin-bottom:16px; font-weight:500;">Your Privacy Options</p>
+
+            <div class="setting-item">
+                <div>
+                    <div class="setting-label">Strictly Necessary</div>
+                    <div class="setting-desc">These cookies are essential for the website to function properly and cannot be disabled in our systems. They are usually set in response to actions you take, such as logging in or filling out forms.</div>
+                </div>
+                <input type="checkbox" checked disabled style="opacity:0.6;" />
+            </div>
+
+            <div class="setting-item">
+                <div>
+                    <div class="setting-label">Performance & Analytics</div>
+                    <div class="setting-desc">These cookies help us understand how visitors interact with our website by collecting anonymous usage data. We use tools like analytics to analyze trends and improve performance. The data collected is anonymized and used only to improve functionality and your overall experience.</div>
+                </div>
                 <input type="checkbox" id="analyticsToggle" checked />
             </div>
-            <button class="admin-submit-btn" style="width:100%; margin-top:12px;" onclick="saveCookieSettings()">Save Settings</button>
+
+            <div class="setting-item" style="border-bottom:none;">
+                <div>
+                    <div class="setting-label">More Information</div>
+                    <div class="setting-desc">For any questions about our cookie policy or your privacy options, please <a href="#" onclick="openSupportModal(); return false;" style="color:var(--primary); text-decoration:underline;">contact us</a>.</div>
+                </div>
+            </div>
+
+            <button class="admin-submit-btn" style="width:100%; margin-top:16px;" onclick="saveCookieSettings()">Save Preferences</button>
         </div>
     </div>
 
@@ -3380,13 +3545,13 @@
     <div class="modal" id="supportModal">
         <div class="modal-content" style="max-width:400px; text-align:center;">
             <span class="modal-close" onclick="closeSupportModal()">&times;</span>
-            <h3><i class="fas fa-headset"></i> Support</h3>
-            <p style="color:var(--text-secondary);">How can we help you?</p>
+            <h3 style="font-weight:800;"><i class="fas fa-headset"></i> Support</h3>
+            <p style="color:var(--text-secondary); font-weight:500;">How can we help you?</p>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px;">
-                <button onclick="openWhatsAppSupport()" style="padding:12px; background:#25D366; border:none; border-radius:var(--radius-sm); color:#fff; cursor:pointer; font-weight:600;"><i class="fab fa-whatsapp"></i> WhatsApp</button>
-                <button onclick="openTelegramSupport()" style="padding:12px; background:#0088cc; border:none; border-radius:var(--radius-sm); color:#fff; cursor:pointer; font-weight:600;"><i class="fab fa-telegram-plane"></i> Telegram</button>
-                <button onclick="openEmailSupport()" style="padding:12px; background:var(--primary); border:none; border-radius:var(--radius-sm); color:#fff; cursor:pointer; font-weight:600;"><i class="fas fa-envelope"></i> Email</button>
-                <button onclick="openPhoneSupport()" style="padding:12px; background:var(--vip-color); border:none; border-radius:var(--radius-sm); color:#0a0a1a; cursor:pointer; font-weight:600;"><i class="fas fa-phone"></i> Call</button>
+                <button onclick="openWhatsAppSupport()" style="padding:12px; background:#25D366; border:none; border-radius:var(--radius-sm); color:#fff; cursor:pointer; font-weight:700;"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+                <button onclick="openTelegramSupport()" style="padding:12px; background:#0088cc; border:none; border-radius:var(--radius-sm); color:#fff; cursor:pointer; font-weight:700;"><i class="fab fa-telegram-plane"></i> Telegram</button>
+                <button onclick="openEmailSupport()" style="padding:12px; background:var(--primary); border:none; border-radius:var(--radius-sm); color:#fff; cursor:pointer; font-weight:700;"><i class="fas fa-envelope"></i> Email</button>
+                <button onclick="openPhoneSupport()" style="padding:12px; background:var(--vip-color); border:none; border-radius:var(--radius-sm); color:#0a0a1a; cursor:pointer; font-weight:700;"><i class="fas fa-phone"></i> Call</button>
             </div>
         </div>
     </div>
