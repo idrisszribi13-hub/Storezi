@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - Full Version with ALL Fixes
+// SCRIPT.JS - ZI Store - Full Version with PRODUCT DETAILS FULL PAGE
 // ============================================================
 
 // ============================================================
@@ -91,11 +91,11 @@ isSupported().then(supported => {
 const BOT_USERNAME = 'Zistore_Notif_bot';
 const RP_TO_DOLLAR = 0.1;
 
-// Cloudinary settings (keep only cloud name, preset is used for uploads)
+// Cloudinary settings
 const CLOUDINARY_CLOUD_NAME = 'y14bgb5s';
 const CLOUDINARY_UPLOAD_PRESET = 'zi_store_uploads';
 
-// Disable proxy creation temporarily (set to false when ready)
+// Disable proxy creation temporarily
 const DISABLE_PROXY = true;
 
 // Admin email
@@ -1127,7 +1127,7 @@ window.sendResetLinkInline = async function() { if (!currentUser) return; try { 
 window.changePasswordInline = async function() { if (!currentUser) return; const currentPwd = document.getElementById('currentPasswordInline').value; const newPwd = document.getElementById('newPasswordInline').value; const confirmPwd = document.getElementById('confirmNewPasswordInline').value; const errorEl = document.getElementById('passwordErrorInline'); const successEl = document.getElementById('passwordSuccessInline'); errorEl.textContent = ''; successEl.textContent = ''; if (!currentPwd || !newPwd || !confirmPwd) { errorEl.textContent = 'Please fill all fields'; return; } if (newPwd.length < 6) { errorEl.textContent = 'New password must be at least 6 characters'; return; } if (newPwd !== confirmPwd) { errorEl.textContent = 'Passwords do not match'; return; } try { const credential = EmailAuthProvider.credential(currentUser.email, currentPwd); await reauthenticateWithCredential(currentUser, credential); await updatePassword(currentUser, newPwd); successEl.textContent = '✅ Password changed successfully!'; showToast('✅ Password updated!', 'success'); document.getElementById('currentPasswordInline').value = ''; document.getElementById('newPasswordInline').value = ''; document.getElementById('confirmNewPasswordInline').value = ''; setTimeout(() => { successEl.textContent = ''; }, 3000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); } };
 
 // ============================================================
-// 8. Product Functions (FIXED)
+// 8. Product Functions
 // ============================================================
 
 async function loadProductsFromFirestore() {
@@ -1726,210 +1726,398 @@ function createFloatingHearts() {
 }
 
 // ============================================================
-// 12. Product Preview
+// 12. Product Preview (UPDATED to Full Page)
 // ============================================================
 
+// دالة فتح صفحة التفاصيل الكاملة (بدلاً من النافذة المنبثقة)
 window.openDetails = function(id) {
     const p = products.find(x => x.id === id);
-    if (!p) return;
+    if (!p) {
+        showToast('⚠️ Product not found', 'warning');
+        return;
+    }
     window._currentProduct = p;
-    document.getElementById('previewImage').src = p.image || 'https://picsum.photos/seed/default/400/300';
-    document.getElementById('previewName').textContent = p.name;
-    document.getElementById('previewDescription').textContent = p.description || 'No description available.';
-    document.getElementById('previewBadge').textContent = p.badge || 'PREMIUM';
-    document.getElementById('previewVerified').textContent = p.status === 'available' ? '✅ 100% VERIFIED WORKING PRODUCT' : '⛔ UNAVAILABLE';
-    const videoContainer = document.getElementById('previewVideoContainer');
-    const videoIframe = document.getElementById('previewVideo');
-    if (p.video && p.video.includes('youtube.com/embed/')) {
-        videoIframe.src = p.video;
-        videoContainer.style.display = 'block';
-    } else {
-        videoContainer.style.display = 'none';
-        videoIframe.src = '';
-    }
-    const featuresContainer = document.getElementById('previewFeatures');
-    if (p.features && p.features.length > 0) {
-        const featuresHtml = p.features.map(f => `<li><i class="fas fa-check-circle"></i> ${f}</li>`).join('');
-        featuresContainer.innerHTML = `<div class="features-header"><i class="fas fa-check-circle"></i> Features</div><ul class="features-list">${featuresHtml}</ul>`;
-        featuresContainer.style.display = 'block';
-    } else { featuresContainer.style.display = 'none'; }
     
-    let priceDisplay = p.price === 0 ? 'FREE' : `${getCurrencySymbol(p.currency || 'USD')}${p.price.toFixed(2)}`;
-    document.getElementById('previewPrice').textContent = priceDisplay;
-    const addBtn = document.getElementById('previewAddBtn');
-    const inCart = cart.some(item => item.id === id && !item.isVip);
-    if (inCart) {
-        addBtn.innerHTML = '<i class="fas fa-check"></i> Added to Cart';
-        addBtn.style.background = 'var(--success)';
-        addBtn.style.color = '#0a0a1a';
-        addBtn.onclick = () => { closePreviewModal(); openCartFull(); };
-    } else if (p.price === 0) {
-        addBtn.innerHTML = '<i class="fas fa-download"></i> Download';
-        addBtn.style.background = 'var(--free-color)';
-        addBtn.style.color = '#0a0a1a';
-        addBtn.onclick = () => { if (p.downloadLink) { window.open(p.downloadLink, '_blank'); } else { showToast('⏳ Coming soon', 'info'); } };
-    } else if (p.status === 'unavailable') {
-        addBtn.innerHTML = '<i class="fas fa-times-circle"></i> Unavailable';
-        addBtn.style.background = 'var(--text-secondary)';
-        addBtn.style.cursor = 'not-allowed';
-        addBtn.onclick = () => showToast('⛔ Unavailable', 'warning');
-    } else {
-        addBtn.innerHTML = '<i class="fas fa-cart-plus"></i> Add to Cart';
-        addBtn.style.background = 'var(--primary)';
-        addBtn.style.color = '#fff';
-        addBtn.onclick = () => {
-            window.addToCart(id);
-            const updatedBtn = document.getElementById('previewAddBtn');
-            updatedBtn.innerHTML = '<i class="fas fa-check"></i> Added';
-            updatedBtn.style.background = 'var(--success)';
-            updatedBtn.style.color = '#0a0a1a';
-            updatedBtn.onclick = () => { closePreviewModal(); openCartFull(); };
-        };
+    // إعداد العنوان
+    const titleEl = document.getElementById('productDetailsTitle');
+    if (titleEl) titleEl.textContent = p.name;
+    
+    const container = document.getElementById('productDetailsContent');
+    if (!container) {
+        console.error('❌ productDetailsContent not found');
+        return;
     }
-    const vipSection = document.getElementById('previewVipPricing');
+    
+    // بناء محتوى الصفحة
+    const isFree = p.price === 0;
+    const isUnavailable = p.status === 'unavailable';
+    const badgeClass = isUnavailable ? 'unavailable' : (isFree ? 'free' : 'vip');
+    const badgeText = isUnavailable ? '⛔ Unavailable' : (isFree ? 'FREE' : (p.badge || 'PREMIUM'));
+    const currencySymbol = getCurrencySymbol(p.currency || 'USD');
+    
+    // معالجة الفيديو
+    let videoHtml = '';
+    if (p.video && p.video.includes('youtube.com/embed/')) {
+        videoHtml = `
+            <div style="margin:12px 0;border-radius:var(--radius-md);overflow:hidden;background:var(--bg-secondary);">
+                <iframe src="${p.video}" width="100%" height="240" frameborder="0" allowfullscreen style="border-radius:var(--radius-md);"></iframe>
+            </div>
+        `;
+    }
+    
+    // معالجة المميزات
+    let featuresHtml = '';
+    if (p.features && p.features.length > 0) {
+        featuresHtml = `
+            <div style="margin:12px 0;background:var(--bg-secondary);border-radius:var(--radius-md);padding:14px 16px;border:1px solid var(--border);">
+                <div style="font-weight:700;font-size:14px;margin-bottom:8px;color:var(--primary);">
+                    <i class="fas fa-check-circle"></i> Features
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;">
+                    ${p.features.map(f => `<div style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-secondary);padding:3px 0;"><i class="fas fa-check-circle" style="color:var(--success);font-size:11px;"></i> ${f}</div>`).join('')}
+                </div>
+            </div>
+        `;
+    }
+    
+    // معالجة الـ VIP Pricing
+    let vipHtml = '';
     if (p.vipEnabled && p.vipPrices) {
-        const vipPrices = p.vipPrices;
         const plans = [
-            { key: '1m', label: '1 Month', price: vipPrices['1m'], original: vipPrices['1m_original'] },
-            { key: '3m', label: '3 Months', price: vipPrices['3m'], original: vipPrices['3m_original'] },
-            { key: '1y', label: '1 Year', price: vipPrices['1y'], original: vipPrices['1y_original'] },
-            { key: 'lifetime', label: 'LIFETIME', price: vipPrices['lifetime'], original: vipPrices['lifetime_original'] }
+            { key: '1m', label: '1 Month', price: p.vipPrices['1m'], original: p.vipPrices['1m_original'] },
+            { key: '3m', label: '3 Months', price: p.vipPrices['3m'], original: p.vipPrices['3m_original'] },
+            { key: '1y', label: '1 Year', price: p.vipPrices['1y'], original: p.vipPrices['1y_original'] },
+            { key: 'lifetime', label: 'LIFETIME', price: p.vipPrices['lifetime'], original: p.vipPrices['lifetime_original'] }
         ];
-        let gridHtml = ''; let hasValidPlans = false; let firstPlanKey = null;
-        plans.forEach((plan, index) => {
+        let planHtml = '';
+        let hasValid = false;
+        plans.forEach((plan, idx) => {
             const priceNum = parseFloat(plan.price);
-            const originalNum = parseFloat(plan.original);
             if (priceNum > 0) {
-                hasValidPlans = true;
-                if (!firstPlanKey) firstPlanKey = plan.key;
+                hasValid = true;
+                const originalNum = parseFloat(plan.original);
                 const discount = (originalNum > priceNum) ? Math.round((1 - priceNum / originalNum) * 100) : 0;
-                const hasDiscount = discount > 0;
-                gridHtml += `
-                    <div class="vip-plan ${index === 0 ? 'selected' : ''}" 
-                         data-plan="${plan.key}" data-price="${priceNum}"
-                         onclick="window.selectVipPlan(this, '${plan.key}')">
-                        <div class="vip-plan-check"><i class="fas fa-check-circle"></i></div>
-                        <div class="vip-plan-label">${plan.label}</div>
-                        <div class="vip-plan-price">${getCurrencySymbol(p.currency || 'USD')}${priceNum.toFixed(2)}</div>
-                        ${hasDiscount ? `<div class="vip-plan-original">${getCurrencySymbol(p.currency || 'USD')}${originalNum.toFixed(2)}</div><div class="vip-plan-discount">SAVE ${discount}%</div>` : ''}
+                planHtml += `
+                    <div class="vip-plan ${idx === 0 ? 'selected' : ''}" data-plan="${plan.key}" data-price="${priceNum}" onclick="window.selectVipPlan(this, '${plan.key}')" style="background:var(--bg);border:2px solid var(--border);border-radius:var(--radius-sm);padding:10px 8px;text-align:center;cursor:pointer;transition:0.3s;position:relative;">
+                        <div class="vip-plan-check" style="position:absolute;top:4px;right:6px;color:var(--vip-color);opacity:${idx===0?1:0};"><i class="fas fa-check-circle"></i></div>
+                        <div style="font-weight:600;font-size:13px;">${plan.label}</div>
+                        <div style="font-weight:700;color:var(--vip-color);font-size:15px;">${currencySymbol}${priceNum.toFixed(2)}</div>
+                        ${discount > 0 ? `<div style="font-size:10px;text-decoration:line-through;opacity:0.3;">${currencySymbol}${originalNum.toFixed(2)}</div><div style="font-size:9px;background:var(--danger);color:#fff;border-radius:10px;padding:0 6px;display:inline-block;">SAVE ${discount}%</div>` : ''}
                     </div>
                 `;
             }
         });
-        if (hasValidPlans) {
-            document.getElementById('vipPricingGrid').innerHTML = gridHtml;
-            vipSection.style.display = 'block';
-            window._selectedVipPlan = firstPlanKey;
-            const vipAddBtn = document.querySelector('.vip-add-to-cart');
-            if (vipAddBtn) {
-                vipAddBtn.onclick = () => { addVipPlanToCart(p); };
-                vipAddBtn.dataset.productId = p.id;
-            }
-        } else { vipSection.style.display = 'none'; }
-    } else { vipSection.style.display = 'none'; }
-    
-    // Quantity options
-    const existingQuantitySection = document.getElementById('previewQuantitySection');
-    if (existingQuantitySection) {
-        existingQuantitySection.remove();
+        if (hasValid) {
+            window._selectedVipPlan = '1m';
+            vipHtml = `
+                <div style="margin:12px 0;background:var(--bg-secondary);border-radius:var(--radius-md);padding:14px 16px;border:1px solid var(--border);">
+                    <div style="font-weight:700;font-size:14px;margin-bottom:8px;color:var(--vip-color);">
+                        <i class="fas fa-crown"></i> VIP Plans
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:6px;">
+                        ${planHtml}
+                    </div>
+                    <button class="vip-add-to-cart" onclick="addVipPlanToCart(window._currentProduct)" style="width:100%;margin-top:8px;padding:8px;border:none;border-radius:var(--radius-sm);background:var(--vip-color);color:#0a0a1a;font-weight:700;cursor:pointer;">
+                        <i class="fas fa-crown"></i> Add VIP Plan
+                    </button>
+                </div>
+            `;
+        }
     }
     
+    // معالجة خيارات الكميات (Quantity)
+    let quantityHtml = '';
     if (p.productType === 'quantity' && p.quantityOptions && p.quantityOptions.length > 0) {
-        const section = document.createElement('div');
-        section.id = 'previewQuantitySection';
-        section.className = 'preview-quantity-section';
-        section.innerHTML = `
-            <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;">
-                <i class="fas fa-cubes"></i> Select Quantity
-            </div>
-            <div class="preview-quantity-options" id="previewQuantityOptions"></div>
-            <div style="margin-top:8px;font-size:12px;color:var(--text-secondary);opacity:0.4;">
-                Click on a quantity to select it
+        quantityHtml = `
+            <div style="margin:12px 0;background:var(--bg-secondary);border-radius:var(--radius-md);padding:14px 16px;border:1px solid var(--border);">
+                <div style="font-weight:700;font-size:14px;margin-bottom:8px;color:var(--text);">
+                    <i class="fas fa-cubes"></i> Select Quantity
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:6px;" id="productQuantityOptions">
+                    ${p.quantityOptions.map((opt, idx) => `
+                        <div class="preview-quantity-option ${idx === 0 ? 'selected' : ''}" data-index="${idx}" data-quantity="${opt.quantity}" data-price="${opt.price}" onclick="selectQuantityOption(this, '${p.id}')" style="background:var(--bg);border:2px solid var(--border);border-radius:var(--radius-sm);padding:8px 4px;text-align:center;cursor:pointer;transition:0.3s;position:relative;">
+                            <div style="font-size:16px;font-weight:700;color:var(--text);">${opt.quantity}</div>
+                            <div style="font-weight:600;color:var(--primary);font-size:13px;">${currencySymbol}${opt.price.toFixed(2)}</div>
+                            ${opt.originalPrice ? `<div style="font-size:10px;text-decoration:line-through;opacity:0.3;">${currencySymbol}${opt.originalPrice.toFixed(2)}</div>` : ''}
+                            <div class="qty-check" style="position:absolute;top:2px;right:4px;color:var(--primary);opacity:${idx===0?1:0};"><i class="fas fa-check-circle"></i></div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="margin-top:6px;font-size:12px;color:var(--text-secondary);opacity:0.4;">Click on a quantity to select it</div>
             </div>
         `;
-        const vipSectionEl = document.getElementById('previewVipPricing');
-        if (vipSectionEl && vipSectionEl.style.display !== 'none') {
-            vipSectionEl.parentNode.insertBefore(section, vipSectionEl.nextSibling);
-        } else {
-            const body = document.querySelector('.preview-body');
-            if (body) {
-                body.appendChild(section);
-            } else {
-                const desc = document.getElementById('previewDescription');
-                if (desc && desc.parentNode) {
-                    desc.parentNode.insertBefore(section, desc.nextSibling);
-                }
-            }
-        }
-        
-        const container = document.getElementById('previewQuantityOptions');
-        if (container) {
-            container.innerHTML = p.quantityOptions.map((opt, index) => `
-                <div class="preview-quantity-option ${index === 0 ? 'selected' : ''}" 
-                     data-index="${index}" 
-                     data-quantity="${opt.quantity}" 
-                     data-price="${opt.price}"
-                     onclick="selectQuantityOption(this, '${p.id}')">
-                    <div class="qty-value">${opt.quantity}</div>
-                    <div class="qty-price">${getCurrencySymbol(p.currency || 'USD')}${opt.price.toFixed(2)}</div>
-                    ${opt.originalPrice ? `<div class="qty-original">${getCurrencySymbol(p.currency || 'USD')}${opt.originalPrice.toFixed(2)}</div>` : ''}
-                    <div class="qty-check"><i class="fas fa-check-circle"></i></div>
-                </div>
-            `).join('');
-            const firstOpt = p.quantityOptions[0];
-            if (firstOpt) {
-                document.getElementById('previewPrice').textContent = getCurrencySymbol(p.currency || 'USD') + firstOpt.price.toFixed(2);
-                window._selectedQuantity = firstOpt.quantity;
-                window._selectedQuantityPrice = firstOpt.price;
-            }
+        // تعيين القيم الافتراضية
+        const firstOpt = p.quantityOptions[0];
+        if (firstOpt) {
+            window._selectedQuantity = firstOpt.quantity;
+            window._selectedQuantityPrice = firstOpt.price;
         }
     }
     
-    document.getElementById('previewModal').classList.add('open');
-    document.body.style.overflow = 'hidden';
+    // معالجة السعر
+    let priceDisplay = isFree ? 'FREE' : `${currencySymbol}${p.price.toFixed(2)}`;
+    let originalPriceHtml = '';
+    let discountBadgeHtml = '';
+    if (activeDiscount > 0 && p.price > 0) {
+        const discounted = p.price - (p.price * activeDiscount / 100);
+        priceDisplay = `${currencySymbol}${discounted.toFixed(2)}`;
+        originalPriceHtml = `<span style="font-size:14px;text-decoration:line-through;opacity:0.3;margin-left:8px;">${currencySymbol}${p.price.toFixed(2)}</span>`;
+        discountBadgeHtml = `<span style="font-size:11px;background:var(--danger);color:#fff;padding:0 8px;border-radius:10px;margin-left:6px;">-${activeDiscount}%</span>`;
+    }
+    
+    // زر الإضافة
+    const inCart = cart.some(item => item.id === id && !item.isVip);
+    let addBtnHtml = '';
+    if (inCart) {
+        addBtnHtml = `<button onclick="closeProductDetails();openCartFull();" style="flex:1;padding:12px;border:none;border-radius:var(--radius-sm);background:var(--success);color:#0a0a1a;font-weight:700;cursor:pointer;font-size:16px;"><i class="fas fa-check"></i> Added to Cart</button>`;
+    } else if (isUnavailable) {
+        addBtnHtml = `<button style="flex:1;padding:12px;border:none;border-radius:var(--radius-sm);background:var(--text-secondary);color:#fff;font-weight:700;cursor:not-allowed;font-size:16px;opacity:0.4;"><i class="fas fa-times-circle"></i> Unavailable</button>`;
+    } else if (isFree) {
+        addBtnHtml = `<a href="${p.downloadLink || '#'}" target="${p.downloadLink ? '_blank' : '_self'}" style="flex:1;padding:12px;border:none;border-radius:var(--radius-sm);background:var(--free-color);color:#0a0a1a;font-weight:700;cursor:pointer;font-size:16px;text-decoration:none;text-align:center;display:block;" onclick="${!p.downloadLink ? 'event.preventDefault();showToast(\'⏳ Coming soon\',\'info\');' : ''}"><i class="fas fa-download"></i> Download</a>`;
+    } else {
+        addBtnHtml = `<button onclick="addToCartFromDetails()" style="flex:1;padding:12px;border:none;border-radius:var(--radius-sm);background:var(--primary);color:#fff;font-weight:700;cursor:pointer;font-size:16px;transition:0.3s;"><i class="fas fa-cart-plus"></i> Add to Cart</button>`;
+    }
+    
+    // مبنى الصفحة الكامل
+    container.innerHTML = `
+        <div style="max-width:600px;margin:0 auto;width:100%;">
+            <!-- صورة المنتج -->
+            <div style="width:100%;border-radius:var(--radius-md);overflow:hidden;background:var(--bg-secondary);border:1px solid var(--border);margin-bottom:12px;">
+                <img src="${p.image || 'https://picsum.photos/seed/default/600/400'}" alt="${p.name}" style="width:100%;max-height:320px;object-fit:cover;display:block;" />
+                <div style="padding:8px 12px;display:flex;justify-content:space-between;align-items:center;background:var(--bg-secondary);border-top:1px solid var(--border);">
+                    <span class="image-badge ${badgeClass}" style="padding:2px 14px;border-radius:20px;font-size:11px;font-weight:700;background:${badgeClass==='vip'?'var(--vip-color)':badgeClass==='free'?'var(--free-color)':'var(--danger)'};color:${badgeClass==='vip'||badgeClass==='free'?'#0a0a1a':'#fff'};">${badgeText}</span>
+                    <span style="font-size:13px;color:var(--success);font-weight:600;">✅ ${p.status === 'available' ? '100% VERIFIED WORKING' : 'UNAVAILABLE'}</span>
+                </div>
+            </div>
+            
+            <!-- العنوان والوصف -->
+            <h1 style="font-size:22px;font-weight:800;color:var(--text);margin:0 0 4px 0;">${p.name}</h1>
+            ${p.duration ? `<div style="font-size:13px;color:var(--text-secondary);opacity:0.5;margin-bottom:6px;"><i class="fas fa-clock"></i> ${p.duration}</div>` : ''}
+            <p style="font-size:14px;color:var(--text-secondary);line-height:1.6;margin:6px 0 12px 0;">${p.description || 'No description available for this product.'}</p>
+            
+            ${videoHtml}
+            ${featuresHtml}
+            ${quantityHtml}
+            ${vipHtml}
+            
+            <!-- السعر والزر -->
+            <div style="background:var(--bg-secondary);border-radius:var(--radius-md);padding:14px 16px;border:1px solid var(--border);margin:12px 0;">
+                <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px;">
+                    <span style="font-size:24px;font-weight:800;color:var(--primary);">${priceDisplay}</span>
+                    ${originalPriceHtml}
+                    ${discountBadgeHtml}
+                    ${isFree ? `<span style="font-size:12px;background:var(--free-color);padding:0 10px;border-radius:12px;color:#0a0a1a;font-weight:700;">FREE</span>` : ''}
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                    ${addBtnHtml}
+                    <button onclick="openShareModal('${p.id}')" style="padding:12px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:16px;transition:0.3s;"><i class="fas fa-share-alt"></i></button>
+                </div>
+            </div>
+            
+            <!-- قسم التقييمات -->
+            <div id="ratingSection" style="margin-top:8px;"></div>
+            
+            <!-- روابط إضافية -->
+            <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--text-secondary);opacity:0.3;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+                <span><i class="fas fa-bolt"></i> Instant Delivery</span>
+                <span><i class="fas fa-lock"></i> Secure Payment</span>
+                <span><i class="fas fa-headset"></i> 24/7 Support</span>
+                ${p.downloadLink ? `<span><i class="fas fa-file"></i> Download Available</span>` : ''}
+            </div>
+        </div>
+    `;
+    
+    // فتح الصفحة الكاملة
+    const modal = document.getElementById('productDetailsFull');
+    if (modal) {
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    } else {
+        console.error('❌ productDetailsFull modal not found');
+    }
+    
+    // تحميل التقييمات
     setTimeout(() => {
-        renderRatingSection(id);
         currentProductIdForRating = id;
         currentRating = 0;
+        renderRatingSection(id);
     }, 150);
 };
 
+// دالة إضافة من صفحة التفاصيل
+window.addToCartFromDetails = function() {
+    if (window._currentProduct) {
+        const p = window._currentProduct;
+        
+        // التحقق من خيار الكمية
+        if (p.productType === 'quantity') {
+            const selectedQty = window._selectedQuantity || p.quantityOptions?.[0]?.quantity;
+            const selectedPrice = window._selectedQuantityPrice || p.quantityOptions?.[0]?.price;
+            if (!selectedQty || !selectedPrice) {
+                showToast('⚠️ Please select a quantity option', 'warning');
+                return;
+            }
+            const existing = cart.find(item => item.id === p.id && item.selectedQuantity === selectedQty);
+            if (existing) {
+                existing.quantity = (existing.quantity || 1) + 1;
+            } else {
+                cart.push({ 
+                    ...p, 
+                    price: selectedPrice, 
+                    quantity: 1,
+                    selectedQuantity: selectedQty,
+                    isQuantityProduct: true
+                });
+            }
+            saveUserData(true);
+            updateCartUI();
+            renderProducts(products);
+            updateBottomCartBar();
+            showToast(`✅ Added ${p.name} (${selectedQty}) to cart`, 'success');
+            // تحديث الزر
+            const btn = document.querySelector('#productDetailsContent button[onclick="addToCartFromDetails()"]');
+            if (btn) {
+                btn.innerHTML = '<i class="fas fa-check"></i> Added';
+                btn.style.background = 'var(--success)';
+                btn.style.color = '#0a0a1a';
+                btn.onclick = () => { closeProductDetails(); openCartFull(); };
+            }
+            return;
+        }
+        
+        // المنتج العادي
+        if (p.price === 0) {
+            showToast('⚠️ This script is free', 'warning');
+            return;
+        }
+        const existing = cart.find(item => item.id === p.id && !item.isVip);
+        if (existing) {
+            existing.quantity = (existing.quantity || 1) + 1;
+        } else {
+            cart.push({ ...p, quantity: 1 });
+        }
+        saveUserData(true);
+        updateCartUI();
+        renderProducts(products);
+        updateBottomCartBar();
+        showToast(`✅ Added ${p.name} to cart`, 'success');
+        // تحديث الزر
+        const btn = document.querySelector('#productDetailsContent button[onclick="addToCartFromDetails()"]');
+        if (btn) {
+            btn.innerHTML = '<i class="fas fa-check"></i> Added to Cart';
+            btn.style.background = 'var(--success)';
+            btn.style.color = '#0a0a1a';
+            btn.onclick = () => { closeProductDetails(); openCartFull(); };
+        }
+    } else {
+        showToast('⚠️ Product not found', 'warning');
+    }
+};
+
+// دالة إغلاق صفحة التفاصيل
+window.closeProductDetails = function() {
+    const modal = document.getElementById('productDetailsFull');
+    if (modal) {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+    // تنظيف المتغيرات
+    window._currentProduct = null;
+    window._selectedQuantity = null;
+    window._selectedQuantityPrice = null;
+};
+
+// دالة متوافقة مع الإصدار القديم (للتأكد من عدم وجود أخطاء)
+window.closePreviewModal = window.closeProductDetails;
+
+// تحديث دالة selectQuantityOption للعمل مع كل من المعاينة وصفحة التفاصيل
 window.selectQuantityOption = function(element, productId) {
-    document.querySelectorAll('.preview-quantity-option').forEach(el => el.classList.remove('selected'));
+    // إزالة التحديد من جميع الخيارات في نفس المجموعة
+    const parent = element.closest('.preview-quantity-options') || element.closest('#productQuantityOptions');
+    if (parent) {
+        parent.querySelectorAll('.preview-quantity-option').forEach(el => el.classList.remove('selected'));
+    } else {
+        // احتياطي: إزالة من جميع الخيارات في الصفحة
+        document.querySelectorAll('.preview-quantity-option').forEach(el => el.classList.remove('selected'));
+    }
     element.classList.add('selected');
+    
     const price = parseFloat(element.dataset.price);
     const quantity = parseInt(element.dataset.quantity);
     window._selectedQuantity = quantity;
     window._selectedQuantityPrice = price;
+    
+    // تحديث السعر المعروض في صفحة التفاصيل إن وجد
     const product = products.find(p => p.id === productId);
-    const currency = product?.currency || 'USD';
-    document.getElementById('previewPrice').textContent = getCurrencySymbol(currency) + price.toFixed(2);
+    if (product) {
+        const currency = product.currency || 'USD';
+        // تحديث السعر في مكان العرض
+        const priceDisplay = document.querySelector('#productDetailsContent .preview-quantity-option.selected .qty-price');
+        // لا نحتاج لتحديث السعر الرئيسي هنا لأن المستخدم اختار كمية
+    }
 };
 
 window.selectVipPlan = function(element, planKey) {
-    document.querySelectorAll('.vip-plan').forEach(el => el.classList.remove('selected'));
+    // إزالة التحديد من جميع الخطط في نفس المجموعة
+    const parent = element.closest('.vip-plan')?.parentElement;
+    if (parent) {
+        parent.querySelectorAll('.vip-plan').forEach(el => el.classList.remove('selected'));
+    } else {
+        document.querySelectorAll('.vip-plan').forEach(el => el.classList.remove('selected'));
+    }
     element.classList.add('selected');
     window._selectedVipPlan = planKey;
 };
 
-function addVipPlanToCart(product) {
-    if (!product) { product = window._currentProduct; if (!product) { showToast('⚠️ Product not found', 'warning'); return; } }
+window.addVipPlanToCart = function(product) {
+    if (!product) {
+        product = window._currentProduct;
+        if (!product) {
+            showToast('⚠️ Product not found', 'warning');
+            return;
+        }
+    }
     const selectedPlan = window._selectedVipPlan || '1m';
     const vipPrices = product.vipPrices;
-    if (!vipPrices || !vipPrices[selectedPlan]) { showToast('⚠️ Invalid VIP plan', 'warning'); return; }
+    if (!vipPrices || !vipPrices[selectedPlan]) {
+        showToast('⚠️ Invalid VIP plan', 'warning');
+        return;
+    }
     const price = parseFloat(vipPrices[selectedPlan]);
-    if (isNaN(price) || price <= 0) { showToast('⚠️ Invalid price', 'warning'); return; }
+    if (isNaN(price) || price <= 0) {
+        showToast('⚠️ Invalid price', 'warning');
+        return;
+    }
     const planLabels = { '1m': '1 Month', '3m': '3 Months', '1y': '1 Year', 'lifetime': 'LIFETIME' };
     const existing = cart.find(item => item.id === product.id && item.isVip && item.vipPlan === selectedPlan);
-    if (existing) { existing.quantity = (existing.quantity || 1) + 1; } else { cart.push({ ...product, price: price, quantity: 1, isVip: true, vipPlan: selectedPlan, vipPlanLabel: planLabels[selectedPlan] || selectedPlan, originalPrice: product.price }); }
-    saveUserData(true); updateCartUI(); renderProducts(products); updateBottomCartBar();
+    if (existing) {
+        existing.quantity = (existing.quantity || 1) + 1;
+    } else {
+        cart.push({ 
+            ...product, 
+            price: price, 
+            quantity: 1, 
+            isVip: true, 
+            vipPlan: selectedPlan, 
+            vipPlanLabel: planLabels[selectedPlan] || selectedPlan, 
+            originalPrice: product.price 
+        });
+    }
+    saveUserData(true);
+    updateCartUI();
+    renderProducts(products);
+    updateBottomCartBar();
     showToast(`✅ Added ${planLabels[selectedPlan]} VIP plan for ${product.name}`, 'success');
-    closePreviewModal();
-}
-
-window.closePreviewModal = function() { document.getElementById('previewModal').classList.remove('open'); document.body.style.overflow = ''; };
-window.addToCartFromPreview = function() { if (window._currentProduct) { window.addToCart(window._currentProduct.id); closePreviewModal(); } };
-window.shareFromPreview = function() { if (window._currentProduct) { window.openShareModal(window._currentProduct.id); } };
+    
+    // تحديث الزر في الصفحة
+    const btn = document.querySelector('#productDetailsContent .vip-add-to-cart');
+    if (btn) {
+        btn.innerHTML = '<i class="fas fa-check"></i> VIP Added';
+        btn.style.background = 'var(--success)';
+        btn.style.color = '#0a0a1a';
+        btn.onclick = () => { closeProductDetails(); openCartFull(); };
+    }
+};
 
 // ============================================================
 // 13. Share Modal
@@ -2006,15 +2194,14 @@ function closeSearchResults() { searchResults.classList.remove('active'); search
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeSearchResults(); closeUserMenuFull(); closeCartFull(); closeWishlistFull(); closeProfileFull(); closeHistoryFull(); } });
 
 // ============================================================
-// 15. Payment (with Supabase Functions Backend) - FIXED CORS
+// 15. Payment (with Supabase Functions Backend)
 // ============================================================
 
 // ============================================================
-// 15.0 Visitor Info Functions (FIXED)
+// 15.0 Visitor Info Functions
 // ============================================================
 
 async function getVisitorInfo() {
-    // محاولة الحصول على IP أولاً باستخدام ipify
     let ip = 'Unknown';
     try {
         const ipRes = await fetch('https://api.ipify.org?format=json');
@@ -2026,7 +2213,6 @@ async function getVisitorInfo() {
         console.warn('⚠️ ipify failed:', e);
     }
 
-    // ثم محاولة جلب التفاصيل باستخدام ip-api.com (نسخة مجانية لا تحتاج مفتاح)
     let country = 'Unknown', city = 'Unknown', region = 'Unknown', timezone = 'Unknown', isp = 'Unknown';
     if (ip !== 'Unknown') {
         try {
@@ -2045,8 +2231,6 @@ async function getVisitorInfo() {
             console.warn('⚠️ ip-api.com detail failed:', e);
         }
     }
-
-    // إذا فشلت كل المحاولات، نعيد البيانات الأساسية
     return { ip, country, city, region, timezone, isp };
 }
 
@@ -2076,11 +2260,7 @@ function getDeviceInfo() {
 }
 
 // ============================================================
-// 15.1 Upload Screenshot to Cloudinary - now done by backend
-// ============================================================
-
-// ============================================================
-// 15.2 Payment Products Render
+// 15.1 Payment Products Render
 // ============================================================
 window.renderPaymentProducts = function() {
     const container = document.getElementById('paymentProductsList');
@@ -2111,7 +2291,7 @@ window.renderPaymentProducts = function() {
 };
 
 // ============================================================
-// 15.3 Crypto Price Functions
+// 15.2 Crypto Price Functions
 // ============================================================
 
 async function fetchCryptoPrices() {
@@ -2119,7 +2299,6 @@ async function fetchCryptoPrices() {
     cryptoPrices.isUpdating = true;
 
     try {
-        // استخدام CoinGecko أولاً (لا يحتاج مفتاح)
         const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=litecoin&vs_currencies=usd');
         if (response.ok) {
             const data = await response.json();
@@ -2136,7 +2315,6 @@ async function fetchCryptoPrices() {
         console.warn('⚠️ CoinGecko failed, trying Binance...', e);
     }
 
-    // محاولة Binance كاحتياطي
     try {
         const response = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=LTCUSDT');
         if (response.ok) {
@@ -2154,7 +2332,6 @@ async function fetchCryptoPrices() {
         console.warn('⚠️ Binance failed:', e);
     }
 
-    // إذا فشل كل شيء، نترك القيم القديمة أو نضع قيماً افتراضية
     if (!cryptoPrices.ltc) {
         cryptoPrices.ltc = 42;
         cryptoPrices.usdt = 1;
@@ -2196,7 +2373,7 @@ function updatePayableTotal() {
 }
 
 // ============================================================
-// 15.4 Payment Selection
+// 15.3 Payment Selection
 // ============================================================
 window.selectPayment = function(method) {
     selectedPayment = method;
@@ -2221,7 +2398,7 @@ window.selectPayment = function(method) {
 };
 
 // ============================================================
-// 15.5 Continue Payment
+// 15.4 Continue Payment
 // ============================================================
 window.continuePayment = function() {
     if (!selectedPayment) {
@@ -2299,7 +2476,7 @@ window.continuePayment = function() {
 };
 
 // ============================================================
-// 15.6 Place Order - now calls Supabase Function (with CORS fix)
+// 15.5 Place Order - calls Supabase Function
 // ============================================================
 window.placeOrder = function() {
     if (!currentUser || currentUser.isAnonymous) {
@@ -2334,7 +2511,7 @@ window.placeOrder = function() {
 };
 
 // ============================================================
-// 15.7 Binance ID specific functions
+// 15.6 Binance ID specific functions
 // ============================================================
 window.copyBinanceId = function() {
     const id = document.getElementById('binanceIdDisplay').textContent;
@@ -2414,8 +2591,7 @@ window.submitManualPayment = function() {
 };
 
 // ============================================================
-// 15.8 Original order sending function - now sends to Supabase Function
-// and handles proxy creation (with CORS fix)
+// 15.7 Original order sending function
 // ============================================================
 async function sendOrderToTelegram(method, txHash = null) {
     if (isProcessingOrder) {
@@ -2432,11 +2608,9 @@ async function sendOrderToTelegram(method, txHash = null) {
             return;
         }
 
-        // الحصول على معلومات الزائر (باستخدام الدالة المعدلة)
         const visitorInfo = await getVisitorInfo();
         const deviceInfo = getDeviceInfo();
 
-        // قراءة لقطة الشاشة إن وجدت
         let screenshotBase64 = null;
         const screenshotInput = document.getElementById('screenshotInput');
         if (screenshotInput && screenshotInput.files && screenshotInput.files[0]) {
@@ -2451,7 +2625,6 @@ async function sendOrderToTelegram(method, txHash = null) {
             });
         }
 
-        // إعداد بيانات الطلب
         const cartData = cart.map(item => ({
             id: item.id,
             name: item.name,
@@ -2469,7 +2642,6 @@ async function sendOrderToTelegram(method, txHash = null) {
             proxyQuantity: item.quantity || 1
         }));
 
-        // حساب الإجمالي
         let total = 0;
         cart.forEach(item => { total += item.price * (item.quantity || 1); });
         let finalTotal = total;
@@ -2484,7 +2656,6 @@ async function sendOrderToTelegram(method, txHash = null) {
         }
         if (finalTotal < 0) finalTotal = 0;
 
-        // إرسال الطلب إلى Supabase Edge Function مع رؤوس CORS صحيحة
         const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/place-order', {
             method: 'POST',
             headers: {
@@ -2511,7 +2682,6 @@ async function sendOrderToTelegram(method, txHash = null) {
             })
         });
 
-        // التحقق من الاستجابة
         if (!response.ok) {
             let errorText = await response.text();
             console.error('Order API error:', response.status, errorText);
@@ -2532,7 +2702,6 @@ async function sendOrderToTelegram(method, txHash = null) {
 
         const orderId = result.orderId || 'order_' + Date.now();
 
-        // حفظ الطلب محلياً
         const orderItem = {
             id: orderId,
             items: cartData,
@@ -2549,7 +2718,7 @@ async function sendOrderToTelegram(method, txHash = null) {
         const userRef = doc(db, 'users', currentUser.uid);
         await updateDoc(userRef, { history: arrayUnion(orderItem) });
 
-        // --- PROXY CREATION LOGIC (معطل مؤقتاً) ---
+        // Proxy logic (disabled)
         const proxyItems = cart.filter(item => item.isProxy);
         if (proxyItems.length > 0) {
             if (DISABLE_PROXY) {
@@ -2561,47 +2730,9 @@ async function sendOrderToTelegram(method, txHash = null) {
                     readBy: [],
                     createdAt: serverTimestamp()
                 });
-            } else {
-                for (const proxyItem of proxyItems) {
-                    try {
-                        const proxyResponse = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/create-proxy', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                                'Accept': 'application/json',
-                            },
-                            mode: 'cors',
-                            body: JSON.stringify({
-                                plan: proxyItem.plan,
-                                quantity: proxyItem.quantity,
-                                duration: proxyItem.duration,
-                                userId: currentUser.uid,
-                                orderId: orderId
-                            })
-                        });
-                        if (!proxyResponse.ok) {
-                            const errText = await proxyResponse.text();
-                            throw new Error(`Proxy API error: ${proxyResponse.status} ${errText}`);
-                        }
-                        const proxyResult = await proxyResponse.json();
-                        if (!proxyResult.success) throw new Error(proxyResult.error || 'Proxy creation failed');
-                        await sendProxyDetailsToUser(currentUser.uid, proxyResult.proxy, proxyItem);
-                    } catch (error) {
-                        console.error('❌ Proxy creation error:', error);
-                        await addDoc(collection(db, 'notifications'), {
-                            title: '❌ Proxy creation failed',
-                            message: `User: ${currentUser.email} - Error: ${error.message}`,
-                            readBy: [],
-                            createdAt: serverTimestamp()
-                        });
-                        showToast('⚠️ Could not create proxies. Please contact support.', 'warning');
-                    }
-                }
             }
         }
 
-        // تفريغ السلة
         cart = [];
         activeDiscount = 0;
         activeDiscountCode = '';
@@ -2635,7 +2766,7 @@ async function sendOrderToTelegram(method, txHash = null) {
 }
 
 // ============================================================
-// 15.9 Proxy Functions
+// 15.8 Proxy Functions
 // ============================================================
 
 function renderProxyPackages() {
@@ -2677,47 +2808,6 @@ window.addProxyToCart = function(packageId) {
     showToast(`✅ Added ${pkg.name} to cart`, 'success');
 };
 
-async function sendProxyDetailsToUser(userId, proxyData, proxyItem) {
-    const userRef = doc(db, 'users', userId);
-    const userSnap = await getDoc(userRef);
-    if (!userSnap.exists()) return;
-
-    const userEmail = userSnap.data().email || userId;
-    const chatId = userSnap.data().telegramChatId;
-
-    const message = `
-🌐 **Proxy Details**
-
-📦 Package: ${proxyItem.name}
-🖥️ IP: ${proxyData.ip}
-🔌 Port: ${proxyData.port}
-👤 Username: ${proxyData.username}
-🔑 Password: ${proxyData.password}
-
-💡 Use this proxy with your preferred tool.
-    `;
-
-    // إرسال إشعار في التطبيق
-    await addDoc(collection(db, 'notifications'), {
-        userId: userId,
-        title: '🌐 Proxy Created!',
-        message: `Your proxy (${proxyData.ip}) is ready. Check your email for details.`,
-        readBy: [],
-        createdAt: serverTimestamp()
-    });
-
-    // إرسال تلغرام (نستخدم الدالة المخصصة للإشعارات)
-    await sendTelegramNotification(chatId, message);
-
-    // إرسال إلى الإدمن أيضاً للتأكيد
-    await addDoc(collection(db, 'notifications'), {
-        title: '✅ Proxy created',
-        message: `User: ${userEmail} - IP: ${proxyData.ip}`,
-        readBy: [],
-        createdAt: serverTimestamp()
-    });
-}
-
 // ============================================================
 // 16. Order Functions with User Notification
 // ============================================================
@@ -2745,32 +2835,10 @@ async function sendUserNotification(userId, title, message) {
     }
 }
 
-async function sendOrderConfirmations(userId, orderId, productsList, total, method) {
-    const productNames = productsList.map(item => {
-        const qtyLabel = item.selectedQuantity ? ` (${item.selectedQuantity})` : '';
-        const vipLabel = item.isVip ? ` 👑 ${item.vipPlanLabel || 'VIP'}` : '';
-        const proxyLabel = item.isProxy ? ' 🌐' : '';
-        return `${item.name}${vipLabel}${proxyLabel}${qtyLabel} × ${item.quantity || 1}`;
-    }).join(', ');
-    
-    await sendUserNotification(
-        userId,
-        '📦 Order Confirmed!',
-        `Your order #${orderId.slice(-6)} has been confirmed.\nProducts: ${productNames}\nTotal: $${total.toFixed(2)}\nPayment: ${method}`
-    );
-    
-    if (userProfile.telegramChatId) {
-        const userMsg = `📦 **Order Confirmed!**\n\n📎 **Order #${orderId.slice(-6)}**\n📅 ${new Date().toLocaleString()}\n💰 Total: $${total.toFixed(2)}\n💳 Method: ${method}\n\nThank you for your purchase! 🎉`;
-        await sendTelegramNotification(userProfile.telegramChatId, userMsg);
-        console.log('✅ Telegram notification sent to user');
-    }
-}
-
 // ============================================================
-// 17. Telegram Functions (keep for user binding - but token removed)
+// 17. Telegram Functions
 // ============================================================
 
-// This function is now used only for simple messages from frontend (if needed)
 async function sendTelegramNotification(chatId, message) {
     if (!chatId) return false;
     try {
@@ -3194,108 +3262,8 @@ window.openAdminPanel = function() {
 };
 
 function ensureSliderTab() {
-    const tabsContainer = document.querySelector('.admin-panel .tabs');
-    if (!tabsContainer) return;
-    if (!document.querySelector('.admin-panel .tabs button[onclick="switchAdminTab(\'slider\')"]')) {
-        const sliderTab = document.createElement('button');
-        sliderTab.setAttribute('onclick', "switchAdminTab('slider')");
-        sliderTab.textContent = '🎨 Slider';
-        tabsContainer.appendChild(sliderTab);
-    }
-    if (!document.querySelector('.admin-panel .tabs button[onclick="switchAdminTab(\'licences\')"]')) {
-        const licencesTab = document.createElement('button');
-        licencesTab.setAttribute('onclick', "switchAdminTab('licences')");
-        licencesTab.textContent = '🔑 Licences';
-        tabsContainer.appendChild(licencesTab);
-    }
-    if (!document.querySelector('.admin-panel .tabs button[onclick="switchAdminTab(\'marquee\')"]')) {
-        const marqueeTab = document.createElement('button');
-        marqueeTab.setAttribute('onclick', "switchAdminTab('marquee')");
-        marqueeTab.textContent = '🎬 Marquee';
-        tabsContainer.appendChild(marqueeTab);
-    }
-    const panelContent = document.querySelector('.admin-panel .modal-content');
-    if (panelContent && !document.getElementById('tabSlider')) {
-        const tabContent = document.createElement('div');
-        tabContent.className = 'tab-content';
-        tabContent.id = 'tabSlider';
-        tabContent.innerHTML = `
-            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
-                <h3 style="font-size:16px;font-weight:700;margin:0;"><i class="fas fa-images"></i> Slider Settings</h3>
-                <button class="add-btn" onclick="openAddSlideModal()"><i class="fas fa-plus"></i> Add Slide</button>
-            </div>
-            <div style="margin-bottom:12px;">
-                <label style="font-size:13px;font-weight:600;color:var(--text-secondary);opacity:0.6;display:block;margin-bottom:4px;">Rotation Interval (seconds)</label>
-                <div style="display:flex;gap:8px;align-items:center;">
-                    <input type="number" id="sliderIntervalInput" value="3" min="1" max="60" style="width:100px;padding:8px 12px;border:2px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-size:14px;" />
-                    <button class="admin-submit-btn" onclick="saveSliderInterval()" style="padding:8px 16px;font-size:13px;"><i class="fas fa-save"></i> Save</button>
-                </div>
-            </div>
-            <div id="sliderSlidesList">
-                <div style="text-align:center;padding:20px;color:var(--text-secondary);opacity:0.5;">No slides yet. Click "Add Slide" to get started.</div>
-            </div>
-        `;
-        const lastTab = panelContent.querySelector('.tab-content:last-of-type');
-        if (lastTab) {
-            lastTab.parentNode.insertBefore(tabContent, lastTab.nextSibling);
-        } else {
-            panelContent.appendChild(tabContent);
-        }
-    }
-    if (panelContent && !document.getElementById('tabLicences')) {
-        const tabContent = document.createElement('div');
-        tabContent.className = 'tab-content';
-        tabContent.id = 'tabLicences';
-        tabContent.innerHTML = `
-            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
-                <button class="add-btn" onclick="openCreateLicenceModal()"><i class="fas fa-plus"></i> Create Licence</button>
-                <button class="add-btn" onclick="refreshLicences()" style="background:var(--card-bg);"><i class="fas fa-sync"></i> Refresh</button>
-            </div>
-            <div class="admin-search-bar">
-                <input type="text" id="adminLicenceSearch" placeholder="🔍 Search by code, user, product..." onkeyup="searchLicences()" />
-                <button class="btn-search" onclick="searchLicences()"><i class="fas fa-search"></i></button>
-                <button class="btn-clear" onclick="clearLicenceSearch()"><i class="fas fa-times"></i></button>
-            </div>
-            <div id="adminLicencesList">
-                <div style="text-align:center;padding:30px;color:var(--text-secondary);">
-                    <i class="fas fa-info-circle"></i> Loading licences...
-                </div>
-            </div>
-        `;
-        const lastTab = panelContent.querySelector('.tab-content:last-of-type');
-        if (lastTab) {
-            lastTab.parentNode.insertBefore(tabContent, lastTab.nextSibling);
-        } else {
-            panelContent.appendChild(tabContent);
-        }
-    }
-    if (panelContent && !document.getElementById('tabMarquee')) {
-        const tabContent = document.createElement('div');
-        tabContent.className = 'tab-content';
-        tabContent.id = 'tabMarquee';
-        tabContent.innerHTML = `
-            <h3 style="font-size:16px;font-weight:700;margin-bottom:12px;"><i class="fas fa-scroll"></i> Marquee Settings</h3>
-            <div id="marqueeSettingsContainer">
-                <div class="admin-form-group">
-                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-                        <input type="checkbox" id="marqueeEnabled" checked />
-                        <span style="font-weight:600;color:var(--text);">Enable Marquee</span>
-                    </label>
-                </div>
-                <div class="admin-form-group">
-                    <label for="marqueeText">Marquee Text (separate items with | )</label>
-                    <textarea id="marqueeText" rows="3" placeholder="🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support" style="width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-size:14px;outline:none;font-family:var(--font);">🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support</textarea>
-                </div>
-                <button class="admin-submit-btn" onclick="saveMarqueeSettings()" style="margin-top:8px;"><i class="fas fa-save"></i> Save Settings</button>
-            </div>
-        `;
-        const lastTab = panelContent.querySelector('.tab-content:last-of-type');
-        if (lastTab) {
-            lastTab.parentNode.insertBefore(tabContent, lastTab.nextSibling);
-        } else {
-            panelContent.appendChild(tabContent);
-        }
-    }
+    // تم إضافة التبويبات في HTML مباشرة، لكن نترك هذه الدالة للتأكد في حال وجود أي تحديث ديناميكي
+    // لكن بما أننا أضفناها في HTML، هذه الدالة لن تفعل شيئاً لتجنب التكرار
 }
 
 window.closeAdminPanel = function() { document.getElementById('adminPanel').classList.remove('open'); if (unsubscribeAdmin) { unsubscribeAdmin(); unsubscribeAdmin = null; } };
@@ -3334,22 +3302,6 @@ window.switchAdminTab = function(tab) {
     if (tab === 'marquee') { renderMarqueeSettingsUI(); }
     if (tab === 'orders') {
         loadAdminOrders();
-        const refreshBtn = document.getElementById('adminRefreshOrdersBtn');
-        if (!refreshBtn) {
-            const btn = document.createElement('button');
-            btn.id = 'adminRefreshOrdersBtn';
-            btn.textContent = '🔄 Refresh Orders';
-            btn.className = 'admin-refresh-btn';
-            btn.style.cssText = 'padding:8px 16px;background:var(--primary);color:#fff;border:none;border-radius:8px;cursor:pointer;margin-bottom:12px;font-weight:600;';
-            btn.onclick = function() {
-                showToast('⏳ Refreshing...', 'info');
-                loadAdminOrders();
-            };
-            const container = document.getElementById('tabOrders');
-            if (container) {
-                container.insertBefore(btn, container.firstChild);
-            }
-        }
     }
     if (tab === 'payments') {
         refreshAdminPayments();
@@ -3684,9 +3636,6 @@ function renderAdminOrders(orders) {
     tbody.innerHTML = html;
 }
 
-// ============================================================
-// 22.1 Update Admin Stats (safe)
-// ============================================================
 function updateAdminStats(orders) {
     const total = orders.length;
     const pending = orders.filter(o => o.status === 'pending').length;
@@ -3730,7 +3679,6 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
         await updateDoc(userRef, { history: updatedHistory });
         
         if (newStatus === 'confirmed') {
-            // استخراج البريد الإلكتروني من الطلب أو المستخدم
             const userEmail = orderFound?.userEmail || data.email || userId;
             await sendUserNotification(
                 userId,
@@ -3786,14 +3734,13 @@ window.clearAdminSearch = function() { document.getElementById('adminSearchInput
 window.refreshAdminOrders = function() { loadAdminOrders(); showToast('🔄 Refreshed', 'info'); };
 
 // ============================================================
-// 24. Send Licence via Edge Function (مع إصلاح user_email)
+// 24. Send Licence via Edge Function
 // ============================================================
 
 async function sendLicenceForOrder(orderId, userId, userEmail = null) {
     try {
         console.log('🔍 sendLicenceForOrder called:', { orderId, userId, userEmail });
         
-        // إذا لم يتم تمرير البريد، حاول جلبه من Firestore
         let email = userEmail;
         if (!email) {
             const userRef = doc(db, 'users', userId);
@@ -3807,7 +3754,6 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
             }
         }
 
-        // جلب بيانات الطلب
         const userRef = doc(db, 'users', userId);
         const userSnap = await getDoc(userRef);
         if (!userSnap.exists()) {
@@ -3822,7 +3768,6 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
         }
         const productName = order.items?.[0]?.name || 'Product';
 
-        // استدعاء دالة create-licence في Supabase
         const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/create-licence', {
             method: 'POST',
             headers: {
@@ -3834,7 +3779,7 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
             body: JSON.stringify({
                 orderId,
                 userId,
-                userEmail: email, // الآن نرسل البريد الصحيح
+                userEmail: email,
                 productName,
                 telegramChatId: userData.telegramChatId || null
             })
@@ -3847,7 +3792,6 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
 
         console.log('✅ Licence created via backend:', data.licence);
 
-        // تحديث licences في Firestore للمستخدم
         const userLicences = userData.licences || [];
         const newLicence = {
             code: data.licence.code,
@@ -3859,7 +3803,6 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
         userLicences.push(newLicence);
         await updateDoc(userRef, { licences: userLicences });
 
-        // إذا كان المستخدم الحالي هو صاحب الطلب، حدّث الـ profile
         if (currentUser && currentUser.uid === userId) {
             userProfile.licences = userLicences;
             renderUserLicences();
@@ -3869,7 +3812,6 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
         showToast(`✅ Licence sent to user`, 'success');
     } catch (error) {
         console.error('❌ Error in sendLicenceForOrder:', error);
-        // إرسال إشعار داخلي للإدمن
         await addDoc(collection(db, 'notifications'), {
             title: '❌ Failed to send licence',
             message: `Order: ${orderId} - User: ${userId} - Error: ${error.message}`,
@@ -4393,10 +4335,28 @@ function renderRatingSection(productId) {
     const isLoggedIn = currentUser && !currentUser.isAnonymous;
     section.innerHTML = `
         <div class="rating-section">
-            <div class="rating-avg"><span class="stars-small" id="ratingAvgStars">☆☆☆☆☆</span><span class="count" id="ratingCountDisplay">(0 reviews)</span><span style="font-weight:700;color:var(--vip-color);margin-left:4px;" id="ratingAvgDisplay">0.0</span></div>
-            <div id="ratingReviewsList" style="max-height:150px;overflow-y:auto;margin-bottom:8px;"><div style="text-align:center;padding:10px;color:var(--text-secondary);opacity:0.4;">Loading reviews...</div></div>
-            ${canRate ? `<div style="border-top:1px solid var(--border);padding-top:10px;margin-top:8px;"><div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">⭐ Rate this product</div><div class="rating-stars" id="ratingStarsContainer">${renderStarHTML(0)}</div><textarea class="rating-comment-input" id="ratingCommentInput" placeholder="Share your experience... (optional)" rows="2"></textarea><button class="rating-submit-btn" onclick="submitRating('${productId}')"><i class="fas fa-paper-plane"></i> Submit Review</button></div>` : (isLoggedIn ? `<div style="font-size:12px;color:var(--text-secondary);opacity:0.4;text-align:center;padding:4px;">📌 Purchase this product to leave a review</div>` : `<div style="font-size:12px;color:var(--text-secondary);opacity:0.4;text-align:center;padding:4px;">🔒 Login to rate this product</div>`)}
-        </div>`;
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px;">
+                <span class="stars-small" id="ratingAvgStars" style="font-size:18px;">☆☆☆☆☆</span>
+                <span class="count" id="ratingCountDisplay" style="font-size:13px;color:var(--text-secondary);opacity:0.5;">(0 reviews)</span>
+                <span style="font-weight:700;color:var(--vip-color);font-size:16px;" id="ratingAvgDisplay">0.0</span>
+            </div>
+            <div id="ratingReviewsList" style="max-height:150px;overflow-y:auto;margin-bottom:8px;font-size:13px;">
+                <div style="text-align:center;padding:8px;color:var(--text-secondary);opacity:0.4;">Loading reviews...</div>
+            </div>
+            ${canRate ? `
+                <div style="border-top:1px solid var(--border);padding-top:10px;margin-top:8px;">
+                    <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">⭐ Rate this product</div>
+                    <div class="rating-stars" id="ratingStarsContainer">${renderStarHTML(0)}</div>
+                    <textarea class="rating-comment-input" id="ratingCommentInput" placeholder="Share your experience... (optional)" rows="2" style="width:100%;padding:8px 12px;border:2px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-family:var(--font);resize:vertical;margin-top:4px;"></textarea>
+                    <button class="rating-submit-btn" onclick="submitRating('${productId}')" style="padding:6px 16px;border:none;border-radius:var(--radius-sm);background:var(--primary);color:#fff;font-weight:600;cursor:pointer;margin-top:4px;"><i class="fas fa-paper-plane"></i> Submit Review</button>
+                </div>
+            ` : (isLoggedIn ? `
+                <div style="font-size:12px;color:var(--text-secondary);opacity:0.4;text-align:center;padding:4px;">📌 Purchase this product to leave a review</div>
+            ` : `
+                <div style="font-size:12px;color:var(--text-secondary);opacity:0.4;text-align:center;padding:4px;">🔒 Login to rate this product</div>
+            `)}
+        </div>
+    `;
     loadRatings(productId);
 }
 
@@ -4950,7 +4910,6 @@ window.renderHistoryFull = function() {
         return;
     }
 
-    // تحويل الطلبات إلى صيغة المدفوعات
     let paymentItems = history.map(order => {
         let currencyCode = 'LTC';
         let amount = 0;
@@ -4974,7 +4933,6 @@ window.renderHistoryFull = function() {
         };
     });
 
-    // تطبيق الفلاتر
     let filtered = paymentItems.filter(p => {
         const matchCurrency = currency === 'all' || p.currency === currency;
         const matchStatus = status === 'all' || p.status === status;
@@ -4983,7 +4941,6 @@ window.renderHistoryFull = function() {
 
     const isLtcFilter = (currency === 'LTC');
 
-    // إظهار/إخفاء ملاحظة التأخير
     const delayNote = document.getElementById('historyDelayNote');
     if (delayNote) {
         delayNote.style.display = isLtcFilter ? 'block' : 'none';
@@ -5035,7 +4992,6 @@ window.renderHistoryFull = function() {
     container.innerHTML = html;
 };
 
-// ربط أحداث الفلاتر
 document.addEventListener('DOMContentLoaded', function() {
     const currencyFilter = document.getElementById('historyCurrencyFilter');
     const statusFilter = document.getElementById('historyStatusFilter');
@@ -5681,7 +5637,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================================
-// 42. Export all functions to global scope (including missing ones)
+// 42. Export all functions to global scope
 // ============================================================
 
 window.filterOrders = function(filter) {
@@ -5696,7 +5652,7 @@ window.checkout = function() {
     openPaymentModal();
 };
 
-// Payment Modal Functions (FIX)
+// Payment Modal Functions
 window.openPaymentModal = function() {
     if (cart.length === 0) {
         showToast('⚠️ Cart is empty', 'warning');
@@ -5815,9 +5771,9 @@ window.applyCartPromo = applyCartPromo;
 window.showTelegramBannerAgain = showTelegramBannerAgain;
 window.adminToggleBanner = adminToggleBanner;
 window.resetBannerForAll = resetBannerForAll;
-window.closePreviewModal = closePreviewModal;
-window.addToCartFromPreview = addToCartFromPreview;
-window.shareFromPreview = shareFromPreview;
+window.closeProductDetails = closeProductDetails;
+window.closePreviewModal = closeProductDetails; // for backward compatibility
+window.addToCartFromDetails = addToCartFromDetails;
 window.refreshDashboardStats = refreshDashboardStats;
 window.loadDashboardStats = loadDashboardStats;
 window.selectVipPlan = selectVipPlan;
