@@ -211,10 +211,7 @@ function hideLoadingScreen() {
         setTimeout(() => {
             screen.style.display = 'none';
         }, 600);
-
-
-
-        
+        console.log('✅ Loading screen hidden');
     }
 }
 
@@ -247,7 +244,7 @@ window.showMainApp = function() {
         mainApp.style.display = 'block';
         mainApp.style.visibility = 'visible';
         mainApp.style.opacity = '1';
-        
+        console.log('✅ Main app shown');
         return true;
     }
     console.warn('⚠️ Main app element not found');
@@ -264,11 +261,11 @@ async function checkIsAdmin() {
     adminCheckPromise = (async () => {
         try {
             const uid = currentUser.uid;
-            
+            console.log('🔍 Checking admin for UID:', uid);
             const adminRef = doc(db, 'admins', uid);
             const adminSnap = await getDoc(adminRef);
             const isAdmin = adminSnap.exists() && adminSnap.data().isAdmin === true;
-            
+            console.log('✅ Admin status:', isAdmin);
             isAdminCached = isAdmin;
             return isAdmin;
         } catch (error) {
@@ -297,7 +294,7 @@ window.ensureAdminPanel = function() {
     if (isAdminCached) {
         if (adminMenuItem) {
             adminMenuItem.style.display = 'flex';
-            
+            console.log('✅ Admin panel already active');
         }
         return true;
     }
@@ -306,7 +303,7 @@ window.ensureAdminPanel = function() {
             isAdminCached = true;
             if (adminMenuItem) {
                 adminMenuItem.style.display = 'flex';
-                
+                console.log('✅ Admin panel activated successfully');
             }
             updateFullUserMenu();
             updateUI();
@@ -388,7 +385,7 @@ let lastUserLoadTime = 0;
 function startUserRealtimeListener() {
     if (unsubscribeUser) { unsubscribeUser(); unsubscribeUser = null; }
     if (!currentUser) {
-        
+        console.log('ℹ️ No authenticated user, skipping realtime listener');
         return;
     }
     const uid = currentUser.uid;
@@ -446,7 +443,7 @@ function startUserRealtimeListener() {
 
 async function loadUserData() {
     if (!currentUser) {
-        
+        console.log('ℹ️ No authenticated user, loading from localStorage');
         loadFromLocalStorage();
         return;
     }
@@ -645,7 +642,7 @@ function updateFullUserMenu() {
         if (isAdminCached) {
             adminMenuItem.style.display = 'flex';
             if (pendingCount > 0) { adminBadge.style.display = 'inline-block'; adminBadge.textContent = pendingCount; } else { adminBadge.style.display = 'none'; }
-            
+            console.log('✅ Admin menu displayed');
         } else {
             adminMenuItem.style.display = 'none';
         }
@@ -694,7 +691,7 @@ window.loginUser = async function() {
             updateDropdownStats();
             
             if (isAdminCached) {
-                
+                console.log('✅ Admin detected, loading admin features');
                 loadAdminOrders();
                 startAdminRealtimeListener();
                 loadLicences();
@@ -702,7 +699,7 @@ window.loginUser = async function() {
                     const adminMenuItem = document.getElementById('adminMenuItem');
                     if (adminMenuItem) {
                         adminMenuItem.style.display = 'flex';
-                        
+                        console.log('✅ Admin menu button displayed');
                     }
                     updateFullUserMenu();
                 }, 200);
@@ -806,7 +803,7 @@ window.loginWithGoogle = function() {
                 updateDropdownStats();
 
                 if (isAdminCached) {
-                    
+                    console.log('✅ Admin detected, loading admin features');
                     loadAdminOrders();
                     startAdminRealtimeListener();
                     loadLicences();
@@ -814,7 +811,7 @@ window.loginWithGoogle = function() {
                         const adminMenuItem = document.getElementById('adminMenuItem');
                         if (adminMenuItem) {
                             adminMenuItem.style.display = 'flex';
-                            
+                            console.log('✅ Admin menu button displayed');
                         }
                         updateFullUserMenu();
                     }, 200);
@@ -1135,12 +1132,12 @@ window.changePasswordInline = async function() { if (!currentUser) return; const
 
 async function loadProductsFromFirestore() {
     try {
-        
+        console.log('🔄 Loading products from Firestore...');
         const productsRef = collection(db, 'products');
         const querySnapshot = await getDocs(query(productsRef, orderBy('createdAt', 'desc')));
         const productsList = [];
         querySnapshot.forEach((doc) => { productsList.push({ id: doc.id, ...doc.data() }); });
-        
+        console.log(`✅ Loaded ${productsList.length} products from Firestore`);
         if (productsList.length === 0) {
             console.warn('⚠️ No products in Firestore, using fallback');
             return fallbackProducts;
@@ -1160,7 +1157,7 @@ function startProductsRealtimeListener() {
     unsubscribeProducts = onSnapshot(query(productsRef, orderBy('createdAt', 'desc')), (snapshot) => {
         const productsList = [];
         snapshot.forEach((doc) => { productsList.push({ id: doc.id, ...doc.data() }); });
-        
+        console.log(`🔄 Products updated: ${productsList.length} products`);
         if (productsList.length === 0) {
             console.warn('⚠️ No products in Firestore, using fallback');
             products = fallbackProducts;
@@ -1179,7 +1176,7 @@ function startProductsRealtimeListener() {
     }, (error) => {
         console.error('Products listener error:', error);
         products = fallbackProducts;
-        
+        console.log(`⚠️ Using fallback products (${products.length})`);
         renderProducts(products, false);
         renderAdminProducts(products);
         updateStatsFromProducts(products);
@@ -1216,7 +1213,7 @@ function renderProducts(productsList, isLoading = false) {
         console.warn('⚠️ productList element not found!');
         return;
     }
-    
+    console.log(`🔄 Rendering products, count: ${productsList.length}, loading: ${isLoading}`);
     if (isLoading) {
         container.innerHTML = Array(4).fill(`
             <div class="product-card skeleton">
@@ -2493,7 +2490,7 @@ async function sendOrderToTelegram(method, txHash = null) {
         const proxyItems = cart.filter(item => item.isProxy);
         if (proxyItems.length > 0) {
             if (DISABLE_PROXY) {
-                 
+                console.log('ℹ️ Proxy creation is disabled.');
                 showToast('📦 Proxy details will be sent within 24 hours.', 'info');
                 await addDoc(collection(db, 'notifications'), {
                     title: 'ℹ️ Proxy request pending',
@@ -2664,7 +2661,7 @@ async function sendUserNotification(userId, title, message) {
         const userRef = doc(db, 'users', userId);
         const userSnap = await getDoc(userRef);
         if (!userSnap.exists()) {
-            
+            console.log('ℹ️ User not found, skipping notification');
             return;
         }
         await addDoc(collection(db, 'notifications'), {
@@ -2675,7 +2672,7 @@ async function sendUserNotification(userId, title, message) {
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
         });
-         
+        console.log('✅ User notification sent to:', userId);
     } catch (error) {
         console.error('Error sending user notification:', error);
     }
@@ -2698,7 +2695,7 @@ async function sendOrderConfirmations(userId, orderId, productsList, total, meth
     if (userProfile.telegramChatId) {
         const userMsg = `📦 **Order Confirmed!**\n\n📎 **Order #${orderId.slice(-6)}**\n📅 ${new Date().toLocaleString()}\n💰 Total: $${total.toFixed(2)}\n💳 Method: ${method}\n\nThank you for your purchase! 🎉`;
         await sendTelegramNotification(userProfile.telegramChatId, userMsg);
-        
+        console.log('✅ Telegram notification sent to user');
     }
 }
 
@@ -3506,13 +3503,13 @@ async function deleteProductFromFirestore(productId) {
 function startAdminRealtimeListener() {
     if (unsubscribeAdmin) { unsubscribeAdmin(); }
     if (!currentUser || !isAdminCached) {
-         
+        console.log('ℹ️ Admin listener skipped (not admin)');
         return;
     }
     const usersRef = collection(db, 'users');
-    
+    console.log('🔄 Admin listener starting...');
     unsubscribeAdmin = onSnapshot(usersRef, (snapshot) => {
-        
+        console.log('🔄 Admin listener triggered, snapshot size:', snapshot.size);
         let orders = [];
         let pending = 0, confirmed = 0, rejected = 0;
         snapshot.forEach((userDoc) => {
@@ -3548,7 +3545,7 @@ function startAdminRealtimeListener() {
 
 function loadAdminOrders() {
     if (!currentUser || !isAdminCached) {
-         
+        console.log('ℹ️ loadAdminOrders skipped (not admin)');
         return;
     }
     const tbody = document.getElementById('adminOrdersBody');
@@ -3725,7 +3722,7 @@ window.refreshAdminOrders = function() { loadAdminOrders(); showToast('🔄 Refr
 
 async function sendLicenceForOrder(orderId, userId, userEmail = null) {
     try {
-         
+        console.log('✅ sendLicenceForOrder called');
         let email = userEmail;
         if (!email) {
             const userRef = doc(db, 'users', userId);
@@ -3775,7 +3772,7 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
             throw new Error(data.error || 'Failed to create licence');
         }
 
-        
+        console.log('✅ Licence created via backend');
 
         const userLicences = userData.licences || [];
         const newLicence = {
@@ -3813,7 +3810,7 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
 
 async function loadAdminUsers() {
     if (!currentUser || !isAdminCached) {
-         
+        console.log('ℹ️ loadAdminUsers skipped (not admin)');
         return;
     }
     const container = document.getElementById('adminUsersContainer');
@@ -5031,13 +5028,13 @@ function enableAnalytics() {
     try {
         if (typeof analytics !== 'undefined' && analytics.setAnalyticsCollectionEnabled) {
             analytics.setAnalyticsCollectionEnabled(true);
-             
+            console.log('✅ Firebase Analytics enabled');
         }
         if (typeof gtag !== 'undefined') {
             gtag('consent', 'update', {
                 'analytics_storage': 'granted'
             });
-            
+            console.log('✅ Google Analytics enabled');
         }
     } catch (e) {
         console.log('⚠️ Analytics enable error:', e);
@@ -5416,7 +5413,7 @@ onAuthStateChanged(auth, async (user) => {
         } catch (error) { console.error('Error checking ban status:', error); }
 
         await refreshAdminStatus();
-         
+        console.log('🔍 Admin status after login:', isAdminCached);
 
         if (authSection) authSection.style.display = 'none';
         if (mainApp) mainApp.style.display = 'block';
@@ -5425,7 +5422,7 @@ onAuthStateChanged(auth, async (user) => {
         updateDropdownStats();
 
         if (isAdminCached) {
-            
+            console.log('✅ Admin detected, loading admin features');
             loadAdminOrders();
             startAdminRealtimeListener();
             renderAdminProducts(products);
@@ -5488,7 +5485,7 @@ setInterval(() => {
         const mainApp = document.getElementById('mainApp');
         if (mainApp && mainApp.style.display === 'none') {
             mainApp.style.display = 'block';
-            
+            console.log('✅ Main app forced visible (user logged in)');
         }
         if (!isAdminCached) {
             window.ensureAdminPanel();
@@ -5497,7 +5494,7 @@ setInterval(() => {
         const mainApp = document.getElementById('mainApp');
         if (mainApp && mainApp.style.display !== 'none') {
             mainApp.style.display = 'none';
-            
+            console.log('✅ Main app hidden (no user)');
         }
     }
 }, 5000);
@@ -5536,7 +5533,7 @@ async function init() {
         setInterval(fetchCryptoPrices, 60000);
 
         updateLoadingText('✅ Ready!');
-         
+        console.log('✅ ZI Store ready with all features!');
         setTimeout(fixDirection, 100);
         setTimeout(window.ensureAdminPanel, 3000);
         setTimeout(checkCookieConsent, 1500);
