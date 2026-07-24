@@ -152,7 +152,7 @@
         #toast.info { border-color: var(--primary); }
         .toast-icon { font-size: 18px; }
 
-        /* ===== Header ===== */
+        /* ===== Header (sticky) ===== */
         .header {
             display: flex;
             align-items: center;
@@ -594,6 +594,166 @@
         }
         .product-card .product-footer-icons .icon-item i { margin-right: 2px; }
 
+        /* ===== Product Detail Section (الصفحة نفسها) ===== */
+        #productDetailSection {
+            padding: 0 16px 20px;
+            animation: fadeIn 0.3s ease;
+        }
+        .detail-back-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 16px;
+            cursor: pointer;
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+        .detail-back-btn:hover {
+            color: var(--primary);
+        }
+        .detail-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .detail-card .detail-image {
+            width: 100%;
+            border-radius: var(--radius-sm);
+            max-height: 300px;
+            object-fit: cover;
+            border: 1px solid var(--border);
+        }
+        .detail-card .detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .detail-card .detail-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0;
+            color: var(--text);
+        }
+        .detail-card .detail-badge {
+            padding: 4px 16px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #0a0a1a;
+        }
+        .detail-card .detail-badge.vip { background: var(--vip-color); }
+        .detail-card .detail-badge.free { background: var(--free-color); }
+        .detail-card .detail-badge.unavailable { background: var(--danger); color: #fff; }
+        .detail-card .detail-verified {
+            color: var(--success);
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .detail-card .detail-verified i { margin-right: 6px; }
+        .detail-card .detail-description {
+            color: var(--text-secondary);
+            font-size: 15px;
+            line-height: 1.6;
+            margin: 0;
+        }
+        .detail-card .detail-video {
+            width: 100%;
+            height: 220px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+        .detail-card .detail-features {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 8px 0;
+        }
+        .detail-card .detail-features li {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            padding: 4px 14px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .detail-card .detail-features li i {
+            color: var(--success);
+            margin-right: 6px;
+        }
+        .detail-card .detail-bottom {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+        .detail-card .detail-price {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--primary);
+        }
+        .detail-card .detail-add-btn {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--radius-sm);
+            background: var(--primary);
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-width: 120px;
+        }
+        .detail-card .detail-add-btn:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+        }
+        .detail-card .detail-add-btn.added {
+            background: var(--success);
+        }
+        .detail-card .detail-share-btn {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            color: var(--text);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .detail-card .detail-share-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+        }
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
         /* ===== Bottom Cart Bar ===== */
         #bottomCartBar {
             position: fixed;
@@ -831,10 +991,6 @@
         }
         #adminPanel .tab-content.active {
             display: block;
-        }
-        @keyframes fadeIn {
-            0% { opacity: 0; transform: translateY(6px); }
-            100% { opacity: 1; transform: translateY(0); }
         }
 
         /* ===== Admin Items ===== */
@@ -1175,6 +1331,9 @@
             .slide-title { font-size: 16px; }
             .auth-container { padding: 20px 16px; }
             #adminPanel .tabs button { font-size: 12px; padding: 4px 10px; }
+            .detail-card .detail-header h2 { font-size: 20px; }
+            .detail-card .detail-price { font-size: 22px; }
+            .detail-card .detail-add-btn { font-size: 14px; padding: 10px 16px; }
         }
         @media (min-width: 768px) {
             .product-grid { grid-template-columns: repeat(3, 1fr); }
@@ -1799,7 +1958,7 @@
             cursor: pointer;
         }
 
-        /* ===== Payment History Card (used inside Order History) ===== */
+        /* ===== Payment History Card ===== */
         .payment-card {
             background: var(--card-bg);
             border: 1px solid var(--border);
@@ -1916,7 +2075,7 @@
         }
         .payment-delay-note i { color: #3fcb7a; margin-right: 6px; }
 
-        /* ===== تحسينات لتنسيق الملف الشخصي ===== */
+        /* ===== Profile ===== */
         .profile-container {
             display: flex;
             flex-direction: column;
@@ -1988,7 +2147,6 @@
             color: var(--text-secondary);
             opacity: 0.4;
         }
-
         .edit-profile-section,
         .password-section,
         .telegram-section {
@@ -2055,7 +2213,6 @@
             transition: var(--transition);
         }
         .btn-cancel:hover { background: var(--bg); }
-
         .ps-email {
             display: flex;
             justify-content: space-between;
@@ -2137,7 +2294,7 @@
     <!-- ===== MAIN APP ===== -->
     <div id="mainApp" style="display:none;">
 
-        <!-- ===== HEADER ===== -->
+        <!-- ===== HEADER (sticky) ===== -->
         <header class="header">
             <div class="logo"><i class="fas fa-crown"></i> ZI Store</div>
             <div class="header-actions">
@@ -2207,7 +2364,15 @@
         </div>
 
         <!-- ===== PRODUCT GRID ===== -->
-        <div class="product-grid" id="productList"></div>
+        <div id="productList" class="product-grid"></div>
+
+        <!-- ===== PRODUCT DETAIL SECTION (تظهر بدلاً من النافذة المنبثقة) ===== -->
+        <div id="productDetailSection" style="display:none;">
+            <button class="detail-back-btn" onclick="closeProductDetail()">
+                <i class="fas fa-arrow-left"></i> Back to products
+            </button>
+            <div id="productDetailContent"></div>
+        </div>
 
         <!-- ===== FEATURED ===== -->
         <div style="padding:0 16px 8px; font-size:18px; font-weight:700; color:var(--primary);">⭐ Featured</div>
@@ -2329,12 +2494,11 @@
         <div id="profileFullContent" style="flex:1; overflow-y:auto;"></div>
     </div>
 
-    <!-- ===== ORDER HISTORY FULL (Unified with Payment Design) ===== -->
+    <!-- ===== ORDER HISTORY FULL ===== -->
     <div class="fullscreen-modal" id="historyFull">
         <div class="modal-header">
             <h2><i class="fas fa-shopping-bag"></i> Order History</h2>
             <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-                <!-- Currency Filter -->
                 <div style="display:flex; align-items:center; gap:4px; background:var(--bg); padding:4px 10px; border-radius:30px; border:1px solid var(--border);">
                     <i class="fas fa-coins" style="color:var(--text-secondary); opacity:0.4;"></i>
                     <select id="historyCurrencyFilter" style="background:transparent; border:none; color:var(--text); font-family:var(--font); font-size:13px; padding:4px 0; outline:none; cursor:pointer;">
@@ -2345,7 +2509,6 @@
                         <option value="USDT">USDT</option>
                     </select>
                 </div>
-                <!-- Status Filter -->
                 <div style="display:flex; align-items:center; gap:4px; background:var(--bg); padding:4px 10px; border-radius:30px; border:1px solid var(--border);">
                     <i class="fas fa-circle-check" style="color:var(--text-secondary); opacity:0.4;"></i>
                     <select id="historyStatusFilter" style="background:transparent; border:none; color:var(--text); font-family:var(--font); font-size:13px; padding:4px 0; outline:none; cursor:pointer;">
@@ -2355,16 +2518,13 @@
                         <option value="rejected">Rejected</option>
                     </select>
                 </div>
-                <!-- Clear All -->
                 <button onclick="clearOrderHistory()" style="padding:4px 12px; border:1px solid var(--danger); border-radius:20px; background:transparent; color:var(--danger); cursor:pointer; font-size:12px;">Clear All</button>
-                <!-- Close -->
                 <button class="close-btn" onclick="closeHistoryFull()" style="background:none; border:none; color:var(--text-secondary); font-size:24px; cursor:pointer; padding:0 4px;">&times;</button>
             </div>
         </div>
         <div id="historyFullContent" style="flex:1; overflow-y:auto; padding:8px 0;">
             <div style="text-align:center; padding:30px; color:var(--text-secondary);">Loading orders...</div>
         </div>
-        <!-- Delay Note (shown only when LTC filter is active) -->
         <div id="historyDelayNote" class="payment-delay-note">
             <i class="fas fa-clock"></i> Payments are reviewed and sent within 24–48 hours
         </div>
@@ -2513,7 +2673,6 @@
                     </div>
                 </div>
 
-                <!-- Total Amount -->
                 <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
                     <div style="display:flex; justify-content:space-between; font-size:16px; font-weight:600;">
                         <span>Total Amount:</span>
@@ -2536,7 +2695,6 @@
                     <span id="step2Total">$0.00</span>
                 </div>
 
-                <!-- Wallet Info (LTC/USDT) -->
                 <div id="paymentWalletInfo" style="display:none; background:var(--bg-secondary); border-radius:var(--radius-md); padding:12px; border:1px solid var(--border); margin-top:8px;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <span id="paymentMethodName">Litecoin</span>
@@ -2551,18 +2709,15 @@
                     <div style="font-size:13px; font-weight:600; color:var(--vip-color); margin-top:2px;" id="cryptoAmount">0.0000 LTC</div>
                 </div>
 
-                <!-- Tx Hash Input (LTC/USDT) -->
                 <div id="paymentTxInput" style="display:none; margin-top:8px;">
                     <label style="font-size:13px; font-weight:600;">📋 Transaction Hash</label>
                     <input type="text" id="transactionHashInput" placeholder="Paste transaction hash" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--card-bg); color:var(--text); font-size:14px; outline:none; font-family:var(--font);" />
                 </div>
 
-                <!-- Telegram Contact -->
                 <div id="paymentTelegramContact" style="display:none; margin-top:8px;">
                     <button class="payment-btn" onclick="placeOrderTelegram()" style="background:#0088cc;"><i class="fab fa-telegram-plane"></i> Contact via Telegram</button>
                 </div>
 
-                <!-- ===== BINANCE ID SECTION ===== -->
                 <div id="paymentBinanceIdSection" class="binance-id-section" style="display:none; margin-top:8px;">
                     <div class="binance-id-box">
                         <div class="bi-header">
@@ -2641,7 +2796,6 @@
                     </div>
                 </div>
 
-                <!-- Main Confirm Button -->
                 <button class="payment-btn" id="mainConfirmBtn" style="display:none; margin-top:12px;"><i class="fas fa-check"></i> Confirm Payment</button>
 
                 <button class="payment-btn" onclick="goToStep1()" style="background:transparent; color:var(--text-secondary); border:1px solid var(--border); margin-top:8px;">Back</button>
@@ -2650,39 +2804,8 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- ===== PREVIEW MODAL ===== -->
-    <!-- ============================================================ -->
-    <div class="modal" id="previewModal">
-        <div class="modal-content" style="max-width:560px;">
-            <span class="modal-close" onclick="closePreviewModal()">&times;</span>
-            <div style="display:flex; flex-direction:column; gap:12px;">
-                <img id="previewImage" src="https://picsum.photos/seed/default/400/300" alt="Product" style="width:100%; border-radius:var(--radius-sm); max-height:220px; object-fit:cover;" />
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h2 id="previewName" style="font-size:20px;">Product Name</h2>
-                    <span id="previewBadge" style="background:var(--vip-color); padding:2px 12px; border-radius:20px; font-size:12px; font-weight:700; color:#0a0a1a;">VIP</span>
-                </div>
-                <div id="previewVerified" style="font-size:13px; color:var(--success); font-weight:600;">✅ 100% VERIFIED</div>
-                <p id="previewDescription" style="color:var(--text-secondary); font-size:14px;">Description</p>
-                <div id="previewVideoContainer" style="display:none;">
-                    <iframe id="previewVideo" width="100%" height="200" src="" frameborder="0" allowfullscreen style="border-radius:var(--radius-sm);"></iframe>
-                </div>
-                <div id="previewFeatures" style="display:none;"></div>
-                <div id="previewVipPricing" style="display:none;">
-                    <div style="font-weight:600; margin-bottom:6px;">👑 VIP Plans</div>
-                    <div id="vipPricingGrid" style="display:grid; grid-template-columns:1fr 1fr; gap:6px;"></div>
-                    <button class="vip-add-to-cart" style="width:100%; padding:10px; margin-top:6px; border:none; border-radius:var(--radius-sm); background:var(--vip-color); color:#0a0a1a; font-weight:700; cursor:pointer;">Add VIP Plan</button>
-                </div>
-                <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-                    <span style="font-size:22px; font-weight:700; color:var(--primary);" id="previewPrice">$0.00</span>
-                    <button id="previewAddBtn" style="flex:1; padding:10px; border:none; border-radius:var(--radius-sm); background:var(--primary); color:#fff; font-weight:700; cursor:pointer;">Add to Cart</button>
-                    <button onclick="shareFromPreview()" style="background:var(--card-bg); border:1px solid var(--border); border-radius:50%; width:40px; height:40px; color:var(--text); cursor:pointer;"><i class="fas fa-share-alt"></i></button>
-                </div>
-                <div id="ratingSection"></div>
-            </div>
-        </div>
-    </div>
-
     <!-- ===== SHARE MODAL ===== -->
+    <!-- ============================================================ -->
     <div class="modal" id="shareModal">
         <div class="modal-content" style="max-width:400px; text-align:center;">
             <span class="modal-close" onclick="closeShareModal()">&times;</span>
@@ -2718,7 +2841,6 @@
                     <div class="auth-error" id="loginError"></div>
                     <div class="auth-success" id="loginSuccess"></div>
                     <button type="submit" class="auth-btn" id="loginBtn"><i class="fas fa-sign-in-alt"></i> Login</button>
-                    <!-- ===== تم إضافة المعرف id="googleLoginBtn" هنا ===== -->
                     <button type="button" id="googleLoginBtn" class="auth-btn google-btn" onclick="loginWithGoogle()" style="margin-top:8px;"><i class="fab fa-google"></i> Sign in with Google</button>
                     <div class="auth-switch">Don't have an account? <a onclick="showRegister()">Register</a></div>
                     <div style="text-align:center; margin-top:8px;">
