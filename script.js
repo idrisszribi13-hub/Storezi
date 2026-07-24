@@ -5516,10 +5516,16 @@ async function init() {
         const productsFromFirestore = await loadProductsFromFirestore();
         products = productsFromFirestore;
 
+        // ========== FORCE FALLBACK IF PRODUCTS ARE EMPTY ==========
+        if (!products || products.length === 0) {
+            console.warn('⚠️ Products are empty, using fallback products directly');
+            products = fallbackProducts;
+        }
+        renderProducts(products, false);
+
         updateLoadingText('Initializing app...');
         startProductsRealtimeListener();
         await loadUserData();
-        renderProducts(products, false);
         renderFeaturedProducts();
         generateRecommendations(products);
         updateBottomCartBar();
