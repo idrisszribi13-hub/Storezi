@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZI Store - إعادة تعيين الجهاز</title>
+    <style>
+        body { font-family: Tahoma, sans-serif; background: #0f172a; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: #1e293b; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); width: 100%; max-width: 400px; text-align: center; }
+        input { width: 90%; padding: 12px; margin: 15px 0; border: 1px solid #475569; background: #0f172a; color: #fff; border-radius: 8px; font-size: 16px; }
+        button { background: #2563eb; color: white; border: none; padding: 12px 20px; width: 100%; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #1d4ed8; }
+        #msg { margin-top: 15px; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>ZI Store</h2>
+    <p>إعادة تعيين ربط الجهاز (Device Reset)</p>
+    <input type="email" id="email" placeholder="أدخل إيميل حسابك هنا...">
+    <button onclick="resetDevice()">إعادة التعيين الآن</button>
+    <div id="msg"></div>
+</div>
+
+<script>
+async function resetDevice() {
+    const email = document.getElementById('email').value.trim();
+    const msg = document.getElementById('msg');
+    
+    if(!email) {
+        msg.style.color = "#f87171";
+        msg.innerText = "الرجاء إدخال البريد الإلكتروني!";
+        return;
+    }
+    
+    msg.style.color = "#fbbf24";
+    msg.innerText = "جاري المعالجة...";
+    
+    try {
+        const response = await fetch("https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/reset-device", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer sb_publishable_1uSIqgNONAV53GjOoBoZUw_niAGJXO6"
+            },
+            body: JSON.stringify({ email: email })
+        });
+        
+        const result = await response.json();
+        
+        if(response.ok && result.success) {
+            msg.style.color = "#4ade80";
+            msg.innerText = "تم إعادة تعيين الجهاز بنجاح! يمكنك الدخول من هاتفك الجديد الآن.";
+        } else {
+            msg.style.color = "#f87171";
+            msg.innerText = "خطأ: " + (result.error || "فشل الطلب");
+        }
+    } catch(err) {
+        msg.style.color = "#f87171";
+        msg.innerText = "حدث خطأ في الاتصال بالخادم.";
+    }
+}
+</script>
+
+</body>
+</html>
