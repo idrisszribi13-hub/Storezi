@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - Full Version with PRODUCT DETAILS FULL PAGE
+// SCRIPT.JS - ZI Store - Full Version with ALL Fixes
 // ============================================================
 
 // ============================================================
@@ -87,21 +87,16 @@ isSupported().then(supported => {
 // Global Variables & Constants
 // ============================================================
 
-// TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID removed for security
 const BOT_USERNAME = 'Zistore_Notif_bot';
 const RP_TO_DOLLAR = 0.1;
 
-// Cloudinary settings
 const CLOUDINARY_CLOUD_NAME = 'y14bgb5s';
 const CLOUDINARY_UPLOAD_PRESET = 'zi_store_uploads';
 
-// Disable proxy creation temporarily
 const DISABLE_PROXY = true;
 
-// Admin email
 const ADMIN_EMAIL = 'idriss.zribi13@gmail.com';
 
-// Proxy packages definition
 const proxyPackages = [
     { id: 'proxy_1', name: '1 Proxy - 30 Days', price: 5, duration: 30, quantity: 1, plan: 'residential' },
     { id: 'proxy_2', name: '5 Proxies - 30 Days', price: 20, duration: 30, quantity: 5, plan: 'residential' },
@@ -1506,8 +1501,35 @@ async function loadFeaturedSettings() {
 }
 
 // ============================================================
-// 11. Cart Management
+// 11. Cart Management (with "View Cart" button)
 // ============================================================
+
+// Function to update a specific product card's add button to "View Cart"
+function updateProductCardButton(productId) {
+    // Find the product card in the grid
+    const cards = document.querySelectorAll('.product-card');
+    cards.forEach(card => {
+        // Check if this card belongs to the product
+        const productCard = card.closest('.product-card');
+        if (productCard) {
+            // We need to find the button inside this card
+            const addBtn = productCard.querySelector('.btn-add-cart');
+            if (addBtn) {
+                // Check if the product id matches
+                const onclickAttr = addBtn.getAttribute('onclick');
+                if (onclickAttr && onclickAttr.includes(`'${productId}'`)) {
+                    // Update the button
+                    addBtn.innerHTML = '<i class="fas fa-check"></i> View Cart';
+                    addBtn.className = 'btn-add-cart added';
+                    addBtn.onclick = function(e) {
+                        e.stopPropagation();
+                        openCartFull();
+                    };
+                }
+            }
+        }
+    });
+}
 
 window.addToCart = async function(productId) {
     const product = products.find(p => p.id === productId);
@@ -1537,6 +1559,8 @@ window.addToCart = async function(productId) {
         renderProducts(products);
         updateBottomCartBar();
         showToast(`✅ Added ${product.name} (${selectedQty}) to cart`, 'success');
+        // Update the button
+        updateProductCardButton(productId);
         return;
     }
     
@@ -1548,6 +1572,8 @@ window.addToCart = async function(productId) {
     renderProducts(products);
     updateBottomCartBar();
     showToast(`✅ Added ${product.name} to cart`, 'success');
+    // Update the button
+    updateProductCardButton(productId);
 };
 
 window.clearCart = async function() { if (cart.length === 0) return; cart = []; await saveUserData(); updateCartUI(); renderProducts(products); updateBottomCartBar(); showToast('🗑️ Cart cleared', 'info'); };
@@ -1869,7 +1895,7 @@ window.openDetails = function(id) {
     const inCart = cart.some(item => item.id === id && !item.isVip);
     let addBtnHtml = '';
     if (inCart) {
-        addBtnHtml = `<button onclick="closeProductDetails();openCartFull();" style="flex:1;padding:12px;border:none;border-radius:var(--radius-sm);background:var(--success);color:#0a0a1a;font-weight:700;cursor:pointer;font-size:16px;"><i class="fas fa-check"></i> Added to Cart</button>`;
+        addBtnHtml = `<button onclick="closeProductDetails();openCartFull();" style="flex:1;padding:12px;border:none;border-radius:var(--radius-sm);background:var(--success);color:#0a0a1a;font-weight:700;cursor:pointer;font-size:16px;"><i class="fas fa-check"></i> View Cart</button>`;
     } else if (isUnavailable) {
         addBtnHtml = `<button style="flex:1;padding:12px;border:none;border-radius:var(--radius-sm);background:var(--text-secondary);color:#fff;font-weight:700;cursor:not-allowed;font-size:16px;opacity:0.4;"><i class="fas fa-times-circle"></i> Unavailable</button>`;
     } else if (isFree) {
@@ -1977,7 +2003,7 @@ window.addToCartFromDetails = function() {
             // تحديث الزر
             const btn = document.querySelector('#productDetailsContent button[onclick="addToCartFromDetails()"]');
             if (btn) {
-                btn.innerHTML = '<i class="fas fa-check"></i> Added';
+                btn.innerHTML = '<i class="fas fa-check"></i> View Cart';
                 btn.style.background = 'var(--success)';
                 btn.style.color = '#0a0a1a';
                 btn.onclick = () => { closeProductDetails(); openCartFull(); };
@@ -2004,7 +2030,7 @@ window.addToCartFromDetails = function() {
         // تحديث الزر
         const btn = document.querySelector('#productDetailsContent button[onclick="addToCartFromDetails()"]');
         if (btn) {
-            btn.innerHTML = '<i class="fas fa-check"></i> Added to Cart';
+            btn.innerHTML = '<i class="fas fa-check"></i> View Cart';
             btn.style.background = 'var(--success)';
             btn.style.color = '#0a0a1a';
             btn.onclick = () => { closeProductDetails(); openCartFull(); };
@@ -2112,11 +2138,13 @@ window.addVipPlanToCart = function(product) {
     // تحديث الزر في الصفحة
     const btn = document.querySelector('#productDetailsContent .vip-add-to-cart');
     if (btn) {
-        btn.innerHTML = '<i class="fas fa-check"></i> VIP Added';
+        btn.innerHTML = '<i class="fas fa-check"></i> View Cart';
         btn.style.background = 'var(--success)';
         btn.style.color = '#0a0a1a';
         btn.onclick = () => { closeProductDetails(); openCartFull(); };
     }
+    // تحديث زر المنتج في الشبكة
+    updateProductCardButton(product.id);
 };
 
 // ============================================================
@@ -2591,7 +2619,7 @@ window.submitManualPayment = function() {
 };
 
 // ============================================================
-// 15.7 Original order sending function
+// 15.7 Original order sending function (with device info, screenshot, notification)
 // ============================================================
 async function sendOrderToTelegram(method, txHash = null) {
     if (isProcessingOrder) {
@@ -2718,6 +2746,15 @@ async function sendOrderToTelegram(method, txHash = null) {
         const userRef = doc(db, 'users', currentUser.uid);
         await updateDoc(userRef, { history: arrayUnion(orderItem) });
 
+        // إرسال إشعار للإدمن (سيتم استقباله عبر الـ realtime listener)
+        await addDoc(collection(db, 'notifications'), {
+            title: '🆕 New Order Placed',
+            message: `Order #${orderId.slice(-6)} by ${currentUser.email} - Total: $${finalTotal.toFixed(2)}`,
+            userId: currentUser.uid,
+            readBy: [],
+            createdAt: serverTimestamp()
+        });
+
         // Proxy logic (disabled)
         const proxyItems = cart.filter(item => item.isProxy);
         if (proxyItems.length > 0) {
@@ -2733,6 +2770,7 @@ async function sendOrderToTelegram(method, txHash = null) {
             }
         }
 
+        // تفريغ السلة
         cart = [];
         activeDiscount = 0;
         activeDiscountCode = '';
@@ -2806,6 +2844,8 @@ window.addProxyToCart = function(packageId) {
     updateCartUI();
     renderProxyPackages();
     showToast(`✅ Added ${pkg.name} to cart`, 'success');
+    // Update button to View Cart
+    updateProductCardButton(packageId);
 };
 
 // ============================================================
