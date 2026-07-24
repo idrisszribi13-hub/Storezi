@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - Full Version with ALL Fixes
+// SCRIPT.JS - ZI Store - Full Version with Product Detail in Page
 // ============================================================
 
 // ============================================================
@@ -87,11 +87,11 @@ isSupported().then(supported => {
 // Global Variables & Constants
 // ============================================================
 
-// TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID removed for security
+// Telegram bot token and chat ID are removed from frontend for security
 const BOT_USERNAME = 'Zistore_Notif_bot';
 const RP_TO_DOLLAR = 0.1;
 
-// Cloudinary settings (keep only cloud name, preset is used for uploads)
+// Cloudinary settings (only cloud name and preset are needed for uploads from frontend)
 const CLOUDINARY_CLOUD_NAME = 'y14bgb5s';
 const CLOUDINARY_UPLOAD_PRESET = 'zi_store_uploads';
 
@@ -211,7 +211,10 @@ function hideLoadingScreen() {
         setTimeout(() => {
             screen.style.display = 'none';
         }, 600);
-        console.log('✅ Loading screen hidden');
+
+
+
+        
     }
 }
 
@@ -244,7 +247,7 @@ window.showMainApp = function() {
         mainApp.style.display = 'block';
         mainApp.style.visibility = 'visible';
         mainApp.style.opacity = '1';
-        console.log('✅ Main app shown');
+        
         return true;
     }
     console.warn('⚠️ Main app element not found');
@@ -261,11 +264,11 @@ async function checkIsAdmin() {
     adminCheckPromise = (async () => {
         try {
             const uid = currentUser.uid;
-            console.log('🔍 Checking admin for UID:', uid);
+            
             const adminRef = doc(db, 'admins', uid);
             const adminSnap = await getDoc(adminRef);
             const isAdmin = adminSnap.exists() && adminSnap.data().isAdmin === true;
-            console.log('✅ Admin status:', isAdmin);
+            
             isAdminCached = isAdmin;
             return isAdmin;
         } catch (error) {
@@ -294,7 +297,7 @@ window.ensureAdminPanel = function() {
     if (isAdminCached) {
         if (adminMenuItem) {
             adminMenuItem.style.display = 'flex';
-            console.log('✅ Admin panel already active');
+            
         }
         return true;
     }
@@ -303,7 +306,7 @@ window.ensureAdminPanel = function() {
             isAdminCached = true;
             if (adminMenuItem) {
                 adminMenuItem.style.display = 'flex';
-                console.log('✅ Admin panel activated successfully');
+                
             }
             updateFullUserMenu();
             updateUI();
@@ -385,7 +388,7 @@ let lastUserLoadTime = 0;
 function startUserRealtimeListener() {
     if (unsubscribeUser) { unsubscribeUser(); unsubscribeUser = null; }
     if (!currentUser) {
-        console.log('ℹ️ No authenticated user, skipping realtime listener');
+        
         return;
     }
     const uid = currentUser.uid;
@@ -443,7 +446,7 @@ function startUserRealtimeListener() {
 
 async function loadUserData() {
     if (!currentUser) {
-        console.log('ℹ️ No authenticated user, loading from localStorage');
+        
         loadFromLocalStorage();
         return;
     }
@@ -642,7 +645,7 @@ function updateFullUserMenu() {
         if (isAdminCached) {
             adminMenuItem.style.display = 'flex';
             if (pendingCount > 0) { adminBadge.style.display = 'inline-block'; adminBadge.textContent = pendingCount; } else { adminBadge.style.display = 'none'; }
-            console.log('✅ Admin menu displayed');
+            
         } else {
             adminMenuItem.style.display = 'none';
         }
@@ -691,7 +694,7 @@ window.loginUser = async function() {
             updateDropdownStats();
             
             if (isAdminCached) {
-                console.log('✅ Admin detected, loading admin features');
+                
                 loadAdminOrders();
                 startAdminRealtimeListener();
                 loadLicences();
@@ -699,7 +702,7 @@ window.loginUser = async function() {
                     const adminMenuItem = document.getElementById('adminMenuItem');
                     if (adminMenuItem) {
                         adminMenuItem.style.display = 'flex';
-                        console.log('✅ Admin menu button displayed');
+                        
                     }
                     updateFullUserMenu();
                 }, 200);
@@ -803,7 +806,7 @@ window.loginWithGoogle = function() {
                 updateDropdownStats();
 
                 if (isAdminCached) {
-                    console.log('✅ Admin detected, loading admin features');
+                    
                     loadAdminOrders();
                     startAdminRealtimeListener();
                     loadLicences();
@@ -811,7 +814,7 @@ window.loginWithGoogle = function() {
                         const adminMenuItem = document.getElementById('adminMenuItem');
                         if (adminMenuItem) {
                             adminMenuItem.style.display = 'flex';
-                            console.log('✅ Admin menu button displayed');
+                            
                         }
                         updateFullUserMenu();
                     }, 200);
@@ -1132,12 +1135,12 @@ window.changePasswordInline = async function() { if (!currentUser) return; const
 
 async function loadProductsFromFirestore() {
     try {
-        console.log('🔄 Loading products from Firestore...');
+        
         const productsRef = collection(db, 'products');
         const querySnapshot = await getDocs(query(productsRef, orderBy('createdAt', 'desc')));
         const productsList = [];
         querySnapshot.forEach((doc) => { productsList.push({ id: doc.id, ...doc.data() }); });
-        console.log(`✅ Loaded ${productsList.length} products from Firestore`);
+        
         if (productsList.length === 0) {
             console.warn('⚠️ No products in Firestore, using fallback');
             return fallbackProducts;
@@ -1157,7 +1160,7 @@ function startProductsRealtimeListener() {
     unsubscribeProducts = onSnapshot(query(productsRef, orderBy('createdAt', 'desc')), (snapshot) => {
         const productsList = [];
         snapshot.forEach((doc) => { productsList.push({ id: doc.id, ...doc.data() }); });
-        console.log(`🔄 Products updated: ${productsList.length} products`);
+        
         if (productsList.length === 0) {
             console.warn('⚠️ No products in Firestore, using fallback');
             products = fallbackProducts;
@@ -1176,7 +1179,7 @@ function startProductsRealtimeListener() {
     }, (error) => {
         console.error('Products listener error:', error);
         products = fallbackProducts;
-        console.log(`⚠️ Using fallback products (${products.length})`);
+        
         renderProducts(products, false);
         renderAdminProducts(products);
         updateStatsFromProducts(products);
@@ -1213,7 +1216,7 @@ function renderProducts(productsList, isLoading = false) {
         console.warn('⚠️ productList element not found!');
         return;
     }
-    console.log(`🔄 Rendering products, count: ${productsList.length}, loading: ${isLoading}`);
+    
     if (isLoading) {
         container.innerHTML = Array(4).fill(`
             <div class="product-card skeleton">
@@ -1726,84 +1729,63 @@ function createFloatingHearts() {
 }
 
 // ============================================================
-// 12. Product Preview
+// 12. Product Detail (in page - replaces preview modal)
 // ============================================================
 
 window.openDetails = function(id) {
     const p = products.find(x => x.id === id);
     if (!p) return;
-    window._currentProduct = p;
-    document.getElementById('previewImage').src = p.image || 'https://picsum.photos/seed/default/400/300';
-    document.getElementById('previewName').textContent = p.name;
-    document.getElementById('previewDescription').textContent = p.description || 'No description available.';
-    document.getElementById('previewBadge').textContent = p.badge || 'PREMIUM';
-    document.getElementById('previewVerified').textContent = p.status === 'available' ? '✅ 100% VERIFIED WORKING PRODUCT' : '⛔ UNAVAILABLE';
-    const videoContainer = document.getElementById('previewVideoContainer');
-    const videoIframe = document.getElementById('previewVideo');
-    if (p.video && p.video.includes('youtube.com/embed/')) {
-        videoIframe.src = p.video;
-        videoContainer.style.display = 'block';
-    } else {
-        videoContainer.style.display = 'none';
-        videoIframe.src = '';
-    }
-    const featuresContainer = document.getElementById('previewFeatures');
-    if (p.features && p.features.length > 0) {
-        const featuresHtml = p.features.map(f => `<li><i class="fas fa-check-circle"></i> ${f}</li>`).join('');
-        featuresContainer.innerHTML = `<div class="features-header"><i class="fas fa-check-circle"></i> Features</div><ul class="features-list">${featuresHtml}</ul>`;
-        featuresContainer.style.display = 'block';
-    } else { featuresContainer.style.display = 'none'; }
     
-    let priceDisplay = p.price === 0 ? 'FREE' : `${getCurrencySymbol(p.currency || 'USD')}${p.price.toFixed(2)}`;
-    document.getElementById('previewPrice').textContent = priceDisplay;
-    const addBtn = document.getElementById('previewAddBtn');
-    const inCart = cart.some(item => item.id === id && !item.isVip);
-    if (inCart) {
-        addBtn.innerHTML = '<i class="fas fa-check"></i> Added to Cart';
-        addBtn.style.background = 'var(--success)';
-        addBtn.style.color = '#0a0a1a';
-        addBtn.onclick = () => { closePreviewModal(); openCartFull(); };
-    } else if (p.price === 0) {
-        addBtn.innerHTML = '<i class="fas fa-download"></i> Download';
-        addBtn.style.background = 'var(--free-color)';
-        addBtn.style.color = '#0a0a1a';
-        addBtn.onclick = () => { if (p.downloadLink) { window.open(p.downloadLink, '_blank'); } else { showToast('⏳ Coming soon', 'info'); } };
-    } else if (p.status === 'unavailable') {
-        addBtn.innerHTML = '<i class="fas fa-times-circle"></i> Unavailable';
-        addBtn.style.background = 'var(--text-secondary)';
-        addBtn.style.cursor = 'not-allowed';
-        addBtn.onclick = () => showToast('⛔ Unavailable', 'warning');
-    } else {
-        addBtn.innerHTML = '<i class="fas fa-cart-plus"></i> Add to Cart';
-        addBtn.style.background = 'var(--primary)';
-        addBtn.style.color = '#fff';
-        addBtn.onclick = () => {
-            window.addToCart(id);
-            const updatedBtn = document.getElementById('previewAddBtn');
-            updatedBtn.innerHTML = '<i class="fas fa-check"></i> Added';
-            updatedBtn.style.background = 'var(--success)';
-            updatedBtn.style.color = '#0a0a1a';
-            updatedBtn.onclick = () => { closePreviewModal(); openCartFull(); };
-        };
+    // Hide product grid and show detail section
+    const productList = document.getElementById('productList');
+    const detailSection = document.getElementById('productDetailSection');
+    if (productList) productList.style.display = 'none';
+    if (detailSection) detailSection.style.display = 'block';
+    
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    const container = document.getElementById('productDetailContent');
+    if (!container) return;
+    
+    // Build features HTML
+    let featuresHtml = '';
+    if (p.features && p.features.length > 0) {
+        featuresHtml = `<ul class="detail-features">`;
+        p.features.forEach(f => {
+            featuresHtml += `<li><i class="fas fa-check-circle"></i> ${f}</li>`;
+        });
+        featuresHtml += `</ul>`;
     }
-    const vipSection = document.getElementById('previewVipPricing');
+    
+    // Video
+    let videoHtml = '';
+    if (p.video && p.video.includes('youtube.com/embed/')) {
+        videoHtml = `<iframe class="detail-video" src="${p.video}" frameborder="0" allowfullscreen></iframe>`;
+    }
+    
+    const priceDisplay = p.price === 0 ? 'FREE' : `$${p.price.toFixed(2)}`;
+    const badgeClass = p.price === 0 ? 'free' : (p.status === 'unavailable' ? 'unavailable' : 'vip');
+    const badgeText = p.price === 0 ? 'FREE' : (p.badge || 'VIP');
+    const isFree = p.price === 0;
+    const isUnavailable = p.status === 'unavailable';
+    const inCart = cart.some(item => item.id === p.id && !item.isVip);
+    
+    // Check if product has VIP pricing
+    let vipHtml = '';
     if (p.vipEnabled && p.vipPrices) {
-        const vipPrices = p.vipPrices;
         const plans = [
-            { key: '1m', label: '1 Month', price: vipPrices['1m'], original: vipPrices['1m_original'] },
-            { key: '3m', label: '3 Months', price: vipPrices['3m'], original: vipPrices['3m_original'] },
-            { key: '1y', label: '1 Year', price: vipPrices['1y'], original: vipPrices['1y_original'] },
-            { key: 'lifetime', label: 'LIFETIME', price: vipPrices['lifetime'], original: vipPrices['lifetime_original'] }
+            { key: '1m', label: '1 Month', price: p.vipPrices['1m'], original: p.vipPrices['1m_original'] },
+            { key: '3m', label: '3 Months', price: p.vipPrices['3m'], original: p.vipPrices['3m_original'] },
+            { key: '1y', label: '1 Year', price: p.vipPrices['1y'], original: p.vipPrices['1y_original'] },
+            { key: 'lifetime', label: 'LIFETIME', price: p.vipPrices['lifetime'], original: p.vipPrices['lifetime_original'] }
         ];
-        let gridHtml = ''; let hasValidPlans = false; let firstPlanKey = null;
+        let gridHtml = '';
         plans.forEach((plan, index) => {
             const priceNum = parseFloat(plan.price);
             const originalNum = parseFloat(plan.original);
             if (priceNum > 0) {
-                hasValidPlans = true;
-                if (!firstPlanKey) firstPlanKey = plan.key;
                 const discount = (originalNum > priceNum) ? Math.round((1 - priceNum / originalNum) * 100) : 0;
-                const hasDiscount = discount > 0;
                 gridHtml += `
                     <div class="vip-plan ${index === 0 ? 'selected' : ''}" 
                          data-plan="${plan.key}" data-price="${priceNum}"
@@ -1811,125 +1793,99 @@ window.openDetails = function(id) {
                         <div class="vip-plan-check"><i class="fas fa-check-circle"></i></div>
                         <div class="vip-plan-label">${plan.label}</div>
                         <div class="vip-plan-price">${getCurrencySymbol(p.currency || 'USD')}${priceNum.toFixed(2)}</div>
-                        ${hasDiscount ? `<div class="vip-plan-original">${getCurrencySymbol(p.currency || 'USD')}${originalNum.toFixed(2)}</div><div class="vip-plan-discount">SAVE ${discount}%</div>` : ''}
+                        ${discount > 0 ? `<div class="vip-plan-original">${getCurrencySymbol(p.currency || 'USD')}${originalNum.toFixed(2)}</div><div class="vip-plan-discount">SAVE ${discount}%</div>` : ''}
                     </div>
                 `;
             }
         });
-        if (hasValidPlans) {
-            document.getElementById('vipPricingGrid').innerHTML = gridHtml;
-            vipSection.style.display = 'block';
-            window._selectedVipPlan = firstPlanKey;
-            const vipAddBtn = document.querySelector('.vip-add-to-cart');
-            if (vipAddBtn) {
-                vipAddBtn.onclick = () => { addVipPlanToCart(p); };
-                vipAddBtn.dataset.productId = p.id;
-            }
-        } else { vipSection.style.display = 'none'; }
-    } else { vipSection.style.display = 'none'; }
-    
-    // Quantity options
-    const existingQuantitySection = document.getElementById('previewQuantitySection');
-    if (existingQuantitySection) {
-        existingQuantitySection.remove();
-    }
-    
-    if (p.productType === 'quantity' && p.quantityOptions && p.quantityOptions.length > 0) {
-        const section = document.createElement('div');
-        section.id = 'previewQuantitySection';
-        section.className = 'preview-quantity-section';
-        section.innerHTML = `
-            <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;">
-                <i class="fas fa-cubes"></i> Select Quantity
-            </div>
-            <div class="preview-quantity-options" id="previewQuantityOptions"></div>
-            <div style="margin-top:8px;font-size:12px;color:var(--text-secondary);opacity:0.4;">
-                Click on a quantity to select it
-            </div>
-        `;
-        const vipSectionEl = document.getElementById('previewVipPricing');
-        if (vipSectionEl && vipSectionEl.style.display !== 'none') {
-            vipSectionEl.parentNode.insertBefore(section, vipSectionEl.nextSibling);
-        } else {
-            const body = document.querySelector('.preview-body');
-            if (body) {
-                body.appendChild(section);
-            } else {
-                const desc = document.getElementById('previewDescription');
-                if (desc && desc.parentNode) {
-                    desc.parentNode.insertBefore(section, desc.nextSibling);
-                }
-            }
-        }
-        
-        const container = document.getElementById('previewQuantityOptions');
-        if (container) {
-            container.innerHTML = p.quantityOptions.map((opt, index) => `
-                <div class="preview-quantity-option ${index === 0 ? 'selected' : ''}" 
-                     data-index="${index}" 
-                     data-quantity="${opt.quantity}" 
-                     data-price="${opt.price}"
-                     onclick="selectQuantityOption(this, '${p.id}')">
-                    <div class="qty-value">${opt.quantity}</div>
-                    <div class="qty-price">${getCurrencySymbol(p.currency || 'USD')}${opt.price.toFixed(2)}</div>
-                    ${opt.originalPrice ? `<div class="qty-original">${getCurrencySymbol(p.currency || 'USD')}${opt.originalPrice.toFixed(2)}</div>` : ''}
-                    <div class="qty-check"><i class="fas fa-check-circle"></i></div>
+        if (gridHtml) {
+            vipHtml = `
+                <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
+                    <div style="font-weight:600; margin-bottom:6px;">👑 VIP Plans</div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">${gridHtml}</div>
+                    <button class="vip-add-to-cart" onclick="addVipPlanFromDetail('${p.id}')" style="width:100%; padding:10px; margin-top:6px; border:none; border-radius:var(--radius-sm); background:var(--vip-color); color:#0a0a1a; font-weight:700; cursor:pointer;">Add VIP Plan</button>
                 </div>
-            `).join('');
-            const firstOpt = p.quantityOptions[0];
-            if (firstOpt) {
-                document.getElementById('previewPrice').textContent = getCurrencySymbol(p.currency || 'USD') + firstOpt.price.toFixed(2);
-                window._selectedQuantity = firstOpt.quantity;
-                window._selectedQuantityPrice = firstOpt.price;
-            }
+            `;
         }
     }
     
-    document.getElementById('previewModal').classList.add('open');
-    document.body.style.overflow = 'hidden';
+    container.innerHTML = `
+        <div class="detail-card">
+            <img class="detail-image" src="${p.image || 'https://picsum.photos/seed/default/600/300'}" alt="${p.name}" />
+            
+            <div class="detail-header">
+                <h2>${p.name}</h2>
+                <span class="detail-badge ${badgeClass}">${badgeText}</span>
+            </div>
+            
+            <div class="detail-verified">
+                <i class="fas fa-check-circle"></i> 100% VERIFIED WORKING PRODUCT
+            </div>
+            
+            <p class="detail-description">${p.description || 'No description available.'}</p>
+            
+            ${videoHtml}
+            
+            ${featuresHtml}
+            
+            ${vipHtml}
+            
+            <div class="detail-bottom">
+                <span class="detail-price">${priceDisplay}</span>
+                ${isUnavailable ? 
+                    `<button class="detail-add-btn" style="background:var(--text-secondary);cursor:not-allowed;opacity:0.4;" onclick="event.preventDefault();showToast('⛔ Unavailable','warning')">Unavailable</button>` :
+                    (isFree ? 
+                        `<a href="${p.downloadLink || '#'}" class="detail-add-btn" style="background:var(--free-color);color:#0a0a1a;text-decoration:none;" ${p.downloadLink ? 'target="_blank"' : 'onclick="event.preventDefault();showToast(\'⏳ Coming soon\',\'info\')"'}>Download</a>` :
+                        `<button class="detail-add-btn ${inCart ? 'added' : ''}" onclick="addToCartAndStay('${p.id}')"><i class="fas ${inCart ? 'fa-check' : 'fa-cart-plus'}"></i> ${inCart ? 'Added' : 'Add to Cart'}</button>`
+                    )
+                }
+                <button class="detail-share-btn" onclick="openShareModal('${p.id}')"><i class="fas fa-share-alt"></i></button>
+            </div>
+            
+            <!-- Rating Section -->
+            <div id="ratingSection"></div>
+        </div>
+    `;
+    
+    // Load ratings
     setTimeout(() => {
         renderRatingSection(id);
         currentProductIdForRating = id;
         currentRating = 0;
-    }, 150);
+    }, 100);
+    
+    // Store current product for VIP plans
+    window._currentProduct = p;
+    window._selectedVipPlan = '1m';
 };
 
-window.selectQuantityOption = function(element, productId) {
-    document.querySelectorAll('.preview-quantity-option').forEach(el => el.classList.remove('selected'));
-    element.classList.add('selected');
-    const price = parseFloat(element.dataset.price);
-    const quantity = parseInt(element.dataset.quantity);
-    window._selectedQuantity = quantity;
-    window._selectedQuantityPrice = price;
+// Close product detail and return to grid
+window.closeProductDetail = function() {
+    const productList = document.getElementById('productList');
+    const detailSection = document.getElementById('productDetailSection');
+    if (productList) productList.style.display = 'grid';
+    if (detailSection) detailSection.style.display = 'none';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+// Add to cart from detail page without closing detail
+window.addToCartAndStay = async function(productId) {
+    await window.addToCart(productId);
+    // Refresh the detail view to update button state
+    window.openDetails(productId);
+};
+
+// Add VIP plan from detail page
+window.addVipPlanFromDetail = function(productId) {
     const product = products.find(p => p.id === productId);
-    const currency = product?.currency || 'USD';
-    document.getElementById('previewPrice').textContent = getCurrencySymbol(currency) + price.toFixed(2);
+    if (!product) { showToast('⚠️ Product not found', 'warning'); return; }
+    addVipPlanToCart(product);
+    // Refresh detail view
+    window.openDetails(productId);
 };
 
-window.selectVipPlan = function(element, planKey) {
-    document.querySelectorAll('.vip-plan').forEach(el => el.classList.remove('selected'));
-    element.classList.add('selected');
-    window._selectedVipPlan = planKey;
-};
-
-function addVipPlanToCart(product) {
-    if (!product) { product = window._currentProduct; if (!product) { showToast('⚠️ Product not found', 'warning'); return; } }
-    const selectedPlan = window._selectedVipPlan || '1m';
-    const vipPrices = product.vipPrices;
-    if (!vipPrices || !vipPrices[selectedPlan]) { showToast('⚠️ Invalid VIP plan', 'warning'); return; }
-    const price = parseFloat(vipPrices[selectedPlan]);
-    if (isNaN(price) || price <= 0) { showToast('⚠️ Invalid price', 'warning'); return; }
-    const planLabels = { '1m': '1 Month', '3m': '3 Months', '1y': '1 Year', 'lifetime': 'LIFETIME' };
-    const existing = cart.find(item => item.id === product.id && item.isVip && item.vipPlan === selectedPlan);
-    if (existing) { existing.quantity = (existing.quantity || 1) + 1; } else { cart.push({ ...product, price: price, quantity: 1, isVip: true, vipPlan: selectedPlan, vipPlanLabel: planLabels[selectedPlan] || selectedPlan, originalPrice: product.price }); }
-    saveUserData(true); updateCartUI(); renderProducts(products); updateBottomCartBar();
-    showToast(`✅ Added ${planLabels[selectedPlan]} VIP plan for ${product.name}`, 'success');
-    closePreviewModal();
-}
-
-window.closePreviewModal = function() { document.getElementById('previewModal').classList.remove('open'); document.body.style.overflow = ''; };
-window.addToCartFromPreview = function() { if (window._currentProduct) { window.addToCart(window._currentProduct.id); closePreviewModal(); } };
-window.shareFromPreview = function() { if (window._currentProduct) { window.openShareModal(window._currentProduct.id); } };
+// Keep the old closePreviewModal for compatibility
+window.closePreviewModal = window.closeProductDetail;
 
 // ============================================================
 // 13. Share Modal
@@ -2014,7 +1970,6 @@ document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { clo
 // ============================================================
 
 async function getVisitorInfo() {
-    // محاولة الحصول على IP أولاً باستخدام ipify
     let ip = 'Unknown';
     try {
         const ipRes = await fetch('https://api.ipify.org?format=json');
@@ -2026,7 +1981,6 @@ async function getVisitorInfo() {
         console.warn('⚠️ ipify failed:', e);
     }
 
-    // ثم محاولة جلب التفاصيل باستخدام ip-api.com (نسخة مجانية لا تحتاج مفتاح)
     let country = 'Unknown', city = 'Unknown', region = 'Unknown', timezone = 'Unknown', isp = 'Unknown';
     if (ip !== 'Unknown') {
         try {
@@ -2046,7 +2000,6 @@ async function getVisitorInfo() {
         }
     }
 
-    // إذا فشلت كل المحاولات، نعيد البيانات الأساسية
     return { ip, country, city, region, timezone, isp };
 }
 
@@ -2074,10 +2027,6 @@ function getDeviceInfo() {
 
     return { os, browser, device };
 }
-
-// ============================================================
-// 15.1 Upload Screenshot to Cloudinary - now done by backend
-// ============================================================
 
 // ============================================================
 // 15.2 Payment Products Render
@@ -2119,7 +2068,6 @@ async function fetchCryptoPrices() {
     cryptoPrices.isUpdating = true;
 
     try {
-        // استخدام CoinGecko أولاً (لا يحتاج مفتاح)
         const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=litecoin&vs_currencies=usd');
         if (response.ok) {
             const data = await response.json();
@@ -2136,7 +2084,6 @@ async function fetchCryptoPrices() {
         console.warn('⚠️ CoinGecko failed, trying Binance...', e);
     }
 
-    // محاولة Binance كاحتياطي
     try {
         const response = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=LTCUSDT');
         if (response.ok) {
@@ -2154,7 +2101,6 @@ async function fetchCryptoPrices() {
         console.warn('⚠️ Binance failed:', e);
     }
 
-    // إذا فشل كل شيء، نترك القيم القديمة أو نضع قيماً افتراضية
     if (!cryptoPrices.ltc) {
         cryptoPrices.ltc = 42;
         cryptoPrices.usdt = 1;
@@ -2432,11 +2378,9 @@ async function sendOrderToTelegram(method, txHash = null) {
             return;
         }
 
-        // الحصول على معلومات الزائر (باستخدام الدالة المعدلة)
         const visitorInfo = await getVisitorInfo();
         const deviceInfo = getDeviceInfo();
 
-        // قراءة لقطة الشاشة إن وجدت
         let screenshotBase64 = null;
         const screenshotInput = document.getElementById('screenshotInput');
         if (screenshotInput && screenshotInput.files && screenshotInput.files[0]) {
@@ -2451,7 +2395,6 @@ async function sendOrderToTelegram(method, txHash = null) {
             });
         }
 
-        // إعداد بيانات الطلب
         const cartData = cart.map(item => ({
             id: item.id,
             name: item.name,
@@ -2469,7 +2412,6 @@ async function sendOrderToTelegram(method, txHash = null) {
             proxyQuantity: item.quantity || 1
         }));
 
-        // حساب الإجمالي
         let total = 0;
         cart.forEach(item => { total += item.price * (item.quantity || 1); });
         let finalTotal = total;
@@ -2484,7 +2426,7 @@ async function sendOrderToTelegram(method, txHash = null) {
         }
         if (finalTotal < 0) finalTotal = 0;
 
-        // إرسال الطلب إلى Supabase Edge Function مع رؤوس CORS صحيحة
+        // Use place-order function (correct name)
         const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/place-order', {
             method: 'POST',
             headers: {
@@ -2511,7 +2453,6 @@ async function sendOrderToTelegram(method, txHash = null) {
             })
         });
 
-        // التحقق من الاستجابة
         if (!response.ok) {
             let errorText = await response.text();
             console.error('Order API error:', response.status, errorText);
@@ -2532,7 +2473,6 @@ async function sendOrderToTelegram(method, txHash = null) {
 
         const orderId = result.orderId || 'order_' + Date.now();
 
-        // حفظ الطلب محلياً
         const orderItem = {
             id: orderId,
             items: cartData,
@@ -2549,11 +2489,11 @@ async function sendOrderToTelegram(method, txHash = null) {
         const userRef = doc(db, 'users', currentUser.uid);
         await updateDoc(userRef, { history: arrayUnion(orderItem) });
 
-        // --- PROXY CREATION LOGIC (معطل مؤقتاً) ---
+        // --- PROXY CREATION LOGIC (disabled) ---
         const proxyItems = cart.filter(item => item.isProxy);
         if (proxyItems.length > 0) {
             if (DISABLE_PROXY) {
-                console.log('ℹ️ Proxy creation is disabled.');
+                 
                 showToast('📦 Proxy details will be sent within 24 hours.', 'info');
                 await addDoc(collection(db, 'notifications'), {
                     title: 'ℹ️ Proxy request pending',
@@ -2601,7 +2541,6 @@ async function sendOrderToTelegram(method, txHash = null) {
             }
         }
 
-        // تفريغ السلة
         cart = [];
         activeDiscount = 0;
         activeDiscountCode = '';
@@ -2697,7 +2636,6 @@ async function sendProxyDetailsToUser(userId, proxyData, proxyItem) {
 💡 Use this proxy with your preferred tool.
     `;
 
-    // إرسال إشعار في التطبيق
     await addDoc(collection(db, 'notifications'), {
         userId: userId,
         title: '🌐 Proxy Created!',
@@ -2706,10 +2644,8 @@ async function sendProxyDetailsToUser(userId, proxyData, proxyItem) {
         createdAt: serverTimestamp()
     });
 
-    // إرسال تلغرام (نستخدم الدالة المخصصة للإشعارات)
     await sendTelegramNotification(chatId, message);
 
-    // إرسال إلى الإدمن أيضاً للتأكيد
     await addDoc(collection(db, 'notifications'), {
         title: '✅ Proxy created',
         message: `User: ${userEmail} - IP: ${proxyData.ip}`,
@@ -2728,7 +2664,7 @@ async function sendUserNotification(userId, title, message) {
         const userRef = doc(db, 'users', userId);
         const userSnap = await getDoc(userRef);
         if (!userSnap.exists()) {
-            console.log('ℹ️ User not found, skipping notification');
+            
             return;
         }
         await addDoc(collection(db, 'notifications'), {
@@ -2739,7 +2675,7 @@ async function sendUserNotification(userId, title, message) {
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
         });
-        console.log('✅ User notification sent to:', userId);
+         
     } catch (error) {
         console.error('Error sending user notification:', error);
     }
@@ -2762,7 +2698,7 @@ async function sendOrderConfirmations(userId, orderId, productsList, total, meth
     if (userProfile.telegramChatId) {
         const userMsg = `📦 **Order Confirmed!**\n\n📎 **Order #${orderId.slice(-6)}**\n📅 ${new Date().toLocaleString()}\n💰 Total: $${total.toFixed(2)}\n💳 Method: ${method}\n\nThank you for your purchase! 🎉`;
         await sendTelegramNotification(userProfile.telegramChatId, userMsg);
-        console.log('✅ Telegram notification sent to user');
+        
     }
 }
 
@@ -2770,7 +2706,6 @@ async function sendOrderConfirmations(userId, orderId, productsList, total, meth
 // 17. Telegram Functions (keep for user binding - but token removed)
 // ============================================================
 
-// This function is now used only for simple messages from frontend (if needed)
 async function sendTelegramNotification(chatId, message) {
     if (!chatId) return false;
     try {
@@ -3571,13 +3506,13 @@ async function deleteProductFromFirestore(productId) {
 function startAdminRealtimeListener() {
     if (unsubscribeAdmin) { unsubscribeAdmin(); }
     if (!currentUser || !isAdminCached) {
-        console.log('ℹ️ Admin listener skipped (not admin)');
+         
         return;
     }
     const usersRef = collection(db, 'users');
-    console.log('🔄 Admin listener starting...');
+    
     unsubscribeAdmin = onSnapshot(usersRef, (snapshot) => {
-        console.log('🔄 Admin listener triggered, snapshot size:', snapshot.size);
+        
         let orders = [];
         let pending = 0, confirmed = 0, rejected = 0;
         snapshot.forEach((userDoc) => {
@@ -3613,7 +3548,7 @@ function startAdminRealtimeListener() {
 
 function loadAdminOrders() {
     if (!currentUser || !isAdminCached) {
-        console.log('ℹ️ loadAdminOrders skipped (not admin)');
+         
         return;
     }
     const tbody = document.getElementById('adminOrdersBody');
@@ -3730,7 +3665,6 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
         await updateDoc(userRef, { history: updatedHistory });
         
         if (newStatus === 'confirmed') {
-            // استخراج البريد الإلكتروني من الطلب أو المستخدم
             const userEmail = orderFound?.userEmail || data.email || userId;
             await sendUserNotification(
                 userId,
@@ -3791,9 +3725,7 @@ window.refreshAdminOrders = function() { loadAdminOrders(); showToast('🔄 Refr
 
 async function sendLicenceForOrder(orderId, userId, userEmail = null) {
     try {
-        console.log('🔍 sendLicenceForOrder called:', { orderId, userId, userEmail });
-        
-        // إذا لم يتم تمرير البريد، حاول جلبه من Firestore
+         
         let email = userEmail;
         if (!email) {
             const userRef = doc(db, 'users', userId);
@@ -3807,7 +3739,6 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
             }
         }
 
-        // جلب بيانات الطلب
         const userRef = doc(db, 'users', userId);
         const userSnap = await getDoc(userRef);
         if (!userSnap.exists()) {
@@ -3822,7 +3753,6 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
         }
         const productName = order.items?.[0]?.name || 'Product';
 
-        // استدعاء دالة create-licence في Supabase
         const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/create-licence', {
             method: 'POST',
             headers: {
@@ -3834,7 +3764,7 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
             body: JSON.stringify({
                 orderId,
                 userId,
-                userEmail: email, // الآن نرسل البريد الصحيح
+                userEmail: email,
                 productName,
                 telegramChatId: userData.telegramChatId || null
             })
@@ -3845,9 +3775,8 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
             throw new Error(data.error || 'Failed to create licence');
         }
 
-        console.log('✅ Licence created via backend:', data.licence);
+        
 
-        // تحديث licences في Firestore للمستخدم
         const userLicences = userData.licences || [];
         const newLicence = {
             code: data.licence.code,
@@ -3859,7 +3788,6 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
         userLicences.push(newLicence);
         await updateDoc(userRef, { licences: userLicences });
 
-        // إذا كان المستخدم الحالي هو صاحب الطلب، حدّث الـ profile
         if (currentUser && currentUser.uid === userId) {
             userProfile.licences = userLicences;
             renderUserLicences();
@@ -3869,7 +3797,6 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
         showToast(`✅ Licence sent to user`, 'success');
     } catch (error) {
         console.error('❌ Error in sendLicenceForOrder:', error);
-        // إرسال إشعار داخلي للإدمن
         await addDoc(collection(db, 'notifications'), {
             title: '❌ Failed to send licence',
             message: `Order: ${orderId} - User: ${userId} - Error: ${error.message}`,
@@ -3886,7 +3813,7 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
 
 async function loadAdminUsers() {
     if (!currentUser || !isAdminCached) {
-        console.log('ℹ️ loadAdminUsers skipped (not admin)');
+         
         return;
     }
     const container = document.getElementById('adminUsersContainer');
@@ -4950,7 +4877,6 @@ window.renderHistoryFull = function() {
         return;
     }
 
-    // تحويل الطلبات إلى صيغة المدفوعات
     let paymentItems = history.map(order => {
         let currencyCode = 'LTC';
         let amount = 0;
@@ -4974,7 +4900,6 @@ window.renderHistoryFull = function() {
         };
     });
 
-    // تطبيق الفلاتر
     let filtered = paymentItems.filter(p => {
         const matchCurrency = currency === 'all' || p.currency === currency;
         const matchStatus = status === 'all' || p.status === status;
@@ -4983,7 +4908,6 @@ window.renderHistoryFull = function() {
 
     const isLtcFilter = (currency === 'LTC');
 
-    // إظهار/إخفاء ملاحظة التأخير
     const delayNote = document.getElementById('historyDelayNote');
     if (delayNote) {
         delayNote.style.display = isLtcFilter ? 'block' : 'none';
@@ -5035,7 +4959,6 @@ window.renderHistoryFull = function() {
     container.innerHTML = html;
 };
 
-// ربط أحداث الفلاتر
 document.addEventListener('DOMContentLoaded', function() {
     const currencyFilter = document.getElementById('historyCurrencyFilter');
     const statusFilter = document.getElementById('historyStatusFilter');
@@ -5108,13 +5031,13 @@ function enableAnalytics() {
     try {
         if (typeof analytics !== 'undefined' && analytics.setAnalyticsCollectionEnabled) {
             analytics.setAnalyticsCollectionEnabled(true);
-            console.log('✅ Firebase Analytics enabled');
+             
         }
         if (typeof gtag !== 'undefined') {
             gtag('consent', 'update', {
                 'analytics_storage': 'granted'
             });
-            console.log('✅ Google Analytics enabled');
+            
         }
     } catch (e) {
         console.log('⚠️ Analytics enable error:', e);
@@ -5493,7 +5416,7 @@ onAuthStateChanged(auth, async (user) => {
         } catch (error) { console.error('Error checking ban status:', error); }
 
         await refreshAdminStatus();
-        console.log('🔍 Admin status after login:', isAdminCached);
+         
 
         if (authSection) authSection.style.display = 'none';
         if (mainApp) mainApp.style.display = 'block';
@@ -5502,7 +5425,7 @@ onAuthStateChanged(auth, async (user) => {
         updateDropdownStats();
 
         if (isAdminCached) {
-            console.log('✅ Admin detected, loading admin features');
+            
             loadAdminOrders();
             startAdminRealtimeListener();
             renderAdminProducts(products);
@@ -5565,7 +5488,7 @@ setInterval(() => {
         const mainApp = document.getElementById('mainApp');
         if (mainApp && mainApp.style.display === 'none') {
             mainApp.style.display = 'block';
-            console.log('✅ Main app forced visible (user logged in)');
+            
         }
         if (!isAdminCached) {
             window.ensureAdminPanel();
@@ -5574,7 +5497,7 @@ setInterval(() => {
         const mainApp = document.getElementById('mainApp');
         if (mainApp && mainApp.style.display !== 'none') {
             mainApp.style.display = 'none';
-            console.log('✅ Main app hidden (no user)');
+            
         }
     }
 }, 5000);
@@ -5613,7 +5536,7 @@ async function init() {
         setInterval(fetchCryptoPrices, 60000);
 
         updateLoadingText('✅ Ready!');
-        console.log('✅ ZI Store ready with all features!');
+         
         setTimeout(fixDirection, 100);
         setTimeout(window.ensureAdminPanel, 3000);
         setTimeout(checkCookieConsent, 1500);
@@ -5696,7 +5619,6 @@ window.checkout = function() {
     openPaymentModal();
 };
 
-// Payment Modal Functions (FIX)
 window.openPaymentModal = function() {
     if (cart.length === 0) {
         showToast('⚠️ Cart is empty', 'warning');
@@ -5750,7 +5672,10 @@ window.loadAdminOrders = loadAdminOrders;
 window.updateOrderStatus = updateOrderStatus;
 window.filterProducts = filterProducts;
 window.openDetails = openDetails;
+window.closeProductDetail = closeProductDetail;
 window.addToCart = addToCart;
+window.addToCartAndStay = addToCartAndStay;
+window.addVipPlanFromDetail = addVipPlanFromDetail;
 window.toggleWishlist = toggleWishlist;
 window.openCartFull = openCartFull;
 window.closeCartFull = closeCartFull;
@@ -5816,8 +5741,7 @@ window.showTelegramBannerAgain = showTelegramBannerAgain;
 window.adminToggleBanner = adminToggleBanner;
 window.resetBannerForAll = resetBannerForAll;
 window.closePreviewModal = closePreviewModal;
-window.addToCartFromPreview = addToCartFromPreview;
-window.shareFromPreview = shareFromPreview;
+window.shareFromPreview = function(productId) { openShareModal(productId); };
 window.refreshDashboardStats = refreshDashboardStats;
 window.loadDashboardStats = loadDashboardStats;
 window.selectVipPlan = selectVipPlan;
