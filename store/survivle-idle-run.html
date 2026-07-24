@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XIU Script - Store - Survivle Idle Run</title>
+    <style>
+        /* تنسيق عام للصفحة والخلفية الداكنة */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #0b0b0f;
+            color: #ffffff;
+            min-height: 100vh;
+        }
+
+        /* تنسيق الهيدر العلوي */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-color: #121218;
+            border-bottom: 1px solid #1e1e2d;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #ffffff;
+        }
+
+        .logo-icon {
+            background: #2563eb;
+            color: white;
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .header-icons {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            color: #cbd5e1;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        /* حاوية المحتوى الرئيسي متصلة مباشرة تحت الهيدر */
+        .main-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px 15px;
+        }
+
+        /* مسار التنقل (Breadcrumbs) */
+        .breadcrumbs {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-bottom: 20px;
+        }
+
+        .breadcrumbs span {
+            color: #ffffff;
+        }
+
+        /* بطاقة صورة المنتج */
+        .product-image-card {
+            width: 100%;
+            height: 300px;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            background-color: #1a1a24;
+            border: 1px solid #2d2d3d;
+        }
+
+        .product-image-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* تفاصيل المنتج والعنوان */
+        .product-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .product-title {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .vip-badge {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #000;
+            font-weight: bold;
+            font-size: 0.75rem;
+            padding: 4px 12px;
+            border-radius: 6px;
+            text-transform: uppercase;
+        }
+
+        .verified-banner {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #10b981;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            background: rgba(16, 185, 129, 0.1);
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        /* قائمة الميزات (Features) */
+        .features-box {
+            background: #121218;
+            border: 1px solid #1e1e2d;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 25px;
+        }
+
+        .features-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #ffffff;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid #1e1e2d;
+            color: #e2e8f0;
+            font-size: 0.95rem;
+        }
+
+        .feature-item:last-child {
+            border-bottom: none;
+        }
+
+        .check-icon {
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        /* صندوق خيارات الأسعار (Pricing Options) */
+        .pricing-section-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pricing-card {
+            background: #161622;
+            border: 2px solid #2d2d3d;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .pricing-card.active {
+            border-color: #6366f1;
+            background: #1a1a2e;
+        }
+
+        .pricing-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .pricing-left input[type="radio"] {
+            accent-color: #6366f1;
+            width: 18px;
+            height: 18px;
+        }
+
+        .plan-name {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .pricing-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .save-tag {
+            background: #059669;
+            color: #ffffff;
+            font-size: 0.7rem;
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 6px;
+        }
+
+        .plan-price {
+            font-weight: bold;
+            font-size: 1rem;
+            color: #c084fc;
+        }
+
+        .plan-old-price {
+            font-size: 0.8rem;
+            text-decoration: line-through;
+            color: #64748b;
+        }
+
+        /* زر إضافة السلة (Add to Cart) */
+        .add-to-cart-btn {
+            width: 100%;
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: background 0.2s ease;
+        }
+
+        .add-to-cart-btn:hover {
+            background: #1d4ed8;
+        }
+
+        /* تذييل الصفحة (Footer notes) */
+        .checkout-footer {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 15px;
+            line-height: 1.5;
+        }
+
+        .checkout-footer a {
+            color: #38bdf8;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- الهيدر العلوي الثابت -->
+    <header>
+        <div class="logo-area">
+            <div class="logo-icon">&lt;&gt;</div>
+            XIU Script
+        </div>
+        <div class="header-icons">
+            <span>🌙</span>
+            <span>🛒</span>
+            <span>☰</span>
+        </div>
+    </header>
+
+    <!-- حاوية الصفحة الرئيسية تحت الهيدر مباشرة -->
+    <div class="main-container">
+        
+        <!-- مسار التنقل (Breadcrumbs) -->
+        <div class="breadcrumbs">
+            Home / Store / <span>Survivle Idle Run</span>
+        </div>
+
+        <!-- صورة المنتج الكبيرة -->
+        <div class="product-image-card">
+            <!-- استبدل الرابط أدناه بصورة منتجك الفعلية -->
+            <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80" alt="Survivle Idle Run">
+        </div>
+
+        <!-- معلومات العنوان وحالة الـ VIP -->
+        <div class="product-header-row">
+            <h1 class="product-title">Survivle Idle Run</h1>
+            <span class="vip-badge">VIP</span>
+        </div>
+
+        <!-- حالة التحقق -->
+        <div>
+            <span class="verified-banner">
+                ✅ 100% VERIFIED WORKING PRODUCT
+            </span>
+        </div>
+
+        <!-- صندوق الميزات -->
+        <div class="features-box">
+            <div class="features-title">Features</div>
+            <div class="feature-item">
+                <span class="check-icon">✓</span> Gems Hack
+            </div>
+            <div class="feature-item">
+                <span class="check-icon">✓</span> Ticket Hack
+            </div>
+            <div class="feature-item">
+                <span class="check-icon">✓</span> Autokill
+            </div>
+            <div class="feature-item">
+                <span class="check-icon">✓</span> AutoWin
+            </div>
+            <div class="feature-item">
+                <span class="check-icon">✓</span> Speed
+            </div>
+        </div>
+
+        <!-- قسم الأسعار -->
+        <div class="pricing-section-title">
+            ⭐ VIP Pricing
+        </div>
+
+        <!-- خيار 1 شهر -->
+        <label class="pricing-card active">
+            <div class="pricing-left">
+                <input type="radio" name="pricing" checked>
+                <span class="plan-name">1 Month</span>
+            </div>
+            <div class="pricing-right">
+                <span class="plan-price">$11.99</span>
+            </div>
+        </label>
+
+        <!-- خيار 3 أشهر -->
+        <label class="pricing-card">
+            <div class="pricing-left">
+                <input type="radio" name="pricing">
+                <span class="plan-name">3 Months</span>
+            </div>
+            <div class="pricing-right">
+                <span class="save-tag">SAVE 17%</span>
+                <div>
+                    <div class="plan-price">$29.99</div>
+                    <div class="plan-old-price">$35.99</div>
+                </div>
+            </div>
+        </label>
+
+        <!-- خيار سنة -->
+        <label class="pricing-card">
+            <div class="pricing-left">
+                <input type="radio" name="pricing">
+                <span class="plan-name">1 Year</span>
+            </div>
+            <div class="pricing-right">
+                <span class="save-tag">SAVE 31%</span>
+                <div>
+                    <div class="plan-price">$99.99</div>
+                    <div class="plan-old-price">$143.99</div>
+                </div>
+            </div>
+        </label>
+
+        <!-- خيار مدى الحياة -->
+        <label class="pricing-card">
+            <div class="pricing-left">
+                <input type="radio" name="pricing">
+                <span class="plan-name">Lifetime</span>
+            </div>
+            <div class="pricing-right">
+                <span class="save-tag">SAVE 54%</span>
+                <div>
+                    <div class="plan-price">$199.99</div>
+                    <div class="plan-old-price">$431.99</div>
+                </div>
+            </div>
+        </label>
+
+        <!-- زر الشراء -->
+        <button class="add-to-cart-btn">Add to Cart</button>
+
+        <!-- روابط التذييل والشروط -->
+        <div class="checkout-footer">
+            Checkout via Telegram @Mitalica69. By purchasing you agree to the <a href="#">Terms</a>. See the <a href="#">refund policy</a>.
+        </div>
+
+    </div>
+
+    <script>
+        // سكود بسيط لجعل خيار السعر يتفاعل عند النقر عليه وتغيير الحدود
+        const cards = document.querySelectorAll('.pricing-card');
+        cards.forEach(card => {
+            card.addEventListener('click', () => {
+                cards.forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+                const radio = card.querySelector('input[type="radio"]');
+                radio.checked = true;
+            });
+        });
+    </script>
+</body>
+</html>
