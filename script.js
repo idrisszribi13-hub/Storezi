@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - Full Version with Product Detail in Page
+// SCRIPT.JS - ZI Store - Full Version with ALL Fixes
 // ============================================================
 
 // ============================================================
@@ -5531,6 +5531,12 @@ async function init() {
         loadSliderSettings();
         loadMarqueeSettings();
         setInterval(fetchCryptoPrices, 60000);
+
+        // ========== إظهار قائمة المنتجات وإخفاء تفاصيل المنتج ==========
+        const productList = document.getElementById('productList');
+        const detailSection = document.getElementById('productDetailSection');
+        if (productList) productList.style.display = 'grid';
+        if (detailSection) detailSection.style.display = 'none';
 
         updateLoadingText('✅ Ready!');
         console.log('✅ ZI Store ready with all features!');
