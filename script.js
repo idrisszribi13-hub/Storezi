@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - Full Version with ALL Fixes
+// SCRIPT.JS - ZI Store - Full Version (Checkout Fullscreen)
 // ============================================================
 
 // ============================================================
@@ -193,7 +193,6 @@ function showToast(message, type = 'success') {
     const icons = { success: '<i class="fas fa-check-circle"></i>', error: '<i class="fas fa-exclamation-circle"></i>', warning: '<i class="fas fa-exclamation-triangle"></i>', info: '<i class="fas fa-info-circle"></i>' };
     if (iconEl) iconEl.innerHTML = icons[type] || icons.success;
     messageEl.textContent = message;
-    // Force reflow for animation
     void toast.offsetWidth;
     toast.classList.add('show');
     clearTimeout(window.toastTimeout);
@@ -2263,11 +2262,412 @@ function closeSearchResults() { searchResults.classList.remove('active'); search
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeSearchResults(); closeUserMenuFull(); closeCartFull(); closeWishlistFull(); closeProfileFull(); closeHistoryFull(); } });
 
 // ============================================================
-// 15. Payment (with Supabase Functions Backend)
+// 15. CHECKOUT (Fullscreen like Cart)
 // ============================================================
 
+// دالة فتح الـ Checkout
+window.openCheckout = function() {
+    if (cart.length === 0) {
+        showToast('⚠️ Cart is empty', 'warning');
+        return;
+    }
+    const modal = document.getElementById('checkoutFull');
+    if (!modal) {
+        showToast('❌ Checkout modal not found', 'error');
+        return;
+    }
+    // Reset state
+    selectedPayment = null;
+    document.getElementById('checkoutContent').innerHTML = '';
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    renderCheckoutStep1();
+};
+
+// إغلاق الـ Checkout
+window.closeCheckoutFull = function() {
+    const modal = document.getElementById('checkoutFull');
+    if (modal) {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+};
+
+// الخطوة 1: اختيار طريقة الدفع
+function renderCheckoutStep1() {
+    const container = document.getElementById('checkoutContent');
+    if (!container) return;
+    
+    // حساب الإجمالي
+    let total = 0;
+    cart.forEach(item => { total += item.price * (item.quantity || 1); });
+    // لا نستخدم RP أو Promo في الخطوة 1 كما هو مطلوب
+    let finalTotal = total;
+    
+    container.innerHTML = `
+        <div style="max-width:500px;margin:0 auto;width:100%;">
+            <p style="font-size:14px; color:var(--text-secondary); margin-bottom:16px; font-weight:500;">Select payment method</p>
+            <div class="payment-options">
+                <div class="payment-option" id="optionLitecoin" onclick="selectPayment('litecoin')">
+                    <i class="fab fa-bitcoin"></i>
+                    <div class="p-label">Litecoin</div>
+                    <div class="p-sub">LTC</div>
+                    <div class="p-check"><i class="fas fa-check"></i></div>
+                </div>
+                <div class="payment-option" id="optionUsdt" onclick="selectPayment('usdt')">
+                    <i class="fas fa-coins"></i>
+                    <div class="p-label">USDT</div>
+                    <div class="p-sub">ERC20</div>
+                    <div class="p-check"><i class="fas fa-check"></i></div>
+                </div>
+                <div class="payment-option" id="optionTelegram" onclick="selectPayment('telegram')">
+                    <i class="fab fa-telegram-plane"></i>
+                    <div class="p-label">Telegram</div>
+                    <div class="p-sub">Direct</div>
+                    <div class="p-check"><i class="fas fa-check"></i></div>
+                </div>
+                <div class="payment-option" id="optionBinanceId" onclick="selectPayment('binanceId')">
+                    <i class="fab fa-binance" style="color:#f2a900;"></i>
+                    <div class="p-label">Binance ID</div>
+                    <div class="p-sub">Direct Transfer</div>
+                    <div class="p-check"><i class="fas fa-check"></i></div>
+                </div>
+                <div class="payment-option" id="optionCreditCard" onclick="selectPayment('creditcard')">
+                    <i class="fas fa-credit-card"></i>
+                    <div class="p-label">Credit Card</div>
+                    <div class="p-sub">Coming Soon</div>
+                    <div class="p-check"><i class="fas fa-check"></i></div>
+                </div>
+            </div>
+
+            <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
+                <div style="display:flex; justify-content:space-between; font-size:16px; font-weight:700;">
+                    <span>Total Amount:</span>
+                    <span id="payableTotal" style="color:var(--primary);">$${finalTotal.toFixed(2)}</span>
+                </div>
+            </div>
+
+            <button class="payment-btn" onclick="continueCheckout()"><i class="fas fa-arrow-right"></i> Continue</button>
+        </div>
+    `;
+    // تحديث الإجمالي عند تغيير طريقة الدفع
+    updatePayableTotal();
+}
+
+// الخطوة 2: تفاصيل الدفع (مثل السلة + تعليمات)
+function renderCheckoutStep2() {
+    const container = document.getElementById('checkoutContent');
+    if (!container) return;
+    
+    let total = 0;
+    cart.forEach(item => { total += item.price * (item.quantity || 1); });
+    // لا نستخدم RP أو Promo في الخطوة 2 كما هو مطلوب
+    let finalTotal = total;
+    
+    let html = `<div style="max-width:500px;margin:0 auto;width:100%;">`;
+    
+    // عرض المنتجات (مثل السلة)
+    html += `<div style="margin-bottom:12px;">`;
+    cart.forEach(item => {
+        const qty = item.quantity || 1;
+        const itemTotal = item.price * qty;
+        const product = products.find(p => p.id === item.id);
+        const image = product?.image || item.image || 'https://picsum.photos/seed/default/80/80';
+        const vipLabel = item.isVip ? `👑 ${item.vipPlanLabel || 'VIP'}` : '';
+        const qtyLabel = item.isQuantityProduct ? `📦 ${item.selectedQuantity || ''}` : '';
+        const proxyLabel = item.isProxy ? ' 🌐' : '';
+        html += `
+            <div class="cart-item" style="padding:8px 0; margin-bottom:4px;">
+                <div class="ci-left">
+                    <img src="${image}" alt="${item.name}" style="width:40px;height:40px;" />
+                    <div class="ci-info">
+                        <div class="ci-name">${item.name} ${proxyLabel} ${vipLabel} ${qtyLabel}</div>
+                        <div class="ci-price">${getCurrencySymbol(item.currency || 'USD')}${itemTotal.toFixed(2)}</div>
+                    </div>
+                </div>
+                <div class="ci-actions">
+                    <span class="ci-qty">×${qty}</span>
+                </div>
+            </div>
+        `;
+    });
+    html += `</div>`;
+    
+    // الإجمالي
+    html += `
+        <div style="display:flex; justify-content:space-between; margin:4px 0; font-size:14px; font-weight:500;">
+            <span style="color:var(--text-secondary);">Subtotal</span>
+            <span id="step2Subtotal">$${total.toFixed(2)}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin:4px 0 12px 0; font-size:18px; font-weight:800;">
+            <span>Total</span>
+            <span id="step2Total">$${finalTotal.toFixed(2)}</span>
+        </div>
+    `;
+    
+    // تعليمات الدفع العامة (تظهر لجميع الطرق)
+    html += `
+        <div id="paymentInstructions" class="payment-instructions">
+            <div class="pi-header"><i class="fas fa-info-circle"></i> Payment Instructions</div>
+            <div class="pi-body">
+                <p>Please send the exact amount to the address below. After sending, copy the <strong>Transaction Hash / ID</strong> and paste it in the field provided.</p>
+                <p><strong>Important:</strong> Your order will be processed manually upon verification of the transaction. This may take up to <strong>24-48 hours</strong>.</p>
+                <div class="pi-deadline">
+                    <i class="fas fa-clock"></i> Payment deadline: <strong>30 minutes</strong> from order creation.
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Wallet Info (LTC/USDT)
+    html += `
+        <div id="paymentWalletInfo" style="display:none; background:var(--bg-secondary); border-radius:var(--radius-md); padding:12px; border:1px solid var(--border); margin-top:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; font-weight:600;">
+                <span id="paymentMethodName">Litecoin</span>
+                <span id="cryptoNetwork">LTC</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+                <span style="font-size:12px; opacity:0.5; font-weight:500;">Address</span>
+                <span id="walletAddressDisplay" style="font-family:monospace; font-size:13px; direction:ltr; text-align:left; word-break:break-all; font-weight:600;">ltc1qy6ksn0g4hm6hlh93fwekgz8x74vr6hvdmh6zz8</span>
+                <button onclick="copyWalletAddress()" style="background:none; border:none; color:var(--primary); cursor:pointer;"><i class="fas fa-copy"></i></button>
+            </div>
+            <div style="font-size:12px; color:var(--text-secondary); opacity:0.4; margin-top:4px; font-weight:500;" id="exchangeRate">⏳ Loading prices...</div>
+            <div style="font-size:13px; font-weight:700; color:var(--vip-color); margin-top:2px;" id="cryptoAmount">0.0000 LTC</div>
+        </div>
+    `;
+    
+    // Tx Hash Input (LTC/USDT)
+    html += `
+        <div id="paymentTxInput" style="display:none; margin-top:8px;">
+            <label style="font-size:13px; font-weight:700;">📋 Transaction Hash</label>
+            <input type="text" id="transactionHashInput" placeholder="Paste transaction hash" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--card-bg); color:var(--text); font-size:14px; outline:none; font-family:var(--font); font-weight:500;" />
+        </div>
+    `;
+    
+    // Telegram Contact
+    html += `
+        <div id="paymentTelegramContact" style="display:none; margin-top:8px;">
+            <button class="payment-btn" onclick="placeOrderTelegram()" style="background:#0088cc;"><i class="fab fa-telegram-plane"></i> Contact via Telegram</button>
+        </div>
+    `;
+    
+    // Binance ID Section
+    html += `
+        <div id="paymentBinanceIdSection" class="binance-id-section" style="display:none; margin-top:8px;">
+            <div class="binance-id-box">
+                <div class="bi-header">
+                    <i class="fab fa-binance"></i>
+                    <span>Transfer via Binance ID</span>
+                </div>
+                <div class="bi-content">
+                    <div class="bi-row">
+                        <span class="bi-label">📤 Transfer to:</span>
+                        <span class="bi-value" id="binanceIdDisplay">748838383</span>
+                        <button onclick="copyBinanceId()" class="bi-copy-btn"><i class="fas fa-copy"></i></button>
+                    </div>
+                    <div class="bi-row">
+                        <span class="bi-label">💰 Amount:</span>
+                        <span class="bi-value" id="binanceAmountDisplay">$0.00</span>
+                    </div>
+                    <div class="bi-row">
+                        <span class="bi-label">📝 Order ID:</span>
+                        <span class="bi-value" id="binanceOrderDisplay">#------</span>
+                    </div>
+                    <div class="bi-divider"></div>
+                    <div class="bi-instructions">
+                        <p><i class="fas fa-info-circle" style="color:#f2a900;"></i> Payment Instructions:</p>
+                        <ol>
+                            <li>Open the Binance app</li>
+                            <li>Go to <strong>Transfer</strong></li>
+                            <li>Select <strong>Binance ID</strong></li>
+                            <li>Paste the ID: <strong id="binanceIdInline">748838383</strong></li>
+                            <li>Enter the amount: <strong id="binanceAmountInline">$0.00</strong></li>
+                            <li>Send the payment</li>
+                            <li>Copy the <strong>Transaction ID</strong></li>
+                            <li>Paste it in the field below to confirm</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+            <div class="binance-verification">
+                <div class="bv-header">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Payment Confirmation</span>
+                </div>
+                <div class="bv-body">
+                    <div class="bv-field">
+                        <label for="txHashInput">📋 Transaction ID:</label>
+                        <div class="bv-input-group">
+                            <input type="text" id="txHashInput" placeholder="Example: 0x7a8b9c... or 443016893778911232" onpaste="handleTxPaste(event)" style="font-weight:500;" />
+                            <button onclick="verifyTransaction()" class="bv-verify-btn"><i class="fas fa-search"></i> Verify</button>
+                        </div>
+                        <div class="bv-hint"><i class="fas fa-lightbulb"></i> You can paste the Transaction ID from the Binance app</div>
+                    </div>
+                    <div class="bv-upload">
+                        <label>🖼️ Or upload a screenshot:</label>
+                        <div class="bv-drop-zone" id="dropZone" onclick="document.getElementById('screenshotInput').click()">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Drag image here or click to select</p>
+                            <input type="file" id="screenshotInput" accept="image/*" onchange="handleScreenshot(event)" />
+                        </div>
+                        <div id="screenshotPreview" style="display:none; margin-top:8px;">
+                            <img id="screenshotImg" src="#" alt="Screenshot" style="max-width:100%; max-height:150px; border-radius:var(--radius-sm); border:1px solid var(--border);" />
+                            <button onclick="removeScreenshot()" style="margin-top:4px; background:var(--danger); color:#fff; border:none; padding:4px 12px; border-radius:var(--radius-sm); cursor:pointer; font-size:12px; font-weight:700;"><i class="fas fa-times"></i> Remove</button>
+                        </div>
+                    </div>
+                    <div id="verificationResult" class="bv-result" style="display:none;"></div>
+                    <button onclick="submitManualPayment()" class="bv-submit-btn"><i class="fas fa-check-circle"></i> Confirm Payment</button>
+                    <div class="bv-note">
+                        <i class="fas fa-clock"></i> Your request will be reviewed within 5-10 minutes
+                        <br>
+                        <span style="font-size:11px; opacity:0.4;">For inquiries: <a href="https://t.me/Mitalica69" target="_blank" style="color:var(--primary);">@Mitalica69</a></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Credit Card placeholder
+    html += `
+        <div id="paymentCreditCardInfo" style="display:none; margin-top:12px;">
+            <div class="payment-instructions" style="background:var(--bg); border:1px solid var(--border);">
+                <div class="pi-header"><i class="fas fa-credit-card"></i> Credit Card Payment</div>
+                <div class="pi-body">
+                    <p>This payment method is currently <strong>in development</strong>. Please use one of the other available methods.</p>
+                    <p>We are working on integrating a secure card payment gateway.</p>
+                    <p style="margin-top:8px; color:var(--vip-color);">For now, please select Litecoin, USDT, Telegram, or Binance ID.</p>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Main Confirm Button
+    html += `
+        <button class="payment-btn" id="mainConfirmBtn" style="display:none; margin-top:12px;"><i class="fas fa-check"></i> Confirm Payment</button>
+        <button class="payment-btn" onclick="goToCheckoutStep1()" style="background:transparent; color:var(--text-secondary); border:1px solid var(--border); margin-top:8px; font-weight:700;">Back</button>
+    `;
+    
+    html += `</div>`;
+    
+    container.innerHTML = html;
+    
+    // بعد إضافة HTML، نطبق المنطق بناءً على طريقة الدفع المختارة
+    if (selectedPayment) {
+        // إظهار الأقسام المناسبة
+        const walletInfo = document.getElementById('paymentWalletInfo');
+        const txInput = document.getElementById('paymentTxInput');
+        const telegramContact = document.getElementById('paymentTelegramContact');
+        const binanceSection = document.getElementById('paymentBinanceIdSection');
+        const mainBtn = document.getElementById('mainConfirmBtn');
+        const instructions = document.getElementById('paymentInstructions');
+        const creditCardInfo = document.getElementById('paymentCreditCardInfo');
+
+        // إخفاء الكل أولاً
+        if (walletInfo) walletInfo.style.display = 'none';
+        if (txInput) txInput.style.display = 'none';
+        if (telegramContact) telegramContact.style.display = 'none';
+        if (binanceSection) binanceSection.style.display = 'none';
+        if (mainBtn) mainBtn.style.display = 'none';
+        if (instructions) instructions.style.display = 'block';
+        if (creditCardInfo) creditCardInfo.style.display = 'none';
+
+        if (selectedPayment === 'litecoin' || selectedPayment === 'usdt') {
+            if (walletInfo) walletInfo.style.display = 'block';
+            if (txInput) txInput.style.display = 'block';
+            if (mainBtn) {
+                mainBtn.style.display = 'block';
+                mainBtn.innerHTML = '<i class="fas fa-check"></i> Confirm Payment';
+                mainBtn.onclick = placeOrder;
+            }
+            fetchCryptoPrices();
+            setTimeout(updatePriceUI, 500);
+            updatePriceUI();
+            // تحديث المبلغ
+            const totalEl = document.getElementById('step2Total');
+            if (totalEl) {
+                const totalVal = parseFloat(totalEl.textContent.replace('$', ''));
+                updateCryptoAmount(totalVal);
+            }
+        } else if (selectedPayment === 'telegram') {
+            if (telegramContact) telegramContact.style.display = 'block';
+            if (mainBtn) {
+                mainBtn.style.display = 'block';
+                mainBtn.innerHTML = '<i class="fab fa-telegram-plane"></i> Contact via Telegram';
+                mainBtn.onclick = function() {
+                    const total = parseFloat(document.getElementById('step2Total')?.textContent?.replace('$', '') || 0);
+                    const message = `🛒 New Order\n\nTotal: $${total.toFixed(2)}\nProducts: ${cart.map(i => i.name).join(', ')}`;
+                    window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(message)}`, '_blank');
+                    placeOrderTelegram();
+                };
+            }
+        } else if (selectedPayment === 'binanceId') {
+            if (binanceSection) {
+                binanceSection.style.display = 'block';
+                document.getElementById('binanceIdDisplay').textContent = '748838383';
+                document.getElementById('binanceIdInline').textContent = '748838383';
+                const total = parseFloat(document.getElementById('step2Total')?.textContent?.replace('$', '') || 0);
+                const totalDisplay = `$${total.toFixed(2)}`;
+                document.getElementById('binanceAmountDisplay').textContent = totalDisplay;
+                document.getElementById('binanceAmountInline').textContent = totalDisplay;
+                const orderId = '#' + String(Date.now()).slice(-6);
+                document.getElementById('binanceOrderDisplay').textContent = orderId;
+            }
+            if (mainBtn) {
+                mainBtn.style.display = 'block';
+                mainBtn.innerHTML = '<i class="fas fa-check"></i> Confirm Payment';
+                mainBtn.onclick = placeOrder;
+            }
+        } else if (selectedPayment === 'creditcard') {
+            if (creditCardInfo) creditCardInfo.style.display = 'block';
+            mainBtn.style.display = 'none';
+        }
+    }
+}
+
+// متابعة الدفع (من الخطوة 1 إلى 2)
+window.continueCheckout = function() {
+    if (!selectedPayment) {
+        showToast('⚠️ Please select a payment method', 'warning');
+        return;
+    }
+    renderCheckoutStep2();
+};
+
+// العودة للخطوة 1
+window.goToCheckoutStep1 = function() {
+    renderCheckoutStep1();
+};
+
+// دالة selectPayment (مستخدمة عالمياً)
+window.selectPayment = function(method) {
+    selectedPayment = method;
+    // تحديث واجهة اختيار الدفع
+    document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
+    const optionMap = {
+        'litecoin': 'optionLitecoin',
+        'usdt': 'optionUsdt',
+        'telegram': 'optionTelegram',
+        'binanceId': 'optionBinanceId',
+        'creditcard': 'optionCreditCard'
+    };
+    const optionEl = document.getElementById(optionMap[method]);
+    if (optionEl) optionEl.classList.add('selected');
+
+    if (method === 'litecoin' || method === 'usdt') {
+        const wallet = method === 'litecoin' ? paymentWallets.litecoin : paymentWallets.usdt;
+        const methodNameEl = document.getElementById('paymentMethodName');
+        const networkEl = document.getElementById('cryptoNetwork');
+        const addressEl = document.getElementById('walletAddressDisplay');
+        if (methodNameEl) methodNameEl.textContent = wallet.name;
+        if (networkEl) networkEl.textContent = wallet.network;
+        if (addressEl) addressEl.textContent = wallet.address;
+        updatePriceUI();
+    }
+    updatePayableTotal();
+};
+
 // ============================================================
-// 15.0 Visitor Info Functions
+// 15.1 Visitor Info Functions
 // ============================================================
 
 async function getVisitorInfo() {
@@ -2329,37 +2729,6 @@ function getDeviceInfo() {
 }
 
 // ============================================================
-// 15.1 Payment Products Render
-// ============================================================
-window.renderPaymentProducts = function() {
-    const container = document.getElementById('paymentProductsList');
-    if (!container) return;
-    if (!cart || cart.length === 0) {
-        container.innerHTML = '<div style="text-align:center;padding:8px;color:var(--text-secondary);opacity:0.4;">No products</div>';
-        return;
-    }
-    container.innerHTML = cart.map(item => {
-        const qty = item.quantity || 1;
-        const total = item.price * qty;
-        const product = products.find(p => p.id === item.id);
-        const image = product?.image || item.image || 'https://picsum.photos/seed/default/80/80';
-        const name = item.isVip ? `${item.name} 👑 ${item.vipPlanLabel || 'VIP'}` : item.name;
-        const qtyLabel = item.isQuantityProduct ? `📦 ${item.selectedQuantity || ''}` : '';
-        const proxyLabel = item.isProxy ? ' 🌐' : '';
-        return `
-            <div class="payment-product-item">
-                <img src="${image}" alt="${item.name}" />
-                <div class="pp-info">
-                    <div class="pp-name">${name} ${proxyLabel} ${qtyLabel}</div>
-                    <div class="pp-price">${getCurrencySymbol(item.currency || 'USD')}${total.toFixed(2)}</div>
-                </div>
-                <div class="pp-qty">×${qty}</div>
-            </div>
-        `;
-    }).join('');
-};
-
-// ============================================================
 // 15.2 Crypto Price Functions
 // ============================================================
 
@@ -2408,8 +2777,6 @@ async function fetchCryptoPrices() {
     cryptoPrices.isUpdating = false;
 }
 
-function getLTCPrice() { return cryptoPrices.ltc || 42; }
-function getUSDTPrice() { return cryptoPrices.usdt || 1; }
 function updatePriceUI() {
     const exchangeRate = document.getElementById('exchangeRate');
     if (exchangeRate) {
@@ -2421,143 +2788,33 @@ function updatePriceUI() {
             exchangeRate.textContent = '⏳ Loading prices...';
         }
     }
+    const totalEl = document.getElementById('step2Total');
+    if (totalEl && selectedPayment) {
+        const total = parseFloat(totalEl.textContent.replace('$', ''));
+        updateCryptoAmount(total);
+    }
+}
+
+function updateCryptoAmount(total) {
     const cryptoAmount = document.getElementById('cryptoAmount');
-    if (cryptoAmount && selectedPayment) {
-        const total = parseFloat(document.getElementById('step2Total')?.textContent?.replace('$', '') || '0');
-        if (selectedPayment === 'litecoin' && cryptoPrices.ltc > 0) {
-            cryptoAmount.textContent = (total / cryptoPrices.ltc).toFixed(4) + ' LTC';
-        } else if (selectedPayment === 'usdt' && cryptoPrices.usdt > 0) {
-            cryptoAmount.textContent = (total / cryptoPrices.usdt).toFixed(2) + ' USDT';
-        }
+    if (!cryptoAmount || !selectedPayment) return;
+    if (selectedPayment === 'litecoin' && cryptoPrices.ltc > 0) {
+        cryptoAmount.textContent = (total / cryptoPrices.ltc).toFixed(4) + ' LTC';
+    } else if (selectedPayment === 'usdt' && cryptoPrices.usdt > 0) {
+        cryptoAmount.textContent = (total / cryptoPrices.usdt).toFixed(2) + ' USDT';
     }
 }
+
 function updatePayableTotal() {
-    let total = 0; cart.forEach(item => { const qty = item.quantity || 1; total += item.price * qty; });
-    let finalTotal = total;
-    if (userProfile.useRpForCart) { const rpDiscount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total); finalTotal = total - rpDiscount; }
-    if (activeDiscount > 0 && total > 0) { const discountAmount = (finalTotal * activeDiscount) / 100; finalTotal = finalTotal - discountAmount; }
-    if (finalTotal < 0) finalTotal = 0;
+    let total = 0;
+    cart.forEach(item => { total += item.price * (item.quantity || 1); });
+    // بدون خصومات
     const el = document.getElementById('payableTotal');
-    if (el) el.textContent = '$' + finalTotal.toFixed(2);
+    if (el) el.textContent = '$' + total.toFixed(2);
 }
 
 // ============================================================
-// 15.3 Payment Selection
-// ============================================================
-window.selectPayment = function(method) {
-    selectedPayment = method;
-    document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
-    const optionMap = {
-        'litecoin': 'optionLitecoin',
-        'usdt': 'optionUsdt',
-        'telegram': 'optionTelegram',
-        'binanceId': 'optionBinanceId',
-        'creditcard': 'optionCreditCard'
-    };
-    const optionEl = document.getElementById(optionMap[method]);
-    if (optionEl) optionEl.classList.add('selected');
-
-    if (method === 'litecoin' || method === 'usdt') {
-        const wallet = method === 'litecoin' ? paymentWallets.litecoin : paymentWallets.usdt;
-        document.getElementById('paymentMethodName').textContent = wallet.name;
-        document.getElementById('cryptoNetwork').textContent = wallet.network;
-        document.getElementById('walletAddressDisplay').textContent = wallet.address;
-        updatePriceUI();
-    }
-    updatePayableTotal();
-};
-
-// ============================================================
-// 15.4 Continue Payment (with instructions and no RP/promo)
-// ============================================================
-window.continuePayment = function() {
-    if (!selectedPayment) {
-        showToast('⚠️ Please select a payment method', 'warning');
-        return;
-    }
-    document.getElementById('paymentStep1').style.display = 'none';
-    document.getElementById('paymentStep2').style.display = 'block';
-    window.renderPaymentProducts();
-
-    // Compute totals
-    let total = 0;
-    cart.forEach(item => {
-        const qty = item.quantity || 1;
-        total += item.price * qty;
-    });
-    let finalTotal = total;
-    // No RP, no promo in checkout step 2 (as per index.html)
-    document.getElementById('step2Subtotal').textContent = `$${total.toFixed(2)}`;
-    document.getElementById('step2Total').textContent = `$${finalTotal.toFixed(2)}`;
-
-    // Show/hide appropriate sections
-    const walletInfo = document.getElementById('paymentWalletInfo');
-    const txInput = document.getElementById('paymentTxInput');
-    const telegramContact = document.getElementById('paymentTelegramContact');
-    const binanceSection = document.getElementById('paymentBinanceIdSection');
-    const mainBtn = document.getElementById('mainConfirmBtn');
-    const instructions = document.getElementById('paymentInstructions');
-    const creditCardInfo = document.getElementById('paymentCreditCardInfo');
-
-    // Hide everything first
-    if (walletInfo) walletInfo.style.display = 'none';
-    if (txInput) txInput.style.display = 'none';
-    if (telegramContact) telegramContact.style.display = 'none';
-    if (binanceSection) binanceSection.style.display = 'none';
-    if (mainBtn) mainBtn.style.display = 'none';
-    if (instructions) instructions.style.display = 'none';
-    if (creditCardInfo) creditCardInfo.style.display = 'none';
-
-    if (selectedPayment === 'litecoin' || selectedPayment === 'usdt') {
-        if (instructions) instructions.style.display = 'block';
-        if (walletInfo) walletInfo.style.display = 'block';
-        if (txInput) txInput.style.display = 'block';
-        if (mainBtn) {
-            mainBtn.style.display = 'block';
-            mainBtn.innerHTML = '<i class="fas fa-check"></i> Confirm Payment';
-            mainBtn.onclick = placeOrder;
-        }
-        fetchCryptoPrices();
-        setTimeout(updatePriceUI, 500);
-    } else if (selectedPayment === 'telegram') {
-        if (instructions) instructions.style.display = 'block';
-        if (telegramContact) telegramContact.style.display = 'block';
-        if (mainBtn) {
-            mainBtn.style.display = 'block';
-            mainBtn.innerHTML = '<i class="fab fa-telegram-plane"></i> Contact via Telegram';
-            mainBtn.onclick = function() {
-                const message = `🛒 New Order\n\nTotal: $${finalTotal.toFixed(2)}\nProducts: ${cart.map(i => i.name).join(', ')}`;
-                window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(message)}`, '_blank');
-                placeOrderTelegram();
-            };
-        }
-    } else if (selectedPayment === 'binanceId') {
-        if (instructions) instructions.style.display = 'block';
-        if (binanceSection) {
-            binanceSection.style.display = 'block';
-            document.getElementById('binanceIdDisplay').textContent = '748838383';
-            document.getElementById('binanceIdInline').textContent = '748838383';
-            const totalDisplay = `$${finalTotal.toFixed(2)}`;
-            document.getElementById('binanceAmountDisplay').textContent = totalDisplay;
-            document.getElementById('binanceAmountInline').textContent = totalDisplay;
-            const orderId = '#' + String(Date.now()).slice(-6);
-            document.getElementById('binanceOrderDisplay').textContent = orderId;
-        }
-        if (mainBtn) {
-            mainBtn.style.display = 'block';
-            mainBtn.innerHTML = '<i class="fas fa-check"></i> Confirm Payment';
-            mainBtn.onclick = placeOrder;
-        }
-    } else if (selectedPayment === 'creditcard') {
-        if (creditCardInfo) creditCardInfo.style.display = 'block';
-        if (instructions) instructions.style.display = 'block';
-        // No confirm button, just back
-        mainBtn.style.display = 'none';
-    }
-};
-
-// ============================================================
-// 15.5 Place Order - calls Supabase Function
+// 15.3 Place Order - calls Supabase Function
 // ============================================================
 window.placeOrder = function() {
     if (!currentUser || currentUser.isAnonymous) {
@@ -2595,10 +2852,10 @@ window.placeOrder = function() {
 };
 
 // ============================================================
-// 15.6 Binance ID specific functions
+// 15.4 Binance ID specific functions
 // ============================================================
 window.copyBinanceId = function() {
-    const id = document.getElementById('binanceIdDisplay').textContent;
+    const id = document.getElementById('binanceIdDisplay')?.textContent;
     if (!id) return;
     navigator.clipboard.writeText(id).then(() => {
         showToast('✅ Binance ID copied!', 'success');
@@ -2613,9 +2870,26 @@ window.copyBinanceId = function() {
     });
 };
 
+window.copyWalletAddress = function() {
+    const address = document.getElementById('walletAddressDisplay')?.textContent;
+    if (!address) return;
+    navigator.clipboard.writeText(address).then(() => {
+        showToast('✅ Address copied!', 'success');
+    }).catch(() => {
+        const textArea = document.createElement('textarea');
+        textArea.value = address;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showToast('✅ Address copied!', 'success');
+    });
+};
+
 window.verifyTransaction = function() {
     const input = document.getElementById('txHashInput');
     const result = document.getElementById('verificationResult');
+    if (!input || !result) return;
     const tx = input.value.trim();
     if (!tx) {
         result.style.display = 'block';
@@ -2648,34 +2922,41 @@ window.handleScreenshot = function(event) {
     reader.onload = function(e) {
         const preview = document.getElementById('screenshotPreview');
         const img = document.getElementById('screenshotImg');
+        if (!preview || !img) return;
         img.src = e.target.result;
         preview.style.display = 'flex';
-        document.querySelector('.bv-drop-zone p').textContent = '✅ Image selected';
+        const dropZoneText = document.querySelector('.bv-drop-zone p');
+        if (dropZoneText) dropZoneText.textContent = '✅ Image selected';
     };
     reader.readAsDataURL(file);
 };
 
 window.removeScreenshot = function() {
-    document.getElementById('screenshotPreview').style.display = 'none';
-    document.getElementById('screenshotImg').src = '#';
-    document.getElementById('screenshotInput').value = '';
-    document.querySelector('.bv-drop-zone p').textContent = 'Drag image here or click to select';
+    const preview = document.getElementById('screenshotPreview');
+    const img = document.getElementById('screenshotImg');
+    const input = document.getElementById('screenshotInput');
+    const dropZoneText = document.querySelector('.bv-drop-zone p');
+    if (preview) preview.style.display = 'none';
+    if (img) img.src = '#';
+    if (input) input.value = '';
+    if (dropZoneText) dropZoneText.textContent = 'Drag image here or click to select';
 };
 
 window.submitManualPayment = function() {
-    const txHash = document.getElementById('txHashInput').value.trim();
+    const txHash = document.getElementById('txHashInput')?.value.trim();
     if (!txHash) {
         showToast('⚠️ Please paste the transaction ID', 'warning');
         document.getElementById('txHashInput').style.borderColor = 'var(--danger)';
         setTimeout(() => { document.getElementById('txHashInput').style.borderColor = ''; }, 2000);
         return;
     }
-    document.getElementById('transactionHashInput').value = txHash;
+    const txInput = document.getElementById('transactionHashInput');
+    if (txInput) txInput.value = txHash;
     placeOrder();
 };
 
 // ============================================================
-// 15.7 Original order sending function (with device info, screenshot, notification)
+// 15.5 Original order sending function
 // ============================================================
 async function sendOrderToTelegram(method, txHash = null) {
     if (isProcessingOrder) {
@@ -2729,14 +3010,11 @@ async function sendOrderToTelegram(method, txHash = null) {
         let total = 0;
         cart.forEach(item => { total += item.price * (item.quantity || 1); });
         let finalTotal = total;
-        // No RP discount in checkout as per index.html
-        // But we keep it for consistency if user had useRpForCart true
-        let rpDiscountAmount = 0;
+        // لا نستخدم خصومات في السلة
         if (userProfile.useRpForCart) {
-            rpDiscountAmount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total);
-            finalTotal = total - rpDiscountAmount;
+            const rpDiscount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total);
+            finalTotal = total - rpDiscount;
         }
-        // No promo discount in checkout as per index.html, but keep if activeDiscount set elsewhere
         if (activeDiscount > 0 && total > 0) {
             const discountAmount = (finalTotal * activeDiscount) / 100;
             finalTotal = finalTotal - discountAmount;
@@ -2764,7 +3042,7 @@ async function sendOrderToTelegram(method, txHash = null) {
                 total: finalTotal,
                 visitorInfo: visitorInfo,
                 deviceInfo: deviceInfo,
-                rpUsed: Math.floor(rpDiscountAmount / RP_TO_DOLLAR) || 0,
+                rpUsed: Math.floor((total - finalTotal) / RP_TO_DOLLAR) || 0,
                 discountCode: activeDiscountCode || null
             })
         });
@@ -2798,7 +3076,7 @@ async function sendOrderToTelegram(method, txHash = null) {
             status: 'pending',
             txHash: txHash || null,
             screenshotUrl: result.screenshotUrl || null,
-            rpUsed: Math.floor(rpDiscountAmount / RP_TO_DOLLAR) || 0,
+            rpUsed: Math.floor((total - finalTotal) / RP_TO_DOLLAR) || 0,
             rpEarned: 0
         };
         userProfile.history.push(orderItem);
@@ -2816,17 +3094,9 @@ async function sendOrderToTelegram(method, txHash = null) {
 
         // Proxy logic (disabled)
         const proxyItems = cart.filter(item => item.isProxy);
-        if (proxyItems.length > 0) {
-            if (DISABLE_PROXY) {
-                console.log('ℹ️ Proxy creation is disabled.');
-                showToast('📦 Proxy details will be sent within 24 hours.', 'info');
-                await addDoc(collection(db, 'notifications'), {
-                    title: 'ℹ️ Proxy request pending',
-                    message: `User: ${currentUser.email} - ${proxyItems.length} proxies`,
-                    readBy: [],
-                    createdAt: serverTimestamp()
-                });
-            }
+        if (proxyItems.length > 0 && !DISABLE_PROXY) {
+            // Proxy creation logic (if needed)
+            console.log('ℹ️ Proxy creation is disabled.');
         }
 
         // تفريغ السلة
@@ -2840,7 +3110,8 @@ async function sendOrderToTelegram(method, txHash = null) {
         generateRecommendations(products);
         updateRpDisplay();
 
-        document.getElementById('paymentModal').classList.remove('open');
+        // إغلاق الـ Checkout
+        closeCheckoutFull();
         showToast('✅ Order placed successfully!', 'success');
 
         setTimeout(() => {
@@ -2862,8 +3133,17 @@ async function sendOrderToTelegram(method, txHash = null) {
     }
 }
 
+// دالة الـ Telegram (مؤقتة)
+window.placeOrderTelegram = function() {
+    const total = parseFloat(document.getElementById('step2Total')?.textContent?.replace('$', '') || 0);
+    const message = `🛒 New Order\n\nTotal: $${total.toFixed(2)}\nProducts: ${cart.map(i => i.name).join(', ')}`;
+    window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(message)}`, '_blank');
+    // بعد فتح التلغرام، ننفذ الطلب بنفس الطريقة
+    sendOrderToTelegram('telegram', null);
+};
+
 // ============================================================
-// 15.8 Proxy Functions
+// 15.6 Proxy Functions
 // ============================================================
 
 function renderProxyPackages() {
@@ -2907,64 +3187,16 @@ window.addProxyToCart = function(packageId) {
 };
 
 // ============================================================
-// 16. Order Functions with User Notification
+// 16. Checkout function (called from bottom bar)
 // ============================================================
-
-async function sendUserNotification(userId, title, message) {
-    if (!userId) return;
-    try {
-        const userRef = doc(db, 'users', userId);
-        const userSnap = await getDoc(userRef);
-        if (!userSnap.exists()) {
-            console.log('ℹ️ User not found, skipping notification');
-            return;
-        }
-        await addDoc(collection(db, 'notifications'), {
-            title: title,
-            message: message,
-            userId: userId,
-            readBy: [],
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp()
-        });
-        console.log('✅ User notification sent to:', userId);
-    } catch (error) {
-        console.error('Error sending user notification:', error);
-    }
-}
+window.checkout = function() {
+    openCheckout();
+};
 
 // ============================================================
-// 17. Telegram Functions
+// 17. Telegram Functions (bind, unlink, test)
 // ============================================================
-
-async function sendTelegramNotification(chatId, message) {
-    if (!chatId) return false;
-    try {
-        const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/send-telegram', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                'Accept': 'application/json',
-            },
-            mode: 'cors',
-            body: JSON.stringify({
-                chatId: chatId,
-                message: message
-            })
-        });
-        if (!response.ok) {
-            console.error('Telegram API error:', response.status);
-            return false;
-        }
-        const result = await response.json();
-        return result.success || false;
-    } catch (error) {
-        console.error('Send error:', error);
-        return false;
-    }
-}
-
+// تم تضمينها في الجزء الخاص بالـ Telegram سابقاً ولكن سنكررها للتأكد
 window.bindTelegram = async function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
     try {
@@ -3039,12 +3271,6 @@ window.unlinkTelegram = async function() {
     } catch (error) { showToast('❌ Error unlinking: ' + error.message, 'error'); }
 };
 
-function maskChatId(chatId) {
-    if (!chatId) return 'Not linked';
-    if (chatId.length <= 8) return chatId;
-    return chatId.slice(0, 4) + '***' + chatId.slice(-4);
-}
-
 window.checkTelegramStatus = async function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
     try {
@@ -3071,7 +3297,6 @@ window.checkTelegramStatus = async function() {
 // ============================================================
 // 18. Downloads & Notifications
 // ============================================================
-
 function loadDownloads() {
     if (unsubscribeDownloads) { unsubscribeDownloads(); }
     const dlRef = collection(db, 'downloads');
@@ -3100,522 +3325,8 @@ function renderAdminDownloads() {
     container.innerHTML = downloads.map(d => `<div class="admin-item"><div class="item-info"><div class="item-title">${d.title}</div><div class="item-meta">${d.type||'File'} • ${d.downloadUrl||'No link'}</div></div><div class="item-actions"><button class="btn-edit" onclick="editDownload('${d.id}')"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="deleteDownload('${d.id}')"><i class="fas fa-trash"></i></button></div></div>`).join('');
 }
 
-window.createDownload = async function(e) {
-    e.preventDefault();
-    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
-    const title = document.getElementById('dlTitle').value.trim();
-    const type = document.getElementById('dlType').value.trim();
-    const description = document.getElementById('dlDescription').value.trim();
-    const downloadUrl = document.getElementById('dlUrl').value.trim();
-    const date = document.getElementById('dlDate').value;
-    if (!title || !type || !description || !downloadUrl) { showToast('⚠️ Please fill all fields', 'warning'); return; }
-    try {
-        await addDoc(collection(db, 'downloads'), { title, type, description, downloadUrl, date: date || new Date().toISOString().split('T')[0], createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
-        showToast('✅ Download added', 'success');
-        closeCreateDownloadModal();
-        document.getElementById('createDownloadForm').reset();
-    } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
-};
-window.deleteDownload = async function(id) {
-    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
-    if (!confirm('Delete this download?')) return;
-    try { await deleteDoc(doc(db, 'downloads', id)); showToast('🗑️ Download deleted', 'success'); } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
-};
-window.editDownload = function(id) { showToast('✏️ Edit feature coming soon', 'info'); };
-window.openCreateDownloadModal = function() { if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; } document.getElementById('createDownloadModal').classList.add('open'); document.getElementById('createDownloadForm').reset(); };
-window.closeCreateDownloadModal = function() { document.getElementById('createDownloadModal').classList.remove('open'); };
-
-function loadNotifications() {
-    if (unsubscribeNotifications) { unsubscribeNotifications(); }
-    const notifRef = collection(db, 'notifications');
-    try {
-        getDocs(query(notifRef, orderBy('createdAt', 'desc'))).then((snapshot) => {
-            notifications = [];
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                if (!data.userId || data.userId === currentUser?.uid) {
-                    notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] });
-                }
-            });
-            if (currentUser) {
-                const userId = currentUser.uid;
-                unreadNotifications = notifications.filter(n => !(n.readBy || []).includes(userId)).length;
-            } else { unreadNotifications = 0; }
-            updateNotificationBadge();
-            renderAdminNotifications();
-            renderUserNotifications();
-        }).catch((error) => { console.error('Error loading notifications:', error); renderUserNotificationsFallback(); });
-        unsubscribeNotifications = onSnapshot(query(notifRef, orderBy('createdAt', 'desc')), (snapshot) => {
-            if (isUpdatingNotifications) return;
-            notifications = [];
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                if (!data.userId || data.userId === currentUser?.uid) {
-                    notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] });
-                }
-            });
-            if (currentUser) {
-                const userId = currentUser.uid;
-                unreadNotifications = notifications.filter(n => !(n.readBy || []).includes(userId)).length;
-            } else { unreadNotifications = 0; }
-            updateNotificationBadge();
-            renderAdminNotifications();
-            renderUserNotifications();
-        }, (error) => { console.error('Notifications listener error:', error); });
-    } catch (error) { console.error('Error setting up notifications:', error); renderUserNotificationsFallback(); }
-}
-
-function renderUserNotificationsFallback() {
-    const container = document.getElementById('notificationsList');
-    if (!container) return;
-    container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-bell" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">No notifications</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Notifications will appear here</div></div>`;
-}
-
-function renderUserNotifications() {
-    const container = document.getElementById('notificationsList');
-    if (!container) return;
-    if (!notifications || notifications.length === 0) { container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-bell" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">No notifications</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Notifications will appear here</div></div>`; return; }
-    let html = '';
-    notifications.forEach(n => {
-        const isRead = currentUser && (n.readBy || []).includes(currentUser.uid);
-        let dateStr = '';
-        try { if (n.createdAt) { const date = n.createdAt.toDate ? n.createdAt.toDate() : new Date(n.createdAt); dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); } } catch (e) { dateStr = new Date().toLocaleDateString('en-US'); }
-        html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:${!isRead?'var(--primary-glow)':'var(--bg)'};border-radius:10px;border:1px solid var(--border);margin-bottom:8px;${!isRead?'border-left:3px solid var(--primary);':''}"><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);">${n.title||'Notification'}</div><div style="font-size:12px;color:var(--text-secondary);">${n.message||''}</div><div style="font-size:11px;color:var(--text-secondary);opacity:0.3;">${dateStr}</div></div>${!isRead?'<span style="background:var(--notification-red);color:#fff;font-size:9px;font-weight:700;padding:2px 10px;border-radius:12px;">New</span>':''}</div>`;
-    });
-    container.innerHTML = html;
-}
-
-function renderAdminNotifications() {
-    const container = document.getElementById('adminNotificationsList');
-    if (!container) return;
-    const notifRef = collection(db, 'notifications');
-    getDocs(query(notifRef, orderBy('createdAt', 'desc'))).then((snapshot) => {
-        let allNotifs = [];
-        snapshot.forEach((doc) => { allNotifs.push({ id: doc.id, ...doc.data() }); });
-        if (allNotifs.length === 0) { container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">📭 No notifications</div>`; return; }
-        container.innerHTML = allNotifs.map(n => `<div class="admin-item"><div class="item-info"><div class="item-title">${n.title||'Notification'}</div><div class="item-meta">${n.message||''} • ${n.userId ? 'User: ' + n.userId.slice(-6) : 'Global'} • ${n.createdAt?new Date(n.createdAt.toDate()).toLocaleDateString('en-US'):''}</div></div><div class="item-actions"><button class="btn-delete" onclick="deleteNotification('${n.id}')"><i class="fas fa-trash"></i></button></div></div>`).join('');
-    }).catch((error) => { console.error('Error loading admin notifications:', error); });
-}
-
-function updateNotificationBadge() {
-    const badge = document.getElementById('notifBadge');
-    if (badge) {
-        if (unreadNotifications > 0) { badge.style.display = 'inline-flex'; badge.textContent = unreadNotifications; } else { badge.style.display = 'none'; }
-    }
-    updateFullUserMenu();
-}
-
-window.markAllNotificationsRead = async function() {
-    if (!currentUser) return;
-    if (isUpdatingNotifications) return;
-    const userId = currentUser.uid;
-    const unreadNotifs = notifications.filter(n => !(n.readBy || []).includes(userId));
-    if (unreadNotifs.length === 0) { showToast('📭 No unread notifications', 'info'); return; }
-    isUpdatingNotifications = true;
-    let updatedCount = 0;
-    for (const n of unreadNotifs) {
-        try { await updateDoc(doc(db, 'notifications', n.id), { readBy: arrayUnion(userId) }); updatedCount++; } catch (e) { console.error('Error marking notification read:', e); }
-    }
-    if (updatedCount > 0) { unreadNotifications = 0; updateNotificationBadge(); renderUserNotifications(); showToast(`✅ ${updatedCount} notifications marked read`, 'success'); }
-    isUpdatingNotifications = false;
-};
-window.clearAllNotifications = async function() {
-    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
-    try {
-        const notifRef = collection(db, 'notifications');
-        const snapshot = await getDocs(query(notifRef, where('userId', '==', currentUser.uid)));
-        const batch = [];
-        snapshot.forEach((doc) => { batch.push(deleteDoc(doc.ref)); });
-        await Promise.all(batch);
-        notifications = []; unreadNotifications = 0;
-        updateNotificationBadge(); renderUserNotifications(); renderAdminNotifications();
-        showToast('🗑️ All notifications cleared', 'success');
-    } catch (error) { console.error('Error clearing notifications:', error); showToast('❌ Error clearing notifications', 'error'); }
-};
-window.createNotification = async function(e) {
-    e.preventDefault();
-    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
-    const title = document.getElementById('notifTitle').value.trim();
-    const message = document.getElementById('notifMessage').value.trim();
-    if (!title || !message) { showToast('⚠️ Please fill all fields', 'warning'); return; }
-    try {
-        await addDoc(collection(db, 'notifications'), { title, message, readBy: [], createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
-        showToast('✅ Notification sent', 'success');
-        closeCreateNotificationModal();
-        document.getElementById('createNotificationForm').reset();
-    } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
-};
-window.deleteNotification = async function(id) {
-    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
-    if (!confirm('Delete this notification?')) return;
-    try { await deleteDoc(doc(db, 'notifications', id)); showToast('🗑️ Notification deleted', 'success'); } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
-};
-window.openCreateNotificationModal = function() { if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; } document.getElementById('createNotificationModal').classList.add('open'); document.getElementById('createNotificationForm').reset(); };
-window.closeCreateNotificationModal = function() { document.getElementById('createNotificationModal').classList.remove('open'); };
-
 // ============================================================
-// 19. Requests & Referrals
-// ============================================================
-
-window.openRequestsModal = function() {
-    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); openAuthModal(); return; }
-    const list = document.getElementById('requestsList');
-    const requests = userProfile.requests || [];
-    if (requests.length === 0) { list.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-inbox" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">No requests</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Submit your first request now</div></div>`; } else {
-        list.innerHTML = requests.slice().reverse().map(req => `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);margin-bottom:8px;"><div><div style="font-weight:600;color:var(--text);">${req.gameName||'Untitled'}</div><div style="font-size:12px;color:var(--text-secondary);opacity:0.4;">${new Date(req.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div></div><span style="font-size:11px;font-weight:600;padding:2px 12px;border-radius:12px;background:var(--pending-color);color:#0a0a1a;">${(req.status||'pending').charAt(0).toUpperCase()+(req.status||'pending').slice(1)}</span></div>`).join('');
-    }
-    document.getElementById('requestsModal').classList.add('open');
-};
-window.closeRequestsModal = function() { document.getElementById('requestsModal').classList.remove('open'); };
-window.openNewRequestModal = function() { if (!currentUser) { showToast('⚠️ Please login first', 'warning'); openAuthModal(); return; } document.getElementById('newRequestModal').classList.add('open'); document.getElementById('requestForm').reset(); };
-window.closeNewRequestModal = function() { document.getElementById('newRequestModal').classList.remove('open'); };
-window.submitRequest = function(e) {
-    e.preventDefault();
-    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
-    const gameName = document.getElementById('reqGameName').value.trim();
-    const playStore = document.getElementById('reqPlayStore').value.trim();
-    const features = document.getElementById('reqFeatures').value.trim();
-    const budget = document.getElementById('reqBudget').value.trim();
-    if (!gameName || !playStore || !features || !budget) { showToast('⚠️ Please fill all fields', 'warning'); return; }
-    const newRequest = { gameName, playStore, features, budget, status: 'pending', date: new Date().toISOString(), userId: currentUser.uid };
-    const userRef = doc(db, 'users', currentUser.uid);
-    updateDoc(userRef, { requests: arrayUnion(newRequest) }).then(() => {
-        userProfile.requests.push(newRequest);
-        document.getElementById('newRequestModal').classList.remove('open');
-        showToast('✅ Request sent', 'success');
-        const msg = `📝 New Script Request!\n\n👤 User: ${currentUser.displayName||currentUser.email}\n🎮 Game: ${gameName}\n🔗 Store Link: ${playStore}\n⚡ Features: ${features}\n💰 Budget: ${budget}`;
-        window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(msg)}`, '_blank');
-    }).catch(error => { showToast('❌ Error: ' + error.message, 'error'); });
-};
-
-window.openReferralModal = function() { if (!currentUser) { showToast('⚠️ Please login first', 'warning'); openAuthModal(); return; } updateReferralUI(); document.getElementById('referralModal').classList.add('open'); };
-window.closeReferralModal = function() { document.getElementById('referralModal').classList.remove('open'); };
-
-function updateReferralUI() {
-    const codeDisplay2 = document.getElementById('referralCodeDisplay2');
-    if (currentUser && userProfile.referralCode) { codeDisplay2.textContent = userProfile.referralCode; } else if (currentUser) {
-        const code = generateReferralCode(currentUser.displayName || currentUser.email, currentUser.email);
-        userProfile.referralCode = code;
-        const userRef = doc(db, 'users', currentUser.uid);
-        updateDoc(userRef, { referralCode: code }).catch(console.error);
-        codeDisplay2.textContent = code;
-    } else { codeDisplay2.textContent = 'Login to get your code'; }
-    const referrals = userProfile.referrals || [];
-    document.getElementById('referralCount2').textContent = referrals.length;
-    document.getElementById('referralRewards2').textContent = (userProfile.referralRewards || 0).toFixed(2) + ' $';
-    const activityContainer = document.getElementById('referralActivity');
-    if (referrals.length === 0) {
-        activityContainer.innerHTML = `<div class="referral-empty"><i class="fas fa-users"></i><p>No referrals yet</p><span>Share your link to start earning.</span></div>`;
-    } else {
-        let html = '';
-        referrals.slice().reverse().forEach(ref => {
-            const date = ref.date ? new Date(ref.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '--';
-            html += `<div class="referral-activity-item"><div class="referral-activity-icon"><i class="fas fa-user-plus"></i></div><div class="referral-activity-info"><div class="referral-activity-name">${ref.name || 'User'}</div><div class="referral-activity-date">${date}</div></div><div class="referral-activity-status">✅ Joined</div></div>`;
-        });
-        activityContainer.innerHTML = html;
-    }
-    const stepsContainer = document.getElementById('referralSteps');
-    if (stepsContainer) {
-        stepsContainer.innerHTML = `<div class="referral-steps"><div class="referral-step"><span class="step-number">1</span><span class="step-text">Share your referral code</span></div><div class="referral-step"><span class="step-number">2</span><span class="step-text">They create an account using your code</span></div><div class="referral-step"><span class="step-number">3</span><span class="step-text">Earn Rewards<br><small>You get 10% of their first order value</small></span></div></div>`;
-    }
-}
-window.copyReferralCode2 = function() {
-    const code = document.getElementById('referralCodeDisplay2').textContent;
-    if (code && code !== 'Loading...' && code !== 'Login to get your code') {
-        navigator.clipboard.writeText(code).then(() => { showToast('✅ Referral code copied!', 'success'); })
-        .catch(() => { const textArea = document.createElement('textarea'); textArea.value = code; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); showToast('✅ Referral code copied!', 'success'); });
-    } else { showToast('⚠️ Please login first', 'warning'); }
-};
-
-// ============================================================
-// 20. Admin Panel
-// ============================================================
-
-window.openAdminPanel = function() {
-    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized. Admin only.', 'error'); return; }
-    const panel = document.getElementById('adminPanel');
-    if (panel.classList.contains('open')) { panel.classList.remove('open'); } else {
-        panel.classList.add('open');
-        panel.scrollIntoView({ behavior: 'smooth' });
-        loadAdminOrders();
-        startAdminRealtimeListener();
-        loadDownloads();
-        loadNotifications();
-        renderAdminProducts(products);
-        loadAdminUsers();
-        loadLicences();
-        loadDashboardStats();
-        setTimeout(addBannerAdminControls, 300);
-        ensureSliderTab();
-        loadSliderSettings();
-        renderSliderSettingsUI();
-        document.getElementById('sliderIntervalInput').value = sliderIntervalTime;
-        const statsTab = document.getElementById('tabStats');
-        if (statsTab && statsTab.classList.contains('active')) { loadAdvancedStats(); }
-        const logsTab = document.getElementById('tabLogs');
-        if (logsTab && logsTab.classList.contains('active')) { loadAuditLogs(); }
-        loadMarqueeSettings();
-        renderMarqueeSettingsUI();
-    }
-};
-
-function ensureSliderTab() {
-    // تم إضافة التبويبات في HTML مباشرة، لكن نترك هذه الدالة للتأكد في حال وجود أي تحديث ديناميكي
-    // لكن بما أننا أضفناها في HTML، هذه الدالة لن تفعل شيئاً لتجنب التكرار
-}
-
-window.closeAdminPanel = function() { document.getElementById('adminPanel').classList.remove('open'); if (unsubscribeAdmin) { unsubscribeAdmin(); unsubscribeAdmin = null; } };
-
-window.switchAdminTab = function(tab) {
-    document.querySelectorAll('.admin-panel .tab-content').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.admin-panel .tabs button').forEach(el => el.classList.remove('active'));
-    const tabMap = {
-        'dashboard': 'tabDashboard',
-        'orders': 'tabOrders',
-        'products': 'tabProducts',
-        'users': 'tabUsers',
-        'downloads': 'tabDownloads',
-        'notifications': 'tabNotifications',
-        'stats': 'tabStats',
-        'logs': 'tabLogs',
-        'slider': 'tabSlider',
-        'licences': 'tabLicences',
-        'marquee': 'tabMarquee',
-        'payments': 'tabPayments'
-    };
-    const tabId = tabMap[tab] || tabMap['dashboard'];
-    document.getElementById(tabId).classList.add('active');
-    const btn = document.querySelector(`.admin-panel .tabs button[onclick="switchAdminTab('${tab}')"]`);
-    if (btn) btn.classList.add('active');
-    if (tab === 'products') renderAdminProducts(products);
-    if (tab === 'users') loadAdminUsers();
-    if (tab === 'dashboard') loadDashboardStats();
-    if (tab === 'stats') loadAdvancedStats();
-    if (tab === 'logs') loadAuditLogs();
-    if (tab === 'slider') {
-        renderSliderSettingsUI();
-        document.getElementById('sliderIntervalInput').value = sliderIntervalTime;
-    }
-    if (tab === 'licences') { loadLicences(); }
-    if (tab === 'marquee') { renderMarqueeSettingsUI(); }
-    if (tab === 'orders') {
-        loadAdminOrders();
-    }
-    if (tab === 'payments') {
-        refreshAdminPayments();
-    }
-};
-
-// ============================================================
-// 21. Admin Products
-// ============================================================
-
-function renderAdminProducts(productsList) {
-    const container = document.getElementById('adminProductsList');
-    if (!container) return;
-    if (!productsList || productsList.length === 0) { container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">📭 No products</div>`; return; }
-    container.innerHTML = productsList.map(p => {
-        const isUnavailable = p.status === 'unavailable';
-        const vipBadge = p.vipEnabled ? '👑 VIP' : '';
-        const typeBadge = p.productType === 'quantity' ? '📦 Qty' : '📦 Std';
-        const badges = p.badges && p.badges.length > 0 ? p.badges.slice(0, 2).join(', ') : '';
-        return `<div class="admin-item" style="${isUnavailable?'opacity:0.5;':''}"><div class="item-info"><div class="item-title">${p.name} ${isUnavailable?'⛔':''} ${vipBadge} <span style="font-size:10px;opacity:0.4;">${typeBadge}</span></div><div class="item-meta">${p.price===0?'🎁 FREE':`${getCurrencySymbol(p.currency || 'USD')} ${p.price}`} • ${p.badge||'FREE'} ${isUnavailable?'• Unavailable':''} ${badges ? '🏷️ '+badges : ''}</div></div><div class="item-actions"><button class="btn-edit" onclick="openEditProductModal('${p.id}')"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="deleteProduct('${p.id}')"><i class="fas fa-trash"></i></button></div></div>`;
-    }).join('');
-}
-
-window.openEditProductModal = function(productId) {
-    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
-    const product = products.find(p => p.id === productId);
-    if (!product) { showToast('❌ Product not found', 'error'); return; }
-    
-    document.getElementById('productFormTitle').textContent = '✏️ Edit Product: ' + product.name;
-    document.getElementById('productIdField').value = productId;
-    document.getElementById('productName').value = product.name || '';
-    document.getElementById('productPrice').value = product.price !== undefined ? product.price : '';
-    document.getElementById('productOriginalPrice').value = product.originalPrice || '';
-    document.getElementById('productBadge').value = product.badge || 'FREE';
-    document.getElementById('productStatus').value = product.status || 'available';
-    document.getElementById('productImage').value = product.image || '';
-    document.getElementById('productDescription').value = product.description || '';
-    document.getElementById('productFeatures').value = (product.features || []).join(', ');
-    document.getElementById('productVideo').value = product.video || 'https://www.youtube.com/embed/dQw4w9WgXcQ';
-    document.getElementById('productDuration').value = product.duration || '';
-    
-    const currency = product.currency || 'USD';
-    document.getElementById('productCurrency').value = currency;
-    document.querySelectorAll('.currency-option').forEach(el => {
-        el.classList.toggle('active', el.dataset.currency === currency);
-    });
-    
-    const productType = product.productType || 'standard';
-    document.getElementById('productType').value = productType;
-    document.querySelectorAll('.type-option').forEach(el => {
-        el.classList.toggle('active', el.dataset.type === productType);
-    });
-    const container = document.getElementById('quantityOptionsContainer');
-    if (productType === 'quantity') {
-        container.style.display = 'block';
-        setQuantityOptions(product.quantityOptions || []);
-    } else {
-        container.style.display = 'none';
-    }
-    
-    setBadges(product.badges || []);
-    
-    const vipEnabled = product.vipEnabled || false;
-    document.getElementById('vipEnabled').checked = vipEnabled;
-    document.getElementById('vipPricingFields').style.display = vipEnabled ? 'block' : 'none';
-    if (product.vipPrices) {
-        document.getElementById('vipPrice1m').value = product.vipPrices['1m'] || '';
-        document.getElementById('vipOriginalPrice1m').value = product.vipPrices['1m_original'] || '';
-        document.getElementById('vipPrice3m').value = product.vipPrices['3m'] || '';
-        document.getElementById('vipOriginalPrice3m').value = product.vipPrices['3m_original'] || '';
-        document.getElementById('vipPrice1y').value = product.vipPrices['1y'] || '';
-        document.getElementById('vipOriginalPrice1y').value = product.vipPrices['1y_original'] || '';
-        document.getElementById('vipPriceLifetime').value = product.vipPrices['lifetime'] || '';
-        document.getElementById('vipOriginalPriceLifetime').value = product.vipPrices['lifetime_original'] || '';
-    }
-    
-    document.getElementById('productModal').classList.add('open');
-};
-
-window.openAddProductModal = function() {
-    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
-    document.getElementById('productFormTitle').textContent = '➕ Add New Product';
-    document.getElementById('productForm').reset();
-    document.getElementById('productIdField').value = '';
-    document.getElementById('productPrice').value = '';
-    document.getElementById('productOriginalPrice').value = '';
-    document.getElementById('productBadge').value = 'FREE';
-    document.getElementById('productStatus').value = 'available';
-    document.getElementById('productFeatures').value = '';
-    document.getElementById('productDescription').value = '';
-    document.getElementById('productVideo').value = 'https://www.youtube.com/embed/dQw4w9WgXcQ';
-    document.getElementById('productDuration').value = '';
-    
-    document.getElementById('productCurrency').value = 'USD';
-    document.querySelectorAll('.currency-option').forEach(el => {
-        el.classList.toggle('active', el.dataset.currency === 'USD');
-    });
-    
-    document.getElementById('productType').value = 'standard';
-    document.querySelectorAll('.type-option').forEach(el => {
-        el.classList.toggle('active', el.dataset.type === 'standard');
-    });
-    document.getElementById('quantityOptionsContainer').style.display = 'none';
-    document.getElementById('quantityOptionsList').innerHTML = '';
-    
-    document.querySelectorAll('.badge-option').forEach(el => el.classList.remove('selected'));
-    document.getElementById('productBadges').value = '';
-    
-    document.getElementById('vipEnabled').checked = false;
-    document.getElementById('vipPricingFields').style.display = 'none';
-    
-    document.getElementById('productModal').classList.add('open');
-};
-
-window.closeProductModal = function() { document.getElementById('productModal').classList.remove('open'); };
-
-window.saveProduct = async function(event) {
-    event.preventDefault();
-    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
-    
-    const productId = document.getElementById('productIdField').value;
-    const name = document.getElementById('productName').value.trim();
-    const price = parseFloat(document.getElementById('productPrice').value) || 0;
-    const originalPrice = parseFloat(document.getElementById('productOriginalPrice').value) || 0;
-    const badge = document.getElementById('productBadge').value;
-    const status = document.getElementById('productStatus').value;
-    const description = document.getElementById('productDescription').value.trim();
-    const featuresText = document.getElementById('productFeatures').value.trim();
-    const video = document.getElementById('productVideo').value.trim();
-    const duration = document.getElementById('productDuration').value.trim();
-    
-    const currency = document.getElementById('productCurrency').value || 'USD';
-    const productType = document.getElementById('productType').value || 'standard';
-    let quantityOptions = [];
-    if (productType === 'quantity') {
-        quantityOptions = getQuantityOptions();
-        if (quantityOptions.length === 0) {
-            showToast('⚠️ Please add at least one quantity option', 'warning');
-            return;
-        }
-    }
-    const badges = document.getElementById('productBadges').value.split(',').filter(b => b.trim() !== '');
-    const vipEnabled = document.getElementById('vipEnabled').checked;
-    const vipPrices = {
-        '1m': parseFloat(document.getElementById('vipPrice1m').value) || 0,
-        '1m_original': parseFloat(document.getElementById('vipOriginalPrice1m').value) || 0,
-        '3m': parseFloat(document.getElementById('vipPrice3m').value) || 0,
-        '3m_original': parseFloat(document.getElementById('vipOriginalPrice3m').value) || 0,
-        '1y': parseFloat(document.getElementById('vipPrice1y').value) || 0,
-        '1y_original': parseFloat(document.getElementById('vipOriginalPrice1y').value) || 0,
-        'lifetime': parseFloat(document.getElementById('vipPriceLifetime').value) || 0,
-        'lifetime_original': parseFloat(document.getElementById('vipOriginalPriceLifetime').value) || 0
-    };
-    
-    let imageUrl = document.getElementById('productImage').value.trim();
-    const fileInput = document.getElementById('productImageFile');
-    if (fileInput && fileInput.files && fileInput.files[0]) {
-        const uploadedUrl = await uploadToCloudinary(fileInput.files[0]);
-        if (uploadedUrl) { imageUrl = uploadedUrl; }
-    }
-    
-    if (!name) { showToast('⚠️ Product name is required', 'warning'); return; }
-    
-    const features = featuresText ? featuresText.split(',').map(f => f.trim()).filter(f => f) : [];
-    
-    const productData = { 
-        name, 
-        price, 
-        originalPrice,
-        badge, 
-        status, 
-        image: imageUrl, 
-        description, 
-        features, 
-        video, 
-        vipEnabled, 
-        vipPrices,
-        currency,
-        productType,
-        quantityOptions,
-        badges,
-        duration
-    };
-    
-    try {
-        if (productId) {
-            await updateProductInFirestore(productId, productData);
-            showToast('✅ Product updated', 'success');
-        } else {
-            await addProductToFirestore(productData);
-            showToast('✅ Product added', 'success');
-        }
-        closeProductModal();
-    } catch (error) { 
-        console.error('Save product error:', error); 
-        showToast('❌ Error: ' + error.message, 'error'); 
-    }
-};
-
-window.deleteProduct = async function(productId) {
-    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
-    if (!confirm('Delete this product?')) return;
-    try { await deleteProductFromFirestore(productId); showToast('🗑️ Product deleted', 'success'); } catch (error) { console.error('Delete product error:', error); showToast('❌ Error: ' + error.message, 'error'); }
-};
-async function addProductToFirestore(productData) {
-    try { const productsRef = collection(db, 'products'); const docRef = await addDoc(productsRef, { ...productData, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }); return docRef.id; } catch (error) { console.error('Error adding product:', error); throw error; }
-}
-async function updateProductInFirestore(productId, productData) {
-    try { const productRef = doc(db, 'products', productId); await updateDoc(productRef, { ...productData, updatedAt: serverTimestamp() }); return true; } catch (error) { console.error('Error updating product:', error); throw error; }
-}
-async function deleteProductFromFirestore(productId) {
-    try { await deleteDoc(doc(db, 'products', productId)); return true; } catch (error) { console.error('Error deleting product:', error); throw error; }
-}
-
-// ============================================================
-// 22. Admin Orders
+// 19. Admin Orders
 // ============================================================
 
 function startAdminRealtimeListener() {
@@ -3751,10 +3462,6 @@ function updateAdminStats(orders) {
     if (rejectedEl) rejectedEl.textContent = rejected;
 }
 
-// ============================================================
-// 23. Update Order Status with User Notification
-// ============================================================
-
 window.updateOrderStatus = async function(orderId, userId, newStatus) {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!orderId || !userId) { showToast('❌ Invalid data', 'error'); return; }
@@ -3832,7 +3539,7 @@ window.clearAdminSearch = function() { document.getElementById('adminSearchInput
 window.refreshAdminOrders = function() { loadAdminOrders(); showToast('🔄 Refreshed', 'info'); };
 
 // ============================================================
-// 24. Send Licence via Edge Function
+// 20. Send Licence via Edge Function
 // ============================================================
 
 async function sendLicenceForOrder(orderId, userId, userEmail = null) {
@@ -3921,7 +3628,7 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
 }
 
 // ============================================================
-// 25. Admin Users
+// 21. Admin Users
 // ============================================================
 
 async function loadAdminUsers() {
@@ -4032,7 +3739,7 @@ window.viewUserDetails = async function(uid) {
 window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
 // ============================================================
-// 26. Licence Management System (with Supabase)
+// 22. Licence Management System (with Supabase)
 // ============================================================
 
 async function loadLicences() {
@@ -4358,7 +4065,7 @@ async function activateLicence() {
 }
 
 // ============================================================
-// 27. Ratings
+// 23. Ratings
 // ============================================================
 
 let currentRating = 0;
@@ -4468,7 +4175,7 @@ async function updateProductRatingDisplay(productId) {
 }
 
 // ============================================================
-// 28. Slider & Marquee Functions
+// 24. Slider & Marquee Functions
 // ============================================================
 
 window.goToSlide = function(index) {
@@ -4859,7 +4566,7 @@ async function loadMarqueeSettings() {
 }
 
 // ============================================================
-// 29. Dashboard Stats, Advanced Stats, Audit Logs
+// 25. Dashboard Stats, Advanced Stats, Audit Logs
 // ============================================================
 
 async function loadDashboardStats() {
@@ -4967,7 +4674,7 @@ async function loadAuditLogs() {
 window.loadAuditLogs = loadAuditLogs;
 
 // ============================================================
-// 30. Order History (Unified with Payment Design)
+// 26. Order History (Unified with Payment Design)
 // ============================================================
 
 window.clearOrderHistory = async function() {
@@ -5098,7 +4805,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================================
-// 31. Cookie Consent Functions
+// 27. Cookie Consent Functions
 // ============================================================
 
 let cookieConsentStatus = localStorage.getItem('cookieConsent');
@@ -5228,7 +4935,7 @@ window.disableAnalytics = disableAnalytics;
 window.checkCookieConsent = checkCookieConsent;
 
 // ============================================================
-// 32. Telegram Banner, Social Proof, Upload
+// 28. Telegram Banner, Social Proof, Upload
 // ============================================================
 
 function showTelegramBanner() {
@@ -5274,7 +4981,7 @@ function startSocialProof() { /* For future use */ }
 function triggerSocialProofOnOrder(userName, productNames) { /* For future use */ }
 
 // ============================================================
-// 33. Cloudinary Upload
+// 29. Cloudinary Upload
 // ============================================================
 
 async function uploadToCloudinary(file) {
@@ -5289,7 +4996,7 @@ async function uploadToCloudinary(file) {
 }
 
 // ============================================================
-// 34. Direction Fix
+// 30. Direction Fix
 // ============================================================
 
 function fixDirection() {
@@ -5301,7 +5008,7 @@ function fixDirection() {
 window.fixHeaderAndModals = fixDirection;
 
 // ============================================================
-// 35. Copy Licence & Export
+// 31. Copy Licence & Export
 // ============================================================
 
 window.copyLicenceCode = function(code) {
@@ -5364,7 +5071,7 @@ window.exportOrders = function() {
 };
 
 // ============================================================
-// 36. Admin Payments
+// 32. Admin Payments
 // ============================================================
 
 function refreshAdminPayments() {
@@ -5463,7 +5170,7 @@ window.adminDeletePayment = function(orderId, userId) {
 };
 
 // ============================================================
-// 37. Support Functions
+// 33. Support Functions
 // ============================================================
 
 window.toggleSupportMenu = function() {
@@ -5517,7 +5224,7 @@ window.openPhoneSupport = function() {
 };
 
 // ============================================================
-// 38. Auth State Listener
+// 34. Auth State Listener
 // ============================================================
 
 onAuthStateChanged(auth, async (user) => {
@@ -5611,7 +5318,7 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// 39. Auto-check Admin Panel
+// 35. Auto-check Admin Panel
 // ============================================================
 
 setInterval(() => {
@@ -5634,7 +5341,7 @@ setInterval(() => {
 }, 5000);
 
 // ============================================================
-// 40. Init
+// 36. Init
 // ============================================================
 
 async function init() {
@@ -5710,14 +5417,14 @@ async function init() {
 }
 
 // ============================================================
-// 41. Theme Toggle
+// 37. Theme Toggle
 // ============================================================
 
 // Theme toggle is now handled inline in index.html for immediate response.
 // We'll keep a function to sync with localStorage if needed, but not override.
 
 // ============================================================
-// 42. Export all functions to global scope
+// 38. Export all functions to global scope
 // ============================================================
 
 window.filterOrders = function(filter) {
@@ -5729,39 +5436,19 @@ window.filterOrders = function(filter) {
 };
 
 window.checkout = function() {
-    openPaymentModal();
+    openCheckout();
 };
 
-// Payment Modal Functions
+// Payment Modal Functions (legacy, but kept for compatibility)
 window.openPaymentModal = function() {
-    if (cart.length === 0) {
-        showToast('⚠️ Cart is empty', 'warning');
-        return;
-    }
-    const modal = document.getElementById('paymentModal');
-    if (!modal) {
-        showToast('❌ Payment modal not found', 'error');
-        return;
-    }
-    modal.classList.add('open');
-    document.body.style.overflow = 'hidden';
-    document.getElementById('paymentStep1').style.display = 'block';
-    document.getElementById('paymentStep2').style.display = 'none';
-    selectedPayment = null;
-    document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
-    window.renderPaymentProducts();
-    updatePayableTotal();
+    // Redirect to new checkout
+    openCheckout();
 };
-
 window.closePaymentModal = function() {
-    const modal = document.getElementById('paymentModal');
-    if (modal) modal.classList.remove('open');
-    document.body.style.overflow = '';
+    closeCheckoutFull();
 };
-
 window.goToStep1 = function() {
-    document.getElementById('paymentStep1').style.display = 'block';
-    document.getElementById('paymentStep2').style.display = 'none';
+    goToCheckoutStep1();
 };
 
 // No checkout promo because we removed it, but keep function if needed
@@ -5827,22 +5514,7 @@ window.closeNewRequestModal = closeNewRequestModal;
 window.submitRequest = submitRequest;
 window.selectPayment = selectPayment;
 window.continuePayment = continuePayment;
-window.copyWalletAddress = function() {
-    const address = document.getElementById('walletAddressDisplay').textContent;
-    if (address) {
-        navigator.clipboard.writeText(address).then(() => {
-            showToast('✅ Address copied!', 'success');
-        }).catch(() => {
-            const textArea = document.createElement('textarea');
-            textArea.value = address;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
-            showToast('✅ Address copied!', 'success');
-        });
-    }
-};
+window.copyWalletAddress = copyWalletAddress;
 window.placeOrder = placeOrder;
 window.bindTelegram = bindTelegram;
 window.checkTelegramStatus = checkTelegramStatus;
