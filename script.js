@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - Full Version (Checkout Fullscreen)
+// SCRIPT.JS - ZI Store - Full Version (Complete)
 // ============================================================
 
 // ============================================================
@@ -3196,7 +3196,6 @@ window.checkout = function() {
 // ============================================================
 // 17. Telegram Functions (bind, unlink, test)
 // ============================================================
-// تم تضمينها في الجزء الخاص بالـ Telegram سابقاً ولكن سنكررها للتأكد
 window.bindTelegram = async function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
     try {
