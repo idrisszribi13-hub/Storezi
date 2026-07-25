@@ -1540,19 +1540,14 @@ async function loadFeaturedSettings() {
 
 // Function to update a specific product card's add button to "View Cart"
 function updateProductCardButton(productId) {
-    // Find the product card in the grid
     const cards = document.querySelectorAll('.product-card');
     cards.forEach(card => {
-        // Check if this card belongs to the product
         const productCard = card.closest('.product-card');
         if (productCard) {
-            // We need to find the button inside this card
             const addBtn = productCard.querySelector('.btn-add-cart');
             if (addBtn) {
-                // Check if the product id matches
                 const onclickAttr = addBtn.getAttribute('onclick');
                 if (onclickAttr && onclickAttr.includes(`'${productId}'`)) {
-                    // Update the button
                     addBtn.innerHTML = '<i class="fas fa-check"></i> View Cart';
                     addBtn.className = 'btn-add-cart added';
                     addBtn.onclick = function(e) {
@@ -1593,7 +1588,6 @@ window.addToCart = async function(productId) {
         renderProducts(products);
         updateBottomCartBar();
         showToast(`✅ Added ${product.name} (${selectedQty}) to cart`, 'success');
-        // Update the button
         updateProductCardButton(productId);
         return;
     }
@@ -1606,7 +1600,6 @@ window.addToCart = async function(productId) {
     renderProducts(products);
     updateBottomCartBar();
     showToast(`✅ Added ${product.name} to cart`, 'success');
-    // Update the button
     updateProductCardButton(productId);
 };
 
@@ -2458,7 +2451,8 @@ window.selectPayment = function(method) {
         'litecoin': 'optionLitecoin',
         'usdt': 'optionUsdt',
         'telegram': 'optionTelegram',
-        'binanceId': 'optionBinanceId'
+        'binanceId': 'optionBinanceId',
+        'creditcard': 'optionCreditCard'
     };
     const optionEl = document.getElementById(optionMap[method]);
     if (optionEl) optionEl.classList.add('selected');
@@ -2474,7 +2468,7 @@ window.selectPayment = function(method) {
 };
 
 // ============================================================
-// 15.4 Continue Payment (with RP and Promo sections)
+// 15.4 Continue Payment (with instructions and no RP/promo)
 // ============================================================
 window.continuePayment = function() {
     if (!selectedPayment) {
@@ -2485,57 +2479,37 @@ window.continuePayment = function() {
     document.getElementById('paymentStep2').style.display = 'block';
     window.renderPaymentProducts();
 
-    // Compute totals for step2
+    // Compute totals
     let total = 0;
     cart.forEach(item => {
         const qty = item.quantity || 1;
         total += item.price * qty;
     });
-    let rpDiscountAmount = 0;
-    if (userProfile.useRpForCart) {
-        rpDiscountAmount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total);
-    }
-    let finalTotal = total - rpDiscountAmount;
-    let promoDiscountAmount = 0;
-    if (activeDiscount > 0 && total > 0) {
-        promoDiscountAmount = (finalTotal * activeDiscount) / 100;
-        finalTotal = finalTotal - promoDiscountAmount;
-    }
-    if (finalTotal < 0) finalTotal = 0;
-
-    // Update subtotal and total in step2
+    let finalTotal = total;
+    // No RP, no promo in checkout step 2 (as per index.html)
     document.getElementById('step2Subtotal').textContent = `$${total.toFixed(2)}`;
     document.getElementById('step2Total').textContent = `$${finalTotal.toFixed(2)}`;
 
-    // Update RP section and promo status in step2
-    const rpSection = document.querySelector('#paymentStep2 .rp-btn');
-    if (rpSection) {
-        const rpText = rpSection.querySelector('span') || rpSection;
-        const rpAmount = userProfile.rp || 0;
-        rpSection.innerHTML = `<i class="fas ${userProfile.useRpForCart?'fa-check-circle':'fa-circle'}"></i> ${userProfile.useRpForCart?'Use RP ✓':'Use RP'} (${rpAmount} RP ≈ $${(rpAmount * RP_TO_DOLLAR).toFixed(2)})`;
-        rpSection.className = `rp-btn ${userProfile.useRpForCart?'active':''}`;
-    }
-    const promoStatus = document.getElementById('checkoutPromoStatus');
-    if (promoStatus) {
-        promoStatus.textContent = activeDiscount > 0 ? `✅ ${activeDiscount}% discount active` : 'Enter a promo code for a discount';
-        promoStatus.className = 'promo-status';
-        if (activeDiscount > 0) promoStatus.classList.add('success');
-    }
-
-    // Show/hide wallet info, tx input, etc.
+    // Show/hide appropriate sections
     const walletInfo = document.getElementById('paymentWalletInfo');
     const txInput = document.getElementById('paymentTxInput');
     const telegramContact = document.getElementById('paymentTelegramContact');
     const binanceSection = document.getElementById('paymentBinanceIdSection');
     const mainBtn = document.getElementById('mainConfirmBtn');
+    const instructions = document.getElementById('paymentInstructions');
+    const creditCardInfo = document.getElementById('paymentCreditCardInfo');
 
+    // Hide everything first
     if (walletInfo) walletInfo.style.display = 'none';
     if (txInput) txInput.style.display = 'none';
     if (telegramContact) telegramContact.style.display = 'none';
     if (binanceSection) binanceSection.style.display = 'none';
     if (mainBtn) mainBtn.style.display = 'none';
+    if (instructions) instructions.style.display = 'none';
+    if (creditCardInfo) creditCardInfo.style.display = 'none';
 
     if (selectedPayment === 'litecoin' || selectedPayment === 'usdt') {
+        if (instructions) instructions.style.display = 'block';
         if (walletInfo) walletInfo.style.display = 'block';
         if (txInput) txInput.style.display = 'block';
         if (mainBtn) {
@@ -2546,6 +2520,7 @@ window.continuePayment = function() {
         fetchCryptoPrices();
         setTimeout(updatePriceUI, 500);
     } else if (selectedPayment === 'telegram') {
+        if (instructions) instructions.style.display = 'block';
         if (telegramContact) telegramContact.style.display = 'block';
         if (mainBtn) {
             mainBtn.style.display = 'block';
@@ -2557,6 +2532,7 @@ window.continuePayment = function() {
             };
         }
     } else if (selectedPayment === 'binanceId') {
+        if (instructions) instructions.style.display = 'block';
         if (binanceSection) {
             binanceSection.style.display = 'block';
             document.getElementById('binanceIdDisplay').textContent = '748838383';
@@ -2567,6 +2543,16 @@ window.continuePayment = function() {
             const orderId = '#' + String(Date.now()).slice(-6);
             document.getElementById('binanceOrderDisplay').textContent = orderId;
         }
+        if (mainBtn) {
+            mainBtn.style.display = 'block';
+            mainBtn.innerHTML = '<i class="fas fa-check"></i> Confirm Payment';
+            mainBtn.onclick = placeOrder;
+        }
+    } else if (selectedPayment === 'creditcard') {
+        if (creditCardInfo) creditCardInfo.style.display = 'block';
+        if (instructions) instructions.style.display = 'block';
+        // No confirm button, just back
+        mainBtn.style.display = 'none';
     }
 };
 
@@ -2599,6 +2585,9 @@ window.placeOrder = function() {
         }
     } else if (selectedPayment === 'telegram') {
         placeOrderTelegram();
+        return;
+    } else if (selectedPayment === 'creditcard') {
+        showToast('⚠️ Credit Card payment is not available yet. Please select another method.', 'warning');
         return;
     }
 
@@ -2740,11 +2729,14 @@ async function sendOrderToTelegram(method, txHash = null) {
         let total = 0;
         cart.forEach(item => { total += item.price * (item.quantity || 1); });
         let finalTotal = total;
+        // No RP discount in checkout as per index.html
+        // But we keep it for consistency if user had useRpForCart true
         let rpDiscountAmount = 0;
         if (userProfile.useRpForCart) {
             rpDiscountAmount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total);
             finalTotal = total - rpDiscountAmount;
         }
+        // No promo discount in checkout as per index.html, but keep if activeDiscount set elsewhere
         if (activeDiscount > 0 && total > 0) {
             const discountAmount = (finalTotal * activeDiscount) / 100;
             finalTotal = finalTotal - discountAmount;
@@ -5772,40 +5764,9 @@ window.goToStep1 = function() {
     document.getElementById('paymentStep2').style.display = 'none';
 };
 
-// Checkout promo apply
+// No checkout promo because we removed it, but keep function if needed
 window.applyCheckoutPromo = function() {
-    const input = document.getElementById('checkoutPromoInput');
-    const statusEl = document.getElementById('checkoutPromoStatus');
-    if (!input) return;
-    const code = input.value.trim().toUpperCase();
-    if (!code) { statusEl.textContent = '⚠️ Please enter a code'; statusEl.className = 'promo-status error'; return; }
-    const codeData = discountCodes[code];
-    if (!codeData) { statusEl.textContent = '❌ Invalid code'; statusEl.className = 'promo-status error'; return; }
-    activeDiscount = codeData.discount; activeDiscountCode = code;
-    statusEl.textContent = `✅ ${codeData.discount}% discount applied!`; statusEl.className = 'promo-status success';
-    input.value = '';
-    // Update totals
-    const totalEl = document.getElementById('step2Total');
-    if (totalEl) {
-        let total = 0;
-        cart.forEach(item => { total += item.price * (item.quantity || 1); });
-        let rpDiscountAmount = 0;
-        if (userProfile.useRpForCart) {
-            rpDiscountAmount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total);
-        }
-        let finalTotal = total - rpDiscountAmount;
-        if (activeDiscount > 0) {
-            finalTotal = finalTotal - (finalTotal * activeDiscount / 100);
-        }
-        if (finalTotal < 0) finalTotal = 0;
-        totalEl.textContent = `$${finalTotal.toFixed(2)}`;
-        // Update binance amount if visible
-        const binanceAmount = document.getElementById('binanceAmountDisplay');
-        if (binanceAmount) binanceAmount.textContent = `$${finalTotal.toFixed(2)}`;
-        const binanceAmountInline = document.getElementById('binanceAmountInline');
-        if (binanceAmountInline) binanceAmountInline.textContent = `$${finalTotal.toFixed(2)}`;
-    }
-    showToast(`🎉 ${codeData.discount}% discount applied!`, 'success');
+    // Placeholder, no longer used
 };
 
 window.toggleLicencesList = toggleLicencesList;
@@ -5892,7 +5853,6 @@ window.sendResetLinkInline = sendResetLinkInline;
 window.changePasswordInline = changePasswordInline;
 window.toggleRpInCart = toggleRpInCart;
 window.applyCartPromo = applyCartPromo;
-window.applyCheckoutPromo = applyCheckoutPromo;
 window.showTelegramBannerAgain = showTelegramBannerAgain;
 window.adminToggleBanner = adminToggleBanner;
 window.resetBannerForAll = resetBannerForAll;
