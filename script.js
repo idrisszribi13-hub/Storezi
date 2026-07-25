@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - FULL VERSION (Complete)
+// SCRIPT.JS - ZI Store - FULL VERSION (FIXED & COMPLETE)
 // ============================================================
 
 // ============================================================
@@ -248,7 +248,7 @@ window.showMainApp = function() {
 };
 
 // ============================================================
-// 2. Admin Check Functions
+// 2. Admin Check Functions (FIXED)
 // ============================================================
 
 async function checkIsAdmin() {
