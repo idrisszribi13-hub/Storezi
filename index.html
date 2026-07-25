@@ -9,7 +9,7 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
 
-    <!-- ===== IMPORT MAP (Fix Firebase) ===== -->
+    <!-- ===== IMPORT MAP ===== -->
     <script type="importmap">
         {
             "imports": {
@@ -44,7 +44,8 @@
             --radius-lg: 20px;
             --shadow: 0 8px 30px rgba(0,0,0,0.5);
             --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            --transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            --transition: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            --slide-transition: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         /* Light Theme */
@@ -131,40 +132,42 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
 
-        /* ===== Toast ===== */
+        /* ===== Toast (from top) ===== */
         #toast {
             position: fixed;
-            bottom: 90px;
+            top: -100px;
             left: 50%;
-            transform: translateX(-50%) translateY(80px);
+            transform: translateX(-50%) translateY(0);
             background: var(--card-bg);
             color: var(--text);
-            padding: 12px 22px;
+            padding: 14px 24px;
             border-radius: var(--radius-md);
             border: 1px solid var(--border);
             box-shadow: var(--shadow);
             z-index: 9999;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             font-size: 14px;
             font-weight: 600;
             opacity: 0;
             pointer-events: none;
-            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
             max-width: 90%;
             backdrop-filter: blur(10px);
+            min-width: 280px;
+            justify-content: center;
         }
         #toast.show {
+            top: 20px;
             opacity: 1;
-            transform: translateX(-50%) translateY(0);
             pointer-events: auto;
         }
         #toast.success { border-color: var(--success); }
         #toast.error { border-color: var(--danger); }
         #toast.warning { border-color: var(--warning); }
         #toast.info { border-color: var(--primary); }
-        .toast-icon { font-size: 18px; }
+        .toast-icon { font-size: 20px; }
 
         /* ===== Header ===== */
         .header {
@@ -235,7 +238,13 @@
             justify-content: center;
             padding: 0 4px;
         }
-        .theme-toggle { background: transparent !important; border: none !important; }
+        .theme-toggle {
+            background: transparent !important;
+            border: none !important;
+            font-size: 18px !important;
+            transition: transform 0.3s !important;
+        }
+        .theme-toggle:hover { transform: rotate(30deg) scale(1.1) !important; }
 
         /* ===== Search ===== */
         .search-wrapper {
@@ -651,18 +660,27 @@
         }
         #bottomCartBar .checkout-btn:hover { transform: scale(1.04); }
 
-        /* ===== Modals / Fullscreen ===== */
+        /* ===== Fullscreen Modals with Slide from Left ===== */
         .fullscreen-modal {
             position: fixed;
-            inset: 0;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             z-index: 300;
             background: var(--bg);
-            display: none;
+            display: flex;
             flex-direction: column;
             padding: 16px;
             overflow-y: auto;
+            transform: translateX(-100%);
+            transition: transform var(--slide-transition);
+            will-change: transform;
+            box-shadow: 4px 0 30px rgba(0,0,0,0.3);
         }
-        .fullscreen-modal.open { display: flex; }
+        .fullscreen-modal.open {
+            transform: translateX(0);
+        }
         .fullscreen-modal .modal-header {
             display: flex;
             justify-content: flex-start;
@@ -685,18 +703,26 @@
             background: none;
             border: none;
             color: var(--text-secondary);
-            font-size: 24px;
+            font-size: 28px;
             cursor: pointer;
             padding: 0 4px;
             margin-left: auto;
+            transition: transform 0.3s;
+        }
+        .fullscreen-modal .modal-header .close-btn:hover {
+            transform: rotate(90deg);
         }
         .fullscreen-modal .modal-header .back-btn {
             background: none;
             border: none;
             color: var(--text);
-            font-size: 20px;
+            font-size: 22px;
             cursor: pointer;
             padding: 0 8px 0 0;
+            transition: transform 0.3s;
+        }
+        .fullscreen-modal .modal-header .back-btn:hover {
+            transform: translateX(-4px);
         }
 
         /* ===== Auth Section ===== */
@@ -951,7 +977,7 @@
         }
         .add-btn:hover { opacity: 0.8; }
 
-        /* ===== Payment Modal ===== */
+        /* ===== Payment Modal (like Cart) ===== */
         .modal {
             position: fixed;
             inset: 0;
@@ -974,17 +1000,25 @@
             max-height: 90vh;
             overflow-y: auto;
             position: relative;
+            box-shadow: var(--shadow);
+            animation: modalSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes modalSlideUp {
+            0% { opacity: 0; transform: translateY(30px) scale(0.95); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
         }
         .modal .modal-close {
             position: absolute;
             top: 12px;
             right: 16px;
-            font-size: 24px;
+            font-size: 28px;
             color: var(--text-secondary);
             cursor: pointer;
             background: none;
             border: none;
+            transition: transform 0.3s;
         }
+        .modal .modal-close:hover { transform: rotate(90deg); }
         .modal h2 { font-size: 22px; font-weight: 800; margin-bottom: 12px; }
 
         .payment-options {
@@ -1224,6 +1258,7 @@
             .slide-title { font-size: 16px; }
             .auth-container { padding: 20px 16px; }
             #adminPanel .tabs button { font-size: 12px; padding: 4px 10px; }
+            #toast { min-width: auto; width: 90%; font-size: 13px; padding: 12px 16px; }
         }
         @media (min-width: 768px) {
             .product-grid { grid-template-columns: repeat(3, 1fr); }
@@ -2146,6 +2181,31 @@
             font-weight: 700;
             font-size: 12px;
         }
+
+        /* Password toggle */
+        .password-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .password-wrapper input {
+            flex: 1;
+            padding-right: 44px;
+        }
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px;
+            opacity: 0.5;
+            transition: var(--transition);
+        }
+        .password-toggle:hover { opacity: 1; }
+
         .tb-row {
             display: flex;
             justify-content: space-between;
@@ -2325,6 +2385,87 @@
             background: var(--danger)30;
             color: var(--danger);
         }
+
+        /* ===== Cart & Checkout unified ===== */
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 14px;
+            background: var(--bg);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            margin-bottom: 8px;
+        }
+        .cart-item .ci-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            min-width: 0;
+        }
+        .cart-item .ci-left img {
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+        .cart-item .ci-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .cart-item .ci-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .cart-item .ci-price {
+            font-size: 12px;
+            color: var(--primary);
+            font-weight: 700;
+        }
+        .cart-item .ci-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .cart-item .ci-actions button {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            color: var(--text);
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 700;
+            transition: var(--transition);
+        }
+        .cart-item .ci-actions button:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+        }
+        .cart-item .ci-actions .ci-qty {
+            min-width: 20px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .cart-item .ci-remove {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 14px;
+            opacity: 0.3;
+            padding: 4px;
+            transition: var(--transition);
+        }
+        .cart-item .ci-remove:hover { opacity: 0.8; }
     </style>
 </head>
 <body>
@@ -2353,7 +2494,7 @@
         <header class="header">
             <div class="logo"><i class="fas fa-crown"></i> ZI Store</div>
             <div class="header-actions">
-                <button class="theme-toggle" onclick="document.body.classList.toggle('light')" aria-label="Toggle theme">
+                <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
                     <i class="fas fa-sun"></i>
                 </button>
                 <button onclick="openWishlistFull()" aria-label="Wishlist">
@@ -2473,7 +2614,7 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- ===== FULLSCREEN MODALS ===== -->
+    <!-- ===== FULLSCREEN MODALS (Slide from Left) ===== -->
     <!-- ============================================================ -->
 
     <!-- ===== PRODUCT DETAILS FULL PAGE ===== -->
@@ -2697,7 +2838,7 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- ===== PAYMENT MODAL ===== -->
+    <!-- ===== PAYMENT MODAL (Checkout like Cart) ===== -->
     <!-- ============================================================ -->
     <div class="modal" id="paymentModal">
         <div class="modal-content">
@@ -2745,7 +2886,7 @@
                 <button class="payment-btn" onclick="continuePayment()"><i class="fas fa-arrow-right"></i> Continue</button>
             </div>
 
-            <!-- Step 2 -->
+            <!-- Step 2 (like Cart style) -->
             <div id="paymentStep2" style="display:none;">
                 <div id="paymentProductsList" style="margin-bottom:8px;"></div>
                 <div style="display:flex; justify-content:space-between; margin:4px 0; font-size:14px; font-weight:500;">
@@ -2755,6 +2896,25 @@
                 <div style="display:flex; justify-content:space-between; margin:4px 0; font-size:18px; font-weight:800;">
                     <span>Total</span>
                     <span id="step2Total">$0.00</span>
+                </div>
+
+                <!-- RP and Promo (like cart) -->
+                <div style="background:var(--bg);border-radius:10px;padding:12px;border:1px solid var(--border);margin:8px 0;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:13px;">
+                        <span style="color:var(--text-secondary);opacity:0.5;display:flex;align-items:center;gap:6px;"><i class="fas fa-star" style="color:var(--vip-color);"></i> Loyalty Points (RP)</span>
+                        <span style="color:var(--text);font-weight:600;">${userProfile.rp || 0} RP (≈ $${((userProfile.rp || 0) * RP_TO_DOLLAR).toFixed(2)})</span>
+                    </div>
+                    <button class="rp-btn ${userProfile.useRpForCart?'active':''}" onclick="toggleRpInCart()" style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;transition:0.3s;margin-top:4px;">
+                        <i class="fas ${userProfile.useRpForCart?'fa-check-circle':'fa-circle'}"></i>
+                        ${userProfile.useRpForCart?'Use RP ✓':'Use RP'}
+                    </button>
+                </div>
+                <div style="background:var(--bg);border-radius:10px;padding:12px;border:1px solid var(--border);margin:8px 0;">
+                    <div style="display:flex;gap:6px;align-items:center;">
+                        <input id="checkoutPromoInput" placeholder="Enter promo code..." style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);font-size:13px;outline:none;font-weight:500;" type="text" />
+                        <button onclick="applyCheckoutPromo()" style="padding:6px 14px;border:none;border-radius:6px;background:var(--primary);color:#fff;font-weight:600;cursor:pointer;font-size:12px;transition:0.3s;white-space:nowrap;"><i class="fas fa-ticket-alt"></i> Apply</button>
+                    </div>
+                    <div class="promo-status" id="checkoutPromoStatus" style="font-size:11px;color:var(--text-secondary);opacity:0.4;margin-top:4px;font-weight:500;">${activeDiscount>0?`✅ ${activeDiscount}% discount active`:'Enter a promo code for a discount'}</div>
                 </div>
 
                 <!-- Wallet Info (LTC/USDT) -->
@@ -3560,6 +3720,30 @@
     <!-- ===== SCRIPTS ===== -->
     <!-- ============================================================ -->
     <script type="module" src="script.js"></script>
+
+    <!-- ===== inline theme toggle for immediate response ===== -->
+    <script>
+        // Theme toggle function (will be overridden by module, but this ensures immediate response)
+        function toggleTheme() {
+            document.body.classList.toggle('light');
+            const isLight = document.body.classList.contains('light');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            const icon = document.querySelector('.theme-toggle i');
+            if (icon) {
+                icon.className = isLight ? 'fas fa-moon' : 'fas fa-sun';
+            }
+        }
+
+        // Apply saved theme on load
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light') {
+                document.body.classList.add('light');
+                const icon = document.querySelector('.theme-toggle i');
+                if (icon) icon.className = 'fas fa-moon';
+            }
+        });
+    </script>
 
 </body>
     </html>
