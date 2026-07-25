@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - FULL VERSION (FIXED & COMPLETE)
+// SCRIPT.JS - ZI Store - FULL VERSION (COMPLETE WITH ALL 42 FUNCTIONS)
 // ============================================================
 
 // ============================================================
@@ -2262,7 +2262,7 @@ function closeSearchResults() { searchResults.classList.remove('active'); search
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeSearchResults(); closeUserMenuFull(); closeCartFull(); closeWishlistFull(); closeProfileFull(); closeHistoryFull(); } });
 
 // ============================================================
-// 15. CHECKOUT (Fullscreen like Cart)
+// 15. CHECKOUT (Fullscreen like Cart) - ALL FUNCTIONS INCLUDED
 // ============================================================
 
 // دالة فتح الـ Checkout
