@@ -327,7 +327,7 @@
         #marqueeContent span { margin: 0 30px; }
         @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
-        /* ===== Slider ===== */
+        /* ===== Slider (no overlay blur, no button) ===== */
         .slider-container {
             position: relative;
             margin: 12px 16px;
@@ -352,28 +352,19 @@
             justify-content: center;
             padding: 20px;
         }
+        /* إزالة الضبابية والزر */
         .slide-overlay {
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(4px);
+            background: rgba(0,0,0,0.3); /* خفيف جداً */
+            backdrop-filter: none; /* إزالة الضبابية */
             padding: 16px 24px;
             border-radius: var(--radius-md);
             text-align: center;
             max-width: 90%;
         }
-        .slide-title { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
-        .slide-subtitle { font-size: 14px; opacity: 0.8; margin-bottom: 8px; }
-        .slide-btn {
-            display: inline-block;
-            padding: 8px 24px;
-            background: var(--primary);
-            color: #fff;
-            border-radius: 30px;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 14px;
-            transition: var(--transition);
-        }
-        .slide-btn:hover { transform: scale(1.05); opacity: 0.9; }
+        .slide-title { font-size: 20px; font-weight: 800; margin-bottom: 4px; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+        .slide-subtitle { font-size: 14px; opacity: 0.9; margin-bottom: 8px; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+        /* حذف زر .slide-btn */
+        .slide-btn { display: none; }
         .slider-dots {
             position: absolute;
             bottom: 10px;
@@ -681,6 +672,11 @@
         .fullscreen-modal.open {
             transform: translateX(0);
         }
+        /* إزالة أي خط أسود عند التبديل للثيم النهاري */
+        .fullscreen-modal {
+            background: var(--bg);
+            border: none;
+        }
         .fullscreen-modal .modal-header {
             display: flex;
             justify-content: flex-start;
@@ -977,7 +973,7 @@
         }
         .add-btn:hover { opacity: 0.8; }
 
-        /* ===== Payment Modal (like Cart) ===== */
+        /* ===== Payment Modal ===== */
         .modal {
             position: fixed;
             inset: 0;
@@ -1259,6 +1255,7 @@
             .auth-container { padding: 20px 16px; }
             #adminPanel .tabs button { font-size: 12px; padding: 4px 10px; }
             #toast { min-width: auto; width: 90%; font-size: 13px; padding: 12px 16px; }
+            .slide-overlay { padding: 12px 16px; }
         }
         @media (min-width: 768px) {
             .product-grid { grid-template-columns: repeat(3, 1fr); }
@@ -2466,6 +2463,40 @@
             transition: var(--transition);
         }
         .cart-item .ci-remove:hover { opacity: 0.8; }
+
+        /* ===== Payment Instructions (replaces RP/promo) ===== */
+        .payment-instructions {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            border: 1px solid var(--border);
+            margin: 12px 0;
+        }
+        .payment-instructions .pi-header {
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 6px;
+            color: var(--vip-color);
+        }
+        .payment-instructions .pi-body {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            font-weight: 500;
+        }
+        .payment-instructions .pi-body strong {
+            color: var(--text);
+        }
+        .payment-instructions .pi-deadline {
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: var(--danger)20;
+            border-radius: var(--radius-sm);
+            border-left: 3px solid var(--danger);
+            font-size: 13px;
+            color: var(--danger);
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -2838,7 +2869,7 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- ===== PAYMENT MODAL (Checkout like Cart) ===== -->
+    <!-- ===== PAYMENT MODAL (Checkout) ===== -->
     <!-- ============================================================ -->
     <div class="modal" id="paymentModal">
         <div class="modal-content">
@@ -2873,6 +2904,13 @@
                         <div class="p-sub">Direct Transfer</div>
                         <div class="p-check"><i class="fas fa-check"></i></div>
                     </div>
+                    <!-- NEW: Credit Card (placeholder) -->
+                    <div class="payment-option" id="optionCreditCard" onclick="selectPayment('creditcard')">
+                        <i class="fas fa-credit-card"></i>
+                        <div class="p-label">Credit Card</div>
+                        <div class="p-sub">Coming Soon</div>
+                        <div class="p-check"><i class="fas fa-check"></i></div>
+                    </div>
                 </div>
 
                 <!-- Total Amount -->
@@ -2886,7 +2924,7 @@
                 <button class="payment-btn" onclick="continuePayment()"><i class="fas fa-arrow-right"></i> Continue</button>
             </div>
 
-            <!-- Step 2 (like Cart style) -->
+            <!-- Step 2 (without RP and promo, with instructions) -->
             <div id="paymentStep2" style="display:none;">
                 <div id="paymentProductsList" style="margin-bottom:8px;"></div>
                 <div style="display:flex; justify-content:space-between; margin:4px 0; font-size:14px; font-weight:500;">
@@ -2898,23 +2936,16 @@
                     <span id="step2Total">$0.00</span>
                 </div>
 
-                <!-- RP and Promo (like cart) -->
-                <div style="background:var(--bg);border-radius:10px;padding:12px;border:1px solid var(--border);margin:8px 0;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:13px;">
-                        <span style="color:var(--text-secondary);opacity:0.5;display:flex;align-items:center;gap:6px;"><i class="fas fa-star" style="color:var(--vip-color);"></i> Loyalty Points (RP)</span>
-                        <span style="color:var(--text);font-weight:600;">${userProfile.rp || 0} RP (≈ $${((userProfile.rp || 0) * RP_TO_DOLLAR).toFixed(2)})</span>
+                <!-- Payment Instructions (replaces RP/promo) -->
+                <div id="paymentInstructions" class="payment-instructions" style="display:none;">
+                    <div class="pi-header"><i class="fas fa-info-circle"></i> Payment Instructions</div>
+                    <div class="pi-body">
+                        <p>Please send the exact amount to the address below. After sending, copy the <strong>Transaction Hash / ID</strong> and paste it in the field provided.</p>
+                        <p><strong>Important:</strong> Your order will be processed manually upon verification of the transaction. This may take up to <strong>24-48 hours</strong>.</p>
+                        <div class="pi-deadline">
+                            <i class="fas fa-clock"></i> Payment deadline: <strong>30 minutes</strong> from order creation.
+                        </div>
                     </div>
-                    <button class="rp-btn ${userProfile.useRpForCart?'active':''}" onclick="toggleRpInCart()" style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;transition:0.3s;margin-top:4px;">
-                        <i class="fas ${userProfile.useRpForCart?'fa-check-circle':'fa-circle'}"></i>
-                        ${userProfile.useRpForCart?'Use RP ✓':'Use RP'}
-                    </button>
-                </div>
-                <div style="background:var(--bg);border-radius:10px;padding:12px;border:1px solid var(--border);margin:8px 0;">
-                    <div style="display:flex;gap:6px;align-items:center;">
-                        <input id="checkoutPromoInput" placeholder="Enter promo code..." style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);font-size:13px;outline:none;font-weight:500;" type="text" />
-                        <button onclick="applyCheckoutPromo()" style="padding:6px 14px;border:none;border-radius:6px;background:var(--primary);color:#fff;font-weight:600;cursor:pointer;font-size:12px;transition:0.3s;white-space:nowrap;"><i class="fas fa-ticket-alt"></i> Apply</button>
-                    </div>
-                    <div class="promo-status" id="checkoutPromoStatus" style="font-size:11px;color:var(--text-secondary);opacity:0.4;margin-top:4px;font-weight:500;">${activeDiscount>0?`✅ ${activeDiscount}% discount active`:'Enter a promo code for a discount'}</div>
                 </div>
 
                 <!-- Wallet Info (LTC/USDT) -->
@@ -2943,7 +2974,7 @@
                     <button class="payment-btn" onclick="placeOrderTelegram()" style="background:#0088cc;"><i class="fab fa-telegram-plane"></i> Contact via Telegram</button>
                 </div>
 
-                <!-- ===== BINANCE ID SECTION ===== -->
+                <!-- Binance ID Section -->
                 <div id="paymentBinanceIdSection" class="binance-id-section" style="display:none; margin-top:8px;">
                     <div class="binance-id-box">
                         <div class="bi-header">
@@ -3018,6 +3049,18 @@
                                 <br>
                                 <span style="font-size:11px; opacity:0.4;">For inquiries: <a href="https://t.me/Mitalica69" target="_blank" style="color:var(--primary);">@Mitalica69</a></span>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Credit Card placeholder -->
+                <div id="paymentCreditCardInfo" style="display:none; margin-top:12px;">
+                    <div class="payment-instructions" style="background:var(--bg);">
+                        <div class="pi-header"><i class="fas fa-credit-card"></i> Credit Card Payment</div>
+                        <div class="pi-body">
+                            <p>This payment method is currently <strong>in development</strong>. Please use one of the other available methods.</p>
+                            <p>We are working on integrating a secure card payment gateway.</p>
+                            <p style="margin-top:8px; color:var(--vip-color);">For now, please select Litecoin, USDT, Telegram, or Binance ID.</p>
                         </div>
                     </div>
                 </div>
