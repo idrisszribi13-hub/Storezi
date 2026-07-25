@@ -193,6 +193,8 @@ function showToast(message, type = 'success') {
     const icons = { success: '<i class="fas fa-check-circle"></i>', error: '<i class="fas fa-exclamation-circle"></i>', warning: '<i class="fas fa-exclamation-triangle"></i>', info: '<i class="fas fa-info-circle"></i>' };
     if (iconEl) iconEl.innerHTML = icons[type] || icons.success;
     messageEl.textContent = message;
+    // Force reflow for animation
+    void toast.offsetWidth;
     toast.classList.add('show');
     clearTimeout(window.toastTimeout);
     window.toastTimeout = setTimeout(() => { toast.classList.remove('show'); }, 3500);
@@ -964,7 +966,7 @@ window.closeNotifications = function() { document.getElementById('notificationsM
 window.openAuthModal = function() { document.getElementById('authSection').scrollIntoView({ behavior: 'smooth' }); };
 
 // ============================================================
-// 7. Render Profile Full
+// 7. Render Profile Full (with password toggle)
 // ============================================================
 
 function renderProfileFull() {
@@ -1056,9 +1058,27 @@ function renderProfileFull() {
             </div>
             <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:8px;">
                 <div style="font-size:12px;color:var(--text-secondary);opacity:0.4;margin-bottom:6px;">Use your current password to set a new one instantly.</div>
-                <div class="form-group"><label>Current Password</label><input id="currentPasswordInline" placeholder="Enter current password" type="password" /></div>
-                <div class="form-group"><label>New Password</label><input id="newPasswordInline" placeholder="Enter new password (min 6 chars)" type="password" /></div>
-                <div class="form-group"><label>Confirm New Password</label><input id="confirmNewPasswordInline" placeholder="Confirm new password" type="password" /></div>
+                <div class="form-group">
+                    <label>Current Password</label>
+                    <div class="password-wrapper">
+                        <input id="currentPasswordInline" placeholder="Enter current password" type="password" />
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('currentPasswordInline')"><i class="fas fa-eye"></i></button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>New Password</label>
+                    <div class="password-wrapper">
+                        <input id="newPasswordInline" placeholder="Enter new password (min 6 chars)" type="password" />
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('newPasswordInline')"><i class="fas fa-eye"></i></button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Confirm New Password</label>
+                    <div class="password-wrapper">
+                        <input id="confirmNewPasswordInline" placeholder="Confirm new password" type="password" />
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('confirmNewPasswordInline')"><i class="fas fa-eye"></i></button>
+                    </div>
+                </div>
                 <button class="btn-save" onclick="changePasswordInline()" style="width:100%;"><i class="fas fa-key"></i> Change Password</button>
                 <div class="auth-error" id="passwordErrorInline"></div>
                 <div class="auth-success" id="passwordSuccessInline"></div>
@@ -1099,6 +1119,20 @@ function renderProfileFull() {
     </div>`;
     setTimeout(showTelegramBanner, 300);
 }
+
+// Password toggle function
+window.togglePasswordVisibility = function(inputId) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const toggle = input.parentElement.querySelector('.password-toggle');
+    if (input.type === 'password') {
+        input.type = 'text';
+        toggle.innerHTML = '<i class="fas fa-eye-slash"></i>';
+    } else {
+        input.type = 'password';
+        toggle.innerHTML = '<i class="fas fa-eye"></i>';
+    }
+};
 
 window.saveProfileChangesInline = async function(e) {
     e.preventDefault();
@@ -1636,7 +1670,21 @@ function renderCartFull() {
         const vipLabel = item.isVip ? `👑 ${item.vipPlanLabel || 'VIP'}` : '';
         const qtyLabel = item.isQuantityProduct ? `📦 ${item.selectedQuantity || ''}` : '';
         const proxyLabel = item.isProxy ? ' 🌐' : '';
-        html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);margin-bottom:8px;"><div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;"><img src="${image}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" /><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.name} ${proxyLabel} ${vipLabel} ${qtyLabel}</div><div style="font-size:12px;color:var(--primary);font-weight:700;">${getCurrencySymbol(item.currency || 'USD')}${itemTotal.toFixed(2)}</div></div></div><div style="display:flex;align-items:center;gap:6px;"><button onclick="updateCartQuantity('${item.id}',-1)" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;">-</button><span style="min-width:20px;text-align:center;font-size:14px;font-weight:700;">${qty}</span><button onclick="updateCartQuantity('${item.id}',1)" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;">+</button><button onclick="removeFromCart('${item.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:14px;opacity:0.3;padding:4px;"><i class="fas fa-trash-alt"></i></button></div></div>`;
+        html += `<div class="cart-item">
+            <div class="ci-left">
+                <img src="${image}" alt="${item.name}" />
+                <div class="ci-info">
+                    <div class="ci-name">${item.name} ${proxyLabel} ${vipLabel} ${qtyLabel}</div>
+                    <div class="ci-price">${getCurrencySymbol(item.currency || 'USD')}${itemTotal.toFixed(2)}</div>
+                </div>
+            </div>
+            <div class="ci-actions">
+                <button onclick="updateCartQuantity('${item.id}',-1)">-</button>
+                <span class="ci-qty">${qty}</span>
+                <button onclick="updateCartQuantity('${item.id}',1)">+</button>
+                <button class="ci-remove" onclick="removeFromCart('${item.id}')"><i class="fas fa-trash-alt"></i></button>
+            </div>
+        </div>`;
     });
     let rpDiscountAmount = 0;
     let promoDiscountAmount = 0;
@@ -1657,13 +1705,13 @@ function renderCartFull() {
     </div>
     <div style="background:var(--bg);border-radius:10px;padding:12px;border:1px solid var(--border);margin:8px 0;">
       <div style="display:flex;gap:6px;align-items:center;">
-        <input id="cartPromoInput" placeholder="Enter promo code..." style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);font-size:13px;outline:none;" type="text" />
+        <input id="cartPromoInput" placeholder="Enter promo code..." style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);font-size:13px;outline:none;font-weight:500;" type="text" />
         <button onclick="applyCartPromo()" style="padding:6px 14px;border:none;border-radius:6px;background:var(--primary);color:#fff;font-weight:600;cursor:pointer;font-size:12px;transition:0.3s;white-space:nowrap;"><i class="fas fa-ticket-alt"></i> Apply</button>
       </div>
-      <div class="promo-status" id="cartPromoStatus" style="font-size:11px;color:var(--text-secondary);opacity:0.4;margin-top:4px;">${activeDiscount>0?`✅ ${activeDiscount}% discount active`:'Enter a promo code for a discount'}</div>
+      <div class="promo-status" id="cartPromoStatus" style="font-size:11px;color:var(--text-secondary);opacity:0.4;margin-top:4px;font-weight:500;">${activeDiscount>0?`✅ ${activeDiscount}% discount active`:'Enter a promo code for a discount'}</div>
     </div>
     <div style="margin-top:12px;padding-top:12px;border-top:2px solid var(--border);">
-      <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;"><span style="color:var(--text-secondary);opacity:0.5;">Subtotal</span><span style="color:var(--text);font-weight:600;">${getCurrencySymbol('USD')}${total.toFixed(2)}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;font-weight:500;"><span style="color:var(--text-secondary);opacity:0.5;">Subtotal</span><span style="color:var(--text);font-weight:600;">${getCurrencySymbol('USD')}${total.toFixed(2)}</span></div>
       ${rpDiscountAmount>0?`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;color:var(--success);"><span style="color:var(--text-secondary);opacity:0.5;">🎯 RP discount (${Math.floor(rpDiscountAmount/RP_TO_DOLLAR)} RP)</span><span style="font-weight:600;">-${getCurrencySymbol('USD')}${rpDiscountAmount.toFixed(2)}</span></div>`:''}
       ${activeDiscount>0?`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;color:var(--success);"><span style="color:var(--text-secondary);opacity:0.5;">🎫 Promo (${activeDiscount}%)</span><span style="font-weight:600;">-${getCurrencySymbol('USD')}${promoDiscountAmount.toFixed(2)}</span></div>`:''}
       <div style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid var(--border);margin-top:4px;padding-top:6px;font-size:18px;font-weight:700;"><span style="color:var(--text-secondary);opacity:0.5;">Total</span><span style="color:var(--primary);">${getCurrencySymbol('USD')}${finalTotal.toFixed(2)}</span></div>
@@ -2426,7 +2474,7 @@ window.selectPayment = function(method) {
 };
 
 // ============================================================
-// 15.4 Continue Payment
+// 15.4 Continue Payment (with RP and Promo sections)
 // ============================================================
 window.continuePayment = function() {
     if (!selectedPayment) {
@@ -2437,6 +2485,7 @@ window.continuePayment = function() {
     document.getElementById('paymentStep2').style.display = 'block';
     window.renderPaymentProducts();
 
+    // Compute totals for step2
     let total = 0;
     cart.forEach(item => {
         const qty = item.quantity || 1;
@@ -2453,9 +2502,27 @@ window.continuePayment = function() {
         finalTotal = finalTotal - promoDiscountAmount;
     }
     if (finalTotal < 0) finalTotal = 0;
+
+    // Update subtotal and total in step2
     document.getElementById('step2Subtotal').textContent = `$${total.toFixed(2)}`;
     document.getElementById('step2Total').textContent = `$${finalTotal.toFixed(2)}`;
 
+    // Update RP section and promo status in step2
+    const rpSection = document.querySelector('#paymentStep2 .rp-btn');
+    if (rpSection) {
+        const rpText = rpSection.querySelector('span') || rpSection;
+        const rpAmount = userProfile.rp || 0;
+        rpSection.innerHTML = `<i class="fas ${userProfile.useRpForCart?'fa-check-circle':'fa-circle'}"></i> ${userProfile.useRpForCart?'Use RP ✓':'Use RP'} (${rpAmount} RP ≈ $${(rpAmount * RP_TO_DOLLAR).toFixed(2)})`;
+        rpSection.className = `rp-btn ${userProfile.useRpForCart?'active':''}`;
+    }
+    const promoStatus = document.getElementById('checkoutPromoStatus');
+    if (promoStatus) {
+        promoStatus.textContent = activeDiscount > 0 ? `✅ ${activeDiscount}% discount active` : 'Enter a promo code for a discount';
+        promoStatus.className = 'promo-status';
+        if (activeDiscount > 0) promoStatus.classList.add('success');
+    }
+
+    // Show/hide wallet info, tx input, etc.
     const walletInfo = document.getElementById('paymentWalletInfo');
     const txInput = document.getElementById('paymentTxInput');
     const telegramContact = document.getElementById('paymentTelegramContact');
@@ -2746,7 +2813,7 @@ async function sendOrderToTelegram(method, txHash = null) {
         const userRef = doc(db, 'users', currentUser.uid);
         await updateDoc(userRef, { history: arrayUnion(orderItem) });
 
-        // إرسال إشعار للإدمن (سيتم استقباله عبر الـ realtime listener)
+        // إرسال إشعار للإدمن
         await addDoc(collection(db, 'notifications'), {
             title: '🆕 New Order Placed',
             message: `Order #${orderId.slice(-6)} by ${currentUser.email} - Total: $${finalTotal.toFixed(2)}`,
@@ -2844,7 +2911,6 @@ window.addProxyToCart = function(packageId) {
     updateCartUI();
     renderProxyPackages();
     showToast(`✅ Added ${pkg.name} to cart`, 'success');
-    // Update button to View Cart
     updateProductCardButton(packageId);
 };
 
@@ -5655,26 +5721,8 @@ async function init() {
 // 41. Theme Toggle
 // ============================================================
 
-document.addEventListener('DOMContentLoaded', function() {
-    const themeBtn = document.querySelector('.theme-toggle');
-    if (themeBtn) {
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'light') {
-            document.body.classList.add('light');
-            const icon = themeBtn.querySelector('i');
-            if (icon) icon.className = 'fas fa-moon';
-        }
-        themeBtn.addEventListener('click', function() {
-            document.body.classList.toggle('light');
-            const isLight = document.body.classList.contains('light');
-            localStorage.setItem('theme', isLight ? 'light' : 'dark');
-            const icon = this.querySelector('i');
-            if (icon) {
-                icon.className = isLight ? 'fas fa-moon' : 'fas fa-sun';
-            }
-        });
-    }
-});
+// Theme toggle is now handled inline in index.html for immediate response.
+// We'll keep a function to sync with localStorage if needed, but not override.
 
 // ============================================================
 // 42. Export all functions to global scope
@@ -5722,6 +5770,42 @@ window.closePaymentModal = function() {
 window.goToStep1 = function() {
     document.getElementById('paymentStep1').style.display = 'block';
     document.getElementById('paymentStep2').style.display = 'none';
+};
+
+// Checkout promo apply
+window.applyCheckoutPromo = function() {
+    const input = document.getElementById('checkoutPromoInput');
+    const statusEl = document.getElementById('checkoutPromoStatus');
+    if (!input) return;
+    const code = input.value.trim().toUpperCase();
+    if (!code) { statusEl.textContent = '⚠️ Please enter a code'; statusEl.className = 'promo-status error'; return; }
+    const codeData = discountCodes[code];
+    if (!codeData) { statusEl.textContent = '❌ Invalid code'; statusEl.className = 'promo-status error'; return; }
+    activeDiscount = codeData.discount; activeDiscountCode = code;
+    statusEl.textContent = `✅ ${codeData.discount}% discount applied!`; statusEl.className = 'promo-status success';
+    input.value = '';
+    // Update totals
+    const totalEl = document.getElementById('step2Total');
+    if (totalEl) {
+        let total = 0;
+        cart.forEach(item => { total += item.price * (item.quantity || 1); });
+        let rpDiscountAmount = 0;
+        if (userProfile.useRpForCart) {
+            rpDiscountAmount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total);
+        }
+        let finalTotal = total - rpDiscountAmount;
+        if (activeDiscount > 0) {
+            finalTotal = finalTotal - (finalTotal * activeDiscount / 100);
+        }
+        if (finalTotal < 0) finalTotal = 0;
+        totalEl.textContent = `$${finalTotal.toFixed(2)}`;
+        // Update binance amount if visible
+        const binanceAmount = document.getElementById('binanceAmountDisplay');
+        if (binanceAmount) binanceAmount.textContent = `$${finalTotal.toFixed(2)}`;
+        const binanceAmountInline = document.getElementById('binanceAmountInline');
+        if (binanceAmountInline) binanceAmountInline.textContent = `$${finalTotal.toFixed(2)}`;
+    }
+    showToast(`🎉 ${codeData.discount}% discount applied!`, 'success');
 };
 
 window.toggleLicencesList = toggleLicencesList;
@@ -5808,6 +5892,7 @@ window.sendResetLinkInline = sendResetLinkInline;
 window.changePasswordInline = changePasswordInline;
 window.toggleRpInCart = toggleRpInCart;
 window.applyCartPromo = applyCartPromo;
+window.applyCheckoutPromo = applyCheckoutPromo;
 window.showTelegramBannerAgain = showTelegramBannerAgain;
 window.adminToggleBanner = adminToggleBanner;
 window.resetBannerForAll = resetBannerForAll;
@@ -5880,6 +5965,8 @@ window.openWhatsAppSupport = openWhatsAppSupport;
 window.openTelegramSupport = openTelegramSupport;
 window.openEmailSupport = openEmailSupport;
 window.openPhoneSupport = openPhoneSupport;
+
+// Password toggle function is already defined globally.
 
 document.addEventListener('click', function(e) {
     const float = document.getElementById('supportFloat');
