@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZI Store - Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style> body { font-family: 'Cairo', sans-serif; } </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center p-4">
+
+    <!-- شاشة تسجيل الدخول -->
+    <div id="loginScreen" class="bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-2xl w-full max-w-md">
+        <h1 class="text-2xl font-bold text-indigo-400 mb-2 text-center">تسجيل دخول المشرف</h1>
+        <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-1">البريد الإلكتروني</label>
+                <input type="email" id="adminEmail" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-1">كلمة المرور</label>
+                <input type="password" id="adminPassword" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500">
+            </div>
+            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition">دخول</button>
+            <p id="loginError" class="text-red-400 text-sm text-center mt-2"></p>
+        </form>
+    </div>
+
+    <!-- لوحة التحكم الشاملة (حظر + إعادة تعيين جهاز) -->
+    <div id="dashboard" class="hidden bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-2xl w-full max-w-lg relative">
+        <button onclick="handleLogout()" class="absolute top-4 left-4 text-xs bg-slate-800 hover:bg-red-600/20 hover:text-red-400 text-slate-400 px-3 py-1.5 rounded-lg transition">خروج</button>
+        
+        <h1 class="text-2xl font-bold text-indigo-400 mb-2 text-center">لوحة تحكم ZI Store</h1>
+        <p class="text-slate-400 text-sm mb-6 text-center">إدارة الحظر وإعادة تعيين الأجهزة بأمان تام</p>
+        
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-1">بريد المستخدم</label>
+                <input type="email" id="userEmail" placeholder="user@example.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500">
+            </div>
+
+            <!-- أزرار الحظر وفك الحظر -->
+            <div class="flex gap-4 pt-2">
+                <button onclick="updateLicense({ banned: true }, 'تم حظر المستخدم بنجاح!')" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-xl transition shadow-lg">حظر (Ban)</button>
+                <button onclick="updateLicense({ banned: false }, 'تم فك الحظر عن المستخدم!')" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-xl transition shadow-lg">فك حظر</button>
+            </div>
+
+            <!-- زر إعادة تعيين الجهاز -->
+            <div class="pt-2">
+                <button onclick="updateLicense({ device_id: null }, 'تم إعادة تعيين الجهاز بنجاح (فارغ)!')" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold py-3 rounded-xl transition shadow-lg">إعادة تعيين الجهاز (Reset Device)</button>
+            </div>
+        </div>
+
+        <div id="resultMessage" class="mt-6 text-center text-sm font-medium"></div>
+    </div>
+
+    <script>
+        const supabaseUrl = "https://kvsyzgavfxnwqmtsginv.supabase.co";
+        const supabaseAnonKey = "sb_publishable_1uSIqgNONAV53GjOoBoZUw_niAGJXO6";
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+        async function checkSession() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) { showDashboard(); } else { showLogin(); }
+        }
+
+        function showLogin() {
+            document.getElementById("loginScreen").classList.remove("hidden");
+            document.getElementById("dashboard").classList.add("hidden");
+        }
+
+        function showDashboard() {
+            document.getElementById("loginScreen").classList.add("hidden");
+            document.getElementById("dashboard").classList.remove("hidden");
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById("adminEmail").value.trim();
+            const password = document.getElementById("adminPassword").value.trim();
+            const errP = document.getElementById("loginError");
+            errP.innerText = "جاري التحقق...";
+
+            const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if (error) {
+                errP.innerText = "خطأ في البريد أو كلمة المرور!";
+            } else {
+                showDashboard();
+            }
+        }
+
+        async function handleLogout() {
+            await supabaseClient.auth.signOut();
+            showLogin();
+        }
+
+        // دالة موحدة لتحديث أي بيانات في جدول licenses للمستخدم المحدد
+        async function updateLicense(updateData, successMessage) {
+            const email = document.getElementById("userEmail").value.trim();
+            const msgDiv = document.getElementById("resultMessage");
+
+            if (!email) {
+                msgDiv.className = "mt-6 text-center text-sm font-medium text-amber-400";
+                msgDiv.innerText = "الرجاء إدخال البريد الإلكتروني للمستخدم أولاً!";
+                return;
+            }
+
+            msgDiv.className = "mt-6 text-center text-sm font-medium text-indigo-400";
+            msgDiv.innerText = "جاري تنفيذ العملية...";
+
+            try {
+                const { error } = await supabaseClient
+                    .from("licenses")
+                    .update(updateData)
+                    .eq("email", email);
+
+                if (error) throw error;
+
+                msgDiv.className = "mt-6 text-center text-sm font-medium text-emerald-400";
+                msgDiv.innerText = successMessage;
+            } catch (error) {
+                msgDiv.className = "mt-6 text-center text-sm font-medium text-red-400";
+                msgDiv.innerText = "فشل التعديل: " + error.message;
+            }
+        }
+
+        checkSession();
+    </script>
+</body>
+</html>
