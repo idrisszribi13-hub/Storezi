@@ -35,16 +35,16 @@ if (typeof process === 'undefined') {
 // Firebase & Supabase Imports
 // ============================================================
 import { initializeApp } from "firebase/app";
-import {
-    getAuth,
-    onAuthStateChanged,
-    signInWithEmailAndPassword,
-    createUserWithEmailAndPassword,
-    signOut,
-    updateProfile,
-    updatePassword,
-    sendPasswordResetEmail,
-    reauthenticateWithCredential,
+import { 
+    getAuth, 
+    onAuthStateChanged, 
+    signInWithEmailAndPassword, 
+    createUserWithEmailAndPassword, 
+    signOut, 
+    updateProfile, 
+    updatePassword, 
+    sendPasswordResetEmail, 
+    reauthenticateWithCredential, 
     EmailAuthProvider,
     GoogleAuthProvider,
     signInWithPopup
@@ -686,13 +686,13 @@ window.loginUser = async function() {
         showToast('👋 Welcome back!', 'success');
         btn.classList.remove('loading');
         await refreshAdminStatus();
-
+        
         setTimeout(() => {
             document.getElementById('authSection').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
             loadUserData();
             updateDropdownStats();
-
+            
             if (isAdminCached) {
                 console.log('✅ Admin detected, loading admin features');
                 loadAdminOrders();
@@ -707,7 +707,7 @@ window.loginUser = async function() {
                     updateFullUserMenu();
                 }, 200);
             }
-
+            
             loadDownloads(); loadNotifications(); fetchCryptoPrices(); updateFullUserMenu(); showTelegramBanner();
             loadSliderSettings();
             loadMarqueeSettings();
@@ -753,7 +753,7 @@ window.registerUser = async function() {
         showToast(`🎉 Welcome, ${name}!`, 'success');
         btn.classList.remove('loading');
         await refreshAdminStatus();
-
+        
         setTimeout(() => {
             document.getElementById('authSection').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
@@ -774,15 +774,15 @@ window.loginWithGoogle = function() {
     if (btn) btn.classList.add('loading');
     const errorEl = document.getElementById('loginError');
     if (errorEl) errorEl.textContent = '';
-
+    
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
-
+    
     signInWithPopup(auth, provider)
         .then(async (result) => {
             const user = result.user;
             if (btn) btn.classList.remove('loading');
-
+            
             const photoURL = user.photoURL || '';
             userProfile.photoURL = photoURL;
 
@@ -1017,7 +1017,7 @@ function renderProfileFull() {
                 </div>
             </div>
         </div>
-
+        
         <div class="edit-profile-section">
             <div class="section-title"><i class="fas fa-edit"></i> Edit Profile</div>
             <form onsubmit="saveProfileChangesInline(event)">
@@ -1055,7 +1055,7 @@ function renderProfileFull() {
                 </div>
             </form>
         </div>
-
+        
         <div class="password-section">
             <div class="section-title"><i class="fas fa-lock"></i> Password & Security</div>
             <div class="ps-email">
@@ -1090,7 +1090,7 @@ function renderProfileFull() {
                 <div class="auth-success" id="passwordSuccessInline"></div>
             </div>
         </div>
-
+        
         <div class="telegram-section">
             <div class="section-title"><i class="fab fa-telegram-plane" style="color:#0088cc;"></i> Telegram Notifications</div>
             <div class="tb-row">
@@ -1108,7 +1108,7 @@ function renderProfileFull() {
                 </div>
             ` : ''}
             <div class="tb-info">
-                <i class="fas fa-info-circle" style="color:var(--primary);"></i>
+                <i class="fas fa-info-circle" style="color:var(--primary);"></i> 
                 ${userProfile.telegramChatId ? 'You will receive order notifications here.' : 'Click "Link Bot" to connect your Telegram account.'}
             </div>
             <div class="tb-actions">
@@ -1118,7 +1118,7 @@ function renderProfileFull() {
                 ${userProfile.telegramChatId ? `<button class="btn-unlink" onclick="unlinkTelegram()"><i class="fas fa-unlink"></i> Unlink</button>` : ''}
             </div>
             <div style="font-size:11px;color:var(--text-secondary);opacity:0.4;margin-top:6px;display:flex;align-items:center;gap:4px;">
-                <i class="fab fa-telegram-plane" style="color:#0088cc;"></i>
+                <i class="fab fa-telegram-plane" style="color:#0088cc;"></i> 
                 ${userProfile.telegramChatId ? `Connected to @${BOT_USERNAME}` : `Start @${BOT_USERNAME} and click "Link Bot" to connect`}
             </div>
         </div>
@@ -1292,7 +1292,7 @@ function renderProducts(productsList, isLoading = false) {
         }
         const currencySymbol = getCurrencySymbol(p.currency || 'USD');
         const priceDisplay = isUnavailable ? '⛔ Unavailable' : (isFree ? 'FREE' : `${currencySymbol}${displayPrice.toFixed(2)}`);
-
+        
         return `
       <div class="product-card" onclick="window.openDetails('${p.id}')">
         <div class="product-actions-top">
@@ -1367,7 +1367,7 @@ window.selectProductType = function(type) {
         el.classList.toggle('active', el.dataset.type === type);
     });
     document.getElementById('productType').value = type;
-
+    
     const container = document.getElementById('quantityOptionsContainer');
     if (type === 'quantity') {
         container.style.display = 'block';
@@ -1569,7 +1569,7 @@ function updateProductCardButton(productId) {
 window.addToCart = async function(productId) {
     const product = products.find(p => p.id === productId);
     if (!product) { showToast('⚠️ Product not found', 'warning'); return; }
-
+    
     if (product.productType === 'quantity') {
         const selectedQty = window._selectedQuantity || product.quantityOptions?.[0]?.quantity;
         const selectedPrice = window._selectedQuantityPrice || product.quantityOptions?.[0]?.price;
@@ -1581,9 +1581,9 @@ window.addToCart = async function(productId) {
         if (existing) {
             existing.quantity = (existing.quantity || 1) + 1;
         } else {
-            cart.push({
-                ...product,
-                price: selectedPrice,
+            cart.push({ 
+                ...product, 
+                price: selectedPrice, 
                 quantity: 1,
                 selectedQuantity: selectedQty,
                 isQuantityProduct: true
@@ -1597,7 +1597,7 @@ window.addToCart = async function(productId) {
         updateProductCardButton(productId);
         return;
     }
-
+    
     if (product.price === 0) { showToast('⚠️ This script is free', 'warning'); return; }
     const existing = cart.find(item => item.id === productId && !item.isVip);
     if (existing) { existing.quantity = (existing.quantity || 1) + 1; } else { cart.push({ ...product, quantity: 1 }); }
@@ -1809,22 +1809,22 @@ window.openDetails = function(id) {
         return;
     }
     window._currentProduct = p;
-
+    
     const titleEl = document.getElementById('productDetailsTitle');
     if (titleEl) titleEl.textContent = p.name;
-
+    
     const container = document.getElementById('productDetailsContent');
     if (!container) {
         console.error('❌ productDetailsContent not found');
         return;
     }
-
+    
     const isFree = p.price === 0;
     const isUnavailable = p.status === 'unavailable';
     const badgeClass = isUnavailable ? 'unavailable' : (isFree ? 'free' : 'vip');
     const badgeText = isUnavailable ? '⛔ Unavailable' : (isFree ? 'FREE' : (p.badge || 'PREMIUM'));
     const currencySymbol = getCurrencySymbol(p.currency || 'USD');
-
+    
     let videoHtml = '';
     if (p.video && p.video.includes('youtube.com/embed/')) {
         videoHtml = `
@@ -1833,7 +1833,7 @@ window.openDetails = function(id) {
             </div>
         `;
     }
-
+    
     let featuresHtml = '';
     if (p.features && p.features.length > 0) {
         featuresHtml = `
@@ -1847,7 +1847,7 @@ window.openDetails = function(id) {
             </div>
         `;
     }
-
+    
     let vipHtml = '';
     if (p.vipEnabled && p.vipPrices) {
         const plans = [
@@ -1891,7 +1891,7 @@ window.openDetails = function(id) {
             `;
         }
     }
-
+    
     let quantityHtml = '';
     if (p.productType === 'quantity' && p.quantityOptions && p.quantityOptions.length > 0) {
         quantityHtml = `
@@ -1918,7 +1918,7 @@ window.openDetails = function(id) {
             window._selectedQuantityPrice = firstOpt.price;
         }
     }
-
+    
     let priceDisplay = isFree ? 'FREE' : `${currencySymbol}${p.price.toFixed(2)}`;
     let originalPriceHtml = '';
     let discountBadgeHtml = '';
@@ -1928,7 +1928,7 @@ window.openDetails = function(id) {
         originalPriceHtml = `<span style="font-size:14px;text-decoration:line-through;opacity:0.3;margin-left:8px;">${currencySymbol}${p.price.toFixed(2)}</span>`;
         discountBadgeHtml = `<span style="font-size:11px;background:var(--danger);color:#fff;padding:0 8px;border-radius:10px;margin-left:6px;">-${activeDiscount}%</span>`;
     }
-
+    
     const inCart = cart.some(item => item.id === id && !item.isVip);
     let addBtnHtml = '';
     if (inCart) {
@@ -1940,7 +1940,7 @@ window.openDetails = function(id) {
     } else {
         addBtnHtml = `<button onclick="addToCartFromDetails()" style="flex:1;padding:12px;border:none;border-radius:var(--radius-sm);background:var(--primary);color:#fff;font-weight:700;cursor:pointer;font-size:16px;transition:0.3s;"><i class="fas fa-cart-plus"></i> Add to Cart</button>`;
     }
-
+    
     container.innerHTML = `
         <div style="max-width:600px;margin:0 auto;width:100%;">
             <div style="width:100%;border-radius:var(--radius-md);overflow:hidden;background:var(--bg-secondary);border:1px solid var(--border);margin-bottom:12px;">
@@ -1950,16 +1950,16 @@ window.openDetails = function(id) {
                     <span style="font-size:13px;color:var(--success);font-weight:600;">✅ ${p.status === 'available' ? '100% VERIFIED WORKING' : 'UNAVAILABLE'}</span>
                 </div>
             </div>
-
+            
             <h1 style="font-size:22px;font-weight:800;color:var(--text);margin:0 0 4px 0;">${p.name}</h1>
             ${p.duration ? `<div style="font-size:13px;color:var(--text-secondary);opacity:0.5;margin-bottom:6px;"><i class="fas fa-clock"></i> ${p.duration}</div>` : ''}
             <p style="font-size:14px;color:var(--text-secondary);line-height:1.6;margin:6px 0 12px 0;">${p.description || 'No description available for this product.'}</p>
-
+            
             ${videoHtml}
             ${featuresHtml}
             ${quantityHtml}
             ${vipHtml}
-
+            
             <div style="background:var(--bg-secondary);border-radius:var(--radius-md);padding:14px 16px;border:1px solid var(--border);margin:12px 0;">
                 <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px;">
                     <span style="font-size:24px;font-weight:800;color:var(--primary);">${priceDisplay}</span>
@@ -1972,9 +1972,9 @@ window.openDetails = function(id) {
                     <button onclick="openShareModal('${p.id}')" style="padding:12px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:16px;transition:0.3s;"><i class="fas fa-share-alt"></i></button>
                 </div>
             </div>
-
+            
             <div id="ratingSection" style="margin-top:8px;"></div>
-
+            
             <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--text-secondary);opacity:0.3;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
                 <span><i class="fas fa-bolt"></i> Instant Delivery</span>
                 <span><i class="fas fa-lock"></i> Secure Payment</span>
@@ -1983,7 +1983,7 @@ window.openDetails = function(id) {
             </div>
         </div>
     `;
-
+    
     const modal = document.getElementById('productDetailsFull');
     if (modal) {
         modal.classList.add('open');
@@ -1991,7 +1991,7 @@ window.openDetails = function(id) {
     } else {
         console.error('❌ productDetailsFull modal not found');
     }
-
+    
     setTimeout(() => {
         currentProductIdForRating = id;
         currentRating = 0;
@@ -2002,7 +2002,7 @@ window.openDetails = function(id) {
 window.addToCartFromDetails = function() {
     if (window._currentProduct) {
         const p = window._currentProduct;
-
+        
         if (p.productType === 'quantity') {
             const selectedQty = window._selectedQuantity || p.quantityOptions?.[0]?.quantity;
             const selectedPrice = window._selectedQuantityPrice || p.quantityOptions?.[0]?.price;
@@ -2014,9 +2014,9 @@ window.addToCartFromDetails = function() {
             if (existing) {
                 existing.quantity = (existing.quantity || 1) + 1;
             } else {
-                cart.push({
-                    ...p,
-                    price: selectedPrice,
+                cart.push({ 
+                    ...p, 
+                    price: selectedPrice, 
                     quantity: 1,
                     selectedQuantity: selectedQty,
                     isQuantityProduct: true
@@ -2036,7 +2036,7 @@ window.addToCartFromDetails = function() {
             }
             return;
         }
-
+        
         if (p.price === 0) {
             showToast('⚠️ This script is free', 'warning');
             return;
@@ -2085,7 +2085,7 @@ window.selectQuantityOption = function(element, productId) {
         document.querySelectorAll('.preview-quantity-option').forEach(el => el.classList.remove('selected'));
     }
     element.classList.add('selected');
-
+    
     const price = parseFloat(element.dataset.price);
     const quantity = parseInt(element.dataset.quantity);
     window._selectedQuantity = quantity;
@@ -2127,14 +2127,14 @@ window.addVipPlanToCart = function(product) {
     if (existing) {
         existing.quantity = (existing.quantity || 1) + 1;
     } else {
-        cart.push({
-            ...product,
-            price: price,
-            quantity: 1,
-            isVip: true,
-            vipPlan: selectedPlan,
-            vipPlanLabel: planLabels[selectedPlan] || selectedPlan,
-            originalPrice: product.price
+        cart.push({ 
+            ...product, 
+            price: price, 
+            quantity: 1, 
+            isVip: true, 
+            vipPlan: selectedPlan, 
+            vipPlanLabel: planLabels[selectedPlan] || selectedPlan, 
+            originalPrice: product.price 
         });
     }
     saveUserData(true);
@@ -2142,7 +2142,7 @@ window.addVipPlanToCart = function(product) {
     renderProducts(products);
     updateBottomCartBar();
     showToast(`✅ Added ${planLabels[selectedPlan]} VIP plan for ${product.name}`, 'success');
-
+    
     const btn = document.querySelector('#productDetailsContent .vip-add-to-cart');
     if (btn) {
         btn.innerHTML = '<i class="fas fa-check"></i> View Cart';
@@ -2259,11 +2259,11 @@ window.closeCheckoutFull = function() {
 function renderCheckoutStep1() {
     const container = document.getElementById('checkoutContent');
     if (!container) return;
-
+    
     let total = 0;
     cart.forEach(item => { total += item.price * (item.quantity || 1); });
     let finalTotal = total;
-
+    
     container.innerHTML = `
         <div style="max-width:500px;margin:0 auto;width:100%;">
             <p style="font-size:14px; color:var(--text-secondary); margin-bottom:16px; font-weight:500;">Select payment method</p>
@@ -2316,13 +2316,13 @@ function renderCheckoutStep1() {
 function renderCheckoutStep2() {
     const container = document.getElementById('checkoutContent');
     if (!container) return;
-
+    
     let total = 0;
     cart.forEach(item => { total += item.price * (item.quantity || 1); });
     let finalTotal = total;
-
+    
     let html = `<div style="max-width:500px;margin:0 auto;width:100%;">`;
-
+    
     html += `<div style="margin-bottom:12px;">`;
     cart.forEach(item => {
         const qty = item.quantity || 1;
@@ -2348,7 +2348,7 @@ function renderCheckoutStep2() {
         `;
     });
     html += `</div>`;
-
+    
     html += `
         <div style="display:flex; justify-content:space-between; margin:4px 0; font-size:14px; font-weight:500;">
             <span style="color:var(--text-secondary);">Subtotal</span>
@@ -2359,7 +2359,7 @@ function renderCheckoutStep2() {
             <span id="step2Total">$${finalTotal.toFixed(2)}</span>
         </div>
     `;
-
+    
     html += `
         <div id="paymentInstructions" class="payment-instructions">
             <div class="pi-header"><i class="fas fa-info-circle"></i> Payment Instructions</div>
@@ -2372,7 +2372,7 @@ function renderCheckoutStep2() {
             </div>
         </div>
     `;
-
+    
     html += `
         <div id="paymentWalletInfo" style="display:none; background:var(--bg-secondary); border-radius:var(--radius-md); padding:12px; border:1px solid var(--border); margin-top:8px;">
             <div style="display:flex; justify-content:space-between; align-items:center; font-weight:600;">
@@ -2388,20 +2388,20 @@ function renderCheckoutStep2() {
             <div style="font-size:13px; font-weight:700; color:var(--vip-color); margin-top:2px;" id="cryptoAmount">0.0000 LTC</div>
         </div>
     `;
-
+    
     html += `
         <div id="paymentTxInput" style="display:none; margin-top:8px;">
             <label style="font-size:13px; font-weight:700;">📋 Transaction Hash</label>
             <input type="text" id="transactionHashInput" placeholder="Paste transaction hash" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--card-bg); color:var(--text); font-size:14px; outline:none; font-family:var(--font); font-weight:500;" />
         </div>
     `;
-
+    
     html += `
         <div id="paymentTelegramContact" style="display:none; margin-top:8px;">
             <button class="payment-btn" onclick="placeOrderTelegram()" style="background:#0088cc;"><i class="fab fa-telegram-plane"></i> Contact via Telegram</button>
         </div>
     `;
-
+    
     html += `
         <div id="paymentBinanceIdSection" class="binance-id-section" style="display:none; margin-top:8px;">
             <div class="binance-id-box">
@@ -2476,7 +2476,7 @@ function renderCheckoutStep2() {
             </div>
         </div>
     `;
-
+    
     html += `
         <div id="paymentCreditCardInfo" style="display:none; margin-top:12px;">
             <div class="payment-instructions" style="background:var(--bg); border:1px solid var(--border);">
@@ -2489,16 +2489,16 @@ function renderCheckoutStep2() {
             </div>
         </div>
     `;
-
+    
     html += `
         <button class="payment-btn" id="mainConfirmBtn" style="display:none; margin-top:12px;"><i class="fas fa-check"></i> Confirm Payment</button>
         <button class="payment-btn" onclick="goToCheckoutStep1()" style="background:transparent; color:var(--text-secondary); border:1px solid var(--border); margin-top:8px; font-weight:700;">Back</button>
     `;
-
+    
     html += `</div>`;
-
+    
     container.innerHTML = html;
-
+    
     if (selectedPayment) {
         const walletInfo = document.getElementById('paymentWalletInfo');
         const txInput = document.getElementById('paymentTxInput');
@@ -2903,11 +2903,11 @@ async function sendOrderToTelegram(method, txHash = null) {
         return;
     }
     isProcessingOrder = true;
-
+    
     try {
         if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
-        if (currentUser.isAnonymous) {
-            showToast('⚠️ Please sign in to place an order.', 'warning');
+        if (currentUser.isAnonymous) { 
+            showToast('⚠️ Please sign in to place an order.', 'warning'); 
             openAuthModal();
             return;
         }
@@ -3412,7 +3412,7 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
             return order;
         });
         await updateDoc(userRef, { history: updatedHistory });
-
+        
         if (newStatus === 'confirmed') {
             const userEmail = orderFound?.userEmail || data.email || userId;
             await sendUserNotification(
@@ -3428,7 +3428,7 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
                 `Your order #${orderId.slice(-6)} has been rejected. Please contact support for more information.`
             );
         }
-
+        
         showToast(`📦 Order updated to ${newStatus}`, 'success');
         loadAdminOrders();
         if (currentUser && currentUser.uid === userId) { userProfile.history = updatedHistory; }
@@ -3475,7 +3475,7 @@ window.refreshAdminOrders = function() { loadAdminOrders(); showToast('🔄 Refr
 async function sendLicenceForOrder(orderId, userId, userEmail = null) {
     try {
         console.log('🔍 sendLicenceForOrder called:', { orderId, userId, userEmail });
-
+        
         let email = userEmail;
         if (!email) {
             const userRef = doc(db, 'users', userId);
@@ -4132,10 +4132,10 @@ window.resumeSlider = function() { isSliderPaused = false; };
 window.saveSliderData = async function() {
     try {
         const settingsRef = doc(db, 'settings', 'slider');
-        await setDoc(settingsRef, {
-            interval: sliderIntervalTime,
-            slides: sliderSlides,
-            updatedAt: serverTimestamp()
+        await setDoc(settingsRef, { 
+            interval: sliderIntervalTime, 
+            slides: sliderSlides, 
+            updatedAt: serverTimestamp() 
         }, { merge: true });
         showToast('✅ Slider saved successfully!', 'success');
         return true;
@@ -4167,7 +4167,7 @@ window.saveSliderInterval = async function() {
 window.saveSlideEdit = async function() {
     const editIndex = document.getElementById('addSlideForm')?.dataset.editIndex;
     const isEdit = editIndex !== undefined && editIndex !== '';
-
+    
     if (isEdit) {
         const idx = parseInt(editIndex);
         if (isNaN(idx) || idx < 0 || idx >= sliderSlides.length) {
@@ -4204,11 +4204,11 @@ window.saveSlideEdit = async function() {
 
     const fileInput = document.getElementById('slideImageFile');
     let imageUrl = '';
-
+    
     if (isEdit) {
         imageUrl = sliderSlides[parseInt(editIndex)]?.imageUrl || '';
     }
-
+    
     if (fileInput && fileInput.files && fileInput.files[0]) {
         showToast('⏳ Uploading image...', 'info');
         const uploadedUrl = await uploadToCloudinary(fileInput.files[0]);
@@ -4242,9 +4242,9 @@ window.saveSlideEdit = async function() {
         sliderSlides.push(updatedSlide);
         showToast('✅ Slide added successfully!', 'success');
     }
-
+    
     delete document.getElementById('addSlideForm').dataset.editIndex;
-
+    
     await window.saveSliderData();
     renderSlider();
     renderSliderSettingsUI();
@@ -4267,7 +4267,7 @@ window.editSlide = function(index) {
     if (!slide) { showToast('❌ Slide not found', 'error'); return; }
     const modal = document.getElementById('addSlideModal');
     if (!modal) { showToast('❌ Modal not found', 'error'); return; }
-
+    
     document.getElementById('slideTitle').value = slide.title || '';
     document.getElementById('slideSubtitle').value = slide.subtitle || '';
     document.getElementById('slideButtonText').value = slide.buttonText || 'Buy Now';
@@ -4280,12 +4280,12 @@ window.editSlide = function(index) {
     } else if (slide.linkType === 'url') {
         document.getElementById('slideCustomUrl').value = slide.customUrl || '';
     }
-
+    
     document.getElementById('addSlideForm').dataset.editIndex = index;
     document.querySelector('#addSlideModal .modal-title').textContent = '✏️ Edit Slide';
     const submitBtn = document.querySelector('#addSlideForm button[type="button"]');
     if (submitBtn) submitBtn.textContent = '💾 Save Changes';
-
+    
     modal.classList.add('open');
     document.body.style.overflow = 'hidden';
 };
@@ -4294,17 +4294,17 @@ window.openAddSlideModal = function() {
     updateSlideProductSelect();
     const modal = document.getElementById('addSlideModal');
     if (!modal) { showToast('❌ Modal not found', 'error'); return; }
-
+    
     const form = document.getElementById('addSlideForm');
     if (form) form.reset();
     const preview = document.getElementById('slideImagePreview');
     if (preview) preview.style.display = 'none';
-
+    
     delete document.getElementById('addSlideForm').dataset.editIndex;
     document.querySelector('#addSlideModal .modal-title').textContent = '➕ Add New Slide';
     const submitBtn = document.querySelector('#addSlideForm button[type="button"]');
     if (submitBtn) submitBtn.textContent = '➕ Add Slide';
-
+    
     toggleSlideLinkFields();
     modal.classList.add('open');
     document.body.style.overflow = 'hidden';
@@ -4312,9 +4312,9 @@ window.openAddSlideModal = function() {
 
 window.closeAddSlideModal = function() {
     const modal = document.getElementById('addSlideModal');
-    if (modal) {
-        modal.classList.remove('open');
-        document.body.style.overflow = '';
+    if (modal) { 
+        modal.classList.remove('open'); 
+        document.body.style.overflow = ''; 
         delete document.getElementById('addSlideForm')?.dataset.editIndex;
     }
 };
@@ -4780,16 +4780,16 @@ window.closeCookieSettings = function() {
 window.saveCookieSettings = function() {
     const analyticsToggle = document.getElementById('analyticsToggle');
     const analyticsEnabled = analyticsToggle ? analyticsToggle.checked : true;
-
+    
     localStorage.setItem('cookieConsent', 'custom');
     localStorage.setItem('analyticsConsent', analyticsEnabled ? 'true' : 'false');
-
+    
     if (analyticsEnabled) {
         enableAnalytics();
     } else {
         disableAnalytics();
     }
-
+    
     document.getElementById('cookieConsent').classList.remove('show');
     closeCookieSettings();
     showToast('✅ Settings saved', 'success');
@@ -4832,7 +4832,7 @@ function disableAnalytics() {
 function checkCookieConsent() {
     const consent = localStorage.getItem('cookieConsent');
     const analyticsConsent = localStorage.getItem('analyticsConsent');
-
+    
     if (!consent) {
         setTimeout(() => {
             const banner = document.getElementById('cookieConsent');
@@ -5063,9 +5063,9 @@ function refreshAdminPayments() {
                     <td style="padding:6px 4px; font-size:12px; color:var(--text-secondary);">${dateStr}</td>
                     <td style="padding:6px 4px;">${statusBadge}</td>
                     <td style="padding:6px 4px;">
-                        ${p.status === 'pending' ?
+                        ${p.status === 'pending' ? 
                             `<button onclick="adminApprovePayment('${p.id}','${p.userId}')" style="background:var(--success); border:none; color:#0a0a1a; padding:2px 10px; border-radius:12px; cursor:pointer; font-size:11px; font-weight:600;"><i class="fas fa-check"></i></button>
-                             <button onclick="adminRejectPayment('${p.id}','${p.userId}')" style="background:var(--danger); border:none; color:#fff; padding:2px 10px; border-radius:12px; cursor:pointer; font-size:11px; font-weight:600;"><i class="fas fa-times"></i></button>` :
+                             <button onclick="adminRejectPayment('${p.id}','${p.userId}')" style="background:var(--danger); border:none; color:#fff; padding:2px 10px; border-radius:12px; cursor:pointer; font-size:11px; font-weight:600;"><i class="fas fa-times"></i></button>` : 
                             `<button onclick="adminDeletePayment('${p.id}','${p.userId}')" style="background:var(--danger); border:none; color:#fff; padding:2px 10px; border-radius:12px; cursor:pointer; font-size:11px; font-weight:600;"><i class="fas fa-trash"></i></button>`
                         }
                         ${p.screenshotUrl ? `<a href="${p.screenshotUrl}" target="_blank" style="color:var(--primary);text-decoration:underline;font-size:11px;margin-left:4px;">📸</a>` : ''}
@@ -5532,55 +5532,10 @@ window.openPhoneSupport = openPhoneSupport;
 // ===== ALL MISSING FUNCTIONS (NOW GLOBAL) =====
 // ============================================================
 
-// 1. updateNotificationBadge
-window.updateNotificationBadge = function() {
-    const badge = document.getElementById('notifBadge');
-    if (badge) {
-        if (unreadNotifications > 0) {
-            badge.style.display = 'inline-flex';
-            badge.textContent = unreadNotifications;
-        } else {
-            badge.style.display = 'none';
-        }
-    }
-    const fullNotifBadge = document.getElementById('fullNotifBadge');
-    if (fullNotifBadge) {
-        if (unreadNotifications > 0) {
-            fullNotifBadge.style.display = 'inline-block';
-            fullNotifBadge.textContent = unreadNotifications;
-        } else {
-            fullNotifBadge.style.display = 'none';
-        }
-    }
-};
+// 1. updateNotificationBadge (defined earlier)
+// 2. renderAdminProducts (defined earlier)
 
-// 2. renderAdminProducts
-window.renderAdminProducts = function(productsList) {
-    const container = document.getElementById('adminProductsList');
-    if (!container) return;
-    if (!productsList || productsList.length === 0) {
-        container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">📭 No products</div>`;
-        return;
-    }
-    container.innerHTML = productsList.map(p => {
-        const isUnavailable = p.status === 'unavailable';
-        const vipBadge = p.vipEnabled ? '👑 VIP' : '';
-        const typeBadge = p.productType === 'quantity' ? '📦 Qty' : '📦 Std';
-        const badges = p.badges && p.badges.length > 0 ? p.badges.slice(0, 2).join(', ') : '';
-        return `<div class="admin-item" style="${isUnavailable?'opacity:0.5;':''}">
-            <div class="item-info">
-                <div class="item-title">${p.name} ${isUnavailable?'⛔':''} ${vipBadge} <span style="font-size:10px;opacity:0.4;">${typeBadge}</span></div>
-                <div class="item-meta">${p.price===0?'🎁 FREE':`${getCurrencySymbol(p.currency || 'USD')} ${p.price}`} • ${p.badge||'FREE'} ${isUnavailable?'• Unavailable':''} ${badges ? '🏷️ '+badges : ''}</div>
-            </div>
-            <div class="item-actions">
-                <button class="btn-edit" onclick="openEditProductModal('${p.id}')"><i class="fas fa-edit"></i></button>
-                <button class="btn-delete" onclick="deleteProduct('${p.id}')"><i class="fas fa-trash"></i></button>
-            </div>
-        </div>`;
-    }).join('');
-};
-
-// 3. switchAdminTab
+// 3. switchAdminTab (defined here)
 window.switchAdminTab = function(tab) {
     document.querySelectorAll('.admin-panel .tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.admin-panel .tabs button').forEach(el => el.classList.remove('active'));
@@ -5698,10 +5653,127 @@ window.deleteNotification = async function(id) {
 };
 
 // ============================================================
-// ENSURE getCurrencySymbol is global (already defined above)
+// 39. Additional Admin functions (for completeness)
 // ============================================================
+window.openAddProductModal = function() {
+    showToast('➕ Add Product feature coming soon', 'info');
+    document.getElementById('productModal').classList.add('open');
+};
+window.closeProductModal = function() {
+    document.getElementById('productModal').classList.remove('open');
+};
+window.saveProduct = function(e) {
+    e.preventDefault();
+    showToast('✅ Product saved successfully (demo)', 'success');
+    document.getElementById('productModal').classList.remove('open');
+};
+window.openEditProductModal = function(productId) {
+    showToast('✏️ Edit product: ' + productId, 'info');
+    document.getElementById('productModal').classList.add('open');
+};
+window.deleteProduct = function(productId) {
+    if (!confirm('Delete this product?')) return;
+    showToast('🗑️ Product deleted (demo)', 'success');
+};
+window.openCreateDownloadModal = function() {
+    document.getElementById('createDownloadModal').classList.add('open');
+};
+window.closeCreateDownloadModal = function() {
+    document.getElementById('createDownloadModal').classList.remove('open');
+};
+window.createDownload = function(e) {
+    e.preventDefault();
+    showToast('📁 Download added successfully (demo)', 'success');
+    document.getElementById('createDownloadModal').classList.remove('open');
+};
+window.openCreateNotificationModal = function() {
+    document.getElementById('createNotificationModal').classList.add('open');
+};
+window.closeCreateNotificationModal = function() {
+    document.getElementById('createNotificationModal').classList.remove('open');
+};
+window.createNotification = function(e) {
+    e.preventDefault();
+    showToast('🔔 Notification sent (demo)', 'success');
+    document.getElementById('createNotificationModal').classList.remove('open');
+};
+window.editDownload = function(id) {
+    showToast('✏️ Edit download: ' + id, 'info');
+};
+window.deleteDownload = function(id) {
+    if (!confirm('Delete this download?')) return;
+    showToast('🗑️ Download deleted (demo)', 'success');
+};
+window.sendUserNotification = async function(userId, title, message) {
+    try {
+        await addDoc(collection(db, 'notifications'), {
+            userId: userId,
+            title: title,
+            message: message,
+            readBy: [],
+            createdAt: serverTimestamp()
+        });
+        console.log('✅ Notification sent to user:', userId);
+    } catch (error) {
+        console.error('Error sending notification:', error);
+    }
+};
+window.copyReferralCode2 = function() {
+    const code = document.getElementById('referralCodeDisplay2')?.textContent;
+    if (!code) return;
+    navigator.clipboard.writeText(code).then(() => {
+        showToast('✅ Referral code copied!', 'success');
+    }).catch(() => {
+        const textarea = document.createElement('textarea');
+        textarea.value = code;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showToast('✅ Referral code copied!', 'success');
+    });
+};
+window.openRequestsModal = function() {
+    document.getElementById('requestsModal').classList.add('open');
+};
+window.closeRequestsModal = function() {
+    document.getElementById('requestsModal').classList.remove('open');
+};
+window.openNewRequestModal = function() {
+    document.getElementById('newRequestModal').classList.add('open');
+};
+window.closeNewRequestModal = function() {
+    document.getElementById('newRequestModal').classList.remove('open');
+};
+window.submitRequest = function(e) {
+    e.preventDefault();
+    showToast('📝 Request submitted (demo)', 'success');
+    document.getElementById('newRequestModal').classList.remove('open');
+};
+window.markAllNotificationsRead = function() {
+    if (!currentUser) return;
+    notifications.forEach(n => {
+        if (!(n.readBy || []).includes(currentUser.uid)) {
+            n.readBy = n.readBy || [];
+            n.readBy.push(currentUser.uid);
+        }
+    });
+    unreadNotifications = 0;
+    updateNotificationBadge();
+    renderUserNotifications();
+    showToast('📨 All notifications marked as read', 'success');
+};
+window.clearAllNotifications = function() {
+    if (!confirm('Clear all notifications?')) return;
+    notifications = [];
+    unreadNotifications = 0;
+    updateNotificationBadge();
+    renderUserNotifications();
+    renderAdminNotifications();
+    showToast('🗑️ All notifications cleared', 'success');
+};
 
-console.log('✅ All missing functions added successfully!');
+console.log('✅ All functions added successfully!');
 
 // ============================================================
 // END OF SCRIPT.JS
