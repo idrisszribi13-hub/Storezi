@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZI Store - لوحة تحكم الصيانة</title>
+    <style>
+        body {
+            font-family: Tahoma, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .card {
+            background-color: #1e293b;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 400px;
+        }
+        h2 { text-align: center; margin-bottom: 20px; color: #38bdf8; }
+        label { display: block; margin-top: 15px; margin-bottom: 5px; font-size: 14px; }
+        input[type="password"], textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #475569;
+            background-color: #0f172a;
+            color: #fff;
+            border-radius: 6px;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+        textarea { height: 100px; }
+        .toggle-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            background-color: #0f172a;
+            padding: 12px;
+            border-radius: 6px;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #64748b;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #ef4444; }
+        input:checked + .slider:before { transform: translateX(24px); }
+        button {
+            width: 100%;
+            margin-top: 25px;
+            padding: 12px;
+            background-color: #0284c7;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3px;
+        }
+        button:hover { background-color: #0369a1; }
+        #status { margin-top: 15px; text-align: center; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>ZI Store - إدارة الصيانة</h2>
+        
+        <label>كلمة مرور المسؤول (Secret Key):</label>
+        <input type="password" id="adminSecret" placeholder="أدخل كلمة المرور السرية">
+
+        <div class="toggle-container">
+            <span>وضع الصيانة:</span>
+            <label class="switch">
+                <input type="checkbox" id="maintenanceToggle">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <label>رسالة الصيانة التي ستظهر للمستخدمين:</label>
+        <textarea id="maintenanceMessage" placeholder="اكتب رسالة الصيانة هنا..."></textarea>
+
+        <button onclick="saveSettings()">حفظ التحديثات</button>
+        <div id="status"></div>
+    </div>
+
+    <script>
+        const updateUrl = "https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/update-settings";
+
+        async function saveSettings() {
+            const secret = document.getElementById("adminSecret").value;
+            const maintenance = document.getElementById("maintenanceToggle").checked;
+            const message = document.getElementById("maintenanceMessage").value;
+            const statusDiv = document.getElementById("status");
+
+            if (!secret) {
+                statusDiv.style.color = "#ef4444";
+                statusDiv.innerText = "الرجاء إدخال كلمة المرور السرية!";
+                return;
+            }
+
+            statusDiv.style.color = "#facc15";
+            statusDiv.innerText = "جاري الحفظ والتحديث...";
+
+            try {
+                const response = await fetch(updateUrl, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ secret, maintenance, message })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    statusDiv.style.color = "#22c55e";
+                    statusDiv.innerText = "تم تحديث حالة الصيانة بنجاح!";
+                } else {
+                    statusDiv.style.color = "#ef4444";
+                    statusDiv.innerText = "فشل التحديث: " + (result.error || "خطأ غير معروف");
+                }
+            } catch (err) {
+                statusDiv.style.color = "#ef4444";
+                statusDiv.innerText = "خطأ في الاتصال بالخادم!";
+            }
+        }
+    </script>
+</body>
+</html>
