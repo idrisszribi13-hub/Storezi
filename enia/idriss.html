@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZI Store - لوحة التحكم الشاملة</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style> body { font-family: 'Cairo', sans-serif; } </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center p-4">
+
+    <!-- شاشة تسجيل الدخول -->
+    <div id="loginScreen" class="bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-2xl w-full max-w-md">
+        <h1 class="text-2xl font-bold text-indigo-400 mb-2 text-center">تسجيل دخول المشرف</h1>
+        <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-1">البريد الإلكتروني</label>
+                <input type="email" id="adminEmail" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-1">كلمة المرور</label>
+                <input type="password" id="adminPassword" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500">
+            </div>
+            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition">دخول</button>
+            <p id="loginError" class="text-red-400 text-sm text-center mt-2"></p>
+        </form>
+    </div>
+
+    <!-- لوحة التحكم الرئيسية (مخفية حتى يتم تسجيل الدخول) -->
+    <div id="dashboard" class="hidden w-full max-w-5xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col min-h-[85vh]">
+        
+        <!-- شريط التبويبات العلوي -->
+        <div class="bg-slate-950 p-4 border-b border-slate-800 flex flex-wrap justify-between items-center gap-4">
+            <div class="flex flex-wrap gap-2">
+                <button onclick="switchTab('usersTab')" id="btn-usersTab" class="tab-btn bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-semibold transition">إدارة المستخدمين</button>
+                <button onclick="switchTab('analyticsTab')" id="btn-analyticsTab" class="tab-btn bg-slate-800 text-slate-300 hover:bg-slate-700 px-4 py-2 rounded-xl text-sm font-semibold transition">الإحصائيات</button>
+                <button onclick="switchTab('scriptsTab')" id="btn-scriptsTab" class="tab-btn bg-slate-800 text-slate-300 hover:bg-slate-700 px-4 py-2 rounded-xl text-sm font-semibold transition">إدارة السكريبتات</button>
+                <button onclick="switchTab('maintenanceTab')" id="btn-maintenanceTab" class="tab-btn bg-slate-800 text-slate-300 hover:bg-slate-700 px-4 py-2 rounded-xl text-sm font-semibold transition">وضع الصيانة</button>
+            </div>
+            <button onclick="handleLogout()" class="bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white px-4 py-2 rounded-xl text-sm font-semibold transition">تسجيل خروج</button>
+        </div>
+
+        <!-- محتوى التبويبات -->
+        <div class="p-6 md:p-8 flex-1 overflow-y-auto">
+
+            <!-- 1. تبويب إدارة المستخدمين والحظر -->
+            <div id="usersTab" class="tab-content space-y-6">
+                <h2 class="text-2xl font-bold text-indigo-400 mb-2">إدارة الحظر وإعادة تعيين الأجهزة</h2>
+                <p class="text-slate-400 text-sm mb-6">التحكم في حالة المستخدمين وحظرهم أو تصفير الأجهزة المرتبطة.</p>
+                
+                <div class="space-y-4 max-w-lg">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">بريد المستخدم</label>
+                        <input type="email" id="userEmail" placeholder="user@example.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+
+                    <div class="flex gap-4 pt-2">
+                        <button onclick="updateLicense({ banned: true }, 'تم حظر المستخدم بنجاح!')" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-xl transition shadow-lg">حظر (Ban)</button>
+                        <button onclick="updateLicense({ banned: false }, 'تم فك الحظر عن المستخدم!')" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-xl transition shadow-lg">فك حظر</button>
+                    </div>
+
+                    <div class="pt-2">
+                        <button onclick="updateLicense({ device_id: null }, 'تم إعادة تعيين الجهاز بنجاح (فارغ)!')" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold py-3 rounded-xl transition shadow-lg">إعادة تعيين الجهاز (Reset Device)</button>
+                    </div>
+                </div>
+                <div id="resultMessage" class="mt-6 text-sm font-medium"></div>
+            </div>
+
+            <!-- 2. تبويب الإحصائيات -->
+            <div id="analyticsTab" class="tab-content hidden space-y-6">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-indigo-400">لوحة إحصائيات ZI Store</h2>
+                        <p class="text-slate-400 text-sm mt-1">متابعة عمليات تشغيل السكريبتات والألعاب لحظياً</p>
+                    </div>
+                    <button onclick="fetchAnalytics()" class="mt-4 md:mt-0 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-semibold transition">تحديث البيانات</button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="bg-slate-950 p-6 rounded-2xl border border-slate-800 shadow-lg">
+                        <p class="text-slate-400 text-sm font-medium">إجمالي التشغيلات</p>
+                        <h3 id="totalLaunches" class="text-3xl font-bold text-white mt-2">0</h3>
+                    </div>
+                    <div class="bg-slate-950 p-6 rounded-2xl border border-slate-800 shadow-lg">
+                        <p class="text-slate-400 text-sm font-medium">المستخدمين الفريدين</p>
+                        <h3 id="uniqueUsers" class="text-3xl font-bold text-emerald-400 mt-2">0</h3>
+                    </div>
+                    <div class="bg-slate-950 p-6 rounded-2xl border border-slate-800 shadow-lg">
+                        <p class="text-slate-400 text-sm font-medium">السكريبتات المطلوبة</p>
+                        <h3 id="uniqueScripts" class="text-3xl font-bold text-amber-400 mt-2">0</h3>
+                    </div>
+                </div>
+
+                <div class="bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden">
+                    <div class="p-4 border-b border-slate-800 font-bold text-white">سجل التشغيلات الأخير</div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right border-collapse">
+                            <thead>
+                                <tr class="bg-slate-900/50 text-slate-400 text-sm border-b border-slate-800">
+                                    <th class="p-4 font-semibold">#</th>
+                                    <th class="p-4 font-semibold">البريد الإلكتروني</th>
+                                    <th class="p-4 font-semibold">معرف الجهاز</th>
+                                    <th class="p-4 font-semibold">اسم السكريبت</th>
+                                    <th class="p-4 font-semibold">وقت التشغيل</th>
+                                </tr>
+                            </thead>
+                            <tbody id="analyticsTableBody" class="divide-y divide-slate-800 text-sm">
+                                <tr><td colspan="5" class="p-6 text-center text-slate-500">جاري تحميل البيانات...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. تبويب إدارة السكريبتات -->
+            <div id="scriptsTab" class="tab-content hidden space-y-6 max-w-3xl">
+                <h2 class="text-2xl font-bold text-indigo-400">لوحة تحكم وإدارة السكريبتات</h2>
+                
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-300">اسم السكريبت (مثال: animal, pubg, ff)</label>
+                    <input type="text" id="scriptName" class="w-full p-3 bg-slate-950 rounded-xl border border-slate-800 focus:outline-none focus:border-indigo-500 text-white" placeholder="أدخل اسم السكريبت بالإنجليزية">
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-300">كود الـ Lua الخاص بالسكريبت</label>
+                    <textarea id="scriptCode" rows="10" class="w-full p-3 bg-slate-950 rounded-xl border border-slate-800 focus:outline-none focus:border-indigo-500 font-mono text-sm text-green-400" placeholder="ضع كود الـ Lua هنا..."></textarea>
+                </div>
+
+                <button onclick="saveScript()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold p-3 rounded-xl transition shadow-lg">حفظ أو تحديث السكريبت في القاعدة</button>
+                <div id="scriptStatusMsg" class="text-center text-sm font-medium"></div>
+            </div>
+
+            <!-- 4. تبويب إعدادات الصيانة -->
+            <div id="maintenanceTab" class="tab-content hidden space-y-6 max-w-md">
+                <h2 class="text-2xl font-bold text-indigo-400">إدارة الصيانة والتحديثات</h2>
+                
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-300">كلمة مرور المسؤول (Secret Key):</label>
+                    <input type="password" id="adminSecret" placeholder="أدخل كلمة المرور السرية" class="w-full p-3 bg-slate-950 rounded-xl border border-slate-800 focus:outline-none focus:border-indigo-500 text-white">
+                </div>
+
+                <div class="flex justify-between items-center bg-slate-950 p-4 rounded-xl border border-slate-800">
+                    <span class="text-sm font-medium text-slate-300">وضع الصيانة:</span>
+                    <label class="relative inline-block w-12 h-6 cursor-pointer">
+                        <input type="checkbox" id="maintenanceToggle" class="opacity-0 w-0 h-0 peer">
+                        <span class="absolute inset-0 bg-slate-700 rounded-full transition duration-300 peer-checked:bg-red-600"></span>
+                        <span class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition duration-300 peer-checked:translate-x-6"></span>
+                    </label>
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-300">رسالة الصيانة التي ستظهر للمستخدمين:</label>
+                    <textarea id="maintenanceMessage" rows="4" placeholder="اكتب رسالة الصيانة هنا..." class="w-full p-3 bg-slate-950 rounded-xl border border-slate-800 focus:outline-none focus:border-indigo-500 text-white"></textarea>
+                </div>
+
+                <button onclick="saveSettings()" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold p-3 rounded-xl transition shadow-lg">حفظ تحديثات الصيانة</button>
+                <div id="maintenanceStatus" class="text-center text-sm font-medium"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const supabaseUrl = "https://kvsyzgavfxnwqmtsginv.supabase.co";
+        const supabaseAnonKey = "sb_publishable_1uSIqgNONAV53GjOoBoZUw_niAGJXO6";
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+        // التحكم بالتبويبات
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('bg-indigo-600', 'text-white');
+                el.classList.add('bg-slate-800', 'text-slate-300');
+            });
+
+            document.getElementById(tabId).classList.remove('hidden');
+            const activeBtn = document.getElementById('btn-' + tabId);
+            activeBtn.classList.remove('bg-slate-800', 'text-slate-300');
+            activeBtn.classList.add('bg-indigo-600', 'text-white');
+
+            // جلب البيانات تلقائياً عند فتح التبويب المناسب
+            if (tabId === 'analyticsTab') {
+                fetchAnalytics();
+            }
+        }
+
+        // إدارة الجلسة وتسجيل الدخول والخروج
+        async function checkSession() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) { showDashboard(); } else { showLogin(); }
+        }
+
+        function showLogin() {
+            document.getElementById("loginScreen").classList.remove("hidden");
+            document.getElementById("dashboard").classList.add("hidden");
+        }
+
+        function showDashboard() {
+            document.getElementById("loginScreen").classList.add("hidden");
+            document.getElementById("dashboard").classList.remove("hidden");
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById("adminEmail").value.trim();
+            const password = document.getElementById("adminPassword").value.trim();
+            const errP = document.getElementById("loginError");
+            errP.innerText = "جاري التحقق...";
+
+            const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if (error) {
+                errP.innerText = "خطأ في البريد أو كلمة المرور!";
+            } else {
+                showDashboard();
+            }
+        }
+
+        async function handleLogout() {
+            await supabaseClient.auth.signOut();
+            showLogin();
+        }
+
+        // 1. وظيفة تحديث تراخيص المستخدم (حظر / تفريغ الجهاز)
+        async function updateLicense(updateData, successMessage) {
+            const email = document.getElementById("userEmail").value.trim();
+            const msgDiv = document.getElementById("resultMessage");
+
+            if (!email) {
+                msgDiv.className = "mt-6 text-sm font-medium text-amber-400";
+                msgDiv.innerText = "الرجاء إدخال البريد الإلكتروني للمستخدم أولاً!";
+                return;
+            }
+
+            msgDiv.className = "mt-6 text-sm font-medium text-indigo-400";
+            msgDiv.innerText = "جاري تنفيذ العملية...";
+
+            try {
+                const { error } = await supabaseClient
+                    .from("licenses")
+                    .update(updateData)
+                    .eq("email", email);
+
+                if (error) throw error;
+
+                msgDiv.className = "mt-6 text-sm font-medium text-emerald-400";
+                msgDiv.innerText = successMessage;
+            } catch (error) {
+                msgDiv.className = "mt-6 text-sm font-medium text-red-400";
+                msgDiv.innerText = "فشل التعديل: " + error.message;
+            }
+        }
+
+        // 2. وظائف الإحصائيات
+        async function fetchAnalytics() {
+            const tableBody = document.getElementById("analyticsTableBody");
+            tableBody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-indigo-400">جاري التحديث...</td></tr>`;
+
+            try {
+                const response = await fetch(`${supabaseUrl}/rest/v1/analytics?select=*&order=created_at.desc`, {
+                    headers: {
+                        "apikey": supabaseAnonKey,
+                        "Authorization": `Bearer ${supabaseAnonKey}`
+                    }
+                });
+
+                if (!response.ok) throw new Error("فشل الاتصال بقاعدة البيانات");
+
+                const data = await response.json();
+                renderAnalyticsData(data);
+            } catch (error) {
+                tableBody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-red-400">خطأ في جلب البيانات: ${error.message}</td></tr>`;
+            }
+        }
+
+        function renderAnalyticsData(data) {
+            const tableBody = document.getElementById("analyticsTableBody");
+            tableBody.innerHTML = "";
+
+            if (!data || data.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-500">لا توجد سجلات حتى الآن</td></tr>`;
+                document.getElementById("totalLaunches").innerText = "0";
+                document.getElementById("uniqueUsers").innerText = "0";
+                document.getElementById("uniqueScripts").innerText = "0";
+                return;
+            }
+
+            document.getElementById("totalLaunches").innerText = data.length;
+            document.getElementById("uniqueUsers").innerText = new Set(data.map(item => item.email)).size;
+            document.getElementById("uniqueScripts").innerText = new Set(data.map(item => item.script_name)).size;
+
+            data.forEach((row, index) => {
+                const tr = document.createElement("tr");
+                tr.className = "hover:bg-slate-900 transition duration-150";
+                const formattedDate = new Date(row.created_at).toLocaleString('ar-EG');
+
+                tr.innerHTML = `
+                    <td class="p-4 text-slate-500">${index + 1}</td>
+                    <td class="p-4 font-medium text-indigo-300">${row.email || 'غير معروف'}</td>
+                    <td class="p-4 text-slate-400 font-mono text-xs">${row.device_id || '-'}</td>
+                    <td class="p-4 text-emerald-400 font-semibold">${row.script_name || '-'}</td>
+                    <td class="p-4 text-slate-400 text-xs">${formattedDate}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        // 3. وظيفة حفظ السكريبتات
+        async function saveScript() {
+            const name = document.getElementById('scriptName').value.trim().toLowerCase();
+            const code = document.getElementById('scriptCode').value.trim();
+            const statusMsg = document.getElementById('scriptStatusMsg');
+
+            if (!name || !code) {
+                statusMsg.textContent = "الرجاء إدخال اسم السكريبت والكود معاً!";
+                statusMsg.className = "mt-4 text-center text-sm text-red-400";
+                return;
+            }
+
+            statusMsg.textContent = "جاري الحفظ والتحديث في السيرفر...";
+            statusMsg.className = "mt-4 text-center text-sm text-yellow-400";
+
+            const { error } = await supabaseClient
+                .from('scripts')
+                .upsert({ 
+                    script_name: name, 
+                    script_code: code, 
+                    updated_at: new Date() 
+                }, { onConflict: 'script_name' });
+
+            if (error) {
+                statusMsg.textContent = "فشل الحفظ: " + error.message;
+                statusMsg.className = "mt-4 text-center text-sm text-red-400";
+            } else {
+                statusMsg.textContent = "تم حفظ وتحديث السكريبت بنجاح تام وسيعمل لدى المستخدمين فوراً!";
+                statusMsg.className = "mt-4 text-center text-sm text-green-400";
+            }
+        }
+
+        // 4. وظيفة إعدادات الصيانة
+        async function saveSettings() {
+            const updateUrl = `${supabaseUrl}/functions/v1/update-settings`;
+            const secret = document.getElementById("adminSecret").value;
+            const maintenance = document.getElementById("maintenanceToggle").checked;
+            const message = document.getElementById("maintenanceMessage").value;
+            const statusDiv = document.getElementById("maintenanceStatus");
+
+            if (!secret) {
+                statusDiv.style.color = "#ef4444";
+                statusDiv.innerText = "الرجاء إدخال كلمة المرور السرية!";
+                return;
+            }
+
+            statusDiv.style.color = "#facc15";
+            statusDiv.innerText = "جاري الحفظ والتحديث...";
+
+            try {
+                const response = await fetch(updateUrl, {
+                    method: "POST",
+                    headers: { 
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + supabaseAnonKey,
+                        "apikey": supabaseAnonKey
+                    },
+                    body: JSON.stringify({ secret, maintenance, message })
+                });
+
+                const responseText = await response.text();
+                let result;
+                try {
+                    result = JSON.parse(responseText);
+                } catch (e) {
+                    throw new Error("استجابة غير صالحة من السيرفر: " + responseText);
+                }
+
+                if (response.ok && result.success) {
+                    statusDiv.style.color = "#22c55e";
+                    statusDiv.innerText = "تم تحديث حالة الصيانة بنجاح! 🚀";
+                } else {
+                    statusDiv.style.color = "#ef4444";
+                    statusDiv.innerText = "خطأ من السيرفر: " + (result.error || responseText);
+                }
+            } catch (err) {
+                statusDiv.style.color = "#ef4444";
+                statusDiv.innerText = "خطأ في الاتصال: " + err.message;
+            }
+        }
+
+        // فحص الجلسة عند التحميل
+        checkSession();
+    </script>
+</body>
+</html>
