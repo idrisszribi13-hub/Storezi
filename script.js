@@ -599,31 +599,6 @@ function updateRpDisplay() {
     if (el) { el.innerHTML = `${userProfile.rp || 0} <span>RP</span>`; }
 }
 
-// ============================================================
-// 4.1 MISSING FUNCTION: updateNotificationBadge
-// ============================================================
-function updateNotificationBadge() {
-    const badge = document.getElementById('notifBadge');
-    if (badge) {
-        if (unreadNotifications > 0) {
-            badge.style.display = 'inline-flex';
-            badge.textContent = unreadNotifications;
-        } else {
-            badge.style.display = 'none';
-        }
-    }
-    const fullNotifBadge = document.getElementById('fullNotifBadge');
-    if (fullNotifBadge) {
-        if (unreadNotifications > 0) {
-            fullNotifBadge.style.display = 'inline-block';
-            fullNotifBadge.textContent = unreadNotifications;
-        } else {
-            fullNotifBadge.style.display = 'none';
-        }
-    }
-}
-window.updateNotificationBadge = updateNotificationBadge;
-
 function updateUI() {
     const dot = document.getElementById('userDot');
     if (dot) {
