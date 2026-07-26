@@ -599,6 +599,31 @@ function updateRpDisplay() {
     if (el) { el.innerHTML = `${userProfile.rp || 0} <span>RP</span>`; }
 }
 
+// ============================================================
+// 4.1 MISSING FUNCTION: updateNotificationBadge
+// ============================================================
+function updateNotificationBadge() {
+    const badge = document.getElementById('notifBadge');
+    if (badge) {
+        if (unreadNotifications > 0) {
+            badge.style.display = 'inline-flex';
+            badge.textContent = unreadNotifications;
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+    const fullNotifBadge = document.getElementById('fullNotifBadge');
+    if (fullNotifBadge) {
+        if (unreadNotifications > 0) {
+            fullNotifBadge.style.display = 'inline-block';
+            fullNotifBadge.textContent = unreadNotifications;
+        } else {
+            fullNotifBadge.style.display = 'none';
+        }
+    }
+}
+window.updateNotificationBadge = updateNotificationBadge;
+
 function updateUI() {
     const dot = document.getElementById('userDot');
     if (dot) {
@@ -5455,6 +5480,7 @@ window.sendResetLinkInline = sendResetLinkInline;
 window.changePasswordInline = changePasswordInline;
 window.toggleRpInCart = toggleRpInCart;
 window.applyCartPromo = applyCartPromo;
+window.applyCheckoutPromo = applyCheckoutPromo;
 window.showTelegramBannerAgain = showTelegramBannerAgain;
 window.adminToggleBanner = adminToggleBanner;
 window.resetBannerForAll = resetBannerForAll;
@@ -5528,253 +5554,35 @@ window.openTelegramSupport = openTelegramSupport;
 window.openEmailSupport = openEmailSupport;
 window.openPhoneSupport = openPhoneSupport;
 
-// ============================================================
-// ===== ALL MISSING FUNCTIONS (NOW GLOBAL) =====
-// ============================================================
+// Password toggle function is already defined globally.
 
-// 1. updateNotificationBadge (defined earlier)
-// 2. renderAdminProducts (defined earlier)
-
-// 3. switchAdminTab (defined here)
-window.switchAdminTab = function(tab) {
-    document.querySelectorAll('.admin-panel .tab-content').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.admin-panel .tabs button').forEach(el => el.classList.remove('active'));
-    const tabMap = {
-        'dashboard': 'tabDashboard',
-        'orders': 'tabOrders',
-        'products': 'tabProducts',
-        'users': 'tabUsers',
-        'downloads': 'tabDownloads',
-        'notifications': 'tabNotifications',
-        'stats': 'tabStats',
-        'logs': 'tabLogs',
-        'slider': 'tabSlider',
-        'licences': 'tabLicences',
-        'marquee': 'tabMarquee',
-        'payments': 'tabPayments'
-    };
-    const tabId = tabMap[tab] || tabMap['dashboard'];
-    const content = document.getElementById(tabId);
-    if (content) content.classList.add('active');
-    const btn = document.querySelector(`.admin-panel .tabs button[onclick="switchAdminTab('${tab}')"]`);
-    if (btn) btn.classList.add('active');
-    if (tab === 'products') window.renderAdminProducts(products);
-    if (tab === 'users') loadAdminUsers();
-    if (tab === 'dashboard') loadDashboardStats();
-    if (tab === 'stats') loadAdvancedStats();
-    if (tab === 'logs') loadAuditLogs();
-    if (tab === 'slider') {
-        renderSliderSettingsUI();
-        document.getElementById('sliderIntervalInput').value = sliderIntervalTime;
-    }
-    if (tab === 'licences') { loadLicences(); }
-    if (tab === 'marquee') { renderMarqueeSettingsUI(); }
-    if (tab === 'orders') { loadAdminOrders(); }
-    if (tab === 'payments') { refreshAdminPayments(); }
-};
-
-// 4. loadNotifications & related
-window.loadNotifications = function() {
-    if (unsubscribeNotifications) { unsubscribeNotifications(); }
-    const notifRef = collection(db, 'notifications');
-    try {
-        getDocs(query(notifRef, orderBy('createdAt', 'desc'))).then((snapshot) => {
-            notifications = [];
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                if (!data.userId || data.userId === currentUser?.uid) {
-                    notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] });
-                }
-            });
-            if (currentUser) {
-                const userId = currentUser.uid;
-                unreadNotifications = notifications.filter(n => !(n.readBy || []).includes(userId)).length;
-            } else { unreadNotifications = 0; }
-            window.updateNotificationBadge();
-            window.renderAdminNotifications();
-            window.renderUserNotifications();
-        }).catch((error) => { console.error('Error loading notifications:', error); window.renderUserNotificationsFallback(); });
-        unsubscribeNotifications = onSnapshot(query(notifRef, orderBy('createdAt', 'desc')), (snapshot) => {
-            if (isUpdatingNotifications) return;
-            notifications = [];
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                if (!data.userId || data.userId === currentUser?.uid) {
-                    notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] });
-                }
-            });
-            if (currentUser) {
-                const userId = currentUser.uid;
-                unreadNotifications = notifications.filter(n => !(n.readBy || []).includes(userId)).length;
-            } else { unreadNotifications = 0; }
-            window.updateNotificationBadge();
-            window.renderAdminNotifications();
-            window.renderUserNotifications();
-        }, (error) => { console.error('Notifications listener error:', error); });
-    } catch (error) { console.error('Error setting up notifications:', error); window.renderUserNotificationsFallback(); }
-};
-
-window.renderAdminNotifications = function() {
-    const container = document.getElementById('adminNotificationsList');
-    if (!container) return;
-    const notifRef = collection(db, 'notifications');
-    getDocs(query(notifRef, orderBy('createdAt', 'desc'))).then((snapshot) => {
-        let allNotifs = [];
-        snapshot.forEach((doc) => { allNotifs.push({ id: doc.id, ...doc.data() }); });
-        if (allNotifs.length === 0) { container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">📭 No notifications</div>`; return; }
-        container.innerHTML = allNotifs.map(n => `<div class="admin-item"><div class="item-info"><div class="item-title">${n.title||'Notification'}</div><div class="item-meta">${n.message||''} • ${n.userId ? 'User: ' + n.userId.slice(-6) : 'Global'} • ${n.createdAt?new Date(n.createdAt.toDate()).toLocaleDateString('en-US'):''}</div></div><div class="item-actions"><button class="btn-delete" onclick="window.deleteNotification('${n.id}')"><i class="fas fa-trash"></i></button></div></div>`).join('');
-    }).catch((error) => { console.error('Error loading admin notifications:', error); });
-};
-
-window.renderUserNotifications = function() {
-    const container = document.getElementById('notificationsList');
-    if (!container) return;
-    if (!notifications || notifications.length === 0) { container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-bell" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">No notifications</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Notifications will appear here</div></div>`; return; }
-    let html = '';
-    notifications.forEach(n => {
-        const isRead = currentUser && (n.readBy || []).includes(currentUser.uid);
-        let dateStr = '';
-        try { if (n.createdAt) { const date = n.createdAt.toDate ? n.createdAt.toDate() : new Date(n.createdAt); dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); } } catch (e) { dateStr = new Date().toLocaleDateString('en-US'); }
-        html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:${!isRead?'var(--primary-glow)':'var(--bg)'};border-radius:10px;border:1px solid var(--border);margin-bottom:8px;${!isRead?'border-left:3px solid var(--primary);':''}"><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);">${n.title||'Notification'}</div><div style="font-size:12px;color:var(--text-secondary);">${n.message||''}</div><div style="font-size:11px;color:var(--text-secondary);opacity:0.3;">${dateStr}</div></div>${!isRead?'<span style="background:var(--notification-red);color:#fff;font-size:9px;font-weight:700;padding:2px 10px;border-radius:12px;">New</span>':''}</div>`;
-    });
-    container.innerHTML = html;
-};
-
-window.renderUserNotificationsFallback = function() {
-    const container = document.getElementById('notificationsList');
-    if (!container) return;
-    container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-bell" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">No notifications</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Notifications will appear here</div></div>`;
-};
-
-window.deleteNotification = async function(id) {
-    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
-    if (!confirm('Delete this notification?')) return;
-    try { await deleteDoc(doc(db, 'notifications', id)); showToast('🗑️ Notification deleted', 'success'); } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
-};
-
-// ============================================================
-// 39. Additional Admin functions (for completeness)
-// ============================================================
-window.openAddProductModal = function() {
-    showToast('➕ Add Product feature coming soon', 'info');
-    document.getElementById('productModal').classList.add('open');
-};
-window.closeProductModal = function() {
-    document.getElementById('productModal').classList.remove('open');
-};
-window.saveProduct = function(e) {
-    e.preventDefault();
-    showToast('✅ Product saved successfully (demo)', 'success');
-    document.getElementById('productModal').classList.remove('open');
-};
-window.openEditProductModal = function(productId) {
-    showToast('✏️ Edit product: ' + productId, 'info');
-    document.getElementById('productModal').classList.add('open');
-};
-window.deleteProduct = function(productId) {
-    if (!confirm('Delete this product?')) return;
-    showToast('🗑️ Product deleted (demo)', 'success');
-};
-window.openCreateDownloadModal = function() {
-    document.getElementById('createDownloadModal').classList.add('open');
-};
-window.closeCreateDownloadModal = function() {
-    document.getElementById('createDownloadModal').classList.remove('open');
-};
-window.createDownload = function(e) {
-    e.preventDefault();
-    showToast('📁 Download added successfully (demo)', 'success');
-    document.getElementById('createDownloadModal').classList.remove('open');
-};
-window.openCreateNotificationModal = function() {
-    document.getElementById('createNotificationModal').classList.add('open');
-};
-window.closeCreateNotificationModal = function() {
-    document.getElementById('createNotificationModal').classList.remove('open');
-};
-window.createNotification = function(e) {
-    e.preventDefault();
-    showToast('🔔 Notification sent (demo)', 'success');
-    document.getElementById('createNotificationModal').classList.remove('open');
-};
-window.editDownload = function(id) {
-    showToast('✏️ Edit download: ' + id, 'info');
-};
-window.deleteDownload = function(id) {
-    if (!confirm('Delete this download?')) return;
-    showToast('🗑️ Download deleted (demo)', 'success');
-};
-window.sendUserNotification = async function(userId, title, message) {
-    try {
-        await addDoc(collection(db, 'notifications'), {
-            userId: userId,
-            title: title,
-            message: message,
-            readBy: [],
-            createdAt: serverTimestamp()
-        });
-        console.log('✅ Notification sent to user:', userId);
-    } catch (error) {
-        console.error('Error sending notification:', error);
-    }
-};
-window.copyReferralCode2 = function() {
-    const code = document.getElementById('referralCodeDisplay2')?.textContent;
-    if (!code) return;
-    navigator.clipboard.writeText(code).then(() => {
-        showToast('✅ Referral code copied!', 'success');
-    }).catch(() => {
-        const textarea = document.createElement('textarea');
-        textarea.value = code;
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-        showToast('✅ Referral code copied!', 'success');
-    });
-};
-window.openRequestsModal = function() {
-    document.getElementById('requestsModal').classList.add('open');
-};
-window.closeRequestsModal = function() {
-    document.getElementById('requestsModal').classList.remove('open');
-};
-window.openNewRequestModal = function() {
-    document.getElementById('newRequestModal').classList.add('open');
-};
-window.closeNewRequestModal = function() {
-    document.getElementById('newRequestModal').classList.remove('open');
-};
-window.submitRequest = function(e) {
-    e.preventDefault();
-    showToast('📝 Request submitted (demo)', 'success');
-    document.getElementById('newRequestModal').classList.remove('open');
-};
-window.markAllNotificationsRead = function() {
-    if (!currentUser) return;
-    notifications.forEach(n => {
-        if (!(n.readBy || []).includes(currentUser.uid)) {
-            n.readBy = n.readBy || [];
-            n.readBy.push(currentUser.uid);
+document.addEventListener('click', function(e) {
+    const float = document.getElementById('supportFloat');
+    if (float) {
+        const isClickInside = float.contains(e.target);
+        if (!isClickInside && float.classList.contains('open')) {
+            float.classList.remove('open');
         }
-    });
-    unreadNotifications = 0;
-    updateNotificationBadge();
-    renderUserNotifications();
-    showToast('📨 All notifications marked as read', 'success');
-};
-window.clearAllNotifications = function() {
-    if (!confirm('Clear all notifications?')) return;
-    notifications = [];
-    unreadNotifications = 0;
-    updateNotificationBadge();
-    renderUserNotifications();
-    renderAdminNotifications();
-    showToast('🗑️ All notifications cleared', 'success');
-};
+    }
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('supportModal');
+        if (modal && modal.classList.contains('open')) {
+            closeSupportModal();
+        }
+        const float = document.getElementById('supportFloat');
+        if (float && float.classList.contains('open')) {
+            float.classList.remove('open');
+        }
+    }
+});
+
+console.log('✅ Support system loaded successfully!');
 
 // ============================================================
-// 40. Additional missing functions from HTML
+// 39. Additional missing functions from HTML
 // ============================================================
 window.openAdminPanel = function() {
     if (!isAdminCached) {
@@ -5808,6 +5616,12 @@ window.adminDeletePayment = adminDeletePayment;
 window.refreshAdminPayments = refreshAdminPayments;
 
 console.log('✅ All functions added successfully!');
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
 
 // ============================================================
 // END OF SCRIPT.JS
