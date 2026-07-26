@@ -676,7 +676,6 @@
         .fullscreen-modal.open {
             transform: translateX(0);
         }
-        /* إزالة أي خط أسود عند التبديل للثيم النهاري */
         body.light .fullscreen-modal {
             border: none;
             box-shadow: 4px 0 30px rgba(0,0,0,0.05);
@@ -976,9 +975,6 @@
             transition: var(--transition);
         }
         .add-btn:hover { opacity: 0.8; }
-
-        /* ===== CHECKOUT - Fullscreen like Cart (no small popup) ===== */
-        /* We now use fullscreen-modal for checkout, not .modal */
 
         /* ===== Floating Hearts ===== */
         #floatingHearts {
@@ -3589,7 +3585,7 @@
 
     <!-- ===== inline theme toggle for immediate response ===== -->
     <script>
-        // Theme toggle function (will be overridden by module, but this ensures immediate response)
+        // Theme toggle function
         function toggleTheme() {
             document.body.classList.toggle('light');
             const isLight = document.body.classList.contains('light');
