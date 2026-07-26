@@ -353,16 +353,27 @@
             padding: 20px;
         }
         .slide-overlay {
-            background: rgba(0,0,0,0.3);
-            backdrop-filter: none;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
             padding: 16px 24px;
             border-radius: var(--radius-md);
             text-align: center;
             max-width: 90%;
         }
-        .slide-title { font-size: 20px; font-weight: 800; margin-bottom: 4px; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.5); }
-        .slide-subtitle { font-size: 14px; opacity: 0.9; margin-bottom: 8px; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.5); }
-        .slide-btn { display: none; }
+        .slide-title { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+        .slide-subtitle { font-size: 14px; opacity: 0.8; margin-bottom: 8px; }
+        .slide-btn {
+            display: inline-block;
+            padding: 8px 24px;
+            background: var(--primary);
+            color: #fff;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+        .slide-btn:hover { transform: scale(1.05); opacity: 0.9; }
         .slider-dots {
             position: absolute;
             bottom: 10px;
@@ -486,8 +497,6 @@
             display: flex;
             gap: 4px;
             z-index: 2;
-            flex-direction: row;
-            align-items: center;
         }
         .product-card .product-actions-top button {
             background: rgba(0,0,0,0.5);
@@ -500,9 +509,6 @@
             font-size: 12px;
             backdrop-filter: blur(4px);
             transition: var(--transition);
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
         .product-card .product-actions-top button:hover { background: var(--primary); }
         .product-card .product-actions-top .heart-icon.liked { color: var(--danger); }
@@ -671,14 +677,9 @@
             transition: transform var(--slide-transition);
             will-change: transform;
             box-shadow: 4px 0 30px rgba(0,0,0,0.3);
-            border: none;
         }
         .fullscreen-modal.open {
             transform: translateX(0);
-        }
-        body.light .fullscreen-modal {
-            border: none;
-            box-shadow: 4px 0 30px rgba(0,0,0,0.05);
         }
         .fullscreen-modal .modal-header {
             display: flex;
@@ -976,6 +977,257 @@
         }
         .add-btn:hover { opacity: 0.8; }
 
+        /* ===== Payment Modal (like Cart) ===== */
+        .modal {
+            position: fixed;
+            inset: 0;
+            z-index: 500;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(6px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .modal.open { display: flex; }
+        .modal .modal-content {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px 20px;
+            max-width: 520px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: var(--shadow);
+            animation: modalSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes modalSlideUp {
+            0% { opacity: 0; transform: translateY(30px) scale(0.95); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .modal .modal-close {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            font-size: 28px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            background: none;
+            border: none;
+            transition: transform 0.3s;
+        }
+        .modal .modal-close:hover { transform: rotate(90deg); }
+        .modal h2 { font-size: 22px; font-weight: 800; margin-bottom: 12px; }
+
+        .payment-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .payment-option {
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 14px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+        }
+        .payment-option:hover { border-color: var(--primary); }
+        .payment-option.selected { border-color: var(--primary); background: var(--primary-glow); }
+        .payment-option i { font-size: 28px; display: block; margin-bottom: 4px; }
+        .payment-option .p-label { font-weight: 700; font-size: 14px; }
+        .payment-option .p-sub { font-size: 11px; color: var(--text-secondary); opacity: 0.5; font-weight: 500; }
+        .payment-option .p-check {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            color: var(--primary);
+            opacity: 0;
+            transition: var(--transition);
+        }
+        .payment-option.selected .p-check { opacity: 1; }
+
+        .payment-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: var(--radius-sm);
+            background: var(--primary);
+            color: #fff;
+            font-weight: 800;
+            font-size: 16px;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 12px;
+        }
+        .payment-btn:hover { opacity: 0.9; }
+
+        /* ===== Binance ID Section ===== */
+        .binance-id-section {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            margin-top: 12px;
+        }
+        .binance-id-box { padding: 16px; }
+        .bi-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+        .bi-header i { color: #f2a900; font-size: 24px; }
+        .bi-content { display: flex; flex-direction: column; gap: 8px; }
+        .bi-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .bi-label { color: var(--text-secondary); opacity: 0.6; font-weight: 600; }
+        .bi-value { font-weight: 700; direction: ltr; text-align: left; flex: 1; }
+        .bi-copy-btn {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 4px 10px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: var(--transition);
+            font-weight: 600;
+        }
+        .bi-copy-btn:hover { background: var(--primary); color: #fff; }
+        .bi-divider { height: 1px; background: var(--border); margin: 4px 0; }
+        .bi-instructions {
+            font-size: 13px;
+            color: var(--text-secondary);
+            background: var(--bg);
+            padding: 12px 14px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            font-weight: 500;
+        }
+        .bi-instructions p { font-weight: 700; margin-bottom: 4px; color: var(--text); }
+        .bi-instructions ol { margin: 0; padding-left: 20px; opacity: 0.8; }
+        .bi-instructions li { margin-bottom: 2px; }
+        .binance-verification {
+            padding: 16px;
+            border-top: 1px solid var(--border);
+            background: var(--bg);
+        }
+        .bv-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .bv-header i { color: var(--success); font-size: 18px; }
+        .bv-field { margin-bottom: 12px; }
+        .bv-field label { display: block; font-size: 13px; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px; }
+        .bv-input-group { display: flex; gap: 6px; }
+        .bv-input-group input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--card-bg);
+            color: var(--text);
+            font-size: 14px;
+            outline: none;
+            font-family: var(--font);
+            font-weight: 500;
+        }
+        .bv-input-group input:focus { border-color: var(--primary); }
+        .bv-verify-btn {
+            padding: 8px 14px;
+            border: none;
+            border-radius: var(--radius-sm);
+            background: var(--primary);
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .bv-verify-btn:hover { opacity: 0.8; }
+        .bv-hint { font-size: 12px; color: var(--text-secondary); opacity: 0.5; margin-top: 4px; font-weight: 500; }
+        .bv-upload { margin: 12px 0; }
+        .bv-upload label { font-size: 13px; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 4px; }
+        .bv-drop-zone {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-sm);
+            padding: 16px 12px;
+            text-align: center;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+            background: var(--card-bg);
+            font-weight: 500;
+        }
+        .bv-drop-zone:hover { border-color: var(--primary); background: var(--bg); }
+        .bv-drop-zone i { font-size: 28px; display: block; margin-bottom: 4px; }
+        .bv-drop-zone p { margin: 0; font-size: 13px; }
+        .bv-drop-zone input[type="file"] { display: none; }
+        #screenshotPreview {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            margin-top: 8px;
+        }
+        #screenshotPreview img {
+            max-width: 100%;
+            max-height: 150px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+        .bv-result {
+            margin: 8px 0;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 600;
+            background: var(--bg);
+            border: 1px solid var(--border);
+        }
+        .bv-result.success { border-color: var(--success); color: var(--success); }
+        .bv-result.error { border-color: var(--danger); color: var(--danger); }
+        .bv-submit-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: var(--radius-sm);
+            background: var(--primary);
+            color: #fff;
+            font-weight: 800;
+            font-size: 16px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .bv-submit-btn:hover { opacity: 0.8; }
+        .bv-note {
+            font-size: 12px;
+            color: var(--text-secondary);
+            opacity: 0.5;
+            margin-top: 8px;
+            text-align: center;
+            font-weight: 500;
+        }
+        .bv-note a { color: var(--primary); text-decoration: none; }
+
         /* ===== Floating Hearts ===== */
         #floatingHearts {
             position: fixed;
@@ -1001,12 +1253,12 @@
             .header { padding: 8px 12px; }
             .logo { font-size: 18px; }
             .header-actions button { width: 34px; height: 34px; font-size: 14px; }
+            .payment-options { grid-template-columns: 1fr 1fr; }
             .stats-bar { grid-template-columns: repeat(2, 1fr); }
             .slide-title { font-size: 16px; }
             .auth-container { padding: 20px 16px; }
             #adminPanel .tabs button { font-size: 12px; padding: 4px 10px; }
             #toast { min-width: auto; width: 90%; font-size: 13px; padding: 12px 16px; }
-            .slide-overlay { padding: 12px 16px; }
         }
         @media (min-width: 768px) {
             .product-grid { grid-template-columns: repeat(3, 1fr); }
@@ -2214,300 +2466,6 @@
             transition: var(--transition);
         }
         .cart-item .ci-remove:hover { opacity: 0.8; }
-
-        /* ===== Payment Instructions (like Binance ID) ===== */
-        .payment-instructions {
-            background: var(--bg-secondary);
-            border-radius: var(--radius-md);
-            padding: 14px 16px;
-            border: 1px solid var(--border);
-            margin: 12px 0;
-        }
-        .payment-instructions .pi-header {
-            font-weight: 700;
-            font-size: 14px;
-            margin-bottom: 6px;
-            color: var(--vip-color);
-        }
-        .payment-instructions .pi-body {
-            font-size: 13px;
-            color: var(--text-secondary);
-            line-height: 1.6;
-            font-weight: 500;
-        }
-        .payment-instructions .pi-body strong {
-            color: var(--text);
-        }
-        .payment-instructions .pi-deadline {
-            margin-top: 8px;
-            padding: 8px 12px;
-            background: var(--danger)20;
-            border-radius: var(--radius-sm);
-            border-left: 3px solid var(--danger);
-            font-size: 13px;
-            color: var(--danger);
-            font-weight: 600;
-        }
-
-        /* Checkout as Fullscreen */
-        #checkoutFull {
-            z-index: 350;
-        }
-        #checkoutFull .modal-header .close-btn {
-            margin-left: auto;
-        }
-
-        /* Binance ID Section */
-        .binance-id-section {
-            background: var(--bg-secondary);
-            border-radius: var(--radius-md);
-            border: 1px solid var(--border);
-            overflow: hidden;
-            margin-top: 12px;
-        }
-        .binance-id-box { padding: 16px; }
-        .bi-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 18px;
-            font-weight: 800;
-            margin-bottom: 12px;
-        }
-        .bi-header i { color: #f2a900; font-size: 24px; }
-        .bi-content { display: flex; flex-direction: column; gap: 8px; }
-        .bi-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            font-size: 14px;
-            font-weight: 500;
-        }
-        .bi-label { color: var(--text-secondary); opacity: 0.6; font-weight: 600; }
-        .bi-value { font-weight: 700; direction: ltr; text-align: left; flex: 1; }
-        .bi-copy-btn {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 4px 10px;
-            cursor: pointer;
-            color: var(--text-secondary);
-            transition: var(--transition);
-            font-weight: 600;
-        }
-        .bi-copy-btn:hover { background: var(--primary); color: #fff; }
-        .bi-divider { height: 1px; background: var(--border); margin: 4px 0; }
-        .bi-instructions {
-            font-size: 13px;
-            color: var(--text-secondary);
-            background: var(--bg);
-            padding: 12px 14px;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border);
-            font-weight: 500;
-        }
-        .bi-instructions p { font-weight: 700; margin-bottom: 4px; color: var(--text); }
-        .bi-instructions ol { margin: 0; padding-left: 20px; opacity: 0.8; }
-        .bi-instructions li { margin-bottom: 2px; }
-        .binance-verification {
-            padding: 16px;
-            border-top: 1px solid var(--border);
-            background: var(--bg);
-        }
-        .bv-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-        .bv-header i { color: var(--success); font-size: 18px; }
-        .bv-field { margin-bottom: 12px; }
-        .bv-field label { display: block; font-size: 13px; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px; }
-        .bv-input-group { display: flex; gap: 6px; }
-        .bv-input-group input {
-            flex: 1;
-            padding: 8px 12px;
-            border: 2px solid var(--border);
-            border-radius: var(--radius-sm);
-            background: var(--card-bg);
-            color: var(--text);
-            font-size: 14px;
-            outline: none;
-            font-family: var(--font);
-            font-weight: 500;
-        }
-        .bv-input-group input:focus { border-color: var(--primary); }
-        .bv-verify-btn {
-            padding: 8px 14px;
-            border: none;
-            border-radius: var(--radius-sm);
-            background: var(--primary);
-            color: #fff;
-            font-weight: 700;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-        .bv-verify-btn:hover { opacity: 0.8; }
-        .bv-hint { font-size: 12px; color: var(--text-secondary); opacity: 0.5; margin-top: 4px; font-weight: 500; }
-        .bv-upload { margin: 12px 0; }
-        .bv-upload label { font-size: 13px; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 4px; }
-        .bv-drop-zone {
-            border: 2px dashed var(--border);
-            border-radius: var(--radius-sm);
-            padding: 16px 12px;
-            text-align: center;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: var(--transition);
-            background: var(--card-bg);
-            font-weight: 500;
-        }
-        .bv-drop-zone:hover { border-color: var(--primary); background: var(--bg); }
-        .bv-drop-zone i { font-size: 28px; display: block; margin-bottom: 4px; }
-        .bv-drop-zone p { margin: 0; font-size: 13px; }
-        .bv-drop-zone input[type="file"] { display: none; }
-        #screenshotPreview {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            margin-top: 8px;
-        }
-        #screenshotPreview img {
-            max-width: 100%;
-            max-height: 150px;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border);
-        }
-        .bv-result {
-            margin: 8px 0;
-            padding: 8px 12px;
-            border-radius: var(--radius-sm);
-            font-size: 13px;
-            font-weight: 600;
-            background: var(--bg);
-            border: 1px solid var(--border);
-        }
-        .bv-result.success { border-color: var(--success); color: var(--success); }
-        .bv-result.error { border-color: var(--danger); color: var(--danger); }
-        .bv-submit-btn {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: var(--radius-sm);
-            background: var(--primary);
-            color: #fff;
-            font-weight: 800;
-            font-size: 16px;
-            cursor: pointer;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        .bv-submit-btn:hover { opacity: 0.8; }
-        .bv-note {
-            font-size: 12px;
-            color: var(--text-secondary);
-            opacity: 0.5;
-            margin-top: 8px;
-            text-align: center;
-            font-weight: 500;
-        }
-        .bv-note a { color: var(--primary); text-decoration: none; }
-
-        /* ===== Payment Options (step 1) ===== */
-        .payment-options {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-        .payment-option {
-            background: var(--bg);
-            border: 2px solid var(--border);
-            border-radius: var(--radius-sm);
-            padding: 14px 10px;
-            text-align: center;
-            cursor: pointer;
-            transition: var(--transition);
-            position: relative;
-        }
-        .payment-option:hover { border-color: var(--primary); }
-        .payment-option.selected { border-color: var(--primary); background: var(--primary-glow); }
-        .payment-option i { font-size: 28px; display: block; margin-bottom: 4px; }
-        .payment-option .p-label { font-weight: 700; font-size: 14px; }
-        .payment-option .p-sub { font-size: 11px; color: var(--text-secondary); opacity: 0.5; font-weight: 500; }
-        .payment-option .p-check {
-            position: absolute;
-            top: 6px;
-            right: 6px;
-            color: var(--primary);
-            opacity: 0;
-            transition: var(--transition);
-        }
-        .payment-option.selected .p-check { opacity: 1; }
-
-        .payment-btn {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: var(--radius-sm);
-            background: var(--primary);
-            color: #fff;
-            font-weight: 800;
-            font-size: 16px;
-            cursor: pointer;
-            transition: var(--transition);
-            margin-top: 12px;
-        }
-        .payment-btn:hover { opacity: 0.9; }
-
-        /* ===== Share Modal ===== */
-        .modal {
-            position: fixed;
-            inset: 0;
-            z-index: 500;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(6px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-        }
-        .modal.open { display: flex; }
-        .modal .modal-content {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 24px 20px;
-            max-width: 520px;
-            width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
-            position: relative;
-            box-shadow: var(--shadow);
-            animation: modalSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        @keyframes modalSlideUp {
-            0% { opacity: 0; transform: translateY(30px) scale(0.95); }
-            100% { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        .modal .modal-close {
-            position: absolute;
-            top: 12px;
-            right: 16px;
-            font-size: 28px;
-            color: var(--text-secondary);
-            cursor: pointer;
-            background: none;
-            border: none;
-            transition: transform 0.3s;
-        }
-        .modal .modal-close:hover { transform: rotate(90deg); }
-        .modal h2 { font-size: 22px; font-weight: 800; margin-bottom: 12px; }
     </style>
 </head>
 <body>
@@ -2669,17 +2627,6 @@
             <button class="close-btn" onclick="closeProductDetails()" aria-label="Close">&times;</button>
         </div>
         <div id="productDetailsContent">
-            <!-- سيتم ملؤه بواسطة JavaScript -->
-        </div>
-    </div>
-
-    <!-- ===== CHECKOUT FULL PAGE ===== -->
-    <div class="fullscreen-modal" id="checkoutFull">
-        <div class="modal-header">
-            <h2><i class="fas fa-credit-card"></i> Checkout</h2>
-            <button class="close-btn" onclick="closeCheckoutFull()">&times;</button>
-        </div>
-        <div id="checkoutContent" style="flex:1; overflow-y:auto; padding:0 4px 20px;">
             <!-- سيتم ملؤه بواسطة JavaScript -->
         </div>
     </div>
@@ -2891,8 +2838,199 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- ===== SHARE MODAL ===== -->
+    <!-- ===== PAYMENT MODAL (Checkout like Cart) ===== -->
     <!-- ============================================================ -->
+    <div class="modal" id="paymentModal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closePaymentModal()">&times;</span>
+            <h2><i class="fas fa-credit-card"></i> Checkout</h2>
+
+            <!-- Step 1 -->
+            <div id="paymentStep1">
+                <p style="font-size:14px; color:var(--text-secondary); margin-bottom:16px; font-weight:500;">Select payment method</p>
+                <div class="payment-options">
+                    <div class="payment-option" id="optionLitecoin" onclick="selectPayment('litecoin')">
+                        <i class="fab fa-bitcoin"></i>
+                        <div class="p-label">Litecoin</div>
+                        <div class="p-sub">LTC</div>
+                        <div class="p-check"><i class="fas fa-check"></i></div>
+                    </div>
+                    <div class="payment-option" id="optionUsdt" onclick="selectPayment('usdt')">
+                        <i class="fas fa-coins"></i>
+                        <div class="p-label">USDT</div>
+                        <div class="p-sub">ERC20</div>
+                        <div class="p-check"><i class="fas fa-check"></i></div>
+                    </div>
+                    <div class="payment-option" id="optionTelegram" onclick="selectPayment('telegram')">
+                        <i class="fab fa-telegram-plane"></i>
+                        <div class="p-label">Telegram</div>
+                        <div class="p-sub">Direct</div>
+                        <div class="p-check"><i class="fas fa-check"></i></div>
+                    </div>
+                    <div class="payment-option" id="optionBinanceId" onclick="selectPayment('binanceId')">
+                        <i class="fab fa-binance" style="color:#f2a900;"></i>
+                        <div class="p-label">Binance ID</div>
+                        <div class="p-sub">Direct Transfer</div>
+                        <div class="p-check"><i class="fas fa-check"></i></div>
+                    </div>
+                </div>
+
+                <!-- Total Amount -->
+                <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
+                    <div style="display:flex; justify-content:space-between; font-size:16px; font-weight:700;">
+                        <span>Total Amount:</span>
+                        <span id="payableTotal" style="color:var(--primary);">$0.00</span>
+                    </div>
+                </div>
+
+                <button class="payment-btn" onclick="continuePayment()"><i class="fas fa-arrow-right"></i> Continue</button>
+            </div>
+
+            <!-- Step 2 (like Cart style) -->
+            <div id="paymentStep2" style="display:none;">
+                <div id="paymentProductsList" style="margin-bottom:8px;"></div>
+                <div style="display:flex; justify-content:space-between; margin:4px 0; font-size:14px; font-weight:500;">
+                    <span style="color:var(--text-secondary);">Subtotal</span>
+                    <span id="step2Subtotal">$0.00</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin:4px 0; font-size:18px; font-weight:800;">
+                    <span>Total</span>
+                    <span id="step2Total">$0.00</span>
+                </div>
+
+                <!-- RP and Promo (like cart) -->
+                <div style="background:var(--bg);border-radius:10px;padding:12px;border:1px solid var(--border);margin:8px 0;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:13px;">
+                        <span style="color:var(--text-secondary);opacity:0.5;display:flex;align-items:center;gap:6px;"><i class="fas fa-star" style="color:var(--vip-color);"></i> Loyalty Points (RP)</span>
+                        <span style="color:var(--text);font-weight:600;">${userProfile.rp || 0} RP (≈ $${((userProfile.rp || 0) * RP_TO_DOLLAR).toFixed(2)})</span>
+                    </div>
+                    <button class="rp-btn ${userProfile.useRpForCart?'active':''}" onclick="toggleRpInCart()" style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;transition:0.3s;margin-top:4px;">
+                        <i class="fas ${userProfile.useRpForCart?'fa-check-circle':'fa-circle'}"></i>
+                        ${userProfile.useRpForCart?'Use RP ✓':'Use RP'}
+                    </button>
+                </div>
+                <div style="background:var(--bg);border-radius:10px;padding:12px;border:1px solid var(--border);margin:8px 0;">
+                    <div style="display:flex;gap:6px;align-items:center;">
+                        <input id="checkoutPromoInput" placeholder="Enter promo code..." style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);font-size:13px;outline:none;font-weight:500;" type="text" />
+                        <button onclick="applyCheckoutPromo()" style="padding:6px 14px;border:none;border-radius:6px;background:var(--primary);color:#fff;font-weight:600;cursor:pointer;font-size:12px;transition:0.3s;white-space:nowrap;"><i class="fas fa-ticket-alt"></i> Apply</button>
+                    </div>
+                    <div class="promo-status" id="checkoutPromoStatus" style="font-size:11px;color:var(--text-secondary);opacity:0.4;margin-top:4px;font-weight:500;">${activeDiscount>0?`✅ ${activeDiscount}% discount active`:'Enter a promo code for a discount'}</div>
+                </div>
+
+                <!-- Wallet Info (LTC/USDT) -->
+                <div id="paymentWalletInfo" style="display:none; background:var(--bg-secondary); border-radius:var(--radius-md); padding:12px; border:1px solid var(--border); margin-top:8px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-weight:600;">
+                        <span id="paymentMethodName">Litecoin</span>
+                        <span id="cryptoNetwork">LTC</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+                        <span style="font-size:12px; opacity:0.5; font-weight:500;">Address</span>
+                        <span id="walletAddressDisplay" style="font-family:monospace; font-size:13px; direction:ltr; text-align:left; word-break:break-all; font-weight:600;">ltc1qy6ksn0g4hm6hlh93fwekgz8x74vr6hvdmh6zz8</span>
+                        <button onclick="copyWalletAddress()" style="background:none; border:none; color:var(--primary); cursor:pointer;"><i class="fas fa-copy"></i></button>
+                    </div>
+                    <div style="font-size:12px; color:var(--text-secondary); opacity:0.4; margin-top:4px; font-weight:500;" id="exchangeRate">⏳ Loading prices...</div>
+                    <div style="font-size:13px; font-weight:700; color:var(--vip-color); margin-top:2px;" id="cryptoAmount">0.0000 LTC</div>
+                </div>
+
+                <!-- Tx Hash Input (LTC/USDT) -->
+                <div id="paymentTxInput" style="display:none; margin-top:8px;">
+                    <label style="font-size:13px; font-weight:700;">📋 Transaction Hash</label>
+                    <input type="text" id="transactionHashInput" placeholder="Paste transaction hash" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--card-bg); color:var(--text); font-size:14px; outline:none; font-family:var(--font); font-weight:500;" />
+                </div>
+
+                <!-- Telegram Contact -->
+                <div id="paymentTelegramContact" style="display:none; margin-top:8px;">
+                    <button class="payment-btn" onclick="placeOrderTelegram()" style="background:#0088cc;"><i class="fab fa-telegram-plane"></i> Contact via Telegram</button>
+                </div>
+
+                <!-- ===== BINANCE ID SECTION ===== -->
+                <div id="paymentBinanceIdSection" class="binance-id-section" style="display:none; margin-top:8px;">
+                    <div class="binance-id-box">
+                        <div class="bi-header">
+                            <i class="fab fa-binance"></i>
+                            <span>Transfer via Binance ID</span>
+                        </div>
+                        <div class="bi-content">
+                            <div class="bi-row">
+                                <span class="bi-label">📤 Transfer to:</span>
+                                <span class="bi-value" id="binanceIdDisplay">748838383</span>
+                                <button onclick="copyBinanceId()" class="bi-copy-btn"><i class="fas fa-copy"></i></button>
+                            </div>
+                            <div class="bi-row">
+                                <span class="bi-label">💰 Amount:</span>
+                                <span class="bi-value" id="binanceAmountDisplay">$0.00</span>
+                            </div>
+                            <div class="bi-row">
+                                <span class="bi-label">📝 Order ID:</span>
+                                <span class="bi-value" id="binanceOrderDisplay">#------</span>
+                            </div>
+                            <div class="bi-divider"></div>
+                            <div class="bi-instructions">
+                                <p><i class="fas fa-info-circle" style="color:#f2a900;"></i> Payment Instructions:</p>
+                                <ol>
+                                    <li>Open the Binance app</li>
+                                    <li>Go to <strong>Transfer</strong></li>
+                                    <li>Select <strong>Binance ID</strong></li>
+                                    <li>Paste the ID: <strong id="binanceIdInline">748838383</strong></li>
+                                    <li>Enter the amount: <strong id="binanceAmountInline">$0.00</strong></li>
+                                    <li>Send the payment</li>
+                                    <li>Copy the <strong>Transaction ID</strong></li>
+                                    <li>Paste it in the field below to confirm</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="binance-verification">
+                        <div class="bv-header">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Payment Confirmation</span>
+                        </div>
+                        <div class="bv-body">
+                            <div class="bv-field">
+                                <label for="txHashInput">📋 Transaction ID:</label>
+                                <div class="bv-input-group">
+                                    <input type="text" id="txHashInput" placeholder="Example: 0x7a8b9c... or 443016893778911232" onpaste="handleTxPaste(event)" style="font-weight:500;" />
+                                    <button onclick="verifyTransaction()" class="bv-verify-btn"><i class="fas fa-search"></i> Verify</button>
+                                </div>
+                                <div class="bv-hint"><i class="fas fa-lightbulb"></i> You can paste the Transaction ID from the Binance app</div>
+                            </div>
+
+                            <div class="bv-upload">
+                                <label>🖼️ Or upload a screenshot:</label>
+                                <div class="bv-drop-zone" id="dropZone" onclick="document.getElementById('screenshotInput').click()">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p>Drag image here or click to select</p>
+                                    <input type="file" id="screenshotInput" accept="image/*" onchange="handleScreenshot(event)" />
+                                </div>
+                                <div id="screenshotPreview" style="display:none; margin-top:8px;">
+                                    <img id="screenshotImg" src="#" alt="Screenshot" style="max-width:100%; max-height:150px; border-radius:var(--radius-sm); border:1px solid var(--border);" />
+                                    <button onclick="removeScreenshot()" style="margin-top:4px; background:var(--danger); color:#fff; border:none; padding:4px 12px; border-radius:var(--radius-sm); cursor:pointer; font-size:12px; font-weight:700;"><i class="fas fa-times"></i> Remove</button>
+                                </div>
+                            </div>
+
+                            <div id="verificationResult" class="bv-result" style="display:none;"></div>
+
+                            <button onclick="submitManualPayment()" class="bv-submit-btn"><i class="fas fa-check-circle"></i> Confirm Payment</button>
+
+                            <div class="bv-note">
+                                <i class="fas fa-clock"></i> Your request will be reviewed within 5-10 minutes
+                                <br>
+                                <span style="font-size:11px; opacity:0.4;">For inquiries: <a href="https://t.me/Mitalica69" target="_blank" style="color:var(--primary);">@Mitalica69</a></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Confirm Button -->
+                <button class="payment-btn" id="mainConfirmBtn" style="display:none; margin-top:12px;"><i class="fas fa-check"></i> Confirm Payment</button>
+
+                <button class="payment-btn" onclick="goToStep1()" style="background:transparent; color:var(--text-secondary); border:1px solid var(--border); margin-top:8px; font-weight:700;">Back</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SHARE MODAL ===== -->
     <div class="modal" id="shareModal">
         <div class="modal-content" style="max-width:400px; text-align:center;">
             <span class="modal-close" onclick="closeShareModal()">&times;</span>
@@ -3585,7 +3723,7 @@
 
     <!-- ===== inline theme toggle for immediate response ===== -->
     <script>
-        // Theme toggle function
+        // Theme toggle function (will be overridden by module, but this ensures immediate response)
         function toggleTheme() {
             document.body.classList.toggle('light');
             const isLight = document.body.classList.contains('light');
