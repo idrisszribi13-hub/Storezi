@@ -107,6 +107,7 @@
 
     <script>
         const updateUrl = "https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/update-settings";
+        const supabaseAnonKey = "sb_publishable_1uSIqgNONAV53GjOoBoZUw_niAGJXO6";
 
         async function saveSettings() {
             const secret = document.getElementById("adminSecret").value;
@@ -126,7 +127,11 @@
             try {
                 const response = await fetch(updateUrl, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { 
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + supabaseAnonKey,
+                        "apikey": supabaseAnonKey
+                    },
                     body: JSON.stringify({ secret, maintenance, message })
                 });
 
