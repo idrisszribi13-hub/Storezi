@@ -193,7 +193,6 @@ function showToast(message, type = 'success') {
     const icons = { success: '<i class="fas fa-check-circle"></i>', error: '<i class="fas fa-exclamation-circle"></i>', warning: '<i class="fas fa-exclamation-triangle"></i>', info: '<i class="fas fa-info-circle"></i>' };
     if (iconEl) iconEl.innerHTML = icons[type] || icons.success;
     messageEl.textContent = message;
-    // Force reflow for animation
     void toast.offsetWidth;
     toast.classList.add('show');
     clearTimeout(window.toastTimeout);
@@ -2510,7 +2509,6 @@ window.continuePayment = function() {
     // Update RP section and promo status in step2
     const rpSection = document.querySelector('#paymentStep2 .rp-btn');
     if (rpSection) {
-        const rpText = rpSection.querySelector('span') || rpSection;
         const rpAmount = userProfile.rp || 0;
         rpSection.innerHTML = `<i class="fas ${userProfile.useRpForCart?'fa-check-circle':'fa-circle'}"></i> ${userProfile.useRpForCart?'Use RP ✓':'Use RP'} (${rpAmount} RP ≈ $${(rpAmount * RP_TO_DOLLAR).toFixed(2)})`;
         rpSection.className = `rp-btn ${userProfile.useRpForCart?'active':''}`;
@@ -2521,6 +2519,10 @@ window.continuePayment = function() {
         promoStatus.className = 'promo-status';
         if (activeDiscount > 0) promoStatus.classList.add('success');
     }
+
+    // Show payment instructions container
+    const instructionsContainer = document.getElementById('paymentInstructionsContainer');
+    if (instructionsContainer) instructionsContainer.style.display = 'block';
 
     // Show/hide wallet info, tx input, etc.
     const walletInfo = document.getElementById('paymentWalletInfo');
@@ -2567,6 +2569,12 @@ window.continuePayment = function() {
             const orderId = '#' + String(Date.now()).slice(-6);
             document.getElementById('binanceOrderDisplay').textContent = orderId;
         }
+    }
+
+    // Update RP display in step2
+    const rpDisplay = document.getElementById('step2RpDisplay');
+    if (rpDisplay) {
+        rpDisplay.textContent = `${userProfile.rp || 0} RP (≈ $${((userProfile.rp || 0) * RP_TO_DOLLAR).toFixed(2)})`;
     }
 };
 
@@ -5759,17 +5767,46 @@ window.openPaymentModal = function() {
     document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
     window.renderPaymentProducts();
     updatePayableTotal();
+    // Reset any previous state
+    document.getElementById('paymentInstructionsContainer').style.display = 'none';
+    document.getElementById('paymentWalletInfo').style.display = 'none';
+    document.getElementById('paymentTxInput').style.display = 'none';
+    document.getElementById('paymentTelegramContact').style.display = 'none';
+    document.getElementById('paymentBinanceIdSection').style.display = 'none';
+    document.getElementById('mainConfirmBtn').style.display = 'none';
+    // Reset tx hash inputs
+    const txInput = document.getElementById('transactionHashInput');
+    if (txInput) txInput.value = '';
+    const txInput2 = document.getElementById('txHashInput');
+    if (txInput2) txInput2.value = '';
+    const resultEl = document.getElementById('verificationResult');
+    if (resultEl) { resultEl.style.display = 'none'; resultEl.textContent = ''; }
 };
 
 window.closePaymentModal = function() {
     const modal = document.getElementById('paymentModal');
     if (modal) modal.classList.remove('open');
     document.body.style.overflow = '';
+    // Reset state
+    document.getElementById('paymentStep1').style.display = 'block';
+    document.getElementById('paymentStep2').style.display = 'none';
+    document.getElementById('paymentInstructionsContainer').style.display = 'none';
+    document.getElementById('paymentWalletInfo').style.display = 'none';
+    document.getElementById('paymentTxInput').style.display = 'none';
+    document.getElementById('paymentTelegramContact').style.display = 'none';
+    document.getElementById('paymentBinanceIdSection').style.display = 'none';
+    document.getElementById('mainConfirmBtn').style.display = 'none';
 };
 
 window.goToStep1 = function() {
     document.getElementById('paymentStep1').style.display = 'block';
     document.getElementById('paymentStep2').style.display = 'none';
+    document.getElementById('paymentInstructionsContainer').style.display = 'none';
+    document.getElementById('paymentWalletInfo').style.display = 'none';
+    document.getElementById('paymentTxInput').style.display = 'none';
+    document.getElementById('paymentTelegramContact').style.display = 'none';
+    document.getElementById('paymentBinanceIdSection').style.display = 'none';
+    document.getElementById('mainConfirmBtn').style.display = 'none';
 };
 
 // Checkout promo apply
