@@ -352,28 +352,31 @@
             justify-content: center;
             padding: 20px;
         }
+        /* إزالة الضباب والزر من السلايدر */
         .slide-overlay {
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(4px);
-            padding: 16px 24px;
-            border-radius: var(--radius-md);
+            background: transparent !important;
+            backdrop-filter: none !important;
+            padding: 0;
+            max-width: 100%;
             text-align: center;
-            max-width: 90%;
+            pointer-events: none;
         }
-        .slide-title { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
-        .slide-subtitle { font-size: 14px; opacity: 0.8; margin-bottom: 8px; }
-        .slide-btn {
-            display: inline-block;
-            padding: 8px 24px;
-            background: var(--primary);
+        .slide-title {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 4px;
             color: #fff;
-            border-radius: 30px;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 14px;
-            transition: var(--transition);
+            text-shadow: 0 2px 10px rgba(0,0,0,0.7);
         }
-        .slide-btn:hover { transform: scale(1.05); opacity: 0.9; }
+        .slide-subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            color: #fff;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.7);
+        }
+        .slide-btn {
+            display: none !important;
+        }
         .slider-dots {
             position: absolute;
             bottom: 10px;
@@ -381,6 +384,7 @@
             transform: translateX(-50%);
             display: flex;
             gap: 6px;
+            z-index: 5;
         }
         .slider-dots .dot {
             width: 8px;
@@ -461,6 +465,9 @@
             height: 120px;
             background: var(--bg-secondary);
             overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .product-card .image-wrapper img {
             width: 100%;
@@ -476,10 +483,19 @@
             font-size: 32px;
             opacity: 0.2;
         }
+        /* ===== تعديل الأيقونات: Wishlist/Share على اليسار، Badge على اليمين ===== */
+        .product-card .product-actions-top {
+            position: absolute;
+            top: 8px;
+            left: 8px; /* من right إلى left */
+            display: flex;
+            gap: 4px;
+            z-index: 2;
+        }
         .product-card .image-badge {
             position: absolute;
             top: 8px;
-            right: 8px;
+            right: 8px; /* تأكد من أنها على اليمين */
             padding: 2px 10px;
             border-radius: 20px;
             font-size: 9px;
@@ -487,17 +503,11 @@
             text-transform: uppercase;
             background: var(--vip-color);
             color: #0a0a1a;
+            z-index: 2;
         }
         .product-card .image-badge.free { background: var(--free-color); }
         .product-card .image-badge.unavailable { background: var(--danger); color: #fff; }
-        .product-card .product-actions-top {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            display: flex;
-            gap: 4px;
-            z-index: 2;
-        }
+        
         .product-card .product-actions-top button {
             background: rgba(0,0,0,0.5);
             border: none;
@@ -893,6 +903,7 @@
             border-color: var(--primary);
             color: var(--text);
         }
+        /* ===== إصلاح عرض التبويبات: إظهار تبويب واحد فقط ===== */
         #adminPanel .tab-content {
             display: none;
             padding-top: 12px;
@@ -1260,7 +1271,7 @@
             .header-actions button { width: 34px; height: 34px; font-size: 14px; }
             .payment-options { grid-template-columns: 1fr 1fr; }
             .stats-bar { grid-template-columns: repeat(2, 1fr); }
-            .slide-title { font-size: 16px; }
+            .slide-title { font-size: 18px; }
             .auth-container { padding: 20px 16px; }
             #adminPanel .tabs button { font-size: 12px; padding: 4px 10px; }
             #toast { min-width: auto; width: 90%; font-size: 13px; padding: 12px 16px; }
@@ -2922,9 +2933,8 @@
                         <span style="color:var(--text-secondary);opacity:0.5;display:flex;align-items:center;gap:5px;"><i class="fas fa-star" style="color:var(--vip-color);"></i> Loyalty Points (RP)</span>
                         <span style="color:var(--text);font-weight:600;" id="step2RpDisplay">0 RP</span>
                     </div>
-                    <button class="rp-btn ${userProfile.useRpForCart?'active':''}" onclick="toggleRpInCart()" style="width:100%;padding:5px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;transition:0.3s;margin-top:4px;">
-                        <i class="fas ${userProfile.useRpForCart?'fa-check-circle':'fa-circle'}"></i>
-                        ${userProfile.useRpForCart?'Use RP ✓':'Use RP'}
+                    <button class="rp-btn" onclick="toggleRpInCart()" style="width:100%;padding:5px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;transition:0.3s;margin-top:4px;">
+                        <i class="fas fa-circle"></i> Use RP
                     </button>
                 </div>
                 <div style="background:var(--bg-secondary);border-radius:var(--radius-md);padding:10px 12px;border:1px solid var(--border);margin:6px 0;">
@@ -2932,7 +2942,7 @@
                         <input id="checkoutPromoInput" placeholder="Enter promo code..." style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);font-size:13px;outline:none;font-weight:500;" type="text" />
                         <button onclick="applyCheckoutPromo()" style="padding:6px 14px;border:none;border-radius:6px;background:var(--primary);color:#fff;font-weight:600;cursor:pointer;font-size:12px;transition:0.3s;white-space:nowrap;"><i class="fas fa-ticket-alt"></i> Apply</button>
                     </div>
-                    <div class="promo-status" id="checkoutPromoStatus" style="font-size:11px;color:var(--text-secondary);opacity:0.4;margin-top:4px;font-weight:500;">${activeDiscount>0?`✅ ${activeDiscount}% discount active`:'Enter a promo code for a discount'}</div>
+                    <div class="promo-status" id="checkoutPromoStatus" style="font-size:11px;color:var(--text-secondary);opacity:0.4;margin-top:4px;font-weight:500;">Enter a promo code for a discount</div>
                 </div>
 
                 <!-- ===== PAYMENT INSTRUCTIONS (like image) ===== -->
@@ -3711,7 +3721,8 @@
     <!-- ============================================================ -->
     <div class="modal" id="cookieSettingsModal">
         <div class="modal-content" style="max-width:450px;">
-            <span class="modal-close" onclick="closeCookieSettings()">&times;</span>
+            <!-- زر الإغلاق على اليمين -->
+            <span class="modal-close" onclick="closeCookieSettings()" style="right:16px; left:auto;">&times;</span>
             <h3 style="font-weight:800; margin-bottom:4px;">Cookie Preferences</h3>
             <p style="font-size:13px; color:var(--text-secondary); margin-bottom:16px; font-weight:500;">Your Privacy Options</p>
 
@@ -3786,6 +3797,59 @@
                 if (icon) icon.className = 'fas fa-moon';
             }
         });
+
+        // ===== إصلاح دالة تبديل التبويبات في لوحة الأدمن =====
+        // هذه الدالة تضمن عدم تراكم التبويبات
+        window.switchAdminTab = function(tab) {
+            // إزالة active من جميع التبويبات
+            document.querySelectorAll('#adminPanel .tab-content').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.querySelectorAll('#adminPanel .tabs button').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            const tabMap = {
+                'dashboard': 'tabDashboard',
+                'orders': 'tabOrders',
+                'products': 'tabProducts',
+                'users': 'tabUsers',
+                'downloads': 'tabDownloads',
+                'notifications': 'tabNotifications',
+                'stats': 'tabStats',
+                'logs': 'tabLogs',
+                'slider': 'tabSlider',
+                'licences': 'tabLicences',
+                'marquee': 'tabMarquee',
+                'payments': 'tabPayments'
+            };
+            const tabId = tabMap[tab] || tabMap['dashboard'];
+            const contentEl = document.getElementById(tabId);
+            if (contentEl) contentEl.classList.add('active');
+            
+            // إضافة active للزر المحدد
+            const btn = document.querySelector(`#adminPanel .tabs button[onclick="switchAdminTab('${tab}')"]`);
+            if (btn) btn.classList.add('active');
+
+            // تحميل المحتوى حسب التبويب
+            if (tab === 'products' && typeof renderAdminProducts === 'function') renderAdminProducts(products);
+            if (tab === 'users' && typeof loadAdminUsers === 'function') loadAdminUsers();
+            if (tab === 'dashboard' && typeof loadDashboardStats === 'function') loadDashboardStats();
+            if (tab === 'stats' && typeof loadAdvancedStats === 'function') loadAdvancedStats();
+            if (tab === 'logs' && typeof loadAuditLogs === 'function') loadAuditLogs();
+            if (tab === 'slider') {
+                if (typeof loadSliderSettings === 'function') loadSliderSettings();
+                if (typeof renderSliderSettingsUI === 'function') renderSliderSettingsUI();
+                const intervalInput = document.getElementById('sliderIntervalInput');
+                if (intervalInput && typeof sliderIntervalTime !== 'undefined') intervalInput.value = sliderIntervalTime;
+            }
+            if (tab === 'licences' && typeof loadLicences === 'function') loadLicences();
+            if (tab === 'marquee' && typeof renderMarqueeSettingsUI === 'function') renderMarqueeSettingsUI();
+            if (tab === 'orders' && typeof loadAdminOrders === 'function') loadAdminOrders();
+            if (tab === 'payments' && typeof refreshAdminPayments === 'function') refreshAdminPayments();
+        };
+
+        console.log('✅ Admin tabs fix applied');
     </script>
 
 </body>
