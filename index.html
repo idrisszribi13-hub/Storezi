@@ -674,12 +674,17 @@
             padding: 16px;
             overflow-y: auto;
             transform: translateX(-100%);
-            transition: transform var(--slide-transition);
+            transition: transform var(--slide-transition), visibility 0s var(--slide-transition);
             will-change: transform;
             box-shadow: 4px 0 30px rgba(0,0,0,0.3);
+            visibility: hidden;
+            pointer-events: none;
         }
         .fullscreen-modal.open {
             transform: translateX(0);
+            visibility: visible;
+            pointer-events: auto;
+            transition: transform var(--slide-transition), visibility 0s 0s;
         }
         .fullscreen-modal .modal-header {
             display: flex;
@@ -2840,37 +2845,45 @@
     <!-- ============================================================ -->
     <!-- ===== PAYMENT MODAL (Checkout like Cart) ===== -->
     <!-- ============================================================ -->
-    <div class="modal" id="paymentModal">
-        <div class="modal-content">
-            <span class="modal-close" onclick="closePaymentModal()">&times;</span>
+    <div class="fullscreen-modal" id="paymentModal">
+        <div class="modal-header">
             <h2><i class="fas fa-credit-card"></i> Checkout</h2>
+            <button class="close-btn" onclick="closePaymentModal()">&times;</button>
+        </div>
+        <div style="flex:1; overflow-y:auto; padding:0 4px 20px;">
 
             <!-- Step 1 -->
             <div id="paymentStep1">
-                <p style="font-size:14px; color:var(--text-secondary); margin-bottom:16px; font-weight:500;">Select payment method</p>
+                <p style="font-size:15px; color:var(--text-secondary); margin-bottom:16px; font-weight:500;">Select payment method</p>
                 <div class="payment-options">
-                    <div class="payment-option" id="optionLitecoin" onclick="selectPayment('litecoin')">
-                        <i class="fab fa-bitcoin"></i>
+                    <div class="payment-option" id="optionLitecoin" onclick="selectPayment('litecoin')" style="border-radius:var(--radius-md);">
+                        <i class="fab fa-bitcoin" style="color:#f2a900; font-size:30px;"></i>
                         <div class="p-label">Litecoin</div>
                         <div class="p-sub">LTC</div>
                         <div class="p-check"><i class="fas fa-check"></i></div>
                     </div>
-                    <div class="payment-option" id="optionUsdt" onclick="selectPayment('usdt')">
-                        <i class="fas fa-coins"></i>
+                    <div class="payment-option" id="optionUsdt" onclick="selectPayment('usdt')" style="border-radius:var(--radius-md);">
+                        <i class="fas fa-coins" style="color:#26a17b; font-size:30px;"></i>
                         <div class="p-label">USDT</div>
                         <div class="p-sub">ERC20</div>
                         <div class="p-check"><i class="fas fa-check"></i></div>
                     </div>
-                    <div class="payment-option" id="optionTelegram" onclick="selectPayment('telegram')">
-                        <i class="fab fa-telegram-plane"></i>
+                    <div class="payment-option" id="optionTelegram" onclick="selectPayment('telegram')" style="border-radius:var(--radius-md);">
+                        <i class="fab fa-telegram-plane" style="color:#0088cc; font-size:30px;"></i>
                         <div class="p-label">Telegram</div>
                         <div class="p-sub">Direct</div>
                         <div class="p-check"><i class="fas fa-check"></i></div>
                     </div>
-                    <div class="payment-option" id="optionBinanceId" onclick="selectPayment('binanceId')">
-                        <i class="fab fa-binance" style="color:#f2a900;"></i>
+                    <div class="payment-option" id="optionBinanceId" onclick="selectPayment('binanceId')" style="border-radius:var(--radius-md);">
+                        <i class="fab fa-binance" style="color:#f2a900; font-size:30px;"></i>
                         <div class="p-label">Binance ID</div>
                         <div class="p-sub">Direct Transfer</div>
+                        <div class="p-check"><i class="fas fa-check"></i></div>
+                    </div>
+                    <div class="payment-option" id="optionCreditCard" onclick="selectPayment('creditCard')" style="border-radius:var(--radius-md); opacity:0.6; cursor:not-allowed;">
+                        <i class="fas fa-credit-card" style="color:var(--text-secondary); font-size:30px;"></i>
+                        <div class="p-label">Credit Card</div>
+                        <div class="p-sub">Coming Soon</div>
                         <div class="p-check"><i class="fas fa-check"></i></div>
                     </div>
                 </div>
@@ -2883,33 +2896,38 @@
                     </div>
                 </div>
 
-                <button class="payment-btn" onclick="continuePayment()"><i class="fas fa-arrow-right"></i> Continue</button>
+                <button class="payment-btn" onclick="continuePayment()" style="margin-top:12px;"><i class="fas fa-arrow-right"></i> Continue</button>
             </div>
 
             <!-- Step 2 (like Cart style) -->
             <div id="paymentStep2" style="display:none;">
-                <div id="paymentProductsList" style="margin-bottom:8px;"></div>
-                <div style="display:flex; justify-content:space-between; margin:4px 0; font-size:14px; font-weight:500;">
-                    <span style="color:var(--text-secondary);">Subtotal</span>
-                    <span id="step2Subtotal">$0.00</span>
-                </div>
-                <div style="display:flex; justify-content:space-between; margin:4px 0; font-size:18px; font-weight:800;">
-                    <span>Total</span>
-                    <span id="step2Total">$0.00</span>
+                <!-- Product list -->
+                <div id="paymentProductsList" style="margin-bottom:6px;"></div>
+                
+                <!-- Subtotal & Total -->
+                <div style="background:var(--bg-secondary); border-radius:var(--radius-md); padding:12px 14px; border:1px solid var(--border); margin:6px 0 12px;">
+                    <div style="display:flex; justify-content:space-between; padding:2px 0; font-size:14px; font-weight:500;">
+                        <span style="color:var(--text-secondary); opacity:0.6;">Subtotal</span>
+                        <span id="step2Subtotal">$0.00</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; padding:4px 0; font-size:20px; font-weight:800; border-top:1px solid var(--border); margin-top:2px; padding-top:6px;">
+                        <span>Total</span>
+                        <span id="step2Total" style="color:var(--primary);">$0.00</span>
+                    </div>
                 </div>
 
                 <!-- RP and Promo (like cart) -->
-                <div style="background:var(--bg);border-radius:10px;padding:12px;border:1px solid var(--border);margin:8px 0;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:13px;">
-                        <span style="color:var(--text-secondary);opacity:0.5;display:flex;align-items:center;gap:6px;"><i class="fas fa-star" style="color:var(--vip-color);"></i> Loyalty Points (RP)</span>
-                        <span style="color:var(--text);font-weight:600;">${userProfile.rp || 0} RP (≈ $${((userProfile.rp || 0) * RP_TO_DOLLAR).toFixed(2)})</span>
+                <div style="background:var(--bg-secondary);border-radius:var(--radius-md);padding:10px 12px;border:1px solid var(--border);margin:6px 0;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
+                        <span style="color:var(--text-secondary);opacity:0.5;display:flex;align-items:center;gap:5px;"><i class="fas fa-star" style="color:var(--vip-color);"></i> Loyalty Points (RP)</span>
+                        <span style="color:var(--text);font-weight:600;" id="step2RpDisplay">0 RP</span>
                     </div>
-                    <button class="rp-btn ${userProfile.useRpForCart?'active':''}" onclick="toggleRpInCart()" style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;transition:0.3s;margin-top:4px;">
+                    <button class="rp-btn ${userProfile.useRpForCart?'active':''}" onclick="toggleRpInCart()" style="width:100%;padding:5px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;transition:0.3s;margin-top:4px;">
                         <i class="fas ${userProfile.useRpForCart?'fa-check-circle':'fa-circle'}"></i>
                         ${userProfile.useRpForCart?'Use RP ✓':'Use RP'}
                     </button>
                 </div>
-                <div style="background:var(--bg);border-radius:10px;padding:12px;border:1px solid var(--border);margin:8px 0;">
+                <div style="background:var(--bg-secondary);border-radius:var(--radius-md);padding:10px 12px;border:1px solid var(--border);margin:6px 0;">
                     <div style="display:flex;gap:6px;align-items:center;">
                         <input id="checkoutPromoInput" placeholder="Enter promo code..." style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);font-size:13px;outline:none;font-weight:500;" type="text" />
                         <button onclick="applyCheckoutPromo()" style="padding:6px 14px;border:none;border-radius:6px;background:var(--primary);color:#fff;font-weight:600;cursor:pointer;font-size:12px;transition:0.3s;white-space:nowrap;"><i class="fas fa-ticket-alt"></i> Apply</button>
@@ -2917,115 +2935,140 @@
                     <div class="promo-status" id="checkoutPromoStatus" style="font-size:11px;color:var(--text-secondary);opacity:0.4;margin-top:4px;font-weight:500;">${activeDiscount>0?`✅ ${activeDiscount}% discount active`:'Enter a promo code for a discount'}</div>
                 </div>
 
-                <!-- Wallet Info (LTC/USDT) -->
-                <div id="paymentWalletInfo" style="display:none; background:var(--bg-secondary); border-radius:var(--radius-md); padding:12px; border:1px solid var(--border); margin-top:8px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; font-weight:600;">
-                        <span id="paymentMethodName">Litecoin</span>
-                        <span id="cryptoNetwork">LTC</span>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
-                        <span style="font-size:12px; opacity:0.5; font-weight:500;">Address</span>
-                        <span id="walletAddressDisplay" style="font-family:monospace; font-size:13px; direction:ltr; text-align:left; word-break:break-all; font-weight:600;">ltc1qy6ksn0g4hm6hlh93fwekgz8x74vr6hvdmh6zz8</span>
-                        <button onclick="copyWalletAddress()" style="background:none; border:none; color:var(--primary); cursor:pointer;"><i class="fas fa-copy"></i></button>
-                    </div>
-                    <div style="font-size:12px; color:var(--text-secondary); opacity:0.4; margin-top:4px; font-weight:500;" id="exchangeRate">⏳ Loading prices...</div>
-                    <div style="font-size:13px; font-weight:700; color:var(--vip-color); margin-top:2px;" id="cryptoAmount">0.0000 LTC</div>
-                </div>
-
-                <!-- Tx Hash Input (LTC/USDT) -->
-                <div id="paymentTxInput" style="display:none; margin-top:8px;">
-                    <label style="font-size:13px; font-weight:700;">📋 Transaction Hash</label>
-                    <input type="text" id="transactionHashInput" placeholder="Paste transaction hash" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--card-bg); color:var(--text); font-size:14px; outline:none; font-family:var(--font); font-weight:500;" />
-                </div>
-
-                <!-- Telegram Contact -->
-                <div id="paymentTelegramContact" style="display:none; margin-top:8px;">
-                    <button class="payment-btn" onclick="placeOrderTelegram()" style="background:#0088cc;"><i class="fab fa-telegram-plane"></i> Contact via Telegram</button>
-                </div>
-
-                <!-- ===== BINANCE ID SECTION ===== -->
-                <div id="paymentBinanceIdSection" class="binance-id-section" style="display:none; margin-top:8px;">
-                    <div class="binance-id-box">
-                        <div class="bi-header">
-                            <i class="fab fa-binance"></i>
-                            <span>Transfer via Binance ID</span>
+                <!-- ===== PAYMENT INSTRUCTIONS (like image) ===== -->
+                <div id="paymentInstructionsContainer" style="display:none; margin-top:6px;">
+                    <div style="background:var(--bg-secondary); border-radius:var(--radius-md); padding:14px 16px; border:1px solid var(--border);">
+                        <h3 style="font-size:16px; font-weight:800; color:var(--text); margin-bottom:6px;"><i class="fas fa-info-circle" style="color:var(--primary);"></i> Payment Instructions</h3>
+                        <p style="font-size:13px; color:var(--text-secondary); line-height:1.5; font-weight:500;">
+                            Please send the exact amount to the address below. After sending, copy the <strong>Transaction Hash / ID</strong> and paste it in the field provided.
+                        </p>
+                        <div style="background:var(--warning)20; border-left:3px solid var(--warning); padding:8px 12px; border-radius:6px; margin:8px 0; font-size:13px; color:var(--text-secondary);">
+                            <strong style="color:var(--warning);">Important:</strong> Your order will be processed manually upon verification of the transaction. This may take up to <strong>24-48 hours</strong>.
                         </div>
-                        <div class="bi-content">
-                            <div class="bi-row">
-                                <span class="bi-label">📤 Transfer to:</span>
-                                <span class="bi-value" id="binanceIdDisplay">748838383</span>
-                                <button onclick="copyBinanceId()" class="bi-copy-btn"><i class="fas fa-copy"></i></button>
-                            </div>
-                            <div class="bi-row">
-                                <span class="bi-label">💰 Amount:</span>
-                                <span class="bi-value" id="binanceAmountDisplay">$0.00</span>
-                            </div>
-                            <div class="bi-row">
-                                <span class="bi-label">📝 Order ID:</span>
-                                <span class="bi-value" id="binanceOrderDisplay">#------</span>
-                            </div>
-                            <div class="bi-divider"></div>
-                            <div class="bi-instructions">
-                                <p><i class="fas fa-info-circle" style="color:#f2a900;"></i> Payment Instructions:</p>
-                                <ol>
-                                    <li>Open the Binance app</li>
-                                    <li>Go to <strong>Transfer</strong></li>
-                                    <li>Select <strong>Binance ID</strong></li>
-                                    <li>Paste the ID: <strong id="binanceIdInline">748838383</strong></li>
-                                    <li>Enter the amount: <strong id="binanceAmountInline">$0.00</strong></li>
-                                    <li>Send the payment</li>
-                                    <li>Copy the <strong>Transaction ID</strong></li>
-                                    <li>Paste it in the field below to confirm</li>
-                                </ol>
-                            </div>
+                        <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:600; color:var(--danger); background:var(--danger)15; padding:6px 12px; border-radius:6px; margin-bottom:8px;">
+                            <span><i class="fas fa-clock"></i> Payment deadline:</span>
+                            <span><strong>30 minutes</strong> from order creation</span>
+                        </div>
+                    </div>
+                
+                    <!-- Wallet Info (LTC/USDT) -->
+                    <div id="paymentWalletInfo" style="display:none; background:var(--bg-secondary); border-radius:var(--radius-md); padding:14px 16px; border:1px solid var(--border); margin-top:8px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; font-weight:700; font-size:15px;">
+                            <span id="paymentMethodName">Litecoin</span>
+                            <span id="cryptoNetwork" style="background:var(--bg); padding:2px 12px; border-radius:20px; font-size:12px; font-weight:600; border:1px solid var(--border);">LTC</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; background:var(--bg); padding:6px 10px; border-radius:8px; border:1px solid var(--border);">
+                            <span style="font-size:12px; opacity:0.5; font-weight:500;">Address</span>
+                            <span id="walletAddressDisplay" style="font-family:monospace; font-size:13px; direction:ltr; text-align:left; word-break:break-all; font-weight:600; flex:1; margin:0 8px;">ltc1qy6ksn0g4hm6hlh93fwekgz8x74vr6hvdmh6zz8</span>
+                            <button onclick="copyWalletAddress()" style="background:var(--primary); border:none; color:#fff; padding:4px 10px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:600;"><i class="fas fa-copy"></i> Copy</button>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; flex-wrap:wrap; gap:4px;">
+                            <span style="font-size:12px; color:var(--text-secondary); opacity:0.5; font-weight:500;" id="exchangeRate">⏳ Loading prices...</span>
+                            <span style="font-size:16px; font-weight:800; color:var(--vip-color);" id="cryptoAmount">0.0000 LTC</span>
                         </div>
                     </div>
 
-                    <div class="binance-verification">
-                        <div class="bv-header">
-                            <i class="fas fa-check-circle"></i>
-                            <span>Payment Confirmation</span>
+                    <!-- Tx Hash Input (LTC/USDT) -->
+                    <div id="paymentTxInput" style="display:none; margin-top:8px;">
+                        <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">📋 Transaction Hash</label>
+                        <input type="text" id="transactionHashInput" placeholder="Paste transaction hash" style="width:100%; padding:10px 14px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--card-bg); color:var(--text); font-size:14px; outline:none; font-family:var(--font); font-weight:500;" />
+                        <div style="font-size:11px; color:var(--text-secondary); opacity:0.3; margin-top:4px; font-weight:500;"><i class="fas fa-info-circle"></i> Copy the transaction hash from your wallet after sending</div>
+                    </div>
+
+                    <!-- Telegram Contact -->
+                    <div id="paymentTelegramContact" style="display:none; margin-top:8px;">
+                        <div style="background:var(--bg-secondary); border-radius:var(--radius-md); padding:14px 16px; border:1px solid var(--border); text-align:center;">
+                            <i class="fab fa-telegram-plane" style="font-size:40px; color:#0088cc; display:block; margin-bottom:6px;"></i>
+                            <p style="font-size:14px; font-weight:600; color:var(--text);">Contact via Telegram</p>
+                            <p style="font-size:13px; color:var(--text-secondary); font-weight:500;">Send us a message with your order details</p>
+                            <button class="payment-btn" onclick="placeOrderTelegram()" style="background:#0088cc; margin-top:8px;"><i class="fab fa-telegram-plane"></i> Contact via Telegram</button>
                         </div>
-                        <div class="bv-body">
-                            <div class="bv-field">
-                                <label for="txHashInput">📋 Transaction ID:</label>
-                                <div class="bv-input-group">
-                                    <input type="text" id="txHashInput" placeholder="Example: 0x7a8b9c... or 443016893778911232" onpaste="handleTxPaste(event)" style="font-weight:500;" />
-                                    <button onclick="verifyTransaction()" class="bv-verify-btn"><i class="fas fa-search"></i> Verify</button>
-                                </div>
-                                <div class="bv-hint"><i class="fas fa-lightbulb"></i> You can paste the Transaction ID from the Binance app</div>
+                    </div>
+
+                    <!-- ===== BINANCE ID SECTION ===== -->
+                    <div id="paymentBinanceIdSection" class="binance-id-section" style="display:none; margin-top:8px;">
+                        <div class="binance-id-box" style="background:var(--bg-secondary); border-radius:var(--radius-md); padding:14px 16px; border:1px solid var(--border);">
+                            <div class="bi-header" style="display:flex; align-items:center; gap:10px; font-size:16px; font-weight:800; margin-bottom:8px;">
+                                <i class="fab fa-binance" style="color:#f2a900; font-size:24px;"></i>
+                                <span>Transfer via Binance ID</span>
                             </div>
-
-                            <div class="bv-upload">
-                                <label>🖼️ Or upload a screenshot:</label>
-                                <div class="bv-drop-zone" id="dropZone" onclick="document.getElementById('screenshotInput').click()">
-                                    <i class="fas fa-cloud-upload-alt"></i>
-                                    <p>Drag image here or click to select</p>
-                                    <input type="file" id="screenshotInput" accept="image/*" onchange="handleScreenshot(event)" />
+                            <div class="bi-content" style="display:flex; flex-direction:column; gap:6px;">
+                                <div class="bi-row" style="display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:14px; font-weight:500; background:var(--bg); padding:6px 10px; border-radius:6px; border:1px solid var(--border);">
+                                    <span class="bi-label" style="color:var(--text-secondary); opacity:0.6; font-weight:600;">📤 Transfer to:</span>
+                                    <span class="bi-value" id="binanceIdDisplay" style="font-weight:700; font-family:monospace;">748838383</span>
+                                    <button onclick="copyBinanceId()" class="bi-copy-btn" style="background:var(--primary); border:none; color:#fff; padding:4px 12px; border-radius:6px; cursor:pointer; font-weight:600; font-size:12px;"><i class="fas fa-copy"></i> Copy</button>
                                 </div>
-                                <div id="screenshotPreview" style="display:none; margin-top:8px;">
-                                    <img id="screenshotImg" src="#" alt="Screenshot" style="max-width:100%; max-height:150px; border-radius:var(--radius-sm); border:1px solid var(--border);" />
-                                    <button onclick="removeScreenshot()" style="margin-top:4px; background:var(--danger); color:#fff; border:none; padding:4px 12px; border-radius:var(--radius-sm); cursor:pointer; font-size:12px; font-weight:700;"><i class="fas fa-times"></i> Remove</button>
+                                <div class="bi-row" style="display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:14px; font-weight:500; background:var(--bg); padding:6px 10px; border-radius:6px; border:1px solid var(--border);">
+                                    <span class="bi-label" style="color:var(--text-secondary); opacity:0.6; font-weight:600;">💰 Amount:</span>
+                                    <span class="bi-value" id="binanceAmountDisplay" style="font-weight:700; color:var(--primary);">$0.00</span>
+                                </div>
+                                <div class="bi-row" style="display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:14px; font-weight:500; background:var(--bg); padding:6px 10px; border-radius:6px; border:1px solid var(--border);">
+                                    <span class="bi-label" style="color:var(--text-secondary); opacity:0.6; font-weight:600;">📝 Order ID:</span>
+                                    <span class="bi-value" id="binanceOrderDisplay" style="font-weight:700; font-family:monospace;">#------</span>
+                                </div>
+                                <div class="bi-divider" style="height:1px; background:var(--border); margin:4px 0;"></div>
+                                <div class="bi-instructions" style="font-size:13px; color:var(--text-secondary); background:var(--bg); padding:12px 14px; border-radius:var(--radius-sm); border:1px solid var(--border); font-weight:500;">
+                                    <p style="font-weight:700; color:var(--text); margin-bottom:4px;"><i class="fas fa-info-circle" style="color:#f2a900;"></i> Payment Instructions:</p>
+                                    <ol style="margin:0; padding-left:20px; opacity:0.8;">
+                                        <li>Open the Binance app</li>
+                                        <li>Go to <strong>Transfer</strong></li>
+                                        <li>Select <strong>Binance ID</strong></li>
+                                        <li>Paste the ID: <strong id="binanceIdInline">748838383</strong></li>
+                                        <li>Enter the amount: <strong id="binanceAmountInline">$0.00</strong></li>
+                                        <li>Send the payment</li>
+                                        <li>Copy the <strong>Transaction ID</strong></li>
+                                        <li>Paste it in the field below to confirm</li>
+                                    </ol>
                                 </div>
                             </div>
+                        </div>
 
-                            <div id="verificationResult" class="bv-result" style="display:none;"></div>
+                        <div class="binance-verification" style="background:var(--bg-secondary); border-radius:var(--radius-md); padding:14px 16px; border:1px solid var(--border); margin-top:8px;">
+                            <div class="bv-header" style="display:flex; align-items:center; gap:8px; font-weight:700; margin-bottom:8px;">
+                                <i class="fas fa-check-circle" style="color:var(--success); font-size:18px;"></i>
+                                <span>Payment Confirmation</span>
+                            </div>
+                            <div class="bv-body">
+                                <div class="bv-field" style="margin-bottom:10px;">
+                                    <label for="txHashInput" style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">📋 Transaction ID:</label>
+                                    <div class="bv-input-group" style="display:flex; gap:6px;">
+                                        <input type="text" id="txHashInput" placeholder="Example: 0x7a8b9c... or 443016893778911232" onpaste="handleTxPaste(event)" style="flex:1; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--card-bg); color:var(--text); font-size:14px; outline:none; font-family:var(--font); font-weight:500;" />
+                                        <button onclick="verifyTransaction()" class="bv-verify-btn" style="padding:8px 16px; border:none; border-radius:var(--radius-sm); background:var(--primary); color:#fff; font-weight:700; cursor:pointer; white-space:nowrap;"><i class="fas fa-search"></i> Verify</button>
+                                    </div>
+                                    <div class="bv-hint" style="font-size:12px; color:var(--text-secondary); opacity:0.4; margin-top:4px; font-weight:500;"><i class="fas fa-lightbulb"></i> You can paste the Transaction ID from the Binance app</div>
+                                </div>
 
-                            <button onclick="submitManualPayment()" class="bv-submit-btn"><i class="fas fa-check-circle"></i> Confirm Payment</button>
+                                <div class="bv-upload" style="margin:10px 0;">
+                                    <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">🖼️ Or upload a screenshot:</label>
+                                    <div class="bv-drop-zone" id="dropZone" onclick="document.getElementById('screenshotInput').click()" style="border:2px dashed var(--border); border-radius:var(--radius-sm); padding:14px 12px; text-align:center; color:var(--text-secondary); cursor:pointer; transition:0.3s; background:var(--card-bg); font-weight:500;">
+                                        <i class="fas fa-cloud-upload-alt" style="font-size:28px; display:block; margin-bottom:4px;"></i>
+                                        <p style="margin:0; font-size:13px;">Drag image here or click to select</p>
+                                        <input type="file" id="screenshotInput" accept="image/*" onchange="handleScreenshot(event)" style="display:none;" />
+                                    </div>
+                                    <div id="screenshotPreview" style="display:none; margin-top:8px; flex-direction:column; align-items:center; gap:4px;">
+                                        <img id="screenshotImg" src="#" alt="Screenshot" style="max-width:100%; max-height:150px; border-radius:var(--radius-sm); border:1px solid var(--border);" />
+                                        <button onclick="removeScreenshot()" style="margin-top:4px; background:var(--danger); color:#fff; border:none; padding:4px 12px; border-radius:var(--radius-sm); cursor:pointer; font-size:12px; font-weight:700;"><i class="fas fa-times"></i> Remove</button>
+                                    </div>
+                                </div>
 
-                            <div class="bv-note">
-                                <i class="fas fa-clock"></i> Your request will be reviewed within 5-10 minutes
-                                <br>
-                                <span style="font-size:11px; opacity:0.4;">For inquiries: <a href="https://t.me/Mitalica69" target="_blank" style="color:var(--primary);">@Mitalica69</a></span>
+                                <div id="verificationResult" class="bv-result" style="display:none; margin:6px 0; padding:8px 12px; border-radius:var(--radius-sm); font-size:13px; font-weight:600; background:var(--bg); border:1px solid var(--border);"></div>
+
+                                <button onclick="submitManualPayment()" class="bv-submit-btn" style="width:100%; padding:12px; border:none; border-radius:var(--radius-sm); background:var(--primary); color:#fff; font-weight:800; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:0.3s;"><i class="fas fa-check-circle"></i> Confirm Payment</button>
+
+                                <div class="bv-note" style="font-size:12px; color:var(--text-secondary); opacity:0.4; margin-top:6px; text-align:center; font-weight:500;">
+                                    <i class="fas fa-clock"></i> Your request will be reviewed within 5-10 minutes
+                                    <br>
+                                    <span style="font-size:11px; opacity:0.4;">For inquiries: <a href="https://t.me/Mitalica69" target="_blank" style="color:var(--primary); text-decoration:none;">@Mitalica69</a></span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Main Confirm Button -->
-                <button class="payment-btn" id="mainConfirmBtn" style="display:none; margin-top:12px;"><i class="fas fa-check"></i> Confirm Payment</button>
+                <button class="payment-btn" id="mainConfirmBtn" style="display:none; margin-top:12px; padding:14px; font-size:17px;"><i class="fas fa-check"></i> Confirm Payment</button>
 
-                <button class="payment-btn" onclick="goToStep1()" style="background:transparent; color:var(--text-secondary); border:1px solid var(--border); margin-top:8px; font-weight:700;">Back</button>
+                <button class="payment-btn" onclick="goToStep1()" style="background:transparent; color:var(--text-secondary); border:1px solid var(--border); margin-top:8px; font-weight:600; padding:12px;"><i class="fas fa-arrow-left"></i> Back</button>
             </div>
         </div>
     </div>
