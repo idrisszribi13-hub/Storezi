@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZI Store - Advanced Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #0f172a; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        .stat-card { transition: all 0.3s ease; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(99, 102, 241, 0.15); }
+        .tab-btn.active { background: #4f46e5; color: white; }
+        .tab-btn:not(.active) { background: #1e293b; color: #94a3b8; }
+        .tab-btn:not(.active):hover { background: #334155; color: #e2e8f0; }
+        .achievement-badge { animation: pulse-glow 2s infinite; }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(251, 191, 36, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(251, 191, 36, 0.6); }
+        }
+        .loading-spinner {
+            border: 3px solid #1e293b;
+            border-top: 3px solid #4f46e5;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 16px 24px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+            max-width: 400px;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .toast-success { background: #22c55e; }
+        .toast-error { background: #ef4444; }
+        .toast-warning { background: #f59e0b; }
+        .toast-info { background: #3b82f6; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- Login Screen -->
+    <div id="loginScreen" class="bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-2xl w-full max-w-md">
+        <div class="text-center mb-6">
+            <h1 class="text-3xl font-bold text-indigo-400">ZI Store</h1>
+            <p class="text-slate-400 text-sm mt-1">Admin Control Panel</p>
+        </div>
+        <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-1">Email Address</label>
+                <input type="email" id="adminEmail" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-1">Password</label>
+                <input type="password" id="adminPassword" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+            </div>
+            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition duration-200">Login</button>
+            <p id="loginError" class="text-red-400 text-sm text-center mt-2"></p>
+        </form>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="dashboard" class="hidden w-full max-w-6xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col min-h-[90vh]">
+        
+        <!-- Top Navigation -->
+        <div class="bg-slate-950 p-4 border-b border-slate-800 flex flex-wrap justify-between items-center gap-3">
+            <div class="flex flex-wrap gap-2">
+                <button onclick="switchTab('dashboardTab')" id="btn-dashboardTab" class="tab-btn active px-4 py-2 rounded-xl text-sm font-semibold transition">Dashboard</button>
+                <button onclick="switchTab('usersTab')" id="btn-usersTab" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition">Users</button>
+                <button onclick="switchTab('analyticsTab')" id="btn-analyticsTab" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition">Analytics</button>
+                <button onclick="switchTab('scriptsTab')" id="btn-scriptsTab" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition">Scripts</button>
+                <button onclick="switchTab('settingsTab')" id="btn-settingsTab" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition">Settings</button>
+                <button onclick="switchTab('notificationsTab')" id="btn-notificationsTab" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition">Notifications</button>
+            </div>
+            <div class="flex gap-2">
+                <span id="adminEmailDisplay" class="text-slate-400 text-sm self-center hidden md:block"></span>
+                <button onclick="handleLogout()" class="bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white px-4 py-2 rounded-xl text-sm font-semibold transition">Logout</button>
+            </div>
+        </div>
+
+        <!-- Tab Contents -->
+        <div class="p-4 md:p-6 flex-1 overflow-y-auto scrollbar-hide">
+
+            <!-- ============================================================ -->
+            <!-- DASHBOARD TAB -->
+            <!-- ============================================================ -->
+            <div id="dashboardTab" class="tab-content space-y-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-indigo-400">Dashboard Overview</h2>
+                        <p class="text-slate-400 text-sm">Real-time system status and metrics</p>
+                    </div>
+                    <button onclick="refreshDashboard()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition">Refresh All</button>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="stat-card bg-slate-950 p-5 rounded-2xl border border-slate-800">
+                        <p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Total Users</p>
+                        <p id="dashTotalUsers" class="text-2xl font-bold text-white mt-1">0</p>
+                    </div>
+                    <div class="stat-card bg-slate-950 p-5 rounded-2xl border border-slate-800">
+                        <p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Script Runs</p>
+                        <p id="dashTotalRuns" class="text-2xl font-bold text-emerald-400 mt-1">0</p>
+                    </div>
+                    <div class="stat-card bg-slate-950 p-5 rounded-2xl border border-slate-800">
+                        <p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Active Today</p>
+                        <p id="dashActiveToday" class="text-2xl font-bold text-amber-400 mt-1">0</p>
+                    </div>
+                    <div class="stat-card bg-slate-950 p-5 rounded-2xl border border-slate-800">
+                        <p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Total Points</p>
+                        <p id="dashTotalPoints" class="text-2xl font-bold text-purple-400 mt-1">0</p>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-slate-950 p-5 rounded-2xl border border-slate-800">
+                        <h3 class="text-sm font-semibold text-slate-300 mb-3">Quick Actions</h3>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="switchTab('usersTab')" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-2 rounded-lg text-sm transition">Ban User</button>
+                            <button onclick="switchTab('scriptsTab')" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-2 rounded-lg text-sm transition">Add Script</button>
+                            <button onclick="switchTab('settingsTab')" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-2 rounded-lg text-sm transition">Maintenance</button>
+                            <button onclick="switchTab('notificationsTab')" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-2 rounded-lg text-sm transition">Send Notification</button>
+                        </div>
+                    </div>
+                    <div class="bg-slate-950 p-5 rounded-2xl border border-slate-800">
+                        <h3 class="text-sm font-semibold text-slate-300 mb-3">System Status</h3>
+                        <div id="systemStatus">
+                            <p class="text-sm text-emerald-400">✅ All systems operational</p>
+                            <p class="text-xs text-slate-500 mt-1">Last check: <span id="lastCheckTime">Just now</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden">
+                    <div class="p-4 border-b border-slate-800 font-bold text-white flex justify-between items-center">
+                        <span>Recent Activity</span>
+                        <span class="text-xs text-slate-400 font-normal">Last 10 events</span>
+                    </div>
+                    <div id="recentActivity" class="divide-y divide-slate-800 max-h-64 overflow-y-auto">
+                        <p class="p-4 text-center text-slate-500 text-sm">Loading activity...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- USERS TAB (Ban & Device Reset) -->
+            <!-- ============================================================ -->
+            <div id="usersTab" class="tab-content hidden space-y-6">
+                <h2 class="text-2xl font-bold text-indigo-400">User Management</h2>
+                <p class="text-slate-400 text-sm">Ban/Unban users, reset devices, and manage user status</p>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Left: Ban Controls -->
+                    <div class="bg-slate-950 p-6 rounded-2xl border border-slate-800 space-y-4">
+                        <h3 class="text-lg font-semibold text-white">Ban / Unban User</h3>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-1">User Email</label>
+                            <input type="email" id="userEmail" placeholder="user@example.com" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-1">Ban Reason</label>
+                            <input type="text" id="banReason" placeholder="Violation of terms" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-1">Ban Duration (Hours)</label>
+                            <input type="number" id="banDuration" value="24" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div class="flex gap-4 pt-2">
+                            <button onclick="banUser()" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-xl transition">Ban User</button>
+                            <button onclick="unbanUser()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-xl transition">Unban User</button>
+                        </div>
+                    </div>
+
+                    <!-- Right: Device Reset & Info -->
+                    <div class="bg-slate-950 p-6 rounded-2xl border border-slate-800 space-y-4">
+                        <h3 class="text-lg font-semibold text-white">Device Management</h3>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-1">User Email</label>
+                            <input type="email" id="resetEmail" placeholder="user@example.com" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <button onclick="resetDevice()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold py-3 rounded-xl transition">Reset Device ID</button>
+                        <button onclick="viewUserInfo()" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-3 rounded-xl transition">View User Info</button>
+                    </div>
+                </div>
+
+                <div id="userResultMessage" class="text-sm font-medium"></div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- ANALYTICS TAB -->
+            <!-- ============================================================ -->
+            <div id="analyticsTab" class="tab-content hidden space-y-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-indigo-400">Analytics Hub</h2>
+                        <p class="text-slate-400 text-sm">Real-time script execution and user metrics</p>
+                    </div>
+                    <button onclick="fetchAnalytics()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-semibold transition">Refresh Data</button>
+                </div>
+
+                <!-- Stats -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-slate-950 p-5 rounded-2xl border border-slate-800">
+                        <p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Total Launches</p>
+                        <p id="totalLaunches" class="text-2xl font-bold text-white mt-1">0</p>
+                    </div>
+                    <div class="bg-slate-950 p-5 rounded-2xl border border-slate-800">
+                        <p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Unique Users</p>
+                        <p id="uniqueUsers" class="text-2xl font-bold text-emerald-400 mt-1">0</p>
+                    </div>
+                    <div class="bg-slate-950 p-5 rounded-2xl border border-slate-800">
+                        <p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Scripts Used</p>
+                        <p id="uniqueScripts" class="text-2xl font-bold text-amber-400 mt-1">0</p>
+                    </div>
+                    <div class="bg-slate-950 p-5 rounded-2xl border border-slate-800">
+                        <p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Errors</p>
+                        <p id="totalErrors" class="text-2xl font-bold text-red-400 mt-1">0</p>
+                    </div>
+                </div>
+
+                <!-- Top Scripts -->
+                <div class="bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden">
+                    <div class="p-4 border-b border-slate-800 font-bold text-white">Top Scripts</div>
+                    <div id="topScripts" class="p-4 space-y-2">
+                        <p class="text-slate-500 text-sm">Loading...</p>
+                    </div>
+                </div>
+
+                <!-- Recent Logs -->
+                <div class="bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden">
+                    <div class="p-4 border-b border-slate-800 font-bold text-white flex justify-between items-center">
+                        <span>Recent Activity Logs</span>
+                        <span class="text-xs text-slate-400 font-normal">Last 50 entries</span>
+                    </div>
+                    <div class="overflow-x-auto max-h-80 overflow-y-auto">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead class="bg-slate-900/50 text-slate-400 sticky top-0">
+                                <tr>
+                                    <th class="p-3 font-semibold">#</th>
+                                    <th class="p-3 font-semibold">Email</th>
+                                    <th class="p-3 font-semibold">Action</th>
+                                    <th class="p-3 font-semibold">Script</th>
+                                    <th class="p-3 font-semibold">Duration</th>
+                                    <th class="p-3 font-semibold">Time</th>
+                                </tr>
+                            </thead>
+                            <tbody id="analyticsTableBody" class="divide-y divide-slate-800">
+                                <tr><td colspan="6" class="p-6 text-center text-slate-500">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- SCRIPTS TAB -->
+            <!-- ============================================================ -->
+            <div id="scriptsTab" class="tab-content hidden space-y-6 max-w-3xl">
+                <h2 class="text-2xl font-bold text-indigo-400">Script Manager</h2>
+                <p class="text-slate-400 text-sm">Add, edit, or delete scripts instantly</p>
+                
+                <div class="bg-slate-950 p-6 rounded-2xl border border-slate-800 space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Script Name (lowercase)</label>
+                        <input type="text" id="scriptName" placeholder="animal, pubg, ff" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Version</label>
+                        <input type="text" id="scriptVersion" value="1.0" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Description</label>
+                        <input type="text" id="scriptDescription" placeholder="Brief description" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Lua Script Code</label>
+                        <textarea id="scriptCode" rows="10" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 font-mono text-sm text-green-400 focus:outline-none focus:border-indigo-500" placeholder="-- Paste your Lua code here..."></textarea>
+                    </div>
+                    <div class="flex gap-4">
+                        <button onclick="saveScript()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition">Save Script</button>
+                        <button onclick="deleteScript()" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-xl transition">Delete Script</button>
+                    </div>
+                    <div id="scriptStatusMsg" class="text-center text-sm font-medium"></div>
+                </div>
+
+                <!-- List Scripts -->
+                <div class="bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden">
+                    <div class="p-4 border-b border-slate-800 font-bold text-white">Existing Scripts</div>
+                    <div id="scriptsList" class="divide-y divide-slate-800">
+                        <p class="p-4 text-center text-slate-500 text-sm">Loading scripts...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- SETTINGS TAB -->
+            <!-- ============================================================ -->
+            <div id="settingsTab" class="tab-content hidden space-y-6 max-w-2xl">
+                <h2 class="text-2xl font-bold text-indigo-400">System Settings</h2>
+                <p class="text-slate-400 text-sm">Manage maintenance mode, app version, points, and auto-ban settings</p>
+
+                <div class="bg-slate-950 p-6 rounded-2xl border border-slate-800 space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Admin Secret Key</label>
+                        <input type="password" id="adminSecret" placeholder="Enter admin secret" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+
+                    <div class="flex justify-between items-center bg-slate-900 p-4 rounded-xl border border-slate-800">
+                        <span class="text-sm font-medium text-slate-300">Maintenance Mode</span>
+                        <label class="relative inline-block w-12 h-6 cursor-pointer">
+                            <input type="checkbox" id="maintenanceToggle" class="opacity-0 w-0 h-0 peer">
+                            <span class="absolute inset-0 bg-slate-700 rounded-full transition duration-300 peer-checked:bg-red-600"></span>
+                            <span class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition duration-300 peer-checked:translate-x-6"></span>
+                        </label>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Maintenance Message</label>
+                        <textarea id="maintenanceMessage" rows="3" placeholder="Maintenance announcement..." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Maintenance Until</label>
+                        <input type="datetime-local" id="maintenanceUntil" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+
+                    <hr class="border-slate-800">
+
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">App Version</label>
+                        <input type="text" id="appVersion" value="2.4" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Update URL</label>
+                        <input type="url" id="updateUrl" value="https://zi-store.online/download.html" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div class="flex justify-between items-center bg-slate-900 p-4 rounded-xl border border-slate-800">
+                        <span class="text-sm font-medium text-slate-300">Force Update</span>
+                        <label class="relative inline-block w-12 h-6 cursor-pointer">
+                            <input type="checkbox" id="forceUpdateToggle" class="opacity-0 w-0 h-0 peer">
+                            <span class="absolute inset-0 bg-slate-700 rounded-full transition duration-300 peer-checked:bg-amber-600"></span>
+                            <span class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition duration-300 peer-checked:translate-x-6"></span>
+                        </label>
+                    </div>
+
+                    <hr class="border-slate-800">
+
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Points Per Script Run</label>
+                        <input type="number" id="pointsPerRun" value="5" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Auto-Ban Threshold (errors in 5 min)</label>
+                        <input type="number" id="autoBanThreshold" value="10" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Ban Duration (hours)</label>
+                        <input type="number" id="banDurationHours" value="24" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+
+                    <div class="flex gap-4 pt-2">
+                        <button onclick="saveSettings()" class="flex-1 bg-sky-600 hover:bg-sky-700 text-white font-semibold py-3 rounded-xl transition">Save Settings</button>
+                        <button onclick="resetSettings()" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-xl transition">Reset Defaults</button>
+                    </div>
+                    <div id="settingsStatus" class="text-center text-sm font-medium"></div>
+                </div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- NOTIFICATIONS TAB -->
+            <!-- ============================================================ -->
+            <div id="notificationsTab" class="tab-content hidden space-y-6 max-w-2xl">
+                <h2 class="text-2xl font-bold text-indigo-400">Notifications</h2>
+                <p class="text-slate-400 text-sm">Send announcements and notifications to users</p>
+
+                <div class="bg-slate-950 p-6 rounded-2xl border border-slate-800 space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Notification Type</label>
+                        <select id="notifType" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500">
+                            <option value="announcement">Announcement</option>
+                            <option value="info">Info</option>
+                            <option value="warning">Warning</option>
+                            <option value="promo">Promo</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Message</label>
+                        <textarea id="notifMessage" rows="4" placeholder="Your notification message..." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Expires (optional)</label>
+                        <input type="datetime-local" id="notifExpires" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <button onclick="sendNotification()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 rounded-xl transition">Send Notification</button>
+                    <div id="notifStatus" class="text-center text-sm font-medium"></div>
+                </div>
+
+                <!-- Existing Notifications -->
+                <div class="bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden">
+                    <div class="p-4 border-b border-slate-800 font-bold text-white">Recent Notifications</div>
+                    <div id="notificationsList" class="divide-y divide-slate-800 max-h-60 overflow-y-auto">
+                        <p class="p-4 text-center text-slate-500 text-sm">Loading notifications...</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
+
+    <script>
+        const supabaseUrl = "https://kvsyzgavfxnwqmtsginv.supabase.co";
+        const supabaseAnonKey = "sb_publishable_1uSIqgNONAV53GjOoBoZUw_niAGJXO6";
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+        const ADMIN_SECRET = "ZiStoreAdminSecret2026";
+
+        // ============================================================
+        // Toast System
+        // ============================================================
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                toast.style.transition = 'all 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+        }
+
+        // ============================================================
+        // Tab Management
+        // ============================================================
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.remove('hidden');
+            document.getElementById('btn-' + tabId).classList.add('active');
+
+            if (tabId === 'analyticsTab') fetchAnalytics();
+            if (tabId === 'dashboardTab') refreshDashboard();
+            if (tabId === 'scriptsTab') listScripts();
+            if (tabId === 'notificationsTab') listNotifications();
+        }
+
+        // ============================================================
+        // Auth
+        // ============================================================
+        async function checkSession() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) {
+                document.getElementById('adminEmailDisplay').textContent = session.user.email;
+                showDashboard();
+                refreshDashboard();
+            } else {
+                showLogin();
+            }
+        }
+
+        function showLogin() {
+            document.getElementById("loginScreen").classList.remove("hidden");
+            document.getElementById("dashboard").classList.add("hidden");
+        }
+
+        function showDashboard() {
+            document.getElementById("loginScreen").classList.add("hidden");
+            document.getElementById("dashboard").classList.remove("hidden");
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById("adminEmail").value.trim();
+            const password = document.getElementById("adminPassword").value.trim();
+            const errP = document.getElementById("loginError");
+            errP.innerText = "Verifying...";
+
+            const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if (error) {
+                errP.innerText = "Invalid email or password!";
+            } else {
+                showDashboard();
+                document.getElementById('adminEmailDisplay').textContent = email;
+                refreshDashboard();
+            }
+        }
+
+        async function handleLogout() {
+            await supabaseClient.auth.signOut();
+            showLogin();
+            showToast("Logged out successfully", "info");
+        }
+
+        // ============================================================
+        // Dashboard
+        // ============================================================
+        async function refreshDashboard() {
+            try {
+                const { data: analytics } = await supabaseClient
+                    .from('analytics')
+                    .select('*')
+                    .order('timestamp', { ascending: false })
+                    .limit(10);
+
+                const { data: stats } = await supabaseClient
+                    .from('user_stats')
+                    .select('*');
+
+                const emails = new Set(analytics?.map(a => a.email) || []);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const todayActivity = analytics?.filter(a => new Date(a.timestamp) >= today) || [];
+
+                document.getElementById('dashTotalUsers').textContent = stats?.length || 0;
+                document.getElementById('dashTotalRuns').textContent = analytics?.filter(a => a.action === 'run_script').length || 0;
+                document.getElementById('dashActiveToday').textContent = new Set(todayActivity.map(a => a.email)).size || 0;
+                document.getElementById('dashTotalPoints').textContent = stats?.reduce((sum, s) => sum + (s.points || 0), 0) || 0;
+                document.getElementById('lastCheckTime').textContent = new Date().toLocaleTimeString();
+
+                // Recent Activity
+                const activityDiv = document.getElementById('recentActivity');
+                if (!analytics || analytics.length === 0) {
+                    activityDiv.innerHTML = '<p class="p-4 text-center text-slate-500 text-sm">No recent activity</p>';
+                } else {
+                    activityDiv.innerHTML = analytics.slice(0, 10).map(a => `
+                        <div class="flex justify-between items-center p-3 hover:bg-slate-900">
+                            <span class="text-sm text-slate-300">${a.email}</span>
+                            <span class="text-xs text-slate-500">${a.action || 'unknown'}</span>
+                            <span class="text-xs text-slate-500">${a.script_name || '-'}</span>
+                            <span class="text-xs text-slate-600">${new Date(a.timestamp).toLocaleTimeString()}</span>
+                        </div>
+                    `).join('');
+                }
+            } catch (e) {
+                console.error('Dashboard error:', e);
+            }
+        }
+
+        // ============================================================
+        // User Management (Ban/Unban/Reset)
+        // ============================================================
+        async function banUser() {
+            const email = document.getElementById('userEmail').value.trim();
+            const reason = document.getElementById('banReason').value.trim() || 'Violation of terms';
+            const duration = parseInt(document.getElementById('banDuration').value) || 24;
+            const msgDiv = document.getElementById('userResultMessage');
+
+            if (!email) { showToast('Please enter user email', 'error'); return; }
+
+            msgDiv.className = 'text-sm font-medium text-indigo-400 mt-4';
+            msgDiv.textContent = 'Processing...';
+
+            try {
+                const until = new Date(Date.now() + duration * 3600000).toISOString();
+                const { error } = await supabaseClient
+                    .from('bans')
+                    .insert({
+                        email: email,
+                        reason: reason,
+                        until: until,
+                        active: true,
+                        banned_by: 'admin',
+                        created_at: new Date().toISOString()
+                    });
+
+                if (error) throw error;
+                msgDiv.className = 'text-sm font-medium text-emerald-400 mt-4';
+                msgDiv.textContent = `✅ User ${email} banned successfully for ${duration} hours`;
+                showToast(`User ${email} banned`, 'success');
+            } catch (error) {
+                msgDiv.className = 'text-sm font-medium text-red-400 mt-4';
+                msgDiv.textContent = 'Error: ' + error.message;
+                showToast('Ban failed: ' + error.message, 'error');
+            }
+        }
+
+        async function unbanUser() {
+            const email = document.getElementById('userEmail').value.trim();
+            const msgDiv = document.getElementById('userResultMessage');
+
+            if (!email) { showToast('Please enter user email', 'error'); return; }
+
+            msgDiv.className = 'text-sm font-medium text-indigo-400 mt-4';
+            msgDiv.textContent = 'Processing...';
+
+            try {
+                const { error } = await supabaseClient
+                    .from('bans')
+                    .update({ active: false })
+                    .eq('email', email);
+
+                if (error) throw error;
+                msgDiv.className = 'text-sm font-medium text-emerald-400 mt-4';
+                msgDiv.textContent = `✅ User ${email} unbanned successfully`;
+                showToast(`User ${email} unbanned`, 'success');
+            } catch (error) {
+                msgDiv.className = 'text-sm font-medium text-red-400 mt-4';
+                msgDiv.textContent = 'Error: ' + error.message;
+                showToast('Unban failed: ' + error.message, 'error');
+            }
+        }
+
+        async function resetDevice() {
+            const email = document.getElementById('resetEmail').value.trim();
+            const msgDiv = document.getElementById('userResultMessage');
+
+            if (!email) { showToast('Please enter user email', 'error'); return; }
+
+            msgDiv.className = 'text-sm font-medium text-indigo-400 mt-4';
+            msgDiv.textContent = 'Resetting device...';
+
+            try {
+                const { error } = await supabaseClient
+                    .from('licenses')
+                    .update({ device_id: null })
+                    .ilike('user_email', email);
+
+                if (error) throw error;
+
+                // Also update user_stats
+                await supabaseClient
+                    .from('user_stats')
+                    .update({ device_id: null })
+                    .eq('email', email);
+
+                msgDiv.className = 'text-sm font-medium text-emerald-400 mt-4';
+                msgDiv.textContent = `✅ Device reset for ${email}`;
+                showToast(`Device reset for ${email}`, 'success');
+            } catch (error) {
+                msgDiv.className = 'text-sm font-medium text-red-400 mt-4';
+                msgDiv.textContent = 'Error: ' + error.message;
+                showToast('Reset failed: ' + error.message, 'error');
+            }
+        }
+
+        async function viewUserInfo() {
+            const email = document.getElementById('resetEmail').value.trim();
+            if (!email) { showToast('Please enter user email', 'error'); return; }
+
+            try {
+                const { data: licenses } = await supabaseClient
+                    .from('licenses')
+                    .select('*')
+                    .ilike('user_email', email);
+
+                const { data: stats } = await supabaseClient
+                    .from('user_stats')
+                    .select('*')
+                    .eq('email', email);
+
+                const { data: bans } = await supabaseClient
+                    .from('bans')
+                    .select('*')
+                    .eq('email', email)
+                    .eq('active', true);
+
+                let info = `📊 User: ${email}\n\n`;
+                info += `📜 Licenses: ${licenses?.length || 0}\n`;
+                info += `📈 Script Runs: ${stats?.[0]?.total_script_runs || 0}\n`;
+                info += `⭐ Points: ${stats?.[0]?.points || 0}\n`;
+                info += `🚫 Banned: ${bans?.length > 0 ? 'YES' : 'NO'}\n`;
+                if (bans?.length > 0) {
+                    info += `  Reason: ${bans[0].reason}\n`;
+                    info += `  Until: ${new Date(bans[0].until).toLocaleDateString()}`;
+                }
+
+                alert(info);
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        // ============================================================
+        // Analytics
+        // ============================================================
+        async function fetchAnalytics() {
+            const tableBody = document.getElementById("analyticsTableBody");
+            tableBody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-indigo-400">Loading...</td></tr>`;
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('analytics')
+                    .select('*')
+                    .order('timestamp', { ascending: false })
+                    .limit(50);
+
+                if (error) throw error;
+
+                document.getElementById("totalLaunches").textContent = data?.length || 0;
+                document.getElementById("uniqueUsers").textContent = new Set(data?.map(a => a.email) || []).size || 0;
+                document.getElementById("uniqueScripts").textContent = new Set(data?.map(a => a.script_name) || []).size || 0;
+                document.getElementById("totalErrors").textContent = data?.filter(a => a.action === 'error').length || 0;
+
+                // Top Scripts
+                const scriptCounts = {};
+                data?.forEach(a => {
+                    if (a.script_name) {
+                        scriptCounts[a.script_name] = (scriptCounts[a.script_name] || 0) + 1;
+                    }
+                });
+                const sorted = Object.entries(scriptCounts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+                document.getElementById('topScripts').innerHTML = sorted.map(([name, count]) => `
+                    <div class="flex justify-between items-center p-2 hover:bg-slate-900 rounded-lg">
+                        <span class="text-sm text-white">${name}</span>
+                        <span class="text-sm text-emerald-400">${count} runs</span>
+                    </div>
+                `).join('') || '<p class="text-slate-500 text-sm">No scripts run yet</p>';
+
+                // Table
+                if (!data || data.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500">No records found</td></tr>`;
+                    return;
+                }
+
+                tableBody.innerHTML = data.map((row, index) => `
+                    <tr class="hover:bg-slate-900 transition">
+                        <td class="p-3 text-slate-500">${index + 1}</td>
+                        <td class="p-3 font-medium text-indigo-300">${row.email || 'Unknown'}</td>
+                        <td class="p-3"><span class="px-2 py-1 rounded-full text-xs ${row.action === 'error' ? 'bg-red-600/20 text-red-400' : row.action === 'run_script' ? 'bg-emerald-600/20 text-emerald-400' : 'bg-slate-700 text-slate-300'}">${row.action || 'unknown'}</span></td>
+                        <td class="p-3 text-emerald-400">${row.script_name || '-'}</td>
+                        <td class="p-3 text-slate-400">${row.duration || 0}s</td>
+                        <td class="p-3 text-slate-500 text-xs">${new Date(row.timestamp).toLocaleString()}</td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                tableBody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-400">Error: ${error.message}</td></tr>`;
+            }
+        }
+
+        // ============================================================
+        // Script Management
+        // ============================================================
+        async function listScripts() {
+            const container = document.getElementById('scriptsList');
+            container.innerHTML = '<p class="p-4 text-center text-slate-500 text-sm">Loading...</p>';
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('scripts')
+                    .select('script_name, version, description, updated_at')
+                    .order('script_name');
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    container.innerHTML = '<p class="p-4 text-center text-slate-500 text-sm">No scripts found</p>';
+                    return;
+                }
+
+                container.innerHTML = data.map(s => `
+                    <div class="flex justify-between items-center p-3 hover:bg-slate-900">
+                        <div>
+                            <span class="text-white font-medium">${s.script_name}</span>
+                            <span class="text-xs text-slate-500 ml-2">v${s.version || '1.0'}</span>
+                            <p class="text-xs text-slate-600">${s.description || ''}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="loadScript('${s.script_name}')" class="text-indigo-400 hover:text-indigo-300 text-xs">Edit</button>
+                            <button onclick="deleteScriptByName('${s.script_name}')" class="text-red-400 hover:text-red-300 text-xs">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                container.innerHTML = `<p class="p-4 text-center text-red-400 text-sm">Error: ${error.message}</p>`;
+            }
+        }
+
+        async function loadScript(name) {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('scripts')
+                    .select('*')
+                    .ilike('script_name', name)
+                    .single();
+
+                if (error) throw error;
+
+                document.getElementById('scriptName').value = data.script_name;
+                document.getElementById('scriptCode').value = data.script_code || '';
+                document.getElementById('scriptVersion').value = data.version || '1.0';
+                document.getElementById('scriptDescription').value = data.description || '';
+                showToast('Script loaded for editing', 'info');
+            } catch (error) {
+                showToast('Error loading script: ' + error.message, 'error');
+            }
+        }
+
+        async function saveScript() {
+            const name = document.getElementById('scriptName').value.trim().toLowerCase();
+            const code = document.getElementById('scriptCode').value.trim();
+            const version = document.getElementById('scriptVersion').value.trim() || '1.0';
+            const description = document.getElementById('scriptDescription').value.trim();
+            const statusMsg = document.getElementById('scriptStatusMsg');
+
+            if (!name || !code) {
+                showToast('Please enter script name and code', 'error');
+                return;
+            }
+
+            statusMsg.textContent = 'Saving...';
+            statusMsg.className = 'mt-4 text-center text-sm text-yellow-400';
+
+            try {
+                const { error } = await supabaseClient
+                    .from('scripts')
+                    .upsert({
+                        script_name: name,
+                        script_code: code,
+                        version: version,
+                        description: description,
+                        updated_at: new Date().toISOString()
+                    }, { onConflict: 'script_name' });
+
+                if (error) throw error;
+
+                statusMsg.className = 'mt-4 text-center text-sm text-green-400';
+                statusMsg.textContent = '✅ Script saved successfully!';
+                showToast(`Script "${name}" saved`, 'success');
+                listScripts();
+            } catch (error) {
+                statusMsg.className = 'mt-4 text-center text-sm text-red-400';
+                statusMsg.textContent = 'Error: ' + error.message;
+                showToast('Save failed: ' + error.message, 'error');
+            }
+        }
+
+        async function deleteScript() {
+            const name = document.getElementById('scriptName').value.trim().toLowerCase();
+            if (!name) { showToast('Please enter script name', 'error'); return; }
+            if (!confirm(`Delete script "${name}"?`)) return;
+
+            await deleteScriptByName(name);
+        }
+
+        async function deleteScriptByName(name) {
+            if (!confirm(`Delete script "${name}"?`)) return;
+
+            try {
+                const { error } = await supabaseClient
+                    .from('scripts')
+                    .delete()
+                    .ilike('script_name', name);
+
+                if (error) throw error;
+
+                showToast(`Script "${name}" deleted`, 'success');
+                listScripts();
+                document.getElementById('scriptName').value = '';
+                document.getElementById('scriptCode').value = '';
+                document.getElementById('scriptStatusMsg').textContent = '';
+            } catch (error) {
+                showToast('Delete failed: ' + error.message, 'error');
+            }
+        }
+
+        // ============================================================
+        // Settings
+        // ============================================================
+        async function saveSettings() {
+            const secret = document.getElementById('adminSecret').value.trim();
+            const statusDiv = document.getElementById('settingsStatus');
+
+            if (!secret) {
+                showToast('Please enter admin secret', 'error');
+                return;
+            }
+
+            statusDiv.textContent = 'Saving...';
+            statusDiv.className = 'mt-4 text-center text-sm text-yellow-400';
+
+            const settings = {
+                secret: secret,
+                maintenance: document.getElementById('maintenanceToggle').checked,
+                maintenance_message: document.getElementById('maintenanceMessage').value,
+                maintenance_until: document.getElementById('maintenanceUntil').value || null,
+                app_version: document.getElementById('appVersion').value.trim(),
+                update_url: document.getElementById('updateUrl').value.trim(),
+                force_update: document.getElementById('forceUpdateToggle').checked,
+                points_per_run: parseInt(document.getElementById('pointsPerRun').value) || 5,
+                auto_ban_threshold: parseInt(document.getElementById('autoBanThreshold').value) || 10,
+                ban_duration_hours: parseInt(document.getElementById('banDurationHours').value) || 24
+            };
+
+            try {
+                const response = await fetch(`${supabaseUrl}/functions/v1/update-settings`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + supabaseAnonKey,
+                        'apikey': supabaseAnonKey
+                    },
+                    body: JSON.stringify(settings)
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    statusDiv.className = 'mt-4 text-center text-sm text-green-400';
+                    statusDiv.textContent = '✅ Settings saved successfully!';
+                    showToast('Settings saved', 'success');
+                } else {
+                    throw new Error(result.error || 'Unknown error');
+                }
+            } catch (error) {
+                statusDiv.className = 'mt-4 text-center text-sm text-red-400';
+                statusDiv.textContent = 'Error: ' + error.message;
+                showToast('Save failed: ' + error.message, 'error');
+            }
+        }
+
+        async function resetSettings() {
+            if (!confirm('Reset all settings to defaults?')) return;
+
+            const secret = document.getElementById('adminSecret').value.trim();
+            if (!secret) { showToast('Please enter admin secret', 'error'); return; }
+
+            try {
+                const response = await fetch(`${supabaseUrl}/functions/v1/update-settings`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + supabaseAnonKey,
+                        'apikey': supabaseAnonKey
+                    },
+                    body: JSON.stringify({ secret, reset_settings: true })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    showToast('Settings reset to defaults', 'success');
+                    location.reload();
+                } else {
+                    throw new Error(result.error || 'Unknown error');
+                }
+            } catch (error) {
+                showToast('Reset failed: ' + error.message, 'error');
+            }
+        }
+
+        // ============================================================
+        // Notifications
+        // ============================================================
+        async function sendNotification() {
+            const message = document.getElementById('notifMessage').value.trim();
+            const type = document.getElementById('notifType').value;
+            const expires = document.getElementById('notifExpires').value || null;
+            const statusDiv = document.getElementById('notifStatus');
+
+            if (!message) { showToast('Please enter a message', 'error'); return; }
+
+            statusDiv.textContent = 'Sending...';
+            statusDiv.className = 'mt-4 text-center text-sm text-yellow-400';
+
+            try {
+                const { error } = await supabaseClient
+                    .from('notifications')
+                    .insert({
+                        type: type,
+                        message: message,
+                        active: true,
+                        expires_at: expires,
+                        created_at: new Date().toISOString()
+                    });
+
+                if (error) throw error;
+
+                statusDiv.className = 'mt-4 text-center text-sm text-green-400';
+                statusDiv.textContent = '✅ Notification sent!';
+                showToast('Notification sent successfully', 'success');
+                listNotifications();
+                document.getElementById('notifMessage').value = '';
+            } catch (error) {
+                statusDiv.className = 'mt-4 text-center text-sm text-red-400';
+                statusDiv.textContent = 'Error: ' + error.message;
+                showToast('Failed: ' + error.message, 'error');
+            }
+        }
+
+        async function listNotifications() {
+            const container = document.getElementById('notificationsList');
+            container.innerHTML = '<p class="p-4 text-center text-slate-500 text-sm">Loading...</p>';
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('notifications')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(20);
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    container.innerHTML = '<p class="p-4 text-center text-slate-500 text-sm">No notifications sent</p>';
+                    return;
+                }
+
+                container.innerHTML = data.map(n => `
+                    <div class="flex justify-between items-center p-3 hover:bg-slate-900">
+                        <div>
+                            <span class="text-xs px-2 py-1 rounded-full ${n.type === 'warning' ? 'bg-amber-600/20 text-amber-400' : n.type === 'promo' ? 'bg-purple-600/20 text-purple-400' : 'bg-indigo-600/20 text-indigo-400'}">${n.type}</span>
+                            <span class="text-sm text-white ml-2">${n.message}</span>
+                        </div>
+                        <span class="text-xs text-slate-500">${new Date(n.created_at).toLocaleDateString()}</span>
+                    </div>
+                `).join('');
+            } catch (error) {
+                container.innerHTML = `<p class="p-4 text-center text-red-400 text-sm">Error: ${error.message}</p>`;
+            }
+        }
+
+        // ============================================================
+        // Init
+        // ============================================================
+        checkSession();
+
+        // Refresh dashboard every 30 seconds
+        setInterval(() => {
+            if (!document.getElementById('dashboard').classList.contains('hidden')) {
+                refreshDashboard();
+            }
+        }, 30000);
+    </script>
+</body>
+</html>
