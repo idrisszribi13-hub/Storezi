@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>ZI Store</title>
+    <title>ZI Store - Premium Scripts</title>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
 
-    <!-- ===== IMPORT MAP ===== -->
     <script type="importmap">
         {
             "imports": {
@@ -22,7 +21,11 @@
     </script>
 
     <style>
-        /* ========== CSS Variables (Theme) ========== */
+        /* ============================================================
+           ALL STYLES - Modern ZI Store UI
+           ============================================================ */
+        
+        /* ---------- CSS Variables ---------- */
         :root {
             --bg: #0a0a1a;
             --bg-secondary: #111128;
@@ -48,7 +51,6 @@
             --slide-transition: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Light Theme */
         body.light {
             --bg: #f5f5f9;
             --bg-secondary: #e8e8f0;
@@ -61,12 +63,7 @@
             --shadow: 0 8px 30px rgba(0,0,0,0.1);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
             font-family: var(--font);
@@ -79,12 +76,12 @@
             font-weight: 500;
         }
 
-        /* ===== Scrollbar ===== */
+        /* Scrollbar */
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: var(--bg-secondary); }
         ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
 
-        /* ===== Loader ===== */
+        /* ---------- Loading Screen ---------- */
         #loadingScreen {
             position: fixed;
             inset: 0;
@@ -96,18 +93,10 @@
             justify-content: center;
             transition: opacity 0.6s, transform 0.6s;
         }
-        #loadingScreen.hidden {
-            opacity: 0;
-            transform: scale(1.05);
-            pointer-events: none;
-        }
-        .loader-icon {
-            font-size: 48px;
-            animation: pulse 1.2s infinite;
-        }
+        #loadingScreen.hidden { opacity: 0; transform: scale(1.05); pointer-events: none; }
+        .loader-icon { font-size: 48px; animation: pulse 1.2s infinite; }
         .spinner-ring {
-            width: 60px;
-            height: 60px;
+            width: 60px; height: 60px;
             border-radius: 50%;
             border: 4px solid var(--border);
             border-top-color: var(--primary);
@@ -122,17 +111,12 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-        .loader-subtext {
-            font-size: 13px;
-            color: var(--text-secondary);
-            opacity: 0.4;
-            margin-top: 4px;
-        }
+        .loader-subtext { font-size: 13px; color: var(--text-secondary); opacity: 0.4; margin-top: 4px; }
 
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
 
-        /* ===== Toast (from top) ===== */
+        /* ---------- Toast ---------- */
         #toast {
             position: fixed;
             top: -100px;
@@ -158,18 +142,14 @@
             min-width: 280px;
             justify-content: center;
         }
-        #toast.show {
-            top: 20px;
-            opacity: 1;
-            pointer-events: auto;
-        }
+        #toast.show { top: 20px; opacity: 1; pointer-events: auto; }
         #toast.success { border-color: var(--success); }
         #toast.error { border-color: var(--danger); }
         #toast.warning { border-color: var(--warning); }
         #toast.info { border-color: var(--primary); }
         .toast-icon { font-size: 20px; }
 
-        /* ===== Header ===== */
+        /* ---------- Header ---------- */
         .header {
             display: flex;
             align-items: center;
@@ -196,12 +176,7 @@
             gap: 6px;
         }
         .logo i { -webkit-text-fill-color: var(--vip-color); }
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
+        .header-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
         .header-actions button {
             background: var(--card-bg);
             border: 1px solid var(--border);
@@ -217,11 +192,7 @@
             transition: var(--transition);
             position: relative;
         }
-        .header-actions button:hover {
-            background: var(--primary);
-            border-color: var(--primary);
-            transform: scale(1.05);
-        }
+        .header-actions button:hover { background: var(--primary); border-color: var(--primary); transform: scale(1.05); }
         .header-actions .badge {
             position: absolute;
             top: -4px;
@@ -238,15 +209,10 @@
             justify-content: center;
             padding: 0 4px;
         }
-        .theme-toggle {
-            background: transparent !important;
-            border: none !important;
-            font-size: 18px !important;
-            transition: transform 0.3s !important;
-        }
+        .theme-toggle { background: transparent !important; border: none !important; font-size: 18px !important; transition: transform 0.3s !important; }
         .theme-toggle:hover { transform: rotate(30deg) scale(1.1) !important; }
 
-        /* ===== Search ===== */
+        /* ---------- Search ---------- */
         .search-wrapper {
             padding: 12px 16px;
             position: sticky;
@@ -264,14 +230,8 @@
             padding: 0 14px;
             transition: var(--transition);
         }
-        .search-wrapper .search-box:focus-within {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px var(--primary-glow);
-        }
-        .search-wrapper .search-box i {
-            color: var(--text-secondary);
-            opacity: 0.4;
-        }
+        .search-wrapper .search-box:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); }
+        .search-wrapper .search-box i { color: var(--text-secondary); opacity: 0.4; }
         .search-wrapper .search-box input {
             flex: 1;
             padding: 12px 10px;
@@ -283,10 +243,7 @@
             outline: none;
             font-weight: 500;
         }
-        .search-wrapper .search-box input::placeholder {
-            color: var(--text-secondary);
-            opacity: 0.4;
-        }
+        .search-wrapper .search-box input::placeholder { color: var(--text-secondary); opacity: 0.4; }
         .search-wrapper .search-box .clear-btn {
             background: none;
             border: none;
@@ -308,7 +265,7 @@
         }
         #searchResults.active { display: block; }
 
-        /* ===== Marquee ===== */
+        /* ---------- Marquee ---------- */
         #marqueeBar {
             background: var(--primary-glow);
             border-bottom: 1px solid var(--border);
@@ -320,14 +277,11 @@
             color: var(--text-secondary);
             display: none;
         }
-        #marqueeContent {
-            display: inline-block;
-            animation: marquee 25s linear infinite;
-        }
+        #marqueeContent { display: inline-block; animation: marquee 25s linear infinite; }
         #marqueeContent span { margin: 0 30px; }
         @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
-        /* ===== Slider ===== */
+        /* ---------- Slider ---------- */
         .slider-container {
             position: relative;
             margin: 12px 16px;
@@ -337,10 +291,7 @@
             border: 1px solid var(--border);
             min-height: 160px;
         }
-        .slider-wrapper {
-            display: flex;
-            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
+        .slider-wrapper { display: flex; transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .slide-item {
             min-width: 100%;
             min-height: 160px;
@@ -352,7 +303,6 @@
             justify-content: center;
             padding: 20px;
         }
-        /* إزالة الضباب والزر من السلايدر */
         .slide-overlay {
             background: transparent !important;
             backdrop-filter: none !important;
@@ -361,22 +311,9 @@
             text-align: center;
             pointer-events: none;
         }
-        .slide-title {
-            font-size: 24px;
-            font-weight: 800;
-            margin-bottom: 4px;
-            color: #fff;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.7);
-        }
-        .slide-subtitle {
-            font-size: 16px;
-            opacity: 0.9;
-            color: #fff;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.7);
-        }
-        .slide-btn {
-            display: none !important;
-        }
+        .slide-title { font-size: 24px; font-weight: 800; margin-bottom: 4px; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.7); }
+        .slide-subtitle { font-size: 16px; opacity: 0.9; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.7); }
+        .slide-btn { display: none !important; }
         .slider-dots {
             position: absolute;
             bottom: 10px;
@@ -397,7 +334,7 @@
         }
         .slider-dots .dot.active { background: var(--primary); opacity: 1; width: 20px; border-radius: 4px; }
 
-        /* ===== Stats Bar ===== */
+        /* ---------- Stats Bar ---------- */
         .stats-bar {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -414,7 +351,7 @@
         .stat-card .num { font-size: 20px; font-weight: 800; color: var(--primary); }
         .stat-card .label { font-size: 11px; color: var(--text-secondary); opacity: 0.6; font-weight: 600; }
 
-        /* ===== Filters ===== */
+        /* ---------- Filters ---------- */
         .filters {
             display: flex;
             gap: 8px;
@@ -434,14 +371,10 @@
             white-space: nowrap;
             transition: var(--transition);
         }
-        .filters .filter-btn.active {
-            background: var(--primary);
-            color: #fff;
-            border-color: var(--primary);
-        }
+        .filters .filter-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
         .filters .filter-btn:hover { border-color: var(--primary); }
 
-        /* ===== Product Grid ===== */
+        /* ---------- Product Grid ---------- */
         .product-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -459,7 +392,7 @@
             display: flex;
             flex-direction: column;
         }
-        .product-card:hover { transform: translateY(-4px); border-color: var(--primary); }
+        .product-card:hover { transform: translateY(-4px); border-color: var(--primary); box-shadow: 0 8px 25px rgba(108,92,231,0.15); }
         .product-card .image-wrapper {
             position: relative;
             height: 120px;
@@ -469,11 +402,7 @@
             align-items: center;
             justify-content: center;
         }
-        .product-card .image-wrapper img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+        .product-card .image-wrapper img { width: 100%; height: 100%; object-fit: cover; }
         .product-card .image-wrapper .placeholder {
             display: flex;
             align-items: center;
@@ -483,31 +412,14 @@
             font-size: 32px;
             opacity: 0.2;
         }
-        /* ===== تعديل الأيقونات: Wishlist/Share على اليسار، Badge على اليمين ===== */
         .product-card .product-actions-top {
             position: absolute;
             top: 8px;
-            left: 8px; /* من right إلى left */
+            left: 8px;
             display: flex;
             gap: 4px;
             z-index: 2;
         }
-        .product-card .image-badge {
-            position: absolute;
-            top: 8px;
-            right: 8px; /* تأكد من أنها على اليمين */
-            padding: 2px 10px;
-            border-radius: 20px;
-            font-size: 9px;
-            font-weight: 800;
-            text-transform: uppercase;
-            background: var(--vip-color);
-            color: #0a0a1a;
-            z-index: 2;
-        }
-        .product-card .image-badge.free { background: var(--free-color); }
-        .product-card .image-badge.unavailable { background: var(--danger); color: #fff; }
-        
         .product-card .product-actions-top button {
             background: rgba(0,0,0,0.5);
             border: none;
@@ -522,6 +434,23 @@
         }
         .product-card .product-actions-top button:hover { background: var(--primary); }
         .product-card .product-actions-top .heart-icon.liked { color: var(--danger); }
+        .product-card .image-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 9px;
+            font-weight: 800;
+            text-transform: uppercase;
+            background: var(--vip-color);
+            color: #0a0a1a;
+            z-index: 2;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .product-card .image-badge.free { background: var(--free-color); }
+        .product-card .image-badge.unavailable { background: var(--danger); color: #fff; }
+        .product-card .image-badge.vip { background: var(--vip-color); color: #0a0a1a; }
         .product-card .product-name {
             padding: 8px 10px 0;
             font-weight: 700;
@@ -530,12 +459,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .product-card .product-badges {
-            padding: 0 10px 4px;
-            display: flex;
-            gap: 4px;
-            flex-wrap: wrap;
-        }
+        .product-card .product-badges { padding: 0 10px 4px; display: flex; gap: 4px; flex-wrap: wrap; }
         .product-card .mini-badge {
             font-size: 8px;
             padding: 1px 8px;
@@ -556,11 +480,7 @@
             gap: 4px;
             font-weight: 500;
         }
-        .product-card .features-list .feature-item {
-            display: flex;
-            align-items: center;
-            gap: 3px;
-        }
+        .product-card .features-list .feature-item { display: flex; align-items: center; gap: 3px; }
         .product-card .features-list .feature-item i { font-size: 4px; }
         .product-card .price {
             padding: 4px 10px;
@@ -584,12 +504,7 @@
             margin-right: 4px;
             font-weight: 700;
         }
-        .product-card .card-actions {
-            padding: 6px 10px 10px;
-            display: flex;
-            gap: 6px;
-            margin-top: auto;
-        }
+        .product-card .card-actions { padding: 6px 10px 10px; display: flex; gap: 6px; margin-top: auto; }
         .product-card .card-actions .btn-details {
             flex: 1;
             padding: 6px;
@@ -635,7 +550,7 @@
         }
         .product-card .product-footer-icons .icon-item i { margin-right: 2px; }
 
-        /* ===== Bottom Cart Bar ===== */
+        /* ---------- Bottom Cart Bar ---------- */
         #bottomCartBar {
             position: fixed;
             bottom: 0;
@@ -653,10 +568,7 @@
         #bottomCartBar.open { display: flex; }
         #bottomCartBar .cart-info { display: flex; align-items: center; gap: 8px; }
         #bottomCartBar .cart-info i { font-size: 20px; color: var(--primary); }
-        #bottomCartBar .cart-info .count {
-            font-weight: 800;
-            font-size: 14px;
-        }
+        #bottomCartBar .cart-info .count { font-weight: 800; font-size: 14px; }
         #bottomCartBar .cart-info .total { font-weight: 800; color: var(--primary); font-size: 16px; }
         #bottomCartBar .checkout-btn {
             padding: 8px 20px;
@@ -670,7 +582,7 @@
         }
         #bottomCartBar .checkout-btn:hover { transform: scale(1.04); }
 
-        /* ===== Fullscreen Modals with Slide from Left ===== */
+        /* ---------- Fullscreen Modals ---------- */
         .fullscreen-modal {
             position: fixed;
             top: 0;
@@ -708,12 +620,7 @@
             flex-shrink: 0;
             position: relative;
         }
-        .fullscreen-modal .modal-header h2 {
-            font-size: 20px;
-            font-weight: 800;
-            flex: 1;
-            margin: 0 12px 0 0;
-        }
+        .fullscreen-modal .modal-header h2 { font-size: 20px; font-weight: 800; flex: 1; margin: 0 12px 0 0; }
         .fullscreen-modal .modal-header .close-btn {
             background: none;
             border: none;
@@ -724,9 +631,7 @@
             margin-left: auto;
             transition: transform 0.3s;
         }
-        .fullscreen-modal .modal-header .close-btn:hover {
-            transform: rotate(90deg);
-        }
+        .fullscreen-modal .modal-header .close-btn:hover { transform: rotate(90deg); }
         .fullscreen-modal .modal-header .back-btn {
             background: none;
             border: none;
@@ -736,11 +641,9 @@
             padding: 0 8px 0 0;
             transition: transform 0.3s;
         }
-        .fullscreen-modal .modal-header .back-btn:hover {
-            transform: translateX(-4px);
-        }
+        .fullscreen-modal .modal-header .back-btn:hover { transform: translateX(-4px); }
 
-        /* ===== Auth Section ===== */
+        /* ---------- Auth Section ---------- */
         #authSection {
             display: flex;
             align-items: center;
@@ -768,9 +671,7 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-        .auth-container .form-group {
-            margin-bottom: 14px;
-        }
+        .auth-container .form-group { margin-bottom: 14px; }
         .auth-container .form-group label {
             display: block;
             font-size: 13px;
@@ -793,9 +694,7 @@
             font-weight: 500;
         }
         .auth-container .form-group input:focus,
-        .auth-container .form-group select:focus {
-            border-color: var(--primary);
-        }
+        .auth-container .form-group select:focus { border-color: var(--primary); }
         .auth-container .auth-btn {
             width: 100%;
             padding: 12px;
@@ -823,16 +722,8 @@
             color: var(--text-secondary);
             font-weight: 500;
         }
-        .auth-container .auth-switch a {
-            color: var(--primary);
-            cursor: pointer;
-            font-weight: 700;
-        }
-        .auth-container .google-btn {
-            background: #fff;
-            color: #333;
-            border: 1px solid #ddd;
-        }
+        .auth-container .auth-switch a { color: var(--primary); cursor: pointer; font-weight: 700; }
+        .auth-container .google-btn { background: #fff; color: #333; border: 1px solid #ddd; }
         .auth-container .google-btn i { color: #db4437; }
         .auth-container .terms {
             display: flex;
@@ -842,13 +733,9 @@
             color: var(--text-secondary);
             font-weight: 500;
         }
-        .auth-container .terms input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-            accent-color: var(--primary);
-        }
+        .auth-container .terms input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--primary); }
 
-        /* ===== Admin Panel ===== */
+        /* ---------- Admin Panel ---------- */
         #adminPanel {
             position: fixed;
             inset: 0;
@@ -894,16 +781,8 @@
             transition: var(--transition);
             flex-shrink: 0;
         }
-        #adminPanel .tabs button.active {
-            background: var(--primary);
-            color: #fff;
-            border-color: var(--primary);
-        }
-        #adminPanel .tabs button:hover:not(.active) {
-            border-color: var(--primary);
-            color: var(--text);
-        }
-        /* ===== إصلاح عرض التبويبات: إظهار تبويب واحد فقط ===== */
+        #adminPanel .tabs button.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+        #adminPanel .tabs button:hover:not(.active) { border-color: var(--primary); color: var(--text); }
         #adminPanel .tab-content {
             display: none;
             padding-top: 12px;
@@ -911,15 +790,10 @@
             flex: 1;
             overflow-y: auto;
         }
-        #adminPanel .tab-content.active {
-            display: block;
-        }
-        @keyframes fadeIn {
-            0% { opacity: 0; transform: translateY(6px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
+        #adminPanel .tab-content.active { display: block; }
+        @keyframes fadeIn { 0% { opacity: 0; transform: translateY(6px); } 100% { opacity: 1; transform: translateY(0); } }
 
-        /* ===== Admin Items ===== */
+        /* ---------- Admin Items ---------- */
         .admin-item {
             display: flex;
             justify-content: space-between;
@@ -951,49 +825,7 @@
         .admin-item .item-actions .btn-approve:hover { background: var(--success); color: #0a0a1a; }
         .admin-item .item-actions .btn-revoke:hover { background: var(--warning); color: #0a0a1a; }
 
-        .admin-form-group { margin-bottom: 12px; }
-        .admin-form-group label { display: block; font-size: 13px; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px; }
-        .admin-form-group input,
-        .admin-form-group select,
-        .admin-form-group textarea {
-            width: 100%;
-            padding: 8px 12px;
-            border: 2px solid var(--border);
-            border-radius: var(--radius-sm);
-            background: var(--bg);
-            color: var(--text);
-            font-size: 14px;
-            font-family: var(--font);
-            outline: none;
-            font-weight: 500;
-        }
-        .admin-form-group input:focus,
-        .admin-form-group select:focus,
-        .admin-form-group textarea:focus { border-color: var(--primary); }
-        .admin-submit-btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: var(--radius-sm);
-            background: var(--primary);
-            color: #fff;
-            font-weight: 800;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-        .admin-submit-btn:hover { opacity: 0.9; }
-        .add-btn {
-            padding: 6px 14px;
-            border: none;
-            border-radius: var(--radius-sm);
-            background: var(--success);
-            color: #0a0a1a;
-            font-weight: 700;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-        .add-btn:hover { opacity: 0.8; }
-
-        /* ===== Payment Modal (like Cart) ===== */
+        /* ---------- Payment Modal ---------- */
         .modal {
             position: fixed;
             inset: 0;
@@ -1037,11 +869,7 @@
         .modal .modal-close:hover { transform: rotate(90deg); }
         .modal h2 { font-size: 22px; font-weight: 800; margin-bottom: 12px; }
 
-        .payment-options {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
+        .payment-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .payment-option {
             background: var(--bg);
             border: 2px solid var(--border);
@@ -1057,201 +885,11 @@
         .payment-option i { font-size: 28px; display: block; margin-bottom: 4px; }
         .payment-option .p-label { font-weight: 700; font-size: 14px; }
         .payment-option .p-sub { font-size: 11px; color: var(--text-secondary); opacity: 0.5; font-weight: 500; }
-        .payment-option .p-check {
-            position: absolute;
-            top: 6px;
-            right: 6px;
-            color: var(--primary);
-            opacity: 0;
-            transition: var(--transition);
-        }
+        .payment-option .p-check { position: absolute; top: 6px; right: 6px; color: var(--primary); opacity: 0; transition: var(--transition); }
         .payment-option.selected .p-check { opacity: 1; }
 
-        .payment-btn {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: var(--radius-sm);
-            background: var(--primary);
-            color: #fff;
-            font-weight: 800;
-            font-size: 16px;
-            cursor: pointer;
-            transition: var(--transition);
-            margin-top: 12px;
-        }
-        .payment-btn:hover { opacity: 0.9; }
-
-        /* ===== Binance ID Section ===== */
-        .binance-id-section {
-            background: var(--bg-secondary);
-            border-radius: var(--radius-md);
-            border: 1px solid var(--border);
-            overflow: hidden;
-            margin-top: 12px;
-        }
-        .binance-id-box { padding: 16px; }
-        .bi-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 18px;
-            font-weight: 800;
-            margin-bottom: 12px;
-        }
-        .bi-header i { color: #f2a900; font-size: 24px; }
-        .bi-content { display: flex; flex-direction: column; gap: 8px; }
-        .bi-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            font-size: 14px;
-            font-weight: 500;
-        }
-        .bi-label { color: var(--text-secondary); opacity: 0.6; font-weight: 600; }
-        .bi-value { font-weight: 700; direction: ltr; text-align: left; flex: 1; }
-        .bi-copy-btn {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 4px 10px;
-            cursor: pointer;
-            color: var(--text-secondary);
-            transition: var(--transition);
-            font-weight: 600;
-        }
-        .bi-copy-btn:hover { background: var(--primary); color: #fff; }
-        .bi-divider { height: 1px; background: var(--border); margin: 4px 0; }
-        .bi-instructions {
-            font-size: 13px;
-            color: var(--text-secondary);
-            background: var(--bg);
-            padding: 12px 14px;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border);
-            font-weight: 500;
-        }
-        .bi-instructions p { font-weight: 700; margin-bottom: 4px; color: var(--text); }
-        .bi-instructions ol { margin: 0; padding-left: 20px; opacity: 0.8; }
-        .bi-instructions li { margin-bottom: 2px; }
-        .binance-verification {
-            padding: 16px;
-            border-top: 1px solid var(--border);
-            background: var(--bg);
-        }
-        .bv-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-        .bv-header i { color: var(--success); font-size: 18px; }
-        .bv-field { margin-bottom: 12px; }
-        .bv-field label { display: block; font-size: 13px; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px; }
-        .bv-input-group { display: flex; gap: 6px; }
-        .bv-input-group input {
-            flex: 1;
-            padding: 8px 12px;
-            border: 2px solid var(--border);
-            border-radius: var(--radius-sm);
-            background: var(--card-bg);
-            color: var(--text);
-            font-size: 14px;
-            outline: none;
-            font-family: var(--font);
-            font-weight: 500;
-        }
-        .bv-input-group input:focus { border-color: var(--primary); }
-        .bv-verify-btn {
-            padding: 8px 14px;
-            border: none;
-            border-radius: var(--radius-sm);
-            background: var(--primary);
-            color: #fff;
-            font-weight: 700;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-        .bv-verify-btn:hover { opacity: 0.8; }
-        .bv-hint { font-size: 12px; color: var(--text-secondary); opacity: 0.5; margin-top: 4px; font-weight: 500; }
-        .bv-upload { margin: 12px 0; }
-        .bv-upload label { font-size: 13px; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 4px; }
-        .bv-drop-zone {
-            border: 2px dashed var(--border);
-            border-radius: var(--radius-sm);
-            padding: 16px 12px;
-            text-align: center;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: var(--transition);
-            background: var(--card-bg);
-            font-weight: 500;
-        }
-        .bv-drop-zone:hover { border-color: var(--primary); background: var(--bg); }
-        .bv-drop-zone i { font-size: 28px; display: block; margin-bottom: 4px; }
-        .bv-drop-zone p { margin: 0; font-size: 13px; }
-        .bv-drop-zone input[type="file"] { display: none; }
-        #screenshotPreview {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            margin-top: 8px;
-        }
-        #screenshotPreview img {
-            max-width: 100%;
-            max-height: 150px;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border);
-        }
-        .bv-result {
-            margin: 8px 0;
-            padding: 8px 12px;
-            border-radius: var(--radius-sm);
-            font-size: 13px;
-            font-weight: 600;
-            background: var(--bg);
-            border: 1px solid var(--border);
-        }
-        .bv-result.success { border-color: var(--success); color: var(--success); }
-        .bv-result.error { border-color: var(--danger); color: var(--danger); }
-        .bv-submit-btn {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: var(--radius-sm);
-            background: var(--primary);
-            color: #fff;
-            font-weight: 800;
-            font-size: 16px;
-            cursor: pointer;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        .bv-submit-btn:hover { opacity: 0.8; }
-        .bv-note {
-            font-size: 12px;
-            color: var(--text-secondary);
-            opacity: 0.5;
-            margin-top: 8px;
-            text-align: center;
-            font-weight: 500;
-        }
-        .bv-note a { color: var(--primary); text-decoration: none; }
-
-        /* ===== Floating Hearts ===== */
-        #floatingHearts {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 9998;
-            overflow: hidden;
-        }
+        /* ---------- Floating Hearts ---------- */
+        #floatingHearts { position: fixed; inset: 0; pointer-events: none; z-index: 9998; overflow: hidden; }
         .floating-heart {
             position: absolute;
             animation: floatUp 1.8s ease-out forwards;
@@ -1263,7 +901,23 @@
             100% { transform: translateY(-180px) scale(1.2); opacity: 0; }
         }
 
-        /* ===== Responsive ===== */
+        /* ---------- Status Badges ---------- */
+        .status-badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 700;
+        }
+        .status-badge.pending { background: var(--pending-color); color: #0a0a1a; }
+        .status-badge.confirmed { background: var(--success); color: #0a0a1a; }
+        .status-badge.rejected { background: var(--danger); color: #fff; }
+        .status-badge.active { background: var(--success); color: #0a0a1a; }
+        .status-badge.used { background: var(--text-secondary); color: #0a0a1a; }
+        .status-badge.expired { background: var(--danger); color: #fff; }
+        .status-badge.revoked { background: var(--danger); color: #fff; }
+
+        /* ---------- Responsive ---------- */
         @media (max-width: 480px) {
             .product-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
             .header { padding: 8px 12px; }
@@ -1276,14 +930,10 @@
             #adminPanel .tabs button { font-size: 12px; padding: 4px 10px; }
             #toast { min-width: auto; width: 90%; font-size: 13px; padding: 12px 16px; }
         }
-        @media (min-width: 768px) {
-            .product-grid { grid-template-columns: repeat(3, 1fr); }
-        }
-        @media (min-width: 1024px) {
-            .product-grid { grid-template-columns: repeat(4, 1fr); }
-        }
+        @media (min-width: 768px) { .product-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (min-width: 1024px) { .product-grid { grid-template-columns: repeat(4, 1fr); } }
 
-        /* ===== Misc ===== */
+        /* ---------- Utility ---------- */
         .hidden { display: none !important; }
         .text-center { text-align: center; }
         .mt-8 { margin-top: 8px; }
@@ -1295,36 +945,14 @@
         .justify-between { justify-content: space-between; }
         .w-full { width: 100%; }
 
-        /* ===== Recommended ===== */
-        #recommendationsGrid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 8px;
-            padding: 0 16px 16px;
-        }
-        .rec-item {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            overflow: hidden;
-            cursor: pointer;
-            transition: var(--transition);
-            text-align: center;
-        }
-        .rec-item:hover { transform: translateY(-2px); border-color: var(--primary); }
-        .rec-item img { width: 100%; height: 80px; object-fit: cover; }
-        .rec-item .r-name { font-size: 12px; font-weight: 700; padding: 4px 6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .rec-item .r-price { font-size: 11px; color: var(--primary); font-weight: 800; padding-bottom: 4px; }
-        .rec-empty { grid-column: 1 / -1; text-align: center; padding: 12px; color: var(--text-secondary); opacity: 0.4; font-weight: 500; }
-
-        /* ===== Featured ===== */
-        #featuredGrid {
+        /* ---------- Featured & Recommendations ---------- */
+        #featuredGrid, #recommendationsGrid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
             gap: 8px;
             padding: 0 16px 16px;
         }
-        .featured-item {
+        .featured-item, .rec-item {
             background: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: var(--radius-sm);
@@ -1333,7 +961,7 @@
             transition: var(--transition);
             text-align: center;
         }
-        .featured-item:hover { transform: translateY(-2px); border-color: var(--primary); }
+        .featured-item:hover, .rec-item:hover { transform: translateY(-2px); border-color: var(--primary); }
         .featured-item-image { position: relative; height: 90px; overflow: hidden; }
         .featured-item-image img { width: 100%; height: 100%; object-fit: cover; }
         .featured-item-badge {
@@ -1349,10 +977,23 @@
         }
         .featured-item-badge.free { background: var(--free-color); }
         .featured-item-badge.unavailable { background: var(--danger); color: #fff; }
-        .featured-item-name { font-size: 12px; font-weight: 700; padding: 4px 6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .featured-item-price { font-size: 11px; color: var(--primary); font-weight: 800; padding-bottom: 4px; }
+        .featured-item-name, .rec-item .r-name {
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 6px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .featured-item-price, .rec-item .r-price {
+            font-size: 11px;
+            color: var(--primary);
+            font-weight: 800;
+            padding-bottom: 4px;
+        }
+        .rec-item img { width: 100%; height: 80px; object-fit: cover; }
 
-        /* ===== Proxy Store ===== */
+        /* ---------- Proxy Store ---------- */
         .proxy-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -1369,31 +1010,11 @@
             display: flex;
             flex-direction: column;
         }
-        .proxy-card:hover {
-            border-color: var(--primary);
-            transform: translateY(-4px);
-        }
-        .proxy-card .proxy-icon {
-            font-size: 32px;
-            margin-bottom: 4px;
-        }
-        .proxy-card .proxy-name {
-            font-weight: 800;
-            font-size: 16px;
-            color: var(--text);
-        }
-        .proxy-card .proxy-meta {
-            font-size: 13px;
-            color: var(--text-secondary);
-            opacity: 0.5;
-            font-weight: 500;
-        }
-        .proxy-card .proxy-price {
-            font-size: 20px;
-            font-weight: 800;
-            color: var(--primary);
-            margin: 6px 0;
-        }
+        .proxy-card:hover { border-color: var(--primary); transform: translateY(-4px); }
+        .proxy-card .proxy-icon { font-size: 32px; margin-bottom: 4px; }
+        .proxy-card .proxy-name { font-weight: 800; font-size: 16px; color: var(--text); }
+        .proxy-card .proxy-meta { font-size: 13px; color: var(--text-secondary); opacity: 0.5; font-weight: 500; }
+        .proxy-card .proxy-price { font-size: 20px; font-weight: 800; color: var(--primary); margin: 6px 0; }
         .proxy-card .proxy-btn {
             width: 100%;
             padding: 8px;
@@ -1406,15 +1027,62 @@
             transition: var(--transition);
             margin-top: auto;
         }
-        .proxy-card .proxy-btn.added {
-            background: var(--success);
-        }
-        .proxy-card .proxy-btn:hover {
-            opacity: 0.9;
-            transform: scale(1.02);
-        }
+        .proxy-card .proxy-btn.added { background: var(--success); }
+        .proxy-card .proxy-btn:hover { opacity: 0.9; transform: scale(1.02); }
 
-        /* ===== Telegram Banner ===== */
+        /* ---------- Footer ---------- */
+        .site-footer {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            padding: 24px 16px 16px;
+            margin-top: 20px;
+        }
+        .site-footer .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+        .site-footer .footer-social { display: flex; gap: 16px; align-items: center; }
+        .site-footer .footer-social a {
+            color: var(--text-secondary);
+            font-size: 22px;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            text-decoration: none;
+        }
+        .site-footer .footer-social a:hover { color: #fff; border-color: var(--primary); transform: translateY(-2px); }
+        .site-footer .footer-social a.youtube:hover { color: #ff0000; border-color: #ff0000; }
+        .site-footer .footer-social a.telegram:hover { color: #0088cc; border-color: #0088cc; }
+        .site-footer .footer-links { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+        .site-footer .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 13px;
+            transition: var(--transition);
+            opacity: 0.6;
+            font-weight: 500;
+        }
+        .site-footer .footer-links a:hover { color: var(--primary); opacity: 1; }
+        .site-footer .footer-copyright {
+            font-size: 12px;
+            color: var(--text-secondary);
+            opacity: 0.3;
+            text-align: center;
+            font-weight: 500;
+        }
+        .site-footer .footer-copyright strong { color: var(--primary); opacity: 0.6; }
+
+        /* ---------- Telegram Banner ---------- */
         #telegramBanner {
             display: none;
             background: var(--primary-glow);
@@ -1437,15 +1105,7 @@
         .banner-icon i { font-size: 28px; color: #0088cc; }
         .banner-text { flex: 1; }
         .banner-title { font-weight: 800; font-size: 15px; }
-        .banner-title .badge-new {
-            background: var(--danger);
-            color: #fff;
-            font-size: 9px;
-            padding: 0 8px;
-            border-radius: 12px;
-            margin-left: 4px;
-            font-weight: 700;
-        }
+        .banner-title .badge-new { background: var(--danger); color: #fff; font-size: 9px; padding: 0 8px; border-radius: 12px; margin-left: 4px; font-weight: 700; }
         .banner-subtitle { font-size: 12px; color: var(--text-secondary); opacity: 0.7; font-weight: 500; }
         .banner-action {
             padding: 6px 16px;
@@ -1459,16 +1119,9 @@
             white-space: nowrap;
         }
         .banner-action:hover { opacity: 0.8; }
-        .banner-close {
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            cursor: pointer;
-            font-size: 18px;
-            opacity: 0.3;
-        }
+        .banner-close { background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 18px; opacity: 0.3; }
 
-        /* ===== Cookie Consent ===== */
+        /* ---------- Cookie Consent ---------- */
         #cookieConsent {
             position: fixed;
             bottom: 0;
@@ -1498,7 +1151,7 @@
         #cookieConsent .cookie-actions .reject { background: var(--card-bg); color: var(--text-secondary); border: 1px solid var(--border); }
         #cookieConsent .cookie-actions .settings { background: transparent; color: var(--primary); text-decoration: underline; }
 
-        /* ===== Support Float ===== */
+        /* ---------- Support Float ---------- */
         #supportFloat {
             position: fixed;
             bottom: 80px;
@@ -1555,499 +1208,15 @@
         #supportFloat .support-menu button:hover { background: var(--primary-glow); }
         #supportFloat .support-menu button i { width: 20px; color: var(--primary); }
 
-        /* ===== Footer ===== */
-        .site-footer {
-            background: var(--bg-secondary);
-            border-top: 1px solid var(--border);
-            padding: 24px 16px 16px;
-            margin-top: 20px;
-        }
-        .site-footer .footer-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 16px;
-        }
-        .site-footer .footer-social {
-            display: flex;
-            gap: 16px;
-            align-items: center;
-        }
-        .site-footer .footer-social a {
-            color: var(--text-secondary);
-            font-size: 22px;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            text-decoration: none;
-        }
-        .site-footer .footer-social a:hover {
-            color: #fff;
-            border-color: var(--primary);
-            transform: translateY(-2px);
-        }
-        .site-footer .footer-social a.youtube:hover { color: #ff0000; border-color: #ff0000; }
-        .site-footer .footer-social a.telegram:hover { color: #0088cc; border-color: #0088cc; }
-        .site-footer .footer-links {
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        .site-footer .footer-links a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 13px;
-            transition: var(--transition);
-            opacity: 0.6;
-            font-weight: 500;
-        }
-        .site-footer .footer-links a:hover {
-            color: var(--primary);
-            opacity: 1;
-        }
-        .site-footer .footer-copyright {
-            font-size: 12px;
-            color: var(--text-secondary);
-            opacity: 0.3;
-            text-align: center;
-            font-weight: 500;
-        }
-        .site-footer .footer-copyright strong {
-            color: var(--primary);
-            opacity: 0.6;
-        }
-
-        /* ===== Admin users grid ===== */
-        .admin-users-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 10px;
-        }
-        .admin-user-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            padding: 12px;
-            text-align: center;
-        }
-        .admin-user-card.banned { opacity: 0.5; border-color: var(--danger); }
-        .admin-user-card .user-avatar {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: var(--primary);
-            margin: 0 auto 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 18px;
-            color: #fff;
-            overflow: hidden;
-        }
-        .admin-user-card .user-name { font-weight: 700; font-size: 14px; }
-        .admin-user-card .user-email { font-size: 11px; color: var(--text-secondary); opacity: 0.5; word-break: break-all; font-weight: 500; }
-        .admin-user-card .user-meta { font-size: 11px; color: var(--text-secondary); opacity: 0.4; font-weight: 500; }
-        .admin-user-card .user-badge {
-            display: inline-block;
-            font-size: 9px;
-            padding: 1px 8px;
-            border-radius: 10px;
-            margin: 2px 0;
-            font-weight: 700;
-        }
-        .admin-user-card .user-badge.banned { background: var(--danger); color: #fff; }
-        .admin-user-card .user-badge.admin { background: var(--vip-color); color: #0a0a1a; }
-        .admin-user-card .user-actions {
-            display: flex;
-            gap: 4px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 6px;
-        }
-        .admin-user-card .user-actions button {
-            padding: 3px 10px;
-            border: none;
-            border-radius: var(--radius-sm);
-            font-size: 11px;
-            cursor: pointer;
-            transition: var(--transition);
-            font-weight: 600;
-        }
-        .admin-user-card .user-actions .btn-view { background: var(--primary); color: #fff; }
-        .admin-user-card .user-actions .btn-ban { background: var(--danger); color: #fff; }
-        .admin-user-card .user-actions .btn-unban { background: var(--success); color: #0a0a1a; }
-        .admin-user-card .user-actions .btn-delete { background: var(--danger); color: #fff; }
-
-        /* ===== Status badges ===== */
-        .status-badge {
-            display: inline-block;
-            padding: 2px 10px;
-            border-radius: 12px;
-            font-size: 10px;
-            font-weight: 700;
-        }
-        .status-badge.pending { background: var(--pending-color); color: #0a0a1a; }
-        .status-badge.confirmed { background: var(--success); color: #0a0a1a; }
-        .status-badge.rejected { background: var(--danger); color: #fff; }
-        .status-badge.active { background: var(--success); color: #0a0a1a; }
-        .status-badge.used { background: var(--text-secondary); color: #0a0a1a; }
-        .status-badge.expired { background: var(--danger); color: #fff; }
-        .status-badge.revoked { background: var(--danger); color: #fff; }
-
-        /* ===== VIP Plans ===== */
-        .vip-plan {
-            background: var(--bg);
-            border: 2px solid var(--border);
-            border-radius: var(--radius-sm);
-            padding: 8px 6px;
-            text-align: center;
-            cursor: pointer;
-            transition: var(--transition);
-            position: relative;
-        }
-        .vip-plan.selected {
-            border-color: var(--vip-color);
-            background: var(--primary-glow);
-        }
-        .vip-plan .vip-plan-check {
-            position: absolute;
-            top: 2px;
-            right: 4px;
-            color: var(--vip-color);
-            opacity: 0;
-        }
-        .vip-plan.selected .vip-plan-check { opacity: 1; }
-        .vip-plan .vip-plan-label { font-weight: 700; font-size: 13px; }
-        .vip-plan .vip-plan-price { font-weight: 800; color: var(--vip-color); }
-        .vip-plan .vip-plan-original { font-size: 11px; text-decoration: line-through; opacity: 0.3; font-weight: 500; }
-        .vip-plan .vip-plan-discount { font-size: 10px; background: var(--danger); color: #fff; border-radius: 10px; padding: 0 6px; display: inline-block; font-weight: 700; }
-
-        /* ===== Ratings ===== */
-        .rating-stars .star {
-            font-size: 24px;
-            cursor: pointer;
-            color: var(--text-secondary);
-            opacity: 0.2;
-            transition: var(--transition);
-        }
-        .rating-stars .star.active { color: #fbbf24; opacity: 1; }
-        .rating-review-item {
-            padding: 6px 0;
-            border-bottom: 1px solid var(--border);
-        }
-        .rating-review-item .rr-header {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-            align-items: center;
-            font-size: 12px;
-            font-weight: 500;
-        }
-        .rating-review-item .rr-name { font-weight: 700; }
-        .rating-review-item .rr-stars { color: #fbbf24; }
-        .rating-review-item .rr-badge { background: var(--success); color: #0a0a1a; padding: 0 6px; border-radius: 10px; font-size: 9px; font-weight: 700; }
-        .rating-review-item .rr-date { opacity: 0.3; font-size: 10px; }
-        .rating-review-item .rr-comment { font-size: 13px; color: var(--text-secondary); margin-top: 2px; font-weight: 500; }
-        .rating-comment-input {
-            width: 100%;
-            padding: 8px 12px;
-            border: 2px solid var(--border);
-            border-radius: var(--radius-sm);
-            background: var(--bg);
-            color: var(--text);
-            font-family: var(--font);
-            resize: vertical;
-            margin-top: 4px;
-            font-weight: 500;
-        }
-        .rating-submit-btn {
-            padding: 6px 16px;
-            border: none;
-            border-radius: var(--radius-sm);
-            background: var(--primary);
-            color: #fff;
-            font-weight: 700;
-            cursor: pointer;
-            margin-top: 4px;
-        }
-
-        /* ===== Payment product item ===== */
-        .payment-product-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 0;
-            border-bottom: 1px solid var(--border);
-        }
-        .payment-product-item img {
-            width: 40px;
-            height: 40px;
-            border-radius: var(--radius-sm);
-            object-fit: cover;
-        }
-        .payment-product-item .pp-info { flex: 1; }
-        .payment-product-item .pp-name { font-size: 13px; font-weight: 700; }
-        .payment-product-item .pp-price { font-size: 12px; color: var(--primary); font-weight: 800; }
-        .payment-product-item .pp-qty { font-size: 13px; color: var(--text-secondary); opacity: 0.5; font-weight: 500; }
-
-        /* ===== Quantity options ===== */
-        .preview-quantity-options {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 6px;
-        }
-        .preview-quantity-option {
-            background: var(--bg);
-            border: 2px solid var(--border);
-            border-radius: var(--radius-sm);
-            padding: 8px 6px;
-            text-align: center;
-            cursor: pointer;
-            transition: var(--transition);
-            position: relative;
-        }
-        .preview-quantity-option.selected {
-            border-color: var(--primary);
-            background: var(--primary-glow);
-        }
-        .preview-quantity-option .qty-value { font-size: 18px; font-weight: 800; }
-        .preview-quantity-option .qty-price { font-weight: 700; color: var(--primary); }
-        .preview-quantity-option .qty-original { font-size: 11px; text-decoration: line-through; opacity: 0.3; font-weight: 500; }
-        .preview-quantity-option .qty-check {
-            position: absolute;
-            top: 2px;
-            right: 4px;
-            color: var(--primary);
-            opacity: 0;
-        }
-        .preview-quantity-option.selected .qty-check { opacity: 1; }
-
-        /* ===== Badge options ===== */
-        .badge-option {
-            display: inline-block;
-            padding: 4px 12px;
-            border: 2px solid var(--border);
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
-            transition: var(--transition);
-            background: var(--bg);
-            color: var(--text-secondary);
-            user-select: none;
-        }
-        .badge-option.selected {
-            border-color: var(--primary);
-            background: var(--primary-glow);
-            color: var(--primary);
-        }
-
-        .currency-option, .type-option {
-            padding: 4px 12px;
-            border: 2px solid var(--border);
-            border-radius: var(--radius-sm);
-            background: var(--bg);
-            color: var(--text-secondary);
-            cursor: pointer;
-            font-weight: 600;
-            transition: var(--transition);
-        }
-        .currency-option.active, .type-option.active {
-            border-color: var(--primary);
-            background: var(--primary-glow);
-            color: var(--primary);
-        }
-
-        .quantity-option-item {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            align-items: center;
-            background: var(--bg);
-            padding: 6px 10px;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border);
-            margin-bottom: 4px;
-        }
-        .quantity-option-item .qty-label { font-weight: 700; font-size: 12px; min-width: 60px; }
-        .quantity-option-item .qty-input {
-            width: 70px;
-            padding: 4px 6px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            background: var(--card-bg);
-            color: var(--text);
-            font-weight: 500;
-        }
-        .quantity-option-item .qty-price-group { display: flex; gap: 4px; }
-        .quantity-option-item .qty-price, .quantity-option-item .qty-original-price {
-            width: 70px;
-            padding: 4px 6px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            background: var(--card-bg);
-            color: var(--text);
-            font-weight: 500;
-        }
-        .quantity-option-item .qty-remove {
-            background: var(--danger);
-            border: none;
-            color: #fff;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            cursor: pointer;
-        }
-
-        /* ===== Payment History Card ===== */
-        .payment-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: 16px 18px;
-            margin-bottom: 12px;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            border-left: 5px solid #3e8cff;
-            transition: 0.2s;
-        }
-        .payment-card .payment-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: var(--bg-secondary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 22px;
-            border: 1px solid var(--border);
-        }
-        .payment-card .payment-info {
-            display: flex;
-            flex-direction: column;
-        }
-        .payment-card .payment-currency {
-            font-weight: 700;
-            font-size: 18px;
-            color: var(--text);
-        }
-        .payment-card .payment-date {
-            font-size: 13px;
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-        .payment-card .payment-id {
-            font-size: 12px;
-            color: var(--text-secondary);
-            font-family: monospace;
-            background: var(--bg);
-            padding: 0 10px;
-            border-radius: 30px;
-            display: inline-block;
-            margin-top: 2px;
-            border: 1px solid var(--border);
-            font-weight: 500;
-        }
-        .payment-card .payment-amount {
-            text-align: right;
-        }
-        .payment-card .payment-coins {
-            font-weight: 800;
-            font-size: 20px;
-            color: var(--text);
-        }
-        .payment-card .payment-coins small {
-            font-size: 13px;
-            opacity: 0.4;
-            font-weight: 500;
-        }
-        .payment-card .payment-value {
-            font-size: 14px;
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-        .payment-card .payment-status {
-            padding: 4px 16px;
-            border-radius: 30px;
-            font-weight: 700;
-            font-size: 13px;
-            white-space: nowrap;
-        }
-        .payment-card .payment-status.pending {
-            background: var(--pending-color)20;
-            color: var(--pending-color);
-            border: 1px solid var(--pending-color)40;
-        }
-        .payment-card .payment-status.completed {
-            background: var(--success)20;
-            color: var(--success);
-            border: 1px solid var(--success)40;
-        }
-        .payment-card .payment-status.rejected {
-            background: var(--danger)20;
-            color: var(--danger);
-            border: 1px solid var(--danger)40;
-        }
-        .payment-card .payment-to {
-            width: 100%;
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px dashed var(--border);
-            font-size: 12px;
-            color: var(--text-secondary);
-            font-family: monospace;
-            word-break: break-all;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-weight: 500;
-        }
-        .payment-card .payment-to i { color: var(--text-secondary); opacity: 0.4; font-size: 14px; }
-        .payment-card .payment-method {
-            opacity: 0.4;
-        }
-        .payment-delay-note {
-            padding: 12px 0;
-            border-top: 1px solid var(--border);
-            text-align: center;
-            font-size: 13px;
-            color: var(--text-secondary);
-            opacity: 0.4;
-            display: none;
-            font-weight: 500;
-        }
-        .payment-delay-note i { color: #3fcb7a; margin-right: 6px; }
-
-        /* ===== Profile ===== */
-        .profile-container {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
+        /* ---------- Profile & Cart ---------- */
+        .profile-container { display: flex; flex-direction: column; gap: 16px; }
         .profile-card {
             background: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: var(--radius-md);
             padding: 16px;
         }
-        .profile-header {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
+        .profile-header { display: flex; align-items: center; gap: 14px; }
         .profile-avatar {
             width: 64px;
             height: 64px;
@@ -2062,16 +1231,8 @@
             overflow: hidden;
             flex-shrink: 0;
         }
-        .profile-info h3 {
-            font-size: 18px;
-            font-weight: 800;
-        }
-        .profile-email {
-            font-size: 13px;
-            color: var(--text-secondary);
-            opacity: 0.6;
-            font-weight: 500;
-        }
+        .profile-info h3 { font-size: 18px; font-weight: 800; }
+        .profile-email { font-size: 13px; color: var(--text-secondary); opacity: 0.6; font-weight: 500; }
         .profile-badge {
             display: inline-block;
             font-size: 12px;
@@ -2092,317 +1253,10 @@
             padding-top: 12px;
             border-top: 1px solid var(--border);
         }
-        .stat-item {
-            text-align: center;
-        }
-        .stat-number {
-            font-size: 20px;
-            font-weight: 800;
-            color: var(--primary);
-        }
-        .stat-label {
-            font-size: 11px;
-            color: var(--text-secondary);
-            opacity: 0.4;
-            font-weight: 500;
-        }
+        .stat-item { text-align: center; }
+        .stat-number { font-size: 20px; font-weight: 800; color: var(--primary); }
+        .stat-label { font-size: 11px; color: var(--text-secondary); opacity: 0.4; font-weight: 500; }
 
-        .edit-profile-section,
-        .password-section,
-        .telegram-section {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: 16px;
-        }
-        .section-title {
-            font-size: 16px;
-            font-weight: 800;
-            margin-bottom: 12px;
-            color: var(--primary);
-        }
-        .form-group {
-            margin-bottom: 12px;
-        }
-        .form-group label {
-            display: block;
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--text-secondary);
-            margin-bottom: 4px;
-        }
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 8px 12px;
-            border: 2px solid var(--border);
-            border-radius: var(--radius-sm);
-            background: var(--bg);
-            color: var(--text);
-            font-size: 14px;
-            font-family: var(--font);
-            outline: none;
-            font-weight: 500;
-        }
-        .form-group input:focus,
-        .form-group select:focus {
-            border-color: var(--primary);
-        }
-        .form-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 4px;
-        }
-        .btn-save {
-            padding: 8px 20px;
-            border: none;
-            border-radius: var(--radius-sm);
-            background: var(--primary);
-            color: #fff;
-            font-weight: 700;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-        .btn-save:hover { opacity: 0.8; }
-        .btn-cancel {
-            padding: 8px 20px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            background: transparent;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: var(--transition);
-            font-weight: 600;
-        }
-        .btn-cancel:hover { background: var(--bg); }
-
-        .ps-email {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 8px;
-            background: var(--bg);
-            padding: 8px 12px;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border);
-            font-weight: 500;
-        }
-        .ps-email button {
-            background: var(--primary);
-            border: none;
-            color: #fff;
-            padding: 4px 12px;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            font-weight: 700;
-            font-size: 12px;
-        }
-
-        /* Password toggle */
-        .password-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-        .password-wrapper input {
-            flex: 1;
-            padding-right: 44px;
-        }
-        .password-toggle {
-            position: absolute;
-            right: 12px;
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            cursor: pointer;
-            font-size: 18px;
-            padding: 4px;
-            opacity: 0.5;
-            transition: var(--transition);
-        }
-        .password-toggle:hover { opacity: 1; }
-
-        .tb-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 4px 0;
-            font-size: 14px;
-            font-weight: 500;
-        }
-        .tb-label { color: var(--text-secondary); opacity: 0.6; font-weight: 600; }
-        .tb-value { font-weight: 600; }
-        .tb-status.linked { color: var(--success); }
-        .tb-status.unlinked { color: var(--danger); }
-        .tb-info {
-            font-size: 13px;
-            color: var(--text-secondary);
-            background: var(--bg);
-            padding: 8px 12px;
-            border-radius: var(--radius-sm);
-            margin: 8px 0;
-            border: 1px solid var(--border);
-            font-weight: 500;
-        }
-        .tb-actions {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-        .tb-actions button {
-            padding: 6px 14px;
-            border: none;
-            border-radius: var(--radius-sm);
-            font-weight: 700;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-        .btn-bind { background: #0088cc; color: #fff; }
-        .btn-test { background: var(--primary); color: #fff; }
-        .btn-check { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
-        .btn-unlink { background: var(--danger); color: #fff; }
-        .tb-actions button:hover { opacity: 0.8; }
-
-        /* ===== Product Details Full Page ===== */
-        #productDetailsFull .modal-header .back-btn {
-            font-size: 22px;
-            padding: 4px 10px 4px 4px;
-            margin-right: 4px;
-        }
-        #productDetailsFull .modal-header h2 {
-            font-size: 18px;
-            font-weight: 800;
-            flex: 1;
-            margin: 0 8px 0 0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        #productDetailsFull .modal-header .close-btn {
-            font-size: 24px;
-            padding: 0 8px;
-        }
-        #productDetailsContent {
-            flex: 1;
-            overflow-y: auto;
-            padding: 0 16px 20px;
-        }
-        #productDetailsContent .image-badge {
-            display: inline-block;
-            padding: 2px 14px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 800;
-        }
-        #productDetailsContent .image-badge.vip {
-            background: var(--vip-color);
-            color: #0a0a1a;
-        }
-        #productDetailsContent .image-badge.free {
-            background: var(--free-color);
-            color: #0a0a1a;
-        }
-        #productDetailsContent .image-badge.unavailable {
-            background: var(--danger);
-            color: #fff;
-        }
-        .rating-section {
-            background: var(--bg-secondary);
-            border-radius: var(--radius-md);
-            padding: 14px 16px;
-            border: 1px solid var(--border);
-        }
-        .rating-section .stars-small {
-            font-size: 18px;
-        }
-
-        /* ===== Cookie Settings Modal (English) ===== */
-        #cookieSettingsModal .modal-content h3 {
-            font-weight: 800;
-            font-size: 20px;
-            margin-bottom: 12px;
-        }
-        #cookieSettingsModal .modal-content .setting-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid var(--border);
-        }
-        #cookieSettingsModal .modal-content .setting-item .setting-label {
-            font-weight: 700;
-            font-size: 14px;
-        }
-        #cookieSettingsModal .modal-content .setting-item .setting-desc {
-            font-size: 12px;
-            color: var(--text-secondary);
-            opacity: 0.6;
-            font-weight: 500;
-        }
-        #cookieSettingsModal .modal-content .setting-item input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            accent-color: var(--primary);
-            cursor: pointer;
-        }
-
-        /* ===== Order History ===== */
-        .order-history-item {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: 14px 16px;
-            margin-bottom: 10px;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .order-history-item .oh-left {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-        .order-history-item .oh-id {
-            font-weight: 700;
-            font-size: 14px;
-        }
-        .order-history-item .oh-date {
-            font-size: 12px;
-            color: var(--text-secondary);
-            opacity: 0.5;
-            font-weight: 500;
-        }
-        .order-history-item .oh-right {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        .order-history-item .oh-total {
-            font-weight: 800;
-            color: var(--primary);
-            font-size: 16px;
-        }
-        .order-history-item .oh-status {
-            padding: 2px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 700;
-        }
-        .order-history-item .oh-status.pending {
-            background: var(--pending-color)30;
-            color: var(--pending-color);
-        }
-        .order-history-item .oh-status.confirmed {
-            background: var(--success)30;
-            color: var(--success);
-        }
-        .order-history-item .oh-status.rejected {
-            background: var(--danger)30;
-            color: var(--danger);
-        }
-
-        /* ===== Cart & Checkout unified ===== */
         .cart-item {
             display: flex;
             justify-content: space-between;
@@ -2413,41 +1267,12 @@
             border: 1px solid var(--border);
             margin-bottom: 8px;
         }
-        .cart-item .ci-left {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex: 1;
-            min-width: 0;
-        }
-        .cart-item .ci-left img {
-            width: 44px;
-            height: 44px;
-            border-radius: 8px;
-            object-fit: cover;
-        }
-        .cart-item .ci-info {
-            flex: 1;
-            min-width: 0;
-        }
-        .cart-item .ci-name {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .cart-item .ci-price {
-            font-size: 12px;
-            color: var(--primary);
-            font-weight: 700;
-        }
-        .cart-item .ci-actions {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
+        .cart-item .ci-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+        .cart-item .ci-left img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; }
+        .cart-item .ci-info { flex: 1; min-width: 0; }
+        .cart-item .ci-name { font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .cart-item .ci-price { font-size: 12px; color: var(--primary); font-weight: 700; }
+        .cart-item .ci-actions { display: flex; align-items: center; gap: 6px; }
         .cart-item .ci-actions button {
             width: 28px;
             height: 28px;
@@ -2460,27 +1285,9 @@
             font-weight: 700;
             transition: var(--transition);
         }
-        .cart-item .ci-actions button:hover {
-            background: var(--primary);
-            border-color: var(--primary);
-            color: #fff;
-        }
-        .cart-item .ci-actions .ci-qty {
-            min-width: 20px;
-            text-align: center;
-            font-size: 14px;
-            font-weight: 700;
-        }
-        .cart-item .ci-remove {
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            cursor: pointer;
-            font-size: 14px;
-            opacity: 0.3;
-            padding: 4px;
-            transition: var(--transition);
-        }
+        .cart-item .ci-actions button:hover { background: var(--primary); border-color: var(--primary); color: #fff; }
+        .cart-item .ci-actions .ci-qty { min-width: 20px; text-align: center; font-size: 14px; font-weight: 700; }
+        .cart-item .ci-remove { background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 14px; opacity: 0.3; padding: 4px; transition: var(--transition); }
         .cart-item .ci-remove:hover { opacity: 0.8; }
     </style>
 </head>
@@ -2506,7 +1313,7 @@
     <!-- ===== MAIN APP ===== -->
     <div id="mainApp" style="display:none;">
 
-        <!-- ===== HEADER ===== -->
+        <!-- HEADER -->
         <header class="header">
             <div class="logo"><i class="fas fa-crown"></i> ZI Store</div>
             <div class="header-actions">
@@ -2528,12 +1335,12 @@
             </div>
         </header>
 
-        <!-- ===== MARQUEE ===== -->
+        <!-- MARQUEE -->
         <div id="marqueeBar">
             <div id="marqueeContent"></div>
         </div>
 
-        <!-- ===== SEARCH ===== -->
+        <!-- SEARCH -->
         <div class="search-wrapper">
             <div class="search-box">
                 <i class="fas fa-search"></i>
@@ -2543,7 +1350,7 @@
             <div id="searchResults"></div>
         </div>
 
-        <!-- ===== TELEGRAM BANNER ===== -->
+        <!-- TELEGRAM BANNER -->
         <div id="telegramBanner" style="display:none;">
             <div class="banner-icon"><i class="fab fa-telegram-plane"></i></div>
             <div class="banner-text">
@@ -2554,13 +1361,13 @@
             <button class="banner-close" onclick="closeTelegramBanner()"><i class="fas fa-times"></i></button>
         </div>
 
-        <!-- ===== SLIDER ===== -->
+        <!-- SLIDER -->
         <div class="slider-container">
             <div class="slider-wrapper" id="sliderWrapper"></div>
             <div class="slider-dots" id="sliderDots"></div>
         </div>
 
-        <!-- ===== STATS ===== -->
+        <!-- STATS -->
         <div class="stats-bar">
             <div class="stat-card"><div class="num" id="totalScripts">0</div><div class="label">Total</div></div>
             <div class="stat-card"><div class="num" id="freeScripts">0</div><div class="label">Free</div></div>
@@ -2568,29 +1375,29 @@
             <div class="stat-card"><div class="num" id="wishlistStats">0</div><div class="label">Favorites</div></div>
         </div>
 
-        <!-- ===== FILTERS ===== -->
+        <!-- FILTERS -->
         <div class="filters">
             <button class="filter-btn active" data-filter="all" onclick="filterProducts('all')">All</button>
             <button class="filter-btn" data-filter="free" onclick="filterProducts('free')">Free</button>
             <button class="filter-btn" data-filter="paid" onclick="filterProducts('paid')">VIP</button>
         </div>
 
-        <!-- ===== PRODUCT GRID ===== -->
+        <!-- PRODUCT GRID -->
         <div class="product-grid" id="productList"></div>
 
-        <!-- ===== FEATURED ===== -->
+        <!-- FEATURED -->
         <div style="padding:0 16px 8px; font-size:18px; font-weight:800; color:var(--primary);">⭐ Featured</div>
         <div id="featuredGrid"></div>
 
-        <!-- ===== RECOMMENDED ===== -->
+        <!-- RECOMMENDED -->
         <div style="padding:0 16px 8px; font-size:18px; font-weight:800; color:var(--vip-color);">🔥 Recommended for You</div>
         <div id="recommendationsGrid"></div>
 
-        <!-- ===== PROXY STORE ===== -->
+        <!-- PROXY STORE -->
         <div style="padding:0 16px 8px; font-size:18px; font-weight:800; color:var(--primary);">🌐 Proxy Store</div>
         <div id="proxyPackages" class="proxy-grid"></div>
 
-        <!-- ===== BOTTOM CART BAR ===== -->
+        <!-- BOTTOM CART BAR -->
         <div id="bottomCartBar">
             <div class="cart-info">
                 <i class="fas fa-shopping-basket"></i>
@@ -2600,7 +1407,7 @@
             <button class="checkout-btn" onclick="checkout()"><i class="fas fa-credit-card"></i> Checkout</button>
         </div>
 
-        <!-- ===== SUPPORT FLOAT ===== -->
+        <!-- SUPPORT FLOAT -->
         <div id="supportFloat">
             <button class="support-toggle" onclick="toggleSupportMenu()"><i class="fas fa-headset"></i></button>
             <div class="support-menu">
@@ -2610,7 +1417,7 @@
             </div>
         </div>
 
-        <!-- ===== FOOTER ===== -->
+        <!-- FOOTER -->
         <footer class="site-footer">
             <div class="footer-content">
                 <div class="footer-social">
@@ -2630,24 +1437,20 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- ===== FULLSCREEN MODALS (Slide from Left) ===== -->
+    <!-- ===== FULLSCREEN MODALS ===== -->
     <!-- ============================================================ -->
 
-    <!-- ===== PRODUCT DETAILS FULL PAGE ===== -->
+    <!-- PRODUCT DETAILS -->
     <div class="fullscreen-modal" id="productDetailsFull">
         <div class="modal-header">
-            <button class="back-btn" onclick="closeProductDetails()" aria-label="Back">
-                <i class="fas fa-arrow-left"></i>
-            </button>
+            <button class="back-btn" onclick="closeProductDetails()" aria-label="Back"><i class="fas fa-arrow-left"></i></button>
             <h2 id="productDetailsTitle">Product</h2>
             <button class="close-btn" onclick="closeProductDetails()" aria-label="Close">&times;</button>
         </div>
-        <div id="productDetailsContent">
-            <!-- سيتم ملؤه بواسطة JavaScript -->
-        </div>
+        <div id="productDetailsContent"></div>
     </div>
 
-    <!-- ===== USER MENU FULL ===== -->
+    <!-- USER MENU -->
     <div class="fullscreen-modal" id="userMenuFull">
         <div class="modal-header">
             <h2><i class="fas fa-user-circle"></i> Profile</h2>
@@ -2685,7 +1488,7 @@
         </div>
     </div>
 
-    <!-- ===== CART FULL ===== -->
+    <!-- CART -->
     <div class="fullscreen-modal" id="cartFull">
         <div class="modal-header">
             <h2><i class="fas fa-shopping-basket"></i> Cart</h2>
@@ -2694,7 +1497,7 @@
         <div id="cartFullContent" style="flex:1; overflow-y:auto;"></div>
     </div>
 
-    <!-- ===== WISHLIST FULL ===== -->
+    <!-- WISHLIST -->
     <div class="fullscreen-modal" id="wishlistFull">
         <div class="modal-header">
             <h2><i class="fas fa-heart"></i> Favorites</h2>
@@ -2703,7 +1506,7 @@
         <div id="wishlistFullContent" style="flex:1; overflow-y:auto;"></div>
     </div>
 
-    <!-- ===== PROFILE FULL ===== -->
+    <!-- PROFILE -->
     <div class="fullscreen-modal" id="profileFull">
         <div class="modal-header">
             <h2><i class="fas fa-user-edit"></i> Profile</h2>
@@ -2712,7 +1515,7 @@
         <div id="profileFullContent" style="flex:1; overflow-y:auto;"></div>
     </div>
 
-    <!-- ===== ORDER HISTORY FULL ===== -->
+    <!-- ORDER HISTORY -->
     <div class="fullscreen-modal" id="historyFull">
         <div class="modal-header">
             <h2><i class="fas fa-shopping-bag"></i> Order History</h2>
@@ -2740,15 +1543,13 @@
                 <button class="close-btn" onclick="closeHistoryFull()" style="background:none; border:none; color:var(--text-secondary); font-size:24px; cursor:pointer; padding:0 4px;">&times;</button>
             </div>
         </div>
-        <div id="historyFullContent" style="flex:1; overflow-y:auto; padding:8px 0;">
-            <div style="text-align:center; padding:30px; color:var(--text-secondary); font-weight:500;">Loading orders...</div>
-        </div>
+        <div id="historyFullContent" style="flex:1; overflow-y:auto; padding:8px 0;"></div>
         <div id="historyDelayNote" class="payment-delay-note">
             <i class="fas fa-clock"></i> Payments are reviewed and sent within 24–48 hours
         </div>
     </div>
 
-    <!-- ===== NOTIFICATIONS ===== -->
+    <!-- NOTIFICATIONS -->
     <div class="fullscreen-modal" id="notificationsModal">
         <div class="modal-header">
             <h2><i class="fas fa-bell"></i> Notifications</h2>
@@ -2761,7 +1562,7 @@
         <div id="notificationsList" style="flex:1; overflow-y:auto;"></div>
     </div>
 
-    <!-- ===== DOWNLOADS ===== -->
+    <!-- DOWNLOADS -->
     <div class="fullscreen-modal" id="downloadsModal">
         <div class="modal-header">
             <h2><i class="fas fa-download"></i> Downloads</h2>
@@ -2770,7 +1571,7 @@
         <div id="downloadsList" style="flex:1; overflow-y:auto;"></div>
     </div>
 
-    <!-- ===== LICENCE MODAL ===== -->
+    <!-- LICENCE MODAL -->
     <div class="fullscreen-modal" id="licenceModal">
         <div class="modal-header">
             <h2><i class="fas fa-key"></i> Activate Licence</h2>
@@ -2787,7 +1588,7 @@
         </div>
     </div>
 
-    <!-- ===== REQUESTS ===== -->
+    <!-- REQUESTS -->
     <div class="fullscreen-modal" id="requestsModal">
         <div class="modal-header">
             <h2><i class="fas fa-pen"></i> My Requests</h2>
@@ -2799,34 +1600,7 @@
         <div id="requestsList" style="flex:1; overflow-y:auto;"></div>
     </div>
 
-    <!-- ===== NEW REQUEST MODAL ===== -->
-    <div class="modal" id="newRequestModal">
-        <div class="modal-content">
-            <span class="modal-close" onclick="closeNewRequestModal()">&times;</span>
-            <h2><i class="fas fa-plus-circle"></i> New Request</h2>
-            <form id="requestForm" onsubmit="submitRequest(event)">
-                <div class="admin-form-group">
-                    <label for="reqGameName">Game Name</label>
-                    <input type="text" id="reqGameName" placeholder="e.g., Free Fire" required />
-                </div>
-                <div class="admin-form-group">
-                    <label for="reqPlayStore">Play Store Link</label>
-                    <input type="url" id="reqPlayStore" placeholder="https://play.google.com/..." required />
-                </div>
-                <div class="admin-form-group">
-                    <label for="reqFeatures">Features Needed</label>
-                    <textarea id="reqFeatures" rows="3" placeholder="List the features you want..." required></textarea>
-                </div>
-                <div class="admin-form-group">
-                    <label for="reqBudget">Budget ($)</label>
-                    <input type="text" id="reqBudget" placeholder="e.g., 50$" required />
-                </div>
-                <button type="submit" style="width:100%; padding:12px; border:none; border-radius:var(--radius-sm); background:var(--primary); color:#fff; font-weight:800; cursor:pointer;">Submit Request</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- ===== REFERRAL MODAL ===== -->
+    <!-- REFERRAL MODAL -->
     <div class="fullscreen-modal" id="referralModal">
         <div class="modal-header">
             <h2><i class="fas fa-users"></i> Referral Program</h2>
@@ -2854,7 +1628,7 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- ===== PAYMENT MODAL (Checkout like Cart) ===== -->
+    <!-- ===== PAYMENT MODAL ===== -->
     <!-- ============================================================ -->
     <div class="fullscreen-modal" id="paymentModal">
         <div class="modal-header">
@@ -2891,15 +1665,8 @@
                         <div class="p-sub">Direct Transfer</div>
                         <div class="p-check"><i class="fas fa-check"></i></div>
                     </div>
-                    <div class="payment-option" id="optionCreditCard" onclick="selectPayment('creditCard')" style="border-radius:var(--radius-md); opacity:0.6; cursor:not-allowed;">
-                        <i class="fas fa-credit-card" style="color:var(--text-secondary); font-size:30px;"></i>
-                        <div class="p-label">Credit Card</div>
-                        <div class="p-sub">Coming Soon</div>
-                        <div class="p-check"><i class="fas fa-check"></i></div>
-                    </div>
                 </div>
 
-                <!-- Total Amount -->
                 <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
                     <div style="display:flex; justify-content:space-between; font-size:16px; font-weight:700;">
                         <span>Total Amount:</span>
@@ -2910,12 +1677,10 @@
                 <button class="payment-btn" onclick="continuePayment()" style="margin-top:12px;"><i class="fas fa-arrow-right"></i> Continue</button>
             </div>
 
-            <!-- Step 2 (like Cart style) -->
+            <!-- Step 2 -->
             <div id="paymentStep2" style="display:none;">
-                <!-- Product list -->
                 <div id="paymentProductsList" style="margin-bottom:6px;"></div>
                 
-                <!-- Subtotal & Total -->
                 <div style="background:var(--bg-secondary); border-radius:var(--radius-md); padding:12px 14px; border:1px solid var(--border); margin:6px 0 12px;">
                     <div style="display:flex; justify-content:space-between; padding:2px 0; font-size:14px; font-weight:500;">
                         <span style="color:var(--text-secondary); opacity:0.6;">Subtotal</span>
@@ -2927,7 +1692,6 @@
                     </div>
                 </div>
 
-                <!-- RP and Promo (like cart) -->
                 <div style="background:var(--bg-secondary);border-radius:var(--radius-md);padding:10px 12px;border:1px solid var(--border);margin:6px 0;">
                     <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
                         <span style="color:var(--text-secondary);opacity:0.5;display:flex;align-items:center;gap:5px;"><i class="fas fa-star" style="color:var(--vip-color);"></i> Loyalty Points (RP)</span>
@@ -2937,6 +1701,7 @@
                         <i class="fas fa-circle"></i> Use RP
                     </button>
                 </div>
+
                 <div style="background:var(--bg-secondary);border-radius:var(--radius-md);padding:10px 12px;border:1px solid var(--border);margin:6px 0;">
                     <div style="display:flex;gap:6px;align-items:center;">
                         <input id="checkoutPromoInput" placeholder="Enter promo code..." style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);font-size:13px;outline:none;font-weight:500;" type="text" />
@@ -2945,7 +1710,6 @@
                     <div class="promo-status" id="checkoutPromoStatus" style="font-size:11px;color:var(--text-secondary);opacity:0.4;margin-top:4px;font-weight:500;">Enter a promo code for a discount</div>
                 </div>
 
-                <!-- ===== PAYMENT INSTRUCTIONS (like image) ===== -->
                 <div id="paymentInstructionsContainer" style="display:none; margin-top:6px;">
                     <div style="background:var(--bg-secondary); border-radius:var(--radius-md); padding:14px 16px; border:1px solid var(--border);">
                         <h3 style="font-size:16px; font-weight:800; color:var(--text); margin-bottom:6px;"><i class="fas fa-info-circle" style="color:var(--primary);"></i> Payment Instructions</h3>
@@ -2955,13 +1719,8 @@
                         <div style="background:var(--warning)20; border-left:3px solid var(--warning); padding:8px 12px; border-radius:6px; margin:8px 0; font-size:13px; color:var(--text-secondary);">
                             <strong style="color:var(--warning);">Important:</strong> Your order will be processed manually upon verification of the transaction. This may take up to <strong>24-48 hours</strong>.
                         </div>
-                        <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:600; color:var(--danger); background:var(--danger)15; padding:6px 12px; border-radius:6px; margin-bottom:8px;">
-                            <span><i class="fas fa-clock"></i> Payment deadline:</span>
-                            <span><strong>30 minutes</strong> from order creation</span>
-                        </div>
                     </div>
-                
-                    <!-- Wallet Info (LTC/USDT) -->
+
                     <div id="paymentWalletInfo" style="display:none; background:var(--bg-secondary); border-radius:var(--radius-md); padding:14px 16px; border:1px solid var(--border); margin-top:8px;">
                         <div style="display:flex; justify-content:space-between; align-items:center; font-weight:700; font-size:15px;">
                             <span id="paymentMethodName">Litecoin</span>
@@ -2978,14 +1737,12 @@
                         </div>
                     </div>
 
-                    <!-- Tx Hash Input (LTC/USDT) -->
                     <div id="paymentTxInput" style="display:none; margin-top:8px;">
                         <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">📋 Transaction Hash</label>
                         <input type="text" id="transactionHashInput" placeholder="Paste transaction hash" style="width:100%; padding:10px 14px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--card-bg); color:var(--text); font-size:14px; outline:none; font-family:var(--font); font-weight:500;" />
                         <div style="font-size:11px; color:var(--text-secondary); opacity:0.3; margin-top:4px; font-weight:500;"><i class="fas fa-info-circle"></i> Copy the transaction hash from your wallet after sending</div>
                     </div>
 
-                    <!-- Telegram Contact -->
                     <div id="paymentTelegramContact" style="display:none; margin-top:8px;">
                         <div style="background:var(--bg-secondary); border-radius:var(--radius-md); padding:14px 16px; border:1px solid var(--border); text-align:center;">
                             <i class="fab fa-telegram-plane" style="font-size:40px; color:#0088cc; display:block; margin-bottom:6px;"></i>
@@ -2995,29 +1752,28 @@
                         </div>
                     </div>
 
-                    <!-- ===== BINANCE ID SECTION ===== -->
-                    <div id="paymentBinanceIdSection" class="binance-id-section" style="display:none; margin-top:8px;">
-                        <div class="binance-id-box" style="background:var(--bg-secondary); border-radius:var(--radius-md); padding:14px 16px; border:1px solid var(--border);">
-                            <div class="bi-header" style="display:flex; align-items:center; gap:10px; font-size:16px; font-weight:800; margin-bottom:8px;">
+                    <div id="paymentBinanceIdSection" style="display:none; margin-top:8px;">
+                        <div style="background:var(--bg-secondary); border-radius:var(--radius-md); padding:14px 16px; border:1px solid var(--border);">
+                            <div style="display:flex; align-items:center; gap:10px; font-size:16px; font-weight:800; margin-bottom:8px;">
                                 <i class="fab fa-binance" style="color:#f2a900; font-size:24px;"></i>
                                 <span>Transfer via Binance ID</span>
                             </div>
-                            <div class="bi-content" style="display:flex; flex-direction:column; gap:6px;">
-                                <div class="bi-row" style="display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:14px; font-weight:500; background:var(--bg); padding:6px 10px; border-radius:6px; border:1px solid var(--border);">
-                                    <span class="bi-label" style="color:var(--text-secondary); opacity:0.6; font-weight:600;">📤 Transfer to:</span>
-                                    <span class="bi-value" id="binanceIdDisplay" style="font-weight:700; font-family:monospace;">748838383</span>
-                                    <button onclick="copyBinanceId()" class="bi-copy-btn" style="background:var(--primary); border:none; color:#fff; padding:4px 12px; border-radius:6px; cursor:pointer; font-weight:600; font-size:12px;"><i class="fas fa-copy"></i> Copy</button>
+                            <div style="display:flex; flex-direction:column; gap:6px;">
+                                <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:14px; font-weight:500; background:var(--bg); padding:6px 10px; border-radius:6px; border:1px solid var(--border);">
+                                    <span style="color:var(--text-secondary); opacity:0.6; font-weight:600;">📤 Transfer to:</span>
+                                    <span id="binanceIdDisplay" style="font-weight:700; font-family:monospace;">748838383</span>
+                                    <button onclick="copyBinanceId()" style="background:var(--primary); border:none; color:#fff; padding:4px 12px; border-radius:6px; cursor:pointer; font-weight:600; font-size:12px;"><i class="fas fa-copy"></i> Copy</button>
                                 </div>
-                                <div class="bi-row" style="display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:14px; font-weight:500; background:var(--bg); padding:6px 10px; border-radius:6px; border:1px solid var(--border);">
-                                    <span class="bi-label" style="color:var(--text-secondary); opacity:0.6; font-weight:600;">💰 Amount:</span>
-                                    <span class="bi-value" id="binanceAmountDisplay" style="font-weight:700; color:var(--primary);">$0.00</span>
+                                <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:14px; font-weight:500; background:var(--bg); padding:6px 10px; border-radius:6px; border:1px solid var(--border);">
+                                    <span style="color:var(--text-secondary); opacity:0.6; font-weight:600;">💰 Amount:</span>
+                                    <span id="binanceAmountDisplay" style="font-weight:700; color:var(--primary);">$0.00</span>
                                 </div>
-                                <div class="bi-row" style="display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:14px; font-weight:500; background:var(--bg); padding:6px 10px; border-radius:6px; border:1px solid var(--border);">
-                                    <span class="bi-label" style="color:var(--text-secondary); opacity:0.6; font-weight:600;">📝 Order ID:</span>
-                                    <span class="bi-value" id="binanceOrderDisplay" style="font-weight:700; font-family:monospace;">#------</span>
+                                <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:14px; font-weight:500; background:var(--bg); padding:6px 10px; border-radius:6px; border:1px solid var(--border);">
+                                    <span style="color:var(--text-secondary); opacity:0.6; font-weight:600;">📝 Order ID:</span>
+                                    <span id="binanceOrderDisplay" style="font-weight:700; font-family:monospace;">#------</span>
                                 </div>
-                                <div class="bi-divider" style="height:1px; background:var(--border); margin:4px 0;"></div>
-                                <div class="bi-instructions" style="font-size:13px; color:var(--text-secondary); background:var(--bg); padding:12px 14px; border-radius:var(--radius-sm); border:1px solid var(--border); font-weight:500;">
+                                <div style="height:1px; background:var(--border); margin:4px 0;"></div>
+                                <div style="font-size:13px; color:var(--text-secondary); background:var(--bg); padding:12px 14px; border-radius:var(--radius-sm); border:1px solid var(--border); font-weight:500;">
                                     <p style="font-weight:700; color:var(--text); margin-bottom:4px;"><i class="fas fa-info-circle" style="color:#f2a900;"></i> Payment Instructions:</p>
                                     <ol style="margin:0; padding-left:20px; opacity:0.8;">
                                         <li>Open the Binance app</li>
@@ -3033,24 +1789,24 @@
                             </div>
                         </div>
 
-                        <div class="binance-verification" style="background:var(--bg-secondary); border-radius:var(--radius-md); padding:14px 16px; border:1px solid var(--border); margin-top:8px;">
-                            <div class="bv-header" style="display:flex; align-items:center; gap:8px; font-weight:700; margin-bottom:8px;">
+                        <div style="background:var(--bg-secondary); border-radius:var(--radius-md); padding:14px 16px; border:1px solid var(--border); margin-top:8px;">
+                            <div style="display:flex; align-items:center; gap:8px; font-weight:700; margin-bottom:8px;">
                                 <i class="fas fa-check-circle" style="color:var(--success); font-size:18px;"></i>
                                 <span>Payment Confirmation</span>
                             </div>
-                            <div class="bv-body">
-                                <div class="bv-field" style="margin-bottom:10px;">
+                            <div>
+                                <div style="margin-bottom:10px;">
                                     <label for="txHashInput" style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">📋 Transaction ID:</label>
-                                    <div class="bv-input-group" style="display:flex; gap:6px;">
+                                    <div style="display:flex; gap:6px;">
                                         <input type="text" id="txHashInput" placeholder="Example: 0x7a8b9c... or 443016893778911232" onpaste="handleTxPaste(event)" style="flex:1; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--card-bg); color:var(--text); font-size:14px; outline:none; font-family:var(--font); font-weight:500;" />
-                                        <button onclick="verifyTransaction()" class="bv-verify-btn" style="padding:8px 16px; border:none; border-radius:var(--radius-sm); background:var(--primary); color:#fff; font-weight:700; cursor:pointer; white-space:nowrap;"><i class="fas fa-search"></i> Verify</button>
+                                        <button onclick="verifyTransaction()" style="padding:8px 16px; border:none; border-radius:var(--radius-sm); background:var(--primary); color:#fff; font-weight:700; cursor:pointer; white-space:nowrap;"><i class="fas fa-search"></i> Verify</button>
                                     </div>
-                                    <div class="bv-hint" style="font-size:12px; color:var(--text-secondary); opacity:0.4; margin-top:4px; font-weight:500;"><i class="fas fa-lightbulb"></i> You can paste the Transaction ID from the Binance app</div>
+                                    <div style="font-size:12px; color:var(--text-secondary); opacity:0.4; margin-top:4px; font-weight:500;"><i class="fas fa-lightbulb"></i> You can paste the Transaction ID from the Binance app</div>
                                 </div>
 
-                                <div class="bv-upload" style="margin:10px 0;">
+                                <div style="margin:10px 0;">
                                     <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">🖼️ Or upload a screenshot:</label>
-                                    <div class="bv-drop-zone" id="dropZone" onclick="document.getElementById('screenshotInput').click()" style="border:2px dashed var(--border); border-radius:var(--radius-sm); padding:14px 12px; text-align:center; color:var(--text-secondary); cursor:pointer; transition:0.3s; background:var(--card-bg); font-weight:500;">
+                                    <div id="dropZone" onclick="document.getElementById('screenshotInput').click()" style="border:2px dashed var(--border); border-radius:var(--radius-sm); padding:14px 12px; text-align:center; color:var(--text-secondary); cursor:pointer; transition:0.3s; background:var(--card-bg); font-weight:500;">
                                         <i class="fas fa-cloud-upload-alt" style="font-size:28px; display:block; margin-bottom:4px;"></i>
                                         <p style="margin:0; font-size:13px;">Drag image here or click to select</p>
                                         <input type="file" id="screenshotInput" accept="image/*" onchange="handleScreenshot(event)" style="display:none;" />
@@ -3061,11 +1817,11 @@
                                     </div>
                                 </div>
 
-                                <div id="verificationResult" class="bv-result" style="display:none; margin:6px 0; padding:8px 12px; border-radius:var(--radius-sm); font-size:13px; font-weight:600; background:var(--bg); border:1px solid var(--border);"></div>
+                                <div id="verificationResult" style="display:none; margin:6px 0; padding:8px 12px; border-radius:var(--radius-sm); font-size:13px; font-weight:600; background:var(--bg); border:1px solid var(--border);"></div>
 
-                                <button onclick="submitManualPayment()" class="bv-submit-btn" style="width:100%; padding:12px; border:none; border-radius:var(--radius-sm); background:var(--primary); color:#fff; font-weight:800; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:0.3s;"><i class="fas fa-check-circle"></i> Confirm Payment</button>
+                                <button onclick="submitManualPayment()" style="width:100%; padding:12px; border:none; border-radius:var(--radius-sm); background:var(--primary); color:#fff; font-weight:800; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:0.3s;"><i class="fas fa-check-circle"></i> Confirm Payment</button>
 
-                                <div class="bv-note" style="font-size:12px; color:var(--text-secondary); opacity:0.4; margin-top:6px; text-align:center; font-weight:500;">
+                                <div style="font-size:12px; color:var(--text-secondary); opacity:0.4; margin-top:6px; text-align:center; font-weight:500;">
                                     <i class="fas fa-clock"></i> Your request will be reviewed within 5-10 minutes
                                     <br>
                                     <span style="font-size:11px; opacity:0.4;">For inquiries: <a href="https://t.me/Mitalica69" target="_blank" style="color:var(--primary); text-decoration:none;">@Mitalica69</a></span>
@@ -3075,15 +1831,15 @@
                     </div>
                 </div>
 
-                <!-- Main Confirm Button -->
                 <button class="payment-btn" id="mainConfirmBtn" style="display:none; margin-top:12px; padding:14px; font-size:17px;"><i class="fas fa-check"></i> Confirm Payment</button>
-
                 <button class="payment-btn" onclick="goToStep1()" style="background:transparent; color:var(--text-secondary); border:1px solid var(--border); margin-top:8px; font-weight:600; padding:12px;"><i class="fas fa-arrow-left"></i> Back</button>
             </div>
         </div>
     </div>
 
+    <!-- ============================================================ -->
     <!-- ===== SHARE MODAL ===== -->
+    <!-- ============================================================ -->
     <div class="modal" id="shareModal">
         <div class="modal-content" style="max-width:400px; text-align:center;">
             <span class="modal-close" onclick="closeShareModal()">&times;</span>
@@ -3095,6 +1851,35 @@
                 <button onclick="shareToFacebook()" style="background:#1877f2; border:none; color:#fff; padding:8px 16px; border-radius:30px; cursor:pointer; font-weight:700;"><i class="fab fa-facebook"></i> Facebook</button>
                 <button onclick="copyShareLink()" style="background:var(--primary); border:none; color:#fff; padding:8px 16px; border-radius:30px; cursor:pointer; font-weight:700;"><i class="fas fa-copy"></i> Copy Link</button>
             </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- ===== NEW REQUEST MODAL ===== -->
+    <!-- ============================================================ -->
+    <div class="modal" id="newRequestModal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeNewRequestModal()">&times;</span>
+            <h2><i class="fas fa-plus-circle"></i> New Request</h2>
+            <form id="requestForm" onsubmit="submitRequest(event)">
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Game Name</label>
+                    <input type="text" id="reqGameName" placeholder="e.g., Free Fire" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" required />
+                </div>
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Play Store Link</label>
+                    <input type="url" id="reqPlayStore" placeholder="https://play.google.com/..." style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" required />
+                </div>
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Features Needed</label>
+                    <textarea id="reqFeatures" rows="3" placeholder="List the features you want..." style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" required></textarea>
+                </div>
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Budget ($)</label>
+                    <input type="text" id="reqBudget" placeholder="e.g., 50$" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" required />
+                </div>
+                <button type="submit" style="width:100%; padding:12px; border:none; border-radius:var(--radius-sm); background:var(--primary); color:#fff; font-weight:800; cursor:pointer;">Submit Request</button>
+            </form>
         </div>
     </div>
 
@@ -3183,7 +1968,9 @@
         </div>
     </div>
 
+    <!-- ============================================================ -->
     <!-- ===== FORGOT PASSWORD MODAL ===== -->
+    <!-- ============================================================ -->
     <div class="modal" id="forgotPasswordModal">
         <div class="modal-content" style="max-width:400px;">
             <span class="modal-close" onclick="closeForgotPasswordModal()">&times;</span>
@@ -3424,27 +2211,27 @@
             <span class="modal-close" onclick="closeCreateDownloadModal()">&times;</span>
             <h3 style="font-weight:800;"><i class="fas fa-plus-circle"></i> Add Download</h3>
             <form id="createDownloadForm" onsubmit="createDownload(event)">
-                <div class="admin-form-group">
-                    <label>Title</label>
-                    <input type="text" id="dlTitle" required />
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Title</label>
+                    <input type="text" id="dlTitle" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" required />
                 </div>
-                <div class="admin-form-group">
-                    <label>Type</label>
-                    <input type="text" id="dlType" placeholder="e.g., PDF, Video" required />
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Type</label>
+                    <input type="text" id="dlType" placeholder="e.g., PDF, Video" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" required />
                 </div>
-                <div class="admin-form-group">
-                    <label>Description</label>
-                    <textarea id="dlDescription" rows="2" required></textarea>
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Description</label>
+                    <textarea id="dlDescription" rows="2" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" required></textarea>
                 </div>
-                <div class="admin-form-group">
-                    <label>Download URL</label>
-                    <input type="url" id="dlUrl" required />
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Download URL</label>
+                    <input type="url" id="dlUrl" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" required />
                 </div>
-                <div class="admin-form-group">
-                    <label>Date</label>
-                    <input type="date" id="dlDate" />
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Date</label>
+                    <input type="date" id="dlDate" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" />
                 </div>
-                <button type="submit" class="admin-submit-btn" style="width:100%;">Add Download</button>
+                <button type="submit" style="width:100%; padding:10px; border:none; border-radius:var(--radius-sm); background:var(--primary); color:#fff; font-weight:800; cursor:pointer;">Add Download</button>
             </form>
         </div>
     </div>
@@ -3457,15 +2244,15 @@
             <span class="modal-close" onclick="closeCreateNotificationModal()">&times;</span>
             <h3 style="font-weight:800;"><i class="fas fa-bell"></i> Send Notification</h3>
             <form id="createNotificationForm" onsubmit="createNotification(event)">
-                <div class="admin-form-group">
-                    <label>Title</label>
-                    <input type="text" id="notifTitle" required />
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Title</label>
+                    <input type="text" id="notifTitle" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" required />
                 </div>
-                <div class="admin-form-group">
-                    <label>Message</label>
-                    <textarea id="notifMessage" rows="3" required></textarea>
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Message</label>
+                    <textarea id="notifMessage" rows="3" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" required></textarea>
                 </div>
-                <button type="submit" class="admin-submit-btn" style="width:100%;">Send</button>
+                <button type="submit" style="width:100%; padding:10px; border:none; border-radius:var(--radius-sm); background:var(--primary); color:#fff; font-weight:800; cursor:pointer;">Send</button>
             </form>
         </div>
     </div>
@@ -3479,60 +2266,60 @@
             <h3 id="productFormTitle" style="font-weight:800;">➕ Add Product</h3>
             <form id="productForm" onsubmit="saveProduct(event)">
                 <input type="hidden" id="productIdField" />
-                <div class="admin-form-group">
-                    <label>Product Name *</label>
-                    <input type="text" id="productName" required />
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Product Name *</label>
+                    <input type="text" id="productName" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" required />
                 </div>
-                <div class="admin-form-group">
-                    <label>Price ($) *</label>
-                    <input type="number" id="productPrice" step="0.01" min="0" required />
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Price ($) *</label>
+                    <input type="number" id="productPrice" step="0.01" min="0" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" required />
                 </div>
-                <div class="admin-form-group">
-                    <label>Original Price ($)</label>
-                    <input type="number" id="productOriginalPrice" step="0.01" min="0" />
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Original Price ($)</label>
+                    <input type="number" id="productOriginalPrice" step="0.01" min="0" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" />
                 </div>
-                <div class="admin-form-group">
-                    <label>Badge</label>
-                    <select id="productBadge">
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Badge</label>
+                    <select id="productBadge" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;">
                         <option value="FREE">FREE</option>
                         <option value="VIP">VIP</option>
                         <option value="PREMIUM">PREMIUM</option>
                         <option value="EXCLUSIVE">EXCLUSIVE</option>
                     </select>
                 </div>
-                <div class="admin-form-group">
-                    <label>Status</label>
-                    <select id="productStatus">
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Status</label>
+                    <select id="productStatus" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;">
                         <option value="available">Available</option>
                         <option value="unavailable">Unavailable</option>
                     </select>
                 </div>
-                <div class="admin-form-group">
-                    <label>Image URL</label>
-                    <input type="text" id="productImage" placeholder="https://..." />
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Image URL</label>
+                    <input type="text" id="productImage" placeholder="https://..." style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" />
                 </div>
-                <div class="admin-form-group">
-                    <label>Upload Image</label>
-                    <input type="file" id="productImageFile" accept="image/*" />
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Upload Image</label>
+                    <input type="file" id="productImageFile" accept="image/*" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" />
                 </div>
-                <div class="admin-form-group">
-                    <label>Description</label>
-                    <textarea id="productDescription" rows="2"></textarea>
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Description</label>
+                    <textarea id="productDescription" rows="2" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;"></textarea>
                 </div>
-                <div class="admin-form-group">
-                    <label>Features (comma separated)</label>
-                    <input type="text" id="productFeatures" placeholder="Feature 1, Feature 2, ..." />
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Features (comma separated)</label>
+                    <input type="text" id="productFeatures" placeholder="Feature 1, Feature 2, ..." style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" />
                 </div>
-                <div class="admin-form-group">
-                    <label>YouTube Embed URL</label>
-                    <input type="text" id="productVideo" placeholder="https://www.youtube.com/embed/..." />
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">YouTube Embed URL</label>
+                    <input type="text" id="productVideo" placeholder="https://www.youtube.com/embed/..." style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" />
                 </div>
-                <div class="admin-form-group">
-                    <label>Duration (optional)</label>
-                    <input type="text" id="productDuration" placeholder="e.g., 30 days" />
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Duration (optional)</label>
+                    <input type="text" id="productDuration" placeholder="e.g., 30 days" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" />
                 </div>
-                <div class="admin-form-group">
-                    <label>Currency</label>
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Currency</label>
                     <div style="display:flex; gap:6px;">
                         <button type="button" class="currency-option active" data-currency="USD" onclick="selectCurrency('USD')">$ USD</button>
                         <button type="button" class="currency-option" data-currency="TND" onclick="selectCurrency('TND')">د.ت TND</button>
@@ -3540,8 +2327,8 @@
                     </div>
                     <input type="hidden" id="productCurrency" value="USD" />
                 </div>
-                <div class="admin-form-group">
-                    <label>Product Type</label>
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Product Type</label>
                     <div style="display:flex; gap:6px;">
                         <button type="button" class="type-option active" data-type="standard" onclick="selectProductType('standard')">Standard</button>
                         <button type="button" class="type-option" data-type="quantity" onclick="selectProductType('quantity')">Quantity</button>
@@ -3553,8 +2340,8 @@
                     <div id="quantityOptionsList"></div>
                     <button type="button" onclick="addQuantityOption()" style="margin-top:4px; padding:4px 12px; background:var(--primary); border:none; border-radius:var(--radius-sm); color:#fff; cursor:pointer; font-weight:700;">+ Add Option</button>
                 </div>
-                <div class="admin-form-group">
-                    <label>Mini Badges (click to toggle)</label>
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Mini Badges (click to toggle)</label>
                     <div style="display:flex; gap:4px; flex-wrap:wrap;">
                         <span class="badge-option" data-badge="new" onclick="toggleBadge('new')">🆕 New</span>
                         <span class="badge-option" data-badge="hot" onclick="toggleBadge('hot')">🔥 Hot</span>
@@ -3565,23 +2352,23 @@
                     </div>
                     <input type="hidden" id="productBadges" value="" />
                 </div>
-                <div class="admin-form-group">
+                <div style="margin-bottom:12px;">
                     <label style="display:flex; align-items:center; gap:8px;">
                         <input type="checkbox" id="vipEnabled" onchange="document.getElementById('vipPricingFields').style.display=this.checked?'block':'none'" />
                         <span style="font-weight:700;">Enable VIP Pricing</span>
                     </label>
                 </div>
                 <div id="vipPricingFields" style="display:none;">
-                    <div class="admin-form-group"><label style="font-weight:700;">1 Month Price</label><input type="number" id="vipPrice1m" step="0.01" min="0" /></div>
-                    <div class="admin-form-group"><label style="font-weight:700;">1 Month Original</label><input type="number" id="vipOriginalPrice1m" step="0.01" min="0" /></div>
-                    <div class="admin-form-group"><label style="font-weight:700;">3 Months Price</label><input type="number" id="vipPrice3m" step="0.01" min="0" /></div>
-                    <div class="admin-form-group"><label style="font-weight:700;">3 Months Original</label><input type="number" id="vipOriginalPrice3m" step="0.01" min="0" /></div>
-                    <div class="admin-form-group"><label style="font-weight:700;">1 Year Price</label><input type="number" id="vipPrice1y" step="0.01" min="0" /></div>
-                    <div class="admin-form-group"><label style="font-weight:700;">1 Year Original</label><input type="number" id="vipOriginalPrice1y" step="0.01" min="0" /></div>
-                    <div class="admin-form-group"><label style="font-weight:700;">Lifetime Price</label><input type="number" id="vipPriceLifetime" step="0.01" min="0" /></div>
-                    <div class="admin-form-group"><label style="font-weight:700;">Lifetime Original</label><input type="number" id="vipOriginalPriceLifetime" step="0.01" min="0" /></div>
+                    <div style="margin-bottom:12px;"><label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">1 Month Price</label><input type="number" id="vipPrice1m" step="0.01" min="0" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" /></div>
+                    <div style="margin-bottom:12px;"><label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">1 Month Original</label><input type="number" id="vipOriginalPrice1m" step="0.01" min="0" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" /></div>
+                    <div style="margin-bottom:12px;"><label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">3 Months Price</label><input type="number" id="vipPrice3m" step="0.01" min="0" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" /></div>
+                    <div style="margin-bottom:12px;"><label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">3 Months Original</label><input type="number" id="vipOriginalPrice3m" step="0.01" min="0" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" /></div>
+                    <div style="margin-bottom:12px;"><label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">1 Year Price</label><input type="number" id="vipPrice1y" step="0.01" min="0" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" /></div>
+                    <div style="margin-bottom:12px;"><label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">1 Year Original</label><input type="number" id="vipOriginalPrice1y" step="0.01" min="0" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" /></div>
+                    <div style="margin-bottom:12px;"><label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Lifetime Price</label><input type="number" id="vipPriceLifetime" step="0.01" min="0" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" /></div>
+                    <div style="margin-bottom:12px;"><label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Lifetime Original</label><input type="number" id="vipOriginalPriceLifetime" step="0.01" min="0" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" /></div>
                 </div>
-                <button type="submit" class="admin-submit-btn" style="width:100%;">Save Product</button>
+                <button type="submit" style="width:100%; padding:10px; border:none; border-radius:var(--radius-sm); background:var(--primary); color:#fff; font-weight:800; cursor:pointer;">Save Product</button>
             </form>
         </div>
     </div>
@@ -3594,44 +2381,44 @@
             <span class="modal-close" onclick="closeAddSlideModal()">&times;</span>
             <h3 class="modal-title" style="font-weight:800;">➕ Add New Slide</h3>
             <form id="addSlideForm">
-                <div class="admin-form-group">
-                    <label>Image</label>
-                    <input type="file" id="slideImageFile" accept="image/*" />
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Image</label>
+                    <input type="file" id="slideImageFile" accept="image/*" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" />
                     <div id="slideImagePreview" style="display:none; margin-top:4px;"><img src="#" style="max-width:100%; max-height:120px; border-radius:var(--radius-sm); border:1px solid var(--border);" /></div>
                 </div>
-                <div class="admin-form-group">
-                    <label>Title</label>
-                    <input type="text" id="slideTitle" placeholder="Slide title" />
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Title</label>
+                    <input type="text" id="slideTitle" placeholder="Slide title" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" />
                 </div>
-                <div class="admin-form-group">
-                    <label>Subtitle</label>
-                    <input type="text" id="slideSubtitle" placeholder="Slide subtitle" />
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Subtitle</label>
+                    <input type="text" id="slideSubtitle" placeholder="Slide subtitle" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" />
                 </div>
-                <div class="admin-form-group">
-                    <label>Button Text</label>
-                    <input type="text" id="slideButtonText" value="Buy Now" />
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Button Text</label>
+                    <input type="text" id="slideButtonText" value="Buy Now" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" />
                 </div>
-                <div class="admin-form-group">
-                    <label>Link Type</label>
-                    <select id="slideLinkType" onchange="toggleSlideLinkFields()">
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Link Type</label>
+                    <select id="slideLinkType" onchange="toggleSlideLinkFields()" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;">
                         <option value="product">Product</option>
                         <option value="download">Download</option>
                         <option value="url">Custom URL</option>
                     </select>
                 </div>
-                <div class="admin-form-group" id="slideProductGroup">
-                    <label>Select Product</label>
-                    <select id="slideProductSelect"></select>
+                <div style="margin-bottom:12px;" id="slideProductGroup">
+                    <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Select Product</label>
+                    <select id="slideProductSelect" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;"></select>
                 </div>
-                <div class="admin-form-group" id="slideDownloadGroup" style="display:none;">
-                    <label>Download URL</label>
-                    <input type="url" id="slideDownloadUrl" placeholder="https://..." />
+                <div style="margin-bottom:12px; display:none;" id="slideDownloadGroup">
+                    <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Download URL</label>
+                    <input type="url" id="slideDownloadUrl" placeholder="https://..." style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" />
                 </div>
-                <div class="admin-form-group" id="slideCustomUrlGroup" style="display:none;">
-                    <label>Custom URL</label>
-                    <input type="url" id="slideCustomUrl" placeholder="https://..." />
+                <div style="margin-bottom:12px; display:none;" id="slideCustomUrlGroup">
+                    <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Custom URL</label>
+                    <input type="url" id="slideCustomUrl" placeholder="https://..." style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" />
                 </div>
-                <button type="button" class="admin-submit-btn" style="width:100%;" onclick="saveSlideEdit()">➕ Add Slide</button>
+                <button type="button" style="width:100%; padding:10px; border:none; border-radius:var(--radius-sm); background:var(--primary); color:#fff; font-weight:800; cursor:pointer;" onclick="saveSlideEdit()">➕ Add Slide</button>
             </form>
         </div>
     </div>
@@ -3643,19 +2430,19 @@
         <div class="modal-content" style="max-width:450px;">
             <span class="modal-close" onclick="closeCreateLicenceModal()">&times;</span>
             <h3 style="font-weight:800;"><i class="fas fa-key"></i> Create Licence</h3>
-            <div class="admin-form-group">
-                <label>Product Name</label>
-                <input type="text" id="newLicenceProduct" placeholder="e.g., VIP Script" />
+            <div style="margin-bottom:12px;">
+                <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Product Name</label>
+                <input type="text" id="newLicenceProduct" placeholder="e.g., VIP Script" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" />
             </div>
-            <div class="admin-form-group">
-                <label>User ID or Email (optional)</label>
-                <input type="text" id="newLicenceUser" placeholder="user@email.com or userId" />
+            <div style="margin-bottom:12px;">
+                <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">User ID or Email (optional)</label>
+                <input type="text" id="newLicenceUser" placeholder="user@email.com or userId" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" />
             </div>
-            <div class="admin-form-group">
-                <label>Expiry Date (optional)</label>
-                <input type="datetime-local" id="newLicenceExpiry" />
+            <div style="margin-bottom:12px;">
+                <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Expiry Date (optional)</label>
+                <input type="datetime-local" id="newLicenceExpiry" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" />
             </div>
-            <button class="admin-submit-btn" style="width:100%;" onclick="createLicenceManually()">Create Licence</button>
+            <button style="width:100%; padding:10px; border:none; border-radius:var(--radius-sm); background:var(--primary); color:#fff; font-weight:800; cursor:pointer;" onclick="createLicenceManually()">Create Licence</button>
         </div>
     </div>
 
@@ -3667,21 +2454,21 @@
             <span class="modal-close" onclick="document.getElementById('editLicenceModal').classList.remove('open')">&times;</span>
             <h3 style="font-weight:800;"><i class="fas fa-edit"></i> Edit Licence</h3>
             <input type="hidden" id="editLicenceId" />
-            <div class="admin-form-group">
-                <label>Code</label>
-                <input type="text" id="editLicenceCode" disabled style="opacity:0.5;" />
+            <div style="margin-bottom:12px;">
+                <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Code</label>
+                <input type="text" id="editLicenceCode" disabled style="opacity:0.5; width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" />
             </div>
-            <div class="admin-form-group">
-                <label>Script</label>
-                <input type="text" id="editLicenceScript" disabled style="opacity:0.5;" />
+            <div style="margin-bottom:12px;">
+                <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Script</label>
+                <input type="text" id="editLicenceScript" disabled style="opacity:0.5; width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" />
             </div>
-            <div class="admin-form-group">
-                <label>Expiry Date</label>
-                <input type="datetime-local" id="editLicenceExpiry" />
+            <div style="margin-bottom:12px;">
+                <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Expiry Date</label>
+                <input type="datetime-local" id="editLicenceExpiry" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;" />
             </div>
-            <div class="admin-form-group">
-                <label>Status</label>
-                <select id="editLicenceStatus">
+            <div style="margin-bottom:12px;">
+                <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Status</label>
+                <select id="editLicenceStatus" style="width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); font-family:var(--font); font-weight:500;">
                     <option value="pending">Pending</option>
                     <option value="active">Active</option>
                     <option value="used">Used</option>
@@ -3689,7 +2476,7 @@
                     <option value="revoked">Revoked</option>
                 </select>
             </div>
-            <button class="admin-submit-btn" style="width:100%;" onclick="saveLicenceEdit()">Save Changes</button>
+            <button style="width:100%; padding:10px; border:none; border-radius:var(--radius-sm); background:var(--primary); color:#fff; font-weight:800; cursor:pointer;" onclick="saveLicenceEdit()">Save Changes</button>
         </div>
     </div>
 
@@ -3717,39 +2504,38 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- ===== COOKIE SETTINGS MODAL (English) ===== -->
+    <!-- ===== COOKIE SETTINGS MODAL ===== -->
     <!-- ============================================================ -->
     <div class="modal" id="cookieSettingsModal">
         <div class="modal-content" style="max-width:450px;">
-            <!-- زر الإغلاق على اليمين -->
             <span class="modal-close" onclick="closeCookieSettings()" style="right:16px; left:auto;">&times;</span>
             <h3 style="font-weight:800; margin-bottom:4px;">Cookie Preferences</h3>
             <p style="font-size:13px; color:var(--text-secondary); margin-bottom:16px; font-weight:500;">Your Privacy Options</p>
 
-            <div class="setting-item">
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
                 <div>
-                    <div class="setting-label">Strictly Necessary</div>
-                    <div class="setting-desc">These cookies are essential for the website to function properly and cannot be disabled in our systems. They are usually set in response to actions you take, such as logging in or filling out forms.</div>
+                    <div style="font-weight:700; font-size:14px;">Strictly Necessary</div>
+                    <div style="font-size:12px; color:var(--text-secondary); opacity:0.6; font-weight:500;">These cookies are essential for the website to function properly and cannot be disabled in our systems.</div>
                 </div>
-                <input type="checkbox" checked disabled style="opacity:0.6;" />
+                <input type="checkbox" checked disabled style="opacity:0.6; width:20px; height:20px; accent-color:var(--primary);" />
             </div>
 
-            <div class="setting-item">
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
                 <div>
-                    <div class="setting-label">Performance & Analytics</div>
-                    <div class="setting-desc">These cookies help us understand how visitors interact with our website by collecting anonymous usage data. We use tools like analytics to analyze trends and improve performance. The data collected is anonymized and used only to improve functionality and your overall experience.</div>
+                    <div style="font-weight:700; font-size:14px;">Performance & Analytics</div>
+                    <div style="font-size:12px; color:var(--text-secondary); opacity:0.6; font-weight:500;">These cookies help us understand how visitors interact with our website by collecting anonymous usage data.</div>
                 </div>
-                <input type="checkbox" id="analyticsToggle" checked />
+                <input type="checkbox" id="analyticsToggle" checked style="width:20px; height:20px; accent-color:var(--primary); cursor:pointer;" />
             </div>
 
-            <div class="setting-item" style="border-bottom:none;">
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:none;">
                 <div>
-                    <div class="setting-label">More Information</div>
-                    <div class="setting-desc">For any questions about our cookie policy or your privacy options, please <a href="#" onclick="openSupportModal(); return false;" style="color:var(--primary); text-decoration:underline;">contact us</a>.</div>
+                    <div style="font-weight:700; font-size:14px;">More Information</div>
+                    <div style="font-size:12px; color:var(--text-secondary); opacity:0.6; font-weight:500;">For any questions about our cookie policy or your privacy options, please <a href="#" onclick="openSupportModal(); return false;" style="color:var(--primary); text-decoration:underline;">contact us</a>.</div>
                 </div>
             </div>
 
-            <button class="admin-submit-btn" style="width:100%; margin-top:16px;" onclick="saveCookieSettings()">Save Preferences</button>
+            <button style="width:100%; padding:10px; border:none; border-radius:var(--radius-sm); background:var(--primary); color:#fff; font-weight:800; cursor:pointer; margin-top:16px;" onclick="saveCookieSettings()">Save Preferences</button>
         </div>
     </div>
 
@@ -3775,9 +2561,8 @@
     <!-- ============================================================ -->
     <script type="module" src="script.js"></script>
 
-    <!-- ===== inline theme toggle for immediate response ===== -->
     <script>
-        // Theme toggle function (will be overridden by module, but this ensures immediate response)
+        // Theme toggle function
         function toggleTheme() {
             document.body.classList.toggle('light');
             const isLight = document.body.classList.contains('light');
@@ -3797,60 +2582,6 @@
                 if (icon) icon.className = 'fas fa-moon';
             }
         });
-
-        // ===== إصلاح دالة تبديل التبويبات في لوحة الأدمن =====
-        // هذه الدالة تضمن عدم تراكم التبويبات
-        window.switchAdminTab = function(tab) {
-            // إزالة active من جميع التبويبات
-            document.querySelectorAll('#adminPanel .tab-content').forEach(el => {
-                el.classList.remove('active');
-            });
-            document.querySelectorAll('#adminPanel .tabs button').forEach(el => {
-                el.classList.remove('active');
-            });
-
-            const tabMap = {
-                'dashboard': 'tabDashboard',
-                'orders': 'tabOrders',
-                'products': 'tabProducts',
-                'users': 'tabUsers',
-                'downloads': 'tabDownloads',
-                'notifications': 'tabNotifications',
-                'stats': 'tabStats',
-                'logs': 'tabLogs',
-                'slider': 'tabSlider',
-                'licences': 'tabLicences',
-                'marquee': 'tabMarquee',
-                'payments': 'tabPayments'
-            };
-            const tabId = tabMap[tab] || tabMap['dashboard'];
-            const contentEl = document.getElementById(tabId);
-            if (contentEl) contentEl.classList.add('active');
-            
-            // إضافة active للزر المحدد
-            const btn = document.querySelector(`#adminPanel .tabs button[onclick="switchAdminTab('${tab}')"]`);
-            if (btn) btn.classList.add('active');
-
-            // تحميل المحتوى حسب التبويب
-            if (tab === 'products' && typeof renderAdminProducts === 'function') renderAdminProducts(products);
-            if (tab === 'users' && typeof loadAdminUsers === 'function') loadAdminUsers();
-            if (tab === 'dashboard' && typeof loadDashboardStats === 'function') loadDashboardStats();
-            if (tab === 'stats' && typeof loadAdvancedStats === 'function') loadAdvancedStats();
-            if (tab === 'logs' && typeof loadAuditLogs === 'function') loadAuditLogs();
-            if (tab === 'slider') {
-                if (typeof loadSliderSettings === 'function') loadSliderSettings();
-                if (typeof renderSliderSettingsUI === 'function') renderSliderSettingsUI();
-                const intervalInput = document.getElementById('sliderIntervalInput');
-                if (intervalInput && typeof sliderIntervalTime !== 'undefined') intervalInput.value = sliderIntervalTime;
-            }
-            if (tab === 'licences' && typeof loadLicences === 'function') loadLicences();
-            if (tab === 'marquee' && typeof renderMarqueeSettingsUI === 'function') renderMarqueeSettingsUI();
-            if (tab === 'orders' && typeof loadAdminOrders === 'function') loadAdminOrders();
-            if (tab === 'payments' && typeof refreshAdminPayments === 'function') refreshAdminPayments();
-        };
-
-        console.log('✅ Admin tabs fix applied');
     </script>
-
 </body>
-    </html>
+</html>
