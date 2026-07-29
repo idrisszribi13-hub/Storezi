@@ -1537,21 +1537,15 @@ async function loadFeaturedSettings() {
 // 11. Cart Management (with "View Cart" button)
 // ============================================================
 
-// Function to update a specific product card's add button to "View Cart"
 function updateProductCardButton(productId) {
-    // Find the product card in the grid
     const cards = document.querySelectorAll('.product-card');
     cards.forEach(card => {
-        // Check if this card belongs to the product
         const productCard = card.closest('.product-card');
         if (productCard) {
-            // We need to find the button inside this card
             const addBtn = productCard.querySelector('.btn-add-cart');
             if (addBtn) {
-                // Check if the product id matches
                 const onclickAttr = addBtn.getAttribute('onclick');
                 if (onclickAttr && onclickAttr.includes(`'${productId}'`)) {
-                    // Update the button
                     addBtn.innerHTML = '<i class="fas fa-check"></i> View Cart';
                     addBtn.className = 'btn-add-cart added';
                     addBtn.onclick = function(e) {
@@ -1592,7 +1586,6 @@ window.addToCart = async function(productId) {
         renderProducts(products);
         updateBottomCartBar();
         showToast(`✅ Added ${product.name} (${selectedQty}) to cart`, 'success');
-        // Update the button
         updateProductCardButton(productId);
         return;
     }
@@ -1605,7 +1598,6 @@ window.addToCart = async function(productId) {
     renderProducts(products);
     updateBottomCartBar();
     showToast(`✅ Added ${product.name} to cart`, 'success');
-    // Update the button
     updateProductCardButton(productId);
 };
 
@@ -1802,7 +1794,6 @@ function createFloatingHearts() {
 // 12. Product Preview (UPDATED to Full Page)
 // ============================================================
 
-// دالة فتح صفحة التفاصيل الكاملة (بدلاً من النافذة المنبثقة)
 window.openDetails = function(id) {
     const p = products.find(x => x.id === id);
     if (!p) {
@@ -1811,7 +1802,6 @@ window.openDetails = function(id) {
     }
     window._currentProduct = p;
     
-    // إعداد العنوان
     const titleEl = document.getElementById('productDetailsTitle');
     if (titleEl) titleEl.textContent = p.name;
     
@@ -1821,14 +1811,12 @@ window.openDetails = function(id) {
         return;
     }
     
-    // بناء محتوى الصفحة
     const isFree = p.price === 0;
     const isUnavailable = p.status === 'unavailable';
     const badgeClass = isUnavailable ? 'unavailable' : (isFree ? 'free' : 'vip');
     const badgeText = isUnavailable ? '⛔ Unavailable' : (isFree ? 'FREE' : (p.badge || 'PREMIUM'));
     const currencySymbol = getCurrencySymbol(p.currency || 'USD');
     
-    // معالجة الفيديو
     let videoHtml = '';
     if (p.video && p.video.includes('youtube.com/embed/')) {
         videoHtml = `
@@ -1838,7 +1826,6 @@ window.openDetails = function(id) {
         `;
     }
     
-    // معالجة المميزات
     let featuresHtml = '';
     if (p.features && p.features.length > 0) {
         featuresHtml = `
@@ -1853,7 +1840,6 @@ window.openDetails = function(id) {
         `;
     }
     
-    // معالجة الـ VIP Pricing
     let vipHtml = '';
     if (p.vipEnabled && p.vipPrices) {
         const plans = [
@@ -1898,7 +1884,6 @@ window.openDetails = function(id) {
         }
     }
     
-    // معالجة خيارات الكميات (Quantity)
     let quantityHtml = '';
     if (p.productType === 'quantity' && p.quantityOptions && p.quantityOptions.length > 0) {
         quantityHtml = `
@@ -1919,7 +1904,6 @@ window.openDetails = function(id) {
                 <div style="margin-top:6px;font-size:12px;color:var(--text-secondary);opacity:0.4;">Click on a quantity to select it</div>
             </div>
         `;
-        // تعيين القيم الافتراضية
         const firstOpt = p.quantityOptions[0];
         if (firstOpt) {
             window._selectedQuantity = firstOpt.quantity;
@@ -1927,7 +1911,6 @@ window.openDetails = function(id) {
         }
     }
     
-    // معالجة السعر
     let priceDisplay = isFree ? 'FREE' : `${currencySymbol}${p.price.toFixed(2)}`;
     let originalPriceHtml = '';
     let discountBadgeHtml = '';
@@ -1938,7 +1921,6 @@ window.openDetails = function(id) {
         discountBadgeHtml = `<span style="font-size:11px;background:var(--danger);color:#fff;padding:0 8px;border-radius:10px;margin-left:6px;">-${activeDiscount}%</span>`;
     }
     
-    // زر الإضافة
     const inCart = cart.some(item => item.id === id && !item.isVip);
     let addBtnHtml = '';
     if (inCart) {
@@ -1951,10 +1933,8 @@ window.openDetails = function(id) {
         addBtnHtml = `<button onclick="addToCartFromDetails()" style="flex:1;padding:12px;border:none;border-radius:var(--radius-sm);background:var(--primary);color:#fff;font-weight:700;cursor:pointer;font-size:16px;transition:0.3s;"><i class="fas fa-cart-plus"></i> Add to Cart</button>`;
     }
     
-    // مبنى الصفحة الكامل
     container.innerHTML = `
         <div style="max-width:600px;margin:0 auto;width:100%;">
-            <!-- صورة المنتج -->
             <div style="width:100%;border-radius:var(--radius-md);overflow:hidden;background:var(--bg-secondary);border:1px solid var(--border);margin-bottom:12px;">
                 <img src="${p.image || 'https://picsum.photos/seed/default/600/400'}" alt="${p.name}" style="width:100%;max-height:320px;object-fit:cover;display:block;" />
                 <div style="padding:8px 12px;display:flex;justify-content:space-between;align-items:center;background:var(--bg-secondary);border-top:1px solid var(--border);">
@@ -1963,7 +1943,6 @@ window.openDetails = function(id) {
                 </div>
             </div>
             
-            <!-- العنوان والوصف -->
             <h1 style="font-size:22px;font-weight:800;color:var(--text);margin:0 0 4px 0;">${p.name}</h1>
             ${p.duration ? `<div style="font-size:13px;color:var(--text-secondary);opacity:0.5;margin-bottom:6px;"><i class="fas fa-clock"></i> ${p.duration}</div>` : ''}
             <p style="font-size:14px;color:var(--text-secondary);line-height:1.6;margin:6px 0 12px 0;">${p.description || 'No description available for this product.'}</p>
@@ -1973,7 +1952,6 @@ window.openDetails = function(id) {
             ${quantityHtml}
             ${vipHtml}
             
-            <!-- السعر والزر -->
             <div style="background:var(--bg-secondary);border-radius:var(--radius-md);padding:14px 16px;border:1px solid var(--border);margin:12px 0;">
                 <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px;">
                     <span style="font-size:24px;font-weight:800;color:var(--primary);">${priceDisplay}</span>
@@ -1987,10 +1965,8 @@ window.openDetails = function(id) {
                 </div>
             </div>
             
-            <!-- قسم التقييمات -->
             <div id="ratingSection" style="margin-top:8px;"></div>
             
-            <!-- روابط إضافية -->
             <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--text-secondary);opacity:0.3;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
                 <span><i class="fas fa-bolt"></i> Instant Delivery</span>
                 <span><i class="fas fa-lock"></i> Secure Payment</span>
@@ -2000,7 +1976,6 @@ window.openDetails = function(id) {
         </div>
     `;
     
-    // فتح الصفحة الكاملة
     const modal = document.getElementById('productDetailsFull');
     if (modal) {
         modal.classList.add('open');
@@ -2009,7 +1984,6 @@ window.openDetails = function(id) {
         console.error('❌ productDetailsFull modal not found');
     }
     
-    // تحميل التقييمات
     setTimeout(() => {
         currentProductIdForRating = id;
         currentRating = 0;
@@ -2017,12 +1991,10 @@ window.openDetails = function(id) {
     }, 150);
 };
 
-// دالة إضافة من صفحة التفاصيل
 window.addToCartFromDetails = function() {
     if (window._currentProduct) {
         const p = window._currentProduct;
         
-        // التحقق من خيار الكمية
         if (p.productType === 'quantity') {
             const selectedQty = window._selectedQuantity || p.quantityOptions?.[0]?.quantity;
             const selectedPrice = window._selectedQuantityPrice || p.quantityOptions?.[0]?.price;
@@ -2047,7 +2019,6 @@ window.addToCartFromDetails = function() {
             renderProducts(products);
             updateBottomCartBar();
             showToast(`✅ Added ${p.name} (${selectedQty}) to cart`, 'success');
-            // تحديث الزر
             const btn = document.querySelector('#productDetailsContent button[onclick="addToCartFromDetails()"]');
             if (btn) {
                 btn.innerHTML = '<i class="fas fa-check"></i> View Cart';
@@ -2058,7 +2029,6 @@ window.addToCartFromDetails = function() {
             return;
         }
         
-        // المنتج العادي
         if (p.price === 0) {
             showToast('⚠️ This script is free', 'warning');
             return;
@@ -2074,7 +2044,6 @@ window.addToCartFromDetails = function() {
         renderProducts(products);
         updateBottomCartBar();
         showToast(`✅ Added ${p.name} to cart`, 'success');
-        // تحديث الزر
         const btn = document.querySelector('#productDetailsContent button[onclick="addToCartFromDetails()"]');
         if (btn) {
             btn.innerHTML = '<i class="fas fa-check"></i> View Cart';
@@ -2087,30 +2056,24 @@ window.addToCartFromDetails = function() {
     }
 };
 
-// دالة إغلاق صفحة التفاصيل
 window.closeProductDetails = function() {
     const modal = document.getElementById('productDetailsFull');
     if (modal) {
         modal.classList.remove('open');
         document.body.style.overflow = '';
     }
-    // تنظيف المتغيرات
     window._currentProduct = null;
     window._selectedQuantity = null;
     window._selectedQuantityPrice = null;
 };
 
-// دالة متوافقة مع الإصدار القديم (للتأكد من عدم وجود أخطاء)
 window.closePreviewModal = window.closeProductDetails;
 
-// تحديث دالة selectQuantityOption للعمل مع كل من المعاينة وصفحة التفاصيل
 window.selectQuantityOption = function(element, productId) {
-    // إزالة التحديد من جميع الخيارات في نفس المجموعة
     const parent = element.closest('.preview-quantity-options') || element.closest('#productQuantityOptions');
     if (parent) {
         parent.querySelectorAll('.preview-quantity-option').forEach(el => el.classList.remove('selected'));
     } else {
-        // احتياطي: إزالة من جميع الخيارات في الصفحة
         document.querySelectorAll('.preview-quantity-option').forEach(el => el.classList.remove('selected'));
     }
     element.classList.add('selected');
@@ -2120,18 +2083,13 @@ window.selectQuantityOption = function(element, productId) {
     window._selectedQuantity = quantity;
     window._selectedQuantityPrice = price;
     
-    // تحديث السعر المعروض في صفحة التفاصيل إن وجد
     const product = products.find(p => p.id === productId);
     if (product) {
         const currency = product.currency || 'USD';
-        // تحديث السعر في مكان العرض
-        const priceDisplay = document.querySelector('#productDetailsContent .preview-quantity-option.selected .qty-price');
-        // لا نحتاج لتحديث السعر الرئيسي هنا لأن المستخدم اختار كمية
     }
 };
 
 window.selectVipPlan = function(element, planKey) {
-    // إزالة التحديد من جميع الخطط في نفس المجموعة
     const parent = element.closest('.vip-plan')?.parentElement;
     if (parent) {
         parent.querySelectorAll('.vip-plan').forEach(el => el.classList.remove('selected'));
@@ -2182,7 +2140,6 @@ window.addVipPlanToCart = function(product) {
     updateBottomCartBar();
     showToast(`✅ Added ${planLabels[selectedPlan]} VIP plan for ${product.name}`, 'success');
     
-    // تحديث الزر في الصفحة
     const btn = document.querySelector('#productDetailsContent .vip-add-to-cart');
     if (btn) {
         btn.innerHTML = '<i class="fas fa-check"></i> View Cart';
@@ -2190,7 +2147,6 @@ window.addVipPlanToCart = function(product) {
         btn.style.color = '#0a0a1a';
         btn.onclick = () => { closeProductDetails(); openCartFull(); };
     }
-    // تحديث زر المنتج في الشبكة
     updateProductCardButton(product.id);
 };
 
@@ -2273,13 +2229,18 @@ document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { clo
 // ============================================================
 
 // ============================================================
-// 15.0 Visitor Info Functions
+// 15.0 Visitor Info Functions (IMPROVED FOR MOBILE)
 // ============================================================
 
 async function getVisitorInfo() {
     let ip = 'Unknown';
+    let country = 'Unknown', city = 'Unknown', region = 'Unknown', timezone = 'Unknown', isp = 'Unknown';
+    
     try {
-        const ipRes = await fetch('https://api.ipify.org?format=json');
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
+        const ipRes = await fetch('https://api.ipify.org?format=json', { signal: controller.signal });
+        clearTimeout(timeoutId);
         if (ipRes.ok) {
             const ipData = await ipRes.json();
             ip = ipData.ip || 'Unknown';
@@ -2288,10 +2249,15 @@ async function getVisitorInfo() {
         console.warn('⚠️ ipify failed:', e);
     }
 
-    let country = 'Unknown', city = 'Unknown', region = 'Unknown', timezone = 'Unknown', isp = 'Unknown';
     if (ip !== 'Unknown') {
         try {
-            const detailRes = await fetch(`https://ip-api.com/json/${ip}?fields=status,country,city,regionName,timezone,isp`);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3000);
+            const detailRes = await fetch(
+                `https://ip-api.com/json/${ip}?fields=status,country,city,regionName,timezone,isp`,
+                { signal: controller.signal }
+            );
+            clearTimeout(timeoutId);
             if (detailRes.ok) {
                 const data = await detailRes.json();
                 if (data.status === 'success') {
@@ -2480,11 +2446,17 @@ window.continuePayment = function() {
         showToast('⚠️ Please select a payment method', 'warning');
         return;
     }
+    
+    const confirmBtn = document.getElementById('mainConfirmBtn');
+    if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+    }
+    
     document.getElementById('paymentStep1').style.display = 'none';
     document.getElementById('paymentStep2').style.display = 'block';
     window.renderPaymentProducts();
 
-    // Compute totals for step2
     let total = 0;
     cart.forEach(item => {
         const qty = item.quantity || 1;
@@ -2502,11 +2474,9 @@ window.continuePayment = function() {
     }
     if (finalTotal < 0) finalTotal = 0;
 
-    // Update subtotal and total in step2
     document.getElementById('step2Subtotal').textContent = `$${total.toFixed(2)}`;
     document.getElementById('step2Total').textContent = `$${finalTotal.toFixed(2)}`;
 
-    // Update RP section and promo status in step2
     const rpSection = document.querySelector('#paymentStep2 .rp-btn');
     if (rpSection) {
         const rpAmount = userProfile.rp || 0;
@@ -2520,11 +2490,9 @@ window.continuePayment = function() {
         if (activeDiscount > 0) promoStatus.classList.add('success');
     }
 
-    // Show payment instructions container
     const instructionsContainer = document.getElementById('paymentInstructionsContainer');
     if (instructionsContainer) instructionsContainer.style.display = 'block';
 
-    // Show/hide wallet info, tx input, etc.
     const walletInfo = document.getElementById('paymentWalletInfo');
     const txInput = document.getElementById('paymentTxInput');
     const telegramContact = document.getElementById('paymentTelegramContact');
@@ -2544,6 +2512,7 @@ window.continuePayment = function() {
             mainBtn.style.display = 'block';
             mainBtn.innerHTML = '<i class="fas fa-check"></i> Confirm Payment';
             mainBtn.onclick = placeOrder;
+            mainBtn.disabled = false;
         }
         fetchCryptoPrices();
         setTimeout(updatePriceUI, 500);
@@ -2557,6 +2526,7 @@ window.continuePayment = function() {
                 window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(message)}`, '_blank');
                 placeOrderTelegram();
             };
+            mainBtn.disabled = false;
         }
     } else if (selectedPayment === 'binanceId') {
         if (binanceSection) {
@@ -2569,9 +2539,14 @@ window.continuePayment = function() {
             const orderId = '#' + String(Date.now()).slice(-6);
             document.getElementById('binanceOrderDisplay').textContent = orderId;
         }
+        if (mainBtn) {
+            mainBtn.style.display = 'block';
+            mainBtn.innerHTML = '<i class="fas fa-check"></i> Confirm Payment';
+            mainBtn.onclick = placeOrder;
+            mainBtn.disabled = false;
+        }
     }
 
-    // Update RP display in step2
     const rpDisplay = document.getElementById('step2RpDisplay');
     if (rpDisplay) {
         rpDisplay.textContent = `${userProfile.rp || 0} RP (≈ $${((userProfile.rp || 0) * RP_TO_DOLLAR).toFixed(2)})`;
@@ -2579,9 +2554,9 @@ window.continuePayment = function() {
 };
 
 // ============================================================
-// 15.5 Place Order - calls Supabase Function
+// 15.5 Place Order - calls Supabase Function (IMPROVED FOR MOBILE)
 // ============================================================
-window.placeOrder = function() {
+async function placeOrder() {
     if (!currentUser || currentUser.isAnonymous) {
         showToast('⚠️ Please sign in to confirm payment.', 'warning');
         openAuthModal();
@@ -2610,8 +2585,8 @@ window.placeOrder = function() {
         return;
     }
 
-    sendOrderToTelegram(selectedPayment, txHash);
-};
+    await sendOrderToTelegram(selectedPayment, txHash);
+}
 
 // ============================================================
 // 15.6 Binance ID specific functions
@@ -2694,7 +2669,7 @@ window.submitManualPayment = function() {
 };
 
 // ============================================================
-// 15.7 Original order sending function (with device info, screenshot, notification)
+// 15.7 Order sending function (IMPROVED FOR MOBILE)
 // ============================================================
 async function sendOrderToTelegram(method, txHash = null) {
     if (isProcessingOrder) {
@@ -2704,28 +2679,55 @@ async function sendOrderToTelegram(method, txHash = null) {
     isProcessingOrder = true;
     
     try {
-        if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
+        if (!currentUser) { 
+            showToast('⚠️ Please login first', 'warning'); 
+            isProcessingOrder = false;
+            return; 
+        }
         if (currentUser.isAnonymous) { 
             showToast('⚠️ Please sign in to place an order.', 'warning'); 
             openAuthModal();
+            isProcessingOrder = false;
             return;
         }
 
-        const visitorInfo = await getVisitorInfo();
+        let visitorInfo = { ip: 'Unknown', country: 'Unknown', city: 'Unknown', region: 'Unknown', timezone: 'Unknown', isp: 'Unknown' };
+        try {
+            visitorInfo = await Promise.race([
+                getVisitorInfo(),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
+            ]);
+        } catch (e) {
+            console.warn('⚠️ Visitor info timeout or error, using defaults:', e);
+        }
+
         const deviceInfo = getDeviceInfo();
 
         let screenshotBase64 = null;
         const screenshotInput = document.getElementById('screenshotInput');
         if (screenshotInput && screenshotInput.files && screenshotInput.files[0]) {
-            const file = screenshotInput.files[0];
-            screenshotBase64 = await new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const base64 = e.target.result.split(',')[1];
-                    resolve(base64);
-                };
-                reader.readAsDataURL(file);
-            });
+            try {
+                const file = screenshotInput.files[0];
+                if (file.size > 2 * 1024 * 1024) {
+                    showToast('⚠️ Screenshot exceeds 2MB. Please compress.', 'warning');
+                } else {
+                    screenshotBase64 = await Promise.race([
+                        new Promise((resolve) => {
+                            const reader = new FileReader();
+                            reader.onload = (e) => {
+                                const base64 = e.target.result.split(',')[1];
+                                resolve(base64);
+                            };
+                            reader.onerror = () => resolve(null);
+                            reader.readAsDataURL(file);
+                        }),
+                        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))
+                    ]);
+                }
+            } catch (e) {
+                console.warn('⚠️ Screenshot reading failed:', e);
+                showToast('⚠️ Failed to read screenshot. Proceeding without it.', 'warning');
+            }
         }
 
         const cartData = cart.map(item => ({
@@ -2746,7 +2748,9 @@ async function sendOrderToTelegram(method, txHash = null) {
         }));
 
         let total = 0;
-        cart.forEach(item => { total += item.price * (item.quantity || 1); });
+        cart.forEach(item => { 
+            total += item.price * (item.quantity || 1); 
+        });
         let finalTotal = total;
         let rpDiscountAmount = 0;
         if (userProfile.useRpForCart) {
@@ -2759,6 +2763,9 @@ async function sendOrderToTelegram(method, txHash = null) {
         }
         if (finalTotal < 0) finalTotal = 0;
 
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
+
         const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/place-order', {
             method: 'POST',
             headers: {
@@ -2767,6 +2774,7 @@ async function sendOrderToTelegram(method, txHash = null) {
                 'Accept': 'application/json',
             },
             mode: 'cors',
+            signal: controller.signal,
             body: JSON.stringify({
                 cart: cartData,
                 user: {
@@ -2785,6 +2793,8 @@ async function sendOrderToTelegram(method, txHash = null) {
             })
         });
 
+        clearTimeout(timeoutId);
+
         if (!response.ok) {
             let errorText = await response.text();
             console.error('Order API error:', response.status, errorText);
@@ -2792,8 +2802,9 @@ async function sendOrderToTelegram(method, txHash = null) {
                 const errorJson = JSON.parse(errorText);
                 errorText = errorJson.error || errorText;
             } catch (e) {}
-            if (errorText.includes('CORS') || response.status === 0) {
-                showToast('❌ Failed to connect to server. Please check your internet and try again.', 'error');
+            
+            if (response.status === 0 || errorText.includes('CORS') || errorText.includes('NetworkError')) {
+                showToast('📱 Network issue. Please check your connection and try again.', 'error');
             } else {
                 showToast('❌ ' + errorText, 'error');
             }
@@ -2821,16 +2832,21 @@ async function sendOrderToTelegram(method, txHash = null) {
         const userRef = doc(db, 'users', currentUser.uid);
         await updateDoc(userRef, { history: arrayUnion(orderItem) });
 
-        // إرسال إشعار للإدمن
         await addDoc(collection(db, 'notifications'), {
-            title: '🆕 New Order Placed',
-            message: `Order #${orderId.slice(-6)} by ${currentUser.email} - Total: $${finalTotal.toFixed(2)}`,
+            title: '🆕 Order Placed',
+            message: `Order #${orderId.slice(-6)} - Total: $${finalTotal.toFixed(2)}`,
             userId: currentUser.uid,
             readBy: [],
             createdAt: serverTimestamp()
         });
 
-        // Proxy logic (disabled)
+        await addDoc(collection(db, 'notifications'), {
+            title: '📦 New Order',
+            message: `#${orderId.slice(-6)} from ${currentUser.email} - $${finalTotal.toFixed(2)}`,
+            readBy: [],
+            createdAt: serverTimestamp()
+        });
+
         const proxyItems = cart.filter(item => item.isProxy);
         if (proxyItems.length > 0) {
             if (DISABLE_PROXY) {
@@ -2845,7 +2861,6 @@ async function sendOrderToTelegram(method, txHash = null) {
             }
         }
 
-        // تفريغ السلة
         cart = [];
         activeDiscount = 0;
         activeDiscountCode = '';
@@ -2868,10 +2883,12 @@ async function sendOrderToTelegram(method, txHash = null) {
 
     } catch (error) {
         console.error('Order error:', error);
-        if (error.message.includes('CORS') || error.message.includes('Failed to fetch')) {
-            showToast('❌ Failed to connect to server. Please check your internet and try again.', 'error');
+        if (error.name === 'AbortError') {
+            showToast('⏳ Request timed out. Please try again.', 'error');
+        } else if (error.message.includes('CORS') || error.message.includes('Failed to fetch')) {
+            showToast('📱 Connection issue. Please check your internet and try again.', 'error');
         } else {
-            showToast('❌ Error placing order: ' + error.message, 'error');
+            showToast('❌ Error: ' + error.message, 'error');
         }
     } finally {
         isProcessingOrder = false;
@@ -3376,8 +3393,7 @@ window.openAdminPanel = function() {
 };
 
 function ensureSliderTab() {
-    // تم إضافة التبويبات في HTML مباشرة، لكن نترك هذه الدالة للتأكد في حال وجود أي تحديث ديناميكي
-    // لكن بما أننا أضفناها في HTML، هذه الدالة لن تفعل شيئاً لتجنب التكرار
+    // تم إضافة التبويبات في HTML مباشرة
 }
 
 window.closeAdminPanel = function() { document.getElementById('adminPanel').classList.remove('open'); if (unsubscribeAdmin) { unsubscribeAdmin(); unsubscribeAdmin = null; } };
@@ -5730,7 +5746,6 @@ async function init() {
 // ============================================================
 
 // Theme toggle is now handled inline in index.html for immediate response.
-// We'll keep a function to sync with localStorage if needed, but not override.
 
 // ============================================================
 // 42. Export all functions to global scope
@@ -5748,7 +5763,6 @@ window.checkout = function() {
     openPaymentModal();
 };
 
-// Payment Modal Functions
 window.openPaymentModal = function() {
     if (cart.length === 0) {
         showToast('⚠️ Cart is empty', 'warning');
@@ -5767,14 +5781,12 @@ window.openPaymentModal = function() {
     document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
     window.renderPaymentProducts();
     updatePayableTotal();
-    // Reset any previous state
     document.getElementById('paymentInstructionsContainer').style.display = 'none';
     document.getElementById('paymentWalletInfo').style.display = 'none';
     document.getElementById('paymentTxInput').style.display = 'none';
     document.getElementById('paymentTelegramContact').style.display = 'none';
     document.getElementById('paymentBinanceIdSection').style.display = 'none';
     document.getElementById('mainConfirmBtn').style.display = 'none';
-    // Reset tx hash inputs
     const txInput = document.getElementById('transactionHashInput');
     if (txInput) txInput.value = '';
     const txInput2 = document.getElementById('txHashInput');
@@ -5787,7 +5799,6 @@ window.closePaymentModal = function() {
     const modal = document.getElementById('paymentModal');
     if (modal) modal.classList.remove('open');
     document.body.style.overflow = '';
-    // Reset state
     document.getElementById('paymentStep1').style.display = 'block';
     document.getElementById('paymentStep2').style.display = 'none';
     document.getElementById('paymentInstructionsContainer').style.display = 'none';
@@ -5809,7 +5820,6 @@ window.goToStep1 = function() {
     document.getElementById('mainConfirmBtn').style.display = 'none';
 };
 
-// Checkout promo apply
 window.applyCheckoutPromo = function() {
     const input = document.getElementById('checkoutPromoInput');
     const statusEl = document.getElementById('checkoutPromoStatus');
@@ -5821,7 +5831,6 @@ window.applyCheckoutPromo = function() {
     activeDiscount = codeData.discount; activeDiscountCode = code;
     statusEl.textContent = `✅ ${codeData.discount}% discount applied!`; statusEl.className = 'promo-status success';
     input.value = '';
-    // Update totals
     const totalEl = document.getElementById('step2Total');
     if (totalEl) {
         let total = 0;
@@ -5836,7 +5845,6 @@ window.applyCheckoutPromo = function() {
         }
         if (finalTotal < 0) finalTotal = 0;
         totalEl.textContent = `$${finalTotal.toFixed(2)}`;
-        // Update binance amount if visible
         const binanceAmount = document.getElementById('binanceAmountDisplay');
         if (binanceAmount) binanceAmount.textContent = `$${finalTotal.toFixed(2)}`;
         const binanceAmountInline = document.getElementById('binanceAmountInline');
@@ -5934,7 +5942,7 @@ window.showTelegramBannerAgain = showTelegramBannerAgain;
 window.adminToggleBanner = adminToggleBanner;
 window.resetBannerForAll = resetBannerForAll;
 window.closeProductDetails = closeProductDetails;
-window.closePreviewModal = closeProductDetails; // for backward compatibility
+window.closePreviewModal = closeProductDetails;
 window.addToCartFromDetails = addToCartFromDetails;
 window.refreshDashboardStats = refreshDashboardStats;
 window.loadDashboardStats = loadDashboardStats;
@@ -6002,8 +6010,6 @@ window.openWhatsAppSupport = openWhatsAppSupport;
 window.openTelegramSupport = openTelegramSupport;
 window.openEmailSupport = openEmailSupport;
 window.openPhoneSupport = openPhoneSupport;
-
-// Password toggle function is already defined globally.
 
 document.addEventListener('click', function(e) {
     const float = document.getElementById('supportFloat');
