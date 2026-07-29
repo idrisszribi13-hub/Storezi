@@ -2229,34 +2229,36 @@ document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { clo
 // ============================================================
 
 // ============================================================
-// 15.0 Visitor Info Functions (IMPROVED FOR MOBILE)
+// 15.0 Visitor Info Functions (IMPROVED)
 // ============================================================
 
 async function getVisitorInfo() {
-    let ip = 'Unknown';
-    let country = 'Unknown', city = 'Unknown', region = 'Unknown', timezone = 'Unknown', isp = 'Unknown';
+    let ip = 'Unknown', country = 'Unknown', city = 'Unknown', region = 'Unknown', timezone = 'Unknown', isp = 'Unknown';
     
     try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3000);
-        const ipRes = await fetch('https://api.ipify.org?format=json', { signal: controller.signal });
-        clearTimeout(timeoutId);
+        const ipRes = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(3000) });
         if (ipRes.ok) {
             const ipData = await ipRes.json();
             ip = ipData.ip || 'Unknown';
         }
     } catch (e) {
-        console.warn('⚠️ ipify failed:', e);
+        console.warn('⚠️ ipify failed:', e.message);
+        try {
+            const ipRes2 = await fetch('https://api64.ipify.org?format=json', { signal: AbortSignal.timeout(3000) });
+            if (ipRes2.ok) {
+                const ipData = await ipRes2.json();
+                ip = ipData.ip || 'Unknown';
+            }
+        } catch (e2) {
+            console.warn('⚠️ ipify alt failed:', e2.message);
+        }
     }
 
     if (ip !== 'Unknown') {
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 3000);
-            const detailRes = await fetch(
-                `https://ip-api.com/json/${ip}?fields=status,country,city,regionName,timezone,isp`,
-                { signal: controller.signal }
-            );
+            const timeoutId = setTimeout(() => controller.abort(), 4000);
+            const detailRes = await fetch(`https://ip-api.com/json/${ip}?fields=status,country,city,regionName,timezone,isp`, { signal: controller.signal });
             clearTimeout(timeoutId);
             if (detailRes.ok) {
                 const data = await detailRes.json();
@@ -2269,10 +2271,37 @@ async function getVisitorInfo() {
                 }
             }
         } catch (e) {
-            console.warn('⚠️ ip-api.com detail failed:', e);
+            console.warn('⚠️ ip-api.com detail failed:', e.message);
         }
     }
     return { ip, country, city, region, timezone, isp };
+}
+
+async function getVisitorInfoWithTimeout(timeout = 3000) {
+    try {
+        const result = await Promise.race([
+            getVisitorInfo(),
+            new Promise((resolve) => setTimeout(() => resolve({
+                ip: 'Unknown',
+                country: 'Unknown',
+                city: 'Unknown',
+                region: 'Unknown',
+                timezone: 'Unknown',
+                isp: 'Unknown',
+                _timeout: true
+            }), timeout))
+        ]);
+        return result;
+    } catch (e) {
+        return {
+            ip: 'Unknown',
+            country: 'Unknown',
+            city: 'Unknown',
+            region: 'Unknown',
+            timezone: 'Unknown',
+            isp: 'Unknown'
+        };
+    }
 }
 
 function getDeviceInfo() {
@@ -2301,7 +2330,54 @@ function getDeviceInfo() {
 }
 
 // ============================================================
-// 15.1 Payment Products Render
+// 15.1 Helper Functions
+// ============================================================
+
+function readFileAsBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const base64 = e.target.result.split(',')[1];
+                resolve(base64);
+            } catch (err) {
+                reject(err);
+            }
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+function fetchWithTimeout(url, options, timeout = 15000) {
+    return new Promise((resolve, reject) => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => {
+            controller.abort();
+            reject(new Error('Request timeout'));
+        }, timeout);
+        
+        fetch(url, {
+            ...options,
+            signal: controller.signal
+        })
+        .then(response => {
+            clearTimeout(timeoutId);
+            resolve(response);
+        })
+        .catch(error => {
+            clearTimeout(timeoutId);
+            reject(error);
+        });
+    });
+}
+
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// ============================================================
+// 15.2 Payment Products Render
 // ============================================================
 window.renderPaymentProducts = function() {
     const container = document.getElementById('paymentProductsList');
@@ -2332,7 +2408,7 @@ window.renderPaymentProducts = function() {
 };
 
 // ============================================================
-// 15.2 Crypto Price Functions
+// 15.3 Crypto Price Functions
 // ============================================================
 
 async function fetchCryptoPrices() {
@@ -2414,7 +2490,7 @@ function updatePayableTotal() {
 }
 
 // ============================================================
-// 15.3 Payment Selection
+// 15.4 Payment Selection
 // ============================================================
 window.selectPayment = function(method) {
     selectedPayment = method;
@@ -2439,20 +2515,86 @@ window.selectPayment = function(method) {
 };
 
 // ============================================================
-// 15.4 Continue Payment (with RP and Promo sections)
+// 15.5 Place Order - calls Supabase Function (IMPROVED)
+// ============================================================
+async function placeOrder() {
+    if (isProcessingOrder) {
+        showToast('⏳ Please wait, order is being processed...', 'warning');
+        return;
+    }
+
+    if (!currentUser || currentUser.isAnonymous) {
+        showToast('⚠️ Please sign in to confirm payment.', 'warning');
+        openAuthModal();
+        return;
+    }
+
+    if (!cart || cart.length === 0) {
+        showToast('⚠️ Your cart is empty.', 'warning');
+        return;
+    }
+
+    let txHash = '';
+    
+    if (selectedPayment === 'binanceId') {
+        txHash = document.getElementById('txHashInput')?.value?.trim() || '';
+        if (!txHash) {
+            showToast('⚠️ Please paste the transaction ID', 'warning');
+            const input = document.getElementById('txHashInput');
+            if (input) {
+                input.style.borderColor = 'var(--danger)';
+                input.focus();
+                setTimeout(() => { input.style.borderColor = ''; }, 2000);
+            }
+            return;
+        }
+    } else if (selectedPayment === 'litecoin' || selectedPayment === 'usdt') {
+        txHash = document.getElementById('transactionHashInput')?.value?.trim() || '';
+        if (!txHash) {
+            showToast('⚠️ Please paste the transaction hash', 'warning');
+            const input = document.getElementById('transactionHashInput');
+            if (input) {
+                input.style.borderColor = 'var(--danger)';
+                input.focus();
+                setTimeout(() => { input.style.borderColor = ''; }, 2000);
+            }
+            return;
+        }
+    } else if (selectedPayment === 'telegram') {
+        await placeOrderTelegram();
+        return;
+    } else if (!selectedPayment) {
+        showToast('⚠️ Please select a payment method', 'warning');
+        return;
+    }
+
+    const confirmBtn = document.getElementById('mainConfirmBtn');
+    if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    }
+
+    try {
+        await sendOrderToTelegram(selectedPayment, txHash);
+    } catch (error) {
+        console.error('Order error:', error);
+        showToast('❌ ' + (error.message || 'Failed to place order'), 'error');
+    } finally {
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = '<i class="fas fa-check"></i> Confirm Payment';
+        }
+    }
+}
+
+// ============================================================
+// 15.6 Continue Payment (with RP and Promo sections)
 // ============================================================
 window.continuePayment = function() {
     if (!selectedPayment) {
         showToast('⚠️ Please select a payment method', 'warning');
         return;
     }
-    
-    const confirmBtn = document.getElementById('mainConfirmBtn');
-    if (confirmBtn) {
-        confirmBtn.disabled = true;
-        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
-    }
-    
     document.getElementById('paymentStep1').style.display = 'none';
     document.getElementById('paymentStep2').style.display = 'block';
     window.renderPaymentProducts();
@@ -2512,7 +2654,6 @@ window.continuePayment = function() {
             mainBtn.style.display = 'block';
             mainBtn.innerHTML = '<i class="fas fa-check"></i> Confirm Payment';
             mainBtn.onclick = placeOrder;
-            mainBtn.disabled = false;
         }
         fetchCryptoPrices();
         setTimeout(updatePriceUI, 500);
@@ -2526,7 +2667,6 @@ window.continuePayment = function() {
                 window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(message)}`, '_blank');
                 placeOrderTelegram();
             };
-            mainBtn.disabled = false;
         }
     } else if (selectedPayment === 'binanceId') {
         if (binanceSection) {
@@ -2539,12 +2679,6 @@ window.continuePayment = function() {
             const orderId = '#' + String(Date.now()).slice(-6);
             document.getElementById('binanceOrderDisplay').textContent = orderId;
         }
-        if (mainBtn) {
-            mainBtn.style.display = 'block';
-            mainBtn.innerHTML = '<i class="fas fa-check"></i> Confirm Payment';
-            mainBtn.onclick = placeOrder;
-            mainBtn.disabled = false;
-        }
     }
 
     const rpDisplay = document.getElementById('step2RpDisplay');
@@ -2554,42 +2688,242 @@ window.continuePayment = function() {
 };
 
 // ============================================================
-// 15.5 Place Order - calls Supabase Function (IMPROVED FOR MOBILE)
+// 15.7 Original order sending function (IMPROVED)
 // ============================================================
-async function placeOrder() {
-    if (!currentUser || currentUser.isAnonymous) {
-        showToast('⚠️ Please sign in to confirm payment.', 'warning');
-        openAuthModal();
+async function sendOrderToTelegram(method, txHash = null) {
+    if (isProcessingOrder) {
+        showToast('⏳ Order is already being processed...', 'warning');
         return;
     }
-
-    let txHash = '';
-    if (selectedPayment === 'binanceId') {
-        txHash = document.getElementById('txHashInput').value.trim();
-        if (!txHash) {
-            showToast('⚠️ Please paste the transaction ID', 'warning');
-            document.getElementById('txHashInput').style.borderColor = 'var(--danger)';
-            setTimeout(() => { document.getElementById('txHashInput').style.borderColor = ''; }, 2000);
-            return;
-        }
-    } else if (selectedPayment === 'litecoin' || selectedPayment === 'usdt') {
-        txHash = document.getElementById('transactionHashInput').value.trim();
-        if (!txHash) {
-            showToast('⚠️ Please paste the transaction hash', 'warning');
-            document.getElementById('transactionHashInput').style.borderColor = 'var(--danger)';
-            setTimeout(() => { document.getElementById('transactionHashInput').style.borderColor = ''; }, 2000);
-            return;
-        }
-    } else if (selectedPayment === 'telegram') {
-        placeOrderTelegram();
-        return;
+    isProcessingOrder = true;
+    
+    const confirmBtn = document.getElementById('mainConfirmBtn');
+    if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
     }
 
-    await sendOrderToTelegram(selectedPayment, txHash);
+    try {
+        if (!currentUser) { 
+            showToast('⚠️ Please login first', 'warning'); 
+            return;
+        }
+        if (currentUser.isAnonymous) { 
+            showToast('⚠️ Please sign in to place an order.', 'warning'); 
+            openAuthModal();
+            return;
+        }
+
+        showToast('⏳ Processing your order...', 'info');
+
+        const visitorInfo = await getVisitorInfoWithTimeout(3000);
+        const deviceInfo = getDeviceInfo();
+
+        let screenshotBase64 = null;
+        const screenshotInput = document.getElementById('screenshotInput');
+        if (screenshotInput && screenshotInput.files && screenshotInput.files.length > 0) {
+            try {
+                const file = screenshotInput.files[0];
+                if (file.size > 2 * 1024 * 1024) {
+                    showToast('⚠️ Screenshot exceeds 2MB. Please compress.', 'warning');
+                } else {
+                    screenshotBase64 = await readFileAsBase64(file);
+                }
+            } catch (e) {
+                console.error('Error reading screenshot:', e);
+            }
+        }
+
+        const cartData = cart.map(item => ({
+            id: item.id,
+            name: item.name || 'Unknown',
+            price: typeof item.price === 'number' ? item.price : 0,
+            quantity: item.quantity || 1,
+            currency: item.currency || 'USD',
+            isVip: item.isVip || false,
+            vipPlan: item.vipPlan || null,
+            vipPlanLabel: item.vipPlanLabel || null,
+            selectedQuantity: item.selectedQuantity || null,
+            isQuantityProduct: item.isQuantityProduct || false,
+            isProxy: item.isProxy || false,
+            proxyPlan: item.plan || null,
+            proxyDuration: item.duration || null,
+            proxyQuantity: item.quantity || 1
+        }));
+
+        let total = 0;
+        cart.forEach(item => {
+            const price = typeof item.price === 'number' ? item.price : 0;
+            const qty = item.quantity || 1;
+            total += price * qty;
+        });
+        
+        let finalTotal = total;
+        let rpDiscountAmount = 0;
+        
+        if (userProfile.useRpForCart && userProfile.rp > 0) {
+            rpDiscountAmount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total);
+            finalTotal = total - rpDiscountAmount;
+        }
+        
+        if (activeDiscount > 0 && total > 0) {
+            const discountAmount = (finalTotal * activeDiscount) / 100;
+            finalTotal = finalTotal - discountAmount;
+        }
+        
+        if (finalTotal < 0) finalTotal = 0;
+
+        const orderData = {
+            cart: cartData,
+            user: {
+                uid: currentUser.uid,
+                email: currentUser.email || 'unknown@email.com',
+                name: currentUser.displayName || currentUser.email || 'User',
+            },
+            method: method,
+            txHash: txHash,
+            screenshotBase64: screenshotBase64,
+            total: Math.round(finalTotal * 100) / 100,
+            visitorInfo: visitorInfo,
+            deviceInfo: deviceInfo,
+            rpUsed: Math.floor(rpDiscountAmount / RP_TO_DOLLAR) || 0,
+            discountCode: activeDiscountCode || null,
+            timestamp: new Date().toISOString()
+        };
+
+        let lastError = null;
+        let response = null;
+        
+        for (let attempt = 1; attempt <= 3; attempt++) {
+            try {
+                response = await fetchWithTimeout(
+                    'https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/place-order',
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify(orderData),
+                        timeout: 15000
+                    }
+                );
+                if (response.ok) break;
+                lastError = await response.text();
+            } catch (e) {
+                lastError = e.message;
+                if (attempt < 3) {
+                    await delay(1000 * attempt);
+                }
+            }
+        }
+
+        if (!response || !response.ok) {
+            let errorText = lastError || 'Unknown error';
+            try {
+                if (lastError && lastError.startsWith('{')) {
+                    const errorJson = JSON.parse(lastError);
+                    errorText = errorJson.error || errorJson.message || lastError;
+                }
+            } catch (e) {}
+            throw new Error(`Request failed: ${response?.status || 'unknown'} - ${errorText}`);
+        }
+
+        const result = await response.json();
+        if (!result.success) {
+            throw new Error(result.error || 'Request failed');
+        }
+
+        const orderId = result.orderId || 'order_' + Date.now();
+
+        const orderItem = {
+            id: orderId,
+            items: cartData,
+            total: finalTotal,
+            method: method,
+            date: new Date().toISOString(),
+            status: 'pending',
+            txHash: txHash || null,
+            screenshotUrl: result.screenshotUrl || null,
+            rpUsed: Math.floor(rpDiscountAmount / RP_TO_DOLLAR) || 0,
+            rpEarned: Math.floor(finalTotal * 0.05)
+        };
+        
+        userProfile.history.push(orderItem);
+        const userRef = doc(db, 'users', currentUser.uid);
+        await updateDoc(userRef, { 
+            history: arrayUnion(orderItem),
+            rp: (userProfile.rp || 0) + Math.floor(finalTotal * 0.05)
+        });
+
+        // Notification for user
+        await addDoc(collection(db, 'notifications'), {
+            title: '🆕 Order Placed',
+            message: `Order #${orderId.slice(-6)} - Total: $${finalTotal.toFixed(2)}`,
+            userId: currentUser.uid,
+            readBy: [],
+            createdAt: serverTimestamp()
+        });
+
+        // Notification for admin (without userId)
+        await addDoc(collection(db, 'notifications'), {
+            title: '📦 New Order',
+            message: `Order #${orderId.slice(-6)} from ${currentUser.email || 'User'} - $${finalTotal.toFixed(2)}`,
+            readBy: [],
+            createdAt: serverTimestamp()
+        });
+
+        // Clear cart
+        cart = [];
+        activeDiscount = 0;
+        activeDiscountCode = '';
+        userProfile.rp = (userProfile.rp || 0) + Math.floor(finalTotal * 0.05);
+        
+        await saveUserData();
+        updateCartUI();
+        updateBottomCartBar();
+        renderProducts(products);
+        updateRpDisplay();
+
+        const paymentModal = document.getElementById('paymentModal');
+        if (paymentModal) paymentModal.classList.remove('open');
+        
+        showToast(`✅ Order #${orderId.slice(-6)} placed successfully!`, 'success');
+
+        setTimeout(() => {
+            if (currentUser && isAdminCached) { 
+                loadAdminOrders(); 
+                loadLicences();
+            }
+            loadUserData();
+            updateDropdownStats();
+            updateFullUserMenu();
+        }, 1000);
+
+    } catch (error) {
+        console.error('❌ Order error:', error);
+        const errorMessage = error.message || 'Failed to place order';
+        if (errorMessage.includes('CORS') || errorMessage.includes('Failed to fetch')) {
+            showToast('❌ Connection error. Please check your internet and try again.', 'error');
+        } else if (errorMessage.includes('timeout')) {
+            showToast('⏳ Request timed out. Please try again.', 'warning');
+        } else {
+            showToast('❌ ' + errorMessage, 'error');
+        }
+        throw error;
+    } finally {
+        isProcessingOrder = false;
+        const confirmBtn = document.getElementById('mainConfirmBtn');
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = '<i class="fas fa-check"></i> Confirm Payment';
+        }
+    }
 }
 
 // ============================================================
-// 15.6 Binance ID specific functions
+// 15.8 Binance ID specific functions
 // ============================================================
 window.copyBinanceId = function() {
     const id = document.getElementById('binanceIdDisplay').textContent;
@@ -2669,234 +3003,44 @@ window.submitManualPayment = function() {
 };
 
 // ============================================================
-// 15.7 Order sending function (IMPROVED FOR MOBILE)
+// 15.9 Telegram Payment
 // ============================================================
-async function sendOrderToTelegram(method, txHash = null) {
-    if (isProcessingOrder) {
-        showToast('⏳ Order is already being processed...', 'warning');
+async function placeOrderTelegram() {
+    if (!currentUser) {
+        showToast('⚠️ Please login first', 'warning');
         return;
     }
-    isProcessingOrder = true;
+    
+    let total = 0;
+    cart.forEach(item => { total += item.price * (item.quantity || 1); });
+    let finalTotal = total;
+    if (userProfile.useRpForCart) {
+        const rpDiscount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total);
+        finalTotal = total - rpDiscount;
+    }
+    if (activeDiscount > 0 && total > 0) {
+        finalTotal = finalTotal - (finalTotal * activeDiscount / 100);
+    }
+    if (finalTotal < 0) finalTotal = 0;
+
+    const message = `🛒 *New Order via Telegram*\n\n` +
+        `👤 User: ${currentUser.displayName || currentUser.email || 'User'}\n` +
+        `📧 Email: ${currentUser.email || 'N/A'}\n` +
+        `📦 Products: ${cart.map(i => i.name).join(', ')}\n` +
+        `💰 Total: $${finalTotal.toFixed(2)}\n` +
+        `📅 Date: ${new Date().toLocaleString()}`;
+
+    window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(message)}`, '_blank');
     
     try {
-        if (!currentUser) { 
-            showToast('⚠️ Please login first', 'warning'); 
-            isProcessingOrder = false;
-            return; 
-        }
-        if (currentUser.isAnonymous) { 
-            showToast('⚠️ Please sign in to place an order.', 'warning'); 
-            openAuthModal();
-            isProcessingOrder = false;
-            return;
-        }
-
-        let visitorInfo = { ip: 'Unknown', country: 'Unknown', city: 'Unknown', region: 'Unknown', timezone: 'Unknown', isp: 'Unknown' };
-        try {
-            visitorInfo = await Promise.race([
-                getVisitorInfo(),
-                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
-            ]);
-        } catch (e) {
-            console.warn('⚠️ Visitor info timeout or error, using defaults:', e);
-        }
-
-        const deviceInfo = getDeviceInfo();
-
-        let screenshotBase64 = null;
-        const screenshotInput = document.getElementById('screenshotInput');
-        if (screenshotInput && screenshotInput.files && screenshotInput.files[0]) {
-            try {
-                const file = screenshotInput.files[0];
-                if (file.size > 2 * 1024 * 1024) {
-                    showToast('⚠️ Screenshot exceeds 2MB. Please compress.', 'warning');
-                } else {
-                    screenshotBase64 = await Promise.race([
-                        new Promise((resolve) => {
-                            const reader = new FileReader();
-                            reader.onload = (e) => {
-                                const base64 = e.target.result.split(',')[1];
-                                resolve(base64);
-                            };
-                            reader.onerror = () => resolve(null);
-                            reader.readAsDataURL(file);
-                        }),
-                        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))
-                    ]);
-                }
-            } catch (e) {
-                console.warn('⚠️ Screenshot reading failed:', e);
-                showToast('⚠️ Failed to read screenshot. Proceeding without it.', 'warning');
-            }
-        }
-
-        const cartData = cart.map(item => ({
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity || 1,
-            currency: item.currency || 'USD',
-            isVip: item.isVip || false,
-            vipPlan: item.vipPlan || null,
-            vipPlanLabel: item.vipPlanLabel || null,
-            selectedQuantity: item.selectedQuantity || null,
-            isQuantityProduct: item.isQuantityProduct || false,
-            isProxy: item.isProxy || false,
-            proxyPlan: item.plan || null,
-            proxyDuration: item.duration || null,
-            proxyQuantity: item.quantity || 1
-        }));
-
-        let total = 0;
-        cart.forEach(item => { 
-            total += item.price * (item.quantity || 1); 
-        });
-        let finalTotal = total;
-        let rpDiscountAmount = 0;
-        if (userProfile.useRpForCart) {
-            rpDiscountAmount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total);
-            finalTotal = total - rpDiscountAmount;
-        }
-        if (activeDiscount > 0 && total > 0) {
-            const discountAmount = (finalTotal * activeDiscount) / 100;
-            finalTotal = finalTotal - discountAmount;
-        }
-        if (finalTotal < 0) finalTotal = 0;
-
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000);
-
-        const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/place-order', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                'Accept': 'application/json',
-            },
-            mode: 'cors',
-            signal: controller.signal,
-            body: JSON.stringify({
-                cart: cartData,
-                user: {
-                    uid: currentUser.uid,
-                    email: currentUser.email,
-                    name: currentUser.displayName || currentUser.email || 'User',
-                },
-                method: method,
-                txHash: txHash,
-                screenshotBase64: screenshotBase64,
-                total: finalTotal,
-                visitorInfo: visitorInfo,
-                deviceInfo: deviceInfo,
-                rpUsed: Math.floor(rpDiscountAmount / RP_TO_DOLLAR) || 0,
-                discountCode: activeDiscountCode || null
-            })
-        });
-
-        clearTimeout(timeoutId);
-
-        if (!response.ok) {
-            let errorText = await response.text();
-            console.error('Order API error:', response.status, errorText);
-            try {
-                const errorJson = JSON.parse(errorText);
-                errorText = errorJson.error || errorText;
-            } catch (e) {}
-            
-            if (response.status === 0 || errorText.includes('CORS') || errorText.includes('NetworkError')) {
-                showToast('📱 Network issue. Please check your connection and try again.', 'error');
-            } else {
-                showToast('❌ ' + errorText, 'error');
-            }
-            throw new Error(`Request failed: ${response.status} - ${errorText}`);
-        }
-
-        const result = await response.json();
-        if (!result.success) throw new Error(result.error || 'Request failed');
-
-        const orderId = result.orderId || 'order_' + Date.now();
-
-        const orderItem = {
-            id: orderId,
-            items: cartData,
-            total: finalTotal,
-            method: method,
-            date: new Date().toISOString(),
-            status: 'pending',
-            txHash: txHash || null,
-            screenshotUrl: result.screenshotUrl || null,
-            rpUsed: Math.floor(rpDiscountAmount / RP_TO_DOLLAR) || 0,
-            rpEarned: 0
-        };
-        userProfile.history.push(orderItem);
-        const userRef = doc(db, 'users', currentUser.uid);
-        await updateDoc(userRef, { history: arrayUnion(orderItem) });
-
-        await addDoc(collection(db, 'notifications'), {
-            title: '🆕 Order Placed',
-            message: `Order #${orderId.slice(-6)} - Total: $${finalTotal.toFixed(2)}`,
-            userId: currentUser.uid,
-            readBy: [],
-            createdAt: serverTimestamp()
-        });
-
-        await addDoc(collection(db, 'notifications'), {
-            title: '📦 New Order',
-            message: `#${orderId.slice(-6)} from ${currentUser.email} - $${finalTotal.toFixed(2)}`,
-            readBy: [],
-            createdAt: serverTimestamp()
-        });
-
-        const proxyItems = cart.filter(item => item.isProxy);
-        if (proxyItems.length > 0) {
-            if (DISABLE_PROXY) {
-                console.log('ℹ️ Proxy creation is disabled.');
-                showToast('📦 Proxy details will be sent within 24 hours.', 'info');
-                await addDoc(collection(db, 'notifications'), {
-                    title: 'ℹ️ Proxy request pending',
-                    message: `User: ${currentUser.email} - ${proxyItems.length} proxies`,
-                    readBy: [],
-                    createdAt: serverTimestamp()
-                });
-            }
-        }
-
-        cart = [];
-        activeDiscount = 0;
-        activeDiscountCode = '';
-        await saveUserData();
-        updateCartUI();
-        updateBottomCartBar();
-        renderProducts(products);
-        generateRecommendations(products);
-        updateRpDisplay();
-
-        document.getElementById('paymentModal').classList.remove('open');
-        showToast('✅ Order placed successfully!', 'success');
-
-        setTimeout(() => {
-            if (currentUser && isAdminCached) { loadAdminOrders(); }
-            loadUserData();
-            updateDropdownStats();
-            updateFullUserMenu();
-        }, 1000);
-
+        await sendOrderToTelegram('telegram', null);
     } catch (error) {
-        console.error('Order error:', error);
-        if (error.name === 'AbortError') {
-            showToast('⏳ Request timed out. Please try again.', 'error');
-        } else if (error.message.includes('CORS') || error.message.includes('Failed to fetch')) {
-            showToast('📱 Connection issue. Please check your internet and try again.', 'error');
-        } else {
-            showToast('❌ Error: ' + error.message, 'error');
-        }
-    } finally {
-        isProcessingOrder = false;
+        console.error('Telegram order error:', error);
     }
 }
 
 // ============================================================
-// 15.8 Proxy Functions
+// 15.10 Proxy Functions
 // ============================================================
 
 function renderProxyPackages() {
@@ -3158,6 +3302,10 @@ window.editDownload = function(id) { showToast('✏️ Edit feature coming soon'
 window.openCreateDownloadModal = function() { if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; } document.getElementById('createDownloadModal').classList.add('open'); document.getElementById('createDownloadForm').reset(); };
 window.closeCreateDownloadModal = function() { document.getElementById('createDownloadModal').classList.remove('open'); };
 
+// ============================================================
+// 19. Notifications (IMPROVED - shows both user and global notifications)
+// ============================================================
+
 function loadNotifications() {
     if (unsubscribeNotifications) { unsubscribeNotifications(); }
     const notifRef = collection(db, 'notifications');
@@ -3166,6 +3314,7 @@ function loadNotifications() {
             notifications = [];
             snapshot.forEach((doc) => {
                 const data = doc.data();
+                // Show notification if no userId (global) or if userId matches current user
                 if (!data.userId || data.userId === currentUser?.uid) {
                     notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] });
                 }
@@ -3178,6 +3327,7 @@ function loadNotifications() {
             renderAdminNotifications();
             renderUserNotifications();
         }).catch((error) => { console.error('Error loading notifications:', error); renderUserNotificationsFallback(); });
+        
         unsubscribeNotifications = onSnapshot(query(notifRef, orderBy('createdAt', 'desc')), (snapshot) => {
             if (isUpdatingNotifications) return;
             notifications = [];
@@ -3287,7 +3437,7 @@ window.openCreateNotificationModal = function() { if (!currentUser || !isAdminCa
 window.closeCreateNotificationModal = function() { document.getElementById('createNotificationModal').classList.remove('open'); };
 
 // ============================================================
-// 19. Requests & Referrals
+// 20. Requests & Referrals
 // ============================================================
 
 window.openRequestsModal = function() {
@@ -3361,7 +3511,7 @@ window.copyReferralCode2 = function() {
 };
 
 // ============================================================
-// 20. Admin Panel
+// 21. Admin Panel
 // ============================================================
 
 window.openAdminPanel = function() {
@@ -3392,9 +3542,7 @@ window.openAdminPanel = function() {
     }
 };
 
-function ensureSliderTab() {
-    // تم إضافة التبويبات في HTML مباشرة
-}
+function ensureSliderTab() {}
 
 window.closeAdminPanel = function() { document.getElementById('adminPanel').classList.remove('open'); if (unsubscribeAdmin) { unsubscribeAdmin(); unsubscribeAdmin = null; } };
 
@@ -3439,7 +3587,7 @@ window.switchAdminTab = function(tab) {
 };
 
 // ============================================================
-// 21. Admin Products
+// 22. Admin Products
 // ============================================================
 
 function renderAdminProducts(productsList) {
@@ -3647,7 +3795,7 @@ async function deleteProductFromFirestore(productId) {
 }
 
 // ============================================================
-// 22. Admin Orders
+// 23. Admin Orders
 // ============================================================
 
 function startAdminRealtimeListener() {
@@ -3784,7 +3932,7 @@ function updateAdminStats(orders) {
 }
 
 // ============================================================
-// 23. Update Order Status with User Notification
+// 24. Update Order Status with User Notification
 // ============================================================
 
 window.updateOrderStatus = async function(orderId, userId, newStatus) {
@@ -3864,7 +4012,7 @@ window.clearAdminSearch = function() { document.getElementById('adminSearchInput
 window.refreshAdminOrders = function() { loadAdminOrders(); showToast('🔄 Refreshed', 'info'); };
 
 // ============================================================
-// 24. Send Licence via Edge Function
+// 25. Send Licence via Edge Function
 // ============================================================
 
 async function sendLicenceForOrder(orderId, userId, userEmail = null) {
@@ -3953,7 +4101,7 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
 }
 
 // ============================================================
-// 25. Admin Users
+// 26. Admin Users
 // ============================================================
 
 async function loadAdminUsers() {
@@ -4064,7 +4212,7 @@ window.viewUserDetails = async function(uid) {
 window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
 // ============================================================
-// 26. Licence Management System (with Supabase)
+// 27. Licence Management System (with Supabase)
 // ============================================================
 
 async function loadLicences() {
@@ -4390,7 +4538,7 @@ async function activateLicence() {
 }
 
 // ============================================================
-// 27. Ratings
+// 28. Ratings
 // ============================================================
 
 let currentRating = 0;
@@ -4500,7 +4648,7 @@ async function updateProductRatingDisplay(productId) {
 }
 
 // ============================================================
-// 28. Slider & Marquee Functions
+// 29. Slider & Marquee Functions
 // ============================================================
 
 window.goToSlide = function(index) {
@@ -4891,7 +5039,7 @@ async function loadMarqueeSettings() {
 }
 
 // ============================================================
-// 29. Dashboard Stats, Advanced Stats, Audit Logs
+// 30. Dashboard Stats, Advanced Stats, Audit Logs
 // ============================================================
 
 async function loadDashboardStats() {
@@ -4999,7 +5147,7 @@ async function loadAuditLogs() {
 window.loadAuditLogs = loadAuditLogs;
 
 // ============================================================
-// 30. Order History (Unified with Payment Design)
+// 31. Order History (Unified with Payment Design)
 // ============================================================
 
 window.clearOrderHistory = async function() {
@@ -5130,7 +5278,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================================
-// 31. Cookie Consent Functions
+// 32. Cookie Consent Functions
 // ============================================================
 
 let cookieConsentStatus = localStorage.getItem('cookieConsent');
@@ -5260,7 +5408,7 @@ window.disableAnalytics = disableAnalytics;
 window.checkCookieConsent = checkCookieConsent;
 
 // ============================================================
-// 32. Telegram Banner, Social Proof, Upload
+// 33. Telegram Banner, Social Proof, Upload
 // ============================================================
 
 function showTelegramBanner() {
@@ -5306,7 +5454,7 @@ function startSocialProof() { /* For future use */ }
 function triggerSocialProofOnOrder(userName, productNames) { /* For future use */ }
 
 // ============================================================
-// 33. Cloudinary Upload
+// 34. Cloudinary Upload
 // ============================================================
 
 async function uploadToCloudinary(file) {
@@ -5321,7 +5469,7 @@ async function uploadToCloudinary(file) {
 }
 
 // ============================================================
-// 34. Direction Fix
+// 35. Direction Fix
 // ============================================================
 
 function fixDirection() {
@@ -5333,7 +5481,7 @@ function fixDirection() {
 window.fixHeaderAndModals = fixDirection;
 
 // ============================================================
-// 35. Copy Licence & Export
+// 36. Copy Licence & Export
 // ============================================================
 
 window.copyLicenceCode = function(code) {
@@ -5396,7 +5544,7 @@ window.exportOrders = function() {
 };
 
 // ============================================================
-// 36. Admin Payments
+// 37. Admin Payments
 // ============================================================
 
 function refreshAdminPayments() {
@@ -5495,7 +5643,7 @@ window.adminDeletePayment = function(orderId, userId) {
 };
 
 // ============================================================
-// 37. Support Functions
+// 38. Support Functions
 // ============================================================
 
 window.toggleSupportMenu = function() {
@@ -5549,7 +5697,7 @@ window.openPhoneSupport = function() {
 };
 
 // ============================================================
-// 38. Auth State Listener
+// 39. Auth State Listener
 // ============================================================
 
 onAuthStateChanged(auth, async (user) => {
@@ -5643,7 +5791,7 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// 39. Auto-check Admin Panel
+// 40. Auto-check Admin Panel
 // ============================================================
 
 setInterval(() => {
@@ -5666,7 +5814,7 @@ setInterval(() => {
 }, 5000);
 
 // ============================================================
-// 40. Init
+// 41. Init
 // ============================================================
 
 async function init() {
@@ -5742,13 +5890,13 @@ async function init() {
 }
 
 // ============================================================
-// 41. Theme Toggle
+// 42. Theme Toggle
 // ============================================================
 
 // Theme toggle is now handled inline in index.html for immediate response.
 
 // ============================================================
-// 42. Export all functions to global scope
+// 43. Export all functions to global scope
 // ============================================================
 
 window.filterOrders = function(filter) {
@@ -5763,6 +5911,7 @@ window.checkout = function() {
     openPaymentModal();
 };
 
+// Payment Modal Functions
 window.openPaymentModal = function() {
     if (cart.length === 0) {
         showToast('⚠️ Cart is empty', 'warning');
