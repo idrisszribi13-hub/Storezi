@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - Full Version with ALL Fixes
+// SCRIPT.JS - ZI Store - Full Version with Telegram Notifications Fixed
 // ============================================================
 
 // Fix for Firebase Analytics "process is not defined" error
@@ -2690,8 +2690,14 @@ async function sendOrderToTelegram(method, txHash = null) {
                         const base64 = e.target.result.split(',')[1];
                         resolve(base64);
                     };
+                    reader.onerror = () => resolve(null);
                     reader.readAsDataURL(file);
                 });
+                if (screenshotBase64) {
+                    console.log('📸 Screenshot loaded, size:', screenshotBase64.length);
+                } else {
+                    console.warn('⚠️ Failed to read screenshot');
+                }
             } catch (e) {
                 console.error('Error reading screenshot:', e);
             }
@@ -2729,7 +2735,6 @@ async function sendOrderToTelegram(method, txHash = null) {
             finalTotal = finalTotal - discountAmount;
         }
         if (finalTotal < 0) finalTotal = 0;
-
         console.log('💰 Total:', finalTotal);
 
         // ============== إرسال الطلب إلى Supabase ==============
@@ -2793,7 +2798,7 @@ async function sendOrderToTelegram(method, txHash = null) {
         const userRef = doc(db, 'users', currentUser.uid);
         await updateDoc(userRef, { history: arrayUnion(orderItem) });
 
-        // ============== إرسال إشعار للمستخدم في Firebase ==============
+        // ============== إرسال إشعار Firebase للمستخدم ==============
         try {
             await addDoc(collection(db, 'notifications'), {
                 title: '🆕 New Order Placed',
@@ -2804,10 +2809,10 @@ async function sendOrderToTelegram(method, txHash = null) {
             });
             console.log('✅ Firebase notification sent to user');
         } catch (error) {
-            console.error('Failed to send Firebase notification:', error);
+            console.error('Failed to send Firebase user notification:', error);
         }
 
-        // ============== إرسال إشعار عام للأدمن ==============
+        // ============== إرسال إشعار Firebase للأدمن ==============
         try {
             await addDoc(collection(db, 'notifications'), {
                 title: '📦 New Order Received',
@@ -2817,7 +2822,7 @@ async function sendOrderToTelegram(method, txHash = null) {
             });
             console.log('✅ Firebase global notification sent');
         } catch (error) {
-            console.error('Failed to send global notification:', error);
+            console.error('Failed to send Firebase global notification:', error);
         }
 
         // ================================================================
@@ -2842,7 +2847,7 @@ ${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
 ⏳ You will receive a notification once confirmed.
         `;
 
-        // بناء رسالة تيليجرام للأدمن
+        // بناء رسالة تيليجرام للأدمن مع معلومات إضافية
         const adminTelegramMessage = `
 🛒 *NEW ORDER RECEIVED!*
 
@@ -2855,6 +2860,9 @@ ${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
 
 ${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
 📅 *Date:* ${new Date().toLocaleString()}
+
+🌐 *Location:* ${visitorInfo.country}, ${visitorInfo.city}
+📱 *Device:* ${deviceInfo.device} (${deviceInfo.os} / ${deviceInfo.browser})
 
 🔔 *Status:* Pending - Awaiting confirmation
         `;
@@ -2877,8 +2885,8 @@ ${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
         }
 
         // ===== إرسال للأدمن =====
-        // يمكنك وضع Chat ID الأدمن هنا مباشرة إذا كان ثابتاً، أو جلبها من Firebase
-        const ADMIN_CHAT_ID = 'YOUR_ADMIN_CHAT_ID'; // استبدل بـ Chat ID الحقيقي للأدمن
+        // استخدم Chat ID الخاص بالأدمن هنا (يفضل تخزينه في Firebase)
+        const ADMIN_CHAT_ID = 'YOUR_ADMIN_CHAT_ID'; // استبدل بالـ Chat ID الحقيقي
         
         if (ADMIN_CHAT_ID && ADMIN_CHAT_ID !== 'YOUR_ADMIN_CHAT_ID') {
             try {
@@ -2896,7 +2904,7 @@ ${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
             console.log('ℹ️ Admin Chat ID not configured');
         }
 
-        // Proxy logic
+        // === إشعارات الـ Proxy (اختياري) ===
         const proxyItems = cart.filter(item => item.isProxy);
         if (proxyItems.length > 0 && DISABLE_PROXY) {
             console.log('ℹ️ Proxy creation is disabled.');
