@@ -484,6 +484,7 @@
             color:var(--text-secondary);
             font-size:30px; cursor:pointer;
             transition:transform 0.3s;
+            margin-left:auto;
         }
         .fullscreen-modal .modal-header .close-btn:hover { transform:rotate(90deg); }
         .fullscreen-modal .modal-header .back-btn {
@@ -2496,7 +2497,7 @@
     <!-- ===== SUPPORT MODAL ===== -->
     <div class="modal" id="supportModal">
         <div class="modal-content" style="max-width:400px; text-align:center;">
-            <span class="modal-close" onclick="closeSupportModal()">&times;</span>
+            <span class="modal-close" onclick="closeSupportModal()" style="right:16px; left:auto;">&times;</span>
             <h3 style="font-weight:800;"><i class="fas fa-headset"></i> Support</h3>
             <p style="color:var(--text-secondary); font-weight:500;">How can we help you?</p>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px;">
@@ -2511,7 +2512,7 @@
     <!-- ===== SCRIPTS ===== -->
     <script type="module" src="script.js"></script>
     <script>
-        // Theme toggle
+        // Theme toggle (inline for immediate response)
         function toggleTheme() {
             document.body.classList.toggle('light');
             const isLight = document.body.classList.contains('light');
@@ -2540,7 +2541,7 @@
             document.getElementById(tabId).classList.add('active');
             const btn = document.querySelector(`#adminPanel .tabs button[onclick="switchAdminTab('${tab}')"]`);
             if (btn) btn.classList.add('active');
-            // Load content if functions exist
+            // Load content if functions exist (they will be defined in script.js)
             if (tab === 'products' && typeof renderAdminProducts === 'function') renderAdminProducts(products);
             if (tab === 'users' && typeof loadAdminUsers === 'function') loadAdminUsers();
             if (tab === 'dashboard' && typeof loadDashboardStats === 'function') loadDashboardStats();
