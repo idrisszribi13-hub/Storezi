@@ -2,6 +2,11 @@
 // SCRIPT.JS - ZI Store - Full Version with ALL Fixes
 // ============================================================
 
+// Fix for Firebase Analytics "process is not defined" error
+if (typeof process === 'undefined') {
+    window.process = { env: { NODE_ENV: 'production' } };
+}
+
 // ============================================================
 // 0. Hide Loading Screen Immediately
 // ============================================================
@@ -2650,7 +2655,7 @@ window.submitManualPayment = function() {
 };
 
 // ============================================================
-// 15.7 Original order sending function (with device info, screenshot, notification)
+// 15.7 sendOrderToTelegram - FIXED with Telegram notification
 // ============================================================
 async function sendOrderToTelegram(method, txHash = null) {
     if (isProcessingOrder) {
@@ -2667,23 +2672,32 @@ async function sendOrderToTelegram(method, txHash = null) {
             return;
         }
 
+        console.log('📦 Starting order process...');
+
+        // جمع معلومات الزائر والجهاز
         const visitorInfo = await getVisitorInfo();
         const deviceInfo = getDeviceInfo();
 
+        // معالجة الصورة الملتقطة
         let screenshotBase64 = null;
         const screenshotInput = document.getElementById('screenshotInput');
         if (screenshotInput && screenshotInput.files && screenshotInput.files[0]) {
             const file = screenshotInput.files[0];
-            screenshotBase64 = await new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const base64 = e.target.result.split(',')[1];
-                    resolve(base64);
-                };
-                reader.readAsDataURL(file);
-            });
+            try {
+                screenshotBase64 = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const base64 = e.target.result.split(',')[1];
+                        resolve(base64);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            } catch (e) {
+                console.error('Error reading screenshot:', e);
+            }
         }
 
+        // تجهيز بيانات السلة
         const cartData = cart.map(item => ({
             id: item.id,
             name: item.name,
@@ -2701,6 +2715,7 @@ async function sendOrderToTelegram(method, txHash = null) {
             proxyQuantity: item.quantity || 1
         }));
 
+        // حساب المجموع
         let total = 0;
         cart.forEach(item => { total += item.price * (item.quantity || 1); });
         let finalTotal = total;
@@ -2715,6 +2730,9 @@ async function sendOrderToTelegram(method, txHash = null) {
         }
         if (finalTotal < 0) finalTotal = 0;
 
+        console.log('💰 Total:', finalTotal);
+
+        // ============== إرسال الطلب إلى Supabase ==============
         const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/place-order', {
             method: 'POST',
             headers: {
@@ -2748,11 +2766,7 @@ async function sendOrderToTelegram(method, txHash = null) {
                 const errorJson = JSON.parse(errorText);
                 errorText = errorJson.error || errorText;
             } catch (e) {}
-            if (errorText.includes('CORS') || response.status === 0) {
-                showToast('❌ Failed to connect to server. Please check your internet and try again.', 'error');
-            } else {
-                showToast('❌ ' + errorText, 'error');
-            }
+            showToast('❌ ' + errorText, 'error');
             throw new Error(`Request failed: ${response.status} - ${errorText}`);
         }
 
@@ -2760,7 +2774,9 @@ async function sendOrderToTelegram(method, txHash = null) {
         if (!result.success) throw new Error(result.error || 'Request failed');
 
         const orderId = result.orderId || 'order_' + Date.now();
+        console.log('✅ Order placed successfully, ID:', orderId);
 
+        // ============== حفظ الطلب في تاريخ المستخدم ==============
         const orderItem = {
             id: orderId,
             items: cartData,
@@ -2777,39 +2793,123 @@ async function sendOrderToTelegram(method, txHash = null) {
         const userRef = doc(db, 'users', currentUser.uid);
         await updateDoc(userRef, { history: arrayUnion(orderItem) });
 
-        // Send notification to user
-        await addDoc(collection(db, 'notifications'), {
-            title: '🆕 New Order Placed',
-            message: `Order #${orderId.slice(-6)} by ${currentUser.email} - Total: $${finalTotal.toFixed(2)}`,
-            userId: currentUser.uid,
-            readBy: [],
-            createdAt: serverTimestamp()
-        });
-
-        // Send global notification for admin (without userId)
-        await addDoc(collection(db, 'notifications'), {
-            title: '📦 New Order Received',
-            message: `Order #${orderId.slice(-6)} from ${currentUser.email} - Total: $${finalTotal.toFixed(2)}`,
-            readBy: [],
-            createdAt: serverTimestamp()
-        });
-
-        // Proxy logic (disabled)
-        const proxyItems = cart.filter(item => item.isProxy);
-        if (proxyItems.length > 0) {
-            if (DISABLE_PROXY) {
-                console.log('ℹ️ Proxy creation is disabled.');
-                showToast('📦 Proxy details will be sent within 24 hours.', 'info');
-                await addDoc(collection(db, 'notifications'), {
-                    title: 'ℹ️ Proxy request pending',
-                    message: `User: ${currentUser.email} - ${proxyItems.length} proxies`,
-                    readBy: [],
-                    createdAt: serverTimestamp()
-                });
-            }
+        // ============== إرسال إشعار للمستخدم في Firebase ==============
+        try {
+            await addDoc(collection(db, 'notifications'), {
+                title: '🆕 New Order Placed',
+                message: `Order #${orderId.slice(-6)} - Total: $${finalTotal.toFixed(2)}`,
+                userId: currentUser.uid,
+                readBy: [],
+                createdAt: serverTimestamp()
+            });
+            console.log('✅ Firebase notification sent to user');
+        } catch (error) {
+            console.error('Failed to send Firebase notification:', error);
         }
 
-        // Clear cart
+        // ============== إرسال إشعار عام للأدمن ==============
+        try {
+            await addDoc(collection(db, 'notifications'), {
+                title: '📦 New Order Received',
+                message: `Order #${orderId.slice(-6)} from ${currentUser.email} - $${finalTotal.toFixed(2)}`,
+                readBy: [],
+                createdAt: serverTimestamp()
+            });
+            console.log('✅ Firebase global notification sent');
+        } catch (error) {
+            console.error('Failed to send global notification:', error);
+        }
+
+        // ================================================================
+        // ============== إرسال إشعار تيليجرام ============================
+        // ================================================================
+        console.log('📤 Preparing Telegram notification...');
+        console.log('👤 User Telegram Chat ID:', userProfile.telegramChatId);
+
+        // بناء رسالة تيليجرام للمستخدم
+        const userTelegramMessage = `
+🛒 *ORDER PLACED SUCCESSFULLY!*
+
+📋 *Order ID:* #${orderId.slice(-6)}
+💰 *Total:* $${finalTotal.toFixed(2)}
+💳 *Payment Method:* ${method}
+📦 *Items:* ${cartData.map(item => `${item.name} x${item.quantity}`).join(', ')}
+
+${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
+📅 *Date:* ${new Date().toLocaleString()}
+
+✅ Your order is pending confirmation.
+⏳ You will receive a notification once confirmed.
+        `;
+
+        // بناء رسالة تيليجرام للأدمن
+        const adminTelegramMessage = `
+🛒 *NEW ORDER RECEIVED!*
+
+📋 *Order ID:* #${orderId.slice(-6)}
+👤 *User:* ${currentUser.displayName || currentUser.email || 'User'}
+📧 *Email:* ${currentUser.email || 'N/A'}
+💰 *Total:* $${finalTotal.toFixed(2)}
+💳 *Payment Method:* ${method}
+📦 *Items:* ${cartData.map(item => `${item.name} x${item.quantity}`).join(', ')}
+
+${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
+📅 *Date:* ${new Date().toLocaleString()}
+
+🔔 *Status:* Pending - Awaiting confirmation
+        `;
+
+        // ===== إرسال للمستخدم =====
+        if (userProfile.telegramChatId) {
+            try {
+                console.log('📤 Sending Telegram to user...');
+                const sent = await sendTelegramNotification(userProfile.telegramChatId, userTelegramMessage);
+                if (sent) {
+                    console.log('✅ Telegram sent to user');
+                } else {
+                    console.warn('⚠️ Telegram to user failed (but order saved)');
+                }
+            } catch (error) {
+                console.error('❌ Error sending Telegram to user:', error);
+            }
+        } else {
+            console.log('ℹ️ User has no Telegram linked');
+        }
+
+        // ===== إرسال للأدمن =====
+        // يمكنك وضع Chat ID الأدمن هنا مباشرة إذا كان ثابتاً، أو جلبها من Firebase
+        const ADMIN_CHAT_ID = 'YOUR_ADMIN_CHAT_ID'; // استبدل بـ Chat ID الحقيقي للأدمن
+        
+        if (ADMIN_CHAT_ID && ADMIN_CHAT_ID !== 'YOUR_ADMIN_CHAT_ID') {
+            try {
+                console.log('📤 Sending Telegram to admin...');
+                const sent = await sendTelegramNotification(ADMIN_CHAT_ID, adminTelegramMessage);
+                if (sent) {
+                    console.log('✅ Telegram sent to admin');
+                } else {
+                    console.warn('⚠️ Telegram to admin failed');
+                }
+            } catch (error) {
+                console.error('❌ Error sending Telegram to admin:', error);
+            }
+        } else {
+            console.log('ℹ️ Admin Chat ID not configured');
+        }
+
+        // Proxy logic
+        const proxyItems = cart.filter(item => item.isProxy);
+        if (proxyItems.length > 0 && DISABLE_PROXY) {
+            console.log('ℹ️ Proxy creation is disabled.');
+            showToast('📦 Proxy details will be sent within 24 hours.', 'info');
+            await addDoc(collection(db, 'notifications'), {
+                title: 'ℹ️ Proxy request pending',
+                message: `User: ${currentUser.email} - ${proxyItems.length} proxies`,
+                readBy: [],
+                createdAt: serverTimestamp()
+            });
+        }
+
+        // ============== تفريغ السلة ==============
         cart = [];
         activeDiscount = 0;
         activeDiscountCode = '';
@@ -2831,12 +2931,8 @@ async function sendOrderToTelegram(method, txHash = null) {
         }, 1000);
 
     } catch (error) {
-        console.error('Order error:', error);
-        if (error.message.includes('CORS') || error.message.includes('Failed to fetch')) {
-            showToast('❌ Failed to connect to server. Please check your internet and try again.', 'error');
-        } else {
-            showToast('❌ Error placing order: ' + error.message, 'error');
-        }
+        console.error('❌ Order error:', error);
+        showToast('❌ Error placing order: ' + error.message, 'error');
     } finally {
         isProcessingOrder = false;
     }
@@ -2918,8 +3014,12 @@ async function sendUserNotification(userId, title, message) {
 // ============================================================
 
 async function sendTelegramNotification(chatId, message) {
-    if (!chatId) return false;
+    if (!chatId) {
+        console.log('⚠️ No chatId provided');
+        return false;
+    }
     try {
+        console.log('📤 Sending Telegram to:', chatId);
         const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/send-telegram', {
             method: 'POST',
             headers: {
@@ -2934,10 +3034,12 @@ async function sendTelegramNotification(chatId, message) {
             })
         });
         if (!response.ok) {
-            console.error('Telegram API error:', response.status);
+            const errorText = await response.text();
+            console.error('Telegram API error:', response.status, errorText);
             return false;
         }
         const result = await response.json();
+        console.log('✅ Telegram response:', result);
         return result.success || false;
     } catch (error) {
         console.error('Send error:', error);
@@ -3880,6 +3982,21 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
         };
         userLicences.push(newLicence);
         await updateDoc(userRef, { licences: userLicences });
+
+        // Send Telegram notification for licence
+        if (userData.telegramChatId) {
+            const licenceMessage = `
+🔑 *LICENCE GENERATED!*
+
+📋 *Order ID:* #${orderId.slice(-6)}
+📦 *Product:* ${productName}
+🔑 *Licence Code:* \`${data.licence.code}\`
+📅 *Expiry:* ${new Date(data.licence.expiryDate).toLocaleDateString()}
+
+✅ Your licence has been generated successfully!
+            `;
+            await sendTelegramNotification(userData.telegramChatId, licenceMessage);
+        }
 
         if (currentUser && currentUser.uid === userId) {
             userProfile.licences = userLicences;
