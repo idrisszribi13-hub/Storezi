@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - Full Version with Telegram Notifications Fixed
+// SCRIPT.JS - ZI Store - Full Version with ALL Fixes
 // ============================================================
 
 // Fix for Firebase Analytics "process is not defined" error
@@ -2752,6 +2752,7 @@ async function sendOrderToTelegram(method, txHash = null) {
                     uid: currentUser.uid,
                     email: currentUser.email,
                     name: currentUser.displayName || currentUser.email || 'User',
+                    telegramChatId: userProfile.telegramChatId || null  // <-- إضافة Chat ID
                 },
                 method: method,
                 txHash: txHash,
@@ -3842,7 +3843,7 @@ function updateAdminStats(orders) {
 }
 
 // ============================================================
-// 23. Update Order Status with User Notification
+// 23. Update Order Status with User Notification - FIXED
 // ============================================================
 
 window.updateOrderStatus = async function(orderId, userId, newStatus) {
@@ -3866,27 +3867,48 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
         });
         await updateDoc(userRef, { history: updatedHistory });
         
+        // ===== إرسال إشعار للمستخدم عبر Firebase =====
+        await sendUserNotification(
+            userId,
+            newStatus === 'confirmed' ? '✅ Order Confirmed!' : '❌ Order Rejected',
+            newStatus === 'confirmed' 
+                ? `Your order #${orderId.slice(-6)} has been confirmed and is ready.`
+                : `Your order #${orderId.slice(-6)} has been rejected. Please contact support for more information.`
+        );
+
+        // ===== إرسال إشعار تيليجرام للمستخدم =====
+        if (data.telegramChatId) {
+            const statusEmoji = newStatus === 'confirmed' ? '✅' : '❌';
+            const statusText = newStatus === 'confirmed' ? 'CONFIRMED' : 'REJECTED';
+            const telegramMessage = `
+${statusEmoji} *ORDER ${statusText}!*
+
+📋 Order #${orderId.slice(-6)}
+📦 ${orderFound?.items?.map(i => i.name).join(', ') || 'Order'}
+💰 Total: $${(orderFound?.total || 0).toFixed(2)}
+
+${newStatus === 'confirmed' ? '🔑 Your licence has been generated and sent to your account.' : 'Please contact support for more information.'}
+
+📅 ${new Date().toLocaleString()}
+            `;
+            await sendTelegramNotification(data.telegramChatId, telegramMessage);
+            console.log('✅ Telegram notification sent to user for status update');
+        }
+
+        // ===== إرسال الترخيص عند التأكيد =====
         if (newStatus === 'confirmed') {
             const userEmail = orderFound?.userEmail || data.email || userId;
-            await sendUserNotification(
-                userId,
-                '✅ Order Confirmed!',
-                `Your order #${orderId.slice(-6)} has been confirmed and is ready.`
-            );
             await sendLicenceForOrder(orderId, userId, userEmail);
-        } else if (newStatus === 'rejected') {
-            await sendUserNotification(
-                userId,
-                '❌ Order Rejected',
-                `Your order #${orderId.slice(-6)} has been rejected. Please contact support for more information.`
-            );
         }
         
         showToast(`📦 Order updated to ${newStatus}`, 'success');
         loadAdminOrders();
         if (currentUser && currentUser.uid === userId) { userProfile.history = updatedHistory; }
         updateFullUserMenu();
-    } catch (error) { console.error('Error updating order:', error); showToast('❌ Error: ' + error.message, 'error'); }
+    } catch (error) { 
+        console.error('Error updating order:', error); 
+        showToast('❌ Error: ' + error.message, 'error'); 
+    }
 };
 
 window.deleteOrderImmediately = async function(orderId, userId) {
@@ -3922,7 +3944,7 @@ window.clearAdminSearch = function() { document.getElementById('adminSearchInput
 window.refreshAdminOrders = function() { loadAdminOrders(); showToast('🔄 Refreshed', 'info'); };
 
 // ============================================================
-// 24. Send Licence via Edge Function
+// 24. Send Licence via Edge Function - FIXED with Telegram notification
 // ============================================================
 
 async function sendLicenceForOrder(orderId, userId, userEmail = null) {
@@ -3991,19 +4013,21 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
         userLicences.push(newLicence);
         await updateDoc(userRef, { licences: userLicences });
 
-        // Send Telegram notification for licence
+        // ===== إرسال إشعار تيليجرام للمستخدم بالترخيص =====
         if (userData.telegramChatId) {
             const licenceMessage = `
 🔑 *LICENCE GENERATED!*
 
-📋 *Order ID:* #${orderId.slice(-6)}
-📦 *Product:* ${productName}
-🔑 *Licence Code:* \`${data.licence.code}\`
-📅 *Expiry:* ${new Date(data.licence.expiryDate).toLocaleDateString()}
+📋 Order ID: #${orderId.slice(-6)}
+📦 Product: ${productName}
+🔑 Licence Code: \`${data.licence.code}\`
+📅 Expiry: ${new Date(data.licence.expiryDate).toLocaleDateString()}
 
 ✅ Your licence has been generated successfully!
+💡 Use this code in the "Licences" section of the store to activate your product.
             `;
             await sendTelegramNotification(userData.telegramChatId, licenceMessage);
+            console.log('✅ Licence Telegram notification sent to user');
         }
 
         if (currentUser && currentUser.uid === userId) {
