@@ -4,7 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>ZI Store - Premium Scripts</title>
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <script type="importmap">
         {
@@ -1429,6 +1431,127 @@
         .items-center { align-items:center; }
         .justify-between { justify-content:space-between; }
         .w-full { width:100%; }
+
+        /* ===== NEW: Order History Payment Card ===== */
+        .payment-card {
+            background:var(--glass-bg);
+            backdrop-filter:blur(12px);
+            border:1px solid var(--glass-border);
+            border-radius:var(--radius-md);
+            padding:18px 20px;
+            margin-bottom:12px;
+            border-left:6px solid var(--primary);
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            justify-content:space-between;
+            gap:8px;
+        }
+        .payment-card .payment-left {
+            display:flex;
+            align-items:center;
+            gap:14px;
+            flex:2 1 200px;
+        }
+        .payment-card .payment-icon {
+            width:50px;
+            height:50px;
+            border-radius:50%;
+            background:var(--glass-bg);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-weight:800;
+            font-size:24px;
+            border:1px solid var(--glass-border);
+            flex-shrink:0;
+        }
+        .payment-card .payment-icon.ltc { color:#3fcb7a; }
+        .payment-card .payment-icon.usdt { color:#26a17b; }
+        .payment-card .payment-icon.binance { color:#f2a900; }
+        .payment-card .payment-icon.telegram { color:#0088cc; }
+        .payment-card .payment-info {
+            display:flex;
+            flex-direction:column;
+            gap:2px;
+        }
+        .payment-card .payment-currency {
+            font-weight:700;
+            font-size:18px;
+        }
+        .payment-card .payment-date {
+            font-size:13px;
+            color:var(--text-secondary);
+            font-weight:500;
+        }
+        .payment-card .payment-id {
+            font-size:12px;
+            color:var(--text-secondary);
+            font-family:monospace;
+            background:var(--glass-bg);
+            padding:0 12px;
+            border-radius:30px;
+            border:1px solid var(--glass-border);
+            display:inline-block;
+            margin-top:2px;
+            font-weight:500;
+        }
+        .payment-card .payment-amounts {
+            display:flex;
+            flex-direction:column;
+            align-items:flex-end;
+            flex:1 1 auto;
+        }
+        .payment-card .payment-value-usd {
+            font-size:16px;
+            font-weight:800;
+            color:var(--primary);
+        }
+        .payment-card .payment-coins {
+            font-size:14px;
+            font-weight:600;
+            color:var(--text-secondary);
+            opacity:0.7;
+        }
+        .payment-card .payment-status {
+            padding:4px 16px;
+            border-radius:30px;
+            font-weight:700;
+            font-size:13px;
+            white-space:nowrap;
+            flex-shrink:0;
+        }
+        .payment-card .payment-status.pending {
+            background:var(--pending-color)20;
+            color:var(--pending-color);
+            border:1px solid var(--pending-color)40;
+        }
+        .payment-card .payment-status.completed {
+            background:var(--success)20;
+            color:var(--success);
+            border:1px solid var(--success)40;
+        }
+        .payment-card .payment-status.rejected {
+            background:var(--danger)20;
+            color:var(--danger);
+            border:1px solid var(--danger)40;
+        }
+        .payment-card .payment-to {
+            width:100%;
+            margin-top:8px;
+            padding-top:8px;
+            border-top:1px dashed var(--glass-border);
+            font-size:12px;
+            color:var(--text-secondary);
+            font-family:monospace;
+            word-break:break-all;
+            display:flex;
+            align-items:center;
+            gap:6px;
+            font-weight:500;
+        }
+        .payment-card .payment-to i { color:var(--text-secondary); opacity:0.4; font-size:14px; }
+        .payment-card .payment-method { opacity:0.4; }
     </style>
 </head>
 <body>
@@ -1751,14 +1874,35 @@
             <button class="close-btn" onclick="closePaymentModal()">&times;</button>
         </div>
         <div style="flex:1; overflow-y:auto; padding:0 4px 20px;">
+
             <!-- Step 1 -->
             <div id="paymentStep1">
                 <p style="font-size:15px; color:var(--text-secondary); margin-bottom:16px; font-weight:500;">Select payment method</p>
                 <div class="payment-options">
-                    <div class="payment-option" id="optionLitecoin" onclick="selectPayment('litecoin')"><i class="fab fa-bitcoin" style="color:#f2a900;"></i><div class="p-label">Litecoin</div><div class="p-sub">LTC</div><div class="p-check"><i class="fas fa-check"></i></div></div>
-                    <div class="payment-option" id="optionUsdt" onclick="selectPayment('usdt')"><i class="fas fa-coins" style="color:#26a17b;"></i><div class="p-label">USDT</div><div class="p-sub">ERC20</div><div class="p-check"><i class="fas fa-check"></i></div></div>
-                    <div class="payment-option" id="optionTelegram" onclick="selectPayment('telegram')"><i class="fab fa-telegram-plane" style="color:#0088cc;"></i><div class="p-label">Telegram</div><div class="p-sub">Direct</div><div class="p-check"><i class="fas fa-check"></i></div></div>
-                    <div class="payment-option" id="optionBinanceId" onclick="selectPayment('binanceId')"><i class="fab fa-binance" style="color:#f2a900;"></i><div class="p-label">Binance ID</div><div class="p-sub">Direct Transfer</div><div class="p-check"><i class="fas fa-check"></i></div></div>
+                    <div class="payment-option" id="optionLitecoin" onclick="selectPayment('litecoin')">
+                        <i class="fab fa-bitcoin" style="color:#f2a900; font-size:30px;"></i>
+                        <div class="p-label">Litecoin</div>
+                        <div class="p-sub">LTC</div>
+                        <div class="p-check"><i class="fas fa-check"></i></div>
+                    </div>
+                    <div class="payment-option" id="optionUsdt" onclick="selectPayment('usdt')">
+                        <i class="fas fa-coins" style="color:#26a17b; font-size:30px;"></i>
+                        <div class="p-label">USDT</div>
+                        <div class="p-sub">ERC20</div>
+                        <div class="p-check"><i class="fas fa-check"></i></div>
+                    </div>
+                    <div class="payment-option" id="optionBinanceId" onclick="selectPayment('binanceId')">
+                        <i class="fab fa-binance" style="color:#f2a900; font-size:30px;"></i>
+                        <div class="p-label">Binance ID</div>
+                        <div class="p-sub">Direct Transfer</div>
+                        <div class="p-check"><i class="fas fa-check"></i></div>
+                    </div>
+                    <div class="payment-option" id="optionTelegram" onclick="selectPayment('telegram')">
+                        <i class="fab fa-telegram-plane" style="color:#0088cc; font-size:30px;"></i>
+                        <div class="p-label">Telegram</div>
+                        <div class="p-sub">Direct</div>
+                        <div class="p-check"><i class="fas fa-check"></i></div>
+                    </div>
                 </div>
                 <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--glass-border);">
                     <div style="display:flex; justify-content:space-between; font-size:16px; font-weight:700;">
@@ -1782,23 +1926,9 @@
                         <span id="step2Total" style="color:var(--primary);">$0.00</span>
                     </div>
                 </div>
-                <div style="background:var(--glass-bg); backdrop-filter:blur(8px); border-radius:var(--radius-md); padding:10px 12px; border:1px solid var(--glass-border); margin:6px 0;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px;">
-                        <span style="color:var(--text-secondary); opacity:0.5; display:flex; align-items:center; gap:5px;"><i class="fas fa-star" style="color:var(--vip-color);"></i> Loyalty Points (RP)</span>
-                        <span style="color:var(--text); font-weight:600;" id="step2RpDisplay">0 RP</span>
-                    </div>
-                    <button class="rp-btn" onclick="toggleRpInCart()" style="width:100%; padding:5px; border:1px solid var(--glass-border); border-radius:6px; background:var(--card-bg); color:var(--text); cursor:pointer; font-size:12px; transition:0.3s; margin-top:4px;">
-                        <i class="fas fa-circle"></i> Use RP
-                    </button>
-                </div>
-                <div style="background:var(--glass-bg); backdrop-filter:blur(8px); border-radius:var(--radius-md); padding:10px 12px; border:1px solid var(--glass-border); margin:6px 0;">
-                    <div style="display:flex; gap:6px; align-items:center;">
-                        <input id="checkoutPromoInput" placeholder="Enter promo code..." style="flex:1; padding:6px 10px; border:1px solid var(--glass-border); border-radius:6px; background:var(--card-bg); color:var(--text); font-size:13px; outline:none; font-weight:500;" type="text" />
-                        <button onclick="applyCheckoutPromo()" style="padding:6px 14px; border:none; border-radius:6px; background:var(--primary); color:#fff; font-weight:600; cursor:pointer; font-size:12px; transition:0.3s; white-space:nowrap;"><i class="fas fa-ticket-alt"></i> Apply</button>
-                    </div>
-                    <div class="promo-status" id="checkoutPromoStatus" style="font-size:11px; color:var(--text-secondary); opacity:0.4; margin-top:4px; font-weight:500;">Enter a promo code for a discount</div>
-                </div>
 
+                <!-- ===== RP and Promo removed from step 2 ===== -->
+                <!-- فقط تعليمات الدفع والمعلومات -->
                 <div id="paymentInstructionsContainer" style="display:none; margin-top:6px;">
                     <div style="background:var(--glass-bg); backdrop-filter:blur(8px); border-radius:var(--radius-md); padding:14px 16px; border:1px solid var(--glass-border);">
                         <h3 style="font-size:16px; font-weight:800; color:var(--text); margin-bottom:6px;"><i class="fas fa-info-circle" style="color:var(--primary);"></i> Payment Instructions</h3>
@@ -1906,7 +2036,9 @@
 
                                 <div id="verificationResult" style="display:none; margin:6px 0; padding:8px 12px; border-radius:var(--radius-sm); font-size:13px; font-weight:600; background:var(--card-bg); border:1px solid var(--glass-border);"></div>
 
-                                <button onclick="submitManualPayment()" style="width:100%; padding:12px; border:none; border-radius:var(--radius-sm); background:var(--primary); color:#fff; font-weight:800; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:0.3s;"><i class="fas fa-check-circle"></i> Confirm Payment</button>
+                                <button onclick="submitManualPayment()" id="mainConfirmBtn" style="width:100%; padding:12px; border:none; border-radius:var(--radius-sm); background:var(--primary); color:#fff; font-weight:800; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:0.3s;">
+                                    <i class="fas fa-check-circle"></i> Confirm Payment
+                                </button>
 
                                 <div style="font-size:12px; color:var(--text-secondary); opacity:0.4; margin-top:6px; text-align:center; font-weight:500;">
                                     <i class="fas fa-clock"></i> Your request will be reviewed within 5-10 minutes
@@ -1918,8 +2050,7 @@
                     </div>
                 </div>
 
-                <button class="payment-btn" id="mainConfirmBtn" style="display:none; margin-top:12px; padding:14px; font-size:17px;"><i class="fas fa-check"></i> Confirm Payment</button>
-                <button class="payment-btn" onclick="goToStep1()" style="background:transparent; color:var(--text-secondary); border:1px solid var(--glass-border); margin-top:8px; font-weight:600; padding:12px;"><i class="fas fa-arrow-left"></i> Back</button>
+                <button class="payment-btn" id="mainConfirmBtnBack" onclick="goToStep1()" style="background:transparent; color:var(--text-secondary); border:1px solid var(--glass-border); margin-top:8px; font-weight:600; padding:12px;"><i class="fas fa-arrow-left"></i> Back</button>
             </div>
         </div>
     </div>
@@ -2510,7 +2641,9 @@
     </div>
 
     <!-- ===== SCRIPTS ===== -->
+    <!-- script.js سيتم تحميله من ملف خارجي -->
     <script type="module" src="script.js"></script>
+    <!-- دوال بديلة للتبديل المباشر للوضع والتأكد من عمل التبويبات -->
     <script>
         // Theme toggle (inline for immediate response)
         function toggleTheme() {
@@ -2527,7 +2660,7 @@
                 if (icon) icon.className = 'fas fa-moon';
             }
         });
-        // Admin tab switch (ensures only one tab content visible)
+        // دالة تبديل التبويبات في الأدمن (تستدعي من script.js)
         window.switchAdminTab = function(tab) {
             document.querySelectorAll('#adminPanel .tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('#adminPanel .tabs button').forEach(el => el.classList.remove('active'));
@@ -2538,10 +2671,11 @@
                 'licences':'tabLicences','marquee':'tabMarquee','payments':'tabPayments'
             };
             const tabId = tabMap[tab] || 'tabDashboard';
-            document.getElementById(tabId).classList.add('active');
+            const el = document.getElementById(tabId);
+            if (el) el.classList.add('active');
             const btn = document.querySelector(`#adminPanel .tabs button[onclick="switchAdminTab('${tab}')"]`);
             if (btn) btn.classList.add('active');
-            // Load content if functions exist (they will be defined in script.js)
+            // استدعاء الوظائف من script.js إن وجدت
             if (tab === 'products' && typeof renderAdminProducts === 'function') renderAdminProducts(products);
             if (tab === 'users' && typeof loadAdminUsers === 'function') loadAdminUsers();
             if (tab === 'dashboard' && typeof loadDashboardStats === 'function') loadDashboardStats();
