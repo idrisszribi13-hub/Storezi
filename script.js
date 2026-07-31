@@ -179,7 +179,7 @@ const fallbackProducts = [
 
 const discountCodes = { 'SAVE10': { discount: 10 }, 'SAVE15': { discount: 15 }, 'WELCOME': { discount: 10 }, 'VIP2024': { discount: 15 }, 'SUMMER': { discount: 10 } };
 const paymentWallets = {
-    litecoin: { name: 'Litecoin', icon: 'fab fa-bitcoin', network: 'LTC', address: 'ltc1qy6ksn0g4hm6hlh93fwekgz8x74vr6hvdmh6zz8', currency: 'LTC', color: '#f2a900' },
+    litecoin: { name: 'Litecoin', icon: 'fab fa-bitcoin', network: 'LTC', address: 'ltc1qy6ksn0g4hm6hlh93fwekgz8x74vr6hvdmh6zz8', currency: 'LTC', color: '#3fcb7a' },
     usdt: { name: 'USDT (ERC20)', icon: 'fas fa-coins', network: 'ERC20', address: '0x1234567890abcdef1234567890abcdef12345678', currency: 'USDT', color: '#26a17b' }
 };
 let cryptoPrices = { ltc: 0, usdt: 1, lastUpdate: null, isUpdating: false };
@@ -191,19 +191,30 @@ let cryptoPrices = { ltc: 0, usdt: 1, lastUpdate: null, isUpdating: false };
 function showToast(message, type = 'success') {
     const toast = document.getElementById('toast');
     const messageEl = document.getElementById('toastMessage');
-    const iconEl = toast?.querySelector('.toast-icon');
     if (!toast || !messageEl) return;
-    toast.className = 'toast';
+    toast.className = '';
     toast.classList.add(type);
-    const icons = { success: '<i class="fas fa-check-circle"></i>', error: '<i class="fas fa-exclamation-circle"></i>', warning: '<i class="fas fa-exclamation-triangle"></i>', info: '<i class="fas fa-info-circle"></i>' };
-    if (iconEl) iconEl.innerHTML = icons[type] || icons.success;
-    messageEl.textContent = message;
+    const icons = { 
+        success: '<i class="fas fa-check-circle"></i>', 
+        error: '<i class="fas fa-exclamation-circle"></i>', 
+        warning: '<i class="fas fa-exclamation-triangle"></i>', 
+        info: '<i class="fas fa-info-circle"></i>' 
+    };
+    // Add icon if not already present
+    if (!messageEl.innerHTML.includes('fa-')) {
+        messageEl.innerHTML = (icons[type] || icons.success) + ' ' + message;
+    } else {
+        messageEl.textContent = message;
+    }
+    toast.style.display = 'flex';
     void toast.offsetWidth;
     toast.classList.add('show');
     clearTimeout(window.toastTimeout);
-    window.toastTimeout = setTimeout(() => { toast.classList.remove('show'); }, 3500);
+    window.toastTimeout = setTimeout(() => { 
+        toast.classList.remove('show');
+        setTimeout(() => { toast.style.display = 'none'; }, 300);
+    }, 3500);
 }
-window.hideToast = function() { document.getElementById('toast')?.classList.remove('show'); };
 
 function hideLoadingScreen() {
     const screen = document.getElementById('loadingScreen');
@@ -230,27 +241,6 @@ function updateLoadingText(text) {
         statusEl.textContent = text || 'Loading...';
     }
 }
-
-window.hideLoadingScreenManually = function() {
-    const screen = document.getElementById('loadingScreen');
-    if (screen) {
-        screen.style.display = 'none';
-        showToast('Loading screen hidden', 'info');
-    }
-};
-
-window.showMainApp = function() {
-    const mainApp = document.getElementById('mainApp');
-    if (mainApp) {
-        mainApp.style.display = 'block';
-        mainApp.style.visibility = 'visible';
-        mainApp.style.opacity = '1';
-        console.log('✅ Main app shown');
-        return true;
-    }
-    console.warn('⚠️ Main app element not found');
-    return false;
-};
 
 // ============================================================
 // 2. Admin Check Functions
@@ -285,44 +275,6 @@ async function refreshAdminStatus() {
     isAdminCached = await checkIsAdmin();
     return isAdminCached;
 }
-
-window.ensureAdminPanel = function() {
-    if (!currentUser) {
-        console.warn('⚠️ No user logged in');
-        return false;
-    }
-    const adminMenuItem = document.getElementById('adminMenuItem');
-    if (isAdminCached) {
-        if (adminMenuItem) {
-            adminMenuItem.style.display = 'flex';
-            console.log('✅ Admin panel already active');
-        }
-        return true;
-    }
-    checkIsAdmin().then((isAdmin) => {
-        if (isAdmin) {
-            isAdminCached = true;
-            if (adminMenuItem) {
-                adminMenuItem.style.display = 'flex';
-                console.log('✅ Admin panel activated successfully');
-            }
-            updateFullUserMenu();
-            updateUI();
-            showToast('👑 Admin panel activated', 'success');
-            loadAdminOrders();
-            startAdminRealtimeListener();
-            renderAdminProducts(products);
-            loadLicences();
-        } else {
-            console.warn('⚠️ User is not an admin');
-            if (adminMenuItem) {
-                adminMenuItem.style.display = 'none';
-            }
-        }
-    }).catch((error) => {
-        console.error('❌ Error ensuring admin panel:', error);
-    });
-};
 
 // ============================================================
 // 3. User Functions (Firestore + LocalStorage)
@@ -366,6 +318,7 @@ function loadFromLocalStorage() {
         updateNotificationBadge();
         updateFullUserMenu();
         renderUserLicences();
+        renderHistoryFull();
     } catch (e) {
         console.error('Error loading from localStorage:', e);
     }
@@ -428,6 +381,7 @@ function startUserRealtimeListener() {
             updateNotificationBadge();
             updateFullUserMenu();
             renderUserLicences();
+            renderHistoryFull();
 
             checkIsAdmin().then(isAdmin => {
                 if (isAdmin) {
@@ -491,6 +445,7 @@ async function loadUserData() {
             updateNotificationBadge();
             updateFullUserMenu();
             renderUserLicences();
+            renderHistoryFull();
 
             const isAdmin = await checkIsAdmin();
             if (isAdmin) {
@@ -588,7 +543,11 @@ function updateDropdownStats() {
                 userAvatar.textContent = name.charAt(0).toUpperCase();
             }
         }
-    } else { if (userAvatar) userAvatar.textContent = 'U'; }
+        // Update checkout badge
+        updateHeaderCheckoutBadge();
+    } else { 
+        if (userAvatar) userAvatar.textContent = 'U'; 
+    }
     updateRpDisplay();
 }
 
@@ -597,17 +556,21 @@ function updateRpDisplay() {
     if (el) { el.innerHTML = `${userProfile.rp || 0} <span>RP</span>`; }
 }
 
-function updateUI() {
-    const dot = document.getElementById('userDot');
-    if (dot) {
-        if (currentUser) {
-            if (pendingCount > 0 && isAdminCached) { dot.className = 'user-dot notification-dot'; } else { dot.className = 'user-dot'; }
-        } else { dot.className = 'user-dot guest'; }
+function updateHeaderCheckoutBadge() {
+    const badge = document.getElementById('headerCheckoutBadge');
+    if (badge) {
+        const totalItems = cart.reduce((s, i) => s + (i.quantity || 1), 0);
+        badge.textContent = totalItems;
+        badge.style.display = totalItems > 0 ? 'inline-block' : 'none';
     }
+}
+
+function updateUI() {
     updateDropdownStats();
     updateNotificationBadge();
     updateRpDisplay();
     updateFullUserMenu();
+    updateHeaderCheckoutBadge();
 }
 
 function updateFullUserMenu() {
@@ -643,7 +606,6 @@ function updateFullUserMenu() {
         if (isAdminCached) {
             adminMenuItem.style.display = 'flex';
             if (pendingCount > 0) { adminBadge.style.display = 'inline-block'; adminBadge.textContent = pendingCount; } else { adminBadge.style.display = 'none'; }
-            console.log('✅ Admin menu displayed');
         } else {
             adminMenuItem.style.display = 'none';
         }
@@ -664,9 +626,14 @@ function updateFullUserMenu() {
 // 5. Auth Functions (with Google Popup)
 // ============================================================
 
-window.showLogin = function() { document.getElementById('loginContainer').style.display = 'block'; document.getElementById('registerContainer').style.display = 'none'; };
-window.showRegister = function() { document.getElementById('loginContainer').style.display = 'none'; document.getElementById('registerContainer').style.display = 'block'; };
-window.toggleReferral = function() { document.getElementById('referralField').classList.toggle('show'); };
+window.showLogin = function() { 
+    document.getElementById('loginContainer').style.display = 'block'; 
+    document.getElementById('registerContainer').style.display = 'none'; 
+};
+window.showRegister = function() { 
+    document.getElementById('loginContainer').style.display = 'none'; 
+    document.getElementById('registerContainer').style.display = 'block'; 
+};
 
 window.loginUser = async function() {
     const btn = document.getElementById('loginBtn');
@@ -690,6 +657,7 @@ window.loginUser = async function() {
             document.getElementById('mainApp').style.display = 'block';
             loadUserData();
             updateDropdownStats();
+            updateHeaderCheckoutBadge();
             
             if (isAdminCached) {
                 console.log('✅ Admin detected, loading admin features');
@@ -709,9 +677,7 @@ window.loginUser = async function() {
             loadDownloads(); loadNotifications(); fetchCryptoPrices(); updateFullUserMenu(); showTelegramBanner();
             loadSliderSettings();
             loadMarqueeSettings();
-            window.ensureAdminPanel();
             updateLoadingText('✅ Ready!');
-            window.showMainApp();
             hideLoadingScreen();
         }, 500);
     } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Login failed', 'error'); btn.classList.remove('loading'); }
@@ -758,15 +724,12 @@ window.registerUser = async function() {
             loadUserData(); updateDropdownStats(); loadDownloads(); loadNotifications(); fetchCryptoPrices(); updateFullUserMenu(); showTelegramBanner();
             loadSliderSettings();
             loadMarqueeSettings();
-            window.ensureAdminPanel();
             updateLoadingText('✅ Ready!');
-            window.showMainApp();
             hideLoadingScreen();
         }, 500);
     } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Registration failed', 'error'); btn.classList.remove('loading'); }
 };
 
-// Google Login with Popup
 window.loginWithGoogle = function() {
     const btn = document.getElementById('googleLoginBtn');
     if (btn) btn.classList.add('loading');
@@ -802,6 +765,7 @@ window.loginWithGoogle = function() {
                 document.getElementById('mainApp').style.display = 'block';
                 loadUserData();
                 updateDropdownStats();
+                updateHeaderCheckoutBadge();
 
                 if (isAdminCached) {
                     console.log('✅ Admin detected, loading admin features');
@@ -821,9 +785,7 @@ window.loginWithGoogle = function() {
                 loadDownloads(); loadNotifications(); fetchCryptoPrices(); updateFullUserMenu(); showTelegramBanner();
                 loadSliderSettings();
                 loadMarqueeSettings();
-                window.ensureAdminPanel();
                 updateLoadingText('✅ Ready!');
-                window.showMainApp();
                 hideLoadingScreen();
             }, 500);
         })
@@ -935,39 +897,102 @@ window.logoutUser = async function() {
         document.getElementById('mainApp').style.display = 'none';
         showToast('👋 Logged out', 'info');
         updateUI(); updateNotificationBadge(); loadUserData(); updateFullUserMenu();
+        updateHeaderCheckoutBadge();
     } catch (error) { showToast('❌ Logout error', 'error'); }
 };
 
-window.openForgotPassword = function() { document.getElementById('forgotPasswordModal').classList.add('open'); document.getElementById('forgotError').textContent = ''; document.getElementById('forgotSuccess').textContent = ''; };
-window.closeForgotPasswordModal = function() { document.getElementById('forgotPasswordModal').classList.remove('open'); document.getElementById('authSection').style.display = 'block'; };
+window.openForgotPassword = function() { 
+    document.getElementById('forgotPasswordModal').classList.add('open'); 
+    document.getElementById('forgotError').textContent = ''; 
+    document.getElementById('forgotSuccess').textContent = ''; 
+};
+window.closeForgotPasswordModal = function() { 
+    document.getElementById('forgotPasswordModal').classList.remove('open'); 
+};
 window.sendForgotPassword = async function() {
     const email = document.getElementById('forgotEmail').value.trim();
     const errorEl = document.getElementById('forgotError');
     const successEl = document.getElementById('forgotSuccess');
     errorEl.textContent = ''; successEl.textContent = '';
     if (!email) { errorEl.textContent = 'Please enter your email'; return; }
-    try { await sendPasswordResetEmail(auth, email); successEl.textContent = '✅ Reset link sent to ' + email; showToast('📧 Password reset link sent!', 'success'); setTimeout(() => { closeForgotPasswordModal(); }, 2000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); }
+    try { 
+        await sendPasswordResetEmail(auth, email); 
+        successEl.textContent = '✅ Reset link sent to ' + email; 
+        showToast('📧 Password reset link sent!', 'success'); 
+        setTimeout(() => { closeForgotPasswordModal(); }, 2000); 
+    } catch (error) { 
+        errorEl.textContent = '❌ ' + error.message; 
+        showToast('❌ ' + error.message, 'error'); 
+    }
 };
 
 // ============================================================
 // 6. General Modals
 // ============================================================
 
-window.openUserMenuFull = function() { if (!currentUser) { openAuthModal(); return; } document.getElementById('userMenuFull').classList.add('open'); updateFullUserMenu(); document.body.style.overflow = 'hidden'; };
-window.closeUserMenuFull = function() { document.getElementById('userMenuFull').classList.remove('open'); document.body.style.overflow = ''; };
-window.openCartFull = function() { document.getElementById('cartFull').classList.add('open'); renderCartFull(); document.body.style.overflow = 'hidden'; };
-window.closeCartFull = function() { document.getElementById('cartFull').classList.remove('open'); document.body.style.overflow = ''; };
-window.openWishlistFull = function() { document.getElementById('wishlistFull').classList.add('open'); renderWishlistFull(); document.body.style.overflow = 'hidden'; };
-window.closeWishlistFull = function() { document.getElementById('wishlistFull').classList.remove('open'); document.body.style.overflow = ''; };
-window.openProfileFull = function() { if (!currentUser) { showToast('⚠️ Please login first', 'warning'); openAuthModal(); return; } document.getElementById('profileFull').classList.add('open'); renderProfileFull(); document.body.style.overflow = 'hidden'; };
-window.closeProfileFull = function() { document.getElementById('profileFull').classList.remove('open'); document.body.style.overflow = ''; };
-window.openHistoryFull = function() { if (!currentUser) { showToast('⚠️ Please login first', 'warning'); openAuthModal(); return; } document.getElementById('historyFull').classList.add('open'); renderHistoryFull(); document.body.style.overflow = 'hidden'; };
-window.closeHistoryFull = function() { document.getElementById('historyFull').classList.remove('open'); document.body.style.overflow = ''; };
-window.openDownloads = function() { document.getElementById('downloadsModal').classList.add('open'); };
-window.closeDownloads = function() { document.getElementById('downloadsModal').classList.remove('open'); };
-window.openNotifications = function() { document.getElementById('notificationsModal').classList.add('open'); };
-window.closeNotifications = function() { document.getElementById('notificationsModal').classList.remove('open'); };
-window.openAuthModal = function() { document.getElementById('authSection').scrollIntoView({ behavior: 'smooth' }); };
+window.openUserMenuFull = function() { 
+    if (!currentUser) { openAuthModal(); return; } 
+    document.getElementById('userMenuFull').classList.add('open'); 
+    updateFullUserMenu(); 
+    document.body.style.overflow = 'hidden'; 
+};
+window.closeUserMenuFull = function() { 
+    document.getElementById('userMenuFull').classList.remove('open'); 
+    document.body.style.overflow = ''; 
+};
+window.openCartFull = function() { 
+    document.getElementById('cartFull').classList.add('open'); 
+    renderCartFull(); 
+    document.body.style.overflow = 'hidden'; 
+};
+window.closeCartFull = function() { 
+    document.getElementById('cartFull').classList.remove('open'); 
+    document.body.style.overflow = ''; 
+};
+window.openWishlistFull = function() { 
+    document.getElementById('wishlistFull').classList.add('open'); 
+    renderWishlistFull(); 
+    document.body.style.overflow = 'hidden'; 
+};
+window.closeWishlistFull = function() { 
+    document.getElementById('wishlistFull').classList.remove('open'); 
+    document.body.style.overflow = ''; 
+};
+window.openProfileFull = function() { 
+    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); openAuthModal(); return; } 
+    document.getElementById('profileFull').classList.add('open'); 
+    renderProfileFull(); 
+    document.body.style.overflow = 'hidden'; 
+};
+window.closeProfileFull = function() { 
+    document.getElementById('profileFull').classList.remove('open'); 
+    document.body.style.overflow = ''; 
+};
+window.openHistoryFull = function() { 
+    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); openAuthModal(); return; } 
+    document.getElementById('historyFull').classList.add('open'); 
+    renderHistoryFullModal(); 
+    document.body.style.overflow = 'hidden'; 
+};
+window.closeHistoryFull = function() { 
+    document.getElementById('historyFull').classList.remove('open'); 
+    document.body.style.overflow = ''; 
+};
+window.openDownloads = function() { 
+    document.getElementById('downloadsModal').classList.add('open'); 
+};
+window.closeDownloads = function() { 
+    document.getElementById('downloadsModal').classList.remove('open'); 
+};
+window.openNotifications = function() { 
+    document.getElementById('notificationsModal').classList.add('open'); 
+};
+window.closeNotifications = function() { 
+    document.getElementById('notificationsModal').classList.remove('open'); 
+};
+window.openAuthModal = function() { 
+    document.getElementById('authSection').scrollIntoView({ behavior: 'smooth' }); 
+};
 
 // ============================================================
 // 7. Render Profile Full (with password toggle)
@@ -1124,7 +1149,6 @@ function renderProfileFull() {
     setTimeout(showTelegramBanner, 300);
 }
 
-// Password toggle function
 window.togglePasswordVisibility = function(inputId) {
     const input = document.getElementById(inputId);
     if (!input) return;
@@ -1156,8 +1180,41 @@ window.saveProfileChangesInline = async function(e) {
     } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
 };
 
-window.sendResetLinkInline = async function() { if (!currentUser) return; try { await sendPasswordResetEmail(auth, currentUser.email); showToast(`📧 Reset link sent to ${currentUser.email}`, 'success'); } catch (error) { showToast('❌ ' + error.message, 'error'); } };
-window.changePasswordInline = async function() { if (!currentUser) return; const currentPwd = document.getElementById('currentPasswordInline').value; const newPwd = document.getElementById('newPasswordInline').value; const confirmPwd = document.getElementById('confirmNewPasswordInline').value; const errorEl = document.getElementById('passwordErrorInline'); const successEl = document.getElementById('passwordSuccessInline'); errorEl.textContent = ''; successEl.textContent = ''; if (!currentPwd || !newPwd || !confirmPwd) { errorEl.textContent = 'Please fill all fields'; return; } if (newPwd.length < 6) { errorEl.textContent = 'New password must be at least 6 characters'; return; } if (newPwd !== confirmPwd) { errorEl.textContent = 'Passwords do not match'; return; } try { const credential = EmailAuthProvider.credential(currentUser.email, currentPwd); await reauthenticateWithCredential(currentUser, credential); await updatePassword(currentUser, newPwd); successEl.textContent = '✅ Password changed successfully!'; showToast('✅ Password updated!', 'success'); document.getElementById('currentPasswordInline').value = ''; document.getElementById('newPasswordInline').value = ''; document.getElementById('confirmNewPasswordInline').value = ''; setTimeout(() => { successEl.textContent = ''; }, 3000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); } };
+window.sendResetLinkInline = async function() { 
+    if (!currentUser) return; 
+    try { 
+        await sendPasswordResetEmail(auth, currentUser.email); 
+        showToast(`📧 Reset link sent to ${currentUser.email}`, 'success'); 
+    } catch (error) { 
+        showToast('❌ ' + error.message, 'error'); 
+    } 
+};
+window.changePasswordInline = async function() { 
+    if (!currentUser) return; 
+    const currentPwd = document.getElementById('currentPasswordInline').value; 
+    const newPwd = document.getElementById('newPasswordInline').value; 
+    const confirmPwd = document.getElementById('confirmNewPasswordInline').value; 
+    const errorEl = document.getElementById('passwordErrorInline'); 
+    const successEl = document.getElementById('passwordSuccessInline'); 
+    errorEl.textContent = ''; successEl.textContent = ''; 
+    if (!currentPwd || !newPwd || !confirmPwd) { errorEl.textContent = 'Please fill all fields'; return; } 
+    if (newPwd.length < 6) { errorEl.textContent = 'New password must be at least 6 characters'; return; } 
+    if (newPwd !== confirmPwd) { errorEl.textContent = 'Passwords do not match'; return; } 
+    try { 
+        const credential = EmailAuthProvider.credential(currentUser.email, currentPwd); 
+        await reauthenticateWithCredential(currentUser, credential); 
+        await updatePassword(currentUser, newPwd); 
+        successEl.textContent = '✅ Password changed successfully!'; 
+        showToast('✅ Password updated!', 'success'); 
+        document.getElementById('currentPasswordInline').value = ''; 
+        document.getElementById('newPasswordInline').value = ''; 
+        document.getElementById('confirmNewPasswordInline').value = ''; 
+        setTimeout(() => { successEl.textContent = ''; }, 3000); 
+    } catch (error) { 
+        errorEl.textContent = '❌ ' + error.message; 
+        showToast('❌ ' + error.message, 'error'); 
+    } 
+};
 
 // ============================================================
 // 8. Product Functions
@@ -1206,6 +1263,7 @@ function startProductsRealtimeListener() {
         renderFeaturedProducts();
         updateSlideProductSelect();
         renderProxyPackages();
+        updateHeaderCheckoutBadge();
     }, (error) => {
         console.error('Products listener error:', error);
         products = fallbackProducts;
@@ -1215,6 +1273,7 @@ function startProductsRealtimeListener() {
         updateStatsFromProducts(products);
         renderFeaturedProducts();
         renderProxyPackages();
+        updateHeaderCheckoutBadge();
     });
 }
 
@@ -1522,8 +1581,17 @@ function displayFeaturedSlice() {
     `}).join('');
 }
 
-function startFeaturedRotation() { if (featuredRotationInterval) { clearInterval(featuredRotationInterval); featuredRotationInterval = null; } if (!featuredSettings.enabled || featuredProducts.length <= 4) return; featuredRotationInterval = setInterval(() => { featuredCurrentIndex = (featuredCurrentIndex + 4) % featuredProducts.length; displayFeaturedSlice(); }, featuredSettings.rotationInterval); }
-function stopFeaturedRotation() { if (featuredRotationInterval) { clearInterval(featuredRotationInterval); featuredRotationInterval = null; } }
+function startFeaturedRotation() { 
+    if (featuredRotationInterval) { clearInterval(featuredRotationInterval); featuredRotationInterval = null; } 
+    if (!featuredSettings.enabled || featuredProducts.length <= 4) return; 
+    featuredRotationInterval = setInterval(() => { 
+        featuredCurrentIndex = (featuredCurrentIndex + 4) % featuredProducts.length; 
+        displayFeaturedSlice(); 
+    }, featuredSettings.rotationInterval); 
+}
+function stopFeaturedRotation() { 
+    if (featuredRotationInterval) { clearInterval(featuredRotationInterval); featuredRotationInterval = null; } 
+}
 
 async function loadFeaturedSettings() {
     try {
@@ -1539,29 +1607,8 @@ async function loadFeaturedSettings() {
 }
 
 // ============================================================
-// 11. Cart Management (with "View Cart" button)
+// 11. Cart Management
 // ============================================================
-
-function updateProductCardButton(productId) {
-    const cards = document.querySelectorAll('.product-card');
-    cards.forEach(card => {
-        const productCard = card.closest('.product-card');
-        if (productCard) {
-            const addBtn = productCard.querySelector('.btn-add-cart');
-            if (addBtn) {
-                const onclickAttr = addBtn.getAttribute('onclick');
-                if (onclickAttr && onclickAttr.includes(`'${productId}'`)) {
-                    addBtn.innerHTML = '<i class="fas fa-check"></i> View Cart';
-                    addBtn.className = 'btn-add-cart added';
-                    addBtn.onclick = function(e) {
-                        e.stopPropagation();
-                        openCartFull();
-                    };
-                }
-            }
-        }
-    });
-}
 
 window.addToCart = async function(productId) {
     const product = products.find(p => p.id === productId);
@@ -1590,8 +1637,8 @@ window.addToCart = async function(productId) {
         updateCartUI();
         renderProducts(products);
         updateBottomCartBar();
+        updateHeaderCheckoutBadge();
         showToast(`✅ Added ${product.name} (${selectedQty}) to cart`, 'success');
-        updateProductCardButton(productId);
         return;
     }
     
@@ -1602,12 +1649,29 @@ window.addToCart = async function(productId) {
     updateCartUI();
     renderProducts(products);
     updateBottomCartBar();
+    updateHeaderCheckoutBadge();
     showToast(`✅ Added ${product.name} to cart`, 'success');
-    updateProductCardButton(productId);
 };
 
-window.clearCart = async function() { if (cart.length === 0) return; cart = []; await saveUserData(); updateCartUI(); renderProducts(products); updateBottomCartBar(); showToast('🗑️ Cart cleared', 'info'); };
-window.removeFromCart = async function(productId) { cart = cart.filter(item => item.id !== productId); await saveUserData(true); updateCartUI(); renderProducts(products); updateBottomCartBar(); showToast('🗑️ Removed from cart', 'info'); };
+window.clearCart = async function() { 
+    if (cart.length === 0) return; 
+    cart = []; 
+    await saveUserData(); 
+    updateCartUI(); 
+    renderProducts(products); 
+    updateBottomCartBar(); 
+    updateHeaderCheckoutBadge();
+    showToast('🗑️ Cart cleared', 'info'); 
+};
+window.removeFromCart = async function(productId) { 
+    cart = cart.filter(item => item.id !== productId); 
+    await saveUserData(true); 
+    updateCartUI(); 
+    renderProducts(products); 
+    updateBottomCartBar(); 
+    updateHeaderCheckoutBadge();
+    showToast('🗑️ Removed from cart', 'info'); 
+};
 window.updateCartQuantity = async function(productId, change) {
     const item = cart.find(item => item.id === productId);
     if (!item) return;
@@ -1617,6 +1681,7 @@ window.updateCartQuantity = async function(productId, change) {
     await saveUserData();
     updateCartUI();
     updateBottomCartBar();
+    updateHeaderCheckoutBadge();
     renderCartFull();
 };
 
@@ -1637,6 +1702,7 @@ function updateBottomCartBar() {
     bar.classList.add('open');
     if (countEl) countEl.textContent = totalItems;
     if (totalEl) totalEl.textContent = '$' + finalTotal.toFixed(2);
+    updateHeaderCheckoutBadge();
 }
 
 function updateCartUI() {
@@ -1647,6 +1713,7 @@ function updateCartUI() {
     renderCartFull();
     updateFullUserMenu();
     renderProxyPackages();
+    updateHeaderCheckoutBadge();
 }
 
 function renderCartFull() {
@@ -1712,7 +1779,7 @@ function renderCartFull() {
       ${activeDiscount>0?`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;color:var(--success);"><span style="color:var(--text-secondary);opacity:0.5;">🎫 Promo (${activeDiscount}%)</span><span style="font-weight:600;">-${getCurrencySymbol('USD')}${promoDiscountAmount.toFixed(2)}</span></div>`:''}
       <div style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid var(--border);margin-top:4px;padding-top:6px;font-size:18px;font-weight:700;"><span style="color:var(--text-secondary);opacity:0.5;">Total</span><span style="color:var(--primary);">${getCurrencySymbol('USD')}${finalTotal.toFixed(2)}</span></div>
       <div style="display:flex;align-items:center;gap:12px;margin-top:16px;">
-        <button onclick="closeCartFull();checkout();" style="flex:1;padding:14px 20px;border:none;border-radius:12px;background:var(--primary);color:#fff;font-weight:700;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;gap:8px;transition:0.3s;">
+        <button onclick="closeCartFull();openPaymentModal();" style="flex:1;padding:14px 20px;border:none;border-radius:12px;background:var(--primary);color:#fff;font-weight:700;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;gap:8px;transition:0.3s;">
           <i class="fas fa-shopping-cart"></i> Checkout
         </button>
         <span style="font-size:22px;font-weight:800;color:var(--primary);min-width:80px;text-align:right;">${getCurrencySymbol('USD')}${finalTotal.toFixed(2)}</span>
@@ -1796,7 +1863,7 @@ function createFloatingHearts() {
 }
 
 // ============================================================
-// 12. Product Preview (UPDATED to Full Page)
+// 12. Product Preview (Full Page)
 // ============================================================
 
 window.openDetails = function(id) {
@@ -1985,8 +2052,6 @@ window.openDetails = function(id) {
     if (modal) {
         modal.classList.add('open');
         document.body.style.overflow = 'hidden';
-    } else {
-        console.error('❌ productDetailsFull modal not found');
     }
     
     setTimeout(() => {
@@ -2023,6 +2088,7 @@ window.addToCartFromDetails = function() {
             updateCartUI();
             renderProducts(products);
             updateBottomCartBar();
+            updateHeaderCheckoutBadge();
             showToast(`✅ Added ${p.name} (${selectedQty}) to cart`, 'success');
             const btn = document.querySelector('#productDetailsContent button[onclick="addToCartFromDetails()"]');
             if (btn) {
@@ -2048,6 +2114,7 @@ window.addToCartFromDetails = function() {
         updateCartUI();
         renderProducts(products);
         updateBottomCartBar();
+        updateHeaderCheckoutBadge();
         showToast(`✅ Added ${p.name} to cart`, 'success');
         const btn = document.querySelector('#productDetailsContent button[onclick="addToCartFromDetails()"]');
         if (btn) {
@@ -2087,11 +2154,6 @@ window.selectQuantityOption = function(element, productId) {
     const quantity = parseInt(element.dataset.quantity);
     window._selectedQuantity = quantity;
     window._selectedQuantityPrice = price;
-    
-    const product = products.find(p => p.id === productId);
-    if (product) {
-        const currency = product.currency || 'USD';
-    }
 };
 
 window.selectVipPlan = function(element, planKey) {
@@ -2143,6 +2205,7 @@ window.addVipPlanToCart = function(product) {
     updateCartUI();
     renderProducts(products);
     updateBottomCartBar();
+    updateHeaderCheckoutBadge();
     showToast(`✅ Added ${planLabels[selectedPlan]} VIP plan for ${product.name}`, 'success');
     
     const btn = document.querySelector('#productDetailsContent .vip-add-to-cart');
@@ -2152,7 +2215,6 @@ window.addVipPlanToCart = function(product) {
         btn.style.color = '#0a0a1a';
         btn.onclick = () => { closeProductDetails(); openCartFull(); };
     }
-    updateProductCardButton(product.id);
 };
 
 // ============================================================
@@ -2369,13 +2431,13 @@ async function fetchCryptoPrices() {
     }
 
     if (!cryptoPrices.ltc) {
-        cryptoPrices.ltc = 42;
+        cryptoPrices.ltc = 44.44;
         cryptoPrices.usdt = 1;
     }
     cryptoPrices.isUpdating = false;
 }
 
-function getLTCPrice() { return cryptoPrices.ltc || 42; }
+function getLTCPrice() { return cryptoPrices.ltc || 44.44; }
 function getUSDTPrice() { return cryptoPrices.usdt || 1; }
 function updatePriceUI() {
     const exchangeRate = document.getElementById('exchangeRate');
@@ -2434,7 +2496,7 @@ window.selectPayment = function(method) {
 };
 
 // ============================================================
-// 15.4 Continue Payment (with RP and Promo sections)
+// 15.4 Continue Payment
 // ============================================================
 window.continuePayment = function() {
     if (!selectedPayment) {
@@ -2445,7 +2507,6 @@ window.continuePayment = function() {
     document.getElementById('paymentStep2').style.display = 'block';
     window.renderPaymentProducts();
 
-    // Compute totals for step2
     let total = 0;
     cart.forEach(item => {
         const qty = item.quantity || 1;
@@ -2463,15 +2524,12 @@ window.continuePayment = function() {
     }
     if (finalTotal < 0) finalTotal = 0;
 
-    // Update subtotal and total in step2
     document.getElementById('step2Subtotal').textContent = `$${total.toFixed(2)}`;
     document.getElementById('step2Total').textContent = `$${finalTotal.toFixed(2)}`;
 
-    // Show payment instructions container
     const instructionsContainer = document.getElementById('paymentInstructionsContainer');
     if (instructionsContainer) instructionsContainer.style.display = 'block';
 
-    // Show/hide wallet info, tx input, etc.
     const walletInfo = document.getElementById('paymentWalletInfo');
     const txInput = document.getElementById('paymentTxInput');
     const telegramContact = document.getElementById('paymentTelegramContact');
@@ -2635,7 +2693,7 @@ window.submitManualPayment = function() {
 };
 
 // ============================================================
-// 15.7 sendOrderToTelegram - FIXED with Telegram notification
+// 15.7 sendOrderToTelegram - with Telegram notification
 // ============================================================
 async function sendOrderToTelegram(method, txHash = null) {
     if (isProcessingOrder) {
@@ -2654,11 +2712,9 @@ async function sendOrderToTelegram(method, txHash = null) {
 
         console.log('📦 Starting order process...');
 
-        // جمع معلومات الزائر والجهاز
         const visitorInfo = await getVisitorInfo();
         const deviceInfo = getDeviceInfo();
 
-        // معالجة الصورة الملتقطة
         let screenshotBase64 = null;
         const screenshotInput = document.getElementById('screenshotInput');
         if (screenshotInput && screenshotInput.files && screenshotInput.files[0]) {
@@ -2683,7 +2739,6 @@ async function sendOrderToTelegram(method, txHash = null) {
             }
         }
 
-        // تجهيز بيانات السلة
         const cartData = cart.map(item => ({
             id: item.id,
             name: item.name,
@@ -2701,7 +2756,6 @@ async function sendOrderToTelegram(method, txHash = null) {
             proxyQuantity: item.quantity || 1
         }));
 
-        // حساب المجموع
         let total = 0;
         cart.forEach(item => { total += item.price * (item.quantity || 1); });
         let finalTotal = total;
@@ -2717,7 +2771,7 @@ async function sendOrderToTelegram(method, txHash = null) {
         if (finalTotal < 0) finalTotal = 0;
         console.log('💰 Total:', finalTotal);
 
-        // ============== إرسال الطلب إلى Supabase ==============
+        // Send to Supabase
         const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/place-order', {
             method: 'POST',
             headers: {
@@ -2732,7 +2786,7 @@ async function sendOrderToTelegram(method, txHash = null) {
                     uid: currentUser.uid,
                     email: currentUser.email,
                     name: currentUser.displayName || currentUser.email || 'User',
-                    telegramChatId: userProfile.telegramChatId || null  // إضافة Chat ID
+                    telegramChatId: userProfile.telegramChatId || null
                 },
                 method: method,
                 txHash: txHash,
@@ -2762,7 +2816,7 @@ async function sendOrderToTelegram(method, txHash = null) {
         const orderId = result.orderId || 'order_' + Date.now();
         console.log('✅ Order placed successfully, ID:', orderId);
 
-        // ============== حفظ الطلب في تاريخ المستخدم ==============
+        // Save to user history
         const orderItem = {
             id: orderId,
             items: cartData,
@@ -2773,13 +2827,15 @@ async function sendOrderToTelegram(method, txHash = null) {
             txHash: txHash || null,
             screenshotUrl: result.screenshotUrl || null,
             rpUsed: Math.floor(rpDiscountAmount / RP_TO_DOLLAR) || 0,
-            rpEarned: 0
+            rpEarned: 0,
+            amount: method === 'litecoin' ? (finalTotal / cryptoPrices.ltc) : (method === 'usdt' ? finalTotal : 0),
+            currencyCode: method === 'litecoin' ? 'LTC' : (method === 'usdt' ? 'USDT' : 'USD')
         };
         userProfile.history.push(orderItem);
         const userRef = doc(db, 'users', currentUser.uid);
         await updateDoc(userRef, { history: arrayUnion(orderItem) });
 
-        // ============== إرسال إشعار Firebase للمستخدم ==============
+        // Send Firebase notifications
         try {
             await addDoc(collection(db, 'notifications'), {
                 title: '🆕 New Order Placed',
@@ -2793,7 +2849,6 @@ async function sendOrderToTelegram(method, txHash = null) {
             console.error('Failed to send Firebase user notification:', error);
         }
 
-        // ============== إرسال إشعار Firebase للأدمن ==============
         try {
             await addDoc(collection(db, 'notifications'), {
                 title: '📦 New Order Received',
@@ -2806,13 +2861,10 @@ async function sendOrderToTelegram(method, txHash = null) {
             console.error('Failed to send Firebase global notification:', error);
         }
 
-        // ================================================================
-        // ============== إرسال إشعار تيليجرام ============================
-        // ================================================================
+        // Telegram notifications
         console.log('📤 Preparing Telegram notification...');
         console.log('👤 User Telegram Chat ID:', userProfile.telegramChatId);
 
-        // بناء رسالة تيليجرام للمستخدم
         const userTelegramMessage = `
 🛒 *ORDER PLACED SUCCESSFULLY!*
 
@@ -2828,7 +2880,6 @@ ${txHash ? `🔗 TX Hash: ${txHash}` : ''}
 ⏳ You will receive a notification once confirmed.
         `;
 
-        // بناء رسالة تيليجرام للأدمن مع معلومات إضافية
         const adminTelegramMessage = `
 🛒 *NEW ORDER RECEIVED!*
 
@@ -2848,7 +2899,6 @@ ${txHash ? `🔗 TX Hash: ${txHash}` : ''}
 🔔 Status: Pending - Awaiting confirmation
         `;
 
-        // ===== إرسال للمستخدم =====
         if (userProfile.telegramChatId) {
             try {
                 console.log('📤 Sending Telegram to user...');
@@ -2865,9 +2915,8 @@ ${txHash ? `🔗 TX Hash: ${txHash}` : ''}
             console.log('ℹ️ User has no Telegram linked');
         }
 
-        // ===== إرسال للأدمن =====
-        const ADMIN_CHAT_ID = 'YOUR_ADMIN_CHAT_ID'; // استبدل بالـ Chat ID الحقيقي
-        
+        // Admin Chat ID (replace with actual)
+        const ADMIN_CHAT_ID = 'YOUR_ADMIN_CHAT_ID';
         if (ADMIN_CHAT_ID && ADMIN_CHAT_ID !== 'YOUR_ADMIN_CHAT_ID') {
             try {
                 console.log('📤 Sending Telegram to admin...');
@@ -2884,20 +2933,7 @@ ${txHash ? `🔗 TX Hash: ${txHash}` : ''}
             console.log('ℹ️ Admin Chat ID not configured');
         }
 
-        // === إشعارات الـ Proxy (اختياري) ===
-        const proxyItems = cart.filter(item => item.isProxy);
-        if (proxyItems.length > 0 && DISABLE_PROXY) {
-            console.log('ℹ️ Proxy creation is disabled.');
-            showToast('📦 Proxy details will be sent within 24 hours.', 'info');
-            await addDoc(collection(db, 'notifications'), {
-                title: 'ℹ️ Proxy request pending',
-                message: `User: ${currentUser.email} - ${proxyItems.length} proxies`,
-                readBy: [],
-                createdAt: serverTimestamp()
-            });
-        }
-
-        // ============== تفريغ السلة ==============
+        // Clear cart
         cart = [];
         activeDiscount = 0;
         activeDiscountCode = '';
@@ -2907,15 +2943,18 @@ ${txHash ? `🔗 TX Hash: ${txHash}` : ''}
         renderProducts(products);
         generateRecommendations(products);
         updateRpDisplay();
+        updateHeaderCheckoutBadge();
 
         document.getElementById('paymentModal').classList.remove('open');
         showToast('✅ Order placed successfully!', 'success');
+        renderHistoryFull();
 
         setTimeout(() => {
             if (currentUser && isAdminCached) { loadAdminOrders(); }
             loadUserData();
             updateDropdownStats();
             updateFullUserMenu();
+            renderHistoryFull();
         }, 1000);
 
     } catch (error) {
@@ -2967,7 +3006,7 @@ window.addProxyToCart = function(packageId) {
     updateCartUI();
     renderProxyPackages();
     showToast(`✅ Added ${pkg.name} to cart`, 'success');
-    updateProductCardButton(packageId);
+    updateHeaderCheckoutBadge();
 };
 
 // ============================================================
@@ -3203,7 +3242,6 @@ function loadNotifications() {
             notifications = [];
             snapshot.forEach((doc) => {
                 const data = doc.data();
-                // Show notification if no userId (global) or if userId matches current user
                 if (!data.userId || data.userId === currentUser?.uid) {
                     notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] });
                 }
@@ -3431,7 +3469,7 @@ window.openAdminPanel = function() {
 };
 
 function ensureSliderTab() {
-    // تم إضافة التبويبات في HTML مباشرة، لكن نترك هذه الدالة للتأكد في حال وجود أي تحديث ديناميكي
+    // Already present in HTML
 }
 
 window.closeAdminPanel = function() { document.getElementById('adminPanel').classList.remove('open'); if (unsubscribeAdmin) { unsubscribeAdmin(); unsubscribeAdmin = null; } };
@@ -3822,7 +3860,7 @@ function updateAdminStats(orders) {
 }
 
 // ============================================================
-// 23. Update Order Status with User Notification - FIXED
+// 23. Update Order Status with User Notification
 // ============================================================
 
 window.updateOrderStatus = async function(orderId, userId, newStatus) {
@@ -3846,7 +3884,6 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
         });
         await updateDoc(userRef, { history: updatedHistory });
         
-        // ===== إرسال إشعار للمستخدم عبر Firebase =====
         await sendUserNotification(
             userId,
             newStatus === 'confirmed' ? '✅ Order Confirmed!' : '❌ Order Rejected',
@@ -3855,7 +3892,6 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
                 : `Your order #${orderId.slice(-6)} has been rejected. Please contact support for more information.`
         );
 
-        // ===== إرسال إشعار تيليجرام للمستخدم =====
         if (data.telegramChatId) {
             const statusEmoji = newStatus === 'confirmed' ? '✅' : '❌';
             const statusText = newStatus === 'confirmed' ? 'CONFIRMED' : 'REJECTED';
@@ -3874,7 +3910,6 @@ ${newStatus === 'confirmed' ? '🔑 Your licence has been generated and sent to 
             console.log('✅ Telegram notification sent to user for status update');
         }
 
-        // ===== إرسال الترخيص عند التأكيد =====
         if (newStatus === 'confirmed') {
             const userEmail = orderFound?.userEmail || data.email || userId;
             await sendLicenceForOrder(orderId, userId, userEmail);
@@ -3882,7 +3917,7 @@ ${newStatus === 'confirmed' ? '🔑 Your licence has been generated and sent to 
         
         showToast(`📦 Order updated to ${newStatus}`, 'success');
         loadAdminOrders();
-        if (currentUser && currentUser.uid === userId) { userProfile.history = updatedHistory; }
+        if (currentUser && currentUser.uid === userId) { userProfile.history = updatedHistory; renderHistoryFull(); }
         updateFullUserMenu();
     } catch (error) { 
         console.error('Error updating order:', error); 
@@ -3903,7 +3938,7 @@ window.deleteOrderImmediately = async function(orderId, userId) {
         await updateDoc(userRef, { history: updatedHistory });
         showToast(`🗑️ Order #${String(orderId).slice(-6)} deleted permanently`, 'success');
         loadAdminOrders();
-        if (currentUser && currentUser.uid === userId) { userProfile.history = updatedHistory; }
+        if (currentUser && currentUser.uid === userId) { userProfile.history = updatedHistory; renderHistoryFull(); }
     } catch (error) { console.error('Error deleting order:', error); showToast('❌ Error: ' + error.message, 'error'); }
 };
 
@@ -3923,7 +3958,7 @@ window.clearAdminSearch = function() { document.getElementById('adminSearchInput
 window.refreshAdminOrders = function() { loadAdminOrders(); showToast('🔄 Refreshed', 'info'); };
 
 // ============================================================
-// 24. Send Licence via Edge Function - FIXED with Telegram notification
+// 24. Send Licence via Edge Function
 // ============================================================
 
 async function sendLicenceForOrder(orderId, userId, userEmail = null) {
@@ -3992,7 +4027,6 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
         userLicences.push(newLicence);
         await updateDoc(userRef, { licences: userLicences });
 
-        // ===== إرسال إشعار تيليجرام للمستخدم بالترخيص =====
         if (userData.telegramChatId) {
             const licenceMessage = `
 🔑 *LICENCE GENERATED!*
@@ -5091,6 +5125,7 @@ window.clearOrderHistory = async function() {
         await updateDoc(userRef, { history: [] });
         userProfile.history = [];
         renderHistoryFull();
+        renderHistoryFullModal();
         updateFullUserMenu();
         showToast('🗑️ Order history cleared successfully!', 'success');
     } catch (error) {
@@ -5099,12 +5134,27 @@ window.clearOrderHistory = async function() {
     }
 };
 
+window.clearOrderHistoryModal = window.clearOrderHistory;
+
 window.renderHistoryFull = function() {
     const container = document.getElementById('historyFullContent');
     if (!container) return;
+    renderHistory(container, 'inline');
+};
 
-    const currency = document.getElementById('historyCurrencyFilter')?.value || 'all';
-    const status = document.getElementById('historyStatusFilter')?.value || 'all';
+window.renderHistoryFullModal = function() {
+    const container = document.getElementById('historyFullContentModal');
+    if (!container) return;
+    renderHistory(container, 'modal');
+};
+
+function renderHistory(container, type) {
+    const currencyFilter = type === 'modal' ? 
+        document.getElementById('historyCurrencyFilterModal')?.value || 'all' :
+        document.getElementById('historyCurrencyFilter')?.value || 'all';
+    const statusFilter = type === 'modal' ?
+        document.getElementById('historyStatusFilterModal')?.value || 'all' :
+        document.getElementById('historyStatusFilter')?.value || 'all';
 
     const history = userProfile.history || [];
     if (history.length === 0) {
@@ -5116,55 +5166,18 @@ window.renderHistoryFull = function() {
         return;
     }
 
-    let paymentItems = history.map(order => {
-        let currencyCode = 'LTC';
-        let amount = 0;
-        if (order.items && order.items.length > 0) {
-            const firstItem = order.items[0];
-            currencyCode = firstItem.currency || 'LTC';
-            amount = order.total || 0;
-        }
-        const toAddress = order.txHash ? order.txHash.slice(0, 20) + '...' : 'N/A';
-        const methodIcon = order.method === 'binanceId' ? 'fab fa-binance' : 
-                           order.method === 'telegram' ? 'fab fa-telegram-plane' :
-                           order.method === 'litecoin' ? 'fab fa-bitcoin' :
-                           order.method === 'usdt' ? 'fas fa-coins' : 'fas fa-credit-card';
-        const methodColor = order.method === 'binanceId' ? '#f2a900' :
-                           order.method === 'telegram' ? '#0088cc' :
-                           order.method === 'litecoin' ? '#3fcb7a' :
-                           order.method === 'usdt' ? '#26a17b' : 'var(--primary)';
-        const cryptoAmount = order.amount || 0;
-        const usdValue = order.total || 0;
-        
-        return {
-            id: order.id || '#' + String(Date.now()).slice(-6),
-            currency: currencyCode,
-            icon: methodIcon,
-            iconColor: methodColor,
-            method: order.method || 'Unknown',
-            date: order.date ? new Date(order.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '--',
-            time: order.date ? new Date(order.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '--',
-            cryptoAmount: cryptoAmount,
-            currencyCode: currencyCode,
-            usdValue: usdValue,
-            status: order.status || 'pending',
-            to: toAddress,
-            screenshotUrl: order.screenshotUrl || null,
-            txHash: order.txHash || null
-        };
-    });
-
-    let filtered = paymentItems.filter(p => {
-        const matchCurrency = currency === 'all' || p.currency === currency;
-        const matchStatus = status === 'all' || p.status === status;
+    let filtered = history.filter(order => {
+        const matchCurrency = currencyFilter === 'all' || order.currencyCode === currencyFilter;
+        const matchStatus = statusFilter === 'all' || order.status === statusFilter;
         return matchCurrency && matchStatus;
     });
 
-    const isLtcFilter = (currency === 'LTC');
-
-    const delayNote = document.getElementById('historyDelayNote');
+    // Show delay note for LTC
+    const delayNote = type === 'modal' ? 
+        document.getElementById('historyDelayNoteModal') :
+        document.getElementById('historyDelayNote');
     if (delayNote) {
-        delayNote.style.display = isLtcFilter ? 'block' : 'none';
+        delayNote.style.display = (currencyFilter === 'LTC') ? 'block' : 'none';
     }
 
     if (filtered.length === 0) {
@@ -5175,49 +5188,75 @@ window.renderHistoryFull = function() {
     filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     let html = '';
-    filtered.forEach(p => {
-        let statusText = p.status === 'pending' ? 'Pending' : (p.status === 'confirmed' ? 'Completed' : 'Rejected');
-        if (isLtcFilter && p.status === 'pending') {
-            statusText = 'Pending (24–48h)';
-        }
-        const statusClass = p.status === 'confirmed' ? 'completed' : p.status;
+    filtered.forEach(order => {
+        const statusClass = order.status === 'confirmed' ? 'completed' : order.status;
+        const statusText = order.status === 'pending' ? 'Pending' : (order.status === 'confirmed' ? 'Completed' : 'Rejected');
+        const dateObj = new Date(order.date);
+        const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const timeStr = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
-        const iconHtml = `<i class="${p.icon}" style="color:${p.iconColor}; font-size:24px;"></i>`;
+        let iconClass = 'fas fa-credit-card';
+        let iconColor = 'var(--primary)';
+        let methodLabel = order.method || 'Unknown';
+        if (methodLabel === 'litecoin') {
+            iconClass = 'fab fa-bitcoin';
+            iconColor = '#3fcb7a';
+        } else if (methodLabel === 'usdt') {
+            iconClass = 'fas fa-coins';
+            iconColor = '#26a17b';
+        } else if (methodLabel === 'binanceId') {
+            iconClass = 'fab fa-binance';
+            iconColor = '#f2a900';
+        } else if (methodLabel === 'telegram') {
+            iconClass = 'fab fa-telegram-plane';
+            iconColor = '#0088cc';
+        }
+
+        const toDisplay = order.txHash ? order.txHash.slice(0, 20) + '...' : 'N/A';
+        const cryptoAmount = order.amount || 0;
+        const currencyCode = order.currencyCode || 'USD';
+        const usdValue = order.total || 0;
 
         html += `
-            <div class="payment-card" style="border-left-color: ${p.iconColor};">
+            <div class="payment-card" style="border-left-color: ${iconColor};">
                 <div class="payment-left">
-                    <div class="payment-icon" style="color:${p.iconColor};">
-                        ${iconHtml}
+                    <div class="payment-icon" style="color:${iconColor};">
+                        <i class="${iconClass}" style="font-size:24px;"></i>
                     </div>
                     <div class="payment-info">
-                        <div class="payment-currency">${p.currency}</div>
-                        <div class="payment-date">${p.date} · ${p.time}</div>
-                        <div class="payment-id">${p.id}</div>
+                        <div class="payment-currency">${currencyCode}</div>
+                        <div class="payment-date">${dateStr} · ${timeStr}</div>
+                        <div class="payment-id">${order.id}</div>
                     </div>
                 </div>
                 <div class="payment-amounts">
-                    <div class="payment-value-usd">$${p.usdValue.toFixed(2)}</div>
-                    <div class="payment-coins">${p.cryptoAmount.toFixed(4)} ${p.currency}</div>
+                    <div class="payment-value-usd">$${usdValue.toFixed(2)}</div>
+                    <div class="payment-coins">${cryptoAmount.toFixed(4)} ${currencyCode}</div>
                 </div>
                 <div class="payment-status ${statusClass}">${statusText}</div>
                 <div class="payment-to">
-                    <i class="fas fa-arrow-right"></i> To: ${p.to}
-                    ${p.method ? ` • <span class="payment-method">${p.method}</span>` : ''}
-                    ${p.screenshotUrl ? ` • <a href="${p.screenshotUrl}" target="_blank" style="color:var(--primary);text-decoration:underline;">📸 View Screenshot</a>` : ''}
+                    <i class="fas fa-arrow-right"></i> To: ${toDisplay}
+                    ${methodLabel ? ` • <span class="payment-method">${methodLabel}</span>` : ''}
                 </div>
             </div>
         `;
     });
 
     container.innerHTML = html;
-};
+}
 
+// Add filter change listeners
 document.addEventListener('DOMContentLoaded', function() {
-    const currencyFilter = document.getElementById('historyCurrencyFilter');
-    const statusFilter = document.getElementById('historyStatusFilter');
-    if (currencyFilter) currencyFilter.addEventListener('change', renderHistoryFull);
-    if (statusFilter) statusFilter.addEventListener('change', renderHistoryFull);
+    const filters = ['historyCurrencyFilter', 'historyStatusFilter', 'historyCurrencyFilterModal', 'historyStatusFilterModal'];
+    filters.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('change', function() {
+                renderHistoryFull();
+                renderHistoryFullModal();
+            });
+        }
+    });
 });
 
 // ============================================================
@@ -5701,11 +5740,9 @@ onAuthStateChanged(auth, async (user) => {
         loadMarqueeSettings();
         setTimeout(showTelegramBanner, 1000);
         startSocialProof();
-        setTimeout(window.ensureAdminPanel, 2000);
         setTimeout(checkCookieConsent, 1000);
         updateLoadingText('✅ Ready!');
 
-        window.showMainApp();
         hideLoadingScreen();
 
     } else {
@@ -5731,33 +5768,11 @@ onAuthStateChanged(auth, async (user) => {
     }
     updateUI();
     updateFullUserMenu();
+    updateHeaderCheckoutBadge();
 });
 
 // ============================================================
-// 39. Auto-check Admin Panel
-// ============================================================
-
-setInterval(() => {
-    if (currentUser) {
-        const mainApp = document.getElementById('mainApp');
-        if (mainApp && mainApp.style.display === 'none') {
-            mainApp.style.display = 'block';
-            console.log('✅ Main app forced visible (user logged in)');
-        }
-        if (!isAdminCached) {
-            window.ensureAdminPanel();
-        }
-    } else {
-        const mainApp = document.getElementById('mainApp');
-        if (mainApp && mainApp.style.display !== 'none') {
-            mainApp.style.display = 'none';
-            console.log('✅ Main app hidden (no user)');
-        }
-    }
-}, 5000);
-
-// ============================================================
-// 40. Init
+// 39. Init
 // ============================================================
 
 async function init() {
@@ -5792,35 +5807,17 @@ async function init() {
         updateLoadingText('✅ Ready!');
         console.log('✅ ZI Store ready with all features!');
         setTimeout(fixDirection, 100);
-        setTimeout(window.ensureAdminPanel, 3000);
         setTimeout(checkCookieConsent, 1500);
+        renderHistoryFull();
+        updateHeaderCheckoutBadge();
 
         if (auth.currentUser) {
-            window.showMainApp();
+            // Already logged in
         } else {
             if (authSection) authSection.style.display = 'block';
             document.getElementById('mainApp').style.display = 'none';
         }
         hideLoadingScreen();
-
-        setTimeout(function() {
-            const screen = document.getElementById('loadingScreen');
-            if (screen) {
-                const icon = screen.querySelector('.loader-icon');
-                if (icon) {
-                    icon.textContent = '✅';
-                    icon.style.animation = 'none';
-                }
-                const text = document.getElementById('loadingStatus');
-                if (text) {
-                    text.textContent = 'Ready! 🎉';
-                    text.style.webkitTextFillColor = 'var(--success)';
-                }
-                const subtext = document.querySelector('.loader-subtext');
-                if (subtext) subtext.textContent = 'You can start now';
-                document.querySelectorAll('.spinner-ring').forEach(el => el.style.display = 'none');
-            }
-        }, 2000);
 
     } catch (error) {
         console.error('❌ Initialization error:', error);
@@ -5833,14 +5830,13 @@ async function init() {
 }
 
 // ============================================================
-// 41. Theme Toggle
+// 40. Theme Toggle (inline fallback)
 // ============================================================
 
-// Theme toggle is now handled inline in index.html for immediate response.
-// We'll keep a function to sync with localStorage if needed, but not override.
+// Theme toggle is handled inline in index.html
 
 // ============================================================
-// 42. Export all functions to global scope
+// 41. Export all functions to global scope
 // ============================================================
 
 window.filterOrders = function(filter) {
@@ -5874,14 +5870,12 @@ window.openPaymentModal = function() {
     document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
     window.renderPaymentProducts();
     updatePayableTotal();
-    // Reset any previous state
     document.getElementById('paymentInstructionsContainer').style.display = 'none';
     document.getElementById('paymentWalletInfo').style.display = 'none';
     document.getElementById('paymentTxInput').style.display = 'none';
     document.getElementById('paymentTelegramContact').style.display = 'none';
     document.getElementById('paymentBinanceIdSection').style.display = 'none';
     document.getElementById('mainConfirmBtn').style.display = 'none';
-    // Reset tx hash inputs
     const txInput = document.getElementById('transactionHashInput');
     if (txInput) txInput.value = '';
     const txInput2 = document.getElementById('txHashInput');
@@ -5894,7 +5888,6 @@ window.closePaymentModal = function() {
     const modal = document.getElementById('paymentModal');
     if (modal) modal.classList.remove('open');
     document.body.style.overflow = '';
-    // Reset state
     document.getElementById('paymentStep1').style.display = 'block';
     document.getElementById('paymentStep2').style.display = 'none';
     document.getElementById('paymentInstructionsContainer').style.display = 'none';
@@ -5916,7 +5909,6 @@ window.goToStep1 = function() {
     document.getElementById('mainConfirmBtn').style.display = 'none';
 };
 
-// Checkout promo apply
 window.applyCheckoutPromo = function() {
     const input = document.getElementById('checkoutPromoInput');
     const statusEl = document.getElementById('checkoutPromoStatus');
@@ -5928,7 +5920,6 @@ window.applyCheckoutPromo = function() {
     activeDiscount = codeData.discount; activeDiscountCode = code;
     statusEl.textContent = `✅ ${codeData.discount}% discount applied!`; statusEl.className = 'promo-status success';
     input.value = '';
-    // Update totals
     const totalEl = document.getElementById('step2Total');
     if (totalEl) {
         let total = 0;
@@ -5943,7 +5934,6 @@ window.applyCheckoutPromo = function() {
         }
         if (finalTotal < 0) finalTotal = 0;
         totalEl.textContent = `$${finalTotal.toFixed(2)}`;
-        // Update binance amount if visible
         const binanceAmount = document.getElementById('binanceAmountDisplay');
         if (binanceAmount) binanceAmount.textContent = `$${finalTotal.toFixed(2)}`;
         const binanceAmountInline = document.getElementById('binanceAmountInline');
@@ -6000,6 +5990,7 @@ window.closeDownloads = closeDownloads;
 window.openNotifications = openNotifications;
 window.closeNotifications = closeNotifications;
 window.clearOrderHistory = clearOrderHistory;
+window.clearOrderHistoryModal = clearOrderHistoryModal;
 window.openReferralModal = openReferralModal;
 window.closeReferralModal = closeReferralModal;
 window.copyReferralCode2 = copyReferralCode2;
@@ -6041,7 +6032,7 @@ window.showTelegramBannerAgain = showTelegramBannerAgain;
 window.adminToggleBanner = adminToggleBanner;
 window.resetBannerForAll = resetBannerForAll;
 window.closeProductDetails = closeProductDetails;
-window.closePreviewModal = closeProductDetails; // for backward compatibility
+window.closePreviewModal = closeProductDetails;
 window.addToCartFromDetails = addToCartFromDetails;
 window.refreshDashboardStats = refreshDashboardStats;
 window.loadDashboardStats = loadDashboardStats;
@@ -6065,8 +6056,8 @@ window.loadMarqueeSettings = loadMarqueeSettings;
 window.saveMarqueeSettings = saveMarqueeSettings;
 window.renderMarqueeSettingsUI = renderMarqueeSettingsUI;
 window.applyMarqueeSettings = applyMarqueeSettings;
-window.ensureAdminPanel = ensureAdminPanel;
 window.renderHistoryFull = renderHistoryFull;
+window.renderHistoryFullModal = renderHistoryFullModal;
 window.renderLicences = renderLicences;
 window.loadLicences = loadLicences;
 window.openLicenceModal = openLicenceModal;
@@ -6088,9 +6079,6 @@ window.closeCookieBanner = closeCookieBanner;
 window.saveSliderData = saveSliderData;
 window.saveSliderInterval = saveSliderInterval;
 window.saveSlideEdit = saveSlideEdit;
-window.hideLoadingScreenManually = hideLoadingScreenManually;
-window.updateLoadingText = updateLoadingText;
-window.showMainApp = showMainApp;
 window.editSlide = editSlide;
 window.deleteSlide = deleteSlide;
 window.openAddSlideModal = openAddSlideModal;
@@ -6109,33 +6097,13 @@ window.openWhatsAppSupport = openWhatsAppSupport;
 window.openTelegramSupport = openTelegramSupport;
 window.openEmailSupport = openEmailSupport;
 window.openPhoneSupport = openPhoneSupport;
+window.updateHeaderCheckoutBadge = updateHeaderCheckoutBadge;
 
-// Password toggle function is already defined globally.
+console.log('✅ ZI Store script loaded successfully!');
 
-document.addEventListener('click', function(e) {
-    const float = document.getElementById('supportFloat');
-    if (float) {
-        const isClickInside = float.contains(e.target);
-        if (!isClickInside && float.classList.contains('open')) {
-            float.classList.remove('open');
-        }
-    }
-});
-
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        const modal = document.getElementById('supportModal');
-        if (modal && modal.classList.contains('open')) {
-            closeSupportModal();
-        }
-        const float = document.getElementById('supportFloat');
-        if (float && float.classList.contains('open')) {
-            float.classList.remove('open');
-        }
-    }
-});
-
-console.log('✅ Support system loaded successfully!');
+// ============================================================
+// 42. Start the App
+// ============================================================
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
