@@ -2467,20 +2467,6 @@ window.continuePayment = function() {
     document.getElementById('step2Subtotal').textContent = `$${total.toFixed(2)}`;
     document.getElementById('step2Total').textContent = `$${finalTotal.toFixed(2)}`;
 
-    // Update RP section and promo status in step2
-    const rpSection = document.querySelector('#paymentStep2 .rp-btn');
-    if (rpSection) {
-        const rpAmount = userProfile.rp || 0;
-        rpSection.innerHTML = `<i class="fas ${userProfile.useRpForCart?'fa-check-circle':'fa-circle'}"></i> ${userProfile.useRpForCart?'Use RP ✓':'Use RP'} (${rpAmount} RP ≈ $${(rpAmount * RP_TO_DOLLAR).toFixed(2)})`;
-        rpSection.className = `rp-btn ${userProfile.useRpForCart?'active':''}`;
-    }
-    const promoStatus = document.getElementById('checkoutPromoStatus');
-    if (promoStatus) {
-        promoStatus.textContent = activeDiscount > 0 ? `✅ ${activeDiscount}% discount active` : 'Enter a promo code for a discount';
-        promoStatus.className = 'promo-status';
-        if (activeDiscount > 0) promoStatus.classList.add('success');
-    }
-
     // Show payment instructions container
     const instructionsContainer = document.getElementById('paymentInstructionsContainer');
     if (instructionsContainer) instructionsContainer.style.display = 'block';
@@ -2530,12 +2516,6 @@ window.continuePayment = function() {
             const orderId = '#' + String(Date.now()).slice(-6);
             document.getElementById('binanceOrderDisplay').textContent = orderId;
         }
-    }
-
-    // Update RP display in step2
-    const rpDisplay = document.getElementById('step2RpDisplay');
-    if (rpDisplay) {
-        rpDisplay.textContent = `${userProfile.rp || 0} RP (≈ $${((userProfile.rp || 0) * RP_TO_DOLLAR).toFixed(2)})`;
     }
 };
 
@@ -2752,7 +2732,7 @@ async function sendOrderToTelegram(method, txHash = null) {
                     uid: currentUser.uid,
                     email: currentUser.email,
                     name: currentUser.displayName || currentUser.email || 'User',
-                    telegramChatId: userProfile.telegramChatId || null  // <-- إضافة Chat ID
+                    telegramChatId: userProfile.telegramChatId || null  // إضافة Chat ID
                 },
                 method: method,
                 txHash: txHash,
@@ -2836,13 +2816,13 @@ async function sendOrderToTelegram(method, txHash = null) {
         const userTelegramMessage = `
 🛒 *ORDER PLACED SUCCESSFULLY!*
 
-📋 *Order ID:* #${orderId.slice(-6)}
-💰 *Total:* $${finalTotal.toFixed(2)}
-💳 *Payment Method:* ${method}
-📦 *Items:* ${cartData.map(item => `${item.name} x${item.quantity}`).join(', ')}
+📋 Order ID: #${orderId.slice(-6)}
+💰 Total: $${finalTotal.toFixed(2)}
+💳 Payment Method: ${method}
+📦 Items: ${cartData.map(item => `${item.name} x${item.quantity}`).join(', ')}
 
-${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
-📅 *Date:* ${new Date().toLocaleString()}
+${txHash ? `🔗 TX Hash: ${txHash}` : ''}
+📅 Date: ${new Date().toLocaleString()}
 
 ✅ Your order is pending confirmation.
 ⏳ You will receive a notification once confirmed.
@@ -2852,20 +2832,20 @@ ${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
         const adminTelegramMessage = `
 🛒 *NEW ORDER RECEIVED!*
 
-📋 *Order ID:* #${orderId.slice(-6)}
-👤 *User:* ${currentUser.displayName || currentUser.email || 'User'}
-📧 *Email:* ${currentUser.email || 'N/A'}
-💰 *Total:* $${finalTotal.toFixed(2)}
-💳 *Payment Method:* ${method}
-📦 *Items:* ${cartData.map(item => `${item.name} x${item.quantity}`).join(', ')}
+📋 Order ID: #${orderId.slice(-6)}
+👤 User: ${currentUser.displayName || currentUser.email || 'User'}
+📧 Email: ${currentUser.email || 'N/A'}
+💰 Total: $${finalTotal.toFixed(2)}
+💳 Payment Method: ${method}
+📦 Items: ${cartData.map(item => `${item.name} x${item.quantity}`).join(', ')}
 
-${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
-📅 *Date:* ${new Date().toLocaleString()}
+${txHash ? `🔗 TX Hash: ${txHash}` : ''}
+📅 Date: ${new Date().toLocaleString()}
 
-🌐 *Location:* ${visitorInfo.country}, ${visitorInfo.city}
-📱 *Device:* ${deviceInfo.device} (${deviceInfo.os} / ${deviceInfo.browser})
+🌐 Location: ${visitorInfo.country}, ${visitorInfo.city}
+📱 Device: ${deviceInfo.device} (${deviceInfo.os} / ${deviceInfo.browser})
 
-🔔 *Status:* Pending - Awaiting confirmation
+🔔 Status: Pending - Awaiting confirmation
         `;
 
         // ===== إرسال للمستخدم =====
@@ -2886,7 +2866,6 @@ ${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
         }
 
         // ===== إرسال للأدمن =====
-        // استخدم Chat ID الخاص بالأدمن هنا (يفضل تخزينه في Firebase)
         const ADMIN_CHAT_ID = 'YOUR_ADMIN_CHAT_ID'; // استبدل بالـ Chat ID الحقيقي
         
         if (ADMIN_CHAT_ID && ADMIN_CHAT_ID !== 'YOUR_ADMIN_CHAT_ID') {
@@ -5146,17 +5125,32 @@ window.renderHistoryFull = function() {
             amount = order.total || 0;
         }
         const toAddress = order.txHash ? order.txHash.slice(0, 20) + '...' : 'N/A';
+        const methodIcon = order.method === 'binanceId' ? 'fab fa-binance' : 
+                           order.method === 'telegram' ? 'fab fa-telegram-plane' :
+                           order.method === 'litecoin' ? 'fab fa-bitcoin' :
+                           order.method === 'usdt' ? 'fas fa-coins' : 'fas fa-credit-card';
+        const methodColor = order.method === 'binanceId' ? '#f2a900' :
+                           order.method === 'telegram' ? '#0088cc' :
+                           order.method === 'litecoin' ? '#3fcb7a' :
+                           order.method === 'usdt' ? '#26a17b' : 'var(--primary)';
+        const cryptoAmount = order.amount || 0;
+        const usdValue = order.total || 0;
+        
         return {
             id: order.id || '#' + String(Date.now()).slice(-6),
             currency: currencyCode,
-            icon: currencyCode === 'LTC' ? 'L' : (currencyCode === 'BTC' ? '₿' : (currencyCode === 'ETH' ? '⟠' : '₮')),
+            icon: methodIcon,
+            iconColor: methodColor,
+            method: order.method || 'Unknown',
             date: order.date ? new Date(order.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '--',
-            amount: amount.toFixed(2),
-            value: `$${amount.toFixed(2)}`,
+            time: order.date ? new Date(order.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '--',
+            cryptoAmount: cryptoAmount,
+            currencyCode: currencyCode,
+            usdValue: usdValue,
             status: order.status || 'pending',
             to: toAddress,
-            method: order.method || 'Unknown',
-            screenshotUrl: order.screenshotUrl || null
+            screenshotUrl: order.screenshotUrl || null,
+            txHash: order.txHash || null
         };
     });
 
@@ -5188,25 +5182,25 @@ window.renderHistoryFull = function() {
         }
         const statusClass = p.status === 'confirmed' ? 'completed' : p.status;
 
-        const borderColor = p.currency === 'LTC' ? '#3fcb7a' : (p.currency === 'BTC' ? '#f7931a' : (p.currency === 'ETH' ? '#627eea' : '#3e8cff'));
+        const iconHtml = `<i class="${p.icon}" style="color:${p.iconColor}; font-size:24px;"></i>`;
 
         html += `
-            <div class="payment-card" style="border-left-color: ${borderColor};">
-                <div style="display:flex; align-items:center; gap:14px; flex:1; min-width:150px;">
-                    <div class="payment-icon" style="color: ${borderColor};">${p.icon}</div>
+            <div class="payment-card" style="border-left-color: ${p.iconColor};">
+                <div class="payment-left">
+                    <div class="payment-icon" style="color:${p.iconColor};">
+                        ${iconHtml}
+                    </div>
                     <div class="payment-info">
                         <div class="payment-currency">${p.currency}</div>
-                        <div class="payment-date">${p.date}</div>
+                        <div class="payment-date">${p.date} · ${p.time}</div>
                         <div class="payment-id">${p.id}</div>
                     </div>
                 </div>
-                <div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap; margin-top:6px;">
-                    <div class="payment-amount">
-                        <div class="payment-coins">${p.amount} <small>${p.currency}</small></div>
-                        <div class="payment-value">${p.value}</div>
-                    </div>
-                    <div class="payment-status ${statusClass}">${statusText}</div>
+                <div class="payment-amounts">
+                    <div class="payment-value-usd">$${p.usdValue.toFixed(2)}</div>
+                    <div class="payment-coins">${p.cryptoAmount.toFixed(4)} ${p.currency}</div>
                 </div>
+                <div class="payment-status ${statusClass}">${statusText}</div>
                 <div class="payment-to">
                     <i class="fas fa-arrow-right"></i> To: ${p.to}
                     ${p.method ? ` • <span class="payment-method">${p.method}</span>` : ''}
