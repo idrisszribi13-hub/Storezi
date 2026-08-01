@@ -961,7 +961,7 @@ window.openWishlistFull = function() { document.getElementById('wishlistFull').c
 window.closeWishlistFull = function() { document.getElementById('wishlistFull').classList.remove('open'); document.body.style.overflow = ''; };
 window.openProfileFull = function() { if (!currentUser) { showToast('⚠️ Please login first', 'warning'); openAuthModal(); return; } document.getElementById('profileFull').classList.add('open'); renderProfileFull(); document.body.style.overflow = 'hidden'; };
 window.closeProfileFull = function() { document.getElementById('profileFull').classList.remove('open'); document.body.style.overflow = ''; };
-window.openHistoryFull = function() { if (!currentUser) { showToast('⚠️ Please login first', 'warning'); openAuthModal(); return; } document.getElementById('historyFull').classList.add('open'); renderHistoryFullModal(); document.body.style.overflow = 'hidden'; };
+window.openHistoryFull = function() { if (!currentUser) { showToast('⚠️ Please login first', 'warning'); openAuthModal(); return; } document.getElementById('historyFull').classList.add('open'); renderHistoryFull(); document.body.style.overflow = 'hidden'; };
 window.closeHistoryFull = function() { document.getElementById('historyFull').classList.remove('open'); document.body.style.overflow = ''; };
 window.openDownloads = function() { document.getElementById('downloadsModal').classList.add('open'); };
 window.closeDownloads = function() { document.getElementById('downloadsModal').classList.remove('open'); };
@@ -1712,7 +1712,7 @@ function renderCartFull() {
       ${activeDiscount>0?`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;color:var(--success);"><span style="color:var(--text-secondary);opacity:0.5;">🎫 Promo (${activeDiscount}%)</span><span style="font-weight:600;">-${getCurrencySymbol('USD')}${promoDiscountAmount.toFixed(2)}</span></div>`:''}
       <div style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid var(--border);margin-top:4px;padding-top:6px;font-size:18px;font-weight:700;"><span style="color:var(--text-secondary);opacity:0.5;">Total</span><span style="color:var(--primary);">${getCurrencySymbol('USD')}${finalTotal.toFixed(2)}</span></div>
       <div style="display:flex;align-items:center;gap:12px;margin-top:16px;">
-        <button onclick="closeCartFull();openPaymentModal();" style="flex:1;padding:14px 20px;border:none;border-radius:12px;background:var(--primary);color:#fff;font-weight:700;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;gap:8px;transition:0.3s;">
+        <button onclick="closeCartFull();checkout();" style="flex:1;padding:14px 20px;border:none;border-radius:12px;background:var(--primary);color:#fff;font-weight:700;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;gap:8px;transition:0.3s;">
           <i class="fas fa-shopping-cart"></i> Checkout
         </button>
         <span style="font-size:22px;font-weight:800;color:var(--primary);min-width:80px;text-align:right;">${getCurrencySymbol('USD')}${finalTotal.toFixed(2)}</span>
@@ -2467,6 +2467,20 @@ window.continuePayment = function() {
     document.getElementById('step2Subtotal').textContent = `$${total.toFixed(2)}`;
     document.getElementById('step2Total').textContent = `$${finalTotal.toFixed(2)}`;
 
+    // Update RP section and promo status in step2
+    const rpSection = document.querySelector('#paymentStep2 .rp-btn');
+    if (rpSection) {
+        const rpAmount = userProfile.rp || 0;
+        rpSection.innerHTML = `<i class="fas ${userProfile.useRpForCart?'fa-check-circle':'fa-circle'}"></i> ${userProfile.useRpForCart?'Use RP ✓':'Use RP'} (${rpAmount} RP ≈ $${(rpAmount * RP_TO_DOLLAR).toFixed(2)})`;
+        rpSection.className = `rp-btn ${userProfile.useRpForCart?'active':''}`;
+    }
+    const promoStatus = document.getElementById('checkoutPromoStatus');
+    if (promoStatus) {
+        promoStatus.textContent = activeDiscount > 0 ? `✅ ${activeDiscount}% discount active` : 'Enter a promo code for a discount';
+        promoStatus.className = 'promo-status';
+        if (activeDiscount > 0) promoStatus.classList.add('success');
+    }
+
     // Show payment instructions container
     const instructionsContainer = document.getElementById('paymentInstructionsContainer');
     if (instructionsContainer) instructionsContainer.style.display = 'block';
@@ -2516,6 +2530,12 @@ window.continuePayment = function() {
             const orderId = '#' + String(Date.now()).slice(-6);
             document.getElementById('binanceOrderDisplay').textContent = orderId;
         }
+    }
+
+    // Update RP display in step2
+    const rpDisplay = document.getElementById('step2RpDisplay');
+    if (rpDisplay) {
+        rpDisplay.textContent = `${userProfile.rp || 0} RP (≈ $${((userProfile.rp || 0) * RP_TO_DOLLAR).toFixed(2)})`;
     }
 };
 
@@ -2732,7 +2752,7 @@ async function sendOrderToTelegram(method, txHash = null) {
                     uid: currentUser.uid,
                     email: currentUser.email,
                     name: currentUser.displayName || currentUser.email || 'User',
-                    telegramChatId: userProfile.telegramChatId || null  // إضافة Chat ID
+                    telegramChatId: userProfile.telegramChatId || null  // <-- إضافة Chat ID
                 },
                 method: method,
                 txHash: txHash,
@@ -2816,13 +2836,13 @@ async function sendOrderToTelegram(method, txHash = null) {
         const userTelegramMessage = `
 🛒 *ORDER PLACED SUCCESSFULLY!*
 
-📋 Order ID: #${orderId.slice(-6)}
-💰 Total: $${finalTotal.toFixed(2)}
-💳 Payment Method: ${method}
-📦 Items: ${cartData.map(item => `${item.name} x${item.quantity}`).join(', ')}
+📋 *Order ID:* #${orderId.slice(-6)}
+💰 *Total:* $${finalTotal.toFixed(2)}
+💳 *Payment Method:* ${method}
+📦 *Items:* ${cartData.map(item => `${item.name} x${item.quantity}`).join(', ')}
 
-${txHash ? `🔗 TX Hash: ${txHash}` : ''}
-📅 Date: ${new Date().toLocaleString()}
+${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
+📅 *Date:* ${new Date().toLocaleString()}
 
 ✅ Your order is pending confirmation.
 ⏳ You will receive a notification once confirmed.
@@ -2832,20 +2852,20 @@ ${txHash ? `🔗 TX Hash: ${txHash}` : ''}
         const adminTelegramMessage = `
 🛒 *NEW ORDER RECEIVED!*
 
-📋 Order ID: #${orderId.slice(-6)}
-👤 User: ${currentUser.displayName || currentUser.email || 'User'}
-📧 Email: ${currentUser.email || 'N/A'}
-💰 Total: $${finalTotal.toFixed(2)}
-💳 Payment Method: ${method}
-📦 Items: ${cartData.map(item => `${item.name} x${item.quantity}`).join(', ')}
+📋 *Order ID:* #${orderId.slice(-6)}
+👤 *User:* ${currentUser.displayName || currentUser.email || 'User'}
+📧 *Email:* ${currentUser.email || 'N/A'}
+💰 *Total:* $${finalTotal.toFixed(2)}
+💳 *Payment Method:* ${method}
+📦 *Items:* ${cartData.map(item => `${item.name} x${item.quantity}`).join(', ')}
 
-${txHash ? `🔗 TX Hash: ${txHash}` : ''}
-📅 Date: ${new Date().toLocaleString()}
+${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
+📅 *Date:* ${new Date().toLocaleString()}
 
-🌐 Location: ${visitorInfo.country}, ${visitorInfo.city}
-📱 Device: ${deviceInfo.device} (${deviceInfo.os} / ${deviceInfo.browser})
+🌐 *Location:* ${visitorInfo.country}, ${visitorInfo.city}
+📱 *Device:* ${deviceInfo.device} (${deviceInfo.os} / ${deviceInfo.browser})
 
-🔔 Status: Pending - Awaiting confirmation
+🔔 *Status:* Pending - Awaiting confirmation
         `;
 
         // ===== إرسال للمستخدم =====
@@ -2866,6 +2886,7 @@ ${txHash ? `🔗 TX Hash: ${txHash}` : ''}
         }
 
         // ===== إرسال للأدمن =====
+        // استخدم Chat ID الخاص بالأدمن هنا (يفضل تخزينه في Firebase)
         const ADMIN_CHAT_ID = 'YOUR_ADMIN_CHAT_ID'; // استبدل بالـ Chat ID الحقيقي
         
         if (ADMIN_CHAT_ID && ADMIN_CHAT_ID !== 'YOUR_ADMIN_CHAT_ID') {
@@ -5075,109 +5096,10 @@ async function loadAuditLogs() {
 window.loadAuditLogs = loadAuditLogs;
 
 // ============================================================
-// 30. Order History (Unified with Payment Design) - For Modal and Inline
+// 30. Order History (Unified with Payment Design)
 // ============================================================
 
-// Render history for the modal (#historyFull)
-function renderHistoryFullModal() {
-    const container = document.getElementById('historyFullContentModal');
-    if (!container) return;
-
-    const currency = document.getElementById('historyCurrencyFilterModal')?.value || 'all';
-    const status = document.getElementById('historyStatusFilterModal')?.value || 'all';
-
-    const history = userProfile.history || [];
-    if (history.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:40px 20px; color:var(--text-secondary);">
-            <i class="fas fa-shopping-bag" style="font-size:48px; opacity:0.15; display:block; margin-bottom:12px;"></i>
-            <div style="font-size:18px; font-weight:600;">No orders yet</div>
-            <div style="font-size:13px; opacity:0.4; margin-top:4px;">Your orders will appear here</div>
-        </div>`;
-        return;
-    }
-
-    let filtered = history.filter(order => {
-        const currencyCode = order.items?.[0]?.currency || 'LTC';
-        const matchCurrency = currency === 'all' || currencyCode === currency;
-        const matchStatus = status === 'all' || order.status === status;
-        return matchCurrency && matchStatus;
-    });
-
-    // Show delay note for LTC
-    const delayNote = document.getElementById('historyDelayNoteModal');
-    if (delayNote) {
-        delayNote.style.display = (currency === 'LTC') ? 'block' : 'none';
-    }
-
-    if (filtered.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-secondary);">No orders match your filters.</div>`;
-        return;
-    }
-
-    filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    let html = '';
-    filtered.forEach(order => {
-        const statusClass = order.status === 'confirmed' ? 'completed' : order.status;
-        const statusText = order.status === 'pending' ? 'Pending' : (order.status === 'confirmed' ? 'Completed' : 'Rejected');
-        const dateObj = new Date(order.date);
-        const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-        const timeStr = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-
-        // Determine icon and color based on method
-        let iconClass = 'fas fa-credit-card';
-        let iconColor = 'var(--primary)';
-        let methodLabel = order.method || 'Unknown';
-        if (methodLabel === 'litecoin') {
-            iconClass = 'fab fa-bitcoin';
-            iconColor = '#3fcb7a';
-        } else if (methodLabel === 'usdt') {
-            iconClass = 'fas fa-coins';
-            iconColor = '#26a17b';
-        } else if (methodLabel === 'binanceId') {
-            iconClass = 'fab fa-binance';
-            iconColor = '#f2a900';
-        } else if (methodLabel === 'telegram') {
-            iconClass = 'fab fa-telegram-plane';
-            iconColor = '#0088cc';
-        }
-
-        const productNames = order.items ? order.items.map(i => i.name).join(', ') : 'Product';
-        const toDisplay = order.txHash ? order.txHash.slice(0, 20) + '...' : 'N/A';
-        const cryptoAmount = order.amount || 0;
-        const currencyCode = order.items?.[0]?.currency || 'USD';
-        const usdValue = order.total || 0;
-
-        html += `
-            <div class="payment-card" style="border-left-color: ${iconColor};">
-                <div class="payment-left">
-                    <div class="payment-icon" style="color:${iconColor};">
-                        <i class="${iconClass}" style="font-size:24px;"></i>
-                    </div>
-                    <div class="payment-info">
-                        <div class="payment-currency">${currencyCode}</div>
-                        <div class="payment-date">${dateStr} · ${timeStr}</div>
-                        <div class="payment-id">${order.id}</div>
-                    </div>
-                </div>
-                <div class="payment-amounts">
-                    <div class="payment-value-usd">$${usdValue.toFixed(2)}</div>
-                    <div class="payment-coins">${cryptoAmount.toFixed(4)} ${currencyCode}</div>
-                </div>
-                <div class="payment-status ${statusClass}">${statusText}</div>
-                <div class="payment-to">
-                    <i class="fas fa-arrow-right"></i> To: ${toDisplay}
-                    ${methodLabel ? ` • <span class="payment-method">${methodLabel}</span>` : ''}
-                </div>
-            </div>
-        `;
-    });
-
-    container.innerHTML = html;
-}
-
-// Clear history for modal
-window.clearOrderHistoryModal = async function() {
+window.clearOrderHistory = async function() {
     if (!currentUser) {
         showToast('⚠️ Please login first', 'warning');
         return;
@@ -5189,7 +5111,7 @@ window.clearOrderHistoryModal = async function() {
         const userRef = doc(db, 'users', currentUser.uid);
         await updateDoc(userRef, { history: [] });
         userProfile.history = [];
-        renderHistoryFullModal();
+        renderHistoryFull();
         updateFullUserMenu();
         showToast('🗑️ Order history cleared successfully!', 'success');
     } catch (error) {
@@ -5198,12 +5120,110 @@ window.clearOrderHistoryModal = async function() {
     }
 };
 
-// Add event listeners for modal filters
+window.renderHistoryFull = function() {
+    const container = document.getElementById('historyFullContent');
+    if (!container) return;
+
+    const currency = document.getElementById('historyCurrencyFilter')?.value || 'all';
+    const status = document.getElementById('historyStatusFilter')?.value || 'all';
+
+    const history = userProfile.history || [];
+    if (history.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:40px 20px; color:var(--text-secondary);">
+            <i class="fas fa-shopping-bag" style="font-size:48px; opacity:0.15; display:block; margin-bottom:12px;"></i>
+            <div style="font-size:18px; font-weight:600;">No orders yet</div>
+            <div style="font-size:13px; opacity:0.4; margin-top:4px;">Your orders will appear here</div>
+        </div>`;
+        return;
+    }
+
+    let paymentItems = history.map(order => {
+        let currencyCode = 'LTC';
+        let amount = 0;
+        if (order.items && order.items.length > 0) {
+            const firstItem = order.items[0];
+            currencyCode = firstItem.currency || 'LTC';
+            amount = order.total || 0;
+        }
+        const toAddress = order.txHash ? order.txHash.slice(0, 20) + '...' : 'N/A';
+        return {
+            id: order.id || '#' + String(Date.now()).slice(-6),
+            currency: currencyCode,
+            icon: currencyCode === 'LTC' ? 'L' : (currencyCode === 'BTC' ? '₿' : (currencyCode === 'ETH' ? '⟠' : '₮')),
+            date: order.date ? new Date(order.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '--',
+            amount: amount.toFixed(2),
+            value: `$${amount.toFixed(2)}`,
+            status: order.status || 'pending',
+            to: toAddress,
+            method: order.method || 'Unknown',
+            screenshotUrl: order.screenshotUrl || null
+        };
+    });
+
+    let filtered = paymentItems.filter(p => {
+        const matchCurrency = currency === 'all' || p.currency === currency;
+        const matchStatus = status === 'all' || p.status === status;
+        return matchCurrency && matchStatus;
+    });
+
+    const isLtcFilter = (currency === 'LTC');
+
+    const delayNote = document.getElementById('historyDelayNote');
+    if (delayNote) {
+        delayNote.style.display = isLtcFilter ? 'block' : 'none';
+    }
+
+    if (filtered.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-secondary);">No orders match your filters.</div>`;
+        return;
+    }
+
+    filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    let html = '';
+    filtered.forEach(p => {
+        let statusText = p.status === 'pending' ? 'Pending' : (p.status === 'confirmed' ? 'Completed' : 'Rejected');
+        if (isLtcFilter && p.status === 'pending') {
+            statusText = 'Pending (24–48h)';
+        }
+        const statusClass = p.status === 'confirmed' ? 'completed' : p.status;
+
+        const borderColor = p.currency === 'LTC' ? '#3fcb7a' : (p.currency === 'BTC' ? '#f7931a' : (p.currency === 'ETH' ? '#627eea' : '#3e8cff'));
+
+        html += `
+            <div class="payment-card" style="border-left-color: ${borderColor};">
+                <div style="display:flex; align-items:center; gap:14px; flex:1; min-width:150px;">
+                    <div class="payment-icon" style="color: ${borderColor};">${p.icon}</div>
+                    <div class="payment-info">
+                        <div class="payment-currency">${p.currency}</div>
+                        <div class="payment-date">${p.date}</div>
+                        <div class="payment-id">${p.id}</div>
+                    </div>
+                </div>
+                <div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap; margin-top:6px;">
+                    <div class="payment-amount">
+                        <div class="payment-coins">${p.amount} <small>${p.currency}</small></div>
+                        <div class="payment-value">${p.value}</div>
+                    </div>
+                    <div class="payment-status ${statusClass}">${statusText}</div>
+                </div>
+                <div class="payment-to">
+                    <i class="fas fa-arrow-right"></i> To: ${p.to}
+                    ${p.method ? ` • <span class="payment-method">${p.method}</span>` : ''}
+                    ${p.screenshotUrl ? ` • <a href="${p.screenshotUrl}" target="_blank" style="color:var(--primary);text-decoration:underline;">📸 View Screenshot</a>` : ''}
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+};
+
 document.addEventListener('DOMContentLoaded', function() {
-    const currencyFilterModal = document.getElementById('historyCurrencyFilterModal');
-    const statusFilterModal = document.getElementById('historyStatusFilterModal');
-    if (currencyFilterModal) currencyFilterModal.addEventListener('change', renderHistoryFullModal);
-    if (statusFilterModal) statusFilterModal.addEventListener('change', renderHistoryFullModal);
+    const currencyFilter = document.getElementById('historyCurrencyFilter');
+    const statusFilter = document.getElementById('historyStatusFilter');
+    if (currencyFilter) currencyFilter.addEventListener('change', renderHistoryFull);
+    if (statusFilter) statusFilter.addEventListener('change', renderHistoryFull);
 });
 
 // ============================================================
@@ -5834,7 +5854,7 @@ window.filterOrders = function(filter) {
     document.querySelectorAll('.orders-filter-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.filter === filter);
     });
-    renderHistoryFullModal();
+    renderHistoryFull();
 };
 
 window.checkout = function() {
@@ -5902,7 +5922,7 @@ window.goToStep1 = function() {
     document.getElementById('mainConfirmBtn').style.display = 'none';
 };
 
-// Checkout promo apply (if needed)
+// Checkout promo apply
 window.applyCheckoutPromo = function() {
     const input = document.getElementById('checkoutPromoInput');
     const statusEl = document.getElementById('checkoutPromoStatus');
@@ -6052,7 +6072,7 @@ window.saveMarqueeSettings = saveMarqueeSettings;
 window.renderMarqueeSettingsUI = renderMarqueeSettingsUI;
 window.applyMarqueeSettings = applyMarqueeSettings;
 window.ensureAdminPanel = ensureAdminPanel;
-window.renderHistoryFull = renderHistoryFullModal;
+window.renderHistoryFull = renderHistoryFull;
 window.renderLicences = renderLicences;
 window.loadLicences = loadLicences;
 window.openLicenceModal = openLicenceModal;
