@@ -418,7 +418,7 @@ function updateServerTime() {
     }
 }
 
-// New fetchUserInfo using Supabase proxy
+// fetchUserInfo using Supabase proxy
 async function fetchUserInfo() {
     try {
         console.log('📍 Fetching IP info via Supabase proxy...');
@@ -2198,7 +2198,17 @@ function updateCartUI() {
 function renderCartFull() {
     const container = document.getElementById('cartFullContent');
     if (cart.length === 0) {
-        container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-shopping-basket" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">Cart is empty</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Start shopping to add items</div></div>`;
+        container.innerHTML = `
+            <div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
+                <i class="fas fa-shopping-basket" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i>
+                <div style="font-size:18px;font-weight:600;">Cart is empty</div>
+                <div style="font-size:13px;opacity:0.4;margin-top:4px;">Start shopping to add items</div>
+                <button onclick="closeCartFull();document.getElementById('productList').scrollIntoView({behavior:'smooth'})" 
+                        style="margin-top:12px;padding:8px 24px;border:none;border-radius:var(--radius-sm);background:var(--primary);color:#fff;font-weight:700;cursor:pointer;">
+                    <i class="fas fa-store"></i> Go to Store
+                </button>
+            </div>
+        `;
         return;
     }
     let html = '';
@@ -2266,6 +2276,18 @@ function renderCartFull() {
         </button>
       </div>
     </div>
+    <div style="margin-top:16px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
+        <button onclick="closeCartFull();document.getElementById('productList').scrollIntoView({behavior:'smooth'})" 
+                style="padding:8px 24px;border:none;border-radius:var(--radius-sm);background:var(--glass-bg);color:var(--text);font-weight:700;cursor:pointer;border:1px solid var(--glass-border);">
+            <i class="fas fa-store"></i> Continue Shopping
+        </button>
+        ${cart.length > 0 ? `
+            <button onclick="closeCartFull();checkout();" 
+                    style="padding:8px 24px;border:none;border-radius:var(--radius-sm);background:var(--primary);color:#fff;font-weight:700;cursor:pointer;">
+                <i class="fas fa-credit-card"></i> Checkout
+            </button>
+        ` : ''}
+    </div>
   `;
     container.innerHTML = html;
 }
@@ -2303,9 +2325,9 @@ window.toggleWishlist = async function(productId) {
         showToast(`💔 Removed ${product ? product.name : ''} from favorites`, 'info');
     }
     await saveUserData(true);
-    updateWishlistUI();      // تحديث واجهة الأمنيات
+    updateWishlistUI();
     updateStatsFromProducts(products);
-    renderProducts(products); // إعادة رسم المنتجات لتحديث الأزرار
+    renderProducts(products);
     updateFullUserMenu();
 };
 window.removeFromWishlist = function(id) { window.toggleWishlist(id); };
@@ -2327,18 +2349,17 @@ function updateWishlistUI() {
     updateFullUserMenu();
 }
 
-function renderWishlistFull() {
-    const container = document.getElementById('wishlistFullContent');
-    if (wishlist.length === 0) {
-        container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-heart" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">No favorites yet</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Start adding products to your wishlist</div></div>`;
-        return;
-    }
-    const wlProducts = products.filter(p => wishlist.includes(p.id));
-    container.innerHTML = `<div style="display:grid;gap:8px;">${wlProducts.map(p=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);cursor:pointer;" onclick="window.openDetails('${p.id}');closeWishlistFull();"><img src="${p.image||'https://picsum.photos/seed/default/60/60'}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" /><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div><div style="font-size:12px;color:var(--primary);font-weight:700;">${p.price===0?'FREE':getCurrencySymbol(p.currency || 'USD') + p.price.toFixed(2)}</div></div><button onclick="event.stopPropagation();removeFromWishlist('${p.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:14px;opacity:0.3;padding:8px;transition:0.3s;"><i class="fas fa-times"></i></button></div>`).join('')}</div>`;
-}
-
+// ============================================================
+// FIXED: createFloatingHearts - creates container if missing
+// ============================================================
 function createFloatingHearts() {
-    const container = document.getElementById('floatingHearts');
+    let container = document.getElementById('floatingHearts');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'floatingHearts';
+        container.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;overflow:hidden;';
+        document.body.appendChild(container);
+    }
     const heartCount = 6;
     for (let i = 0; i < heartCount; i++) {
         const heart = document.createElement('div');
@@ -2348,13 +2369,63 @@ function createFloatingHearts() {
         heart.style.top = (60 + Math.random() * 30) + '%';
         heart.style.fontSize = (16 + Math.random() * 20) + 'px';
         heart.style.animationDuration = (1.2 + Math.random() * 0.8) + 's';
+        heart.style.position = 'absolute';
+        heart.style.opacity = '1';
+        heart.style.transition = 'all 2s ease-out';
         container.appendChild(heart);
-        setTimeout(() => heart.remove(), 2000);
+        setTimeout(() => {
+            heart.style.opacity = '0';
+            heart.style.transform = 'translateY(-100px) scale(0.5)';
+            setTimeout(() => heart.remove(), 2000);
+        }, 2000);
     }
 }
 
+function renderWishlistFull() {
+    const container = document.getElementById('wishlistFullContent');
+    if (wishlist.length === 0) {
+        container.innerHTML = `
+            <div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
+                <i class="fas fa-heart" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i>
+                <div style="font-size:18px;font-weight:600;">No favorites yet</div>
+                <div style="font-size:13px;opacity:0.4;margin-top:4px;">Start adding products to your wishlist</div>
+                <button onclick="closeWishlistFull();document.getElementById('productList').scrollIntoView({behavior:'smooth'})" 
+                        style="margin-top:12px;padding:8px 24px;border:none;border-radius:var(--radius-sm);background:var(--primary);color:#fff;font-weight:700;cursor:pointer;">
+                    <i class="fas fa-store"></i> Go to Store
+                </button>
+            </div>
+        `;
+        return;
+    }
+    const wlProducts = products.filter(p => wishlist.includes(p.id));
+    container.innerHTML = `
+        <div style="display:grid;gap:8px;">
+            ${wlProducts.map(p => `
+                <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);cursor:pointer;" 
+                     onclick="window.openDetails('${p.id}');closeWishlistFull();">
+                    <img src="${p.image || 'https://picsum.photos/seed/default/60/60'}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" />
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div>
+                        <div style="font-size:12px;color:var(--primary);font-weight:700;">${p.price === 0 ? 'FREE' : getCurrencySymbol(p.currency || 'USD') + p.price.toFixed(2)}</div>
+                    </div>
+                    <button onclick="event.stopPropagation();removeFromWishlist('${p.id}')" 
+                            style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:14px;opacity:0.3;padding:8px;transition:0.3s;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `).join('')}
+        </div>
+        <div style="margin-top:16px;display:flex;justify-content:center;">
+            <button onclick="closeWishlistFull();document.getElementById('productList').scrollIntoView({behavior:'smooth'})" 
+                    style="padding:8px 24px;border:none;border-radius:var(--radius-sm);background:var(--primary);color:#fff;font-weight:700;cursor:pointer;">
+                <i class="fas fa-store"></i> Go to Store
+            </button>
+        </div>
+    `;
+}
+
 // ============================================================
-// 14. Product Preview
+// 14. Product Preview (with Quick Purchase Banner)
 // ============================================================
 
 window.openDetails = function(id) {
@@ -2484,18 +2555,9 @@ window.openDetails = function(id) {
         discountBadgeHtml = `<span style="font-size:11px;background:var(--danger);color:#fff;padding:0 8px;border-radius:10px;margin-left:6px;">-${activeDiscount}%</span>`;
     }
 
-    const inCart = cart.some(item => item.id === id && !item.isVip);
-    let addBtnHtml = '';
-    if (inCart) {
-        addBtnHtml = `<button onclick="closeProductDetails();openCartFull();" style="flex:1;padding:12px;border:none;border-radius:var(--radius-sm);background:var(--success);color:#0a0a1a;font-weight:700;cursor:pointer;font-size:16px;"><i class="fas fa-check"></i> View Cart</button>`;
-    } else if (isUnavailable) {
-        addBtnHtml = `<button style="flex:1;padding:12px;border:none;border-radius:var(--radius-sm);background:var(--text-secondary);color:#fff;font-weight:700;cursor:not-allowed;font-size:16px;opacity:0.4;"><i class="fas fa-times-circle"></i> Unavailable</button>`;
-    } else if (isFree) {
-        addBtnHtml = `<a href="${p.downloadLink || '#'}" target="${p.downloadLink ? '_blank' : '_self'}" style="flex:1;padding:12px;border:none;border-radius:var(--radius-sm);background:var(--free-color);color:#0a0a1a;font-weight:700;cursor:pointer;font-size:16px;text-decoration:none;text-align:center;display:block;" onclick="${!p.downloadLink ? 'event.preventDefault();showToast(\'⏳ Coming soon\',\'info\');' : ''}"><i class="fas fa-download"></i> Download</a>`;
-    } else {
-        addBtnHtml = `<button onclick="addToCartFromDetails()" style="flex:1;padding:12px;border:none;border-radius:var(--radius-sm);background:var(--primary);color:#fff;font-weight:700;cursor:pointer;font-size:16px;transition:0.3s;"><i class="fas fa-cart-plus"></i> Add to Cart</button>`;
-    }
+    const isInCart = cart.some(item => item.id === id && !item.isVip);
 
+    // Main content
     container.innerHTML = `
         <div style="max-width:600px;margin:0 auto;width:100%;">
             <div style="width:100%;border-radius:var(--radius-md);overflow:hidden;background:var(--bg-secondary);border:1px solid var(--border);margin-bottom:12px;">
@@ -2523,7 +2585,15 @@ window.openDetails = function(id) {
                     ${isFree ? `<span style="font-size:12px;background:var(--free-color);padding:0 10px;border-radius:12px;color:#0a0a1a;font-weight:700;">FREE</span>` : ''}
                 </div>
                 <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-                    ${addBtnHtml}
+                    ${isInCart ? `
+                        <button onclick="closeProductDetails();openCartFull();" style="flex:1;padding:12px;border:none;border-radius:var(--radius-sm);background:var(--success);color:#0a0a1a;font-weight:700;cursor:pointer;font-size:16px;"><i class="fas fa-check"></i> View Cart</button>
+                    ` : (isUnavailable ? `
+                        <button style="flex:1;padding:12px;border:none;border-radius:var(--radius-sm);background:var(--text-secondary);color:#fff;font-weight:700;cursor:not-allowed;font-size:16px;opacity:0.4;"><i class="fas fa-times-circle"></i> Unavailable</button>
+                    ` : (isFree ? `
+                        <a href="${p.downloadLink || '#'}" target="${p.downloadLink ? '_blank' : '_self'}" style="flex:1;padding:12px;border:none;border-radius:var(--radius-sm);background:var(--free-color);color:#0a0a1a;font-weight:700;cursor:pointer;font-size:16px;text-decoration:none;text-align:center;display:block;" onclick="${!p.downloadLink ? 'event.preventDefault();showToast(\'⏳ Coming soon\',\'info\');' : ''}"><i class="fas fa-download"></i> Download</a>
+                    ` : `
+                        <button onclick="addToCartFromDetails()" style="flex:1;padding:12px;border:none;border-radius:var(--radius-sm);background:var(--primary);color:#fff;font-weight:700;cursor:pointer;font-size:16px;transition:0.3s;"><i class="fas fa-cart-plus"></i> Add to Cart</button>
+                    `))}
                     <button onclick="openShareModal('${p.id}')" style="padding:12px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:16px;transition:0.3s;"><i class="fas fa-share-alt"></i></button>
                 </div>
             </div>
@@ -2539,6 +2609,46 @@ window.openDetails = function(id) {
         </div>
     `;
 
+    // Add Quick Purchase Banner at the bottom
+    const quickPurchaseBanner = document.createElement('div');
+    quickPurchaseBanner.id = 'quickPurchaseBanner';
+    quickPurchaseBanner.style.cssText = 'margin-top:16px;padding:12px 16px;background:linear-gradient(135deg, var(--primary-glow), var(--vip-color)15);border-radius:var(--radius-md);border:1px solid var(--primary);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:relative;';
+
+    quickPurchaseBanner.innerHTML = `
+        <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;">
+            <div>
+                <div style="font-weight:700;font-size:14px;color:var(--text);">
+                    <i class="fas fa-bolt" style="color:var(--vip-color);"></i> Quick Purchase
+                </div>
+                <div style="font-size:13px;color:var(--text-secondary);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                    ${p.name} — ${isFree ? 'FREE' : currencySymbol + p.price.toFixed(2)}
+                </div>
+            </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+            ${isInCart ? `
+                <button onclick="removeFromCartAndCloseBanner('${p.id}')" 
+                        style="background:var(--danger);border:none;color:#fff;padding:6px 12px;border-radius:var(--radius-sm);cursor:pointer;font-size:12px;font-weight:700;display:flex;align-items:center;gap:4px;">
+                    <i class="fas fa-trash-alt"></i> Remove
+                </button>
+            ` : (isUnavailable ? '' : `
+                <button onclick="${isFree ? `window.location.href='${p.downloadLink || '#'}'` : `addToCart('${p.id}');closeProductDetails();openCartFull();`}" 
+                        style="padding:8px 18px;border:none;border-radius:var(--radius-sm);background:var(--primary);color:#fff;font-weight:700;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:6px;">
+                    <i class="fas ${isFree ? 'fa-download' : 'fa-shopping-cart'}"></i> 
+                    ${isFree ? 'Download' : 'Add to Cart'}
+                </button>
+            `)}
+            <button onclick="closeQuickPurchaseBanner()" 
+                    style="background:transparent;border:none;color:var(--text-secondary);font-size:18px;cursor:pointer;padding:4px 6px;opacity:0.4;transition:0.2s;"
+                    onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.4'">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `;
+
+    // Append the banner to the container
+    container.appendChild(quickPurchaseBanner);
+
     const modal = document.getElementById('productDetailsFull');
     if (modal) {
         modal.classList.add('open');
@@ -2552,6 +2662,41 @@ window.openDetails = function(id) {
         currentRating = 0;
         renderRatingSection(id);
     }, 150);
+};
+
+// ============================================================
+// Close Quick Purchase Banner
+// ============================================================
+window.closeQuickPurchaseBanner = function() {
+    const banner = document.getElementById('quickPurchaseBanner');
+    if (banner) {
+        banner.style.display = 'none';
+    }
+};
+
+// ============================================================
+// Remove from cart and close banner
+// ============================================================
+window.removeFromCartAndCloseBanner = async function(productId) {
+    cart = cart.filter(item => item.id !== productId);
+    await saveUserData(true);
+    updateCartUI();
+    renderProducts(products);
+    updateBottomCartBar();
+    showToast('🗑️ Removed from cart', 'info');
+    
+    const banner = document.getElementById('quickPurchaseBanner');
+    if (banner) {
+        banner.style.display = 'none';
+    }
+    
+    const currentProduct = window._currentProduct;
+    if (currentProduct) {
+        closeProductDetails();
+        setTimeout(() => {
+            openDetails(currentProduct.id);
+        }, 300);
+    }
 };
 
 window.addToCartFromDetails = function() {
@@ -2589,6 +2734,33 @@ window.addToCartFromDetails = function() {
                 btn.style.color = '#0a0a1a';
                 btn.onclick = () => { closeProductDetails(); openCartFull(); };
             }
+            // Update quick purchase banner
+            const banner = document.getElementById('quickPurchaseBanner');
+            if (banner) {
+                banner.innerHTML = `
+                    <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;">
+                        <div>
+                            <div style="font-weight:700;font-size:14px;color:var(--text);">
+                                <i class="fas fa-bolt" style="color:var(--vip-color);"></i> Quick Purchase
+                            </div>
+                            <div style="font-size:13px;color:var(--text-secondary);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                ${p.name} — ${p.price === 0 ? 'FREE' : getCurrencySymbol(p.currency || 'USD') + p.price.toFixed(2)}
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+                        <button onclick="removeFromCartAndCloseBanner('${p.id}')" 
+                                style="background:var(--danger);border:none;color:#fff;padding:6px 12px;border-radius:var(--radius-sm);cursor:pointer;font-size:12px;font-weight:700;display:flex;align-items:center;gap:4px;">
+                            <i class="fas fa-trash-alt"></i> Remove
+                        </button>
+                        <button onclick="closeQuickPurchaseBanner()" 
+                                style="background:transparent;border:none;color:var(--text-secondary);font-size:18px;cursor:pointer;padding:4px 6px;opacity:0.4;transition:0.2s;"
+                                onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.4'">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+            }
             return;
         }
 
@@ -2613,6 +2785,33 @@ window.addToCartFromDetails = function() {
             btn.style.background = 'var(--success)';
             btn.style.color = '#0a0a1a';
             btn.onclick = () => { closeProductDetails(); openCartFull(); };
+        }
+        // Update quick purchase banner
+        const banner = document.getElementById('quickPurchaseBanner');
+        if (banner) {
+            banner.innerHTML = `
+                <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;">
+                    <div>
+                        <div style="font-weight:700;font-size:14px;color:var(--text);">
+                            <i class="fas fa-bolt" style="color:var(--vip-color);"></i> Quick Purchase
+                        </div>
+                        <div style="font-size:13px;color:var(--text-secondary);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                            ${p.name} — ${p.price === 0 ? 'FREE' : getCurrencySymbol(p.currency || 'USD') + p.price.toFixed(2)}
+                        </div>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+                    <button onclick="removeFromCartAndCloseBanner('${p.id}')" 
+                            style="background:var(--danger);border:none;color:#fff;padding:6px 12px;border-radius:var(--radius-sm);cursor:pointer;font-size:12px;font-weight:700;display:flex;align-items:center;gap:4px;">
+                        <i class="fas fa-trash-alt"></i> Remove
+                    </button>
+                    <button onclick="closeQuickPurchaseBanner()" 
+                            style="background:transparent;border:none;color:var(--text-secondary);font-size:18px;cursor:pointer;padding:4px 6px;opacity:0.4;transition:0.2s;"
+                            onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.4'">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
         }
     } else {
         showToast('⚠️ Product not found', 'warning');
@@ -3957,15 +4156,51 @@ window.closeCreateNotificationModal = function() { document.getElementById('crea
 // 21. Requests & Referrals
 // ============================================================
 
+// ============================================================
+// 21.0 Requests - FIXED with "Request New" button
+// ============================================================
 window.openRequestsModal = function() {
-    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); openAuthModal(); return; }
+    if (!currentUser) {
+        showToast('⚠️ Please login first', 'warning');
+        openAuthModal();
+        return;
+    }
     const list = document.getElementById('requestsList');
     const requests = userProfile.requests || [];
-    if (requests.length === 0) { list.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-inbox" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">No requests</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Submit your first request now</div></div>`; } else {
-        list.innerHTML = requests.slice().reverse().map(req => `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);margin-bottom:8px;"><div><div style="font-weight:600;color:var(--text);">${req.gameName||'Untitled'}</div><div style="font-size:12px;color:var(--text-secondary);opacity:0.4;">${new Date(req.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div></div><span style="font-size:11px;font-weight:600;padding:2px 12px;border-radius:12px;background:var(--pending-color);color:#0a0a1a;">${(req.status||'pending').charAt(0).toUpperCase()+(req.status||'pending').slice(1)}</span></div>`).join('');
+    
+    let html = `
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+            <span style="font-size:14px;font-weight:600;color:var(--text-secondary);">${requests.length} requests</span>
+            <button onclick="openNewRequestModal()" style="padding:8px 20px;border:none;border-radius:var(--radius-sm);background:var(--primary);color:#fff;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;">
+                <i class="fas fa-plus-circle"></i> Request New
+            </button>
+        </div>
+    `;
+    
+    if (requests.length === 0) {
+        html += `
+            <div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
+                <i class="fas fa-inbox" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i>
+                <div style="font-size:18px;font-weight:600;">No requests</div>
+                <div style="font-size:13px;opacity:0.4;margin-top:4px;">Submit your first request now</div>
+            </div>
+        `;
+    } else {
+        html += requests.slice().reverse().map(req => `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);margin-bottom:8px;">
+                <div>
+                    <div style="font-weight:600;color:var(--text);">${req.gameName || 'Untitled'}</div>
+                    <div style="font-size:12px;color:var(--text-secondary);opacity:0.4;">${new Date(req.date).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'})}</div>
+                </div>
+                <span style="font-size:11px;font-weight:600;padding:2px 12px;border-radius:12px;background:var(--pending-color);color:#0a0a1a;">${(req.status || 'pending').charAt(0).toUpperCase() + (req.status || 'pending').slice(1)}</span>
+            </div>
+        `).join('');
     }
+    
+    list.innerHTML = html;
     document.getElementById('requestsModal').classList.add('open');
 };
+
 window.closeRequestsModal = function() { document.getElementById('requestsModal').classList.remove('open'); };
 window.openNewRequestModal = function() { if (!currentUser) { showToast('⚠️ Please login first', 'warning'); openAuthModal(); return; } document.getElementById('newRequestModal').classList.add('open'); document.getElementById('requestForm').reset(); };
 window.closeNewRequestModal = function() { document.getElementById('newRequestModal').classList.remove('open'); };
@@ -3989,7 +4224,7 @@ window.submitRequest = function(e) {
 };
 
 // ============================================================
-// 21.1 Referral Modal - FIXED
+// 21.1 Referral Modal - FIXED with full UI
 // ============================================================
 
 window.openReferralModal = function() {
@@ -4007,39 +4242,46 @@ window.closeReferralModal = function() {
 };
 
 function updateReferralUI() {
-    // Update referral code
-    const codeDisplay = document.getElementById('referralCodeDisplay2');
-    if (currentUser && userProfile.referralCode) {
-        codeDisplay.textContent = userProfile.referralCode;
-    } else if (currentUser) {
-        const code = generateReferralCode(currentUser.displayName || currentUser.email, currentUser.email);
+    const container = document.getElementById('referralContent');
+    if (!container) {
+        console.warn('⚠️ referralContent not found');
+        return;
+    }
+
+    if (!currentUser) {
+        container.innerHTML = `
+            <div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
+                <i class="fas fa-users" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i>
+                <div style="font-size:18px;font-weight:600;">Please login</div>
+                <div style="font-size:13px;opacity:0.4;margin-top:4px;">Login to view your referral info</div>
+            </div>
+        `;
+        return;
+    }
+
+    let code = userProfile.referralCode;
+    if (!code) {
+        code = generateReferralCode(currentUser.displayName || currentUser.email, currentUser.email);
         userProfile.referralCode = code;
         const userRef = doc(db, 'users', currentUser.uid);
         updateDoc(userRef, { referralCode: code }).catch(console.error);
-        codeDisplay.textContent = code;
-    } else {
-        codeDisplay.textContent = 'Login to get your code';
     }
 
-    // Update referral count
     const referrals = userProfile.referrals || [];
-    document.getElementById('referralCount2').textContent = referrals.length;
-    document.getElementById('referralRewards2').textContent = (userProfile.referralRewards || 0).toFixed(2) + ' $';
+    const rewards = userProfile.referralRewards || 0;
 
-    // Update referral activity
-    const activityContainer = document.getElementById('referralActivity');
+    let activityHtml = '';
     if (referrals.length === 0) {
-        activityContainer.innerHTML = `
+        activityHtml = `
             <div style="text-align:center;padding:20px;color:var(--text-secondary);opacity:0.5;">
                 <i class="fas fa-users" style="font-size:30px;display:block;margin-bottom:6px;opacity:0.2;"></i>
                 No referrals yet. Share your code!
             </div>
         `;
     } else {
-        let html = '';
-        referrals.slice().reverse().forEach(ref => {
+        activityHtml = referrals.slice().reverse().map(ref => {
             const date = ref.date ? new Date(ref.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '--';
-            html += `
+            return `
                 <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--glass-border);">
                     <div style="width:32px;height:32px;border-radius:50%;background:var(--primary-glow);display:flex;align-items:center;justify-content:center;color:var(--primary);">
                         <i class="fas fa-user-plus"></i>
@@ -4051,15 +4293,41 @@ function updateReferralUI() {
                     <span style="font-size:11px;background:var(--success);color:#0a0a1a;padding:2px 12px;border-radius:30px;font-weight:700;">✅ Joined</span>
                 </div>
             `;
-        });
-        activityContainer.innerHTML = html;
+        }).join('');
     }
 
-    // Update steps
-    const stepsContainer = document.getElementById('referralSteps');
-    if (stepsContainer) {
-        stepsContainer.innerHTML = `
-            <div style="display:flex;flex-direction:column;gap:6px;">
+    container.innerHTML = `
+        <div style="background:var(--glass-bg);backdrop-filter:blur(12px);border-radius:var(--radius-md);padding:20px;border:1px solid var(--glass-border);margin-bottom:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+                <div>
+                    <div style="font-size:14px;color:var(--text-secondary);font-weight:500;">Your Referral Code</div>
+                    <div style="font-size:28px;font-weight:900;color:var(--primary);letter-spacing:2px;font-family:monospace;" id="referralCodeDisplay2">${code}</div>
+                </div>
+                <button onclick="copyReferralCode2()" style="padding:8px 20px;border:none;border-radius:var(--radius-sm);background:var(--primary);color:#fff;font-weight:700;cursor:pointer;">
+                    <i class="fas fa-copy"></i> Copy
+                </button>
+            </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+            <div style="background:var(--glass-bg);backdrop-filter:blur(8px);border-radius:var(--radius-sm);padding:14px;text-align:center;border:1px solid var(--glass-border);">
+                <div style="font-size:32px;font-weight:900;color:var(--primary);" id="referralCount2">${referrals.length}</div>
+                <div style="font-size:12px;color:var(--text-secondary);font-weight:500;">Total Referrals</div>
+            </div>
+            <div style="background:var(--glass-bg);backdrop-filter:blur(8px);border-radius:var(--radius-sm);padding:14px;text-align:center;border:1px solid var(--glass-border);">
+                <div style="font-size:32px;font-weight:900;color:var(--vip-color);" id="referralRewards2">$${rewards.toFixed(2)}</div>
+                <div style="font-size:12px;color:var(--text-secondary);font-weight:500;">Rewards Earned</div>
+            </div>
+        </div>
+
+        <div style="background:var(--glass-bg);backdrop-filter:blur(8px);border-radius:var(--radius-md);padding:16px;border:1px solid var(--glass-border);margin-bottom:16px;">
+            <div style="font-weight:700;font-size:16px;margin-bottom:8px;">📋 Referral Activity</div>
+            <div id="referralActivity">${activityHtml}</div>
+        </div>
+
+        <div style="background:var(--glass-bg);backdrop-filter:blur(8px);border-radius:var(--radius-md);padding:16px;border:1px solid var(--glass-border);">
+            <div style="font-weight:700;font-size:16px;margin-bottom:8px;">📌 How It Works</div>
+            <div id="referralSteps" style="display:flex;flex-direction:column;gap:6px;">
                 <div style="display:flex;align-items:center;gap:10px;background:var(--bg);padding:8px 12px;border-radius:8px;border:1px solid var(--glass-border);">
                     <span style="width:24px;height:24px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;">1</span>
                     <span style="font-weight:500;font-size:13px;">Share your referral code</span>
@@ -4070,15 +4338,17 @@ function updateReferralUI() {
                 </div>
                 <div style="display:flex;align-items:center;gap:10px;background:var(--bg);padding:8px 12px;border-radius:8px;border:1px solid var(--glass-border);">
                     <span style="width:24px;height:24px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;">3</span>
-                    <span style="font-weight:500;font-size:13px;">Earn Rewards (10% of their first order)</span>
+                    <span style="font-weight:500;font-size:13px;">Earn 10% of their first order as rewards</span>
                 </div>
             </div>
-        `;
-    }
+        </div>
+    `;
 }
 
 window.copyReferralCode2 = function() {
-    const code = document.getElementById('referralCodeDisplay2').textContent;
+    const codeDisplay = document.getElementById('referralCodeDisplay2');
+    if (!codeDisplay) { showToast('⚠️ Referral code not found', 'warning'); return; }
+    const code = codeDisplay.textContent;
     if (code && code !== 'Loading...' && code !== 'Login to get your code') {
         navigator.clipboard.writeText(code).then(() => { showToast('✅ Referral code copied!', 'success'); })
         .catch(() => { const textArea = document.createElement('textarea'); textArea.value = code; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); showToast('✅ Referral code copied!', 'success'); });
@@ -4124,28 +4394,29 @@ function ensureSliderTab() {}
 window.closeAdminPanel = function() { document.getElementById('adminPanel').classList.remove('open'); if (unsubscribeAdmin) { unsubscribeAdmin(); unsubscribeAdmin = null; } };
 
 window.switchAdminTab = function(tab) {
-    document.querySelectorAll('.admin-panel .tab-content').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.admin-panel .tabs button').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('#adminPanel .admin-tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('#adminPanel .admin-nav-btn').forEach(el => el.classList.remove('active'));
     const tabMap = {
-        'dashboard': 'tabDashboard',
-        'orders': 'tabOrders',
-        'products': 'tabProducts',
-        'users': 'tabUsers',
-        'downloads': 'tabDownloads',
-        'notifications': 'tabNotifications',
-        'stats': 'tabStats',
-        'logs': 'tabLogs',
-        'slider': 'tabSlider',
-        'licences': 'tabLicences',
-        'marquee': 'tabMarquee',
-        'payments': 'tabPayments',
-        'topups': 'tabTopups',
-        'fallback': 'tabFallback'
+        'dashboard':'tabDashboard','orders':'tabOrders','products':'tabProducts',
+        'users':'tabUsers','downloads':'tabDownloads','notifications':'tabNotifications',
+        'stats':'tabStats','logs':'tabLogs','slider':'tabSlider',
+        'licences':'tabLicences','marquee':'tabMarquee','payments':'tabPayments',
+        'topups':'tabTopups','fallback':'tabFallback'
     };
-    const tabId = tabMap[tab] || tabMap['dashboard'];
-    document.getElementById(tabId).classList.add('active');
-    const btn = document.querySelector(`.admin-panel .tabs button[onclick="switchAdminTab('${tab}')"]`);
+    const tabId = tabMap[tab] || 'tabDashboard';
+    const content = document.getElementById(tabId);
+    if (content) content.classList.add('active');
+    const btn = document.querySelector(`#adminPanel .admin-nav-btn[data-tab="${tab}"]`);
     if (btn) btn.classList.add('active');
+    const titles = {
+        'dashboard':'📊 Dashboard','orders':'📦 Orders','products':'🛍️ Products',
+        'users':'👥 Users','downloads':'📁 Downloads','notifications':'🔔 Notifications',
+        'stats':'📈 Stats','logs':'📜 Logs','slider':'🎨 Slider',
+        'licences':'🔑 Licences','marquee':'🎬 Marquee','payments':'💳 Payments',
+        'topups':'💰 Topups','fallback':'📦 Fallback'
+    };
+    const titleEl = document.getElementById('adminPageTitle');
+    if (titleEl) titleEl.textContent = titles[tab] || tab;
     if (tab === 'products') renderAdminProducts(products);
     if (tab === 'users') loadAdminUsers();
     if (tab === 'dashboard') loadDashboardStats();
@@ -4155,28 +4426,42 @@ window.switchAdminTab = function(tab) {
         renderSliderSettingsUI();
         document.getElementById('sliderIntervalInput').value = sliderIntervalTime;
     }
-    if (tab === 'licences') { loadLicences(); }
-    if (tab === 'marquee') { renderMarqueeSettingsUI(); }
-    if (tab === 'orders') { loadAdminOrders(); }
-    if (tab === 'payments') { refreshAdminPayments(); }
-    if (tab === 'topups') { loadAdminTopups(); }
-    if (tab === 'fallback') { renderFallbackProductsAdmin(); }
+    if (tab === 'licences') loadLicences();
+    if (tab === 'marquee') renderMarqueeSettingsUI();
+    if (tab === 'orders') loadAdminOrders();
+    if (tab === 'payments') refreshAdminPayments();
+    if (tab === 'topups') loadAdminTopups();
+    if (tab === 'fallback') renderFallbackProductsAdmin();
 };
 
 // ============================================================
-// 23. Admin Products
+// 23. Admin Products - FIXED with delete button
 // ============================================================
 
 function renderAdminProducts(productsList) {
     const container = document.getElementById('adminProductsList');
     if (!container) return;
-    if (!productsList || productsList.length === 0) { container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">📭 No products</div>`; return; }
+    if (!productsList || productsList.length === 0) {
+        container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">📭 No products</div>`;
+        return;
+    }
     container.innerHTML = productsList.map(p => {
         const isUnavailable = p.status === 'unavailable';
-        const vipBadge = p.vipEnabled ? '👑 VIP' : '';
-        const typeBadge = p.productType === 'quantity' ? '📦 Qty' : '📦 Std';
-        const badges = p.badges && p.badges.length > 0 ? p.badges.slice(0, 2).join(', ') : '';
-        return `<div class="admin-item" style="${isUnavailable?'opacity:0.5;':''}"><div class="item-info"><div class="item-title">${p.name} ${isUnavailable?'⛔':''} ${vipBadge} <span style="font-size:10px;opacity:0.4;">${typeBadge}</span></div><div class="item-meta">${p.price===0?'🎁 FREE':`${getCurrencySymbol(p.currency || 'USD')} ${p.price}`} • ${p.badge||'FREE'} ${isUnavailable?'• Unavailable':''} ${badges ? '🏷️ '+badges : ''}</div></div><div class="item-actions"><button class="btn-edit" onclick="openEditProductModal('${p.id}')"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="deleteProduct('${p.id}')"><i class="fas fa-trash"></i></button></div></div>`;
+        return `
+            <div class="admin-product-card" style="${isUnavailable ? 'opacity:0.5;' : ''}">
+                <div class="product-img">
+                    ${p.image ? `<img src="${p.image}" alt="${p.name}" />` : `<i class="fas fa-box"></i>`}
+                </div>
+                <div class="product-info">
+                    <div class="name">${p.name}</div>
+                    <div class="meta">${p.price === 0 ? '🎁 FREE' : '$' + p.price} • ${p.badge || 'FREE'}</div>
+                </div>
+                <div class="product-actions">
+                    <button class="edit-btn" onclick="openEditProductModal('${p.id}')" title="Edit"><i class="fas fa-edit"></i></button>
+                    <button class="delete-btn" onclick="deleteProduct('${p.id}')" title="Delete"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+        `;
     }).join('');
 }
 
@@ -4216,7 +4501,7 @@ function startAdminRealtimeListener() {
         renderAdminOrders(orders);
         updateAdminStats(orders);
         updateUI();
-        const badge = document.getElementById('adminPanelBadge');
+        const badge = document.getElementById('adminNavBadge');
         if (badge) { if (pendingCount > 0) { badge.style.display = 'inline-block'; badge.textContent = pendingCount; } else { badge.style.display = 'none'; } }
         updateFullUserMenu();
     }, (error) => {
@@ -4259,7 +4544,7 @@ function loadAdminOrders() {
         renderAdminOrders(orders);
         updateAdminStats(orders);
         updateUI();
-        const badge = document.getElementById('adminPanelBadge');
+        const badge = document.getElementById('adminNavBadge');
         if (badge) { if (pendingCount > 0) { badge.style.display = 'inline-block'; badge.textContent = pendingCount; } else { badge.style.display = 'none'; } }
         updateFullUserMenu();
     }).catch(error => {
@@ -6036,6 +6321,9 @@ window.selectTopupCurrency = function(currency) {
     updateTopupAmounts(currency);
 };
 
+// ============================================================
+// FIXED: updateTopupAmounts - shows correct currency
+// ============================================================
 function updateTopupAmounts(currency) {
     const container = document.getElementById('topupAmountsContainer');
     if (!container) return;
@@ -6046,9 +6334,15 @@ function updateTopupAmounts(currency) {
     container.innerHTML = `
         <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px;">
             ${amounts.map(amount => {
-                const displayValue = currency === 'USDT' ? amount : (amount / ltcPrice);
-                const displayText = currency === 'USDT' ? `$${amount}` : `${displayValue.toFixed(4)} LTC`;
-                const subText = currency === 'USDT' ? `≈ ${(amount / ltcPrice).toFixed(4)} LTC` : `≈ $${amount}`;
+                let displayText, subText;
+                if (currency === 'USDT') {
+                    displayText = `$${amount}`;
+                    subText = `≈ ${(amount / ltcPrice).toFixed(4)} LTC`;
+                } else {
+                    const ltcAmount = amount / ltcPrice;
+                    displayText = `${ltcAmount.toFixed(4)} LTC`;
+                    subText = `≈ $${amount}`;
+                }
                 return `
                     <div class="topup-amount" data-amount="${amount}" onclick="selectTopupAmount(${amount})">
                         <div class="amount-value">${displayText}</div>
@@ -6064,6 +6358,9 @@ function updateTopupAmounts(currency) {
     `;
 }
 
+// ============================================================
+// FIXED: selectTopupAmount - shows correct currency
+// ============================================================
 window.selectTopupAmount = function(amount) {
     document.querySelectorAll('.topup-amount').forEach(el => {
         el.style.borderColor = 'var(--glass-border)';
@@ -6087,8 +6384,13 @@ window.selectTopupAmount = function(amount) {
     selectedTopupAmount = amount;
     const ltcPrice = cryptoPrices.ltc || 42;
     const currency = selectedTopupCurrency || 'USDT';
-    const displayAmount = currency === 'USDT' ? amount : (amount / ltcPrice);
-    const displayText = currency === 'USDT' ? `$${amount.toFixed(2)}` : `${displayAmount.toFixed(4)} LTC`;
+    
+    let displayText;
+    if (currency === 'USDT') {
+        displayText = `$${amount.toFixed(2)}`;
+    } else {
+        displayText = `${(amount / ltcPrice).toFixed(4)} LTC`;
+    }
     document.getElementById('topupSelectedAmount').textContent = displayText;
     document.getElementById('topupLtcAmount').textContent = `${(amount / ltcPrice).toFixed(4)} LTC`;
 };
@@ -6266,7 +6568,7 @@ window.submitTopupWithTxHash = async function(topupId, amount) {
 
         if (error) throw error;
 
-        // Use the send-notification function that you added to Supabase
+        // Use the send-notification function
         await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/send-notification', {
             method: 'POST',
             headers: {
@@ -6836,7 +7138,7 @@ function fixDirection() {
     });
 
     // Fix close buttons to be on the right side
-    document.querySelectorAll('.modal-close, .close-btn, .close-modal-btn').forEach(el => {
+    document.querySelectorAll('.modal-close, .close-btn, .close-modal-btn, #adminPanel .admin-close-btn').forEach(el => {
         el.style.position = 'absolute';
         el.style.top = '10px';
         el.style.right = '10px';
@@ -6845,10 +7147,13 @@ function fixDirection() {
         el.style.margin = '0';
     });
 
-    // Fix any leftover left positioning
-    document.querySelectorAll('.modal-close, .close-btn').forEach(el => {
+    // Fix for fullscreen modal close buttons (they're in header, so don't override)
+    document.querySelectorAll('.fullscreen-modal .close-btn').forEach(el => {
+        el.style.position = 'static';
+        el.style.right = 'auto';
         el.style.left = 'auto';
-        el.style.right = '10px';
+        el.style.top = 'auto';
+        el.style.marginLeft = 'auto';
     });
 
     console.log('✅ Direction fixed: Close buttons on right');
@@ -7018,7 +7323,7 @@ window.adminDeletePayment = function(orderId, userId) {
 };
 
 // ============================================================
-// 52. ADD MISSING FUNCTIONS - FIXED
+// 52. ADD MISSING FUNCTIONS
 // ============================================================
 
 // ============================================================
@@ -7031,14 +7336,12 @@ window.checkout = function() {
         return;
     }
 
-    // Check if user is logged in
     if (!currentUser) {
         showToast('⚠️ Please login to checkout', 'warning');
         openAuthModal();
         return;
     }
 
-    // Show payment modal
     openPaymentModal();
 };
 
@@ -7060,7 +7363,6 @@ window.openPaymentModal = function() {
 
     const modal = document.getElementById('paymentModal');
     if (modal) {
-        // Reset to step 1
         goToStep1();
         modal.classList.add('open');
         document.body.style.overflow = 'hidden';
@@ -7133,9 +7435,9 @@ window.openAddProductModal = function() {
         return;
     }
 
-    document.getElementById('productModalTitle').textContent = '➕ Add New Product';
+    document.getElementById('productFormTitle').textContent = '➕ Add New Product';
     document.getElementById('productForm').reset();
-    document.getElementById('productId').value = '';
+    document.getElementById('productIdField').value = '';
     document.getElementById('productCurrency').value = 'USD';
     document.getElementById('productType').value = 'standard';
     document.getElementById('quantityOptionsContainer').style.display = 'none';
@@ -7144,11 +7446,9 @@ window.openAddProductModal = function() {
     document.querySelector('.currency-option[data-currency="USD"]')?.classList.add('active');
     document.querySelector('.type-option[data-type="standard"]')?.classList.add('active');
 
-    // Reset badges
     document.querySelectorAll('.badge-option').forEach(el => el.classList.remove('selected'));
     document.getElementById('productBadges').value = '';
 
-    // Reset quantity options
     const list = document.getElementById('quantityOptionsList');
     if (list) list.innerHTML = '';
     addQuantityOption();
@@ -7175,8 +7475,8 @@ window.openEditProductModal = function(productId) {
         return;
     }
 
-    document.getElementById('productModalTitle').textContent = '✏️ Edit Product';
-    document.getElementById('productId').value = product.id;
+    document.getElementById('productFormTitle').textContent = '✏️ Edit Product';
+    document.getElementById('productIdField').value = product.id;
     document.getElementById('productName').value = product.name || '';
     document.getElementById('productPrice').value = product.price || 0;
     document.getElementById('productBadge').value = product.badge || 'FREE';
@@ -7189,17 +7489,14 @@ window.openEditProductModal = function(productId) {
     document.getElementById('productCurrency').value = product.currency || 'USD';
     document.getElementById('productType').value = product.productType || 'standard';
 
-    // Set currency
     document.querySelectorAll('.currency-option').forEach(el => {
         el.classList.toggle('active', el.dataset.currency === (product.currency || 'USD'));
     });
 
-    // Set product type
     document.querySelectorAll('.type-option').forEach(el => {
         el.classList.toggle('active', el.dataset.type === (product.productType || 'standard'));
     });
 
-    // Show/hide quantity options
     if (product.productType === 'quantity') {
         document.getElementById('quantityOptionsContainer').style.display = 'block';
         if (product.quantityOptions) {
@@ -7209,7 +7506,6 @@ window.openEditProductModal = function(productId) {
         document.getElementById('quantityOptionsContainer').style.display = 'none';
     }
 
-    // Set badges
     if (product.badges) {
         setBadges(product.badges);
     } else {
@@ -7235,7 +7531,7 @@ window.saveProduct = async function() {
         return;
     }
 
-    const id = document.getElementById('productId').value;
+    const id = document.getElementById('productIdField').value;
     const name = document.getElementById('productName').value.trim();
     const price = parseFloat(document.getElementById('productPrice').value) || 0;
     const badge = document.getElementById('productBadge').value;
@@ -7284,18 +7580,15 @@ window.saveProduct = async function() {
 
     try {
         if (id) {
-            // Update existing product
             await updateDoc(doc(db, 'products', id), productData);
             showToast('✅ Product updated successfully!', 'success');
         } else {
-            // Add new product
             productData.createdAt = serverTimestamp();
             await addDoc(collection(db, 'products'), productData);
             showToast('✅ Product added successfully!', 'success');
         }
 
         closeProductModal();
-        // Products will be refreshed via the realtime listener
     } catch (error) {
         console.error('Error saving product:', error);
         showToast('❌ Error: ' + error.message, 'error');
@@ -7313,7 +7606,6 @@ window.deleteProduct = async function(productId) {
     try {
         await deleteDoc(doc(db, 'products', productId));
         showToast('🗑️ Product deleted successfully', 'success');
-        // Products will be refreshed via the realtime listener
     } catch (error) {
         console.error('Error deleting product:', error);
         showToast('❌ Error: ' + error.message, 'error');
@@ -7326,7 +7618,6 @@ window.deleteProduct = async function(productId) {
 
 window.filterOrders = function(filter) {
     ordersFilter = filter;
-    // Re-render history with filter
     renderHistoryFull();
 };
 
@@ -7552,6 +7843,8 @@ window.openAddFallbackProductModal = openAddFallbackProductModal;
 window.closeFallbackProductModal = closeFallbackProductModal;
 window.saveFallbackProduct = saveFallbackProduct;
 window.deleteFallbackProduct = deleteFallbackProduct;
+window.removeFromCartAndCloseBanner = removeFromCartAndCloseBanner;
+window.closeQuickPurchaseBanner = closeQuickPurchaseBanner;
 
 console.log('✅ All functions exported to window scope');
 
