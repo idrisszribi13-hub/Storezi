@@ -6,8 +6,24 @@
 // ============================================================
 // FIX: Loading screen - NOT hidden immediately
 // ============================================================
-// Removed immediate hide function - loading screen stays visible
-// until auth state is determined
+(function() {
+    function hideLoadingScreenImmediate() {
+        var screen = document.getElementById('loadingScreen');
+        if (screen) {
+            screen.classList.add('hidden');
+            setTimeout(function() {
+                screen.style.display = 'none';
+            }, 600);
+            console.log('✅ Loading screen hidden immediately');
+        }
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', hideLoadingScreenImmediate);
+    } else {
+        hideLoadingScreenImmediate();
+    }
+    setTimeout(hideLoadingScreenImmediate, 300);
+})();
 
 // ============================================================
 // Firebase & Supabase Imports
