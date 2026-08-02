@@ -1,53 +1,33 @@
-// ============================================================
-// SCRIPT.JS - ZI Store - FULL FIXED VERSION
-// ============================================================
-
-// Fix for Firebase Analytics "process is not defined" error
-if (typeof process === 'undefined') {
-    window.process = { env: { NODE_ENV: 'production' } };
-}
 
 // ============================================================
-// 0. Hide Loading Screen Immediately
+// SCRIPT.JS - ZI Store - COMPLETE FIXED VERSION
 // ============================================================
-(function() {
-    function hideLoadingScreenImmediate() {
-        var screen = document.getElementById('loadingScreen');
-        if (screen) {
-            screen.classList.add('hidden');
-            setTimeout(function() {
-                screen.style.display = 'none';
-            }, 600);
-            console.log('✅ Loading screen hidden immediately');
-        }
-    }
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', hideLoadingScreenImmediate);
-    } else {
-        hideLoadingScreenImmediate();
-    }
-    setTimeout(hideLoadingScreenImmediate, 300);
-})();
+
+// ============================================================
+// FIX: Loading screen - NOT hidden immediately
+// ============================================================
+// Removed immediate hide function - loading screen stays visible
+// until auth state is determined
 
 // ============================================================
 // Firebase & Supabase Imports
 // ============================================================
 import { initializeApp } from "firebase/app";
-import { 
-    getAuth, 
-    onAuthStateChanged, 
-    signInWithEmailAndPassword, 
-    createUserWithEmailAndPassword, 
-    signOut, 
-    updateProfile, 
-    updatePassword, 
-    sendPasswordResetEmail, 
-    reauthenticateWithCredential, 
+import {
+    getAuth,
+    onAuthStateChanged,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    signOut,
+    updateProfile,
+    updatePassword,
+    sendPasswordResetEmail,
+    reauthenticateWithCredential,
     EmailAuthProvider,
     GoogleAuthProvider,
     signInWithPopup
 } from "firebase/auth";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, collection, query, where, getDocs, onSnapshot, addDoc, deleteDoc, orderBy, limit } from "firebase/firestore";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, collection, query, where, getDocs, onSnapshot, addDoc, deleteDoc, orderBy } from "firebase/firestore";
 import { getAnalytics, isSupported } from "firebase/analytics";
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
@@ -146,9 +126,41 @@ let userBalance = 0;
 let selectedTopupAmount = 0;
 let selectedTopupCurrency = 'USDT';
 let topupSubscription = null;
+let defaultProducts = [];
+
+// Slider variables
+let sliderSlides = [];
+let sliderIntervalTime = 3;
+let currentSlideIndex = 0;
+let sliderTimer = null;
+let isSliderPaused = false;
+
+// Marquee variables
+let marqueeSettings = {
+    enabled: true,
+    text: '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support'
+};
+
+let featuredProducts = [];
+let featuredRotationInterval = null;
+let featuredCurrentIndex = 0;
+let featuredSettings = {
+    enabled: true,
+    rotationInterval: 5000,
+    maxProducts: 4,
+    selectedProductIds: []
+};
+
+let userProfile = {
+    name: '', email: '', photoURL: '', telegram: '', telegramChatId: '',
+    location: 'Tunisia', lang: 'English', joined: '',
+    history: [], requests: [], usedCodes: [], referralCode: '',
+    referrals: [], referralRewards: 0, rp: 0, useRpForCart: false,
+    isBanned: false, lastDailyReward: 0, licences: [], balance: 0
+};
 
 // ============================================================
-// FALLBACK PRODUCTS (Default products when Firestore is empty)
+// DEFAULT PRODUCTS (Fallback)
 // ============================================================
 const fallbackProducts = [
     {
@@ -249,57 +261,7 @@ const fallbackProducts = [
     }
 ];
 
-// ============================================================
-// Slider variables
-// ============================================================
-let sliderSlides = [];
-let sliderIntervalTime = 3;
-let currentSlideIndex = 0;
-let sliderTimer = null;
-let isSliderPaused = false;
-
-// ============================================================
-// Marquee variables
-// ============================================================
-let marqueeSettings = {
-    enabled: true,
-    text: '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support'
-};
-
-// ============================================================
-// Featured variables
-// ============================================================
-let featuredProducts = [];
-let featuredRotationInterval = null;
-let featuredCurrentIndex = 0;
-let featuredSettings = {
-    enabled: true,
-    rotationInterval: 5000,
-    maxProducts: 4,
-    selectedProductIds: []
-};
-
-// ============================================================
-// User Profile
-// ============================================================
-let userProfile = {
-    name: '', email: '', photoURL: '', telegram: '', telegramChatId: '',
-    location: 'Tunisia', lang: 'English', joined: '',
-    history: [], requests: [], usedCodes: [], referralCode: '',
-    referrals: [], referralRewards: 0, rp: 0, useRpForCart: false,
-    isBanned: false, lastDailyReward: 0, licences: [], balance: 0
-};
-
-// ============================================================
-// Discount Codes & Payment Wallets
-// ============================================================
-const discountCodes = {
-    'SAVE10': { discount: 10 },
-    'SAVE15': { discount: 15 },
-    'WELCOME': { discount: 10 },
-    'VIP2024': { discount: 15 },
-    'SUMMER': { discount: 10 }
-};
+const discountCodes = { 'SAVE10': { discount: 10 }, 'SAVE15': { discount: 15 }, 'WELCOME': { discount: 10 }, 'VIP2024': { discount: 15 }, 'SUMMER': { discount: 10 } };
 const paymentWallets = {
     litecoin: { name: 'Litecoin', icon: 'fab fa-bitcoin', network: 'LTC', address: 'ltc1qy6ksn0g4hm6hlh93fwekgz8x74vr6hvdmh6zz8', currency: 'LTC', color: '#f2a900' },
     usdt: { name: 'USDT (ERC20)', icon: 'fas fa-coins', network: 'ERC20', address: '0x1234567890abcdef1234567890abcdef12345678', currency: 'USDT', color: '#26a17b' }
@@ -332,7 +294,7 @@ function hideLoadingScreen() {
     if (screen) {
         screen.classList.add('hidden');
         setTimeout(() => {
-            screen.style.display = 'none';
+            screen.classList.add('hidden-force');
         }, 600);
         console.log('✅ Loading screen hidden');
     }
@@ -341,8 +303,8 @@ function hideLoadingScreen() {
 function showLoadingScreen() {
     const screen = document.getElementById('loadingScreen');
     if (screen) {
+        screen.classList.remove('hidden', 'hidden-force');
         screen.style.display = 'flex';
-        screen.classList.remove('hidden');
     }
 }
 
@@ -356,7 +318,10 @@ function updateLoadingText(text) {
 window.hideLoadingScreenManually = function() {
     const screen = document.getElementById('loadingScreen');
     if (screen) {
-        screen.style.display = 'none';
+        screen.classList.add('hidden');
+        setTimeout(() => {
+            screen.classList.add('hidden-force');
+        }, 600);
         showToast('Loading screen hidden', 'info');
     }
 };
@@ -408,44 +373,44 @@ function updateServerTime() {
 
 async function fetchUserInfo() {
     try {
-        // Using HTTPS to avoid mixed content and CORS issues
-        const response = await fetch('https://ip-api.com/json/', {
-            mode: 'cors',
-            cache: 'no-cache'
-        });
+        const response = await fetch('https://ipapi.co/json/');
         if (!response.ok) throw new Error('Failed to fetch IP info');
+
         const data = await response.json();
         console.log('📍 IP Info:', data);
 
-        if (data.status === 'success') {
-            const ipEl = document.getElementById('userIP');
-            if (ipEl) ipEl.textContent = data.ip || 'Unknown';
+        const ipEl = document.getElementById('userIP');
+        if (ipEl) ipEl.textContent = data.ip || 'Unknown';
 
-            const countryEl = document.getElementById('userCountry');
-            if (countryEl) {
-                const flag = getCountryFlag(data.countryCode);
-                countryEl.innerHTML = `${flag} ${data.country || 'Unknown'} (${data.regionName || 'N/A'})`;
-            }
-
-            const timezoneEl = document.getElementById('userTimezone');
-            if (timezoneEl) timezoneEl.textContent = data.timezone || 'UTC';
+        const countryEl = document.getElementById('userCountry');
+        if (countryEl) {
+            const flag = getCountryFlag(data.country_code);
+            countryEl.innerHTML = `${flag} ${data.country_name || 'Unknown'}`;
         }
+
+        const timezoneEl = document.getElementById('userTimezone');
+        if (timezoneEl) timezoneEl.textContent = data.timezone || 'UTC';
+
+        return data;
     } catch (error) {
         console.error('❌ Failed to fetch IP info:', error);
-        // Fallback to a simpler service that supports HTTPS and CORS
         try {
-            const fallbackResponse = await fetch('https://ipapi.co/json/', { mode: 'cors' });
+            const fallbackResponse = await fetch('http://ip-api.com/json/');
             if (fallbackResponse.ok) {
                 const data = await fallbackResponse.json();
-                const ipEl = document.getElementById('userIP');
-                if (ipEl) ipEl.textContent = data.ip || 'Unknown';
-                const countryEl = document.getElementById('userCountry');
-                if (countryEl) {
-                    const flag = getCountryFlag(data.country_code);
-                    countryEl.innerHTML = `${flag} ${data.country_name || 'Unknown'}`;
+                if (data.status === 'success') {
+                    const ipEl = document.getElementById('userIP');
+                    if (ipEl) ipEl.textContent = data.ip || 'Unknown';
+
+                    const countryEl = document.getElementById('userCountry');
+                    if (countryEl) {
+                        const flag = getCountryFlag(data.countryCode);
+                        countryEl.innerHTML = `${flag} ${data.country || 'Unknown'}`;
+                    }
+
+                    const timezoneEl = document.getElementById('userTimezone');
+                    if (timezoneEl) timezoneEl.textContent = data.timezone || 'UTC';
                 }
-                const timezoneEl = document.getElementById('userTimezone');
-                if (timezoneEl) timezoneEl.textContent = data.timezone || 'UTC';
             }
         } catch (fallbackError) {
             console.error('❌ Fallback IP API also failed:', fallbackError);
@@ -467,12 +432,12 @@ function getCountryFlag(countryCode) {
         'BH': '🇧🇭', 'JO': '🇯🇴', 'IL': '🇮🇱', 'LB': '🇱🇧', 'EG': '🇪🇬',
         'DZ': '🇩🇿', 'MA': '🇲🇦', 'TN': '🇹🇳', 'LY': '🇱🇾', 'SD': '🇸🇩',
         'ET': '🇪🇹', 'KE': '🇰🇪', 'UG': '🇺🇬', 'TZ': '🇹🇿', 'RW': '🇷🇼',
-        'ZM': '🇿🇲', 'ZW': '🇿🇼', 'MW': '🇲🇼', 'MZ': '🇲🇿', 'NG': '🇳🇬',
-        'GH': '🇬🇭', 'CI': '🇨🇮', 'SN': '🇸🇳', 'ML': '🇲🇱', 'IN': '🇮🇳',
-        'PK': '🇵🇰', 'BD': '🇧🇩', 'MM': '🇲🇲', 'TH': '🇹🇭', 'VN': '🇻🇳',
-        'MY': '🇲🇾', 'SG': '🇸🇬', 'PH': '🇵🇭', 'ID': '🇮🇩', 'CN': '🇨🇳',
-        'JP': '🇯🇵', 'KR': '🇰🇷', 'TR': '🇹🇷', 'RU': '🇷🇺', 'UA': '🇺🇦',
-        'PL': '🇵🇱', 'RO': '🇷🇴', 'HU': '🇭🇺', 'GR': '🇬🇷'
+        'ZM': '🇿🇲', 'ZW': '🇿🇼', 'MW': '🇲🇼', 'MZ': '🇲🇿',
+        'NG': '🇳🇬', 'GH': '🇬🇭', 'CI': '🇨🇮', 'SN': '🇸🇳', 'ML': '🇲🇱',
+        'IN': '🇮🇳', 'PK': '🇵🇰', 'BD': '🇧🇩', 'MM': '🇲🇲', 'TH': '🇹🇭',
+        'VN': '🇻🇳', 'MY': '🇲🇾', 'SG': '🇸🇬', 'PH': '🇵🇭', 'ID': '🇮🇩',
+        'CN': '🇨🇳', 'JP': '🇯🇵', 'KR': '🇰🇷', 'TR': '🇹🇷', 'RU': '🇷🇺',
+        'UA': '🇺🇦', 'PL': '🇵🇱', 'RO': '🇷🇴', 'HU': '🇭🇺', 'GR': '🇬🇷'
     };
     return flags[countryCode] || '🌍';
 }
@@ -1497,7 +1462,7 @@ function renderProfileFull() {
                 </div>
             ` : ''}
             <div class="tb-info">
-                <i class="fas fa-info-circle" style="color:var(--primary);"></i> 
+                <i class="fas fa-info-circle" style="color:var(--primary);"></i>
                 ${userProfile.telegramChatId ? 'You will receive order notifications here.' : 'Click "Link Bot" to connect your Telegram account.'}
             </div>
             <div class="tb-actions">
@@ -1507,7 +1472,7 @@ function renderProfileFull() {
                 ${userProfile.telegramChatId ? `<button class="btn-unlink" onclick="unlinkTelegram()"><i class="fas fa-unlink"></i> Unlink</button>` : ''}
             </div>
             <div style="font-size:11px;color:var(--text-secondary);opacity:0.4;margin-top:6px;display:flex;align-items:center;gap:4px;">
-                <i class="fab fa-telegram-plane" style="color:#0088cc;"></i> 
+                <i class="fab fa-telegram-plane" style="color:#0088cc;"></i>
                 ${userProfile.telegramChatId ? `Connected to @${BOT_USERNAME}` : `Start @${BOT_USERNAME} and click "Link Bot" to connect`}
             </div>
         </div>
@@ -1878,9 +1843,9 @@ function renderFallbackProductsAdmin() {
 
     container.innerHTML = `
         <div style="background:var(--glass-bg); backdrop-filter:blur(8px); border-radius:var(--radius-sm); padding:16px; border:1px solid var(--glass-border); margin-bottom:12px;">
-            <h4 style="font-weight:700; margin-bottom:8px; color:var(--vip-color);">📦 Fallback Products (تظهر عند عدم وجود منتجات)</h4>
+            <h4 style="font-weight:700; margin-bottom:8px; color:var(--vip-color);">📦 Fallback Products</h4>
             <div style="font-size:12px; color:var(--text-secondary); opacity:0.6; margin-bottom:12px;">
-                These products appear automatically when there are no products in the database. You can edit or add new ones.
+                These products appear when no products exist in the database. You can edit or add new ones.
             </div>
         </div>
     `;
@@ -2067,7 +2032,7 @@ async function loadFeaturedSettings() {
 }
 
 // ============================================================
-// 13. Cart Management (with "View Cart" button)
+// 13. Cart Management
 // ============================================================
 
 function updateProductCardButton(productId) {
@@ -2939,7 +2904,7 @@ function updatePayableTotal() {
 }
 
 // ============================================================
-// 17.3 Payment Selection (UPDATED with Balance option)
+// 17.3 Payment Selection
 // ============================================================
 window.selectPayment = function(method) {
     selectedPayment = method;
@@ -2971,7 +2936,7 @@ window.selectPayment = function(method) {
 };
 
 // ============================================================
-// 17.4 Continue Payment (NO RP and NO Promo in checkout)
+// 17.4 Continue Payment
 // ============================================================
 window.continuePayment = function() {
     if (!selectedPayment) {
@@ -2982,23 +2947,19 @@ window.continuePayment = function() {
     document.getElementById('paymentStep2').style.display = 'block';
     window.renderPaymentProducts();
 
-    // Compute totals
     let total = 0;
     cart.forEach(item => {
         const qty = item.quantity || 1;
         total += item.price * qty;
     });
     let finalTotal = total;
-    // NO RP and NO Promo discounts in checkout
 
     document.getElementById('step2Subtotal').textContent = `$${total.toFixed(2)}`;
     document.getElementById('step2Total').textContent = `$${finalTotal.toFixed(2)}`;
 
-    // Show payment instructions container
     const instructionsContainer = document.getElementById('paymentInstructionsContainer');
     if (instructionsContainer) instructionsContainer.style.display = 'block';
 
-    // Show/hide wallet info, tx input, etc.
     const walletInfo = document.getElementById('paymentWalletInfo');
     const txInput = document.getElementById('paymentTxInput');
     const telegramContact = document.getElementById('paymentTelegramContact');
@@ -3016,7 +2977,6 @@ window.continuePayment = function() {
         if (txInput) txInput.style.display = 'block';
         if (mainBtn) {
             mainBtn.style.display = 'block';
-            // Show amount in selected currency inside the button
             const ltcPrice = cryptoPrices.ltc || 42;
             let amountDisplay = '';
             let currencyDisplay = '';
@@ -3057,13 +3017,11 @@ window.continuePayment = function() {
             document.getElementById('binanceOrderDisplay').textContent = orderId;
         }
     } else if (selectedPayment === 'balance') {
-        // Check balance
         if (userBalance < finalTotal) {
             showToast(`⚠️ Insufficient balance! Need $${finalTotal.toFixed(2)}, have $${userBalance.toFixed(2)}`, 'warning');
             setTimeout(() => openTopupModal(), 500);
             return;
         }
-        // Process balance payment directly
         processBalancePayment(finalTotal);
         return;
     }
@@ -3085,7 +3043,6 @@ async function processBalancePayment(totalAmount) {
     isProcessingOrder = true;
 
     try {
-        // Deduct balance
         const userRef = doc(db, 'users', currentUser.uid);
         await updateDoc(userRef, {
             balance: userBalance - totalAmount,
@@ -3095,7 +3052,6 @@ async function processBalancePayment(totalAmount) {
         userProfile.balance = userBalance;
         updateBalanceDisplay();
 
-        // Create order
         const orderId = 'order_' + Date.now();
         const orderItem = {
             id: orderId,
@@ -3108,7 +3064,6 @@ async function processBalancePayment(totalAmount) {
         userProfile.history.push(orderItem);
         await updateDoc(userRef, { history: arrayUnion(orderItem) });
 
-        // Clear cart
         cart = [];
         await saveUserData();
         updateCartUI();
@@ -3117,7 +3072,6 @@ async function processBalancePayment(totalAmount) {
 
         showToast(`✅ Payment successful! $${totalAmount.toFixed(2)} deducted from balance.`, 'success');
 
-        // Send notification
         await addDoc(collection(db, 'notifications'), {
             title: '✅ Order Paid with Balance',
             message: `Order #${orderId.slice(-6)} - $${totalAmount.toFixed(2)}`,
@@ -3126,10 +3080,8 @@ async function processBalancePayment(totalAmount) {
             createdAt: serverTimestamp()
         });
 
-        // Close payment modal
         document.getElementById('paymentModal').classList.remove('open');
 
-        // Update UI
         loadUserData();
         updateFullUserMenu();
 
@@ -3142,7 +3094,7 @@ async function processBalancePayment(totalAmount) {
 }
 
 // ============================================================
-// 17.6 Place Order - calls Supabase Function
+// 17.6 Place Order
 // ============================================================
 window.placeOrder = function() {
     if (!currentUser || currentUser.isAnonymous) {
@@ -3323,7 +3275,6 @@ async function sendOrderToTelegram(method, txHash = null) {
         let total = 0;
         cart.forEach(item => { total += item.price * (item.quantity || 1); });
         let finalTotal = total;
-        // NO RP or Promo discounts in checkout
 
         console.log('💰 Total:', finalTotal);
 
@@ -3818,7 +3769,6 @@ function loadNotifications() {
             notifications = [];
             snapshot.forEach((doc) => {
                 const data = doc.data();
-                // USER-SPECIFIC: Only show notifications for this user or global (no userId)
                 if (!data.userId || data.userId === currentUser?.uid) {
                     notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] });
                 }
@@ -3909,7 +3859,6 @@ window.clearAllNotifications = async function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
     try {
         const notifRef = collection(db, 'notifications');
-        // USER-SPECIFIC: Delete only user's notifications
         const snapshot = await getDocs(query(notifRef, where('userId', '==', currentUser.uid)));
         const batch = [];
         snapshot.forEach((doc) => { batch.push(deleteDoc(doc.ref)); });
@@ -3976,56 +3925,97 @@ window.submitRequest = function(e) {
     }).catch(error => { showToast('❌ Error: ' + error.message, 'error'); });
 };
 
+// ============================================================
+// 21.1 Referral Modal - FIXED
+// ============================================================
+
 window.openReferralModal = function() {
-    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); openAuthModal(); return; }
+    if (!currentUser) {
+        showToast('⚠️ Please login first', 'warning');
+        openAuthModal();
+        return;
+    }
     updateReferralUI();
     document.getElementById('referralModal').classList.add('open');
 };
-window.closeReferralModal = function() { document.getElementById('referralModal').classList.remove('open'); };
+
+window.closeReferralModal = function() {
+    document.getElementById('referralModal').classList.remove('open');
+};
 
 function updateReferralUI() {
-    const codeDisplay2 = document.getElementById('referralCodeDisplay2');
-    if (codeDisplay2) {
-        if (currentUser && userProfile.referralCode) {
-            codeDisplay2.textContent = userProfile.referralCode;
-        } else if (currentUser) {
-            const code = generateReferralCode(currentUser.displayName || currentUser.email, currentUser.email);
-            userProfile.referralCode = code;
-            const userRef = doc(db, 'users', currentUser.uid);
-            updateDoc(userRef, { referralCode: code }).catch(console.error);
-            codeDisplay2.textContent = code;
-        } else {
-            codeDisplay2.textContent = 'Login to get your code';
-        }
+    // Update referral code
+    const codeDisplay = document.getElementById('referralCodeDisplay2');
+    if (currentUser && userProfile.referralCode) {
+        codeDisplay.textContent = userProfile.referralCode;
+    } else if (currentUser) {
+        const code = generateReferralCode(currentUser.displayName || currentUser.email, currentUser.email);
+        userProfile.referralCode = code;
+        const userRef = doc(db, 'users', currentUser.uid);
+        updateDoc(userRef, { referralCode: code }).catch(console.error);
+        codeDisplay.textContent = code;
+    } else {
+        codeDisplay.textContent = 'Login to get your code';
     }
 
+    // Update referral count
     const referrals = userProfile.referrals || [];
-    const countEl = document.getElementById('referralCount2');
-    if (countEl) countEl.textContent = referrals.length;
+    document.getElementById('referralCount2').textContent = referrals.length;
+    document.getElementById('referralRewards2').textContent = (userProfile.referralRewards || 0).toFixed(2) + ' $';
 
-    const rewardsEl = document.getElementById('referralRewards2');
-    if (rewardsEl) rewardsEl.textContent = (userProfile.referralRewards || 0).toFixed(2) + ' $';
-
+    // Update referral activity
     const activityContainer = document.getElementById('referralActivity');
-    if (!activityContainer) return;
     if (referrals.length === 0) {
-        activityContainer.innerHTML = `<div class="referral-empty"><i class="fas fa-users"></i><p>No referrals yet</p><span>Share your link to start earning.</span></div>`;
+        activityContainer.innerHTML = `
+            <div style="text-align:center;padding:20px;color:var(--text-secondary);opacity:0.5;">
+                <i class="fas fa-users" style="font-size:30px;display:block;margin-bottom:6px;opacity:0.2;"></i>
+                No referrals yet. Share your code!
+            </div>
+        `;
     } else {
         let html = '';
         referrals.slice().reverse().forEach(ref => {
             const date = ref.date ? new Date(ref.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '--';
-            html += `<div class="referral-activity-item"><div class="referral-activity-icon"><i class="fas fa-user-plus"></i></div><div class="referral-activity-info"><div class="referral-activity-name">${ref.name || 'User'}</div><div class="referral-activity-date">${date}</div></div><div class="referral-activity-status">✅ Joined</div></div>`;
+            html += `
+                <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--glass-border);">
+                    <div style="width:32px;height:32px;border-radius:50%;background:var(--primary-glow);display:flex;align-items:center;justify-content:center;color:var(--primary);">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <div style="flex:1;">
+                        <div style="font-weight:600;font-size:13px;">${ref.name || 'User'}</div>
+                        <div style="font-size:11px;color:var(--text-secondary);opacity:0.4;">${date}</div>
+                    </div>
+                    <span style="font-size:11px;background:var(--success);color:#0a0a1a;padding:2px 12px;border-radius:30px;font-weight:700;">✅ Joined</span>
+                </div>
+            `;
         });
         activityContainer.innerHTML = html;
     }
 
+    // Update steps
     const stepsContainer = document.getElementById('referralSteps');
     if (stepsContainer) {
-        stepsContainer.innerHTML = `<div class="referral-steps"><div class="referral-step"><span class="step-number">1</span><span class="step-text">Share your referral code</span></div><div class="referral-step"><span class="step-number">2</span><span class="step-text">They create an account using your code</span></div><div class="referral-step"><span class="step-number">3</span><span class="step-text">Earn Rewards<br><small>You get 10% of their first order value</small></span></div></div>`;
+        stepsContainer.innerHTML = `
+            <div style="display:flex;flex-direction:column;gap:6px;">
+                <div style="display:flex;align-items:center;gap:10px;background:var(--bg);padding:8px 12px;border-radius:8px;border:1px solid var(--glass-border);">
+                    <span style="width:24px;height:24px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;">1</span>
+                    <span style="font-weight:500;font-size:13px;">Share your referral code</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;background:var(--bg);padding:8px 12px;border-radius:8px;border:1px solid var(--glass-border);">
+                    <span style="width:24px;height:24px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;">2</span>
+                    <span style="font-weight:500;font-size:13px;">They create an account using your code</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;background:var(--bg);padding:8px 12px;border-radius:8px;border:1px solid var(--glass-border);">
+                    <span style="width:24px;height:24px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;">3</span>
+                    <span style="font-weight:500;font-size:13px;">Earn Rewards (10% of their first order)</span>
+                </div>
+            </div>
+        `;
     }
 }
+
 window.copyReferralCode2 = function() {
-    const code = document.getElementById('referralCodeDisplay2')?.textContent;
+    const code = document.getElementById('referralCodeDisplay2').textContent;
     if (code && code !== 'Loading...' && code !== 'Login to get your code') {
         navigator.clipboard.writeText(code).then(() => { showToast('✅ Referral code copied!', 'success'); })
         .catch(() => { const textArea = document.createElement('textarea'); textArea.value = code; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); showToast('✅ Referral code copied!', 'success'); });
@@ -4289,7 +4279,6 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
         });
         await updateDoc(userRef, { history: updatedHistory });
 
-        // USER-SPECIFIC notification
         await sendUserNotification(
             userId,
             newStatus === 'confirmed' ? '✅ Order Confirmed!' : '❌ Order Rejected',
@@ -5518,7 +5507,7 @@ async function loadAuditLogs() {
 window.loadAuditLogs = loadAuditLogs;
 
 // ============================================================
-// 33. Order History (User-specific)
+// 33. Order History (User-specific) - with Clear History
 // ============================================================
 
 window.clearOrderHistory = async function() {
@@ -5756,7 +5745,7 @@ function playNotificationSound() {
 }
 
 // ============================================================
-// 36. TOPUP SYSTEM - Check Status (User-specific)
+// 36. TOPUP SYSTEM - Check Status
 // ============================================================
 
 window.openTopupStatus = async function() {
@@ -6095,7 +6084,6 @@ window.processTopup = async function() {
             throw new Error(result.error || 'Failed to create topup');
         }
 
-        // Warning for USDT
         let warningHtml = '';
         if (result.currency === 'USDT') {
             warningHtml = `
@@ -6215,7 +6203,6 @@ window.submitTopupWithTxHash = async function(topupId, amount) {
 
         if (error) throw error;
 
-        // Send notification to admin
         await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/send-notification', {
             method: 'POST',
             headers: {
@@ -7169,10 +7156,8 @@ window.openAddFallbackProductModal = openAddFallbackProductModal;
 window.closeFallbackProductModal = closeFallbackProductModal;
 window.saveFallbackProduct = saveFallbackProduct;
 window.deleteFallbackProduct = deleteFallbackProduct;
-window.loadUserTopups = loadUserTopups; // Ensure function is exported
 
-console.log('✅ ZI Store loaded with all features!');
-
+console.log('✅ All functions exported to window scope');
 // ============================================================
 // 53. Init
 // ============================================================
@@ -7271,6 +7256,7 @@ onAuthStateChanged(auth, async (user) => {
                 if (authSection) authSection.style.display = 'block';
                 if (mainApp) mainApp.style.display = 'none';
                 showToast('🚫 Your account has been banned.', 'error');
+                hideLoadingScreen();
                 return;
             }
             if (userSnap.exists()) {
