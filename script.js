@@ -465,9 +465,12 @@ async function fetchUserInfo() {
         return data;
     } catch (error) {
         console.error('❌ Failed to fetch IP info:', error);
-        document.getElementById('userIP').textContent = '⚠️ Unavailable';
-        document.getElementById('userCountry').textContent = '🌍 Unknown';
-        document.getElementById('userTimezone').textContent = 'UTC';
+        const ipEl = document.getElementById('userIP');
+        if (ipEl) ipEl.textContent = '⚠️ Unavailable';
+        const countryEl = document.getElementById('userCountry');
+        if (countryEl) countryEl.textContent = '🌍 Unknown';
+        const timezoneEl = document.getElementById('userTimezone');
+        if (timezoneEl) timezoneEl.textContent = 'UTC';
         const locationEl = document.getElementById('userLocation');
         if (locationEl) locationEl.textContent = 'Unavailable';
     }
@@ -2195,8 +2198,13 @@ function updateCartUI() {
     renderProxyPackages();
 }
 
+// ============================================================
+// RENDER CART FULL - FIXED (removed duplicate checkout button)
+// ============================================================
 function renderCartFull() {
     const container = document.getElementById('cartFullContent');
+    if (!container) return;
+
     if (cart.length === 0) {
         container.innerHTML = `
             <div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
@@ -2276,17 +2284,12 @@ function renderCartFull() {
         </button>
       </div>
     </div>
-    <div style="margin-top:16px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
+    <!-- Only one "Continue Shopping" button at the bottom -->
+    <div style="margin-top:16px;display:flex;justify-content:center;">
         <button onclick="closeCartFull();document.getElementById('productList').scrollIntoView({behavior:'smooth'})" 
                 style="padding:8px 24px;border:none;border-radius:var(--radius-sm);background:var(--glass-bg);color:var(--text);font-weight:700;cursor:pointer;border:1px solid var(--glass-border);">
             <i class="fas fa-store"></i> Continue Shopping
         </button>
-        ${cart.length > 0 ? `
-            <button onclick="closeCartFull();checkout();" 
-                    style="padding:8px 24px;border:none;border-radius:var(--radius-sm);background:var(--primary);color:#fff;font-weight:700;cursor:pointer;">
-                <i class="fas fa-credit-card"></i> Checkout
-            </button>
-        ` : ''}
     </div>
   `;
     container.innerHTML = html;
@@ -2383,6 +2386,7 @@ function createFloatingHearts() {
 
 function renderWishlistFull() {
     const container = document.getElementById('wishlistFullContent');
+    if (!container) return;
     if (wishlist.length === 0) {
         container.innerHTML = `
             <div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
@@ -2425,7 +2429,7 @@ function renderWishlistFull() {
 }
 
 // ============================================================
-// 14. Product Preview (with Quick Purchase Banner)
+// 14. Product Preview (with embedded banner)
 // ============================================================
 
 window.openDetails = function(id) {
@@ -2557,7 +2561,7 @@ window.openDetails = function(id) {
 
     const isInCart = cart.some(item => item.id === id && !item.isVip);
 
-    // Main content
+    // Main content with embedded banner
     container.innerHTML = `
         <div style="max-width:600px;margin:0 auto;width:100%;">
             <div style="width:100%;border-radius:var(--radius-md);overflow:hidden;background:var(--bg-secondary);border:1px solid var(--border);margin-bottom:12px;">
@@ -2598,6 +2602,37 @@ window.openDetails = function(id) {
                 </div>
             </div>
 
+            <!-- Embedded Banner (like in screenshot) -->
+            <div style="margin-top:16px;padding:16px 20px;background:linear-gradient(135deg, rgba(108,92,231,0.1), rgba(249,202,36,0.08));border-radius:var(--radius-md);border:1px solid var(--glass-border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+                <div style="display:flex;align-items:center;gap:14px;">
+                    <div style="width:56px;height:56px;border-radius:var(--radius-sm);overflow:hidden;background:var(--bg-secondary);flex-shrink:0;">
+                        ${p.image ? `<img src="${p.image}" style="width:100%;height:100%;object-fit:cover;" />` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);opacity:0.3;"><i class="fas fa-box"></i></div>`}
+                    </div>
+                    <div>
+                        <div style="font-weight:700;font-size:16px;color:var(--text);">${p.name}</div>
+                        <div style="font-size:13px;color:var(--primary);font-weight:700;">${isFree ? 'FREE' : currencySymbol + p.price.toFixed(2)}</div>
+                        <div style="font-size:11px;color:var(--text-secondary);opacity:0.5;">${p.status === 'available' ? '✅ In Stock' : '⛔ Unavailable'}</div>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    ${isUnavailable ? `
+                        <button style="padding:8px 20px;border:none;border-radius:var(--radius-sm);background:var(--text-secondary);color:#fff;font-weight:700;cursor:not-allowed;opacity:0.5;font-size:14px;" disabled>Unavailable</button>
+                    ` : (isFree ? `
+                        <a href="${p.downloadLink || '#'}" target="${p.downloadLink ? '_blank' : '_self'}" style="padding:8px 20px;border:none;border-radius:var(--radius-sm);background:var(--free-color);color:#0a0a1a;font-weight:700;text-decoration:none;font-size:14px;display:inline-flex;align-items:center;gap:6px;" onclick="${!p.downloadLink ? 'event.preventDefault();showToast(\'⏳ Coming soon\',\'info\');' : ''}">
+                            <i class="fas fa-download"></i> Download
+                        </a>
+                    ` : (isInCart ? `
+                        <button onclick="closeProductDetails();openCartFull();" style="padding:8px 20px;border:none;border-radius:var(--radius-sm);background:var(--success);color:#0a0a1a;font-weight:700;cursor:pointer;font-size:14px;display:flex;align-items:center;gap:6px;">
+                            <i class="fas fa-check"></i> View Cart
+                        </button>
+                    ` : `
+                        <button onclick="addToCartFromDetails()" style="padding:8px 20px;border:none;border-radius:var(--radius-sm);background:var(--primary);color:#fff;font-weight:700;cursor:pointer;font-size:14px;display:flex;align-items:center;gap:6px;transition:0.3s;">
+                            <i class="fas fa-shopping-cart"></i> Add to Cart
+                        </button>
+                    `))}
+                </div>
+            </div>
+
             <div id="ratingSection" style="margin-top:8px;"></div>
 
             <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--text-secondary);opacity:0.3;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
@@ -2608,46 +2643,6 @@ window.openDetails = function(id) {
             </div>
         </div>
     `;
-
-    // Add Quick Purchase Banner at the bottom
-    const quickPurchaseBanner = document.createElement('div');
-    quickPurchaseBanner.id = 'quickPurchaseBanner';
-    quickPurchaseBanner.style.cssText = 'margin-top:16px;padding:12px 16px;background:linear-gradient(135deg, var(--primary-glow), var(--vip-color)15);border-radius:var(--radius-md);border:1px solid var(--primary);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:relative;';
-
-    quickPurchaseBanner.innerHTML = `
-        <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;">
-            <div>
-                <div style="font-weight:700;font-size:14px;color:var(--text);">
-                    <i class="fas fa-bolt" style="color:var(--vip-color);"></i> Quick Purchase
-                </div>
-                <div style="font-size:13px;color:var(--text-secondary);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                    ${p.name} — ${isFree ? 'FREE' : currencySymbol + p.price.toFixed(2)}
-                </div>
-            </div>
-        </div>
-        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-            ${isInCart ? `
-                <button onclick="removeFromCartAndCloseBanner('${p.id}')" 
-                        style="background:var(--danger);border:none;color:#fff;padding:6px 12px;border-radius:var(--radius-sm);cursor:pointer;font-size:12px;font-weight:700;display:flex;align-items:center;gap:4px;">
-                    <i class="fas fa-trash-alt"></i> Remove
-                </button>
-            ` : (isUnavailable ? '' : `
-                <button onclick="${isFree ? `window.location.href='${p.downloadLink || '#'}'` : `addToCart('${p.id}');closeProductDetails();openCartFull();`}" 
-                        style="padding:8px 18px;border:none;border-radius:var(--radius-sm);background:var(--primary);color:#fff;font-weight:700;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:6px;">
-                    <i class="fas ${isFree ? 'fa-download' : 'fa-shopping-cart'}"></i> 
-                    ${isFree ? 'Download' : 'Add to Cart'}
-                </button>
-            `)}
-            <button onclick="closeQuickPurchaseBanner()" 
-                    style="background:transparent;border:none;color:var(--text-secondary);font-size:18px;cursor:pointer;padding:4px 6px;opacity:0.4;transition:0.2s;"
-                    onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.4'">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-    `;
-
-    // Append the banner to the container
-    container.appendChild(quickPurchaseBanner);
 
     const modal = document.getElementById('productDetailsFull');
     if (modal) {
@@ -2662,41 +2657,6 @@ window.openDetails = function(id) {
         currentRating = 0;
         renderRatingSection(id);
     }, 150);
-};
-
-// ============================================================
-// Close Quick Purchase Banner
-// ============================================================
-window.closeQuickPurchaseBanner = function() {
-    const banner = document.getElementById('quickPurchaseBanner');
-    if (banner) {
-        banner.style.display = 'none';
-    }
-};
-
-// ============================================================
-// Remove from cart and close banner
-// ============================================================
-window.removeFromCartAndCloseBanner = async function(productId) {
-    cart = cart.filter(item => item.id !== productId);
-    await saveUserData(true);
-    updateCartUI();
-    renderProducts(products);
-    updateBottomCartBar();
-    showToast('🗑️ Removed from cart', 'info');
-    
-    const banner = document.getElementById('quickPurchaseBanner');
-    if (banner) {
-        banner.style.display = 'none';
-    }
-    
-    const currentProduct = window._currentProduct;
-    if (currentProduct) {
-        closeProductDetails();
-        setTimeout(() => {
-            openDetails(currentProduct.id);
-        }, 300);
-    }
 };
 
 window.addToCartFromDetails = function() {
@@ -2727,40 +2687,8 @@ window.addToCartFromDetails = function() {
             renderProducts(products);
             updateBottomCartBar();
             showToast(`✅ Added ${p.name} (${selectedQty}) to cart`, 'success');
-            const btn = document.querySelector('#productDetailsContent button[onclick="addToCartFromDetails()"]');
-            if (btn) {
-                btn.innerHTML = '<i class="fas fa-check"></i> View Cart';
-                btn.style.background = 'var(--success)';
-                btn.style.color = '#0a0a1a';
-                btn.onclick = () => { closeProductDetails(); openCartFull(); };
-            }
-            // Update quick purchase banner
-            const banner = document.getElementById('quickPurchaseBanner');
-            if (banner) {
-                banner.innerHTML = `
-                    <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;">
-                        <div>
-                            <div style="font-weight:700;font-size:14px;color:var(--text);">
-                                <i class="fas fa-bolt" style="color:var(--vip-color);"></i> Quick Purchase
-                            </div>
-                            <div style="font-size:13px;color:var(--text-secondary);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                                ${p.name} — ${p.price === 0 ? 'FREE' : getCurrencySymbol(p.currency || 'USD') + p.price.toFixed(2)}
-                            </div>
-                        </div>
-                    </div>
-                    <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-                        <button onclick="removeFromCartAndCloseBanner('${p.id}')" 
-                                style="background:var(--danger);border:none;color:#fff;padding:6px 12px;border-radius:var(--radius-sm);cursor:pointer;font-size:12px;font-weight:700;display:flex;align-items:center;gap:4px;">
-                            <i class="fas fa-trash-alt"></i> Remove
-                        </button>
-                        <button onclick="closeQuickPurchaseBanner()" 
-                                style="background:transparent;border:none;color:var(--text-secondary);font-size:18px;cursor:pointer;padding:4px 6px;opacity:0.4;transition:0.2s;"
-                                onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.4'">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                `;
-            }
+            closeProductDetails();
+            openCartFull();
             return;
         }
 
@@ -2779,40 +2707,8 @@ window.addToCartFromDetails = function() {
         renderProducts(products);
         updateBottomCartBar();
         showToast(`✅ Added ${p.name} to cart`, 'success');
-        const btn = document.querySelector('#productDetailsContent button[onclick="addToCartFromDetails()"]');
-        if (btn) {
-            btn.innerHTML = '<i class="fas fa-check"></i> View Cart';
-            btn.style.background = 'var(--success)';
-            btn.style.color = '#0a0a1a';
-            btn.onclick = () => { closeProductDetails(); openCartFull(); };
-        }
-        // Update quick purchase banner
-        const banner = document.getElementById('quickPurchaseBanner');
-        if (banner) {
-            banner.innerHTML = `
-                <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;">
-                    <div>
-                        <div style="font-weight:700;font-size:14px;color:var(--text);">
-                            <i class="fas fa-bolt" style="color:var(--vip-color);"></i> Quick Purchase
-                        </div>
-                        <div style="font-size:13px;color:var(--text-secondary);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                            ${p.name} — ${p.price === 0 ? 'FREE' : getCurrencySymbol(p.currency || 'USD') + p.price.toFixed(2)}
-                        </div>
-                    </div>
-                </div>
-                <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-                    <button onclick="removeFromCartAndCloseBanner('${p.id}')" 
-                            style="background:var(--danger);border:none;color:#fff;padding:6px 12px;border-radius:var(--radius-sm);cursor:pointer;font-size:12px;font-weight:700;display:flex;align-items:center;gap:4px;">
-                        <i class="fas fa-trash-alt"></i> Remove
-                    </button>
-                    <button onclick="closeQuickPurchaseBanner()" 
-                            style="background:transparent;border:none;color:var(--text-secondary);font-size:18px;cursor:pointer;padding:4px 6px;opacity:0.4;transition:0.2s;"
-                            onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.4'">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            `;
-        }
+        closeProductDetails();
+        openCartFull();
     } else {
         showToast('⚠️ Product not found', 'warning');
     }
@@ -2901,15 +2797,8 @@ window.addVipPlanToCart = function(product) {
     renderProducts(products);
     updateBottomCartBar();
     showToast(`✅ Added ${planLabels[selectedPlan]} VIP plan for ${product.name}`, 'success');
-
-    const btn = document.querySelector('#productDetailsContent .vip-add-to-cart');
-    if (btn) {
-        btn.innerHTML = '<i class="fas fa-check"></i> View Cart';
-        btn.style.background = 'var(--success)';
-        btn.style.color = '#0a0a1a';
-        btn.onclick = () => { closeProductDetails(); openCartFull(); };
-    }
-    updateProductCardButton(product.id);
+    closeProductDetails();
+    openCartFull();
 };
 
 // ============================================================
@@ -4362,9 +4251,15 @@ window.copyReferralCode2 = function() {
 window.openAdminPanel = function() {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized. Admin only.', 'error'); return; }
     const panel = document.getElementById('adminPanel');
-    if (panel.classList.contains('open')) { panel.classList.remove('open'); } else {
+    if (panel.classList.contains('open')) { 
+        panel.classList.remove('open'); 
+        document.body.style.overflow = '';
+        return;
+    } else {
         panel.classList.add('open');
-        panel.scrollIntoView({ behavior: 'smooth' });
+        document.body.style.overflow = 'hidden';
+        // Ensure dashboard is active by default
+        switchAdminTab('dashboard');
         loadAdminOrders();
         startAdminRealtimeListener();
         loadDownloads();
@@ -4380,10 +4275,6 @@ window.openAdminPanel = function() {
         loadSliderSettings();
         renderSliderSettingsUI();
         document.getElementById('sliderIntervalInput').value = sliderIntervalTime;
-        const statsTab = document.getElementById('tabStats');
-        if (statsTab && statsTab.classList.contains('active')) { loadAdvancedStats(); }
-        const logsTab = document.getElementById('tabLogs');
-        if (logsTab && logsTab.classList.contains('active')) { loadAuditLogs(); }
         loadMarqueeSettings();
         renderMarqueeSettingsUI();
     }
@@ -4391,32 +4282,52 @@ window.openAdminPanel = function() {
 
 function ensureSliderTab() {}
 
-window.closeAdminPanel = function() { document.getElementById('adminPanel').classList.remove('open'); if (unsubscribeAdmin) { unsubscribeAdmin(); unsubscribeAdmin = null; } };
+window.closeAdminPanel = function() { 
+    const panel = document.getElementById('adminPanel');
+    if (panel) {
+        panel.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+    if (unsubscribeAdmin) { 
+        unsubscribeAdmin(); 
+        unsubscribeAdmin = null; 
+    }
+};
 
+// ============================================================
+// FIXED: switchAdminTab - works with sidebar buttons and full-screen content
+// ============================================================
 window.switchAdminTab = function(tab) {
+    // Hide all tab contents
     document.querySelectorAll('#adminPanel .admin-tab-content').forEach(el => el.classList.remove('active'));
+    // Remove active class from all nav buttons
     document.querySelectorAll('#adminPanel .admin-nav-btn').forEach(el => el.classList.remove('active'));
+
     const tabMap = {
-        'dashboard':'tabDashboard','orders':'tabOrders','products':'tabProducts',
-        'users':'tabUsers','downloads':'tabDownloads','notifications':'tabNotifications',
-        'stats':'tabStats','logs':'tabLogs','slider':'tabSlider',
-        'licences':'tabLicences','marquee':'tabMarquee','payments':'tabPayments',
-        'topups':'tabTopups','fallback':'tabFallback'
+        'dashboard': 'tabDashboard', 'orders': 'tabOrders', 'products': 'tabProducts',
+        'users': 'tabUsers', 'downloads': 'tabDownloads', 'notifications': 'tabNotifications',
+        'stats': 'tabStats', 'logs': 'tabLogs', 'slider': 'tabSlider',
+        'licences': 'tabLicences', 'marquee': 'tabMarquee', 'payments': 'tabPayments',
+        'topups': 'tabTopups', 'fallback': 'tabFallback'
     };
     const tabId = tabMap[tab] || 'tabDashboard';
     const content = document.getElementById(tabId);
     if (content) content.classList.add('active');
+
     const btn = document.querySelector(`#adminPanel .admin-nav-btn[data-tab="${tab}"]`);
     if (btn) btn.classList.add('active');
+
     const titles = {
-        'dashboard':'📊 Dashboard','orders':'📦 Orders','products':'🛍️ Products',
-        'users':'👥 Users','downloads':'📁 Downloads','notifications':'🔔 Notifications',
-        'stats':'📈 Stats','logs':'📜 Logs','slider':'🎨 Slider',
-        'licences':'🔑 Licences','marquee':'🎬 Marquee','payments':'💳 Payments',
-        'topups':'💰 Topups','fallback':'📦 Fallback'
+        'dashboard': '📊 Dashboard', 'orders': '📦 Orders', 'products': '🛍️ Products',
+        'users': '👥 Users', 'downloads': '📁 Downloads', 'notifications': '🔔 Notifications',
+        'stats': '📈 Stats', 'logs': '📜 Logs', 'slider': '🎨 Slider',
+        'licences': '🔑 Licences', 'marquee': '🎬 Marquee', 'payments': '💳 Payments',
+        'topups': '💰 Topups', 'fallback': '📦 Fallback'
     };
     const titleEl = document.getElementById('adminPageTitle');
     if (titleEl) titleEl.textContent = titles[tab] || tab;
+
+    // Load data for the selected tab
     if (tab === 'products') renderAdminProducts(products);
     if (tab === 'users') loadAdminUsers();
     if (tab === 'dashboard') loadDashboardStats();
@@ -6280,7 +6191,7 @@ window.closeTopupModal = function() {
 };
 
 // ============================================================
-// 38. TOPUP SYSTEM - Select Currency
+// 38. TOPUP SYSTEM - Select Currency (FIXED)
 // ============================================================
 
 window.selectTopupCurrency = function(currency) {
@@ -6372,6 +6283,12 @@ window.selectTopupAmount = function(amount) {
         selectedTopupAmount = 0;
         document.getElementById('topupSelectedAmount').textContent = 'Enter amount';
         document.getElementById('topupLtcAmount').textContent = '0.0000 LTC';
+        // Reset the selected class on custom option
+        const customEl = document.querySelector('.topup-amount[data-amount="custom"]');
+        if (customEl) {
+            customEl.style.borderColor = 'var(--primary)';
+            customEl.style.background = 'var(--primary-glow)';
+        }
         return;
     }
 
@@ -6385,14 +6302,17 @@ window.selectTopupAmount = function(amount) {
     const ltcPrice = cryptoPrices.ltc || 42;
     const currency = selectedTopupCurrency || 'USDT';
     
-    let displayText;
+    let displayText, ltcDisplay;
     if (currency === 'USDT') {
         displayText = `$${amount.toFixed(2)}`;
+        ltcDisplay = `${(amount / ltcPrice).toFixed(4)} LTC`;
     } else {
-        displayText = `${(amount / ltcPrice).toFixed(4)} LTC`;
+        const ltcAmount = amount / ltcPrice;
+        displayText = `${ltcAmount.toFixed(4)} LTC`;
+        ltcDisplay = `${ltcAmount.toFixed(4)} LTC`;
     }
     document.getElementById('topupSelectedAmount').textContent = displayText;
-    document.getElementById('topupLtcAmount').textContent = `${(amount / ltcPrice).toFixed(4)} LTC`;
+    document.getElementById('topupLtcAmount').textContent = ltcDisplay;
 };
 
 // ============================================================
@@ -7137,8 +7057,8 @@ function fixDirection() {
         el.style.textAlign = 'left';
     });
 
-    // Fix close buttons to be on the right side
-    document.querySelectorAll('.modal-close, .close-btn, .close-modal-btn, #adminPanel .admin-close-btn').forEach(el => {
+    // Fix close buttons to be on the right side for regular modals
+    document.querySelectorAll('.modal-close, .close-modal-btn').forEach(el => {
         el.style.position = 'absolute';
         el.style.top = '10px';
         el.style.right = '10px';
@@ -7147,13 +7067,12 @@ function fixDirection() {
         el.style.margin = '0';
     });
 
-    // Fix for fullscreen modal close buttons (they're in header, so don't override)
-    document.querySelectorAll('.fullscreen-modal .close-btn').forEach(el => {
+    // For fullscreen modals, close buttons are in header, keep them static
+    document.querySelectorAll('.fullscreen-modal .close-btn, #adminPanel .admin-close-btn').forEach(el => {
         el.style.position = 'static';
         el.style.right = 'auto';
         el.style.left = 'auto';
         el.style.top = 'auto';
-        el.style.marginLeft = 'auto';
     });
 
     console.log('✅ Direction fixed: Close buttons on right');
