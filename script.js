@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - FULL VERSION WITH TOPUP SYSTEM
+// SCRIPT.JS - ZI Store - COMPLETE VERSION
 // ============================================================
 
 // Fix for Firebase Analytics "process is not defined" error
@@ -144,6 +144,7 @@ let adminCheckPromise = null;
 // ============================================================
 let userBalance = 0;
 let selectedTopupAmount = 0;
+let topupSubscription = null;
 
 // Slider variables
 let sliderSlides = [];
@@ -319,6 +320,7 @@ window.ensureAdminPanel = function() {
             startAdminRealtimeListener();
             renderAdminProducts(products);
             loadLicences();
+            loadAdminTopups();
         } else {
             console.warn('⚠️ User is not an admin');
             if (adminMenuItem) {
@@ -446,6 +448,7 @@ function startUserRealtimeListener() {
                 if (isAdmin) {
                     loadAdminOrders();
                     loadLicences();
+                    loadAdminTopups();
                 }
             });
         }
@@ -513,6 +516,7 @@ async function loadUserData() {
             if (isAdmin) {
                 loadAdminOrders();
                 loadLicences();
+                loadAdminTopups();
             }
         } else {
             await setDoc(userRef, { 
@@ -730,12 +734,15 @@ window.loginUser = async function() {
             loadUserData();
             updateDropdownStats();
             loadUserBalance();
+            startTopupRealtimeListener();
+            initTopInfoBar();
             
             if (isAdminCached) {
                 console.log('✅ Admin detected, loading admin features');
                 loadAdminOrders();
                 startAdminRealtimeListener();
                 loadLicences();
+                loadAdminTopups();
                 setTimeout(() => {
                     const adminMenuItem = document.getElementById('adminMenuItem');
                     if (adminMenuItem) {
@@ -804,6 +811,8 @@ window.registerUser = async function() {
             window.showMainApp();
             hideLoadingScreen();
             loadUserBalance();
+            startTopupRealtimeListener();
+            initTopInfoBar();
         }, 500);
     } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Registration failed', 'error'); btn.classList.remove('loading'); }
 };
@@ -846,12 +855,15 @@ window.loginWithGoogle = function() {
                 loadUserData();
                 updateDropdownStats();
                 loadUserBalance();
+                startTopupRealtimeListener();
+                initTopInfoBar();
 
                 if (isAdminCached) {
                     console.log('✅ Admin detected, loading admin features');
                     loadAdminOrders();
                     startAdminRealtimeListener();
                     loadLicences();
+                    loadAdminTopups();
                     setTimeout(() => {
                         const adminMenuItem = document.getElementById('adminMenuItem');
                         if (adminMenuItem) {
@@ -983,6 +995,7 @@ window.logoutUser = async function() {
         closeUserMenuFull();
         if (unsubscribeAdmin) { unsubscribeAdmin(); unsubscribeAdmin = null; }
         if (unsubscribeUser) { unsubscribeUser(); unsubscribeUser = null; }
+        if (topupSubscription) { topupSubscription.unsubscribe(); topupSubscription = null; }
         pendingCount = 0; unreadNotifications = 0;
         document.getElementById('authSection').style.display = 'block';
         document.getElementById('mainApp').style.display = 'none';
@@ -3649,6 +3662,7 @@ window.openAdminPanel = function() {
         loadAdminUsers();
         loadLicences();
         loadDashboardStats();
+        loadAdminTopups();
         setTimeout(addBannerAdminControls, 300);
         ensureSliderTab();
         loadSliderSettings();
@@ -3682,7 +3696,8 @@ window.switchAdminTab = function(tab) {
         'slider': 'tabSlider',
         'licences': 'tabLicences',
         'marquee': 'tabMarquee',
-        'payments': 'tabPayments'
+        'payments': 'tabPayments',
+        'topups': 'tabTopups'
     };
     const tabId = tabMap[tab] || tabMap['dashboard'];
     document.getElementById(tabId).classList.add('active');
@@ -3699,12 +3714,9 @@ window.switchAdminTab = function(tab) {
     }
     if (tab === 'licences') { loadLicences(); }
     if (tab === 'marquee') { renderMarqueeSettingsUI(); }
-    if (tab === 'orders') {
-        loadAdminOrders();
-    }
-    if (tab === 'payments') {
-        refreshAdminPayments();
-    }
+    if (tab === 'orders') { loadAdminOrders(); }
+    if (tab === 'payments') { refreshAdminPayments(); }
+    if (tab === 'topups') { loadAdminTopups(); }
 };
 
 // ============================================================
@@ -5897,6 +5909,8 @@ onAuthStateChanged(auth, async (user) => {
         await loadUserData();
         updateDropdownStats();
         loadUserBalance();
+        startTopupRealtimeListener();
+        initTopInfoBar();
 
         if (isAdminCached) {
             console.log('✅ Admin detected, loading admin features');
@@ -5904,6 +5918,7 @@ onAuthStateChanged(auth, async (user) => {
             startAdminRealtimeListener();
             renderAdminProducts(products);
             loadLicences();
+            loadAdminTopups();
             setTimeout(addBannerAdminControls, 500);
             setTimeout(() => {
                 const adminMenuItem = document.getElementById('adminMenuItem');
@@ -6010,6 +6025,7 @@ async function init() {
         loadMarqueeSettings();
         setInterval(fetchCryptoPrices, 60000);
         loadUserBalance();
+        initTopInfoBar();
 
         updateLoadingText('✅ Ready!');
         console.log('✅ ZI Store ready with all features!');
@@ -6100,7 +6116,242 @@ function updateBalanceDisplay() {
 }
 
 // ============================================================
-// 43. TOPUP SYSTEM - Modal Functions
+// 43. TOPUP SYSTEM - Realtime Listener
+// ============================================================
+
+function startTopupRealtimeListener() {
+    if (!currentUser) return;
+    
+    if (topupSubscription) {
+        topupSubscription.unsubscribe();
+        topupSubscription = null;
+    }
+    
+    console.log('🔄 Starting topup realtime listener for user:', currentUser.uid);
+    
+    topupSubscription = supabase
+        .channel('topups-changes')
+        .on(
+            'postgres_changes',
+            {
+                event: 'UPDATE',
+                schema: 'public',
+                table: 'topups',
+                filter: `user_id=eq.${currentUser.uid}`
+            },
+            (payload) => {
+                console.log('📦 Topup update received:', payload);
+                const topup = payload.new;
+                
+                if (topup.status === 'completed' && topup.amount_usd) {
+                    console.log('💰 Topup approved! Updating balance...');
+                    
+                    userBalance = (userBalance || 0) + topup.amount_usd;
+                    userProfile.balance = userBalance;
+                    updateBalanceDisplay();
+                    updateUI();
+                    updateFullUserMenu();
+                    
+                    showToast(`💰 $${topup.amount_usd.toFixed(2)} has been added to your balance!`, 'success');
+                    
+                    if (document.getElementById('topupStatusList')) {
+                        loadUserTopups();
+                    }
+                    
+                    playNotificationSound();
+                }
+            }
+        )
+        .subscribe();
+}
+
+function playNotificationSound() {
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = 880;
+        oscillator.type = 'sine';
+        gainNode.gain.value = 0.3;
+        
+        oscillator.start();
+        setTimeout(() => {
+            oscillator.frequency.value = 1100;
+        }, 100);
+        setTimeout(() => {
+            oscillator.stop();
+        }, 300);
+    } catch (e) {
+        console.log('⚠️ Sound notification not available');
+    }
+}
+
+// ============================================================
+// 44. TOPUP SYSTEM - Check Status
+// ============================================================
+
+window.openTopupStatus = async function() {
+    if (!currentUser) {
+        showToast('⚠️ Please login first', 'warning');
+        return;
+    }
+    
+    const modal = document.createElement('div');
+    modal.className = 'fullscreen-modal open';
+    modal.id = 'topupStatusModal';
+    modal.style.display = 'flex';
+    modal.innerHTML = `
+        <div class="modal-header">
+            <h2><i class="fas fa-clock" style="color:var(--vip-color);"></i> Topup Status</h2>
+            <button class="close-btn" onclick="closeTopupStatus()">&times;</button>
+        </div>
+        <div style="flex:1; overflow-y:auto; padding:0 4px 20px;">
+            <div id="topupStatusList">
+                <div style="text-align:center;padding:30px;color:var(--text-secondary);">
+                    <i class="fas fa-spinner fa-spin"></i> Loading...
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    document.body.style.overflow = 'hidden';
+    
+    await loadUserTopups();
+};
+
+window.closeTopupStatus = function() {
+    const modal = document.getElementById('topupStatusModal');
+    if (modal) {
+        modal.remove();
+        document.body.style.overflow = '';
+    }
+};
+
+async function loadUserTopups() {
+    if (!currentUser) return;
+    
+    const container = document.getElementById('topupStatusList');
+    if (!container) return;
+    
+    try {
+        const { data: topups, error } = await supabase
+            .from('topups')
+            .select('*')
+            .eq('user_id', currentUser.uid)
+            .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        if (!topups || topups.length === 0) {
+            container.innerHTML = `
+                <div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
+                    <i class="fas fa-wallet" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i>
+                    <div style="font-size:18px;font-weight:600;">No topup requests</div>
+                    <div style="font-size:13px;opacity:0.4;margin-top:4px;">You haven't made any topup requests yet.</div>
+                    <button onclick="closeTopupStatus();openTopupModal();" style="margin-top:12px;padding:8px 24px;background:var(--primary);border:none;border-radius:var(--radius-sm);color:#fff;font-weight:700;cursor:pointer;">
+                        <i class="fas fa-plus"></i> Topup Now
+                    </button>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = topups.map(t => {
+            const statusColors = {
+                'pending': 'var(--pending-color)',
+                'completed': 'var(--success)',
+                'rejected': 'var(--danger)'
+            };
+            const statusLabels = {
+                'pending': '⏳ Pending Review',
+                'completed': '✅ Approved & Added',
+                'rejected': '❌ Rejected'
+            };
+            const statusIcons = {
+                'pending': '🕐',
+                'completed': '✅',
+                'rejected': '❌'
+            };
+            const date = new Date(t.created_at).toLocaleString();
+            
+            return `
+                <div style="background:var(--glass-bg);border-radius:var(--radius-md);padding:16px;border:1px solid var(--glass-border);margin-bottom:12px;border-left:4px solid ${statusColors[t.status] || 'var(--border)'};">
+                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                        <div>
+                            <div style="font-size:18px;font-weight:800;color:var(--primary);">
+                                $${t.amount_usd.toFixed(2)} USDT
+                            </div>
+                            <div style="font-size:13px;color:var(--text-secondary);font-weight:500;">
+                                ${date}
+                            </div>
+                            ${t.tx_hash ? `
+                                <div style="font-size:12px;color:var(--text-secondary);opacity:0.5;font-family:monospace;margin-top:2px;">
+                                    TXID: ${t.tx_hash.slice(0, 16)}...${t.tx_hash.slice(-8)}
+                                    <a href="https://etherscan.io/tx/${t.tx_hash}" target="_blank" style="color:var(--primary);text-decoration:underline;margin-left:6px;">
+                                        <i class="fas fa-external-link-alt"></i>
+                                    </a>
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-size:20px;">${statusIcons[t.status]}</div>
+                            <span style="font-size:13px;font-weight:700;color:${statusColors[t.status] || 'var(--text-secondary)'};">
+                                ${statusLabels[t.status] || t.status}
+                            </span>
+                            ${t.status === 'completed' ? `
+                                <div style="font-size:12px;color:var(--success);font-weight:600;margin-top:2px;">
+                                    💰 Balance updated
+                                </div>
+                            ` : ''}
+                            ${t.status === 'rejected' ? `
+                                <div style="font-size:12px;color:var(--danger);font-weight:600;margin-top:2px;">
+                                    Contact support
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                    ${t.status === 'pending' ? `
+                        <div style="margin-top:10px;padding:8px 12px;background:var(--pending-color)20;border-radius:6px;font-size:12px;color:var(--text-secondary);">
+                            <i class="fas fa-clock"></i> Your request is being reviewed. This usually takes 5-30 minutes.
+                        </div>
+                    ` : ''}
+                    ${t.status === 'completed' ? `
+                        <div style="margin-top:10px;padding:8px 12px;background:var(--success)20;border-radius:6px;font-size:12px;color:var(--success);">
+                            <i class="fas fa-check-circle"></i> Your balance has been updated!
+                        </div>
+                    ` : ''}
+                    ${t.status === 'rejected' ? `
+                        <div style="margin-top:10px;padding:8px 12px;background:var(--danger)20;border-radius:6px;font-size:12px;color:var(--danger);">
+                            <i class="fas fa-exclamation-circle"></i> Your request was rejected. Please contact support.
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }).join('');
+        
+        container.innerHTML += `
+            <button onclick="loadUserTopups()" style="width:100%;padding:10px;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:var(--radius-sm);color:var(--text);cursor:pointer;font-weight:600;margin-top:8px;">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+        `;
+        
+    } catch (error) {
+        console.error('Error loading topups:', error);
+        container.innerHTML = `
+            <div style="text-align:center;padding:20px;color:var(--danger);">
+                ❌ Failed to load topup status
+                <button onclick="loadUserTopups()" style="display:block;margin:8px auto;padding:6px 16px;background:var(--primary);border:none;border-radius:var(--radius-sm);color:#fff;cursor:pointer;">Retry</button>
+            </div>
+        `;
+    }
+}
+
+// ============================================================
+// 45. TOPUP SYSTEM - Modal Functions
 // ============================================================
 
 window.openTopupModal = function() {
@@ -6153,7 +6404,7 @@ window.selectTopupAmount = function(amount) {
 };
 
 // ============================================================
-// 44. TOPUP SYSTEM - Process Topup via FaucetPay
+// 46. TOPUP SYSTEM - Process Topup
 // ============================================================
 
 window.processTopup = async function() {
@@ -6179,13 +6430,10 @@ window.processTopup = async function() {
     }
     
     const statusEl = document.getElementById('topupStatus');
-    statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating invoice...';
+    statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating request...';
     statusEl.style.color = 'var(--text-secondary)';
     
     try {
-        const ltcPrice = cryptoPrices.ltc || 42;
-        const ltcAmount = amount / ltcPrice;
-        
         const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/create-topup', {
             method: 'POST',
             headers: {
@@ -6196,40 +6444,76 @@ window.processTopup = async function() {
                 userId: currentUser.uid,
                 userEmail: currentUser.email,
                 amount: amount,
-                ltcAmount: ltcAmount,
+                txHash: null
             })
         });
         
         const result = await response.json();
+        
         if (!result.success) {
             throw new Error(result.error || 'Failed to create topup');
         }
         
         statusEl.innerHTML = `
-            <div style="background:var(--success-glow); border-radius:8px; padding:12px; border:1px solid var(--success);">
-                <div style="font-weight:700; color:var(--success);">✅ Invoice Created!</div>
-                <div style="font-size:13px; color:var(--text-secondary); margin-top:4px;">
-                    Amount: $${amount.toFixed(2)} (${ltcAmount.toFixed(4)} LTC)
+            <div style="background:var(--primary-glow); border-radius:8px; padding:16px; border:1px solid var(--primary);">
+                <div style="font-weight:700; color:var(--primary); font-size:16px; margin-bottom:12px;">
+                    💳 Complete Your Payment
                 </div>
-                <button onclick="window.open('${result.paymentUrl}', '_blank')" style="margin-top:8px; padding:10px 24px; background:var(--primary); border:none; border-radius:var(--radius-sm); color:#fff; font-weight:700; cursor:pointer;">
-                    <i class="fas fa-external-link-alt"></i> Pay Now (FaucetPay)
+                
+                <div style="background:var(--card-bg); border-radius:6px; padding:12px; margin-bottom:12px; border:1px solid var(--border);">
+                    <div style="display:flex; justify-content:space-between; padding:4px 0; font-size:14px;">
+                        <span style="color:var(--text-secondary);">Amount:</span>
+                        <span style="font-weight:700; color:var(--primary);">$${amount.toFixed(2)}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; padding:4px 0; font-size:14px;">
+                        <span style="color:var(--text-secondary);">Network:</span>
+                        <span style="font-weight:700; color:var(--vip-color);">USDT (ERC20)</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; padding:4px 0; font-size:14px; align-items:center;">
+                        <span style="color:var(--text-secondary);">Wallet Address:</span>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span style="font-weight:700; font-family:monospace; font-size:12px; word-break:break-all; max-width:180px;" id="walletAddressDisplay2">${result.walletAddress}</span>
+                            <button onclick="copyToClipboard('${result.walletAddress}')" style="background:var(--primary); border:none; color:#fff; padding:2px 8px; border-radius:4px; cursor:pointer; font-size:11px;">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; padding:4px 0; font-size:14px;">
+                        <span style="color:var(--text-secondary);">Memo:</span>
+                        <span style="font-weight:700; font-family:monospace; font-size:12px;">${result.instructions?.memo || ''}</span>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">
+                        📋 Transaction Hash (TXID)
+                    </label>
+                    <input type="text" id="topupTxHash" placeholder="Paste your USDT transaction hash here..." 
+                           style="width:100%; padding:10px 14px; border:2px solid var(--border); border-radius:var(--radius-sm); 
+                                  background:var(--card-bg); color:var(--text); font-size:14px; outline:none; font-family:monospace;" />
+                    <div style="font-size:11px; color:var(--text-secondary); opacity:0.4; margin-top:4px;">
+                        <i class="fas fa-info-circle"></i> Copy the TXID from your wallet after sending USDT
+                    </div>
+                </div>
+                
+                <button onclick="submitTopupWithTxHash('${result.topupId}', ${amount})" 
+                        style="width:100%; padding:12px; border:none; border-radius:var(--radius-sm); 
+                               background:var(--success); color:#0a0a1a; font-weight:800; font-size:16px; cursor:pointer;">
+                    <i class="fas fa-check-circle"></i> Submit for Verification
                 </button>
-                <div style="font-size:11px; color:var(--text-secondary); opacity:0.5; margin-top:8px;">
-                    ⏳ Your balance will update automatically within 2-5 minutes after payment.
+                
+                <div style="font-size:11px; color:var(--text-secondary); opacity:0.5; margin-top:8px; text-align:center;">
+                    ⏳ Your request will be reviewed within 5-30 minutes
+                    <br>
+                    <span style="font-size:10px;">Order ID: ${result.paymentId}</span>
                 </div>
             </div>
         `;
         
-        try {
-            await addDoc(collection(db, 'notifications'), {
-                title: '💰 New Topup Request',
-                message: `User: ${currentUser.email} - $${amount.toFixed(2)} (${ltcAmount.toFixed(4)} LTC)`,
-                readBy: [],
-                createdAt: serverTimestamp()
-            });
-        } catch (e) { console.error('Notification error:', e); }
+        window._currentTopupId = result.topupId;
+        window._currentTopupAmount = amount;
         
-        showToast('✅ Invoice ready! Click Pay Now.', 'success');
+        showToast('📤 Payment instructions generated', 'info');
         
     } catch (error) {
         console.error('Topup error:', error);
@@ -6239,7 +6523,477 @@ window.processTopup = async function() {
 };
 
 // ============================================================
-// 45. CHECKOUT WITH BALANCE
+// 47. TOPUP SYSTEM - Submit with TX Hash
+// ============================================================
+
+window.submitTopupWithTxHash = async function(topupId, amount) {
+    const txHashInput = document.getElementById('topupTxHash');
+    const txHash = txHashInput?.value?.trim();
+    
+    if (!txHash) {
+        showToast('⚠️ Please paste your transaction hash', 'warning');
+        txHashInput.style.borderColor = 'var(--danger)';
+        setTimeout(() => { txHashInput.style.borderColor = ''; }, 3000);
+        return;
+    }
+    
+    if (txHash.length < 10) {
+        showToast('⚠️ Please enter a valid transaction hash', 'warning');
+        return;
+    }
+    
+    const statusEl = document.getElementById('topupStatus');
+    statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting for verification...';
+    
+    try {
+        const { error } = await supabase
+            .from('topups')
+            .update({
+                tx_hash: txHash,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', topupId);
+        
+        if (error) throw error;
+        
+        // إرسال إشعار للأدمن
+        await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/send-notification', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify({
+                title: '💰 New Topup Request',
+                message: `User: ${currentUser.email} - Amount: $${amount} - TXID: ${txHash.slice(0, 10)}...`,
+                adminOnly: true
+            })
+        });
+        
+        statusEl.innerHTML = `
+            <div style="background:var(--success-glow); border-radius:8px; padding:12px; border:1px solid var(--success);">
+                <div style="font-weight:700; color:var(--success); font-size:16px;">✅ Request Submitted!</div>
+                <div style="font-size:13px; color:var(--text-secondary); margin-top:4px;">
+                    Amount: $${amount.toFixed(2)}
+                    <br>
+                    TXID: <span style="font-family:monospace; font-size:11px;">${txHash.slice(0, 16)}...${txHash.slice(-8)}</span>
+                </div>
+                <div style="font-size:12px; color:var(--text-secondary); opacity:0.6; margin-top:6px;">
+                    ⏳ Your request is being reviewed by our team.
+                    <br>
+                    You will receive a notification once approved.
+                </div>
+                <button onclick="closeTopupModal()" style="margin-top:8px; padding:6px 20px; background:var(--primary); border:none; border-radius:var(--radius-sm); color:#fff; font-weight:700; cursor:pointer;">
+                    <i class="fas fa-check"></i> Done
+                </button>
+            </div>
+        `;
+        
+        showToast('✅ Request submitted! Waiting for verification.', 'success');
+        
+        setTimeout(() => {
+            closeTopupModal();
+        }, 5000);
+        
+    } catch (error) {
+        console.error('Submit error:', error);
+        statusEl.innerHTML = `<span style="color:var(--danger);">❌ ${error.message}</span>`;
+        showToast('❌ Error: ' + error.message, 'error');
+    }
+};
+
+// ============================================================
+// 48. TOPUP SYSTEM - Admin Functions
+// ============================================================
+
+window.approveTopup = async function(topupId) {
+    if (!currentUser || !isAdminCached) {
+        showToast('⛔ Unauthorized', 'error');
+        return;
+    }
+    
+    if (!confirm('Approve this topup and add balance to user?')) return;
+    
+    try {
+        const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/approve-topup', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify({
+                topupId: topupId,
+                approve: true,
+                adminEmail: currentUser.email
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to approve topup');
+        }
+        
+        // جلب بيانات الشحن لإرسال إشعار Telegram
+        const { data: topupData } = await supabase
+            .from('topups')
+            .select('*')
+            .eq('id', topupId)
+            .single();
+        
+        if (topupData) {
+            // إرسال إشعار Telegram للمستخدم
+            await sendTelegramTopupNotification(
+                topupData.user_id,
+                topupData.amount_usd,
+                topupData.tx_hash
+            );
+            
+            // تحديث الرصيد في Firebase Firestore أيضاً
+            const userRef = doc(db, 'users', topupData.user_id);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+                const currentBalance = userSnap.data().balance || 0;
+                await updateDoc(userRef, {
+                    balance: currentBalance + topupData.amount_usd,
+                    updatedAt: serverTimestamp()
+                });
+            }
+        }
+        
+        showToast(`✅ ${result.message}`, 'success');
+        loadAdminTopups();
+        loadUserBalance();
+        
+    } catch (error) {
+        console.error('Approve error:', error);
+        showToast('❌ Error: ' + error.message, 'error');
+    }
+};
+
+window.rejectTopup = async function(topupId) {
+    if (!currentUser || !isAdminCached) {
+        showToast('⛔ Unauthorized', 'error');
+        return;
+    }
+    
+    if (!confirm('Reject this topup?')) return;
+    
+    try {
+        const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/approve-topup', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify({
+                topupId: topupId,
+                approve: false,
+                adminEmail: currentUser.email
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to reject topup');
+        }
+        
+        showToast('✅ Topup rejected', 'success');
+        loadAdminTopups();
+        
+    } catch (error) {
+        console.error('Reject error:', error);
+        showToast('❌ Error: ' + error.message, 'error');
+    }
+};
+
+async function loadAdminTopups() {
+    if (!currentUser || !isAdminCached) return;
+    
+    const container = document.getElementById('adminTopupsContainer');
+    if (!container) return;
+    
+    try {
+        const { data: topups, error } = await supabase
+            .from('topups')
+            .select('*')
+            .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        const countEl = document.getElementById('adminTopupsCount');
+        if (countEl) countEl.textContent = topups?.length || 0;
+        
+        if (!topups || topups.length === 0) {
+            container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">No topup requests</div>`;
+            return;
+        }
+        
+        container.innerHTML = topups.map(t => {
+            const statusColors = {
+                'pending': 'var(--pending-color)',
+                'completed': 'var(--success)',
+                'rejected': 'var(--danger)'
+            };
+            const statusLabels = {
+                'pending': '⏳ Pending',
+                'completed': '✅ Completed',
+                'rejected': '❌ Rejected'
+            };
+            const date = new Date(t.created_at).toLocaleString();
+            
+            return `
+                <div class="admin-item" style="border-left:4px solid ${statusColors[t.status] || 'var(--border)'};">
+                    <div class="item-info">
+                        <div class="item-title">
+                            💰 $${t.amount_usd.toFixed(2)} - ${t.user_email || t.user_id}
+                            <span style="font-size:11px;font-weight:400;opacity:0.5;">${t.payment_id || t.id}</span>
+                        </div>
+                        <div class="item-meta">
+                            📅 ${date}
+                            ${t.tx_hash ? `• 🔗 TXID: ${t.tx_hash.slice(0, 12)}...${t.tx_hash.slice(-8)}` : ''}
+                            • Status: ${statusLabels[t.status] || t.status}
+                        </div>
+                    </div>
+                    <div class="item-actions">
+                        ${t.status === 'pending' ? `
+                            <button onclick="window.approveTopup('${t.id}')" style="background:var(--success);color:#0a0a1a;border:none;padding:4px 12px;border-radius:6px;cursor:pointer;font-weight:700;">
+                                ✅ Approve
+                            </button>
+                            <button onclick="window.rejectTopup('${t.id}')" style="background:var(--danger);color:#fff;border:none;padding:4px 12px;border-radius:6px;cursor:pointer;font-weight:700;">
+                                ❌ Reject
+                            </button>
+                        ` : `
+                            <span style="font-size:12px;color:var(--text-secondary);opacity:0.4;">
+                                ${t.status === 'completed' ? '✅ Verified' : '❌ Rejected'}
+                            </span>
+                        `}
+                        ${t.tx_hash ? `<a href="https://etherscan.io/tx/${t.tx_hash}" target="_blank" style="color:var(--primary);font-size:12px;text-decoration:underline;">🔍 View</a>` : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+    } catch (error) {
+        console.error('Error loading topups:', error);
+        container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--danger);">Failed to load topups</div>`;
+    }
+}
+
+// ============================================================
+// 49. TOPUP SYSTEM - Telegram Notification
+// ============================================================
+
+async function sendTelegramTopupNotification(userId, amount, txHash = null) {
+    try {
+        const userRef = doc(db, 'users', userId);
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) {
+            console.log('⚠️ User not found for Telegram notification');
+            return;
+        }
+        
+        const userData = userSnap.data();
+        const chatId = userData.telegramChatId;
+        
+        if (!chatId) {
+            console.log('ℹ️ User has no Telegram linked');
+            return;
+        }
+        
+        const message = `
+💰 *TOPUP APPROVED!*
+
+✅ Your topup request has been approved!
+
+📊 *Amount:* $${amount.toFixed(2)} USDT
+💳 *Method:* USDT (ERC20)
+${txHash ? `🔗 *TXID:* \`${txHash}\`` : ''}
+📅 *Date:* ${new Date().toLocaleString()}
+
+🎉 Your balance has been updated successfully!
+💡 You can now use your balance to purchase products instantly.
+
+🔗 *Visit Store:* https://zi-store.online
+        `;
+        
+        await sendTelegramNotification(chatId, message);
+        console.log('✅ Telegram notification sent for topup approval');
+        
+    } catch (error) {
+        console.error('❌ Error sending Telegram notification:', error);
+    }
+}
+
+// ============================================================
+// 50. TOPUP SYSTEM - Copy Helper
+// ============================================================
+
+window.copyToClipboard = function(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text)
+            .then(() => showToast('✅ Copied!', 'success'))
+            .catch(() => fallbackCopy(text));
+    } else {
+        fallbackCopy(text);
+    }
+};
+
+function fallbackCopy(text) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+        document.execCommand('copy');
+        showToast('✅ Copied!', 'success');
+    } catch (e) {
+        showToast('❌ Failed to copy', 'error');
+    }
+    document.body.removeChild(textarea);
+}
+
+// ============================================================
+// 51. TOP INFO BAR - Server Time, IP, Country
+// ============================================================
+
+let serverTimeInterval = null;
+
+function updateServerTime() {
+    const now = new Date();
+    const options = {
+        timeZone: 'UTC',
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    };
+    const timeStr = now.toLocaleString('en-US', options);
+    const dateStr = now.toLocaleDateString('en-US', { 
+        weekday: 'short',
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+    });
+    
+    const el = document.getElementById('serverTime');
+    if (el) {
+        el.innerHTML = `<i class="far fa-calendar-alt" style="margin-right:4px;color:var(--vip-color);"></i> ${dateStr} &nbsp;|&nbsp; <i class="far fa-clock" style="margin-right:4px;color:var(--primary);"></i> ${timeStr} UTC`;
+    }
+}
+
+async function fetchUserInfo() {
+    try {
+        const response = await fetch('http://ip-api.com/json/');
+        if (!response.ok) throw new Error('Failed to fetch IP info');
+        
+        const data = await response.json();
+        console.log('📍 IP Info:', data);
+        
+        if (data.status === 'success') {
+            const ipEl = document.getElementById('userIP');
+            if (ipEl) ipEl.textContent = data.ip || 'Unknown';
+            
+            const countryEl = document.getElementById('userCountry');
+            if (countryEl) {
+                const flag = getCountryFlag(data.countryCode);
+                countryEl.innerHTML = `${flag} ${data.country || 'Unknown'} (${data.regionName || 'N/A'})`;
+            }
+            
+            const timezoneEl = document.getElementById('userTimezone');
+            if (timezoneEl) {
+                timezoneEl.textContent = data.timezone || 'UTC';
+            }
+            
+            return data;
+        } else {
+            throw new Error('IP API returned error');
+        }
+    } catch (error) {
+        console.error('❌ Failed to fetch IP info:', error);
+        try {
+            const fallbackResponse = await fetch('https://ipapi.co/json/');
+            if (fallbackResponse.ok) {
+                const data = await fallbackResponse.json();
+                console.log('📍 Fallback IP Info:', data);
+                
+                const ipEl = document.getElementById('userIP');
+                if (ipEl) ipEl.textContent = data.ip || 'Unknown';
+                
+                const countryEl = document.getElementById('userCountry');
+                if (countryEl) {
+                    const flag = getCountryFlag(data.country_code);
+                    countryEl.innerHTML = `${flag} ${data.country_name || 'Unknown'}`;
+                }
+                
+                const timezoneEl = document.getElementById('userTimezone');
+                if (timezoneEl) timezoneEl.textContent = data.timezone || 'UTC';
+            }
+        } catch (fallbackError) {
+            console.error('❌ Fallback IP API also failed:', fallbackError);
+            document.getElementById('userIP').textContent = '⚠️ Unavailable';
+            document.getElementById('userCountry').textContent = '🌍 Unknown';
+        }
+    }
+}
+
+function getCountryFlag(countryCode) {
+    if (!countryCode) return '🌍';
+    const flags = {
+        'US': '🇺🇸', 'GB': '🇬🇧', 'CA': '🇨🇦', 'AU': '🇦🇺', 'DE': '🇩🇪',
+        'FR': '🇫🇷', 'IT': '🇮🇹', 'ES': '🇪🇸', 'PT': '🇵🇹', 'NL': '🇳🇱',
+        'BE': '🇧🇪', 'CH': '🇨🇭', 'AT': '🇦🇹', 'SE': '🇸🇪', 'NO': '🇳🇴',
+        'DK': '🇩🇰', 'FI': '🇫🇮', 'IE': '🇮🇪', 'NZ': '🇳🇿', 'ZA': '🇿🇦',
+        'BR': '🇧🇷', 'AR': '🇦🇷', 'MX': '🇲🇽', 'CO': '🇨🇴', 'CL': '🇨🇱',
+        'PE': '🇵🇪', 'VE': '🇻🇪', 'EC': '🇪🇨', 'BO': '🇧🇴', 'PY': '🇵🇾',
+        'UY': '🇺🇾', 'GY': '🇬🇾', 'SR': '🇸🇷', 'GF': '🇬🇫', 'MQ': '🇲🇶',
+        'GP': '🇬🇵', 'RE': '🇷🇪', 'YT': '🇾🇹', 'TF': '🇹🇫', 'PF': '🇵🇫',
+        'NC': '🇳🇨', 'WF': '🇼🇫', 'PM': '🇵🇲', 'GL': '🇬🇱', 'IS': '🇮🇸',
+        'FO': '🇫🇴', 'AX': '🇦🇽', 'SJ': '🇸🇯', 'BV': '🇧🇻', 'HM': '🇭🇲',
+        'GS': '🇬🇸', 'IO': '🇮🇴', 'CX': '🇨🇽', 'CC': '🇨🇨', 'NF': '🇳🇫',
+        'PN': '🇵🇳', 'TK': '🇹🇰', 'NU': '🇳🇺', 'CK': '🇨🇰', 'TO': '🇹🇴',
+        'WS': '🇼🇸', 'FJ': '🇫🇯', 'VU': '🇻🇺', 'SB': '🇸🇧', 'KI': '🇰🇮',
+        'TV': '🇹🇻', 'NR': '🇳🇷', 'MH': '🇲🇭', 'PW': '🇵🇼', 'FM': '🇫🇲',
+        'MP': '🇲🇵', 'GU': '🇬🇺', 'AS': '🇦🇸', 'PR': '🇵🇷', 'VI': '🇻🇮',
+        'AE': '🇦🇪', 'SA': '🇸🇦', 'QA': '🇶🇦', 'OM': '🇴🇲', 'KW': '🇰🇼',
+        'BH': '🇧🇭', 'JO': '🇯🇴', 'IL': '🇮🇱', 'PS': '🇵🇸', 'LB': '🇱🇧',
+        'SY': '🇸🇾', 'IQ': '🇮🇶', 'IR': '🇮🇷', 'AF': '🇦🇫', 'PK': '🇵🇰',
+        'IN': '🇮🇳', 'BD': '🇧🇩', 'MM': '🇲🇲', 'TH': '🇹🇭', 'LA': '🇱🇦',
+        'VN': '🇻🇳', 'KH': '🇰🇭', 'MY': '🇲🇾', 'SG': '🇸🇬', 'PH': '🇵🇭',
+        'ID': '🇮🇩', 'TL': '🇹🇱', 'CN': '🇨🇳', 'TW': '🇹🇼', 'HK': '🇭🇰',
+        'MO': '🇲🇴', 'JP': '🇯🇵', 'KR': '🇰🇷', 'KP': '🇰🇵', 'MN': '🇲🇳',
+        'KZ': '🇰🇿', 'KG': '🇰🇬', 'TJ': '🇹🇯', 'TM': '🇹🇲', 'UZ': '🇺🇿',
+        'TR': '🇹🇷', 'GR': '🇬🇷', 'BG': '🇧🇬', 'RO': '🇷🇴', 'HU': '🇭🇺',
+        'SK': '🇸🇰', 'CZ': '🇨🇿', 'PL': '🇵🇱', 'BY': '🇧🇾', 'UA': '🇺🇦',
+        'MD': '🇲🇩', 'GE': '🇬🇪', 'AM': '🇦🇲', 'AZ': '🇦🇿', 'RU': '🇷🇺',
+        'EG': '🇪🇬', 'DZ': '🇩🇿', 'MA': '🇲🇦', 'TN': '🇹🇳', 'LY': '🇱🇾',
+        'SD': '🇸🇩', 'SS': '🇸🇸', 'ET': '🇪🇹', 'KE': '🇰🇪', 'UG': '🇺🇬',
+        'TZ': '🇹🇿', 'RW': '🇷🇼', 'BI': '🇧🇮', 'ZM': '🇿🇲', 'ZW': '🇿🇼',
+        'MW': '🇲🇼', 'MZ': '🇲🇿', 'ZA': '🇿🇦', 'NA': '🇳🇦', 'BW': '🇧🇼',
+        'AO': '🇦🇴', 'CG': '🇨🇬', 'CD': '🇨🇩', 'CF': '🇨🇫', 'GA': '🇬🇦',
+        'CM': '🇨🇲', 'NG': '🇳🇬', 'GH': '🇬🇭', 'CI': '🇨🇮', 'BF': '🇧🇫',
+        'ML': '🇲🇱', 'NE': '🇳🇪', 'SN': '🇸🇳', 'GM': '🇬🇲', 'GW': '🇬🇼',
+        'GN': '🇬🇳', 'SL': '🇸🇱', 'LR': '🇱🇷', 'CV': '🇨🇻', 'MR': '🇲🇷'
+    };
+    return flags[countryCode] || '🌍';
+}
+
+async function initTopInfoBar() {
+    if (serverTimeInterval) clearInterval(serverTimeInterval);
+    updateServerTime();
+    serverTimeInterval = setInterval(updateServerTime, 1000);
+    await fetchUserInfo();
+    setInterval(fetchUserInfo, 300000);
+}
+
+// ============================================================
+// 52. CHECKOUT WITH BALANCE
 // ============================================================
 
 window.checkoutWithBalance = function() {
@@ -6261,252 +7015,272 @@ window.checkoutWithBalance = function() {
 };
 
 // ============================================================
-// 46. Export all functions to global scope
+// 53. Export all functions to global scope
 // ============================================================
 
-window.filterOrders = function(filter) {
-    ordersFilter = filter;
-    document.querySelectorAll('.orders-filter-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.filter === filter);
-    });
-    renderHistoryFull();
-};
+// Authentication
+window.showLogin = showLogin;
+window.showRegister = showRegister;
+window.loginUser = loginUser;
+window.registerUser = registerUser;
+window.loginWithGoogle = loginWithGoogle;
+window.logoutUser = logoutUser;
+window.openForgotPassword = openForgotPassword;
+window.closeForgotPasswordModal = closeForgotPasswordModal;
+window.sendForgotPassword = sendForgotPassword;
+window.openAuthModal = openAuthModal;
 
-window.checkout = function() {
-    openPaymentModal();
-};
-
-window.openPaymentModal = function() {
-    if (cart.length === 0) {
-        showToast('⚠️ Cart is empty', 'warning');
-        return;
-    }
-    const modal = document.getElementById('paymentModal');
-    if (!modal) {
-        showToast('❌ Payment modal not found', 'error');
-        return;
-    }
-    modal.classList.add('open');
-    document.body.style.overflow = 'hidden';
-    document.getElementById('paymentStep1').style.display = 'block';
-    document.getElementById('paymentStep2').style.display = 'none';
-    selectedPayment = null;
-    document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
-    window.renderPaymentProducts();
-    updatePayableTotal();
-    document.getElementById('paymentInstructionsContainer').style.display = 'none';
-    document.getElementById('paymentWalletInfo').style.display = 'none';
-    document.getElementById('paymentTxInput').style.display = 'none';
-    document.getElementById('paymentTelegramContact').style.display = 'none';
-    document.getElementById('paymentBinanceIdSection').style.display = 'none';
-    document.getElementById('mainConfirmBtn').style.display = 'none';
-    const txInput = document.getElementById('transactionHashInput');
-    if (txInput) txInput.value = '';
-    const txInput2 = document.getElementById('txHashInput');
-    if (txInput2) txInput2.value = '';
-    const resultEl = document.getElementById('verificationResult');
-    if (resultEl) { resultEl.style.display = 'none'; resultEl.textContent = ''; }
-    loadUserBalance();
-};
-
-window.closePaymentModal = function() {
-    const modal = document.getElementById('paymentModal');
-    if (modal) modal.classList.remove('open');
-    document.body.style.overflow = '';
-    document.getElementById('paymentStep1').style.display = 'block';
-    document.getElementById('paymentStep2').style.display = 'none';
-    document.getElementById('paymentInstructionsContainer').style.display = 'none';
-    document.getElementById('paymentWalletInfo').style.display = 'none';
-    document.getElementById('paymentTxInput').style.display = 'none';
-    document.getElementById('paymentTelegramContact').style.display = 'none';
-    document.getElementById('paymentBinanceIdSection').style.display = 'none';
-    document.getElementById('mainConfirmBtn').style.display = 'none';
-};
-
-window.goToStep1 = function() {
-    document.getElementById('paymentStep1').style.display = 'block';
-    document.getElementById('paymentStep2').style.display = 'none';
-    document.getElementById('paymentInstructionsContainer').style.display = 'none';
-    document.getElementById('paymentWalletInfo').style.display = 'none';
-    document.getElementById('paymentTxInput').style.display = 'none';
-    document.getElementById('paymentTelegramContact').style.display = 'none';
-    document.getElementById('paymentBinanceIdSection').style.display = 'none';
-    document.getElementById('mainConfirmBtn').style.display = 'none';
-};
-
-window.copyWalletAddress = function() {
-    const address = document.getElementById('walletAddressDisplay').textContent;
-    if (address) {
-        navigator.clipboard.writeText(address).then(() => {
-            showToast('✅ Address copied!', 'success');
-        }).catch(() => {
-            const textArea = document.createElement('textarea');
-            textArea.value = address;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
-            showToast('✅ Address copied!', 'success');
-        });
-    }
-};
-
-// ============================================================
-// 47. Final Exports
-// ============================================================
-
-window.toggleLicencesList = toggleLicencesList;
-window.openLicenceModal = openLicenceModal;
-window.closeLicenceModal = closeLicenceModal;
-window.activateLicence = activateLicence;
-window.editLicence = editLicence;
-window.saveLicenceEdit = saveLicenceEdit;
-window.approveLicence = approveLicence;
-window.revokeLicence = revokeLicence;
-window.deleteLicence = deleteLicence;
-window.openCreateLicenceModal = openCreateLicenceModal;
-window.closeCreateLicenceModal = closeCreateLicenceModal;
-window.createLicenceManually = createLicenceManually;
-window.searchLicences = searchLicences;
-window.clearLicenceSearch = clearLicenceSearch;
-window.refreshLicences = refreshLicences;
-window.loadLicences = loadLicences;
-window.renderLicences = renderLicences;
-window.switchAdminTab = switchAdminTab;
-window.loadAdminOrders = loadAdminOrders;
-window.updateOrderStatus = updateOrderStatus;
-window.filterProducts = filterProducts;
-window.openDetails = openDetails;
-window.addToCart = addToCart;
-window.toggleWishlist = toggleWishlist;
+// Modals
+window.openUserMenuFull = openUserMenuFull;
+window.closeUserMenuFull = closeUserMenuFull;
 window.openCartFull = openCartFull;
 window.closeCartFull = closeCartFull;
 window.openWishlistFull = openWishlistFull;
 window.closeWishlistFull = closeWishlistFull;
-window.openUserMenuFull = openUserMenuFull;
-window.closeUserMenuFull = closeUserMenuFull;
 window.openProfileFull = openProfileFull;
 window.closeProfileFull = closeProfileFull;
 window.openHistoryFull = openHistoryFull;
 window.closeHistoryFull = closeHistoryFull;
+window.openDownloads = openDownloads;
+window.closeDownloads = closeDownloads;
+window.openNotifications = openNotifications;
+window.closeNotifications = closeNotifications;
+window.openTransactionsModal = openTransactionsModal;
+window.closeTransactionsModal = closeTransactionsModal;
+window.openSupportModal = openSupportModal;
+window.closeSupportModal = closeSupportModal;
+
+// Products
+window.filterProducts = filterProducts;
+window.openDetails = openDetails;
+window.closeProductDetails = closeProductDetails;
+window.closePreviewModal = closeProductDetails;
+window.addToCart = addToCart;
+window.addToCartFromDetails = addToCartFromDetails;
+window.toggleWishlist = toggleWishlist;
+window.removeFromWishlist = removeFromWishlist;
 window.openShareModal = openShareModal;
 window.closeShareModal = closeShareModal;
 window.shareToWhatsApp = shareToWhatsApp;
 window.shareToTelegram = shareToTelegram;
 window.shareToFacebook = shareToFacebook;
 window.copyShareLink = copyShareLink;
+window.selectQuantityOption = selectQuantityOption;
+window.selectVipPlan = selectVipPlan;
+window.addVipPlanToCart = addVipPlanToCart;
+
+// Search
 window.clearSearch = clearSearch;
 window.closeSearchResults = closeSearchResults;
 window.performLiveSearch = performLiveSearch;
-window.openDownloads = openDownloads;
-window.closeDownloads = closeDownloads;
-window.openNotifications = openNotifications;
-window.closeNotifications = closeNotifications;
-window.clearOrderHistory = clearOrderHistory;
-window.openReferralModal = openReferralModal;
-window.closeReferralModal = closeReferralModal;
-window.copyReferralCode2 = copyReferralCode2;
+
+// Payment
+window.selectPayment = selectPayment;
+window.continuePayment = continuePayment;
+window.placeOrder = placeOrder;
+window.placeOrderTelegram = placeOrderTelegram;
+window.copyWalletAddress = copyWalletAddress;
+window.copyBinanceId = copyBinanceId;
+window.verifyTransaction = verifyTransaction;
+window.handleTxPaste = handleTxPaste;
+window.handleScreenshot = handleScreenshot;
+window.removeScreenshot = removeScreenshot;
+window.submitManualPayment = submitManualPayment;
+window.checkout = checkout;
+window.openPaymentModal = openPaymentModal;
+window.closePaymentModal = closePaymentModal;
+window.goToStep1 = goToStep1;
+
+// Cart
+window.clearCart = clearCart;
+window.removeFromCart = removeFromCart;
+window.updateCartQuantity = updateCartQuantity;
+window.toggleRpInCart = toggleRpInCart;
+window.applyCartPromo = applyCartPromo;
+
+// Wishlist
+window.renderWishlistFull = renderWishlistFull;
+
+// Profile
+window.renderProfileFull = renderProfileFull;
+window.renderCartFull = renderCartFull;
+window.saveProfileChangesInline = saveProfileChangesInline;
+window.sendResetLinkInline = sendResetLinkInline;
+window.changePasswordInline = changePasswordInline;
+window.togglePasswordVisibility = togglePasswordVisibility;
+
+// Telegram
+window.bindTelegram = bindTelegram;
+window.checkTelegramStatus = checkTelegramStatus;
+window.testTelegramNotification = testTelegramNotification;
+window.unlinkTelegram = unlinkTelegram;
+window.showTelegramBanner = showTelegramBanner;
+window.showTelegramBannerAgain = showTelegramBannerAgain;
+window.adminToggleBanner = adminToggleBanner;
+window.resetBannerForAll = resetBannerForAll;
+window.closeTelegramBanner = closeTelegramBanner;
+
+// Admin
+window.ensureAdminPanel = ensureAdminPanel;
+window.openAdminPanel = openAdminPanel;
+window.closeAdminPanel = closeAdminPanel;
+window.switchAdminTab = switchAdminTab;
+window.loadAdminOrders = loadAdminOrders;
+window.updateOrderStatus = updateOrderStatus;
+window.deleteOrderImmediately = deleteOrderImmediately;
+window.searchAdminOrders = searchAdminOrders;
+window.clearAdminSearch = clearAdminSearch;
+window.refreshAdminOrders = refreshAdminOrders;
+window.loadAdminUsers = loadAdminUsers;
+window.toggleUserBan = toggleUserBan;
+window.deleteUserAccount = deleteUserAccount;
+window.viewUserDetails = viewUserDetails;
+window.closeUserDetailsModal = closeUserDetailsModal;
+window.searchAdminUsers = searchAdminUsers;
+window.clearAdminUserSearch = clearAdminUserSearch;
+window.refreshAdminUsers = refreshAdminUsers;
+
+// Products Admin
+window.openAddProductModal = openAddProductModal;
+window.openEditProductModal = openEditProductModal;
+window.closeProductModal = closeProductModal;
+window.saveProduct = saveProduct;
+window.deleteProduct = deleteProduct;
+window.selectCurrency = selectCurrency;
+window.selectProductType = selectProductType;
+window.addQuantityOption = addQuantityOption;
+window.removeQuantityOption = removeQuantityOption;
+window.toggleBadge = toggleBadge;
+
+// Downloads
+window.openCreateDownloadModal = openCreateDownloadModal;
+window.closeCreateDownloadModal = closeCreateDownloadModal;
+window.createDownload = createDownload;
+window.deleteDownload = deleteDownload;
+window.editDownload = editDownload;
+
+// Notifications
+window.openCreateNotificationModal = openCreateNotificationModal;
+window.closeCreateNotificationModal = closeCreateNotificationModal;
+window.createNotification = createNotification;
+window.deleteNotification = deleteNotification;
+window.markAllNotificationsRead = markAllNotificationsRead;
+window.clearAllNotifications = clearAllNotifications;
+
+// Requests & Referrals
 window.openRequestsModal = openRequestsModal;
 window.closeRequestsModal = closeRequestsModal;
 window.openNewRequestModal = openNewRequestModal;
 window.closeNewRequestModal = closeNewRequestModal;
 window.submitRequest = submitRequest;
-window.selectPayment = selectPayment;
-window.continuePayment = continuePayment;
-window.placeOrder = placeOrder;
-window.bindTelegram = bindTelegram;
-window.checkTelegramStatus = checkTelegramStatus;
-window.testTelegramNotification = testTelegramNotification;
-window.unlinkTelegram = unlinkTelegram;
-window.saveProfileChangesInline = saveProfileChangesInline;
-window.sendResetLinkInline = sendResetLinkInline;
-window.changePasswordInline = changePasswordInline;
-window.toggleRpInCart = toggleRpInCart;
-window.applyCartPromo = applyCartPromo;
-window.showTelegramBannerAgain = showTelegramBannerAgain;
-window.adminToggleBanner = adminToggleBanner;
-window.resetBannerForAll = resetBannerForAll;
-window.closeProductDetails = closeProductDetails;
-window.closePreviewModal = closeProductDetails;
-window.addToCartFromDetails = addToCartFromDetails;
+window.openReferralModal = openReferralModal;
+window.closeReferralModal = closeReferralModal;
+window.copyReferralCode2 = copyReferralCode2;
+
+// Licences
+window.openLicenceModal = openLicenceModal;
+window.closeLicenceModal = closeLicenceModal;
+window.activateLicence = activateLicence;
+window.toggleLicencesList = toggleLicencesList;
+window.copyLicenceCode = copyLicenceCode;
+window.loadLicences = loadLicences;
+window.renderLicences = renderLicences;
+window.openCreateLicenceModal = openCreateLicenceModal;
+window.closeCreateLicenceModal = closeCreateLicenceModal;
+window.createLicenceManually = createLicenceManually;
+window.approveLicence = approveLicence;
+window.revokeLicence = revokeLicence;
+window.deleteLicence = deleteLicence;
+window.editLicence = editLicence;
+window.saveLicenceEdit = saveLicenceEdit;
+window.searchLicences = searchLicences;
+window.clearLicenceSearch = clearLicenceSearch;
+window.refreshLicences = refreshLicences;
+
+// History
+window.renderHistoryFull = renderHistoryFull;
+window.clearOrderHistory = clearOrderHistory;
+window.filterOrders = filterOrders;
+
+// Stats
 window.refreshDashboardStats = refreshDashboardStats;
 window.loadDashboardStats = loadDashboardStats;
-window.selectVipPlan = selectVipPlan;
-window.addVipPlanToCart = addVipPlanToCart;
 window.refreshAdvancedStats = refreshAdvancedStats;
-window.setRating = setRating;
-window.submitRating = submitRating;
 window.loadAuditLogs = loadAuditLogs;
-window.pauseSlider = pauseSlider;
-window.resumeSlider = resumeSlider;
+
+// Slider
 window.goToSlide = goToSlide;
 window.nextSlide = nextSlide;
 window.prevSlide = prevSlide;
+window.pauseSlider = pauseSlider;
+window.resumeSlider = resumeSlider;
 window.loadSliderSettings = loadSliderSettings;
 window.updateSlideProductSelect = updateSlideProductSelect;
-window.addBannerAdminControls = addBannerAdminControls;
-window.showTelegramBanner = showTelegramBanner;
-window.showTelegramBannerAgain = showTelegramBannerAgain;
+window.saveSliderData = saveSliderData;
+window.saveSliderInterval = saveSliderInterval;
+window.saveSlideEdit = saveSlideEdit;
+window.editSlide = editSlide;
+window.deleteSlide = deleteSlide;
+window.openAddSlideModal = openAddSlideModal;
+window.closeAddSlideModal = closeAddSlideModal;
+
+// Marquee
 window.loadMarqueeSettings = loadMarqueeSettings;
 window.saveMarqueeSettings = saveMarqueeSettings;
 window.renderMarqueeSettingsUI = renderMarqueeSettingsUI;
 window.applyMarqueeSettings = applyMarqueeSettings;
-window.ensureAdminPanel = ensureAdminPanel;
-window.renderHistoryFull = renderHistoryFull;
-window.renderLicences = renderLicences;
-window.loadLicences = loadLicences;
-window.openLicenceModal = openLicenceModal;
-window.closeLicenceModal = closeLicenceModal;
-window.toggleLicencesList = toggleLicencesList;
-window.activateLicence = activateLicence;
-window.renderWishlistFull = renderWishlistFull;
-window.renderCartFull = renderCartFull;
-window.renderProfileFull = renderProfileFull;
-window.openAuthModal = openAuthModal;
-window.showLogin = showLogin;
-window.showRegister = showRegister;
+
+// Rating
+window.setRating = setRating;
+window.submitRating = submitRating;
+
+// Topup
+window.openTopupModal = openTopupModal;
+window.closeTopupModal = closeTopupModal;
+window.selectTopupAmount = selectTopupAmount;
+window.processTopup = processTopup;
+window.submitTopupWithTxHash = submitTopupWithTxHash;
+window.approveTopup = approveTopup;
+window.rejectTopup = rejectTopup;
+window.openTopupStatus = openTopupStatus;
+window.closeTopupStatus = closeTopupStatus;
+window.loadUserBalance = loadUserBalance;
+window.updateBalanceDisplay = updateBalanceDisplay;
+window.checkoutWithBalance = checkoutWithBalance;
+window.copyToClipboard = copyToClipboard;
+
+// Support
+window.toggleSupportMenu = toggleSupportMenu;
+window.openWhatsAppSupport = openWhatsAppSupport;
+window.openTelegramSupport = openTelegramSupport;
+window.openEmailSupport = openEmailSupport;
+window.openPhoneSupport = openPhoneSupport;
+
+// Cookie
 window.acceptCookies = acceptCookies;
 window.rejectCookies = rejectCookies;
 window.openCookieSettings = openCookieSettings;
 window.closeCookieSettings = closeCookieSettings;
 window.saveCookieSettings = saveCookieSettings;
 window.closeCookieBanner = closeCookieBanner;
-window.saveSliderData = saveSliderData;
-window.saveSliderInterval = saveSliderInterval;
-window.saveSlideEdit = saveSlideEdit;
+
+// Proxy
+window.addProxyToCart = addProxyToCart;
+
+// Misc
+window.generateInvoice = generateInvoice;
+window.exportOrders = exportOrders;
+window.renderPaymentProducts = renderPaymentProducts;
 window.hideLoadingScreenManually = hideLoadingScreenManually;
 window.updateLoadingText = updateLoadingText;
 window.showMainApp = showMainApp;
-window.editSlide = editSlide;
-window.deleteSlide = deleteSlide;
-window.openAddSlideModal = openAddSlideModal;
-window.closeAddSlideModal = closeAddSlideModal;
-window.selectCurrency = selectCurrency;
-window.selectProductType = selectProductType;
-window.addQuantityOption = addQuantityOption;
-window.removeQuantityOption = removeQuantityOption;
-window.toggleBadge = toggleBadge;
-window.selectQuantityOption = selectQuantityOption;
-window.loginWithGoogle = loginWithGoogle;
-window.toggleSupportMenu = toggleSupportMenu;
-window.openSupportModal = openSupportModal;
-window.closeSupportModal = closeSupportModal;
-window.openWhatsAppSupport = openWhatsAppSupport;
-window.openTelegramSupport = openTelegramSupport;
-window.openEmailSupport = openEmailSupport;
-window.openPhoneSupport = openPhoneSupport;
-window.openTopupModal = openTopupModal;
-window.closeTopupModal = closeTopupModal;
-window.selectTopupAmount = selectTopupAmount;
-window.processTopup = processTopup;
-window.checkoutWithBalance = checkoutWithBalance;
-window.loadUserBalance = loadUserBalance;
-window.updateBalanceDisplay = updateBalanceDisplay;
-window.openTransactionsModal = openTransactionsModal;
-window.closeTransactionsModal = closeTransactionsModal;
-window.loadTransactionHistory = loadTransactionHistory;
+window.fixHeaderAndModals = fixDirection;
+window.refreshAdminPayments = refreshAdminPayments;
+window.adminApprovePayment = adminApprovePayment;
+window.adminRejectPayment = adminRejectPayment;
+window.adminDeletePayment = adminDeletePayment;
 
-console.log('✅ ZI Store loaded with TOPUP system!');
+console.log('✅ ZI Store loaded with all features!');
 
 // ============================================================
 // END OF SCRIPT.JS
