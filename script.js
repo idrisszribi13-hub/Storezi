@@ -1,4 +1,3 @@
-
 // ============================================================
 // SCRIPT.JS - ZI Store - COMPLETE FIXED VERSION
 // ============================================================
@@ -389,6 +388,7 @@ function updateServerTime() {
 
 async function fetchUserInfo() {
     try {
+        // FIXED: Using HTTPS for all IP API calls
         const response = await fetch('https://ipapi.co/json/');
         if (!response.ok) throw new Error('Failed to fetch IP info');
 
@@ -411,7 +411,8 @@ async function fetchUserInfo() {
     } catch (error) {
         console.error('❌ Failed to fetch IP info:', error);
         try {
-            const fallbackResponse = await fetch('http://ip-api.com/json/');
+            // FIXED: Using HTTPS for fallback
+            const fallbackResponse = await fetch('https://ip-api.com/json/');
             if (fallbackResponse.ok) {
                 const data = await fallbackResponse.json();
                 if (data.status === 'success') {
@@ -6219,6 +6220,7 @@ window.submitTopupWithTxHash = async function(topupId, amount) {
 
         if (error) throw error;
 
+        // Use the send-notification function that you added to Supabase
         await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/send-notification', {
             method: 'POST',
             headers: {
@@ -6951,7 +6953,320 @@ window.adminDeletePayment = function(orderId, userId) {
 };
 
 // ============================================================
-// 52. Export all functions to global scope
+// 52. ADD MISSING FUNCTIONS - FIXED
+// ============================================================
+
+// ============================================================
+// 52.1 CHECKOUT FUNCTION (Was missing)
+// ============================================================
+
+window.checkout = function() {
+    if (cart.length === 0) {
+        showToast('⚠️ Your cart is empty', 'warning');
+        return;
+    }
+
+    // Check if user is logged in
+    if (!currentUser) {
+        showToast('⚠️ Please login to checkout', 'warning');
+        openAuthModal();
+        return;
+    }
+
+    // Show payment modal
+    openPaymentModal();
+};
+
+// ============================================================
+// 52.2 PAYMENT MODAL FUNCTIONS (Was missing)
+// ============================================================
+
+window.openPaymentModal = function() {
+    if (cart.length === 0) {
+        showToast('⚠️ Cart is empty', 'warning');
+        return;
+    }
+
+    if (!currentUser) {
+        showToast('⚠️ Please login to checkout', 'warning');
+        openAuthModal();
+        return;
+    }
+
+    const modal = document.getElementById('paymentModal');
+    if (modal) {
+        // Reset to step 1
+        goToStep1();
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+        updatePayableTotal();
+        renderPaymentProducts();
+        fetchCryptoPrices();
+        loadUserBalance();
+    } else {
+        showToast('❌ Payment modal not found', 'error');
+    }
+};
+
+window.closePaymentModal = function() {
+    const modal = document.getElementById('paymentModal');
+    if (modal) {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+        selectedPayment = null;
+        document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
+        document.getElementById('paymentStep1').style.display = 'block';
+        document.getElementById('paymentStep2').style.display = 'none';
+    }
+};
+
+window.goToStep1 = function() {
+    document.getElementById('paymentStep1').style.display = 'block';
+    document.getElementById('paymentStep2').style.display = 'none';
+    selectedPayment = null;
+    document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
+};
+
+// ============================================================
+// 52.3 COPY WALLET ADDRESS (Was missing)
+// ============================================================
+
+window.copyWalletAddress = function() {
+    const addressElement = document.getElementById('walletAddressDisplay');
+    if (!addressElement) {
+        showToast('⚠️ Wallet address not found', 'warning');
+        return;
+    }
+    const address = addressElement.textContent.trim();
+    if (!address || address === '') {
+        showToast('⚠️ No wallet address to copy', 'warning');
+        return;
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(address)
+            .then(() => showToast('✅ Wallet address copied!', 'success'))
+            .catch(() => fallbackCopyText(address));
+    } else {
+        fallbackCopyText(address);
+    }
+};
+
+// ============================================================
+// 52.4 ADD PRODUCT MODAL FUNCTIONS (Missing)
+// ============================================================
+
+window.openAddProductModal = function() {
+    if (!currentUser || !isAdminCached) {
+        showToast('⛔ Unauthorized. Admin only.', 'error');
+        return;
+    }
+
+    const modal = document.getElementById('productModal');
+    if (!modal) {
+        showToast('❌ Product modal not found', 'error');
+        return;
+    }
+
+    document.getElementById('productModalTitle').textContent = '➕ Add New Product';
+    document.getElementById('productForm').reset();
+    document.getElementById('productId').value = '';
+    document.getElementById('productCurrency').value = 'USD';
+    document.getElementById('productType').value = 'standard';
+    document.getElementById('quantityOptionsContainer').style.display = 'none';
+    document.querySelectorAll('.currency-option').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.type-option').forEach(el => el.classList.remove('active'));
+    document.querySelector('.currency-option[data-currency="USD"]')?.classList.add('active');
+    document.querySelector('.type-option[data-type="standard"]')?.classList.add('active');
+
+    // Reset badges
+    document.querySelectorAll('.badge-option').forEach(el => el.classList.remove('selected'));
+    document.getElementById('productBadges').value = '';
+
+    // Reset quantity options
+    const list = document.getElementById('quantityOptionsList');
+    if (list) list.innerHTML = '';
+    addQuantityOption();
+
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+};
+
+window.openEditProductModal = function(productId) {
+    if (!currentUser || !isAdminCached) {
+        showToast('⛔ Unauthorized. Admin only.', 'error');
+        return;
+    }
+
+    const product = products.find(p => p.id === productId);
+    if (!product) {
+        showToast('❌ Product not found', 'error');
+        return;
+    }
+
+    const modal = document.getElementById('productModal');
+    if (!modal) {
+        showToast('❌ Product modal not found', 'error');
+        return;
+    }
+
+    document.getElementById('productModalTitle').textContent = '✏️ Edit Product';
+    document.getElementById('productId').value = product.id;
+    document.getElementById('productName').value = product.name || '';
+    document.getElementById('productPrice').value = product.price || 0;
+    document.getElementById('productBadge').value = product.badge || 'FREE';
+    document.getElementById('productStatus').value = product.status || 'available';
+    document.getElementById('productImage').value = product.image || '';
+    document.getElementById('productDescription').value = product.description || '';
+    document.getElementById('productFeatures').value = (product.features || []).join(', ');
+    document.getElementById('productVideo').value = product.video || '';
+    document.getElementById('productDownloadLink').value = product.downloadLink || '';
+    document.getElementById('productCurrency').value = product.currency || 'USD';
+    document.getElementById('productType').value = product.productType || 'standard';
+
+    // Set currency
+    document.querySelectorAll('.currency-option').forEach(el => {
+        el.classList.toggle('active', el.dataset.currency === (product.currency || 'USD'));
+    });
+
+    // Set product type
+    document.querySelectorAll('.type-option').forEach(el => {
+        el.classList.toggle('active', el.dataset.type === (product.productType || 'standard'));
+    });
+
+    // Show/hide quantity options
+    if (product.productType === 'quantity') {
+        document.getElementById('quantityOptionsContainer').style.display = 'block';
+        if (product.quantityOptions) {
+            setQuantityOptions(product.quantityOptions);
+        }
+    } else {
+        document.getElementById('quantityOptionsContainer').style.display = 'none';
+    }
+
+    // Set badges
+    if (product.badges) {
+        setBadges(product.badges);
+    } else {
+        document.querySelectorAll('.badge-option').forEach(el => el.classList.remove('selected'));
+        document.getElementById('productBadges').value = '';
+    }
+
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+};
+
+window.closeProductModal = function() {
+    const modal = document.getElementById('productModal');
+    if (modal) {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+};
+
+window.saveProduct = async function() {
+    if (!currentUser || !isAdminCached) {
+        showToast('⛔ Unauthorized. Admin only.', 'error');
+        return;
+    }
+
+    const id = document.getElementById('productId').value;
+    const name = document.getElementById('productName').value.trim();
+    const price = parseFloat(document.getElementById('productPrice').value) || 0;
+    const badge = document.getElementById('productBadge').value;
+    const status = document.getElementById('productStatus').value;
+    const image = document.getElementById('productImage').value.trim();
+    const description = document.getElementById('productDescription').value.trim();
+    const featuresText = document.getElementById('productFeatures').value.trim();
+    const video = document.getElementById('productVideo').value.trim();
+    const downloadLink = document.getElementById('productDownloadLink').value.trim();
+    const currency = document.getElementById('productCurrency').value || 'USD';
+    const productType = document.getElementById('productType').value || 'standard';
+
+    if (!name) {
+        showToast('⚠️ Product name is required', 'warning');
+        return;
+    }
+
+    const features = featuresText ? featuresText.split(',').map(f => f.trim()).filter(f => f) : [];
+    const badgesText = document.getElementById('productBadges').value;
+    const badges = badgesText ? badgesText.split(',').map(b => b.trim()).filter(b => b) : [];
+
+    const productData = {
+        name,
+        price,
+        badge,
+        status,
+        image,
+        description,
+        features,
+        video,
+        downloadLink,
+        currency,
+        productType,
+        badges,
+        updatedAt: serverTimestamp()
+    };
+
+    if (productType === 'quantity') {
+        const quantityOptions = getQuantityOptions();
+        if (quantityOptions.length === 0) {
+            showToast('⚠️ Please add at least one quantity option', 'warning');
+            return;
+        }
+        productData.quantityOptions = quantityOptions;
+    }
+
+    try {
+        if (id) {
+            // Update existing product
+            await updateDoc(doc(db, 'products', id), productData);
+            showToast('✅ Product updated successfully!', 'success');
+        } else {
+            // Add new product
+            productData.createdAt = serverTimestamp();
+            await addDoc(collection(db, 'products'), productData);
+            showToast('✅ Product added successfully!', 'success');
+        }
+
+        closeProductModal();
+        // Products will be refreshed via the realtime listener
+    } catch (error) {
+        console.error('Error saving product:', error);
+        showToast('❌ Error: ' + error.message, 'error');
+    }
+};
+
+window.deleteProduct = async function(productId) {
+    if (!currentUser || !isAdminCached) {
+        showToast('⛔ Unauthorized. Admin only.', 'error');
+        return;
+    }
+
+    if (!confirm('Are you sure you want to delete this product?')) return;
+
+    try {
+        await deleteDoc(doc(db, 'products', productId));
+        showToast('🗑️ Product deleted successfully', 'success');
+        // Products will be refreshed via the realtime listener
+    } catch (error) {
+        console.error('Error deleting product:', error);
+        showToast('❌ Error: ' + error.message, 'error');
+    }
+};
+
+// ============================================================
+// 52.5 FILTER ORDERS FUNCTION (Missing)
+// ============================================================
+
+window.filterOrders = function(filter) {
+    ordersFilter = filter;
+    // Re-render history with filter
+    renderHistoryFull();
+};
+
+// ============================================================
+// 53. Export all functions to global scope
 // ============================================================
 
 window.showLogin = showLogin;
@@ -7174,8 +7489,9 @@ window.saveFallbackProduct = saveFallbackProduct;
 window.deleteFallbackProduct = deleteFallbackProduct;
 
 console.log('✅ All functions exported to window scope');
+
 // ============================================================
-// 53. Init
+// 54. Init
 // ============================================================
 
 async function init() {
@@ -7253,7 +7569,7 @@ async function init() {
 }
 
 // ============================================================
-// 54. Auth State Listener
+// 55. Auth State Listener
 // ============================================================
 
 onAuthStateChanged(auth, async (user) => {
@@ -7356,7 +7672,7 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// 55. Start App
+// 56. Start App
 // ============================================================
 
 if (document.readyState === 'loading') {
