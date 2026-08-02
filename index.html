@@ -111,7 +111,7 @@
         #toast.warning { border-color:var(--warning); }
         #toast.info { border-color:var(--primary); }
 
-        /* TOP INFO BAR */
+        /* ===== TOP INFO BAR ===== */
         #topInfoBar {
             background: var(--glass-bg);
             backdrop-filter: blur(12px);
@@ -126,7 +126,6 @@
             font-weight: 500;
             color: var(--text-secondary);
             min-height: 36px;
-            transition: all 0.3s ease;
             position: sticky;
             top: 0;
             z-index: 101;
@@ -146,7 +145,7 @@
             #topInfoBar .info-item:last-child { order:3; }
         }
 
-        /* Header */
+        /* ===== HEADER ===== */
         .header {
             display:flex; align-items:center; justify-content:space-between;
             padding:12px 20px;
@@ -163,7 +162,9 @@
             display:flex; align-items:center; gap:8px;
         }
         .logo i { -webkit-text-fill-color:var(--vip-color); }
-        .header-actions { display:flex; gap:8px; align-items:center; }
+        .header-actions {
+            display:flex; gap:8px; align-items:center;
+        }
         .header-actions button {
             background:var(--glass-bg);
             backdrop-filter:blur(8px);
@@ -190,7 +191,6 @@
         }
         .theme-toggle { background:transparent !important; border:none !important; font-size:20px !important; }
 
-        /* Balance Button */
         .balance-btn {
             background:var(--glass-bg) !important;
             backdrop-filter:blur(8px) !important;
@@ -215,7 +215,7 @@
         .balance-btn .wallet-icon { color:var(--vip-color); }
         .balance-btn .add-icon { color:var(--success); font-size:18px; font-weight:300; }
 
-        /* Search */
+        /* ===== SEARCH ===== */
         .search-wrapper {
             padding:12px 20px;
             position:sticky; top:106px;
@@ -263,7 +263,7 @@
         }
         #searchResults.active { display:block; }
 
-        /* Marquee */
+        /* ===== MARQUEE ===== */
         #marqueeBar {
             background:var(--glass-bg);
             backdrop-filter:blur(8px);
@@ -278,7 +278,7 @@
         #marqueeContent span { margin:0 30px; }
         @keyframes marquee { 0%{transform:translateX(100%)} 100%{transform:translateX(-100%)} }
 
-        /* Slider */
+        /* ===== SLIDER ===== */
         .slider-container {
             position:relative;
             margin:16px 20px;
@@ -318,7 +318,7 @@
         }
         .slider-dots .dot.active { background:var(--primary); opacity:1; width:24px; border-radius:6px; }
 
-        /* Stats */
+        /* ===== STATS ===== */
         .stats-bar {
             display:grid; grid-template-columns:repeat(4,1fr);
             gap:10px; padding:0 20px 16px;
@@ -333,7 +333,7 @@
         .stat-card .num { font-size:22px; font-weight:800; color:var(--primary); }
         .stat-card .label { font-size:11px; color:var(--text-secondary); opacity:0.6; font-weight:600; }
 
-        /* Filters */
+        /* ===== FILTERS ===== */
         .filters {
             display:flex; gap:10px; padding:0 20px 16px;
             overflow-x:auto; flex-wrap:nowrap;
@@ -355,7 +355,7 @@
         }
         .filters .filter-btn:hover { border-color:var(--primary); }
 
-        /* PRODUCT GRID */
+        /* ===== PRODUCT GRID ===== */
         .product-grid {
             display:grid;
             grid-template-columns:repeat(auto-fill, minmax(170px,1fr));
@@ -477,7 +477,7 @@
             font-weight:600;
         }
 
-        /* Bottom Cart */
+        /* ===== BOTTOM CART ===== */
         #bottomCartBar {
             position:fixed; bottom:0; left:0; right:0;
             background:var(--glass-bg);
@@ -501,7 +501,7 @@
         }
         #bottomCartBar .checkout-btn:hover { transform:scale(1.04); }
 
-        /* Fullscreen Modals */
+        /* ===== FULLSCREEN MODALS ===== */
         .fullscreen-modal {
             position:fixed; top:0; left:0; width:100%; height:100%;
             z-index:300;
@@ -543,7 +543,7 @@
         }
         .fullscreen-modal .modal-header .back-btn:hover { transform:translateX(-4px); }
 
-        /* Auth */
+        /* ===== AUTH ===== */
         #authSection {
             display:flex; align-items:center; justify-content:center;
             min-height:100vh; padding:20px;
@@ -607,95 +607,323 @@
         }
         .auth-container .terms input[type="checkbox"] { width:16px; height:16px; accent-color:var(--primary); }
 
-        /* Admin Panel */
+        /* ===== ADMIN PANEL - PROFESSIONAL ===== */
         #adminPanel {
-            position:fixed; inset:0; z-index:400;
+            position: fixed; inset:0; z-index:500;
             background:var(--bg);
-            display:none; flex-direction:column;
-            padding:20px; overflow-y:auto;
+            display:none;
+            overflow:hidden;
         }
         #adminPanel.open { display:flex; }
-        #adminPanel .admin-header {
-            display:flex; justify-content:space-between;
-            align-items:center; padding-bottom:16px;
+        .admin-container {
+            display:flex; width:100%; height:100%;
+            background:var(--bg);
+        }
+        .admin-sidebar {
+            width:220px; min-width:220px;
+            background:var(--card-bg);
+            border-right:1px solid var(--glass-border);
+            display:flex; flex-direction:column;
+            overflow-y:auto;
+            padding:16px 0;
+            flex-shrink:0;
+        }
+        .admin-sidebar-header {
+            display:flex; align-items:center; gap:10px;
+            padding:0 16px 16px;
+            font-size:18px; font-weight:800;
+            color:var(--primary);
             border-bottom:1px solid var(--glass-border);
+            margin-bottom:12px;
         }
-        #adminPanel .admin-header h2 { font-size:22px; font-weight:800; }
-        #adminPanel .admin-header .close-btn { font-size:26px; background:none; border:none; color:var(--text-secondary); cursor:pointer; }
-        #adminPanel .tabs {
-            display:flex; gap:8px; overflow-x:auto;
-            padding:16px 0; border-bottom:1px solid var(--glass-border);
+        .admin-sidebar-header i { font-size:22px; }
+        .admin-nav {
+            flex:1; display:flex; flex-direction:column; gap:2px;
+            padding:0 8px;
+        }
+        .admin-nav-btn {
+            display:flex; align-items:center; gap:10px;
+            padding:10px 14px;
+            border:none; border-radius:var(--radius-sm);
+            background:transparent;
+            color:var(--text-secondary);
+            font-size:13px; font-weight:600;
+            cursor:pointer; transition:all 0.2s;
+            width:100%; text-align:left;
+            position:relative;
+        }
+        .admin-nav-btn:hover {
+            background:var(--glass-bg);
+            color:var(--text);
+        }
+        .admin-nav-btn.active {
+            background:var(--primary-glow);
+            color:var(--primary);
+        }
+        .admin-nav-btn i { width:20px; font-size:15px; }
+        .admin-nav-btn .nav-badge {
+            margin-left:auto;
+            background:var(--danger); color:#fff;
+            font-size:10px; padding:0 8px;
+            border-radius:30px; font-weight:700;
+        }
+        .admin-sidebar-footer {
+            padding:12px 16px 0;
+            border-top:1px solid var(--glass-border);
+            margin-top:8px;
+        }
+        .admin-close-btn {
+            display:flex; align-items:center; justify-content:center; gap:6px;
+            width:100%; padding:10px;
+            border:1px solid var(--glass-border);
+            border-radius:var(--radius-sm);
+            background:transparent;
+            color:var(--text-secondary);
+            cursor:pointer; font-weight:600;
+            transition:all 0.2s;
+        }
+        .admin-close-btn:hover {
+            background:var(--danger); color:#fff;
+            border-color:var(--danger);
+        }
+        .admin-main {
+            flex:1; display:flex; flex-direction:column;
+            overflow:hidden;
+            padding:20px 24px;
+        }
+        .admin-main-header {
+            padding-bottom:16px;
+            border-bottom:1px solid var(--glass-border);
             margin-bottom:16px;
+            flex-shrink:0;
         }
-        #adminPanel .tabs button {
-            padding:8px 18px; border:1px solid var(--glass-border);
-            border-radius:30px; background:var(--glass-bg);
-            color:var(--text-secondary); font-weight:600;
-            cursor:pointer; white-space:nowrap;
-            transition:var(--transition);
+        .admin-main-header h2 { font-size:20px; font-weight:800; color:var(--text); }
+        .admin-main-content {
+            flex:1; overflow-y:auto;
+            padding-right:4px;
         }
-        #adminPanel .tabs button.active {
-            background:var(--primary); color:#fff;
-            border-color:var(--primary);
+        .admin-tab-content {
+            display:none;
+            animation:fadeIn 0.3s ease;
         }
-        #adminPanel .tab-content { display:none; animation:fadeIn 0.3s ease; }
-        #adminPanel .tab-content.active { display:block; }
+        .admin-tab-content.active { display:block; }
         @keyframes fadeIn { 0%{opacity:0; transform:translateY(10px)} 100%{opacity:1; transform:translateY(0)} }
 
-        /* Admin Items */
-        .admin-item {
-            display:flex; justify-content:space-between;
-            align-items:center; padding:12px 16px;
+        .admin-stats-grid {
+            display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr));
+            gap:16px; margin-bottom:16px;
+        }
+        .admin-stat-card {
             background:var(--glass-bg);
             backdrop-filter:blur(8px);
+            border:1px solid var(--glass-border);
+            border-radius:var(--radius-sm);
+            padding:16px 20px;
+            display:flex; align-items:center; gap:14px;
+            border-left:4px solid var(--primary);
+        }
+        .admin-stat-icon {
+            width:44px; height:44px; border-radius:50%;
+            background:rgba(108,92,231,0.15);
+            display:flex; align-items:center; justify-content:center;
+            font-size:18px; color:var(--primary);
+            flex-shrink:0;
+        }
+        .admin-stat-info .admin-stat-number { font-size:24px; font-weight:800; color:var(--text); }
+        .admin-stat-info .admin-stat-label { font-size:12px; color:var(--text-secondary); opacity:0.5; font-weight:500; }
+
+        .admin-orders-stats, .admin-payments-stats {
+            display:flex; gap:12px; flex-wrap:wrap; margin-bottom:12px;
+        }
+        .order-stat, .payment-stat {
+            padding:6px 16px; border-radius:30px;
+            font-size:13px; font-weight:600;
+            background:var(--glass-bg);
+            border:1px solid var(--glass-border);
+        }
+        .order-stat .stat-num, .payment-stat span { font-weight:800; margin-right:4px; }
+        .order-stat.pending .stat-num, .payment-stat.pending span { color:var(--pending-color); }
+        .order-stat.confirmed .stat-num, .payment-stat.confirmed span { color:var(--success); }
+        .order-stat.rejected .stat-num, .payment-stat.rejected span { color:var(--danger); }
+
+        .admin-table-wrapper {
+            overflow-x:auto;
             border-radius:var(--radius-sm);
             border:1px solid var(--glass-border);
-            margin-bottom:8px;
-            flex-wrap:wrap; gap:8px;
         }
-        .admin-item .item-info { flex:1; min-width:120px; }
-        .admin-item .item-title { font-weight:700; font-size:14px; }
-        .admin-item .item-meta { font-size:12px; color:var(--text-secondary); opacity:0.5; font-weight:500; }
-        .admin-item .item-actions { display:flex; gap:6px; }
-        .admin-item .item-actions button {
-            border:none; background:var(--card-bg);
-            color:var(--text); padding:6px 14px;
-            border-radius:var(--radius-sm); cursor:pointer;
-            transition:var(--transition); font-weight:600;
+        .admin-table {
+            width:100%; border-collapse:collapse; font-size:13px;
         }
-        .admin-item .item-actions .btn-edit:hover { background:var(--primary); }
-        .admin-item .item-actions .btn-delete:hover { background:var(--danger); }
-        .admin-item .item-actions .btn-approve:hover { background:var(--success); color:#0a0a1a; }
+        .admin-table thead {
+            background:var(--glass-bg);
+            border-bottom:2px solid var(--glass-border);
+        }
+        .admin-table th {
+            padding:10px 12px; text-align:left;
+            font-weight:700; color:var(--text-secondary);
+            font-size:12px; text-transform:uppercase; letter-spacing:0.5px;
+        }
+        .admin-table td {
+            padding:10px 12px;
+            border-bottom:1px solid var(--glass-border);
+            vertical-align:middle;
+        }
+        .admin-table tbody tr:hover { background:var(--glass-bg); }
+        .admin-table .text-center { text-align:center; padding:30px; color:var(--text-secondary); }
 
-        .admin-form-group { margin-bottom:12px; }
-        .admin-form-group label { display:block; font-size:13px; font-weight:700; color:var(--text-secondary); margin-bottom:4px; }
-        .admin-form-group input,
-        .admin-form-group select,
-        .admin-form-group textarea {
-            width:100%; padding:8px 12px;
+        .admin-products-grid {
+            display:grid; grid-template-columns:repeat(auto-fill, minmax(180px,1fr));
+            gap:12px;
+        }
+        .admin-product-card {
+            background:var(--glass-bg);
+            backdrop-filter:blur(8px);
+            border:1px solid var(--glass-border);
+            border-radius:var(--radius-sm);
+            overflow:hidden;
+            position:relative;
+            transition:all 0.2s;
+        }
+        .admin-product-card:hover { border-color:var(--primary); }
+        .admin-product-card .product-img {
+            height:100px;
+            background:var(--bg-secondary);
+            display:flex; align-items:center; justify-content:center;
+            font-size:32px; opacity:0.3;
+            overflow:hidden;
+        }
+        .admin-product-card .product-img img { width:100%; height:100%; object-fit:cover; }
+        .admin-product-card .product-info { padding:10px 12px; }
+        .admin-product-card .product-info .name {
+            font-weight:700; font-size:14px;
+            white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+        }
+        .admin-product-card .product-info .meta {
+            font-size:12px; color:var(--text-secondary); opacity:0.5; font-weight:500;
+        }
+        .admin-product-card .product-actions {
+            position:absolute; top:6px; right:6px;
+            display:flex; gap:4px;
+        }
+        .admin-product-card .product-actions button {
+            width:28px; height:28px; border:none; border-radius:50%;
+            background:rgba(0,0,0,0.5); backdrop-filter:blur(4px);
+            color:#fff; cursor:pointer; font-size:12px;
+            transition:all 0.2s;
+        }
+        .admin-product-card .product-actions .edit-btn:hover { background:var(--primary); }
+        .admin-product-card .product-actions .delete-btn:hover { background:var(--danger); }
+
+        .admin-search-bar {
+            display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;
+        }
+        .admin-search-bar input {
+            flex:1; padding:8px 14px;
             border:2px solid var(--glass-border);
             border-radius:var(--radius-sm);
             background:var(--card-bg);
-            color:var(--text);
-            font-size:14px; font-family:var(--font);
-            outline:none; font-weight:500;
+            color:var(--text); font-family:var(--font);
+            font-size:14px; outline:none; font-weight:500;
+            min-width:150px;
         }
-        .admin-form-group input:focus { border-color:var(--primary); }
-        .admin-submit-btn {
-            padding:10px 20px; border:none; border-radius:var(--radius-sm);
-            background:var(--primary); color:#fff;
-            font-weight:800; cursor:pointer;
-            transition:var(--transition);
-        }
-        .admin-submit-btn:hover { opacity:0.9; }
-        .add-btn {
+        .admin-search-bar input:focus { border-color:var(--primary); }
+        .admin-search-bar button {
             padding:8px 16px; border:none; border-radius:var(--radius-sm);
-            background:var(--success); color:#0a0a1a;
-            font-weight:700; cursor:pointer; transition:var(--transition);
+            background:var(--primary); color:#fff;
+            cursor:pointer; font-weight:700; transition:all 0.2s;
         }
-        .add-btn:hover { opacity:0.8; }
+        .admin-search-bar button:hover { opacity:0.8; }
+        .admin-search-bar button:last-child {
+            background:var(--glass-bg); color:var(--text-secondary);
+        }
+        .admin-search-bar button:last-child:hover {
+            background:var(--primary); color:#fff;
+        }
 
-        /* Payment Modal */
+        .admin-toolbar {
+            display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;
+        }
+        .admin-add-btn {
+            padding:8px 18px; border:none; border-radius:var(--radius-sm);
+            background:var(--success); color:#0a0a1a;
+            font-weight:700; cursor:pointer; transition:all 0.2s;
+            display:flex; align-items:center; gap:6px;
+        }
+        .admin-add-btn:hover { opacity:0.8; }
+        .admin-refresh-btn {
+            padding:8px 18px; border:none; border-radius:var(--radius-sm);
+            background:var(--glass-bg); color:var(--text-secondary);
+            font-weight:600; cursor:pointer; transition:all 0.2s;
+            display:flex; align-items:center; gap:6px;
+        }
+        .admin-refresh-btn:hover { background:var(--primary); color:#fff; }
+        .admin-save-btn {
+            padding:8px 18px; border:none; border-radius:var(--radius-sm);
+            background:var(--primary); color:#fff;
+            font-weight:700; cursor:pointer; transition:all 0.2s;
+            display:flex; align-items:center; gap:6px;
+        }
+        .admin-save-btn:hover { opacity:0.8; }
+
+        .admin-slider-settings {
+            display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+            margin-bottom:12px; padding:12px 16px;
+            background:var(--glass-bg);
+            border-radius:var(--radius-sm);
+            border:1px solid var(--glass-border);
+        }
+        .admin-slider-settings label {
+            font-weight:600; font-size:13px; color:var(--text-secondary);
+        }
+        .admin-slider-settings input {
+            width:80px; padding:6px 10px;
+            border:2px solid var(--glass-border);
+            border-radius:var(--radius-sm);
+            background:var(--card-bg);
+            color:var(--text); font-size:14px; font-weight:600; outline:none;
+        }
+        .admin-slider-settings input:focus { border-color:var(--primary); }
+
+        .admin-users-grid {
+            display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr));
+            gap:10px;
+        }
+        .admin-user-card {
+            background:var(--glass-bg);
+            backdrop-filter:blur(8px);
+            border:1px solid var(--glass-border);
+            border-radius:var(--radius-sm);
+            padding:14px; text-align:center;
+        }
+        .admin-user-card .user-avatar {
+            width:48px; height:48px; border-radius:50%;
+            background:var(--primary);
+            margin:0 auto 6px;
+            display:flex; align-items:center; justify-content:center;
+            font-weight:800; font-size:18px; color:#fff;
+            overflow:hidden;
+        }
+        .admin-user-card .user-name { font-weight:700; font-size:14px; }
+        .admin-user-card .user-email {
+            font-size:11px; color:var(--text-secondary); opacity:0.5;
+            word-break:break-all;
+        }
+        .admin-user-card .user-meta {
+            font-size:11px; color:var(--text-secondary); opacity:0.4;
+        }
+        .admin-user-card .user-actions {
+            display:flex; gap:4px; justify-content:center; flex-wrap:wrap; margin-top:6px;
+        }
+        .admin-user-card .user-actions button {
+            padding:4px 12px; border:none; border-radius:var(--radius-sm);
+            font-size:11px; cursor:pointer; font-weight:600; transition:all 0.2s;
+        }
+        .admin-user-card .user-actions .btn-view { background:var(--primary); color:#fff; }
+        .admin-user-card .user-actions .btn-ban { background:var(--danger); color:#fff; }
+        .admin-user-card .user-actions .btn-unban { background:var(--success); color:#0a0a1a; }
+        .admin-user-card .user-actions .btn-delete { background:var(--danger); color:#fff; }
+
+        /* ===== MODAL (normal) ===== */
         .modal {
             position:fixed; inset:0; z-index:500;
             background:rgba(0,0,0,0.6);
@@ -766,267 +994,7 @@
         }
         .payment-btn:hover { opacity:0.9; }
 
-        /* PRODUCT DETAILS */
-        #productDetailsContent {
-            flex:1; overflow-y:auto;
-            padding:0 4px 20px;
-        }
-
-        /* Rating Section */
-        .rating-section {
-            background:var(--glass-bg);
-            backdrop-filter:blur(8px);
-            border-radius:var(--radius-md);
-            padding:18px 16px;
-            border:1px solid var(--glass-border);
-            margin-top:12px;
-        }
-        .rating-stars .star {
-            font-size:26px; cursor:pointer;
-            color:var(--text-secondary); opacity:0.2;
-            transition:var(--transition);
-        }
-        .rating-stars .star.active { color:#fbbf24; opacity:1; }
-
-        /* Featured, Recommendations, Proxy */
-        #featuredGrid, #recommendationsGrid {
-            display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
-            gap:12px; padding:0 20px 16px;
-        }
-        .featured-item, .rec-item {
-            background:var(--glass-bg);
-            backdrop-filter:blur(8px);
-            border:1px solid var(--glass-border);
-            border-radius:var(--radius-sm);
-            overflow:hidden; cursor:pointer;
-            transition:var(--transition);
-            text-align:center;
-        }
-        .featured-item:hover, .rec-item:hover {
-            transform:translateY(-4px);
-            border-color:var(--primary);
-        }
-        .featured-item-image { position:relative; height:100px; overflow:hidden; }
-        .featured-item-image img { width:100%; height:100%; object-fit:cover; }
-        .featured-item-badge {
-            position:absolute; top:6px; right:6px;
-            padding:2px 12px; border-radius:30px;
-            font-size:8px; font-weight:800;
-            background:var(--vip-color); color:#0a0a1a;
-        }
-        .featured-item-badge.free { background:var(--free-color); }
-        .featured-item-name, .rec-item .r-name {
-            font-size:13px; font-weight:700;
-            padding:6px 8px 0;
-            white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-        }
-        .featured-item-price, .rec-item .r-price {
-            font-size:12px; color:var(--primary);
-            font-weight:800; padding-bottom:6px;
-        }
-        .rec-item img { width:100%; height:80px; object-fit:cover; }
-
-        .proxy-grid {
-            display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
-            gap:14px; padding:0 20px 20px;
-        }
-        .proxy-card {
-            background:var(--glass-bg);
-            backdrop-filter:blur(8px);
-            border:1px solid var(--glass-border);
-            border-radius:var(--radius-md);
-            padding:16px 12px; text-align:center;
-            transition:var(--transition);
-            display:flex; flex-direction:column;
-        }
-        .proxy-card:hover {
-            transform:translateY(-4px);
-            border-color:var(--primary);
-        }
-        .proxy-card .proxy-icon { font-size:32px; margin:6px 0; }
-        .proxy-card .proxy-name { font-weight:800; font-size:16px; color:var(--text); }
-        .proxy-card .proxy-meta { font-size:13px; color:var(--text-secondary); opacity:0.5; font-weight:500; }
-        .proxy-card .proxy-price { font-size:20px; font-weight:800; color:var(--primary); margin:6px 0; }
-        .proxy-card .proxy-btn {
-            width:100%; padding:10px; border:none;
-            border-radius:var(--radius-sm);
-            background:var(--primary); color:#fff;
-            font-weight:700; cursor:pointer;
-            transition:var(--transition);
-            margin-top:auto;
-        }
-        .proxy-card .proxy-btn.added { background:var(--success); }
-        .proxy-card .proxy-btn:hover { opacity:0.9; transform:scale(1.02); }
-
-        /* Telegram Banner */
-        #telegramBanner {
-            display:none;
-            background:var(--primary-glow);
-            border:1px solid var(--primary);
-            border-radius:var(--radius-md);
-            padding:14px 20px;
-            margin:0 20px 16px;
-            align-items:center; justify-content:space-between;
-            flex-wrap:wrap; gap:12px;
-            animation:bannerSlideDown 0.6s ease forwards;
-        }
-        #telegramBanner.hidden { display:none; }
-        .banner-icon i { font-size:30px; color:#0088cc; }
-        .banner-text { flex:1; }
-        .banner-title { font-weight:800; font-size:16px; }
-        .banner-title .badge-new { background:var(--danger); color:#fff; font-size:9px; padding:0 10px; border-radius:30px; margin-left:6px; font-weight:700; }
-        .banner-subtitle { font-size:13px; color:var(--text-secondary); opacity:0.7; font-weight:500; }
-        .banner-action {
-            padding:8px 20px; border:none; border-radius:30px;
-            background:var(--primary); color:#fff;
-            font-weight:700; cursor:pointer;
-            transition:var(--transition);
-        }
-        .banner-action:hover { opacity:0.8; }
-        .banner-close { background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:20px; opacity:0.3; }
-
-        /* Cookie Consent */
-        #cookieConsent {
-            position:fixed; bottom:0; left:0; right:0;
-            background:var(--card-bg);
-            backdrop-filter:blur(20px);
-            border-top:1px solid var(--glass-border);
-            padding:16px 20px;
-            z-index:999;
-            display:none; flex-direction:column;
-            gap:12px;
-        }
-        #cookieConsent.show { display:flex; }
-        #cookieConsent .cookie-text { font-size:13px; color:var(--text-secondary); font-weight:500; }
-        #cookieConsent .cookie-actions { display:flex; gap:10px; flex-wrap:wrap; }
-        #cookieConsent .cookie-actions button {
-            padding:8px 20px; border:none; border-radius:var(--radius-sm);
-            font-weight:700; cursor:pointer; transition:var(--transition);
-        }
-        #cookieConsent .cookie-actions .accept { background:var(--primary); color:#fff; }
-        #cookieConsent .cookie-actions .reject { background:var(--glass-bg); color:var(--text-secondary); border:1px solid var(--glass-border); }
-        #cookieConsent .cookie-actions .settings { background:transparent; color:var(--primary); text-decoration:underline; }
-
-        /* Support Float */
-        #supportFloat {
-            position:fixed; bottom:80px; right:20px; z-index:250;
-        }
-        #supportFloat .support-toggle {
-            width:60px; height:60px; border-radius:50%;
-            background:var(--primary);
-            color:#fff; border:none;
-            font-size:26px; cursor:pointer;
-            box-shadow:0 8px 30px var(--primary-glow);
-            transition:var(--transition);
-            display:flex; align-items:center; justify-content:center;
-        }
-        #supportFloat .support-toggle:hover { transform:scale(1.08); }
-        #supportFloat .support-menu {
-            position:absolute; bottom:70px; right:0;
-            background:var(--card-bg);
-            backdrop-filter:blur(16px);
-            border:1px solid var(--glass-border);
-            border-radius:var(--radius-md);
-            padding:8px; display:none;
-            flex-direction:column; gap:4px;
-            min-width:180px;
-        }
-        #supportFloat.open .support-menu { display:flex; }
-        #supportFloat .support-menu button {
-            background:none; border:none;
-            padding:10px 14px; color:var(--text);
-            font-size:14px; font-weight:600;
-            cursor:pointer; border-radius:var(--radius-sm);
-            display:flex; align-items:center; gap:10px;
-            transition:var(--transition);
-            width:100%; text-align:left;
-        }
-        #supportFloat .support-menu button:hover { background:var(--primary-glow); }
-        #supportFloat .support-menu button i { width:20px; color:var(--primary); }
-
-        /* Footer */
-        .site-footer {
-            background:var(--glass-bg);
-            backdrop-filter:blur(8px);
-            border-top:1px solid var(--glass-border);
-            padding:30px 20px 20px;
-            margin-top:30px;
-        }
-        .site-footer .footer-content {
-            max-width:1200px; margin:0 auto;
-            display:flex; flex-direction:column;
-            align-items:center; gap:20px;
-        }
-        .site-footer .footer-social { display:flex; gap:16px; }
-        .site-footer .footer-social a {
-            color:var(--text-secondary);
-            font-size:24px; transition:var(--transition);
-            display:flex; align-items:center; justify-content:center;
-            width:48px; height:48px; border-radius:50%;
-            background:var(--glass-bg);
-            border:1px solid var(--glass-border);
-            text-decoration:none;
-        }
-        .site-footer .footer-social a:hover { color:#fff; border-color:var(--primary); transform:translateY(-3px); }
-        .site-footer .footer-social a.youtube:hover { color:#ff0000; border-color:#ff0000; }
-        .site-footer .footer-social a.telegram:hover { color:#0088cc; border-color:#0088cc; }
-        .site-footer .footer-links { display:flex; gap:20px; flex-wrap:wrap; justify-content:center; }
-        .site-footer .footer-links a {
-            color:var(--text-secondary); text-decoration:none;
-            font-size:13px; transition:var(--transition);
-            opacity:0.6; font-weight:500;
-        }
-        .site-footer .footer-links a:hover { color:var(--primary); opacity:1; }
-        .site-footer .footer-copyright {
-            font-size:12px; color:var(--text-secondary); opacity:0.3;
-            text-align:center; font-weight:500;
-        }
-        .site-footer .footer-copyright strong { color:var(--primary); opacity:0.6; }
-
-        /* Status badges */
-        .status-badge {
-            display:inline-block; padding:4px 14px;
-            border-radius:30px; font-size:11px; font-weight:700;
-        }
-        .status-badge.pending { background:var(--pending-color); color:#0a0a1a; }
-        .status-badge.confirmed { background:var(--success); color:#0a0a1a; }
-        .status-badge.rejected { background:var(--danger); color:#fff; }
-        .status-badge.active { background:var(--success); color:#0a0a1a; }
-
-        /* Admin users grid */
-        .admin-users-grid {
-            display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
-            gap:10px;
-        }
-        .admin-user-card {
-            background:var(--glass-bg);
-            backdrop-filter:blur(8px);
-            border:1px solid var(--glass-border);
-            border-radius:var(--radius-sm);
-            padding:12px; text-align:center;
-        }
-        .admin-user-card .user-avatar {
-            width:48px; height:48px; border-radius:50%;
-            background:var(--primary);
-            margin:0 auto 6px;
-            display:flex; align-items:center; justify-content:center;
-            font-weight:800; font-size:18px; color:#fff;
-            overflow:hidden;
-        }
-        .admin-user-card .user-name { font-weight:700; font-size:14px; }
-        .admin-user-card .user-email { font-size:11px; color:var(--text-secondary); opacity:0.5; word-break:break-all; font-weight:500; }
-        .admin-user-card .user-meta { font-size:11px; color:var(--text-secondary); opacity:0.4; font-weight:500; }
-        .admin-user-card .user-badge { display:inline-block; font-size:9px; padding:2px 10px; border-radius:30px; margin:2px 0; font-weight:700; }
-        .admin-user-card .user-badge.banned { background:var(--danger); color:#fff; }
-        .admin-user-card .user-badge.admin { background:var(--vip-color); color:#0a0a1a; }
-        .admin-user-card .user-actions { display:flex; gap:4px; justify-content:center; flex-wrap:wrap; margin-top:6px; }
-        .admin-user-card .user-actions button { padding:4px 12px; border:none; border-radius:var(--radius-sm); font-size:11px; cursor:pointer; transition:var(--transition); font-weight:600; }
-        .admin-user-card .user-actions .btn-view { background:var(--primary); color:#fff; }
-        .admin-user-card .user-actions .btn-ban { background:var(--danger); color:#fff; }
-        .admin-user-card .user-actions .btn-unban { background:var(--success); color:#0a0a1a; }
-        .admin-user-card .user-actions .btn-delete { background:var(--danger); color:#fff; }
-
-        /* Cart, Profile etc. */
+        /* ===== CART ITEMS ===== */
         .cart-item {
             display:flex; justify-content:space-between;
             align-items:center; padding:12px 16px;
@@ -1051,6 +1019,7 @@
         .cart-item .ci-remove { background:none !important; border:none !important; color:var(--text-secondary); opacity:0.3; font-size:16px; }
         .cart-item .ci-remove:hover { opacity:0.8; }
 
+        /* ===== PROFILE ===== */
         .profile-container { display:flex; flex-direction:column; gap:16px; }
         .profile-card {
             background:var(--glass-bg);
@@ -1122,6 +1091,7 @@
             transition:var(--transition);
         }
         .btn-cancel:hover { background:var(--glass-bg); }
+
         .tb-row { display:flex; justify-content:space-between; padding:6px 0; font-size:14px; font-weight:500; }
         .tb-label { color:var(--text-secondary); opacity:0.6; font-weight:600; }
         .tb-value { font-weight:600; }
@@ -1149,7 +1119,7 @@
         }
         .password-toggle:hover { opacity:1; }
 
-        /* Payment history card */
+        /* ===== PAYMENT CARD ===== */
         .payment-card {
             background:var(--glass-bg);
             backdrop-filter:blur(12px);
@@ -1169,7 +1139,11 @@
         .payment-card .payment-info { display:flex; flex-direction:column; }
         .payment-card .payment-currency { font-weight:700; font-size:18px; }
         .payment-card .payment-date { font-size:13px; color:var(--text-secondary); font-weight:500; }
-        .payment-card .payment-id { font-size:12px; color:var(--text-secondary); font-family:monospace; background:var(--glass-bg); padding:0 12px; border-radius:30px; border:1px solid var(--glass-border); display:inline-block; margin-top:2px; font-weight:500; }
+        .payment-card .payment-id {
+            font-size:12px; color:var(--text-secondary); font-family:monospace;
+            background:var(--glass-bg); padding:0 12px; border-radius:30px;
+            border:1px solid var(--glass-border); display:inline-block; margin-top:2px; font-weight:500;
+        }
         .payment-card .payment-amount { text-align:right; }
         .payment-card .payment-coins { font-weight:800; font-size:20px; }
         .payment-card .payment-coins small { font-size:13px; opacity:0.4; font-weight:500; }
@@ -1194,7 +1168,7 @@
             opacity:0.4; display:none; font-weight:500;
         }
 
-        /* Misc */
+        /* ===== MISC ===== */
         .payment-product-item {
             display:flex; align-items:center; gap:10px;
             padding:8px 0; border-bottom:1px solid var(--glass-border);
@@ -1205,7 +1179,6 @@
         .payment-product-item .pp-price { font-size:12px; color:var(--primary); font-weight:800; }
         .payment-product-item .pp-qty { font-size:13px; color:var(--text-secondary); opacity:0.5; font-weight:500; }
 
-        /* Topup Styles */
         .topup-amount {
             background:var(--glass-bg);
             border:2px solid var(--glass-border);
@@ -1234,7 +1207,150 @@
         }
         .currency-selector button:hover { border-color:var(--primary); }
 
-        /* Responsive */
+        /* ===== TELEGRAM BANNER ===== */
+        #telegramBanner {
+            display:none;
+            background:var(--primary-glow);
+            border:1px solid var(--primary);
+            border-radius:var(--radius-md);
+            padding:14px 20px;
+            margin:0 20px 16px;
+            align-items:center; justify-content:space-between;
+            flex-wrap:wrap; gap:12px;
+            animation:bannerSlideDown 0.6s ease forwards;
+        }
+        #telegramBanner.hidden { display:none; }
+        .banner-icon i { font-size:30px; color:#0088cc; }
+        .banner-text { flex:1; }
+        .banner-title { font-weight:800; font-size:16px; }
+        .banner-title .badge-new { background:var(--danger); color:#fff; font-size:9px; padding:0 10px; border-radius:30px; margin-left:6px; font-weight:700; }
+        .banner-subtitle { font-size:13px; color:var(--text-secondary); opacity:0.7; font-weight:500; }
+        .banner-action {
+            padding:8px 20px; border:none; border-radius:30px;
+            background:var(--primary); color:#fff;
+            font-weight:700; cursor:pointer;
+            transition:var(--transition);
+        }
+        .banner-action:hover { opacity:0.8; }
+        .banner-close { background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:20px; opacity:0.3; }
+
+        /* ===== COOKIE CONSENT ===== */
+        #cookieConsent {
+            position:fixed; bottom:0; left:0; right:0;
+            background:var(--card-bg);
+            backdrop-filter:blur(20px);
+            border-top:1px solid var(--glass-border);
+            padding:16px 20px;
+            z-index:999;
+            display:none; flex-direction:column;
+            gap:12px;
+        }
+        #cookieConsent.show { display:flex; }
+        #cookieConsent .cookie-text { font-size:13px; color:var(--text-secondary); font-weight:500; }
+        #cookieConsent .cookie-actions { display:flex; gap:10px; flex-wrap:wrap; }
+        #cookieConsent .cookie-actions button {
+            padding:8px 20px; border:none; border-radius:var(--radius-sm);
+            font-weight:700; cursor:pointer; transition:var(--transition);
+        }
+        #cookieConsent .cookie-actions .accept { background:var(--primary); color:#fff; }
+        #cookieConsent .cookie-actions .reject { background:var(--glass-bg); color:var(--text-secondary); border:1px solid var(--glass-border); }
+        #cookieConsent .cookie-actions .settings { background:transparent; color:var(--primary); text-decoration:underline; }
+
+        /* ===== SUPPORT FLOAT ===== */
+        #supportFloat {
+            position:fixed; bottom:80px; right:20px; z-index:250;
+        }
+        #supportFloat .support-toggle {
+            width:60px; height:60px; border-radius:50%;
+            background:var(--primary);
+            color:#fff; border:none;
+            font-size:26px; cursor:pointer;
+            box-shadow:0 8px 30px var(--primary-glow);
+            transition:var(--transition);
+            display:flex; align-items:center; justify-content:center;
+        }
+        #supportFloat .support-toggle:hover { transform:scale(1.08); }
+        #supportFloat .support-menu {
+            position:absolute; bottom:70px; right:0;
+            background:var(--card-bg);
+            backdrop-filter:blur(16px);
+            border:1px solid var(--glass-border);
+            border-radius:var(--radius-md);
+            padding:8px; display:none;
+            flex-direction:column; gap:4px;
+            min-width:180px;
+        }
+        #supportFloat.open .support-menu { display:flex; }
+        #supportFloat .support-menu button {
+            background:none; border:none;
+            padding:10px 14px; color:var(--text);
+            font-size:14px; font-weight:600;
+            cursor:pointer; border-radius:var(--radius-sm);
+            display:flex; align-items:center; gap:10px;
+            transition:var(--transition);
+            width:100%; text-align:left;
+        }
+        #supportFloat .support-menu button:hover { background:var(--primary-glow); }
+        #supportFloat .support-menu button i { width:20px; color:var(--primary); }
+
+        /* ===== FOOTER ===== */
+        .site-footer {
+            background:var(--glass-bg);
+            backdrop-filter:blur(8px);
+            border-top:1px solid var(--glass-border);
+            padding:30px 20px 20px;
+            margin-top:30px;
+        }
+        .site-footer .footer-content {
+            max-width:1200px; margin:0 auto;
+            display:flex; flex-direction:column;
+            align-items:center; gap:20px;
+        }
+        .site-footer .footer-social { display:flex; gap:16px; }
+        .site-footer .footer-social a {
+            color:var(--text-secondary);
+            font-size:24px; transition:var(--transition);
+            display:flex; align-items:center; justify-content:center;
+            width:48px; height:48px; border-radius:50%;
+            background:var(--glass-bg);
+            border:1px solid var(--glass-border);
+            text-decoration:none;
+        }
+        .site-footer .footer-social a:hover { color:#fff; border-color:var(--primary); transform:translateY(-3px); }
+        .site-footer .footer-social a.youtube:hover { color:#ff0000; border-color:#ff0000; }
+        .site-footer .footer-social a.telegram:hover { color:#0088cc; border-color:#0088cc; }
+        .site-footer .footer-links { display:flex; gap:20px; flex-wrap:wrap; justify-content:center; }
+        .site-footer .footer-links a {
+            color:var(--text-secondary); text-decoration:none;
+            font-size:13px; transition:var(--transition);
+            opacity:0.6; font-weight:500;
+        }
+        .site-footer .footer-links a:hover { color:var(--primary); opacity:1; }
+        .site-footer .footer-copyright {
+            font-size:12px; color:var(--text-secondary); opacity:0.3;
+            text-align:center; font-weight:500;
+        }
+        .site-footer .footer-copyright strong { color:var(--primary); opacity:0.6; }
+
+        /* ===== STATUS BADGES ===== */
+        .status-badge {
+            display:inline-block; padding:4px 14px;
+            border-radius:30px; font-size:11px; font-weight:700;
+        }
+        .status-badge.pending { background:var(--pending-color); color:#0a0a1a; }
+        .status-badge.confirmed { background:var(--success); color:#0a0a1a; }
+        .status-badge.rejected { background:var(--danger); color:#fff; }
+        .status-badge.active { background:var(--success); color:#0a0a1a; }
+
+        /* ===== RATING ===== */
+        .rating-stars .star {
+            font-size:26px; cursor:pointer;
+            color:var(--text-secondary); opacity:0.2;
+            transition:var(--transition);
+        }
+        .rating-stars .star.active { color:#fbbf24; opacity:1; }
+
+        /* ===== RESPONSIVE ===== */
         @media (max-width:480px) {
             .product-grid { grid-template-columns:repeat(2,1fr); gap:10px; }
             .header { padding:8px 12px; }
@@ -1559,21 +1675,20 @@
         <div id="requestsList" style="flex:1; overflow-y:auto;"></div>
     </div>
 
-    <!-- ===== REFERRAL MODAL - FIXED WITH CONTENT ===== -->
+    <!-- REFERRAL -->
     <div class="fullscreen-modal" id="referralModal">
         <div class="modal-header">
             <h2><i class="fas fa-users"></i> Referral Program</h2>
             <button class="close-btn" onclick="closeReferralModal()">&times;</button>
         </div>
         <div id="referralContent" style="flex:1; overflow-y:auto; padding:0 4px 20px;">
-            <!-- Dynamic content populated by script.js -->
             <div style="text-align:center;padding:30px;color:var(--text-secondary);">
                 <i class="fas fa-spinner fa-spin"></i> Loading referral info...
             </div>
         </div>
     </div>
 
-    <!-- TRANSACTIONS MODAL -->
+    <!-- TRANSACTIONS -->
     <div class="fullscreen-modal" id="transactionsModal">
         <div class="modal-header">
             <h2><i class="fas fa-receipt"></i> Transaction History</h2>
@@ -1582,7 +1697,7 @@
         <div id="transactionHistoryList" style="flex:1; overflow-y:auto; padding:8px 0;"></div>
     </div>
 
-    <!-- TOPUP MODAL -->
+    <!-- TOPUP -->
     <div class="fullscreen-modal" id="topupModal">
         <div class="modal-header">
             <h2><i class="fas fa-wallet" style="color:var(--vip-color);"></i> Add Balance</h2>
@@ -1634,7 +1749,7 @@
         </div>
     </div>
 
-    <!-- PAYMENT MODAL -->
+    <!-- PAYMENT -->
     <div class="fullscreen-modal" id="paymentModal">
         <div class="modal-header">
             <h2><i class="fas fa-credit-card"></i> Checkout</h2>
@@ -1797,7 +1912,7 @@
         </div>
     </div>
 
-    <!-- SHARE MODAL -->
+    <!-- SHARE -->
     <div class="modal" id="shareModal">
         <div class="modal-content" style="max-width:400px; text-align:center;">
             <span class="modal-close" onclick="closeShareModal()">&times;</span>
@@ -1812,7 +1927,7 @@
         </div>
     </div>
 
-    <!-- NEW REQUEST MODAL -->
+    <!-- NEW REQUEST -->
     <div class="modal" id="newRequestModal">
         <div class="modal-content">
             <span class="modal-close" onclick="closeNewRequestModal()">&times;</span>
@@ -1839,7 +1954,7 @@
         </div>
     </div>
 
-    <!-- ===== AUTH SECTION ===== -->
+    <!-- ===== AUTH ===== -->
     <div id="authSection" style="display:block;">
         <div class="auth-container">
             <h2><i class="fas fa-crown"></i> ZI Store</h2>
@@ -1916,7 +2031,7 @@
         </div>
     </div>
 
-    <!-- FORGOT PASSWORD MODAL -->
+    <!-- FORGOT PASSWORD -->
     <div class="modal" id="forgotPasswordModal">
         <div class="modal-content" style="max-width:400px;">
             <span class="modal-close" onclick="closeForgotPasswordModal()">&times;</span>
@@ -1934,224 +2049,252 @@
 
     <!-- ===== ADMIN PANEL ===== -->
     <div id="adminPanel">
-        <div class="admin-header">
-            <h2><i class="fas fa-shield-alt"></i> Admin Panel</h2>
-            <button class="close-btn" onclick="closeAdminPanel()">&times;</button>
-        </div>
-        <div class="tabs">
-            <button class="active" onclick="switchAdminTab('dashboard')">📊 Dashboard</button>
-            <button onclick="switchAdminTab('orders')">📦 Orders</button>
-            <button onclick="switchAdminTab('products')">🛍️ Products</button>
-            <button onclick="switchAdminTab('users')">👥 Users</button>
-            <button onclick="switchAdminTab('downloads')">📁 Downloads</button>
-            <button onclick="switchAdminTab('notifications')">🔔 Notifications</button>
-            <button onclick="switchAdminTab('stats')">📈 Stats</button>
-            <button onclick="switchAdminTab('logs')">📜 Logs</button>
-            <button onclick="switchAdminTab('slider')">🎨 Slider</button>
-            <button onclick="switchAdminTab('licences')">🔑 Licences</button>
-            <button onclick="switchAdminTab('marquee')">🎬 Marquee</button>
-            <button onclick="switchAdminTab('payments')">💳 Payments</button>
-            <button onclick="switchAdminTab('topups')">💰 Topups</button>
-            <button onclick="switchAdminTab('fallback')">📦 Fallback</button>
-        </div>
-
-        <!-- Dashboard -->
-        <div class="tab-content active" id="tabDashboard">
-            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px;">
-                <div style="background:var(--glass-bg); backdrop-filter:blur(8px); padding:14px; border-radius:var(--radius-sm); border:1px solid var(--glass-border); text-align:center;">
-                    <div style="font-size:24px; font-weight:800; color:var(--primary);" id="dashboardTotalOrders">0</div>
-                    <div style="font-size:12px; color:var(--text-secondary); font-weight:500;">Total Orders</div>
+        <div class="admin-container">
+            <!-- Sidebar -->
+            <div class="admin-sidebar">
+                <div class="admin-sidebar-header">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Admin Panel</span>
                 </div>
-                <div style="background:var(--glass-bg); backdrop-filter:blur(8px); padding:14px; border-radius:var(--radius-sm); border:1px solid var(--glass-border); text-align:center;">
-                    <div style="font-size:24px; font-weight:800; color:var(--vip-color);" id="dashboardTotalRevenue">$0</div>
-                    <div style="font-size:12px; color:var(--text-secondary); font-weight:500;">Revenue</div>
-                </div>
-                <div style="background:var(--glass-bg); backdrop-filter:blur(8px); padding:14px; border-radius:var(--radius-sm); border:1px solid var(--glass-border); text-align:center;">
-                    <div style="font-size:24px; font-weight:800; color:var(--success);" id="dashboardNetRevenue">$0</div>
-                    <div style="font-size:12px; color:var(--text-secondary); font-weight:500;">Net (10%)</div>
-                </div>
-            </div>
-            <button onclick="refreshDashboardStats()" style="margin-top:10px; padding:6px 16px; background:var(--primary); border:none; border-radius:var(--radius-sm); color:#fff; cursor:pointer; font-weight:700;">Refresh</button>
-        </div>
-
-        <!-- Orders -->
-        <div class="tab-content" id="tabOrders">
-            <div id="adminOrderStats" style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:10px;">
-                <div style="background:var(--glass-bg); backdrop-filter:blur(8px); padding:8px; border-radius:var(--radius-sm); text-align:center; border:1px solid var(--glass-border);">
-                    <div style="font-size:18px; font-weight:800; color:var(--primary);" id="adminTotalOrders">0</div>
-                    <div style="font-size:11px; color:var(--text-secondary); font-weight:500;">Total</div>
-                </div>
-                <div style="background:var(--glass-bg); backdrop-filter:blur(8px); padding:8px; border-radius:var(--radius-sm); text-align:center; border:1px solid var(--glass-border);">
-                    <div style="font-size:18px; font-weight:800; color:var(--pending-color);" id="adminPendingOrders">0</div>
-                    <div style="font-size:11px; color:var(--text-secondary); font-weight:500;">Pending</div>
-                </div>
-                <div style="background:var(--glass-bg); backdrop-filter:blur(8px); padding:8px; border-radius:var(--radius-sm); text-align:center; border:1px solid var(--glass-border);">
-                    <div style="font-size:18px; font-weight:800; color:var(--success);" id="adminConfirmedOrders">0</div>
-                    <div style="font-size:11px; color:var(--text-secondary); font-weight:500;">Confirmed</div>
-                </div>
-                <div style="background:var(--glass-bg); backdrop-filter:blur(8px); padding:8px; border-radius:var(--radius-sm); text-align:center; border:1px solid var(--glass-border);">
-                    <div style="font-size:18px; font-weight:800; color:var(--danger);" id="adminRejectedOrders">0</div>
-                    <div style="font-size:11px; color:var(--text-secondary); font-weight:500;">Rejected</div>
+                <nav class="admin-nav">
+                    <button class="admin-nav-btn active" data-tab="dashboard">
+                        <i class="fas fa-chart-pie"></i> Dashboard
+                    </button>
+                    <button class="admin-nav-btn" data-tab="orders">
+                        <i class="fas fa-shopping-cart"></i> Orders
+                        <span class="nav-badge" id="adminNavBadge">0</span>
+                    </button>
+                    <button class="admin-nav-btn" data-tab="products">
+                        <i class="fas fa-box"></i> Products
+                    </button>
+                    <button class="admin-nav-btn" data-tab="users">
+                        <i class="fas fa-users"></i> Users
+                    </button>
+                    <button class="admin-nav-btn" data-tab="downloads">
+                        <i class="fas fa-download"></i> Downloads
+                    </button>
+                    <button class="admin-nav-btn" data-tab="notifications">
+                        <i class="fas fa-bell"></i> Notifications
+                    </button>
+                    <button class="admin-nav-btn" data-tab="stats">
+                        <i class="fas fa-chart-line"></i> Stats
+                    </button>
+                    <button class="admin-nav-btn" data-tab="logs">
+                        <i class="fas fa-history"></i> Logs
+                    </button>
+                    <button class="admin-nav-btn" data-tab="slider">
+                        <i class="fas fa-images"></i> Slider
+                    </button>
+                    <button class="admin-nav-btn" data-tab="licences">
+                        <i class="fas fa-key"></i> Licences
+                    </button>
+                    <button class="admin-nav-btn" data-tab="marquee">
+                        <i class="fas fa-scroll"></i> Marquee
+                    </button>
+                    <button class="admin-nav-btn" data-tab="payments">
+                        <i class="fas fa-credit-card"></i> Payments
+                    </button>
+                    <button class="admin-nav-btn" data-tab="topups">
+                        <i class="fas fa-coins"></i> Topups
+                    </button>
+                    <button class="admin-nav-btn" data-tab="fallback">
+                        <i class="fas fa-boxes"></i> Fallback
+                    </button>
+                </nav>
+                <div class="admin-sidebar-footer">
+                    <button onclick="closeAdminPanel()" class="admin-close-btn">
+                        <i class="fas fa-times"></i> Close
+                    </button>
                 </div>
             </div>
-            <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;">
-                <input type="text" id="adminSearchInput" placeholder="🔍 Search..." onkeyup="searchAdminOrders()" style="flex:1; padding:8px 12px; border:2px solid var(--glass-border); border-radius:var(--radius-sm); background:var(--card-bg); color:var(--text); font-family:var(--font); font-weight:500;" />
-                <button onclick="searchAdminOrders()" style="padding:8px 16px; background:var(--primary); border:none; border-radius:var(--radius-sm); color:#fff; cursor:pointer; font-weight:700;">Search</button>
-                <button onclick="refreshAdminOrders()" style="padding:8px 16px; background:var(--success); border:none; border-radius:var(--radius-sm); color:#0a0a1a; cursor:pointer; font-weight:700;">🔄</button>
-            </div>
-            <div style="overflow-x:auto;">
-                <table style="width:100%; border-collapse:collapse; font-size:13px;">
-                    <thead style="background:var(--glass-bg); border-bottom:2px solid var(--glass-border);">
-                        <tr><th>Order</th><th>User</th><th>Items</th><th>Total</th><th>Date</th><th>Status</th><th>Actions</th></tr>
-                    </thead>
-                    <tbody id="adminOrdersBody"><tr><td colspan="7" style="text-align:center; padding:20px; color:var(--text-secondary);">Loading...</td></tr></tbody>
-                </table>
-            </div>
-        </div>
 
-        <!-- Products -->
-        <div class="tab-content" id="tabProducts">
-            <button onclick="openAddProductModal()" class="add-btn" style="margin-bottom:10px;"><i class="fas fa-plus"></i> Add Product</button>
-            <div id="adminProductsList"></div>
-        </div>
+            <!-- Main -->
+            <div class="admin-main">
+                <div class="admin-main-header">
+                    <h2 id="adminPageTitle">📊 Dashboard</h2>
+                </div>
+                <div class="admin-main-content">
+                    <!-- Dashboard -->
+                    <div class="admin-tab-content active" id="tabDashboard">
+                        <div class="admin-stats-grid">
+                            <div class="admin-stat-card">
+                                <div class="admin-stat-icon"><i class="fas fa-shopping-bag"></i></div>
+                                <div class="admin-stat-info">
+                                    <div class="admin-stat-number" id="dashboardTotalOrders">0</div>
+                                    <div class="admin-stat-label">Total Orders</div>
+                                </div>
+                            </div>
+                            <div class="admin-stat-card" style="border-left-color: var(--vip-color);">
+                                <div class="admin-stat-icon" style="background:rgba(242,169,0,0.15);color:var(--vip-color);"><i class="fas fa-dollar-sign"></i></div>
+                                <div class="admin-stat-info">
+                                    <div class="admin-stat-number" id="dashboardTotalRevenue" style="color:var(--vip-color);">$0</div>
+                                    <div class="admin-stat-label">Revenue</div>
+                                </div>
+                            </div>
+                            <div class="admin-stat-card" style="border-left-color: var(--success);">
+                                <div class="admin-stat-icon" style="background:rgba(0,212,170,0.15);color:var(--success);"><i class="fas fa-percent"></i></div>
+                                <div class="admin-stat-info">
+                                    <div class="admin-stat-number" id="dashboardNetRevenue" style="color:var(--success);">$0</div>
+                                    <div class="admin-stat-label">Net (10%)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="refreshDashboardStats()" class="admin-refresh-btn"><i class="fas fa-sync-alt"></i> Refresh</button>
+                    </div>
 
-        <!-- Users -->
-        <div class="tab-content" id="tabUsers">
-            <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;">
-                <input type="text" id="adminUserSearchInput" placeholder="🔍 Search users..." onkeyup="searchAdminUsers()" style="flex:1; padding:8px 12px; border:2px solid var(--glass-border); border-radius:var(--radius-sm); background:var(--card-bg); color:var(--text); font-family:var(--font); font-weight:500;" />
-                <button onclick="searchAdminUsers()" style="padding:8px 16px; background:var(--primary); border:none; border-radius:var(--radius-sm); color:#fff; cursor:pointer; font-weight:700;">Search</button>
-                <button onclick="refreshAdminUsers()" style="padding:8px 16px; background:var(--success); border:none; border-radius:var(--radius-sm); color:#0a0a1a; cursor:pointer; font-weight:700;">🔄</button>
-            </div>
-            <div id="adminUsersContainer"></div>
-        </div>
+                    <!-- Orders -->
+                    <div class="admin-tab-content" id="tabOrders">
+                        <div class="admin-orders-stats">
+                            <div class="order-stat"><span class="stat-num" id="adminTotalOrders">0</span> Total</div>
+                            <div class="order-stat pending"><span class="stat-num" id="adminPendingOrders">0</span> Pending</div>
+                            <div class="order-stat confirmed"><span class="stat-num" id="adminConfirmedOrders">0</span> Confirmed</div>
+                            <div class="order-stat rejected"><span class="stat-num" id="adminRejectedOrders">0</span> Rejected</div>
+                        </div>
+                        <div class="admin-search-bar">
+                            <input type="text" id="adminSearchInput" placeholder="🔍 Search orders..." onkeyup="searchAdminOrders()" />
+                            <button onclick="searchAdminOrders()"><i class="fas fa-search"></i></button>
+                            <button onclick="refreshAdminOrders()"><i class="fas fa-sync-alt"></i></button>
+                        </div>
+                        <div class="admin-table-wrapper">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr><th>Order</th><th>User</th><th>Items</th><th>Total</th><th>Date</th><th>Status</th><th>Actions</th></tr>
+                                </thead>
+                                <tbody id="adminOrdersBody"><tr><td colspan="7" class="text-center">Loading...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
 
-        <!-- Downloads -->
-        <div class="tab-content" id="tabDownloads">
-            <button onclick="openCreateDownloadModal()" class="add-btn" style="margin-bottom:10px;"><i class="fas fa-plus"></i> Add Download</button>
-            <div id="adminDownloadsList"></div>
-        </div>
+                    <!-- Products -->
+                    <div class="admin-tab-content" id="tabProducts">
+                        <div class="admin-toolbar">
+                            <button onclick="openAddProductModal()" class="admin-add-btn"><i class="fas fa-plus"></i> Add Product</button>
+                        </div>
+                        <div id="adminProductsList" class="admin-products-grid"></div>
+                    </div>
 
-        <!-- Notifications -->
-        <div class="tab-content" id="tabNotifications">
-            <button onclick="openCreateNotificationModal()" class="add-btn" style="margin-bottom:10px;"><i class="fas fa-plus"></i> Send Notification</button>
-            <div id="adminNotificationsList"></div>
-        </div>
+                    <!-- Users -->
+                    <div class="admin-tab-content" id="tabUsers">
+                        <div class="admin-search-bar">
+                            <input type="text" id="adminUserSearchInput" placeholder="🔍 Search users..." onkeyup="searchAdminUsers()" />
+                            <button onclick="searchAdminUsers()"><i class="fas fa-search"></i></button>
+                            <button onclick="refreshAdminUsers()"><i class="fas fa-sync-alt"></i></button>
+                        </div>
+                        <div id="adminUsersContainer" class="admin-users-grid"></div>
+                    </div>
 
-        <!-- Stats -->
-        <div class="tab-content" id="tabStats">
-            <button onclick="refreshAdvancedStats()" style="margin-bottom:10px; padding:6px 16px; background:var(--primary); border:none; border-radius:var(--radius-sm); color:#fff; cursor:pointer; font-weight:700;">Refresh</button>
-            <div id="advancedStatsContainer"></div>
-        </div>
+                    <!-- Downloads -->
+                    <div class="admin-tab-content" id="tabDownloads">
+                        <div class="admin-toolbar">
+                            <button onclick="openCreateDownloadModal()" class="admin-add-btn"><i class="fas fa-plus"></i> Add Download</button>
+                        </div>
+                        <div id="adminDownloadsList"></div>
+                    </div>
 
-        <!-- Logs -->
-        <div class="tab-content" id="tabLogs">
-            <button onclick="loadAuditLogs()" style="margin-bottom:10px; padding:6px 16px; background:var(--primary); border:none; border-radius:var(--radius-sm); color:#fff; cursor:pointer; font-weight:700;">Refresh</button>
-            <div id="auditLogsContainer"></div>
-        </div>
+                    <!-- Notifications -->
+                    <div class="admin-tab-content" id="tabNotifications">
+                        <div class="admin-toolbar">
+                            <button onclick="openCreateNotificationModal()" class="admin-add-btn"><i class="fas fa-plus"></i> Send Notification</button>
+                        </div>
+                        <div id="adminNotificationsList"></div>
+                    </div>
 
-        <!-- Slider -->
-        <div class="tab-content" id="tabSlider">
-            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
-                <h3 style="font-size:16px; font-weight:800; margin:0;"><i class="fas fa-images"></i> Slider Settings</h3>
-                <button class="add-btn" onclick="openAddSlideModal()"><i class="fas fa-plus"></i> Add Slide</button>
-            </div>
-            <div style="margin-bottom:12px;">
-                <label style="font-size:13px; font-weight:700; color:var(--text-secondary); opacity:0.6; display:block; margin-bottom:4px;">Rotation Interval (seconds)</label>
-                <div style="display:flex; gap:8px; align-items:center;">
-                    <input type="number" id="sliderIntervalInput" value="3" min="1" max="60" style="width:100px; padding:8px 12px; border:2px solid var(--glass-border); border-radius:var(--radius-sm); background:var(--card-bg); color:var(--text); font-size:14px; font-weight:500;" />
-                    <button class="admin-submit-btn" onclick="saveSliderInterval()" style="padding:8px 16px; font-size:13px;"><i class="fas fa-save"></i> Save</button>
+                    <!-- Stats -->
+                    <div class="admin-tab-content" id="tabStats">
+                        <div class="admin-toolbar">
+                            <button onclick="refreshAdvancedStats()" class="admin-refresh-btn"><i class="fas fa-sync-alt"></i> Refresh</button>
+                        </div>
+                        <div id="advancedStatsContainer"></div>
+                    </div>
+
+                    <!-- Logs -->
+                    <div class="admin-tab-content" id="tabLogs">
+                        <div class="admin-toolbar">
+                            <button onclick="loadAuditLogs()" class="admin-refresh-btn"><i class="fas fa-sync-alt"></i> Refresh</button>
+                        </div>
+                        <div id="auditLogsContainer"></div>
+                    </div>
+
+                    <!-- Slider -->
+                    <div class="admin-tab-content" id="tabSlider">
+                        <div class="admin-toolbar">
+                            <button onclick="openAddSlideModal()" class="admin-add-btn"><i class="fas fa-plus"></i> Add Slide</button>
+                            <button onclick="saveSliderData()" class="admin-save-btn"><i class="fas fa-save"></i> Save</button>
+                        </div>
+                        <div class="admin-slider-settings">
+                            <label>Interval (seconds):</label>
+                            <input type="number" id="sliderIntervalInput" value="3" min="1" max="60" />
+                            <button onclick="saveSliderInterval()" class="admin-save-btn"><i class="fas fa-save"></i> Set</button>
+                        </div>
+                        <div id="sliderSlidesList"></div>
+                    </div>
+
+                    <!-- Licences -->
+                    <div class="admin-tab-content" id="tabLicences">
+                        <div class="admin-toolbar">
+                            <button onclick="openCreateLicenceModal()" class="admin-add-btn"><i class="fas fa-plus"></i> Create Licence</button>
+                            <button onclick="refreshLicences()" class="admin-refresh-btn"><i class="fas fa-sync-alt"></i> Refresh</button>
+                        </div>
+                        <div id="adminLicencesList"></div>
+                    </div>
+
+                    <!-- Marquee -->
+                    <div class="admin-tab-content" id="tabMarquee">
+                        <div id="marqueeSettingsContainer">
+                            <div class="admin-form-group">
+                                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                                    <input type="checkbox" id="marqueeEnabled" checked />
+                                    <span>Enable Marquee</span>
+                                </label>
+                            </div>
+                            <div class="admin-form-group">
+                                <label>Marquee Text (separate with | )</label>
+                                <textarea id="marqueeText" rows="3" placeholder="🚀 Welcome | ⚡ Instant Delivery | 🔒 Secure Payment"></textarea>
+                            </div>
+                            <button onclick="saveMarqueeSettings()" class="admin-save-btn"><i class="fas fa-save"></i> Save Settings</button>
+                        </div>
+                    </div>
+
+                    <!-- Payments -->
+                    <div class="admin-tab-content" id="tabPayments">
+                        <div class="admin-payments-stats">
+                            <div class="payment-stat"><span id="adminPaymentTotal">0</span> Total</div>
+                            <div class="payment-stat pending"><span id="adminPaymentPending">0</span> Pending</div>
+                            <div class="payment-stat confirmed"><span id="adminPaymentCompleted">0</span> Completed</div>
+                            <div class="payment-stat rejected"><span id="adminPaymentRejected">0</span> Rejected</div>
+                        </div>
+                        <div class="admin-table-wrapper">
+                            <table class="admin-table">
+                                <thead><tr><th>Order #</th><th>User</th><th>Amount</th><th>Currency</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+                                <tbody id="adminPaymentsBody"><tr><td colspan="7" class="text-center">Loading...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Topups -->
+                    <div class="admin-tab-content" id="tabTopups">
+                        <div class="admin-toolbar">
+                            <button onclick="loadAdminTopups()" class="admin-refresh-btn"><i class="fas fa-sync-alt"></i> Refresh</button>
+                            <span style="font-size:13px;color:var(--text-secondary);opacity:0.6;">Total: <span id="adminTopupsCount">0</span></span>
+                        </div>
+                        <div id="adminTopupsContainer"></div>
+                    </div>
+
+                    <!-- Fallback -->
+                    <div class="admin-tab-content" id="tabFallback">
+                        <div class="admin-toolbar">
+                            <button onclick="openAddFallbackProductModal()" class="admin-add-btn"><i class="fas fa-plus"></i> Add Fallback Product</button>
+                        </div>
+                        <div id="adminFallbackProducts"></div>
+                    </div>
                 </div>
             </div>
-            <div id="sliderSlidesList"><div style="text-align:center; padding:20px; color:var(--text-secondary); opacity:0.5; font-weight:500;">No slides yet.</div></div>
-        </div>
-
-        <!-- Licences -->
-        <div class="tab-content" id="tabLicences">
-            <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
-                <button class="add-btn" onclick="openCreateLicenceModal()"><i class="fas fa-plus"></i> Create Licence</button>
-                <button class="add-btn" onclick="refreshLicences()" style="background:var(--glass-bg);"><i class="fas fa-sync"></i> Refresh</button>
-            </div>
-            <div id="adminLicencesList"><div style="text-align:center; padding:30px; color:var(--text-secondary);">Loading licences...</div></div>
-        </div>
-
-        <!-- Marquee -->
-        <div class="tab-content" id="tabMarquee">
-            <h3 style="font-size:16px; font-weight:800; margin-bottom:12px;"><i class="fas fa-scroll"></i> Marquee Settings</h3>
-            <div id="marqueeSettingsContainer">
-                <div class="admin-form-group">
-                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-                        <input type="checkbox" id="marqueeEnabled" checked />
-                        <span style="font-weight:700;">Enable Marquee</span>
-                    </label>
-                </div>
-                <div class="admin-form-group">
-                    <label for="marqueeText">Marquee Text (separate items with | )</label>
-                    <textarea id="marqueeText" rows="3" placeholder="🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support" style="width:100%; padding:10px 14px; border:2px solid var(--glass-border); border-radius:var(--radius-sm); background:var(--card-bg); color:var(--text); font-size:14px; outline:none; font-family:var(--font); font-weight:500;">🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support</textarea>
-                </div>
-                <button class="admin-submit-btn" onclick="saveMarqueeSettings()" style="margin-top:8px;"><i class="fas fa-save"></i> Save Settings</button>
-            </div>
-        </div>
-
-        <!-- Payments -->
-        <div class="tab-content" id="tabPayments">
-            <h3 style="margin-bottom:8px; font-weight:800;">All Payments</h3>
-            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:8px;">
-                <div style="background:var(--glass-bg); backdrop-filter:blur(8px); padding:6px; border-radius:var(--radius-sm); text-align:center;">
-                    <span style="font-weight:800; color:var(--primary);" id="adminPaymentTotal">0</span> 
-                    <span style="font-size:11px; color:var(--text-secondary);">Total</span>
-                </div>
-                <div style="background:var(--glass-bg); backdrop-filter:blur(8px); padding:6px; border-radius:var(--radius-sm); text-align:center;">
-                    <span style="font-weight:800; color:var(--pending-color);" id="adminPaymentPending">0</span> 
-                    <span style="font-size:11px; color:var(--text-secondary);">Pending</span>
-                </div>
-                <div style="background:var(--glass-bg); backdrop-filter:blur(8px); padding:6px; border-radius:var(--radius-sm); text-align:center;">
-                    <span style="font-weight:800; color:var(--success);" id="adminPaymentCompleted">0</span> 
-                    <span style="font-size:11px; color:var(--text-secondary);">Completed</span>
-                </div>
-                <div style="background:var(--glass-bg); backdrop-filter:blur(8px); padding:6px; border-radius:var(--radius-sm); text-align:center;">
-                    <span style="font-weight:800; color:var(--danger);" id="adminPaymentRejected">0</span> 
-                    <span style="font-size:11px; color:var(--text-secondary);">Rejected</span>
-                </div>
-            </div>
-            <div style="overflow-x:auto;">
-                <table style="width:100%; border-collapse:collapse; font-size:13px;">
-                    <thead style="background:var(--glass-bg); border-bottom:2px solid var(--glass-border);">
-                        <tr><th>Order #</th><th>User</th><th>Amount</th><th>Currency</th><th>Date</th><th>Status</th><th>Actions</th></tr>
-                    </thead>
-                    <tbody id="adminPaymentsBody"><tr><td colspan="7" style="text-align:center; padding:20px; color:var(--text-secondary);">Loading...</td></tr></tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Topups -->
-        <div class="tab-content" id="tabTopups">
-            <h3 style="margin-bottom:8px; font-weight:800;">💰 Topup Requests</h3>
-            <div style="display:flex; gap:6px; margin-bottom:10px;">
-                <button onclick="loadAdminTopups()" style="padding:6px 16px; background:var(--primary); border:none; border-radius:var(--radius-sm); color:#fff; cursor:pointer; font-weight:600;">
-                    <i class="fas fa-sync-alt"></i> Refresh
-                </button>
-                <span style="font-size:12px; color:var(--text-secondary); opacity:0.4; align-self:center;">
-                    Total: <span id="adminTopupsCount">0</span>
-                </span>
-            </div>
-            <div id="adminTopupsContainer">
-                <div style="text-align:center;padding:20px;color:var(--text-secondary);">
-                    <i class="fas fa-spinner fa-spin"></i> Loading...
-                </div>
-            </div>
-        </div>
-
-        <!-- Fallback -->
-        <div class="tab-content" id="tabFallback">
-            <h3 style="margin-bottom:8px; font-weight:800;">📦 Fallback Products</h3>
-            <p style="font-size:13px; color:var(--text-secondary); opacity:0.6; margin-bottom:12px;">
-                These products appear when no products exist in the database. You can edit or add new ones.
-            </p>
-            <div id="adminFallbackProducts"></div>
         </div>
     </div>
 
-    <!-- ===== CREATE DOWNLOAD MODAL ===== -->
+    <!-- ===== ADMIN MODALS ===== -->
+
+    <!-- CREATE DOWNLOAD -->
     <div class="modal" id="createDownloadModal">
         <div class="modal-content" style="max-width:500px;">
             <span class="modal-close" onclick="closeCreateDownloadModal()">&times;</span>
@@ -2182,7 +2325,7 @@
         </div>
     </div>
 
-    <!-- ===== CREATE NOTIFICATION MODAL ===== -->
+    <!-- CREATE NOTIFICATION -->
     <div class="modal" id="createNotificationModal">
         <div class="modal-content" style="max-width:500px;">
             <span class="modal-close" onclick="closeCreateNotificationModal()">&times;</span>
@@ -2201,7 +2344,7 @@
         </div>
     </div>
 
-    <!-- ===== PRODUCT MODAL ===== -->
+    <!-- PRODUCT MODAL -->
     <div class="modal" id="productModal">
         <div class="modal-content" style="max-width:600px; max-height:90vh; overflow-y:auto;">
             <span class="modal-close" onclick="closeProductModal()">&times;</span>
@@ -2262,7 +2405,7 @@
         </div>
     </div>
 
-    <!-- ===== ADD SLIDE MODAL ===== -->
+    <!-- ADD SLIDE -->
     <div class="modal" id="addSlideModal">
         <div class="modal-content" style="max-width:500px;">
             <span class="modal-close" onclick="closeAddSlideModal()">&times;</span>
@@ -2309,7 +2452,7 @@
         </div>
     </div>
 
-    <!-- ===== CREATE LICENCE MODAL ===== -->
+    <!-- CREATE LICENCE -->
     <div class="modal" id="createLicenceModal">
         <div class="modal-content" style="max-width:450px;">
             <span class="modal-close" onclick="closeCreateLicenceModal()">&times;</span>
@@ -2321,7 +2464,7 @@
         </div>
     </div>
 
-    <!-- ===== EDIT LICENCE MODAL ===== -->
+    <!-- EDIT LICENCE -->
     <div class="modal" id="editLicenceModal">
         <div class="modal-content" style="max-width:450px;">
             <span class="modal-close" onclick="document.getElementById('editLicenceModal').classList.remove('open')">&times;</span>
@@ -2335,7 +2478,7 @@
         </div>
     </div>
 
-    <!-- ===== FALLBACK PRODUCT MODAL ===== -->
+    <!-- FALLBACK PRODUCT -->
     <div class="modal" id="fallbackProductModal">
         <div class="modal-content" style="max-width:500px;">
             <span class="modal-close" onclick="closeFallbackProductModal()">&times;</span>
@@ -2354,7 +2497,7 @@
         </div>
     </div>
 
-    <!-- ===== USER DETAILS MODAL ===== -->
+    <!-- USER DETAILS -->
     <div class="modal" id="userDetailsModal">
         <div class="modal-content" style="max-width:480px;">
             <span class="modal-close" onclick="closeUserDetailsModal()">&times;</span>
@@ -2363,17 +2506,7 @@
         </div>
     </div>
 
-    <!-- ===== COOKIE CONSENT ===== -->
-    <div id="cookieConsent">
-        <div class="cookie-text">🍪 We use cookies to improve your experience.</div>
-        <div class="cookie-actions">
-            <button class="accept" onclick="acceptCookies()">Accept All</button>
-            <button class="reject" onclick="rejectCookies()">Reject All</button>
-            <button class="settings" onclick="openCookieSettings()">Settings</button>
-        </div>
-    </div>
-
-    <!-- ===== COOKIE SETTINGS MODAL ===== -->
+    <!-- COOKIE SETTINGS -->
     <div class="modal" id="cookieSettingsModal">
         <div class="modal-content" style="max-width:450px;">
             <span class="modal-close" onclick="closeCookieSettings()">&times;</span>
@@ -2390,7 +2523,7 @@
         </div>
     </div>
 
-    <!-- ===== SUPPORT MODAL ===== -->
+    <!-- SUPPORT -->
     <div class="modal" id="supportModal">
         <div class="modal-content" style="max-width:400px; text-align:center;">
             <span class="modal-close" onclick="closeSupportModal()">&times;</span>
@@ -2402,6 +2535,16 @@
                 <button onclick="openEmailSupport()" style="padding:12px; background:var(--primary); border:none; border-radius:var(--radius-sm); color:#fff; cursor:pointer; font-weight:700;"><i class="fas fa-envelope"></i> Email</button>
                 <button onclick="openPhoneSupport()" style="padding:12px; background:var(--vip-color); border:none; border-radius:var(--radius-sm); color:#0a0a1a; cursor:pointer; font-weight:700;"><i class="fas fa-phone"></i> Call</button>
             </div>
+        </div>
+    </div>
+
+    <!-- ===== COOKIE CONSENT BANNER ===== -->
+    <div id="cookieConsent">
+        <div class="cookie-text">🍪 We use cookies to improve your experience.</div>
+        <div class="cookie-actions">
+            <button class="accept" onclick="acceptCookies()">Accept All</button>
+            <button class="reject" onclick="rejectCookies()">Reject All</button>
+            <button class="settings" onclick="openCookieSettings()">Settings</button>
         </div>
     </div>
 
@@ -2422,9 +2565,10 @@
                 if (icon) icon.className = 'fas fa-moon';
             }
         });
+        // دالة تبديل التبويبات في لوحة التحكم (تستخدمها الأزرار في الـ HTML)
         window.switchAdminTab = function(tab) {
-            document.querySelectorAll('#adminPanel .tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('#adminPanel .tabs button').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('#adminPanel .admin-tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('#adminPanel .admin-nav-btn').forEach(el => el.classList.remove('active'));
             const tabMap = {
                 'dashboard':'tabDashboard','orders':'tabOrders','products':'tabProducts',
                 'users':'tabUsers','downloads':'tabDownloads','notifications':'tabNotifications',
@@ -2433,9 +2577,19 @@
                 'topups':'tabTopups','fallback':'tabFallback'
             };
             const tabId = tabMap[tab] || 'tabDashboard';
-            document.getElementById(tabId).classList.add('active');
-            const btn = document.querySelector(`#adminPanel .tabs button[onclick="switchAdminTab('${tab}')"]`);
+            const content = document.getElementById(tabId);
+            if (content) content.classList.add('active');
+            const btn = document.querySelector(`#adminPanel .admin-nav-btn[data-tab="${tab}"]`);
             if (btn) btn.classList.add('active');
+            const titles = {
+                'dashboard':'📊 Dashboard','orders':'📦 Orders','products':'🛍️ Products',
+                'users':'👥 Users','downloads':'📁 Downloads','notifications':'🔔 Notifications',
+                'stats':'📈 Stats','logs':'📜 Logs','slider':'🎨 Slider',
+                'licences':'🔑 Licences','marquee':'🎬 Marquee','payments':'💳 Payments',
+                'topups':'💰 Topups','fallback':'📦 Fallback'
+            };
+            const titleEl = document.getElementById('adminPageTitle');
+            if (titleEl) titleEl.textContent = titles[tab] || tab;
         };
     </script>
 </body>
