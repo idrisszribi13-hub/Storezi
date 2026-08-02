@@ -18,7 +18,7 @@
     </script>
     <style>
         /* ============================================================
-           GLOBAL STYLES
+           GLOBAL STYLES - MODERN & GLASSMORPHISM
            ============================================================ */
         :root {
             --bg: #0a0a1a;
@@ -44,6 +44,18 @@
             --shadow: 0 20px 60px rgba(0,0,0,0.6);
             --font: 'Inter', -apple-system, sans-serif;
             --transition: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        body.light {
+            --bg: #f0f2f8;
+            --bg-secondary: #e4e6f0;
+            --card-bg: rgba(255,255,255,0.7);
+            --glass-bg: rgba(255,255,255,0.4);
+            --glass-border: rgba(0,0,0,0.05);
+            --text: #1a1a2e;
+            --text-secondary: #4a4a6a;
+            --border: #d0d0e0;
+            --shadow: 0 20px 60px rgba(0,0,0,0.1);
         }
 
         * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
@@ -103,6 +115,45 @@
         #toast.warning { border-color:var(--warning); }
         #toast.info { border-color:var(--primary); }
 
+        /* TOP INFO BAR */
+        #topInfoBar {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 6px 20px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            min-height: 36px;
+            transition: all 0.3s ease;
+            position: sticky;
+            top: 0;
+            z-index: 101;
+        }
+        #topInfoBar .info-item { display:flex; align-items:center; gap:6px; }
+        #topInfoBar .info-item i { font-size:13px; }
+        .status-dot {
+            display:inline-block; width:8px; height:8px; border-radius:50%;
+            background:var(--success); animation:pulse-dot 2s infinite;
+        }
+        @keyframes pulse-dot {
+            0%{opacity:1; transform:scale(1)}
+            50%{opacity:0.5; transform:scale(0.8)}
+            100%{opacity:1; transform:scale(1)}
+        }
+        @media (max-width:600px) {
+            #topInfoBar { font-size:10px; padding:4px 12px; flex-direction:column; align-items:stretch; gap:4px; }
+            #topInfoBar .info-item { justify-content:center; }
+            #topInfoBar .info-item:first-child { order:2; }
+            #topInfoBar .info-item:nth-child(2) { order:1; flex-wrap:wrap; justify-content:center; }
+            #topInfoBar .info-item:last-child { order:3; }
+        }
+
         /* Header */
         .header {
             display:flex; align-items:center; justify-content:space-between;
@@ -110,7 +161,7 @@
             background:var(--glass-bg);
             backdrop-filter:blur(12px);
             border-bottom:1px solid var(--glass-border);
-            position:sticky; top:0; z-index:100;
+            position:sticky; top:36px; z-index:100;
             flex-wrap:wrap; gap:8px;
         }
         .logo {
@@ -175,7 +226,7 @@
         /* Search */
         .search-wrapper {
             padding:12px 20px;
-            position:sticky; top:70px;
+            position:sticky; top:106px;
             background:var(--glass-bg);
             backdrop-filter:blur(8px);
             z-index:99;
@@ -1228,6 +1279,42 @@
     <!-- ===== MAIN APP ===== -->
     <div id="mainApp" style="display:none;">
 
+        <!-- ===== TOP INFO BAR ===== -->
+        <div id="topInfoBar">
+            <div class="info-item">
+                <i class="fas fa-globe" style="color:var(--primary);"></i>
+                <span id="serverTime" style="font-family:monospace;font-weight:600;">Loading...</span>
+            </div>
+            <div class="info-item" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                <span style="display:flex;align-items:center;gap:4px;">
+                    <i class="fas fa-map-pin" style="color:var(--vip-color);"></i>
+                    <span id="userCountry">🌍 Loading...</span>
+                </span>
+                <span style="display:flex;align-items:center;gap:4px;">
+                    <i class="fas fa-network-wired" style="color:var(--success);"></i>
+                    <span id="userIP">Loading...</span>
+                </span>
+                <span style="display:flex;align-items:center;gap:4px;">
+                    <i class="fas fa-clock" style="color:var(--warning);"></i>
+                    <span id="userTimezone">Loading...</span>
+                </span>
+                <span style="display:flex;align-items:center;gap:4px;display:none;" id="userInfoBar">
+                    <i class="fas fa-user-circle" style="color:var(--primary);"></i>
+                    <span id="userNameBar">Guest</span>
+                </span>
+            </div>
+            <div class="info-item" style="display:flex;align-items:center;gap:10px;">
+                <span style="display:flex;align-items:center;gap:4px;">
+                    <i class="fas fa-users" style="color:var(--primary);"></i>
+                    <span id="onlineUsers">0 online</span>
+                </span>
+                <span style="display:flex;align-items:center;gap:6px;">
+                    <span class="status-dot"></span>
+                    <span style="font-size:11px;opacity:0.6;">Live</span>
+                </span>
+            </div>
+        </div>
+
         <!-- HEADER -->
         <header class="header">
             <div class="logo"><i class="fas fa-crown"></i> ZI Store</div>
@@ -1864,6 +1951,8 @@
             <button onclick="switchAdminTab('marquee')">🎬 Marquee</button>
             <button onclick="switchAdminTab('payments')">💳 Payments</button>
             <button onclick="switchAdminTab('topups')">💰 Topups</button>
+            <!-- ===== NEW TAB: FALLBACK ===== -->
+            <button onclick="switchAdminTab('fallback')">📦 Fallback</button>
         </div>
 
         <!-- Dashboard -->
@@ -2051,6 +2140,15 @@
                 </div>
             </div>
         </div>
+
+        <!-- ===== FALLBACK PRODUCTS TAB ===== -->
+        <div class="tab-content" id="tabFallback">
+            <h3 style="margin-bottom:8px; font-weight:800;">📦 Fallback Products</h3>
+            <p style="font-size:13px; color:var(--text-secondary); opacity:0.6; margin-bottom:12px;">
+                These products appear when no products exist in the database. You can edit or add new ones.
+            </p>
+            <div id="adminFallbackProducts"></div>
+        </div>
     </div>
 
     <!-- ===== CREATE DOWNLOAD MODAL ===== -->
@@ -2237,6 +2335,25 @@
         </div>
     </div>
 
+    <!-- ===== FALLBACK PRODUCT MODAL ===== -->
+    <div class="modal" id="fallbackProductModal">
+        <div class="modal-content" style="max-width:500px;">
+            <span class="modal-close" onclick="closeFallbackProductModal()">&times;</span>
+            <h3 id="fallbackProductModalTitle" style="font-weight:800;">✏️ Edit Fallback Product</h3>
+            <input type="hidden" id="fallbackProductId" />
+            <div class="admin-form-group"><label>Product Name *</label><input type="text" id="fallbackProductName" required /></div>
+            <div class="admin-form-group"><label>Price ($)</label><input type="number" id="fallbackProductPrice" step="0.01" min="0" /></div>
+            <div class="admin-form-group"><label>Badge</label><select id="fallbackProductBadge"><option value="FREE">FREE</option><option value="VIP">VIP</option><option value="PREMIUM">PREMIUM</option></select></div>
+            <div class="admin-form-group"><label>Status</label><select id="fallbackProductStatus"><option value="available">Available</option><option value="unavailable">Unavailable</option></select></div>
+            <div class="admin-form-group"><label>Image URL</label><input type="text" id="fallbackProductImage" placeholder="https://..." /></div>
+            <div class="admin-form-group"><label>Description</label><textarea id="fallbackProductDescription" rows="2"></textarea></div>
+            <div class="admin-form-group"><label>Features (comma separated)</label><input type="text" id="fallbackProductFeatures" placeholder="Feature 1, Feature 2, ..." /></div>
+            <div class="admin-form-group"><label>Video URL</label><input type="text" id="fallbackProductVideo" placeholder="https://www.youtube.com/embed/..." /></div>
+            <div class="admin-form-group"><label>Download Link</label><input type="text" id="fallbackProductDownloadLink" placeholder="https://..." /></div>
+            <button class="admin-submit-btn" style="width:100%;" onclick="saveFallbackProduct()">Save Product</button>
+        </div>
+    </div>
+
     <!-- ===== USER DETAILS MODAL ===== -->
     <div class="modal" id="userDetailsModal">
         <div class="modal-content" style="max-width:480px;">
@@ -2313,7 +2430,7 @@
                 'users':'tabUsers','downloads':'tabDownloads','notifications':'tabNotifications',
                 'stats':'tabStats','logs':'tabLogs','slider':'tabSlider',
                 'licences':'tabLicences','marquee':'tabMarquee','payments':'tabPayments',
-                'topups':'tabTopups'
+                'topups':'tabTopups','fallback':'tabFallback'
             };
             const tabId = tabMap[tab] || 'tabDashboard';
             document.getElementById(tabId).classList.add('active');
