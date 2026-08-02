@@ -355,7 +355,39 @@ window.showMainApp = function() {
 };
 
 // ============================================================
-// 2. TOP INFO BAR - Server Time, IP, Country
+// NEW: Remove duplicate date, style header topup
+// ============================================================
+function removeDuplicateDate() {
+    const dates = document.querySelectorAll('#serverTime, .server-time, .header-date');
+    if (dates.length > 1) {
+        for (let i = 1; i < dates.length; i++) {
+            dates[i].style.display = 'none';
+        }
+    }
+}
+
+function styleHeaderTopup() {
+    const headerActions = document.getElementById('headerActions');
+    if (headerActions) {
+        headerActions.style.display = 'flex';
+        headerActions.style.alignItems = 'center';
+        headerActions.style.gap = '8px';
+        headerActions.style.flexWrap = 'nowrap';
+    }
+    const balanceEl = document.getElementById('balanceDisplay');
+    if (balanceEl) balanceEl.style.fontSize = '14px';
+    const topupBtn = document.getElementById('topupButton');
+    if (topupBtn) {
+        topupBtn.style.fontSize = '12px';
+        topupBtn.style.padding = '4px 10px';
+        topupBtn.style.marginLeft = '4px';
+    }
+    const topupIcon = document.getElementById('topupIcon');
+    if (topupIcon) topupIcon.style.fontSize = '14px';
+}
+
+// ============================================================
+// 2. TOP INFO BAR - Server Time, IP, Country (FIXED with Supabase proxy)
 // ============================================================
 
 let serverTimeInterval = null;
@@ -386,15 +418,31 @@ function updateServerTime() {
     }
 }
 
+// New fetchUserInfo using Supabase proxy
 async function fetchUserInfo() {
     try {
-        // FIXED: Using HTTPS for all IP API calls
-        const response = await fetch('https://ipapi.co/json/');
-        if (!response.ok) throw new Error('Failed to fetch IP info');
+        console.log('📍 Fetching IP info via Supabase proxy...');
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/get-ip-info`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Accept': 'application/json',
+            },
+            mode: 'cors',
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+        }
 
         const data = await response.json();
-        console.log('📍 IP Info:', data);
+        console.log('📍 IP Info from proxy:', data);
 
+        if (data.error) {
+            throw new Error(data.error);
+        }
+
+        // Update UI
         const ipEl = document.getElementById('userIP');
         if (ipEl) ipEl.textContent = data.ip || 'Unknown';
 
@@ -407,33 +455,21 @@ async function fetchUserInfo() {
         const timezoneEl = document.getElementById('userTimezone');
         if (timezoneEl) timezoneEl.textContent = data.timezone || 'UTC';
 
+        // Optional: show location details if element exists
+        const locationEl = document.getElementById('userLocation');
+        if (locationEl) {
+            const location = [data.city, data.region].filter(Boolean).join(', ');
+            locationEl.textContent = location || data.country_name || 'Unknown';
+        }
+
         return data;
     } catch (error) {
         console.error('❌ Failed to fetch IP info:', error);
-        try {
-            // FIXED: Using HTTPS for fallback
-            const fallbackResponse = await fetch('https://ip-api.com/json/');
-            if (fallbackResponse.ok) {
-                const data = await fallbackResponse.json();
-                if (data.status === 'success') {
-                    const ipEl = document.getElementById('userIP');
-                    if (ipEl) ipEl.textContent = data.ip || 'Unknown';
-
-                    const countryEl = document.getElementById('userCountry');
-                    if (countryEl) {
-                        const flag = getCountryFlag(data.countryCode);
-                        countryEl.innerHTML = `${flag} ${data.country || 'Unknown'}`;
-                    }
-
-                    const timezoneEl = document.getElementById('userTimezone');
-                    if (timezoneEl) timezoneEl.textContent = data.timezone || 'UTC';
-                }
-            }
-        } catch (fallbackError) {
-            console.error('❌ Fallback IP API also failed:', fallbackError);
-            document.getElementById('userIP').textContent = '⚠️ Unavailable';
-            document.getElementById('userCountry').textContent = '🌍 Unknown';
-        }
+        document.getElementById('userIP').textContent = '⚠️ Unavailable';
+        document.getElementById('userCountry').textContent = '🌍 Unknown';
+        document.getElementById('userTimezone').textContent = 'UTC';
+        const locationEl = document.getElementById('userLocation');
+        if (locationEl) locationEl.textContent = 'Unavailable';
     }
 }
 
@@ -2252,14 +2288,24 @@ window.applyCartPromo = function() {
     input.value = ''; renderCartFull(); showToast(`🎉 ${codeData.discount}% discount applied!`, 'success');
 };
 
+// ============================================================
+// FIXED Wishlist toggle - now properly updates UI
+// ============================================================
 window.toggleWishlist = async function(productId) {
     const index = wishlist.indexOf(productId);
     const product = products.find(p => p.id === productId);
-    if (index === -1) { wishlist.push(productId); createFloatingHearts(); showToast(`❤️ Added ${product ? product.name : ''} to favorites`, 'success'); } else { wishlist = wishlist.filter(id => id !== productId); showToast(`💔 Removed ${product ? product.name : ''} from favorites`, 'info'); }
+    if (index === -1) {
+        wishlist.push(productId);
+        createFloatingHearts();
+        showToast(`❤️ Added ${product ? product.name : ''} to favorites`, 'success');
+    } else {
+        wishlist = wishlist.filter(id => id !== productId);
+        showToast(`💔 Removed ${product ? product.name : ''} from favorites`, 'info');
+    }
     await saveUserData(true);
-    updateWishlistUI();
+    updateWishlistUI();      // تحديث واجهة الأمنيات
     updateStatsFromProducts(products);
-    renderProducts(products);
+    renderProducts(products); // إعادة رسم المنتجات لتحديث الأزرار
     updateFullUserMenu();
 };
 window.removeFromWishlist = function(id) { window.toggleWishlist(id); };
@@ -6779,14 +6825,33 @@ async function uploadToCloudinary(file) {
 }
 
 // ============================================================
-// 49. Direction Fix
+// 49. Direction Fix (CLOSE BUTTONS ON RIGHT)
 // ============================================================
 
 function fixDirection() {
+    // Force LTR direction
     document.querySelectorAll('.header, .logo, .header-actions, .modal-content, .fullscreen-modal, .admin-panel').forEach(el => {
-        el.style.direction = 'ltr'; el.style.textAlign = 'left';
+        el.style.direction = 'ltr';
+        el.style.textAlign = 'left';
     });
-    document.querySelectorAll('.modal-close').forEach(el => { el.style.right = 'auto'; el.style.left = '10px'; });
+
+    // Fix close buttons to be on the right side
+    document.querySelectorAll('.modal-close, .close-btn, .close-modal-btn').forEach(el => {
+        el.style.position = 'absolute';
+        el.style.top = '10px';
+        el.style.right = '10px';
+        el.style.left = 'auto';
+        el.style.zIndex = '100';
+        el.style.margin = '0';
+    });
+
+    // Fix any leftover left positioning
+    document.querySelectorAll('.modal-close, .close-btn').forEach(el => {
+        el.style.left = 'auto';
+        el.style.right = '10px';
+    });
+
+    console.log('✅ Direction fixed: Close buttons on right');
 }
 window.fixHeaderAndModals = fixDirection;
 
@@ -6957,7 +7022,7 @@ window.adminDeletePayment = function(orderId, userId) {
 // ============================================================
 
 // ============================================================
-// 52.1 CHECKOUT FUNCTION (Was missing)
+// 52.1 CHECKOUT FUNCTION
 // ============================================================
 
 window.checkout = function() {
@@ -6978,7 +7043,7 @@ window.checkout = function() {
 };
 
 // ============================================================
-// 52.2 PAYMENT MODAL FUNCTIONS (Was missing)
+// 52.2 PAYMENT MODAL FUNCTIONS
 // ============================================================
 
 window.openPaymentModal = function() {
@@ -7028,7 +7093,7 @@ window.goToStep1 = function() {
 };
 
 // ============================================================
-// 52.3 COPY WALLET ADDRESS (Was missing)
+// 52.3 COPY WALLET ADDRESS
 // ============================================================
 
 window.copyWalletAddress = function() {
@@ -7053,7 +7118,7 @@ window.copyWalletAddress = function() {
 };
 
 // ============================================================
-// 52.4 ADD PRODUCT MODAL FUNCTIONS (Missing)
+// 52.4 ADD PRODUCT MODAL FUNCTIONS
 // ============================================================
 
 window.openAddProductModal = function() {
@@ -7256,7 +7321,7 @@ window.deleteProduct = async function(productId) {
 };
 
 // ============================================================
-// 52.5 FILTER ORDERS FUNCTION (Missing)
+// 52.5 FILTER ORDERS FUNCTION
 // ============================================================
 
 window.filterOrders = function(filter) {
@@ -7525,9 +7590,13 @@ async function init() {
         loadUserBalance();
         initTopInfoBar();
 
+        // Apply fixes
+        setTimeout(removeDuplicateDate, 500);
+        setTimeout(styleHeaderTopup, 500);
+        setTimeout(fixDirection, 100);
+
         updateLoadingText('✅ Ready!');
         console.log('✅ ZI Store ready with all features!');
-        setTimeout(fixDirection, 100);
         setTimeout(window.ensureAdminPanel, 3000);
         setTimeout(checkCookieConsent, 1500);
 
