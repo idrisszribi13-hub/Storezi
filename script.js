@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - COMPLETE VERSION
+// SCRIPT.JS - ZI Store - COMPLETE FIXED VERSION
 // ============================================================
 
 // Fix for Firebase Analytics "process is not defined" error
@@ -146,6 +146,7 @@ let userBalance = 0;
 let selectedTopupAmount = 0;
 let selectedTopupCurrency = 'USDT';
 let topupSubscription = null;
+let defaultProducts = [];
 
 // Slider variables
 let sliderSlides = [];
@@ -178,11 +179,106 @@ let userProfile = {
     isBanned: false, lastDailyReward: 0, licences: [], balance: 0
 };
 
+// ============================================================
+// DEFAULT PRODUCTS (Fallback - يمكن تعديلها من لوحة الأدمن)
+// ============================================================
 const fallbackProducts = [
-    { id: "fallback_1", name: "Mergedom", price: 11, badge: "VIP", status: "available", image: "https://picsum.photos/seed/mergedom/400/300", downloadLink: "", description: "Mergedom game with premium features.", features: ["Level Auto Bypass", "Unlimited Boost", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() },
-    { id: "fallback_2", name: "Numbers Game 2048", price: 0, badge: "VIP", status: "available", image: "https://picsum.photos/seed/2048/400/300", downloadLink: "", description: "Classic 2048 game with exclusive mod features.", features: ["Unlimited Device", "Block Spawn Modify", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() },
-    { id: "fallback_3", name: "Screwdom 3D", price: 0, badge: "VIP", status: "available", image: "https://picsum.photos/seed/screwdom/400/300", downloadLink: "", description: "Exciting 3D puzzle game with unlimited boosts.", features: ["Unlimited Boost", "Level Auto Complete", "Game Speed"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() },
-    { id: "fallback_4", name: "Smart Telegram Bot", price: 0, badge: "FREE", status: "available", image: "https://picsum.photos/seed/bot/400/300", downloadLink: "https://www.mediafire.com/file/example/bot.zip", description: "Advanced Telegram bot with auto-reply and group management.", features: ["Auto Replies", "Group Management", "Notifications"], video: "https://www.youtube.com/embed/dQw4w9WgXcQ", createdAt: new Date() }
+    { 
+        id: "fallback_1", 
+        name: "Mergedom VIP", 
+        price: 11, 
+        badge: "VIP", 
+        status: "available", 
+        image: "https://picsum.photos/seed/mergedom/400/300", 
+        downloadLink: "", 
+        description: "Mergedom game with premium features. Unlock all levels and get unlimited boosts.", 
+        features: ["Level Auto Bypass", "Unlimited Boost", "Game Speed"], 
+        video: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        currency: "USD",
+        productType: "standard",
+        badges: ["hot", "exclusive"],
+        createdAt: new Date() 
+    },
+    { 
+        id: "fallback_2", 
+        name: "2048 Game Mod", 
+        price: 0, 
+        badge: "FREE", 
+        status: "available", 
+        image: "https://picsum.photos/seed/2048/400/300", 
+        downloadLink: "https://example.com/download/2048-mod.apk", 
+        description: "Classic 2048 game with exclusive mod features. Unlimited moves and custom themes.", 
+        features: ["Unlimited Device", "Block Spawn Modify", "Game Speed"], 
+        video: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        currency: "USD",
+        productType: "standard",
+        badges: ["new", "best"],
+        createdAt: new Date() 
+    },
+    { 
+        id: "fallback_3", 
+        name: "Screwdom 3D Pro", 
+        price: 0, 
+        badge: "FREE", 
+        status: "available", 
+        image: "https://picsum.photos/seed/screwdom/400/300", 
+        downloadLink: "https://example.com/download/screwdom.apk", 
+        description: "Exciting 3D puzzle game with unlimited boosts and auto-complete features.", 
+        features: ["Unlimited Boost", "Level Auto Complete", "Game Speed"], 
+        video: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        currency: "USD",
+        productType: "standard",
+        badges: ["hot"],
+        createdAt: new Date() 
+    },
+    { 
+        id: "fallback_4", 
+        name: "Smart Telegram Bot", 
+        price: 0, 
+        badge: "FREE", 
+        status: "available", 
+        image: "https://picsum.photos/seed/bot/400/300", 
+        downloadLink: "https://example.com/download/bot.zip", 
+        description: "Advanced Telegram bot with auto-reply and group management features.", 
+        features: ["Auto Replies", "Group Management", "Notifications"], 
+        video: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        currency: "USD",
+        productType: "standard",
+        badges: ["new", "exclusive"],
+        createdAt: new Date() 
+    },
+    { 
+        id: "fallback_5", 
+        name: "Premium Script Pack", 
+        price: 25, 
+        badge: "VIP", 
+        status: "available", 
+        image: "https://picsum.photos/seed/premium/400/300", 
+        downloadLink: "", 
+        description: "Complete premium script pack with 10+ tools for game development and automation.", 
+        features: ["10+ Scripts", "Lifetime Updates", "Support Included"], 
+        video: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        currency: "USD",
+        productType: "standard",
+        badges: ["best", "limited"],
+        createdAt: new Date() 
+    },
+    { 
+        id: "fallback_6", 
+        name: "AI Chat Assistant", 
+        price: 15, 
+        badge: "VIP", 
+        status: "available", 
+        image: "https://picsum.photos/seed/ai/400/300", 
+        downloadLink: "", 
+        description: "AI-powered chat assistant for Discord and Telegram with advanced NLP.", 
+        features: ["NLP Engine", "Multi-Platform", "Custom Commands"], 
+        video: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        currency: "USD",
+        productType: "standard",
+        badges: ["new", "exclusive"],
+        createdAt: new Date() 
+    }
 ];
 
 const discountCodes = { 'SAVE10': { discount: 10 }, 'SAVE15': { discount: 15 }, 'WELCOME': { discount: 10 }, 'VIP2024': { discount: 15 }, 'SUMMER': { discount: 10 } };
@@ -261,7 +357,119 @@ window.showMainApp = function() {
 };
 
 // ============================================================
-// 2. Admin Check Functions
+// 2. TOP INFO BAR - Server Time, IP, Country
+// ============================================================
+
+let serverTimeInterval = null;
+
+function updateServerTime() {
+    const now = new Date();
+    const options = {
+        timeZone: 'UTC',
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    };
+    const timeStr = now.toLocaleString('en-US', options);
+    const dateStr = now.toLocaleDateString('en-US', { 
+        weekday: 'short',
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+    });
+    
+    const el = document.getElementById('serverTime');
+    if (el) {
+        el.innerHTML = `<i class="far fa-calendar-alt" style="margin-right:4px;color:var(--vip-color);"></i> ${dateStr} &nbsp;|&nbsp; <i class="far fa-clock" style="margin-right:4px;color:var(--primary);"></i> ${timeStr} UTC`;
+    }
+}
+
+async function fetchUserInfo() {
+    try {
+        const response = await fetch('https://ipapi.co/json/');
+        if (!response.ok) throw new Error('Failed to fetch IP info');
+        
+        const data = await response.json();
+        console.log('📍 IP Info:', data);
+        
+        const ipEl = document.getElementById('userIP');
+        if (ipEl) ipEl.textContent = data.ip || 'Unknown';
+        
+        const countryEl = document.getElementById('userCountry');
+        if (countryEl) {
+            const flag = getCountryFlag(data.country_code);
+            countryEl.innerHTML = `${flag} ${data.country_name || 'Unknown'}`;
+        }
+        
+        const timezoneEl = document.getElementById('userTimezone');
+        if (timezoneEl) timezoneEl.textContent = data.timezone || 'UTC';
+        
+        return data;
+    } catch (error) {
+        console.error('❌ Failed to fetch IP info:', error);
+        // Fallback to ip-api.com
+        try {
+            const fallbackResponse = await fetch('http://ip-api.com/json/');
+            if (fallbackResponse.ok) {
+                const data = await fallbackResponse.json();
+                if (data.status === 'success') {
+                    const ipEl = document.getElementById('userIP');
+                    if (ipEl) ipEl.textContent = data.ip || 'Unknown';
+                    
+                    const countryEl = document.getElementById('userCountry');
+                    if (countryEl) {
+                        const flag = getCountryFlag(data.countryCode);
+                        countryEl.innerHTML = `${flag} ${data.country || 'Unknown'}`;
+                    }
+                    
+                    const timezoneEl = document.getElementById('userTimezone');
+                    if (timezoneEl) timezoneEl.textContent = data.timezone || 'UTC';
+                }
+            }
+        } catch (fallbackError) {
+            console.error('❌ Fallback IP API also failed:', fallbackError);
+            document.getElementById('userIP').textContent = '⚠️ Unavailable';
+            document.getElementById('userCountry').textContent = '🌍 Unknown';
+        }
+    }
+}
+
+function getCountryFlag(countryCode) {
+    if (!countryCode) return '🌍';
+    const flags = {
+        'US': '🇺🇸', 'GB': '🇬🇧', 'CA': '🇨🇦', 'AU': '🇦🇺', 'DE': '🇩🇪',
+        'FR': '🇫🇷', 'IT': '🇮🇹', 'ES': '🇪🇸', 'PT': '🇵🇹', 'NL': '🇳🇱',
+        'BE': '🇧🇪', 'CH': '🇨🇭', 'AT': '🇦🇹', 'SE': '🇸🇪', 'NO': '🇳🇴',
+        'DK': '🇩🇰', 'FI': '🇫🇮', 'IE': '🇮🇪', 'NZ': '🇳🇿', 'ZA': '🇿🇦',
+        'BR': '🇧🇷', 'AR': '🇦🇷', 'MX': '🇲🇽', 'CO': '🇨🇴', 'CL': '🇨🇱',
+        'AE': '🇦🇪', 'SA': '🇸🇦', 'QA': '🇶🇦', 'OM': '🇴🇲', 'KW': '🇰🇼',
+        'BH': '🇧🇭', 'JO': '🇯🇴', 'IL': '🇮🇱', 'LB': '🇱🇧', 'EG': '🇪🇬',
+        'DZ': '🇩🇿', 'MA': '🇲🇦', 'TN': '🇹🇳', 'LY': '🇱🇾', 'SD': '🇸🇩',
+        'ET': '🇪🇹', 'KE': '🇰🇪', 'UG': '🇺🇬', 'TZ': '🇹🇿', 'RW': '🇷🇼',
+        'ZM': '🇿🇲', 'ZW': '🇿🇼', 'MW': '🇲🇼', 'MZ': '🇲🇿', 'ZA': '🇿🇦',
+        'NG': '🇳🇬', 'GH': '🇬🇭', 'CI': '🇨🇮', 'SN': '🇸🇳', 'ML': '🇲🇱',
+        'IN': '🇮🇳', 'PK': '🇵🇰', 'BD': '🇧🇩', 'MM': '🇲🇲', 'TH': '🇹🇭',
+        'VN': '🇻🇳', 'MY': '🇲🇾', 'SG': '🇸🇬', 'PH': '🇵🇭', 'ID': '🇮🇩',
+        'CN': '🇨🇳', 'JP': '🇯🇵', 'KR': '🇰🇷', 'TR': '🇹🇷', 'RU': '🇷🇺',
+        'UA': '🇺🇦', 'PL': '🇵🇱', 'RO': '🇷🇴', 'HU': '🇭🇺', 'GR': '🇬🇷'
+    };
+    return flags[countryCode] || '🌍';
+}
+
+async function initTopInfoBar() {
+    if (serverTimeInterval) clearInterval(serverTimeInterval);
+    updateServerTime();
+    serverTimeInterval = setInterval(updateServerTime, 1000);
+    await fetchUserInfo();
+    setInterval(fetchUserInfo, 300000);
+}
+
+// ============================================================
+// 3. Admin Check Functions
 // ============================================================
 
 async function checkIsAdmin() {
@@ -322,6 +530,7 @@ window.ensureAdminPanel = function() {
             renderAdminProducts(products);
             loadLicences();
             loadAdminTopups();
+            renderFallbackProductsAdmin();
         } else {
             console.warn('⚠️ User is not an admin');
             if (adminMenuItem) {
@@ -334,7 +543,7 @@ window.ensureAdminPanel = function() {
 };
 
 // ============================================================
-// 3. User Functions (Firestore + LocalStorage)
+// 4. User Functions (Firestore + LocalStorage)
 // ============================================================
 
 function loadFromLocalStorage() {
@@ -450,6 +659,7 @@ function startUserRealtimeListener() {
                     loadAdminOrders();
                     loadLicences();
                     loadAdminTopups();
+                    renderFallbackProductsAdmin();
                 }
             });
         }
@@ -518,6 +728,7 @@ async function loadUserData() {
                 loadAdminOrders();
                 loadLicences();
                 loadAdminTopups();
+                renderFallbackProductsAdmin();
             }
         } else {
             await setDoc(userRef, { 
@@ -616,7 +827,7 @@ function generateReferralCode(name, email) {
 }
 
 // ============================================================
-// 4. UI Updates
+// 5. UI Updates
 // ============================================================
 
 function updateDropdownStats() {
@@ -705,7 +916,7 @@ function updateFullUserMenu() {
 }
 
 // ============================================================
-// 5. Auth Functions (with Google Popup)
+// 6. Auth Functions (with Google Popup)
 // ============================================================
 
 window.showLogin = function() { document.getElementById('loginContainer').style.display = 'block'; document.getElementById('registerContainer').style.display = 'none'; };
@@ -736,6 +947,7 @@ window.loginUser = async function() {
             updateDropdownStats();
             loadUserBalance();
             startTopupRealtimeListener();
+            initTopInfoBar();
             
             if (isAdminCached) {
                 console.log('✅ Admin detected, loading admin features');
@@ -743,6 +955,7 @@ window.loginUser = async function() {
                 startAdminRealtimeListener();
                 loadLicences();
                 loadAdminTopups();
+                renderFallbackProductsAdmin();
                 setTimeout(() => {
                     const adminMenuItem = document.getElementById('adminMenuItem');
                     if (adminMenuItem) {
@@ -812,6 +1025,7 @@ window.registerUser = async function() {
             hideLoadingScreen();
             loadUserBalance();
             startTopupRealtimeListener();
+            initTopInfoBar();
         }, 500);
     } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Registration failed', 'error'); btn.classList.remove('loading'); }
 };
@@ -855,6 +1069,7 @@ window.loginWithGoogle = function() {
                 updateDropdownStats();
                 loadUserBalance();
                 startTopupRealtimeListener();
+                initTopInfoBar();
 
                 if (isAdminCached) {
                     console.log('✅ Admin detected, loading admin features');
@@ -862,6 +1077,7 @@ window.loginWithGoogle = function() {
                     startAdminRealtimeListener();
                     loadLicences();
                     loadAdminTopups();
+                    renderFallbackProductsAdmin();
                     setTimeout(() => {
                         const adminMenuItem = document.getElementById('adminMenuItem');
                         if (adminMenuItem) {
@@ -1014,7 +1230,7 @@ window.sendForgotPassword = async function() {
 };
 
 // ============================================================
-// 6. General Modals
+// 7. General Modals
 // ============================================================
 
 window.openUserMenuFull = function() { if (!currentUser) { openAuthModal(); return; } document.getElementById('userMenuFull').classList.add('open'); updateFullUserMenu(); document.body.style.overflow = 'hidden'; };
@@ -1034,7 +1250,7 @@ window.closeNotifications = function() { document.getElementById('notificationsM
 window.openAuthModal = function() { document.getElementById('authSection').scrollIntoView({ behavior: 'smooth' }); };
 
 // ============================================================
-// 6.1 Transactions Modal
+// 7.1 Transactions Modal
 // ============================================================
 
 window.openTransactionsModal = function() {
@@ -1126,7 +1342,7 @@ function renderTransactions(transactions) {
 }
 
 // ============================================================
-// 7. Render Profile Full (with password toggle)
+// 8. Render Profile Full (with password toggle)
 // ============================================================
 
 function renderProfileFull() {
@@ -1318,7 +1534,7 @@ window.sendResetLinkInline = async function() { if (!currentUser) return; try { 
 window.changePasswordInline = async function() { if (!currentUser) return; const currentPwd = document.getElementById('currentPasswordInline').value; const newPwd = document.getElementById('newPasswordInline').value; const confirmPwd = document.getElementById('confirmNewPasswordInline').value; const errorEl = document.getElementById('passwordErrorInline'); const successEl = document.getElementById('passwordSuccessInline'); errorEl.textContent = ''; successEl.textContent = ''; if (!currentPwd || !newPwd || !confirmPwd) { errorEl.textContent = 'Please fill all fields'; return; } if (newPwd.length < 6) { errorEl.textContent = 'New password must be at least 6 characters'; return; } if (newPwd !== confirmPwd) { errorEl.textContent = 'Passwords do not match'; return; } try { const credential = EmailAuthProvider.credential(currentUser.email, currentPwd); await reauthenticateWithCredential(currentUser, credential); await updatePassword(currentUser, newPwd); successEl.textContent = '✅ Password changed successfully!'; showToast('✅ Password updated!', 'success'); document.getElementById('currentPasswordInline').value = ''; document.getElementById('newPasswordInline').value = ''; document.getElementById('confirmNewPasswordInline').value = ''; setTimeout(() => { successEl.textContent = ''; }, 3000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); } };
 
 // ============================================================
-// 8. Product Functions
+// 9. Product Functions
 // ============================================================
 
 async function loadProductsFromFirestore() {
@@ -1508,7 +1724,7 @@ function generateRecommendations(productsList) {
 }
 
 // ============================================================
-// 9. Currency, Product Type, Quantity, Badge Functions
+// 10. Currency, Product Type, Quantity, Badge Functions
 // ============================================================
 
 window.selectCurrency = function(currency) {
@@ -1636,7 +1852,148 @@ function setBadges(badges) {
 }
 
 // ============================================================
-// 10. Featured Products, Cart, Wishlist
+// 11. Admin Fallback Products (تحكم في المنتجات الافتراضية)
+// ============================================================
+
+function renderFallbackProductsAdmin() {
+    const container = document.getElementById('adminFallbackProducts');
+    if (!container) return;
+    
+    container.innerHTML = `
+        <div style="background:var(--glass-bg); backdrop-filter:blur(8px); border-radius:var(--radius-sm); padding:16px; border:1px solid var(--glass-border); margin-bottom:12px;">
+            <h4 style="font-weight:700; margin-bottom:8px; color:var(--vip-color);">📦 Fallback Products (تظهر عند عدم وجود منتجات)</h4>
+            <div style="font-size:12px; color:var(--text-secondary); opacity:0.6; margin-bottom:12px;">
+                هذه المنتجات تظهر تلقائياً عندما لا توجد منتجات في قاعدة البيانات. يمكنك تعديلها أو إضافة منتجات جديدة.
+            </div>
+        </div>
+    `;
+    
+    fallbackProducts.forEach((p, index) => {
+        const div = document.createElement('div');
+        div.className = 'admin-item';
+        div.innerHTML = `
+            <div class="item-info">
+                <div class="item-title">
+                    <img src="${p.image || 'https://picsum.photos/seed/default/60/60'}" style="width:30px;height:30px;border-radius:6px;object-fit:cover;margin-right:8px;" />
+                    ${p.name}
+                    <span style="font-size:11px;font-weight:400;opacity:0.5;margin-left:6px;">${p.price === 0 ? 'FREE' : '$' + p.price}</span>
+                    <span style="font-size:10px;padding:2px 8px;border-radius:12px;background:${p.badge === 'VIP' ? 'var(--vip-color)' : 'var(--free-color)'};color:#0a0a1a;margin-left:4px;">${p.badge || 'FREE'}</span>
+                </div>
+                <div class="item-meta">${p.description ? p.description.slice(0, 60) + '...' : ''}</div>
+            </div>
+            <div class="item-actions">
+                <button class="btn-edit" onclick="editFallbackProduct(${index})"><i class="fas fa-edit"></i></button>
+                <button class="btn-delete" onclick="deleteFallbackProduct(${index})"><i class="fas fa-trash"></i></button>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+    
+    // زر إضافة منتج جديد
+    const addBtn = document.createElement('button');
+    addBtn.className = 'add-btn';
+    addBtn.style.marginTop = '8px';
+    addBtn.innerHTML = '<i class="fas fa-plus"></i> Add Fallback Product';
+    addBtn.onclick = () => openAddFallbackProductModal();
+    container.appendChild(addBtn);
+}
+
+window.editFallbackProduct = function(index) {
+    const product = fallbackProducts[index];
+    if (!product) { showToast('❌ Product not found', 'error'); return; }
+    
+    document.getElementById('fallbackProductId').value = index;
+    document.getElementById('fallbackProductName').value = product.name || '';
+    document.getElementById('fallbackProductPrice').value = product.price || 0;
+    document.getElementById('fallbackProductBadge').value = product.badge || 'FREE';
+    document.getElementById('fallbackProductStatus').value = product.status || 'available';
+    document.getElementById('fallbackProductImage').value = product.image || '';
+    document.getElementById('fallbackProductDescription').value = product.description || '';
+    document.getElementById('fallbackProductFeatures').value = (product.features || []).join(', ');
+    document.getElementById('fallbackProductVideo').value = product.video || 'https://www.youtube.com/embed/dQw4w9WgXcQ';
+    document.getElementById('fallbackProductDownloadLink').value = product.downloadLink || '';
+    
+    document.getElementById('fallbackProductModalTitle').textContent = '✏️ Edit Fallback Product';
+    document.getElementById('fallbackProductModal').classList.add('open');
+};
+
+window.openAddFallbackProductModal = function() {
+    document.getElementById('fallbackProductId').value = '';
+    document.getElementById('fallbackProductName').value = '';
+    document.getElementById('fallbackProductPrice').value = 0;
+    document.getElementById('fallbackProductBadge').value = 'FREE';
+    document.getElementById('fallbackProductStatus').value = 'available';
+    document.getElementById('fallbackProductImage').value = 'https://picsum.photos/seed/' + Math.random().toString(36).substring(2, 8) + '/400/300';
+    document.getElementById('fallbackProductDescription').value = '';
+    document.getElementById('fallbackProductFeatures').value = '';
+    document.getElementById('fallbackProductVideo').value = 'https://www.youtube.com/embed/dQw4w9WgXcQ';
+    document.getElementById('fallbackProductDownloadLink').value = '';
+    
+    document.getElementById('fallbackProductModalTitle').textContent = '➕ Add Fallback Product';
+    document.getElementById('fallbackProductModal').classList.add('open');
+};
+
+window.closeFallbackProductModal = function() {
+    document.getElementById('fallbackProductModal').classList.remove('open');
+};
+
+window.saveFallbackProduct = function() {
+    const index = document.getElementById('fallbackProductId').value;
+    const name = document.getElementById('fallbackProductName').value.trim();
+    const price = parseFloat(document.getElementById('fallbackProductPrice').value) || 0;
+    const badge = document.getElementById('fallbackProductBadge').value;
+    const status = document.getElementById('fallbackProductStatus').value;
+    const image = document.getElementById('fallbackProductImage').value.trim();
+    const description = document.getElementById('fallbackProductDescription').value.trim();
+    const featuresText = document.getElementById('fallbackProductFeatures').value.trim();
+    const video = document.getElementById('fallbackProductVideo').value.trim();
+    const downloadLink = document.getElementById('fallbackProductDownloadLink').value.trim();
+    
+    if (!name) { showToast('⚠️ Product name is required', 'warning'); return; }
+    
+    const features = featuresText ? featuresText.split(',').map(f => f.trim()).filter(f => f) : [];
+    const productData = {
+        id: 'fallback_' + Date.now(),
+        name, price, badge, status, image, description, features, video, downloadLink,
+        currency: 'USD',
+        productType: 'standard',
+        badges: ['new'],
+        createdAt: new Date()
+    };
+    
+    if (index !== '' && index >= 0 && index < fallbackProducts.length) {
+        // تعديل منتج موجود
+        fallbackProducts[parseInt(index)] = { ...fallbackProducts[parseInt(index)], ...productData };
+        showToast('✅ Fallback product updated!', 'success');
+    } else {
+        // إضافة منتج جديد
+        fallbackProducts.push(productData);
+        showToast('✅ Fallback product added!', 'success');
+    }
+    
+    // تحديث المنتجات إذا كانت fallback نشطة
+    if (products.length === 0 || products === fallbackProducts) {
+        products = fallbackProducts;
+        renderProducts(products, false);
+    }
+    
+    closeFallbackProductModal();
+    renderFallbackProductsAdmin();
+};
+
+window.deleteFallbackProduct = function(index) {
+    if (!confirm('Delete this fallback product?')) return;
+    fallbackProducts.splice(index, 1);
+    if (products.length === 0 || products === fallbackProducts) {
+        products = fallbackProducts;
+        renderProducts(products, false);
+    }
+    renderFallbackProductsAdmin();
+    showToast('🗑️ Fallback product deleted', 'success');
+};
+
+// ============================================================
+// 12. Featured Products, Cart, Wishlist
 // ============================================================
 
 function renderFeaturedProducts() {
@@ -1697,7 +2054,7 @@ async function loadFeaturedSettings() {
 }
 
 // ============================================================
-// 11. Cart Management (with "View Cart" button)
+// 13. Cart Management (with "View Cart" button)
 // ============================================================
 
 function updateProductCardButton(productId) {
@@ -1956,7 +2313,7 @@ function createFloatingHearts() {
 }
 
 // ============================================================
-// 12. Product Preview (UPDATED to Full Page)
+// 14. Product Preview
 // ============================================================
 
 window.openDetails = function(id) {
@@ -2316,7 +2673,7 @@ window.addVipPlanToCart = function(product) {
 };
 
 // ============================================================
-// 13. Share Modal
+// 15. Share Modal
 // ============================================================
 
 window.openShareModal = function(productId) {
@@ -2333,7 +2690,7 @@ window.shareToFacebook = function() { if (!shareProduct) return; window.open(`ht
 window.copyShareLink = function() { const url = window.location.href; navigator.clipboard.writeText(url).then(() => { showToast('✅ Link copied!', 'success'); closeShareModal(); }).catch(() => { const textArea = document.createElement('textarea'); textArea.value = url; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); showToast('✅ Link copied!', 'success'); closeShareModal(); }); };
 
 // ============================================================
-// 14. Filter & Search
+// 16. Filter & Search
 // ============================================================
 
 window.filterProducts = function(filter) {
@@ -2390,11 +2747,11 @@ function closeSearchResults() { searchResults.classList.remove('active'); search
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeSearchResults(); closeUserMenuFull(); closeCartFull(); closeWishlistFull(); closeProfileFull(); closeHistoryFull(); } });
 
 // ============================================================
-// 15. Payment (with Supabase Functions Backend)
+// 17. Payment (with Supabase Functions Backend)
 // ============================================================
 
 // ============================================================
-// 15.0 Visitor Info Functions
+// 17.0 Visitor Info Functions
 // ============================================================
 
 async function getVisitorInfo() {
@@ -2456,7 +2813,7 @@ function getDeviceInfo() {
 }
 
 // ============================================================
-// 15.1 Payment Products Render
+// 17.1 Payment Products Render
 // ============================================================
 window.renderPaymentProducts = function() {
     const container = document.getElementById('paymentProductsList');
@@ -2487,7 +2844,7 @@ window.renderPaymentProducts = function() {
 };
 
 // ============================================================
-// 15.2 Crypto Price Functions
+// 17.2 Crypto Price Functions
 // ============================================================
 
 async function fetchCryptoPrices() {
@@ -2569,7 +2926,7 @@ function updatePayableTotal() {
 }
 
 // ============================================================
-// 15.3 Payment Selection (UPDATED with Balance option)
+// 17.3 Payment Selection (UPDATED with Balance option)
 // ============================================================
 window.selectPayment = function(method) {
     selectedPayment = method;
@@ -2601,7 +2958,7 @@ window.selectPayment = function(method) {
 };
 
 // ============================================================
-// 15.4 Continue Payment (NO RP and NO Promo in checkout)
+// 17.4 Continue Payment (NO RP and NO Promo in checkout)
 // ============================================================
 window.continuePayment = function() {
     if (!selectedPayment) {
@@ -2700,7 +3057,7 @@ window.continuePayment = function() {
 };
 
 // ============================================================
-// 15.5 Balance Payment Function
+// 17.5 Balance Payment Function
 // ============================================================
 
 async function processBalancePayment(totalAmount) {
@@ -2772,7 +3129,7 @@ async function processBalancePayment(totalAmount) {
 }
 
 // ============================================================
-// 15.6 Place Order - calls Supabase Function
+// 17.6 Place Order - calls Supabase Function
 // ============================================================
 window.placeOrder = function() {
     if (!currentUser || currentUser.isAnonymous) {
@@ -2807,7 +3164,7 @@ window.placeOrder = function() {
 };
 
 // ============================================================
-// 15.7 Binance ID specific functions
+// 17.7 Binance ID specific functions
 // ============================================================
 window.copyBinanceId = function() {
     const id = document.getElementById('binanceIdDisplay').textContent;
@@ -2887,7 +3244,7 @@ window.submitManualPayment = function() {
 };
 
 // ============================================================
-// 15.8 sendOrderToTelegram
+// 17.8 sendOrderToTelegram
 // ============================================================
 async function sendOrderToTelegram(method, txHash = null) {
     if (isProcessingOrder) {
@@ -3154,7 +3511,7 @@ ${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
 }
 
 // ============================================================
-// 15.9 Place Order Telegram
+// 17.9 Place Order Telegram
 // ============================================================
 window.placeOrderTelegram = function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
@@ -3172,7 +3529,7 @@ window.placeOrderTelegram = function() {
 };
 
 // ============================================================
-// 15.10 Proxy Functions
+// 17.10 Proxy Functions
 // ============================================================
 
 function renderProxyPackages() {
@@ -3216,7 +3573,7 @@ window.addProxyToCart = function(packageId) {
 };
 
 // ============================================================
-// 16. Order Functions with User Notification
+// 18. Order Functions with User Notification
 // ============================================================
 
 async function sendUserNotification(userId, title, message) {
@@ -3243,7 +3600,7 @@ async function sendUserNotification(userId, title, message) {
 }
 
 // ============================================================
-// 17. Telegram Functions
+// 19. Telegram Functions
 // ============================================================
 
 async function sendTelegramNotification(chatId, message) {
@@ -3384,7 +3741,7 @@ window.checkTelegramStatus = async function() {
 };
 
 // ============================================================
-// 18. Downloads & Notifications
+// 20. Downloads & Notifications
 // ============================================================
 
 function loadDownloads() {
@@ -3448,7 +3805,7 @@ function loadNotifications() {
             notifications = [];
             snapshot.forEach((doc) => {
                 const data = doc.data();
-                // Only show notifications for this user or global (no userId)
+                // USER-SPECIFIC: Only show notifications for this user or global (no userId)
                 if (!data.userId || data.userId === currentUser?.uid) {
                     notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] });
                 }
@@ -3466,6 +3823,7 @@ function loadNotifications() {
             notifications = [];
             snapshot.forEach((doc) => {
                 const data = doc.data();
+                // USER-SPECIFIC: Only show notifications for this user or global (no userId)
                 if (!data.userId || data.userId === currentUser?.uid) {
                     notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] });
                 }
@@ -3539,7 +3897,7 @@ window.clearAllNotifications = async function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
     try {
         const notifRef = collection(db, 'notifications');
-        // Delete only user's notifications
+        // USER-SPECIFIC: Delete only user's notifications
         const snapshot = await getDocs(query(notifRef, where('userId', '==', currentUser.uid)));
         const batch = [];
         snapshot.forEach((doc) => { batch.push(deleteDoc(doc.ref)); });
@@ -3572,7 +3930,7 @@ window.openCreateNotificationModal = function() { if (!currentUser || !isAdminCa
 window.closeCreateNotificationModal = function() { document.getElementById('createNotificationModal').classList.remove('open'); };
 
 // ============================================================
-// 19. Requests & Referrals
+// 21. Requests & Referrals
 // ============================================================
 
 window.openRequestsModal = function() {
@@ -3646,7 +4004,7 @@ window.copyReferralCode2 = function() {
 };
 
 // ============================================================
-// 20. Admin Panel
+// 22. Admin Panel
 // ============================================================
 
 window.openAdminPanel = function() {
@@ -3664,6 +4022,7 @@ window.openAdminPanel = function() {
         loadLicences();
         loadDashboardStats();
         loadAdminTopups();
+        renderFallbackProductsAdmin();
         setTimeout(addBannerAdminControls, 300);
         ensureSliderTab();
         loadSliderSettings();
@@ -3698,7 +4057,8 @@ window.switchAdminTab = function(tab) {
         'licences': 'tabLicences',
         'marquee': 'tabMarquee',
         'payments': 'tabPayments',
-        'topups': 'tabTopups'
+        'topups': 'tabTopups',
+        'fallback': 'tabFallback'
     };
     const tabId = tabMap[tab] || tabMap['dashboard'];
     document.getElementById(tabId).classList.add('active');
@@ -3718,10 +4078,11 @@ window.switchAdminTab = function(tab) {
     if (tab === 'orders') { loadAdminOrders(); }
     if (tab === 'payments') { refreshAdminPayments(); }
     if (tab === 'topups') { loadAdminTopups(); }
+    if (tab === 'fallback') { renderFallbackProductsAdmin(); }
 };
 
 // ============================================================
-// 21. Admin Products
+// 23. Admin Products
 // ============================================================
 
 function renderAdminProducts(productsList) {
@@ -3738,7 +4099,7 @@ function renderAdminProducts(productsList) {
 }
 
 // ============================================================
-// 22. Admin Orders
+// 24. Admin Orders (USER-SPECIFIC: Admin sees all orders)
 // ============================================================
 
 function startAdminRealtimeListener() {
@@ -3875,7 +4236,7 @@ function updateAdminStats(orders) {
 }
 
 // ============================================================
-// 23. Update Order Status with User Notification
+// 25. Update Order Status with User Notification
 // ============================================================
 
 window.updateOrderStatus = async function(orderId, userId, newStatus) {
@@ -3899,6 +4260,7 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
         });
         await updateDoc(userRef, { history: updatedHistory });
         
+        // USER-SPECIFIC notification
         await sendUserNotification(
             userId,
             newStatus === 'confirmed' ? '✅ Order Confirmed!' : '❌ Order Rejected',
@@ -3973,7 +4335,7 @@ window.clearAdminSearch = function() { document.getElementById('adminSearchInput
 window.refreshAdminOrders = function() { loadAdminOrders(); showToast('🔄 Refreshed', 'info'); };
 
 // ============================================================
-// 24. Send Licence via Edge Function
+// 26. Send Licence via Edge Function
 // ============================================================
 
 async function sendLicenceForOrder(orderId, userId, userEmail = null) {
@@ -4078,7 +4440,7 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
 }
 
 // ============================================================
-// 25. Admin Users
+// 27. Admin Users
 // ============================================================
 
 async function loadAdminUsers() {
@@ -4192,7 +4554,7 @@ window.viewUserDetails = async function(uid) {
 window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
 // ============================================================
-// 26. Licence Management System (with Supabase)
+// 28. Licence Management System (with Supabase)
 // ============================================================
 
 async function loadLicences() {
@@ -4518,7 +4880,7 @@ async function activateLicence() {
 }
 
 // ============================================================
-// 27. Ratings
+// 29. Ratings
 // ============================================================
 
 let currentRating = 0;
@@ -4628,7 +4990,7 @@ async function updateProductRatingDisplay(productId) {
 }
 
 // ============================================================
-// 28. Slider & Marquee Functions
+// 30. Slider & Marquee Functions
 // ============================================================
 
 window.goToSlide = function(index) {
@@ -4953,7 +5315,7 @@ function renderSliderSettingsUI() {
 }
 
 // ============================================================
-// Marquee Functions
+// 31. Marquee Functions
 // ============================================================
 
 window.saveMarqueeSettings = async function() {
@@ -5019,7 +5381,7 @@ async function loadMarqueeSettings() {
 }
 
 // ============================================================
-// 29. Dashboard Stats, Advanced Stats, Audit Logs
+// 32. Dashboard Stats, Advanced Stats, Audit Logs
 // ============================================================
 
 async function loadDashboardStats() {
@@ -5127,7 +5489,7 @@ async function loadAuditLogs() {
 window.loadAuditLogs = loadAuditLogs;
 
 // ============================================================
-// 30. Order History (User-specific)
+// 33. Order History (User-specific)
 // ============================================================
 
 window.clearOrderHistory = async function() {
@@ -5251,7 +5613,7 @@ window.renderHistoryFull = function() {
 };
 
 // ============================================================
-// 31. TOPUP SYSTEM - Balance Functions
+// 34. TOPUP SYSTEM - Balance Functions
 // ============================================================
 
 async function loadUserBalance() {
@@ -5290,7 +5652,7 @@ function updateBalanceDisplay() {
 }
 
 // ============================================================
-// 32. TOPUP SYSTEM - Realtime Listener
+// 35. TOPUP SYSTEM - Realtime Listener
 // ============================================================
 
 function startTopupRealtimeListener() {
@@ -5365,7 +5727,7 @@ function playNotificationSound() {
 }
 
 // ============================================================
-// 33. TOPUP SYSTEM - Check Status (User-specific)
+// 36. TOPUP SYSTEM - Check Status (User-specific)
 // ============================================================
 
 window.openTopupStatus = async function() {
@@ -5525,7 +5887,7 @@ async function loadUserTopups() {
 }
 
 // ============================================================
-// 34. TOPUP SYSTEM - Modal Functions
+// 37. TOPUP SYSTEM - Modal Functions
 // ============================================================
 
 window.openTopupModal = function() {
@@ -5552,7 +5914,7 @@ window.closeTopupModal = function() {
 };
 
 // ============================================================
-// 35. TOPUP SYSTEM - Select Currency
+// 38. TOPUP SYSTEM - Select Currency
 // ============================================================
 
 window.selectTopupCurrency = function(currency) {
@@ -5645,13 +6007,15 @@ window.selectTopupAmount = function(amount) {
     const ltcPrice = cryptoPrices.ltc || 42;
     const currency = selectedTopupCurrency || 'USDT';
     const displayAmount = currency === 'USDT' ? amount : (amount / ltcPrice);
+    // عرض المبلغ بالعملة المختارة
     const displayText = currency === 'USDT' ? `$${amount.toFixed(2)}` : `${displayAmount.toFixed(4)} LTC`;
     document.getElementById('topupSelectedAmount').textContent = displayText;
+    // في LTC دائماً للتوجيه
     document.getElementById('topupLtcAmount').textContent = `${(amount / ltcPrice).toFixed(4)} LTC`;
 };
 
 // ============================================================
-// 36. TOPUP SYSTEM - Process Topup
+// 39. TOPUP SYSTEM - Process Topup
 // ============================================================
 
 window.processTopup = async function() {
@@ -5791,7 +6155,7 @@ window.processTopup = async function() {
 };
 
 // ============================================================
-// 37. TOPUP SYSTEM - Submit with TX Hash
+// 40. TOPUP SYSTEM - Submit with TX Hash
 // ============================================================
 
 window.submitTopupWithTxHash = async function(topupId, amount) {
@@ -5871,7 +6235,7 @@ window.submitTopupWithTxHash = async function(topupId, amount) {
 };
 
 // ============================================================
-// 38. TOPUP SYSTEM - Admin Functions
+// 41. TOPUP SYSTEM - Admin Functions
 // ============================================================
 
 window.approveTopup = async function(topupId) {
@@ -6047,7 +6411,7 @@ async function loadAdminTopups() {
 }
 
 // ============================================================
-// 39. TOPUP SYSTEM - Telegram Notification
+// 42. TOPUP SYSTEM - Telegram Notification
 // ============================================================
 
 async function sendTelegramTopupNotification(userId, amount, txHash = null) {
@@ -6092,7 +6456,7 @@ ${txHash ? `🔗 *TXID:* \`${txHash}\`` : ''}
 }
 
 // ============================================================
-// 40. TOPUP SYSTEM - Copy Helper
+// 43. TOPUP SYSTEM - Copy Helper
 // ============================================================
 
 window.copyToClipboard = function(text) {
@@ -6122,7 +6486,7 @@ function fallbackCopy(text) {
 }
 
 // ============================================================
-// 41. CHECKOUT WITH BALANCE
+// 44. CHECKOUT WITH BALANCE
 // ============================================================
 
 window.checkoutWithBalance = function() {
@@ -6144,7 +6508,7 @@ window.checkoutWithBalance = function() {
 };
 
 // ============================================================
-// 42. Support Functions
+// 45. Support Functions
 // ============================================================
 
 window.toggleSupportMenu = function() {
@@ -6198,7 +6562,7 @@ window.openPhoneSupport = function() {
 };
 
 // ============================================================
-// 43. Cookie Consent Functions
+// 46. Cookie Consent Functions
 // ============================================================
 
 let cookieConsentStatus = localStorage.getItem('cookieConsent');
@@ -6324,7 +6688,7 @@ window.closeCookieBanner = function() {
 };
 
 // ============================================================
-// 44. Telegram Banner, Social Proof, Upload
+// 47. Telegram Banner, Social Proof, Upload
 // ============================================================
 
 function showTelegramBanner() {
@@ -6368,7 +6732,7 @@ function adminToggleBanner(show) {
 function resetBannerForAll() { localStorage.removeItem('telegram_banner_admin_disabled'); localStorage.removeItem('telegram_banner_hidden'); showToast('🔄 Banner reset', 'info'); addBannerAdminControls(); setTimeout(showTelegramBanner, 300); }
 
 // ============================================================
-// 45. Cloudinary Upload
+// 48. Cloudinary Upload
 // ============================================================
 
 async function uploadToCloudinary(file) {
@@ -6383,7 +6747,7 @@ async function uploadToCloudinary(file) {
 }
 
 // ============================================================
-// 46. Direction Fix
+// 49. Direction Fix
 // ============================================================
 
 function fixDirection() {
@@ -6395,7 +6759,7 @@ function fixDirection() {
 window.fixHeaderAndModals = fixDirection;
 
 // ============================================================
-// 47. Copy Licence & Export
+// 50. Copy Licence & Export
 // ============================================================
 
 window.copyLicenceCode = function(code) {
@@ -6458,7 +6822,7 @@ window.exportOrders = function() {
 };
 
 // ============================================================
-// 48. Admin Payments
+// 51. Admin Payments
 // ============================================================
 
 function refreshAdminPayments() {
@@ -6557,7 +6921,7 @@ window.adminDeletePayment = function(orderId, userId) {
 };
 
 // ============================================================
-// 49. Export all functions to global scope
+// 52. Export all functions to global scope
 // ============================================================
 
 window.showLogin = showLogin;
@@ -6772,11 +7136,17 @@ window.refreshAdminPayments = refreshAdminPayments;
 window.adminApprovePayment = adminApprovePayment;
 window.adminRejectPayment = adminRejectPayment;
 window.adminDeletePayment = adminDeletePayment;
+window.renderFallbackProductsAdmin = renderFallbackProductsAdmin;
+window.editFallbackProduct = editFallbackProduct;
+window.openAddFallbackProductModal = openAddFallbackProductModal;
+window.closeFallbackProductModal = closeFallbackProductModal;
+window.saveFallbackProduct = saveFallbackProduct;
+window.deleteFallbackProduct = deleteFallbackProduct;
 
 console.log('✅ ZI Store loaded with all features!');
 
 // ============================================================
-// 50. Init
+// 53. Init
 // ============================================================
 
 async function init() {
@@ -6808,6 +7178,7 @@ async function init() {
         loadMarqueeSettings();
         setInterval(fetchCryptoPrices, 60000);
         loadUserBalance();
+        initTopInfoBar();
 
         updateLoadingText('✅ Ready!');
         console.log('✅ ZI Store ready with all features!');
@@ -6853,7 +7224,7 @@ async function init() {
 }
 
 // ============================================================
-// 51. Auth State Listener
+// 54. Auth State Listener
 // ============================================================
 
 onAuthStateChanged(auth, async (user) => {
@@ -6896,6 +7267,7 @@ onAuthStateChanged(auth, async (user) => {
         updateDropdownStats();
         loadUserBalance();
         startTopupRealtimeListener();
+        initTopInfoBar();
 
         if (isAdminCached) {
             console.log('✅ Admin detected, loading admin features');
@@ -6904,6 +7276,7 @@ onAuthStateChanged(auth, async (user) => {
             renderAdminProducts(products);
             loadLicences();
             loadAdminTopups();
+            renderFallbackProductsAdmin();
             setTimeout(addBannerAdminControls, 500);
             setTimeout(() => {
                 const adminMenuItem = document.getElementById('adminMenuItem');
@@ -6953,7 +7326,7 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// 52. Start App
+// 55. Start App
 // ============================================================
 
 if (document.readyState === 'loading') {
