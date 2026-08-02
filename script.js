@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - FULL VERSION WITH USER-SPECIFIC DATA
+// SCRIPT.JS - ZI Store - COMPLETE VERSION
 // ============================================================
 
 // Fix for Firebase Analytics "process is not defined" error
@@ -736,7 +736,6 @@ window.loginUser = async function() {
             updateDropdownStats();
             loadUserBalance();
             startTopupRealtimeListener();
-            initTopInfoBar();
             
             if (isAdminCached) {
                 console.log('✅ Admin detected, loading admin features');
@@ -813,7 +812,6 @@ window.registerUser = async function() {
             hideLoadingScreen();
             loadUserBalance();
             startTopupRealtimeListener();
-            initTopInfoBar();
         }, 500);
     } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Registration failed', 'error'); btn.classList.remove('loading'); }
 };
@@ -857,7 +855,6 @@ window.loginWithGoogle = function() {
                 updateDropdownStats();
                 loadUserBalance();
                 startTopupRealtimeListener();
-                initTopInfoBar();
 
                 if (isAdminCached) {
                     console.log('✅ Admin detected, loading admin features');
@@ -1064,7 +1061,6 @@ async function loadTransactionHistory() {
     container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
     
     try {
-        // استخدام supabase لجلب معاملات المستخدم فقط
         const { data, error } = await supabase
             .from('transactions')
             .select('*')
@@ -3452,7 +3448,7 @@ function loadNotifications() {
             notifications = [];
             snapshot.forEach((doc) => {
                 const data = doc.data();
-                // عرض الإشعارات الخاصة بالمستخدم فقط + الإشعارات العامة (بدون userId)
+                // Only show notifications for this user or global (no userId)
                 if (!data.userId || data.userId === currentUser?.uid) {
                     notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] });
                 }
@@ -3470,7 +3466,6 @@ function loadNotifications() {
             notifications = [];
             snapshot.forEach((doc) => {
                 const data = doc.data();
-                // عرض الإشعارات الخاصة بالمستخدم فقط + الإشعارات العامة (بدون userId)
                 if (!data.userId || data.userId === currentUser?.uid) {
                     notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] });
                 }
@@ -3544,12 +3539,11 @@ window.clearAllNotifications = async function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
     try {
         const notifRef = collection(db, 'notifications');
-        // حذف إشعارات المستخدم فقط
+        // Delete only user's notifications
         const snapshot = await getDocs(query(notifRef, where('userId', '==', currentUser.uid)));
         const batch = [];
         snapshot.forEach((doc) => { batch.push(deleteDoc(doc.ref)); });
         await Promise.all(batch);
-        // تحديث قائمة الإشعارات المحلية
         notifications = notifications.filter(n => n.userId !== currentUser.uid);
         unreadNotifications = 0;
         updateNotificationBadge(); renderUserNotifications(); renderAdminNotifications();
@@ -3744,7 +3738,7 @@ function renderAdminProducts(productsList) {
 }
 
 // ============================================================
-// 22. Admin Orders (Shows ALL orders for admin only)
+// 22. Admin Orders
 // ============================================================
 
 function startAdminRealtimeListener() {
@@ -3863,6 +3857,23 @@ function renderAdminOrders(orders) {
     tbody.innerHTML = html;
 }
 
+function updateAdminStats(orders) {
+    const total = orders.length;
+    const pending = orders.filter(o => o.status === 'pending').length;
+    const confirmed = orders.filter(o => o.status === 'confirmed').length;
+    const rejected = orders.filter(o => o.status === 'rejected').length;
+
+    const totalEl = document.getElementById('adminTotalOrders');
+    const pendingEl = document.getElementById('adminPendingOrders');
+    const confirmedEl = document.getElementById('adminConfirmedOrders');
+    const rejectedEl = document.getElementById('adminRejectedOrders');
+
+    if (totalEl) totalEl.textContent = total;
+    if (pendingEl) pendingEl.textContent = pending;
+    if (confirmedEl) confirmedEl.textContent = confirmed;
+    if (rejectedEl) rejectedEl.textContent = rejected;
+}
+
 // ============================================================
 // 23. Update Order Status with User Notification
 // ============================================================
@@ -3888,7 +3899,6 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
         });
         await updateDoc(userRef, { history: updatedHistory });
         
-        // إشعار للمستخدم
         await sendUserNotification(
             userId,
             newStatus === 'confirmed' ? '✅ Order Confirmed!' : '❌ Order Rejected',
@@ -3897,7 +3907,6 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
                 : `Your order #${orderId.slice(-6)} has been rejected. Please contact support for more information.`
         );
 
-        // إشعار تيليجرام للمستخدم
         if (data.telegramChatId) {
             const statusEmoji = newStatus === 'confirmed' ? '✅' : '❌';
             const statusText = newStatus === 'confirmed' ? 'CONFIRMED' : 'REJECTED';
@@ -3930,6 +3939,38 @@ ${newStatus === 'confirmed' ? '🔑 Your licence has been generated and sent to 
         showToast('❌ Error: ' + error.message, 'error'); 
     }
 };
+
+window.deleteOrderImmediately = async function(orderId, userId) {
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (!orderId || !userId) { showToast('❌ Invalid data', 'error'); return; }
+    try {
+        const userRef = doc(db, 'users', userId);
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) { showToast('❌ User not found', 'error'); return; }
+        const data = userSnap.data();
+        const history = data.history || [];
+        const updatedHistory = history.filter(order => order.id !== orderId);
+        await updateDoc(userRef, { history: updatedHistory });
+        showToast(`🗑️ Order #${String(orderId).slice(-6)} deleted permanently`, 'success');
+        loadAdminOrders();
+        if (currentUser && currentUser.uid === userId) { userProfile.history = updatedHistory; }
+    } catch (error) { console.error('Error deleting order:', error); showToast('❌ Error: ' + error.message, 'error'); }
+};
+
+window.searchAdminOrders = function() {
+    const query = document.getElementById('adminSearchInput').value.trim().toLowerCase();
+    if (!query) { renderAdminOrders(allOrders); showToast('📋 Showing all orders', 'info'); return; }
+    const filtered = allOrders.filter(order => {
+        const email = (order.userEmail || '').toLowerCase();
+        const orderId = String(order.orderId || order.id || '').toLowerCase();
+        const userName = (order.userName || '').toLowerCase();
+        return email.includes(query) || orderId.includes(query) || userName.includes(query);
+    });
+    renderAdminOrders(filtered);
+    if (filtered.length === 0) { showToast(`🔍 No matching orders`, 'warning'); } else { showToast(`🔍 Found ${filtered.length} orders`, 'success'); }
+};
+window.clearAdminSearch = function() { document.getElementById('adminSearchInput').value = ''; renderAdminOrders(allOrders); showToast('📋 Search cleared', 'info'); };
+window.refreshAdminOrders = function() { loadAdminOrders(); showToast('🔄 Refreshed', 'info'); };
 
 // ============================================================
 // 24. Send Licence via Edge Function
@@ -4001,7 +4042,6 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
         userLicences.push(newLicence);
         await updateDoc(userRef, { licences: userLicences });
 
-        // إشعار تيليجرام للمستخدم بالترخيص
         if (userData.telegramChatId) {
             const licenceMessage = `
 🔑 *LICENCE GENERATED!*
@@ -4038,7 +4078,7 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
 }
 
 // ============================================================
-// 25. Admin Users (Shows ALL users for admin only)
+// 25. Admin Users
 // ============================================================
 
 async function loadAdminUsers() {
@@ -4089,9 +4129,70 @@ function renderAdminUsers(usersList) {
         return `<div class="admin-user-card ${isBanned?'banned':''}"><div class="user-avatar">${photo ? `<img src="${photo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />` : initials}</div><div class="user-name">${user.name||'Unknown'}</div><div class="user-email">${user.email||'No email'}</div><div class="user-meta">📍 ${location}</div><div class="user-meta">📅 ${dateStr} • 🎯 ${rp} RP • 💰 $${balance.toFixed(2)}</div><div class="user-meta">📦 ${orderCount} orders</div>${isBanned?`<span class="user-badge banned">🚫 Banned</span>`:''}${isAdmin?`<span class="user-badge admin">👑 Admin</span>`:''}<div class="user-actions"><button class="btn-view" onclick="viewUserDetails('${user.uid}')"><i class="fas fa-eye"></i> View</button>${!isAdmin ? (isBanned ? `<button class="btn-unban" onclick="toggleUserBan('${user.uid}',false)"><i class="fas fa-user-check"></i> Unban</button>` : `<button class="btn-ban" onclick="toggleUserBan('${user.uid}',true)"><i class="fas fa-ban"></i> Ban</button>`) : ''}${!isAdmin ? `<button class="btn-delete" onclick="deleteUserAccount('${user.uid}')"><i class="fas fa-trash"></i></button>` : ''}</div></div>`;
     }).join('')}</div>`;
 }
+window.searchAdminUsers = function() { renderAdminUsers(allUsers); };
+window.clearAdminUserSearch = function() { document.getElementById('adminUserSearchInput').value = ''; renderAdminUsers(allUsers); };
+window.refreshAdminUsers = function() { loadAdminUsers(); showToast('🔄 Users refreshed', 'info'); };
+window.toggleUserBan = async function(uid, ban) {
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (uid === currentUser.uid) { showToast('⚠️ You cannot ban yourself', 'warning'); return; }
+    try {
+        await updateDoc(doc(db, 'users', uid), { isBanned: ban });
+        showToast(`✅ User ${ban?'banned':'unbanned'}`, 'success');
+        loadAdminUsers();
+    } catch (error) { console.error('Error toggling user ban:', error); showToast('❌ Error: ' + error.message, 'error'); }
+};
+window.deleteUserAccount = async function(uid) {
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (uid === currentUser.uid) { showToast('⚠️ You cannot delete your own account', 'warning'); return; }
+    if (!confirm('⚠️ Delete this user account permanently?')) return;
+    try {
+        await deleteDoc(doc(db, 'users', uid));
+        showToast('🗑️ User account deleted', 'success');
+        loadAdminUsers(); loadAdminOrders();
+    } catch (error) { console.error('Error deleting user:', error); showToast('❌ Error: ' + error.message, 'error'); }
+};
+window.viewUserDetails = async function(uid) {
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
+    try {
+        const userRef = doc(db, 'users', uid);
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) { showToast('❌ User not found', 'error'); return; }
+        const data = userSnap.data();
+        const orders = data.history || [];
+        const totalSpent = orders.reduce((sum, o) => sum + (o.total || 0), 0);
+        const location = data.location || data.country || 'Not specified';
+        const photo = data.photoURL || '';
+        const balance = data.balance || 0;
+        const content = document.getElementById('userDetailsContent');
+        content.innerHTML = `
+          <div style="padding:4px 0;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+              <div style="width:44px;height:44px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;overflow:hidden;">
+                ${photo ? `<img src="${photo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />` : (data.name||'U').charAt(0).toUpperCase()}
+              </div>
+              <div><div style="font-size:15px;font-weight:700;color:var(--text);">${data.name||'Unknown'}</div><div style="font-size:12px;color:var(--text-secondary);">${data.email||'No email'}</div><div style="font-size:12px;color:var(--text-secondary);">📍 Country: ${location}</div><div style="font-size:12px;color:var(--vip-color);font-weight:600;">🎯 RP: ${data.rp||0} • 💰 Balance: $${balance.toFixed(2)}</div><div style="font-size:12px;color:var(--text-secondary);">📦 ${orders.length} orders</div></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:10px;">
+              <div style="background:var(--bg);border-radius:6px;padding:6px;text-align:center;border:1px solid var(--border);"><div style="font-size:14px;font-weight:700;color:var(--text);">${orders.length}</div><div style="font-size:9px;color:var(--text-secondary);">Orders</div></div>
+              <div style="background:var(--bg);border-radius:6px;padding:6px;text-align:center;border:1px solid var(--border);"><div style="font-size:14px;font-weight:700;color:var(--primary);">${totalSpent.toFixed(2)} $</div><div style="font-size:9px;color:var(--text-secondary);">Spent</div></div>
+              <div style="background:var(--bg);border-radius:6px;padding:6px;text-align:center;border:1px solid var(--border);"><div style="font-size:14px;font-weight:700;color:var(--vip-color);">${data.rp||0}</div><div style="font-size:9px;color:var(--text-secondary);">RP</div></div>
+              <div style="background:var(--bg);border-radius:6px;padding:6px;text-align:center;border:1px solid var(--border);"><div style="font-size:14px;font-weight:700;color:var(--success);">$${balance.toFixed(2)}</div><div style="font-size:9px;color:var(--text-secondary);">Balance</div></div>
+            </div>
+            <div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;">Recent Orders</div>
+            ${orders.length > 0 ? orders.slice(-5).reverse().map(o => `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px;"><span>${o.items?o.items.map(i=>i.name).join(', '):'Order'}</span><span style="color:var(--primary);">${(o.total||0).toFixed(2)} $</span><span class="status-badge ${o.status||'pending'}" style="font-size:9px;padding:1px 8px;">${o.status||'pending'}</span></div>`).join('') : '<div style="text-align:center;color:var(--text-secondary);opacity:0.4;padding:10px;">No orders</div>'}
+            <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+              <button onclick="closeUserDetailsModal();" style="padding:4px 14px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;">Close</button>
+              ${data.isBanned?`<button onclick="closeUserDetailsModal();toggleUserBan('${uid}',false);" style="padding:4px 14px;border:none;border-radius:6px;background:var(--success);color:#0a0a1a;cursor:pointer;font-weight:600;font-size:12px;"><i class="fas fa-user-check"></i> Unban</button>`:`<button onclick="closeUserDetailsModal();toggleUserBan('${uid}',true);" style="padding:4px 14px;border:none;border-radius:6px;background:var(--danger);color:#fff;cursor:pointer;font-weight:600;font-size:12px;"><i class="fas fa-ban"></i> Ban</button>`}
+              ${uid!==currentUser.uid?`<button onclick="closeUserDetailsModal();deleteUserAccount('${uid}');" style="padding:4px 14px;border:none;border-radius:6px;background:var(--danger);color:#fff;cursor:pointer;font-weight:600;font-size:12px;"><i class="fas fa-trash"></i> Delete</button>`:''}
+            </div>
+          </div>`;
+        document.getElementById('userDetailsModal').classList.add('open');
+    } catch (error) { console.error('Error viewing user details:', error); showToast('❌ Error loading user details', 'error'); }
+};
+window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
 // ============================================================
-// 26. Licence Management System (with Supabase) - User-specific
+// 26. Licence Management System (with Supabase)
 // ============================================================
 
 async function loadLicences() {
@@ -4150,6 +4251,270 @@ function renderLicences(licences) {
             </div>
         `;
     }).join('');
+}
+
+function openCreateLicenceModal() {
+    const modal = document.getElementById('createLicenceModal');
+    if (modal) modal.classList.add('open');
+}
+function closeCreateLicenceModal() {
+    const modal = document.getElementById('createLicenceModal');
+    if (modal) modal.classList.remove('open');
+}
+async function createLicenceManually() {
+    const productName = document.getElementById('newLicenceProduct')?.value.trim();
+    const userId = document.getElementById('newLicenceUser')?.value.trim();
+    const expiryDate = document.getElementById('newLicenceExpiry')?.value;
+    if (!productName) { showToast('⚠️ Product name required', 'warning'); return; }
+    try {
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/create-licence`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productName, userId, userEmail: userId, expiryDate, manual: true })
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) throw new Error(data.error);
+        showToast(`✅ Licence created: ${data.licence.code}`, 'success');
+        closeCreateLicenceModal();
+        loadLicences();
+        if (userId) {
+            const usersRef = collection(db, 'users');
+            let q = userId.includes('@') ? query(usersRef, where('email', '==', userId)) : query(usersRef, where('userId', '==', userId));
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                const userDoc = querySnapshot.docs[0];
+                const userData = userDoc.data();
+                const userLicences = userData.licences || [];
+                if (!userLicences.find(l => l.code === data.licence.code)) {
+                    userLicences.push({ code: data.licence.code, scriptId: productName, scriptName: productName, expiryDate: data.licence.expiryDate, activatedAt: new Date().toISOString() });
+                    await updateDoc(userDoc.ref, { licences: userLicences, updatedAt: serverTimestamp() });
+                    if (currentUser && userDoc.id === currentUser.uid) {
+                        userProfile.licences = userLicences;
+                        renderUserLicences();
+                        updateFullUserMenu();
+                    }
+                }
+            }
+        }
+    } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
+}
+async function updateLicenceInSupabase(licenceId, data) {
+    const { error } = await supabase.from('licenses').update({ ...data, updated_at: new Date().toISOString() }).eq('id', licenceId);
+    if (error) throw error;
+    return true;
+}
+async function approveLicence(licenceId, code, scriptName) {
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (!confirm(`Approve licence ${code} and send to user?`)) return;
+    try {
+        const { data: licenceData, error: fetchError } = await supabase.from('licenses').select('*').eq('id', licenceId).single();
+        if (fetchError || !licenceData) throw fetchError || new Error('Licence not found');
+        await updateLicenceInSupabase(licenceId, { status: 'active', user_id: currentUser.uid, user_email: currentUser.email });
+        await sendUserNotification(
+            currentUser.uid,
+            '🔑 Licence Activated!',
+            `Your licence for ${scriptName} has been activated. Code: ${code}`
+        );
+        showToast(`✅ Licence ${code} approved!`, 'success');
+        loadLicences();
+    } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
+}
+async function revokeLicence(licenceId) {
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (!confirm('Revoke this licence?')) return;
+    try {
+        await updateLicenceInSupabase(licenceId, { status: 'revoked' });
+        const licence = allLicences.find(l => l.id === licenceId);
+        if (licence && licence.user_id) {
+            await sendUserNotification(
+                licence.user_id,
+                '🚫 Licence Revoked',
+                `Your licence for ${licence.script_name || 'product'} has been revoked.`
+            );
+            const userRef = doc(db, 'users', licence.user_id);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+                const userData = userSnap.data();
+                const userLicences = userData.licences || [];
+                const updatedLicences = userLicences.map(l => {
+                    if (l.code === licence.code) { return { ...l, status: 'revoked' }; }
+                    return l;
+                });
+                await updateDoc(userRef, { licences: updatedLicences, updatedAt: serverTimestamp() });
+                if (currentUser && currentUser.uid === licence.user_id) {
+                    userProfile.licences = updatedLicences;
+                    renderUserLicences();
+                    updateFullUserMenu();
+                }
+            }
+        }
+        showToast('🚫 Licence revoked', 'success');
+        loadLicences();
+    } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
+}
+async function deleteLicence(licenceId) {
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (!confirm('Delete this licence permanently?')) return;
+    try {
+        const licence = allLicences.find(l => l.id === licenceId);
+        const { error } = await supabase.from('licenses').delete().eq('id', licenceId);
+        if (error) throw error;
+        if (licence && licence.user_id) {
+            const userRef = doc(db, 'users', licence.user_id);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+                const userData = userSnap.data();
+                const userLicences = userData.licences || [];
+                const updatedLicences = userLicences.filter(l => l.code !== licence.code);
+                await updateDoc(userRef, { licences: updatedLicences, updatedAt: serverTimestamp() });
+                if (currentUser && currentUser.uid === licence.user_id) {
+                    userProfile.licences = updatedLicences;
+                    renderUserLicences();
+                    updateFullUserMenu();
+                }
+            }
+        }
+        showToast('🗑️ Licence deleted', 'success');
+        loadLicences();
+    } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
+}
+async function editLicence(licenceId) {
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
+    try {
+        const { data: licence, error } = await supabase.from('licenses').select('*').eq('id', licenceId).single();
+        if (error || !licence) { showToast('❌ Licence not found', 'error'); return; }
+        document.getElementById('editLicenceId').value = licenceId;
+        document.getElementById('editLicenceCode').value = licence.code || '';
+        document.getElementById('editLicenceScript').value = licence.script_name || '';
+        if (licence.expiry_date) {
+            const date = new Date(licence.expiry_date);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            document.getElementById('editLicenceExpiry').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+        } else { document.getElementById('editLicenceExpiry').value = ''; }
+        document.getElementById('editLicenceStatus').value = licence.status || 'active';
+        document.getElementById('editLicenceModal').classList.add('open');
+    } catch (error) { showToast('❌ Failed to load licence details', 'error'); }
+}
+async function saveLicenceEdit() {
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
+    const licenceId = document.getElementById('editLicenceId').value;
+    const expiryDate = document.getElementById('editLicenceExpiry').value;
+    const status = document.getElementById('editLicenceStatus').value;
+    try {
+        await updateLicenceInSupabase(licenceId, { expiry_date: expiryDate ? new Date(expiryDate).toISOString() : null, status });
+        const licenceIndex = allLicences.findIndex(l => l.id === licenceId);
+        if (licenceIndex !== -1) {
+            allLicences[licenceIndex].expiry_date = expiryDate ? new Date(expiryDate).toISOString() : null;
+            allLicences[licenceIndex].status = status;
+        }
+        const licence = allLicences.find(l => l.id === licenceId);
+        if (licence && currentUser) {
+            if (licence.user_id === currentUser.uid || currentUser.email === 'zribiidriss3@gmail.com') {
+                await loadUserData();
+                renderUserLicences();
+                updateFullUserMenu();
+            }
+        }
+        loadLicences();
+        showToast('✅ Licence updated!', 'success');
+        document.getElementById('editLicenceModal').classList.remove('open');
+    } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
+}
+function searchLicences() {
+    const query = document.getElementById('adminLicenceSearch').value.trim().toLowerCase();
+    if (!query) { renderLicences(allLicences); return; }
+    const filtered = allLicences.filter(l => {
+        const code = (l.code || '').toLowerCase();
+        const user = (l.user_email || l.user_id || '').toLowerCase();
+        const product = (l.script_name || l.product_name || '').toLowerCase();
+        return code.includes(query) || user.includes(query) || product.includes(query);
+    });
+    renderLicences(filtered);
+}
+function clearLicenceSearch() { document.getElementById('adminLicenceSearch').value = ''; renderLicences(allLicences); }
+function refreshLicences() { loadLicences(); showToast('🔄 Refreshed', 'info'); }
+
+function renderUserLicences() {
+    const container = document.getElementById('userLicencesList');
+    if (!container) return;
+    if (!currentUser) { container.innerHTML = ''; return; }
+    const userLicences = userProfile.licences || [];
+    if (userLicences.length === 0) { container.innerHTML = `<div style="text-align:center;padding:8px;color:var(--text-secondary);font-size:12px;">No active licences</div>`; return; }
+    container.innerHTML = userLicences.map(l => {
+        const isExpired = new Date(l.expiryDate) < new Date();
+        return `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--bg);border-radius:6px;border:1px solid var(--border);margin-bottom:4px;">
+                <div>
+                    <div style="font-size:12px;font-weight:600;color:var(--text);">${l.scriptName}</div>
+                    <div style="font-size:10px;color:var(--text-secondary);opacity:0.5;">${isExpired ? '⛔ Expired' : '✅ Active until ' + new Date(l.expiryDate).toLocaleDateString()}</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <span style="font-size:10px;font-family:monospace;opacity:0.3;">${l.code.slice(-6)}</span>
+                    <button onclick="copyLicenceCode('${l.code}')" style="background:none;border:none;color:var(--primary);cursor:pointer;font-size:14px;padding:2px 6px;" title="Copy full code"><i class="fas fa-copy"></i></button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+function toggleLicencesList() {
+    const list = document.getElementById('userLicencesList');
+    if (list) list.style.display = list.style.display === 'none' ? 'block' : 'none';
+}
+function openLicenceModal() {
+    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
+    document.getElementById('licenceModal').classList.add('open');
+}
+function closeLicenceModal() { document.getElementById('licenceModal').classList.remove('open'); }
+async function activateLicence() {
+    const input = document.getElementById('licenceInput');
+    const resultEl = document.getElementById('licenceResult');
+    const code = input?.value?.trim().toUpperCase();
+    if (!code) { resultEl.innerHTML = '<span style="color:var(--danger);">⚠️ Please enter a licence code.</span>'; return; }
+    if (!currentUser) { resultEl.innerHTML = '<span style="color:var(--danger);">⚠️ You must be logged in.</span>'; return; }
+    try {
+        resultEl.innerHTML = '<span style="color:var(--text-secondary);">⏳ Verifying...</span>';
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/public-verify?code=${encodeURIComponent(code)}&token=${currentUser.uid}`, {
+            headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) throw new Error(data.error);
+        const licence = data.data;
+        const userRef = doc(db, 'users', currentUser.uid);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+            const userData = userSnap.data();
+            const userLicences = userData.licences || [];
+            if (!userLicences.find(l => l.code === code)) {
+                userLicences.push({ code, scriptId: licence.scriptId, scriptName: licence.scriptName, expiryDate: licence.expiryDate, activatedAt: new Date().toISOString() });
+                await updateDoc(userRef, { licences: userLicences, updatedAt: serverTimestamp() });
+                userProfile.licences = userLicences;
+                renderUserLicences();
+                updateFullUserMenu();
+                await sendUserNotification(
+                    currentUser.uid,
+                    '🔑 Licence Activated',
+                    `Your licence for ${licence.scriptName} has been activated successfully!`
+                );
+            }
+        }
+        const expiryDate = new Date(licence.expiryDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        resultEl.innerHTML = `
+            <div style="background:var(--success-glow);border-radius:8px;padding:10px;border:1px solid var(--success);">
+                <div style="font-weight:700;color:var(--success);">✅ Activated Successfully!</div>
+                <div style="font-size:13px;color:var(--text);margin-top:4px;">
+                    <strong>Script:</strong> ${licence.scriptName || 'Unknown'}<br>
+                    <strong>Expires:</strong> ${expiryDate}
+                </div>
+                <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;opacity:0.5;">
+                    🔒 This script is now linked to your account.
+                </div>
+            </div>
+        `;
+    } catch (error) { resultEl.innerHTML = `<span style="color:var(--danger);">❌ Error: ${error.message}</span>`; }
 }
 
 // ============================================================
@@ -4253,6 +4618,15 @@ function renderRatingSection(productId) {
     loadRatings(productId);
 }
 
+async function updateProductRatingDisplay(productId) {
+    const ratingsRef = collection(db, 'ratings');
+    const q = query(ratingsRef, where('productId', '==', productId));
+    const snapshot = await getDocs(q);
+    let total = 0, count = 0;
+    snapshot.forEach(doc => { total += doc.data().rating || 0; count++; });
+    const avg = count > 0 ? total / count : 0;
+}
+
 // ============================================================
 // 28. Slider & Marquee Functions
 // ============================================================
@@ -4313,6 +4687,337 @@ window.saveSliderInterval = async function() {
     showToast('✅ Interval saved: ' + interval + ' seconds', 'success');
 };
 
+window.saveSlideEdit = async function() {
+    const editIndex = document.getElementById('addSlideForm')?.dataset.editIndex;
+    const isEdit = editIndex !== undefined && editIndex !== '';
+    
+    if (isEdit) {
+        const idx = parseInt(editIndex);
+        if (isNaN(idx) || idx < 0 || idx >= sliderSlides.length) {
+            showToast('❌ Slide not found for editing', 'error');
+            return;
+        }
+    }
+
+    const title = document.getElementById('slideTitle')?.value.trim() || '';
+    const subtitle = document.getElementById('slideSubtitle')?.value.trim() || '';
+    const buttonText = document.getElementById('slideButtonText')?.value.trim() || 'Buy Now';
+    const linkType = document.getElementById('slideLinkType')?.value || 'product';
+    let productId = '', downloadUrl = '', customUrl = '';
+
+    if (linkType === 'product') {
+        productId = document.getElementById('slideProductSelect')?.value || '';
+        if (!productId) {
+            showToast('⚠️ Please select a product', 'warning');
+            return;
+        }
+    } else if (linkType === 'download') {
+        downloadUrl = document.getElementById('slideDownloadUrl')?.value.trim() || '';
+        if (!downloadUrl) {
+            showToast('⚠️ Please enter download URL', 'warning');
+            return;
+        }
+    } else if (linkType === 'url') {
+        customUrl = document.getElementById('slideCustomUrl')?.value.trim() || '';
+        if (!customUrl) {
+            showToast('⚠️ Please enter custom URL', 'warning');
+            return;
+        }
+    }
+
+    const fileInput = document.getElementById('slideImageFile');
+    let imageUrl = '';
+    
+    if (isEdit) {
+        imageUrl = sliderSlides[parseInt(editIndex)]?.imageUrl || '';
+    }
+    
+    if (fileInput && fileInput.files && fileInput.files[0]) {
+        showToast('⏳ Uploading image...', 'info');
+        const uploadedUrl = await uploadToCloudinary(fileInput.files[0]);
+        if (uploadedUrl) {
+            imageUrl = uploadedUrl;
+        } else {
+            showToast('❌ Failed to upload image', 'error');
+            return;
+        }
+    } else if (!imageUrl) {
+        showToast('⚠️ Please select an image for the slide', 'warning');
+        return;
+    }
+
+    const updatedSlide = {
+        imageUrl,
+        title,
+        subtitle,
+        buttonText,
+        linkType,
+        productId,
+        downloadUrl,
+        customUrl,
+        updatedAt: new Date().toISOString()
+    };
+
+    if (isEdit) {
+        sliderSlides[parseInt(editIndex)] = updatedSlide;
+        showToast('✅ Slide updated successfully!', 'success');
+    } else {
+        sliderSlides.push(updatedSlide);
+        showToast('✅ Slide added successfully!', 'success');
+    }
+    
+    delete document.getElementById('addSlideForm').dataset.editIndex;
+    
+    await window.saveSliderData();
+    renderSlider();
+    renderSliderSettingsUI();
+    resetSliderTimer();
+    window.closeAddSlideModal();
+};
+
+window.deleteSlide = function(index) {
+    if (!confirm('Are you sure you want to delete this slide?')) return;
+    sliderSlides.splice(index, 1);
+    window.saveSliderData();
+    renderSlider();
+    renderSliderSettingsUI();
+    resetSliderTimer();
+    showToast('🗑️ Slide deleted', 'success');
+};
+
+window.editSlide = function(index) {
+    const slide = sliderSlides[index];
+    if (!slide) { showToast('❌ Slide not found', 'error'); return; }
+    const modal = document.getElementById('addSlideModal');
+    if (!modal) { showToast('❌ Modal not found', 'error'); return; }
+    
+    document.getElementById('slideTitle').value = slide.title || '';
+    document.getElementById('slideSubtitle').value = slide.subtitle || '';
+    document.getElementById('slideButtonText').value = slide.buttonText || 'Buy Now';
+    document.getElementById('slideLinkType').value = slide.linkType || 'product';
+    toggleSlideLinkFields();
+    if (slide.linkType === 'product') {
+        document.getElementById('slideProductSelect').value = slide.productId || '';
+    } else if (slide.linkType === 'download') {
+        document.getElementById('slideDownloadUrl').value = slide.downloadUrl || '';
+    } else if (slide.linkType === 'url') {
+        document.getElementById('slideCustomUrl').value = slide.customUrl || '';
+    }
+    
+    document.getElementById('addSlideForm').dataset.editIndex = index;
+    document.querySelector('#addSlideModal .modal-title').textContent = '✏️ Edit Slide';
+    const submitBtn = document.querySelector('#addSlideForm button[type="button"]');
+    if (submitBtn) submitBtn.textContent = '💾 Save Changes';
+    
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+};
+
+window.openAddSlideModal = function() {
+    updateSlideProductSelect();
+    const modal = document.getElementById('addSlideModal');
+    if (!modal) { showToast('❌ Modal not found', 'error'); return; }
+    
+    const form = document.getElementById('addSlideForm');
+    if (form) form.reset();
+    const preview = document.getElementById('slideImagePreview');
+    if (preview) preview.style.display = 'none';
+    
+    delete document.getElementById('addSlideForm').dataset.editIndex;
+    document.querySelector('#addSlideModal .modal-title').textContent = '➕ Add New Slide';
+    const submitBtn = document.querySelector('#addSlideForm button[type="button"]');
+    if (submitBtn) submitBtn.textContent = '➕ Add Slide';
+    
+    toggleSlideLinkFields();
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+};
+
+window.closeAddSlideModal = function() {
+    const modal = document.getElementById('addSlideModal');
+    if (modal) { 
+        modal.classList.remove('open'); 
+        document.body.style.overflow = ''; 
+        delete document.getElementById('addSlideForm')?.dataset.editIndex;
+    }
+};
+
+function updateSlideProductSelect() {
+    const select = document.getElementById('slideProductSelect');
+    if (!select) return;
+    select.innerHTML = products.map(p => `<option value="${p.id}">${p.name} (${getCurrencySymbol(p.currency || 'USD')}${p.price})</option>`).join('');
+}
+
+function toggleSlideLinkFields() {
+    const type = document.getElementById('slideLinkType')?.value || 'product';
+    const productGroup = document.getElementById('slideProductGroup');
+    const downloadGroup = document.getElementById('slideDownloadGroup');
+    const customGroup = document.getElementById('slideCustomUrlGroup');
+    if (productGroup) productGroup.style.display = type === 'product' ? 'block' : 'none';
+    if (downloadGroup) downloadGroup.style.display = type === 'download' ? 'block' : 'none';
+    if (customGroup) customGroup.style.display = type === 'url' ? 'block' : 'none';
+}
+
+async function loadSliderSettings() {
+    try {
+        const settingsRef = doc(db, 'settings', 'slider');
+        const settingsSnap = await getDoc(settingsRef);
+        if (settingsSnap.exists()) {
+            const data = settingsSnap.data();
+            sliderSlides = data.slides || [];
+            sliderIntervalTime = data.interval || 3;
+            const intervalInput = document.getElementById('sliderIntervalInput');
+            if (intervalInput) { intervalInput.value = sliderIntervalTime; }
+        } else {
+            sliderSlides = [];
+            sliderIntervalTime = 3;
+        }
+        renderSlider();
+        startSliderRotation();
+        renderSliderSettingsUI();
+    } catch (error) {
+        console.error('Error loading slider settings:', error);
+        if (error.code === 'permission-denied') {
+            sliderSlides = [];
+            sliderIntervalTime = 3;
+            renderSlider();
+            renderSliderSettingsUI();
+        }
+    }
+}
+
+function renderSlider() {
+    const wrapper = document.getElementById('sliderWrapper');
+    const dots = document.getElementById('sliderDots');
+    if (!wrapper) return;
+    if (sliderSlides.length === 0) {
+        wrapper.innerHTML = `<div class="slide-item" style="background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;min-height:180px;border-radius:var(--radius-md);"><div style="text-align:center;color:var(--text-secondary);opacity:0.4;"><i class="fas fa-images" style="font-size:48px;display:block;margin-bottom:8px;"></i><p>No slides. Add slides from admin panel.</p></div></div>`;
+        dots.innerHTML = '';
+        return;
+    }
+    wrapper.innerHTML = sliderSlides.map((slide, index) => {
+        const isActive = index === currentSlideIndex ? 'active' : '';
+        const imageUrl = slide.imageUrl || '';
+        const title = slide.title || '';
+        const subtitle = slide.subtitle || '';
+        const buttonText = slide.buttonText || 'Learn More';
+        let buttonLink = '#';
+        let buttonTarget = '_self';
+        if (slide.linkType === 'product' && slide.productId) {
+            buttonLink = `javascript:window.openDetails('${slide.productId}')`;
+        } else if (slide.linkType === 'download' && slide.downloadUrl) {
+            buttonLink = slide.downloadUrl; buttonTarget = '_blank';
+        } else if (slide.linkType === 'url' && slide.customUrl) {
+            buttonLink = slide.customUrl; buttonTarget = '_blank';
+        }
+        return `
+            <div class="slide-item ${isActive}" style="background-image: url('${imageUrl}');">
+                <div class="slide-overlay">
+                    ${title ? `<h2 class="slide-title">${title}</h2>` : ''}
+                    ${subtitle ? `<p class="slide-subtitle">${subtitle}</p>` : ''}
+                    ${buttonText ? `<a href="${buttonLink}" target="${buttonTarget}" class="slide-btn">${buttonText}</a>` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+    dots.innerHTML = sliderSlides.map((_, index) => {
+        const isActive = index === currentSlideIndex ? 'active' : '';
+        return `<span class="dot ${isActive}" onclick="goToSlide(${index})"></span>`;
+    }).join('');
+}
+
+function startSliderRotation() {
+    if (sliderTimer) clearInterval(sliderTimer);
+    if (sliderSlides.length <= 1) return;
+    sliderTimer = setInterval(() => {
+        if (!isSliderPaused) { window.nextSlide(); }
+    }, sliderIntervalTime * 1000);
+}
+
+function resetSliderTimer() {
+    if (sliderTimer) { clearInterval(sliderTimer); startSliderRotation(); }
+}
+
+function renderSliderSettingsUI() {
+    const container = document.getElementById('sliderSlidesList');
+    if (!container) return;
+    if (sliderSlides.length === 0) {
+        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);opacity:0.5;">No slides. Click "Add Slide" to get started.</div>`;
+        return;
+    }
+    container.innerHTML = sliderSlides.map((slide, index) => {
+        const product = products.find(p => p.id === slide.productId);
+        const productName = product ? product.name : 'Unknown';
+        return `<div class="admin-item"><div class="item-info"><div class="item-title"><img src="${slide.imageUrl || 'https://picsum.photos/seed/default/60/60'}" style="width:40px;height:40px;border-radius:var(--radius-sm);object-fit:cover;margin-right:8px;" />${slide.title || 'Slide ' + (index+1)}<span style="font-size:11px;opacity:0.4;font-weight:400;">${slide.linkType === 'product' ? '📦 Product: ' + productName : slide.linkType === 'download' ? '📥 Download' : '🔗 Custom Link'}</span></div><div class="item-meta">${slide.subtitle || ''}</div></div><div class="item-actions"><button class="btn-edit" onclick="editSlide(${index})"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="deleteSlide(${index})"><i class="fas fa-trash"></i></button></div></div>`;
+    }).join('');
+}
+
+// ============================================================
+// Marquee Functions
+// ============================================================
+
+window.saveMarqueeSettings = async function() {
+    const enabledCheckbox = document.getElementById('marqueeEnabled');
+    const textArea = document.getElementById('marqueeText');
+    const enabled = enabledCheckbox ? enabledCheckbox.checked : true;
+    const text = textArea ? textArea.value.trim() : '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+    if (!text) { showToast('⚠️ Please enter marquee text', 'warning'); return; }
+    try {
+        const settingsRef = doc(db, 'settings', 'marquee');
+        await setDoc(settingsRef, { enabled, text, updatedAt: serverTimestamp() }, { merge: true });
+        marqueeSettings.enabled = enabled;
+        marqueeSettings.text = text;
+        applyMarqueeSettings();
+        showToast('✅ Marquee settings saved!', 'success');
+    } catch (error) { showToast('❌ Failed to save settings: ' + error.message, 'error'); }
+};
+
+window.applyMarqueeSettings = function() {
+    const marqueeBar = document.getElementById('marqueeBar');
+    const marqueeContent = document.getElementById('marqueeContent');
+    if (!marqueeBar || !marqueeContent) return;
+    if (marqueeSettings.enabled && marqueeSettings.text) {
+        const items = marqueeSettings.text.split('|').map(item => item.trim()).filter(item => item);
+        if (items.length > 0) {
+            const contentHtml = items.map(item => `<span>${item}</span>`).join('');
+            marqueeContent.innerHTML = contentHtml + contentHtml;
+            marqueeBar.style.display = 'block';
+        } else { marqueeBar.style.display = 'none'; }
+    } else { marqueeBar.style.display = 'none'; }
+};
+
+function renderMarqueeSettingsUI() {
+    const container = document.getElementById('marqueeSettingsContainer');
+    if (!container) return;
+    const enabledCheckbox = document.getElementById('marqueeEnabled');
+    const textArea = document.getElementById('marqueeText');
+    if (enabledCheckbox) enabledCheckbox.checked = marqueeSettings.enabled !== false;
+    if (textArea) textArea.value = marqueeSettings.text || '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+}
+
+async function loadMarqueeSettings() {
+    try {
+        const settingsRef = doc(db, 'settings', 'marquee');
+        const settingsSnap = await getDoc(settingsRef);
+        if (settingsSnap.exists()) {
+            const data = settingsSnap.data();
+            marqueeSettings.enabled = data.enabled !== undefined ? data.enabled : true;
+            marqueeSettings.text = data.text || '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+        } else {
+            marqueeSettings.enabled = true;
+            marqueeSettings.text = '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+        }
+        applyMarqueeSettings();
+    } catch (error) {
+        console.error('Error loading marquee settings:', error);
+        if (error.code === 'permission-denied') {
+            marqueeSettings.enabled = true;
+            marqueeSettings.text = '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+            applyMarqueeSettings();
+        }
+    }
+}
+
 // ============================================================
 // 29. Dashboard Stats, Advanced Stats, Audit Logs
 // ============================================================
@@ -4333,6 +5038,93 @@ async function loadDashboardStats() {
     }
 }
 window.refreshDashboardStats = function() { loadDashboardStats(); showToast('🔄 Stats refreshed', 'success'); };
+async function loadAdvancedStats() {
+    if (!currentUser || !isAdminCached) { console.log('ℹ️ loadAdvancedStats skipped (not admin)'); return; }
+    const container = document.getElementById('advancedStatsContainer');
+    if (!container) return;
+    container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading statistics...</div>`;
+    try {
+        const usersRef = collection(db, 'users');
+        const snapshot = await getDocs(usersRef);
+        let allOrders = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const history = data.history || [];
+            history.forEach(order => {
+                allOrders.push({ ...order, userEmail: data.email || doc.id, userName: data.name || 'Unknown', userId: doc.id, orderId: order.id || 'order_' + Date.now() });
+            });
+        });
+        const totalOrders = allOrders.length;
+        const totalRevenue = allOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+        const pendingOrders = allOrders.filter(o => o.status === 'pending').length;
+        const confirmedOrders = allOrders.filter(o => o.status === 'confirmed').length;
+        const rejectedOrders = allOrders.filter(o => o.status === 'rejected').length;
+        const totalUsers = snapshot.size;
+        container.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px;">
+            <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
+                <div style="font-size:28px;font-weight:700;color:var(--primary);">${totalOrders}</div>
+                <div style="font-size:12px;color:var(--text-secondary);">Total Orders</div>
+            </div>
+            <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
+                <div style="font-size:28px;font-weight:700;color:var(--vip-color);">$${totalRevenue.toFixed(2)}</div>
+                <div style="font-size:12px;color:var(--text-secondary);">Revenue</div>
+            </div>
+            <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
+                <div style="font-size:28px;font-weight:700;color:var(--pending-color);">${pendingOrders}</div>
+                <div style="font-size:12px;color:var(--text-secondary);">Pending</div>
+            </div>
+            <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
+                <div style="font-size:28px;font-weight:700;color:var(--success);">${confirmedOrders}</div>
+                <div style="font-size:12px;color:var(--text-secondary);">Confirmed</div>
+            </div>
+            <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
+                <div style="font-size:28px;font-weight:700;color:var(--danger);">${rejectedOrders}</div>
+                <div style="font-size:12px;color:var(--text-secondary);">Rejected</div>
+            </div>
+            <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
+                <div style="font-size:28px;font-weight:700;color:var(--text);">${totalUsers}</div>
+                <div style="font-size:12px;color:var(--text-secondary);">Users</div>
+            </div>
+        </div>`;
+    } catch (error) {
+        console.error('Error loading advanced stats:', error);
+        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load statistics: ${error.message}</div>`;
+    }
+}
+window.refreshAdvancedStats = function() { loadAdvancedStats(); showToast('🔄 Advanced stats refreshed', 'success'); };
+async function loadAuditLogs() {
+    if (!currentUser || !isAdminCached) { console.log('ℹ️ loadAuditLogs skipped (not admin)'); return; }
+    const container = document.getElementById('auditLogsContainer');
+    if (!container) return;
+    container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading logs...</div>`;
+    try {
+        const logsRef = collection(db, 'auditLogs');
+        const q = query(logsRef, orderBy('timestamp', 'desc'));
+        const snapshot = await getDocs(q);
+        if (snapshot.empty) {
+            container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">📭 No audit logs</div>`;
+            return;
+        }
+        let html = `<div style="display:flex;flex-direction:column;gap:6px;max-height:400px;overflow-y:auto;">`;
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const date = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '--';
+            const admin = data.adminName || data.adminEmail || 'Admin';
+            const action = data.action || 'Action';
+            const details = data.details || '';
+            html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg);border-radius:8px;border:1px solid var(--border);font-size:13px;">
+                <div><span style="font-weight:600;color:var(--text);">${admin}</span><span style="color:var(--text-secondary);opacity:0.5;margin:0 4px;">→</span><span style="color:var(--primary);font-weight:500;">${action}</span>${details ? `<span style="color:var(--text-secondary);opacity:0.4;margin-left:4px;">${details}</span>` : ''}</div>
+                <span style="font-size:11px;color:var(--text-secondary);opacity:0.3;">${date}</span>
+            </div>`;
+        });
+        html += `</div>`;
+        container.innerHTML = html;
+    } catch (error) {
+        console.error('Error loading audit logs:', error);
+        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load logs: ${error.message}</div>`;
+    }
+}
+window.loadAuditLogs = loadAuditLogs;
 
 // ============================================================
 // 30. Order History (User-specific)
@@ -4620,7 +5412,6 @@ async function loadUserTopups() {
     if (!container) return;
     
     try {
-        // جلب طلبات الشحن الخاصة بالمستخدم فقط
         const { data: topups, error } = await supabase
             .from('topups')
             .select('*')
@@ -4752,7 +5543,6 @@ window.openTopupModal = function() {
     document.getElementById('customAmountContainer').style.display = 'none';
     document.getElementById('topupStatus').innerHTML = '';
     selectedTopupAmount = 0;
-    // تحديث العملة الافتراضية
     selectTopupCurrency('USDT');
 };
 
@@ -4914,7 +5704,7 @@ window.processTopup = async function() {
             throw new Error(result.error || 'Failed to create topup');
         }
         
-        // عرض تحذير لـ USDT
+        // Warning for USDT
         let warningHtml = '';
         if (result.currency === 'USDT') {
             warningHtml = `
@@ -5034,7 +5824,7 @@ window.submitTopupWithTxHash = async function(topupId, amount) {
         
         if (error) throw error;
         
-        // إرسال إشعار للأدمن
+        // Send notification to admin
         await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/send-notification', {
             method: 'POST',
             headers: {
@@ -5112,7 +5902,6 @@ window.approveTopup = async function(topupId) {
             throw new Error(result.error || 'Failed to approve topup');
         }
         
-        // جلب بيانات الشحن لإرسال إشعار Telegram
         const { data: topupData } = await supabase
             .from('topups')
             .select('*')
@@ -5120,14 +5909,12 @@ window.approveTopup = async function(topupId) {
             .single();
         
         if (topupData) {
-            // إرسال إشعار Telegram للمستخدم
             await sendTelegramTopupNotification(
                 topupData.user_id,
                 topupData.amount_usd,
                 topupData.tx_hash
             );
             
-            // تحديث الرصيد في Firebase Firestore أيضاً
             const userRef = doc(db, 'users', topupData.user_id);
             const userSnap = await getDoc(userRef);
             if (userSnap.exists()) {
@@ -5335,144 +6122,7 @@ function fallbackCopy(text) {
 }
 
 // ============================================================
-// 41. TOP INFO BAR - Server Time, IP, Country
-// ============================================================
-
-let serverTimeInterval = null;
-
-function updateServerTime() {
-    const now = new Date();
-    const options = {
-        timeZone: 'UTC',
-        year: 'numeric',
-        month: 'short',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false
-    };
-    const timeStr = now.toLocaleString('en-US', options);
-    const dateStr = now.toLocaleDateString('en-US', { 
-        weekday: 'short',
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric' 
-    });
-    
-    const el = document.getElementById('serverTime');
-    if (el) {
-        el.innerHTML = `<i class="far fa-calendar-alt" style="margin-right:4px;color:var(--vip-color);"></i> ${dateStr} &nbsp;|&nbsp; <i class="far fa-clock" style="margin-right:4px;color:var(--primary);"></i> ${timeStr} UTC`;
-    }
-}
-
-async function fetchUserInfo() {
-    try {
-        const response = await fetch('http://ip-api.com/json/');
-        if (!response.ok) throw new Error('Failed to fetch IP info');
-        
-        const data = await response.json();
-        console.log('📍 IP Info:', data);
-        
-        if (data.status === 'success') {
-            const ipEl = document.getElementById('userIP');
-            if (ipEl) ipEl.textContent = data.ip || 'Unknown';
-            
-            const countryEl = document.getElementById('userCountry');
-            if (countryEl) {
-                const flag = getCountryFlag(data.countryCode);
-                countryEl.innerHTML = `${flag} ${data.country || 'Unknown'} (${data.regionName || 'N/A'})`;
-            }
-            
-            const timezoneEl = document.getElementById('userTimezone');
-            if (timezoneEl) {
-                timezoneEl.textContent = data.timezone || 'UTC';
-            }
-            
-            return data;
-        } else {
-            throw new Error('IP API returned error');
-        }
-    } catch (error) {
-        console.error('❌ Failed to fetch IP info:', error);
-        try {
-            const fallbackResponse = await fetch('https://ipapi.co/json/');
-            if (fallbackResponse.ok) {
-                const data = await fallbackResponse.json();
-                console.log('📍 Fallback IP Info:', data);
-                
-                const ipEl = document.getElementById('userIP');
-                if (ipEl) ipEl.textContent = data.ip || 'Unknown';
-                
-                const countryEl = document.getElementById('userCountry');
-                if (countryEl) {
-                    const flag = getCountryFlag(data.country_code);
-                    countryEl.innerHTML = `${flag} ${data.country_name || 'Unknown'}`;
-                }
-                
-                const timezoneEl = document.getElementById('userTimezone');
-                if (timezoneEl) timezoneEl.textContent = data.timezone || 'UTC';
-            }
-        } catch (fallbackError) {
-            console.error('❌ Fallback IP API also failed:', fallbackError);
-            document.getElementById('userIP').textContent = '⚠️ Unavailable';
-            document.getElementById('userCountry').textContent = '🌍 Unknown';
-        }
-    }
-}
-
-function getCountryFlag(countryCode) {
-    if (!countryCode) return '🌍';
-    const flags = {
-        'US': '🇺🇸', 'GB': '🇬🇧', 'CA': '🇨🇦', 'AU': '🇦🇺', 'DE': '🇩🇪',
-        'FR': '🇫🇷', 'IT': '🇮🇹', 'ES': '🇪🇸', 'PT': '🇵🇹', 'NL': '🇳🇱',
-        'BE': '🇧🇪', 'CH': '🇨🇭', 'AT': '🇦🇹', 'SE': '🇸🇪', 'NO': '🇳🇴',
-        'DK': '🇩🇰', 'FI': '🇫🇮', 'IE': '🇮🇪', 'NZ': '🇳🇿', 'ZA': '🇿🇦',
-        'BR': '🇧🇷', 'AR': '🇦🇷', 'MX': '🇲🇽', 'CO': '🇨🇴', 'CL': '🇨🇱',
-        'PE': '🇵🇪', 'VE': '🇻🇪', 'EC': '🇪🇨', 'BO': '🇧🇴', 'PY': '🇵🇾',
-        'UY': '🇺🇾', 'GY': '🇬🇾', 'SR': '🇸🇷', 'GF': '🇬🇫', 'MQ': '🇲🇶',
-        'GP': '🇬🇵', 'RE': '🇷🇪', 'YT': '🇾🇹', 'TF': '🇹🇫', 'PF': '🇵🇫',
-        'NC': '🇳🇨', 'WF': '🇼🇫', 'PM': '🇵🇲', 'GL': '🇬🇱', 'IS': '🇮🇸',
-        'FO': '🇫🇴', 'AX': '🇦🇽', 'SJ': '🇸🇯', 'BV': '🇧🇻', 'HM': '🇭🇲',
-        'GS': '🇬🇸', 'IO': '🇮🇴', 'CX': '🇨🇽', 'CC': '🇨🇨', 'NF': '🇳🇫',
-        'PN': '🇵🇳', 'TK': '🇹🇰', 'NU': '🇳🇺', 'CK': '🇨🇰', 'TO': '🇹🇴',
-        'WS': '🇼🇸', 'FJ': '🇫🇯', 'VU': '🇻🇺', 'SB': '🇸🇧', 'KI': '🇰🇮',
-        'TV': '🇹🇻', 'NR': '🇳🇷', 'MH': '🇲🇭', 'PW': '🇵🇼', 'FM': '🇫🇲',
-        'MP': '🇲🇵', 'GU': '🇬🇺', 'AS': '🇦🇸', 'PR': '🇵🇷', 'VI': '🇻🇮',
-        'AE': '🇦🇪', 'SA': '🇸🇦', 'QA': '🇶🇦', 'OM': '🇴🇲', 'KW': '🇰🇼',
-        'BH': '🇧🇭', 'JO': '🇯🇴', 'IL': '🇮🇱', 'PS': '🇵🇸', 'LB': '🇱🇧',
-        'SY': '🇸🇾', 'IQ': '🇮🇶', 'IR': '🇮🇷', 'AF': '🇦🇫', 'PK': '🇵🇰',
-        'IN': '🇮🇳', 'BD': '🇧🇩', 'MM': '🇲🇲', 'TH': '🇹🇭', 'LA': '🇱🇦',
-        'VN': '🇻🇳', 'KH': '🇰🇭', 'MY': '🇲🇾', 'SG': '🇸🇬', 'PH': '🇵🇭',
-        'ID': '🇮🇩', 'TL': '🇹🇱', 'CN': '🇨🇳', 'TW': '🇹🇼', 'HK': '🇭🇰',
-        'MO': '🇲🇴', 'JP': '🇯🇵', 'KR': '🇰🇷', 'KP': '🇰🇵', 'MN': '🇲🇳',
-        'KZ': '🇰🇿', 'KG': '🇰🇬', 'TJ': '🇹🇯', 'TM': '🇹🇲', 'UZ': '🇺🇿',
-        'TR': '🇹🇷', 'GR': '🇬🇷', 'BG': '🇧🇬', 'RO': '🇷🇴', 'HU': '🇭🇺',
-        'SK': '🇸🇰', 'CZ': '🇨🇿', 'PL': '🇵🇱', 'BY': '🇧🇾', 'UA': '🇺🇦',
-        'MD': '🇲🇩', 'GE': '🇬🇪', 'AM': '🇦🇲', 'AZ': '🇦🇿', 'RU': '🇷🇺',
-        'MN': '🇲🇳', 'CN': '🇨🇳', 'JP': '🇯🇵', 'KR': '🇰🇷', 'IN': '🇮🇳',
-        'EG': '🇪🇬', 'DZ': '🇩🇿', 'MA': '🇲🇦', 'TN': '🇹🇳', 'LY': '🇱🇾',
-        'SD': '🇸🇩', 'SS': '🇸🇸', 'ET': '🇪🇹', 'KE': '🇰🇪', 'UG': '🇺🇬',
-        'TZ': '🇹🇿', 'RW': '🇷🇼', 'BI': '🇧🇮', 'ZM': '🇿🇲', 'ZW': '🇿🇼',
-        'MW': '🇲🇼', 'MZ': '🇲🇿', 'ZA': '🇿🇦', 'NA': '🇳🇦', 'BW': '🇧🇼',
-        'AO': '🇦🇴', 'CG': '🇨🇬', 'CD': '🇨🇩', 'CF': '🇨🇫', 'GA': '🇬🇦',
-        'CM': '🇨🇲', 'NG': '🇳🇬', 'GH': '🇬🇭', 'CI': '🇨🇮', 'BF': '🇧🇫',
-        'ML': '🇲🇱', 'NE': '🇳🇪', 'SN': '🇸🇳', 'GM': '🇬🇲', 'GW': '🇬🇼',
-        'GN': '🇬🇳', 'SL': '🇸🇱', 'LR': '🇱🇷', 'CV': '🇨🇻', 'MR': '🇲🇷'
-    };
-    return flags[countryCode] || '🌍';
-}
-
-async function initTopInfoBar() {
-    if (serverTimeInterval) clearInterval(serverTimeInterval);
-    updateServerTime();
-    serverTimeInterval = setInterval(updateServerTime, 1000);
-    await fetchUserInfo();
-    setInterval(fetchUserInfo, 300000);
-}
-
-// ============================================================
-// 42. CHECKOUT WITH BALANCE
+// 41. CHECKOUT WITH BALANCE
 // ============================================================
 
 window.checkoutWithBalance = function() {
@@ -5494,7 +6144,420 @@ window.checkoutWithBalance = function() {
 };
 
 // ============================================================
-// 43. Export all functions to global scope
+// 42. Support Functions
+// ============================================================
+
+window.toggleSupportMenu = function() {
+    const float = document.getElementById('supportFloat');
+    if (float) {
+        float.classList.toggle('open');
+    }
+};
+
+window.openSupportModal = function() {
+    const modal = document.getElementById('supportModal');
+    if (modal) {
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    const float = document.getElementById('supportFloat');
+    if (float) {
+        float.classList.remove('open');
+    }
+};
+
+window.closeSupportModal = function() {
+    const modal = document.getElementById('supportModal');
+    if (modal) {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+};
+
+window.openWhatsAppSupport = function() {
+    const phone = '1234567890';
+    const message = 'Hi, I need help';
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
+};
+
+window.openTelegramSupport = function() {
+    const username = 'Mitalica69';
+    const message = 'Hi, I need help';
+    window.open(`https://t.me/${username}?start=support`, '_blank');
+};
+
+window.openEmailSupport = function() {
+    const email = 'idriss.zribi13@gmail.com';
+    const subject = 'Support Request';
+    window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}`;
+};
+
+window.openPhoneSupport = function() {
+    const phone = '1234567890';
+    window.location.href = `tel:${phone}`;
+};
+
+// ============================================================
+// 43. Cookie Consent Functions
+// ============================================================
+
+let cookieConsentStatus = localStorage.getItem('cookieConsent');
+
+window.acceptCookies = function() {
+    localStorage.setItem('cookieConsent', 'accepted');
+    localStorage.setItem('analyticsConsent', 'true');
+    document.getElementById('cookieConsent').classList.remove('show');
+    enableAnalytics();
+    showToast('✅ Cookies accepted', 'success');
+};
+
+window.rejectCookies = function() {
+    localStorage.setItem('cookieConsent', 'rejected');
+    localStorage.setItem('analyticsConsent', 'false');
+    document.getElementById('cookieConsent').classList.remove('show');
+    disableAnalytics();
+    showToast('❌ Cookies rejected', 'info');
+};
+
+window.openCookieSettings = function() {
+    const modal = document.getElementById('cookieSettingsModal');
+    if (modal) {
+        const analyticsToggle = document.getElementById('analyticsToggle');
+        if (analyticsToggle) {
+            const consent = localStorage.getItem('analyticsConsent');
+            analyticsToggle.checked = consent !== 'false';
+        }
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+};
+
+window.closeCookieSettings = function() {
+    const modal = document.getElementById('cookieSettingsModal');
+    if (modal) {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+};
+
+window.saveCookieSettings = function() {
+    const analyticsToggle = document.getElementById('analyticsToggle');
+    const analyticsEnabled = analyticsToggle ? analyticsToggle.checked : true;
+    
+    localStorage.setItem('cookieConsent', 'custom');
+    localStorage.setItem('analyticsConsent', analyticsEnabled ? 'true' : 'false');
+    
+    if (analyticsEnabled) {
+        enableAnalytics();
+    } else {
+        disableAnalytics();
+    }
+    
+    document.getElementById('cookieConsent').classList.remove('show');
+    closeCookieSettings();
+    showToast('✅ Settings saved', 'success');
+};
+
+function enableAnalytics() {
+    try {
+        if (typeof analytics !== 'undefined' && analytics.setAnalyticsCollectionEnabled) {
+            analytics.setAnalyticsCollectionEnabled(true);
+            console.log('✅ Firebase Analytics enabled');
+        }
+        if (typeof gtag !== 'undefined') {
+            gtag('consent', 'update', {
+                'analytics_storage': 'granted'
+            });
+            console.log('✅ Google Analytics enabled');
+        }
+    } catch (e) {
+        console.log('⚠️ Analytics enable error:', e);
+    }
+}
+
+function disableAnalytics() {
+    try {
+        if (typeof analytics !== 'undefined' && analytics.setAnalyticsCollectionEnabled) {
+            analytics.setAnalyticsCollectionEnabled(false);
+            console.log('❌ Firebase Analytics disabled');
+        }
+        if (typeof gtag !== 'undefined') {
+            gtag('consent', 'update', {
+                'analytics_storage': 'denied'
+            });
+            console.log('❌ Google Analytics disabled');
+        }
+    } catch (e) {
+        console.log('⚠️ Analytics disable error:', e);
+    }
+}
+
+function checkCookieConsent() {
+    const consent = localStorage.getItem('cookieConsent');
+    const analyticsConsent = localStorage.getItem('analyticsConsent');
+    
+    if (!consent) {
+        setTimeout(() => {
+            const banner = document.getElementById('cookieConsent');
+            if (banner) {
+                banner.classList.add('show');
+            }
+        }, 2000);
+    } else if (consent === 'accepted' || analyticsConsent === 'true') {
+        enableAnalytics();
+    } else if (consent === 'rejected' || analyticsConsent === 'false') {
+        disableAnalytics();
+    } else if (consent === 'custom') {
+        if (analyticsConsent === 'true') {
+            enableAnalytics();
+        } else {
+            disableAnalytics();
+        }
+    }
+}
+
+window.closeCookieBanner = function() {
+    const banner = document.getElementById('cookieConsent');
+    if (banner) {
+        banner.classList.remove('show');
+    }
+};
+
+// ============================================================
+// 44. Telegram Banner, Social Proof, Upload
+// ============================================================
+
+function showTelegramBanner() {
+    const banner = document.getElementById('telegramBanner');
+    if (!banner) return;
+    const bannerHidden = localStorage.getItem('telegram_banner_hidden') === 'true';
+    const adminDisabled = localStorage.getItem('telegram_banner_admin_disabled') === 'true';
+    if (userProfile.telegramChatId) {
+        banner.classList.add('linked');
+        banner.querySelector('.banner-title').textContent = '✅ Connected!';
+        banner.querySelector('.banner-subtitle').textContent = 'You will receive order notifications here.';
+        banner.querySelector('.banner-action').innerHTML = '<i class="fas fa-check"></i> Linked';
+        banner.querySelector('.banner-action').onclick = () => openProfileFull();
+        banner.querySelector('.banner-icon i').className = 'fas fa-check-circle';
+        banner.style.display = 'block';
+        setTimeout(() => { banner.classList.add('hidden'); }, 3000);
+        return;
+    }
+    if (bannerHidden || adminDisabled) { banner.classList.add('hidden'); return; }
+    banner.classList.remove('linked', 'hidden');
+    banner.querySelector('.banner-title').innerHTML = '🔔 Stay Connected! <span class="badge-new">New</span>';
+    banner.querySelector('.banner-subtitle').textContent = 'Link your Telegram account to receive instant order notifications';
+    banner.querySelector('.banner-action').innerHTML = '<i class="fab fa-telegram-plane"></i> Link Now';
+    banner.querySelector('.banner-action').onclick = () => bindTelegram();
+    banner.querySelector('.banner-icon i').className = 'fab fa-telegram-plane';
+    banner.style.display = 'block';
+    banner.style.animation = 'none';
+    setTimeout(() => { banner.style.animation = 'bannerSlideDown 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'; }, 10);
+}
+function closeTelegramBanner() {
+    const banner = document.getElementById('telegramBanner');
+    if (banner) { banner.classList.add('hidden'); localStorage.setItem('telegram_banner_hidden', 'true'); setTimeout(() => { localStorage.removeItem('telegram_banner_hidden'); if (!userProfile.telegramChatId) { showTelegramBanner(); } }, 600000); }
+}
+function showTelegramBannerAgain() { localStorage.removeItem('telegram_banner_hidden'); showTelegramBanner(); }
+function addBannerAdminControls() { /* Will be implemented in admin */ }
+function adminToggleBanner(show) {
+    if (show) { localStorage.setItem('telegram_banner_admin_disabled', 'false'); } else { localStorage.setItem('telegram_banner_admin_disabled', 'true'); const banner = document.getElementById('telegramBanner'); if (banner) banner.classList.add('hidden'); }
+    addBannerAdminControls();
+    if (show) { localStorage.removeItem('telegram_banner_hidden'); setTimeout(showTelegramBanner, 300); }
+}
+function resetBannerForAll() { localStorage.removeItem('telegram_banner_admin_disabled'); localStorage.removeItem('telegram_banner_hidden'); showToast('🔄 Banner reset', 'info'); addBannerAdminControls(); setTimeout(showTelegramBanner, 300); }
+
+// ============================================================
+// 45. Cloudinary Upload
+// ============================================================
+
+async function uploadToCloudinary(file) {
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+        const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, { method: 'POST', body: formData });
+        const data = await response.json();
+        return data.secure_url || null;
+    } catch (error) { console.error('Cloudinary upload error:', error); return null; }
+}
+
+// ============================================================
+// 46. Direction Fix
+// ============================================================
+
+function fixDirection() {
+    document.querySelectorAll('.header, .logo, .header-actions, .modal-content, .fullscreen-modal, .admin-panel').forEach(el => {
+        el.style.direction = 'ltr'; el.style.textAlign = 'left';
+    });
+    document.querySelectorAll('.modal-close').forEach(el => { el.style.right = 'auto'; el.style.left = '10px'; });
+}
+window.fixHeaderAndModals = fixDirection;
+
+// ============================================================
+// 47. Copy Licence & Export
+// ============================================================
+
+window.copyLicenceCode = function(code) {
+    if (!code) { showToast('⚠️ No code to copy', 'warning'); return; }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code)
+            .then(() => showToast('✅ Licence code copied!', 'success'))
+            .catch(() => fallbackCopyText(code));
+    } else {
+        fallbackCopyText(code);
+    }
+};
+function fallbackCopyText(text) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+        document.execCommand('copy');
+        showToast('✅ Licence code copied!', 'success');
+    } catch (e) {
+        showToast('❌ Failed to copy. Please copy manually.', 'error');
+    }
+    document.body.removeChild(textarea);
+}
+window.generateInvoice = function(orderData) {
+    if (!orderData) { showToast('❌ No order data for invoice', 'error'); return; }
+    try {
+        let order = typeof orderData === 'string' ? JSON.parse(orderData) : orderData;
+        if (!order.id) { order.id = 'INV-' + Date.now().toString().slice(-6); }
+        const invoiceHtml = `<html><head><title>Invoice #${order.id}</title><style>body{font-family:Arial;padding:40px;background:#fff;color:#000;}h1{color:#333;}table{width:100%;border-collapse:collapse;margin:20px 0;}th,td{padding:10px;border:1px solid #ddd;text-align:left;}th{background:#f5f5f5;}.total{font-size:18px;font-weight:bold;}</style></head><body><h1>🧾 Invoice</h1><p><strong>Order ID:</strong> ${order.id}</p><p><strong>Date:</strong> ${order.date ? new Date(order.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '--'}</p><p><strong>Status:</strong> ${order.status || 'Pending'}</p><table><thead><tr><th>Product</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead><tbody>${(order.items || []).map(item => `<tr><td>${item.name}${item.selectedQuantity ? ' (x'+item.selectedQuantity+')' : ''}</td><td>${item.quantity || 1}</td><td>$${(item.price || 0).toFixed(2)}</td><td>$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td></tr>`).join('')}</tbody></table><div class="total">Total: $${(order.total || 0).toFixed(2)}</div><div class="status">Payment Method: ${order.method || 'N/A'}</div><hr><p style="color:gray;">Thank you for your purchase at ZI Store!</p></body></html>`;
+        const win = window.open('', '_blank');
+        if (!win) { showToast('⚠️ Please allow popups to generate invoice', 'warning'); return; }
+        win.document.write(invoiceHtml);
+        win.document.close();
+        win.print();
+        showToast('📄 Invoice generated!', 'success');
+    } catch (error) { console.error('Invoice generation error:', error); showToast('❌ Failed to generate invoice', 'error'); }
+};
+window.exportOrders = function() {
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (!allOrders || allOrders.length === 0) { showToast('📭 No orders to export', 'info'); return; }
+    try {
+        let csv = 'Order ID,User,Email,Total,Status,Date,Items\n';
+        allOrders.forEach(order => {
+            const items = order.items ? order.items.map(i => i.name + (i.selectedQuantity ? ' ('+i.selectedQuantity+')' : '')).join('; ') : '';
+            csv += `${order.orderId || ''},${order.userName || ''},${order.userEmail || ''},${order.total || 0},${order.status || 'pending'},${new Date(order.date).toLocaleDateString()},${items}\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `orders_${new Date().toISOString().slice(0,10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('📥 Orders exported!', 'success');
+    } catch (error) { showToast('❌ Export failed', 'error'); }
+};
+
+// ============================================================
+// 48. Admin Payments
+// ============================================================
+
+function refreshAdminPayments() {
+    if (!currentUser || !isAdminCached) return;
+    const tbody = document.getElementById('adminPaymentsBody');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
+
+    const usersRef = collection(db, 'users');
+    getDocs(usersRef).then((snapshot) => {
+        let allPayments = [];
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            const history = data.history || [];
+            history.forEach(order => {
+                const currency = order.items?.[0]?.currency || 'LTC';
+                const amount = order.total || 0;
+                allPayments.push({
+                    id: order.id || '#' + String(Date.now()).slice(-6),
+                    userId: doc.id,
+                    userEmail: data.email || 'Unknown',
+                    userName: data.name || 'Unknown',
+                    amount: amount,
+                    currency: currency,
+                    date: order.date || new Date().toISOString(),
+                    status: order.status || 'pending',
+                    method: order.method || 'Unknown',
+                    txHash: order.txHash || 'N/A',
+                    screenshotUrl: order.screenshotUrl || null
+                });
+            });
+        });
+        allPayments.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        const total = allPayments.length;
+        const pending = allPayments.filter(p => p.status === 'pending').length;
+        const completed = allPayments.filter(p => p.status === 'confirmed' || p.status === 'completed').length;
+        const rejected = allPayments.filter(p => p.status === 'rejected').length;
+        document.getElementById('adminPaymentTotal').textContent = total;
+        document.getElementById('adminPaymentPending').textContent = pending;
+        document.getElementById('adminPaymentCompleted').textContent = completed;
+        document.getElementById('adminPaymentRejected').textContent = rejected;
+
+        if (allPayments.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-secondary);">No payments found.</td></tr>';
+            return;
+        }
+
+        let rows = '';
+        allPayments.forEach(p => {
+            const statusBadge = `<span class="status-badge ${p.status === 'confirmed' ? 'confirmed' : p.status}">${p.status.charAt(0).toUpperCase()+p.status.slice(1)}</span>`;
+            const dateStr = new Date(p.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            rows += `
+                <tr style="border-bottom:1px solid var(--border);">
+                    <td style="padding:6px 4px; font-family:monospace; font-size:12px;">${p.id}</td>
+                    <td style="padding:6px 4px;">${p.userEmail}</td>
+                    <td style="padding:6px 4px; font-weight:700; color:var(--primary);">$${p.amount.toFixed(2)}</td>
+                    <td style="padding:6px 4px;">${p.currency}</td>
+                    <td style="padding:6px 4px; font-size:12px; color:var(--text-secondary);">${dateStr}</td>
+                    <td style="padding:6px 4px;">${statusBadge}</td>
+                    <td style="padding:6px 4px;">
+                        ${p.status === 'pending' ? 
+                            `<button onclick="adminApprovePayment('${p.id}','${p.userId}')" style="background:var(--success); border:none; color:#0a0a1a; padding:2px 10px; border-radius:12px; cursor:pointer; font-size:11px; font-weight:600;"><i class="fas fa-check"></i></button>
+                             <button onclick="adminRejectPayment('${p.id}','${p.userId}')" style="background:var(--danger); border:none; color:#fff; padding:2px 10px; border-radius:12px; cursor:pointer; font-size:11px; font-weight:600;"><i class="fas fa-times"></i></button>` : 
+                            `<button onclick="adminDeletePayment('${p.id}','${p.userId}')" style="background:var(--danger); border:none; color:#fff; padding:2px 10px; border-radius:12px; cursor:pointer; font-size:11px; font-weight:600;"><i class="fas fa-trash"></i></button>`
+                        }
+                        ${p.screenshotUrl ? `<a href="${p.screenshotUrl}" target="_blank" style="color:var(--primary);text-decoration:underline;font-size:11px;margin-left:4px;">📸</a>` : ''}
+                    </td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = rows;
+    }).catch(error => {
+        console.error('Error loading admin payments:', error);
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--danger);">${error.message}</td></tr>`;
+    });
+}
+
+window.adminApprovePayment = function(orderId, userId) {
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
+    updateOrderStatus(orderId, userId, 'confirmed');
+    setTimeout(refreshAdminPayments, 500);
+};
+
+window.adminRejectPayment = function(orderId, userId) {
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
+    updateOrderStatus(orderId, userId, 'rejected');
+    setTimeout(refreshAdminPayments, 500);
+};
+
+window.adminDeletePayment = function(orderId, userId) {
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (!confirm(`Delete payment ${orderId}?`)) return;
+    deleteOrderImmediately(orderId, userId);
+    setTimeout(refreshAdminPayments, 500);
+};
+
+// ============================================================
+// 49. Export all functions to global scope
 // ============================================================
 
 window.showLogin = showLogin;
@@ -5528,7 +6591,6 @@ window.closeSupportModal = closeSupportModal;
 window.filterProducts = filterProducts;
 window.openDetails = openDetails;
 window.closeProductDetails = closeProductDetails;
-window.closePreviewModal = closeProductDetails;
 window.addToCart = addToCart;
 window.addToCartFromDetails = addToCartFromDetails;
 window.toggleWishlist = toggleWishlist;
@@ -5714,7 +6776,7 @@ window.adminDeletePayment = adminDeletePayment;
 console.log('✅ ZI Store loaded with all features!');
 
 // ============================================================
-// 44. Init
+// 50. Init
 // ============================================================
 
 async function init() {
@@ -5746,7 +6808,6 @@ async function init() {
         loadMarqueeSettings();
         setInterval(fetchCryptoPrices, 60000);
         loadUserBalance();
-        initTopInfoBar();
 
         updateLoadingText('✅ Ready!');
         console.log('✅ ZI Store ready with all features!');
@@ -5792,7 +6853,7 @@ async function init() {
 }
 
 // ============================================================
-// 45. Auth State Listener
+// 51. Auth State Listener
 // ============================================================
 
 onAuthStateChanged(auth, async (user) => {
@@ -5835,7 +6896,6 @@ onAuthStateChanged(auth, async (user) => {
         updateDropdownStats();
         loadUserBalance();
         startTopupRealtimeListener();
-        initTopInfoBar();
 
         if (isAdminCached) {
             console.log('✅ Admin detected, loading admin features');
@@ -5860,7 +6920,6 @@ onAuthStateChanged(auth, async (user) => {
         loadSliderSettings();
         loadMarqueeSettings();
         setTimeout(showTelegramBanner, 1000);
-        startSocialProof();
         setTimeout(window.ensureAdminPanel, 2000);
         setTimeout(checkCookieConsent, 1000);
         updateLoadingText('✅ Ready!');
@@ -5881,7 +6940,6 @@ onAuthStateChanged(auth, async (user) => {
         loadFeaturedSettings();
         loadSliderSettings();
         loadMarqueeSettings();
-        startSocialProof();
         setTimeout(checkCookieConsent, 1000);
         updateLoadingText('👋 Please login');
 
@@ -5895,7 +6953,7 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// 46. Start App
+// 52. Start App
 // ============================================================
 
 if (document.readyState === 'loading') {
