@@ -1,5 +1,7 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - COMPLETE FIXED VERSION
+// SCRIPT.JS - ZI Store - EMERGENCY FIX
+// ============================================================
+// This version restores product display and admin panel functionality
 // ============================================================
 
 // ============================================================
@@ -108,7 +110,7 @@ let currentUser = null;
 let userId = null;
 let cart = [];
 let wishlist = [];
-let products = [];
+let products = []; // ستكون مليئة بالمنتجات من Firestore أو fallback
 let currentFilter = 'all';
 let activeDiscount = 0;
 let activeDiscountCode = '';
@@ -175,7 +177,7 @@ let userProfile = {
 };
 
 // ============================================================
-// DEFAULT PRODUCTS (Fallback)
+// DEFAULT PRODUCTS (Fallback) - MUST BE PRESENT
 // ============================================================
 const fallbackProducts = [
     {
@@ -284,7 +286,7 @@ const paymentWallets = {
 let cryptoPrices = { ltc: 0, usdt: 1, lastUpdate: null, isUpdating: false };
 
 // ============================================================
-// 1. Helper Functions (Toast, Loading Screen)
+// Helper Functions (Toast, Loading Screen)
 // ============================================================
 
 function showToast(message, type = 'success') {
@@ -355,7 +357,7 @@ window.showMainApp = function() {
 };
 
 // ============================================================
-// NEW: Remove duplicate date, style header topup
+// Remove duplicate date, style header topup
 // ============================================================
 function removeDuplicateDate() {
     const dates = document.querySelectorAll('#serverTime, .server-time, .header-date');
@@ -387,7 +389,7 @@ function styleHeaderTopup() {
 }
 
 // ============================================================
-// 2. TOP INFO BAR - Server Time, IP, Country (FIXED with Supabase proxy)
+// TOP INFO BAR - Server Time, IP, Country
 // ============================================================
 
 let serverTimeInterval = null;
@@ -418,7 +420,6 @@ function updateServerTime() {
     }
 }
 
-// fetchUserInfo using Supabase proxy
 async function fetchUserInfo() {
     try {
         console.log('📍 Fetching IP info via Supabase proxy...');
@@ -442,7 +443,6 @@ async function fetchUserInfo() {
             throw new Error(data.error);
         }
 
-        // Update UI
         const ipEl = document.getElementById('userIP');
         if (ipEl) ipEl.textContent = data.ip || 'Unknown';
 
@@ -455,7 +455,6 @@ async function fetchUserInfo() {
         const timezoneEl = document.getElementById('userTimezone');
         if (timezoneEl) timezoneEl.textContent = data.timezone || 'UTC';
 
-        // Optional: show location details if element exists
         const locationEl = document.getElementById('userLocation');
         if (locationEl) {
             const location = [data.city, data.region].filter(Boolean).join(', ');
@@ -507,7 +506,7 @@ async function initTopInfoBar() {
 }
 
 // ============================================================
-// 3. Admin Check Functions
+// Admin Check Functions
 // ============================================================
 
 async function checkIsAdmin() {
@@ -581,7 +580,7 @@ window.ensureAdminPanel = function() {
 };
 
 // ============================================================
-// 4. User Functions (Firestore + LocalStorage)
+// User Functions (Firestore + LocalStorage)
 // ============================================================
 
 function loadFromLocalStorage() {
@@ -865,7 +864,7 @@ function generateReferralCode(name, email) {
 }
 
 // ============================================================
-// 5. UI Updates
+// UI Updates
 // ============================================================
 
 function updateDropdownStats() {
@@ -954,7 +953,7 @@ function updateFullUserMenu() {
 }
 
 // ============================================================
-// 6. Auth Functions (with Google Popup)
+// Auth Functions (with Google Popup)
 // ============================================================
 
 window.showLogin = function() { document.getElementById('loginContainer').style.display = 'block'; document.getElementById('registerContainer').style.display = 'none'; };
@@ -1268,7 +1267,7 @@ window.sendForgotPassword = async function() {
 };
 
 // ============================================================
-// 7. General Modals
+// General Modals
 // ============================================================
 
 window.openUserMenuFull = function() { if (!currentUser) { openAuthModal(); return; } document.getElementById('userMenuFull').classList.add('open'); updateFullUserMenu(); document.body.style.overflow = 'hidden'; };
@@ -1380,7 +1379,7 @@ function renderTransactions(transactions) {
 }
 
 // ============================================================
-// 8. Render Profile Full (with password toggle)
+// Render Profile Full (with password toggle)
 // ============================================================
 
 function renderProfileFull() {
@@ -1572,7 +1571,7 @@ window.sendResetLinkInline = async function() { if (!currentUser) return; try { 
 window.changePasswordInline = async function() { if (!currentUser) return; const currentPwd = document.getElementById('currentPasswordInline').value; const newPwd = document.getElementById('newPasswordInline').value; const confirmPwd = document.getElementById('confirmNewPasswordInline').value; const errorEl = document.getElementById('passwordErrorInline'); const successEl = document.getElementById('passwordSuccessInline'); errorEl.textContent = ''; successEl.textContent = ''; if (!currentPwd || !newPwd || !confirmPwd) { errorEl.textContent = 'Please fill all fields'; return; } if (newPwd.length < 6) { errorEl.textContent = 'New password must be at least 6 characters'; return; } if (newPwd !== confirmPwd) { errorEl.textContent = 'Passwords do not match'; return; } try { const credential = EmailAuthProvider.credential(currentUser.email, currentPwd); await reauthenticateWithCredential(currentUser, credential); await updatePassword(currentUser, newPwd); successEl.textContent = '✅ Password changed successfully!'; showToast('✅ Password updated!', 'success'); document.getElementById('currentPasswordInline').value = ''; document.getElementById('newPasswordInline').value = ''; document.getElementById('confirmNewPasswordInline').value = ''; setTimeout(() => { successEl.textContent = ''; }, 3000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); } };
 
 // ============================================================
-// 9. Product Functions
+// Product Functions - CRITICAL FIX
 // ============================================================
 
 async function loadProductsFromFirestore() {
@@ -1581,7 +1580,9 @@ async function loadProductsFromFirestore() {
         const productsRef = collection(db, 'products');
         const querySnapshot = await getDocs(query(productsRef, orderBy('createdAt', 'desc')));
         const productsList = [];
-        querySnapshot.forEach((doc) => { productsList.push({ id: doc.id, ...doc.data() }); });
+        querySnapshot.forEach((doc) => {
+            productsList.push({ id: doc.id, ...doc.data() });
+        });
         console.log(`✅ Loaded ${productsList.length} products from Firestore`);
         if (productsList.length === 0) {
             console.warn('⚠️ No products in Firestore, using fallback');
@@ -1596,38 +1597,54 @@ async function loadProductsFromFirestore() {
 }
 
 function startProductsRealtimeListener() {
-    if (unsubscribeProducts) { unsubscribeProducts(); }
+    if (unsubscribeProducts) {
+        unsubscribeProducts();
+    }
+    // Show skeleton loading
     renderProducts([], true);
     const productsRef = collection(db, 'products');
-    unsubscribeProducts = onSnapshot(query(productsRef, orderBy('createdAt', 'desc')), (snapshot) => {
-        const productsList = [];
-        snapshot.forEach((doc) => { productsList.push({ id: doc.id, ...doc.data() }); });
-        console.log(`🔄 Products updated: ${productsList.length} products`);
-        if (productsList.length === 0) {
-            console.warn('⚠️ No products in Firestore, using fallback');
+    try {
+        unsubscribeProducts = onSnapshot(query(productsRef, orderBy('createdAt', 'desc')), (snapshot) => {
+            const productsList = [];
+            snapshot.forEach((doc) => {
+                productsList.push({ id: doc.id, ...doc.data() });
+            });
+            console.log(`🔄 Products updated: ${productsList.length} products`);
+            if (productsList.length === 0) {
+                console.warn('⚠️ No products in Firestore, using fallback');
+                products = fallbackProducts;
+            } else {
+                products = productsList;
+            }
+            renderProducts(products, false);
+            renderAdminProducts(products);
+            updateStatsFromProducts(products);
+            generateRecommendations(products);
+            updateBottomCartBar();
+            updateRpDisplay();
+            renderFeaturedProducts();
+            updateSlideProductSelect();
+            renderProxyPackages();
+        }, (error) => {
+            console.error('Products listener error:', error);
+            // Fallback to fallback products if listener fails
             products = fallbackProducts;
-        } else {
-            products = productsList;
-        }
-        renderProducts(products, false);
-        renderAdminProducts(products);
-        updateStatsFromProducts(products);
-        generateRecommendations(products);
-        updateBottomCartBar();
-        updateRpDisplay();
-        renderFeaturedProducts();
-        updateSlideProductSelect();
-        renderProxyPackages();
-    }, (error) => {
-        console.error('Products listener error:', error);
+            console.log(`⚠️ Using fallback products (${products.length})`);
+            renderProducts(products, false);
+            renderAdminProducts(products);
+            updateStatsFromProducts(products);
+            renderFeaturedProducts();
+            renderProxyPackages();
+        });
+    } catch (error) {
+        console.error('Failed to set up products listener:', error);
         products = fallbackProducts;
-        console.log(`⚠️ Using fallback products (${products.length})`);
         renderProducts(products, false);
         renderAdminProducts(products);
         updateStatsFromProducts(products);
         renderFeaturedProducts();
         renderProxyPackages();
-    });
+    }
 }
 
 function getCurrencySymbol(currency) {
@@ -1762,7 +1779,7 @@ function generateRecommendations(productsList) {
 }
 
 // ============================================================
-// 10. Currency, Product Type, Quantity, Badge Functions
+// Currency, Product Type, Quantity, Badge Functions
 // ============================================================
 
 window.selectCurrency = function(currency) {
@@ -1890,7 +1907,7 @@ function setBadges(badges) {
 }
 
 // ============================================================
-// 11. Admin Fallback Products
+// Admin Fallback Products
 // ============================================================
 
 function renderFallbackProductsAdmin() {
@@ -2027,7 +2044,7 @@ window.deleteFallbackProduct = function(index) {
 };
 
 // ============================================================
-// 12. Featured Products, Cart, Wishlist
+// Featured Products, Cart, Wishlist
 // ============================================================
 
 function renderFeaturedProducts() {
@@ -2088,7 +2105,7 @@ async function loadFeaturedSettings() {
 }
 
 // ============================================================
-// 13. Cart Management
+// Cart Management
 // ============================================================
 
 function updateProductCardButton(productId) {
@@ -4245,7 +4262,7 @@ window.copyReferralCode2 = function() {
 };
 
 // ============================================================
-// 22. Admin Panel
+// 22. Admin Panel - FIXED
 // ============================================================
 
 window.openAdminPanel = function() {
@@ -6283,7 +6300,6 @@ window.selectTopupAmount = function(amount) {
         selectedTopupAmount = 0;
         document.getElementById('topupSelectedAmount').textContent = 'Enter amount';
         document.getElementById('topupLtcAmount').textContent = '0.0000 LTC';
-        // Reset the selected class on custom option
         const customEl = document.querySelector('.topup-amount[data-amount="custom"]');
         if (customEl) {
             customEl.style.borderColor = 'var(--primary)';
