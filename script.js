@@ -6,8 +6,22 @@
 // FIX: Loading screen - controlled by auth state
 // ============================================================
 (function() {
-    // We keep loading screen visible until auth state is determined
-    console.log('🚀 Script loading...');
+    function hideLoadingScreenImmediate() {
+        var screen = document.getElementById('loadingScreen');
+        if (screen) {
+            screen.classList.add('hidden');
+            setTimeout(function() {
+                screen.style.display = 'none';
+            }, 600);
+            console.log('✅ Loading screen hidden immediately');
+        }
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', hideLoadingScreenImmediate);
+    } else {
+        hideLoadingScreenImmediate();
+    }
+    setTimeout(hideLoadingScreenImmediate, 300);
 })();
 
 // ============================================================
