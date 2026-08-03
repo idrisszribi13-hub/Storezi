@@ -1,12 +1,15 @@
 // ============================================================
 // SCRIPT.JS - ZI Store - COMPLETE FIXED VERSION
-// ============================================================
 // ALL ERRORS FIXED:
 // 1. process is defined for browser
 // 2. removeFromCartAndCloseBanner defined
 // 3. Duplicate date removed
 // 4. Products show correctly, loading screen hidden properly
 // 5. All functions exported to window
+// 6. Admin settings from Firestore (admin_settings/notifications)
+// 7. Topup custom amount fixed
+// 8. LTC/USDT display fixed
+// 9. Add/Edit product modal fixed
 // ============================================================
 
 // ============================================================
@@ -580,6 +583,122 @@ window.ensureAdminPanel = function() {
         console.error('❌ Error ensuring admin panel:', error);
     });
 };
+
+// ============================================================
+// Admin Settings Functions (from Firestore)
+// ============================================================
+
+async function getAdminSettings() {
+    try {
+        const settingsRef = doc(db, 'admin_settings', 'notifications');
+        const settingsSnap = await getDoc(settingsRef);
+        
+        if (settingsSnap.exists()) {
+            return settingsSnap.data();
+        } else {
+            const defaultSettings = {
+                adminEmail: 'idriss.zribi13@gmail.com',
+                adminTelegramChatId: '',
+                enableEmailNotifications: true,
+                enableTelegramNotifications: true,
+                updatedAt: serverTimestamp(),
+                updatedBy: currentUser?.uid || ''
+            };
+            await setDoc(settingsRef, defaultSettings);
+            return defaultSettings;
+        }
+    } catch (error) {
+        console.error('Error loading admin settings:', error);
+        return {
+            adminEmail: 'idriss.zribi13@gmail.com',
+            adminTelegramChatId: '',
+            enableEmailNotifications: true,
+            enableTelegramNotifications: true
+        };
+    }
+}
+
+async function updateAdminSettings(settings) {
+    if (!currentUser || !isAdminCached) {
+        showToast('⛔ Unauthorized', 'error');
+        return false;
+    }
+    
+    try {
+        const settingsRef = doc(db, 'admin_settings', 'notifications');
+        await setDoc(settingsRef, {
+            ...settings,
+            updatedAt: serverTimestamp(),
+            updatedBy: currentUser.uid
+        }, { merge: true });
+        showToast('✅ Admin settings updated!', 'success');
+        return true;
+    } catch (error) {
+        console.error('Error updating admin settings:', error);
+        showToast('❌ Error: ' + error.message, 'error');
+        return false;
+    }
+}
+
+async function sendAdminNotification(title, message) {
+    try {
+        const settings = await getAdminSettings();
+        let sentCount = 0;
+
+        if (settings.enableEmailNotifications && settings.adminEmail) {
+            try {
+                await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/send-email', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    },
+                    body: JSON.stringify({
+                        to: settings.adminEmail,
+                        subject: title,
+                        message: message,
+                        from: 'noreply@zi-store.online'
+                    })
+                });
+                sentCount++;
+                console.log('✅ Email sent to admin:', settings.adminEmail);
+            } catch (error) {
+                console.error('❌ Failed to send email:', error);
+            }
+        }
+
+        if (settings.enableTelegramNotifications && settings.adminTelegramChatId) {
+            try {
+                await sendTelegramNotification(settings.adminTelegramChatId, 
+                    `📢 *${title}*\n\n${message}`
+                );
+                sentCount++;
+                console.log('✅ Telegram sent to admin');
+            } catch (error) {
+                console.error('❌ Failed to send Telegram:', error);
+            }
+        }
+
+        try {
+            await addDoc(collection(db, 'notifications'), {
+                title: title,
+                message: message,
+                adminOnly: true,
+                readBy: [],
+                createdAt: serverTimestamp()
+            });
+            sentCount++;
+            console.log('✅ Firebase notification added for admin');
+        } catch (error) {
+            console.error('❌ Failed to add Firebase notification:', error);
+        }
+
+        return sentCount > 0;
+    } catch (error) {
+        console.error('❌ Error sending admin notification:', error);
+        return false;
+    }
+}
 
 // ============================================================
 // User Functions (Firestore + LocalStorage)
@@ -3586,23 +3705,19 @@ ${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
             console.log('ℹ️ User has no Telegram linked');
         }
 
-        const ADMIN_CHAT_ID = 'YOUR_ADMIN_CHAT_ID';
-
-        if (ADMIN_CHAT_ID && ADMIN_CHAT_ID !== 'YOUR_ADMIN_CHAT_ID') {
-            try {
-                console.log('📤 Sending Telegram to admin...');
-                const sent = await sendTelegramNotification(ADMIN_CHAT_ID, adminTelegramMessage);
-                if (sent) {
-                    console.log('✅ Telegram sent to admin');
-                } else {
-                    console.warn('⚠️ Telegram to admin failed');
-                }
-            } catch (error) {
-                console.error('❌ Error sending Telegram to admin:', error);
-            }
-        } else {
-            console.log('ℹ️ Admin Chat ID not configured');
-        }
+        // Send admin notification via settings
+        const adminMessage = `
+👤 *User:* ${currentUser.displayName || currentUser.email || 'User'}
+📧 *Email:* ${currentUser.email || 'N/A'}
+💰 *Total:* $${finalTotal.toFixed(2)}
+💳 *Payment Method:* ${method}
+📦 *Items:* ${cartData.map(item => `${item.name} x${item.quantity}`).join(', ')}
+${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
+📅 *Date:* ${new Date().toLocaleString()}
+🌐 *Location:* ${visitorInfo.country}, ${visitorInfo.city}
+🔔 *Status:* Pending - Awaiting confirmation
+        `;
+        await sendAdminNotification('📦 New Order Received', adminMessage);
 
         const proxyItems = cart.filter(item => item.isProxy);
         if (proxyItems.length > 0 && DISABLE_PROXY) {
@@ -4329,7 +4444,7 @@ window.switchAdminTab = function(tab) {
         'users': 'tabUsers', 'downloads': 'tabDownloads', 'notifications': 'tabNotifications',
         'stats': 'tabStats', 'logs': 'tabLogs', 'slider': 'tabSlider',
         'licences': 'tabLicences', 'marquee': 'tabMarquee', 'payments': 'tabPayments',
-        'topups': 'tabTopups', 'fallback': 'tabFallback'
+        'topups': 'tabTopups', 'fallback': 'tabFallback', 'settings': 'tabSettings'
     };
     const tabId = tabMap[tab] || 'tabDashboard';
     const content = document.getElementById(tabId);
@@ -4343,7 +4458,7 @@ window.switchAdminTab = function(tab) {
         'users': '👥 Users', 'downloads': '📁 Downloads', 'notifications': '🔔 Notifications',
         'stats': '📈 Stats', 'logs': '📜 Logs', 'slider': '🎨 Slider',
         'licences': '🔑 Licences', 'marquee': '🎬 Marquee', 'payments': '💳 Payments',
-        'topups': '💰 Topups', 'fallback': '📦 Fallback'
+        'topups': '💰 Topups', 'fallback': '📦 Fallback', 'settings': '⚙️ Settings'
     };
     const titleEl = document.getElementById('adminPageTitle');
     if (titleEl) titleEl.textContent = titles[tab] || tab;
@@ -4364,6 +4479,7 @@ window.switchAdminTab = function(tab) {
     if (tab === 'payments') refreshAdminPayments();
     if (tab === 'topups') loadAdminTopups();
     if (tab === 'fallback') renderFallbackProductsAdmin();
+    if (tab === 'settings') loadAdminSettingsUI();
 };
 
 // ============================================================
@@ -6287,11 +6403,23 @@ function updateTopupAmounts(currency) {
                 <div class="amount-sub">Enter amount</div>
             </div>
         </div>
+        <div id="customAmountContainer" style="display:none; margin-top:12px;">
+            <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px;">
+                Enter Amount (${currency === 'USDT' ? '$' : 'LTC'})
+            </label>
+            <input type="number" id="customTopupAmount" placeholder="Enter amount" 
+                   style="width:100%; padding:10px 14px; border:2px solid var(--border); border-radius:var(--radius-sm);
+                          background:var(--card-bg); color:var(--text); font-size:16px; outline:none;" 
+                   min="0.01" step="0.01" />
+            <div style="font-size:11px; color:var(--text-secondary); opacity:0.4; margin-top:4px;">
+                Minimum amount: $1.00
+            </div>
+        </div>
     `;
 }
 
 // ============================================================
-// FIXED: selectTopupAmount - shows correct currency
+// FIXED: selectTopupAmount - shows correct currency and updates custom input
 // ============================================================
 window.selectTopupAmount = function(amount) {
     document.querySelectorAll('.topup-amount').forEach(el => {
@@ -6304,6 +6432,31 @@ window.selectTopupAmount = function(amount) {
         selectedTopupAmount = 0;
         document.getElementById('topupSelectedAmount').textContent = 'Enter amount';
         document.getElementById('topupLtcAmount').textContent = '0.0000 LTC';
+        
+        const customInput = document.getElementById('customTopupAmount');
+        if (customInput) {
+            customInput.value = '';
+            customInput.oninput = function() {
+                const val = parseFloat(this.value);
+                if (val && val > 0) {
+                    const currency = selectedTopupCurrency || 'USDT';
+                    const ltcPrice = cryptoPrices.ltc || 42;
+                    let displayText, ltcDisplay;
+                    if (currency === 'USDT') {
+                        displayText = `$${val.toFixed(2)}`;
+                        ltcDisplay = `${(val / ltcPrice).toFixed(4)} LTC`;
+                    } else {
+                        const ltcAmount = val / ltcPrice;
+                        displayText = `${ltcAmount.toFixed(4)} LTC`;
+                        ltcDisplay = `${ltcAmount.toFixed(4)} LTC`;
+                    }
+                    document.getElementById('topupSelectedAmount').textContent = displayText;
+                    document.getElementById('topupLtcAmount').textContent = ltcDisplay;
+                    selectedTopupAmount = val;
+                }
+            };
+        }
+        
         const customEl = document.querySelector('.topup-amount[data-amount="custom"]');
         if (customEl) {
             customEl.style.borderColor = 'var(--primary)';
@@ -6475,7 +6628,7 @@ window.processTopup = async function() {
 };
 
 // ============================================================
-// 40. TOPUP SYSTEM - Submit with TX Hash
+// 40. TOPUP SYSTEM - Submit with TX Hash (FIXED with full TXID and admin notification)
 // ============================================================
 
 window.submitTopupWithTxHash = async function(topupId, amount) {
@@ -6498,6 +6651,7 @@ window.submitTopupWithTxHash = async function(topupId, amount) {
     statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting for verification...';
 
     try {
+        // Update database with TXID
         const { error } = await supabase
             .from('topups')
             .update({
@@ -6508,19 +6662,40 @@ window.submitTopupWithTxHash = async function(topupId, amount) {
 
         if (error) throw error;
 
-        // Use the send-notification function
-        await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/send-notification', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-            },
-            body: JSON.stringify({
-                title: '💰 New Topup Request',
-                message: `User: ${currentUser.email} - Amount: $${amount} - TXID: ${txHash.slice(0, 10)}...`,
-                adminOnly: true
-            })
-        });
+        // ============================================================
+        // Send admin notification with FULL TXID, amount, email
+        // ============================================================
+        const adminMessage = `
+👤 *User Email:* ${currentUser.email || 'N/A'}
+🆔 *User ID:* ${currentUser.uid}
+💵 *Amount:* $${amount.toFixed(2)}
+🔗 *TXID:* \`${txHash}\`
+📅 *Date:* ${new Date().toLocaleString()}
+🔔 *Status:* Pending - Awaiting verification
+
+⚠️ *Please verify this transaction before approving.*
+        `;
+        
+        await sendAdminNotification('💰 New Topup Request - Pending Verification', adminMessage);
+
+        // Send notification to user if Telegram linked
+        if (userProfile.telegramChatId) {
+            const userMessage = `
+📤 *TOPUP REQUEST SUBMITTED*
+
+✅ Your topup request has been submitted successfully!
+
+💵 *Amount:* $${amount.toFixed(2)}
+🔗 *TXID:* \`${txHash}\`
+📅 *Date:* ${new Date().toLocaleString()}
+
+⏳ Your request is being reviewed by our team.
+You will receive a notification once approved.
+
+🔗 *Visit Store:* https://zi-store.online
+            `;
+            await sendTelegramNotification(userProfile.telegramChatId, userMessage);
+        }
 
         statusEl.innerHTML = `
             <div style="background:var(--success-glow); border-radius:8px; padding:12px; border:1px solid var(--success);">
@@ -6528,7 +6703,7 @@ window.submitTopupWithTxHash = async function(topupId, amount) {
                 <div style="font-size:13px; color:var(--text-secondary); margin-top:4px;">
                     Amount: $${amount.toFixed(2)}
                     <br>
-                    TXID: <span style="font-family:monospace; font-size:11px;">${txHash.slice(0, 16)}...${txHash.slice(-8)}</span>
+                    TXID: <span style="font-family:monospace; font-size:11px; word-break:break-all;">${txHash}</span>
                 </div>
                 <div style="font-size:12px; color:var(--text-secondary); opacity:0.6; margin-top:6px;">
                     ⏳ Your request is being reviewed by our team.
@@ -6555,7 +6730,7 @@ window.submitTopupWithTxHash = async function(topupId, amount) {
 };
 
 // ============================================================
-// 41. TOPUP SYSTEM - Admin Functions
+// 41. TOPUP SYSTEM - Admin Functions (with full notification)
 // ============================================================
 
 window.approveTopup = async function(topupId) {
@@ -6567,6 +6742,16 @@ window.approveTopup = async function(topupId) {
     if (!confirm('Approve this topup and add balance to user?')) return;
 
     try {
+        // Get topup data
+        const { data: topupData, error: fetchError } = await supabase
+            .from('topups')
+            .select('*')
+            .eq('id', topupId)
+            .single();
+
+        if (fetchError) throw fetchError;
+
+        // Update topup status
         const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/approve-topup', {
             method: 'POST',
             headers: {
@@ -6586,12 +6771,21 @@ window.approveTopup = async function(topupId) {
             throw new Error(result.error || 'Failed to approve topup');
         }
 
-        const { data: topupData } = await supabase
-            .from('topups')
-            .select('*')
-            .eq('id', topupId)
-            .single();
+        // ============================================================
+        // Send admin notification for approval
+        // ============================================================
+        const adminMessage = `
+👤 *User:* ${topupData?.user_email || 'Unknown'}
+🆔 *User ID:* ${topupData?.user_id || 'N/A'}
+💵 *Amount:* $${topupData?.amount_usd || 0}
+🔗 *TXID:* \`${topupData?.tx_hash || 'N/A'}\`
+📅 *Date:* ${new Date().toLocaleString()}
+✅ *Status:* APPROVED - Balance Updated
+        `;
+        
+        await sendAdminNotification('✅ Topup Approved - Balance Updated', adminMessage);
 
+        // Add balance to user and send notification
         if (topupData) {
             await sendTelegramTopupNotification(
                 topupData.user_id,
@@ -6629,6 +6823,14 @@ window.rejectTopup = async function(topupId) {
     if (!confirm('Reject this topup?')) return;
 
     try {
+        const { data: topupData, error: fetchError } = await supabase
+            .from('topups')
+            .select('*')
+            .eq('id', topupId)
+            .single();
+
+        if (fetchError) throw fetchError;
+
         const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/approve-topup', {
             method: 'POST',
             headers: {
@@ -6647,6 +6849,19 @@ window.rejectTopup = async function(topupId) {
         if (!result.success) {
             throw new Error(result.error || 'Failed to reject topup');
         }
+
+        // ============================================================
+        // Send admin notification for rejection
+        // ============================================================
+        const adminMessage = `
+👤 *User:* ${topupData?.user_email || 'Unknown'}
+💵 *Amount:* $${topupData?.amount_usd || 0}
+🔗 *TXID:* \`${topupData?.tx_hash || 'N/A'}\`
+📅 *Date:* ${new Date().toLocaleString()}
+❌ *Status:* REJECTED
+        `;
+        
+        await sendAdminNotification('❌ Topup Rejected', adminMessage);
 
         showToast('✅ Topup rejected', 'success');
         loadAdminTopups();
@@ -6701,7 +6916,7 @@ async function loadAdminTopups() {
                         </div>
                         <div class="item-meta">
                             📅 ${date}
-                            ${t.tx_hash ? `• 🔗 TXID: ${t.tx_hash.slice(0, 12)}...${t.tx_hash.slice(-8)}` : ''}
+                            ${t.tx_hash ? `• 🔗 TXID: <span style="font-family:monospace;font-size:11px;word-break:break-all;">${t.tx_hash}</span>` : ''}
                             • Status: ${statusLabels[t.status] || t.status}
                         </div>
                     </div>
@@ -7071,13 +7286,11 @@ async function uploadToCloudinary(file) {
 // ============================================================
 
 function fixDirection() {
-    // Force LTR direction
     document.querySelectorAll('.header, .logo, .header-actions, .modal-content, .fullscreen-modal, .admin-panel').forEach(el => {
         el.style.direction = 'ltr';
         el.style.textAlign = 'left';
     });
 
-    // Fix close buttons to be on the right side for regular modals
     document.querySelectorAll('.modal-close, .close-modal-btn').forEach(el => {
         el.style.position = 'absolute';
         el.style.top = '10px';
@@ -7087,7 +7300,6 @@ function fixDirection() {
         el.style.margin = '0';
     });
 
-    // For fullscreen modals, close buttons are in header, keep them static
     document.querySelectorAll('.fullscreen-modal .close-btn, #adminPanel .admin-close-btn').forEach(el => {
         el.style.position = 'static';
         el.style.right = 'auto';
@@ -7359,7 +7571,7 @@ window.copyWalletAddress = function() {
 };
 
 // ============================================================
-// 52.4 ADD PRODUCT MODAL FUNCTIONS
+// 52.4 ADD PRODUCT MODAL FUNCTIONS - FIXED (null check)
 // ============================================================
 
 window.openAddProductModal = function() {
@@ -7370,31 +7582,46 @@ window.openAddProductModal = function() {
 
     const modal = document.getElementById('productModal');
     if (!modal) {
-        showToast('❌ Product modal not found', 'error');
+        console.error('❌ Product modal not found');
+        showToast('❌ Product modal not found in HTML', 'error');
         return;
     }
 
-    document.getElementById('productFormTitle').textContent = '➕ Add New Product';
-    document.getElementById('productForm').reset();
-    document.getElementById('productIdField').value = '';
-    document.getElementById('productCurrency').value = 'USD';
-    document.getElementById('productType').value = 'standard';
-    document.getElementById('quantityOptionsContainer').style.display = 'none';
+    // Safe element checks
+    const titleEl = document.getElementById('productFormTitle');
+    const form = document.getElementById('productForm');
+    const idField = document.getElementById('productIdField');
+    const currency = document.getElementById('productCurrency');
+    const type = document.getElementById('productType');
+    const quantityContainer = document.getElementById('quantityOptionsContainer');
+    const list = document.getElementById('quantityOptionsList');
+    const badgesInput = document.getElementById('productBadges');
+
+    if (titleEl) titleEl.textContent = '➕ Add New Product';
+    if (form) form.reset();
+    if (idField) idField.value = '';
+    if (currency) currency.value = 'USD';
+    if (type) type.value = 'standard';
+    if (quantityContainer) quantityContainer.style.display = 'none';
+    
     document.querySelectorAll('.currency-option').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.type-option').forEach(el => el.classList.remove('active'));
     document.querySelector('.currency-option[data-currency="USD"]')?.classList.add('active');
     document.querySelector('.type-option[data-type="standard"]')?.classList.add('active');
 
     document.querySelectorAll('.badge-option').forEach(el => el.classList.remove('selected'));
-    document.getElementById('productBadges').value = '';
+    if (badgesInput) badgesInput.value = '';
 
-    const list = document.getElementById('quantityOptionsList');
     if (list) list.innerHTML = '';
     addQuantityOption();
 
     modal.classList.add('open');
     document.body.style.overflow = 'hidden';
 };
+
+// ============================================================
+// 52.4 EDIT PRODUCT MODAL - FIXED (null check)
+// ============================================================
 
 window.openEditProductModal = function(productId) {
     if (!currentUser || !isAdminCached) {
@@ -7410,23 +7637,41 @@ window.openEditProductModal = function(productId) {
 
     const modal = document.getElementById('productModal');
     if (!modal) {
-        showToast('❌ Product modal not found', 'error');
+        console.error('❌ Product modal not found');
+        showToast('❌ Product modal not found in HTML', 'error');
         return;
     }
 
-    document.getElementById('productFormTitle').textContent = '✏️ Edit Product';
-    document.getElementById('productIdField').value = product.id;
-    document.getElementById('productName').value = product.name || '';
-    document.getElementById('productPrice').value = product.price || 0;
-    document.getElementById('productBadge').value = product.badge || 'FREE';
-    document.getElementById('productStatus').value = product.status || 'available';
-    document.getElementById('productImage').value = product.image || '';
-    document.getElementById('productDescription').value = product.description || '';
-    document.getElementById('productFeatures').value = (product.features || []).join(', ');
-    document.getElementById('productVideo').value = product.video || '';
-    document.getElementById('productDownloadLink').value = product.downloadLink || '';
-    document.getElementById('productCurrency').value = product.currency || 'USD';
-    document.getElementById('productType').value = product.productType || 'standard';
+    // Safe element checks
+    const titleEl = document.getElementById('productFormTitle');
+    const idField = document.getElementById('productIdField');
+    const nameEl = document.getElementById('productName');
+    const priceEl = document.getElementById('productPrice');
+    const badgeEl = document.getElementById('productBadge');
+    const statusEl = document.getElementById('productStatus');
+    const imageEl = document.getElementById('productImage');
+    const descEl = document.getElementById('productDescription');
+    const featuresEl = document.getElementById('productFeatures');
+    const videoEl = document.getElementById('productVideo');
+    const downloadEl = document.getElementById('productDownloadLink');
+    const currencyEl = document.getElementById('productCurrency');
+    const typeEl = document.getElementById('productType');
+    const quantityContainer = document.getElementById('quantityOptionsContainer');
+    const badgesInput = document.getElementById('productBadges');
+
+    if (titleEl) titleEl.textContent = '✏️ Edit Product';
+    if (idField) idField.value = product.id;
+    if (nameEl) nameEl.value = product.name || '';
+    if (priceEl) priceEl.value = product.price || 0;
+    if (badgeEl) badgeEl.value = product.badge || 'FREE';
+    if (statusEl) statusEl.value = product.status || 'available';
+    if (imageEl) imageEl.value = product.image || '';
+    if (descEl) descEl.value = product.description || '';
+    if (featuresEl) featuresEl.value = (product.features || []).join(', ');
+    if (videoEl) videoEl.value = product.video || '';
+    if (downloadEl) downloadEl.value = product.downloadLink || '';
+    if (currencyEl) currencyEl.value = product.currency || 'USD';
+    if (typeEl) typeEl.value = product.productType || 'standard';
 
     document.querySelectorAll('.currency-option').forEach(el => {
         el.classList.toggle('active', el.dataset.currency === (product.currency || 'USD'));
@@ -7436,20 +7681,20 @@ window.openEditProductModal = function(productId) {
         el.classList.toggle('active', el.dataset.type === (product.productType || 'standard'));
     });
 
-    if (product.productType === 'quantity') {
-        document.getElementById('quantityOptionsContainer').style.display = 'block';
+    if (product.productType === 'quantity' && quantityContainer) {
+        quantityContainer.style.display = 'block';
         if (product.quantityOptions) {
             setQuantityOptions(product.quantityOptions);
         }
-    } else {
-        document.getElementById('quantityOptionsContainer').style.display = 'none';
+    } else if (quantityContainer) {
+        quantityContainer.style.display = 'none';
     }
 
     if (product.badges) {
         setBadges(product.badges);
     } else {
         document.querySelectorAll('.badge-option').forEach(el => el.classList.remove('selected'));
-        document.getElementById('productBadges').value = '';
+        if (badgesInput) badgesInput.value = '';
     }
 
     modal.classList.add('open');
@@ -7470,18 +7715,18 @@ window.saveProduct = async function() {
         return;
     }
 
-    const id = document.getElementById('productIdField').value;
-    const name = document.getElementById('productName').value.trim();
-    const price = parseFloat(document.getElementById('productPrice').value) || 0;
-    const badge = document.getElementById('productBadge').value;
-    const status = document.getElementById('productStatus').value;
-    const image = document.getElementById('productImage').value.trim();
-    const description = document.getElementById('productDescription').value.trim();
-    const featuresText = document.getElementById('productFeatures').value.trim();
-    const video = document.getElementById('productVideo').value.trim();
-    const downloadLink = document.getElementById('productDownloadLink').value.trim();
-    const currency = document.getElementById('productCurrency').value || 'USD';
-    const productType = document.getElementById('productType').value || 'standard';
+    const id = document.getElementById('productIdField')?.value;
+    const name = document.getElementById('productName')?.value.trim();
+    const price = parseFloat(document.getElementById('productPrice')?.value) || 0;
+    const badge = document.getElementById('productBadge')?.value || 'FREE';
+    const status = document.getElementById('productStatus')?.value || 'available';
+    const image = document.getElementById('productImage')?.value.trim() || '';
+    const description = document.getElementById('productDescription')?.value.trim() || '';
+    const featuresText = document.getElementById('productFeatures')?.value.trim() || '';
+    const video = document.getElementById('productVideo')?.value.trim() || '';
+    const downloadLink = document.getElementById('productDownloadLink')?.value.trim() || '';
+    const currency = document.getElementById('productCurrency')?.value || 'USD';
+    const productType = document.getElementById('productType')?.value || 'standard';
 
     if (!name) {
         showToast('⚠️ Product name is required', 'warning');
@@ -7489,7 +7734,7 @@ window.saveProduct = async function() {
     }
 
     const features = featuresText ? featuresText.split(',').map(f => f.trim()).filter(f => f) : [];
-    const badgesText = document.getElementById('productBadges').value;
+    const badgesText = document.getElementById('productBadges')?.value || '';
     const badges = badgesText ? badgesText.split(',').map(b => b.trim()).filter(b => b) : [];
 
     const productData = {
@@ -7558,6 +7803,141 @@ window.deleteProduct = async function(productId) {
 window.filterOrders = function(filter) {
     ordersFilter = filter;
     renderHistoryFull();
+};
+
+// ============================================================
+// 52.6 ADMIN SETTINGS UI
+// ============================================================
+
+async function loadAdminSettingsUI() {
+    if (!currentUser || !isAdminCached) return;
+    
+    const container = document.getElementById('adminSettingsContainer');
+    if (!container) {
+        // Create container if it doesn't exist
+        const tabContent = document.getElementById('tabSettings');
+        if (tabContent) {
+            const div = document.createElement('div');
+            div.id = 'adminSettingsContainer';
+            tabContent.appendChild(div);
+            container = div;
+        } else {
+            console.error('❌ tabSettings not found');
+            return;
+        }
+    }
+
+    try {
+        const settings = await getAdminSettings();
+        
+        container.innerHTML = `
+            <div style="background:var(--glass-bg); padding:20px; border-radius:var(--radius-md); border:1px solid var(--glass-border);">
+                <h3 style="margin-bottom:16px; color:var(--vip-color);">🔔 Notification Settings</h3>
+                
+                <div class="form-group">
+                    <label>Admin Email</label>
+                    <input id="adminEmailInput" type="email" value="${settings.adminEmail || ''}" 
+                           style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); 
+                                  background:var(--card-bg); color:var(--text);" />
+                    <div style="font-size:11px; color:var(--text-secondary); opacity:0.4; margin-top:4px;">
+                        All notifications will be sent to this email
+                    </div>
+                </div>
+                
+                <div class="form-group" style="margin-top:12px;">
+                    <label>Admin Telegram Chat ID</label>
+                    <input id="adminTelegramInput" type="text" value="${settings.adminTelegramChatId || ''}" 
+                           style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); 
+                                  background:var(--card-bg); color:var(--text); font-family:monospace;" />
+                    <div style="font-size:11px; color:var(--text-secondary); opacity:0.4; margin-top:4px;">
+                        Send /start to @${BOT_USERNAME} then /chatid to get your Chat ID
+                        <button onclick="getMyTelegramChatId()" style="margin-left:8px; padding:2px 12px; border:none; border-radius:4px; background:var(--primary); color:#fff; cursor:pointer; font-size:11px;">
+                            <i class="fas fa-sync"></i> Get My Chat ID
+                        </button>
+                    </div>
+                </div>
+                
+                <div style="display:flex; gap:16px; margin-top:12px; flex-wrap:wrap;">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" id="enableEmailNotif" ${settings.enableEmailNotifications !== false ? 'checked' : ''} />
+                        <span>📧 Email Notifications</span>
+                    </label>
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" id="enableTelegramNotif" ${settings.enableTelegramNotifications !== false ? 'checked' : ''} />
+                        <span>📱 Telegram Notifications</span>
+                    </label>
+                </div>
+                
+                <button onclick="saveAdminSettings()" style="margin-top:16px; padding:8px 24px; border:none; border-radius:var(--radius-sm); 
+                        background:var(--primary); color:#fff; font-weight:700; cursor:pointer;">
+                    <i class="fas fa-save"></i> Save Settings
+                </button>
+                
+                <div id="adminSettingsStatus" style="margin-top:8px; font-size:13px;"></div>
+            </div>
+        `;
+    } catch (error) {
+        console.error('Error loading admin settings:', error);
+        container.innerHTML = `<div style="color:var(--danger);">Failed to load settings: ${error.message}</div>`;
+    }
+}
+
+window.saveAdminSettings = async function() {
+    if (!currentUser || !isAdminCached) {
+        showToast('⛔ Unauthorized', 'error');
+        return;
+    }
+    
+    const email = document.getElementById('adminEmailInput')?.value.trim();
+    const telegramId = document.getElementById('adminTelegramInput')?.value.trim();
+    const enableEmail = document.getElementById('enableEmailNotif')?.checked || false;
+    const enableTelegram = document.getElementById('enableTelegramNotif')?.checked || false;
+    
+    if (!email) {
+        showToast('⚠️ Admin email is required', 'warning');
+        return;
+    }
+    
+    const statusEl = document.getElementById('adminSettingsStatus');
+    statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    statusEl.style.color = 'var(--text-secondary)';
+    
+    try {
+        const settings = {
+            adminEmail: email,
+            adminTelegramChatId: telegramId || '',
+            enableEmailNotifications: enableEmail,
+            enableTelegramNotifications: enableTelegram
+        };
+        
+        await updateAdminSettings(settings);
+        statusEl.innerHTML = '✅ Settings saved successfully!';
+        statusEl.style.color = 'var(--success)';
+        showToast('✅ Admin settings saved!', 'success');
+        setTimeout(() => { statusEl.innerHTML = ''; }, 3000);
+    } catch (error) {
+        statusEl.innerHTML = '❌ Error: ' + error.message;
+        statusEl.style.color = 'var(--danger)';
+    }
+};
+
+window.getMyTelegramChatId = function() {
+    if (!currentUser) {
+        showToast('⚠️ Please login first', 'warning');
+        return;
+    }
+    
+    if (!userProfile.telegramChatId) {
+        showToast('⚠️ Please link your Telegram account first', 'warning');
+        bindTelegram();
+        return;
+    }
+    
+    const input = document.getElementById('adminTelegramInput');
+    if (input) {
+        input.value = userProfile.telegramChatId;
+        showToast(`✅ Chat ID set: ${userProfile.telegramChatId}`, 'success');
+    }
 };
 
 // ============================================================
@@ -7805,6 +8185,9 @@ window.saveFallbackProduct = saveFallbackProduct;
 window.deleteFallbackProduct = deleteFallbackProduct;
 window.removeFromCartAndCloseBanner = removeFromCartAndCloseBanner;
 window.closeQuickPurchaseBanner = closeQuickPurchaseBanner;
+window.saveAdminSettings = saveAdminSettings;
+window.getMyTelegramChatId = getMyTelegramChatId;
+window.loadAdminSettingsUI = loadAdminSettingsUI;
 
 console.log('✅ All functions exported to window scope');
 
@@ -7815,7 +8198,6 @@ console.log('✅ All functions exported to window scope');
 async function init() {
     console.log('🚀 Initializing ZI Store...');
 
-    // Keep loading screen visible until auth is determined
     const authSection = document.getElementById('authSection');
     if (authSection) authSection.style.display = 'none';
 
@@ -7844,7 +8226,6 @@ async function init() {
         loadUserBalance();
         initTopInfoBar();
 
-        // Apply fixes
         setTimeout(removeDuplicateDate, 500);
         setTimeout(styleHeaderTopup, 500);
         setTimeout(fixDirection, 100);
@@ -7854,8 +8235,6 @@ async function init() {
         setTimeout(window.ensureAdminPanel, 3000);
         setTimeout(checkCookieConsent, 1500);
 
-        // Auth state will handle showing main app or auth section
-        // But if user is already logged in, show main app
         if (auth.currentUser) {
             window.showMainApp();
         } else {
