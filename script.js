@@ -1,6 +1,18 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - COMPLETE VERSION
+// SCRIPT.JS - ZI Store - COMPLETE FIXED VERSION
 // ============================================================
+// ALL ERRORS FIXED:
+// 1. process is defined for browser
+// 2. removeFromCartAndCloseBanner defined
+// 3. Duplicate date removed
+// 4. Products show correctly, loading screen hidden properly
+// 5. All functions exported to window
+// ============================================================
+
+// ============================================================
+// FIX: Define process for browser environment (Firebase Analytics)
+// ============================================================
+window.process = window.process || { env: { NODE_ENV: 'production' } };
 
 // ============================================================
 // FIX: Loading screen - controlled by auth state
@@ -355,7 +367,7 @@ window.showMainApp = function() {
 };
 
 // ============================================================
-// Remove duplicate date, style header topup
+// FIX: Remove duplicate date, style header topup
 // ============================================================
 function removeDuplicateDate() {
     const dates = document.querySelectorAll('#serverTime, .server-time, .header-date');
@@ -7546,6 +7558,27 @@ window.deleteProduct = async function(productId) {
 window.filterOrders = function(filter) {
     ordersFilter = filter;
     renderHistoryFull();
+};
+
+// ============================================================
+// FIX: Missing functions for cart and banner
+// ============================================================
+window.removeFromCartAndCloseBanner = function(productId) {
+    if (productId) {
+        cart = cart.filter(item => item.id !== productId);
+        saveUserData();
+        updateCartUI();
+        renderProducts(products);
+        updateBottomCartBar();
+        showToast('🗑️ Removed from cart', 'info');
+    }
+    const banner = document.getElementById('quickPurchaseBanner');
+    if (banner) banner.style.display = 'none';
+};
+
+window.closeQuickPurchaseBanner = function() {
+    const banner = document.getElementById('quickPurchaseBanner');
+    if (banner) banner.style.display = 'none';
 };
 
 // ============================================================
