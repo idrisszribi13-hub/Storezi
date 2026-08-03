@@ -1,29 +1,13 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - EMERGENCY FIX
-// ============================================================
-// This version restores product display and admin panel functionality
+// SCRIPT.JS - ZI Store - COMPLETE VERSION
 // ============================================================
 
 // ============================================================
-// FIX: Loading screen - NOT hidden immediately
+// FIX: Loading screen - controlled by auth state
 // ============================================================
 (function() {
-    function hideLoadingScreenImmediate() {
-        var screen = document.getElementById('loadingScreen');
-        if (screen) {
-            screen.classList.add('hidden');
-            setTimeout(function() {
-                screen.style.display = 'none';
-            }, 600);
-            console.log('✅ Loading screen hidden immediately');
-        }
-    }
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', hideLoadingScreenImmediate);
-    } else {
-        hideLoadingScreenImmediate();
-    }
-    setTimeout(hideLoadingScreenImmediate, 300);
+    // We keep loading screen visible until auth state is determined
+    console.log('🚀 Script loading...');
 })();
 
 // ============================================================
@@ -44,7 +28,7 @@ import {
     GoogleAuthProvider,
     signInWithPopup
 } from "firebase/auth";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, collection, query, where, getDocs, onSnapshot, addDoc, deleteDoc, orderBy } from "firebase/firestore";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, collection, query, where, getDocs, onSnapshot, addDoc, deleteDoc, orderBy, limit } from "firebase/firestore";
 import { getAnalytics, isSupported } from "firebase/analytics";
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
@@ -110,7 +94,7 @@ let currentUser = null;
 let userId = null;
 let cart = [];
 let wishlist = [];
-let products = []; // ستكون مليئة بالمنتجات من Firestore أو fallback
+let products = [];
 let currentFilter = 'all';
 let activeDiscount = 0;
 let activeDiscountCode = '';
@@ -177,7 +161,7 @@ let userProfile = {
 };
 
 // ============================================================
-// DEFAULT PRODUCTS (Fallback) - MUST BE PRESENT
+// DEFAULT PRODUCTS (Fallback) - MUST BE PRESENT FOR PRODUCTS TO SHOW
 // ============================================================
 const fallbackProducts = [
     {
@@ -373,19 +357,19 @@ function styleHeaderTopup() {
     if (headerActions) {
         headerActions.style.display = 'flex';
         headerActions.style.alignItems = 'center';
-        headerActions.style.gap = '8px';
+        headerActions.style.gap = '5px';
         headerActions.style.flexWrap = 'nowrap';
     }
     const balanceEl = document.getElementById('balanceDisplay');
-    if (balanceEl) balanceEl.style.fontSize = '14px';
+    if (balanceEl) balanceEl.style.fontSize = '12px';
     const topupBtn = document.getElementById('topupButton');
     if (topupBtn) {
-        topupBtn.style.fontSize = '12px';
-        topupBtn.style.padding = '4px 10px';
-        topupBtn.style.marginLeft = '4px';
+        topupBtn.style.fontSize = '11px';
+        topupBtn.style.padding = '3px 8px';
+        topupBtn.style.marginLeft = '2px';
     }
     const topupIcon = document.getElementById('topupIcon');
-    if (topupIcon) topupIcon.style.fontSize = '14px';
+    if (topupIcon) topupIcon.style.fontSize = '13px';
 }
 
 // ============================================================
@@ -416,7 +400,7 @@ function updateServerTime() {
 
     const el = document.getElementById('serverTime');
     if (el) {
-        el.innerHTML = `<i class="far fa-calendar-alt" style="margin-right:4px;color:var(--vip-color);"></i> ${dateStr} &nbsp;|&nbsp; <i class="far fa-clock" style="margin-right:4px;color:var(--primary);"></i> ${timeStr} UTC`;
+        el.innerHTML = `<i class="far fa-calendar-alt" style="margin-right:3px;color:var(--vip-color);"></i> ${dateStr} &nbsp;|&nbsp; <i class="far fa-clock" style="margin-right:3px;color:var(--primary);"></i> ${timeStr} UTC`;
     }
 }
 
@@ -455,12 +439,6 @@ async function fetchUserInfo() {
         const timezoneEl = document.getElementById('userTimezone');
         if (timezoneEl) timezoneEl.textContent = data.timezone || 'UTC';
 
-        const locationEl = document.getElementById('userLocation');
-        if (locationEl) {
-            const location = [data.city, data.region].filter(Boolean).join(', ');
-            locationEl.textContent = location || data.country_name || 'Unknown';
-        }
-
         return data;
     } catch (error) {
         console.error('❌ Failed to fetch IP info:', error);
@@ -470,8 +448,6 @@ async function fetchUserInfo() {
         if (countryEl) countryEl.textContent = '🌍 Unknown';
         const timezoneEl = document.getElementById('userTimezone');
         if (timezoneEl) timezoneEl.textContent = 'UTC';
-        const locationEl = document.getElementById('userLocation');
-        if (locationEl) locationEl.textContent = 'Unavailable';
     }
 }
 
@@ -1571,7 +1547,7 @@ window.sendResetLinkInline = async function() { if (!currentUser) return; try { 
 window.changePasswordInline = async function() { if (!currentUser) return; const currentPwd = document.getElementById('currentPasswordInline').value; const newPwd = document.getElementById('newPasswordInline').value; const confirmPwd = document.getElementById('confirmNewPasswordInline').value; const errorEl = document.getElementById('passwordErrorInline'); const successEl = document.getElementById('passwordSuccessInline'); errorEl.textContent = ''; successEl.textContent = ''; if (!currentPwd || !newPwd || !confirmPwd) { errorEl.textContent = 'Please fill all fields'; return; } if (newPwd.length < 6) { errorEl.textContent = 'New password must be at least 6 characters'; return; } if (newPwd !== confirmPwd) { errorEl.textContent = 'Passwords do not match'; return; } try { const credential = EmailAuthProvider.credential(currentUser.email, currentPwd); await reauthenticateWithCredential(currentUser, credential); await updatePassword(currentUser, newPwd); successEl.textContent = '✅ Password changed successfully!'; showToast('✅ Password updated!', 'success'); document.getElementById('currentPasswordInline').value = ''; document.getElementById('newPasswordInline').value = ''; document.getElementById('confirmNewPasswordInline').value = ''; setTimeout(() => { successEl.textContent = ''; }, 3000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); } };
 
 // ============================================================
-// Product Functions - CRITICAL FIX
+// Product Functions - CRITICAL FOR PRODUCTS TO SHOW
 // ============================================================
 
 async function loadProductsFromFirestore() {
@@ -2619,7 +2595,7 @@ window.openDetails = function(id) {
                 </div>
             </div>
 
-            <!-- Embedded Banner (like in screenshot) -->
+            <!-- Embedded Banner -->
             <div style="margin-top:16px;padding:16px 20px;background:linear-gradient(135deg, rgba(108,92,231,0.1), rgba(249,202,36,0.08));border-radius:var(--radius-md);border:1px solid var(--glass-border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
                 <div style="display:flex;align-items:center;gap:14px;">
                     <div style="width:56px;height:56px;border-radius:var(--radius-sm);overflow:hidden;background:var(--bg-secondary);flex-shrink:0;">
@@ -3937,7 +3913,8 @@ function loadNotifications() {
             notifications = [];
             snapshot.forEach((doc) => {
                 const data = doc.data();
-                if (!data.userId || data.userId === currentUser?.uid) {
+                // Only show notifications for this user
+                if (data.userId === currentUser?.uid || !data.userId) {
                     notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] });
                 }
             });
@@ -3954,7 +3931,8 @@ function loadNotifications() {
             notifications = [];
             snapshot.forEach((doc) => {
                 const data = doc.data();
-                if (!data.userId || data.userId === currentUser?.uid) {
+                // Only show notifications for this user
+                if (data.userId === currentUser?.uid || !data.userId) {
                     notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] });
                 }
             });
@@ -5547,7 +5525,7 @@ function renderSlider() {
     const dots = document.getElementById('sliderDots');
     if (!wrapper) return;
     if (sliderSlides.length === 0) {
-        wrapper.innerHTML = `<div class="slide-item" style="background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;min-height:180px;border-radius:var(--radius-md);"><div style="text-align:center;color:var(--text-secondary);opacity:0.4;"><i class="fas fa-images" style="font-size:48px;display:block;margin-bottom:8px;"></i><p>No slides. Add slides from admin panel.</p></div></div>`;
+        wrapper.innerHTML = `<div class="slide-item" style="background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;min-height:150px;border-radius:var(--radius-sm);"><div style="text-align:center;color:var(--text-secondary);opacity:0.4;"><i class="fas fa-images" style="font-size:36px;display:block;margin-bottom:6px;"></i><p style="font-size:12px;">No slides. Add slides from admin panel.</p></div></div>`;
         dots.innerHTML = '';
         return;
     }
@@ -7790,6 +7768,7 @@ console.log('✅ All functions exported to window scope');
 async function init() {
     console.log('🚀 Initializing ZI Store...');
 
+    // Keep loading screen visible until auth is determined
     const authSection = document.getElementById('authSection');
     if (authSection) authSection.style.display = 'none';
 
@@ -7828,6 +7807,8 @@ async function init() {
         setTimeout(window.ensureAdminPanel, 3000);
         setTimeout(checkCookieConsent, 1500);
 
+        // Auth state will handle showing main app or auth section
+        // But if user is already logged in, show main app
         if (auth.currentUser) {
             window.showMainApp();
         } else {
