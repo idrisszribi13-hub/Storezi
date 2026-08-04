@@ -91,7 +91,7 @@
         .checkbox-group { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
         .checkbox-group input { width: auto; }
         
-        /* تصميم شاشة الـ Terminal المشابهة للصورة */
+        /* شاشة الـ Terminal مصححة الاتجاه لتعرض الرموز بشكل صحيح */
         .terminal {
             background: var(--panel-bg);
             color: #38bdf8;
@@ -105,6 +105,8 @@
             white-space: pre-wrap;
             font-size: 12px;
             line-height: 1.5;
+            direction: ltr;
+            text-align: left;
         }
         .terminal-header {
             color: #ef4444;
@@ -119,7 +121,6 @@
 <body>
 
 <div class="main-layout">
-    <!-- لوحة التحكم وإدخال البيانات -->
     <div class="control-panel">
         <h1>🛠️ منشئ السكريبتات المتقدم</h1>
         
@@ -136,21 +137,18 @@
         <hr style="border-color: var(--border); margin: 20px 0;">
 
         <h2>📂 الأقسام والعناوين الرئيسية</h2>
-        <div id="sectionsContainer">
-            <!-- يتم إضافة الأقسام هنا -->
-        </div>
+        <div id="sectionsContainer"></div>
 
         <button class="btn btn-secondary" onclick="addSection()">➕ إضافة عنوان / قسم جديد للقائمة</button>
         <br><br>
         <button class="btn" onclick="generateAndDownload()">🚀 بدء الإنشاء والتحميل (Build Script)</button>
     </div>
 
-    <!-- لوحة العرض المباشر (Output Panel) -->
     <div class="output-panel-container">
         <div class="terminal-header">[OUTPUT PANEL - LIVE PREVIEW & LOGS]</div>
         <div id="terminalOutput" class="terminal">
-            Dumper: ApexEngine | Generator: Ready...
-            Waiting for configuration...
+[is] Initializing generator engine...
+[is] Waiting for configuration...
         </div>
         <button class="btn btn-secondary" style="margin-top: 10px;" onclick="updateLivePreview()">🔄 تحديث المعاينة الحية</button>
     </div>
@@ -158,7 +156,7 @@
 
 <script>
     window.onload = function() {
-        addSection(); // إضافة قسم افتراضي عند الفتح
+        addSection();
     };
 
     function addSection() {
@@ -174,9 +172,7 @@
                 <label>اسم العنوان في القائمة:</label>
                 <input type="text" class="s-name" value="قسم اللاعب (Player Hacks)" oninput="updateLivePreview()">
             </div>
-            <div class="cheats-list" style="margin-top: 10px;">
-                <!-- الميزات التابعة لهذا القسم -->
-            </div>
+            <div class="cheats-list" style="margin-top: 10px;"></div>
             <button class="btn btn-secondary" style="font-size: 12px; padding: 6px;" onclick="addCheatToSection(this)">➕ إضافة ميزة داخل هذا القسم</button>
         `;
         container.appendChild(div);
@@ -263,7 +259,6 @@ local is64 = v.x64
 local gameName = v.label or "Unknown Game"
 local packageName = v.packageName
 
--- محرك البحث للـ Offset
 function searchByOffset(x, o, t, targetVal, freezeVal)
     gg.clearResults()
     gg.setRanges(gg.REGION_OTHER | gg.REGION_C_ALLOC | gg.REGION_ANONYMOUS) 
@@ -305,7 +300,7 @@ function searchByOffset(x, o, t, targetVal, freezeVal)
     apexy = gg.getValues(apexy) apexz = gg.getValues(apexz) local apexp = {} local apexxx = 1
     for i, val in ipairs(apexy) do
         if apexy[i].value == apexz[i].value and #(tostring(apexy[i].value)) >= 8 then
-            apexp[apexxx] = apexy[i].value apexxxx = apexxx + 1
+            apexp[apexxx] = apexy[i].value apexxx = apexxx + 1
         end
     end
     if #(apexp) == 0 and ERROR == 0 then
@@ -345,7 +340,6 @@ function searchByOffset(x, o, t, targetVal, freezeVal)
     gg.toast("✅ تم تفعيل الميزة بنجاح")
 end
 
--- محرك البحث للـ Field Name
 function searchByField(x, f, t, targetVal, freezeVal)
     local fco1, fco2, fco3, fcx1
     if is64 then fco1 = 24 fco2 = 8 fco3 = 16 fcx1 = 32 else fco1 = 12 fco2 = 4 fco3 = 8 fcx1 = 4 end 
@@ -464,7 +458,6 @@ end
 `;
         }
 
-        // بناء دالة القائمة الرئيسية والأقسام المجمعة
         lua += `
 function main()
     while true do
@@ -486,21 +479,6 @@ function main()
             const cheats = sec.querySelectorAll('.cheat-box');
             cheats.forEach(c => {
                 const cName = c.querySelector('.c-name').value;
-                const cType = c.querySelector('.c-type').value;
-                const cClass = c.querySelector('.c-class').value;
-                const cOffset = c.querySelector('.c-offset').value;
-                const cDataType = c.querySelector('.c-datatype').value;
-                const cVal = c.querySelector('.c-val').value;
-                const cFreeze = c.querySelector('.c-freeze').checked;
-
-                totalItems.push({
-                    type: cType,
-                    className: cClass,
-                    offsetOrField: cOffset,
-                    dataType: cDataType,
-                    val: cVal,
-                    freeze: cFreeze
-                });
                 choices.push(`"   🔹 " .. "${cName}"`);
             });
         });
@@ -514,13 +492,10 @@ function main()
         lua += `        local choice = gg.choice(choices, nil, menuTitle)\n`;
         lua += `        if choice == nil then os.exit() end\n\n`;
 
-        // ربط الخيارات بمؤشرات التنفيذ الدقيقة
         let currentIndex = 1;
         sections.forEach(sec => {
-            // اختيار القسم نفسه (يمكن جعله يعرض تنبيهاً أو يتخطى)
             lua += `        if choice == ${currentIndex} then\n`;
             lua += `            gg.alert("قم باختيار الميزة الفرعية داخل هذا القسم.")\n`;
-            lua += `        \n`;
             currentIndex++;
 
             const cheats = sec.querySelectorAll('.cheat-box');
@@ -560,9 +535,13 @@ function main()
     }
 
     function updateLivePreview() {
-        const terminal = document.getElementById('terminalOutput');
-        const code = buildLuaCode();
-        terminal.innerText = code;
+        try {
+            const terminal = document.getElementById('terminalOutput');
+            const code = buildLuaCode();
+            terminal.innerText = code;
+        } catch (err) {
+            console.error(err);
+        }
     }
 
     function generateAndDownload() {
@@ -571,23 +550,26 @@ function main()
         
         setTimeout(() => {
             terminal.innerText += "[*] Verifying memory boundaries and pointer offsets...\n";
-        }, 400);
+        }, 300);
 
         setTimeout(() => {
             terminal.innerText += "[*] Building interactive menu loop...\n";
-            const code = buildLuaCode();
-            
-            setTimeout(() => {
-                terminal.innerText += "[+] Task Completed Successfully!\n[+] Lua script generated and download started automatically.";
+            try {
+                const code = buildLuaCode();
                 
-                // تحميل الملف
-                const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = 'Advanced_GameGuardian_Script.lua';
-                link.click();
-            }, 600);
-        }, 800);
+                setTimeout(() => {
+                    terminal.innerText += "[+] Task Completed Successfully!\n[+] Lua script generated and download started automatically.";
+                    
+                    const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = 'Advanced_GameGuardian_Script.lua';
+                    link.click();
+                }, 500);
+            } catch (err) {
+                terminal.innerText += "\n[!] ERROR: " + err.message;
+            }
+        }, 600);
     }
 </script>
 
