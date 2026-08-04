@@ -9150,6 +9150,10 @@ window.closeQuickPurchaseBanner = function() {
 // 60. EXPORT ALL FUNCTIONS TO WINDOW
 // ============================================================
 
+// ============================================================
+// 60. EXPORT ALL FUNCTIONS TO WINDOW
+// ============================================================
+
 window.showLogin = showLogin;
 window.showRegister = showRegister;
 window.loginUser = loginUser;
@@ -9396,7 +9400,178 @@ window.sendTestEmail = sendTestEmail;
 window.previewEmail = previewEmail;
 window.resendEmail = resendEmail;
 
+// ============================================================
+// FIX: Additional missing functions that were not exported
+// ============================================================
+
+// Cart & Checkout related
+window.openAddProductModal = openAddProductModal;
+window.openEditProductModal = openEditProductModal;
+window.closeProductModal = closeProductModal;
+window.saveProduct = saveProduct;
+window.deleteProduct = deleteProduct;
+window.openPaymentModal = openPaymentModal;
+window.closePaymentModal = closePaymentModal;
+window.goToStep1 = goToStep1;
+
+// Licence related
+window.openLicenceModal = openLicenceModal;
+window.closeLicenceModal = closeLicenceModal;
+window.activateLicence = activateLicence;
+window.copyLicenceCode = copyLicenceCode;
+
+// Payment related
+window.copyWalletAddress = copyWalletAddress;
+window.copyBinanceId = copyBinanceId;
+window.verifyTransaction = verifyTransaction;
+window.handleTxPaste = handleTxPaste;
+window.handleScreenshot = handleScreenshot;
+window.removeScreenshot = removeScreenshot;
+window.submitManualPayment = submitManualPayment;
+
+// Admin related
+window.ensureAdminPanel = ensureAdminPanel;
+window.openAdminPanel = openAdminPanel;
+window.closeAdminPanel = closeAdminPanel;
+window.switchAdminTab = switchAdminTab;
+window.loadAdminOrders = loadAdminOrders;
+window.updateOrderStatus = updateOrderStatus;
+window.deleteOrderImmediately = deleteOrderImmediately;
+window.searchAdminOrders = searchAdminOrders;
+window.clearAdminSearch = clearAdminSearch;
+window.refreshAdminOrders = refreshAdminOrders;
+window.loadAdminUsers = loadAdminUsers;
+window.toggleUserBan = toggleUserBan;
+window.deleteUserAccount = deleteUserAccount;
+window.viewUserDetails = viewUserDetails;
+window.closeUserDetailsModal = closeUserDetailsModal;
+window.searchAdminUsers = searchAdminUsers;
+window.clearAdminUserSearch = clearAdminUserSearch;
+window.refreshAdminUsers = refreshAdminUsers;
+window.loadAdminSettingsUI = loadAdminSettingsUI;
+window.saveAdminSettings = saveAdminSettings;
+window.getMyTelegramChatId = getMyTelegramChatId;
+
+// Coupon related
+window.openCreateCouponModal = openCreateCouponModal;
+window.closeCreateCouponModal = closeCreateCouponModal;
+window.saveCoupon = saveCoupon;
+window.deleteCoupon = deleteCoupon;
+window.editCoupon = editCoupon;
+window.loadCoupons = loadCoupons;
+window.renderAdminCoupons = renderAdminCoupons;
+
+// Popup related
+window.applyPopupCoupon = applyPopupCoupon;
+window.subscribeAndApply = subscribeAndApply;
+window.closePopup = closePopup;
+
+// Email related
+window.sendEmail = sendEmail;
+window.sendWelcomeEmail = sendWelcomeEmail;
+window.sendOrderConfirmationEmail = sendOrderConfirmationEmail;
+window.sendOrderStatusEmail = sendOrderStatusEmail;
+window.sendTopupConfirmationEmail = sendTopupConfirmationEmail;
+window.sendAdminNotificationEmail = sendAdminNotificationEmail;
+window.sendCustomResetEmail = sendCustomResetEmail;
+window.loadEmailLogs = loadEmailLogs;
+window.sendTestEmail = sendTestEmail;
+window.previewEmail = previewEmail;
+window.resendEmail = resendEmail;
+
+// Support related
+window.toggleSupportMenu = toggleSupportMenu;
+window.openSupportModal = openSupportModal;
+window.closeSupportModal = closeSupportModal;
+window.openWhatsAppSupport = openWhatsAppSupport;
+window.openTelegramSupport = openTelegramSupport;
+window.openEmailSupport = openEmailSupport;
+window.openPhoneSupport = openPhoneSupport;
+
+// Topup related
+window.openTopupModal = openTopupModal;
+window.closeTopupModal = closeTopupModal;
+window.selectTopupAmount = selectTopupAmount;
+window.selectTopupCurrency = selectTopupCurrency;
+window.processTopup = processTopup;
+window.submitTopupWithTxHash = submitTopupWithTxHash;
+window.approveTopup = approveTopup;
+window.rejectTopup = rejectTopup;
+window.openTopupStatus = openTopupStatus;
+window.closeTopupStatus = closeTopupStatus;
+
+// Product related
+window.filterProducts = filterProducts;
+window.openDetails = openDetails;
+window.closeProductDetails = closeProductDetails;
+window.addToCart = addToCart;
+window.addToCartFromDetails = addToCartFromDetails;
+window.toggleWishlist = toggleWishlist;
+window.removeFromWishlist = removeFromWishlist;
+window.addProxyToCart = addProxyToCart;
+
+// Render functions
+window.renderPaymentProducts = renderPaymentProducts;
+window.renderWishlistFull = renderWishlistFull;
+window.renderProfileFull = renderProfileFull;
+window.renderCartFull = renderCartFull;
+window.renderHistoryFull = renderHistoryFull;
+window.renderAdminProducts = renderAdminProducts;
+window.renderAdminCoupons = renderAdminCoupons;
+window.renderAdminUsers = renderAdminUsers;
+window.renderAdminOrders = renderAdminOrders;
+window.renderLicences = renderLicences;
+window.renderFallbackProductsAdmin = renderFallbackProductsAdmin;
+window.renderUserNotifications = renderUserNotifications;
+window.renderAdminNotifications = renderAdminNotifications;
+window.renderDownloads = renderDownloads;
+window.renderAdminDownloads = renderAdminDownloads;
+window.renderTransactions = renderTransactions;
+
+// Modal functions
+window.openShareModal = openShareModal;
+window.closeShareModal = closeShareModal;
+window.shareToWhatsApp = shareToWhatsApp;
+window.shareToTelegram = shareToTelegram;
+window.shareToFacebook = shareToFacebook;
+window.copyShareLink = copyShareLink;
+window.openLicenceModal = openLicenceModal;
+window.closeLicenceModal = closeLicenceModal;
+window.activateLicence = activateLicence;
+window.toggleLicencesList = toggleLicencesList;
+window.openRequestsModal = openRequestsModal;
+window.closeRequestsModal = closeRequestsModal;
+window.openNewRequestModal = openNewRequestModal;
+window.closeNewRequestModal = closeNewRequestModal;
+window.submitRequest = submitRequest;
+window.openReferralModal = openReferralModal;
+window.closeReferralModal = closeReferralModal;
+window.copyReferralCode2 = copyReferralCode2;
+
+// Admin fallback products
+window.editFallbackProduct = editFallbackProduct;
+window.openAddFallbackProductModal = openAddFallbackProductModal;
+window.closeFallbackProductModal = closeFallbackProductModal;
+window.saveFallbackProduct = saveFallbackProduct;
+window.deleteFallbackProduct = deleteFallbackProduct;
+
+// Misc
+window.clearOrderHistory = clearOrderHistory;
+window.filterOrders = filterOrders;
+window.generateInvoice = generateInvoice;
+window.generatePDFInvoice = generatePDFInvoice;
+window.exportOrders = exportOrders;
+window.hideLoadingScreenManually = hideLoadingScreenManually;
+window.updateLoadingText = updateLoadingText;
+window.showMainApp = showMainApp;
+window.fixHeaderAndModals = fixDirection;
+window.refreshAdminPayments = refreshAdminPayments;
+window.adminApprovePayment = adminApprovePayment;
+window.adminRejectPayment = adminRejectPayment;
+window.adminDeletePayment = adminDeletePayment;
+
 console.log('✅ All functions exported to window scope');
+console.log('✅ ZI Store ready!');
 
 // ============================================================
 // 61. INIT
