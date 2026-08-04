@@ -1,30 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - COMPLETE WITH ALL FEATURES
-// ============================================================
-// FEATURES INCLUDED:
-// 1. process is defined for browser
-// 2. removeFromCartAndCloseBanner defined
-// 3. Duplicate date removed
-// 4. Products show correctly, loading screen with progress
-// 5. All functions exported to window
-// 6. Admin settings from Firestore (admin_settings/notifications)
-// 7. Topup custom amount fixed
-// 8. LTC/USDT display fixed
-// 9. Add/Edit product modal fixed
-// 10. Auto-detect country on registration
-// 11. Country shown in profile and admin panel
-// 12. Proxy packages - only one (5 Proxies - 30 Days)
-// 13. Advanced Coupon System with full admin control
-// 14. Email System (Order confirmation, status updates, welcome)
-// 15. Smart Popups (Exit intent & time-based)
-// 16. AI-based Recommendations (user behavior tracking)
-// 17. Limited Stock Products with countdown
-// 18. Fraud Detection System
-// 19. Smart Chatbot
-// 20. PDF Invoice Generation
-// 21. Loading screen with progress percentage
-// 22. Full Dark/Light mode support
-// 23. Performance optimizations (lazy loading, debouncing)
+// SCRIPT.JS - ZI Store - FINAL VERSION (Licences enabled, auto country)
 // ============================================================
 
 // ============================================================
@@ -167,15 +142,11 @@ isSupported().then(supported => {
 
 const BOT_USERNAME = 'Zistore_Notif_bot';
 const RP_TO_DOLLAR = 0.1;
-
 const CLOUDINARY_CLOUD_NAME = 'y14bgb5s';
 const CLOUDINARY_UPLOAD_PRESET = 'zi_store_uploads';
-
 const DISABLE_PROXY = true;
-
 const ADMIN_EMAIL = 'idriss.zribi13@gmail.com';
 
-// Only one proxy package (5 Proxies - 30 Days)
 const proxyPackages = [
     { id: 'proxy_2', name: '5 Proxies - 30 Days', price: 20, duration: 30, quantity: 5, plan: 'residential' }
 ];
@@ -216,14 +187,11 @@ let userPreferences = {};
 let coupons = [];
 let activeCoupons = [];
 
-// ============================================================
-// TOPUP SYSTEM VARIABLES
-// ============================================================
+// TOPUP SYSTEM
 let userBalance = 0;
 let selectedTopupAmount = 0;
 let selectedTopupCurrency = 'USDT';
 let topupSubscription = null;
-let defaultProducts = [];
 
 // Slider variables
 let sliderSlides = [];
@@ -257,7 +225,7 @@ let userProfile = {
 };
 
 // ============================================================
-// DEFAULT PRODUCTS (Fallback) - MUST BE PRESENT FOR PRODUCTS TO SHOW
+// DEFAULT PRODUCTS (Fallback)
 // ============================================================
 const fallbackProducts = [
     {
@@ -284,7 +252,7 @@ const fallbackProducts = [
         status: "available",
         image: "https://picsum.photos/seed/2048/400/300",
         downloadLink: "https://example.com/download/2048-mod.apk",
-        description: "Classic 2048 game with exclusive mod features. Unlimited moves and custom themes.",
+        description: "Classic 2048 game with exclusive mod features.",
         features: ["Unlimited Device", "Block Spawn Modify", "Game Speed"],
         video: "https://www.youtube.com/embed/dQw4w9WgXcQ",
         currency: "USD",
@@ -300,7 +268,7 @@ const fallbackProducts = [
         status: "available",
         image: "https://picsum.photos/seed/screwdom/400/300",
         downloadLink: "https://example.com/download/screwdom.apk",
-        description: "Exciting 3D puzzle game with unlimited boosts and auto-complete features.",
+        description: "Exciting 3D puzzle game with unlimited boosts.",
         features: ["Unlimited Boost", "Level Auto Complete", "Game Speed"],
         video: "https://www.youtube.com/embed/dQw4w9WgXcQ",
         currency: "USD",
@@ -332,7 +300,7 @@ const fallbackProducts = [
         status: "available",
         image: "https://picsum.photos/seed/premium/400/300",
         downloadLink: "",
-        description: "Complete premium script pack with 10+ tools for game development and automation.",
+        description: "Complete premium script pack with 10+ tools.",
         features: ["10+ Scripts", "Lifetime Updates", "Support Included"],
         video: "https://www.youtube.com/embed/dQw4w9WgXcQ",
         currency: "USD",
@@ -348,7 +316,7 @@ const fallbackProducts = [
         status: "available",
         image: "https://picsum.photos/seed/ai/400/300",
         downloadLink: "",
-        description: "AI-powered chat assistant for Discord and Telegram with advanced NLP.",
+        description: "AI-powered chat assistant for Discord and Telegram.",
         features: ["NLP Engine", "Multi-Platform", "Custom Commands"],
         video: "https://www.youtube.com/embed/dQw4w9WgXcQ",
         currency: "USD",
@@ -405,14 +373,6 @@ function showLoadingScreen() {
     }
 }
 
-function updateLoadingText(text) {
-    const statusEl = document.getElementById('loadingStatus');
-    if (statusEl) {
-        statusEl.textContent = text || 'Loading...';
-    }
-    window.updateLoadingProgress(90, text);
-}
-
 window.hideLoadingScreenManually = function() {
     const screen = document.getElementById('loadingScreen');
     if (screen) {
@@ -422,6 +382,14 @@ window.hideLoadingScreenManually = function() {
         }, 600);
         showToast('Loading screen hidden', 'info');
     }
+};
+
+window.updateLoadingText = function(text) {
+    const statusEl = document.getElementById('loadingStatus');
+    if (statusEl) {
+        statusEl.textContent = text || 'Loading...';
+    }
+    window.updateLoadingProgress(90, text);
 };
 
 window.showMainApp = function() {
@@ -437,9 +405,6 @@ window.showMainApp = function() {
     return false;
 };
 
-// ============================================================
-// FIX: Remove duplicate date, style header topup
-// ============================================================
 function removeDuplicateDate() {
     const dates = document.querySelectorAll('#serverTime, .server-time, .header-date');
     if (dates.length > 1) {
@@ -465,8 +430,6 @@ function styleHeaderTopup() {
         topupBtn.style.padding = '3px 8px';
         topupBtn.style.marginLeft = '2px';
     }
-    const topupIcon = document.getElementById('topupIcon');
-    if (topupIcon) topupIcon.style.fontSize = '13px';
 }
 
 // ============================================================
@@ -1221,7 +1184,6 @@ window.registerUser = async function() {
     const email = document.getElementById('registerEmail').value.trim();
     const password = document.getElementById('registerPassword').value;
     const confirmPassword = document.getElementById('registerConfirmPassword').value;
-    const country = document.getElementById('registerCountry').value;
     const lang = document.getElementById('registerLang').value;
     const referralCode = document.getElementById('registerReferral').value.trim().toUpperCase();
     const termsChecked = document.getElementById('termsCheck').checked;
@@ -1230,7 +1192,8 @@ window.registerUser = async function() {
     if (password !== confirmPassword) { errorEl.textContent = 'Passwords do not match'; btn.classList.remove('loading'); return; }
     if (!termsChecked) { errorEl.textContent = 'Please agree to the terms'; btn.classList.remove('loading'); return; }
     try {
-        let detectedCountry = country;
+        // Auto-detect country from IP
+        let detectedCountry = 'Tunisia';
         try {
             const ipInfo = await fetchUserInfo();
             if (ipInfo && ipInfo.country_name) {
@@ -1238,7 +1201,7 @@ window.registerUser = async function() {
                 console.log('📍 Detected country from IP:', detectedCountry);
             }
         } catch (e) {
-            console.warn('⚠️ Could not detect country from IP, using selected:', country);
+            console.warn('⚠️ Could not detect country from IP, using default: Tunisia');
         }
 
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -1247,11 +1210,31 @@ window.registerUser = async function() {
         const newReferralCode = generateReferralCode(name, email);
         const userRef = doc(db, 'users', currentUser.uid);
         await setDoc(userRef, {
-            userId: currentUser.uid, name, email, country: detectedCountry, lang, telegram: '', telegramChatId: '', location: detectedCountry,
-            wishlist: [], cart: [], history: [], requests: [], usedCodes: [], referrals: [], referralRewards: 0, rp: 0, useRpForCart: false,
-            referralCode: newReferralCode, isBanned: false, lastDailyReward: 0, licences: [], photoURL: '',
+            userId: currentUser.uid,
+            name,
+            email,
+            country: detectedCountry,
+            lang,
+            telegram: '',
+            telegramChatId: '',
+            location: detectedCountry,
+            wishlist: [],
+            cart: [],
+            history: [],
+            requests: [],
+            usedCodes: [],
+            referrals: [],
+            referralRewards: 0,
+            rp: 0,
+            useRpForCart: false,
+            referralCode: newReferralCode,
+            isBanned: false,
+            lastDailyReward: 0,
+            licences: [],
+            photoURL: '',
             balance: 0,
-            createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
         });
         successEl.textContent = '✅ Registration successful!';
         showToast(`🎉 Welcome, ${name}!`, 'success');
@@ -1264,7 +1247,13 @@ window.registerUser = async function() {
         setTimeout(() => {
             document.getElementById('authSection').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
-            loadUserData(); updateDropdownStats(); loadDownloads(); loadNotifications(); fetchCryptoPrices(); updateFullUserMenu(); showTelegramBanner();
+            loadUserData();
+            updateDropdownStats();
+            loadDownloads();
+            loadNotifications();
+            fetchCryptoPrices();
+            updateFullUserMenu();
+            showTelegramBanner();
             loadSliderSettings();
             loadMarqueeSettings();
             loadCoupons();
@@ -1609,7 +1598,7 @@ function renderTransactions(transactions) {
 }
 
 // ============================================================
-// Render Profile Full (with password toggle, country, joined date)
+// Render Profile Full (with password toggle, country auto-display)
 // ============================================================
 
 function renderProfileFull() {
@@ -1645,7 +1634,7 @@ function renderProfileFull() {
                     </div>
                     <div class="hero-joined"><i class="fas fa-calendar-alt"></i> Joined: ${joinedDate}</div>
                     <div style="font-size:12px; color:var(--text-secondary); opacity:0.5; margin-top:2px;">
-                        <i class="fas fa-map-marker-alt" style="color:var(--vip-color);"></i> Country: ${userCountry}
+                        <i class="fas fa-map-marker-alt" style="color:var(--vip-color);"></i> Country: ${userCountry} <span style="font-size:10px;opacity:0.4;">(auto-detected)</span>
                     </div>
                 </div>
             </div>
@@ -1669,7 +1658,7 @@ function renderProfileFull() {
             </div>
         </div>
 
-        <!-- Edit Profile Section -->
+        <!-- Edit Profile Section - Country removed from edit -->
         <div class="profile-section-card">
             <div class="section-title"><i class="fas fa-edit"></i> Edit Profile</div>
             <form onsubmit="saveProfileChangesInline(event)">
@@ -1681,17 +1670,10 @@ function renderProfileFull() {
                     <label>Telegram Username</label>
                     <input id="editTelegramInline" value="${userProfile.telegram || ''}" placeholder="@username" type="text" />
                 </div>
-                <div class="profile-form-group">
-                    <label>Country</label>
-                    <select id="editLocationInline">
-                        <option value="Tunisia" ${userProfile.location==='Tunisia'?'selected':''}>🇹🇳 Tunisia</option>
-                        <option value="Algeria" ${userProfile.location==='Algeria'?'selected':''}>🇩🇿 Algeria</option>
-                        <option value="Morocco" ${userProfile.location==='Morocco'?'selected':''}>🇲🇦 Morocco</option>
-                        <option value="Egypt" ${userProfile.location==='Egypt'?'selected':''}>🇪🇬 Egypt</option>
-                        <option value="Saudi Arabia" ${userProfile.location==='Saudi Arabia'?'selected':''}>🇸🇦 Saudi Arabia</option>
-                        <option value="UAE" ${userProfile.location==='UAE'?'selected':''}>🇦🇪 UAE</option>
-                        <option value="Other" ${userProfile.location==='Other'?'selected':''}>🌍 Other</option>
-                    </select>
+                <!-- Country is auto-detected, not editable -->
+                <div class="profile-form-group" style="opacity:0.6;">
+                    <label>Country (auto-detected)</label>
+                    <input type="text" value="${userCountry}" disabled style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--card-bg);color:var(--text);" />
                 </div>
                 <div class="profile-form-group">
                     <label>Language</label>
@@ -1799,14 +1781,17 @@ window.saveProfileChangesInline = async function(e) {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
     const name = document.getElementById('editNameInline').value.trim();
     const telegram = document.getElementById('editTelegramInline').value.trim();
-    const location = document.getElementById('editLocationInline').value;
     const lang = document.getElementById('editLangInline').value;
+    // Country is not editable - keep existing
     if (!name) { showToast('⚠️ Name is required', 'warning'); return; }
     try {
         await updateProfile(currentUser, { displayName: name });
         const userRef = doc(db, 'users', currentUser.uid);
-        await updateDoc(userRef, { name, telegram, location, lang, updatedAt: serverTimestamp() });
-        userProfile.name = name; userProfile.telegram = telegram; userProfile.location = location; userProfile.country = location; userProfile.lang = lang;
+        await updateDoc(userRef, { name, telegram, lang, updatedAt: serverTimestamp() });
+        userProfile.name = name;
+        userProfile.telegram = telegram;
+        userProfile.lang = lang;
+        // country remains auto-detected
         showToast('✅ Profile updated!', 'success');
         updateUI(); renderProfileFull(); updateFullUserMenu();
     } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
@@ -3645,7 +3630,7 @@ window.submitManualPayment = function() {
 };
 
 // ============================================================
-// 17.8 sendOrderToTelegram
+// 17.8 sendOrderToTelegram (FIXED: adminOnly and proper user notifications)
 // ============================================================
 async function sendOrderToTelegram(method, txHash = null) {
     if (isProcessingOrder) {
@@ -3798,29 +3783,31 @@ async function sendOrderToTelegram(method, txHash = null) {
             status: 'pending'
         });
 
+        // --- NOTIFICATIONS FIX: user-specific + admin-only ---
         try {
             await addDoc(collection(db, 'notifications'), {
                 title: '🆕 New Order Placed',
                 message: `Order #${orderId.slice(-6)} - Total: $${finalTotal.toFixed(2)}`,
-                userId: currentUser.uid,
+                userId: currentUser.uid,   // specific to this user
                 readBy: [],
                 createdAt: serverTimestamp()
             });
-            console.log('✅ Firebase notification sent to user');
+            console.log('✅ User notification sent (new order placed)');
         } catch (error) {
-            console.error('Failed to send Firebase user notification:', error);
+            console.error('Failed to send user notification:', error);
         }
 
         try {
             await addDoc(collection(db, 'notifications'), {
                 title: '📦 New Order Received',
                 message: `Order #${orderId.slice(-6)} from ${currentUser.email} - $${finalTotal.toFixed(2)}`,
+                adminOnly: true,   // only admin can see this
                 readBy: [],
                 createdAt: serverTimestamp()
             });
-            console.log('✅ Firebase global notification sent');
+            console.log('✅ Admin notification added (adminOnly)');
         } catch (error) {
-            console.error('Failed to send Firebase global notification:', error);
+            console.error('Failed to add admin notification:', error);
         }
 
         console.log('📤 Preparing Telegram notification...');
@@ -3860,6 +3847,7 @@ ${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
 🔔 *Status:* Pending - Awaiting confirmation
         `;
 
+        // Send Telegram to user if linked
         if (userProfile.telegramChatId) {
             try {
                 console.log('📤 Sending Telegram to user...');
@@ -3876,7 +3864,7 @@ ${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
             console.log('ℹ️ User has no Telegram linked');
         }
 
-        // Send admin notification via settings
+        // Send admin notification (email + Telegram) via the new admin notification system
         const adminMessage = `
 👤 *User:* ${currentUser.displayName || currentUser.email || 'User'}
 📧 *Email:* ${currentUser.email || 'N/A'}
@@ -3897,6 +3885,7 @@ ${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
             await addDoc(collection(db, 'notifications'), {
                 title: 'ℹ️ Proxy request pending',
                 message: `User: ${currentUser.email} - ${proxyItems.length} proxies`,
+                userId: currentUser.uid,  // specific to user
                 readBy: [],
                 createdAt: serverTimestamp()
             });
@@ -4030,6 +4019,9 @@ async function sendTelegramNotification(chatId, message) {
     }
     try {
         console.log('📤 Sending Telegram to:', chatId);
+        if (message.length > 4096) {
+            message = message.substring(0, 4000) + '... (truncated)';
+        }
         const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/send-telegram', {
             method: 'POST',
             headers: {
@@ -4161,7 +4153,7 @@ window.checkTelegramStatus = async function() {
 };
 
 // ============================================================
-// 20. Downloads & Notifications
+// 20. Downloads & Notifications (FIXED: user-specific + admin-only)
 // ============================================================
 
 function loadDownloads() {
@@ -4217,6 +4209,7 @@ window.editDownload = function(id) { showToast('✏️ Edit feature coming soon'
 window.openCreateDownloadModal = function() { if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; } document.getElementById('createDownloadModal').classList.add('open'); document.getElementById('createDownloadForm').reset(); };
 window.closeCreateDownloadModal = function() { document.getElementById('createDownloadModal').classList.remove('open'); };
 
+// FIXED: loadNotifications - filter for user-specific and admin-only
 function loadNotifications() {
     if (unsubscribeNotifications) { unsubscribeNotifications(); }
     const notifRef = collection(db, 'notifications');
@@ -4225,8 +4218,10 @@ function loadNotifications() {
             notifications = [];
             snapshot.forEach((doc) => {
                 const data = doc.data();
-                // Only show notifications for this user
-                if (data.userId === currentUser?.uid || !data.userId) {
+                const isAdmin = isAdminCached;
+                const isUserNotification = data.userId === currentUser?.uid;
+                const isAdminNotification = data.adminOnly === true && isAdmin;
+                if (isUserNotification || isAdminNotification) {
                     notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] });
                 }
             });
@@ -4243,8 +4238,10 @@ function loadNotifications() {
             notifications = [];
             snapshot.forEach((doc) => {
                 const data = doc.data();
-                // Only show notifications for this user
-                if (data.userId === currentUser?.uid || !data.userId) {
+                const isAdmin = isAdminCached;
+                const isUserNotification = data.userId === currentUser?.uid;
+                const isAdminNotification = data.adminOnly === true && isAdmin;
+                if (isUserNotification || isAdminNotification) {
                     notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] });
                 }
             });
@@ -4268,9 +4265,13 @@ function renderUserNotificationsFallback() {
 function renderUserNotifications() {
     const container = document.getElementById('notificationsList');
     if (!container) return;
-    if (!notifications || notifications.length === 0) { container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-bell" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">No notifications</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Notifications will appear here</div></div>`; return; }
+    const userNotifs = notifications.filter(n => n.userId === currentUser?.uid);
+    if (!userNotifs || userNotifs.length === 0) { 
+        container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-bell" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">No notifications</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Notifications will appear here</div></div>`;
+        return; 
+    }
     let html = '';
-    notifications.forEach(n => {
+    userNotifs.forEach(n => {
         const isRead = currentUser && (n.readBy || []).includes(currentUser.uid);
         let dateStr = '';
         try { if (n.createdAt) { const date = n.createdAt.toDate ? n.createdAt.toDate() : new Date(n.createdAt); dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); } } catch (e) { dateStr = new Date().toLocaleDateString('en-US'); }
@@ -4287,7 +4288,7 @@ function renderAdminNotifications() {
         let allNotifs = [];
         snapshot.forEach((doc) => { allNotifs.push({ id: doc.id, ...doc.data() }); });
         if (allNotifs.length === 0) { container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">📭 No notifications</div>`; return; }
-        container.innerHTML = allNotifs.map(n => `<div class="admin-item"><div class="item-info"><div class="item-title">${n.title||'Notification'}</div><div class="item-meta">${n.message||''} • ${n.userId ? 'User: ' + n.userId.slice(-6) : 'Global'} • ${n.createdAt?new Date(n.createdAt.toDate()).toLocaleDateString('en-US'):''}</div></div><div class="item-actions"><button class="btn-delete" onclick="deleteNotification('${n.id}')"><i class="fas fa-trash"></i></button></div></div>`).join('');
+        container.innerHTML = allNotifs.map(n => `<div class="admin-item"><div class="item-info"><div class="item-title">${n.title||'Notification'}</div><div class="item-meta">${n.message||''} ${n.userId ? '• User: ' + n.userId.slice(-6) : ''} ${n.adminOnly ? '🔒 Admin' : ''} • ${n.createdAt?new Date(n.createdAt.toDate()).toLocaleDateString('en-US'):''}</div></div><div class="item-actions"><button class="btn-delete" onclick="deleteNotification('${n.id}')"><i class="fas fa-trash"></i></button></div></div>`).join('');
     }).catch((error) => { console.error('Error loading admin notifications:', error); });
 }
 
@@ -4578,7 +4579,6 @@ window.openAdminPanel = function() {
         renderFallbackProductsAdmin();
         loadCoupons();
         setTimeout(addBannerAdminControls, 300);
-        ensureSliderTab();
         loadSliderSettings();
         renderSliderSettingsUI();
         document.getElementById('sliderIntervalInput').value = sliderIntervalTime;
@@ -4586,8 +4586,6 @@ window.openAdminPanel = function() {
         renderMarqueeSettingsUI();
     }
 };
-
-function ensureSliderTab() {}
 
 window.closeAdminPanel = function() { 
     const panel = document.getElementById('adminPanel');
