@@ -4928,6 +4928,7 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
     try {
         console.log('🔍 sendLicenceForOrder called:', { orderId, userId, userEmail });
 
+        // Get user email if not provided
         let email = userEmail;
         if (!email) {
             const userRef = doc(db, 'users', userId);
@@ -4941,6 +4942,7 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
             }
         }
 
+        // Get user data and order
         const userRef = doc(db, 'users', userId);
         const userSnap = await getDoc(userRef);
         if (!userSnap.exists()) {
@@ -4953,7 +4955,40 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
             console.error('❌ Order not found');
             throw new Error('Order not found');
         }
-        const productName = order.items?.[0]?.name || 'Product';
+        
+        // Get product details from the order
+        const firstItem = order.items?.[0];
+        const productName = firstItem?.name || 'Product';
+        const productId = firstItem?.id || 'unknown';
+        const productPrice = firstItem?.price || 0;
+        
+        // Calculate expiry date (default: 1 year from now)
+        const expiryDate = new Date();
+        expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+        const expiryDateISO = expiryDate.toISOString();
+
+        // Get user's Telegram chat ID if available
+        const telegramChatId = userData.telegramChatId || null;
+
+        // ===== FIX: Send ALL required parameters =====
+        const payload = {
+            orderId: orderId,
+            userId: userId,
+            userEmail: email,
+            productName: productName,
+            productId: productId,
+            scriptId: productId,
+            scriptName: productName,
+            price: productPrice,
+            expiryDate: expiryDateISO,
+            telegramChatId: telegramChatId,
+            // Additional fields the Edge Function might expect
+            duration: firstItem?.duration || '1 year',
+            status: 'active',
+            orderItems: order.items || []
+        };
+
+        console.log('📤 Sending licence creation payload:', JSON.stringify(payload, null, 2));
 
         const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/create-licence', {
             method: 'POST',
@@ -4963,33 +4998,43 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
                 'Accept': 'application/json',
             },
             mode: 'cors',
-            body: JSON.stringify({
-                orderId,
-                userId,
-                userEmail: email,
-                productName,
-                telegramChatId: userData.telegramChatId || null
-            })
+            body: JSON.stringify(payload)
         });
 
-        const data = await response.json();
+        // Read response text first
+        const responseText = await response.text();
+        console.log('📥 Raw response:', responseText);
+
+        let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch (e) {
+            console.error('❌ Failed to parse JSON response:', e);
+            throw new Error(`Invalid response from server: ${responseText.substring(0, 100)}`);
+        }
+
         if (!response.ok || !data.success) {
-            throw new Error(data.error || 'Failed to create licence');
+            console.error('❌ Edge Function error:', data);
+            throw new Error(data.error || data.message || 'Failed to create licence');
         }
 
         console.log('✅ Licence created via backend:', data.licence);
 
+        // Update user's licences in Firestore
         const userLicences = userData.licences || [];
         const newLicence = {
             code: data.licence.code,
-            scriptId: productName,
+            scriptId: productId,
             scriptName: productName,
-            expiryDate: data.licence.expiryDate,
-            activatedAt: new Date().toISOString()
+            expiryDate: expiryDateISO,
+            activatedAt: new Date().toISOString(),
+            orderId: orderId,
+            status: 'active'
         };
         userLicences.push(newLicence);
         await updateDoc(userRef, { licences: userLicences });
 
+        // Send Telegram notification if user has chat ID
         if (userData.telegramChatId) {
             const licenceMessage = `
 🔑 *LICENCE GENERATED!*
@@ -4997,7 +5042,7 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
 📋 Order ID: #${orderId.slice(-6)}
 📦 Product: ${productName}
 🔑 Licence Code: \`${data.licence.code}\`
-📅 Expiry: ${new Date(data.licence.expiryDate).toLocaleDateString()}
+📅 Expiry: ${new Date(expiryDateISO).toLocaleDateString()}
 
 ✅ Your licence has been generated successfully!
 💡 Use this code in the "Licences" section of the store to activate your product.
@@ -5006,6 +5051,7 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
             console.log('✅ Licence Telegram notification sent to user');
         }
 
+        // Update current user's profile if this is the current user
         if (currentUser && currentUser.uid === userId) {
             userProfile.licences = userLicences;
             renderUserLicences();
@@ -5013,18 +5059,40 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
         }
 
         showToast(`✅ Licence sent to user`, 'success');
+        return data.licence;
+        
     } catch (error) {
         console.error('❌ Error in sendLicenceForOrder:', error);
-        await addDoc(collection(db, 'notifications'), {
-            title: '❌ Failed to send licence',
-            message: `Order: ${orderId} - User: ${userId} - Error: ${error.message}`,
-            readBy: [],
-            createdAt: serverTimestamp()
-        });
+        
+        // Send error notification to admin
+        try {
+            await addDoc(collection(db, 'notifications'), {
+                title: '❌ Failed to send licence',
+                message: `Order: ${orderId} - User: ${userId} - Error: ${error.message}`,
+                adminOnly: true,
+                readBy: [],
+                createdAt: serverTimestamp()
+            });
+        } catch (e) {
+            console.error('Failed to send admin notification:', e);
+        }
+        
+        // Also send user notification about the error
+        try {
+            await addDoc(collection(db, 'notifications'), {
+                title: '⚠️ Licence Generation Issue',
+                message: `We're experiencing a technical issue with your licence for order #${orderId?.slice(-6) || 'unknown'}. Our team has been notified and will resolve it shortly.`,
+                userId: userId,
+                readBy: [],
+                createdAt: serverTimestamp()
+            });
+        } catch (e) {
+            console.error('Failed to send user notification:', e);
+        }
+        
         throw error;
     }
 }
-
 // ============================================================
 // 27. Admin Users
 // ============================================================
