@@ -1,30 +1,7 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - COMPLETE WITH ALL FEATURES
+// SCRIPT.JS - ZI Store - COMPLETE WITH EMAIL SYSTEM
 // ============================================================
-// FEATURES INCLUDED:
-// 1. process is defined for browser
-// 2. removeFromCartAndCloseBanner defined
-// 3. Duplicate date removed
-// 4. Products show correctly, loading screen with progress
-// 5. All functions exported to window
-// 6. Admin settings from Firestore (admin_settings/notifications)
-// 7. Topup custom amount fixed
-// 8. LTC/USDT display fixed
-// 9. Add/Edit product modal fixed
-// 10. Auto-detect country on registration
-// 11. Country shown in profile and admin panel
-// 12. Proxy packages - only one (5 Proxies - 30 Days)
-// 13. Advanced Coupon System with full admin control
-// 14. Email System (Order confirmation, status updates, welcome)
-// 15. Smart Popups (Exit intent & time-based)
-// 16. AI-based Recommendations (user behavior tracking)
-// 17. Limited Stock Products with countdown
-// 18. Fraud Detection System
-// 19. Smart Chatbot
-// 20. PDF Invoice Generation
-// 21. Loading screen with progress percentage
-// 22. Full Dark/Light mode support
-// 23. Performance optimizations (lazy loading, debouncing)
+// ALL EXISTING FEATURES PRESERVED - EMAIL FUNCTIONS ADDED
 // ============================================================
 
 // ============================================================
@@ -33,55 +10,9 @@
 window.process = window.process || { env: { NODE_ENV: 'production' } };
 
 // ============================================================
-// FIX: Loading screen with progress
+// FIX: Loading screen - controlled by auth state
 // ============================================================
 (function() {
-    let loadingProgress = 0;
-    let loadingInterval = null;
-
-    function updateLoadingProgress(progress, text = null) {
-        loadingProgress = Math.min(progress, 100);
-        const bar = document.getElementById('progressBar');
-        const textEl = document.getElementById('progressText');
-        const statusEl = document.getElementById('loadingStatus');
-        if (bar) bar.style.width = loadingProgress + '%';
-        if (textEl) textEl.textContent = loadingProgress + '%';
-        if (text && statusEl) statusEl.textContent = text;
-        if (loadingProgress >= 100) {
-            if (loadingInterval) {
-                clearInterval(loadingInterval);
-                loadingInterval = null;
-            }
-            setTimeout(function() {
-                const screen = document.getElementById('loadingScreen');
-                if (screen) {
-                    screen.classList.add('hidden');
-                    setTimeout(function() {
-                        screen.classList.add('hidden-force');
-                    }, 600);
-                }
-            }, 500);
-        }
-    }
-
-    function startLoadingSimulation() {
-        loadingProgress = 0;
-        updateLoadingProgress(0, 'Starting...');
-        if (loadingInterval) clearInterval(loadingInterval);
-        loadingInterval = setInterval(function() {
-            var increment = Math.random() * 5 + 2;
-            var newProgress = loadingProgress + increment;
-            if (newProgress >= 90) {
-                newProgress = 90 + (Math.random() * 8);
-            }
-            if (newProgress > 100) newProgress = 100;
-            updateLoadingProgress(newProgress);
-        }, 200);
-    }
-
-    window.updateLoadingProgress = updateLoadingProgress;
-    window.startLoadingSimulation = startLoadingSimulation;
-
     function hideLoadingScreenImmediate() {
         var screen = document.getElementById('loadingScreen');
         if (screen) {
@@ -93,11 +24,9 @@ window.process = window.process || { env: { NODE_ENV: 'production' } };
         }
     }
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function() {
-            startLoadingSimulation();
-        });
+        document.addEventListener('DOMContentLoaded', hideLoadingScreenImmediate);
     } else {
-        startLoadingSimulation();
+        hideLoadingScreenImmediate();
     }
     setTimeout(hideLoadingScreenImmediate, 300);
 })();
@@ -410,7 +339,6 @@ function updateLoadingText(text) {
     if (statusEl) {
         statusEl.textContent = text || 'Loading...';
     }
-    window.updateLoadingProgress(90, text);
 }
 
 window.hideLoadingScreenManually = function() {
@@ -436,6 +364,784 @@ window.showMainApp = function() {
     console.warn('⚠️ Main app element not found');
     return false;
 };
+
+// ============================================================
+// ============================================================
+// 📧 EMAIL SYSTEM - START  - ADDED HERE
+// ============================================================
+// ============================================================
+
+async function sendEmail(to, subject, htmlContent, textContent = '') {
+    try {
+        console.log('📧 Sending email to:', to);
+        console.log('📧 Subject:', subject);
+        
+        const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/send-email', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify({
+                to: to,
+                subject: subject,
+                html: htmlContent,
+                text: textContent || htmlContent.replace(/<[^>]*>/g, '')
+            })
+        });
+
+        const result = await response.json();
+        console.log('📧 Email result:', result);
+        
+        if (!response.ok) {
+            throw new Error(result.error || 'Failed to send email');
+        }
+        
+        return { success: true, data: result };
+    } catch (error) {
+        console.error('❌ Email error:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+async function sendWelcomeEmail(userEmail, userName) {
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to ZI Store</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f0f2f8; padding: 20px; margin: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+        .header { background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%); padding: 40px 30px 30px; text-align: center; }
+        .logo { font-size: 32px; font-weight: 900; color: #fff; letter-spacing: -0.5px; }
+        .logo span { color: #f2a900; }
+        .logo-sub { font-size: 14px; color: rgba(255,255,255,0.7); margin-top: 4px; font-weight: 400; }
+        .content { padding: 40px 35px; }
+        .welcome-title { font-size: 26px; font-weight: 800; color: #1a1a2e; text-align: center; }
+        .welcome-title .emoji { font-size: 32px; display: block; margin-bottom: 4px; }
+        .welcome-text { font-size: 15px; color: #4a4a6a; line-height: 1.8; text-align: center; margin: 12px 0 20px; }
+        .features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
+        .feature-box { background: #f8f8ff; padding: 16px 18px; border-radius: 12px; border-left: 4px solid #6c5ce7; }
+        .feature-box .icon { font-size: 20px; display: block; margin-bottom: 4px; }
+        .feature-box .title { font-weight: 700; color: #1a1a2e; font-size: 14px; }
+        .feature-box .desc { font-size: 12px; color: #4a4a6a; opacity: 0.7; }
+        .coupon-box { background: linear-gradient(135deg, #f2a900, #fbbf24); border-radius: 12px; padding: 16px 20px; text-align: center; margin: 16px 0; }
+        .coupon-box .code { font-size: 20px; font-weight: 900; color: #1a1a2e; font-family: monospace; letter-spacing: 2px; }
+        .coupon-box .label { font-size: 13px; color: rgba(26,26,46,0.7); }
+        .btn-primary { display: inline-block; background: #6c5ce7; color: #fff; padding: 14px 40px; border-radius: 30px; text-decoration: none; font-weight: 700; font-size: 16px; transition: all 0.3s; margin: 8px 0; }
+        .btn-primary:hover { background: #5a4bd1; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(108,92,231,0.3); }
+        .text-center { text-align: center; }
+        .divider { border: none; border-top: 2px solid #f0f2f8; margin: 20px 0; }
+        .footer { padding: 20px 35px; text-align: center; background: #f8f8ff; }
+        .footer-text { font-size: 12px; color: #888; }
+        .footer-links a { color: #6c5ce7; text-decoration: none; margin: 0 6px; font-size: 12px; }
+        .footer-links a:hover { text-decoration: underline; }
+        @media (max-width: 480px) {
+            .header { padding: 30px 20px; }
+            .content { padding: 25px 18px; }
+            .features-grid { grid-template-columns: 1fr; }
+            .logo { font-size: 26px; }
+            .welcome-title { font-size: 22px; }
+            .btn-primary { padding: 12px 28px; font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">ZI <span>Store</span></div>
+            <div class="logo-sub">Premium Scripts & Digital Products</div>
+        </div>
+        <div class="content">
+            <div class="welcome-title">
+                <span class="emoji">🎉</span>
+                Welcome to ZI Store!
+            </div>
+            <p class="welcome-text">
+                Hello <strong>${userName || 'there'}</strong>! We're thrilled to have you on board. 🚀<br>
+                Here's everything you need to get started:
+            </p>
+            <div class="features-grid">
+                <div class="feature-box">
+                    <span class="icon">🛍️</span>
+                    <div class="title">Premium Products</div>
+                    <div class="desc">Access exclusive scripts and tools</div>
+                </div>
+                <div class="feature-box">
+                    <span class="icon">💳</span>
+                    <div class="title">Secure Payments</div>
+                    <div class="desc">Multiple payment methods</div>
+                </div>
+                <div class="feature-box">
+                    <span class="icon">⚡</span>
+                    <div class="title">Instant Delivery</div>
+                    <div class="desc">Get your products immediately</div>
+                </div>
+                <div class="feature-box">
+                    <span class="icon">🎁</span>
+                    <div class="title">Exclusive Discounts</div>
+                    <div class="desc">Special offers for members</div>
+                </div>
+            </div>
+            <div class="coupon-box">
+                <div class="label">🎫 Use this coupon for 15% off your first order</div>
+                <div class="code">WELCOME15</div>
+            </div>
+            <div class="text-center">
+                <a href="https://zi-store.online" class="btn-primary">🛒 Start Shopping Now</a>
+            </div>
+            <hr class="divider">
+            <div style="text-align: center; font-size: 13px; color: #888; line-height: 1.6;">
+                <p>Need help? <a href="mailto:support@zi-store.online" style="color:#6c5ce7;">Contact Support</a></p>
+            </div>
+        </div>
+        <div class="footer">
+            <div class="footer-links">
+                <a href="https://zi-store.online">Store</a>
+                <a href="mailto:support@zi-store.online">Support</a>
+                <a href="https://zi-store.online/privacy.html">Privacy</a>
+                <a href="https://zi-store.online/refund.html">Refund Policy</a>
+            </div>
+            <div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div>
+        </div>
+    </div>
+</body>
+</html>
+    `;
+    
+    return await sendEmail(userEmail, '🎉 Welcome to ZI Store!', html);
+}
+
+async function sendOrderConfirmationEmail(userEmail, orderData) {
+    const orderId = orderData.orderId || orderData.id || '------';
+    const orderIdDisplay = orderId.slice(-8);
+    
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation #${orderIdDisplay}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f0f2f8; padding: 20px; margin: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+        .header { background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%); padding: 30px 30px 20px; text-align: center; }
+        .logo { font-size: 28px; font-weight: 900; color: #fff; }
+        .logo span { color: #f2a900; }
+        .order-status { display: inline-block; padding: 4px 16px; border-radius: 30px; background: #fbbf24; color: #1a1a2e; font-weight: 700; font-size: 13px; margin-top: 6px; }
+        .content { padding: 35px 30px; }
+        .greeting { font-size: 18px; font-weight: 700; color: #1a1a2e; }
+        .greeting span { color: #6c5ce7; }
+        .order-summary { background: #f8f8ff; border-radius: 12px; padding: 16px 18px; margin: 16px 0; }
+        .summary-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; }
+        .summary-row:last-child { border-bottom: none; }
+        .summary-label { color: #888; font-weight: 500; font-size: 13px; }
+        .summary-value { font-weight: 600; color: #1a1a2e; font-size: 13px; }
+        .items-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+        .items-table th { text-align: left; padding: 10px 0; border-bottom: 2px solid #eee; color: #888; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .items-table td { padding: 10px 0; border-bottom: 1px solid #f0f2f8; }
+        .items-table .item-name { font-weight: 600; color: #1a1a2e; }
+        .items-table .item-meta { font-size: 12px; color: #888; }
+        .items-table .item-price { text-align: right; font-weight: 600; }
+        .total-box { background: linear-gradient(135deg, #f8f8ff, #f0f2f8); border-radius: 12px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+        .total-label { font-size: 16px; font-weight: 700; color: #1a1a2e; }
+        .total-amount { font-size: 24px; font-weight: 900; color: #6c5ce7; }
+        .btn-primary { display: inline-block; background: #6c5ce7; color: #fff; padding: 12px 32px; border-radius: 30px; text-decoration: none; font-weight: 700; font-size: 14px; transition: all 0.3s; }
+        .btn-primary:hover { background: #5a4bd1; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(108,92,231,0.3); }
+        .text-center { text-align: center; }
+        .divider { border: none; border-top: 2px solid #f0f2f8; margin: 16px 0; }
+        .footer { padding: 16px 30px; text-align: center; background: #f8f8ff; }
+        .footer-text { font-size: 11px; color: #888; }
+        .footer-links a { color: #6c5ce7; text-decoration: none; margin: 0 4px; font-size: 11px; }
+        @media (max-width: 480px) {
+            .header { padding: 20px; }
+            .content { padding: 20px 15px; }
+            .total-amount { font-size: 20px; }
+            .items-table td, .items-table th { font-size: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">ZI <span>Store</span></div>
+            <div><span class="order-status">${orderData.status || 'PENDING'}</span></div>
+        </div>
+        <div class="content">
+            <div class="greeting">Hello <span>${orderData.userName || 'Customer'}</span> 👋</div>
+            <p style="color: #4a4a6a; font-size: 14px; margin: 6px 0 12px;">Thank you for your order! Here are the details:</p>
+            
+            <div class="order-summary">
+                <div class="summary-row">
+                    <span class="summary-label">📋 Order ID</span>
+                    <span class="summary-value">#${orderIdDisplay}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">📅 Date</span>
+                    <span class="summary-value">${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">💳 Payment Method</span>
+                    <span class="summary-value">${orderData.method || 'N/A'}</span>
+                </div>
+                ${orderData.txHash ? `
+                <div class="summary-row">
+                    <span class="summary-label">🔗 Transaction ID</span>
+                    <span class="summary-value" style="font-family:monospace;font-size:11px;word-break:break-all;">${orderData.txHash}</span>
+                </div>
+                ` : ''}
+            </div>
+
+            <h3 style="color: #1a1a2e; margin: 12px 0 8px; font-size: 16px;">🛍️ Items</h3>
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th style="text-align: center;">Qty</th>
+                        <th style="text-align: right;">Price</th>
+                        <th style="text-align: right;">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${(orderData.items || []).map(item => `
+                        <tr>
+                            <td>
+                                <div class="item-name">${item.name}</div>
+                                ${item.selectedQuantity ? `<div class="item-meta">📦 ${item.selectedQuantity}</div>` : ''}
+                                ${item.isVip ? `<div class="item-meta">👑 ${item.vipPlanLabel || 'VIP'}</div>` : ''}
+                            </td>
+                            <td style="text-align: center;">${item.quantity || 1}</td>
+                            <td style="text-align: right;">$${(item.price || 0).toFixed(2)}</td>
+                            <td style="text-align: right; font-weight: 600;">$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+
+            <div class="total-box">
+                <span class="total-label">Total Amount</span>
+                <span class="total-amount">$${(orderData.total || 0).toFixed(2)}</span>
+            </div>
+
+            <hr class="divider">
+            <div class="text-center">
+                <a href="https://zi-store.online" class="btn-primary">📦 View My Orders</a>
+            </div>
+            <p style="text-align: center; font-size: 12px; color: #888; margin-top: 10px;">
+                You will receive another email once your order is confirmed.
+            </p>
+        </div>
+        <div class="footer">
+            <div class="footer-links">
+                <a href="https://zi-store.online">Store</a>
+                <a href="mailto:support@zi-store.online">Support</a>
+                <a href="https://zi-store.online/refund.html">Refund Policy</a>
+            </div>
+            <div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div>
+        </div>
+    </div>
+</body>
+</html>
+    `;
+    
+    return await sendEmail(userEmail, `📦 Order Confirmation #${orderIdDisplay}`, html);
+}
+
+async function sendOrderStatusEmail(userEmail, orderId, newStatus) {
+    const statusConfig = {
+        'confirmed': {
+            emoji: '✅',
+            title: 'Order Confirmed!',
+            message: 'Your order has been confirmed and is being processed!',
+            color: '#00d4aa',
+            textColor: '#0a0a1a',
+            button: '📦 View Order'
+        },
+        'rejected': {
+            emoji: '❌',
+            title: 'Order Rejected',
+            message: 'Your order has been rejected. Please contact support for more information.',
+            color: '#ff6b6b',
+            textColor: '#ffffff',
+            button: '📞 Contact Support'
+        },
+        'shipped': {
+            emoji: '📦',
+            title: 'Order Shipped!',
+            message: 'Your order has been shipped and is on its way!',
+            color: '#6c5ce7',
+            textColor: '#ffffff',
+            button: '📦 Track Order'
+        },
+        'delivered': {
+            emoji: '🎉',
+            title: 'Order Delivered!',
+            message: 'Your order has been delivered. We hope you enjoy it!',
+            color: '#00d4aa',
+            textColor: '#0a0a1a',
+            button: '⭐ Leave a Review'
+        }
+    };
+    
+    const config = statusConfig[newStatus] || {
+        emoji: '📋',
+        title: 'Order Status Updated',
+        message: 'Your order status has been updated.',
+        color: '#6c5ce7',
+        textColor: '#ffffff',
+        button: '📦 View Order'
+    };
+    
+    const orderIdDisplay = orderId?.slice(-8) || '------';
+    
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Status Update #${orderIdDisplay}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f0f2f8; padding: 20px; margin: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+        .header { background: linear-gradient(135deg, ${config.color}, ${config.color}dd); padding: 30px 30px 20px; text-align: center; }
+        .logo { font-size: 28px; font-weight: 900; color: #fff; }
+        .logo span { color: #f2a900; }
+        .status-icon { font-size: 48px; text-align: center; margin: 8px 0; }
+        .status-title { font-size: 24px; font-weight: 800; color: #fff; }
+        .status-badge { display: inline-block; padding: 4px 20px; border-radius: 30px; background: rgba(255,255,255,0.2); color: #fff; font-weight: 700; font-size: 14px; margin-top: 4px; }
+        .content { padding: 35px 30px; }
+        .greeting { font-size: 16px; color: #1a1a2e; }
+        .greeting strong { color: #6c5ce7; }
+        .message-box { background: #f8f8ff; border-radius: 12px; padding: 16px 20px; margin: 12px 0 16px; border-left: 4px solid ${config.color}; }
+        .message-box p { font-size: 15px; color: #4a4a6a; line-height: 1.6; }
+        .order-info { background: #f8f8ff; border-radius: 12px; padding: 12px 16px; margin: 12px 0; }
+        .info-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; }
+        .info-label { color: #888; font-weight: 500; }
+        .info-value { font-weight: 600; color: #1a1a2e; }
+        .btn-primary { display: inline-block; background: ${config.color}; color: ${config.textColor}; padding: 12px 32px; border-radius: 30px; text-decoration: none; font-weight: 700; font-size: 14px; transition: all 0.3s; }
+        .btn-primary:hover { opacity: 0.85; transform: translateY(-2px); }
+        .text-center { text-align: center; }
+        .divider { border: none; border-top: 2px solid #f0f2f8; margin: 16px 0; }
+        .footer { padding: 16px 30px; text-align: center; background: #f8f8ff; }
+        .footer-text { font-size: 11px; color: #888; }
+        .footer-links a { color: #6c5ce7; text-decoration: none; margin: 0 4px; font-size: 11px; }
+        @media (max-width: 480px) {
+            .header { padding: 20px; }
+            .content { padding: 20px 15px; }
+            .status-icon { font-size: 36px; }
+            .status-title { font-size: 20px; }
+            .btn-primary { padding: 10px 24px; font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">ZI <span>Store</span></div>
+            <div class="status-icon">${config.emoji}</div>
+            <div class="status-title">${config.title}</div>
+            <div><span class="status-badge">${newStatus.toUpperCase()}</span></div>
+        </div>
+        <div class="content">
+            <div class="greeting">Hello <strong>Customer</strong>,</div>
+            <div class="message-box">
+                <p>${config.message}</p>
+            </div>
+            <div class="order-info">
+                <div class="info-row">
+                    <span class="info-label">📋 Order ID</span>
+                    <span class="info-value">#${orderIdDisplay}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">📅 Date</span>
+                    <span class="info-value">${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">📦 Status</span>
+                    <span class="info-value" style="color:${config.color};">${newStatus.toUpperCase()}</span>
+                </div>
+            </div>
+            <hr class="divider">
+            <div class="text-center">
+                <a href="https://zi-store.online" class="btn-primary">${config.button}</a>
+            </div>
+        </div>
+        <div class="footer">
+            <div class="footer-links">
+                <a href="https://zi-store.online">Store</a>
+                <a href="mailto:support@zi-store.online">Support</a>
+            </div>
+            <div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div>
+        </div>
+    </div>
+</body>
+</html>
+    `;
+    
+    return await sendEmail(userEmail, `${config.emoji} Order Status Update #${orderIdDisplay}`, html);
+}
+
+async function sendTopupConfirmationEmail(userEmail, amount, txHash = null) {
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Topup Confirmation</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f0f2f8; padding: 20px; margin: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+        .header { background: linear-gradient(135deg, #f2a900, #fbbf24); padding: 30px 30px 20px; text-align: center; }
+        .logo { font-size: 28px; font-weight: 900; color: #1a1a2e; }
+        .logo span { color: #6c5ce7; }
+        .amount-display { background: rgba(255,255,255,0.2); border-radius: 16px; padding: 16px 20px; margin-top: 10px; display: inline-block; }
+        .amount-display .amount { font-size: 36px; font-weight: 900; color: #1a1a2e; }
+        .amount-display .label { font-size: 14px; color: rgba(26,26,46,0.7); }
+        .content { padding: 35px 30px; }
+        .greeting { font-size: 16px; color: #1a1a2e; }
+        .greeting strong { color: #6c5ce7; }
+        .details-box { background: #f8f8ff; border-radius: 12px; padding: 14px 18px; margin: 12px 0; }
+        .detail-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; border-bottom: 1px solid #eee; }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label { color: #888; font-weight: 500; }
+        .detail-value { font-weight: 600; color: #1a1a2e; }
+        .btn-primary { display: inline-block; background: #6c5ce7; color: #fff; padding: 12px 32px; border-radius: 30px; text-decoration: none; font-weight: 700; font-size: 14px; transition: all 0.3s; }
+        .btn-primary:hover { background: #5a4bd1; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(108,92,231,0.3); }
+        .text-center { text-align: center; }
+        .divider { border: none; border-top: 2px solid #f0f2f8; margin: 16px 0; }
+        .footer { padding: 16px 30px; text-align: center; background: #f8f8ff; }
+        .footer-text { font-size: 11px; color: #888; }
+        .footer-links a { color: #6c5ce7; text-decoration: none; margin: 0 4px; font-size: 11px; }
+        @media (max-width: 480px) {
+            .header { padding: 20px; }
+            .content { padding: 20px 15px; }
+            .amount-display .amount { font-size: 28px; }
+            .btn-primary { padding: 10px 24px; font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">ZI <span>Store</span></div>
+            <div class="amount-display">
+                <div class="label">💰 Amount Added</div>
+                <div class="amount">+$${amount.toFixed(2)}</div>
+            </div>
+        </div>
+        <div class="content">
+            <div class="greeting">Hello <strong>Customer</strong>,</div>
+            <p style="color: #4a4a6a; font-size: 14px; margin: 4px 0 12px;">Your balance has been updated successfully!</p>
+            <div class="details-box">
+                <div class="detail-row">
+                    <span class="detail-label">📅 Date</span>
+                    <span class="detail-value">${new Date().toLocaleString()}</span>
+                </div>
+                ${txHash ? `
+                <div class="detail-row">
+                    <span class="detail-label">🔗 Transaction ID</span>
+                    <span class="detail-value" style="font-family:monospace;font-size:11px;word-break:break-all;">${txHash}</span>
+                </div>
+                ` : ''}
+            </div>
+            <hr class="divider">
+            <div class="text-center">
+                <a href="https://zi-store.online" class="btn-primary">🛒 Start Shopping</a>
+            </div>
+        </div>
+        <div class="footer">
+            <div class="footer-links">
+                <a href="https://zi-store.online">Store</a>
+                <a href="mailto:support@zi-store.online">Support</a>
+            </div>
+            <div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div>
+        </div>
+    </div>
+</body>
+</html>
+    `;
+    
+    return await sendEmail(userEmail, `💰 Balance Added - $${amount.toFixed(2)}`, html);
+}
+
+async function sendPasswordResetEmail(userEmail, resetLink) {
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Reset</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f0f2f8; padding: 20px; margin: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+        .header { background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%); padding: 30px 30px 20px; text-align: center; }
+        .logo { font-size: 28px; font-weight: 900; color: #fff; }
+        .logo span { color: #f2a900; }
+        .content { padding: 35px 30px; }
+        .greeting { font-size: 18px; font-weight: 700; color: #1a1a2e; }
+        .btn-primary { display: inline-block; background: #6c5ce7; color: #fff; padding: 14px 40px; border-radius: 30px; text-decoration: none; font-weight: 700; font-size: 15px; transition: all 0.3s; }
+        .btn-primary:hover { background: #5a4bd1; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(108,92,231,0.3); }
+        .text-center { text-align: center; }
+        .warning-box { background: #fff3cd; border-radius: 12px; padding: 12px 16px; margin: 12px 0; border-left: 4px solid #fbbf24; }
+        .warning-box p { font-size: 13px; color: #856404; }
+        .divider { border: none; border-top: 2px solid #f0f2f8; margin: 16px 0; }
+        .footer { padding: 16px 30px; text-align: center; background: #f8f8ff; }
+        .footer-text { font-size: 11px; color: #888; }
+        .footer-links a { color: #6c5ce7; text-decoration: none; margin: 0 4px; font-size: 11px; }
+        @media (max-width: 480px) {
+            .header { padding: 20px; }
+            .content { padding: 20px 15px; }
+            .btn-primary { padding: 12px 28px; font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">ZI <span>Store</span></div>
+        </div>
+        <div class="content">
+            <div class="greeting">🔐 Reset Your Password</div>
+            <p style="color: #4a4a6a; font-size: 14px; margin: 8px 0 16px;">We received a request to reset your password. Click the button below to create a new one.</p>
+            <div class="text-center">
+                <a href="${resetLink}" class="btn-primary">🔑 Reset Password</a>
+            </div>
+            <div class="warning-box">
+                <p>⚠️ This link will expire in 1 hour. If you didn't request this, please ignore this email.</p>
+            </div>
+            <hr class="divider">
+            <p style="text-align: center; font-size: 12px; color: #888;">Or copy and paste this link into your browser:</p>
+            <p style="text-align: center; font-size: 11px; color: #888; word-break: break-all; font-family: monospace;">${resetLink}</p>
+        </div>
+        <div class="footer">
+            <div class="footer-links">
+                <a href="https://zi-store.online">Store</a>
+                <a href="mailto:support@zi-store.online">Support</a>
+            </div>
+            <div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div>
+        </div>
+    </div>
+</body>
+</html>
+    `;
+    
+    return await sendEmail(userEmail, '🔐 Password Reset Request', html);
+}
+
+async function sendAdminNotificationEmail(subject, message) {
+    const adminEmail = 'idriss.zribi13@gmail.com';
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Notification</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f0f2f8; padding: 20px; margin: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+        .header { background: linear-gradient(135deg, #ff6b6b, #ee5a24); padding: 30px 30px 20px; text-align: center; }
+        .logo { font-size: 28px; font-weight: 900; color: #fff; }
+        .logo span { color: #f2a900; }
+        .content { padding: 35px 30px; }
+        .message-box { background: #f8f8ff; border-radius: 12px; padding: 16px 20px; margin: 12px 0; border-left: 4px solid #ff6b6b; }
+        .message-box p { font-size: 14px; color: #4a4a6a; line-height: 1.8; white-space: pre-wrap; }
+        .footer { padding: 16px 30px; text-align: center; background: #f8f8ff; }
+        .footer-text { font-size: 11px; color: #888; }
+        @media (max-width: 480px) {
+            .header { padding: 20px; }
+            .content { padding: 20px 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">ZI <span>Store</span></div>
+            <div style="color: rgba(255,255,255,0.8); font-size: 14px;">Admin Notification</div>
+        </div>
+        <div class="content">
+            <h2 style="color: #1a1a2e; font-size: 20px;">${subject}</h2>
+            <div class="message-box">
+                <p>${message}</p>
+            </div>
+            <p style="text-align: center; font-size: 12px; color: #888; margin-top: 12px;">📅 ${new Date().toLocaleString()}</p>
+        </div>
+        <div class="footer">
+            <div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div>
+        </div>
+    </div>
+</body>
+</html>
+    `;
+    
+    return await sendEmail(adminEmail, `🔔 Admin: ${subject}`, html);
+}
+
+// ============================================================
+// 📧 EMAIL SYSTEM - MANAGEMENT FUNCTIONS - ADDED HERE
+// ============================================================
+
+let emailLogs = [];
+
+async function loadEmailLogs() {
+    const container = document.getElementById('emailLogsContainer');
+    if (!container) return;
+    
+    try {
+        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
+        
+        const { data, error } = await supabase
+            .from('email_logs')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(50);
+        
+        if (error) throw error;
+        
+        emailLogs = data || [];
+        renderEmailLogs(emailLogs);
+    } catch (error) {
+        console.error('Error loading email logs:', error);
+        container.innerHTML = `
+            <div style="text-align:center;padding:20px;color:var(--danger);">
+                Failed to load email logs: ${error.message}
+                <br>
+                <button onclick="loadEmailLogs()" style="margin-top:8px;padding:6px 16px;background:var(--primary);border:none;border-radius:var(--radius-sm);color:#fff;cursor:pointer;">Retry</button>
+            </div>
+        `;
+    }
+}
+
+function renderEmailLogs(logs) {
+    const container = document.getElementById('emailLogsContainer');
+    if (!container) return;
+    
+    if (!logs || logs.length === 0) {
+        container.innerHTML = `
+            <div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">
+                <i class="fas fa-envelope" style="font-size:36px;display:block;margin-bottom:8px;opacity:0.2;"></i>
+                No emails sent yet
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = logs.map(log => {
+        const statusColor = log.status === 'sent' ? 'var(--success)' : log.status === 'failed' ? 'var(--danger)' : 'var(--warning)';
+        const statusIcon = log.status === 'sent' ? '✅' : log.status === 'failed' ? '❌' : '⏳';
+        const date = new Date(log.created_at).toLocaleString();
+        
+        return `
+            <div class="admin-item" style="border-left:4px solid ${statusColor};">
+                <div class="item-info">
+                    <div class="item-title">
+                        ${statusIcon} ${log.subject || 'No Subject'}
+                        <span style="font-size:11px;font-weight:400;opacity:0.5;margin-left:6px;">
+                            to: ${log.recipient}
+                        </span>
+                        <span class="status-badge ${log.status}" style="font-size:9px;padding:1px 10px;">
+                            ${log.status || 'unknown'}
+                        </span>
+                    </div>
+                    <div class="item-meta">
+                        📅 ${date}
+                        ${log.error ? `• ❌ ${log.error}` : ''}
+                    </div>
+                </div>
+                <div class="item-actions">
+                    ${log.html ? `<button onclick="previewEmail('${log.id}')" class="btn-edit" style="background:var(--primary);color:#fff;border:none;padding:4px 10px;border-radius:var(--radius-sm);cursor:pointer;font-weight:600;font-size:11px;">
+                        <i class="fas fa-eye"></i> Preview
+                    </button>` : ''}
+                    <button onclick="resendEmail('${log.id}')" class="btn-edit" style="background:var(--vip-color);color:#0a0a1a;border:none;padding:4px 10px;border-radius:var(--radius-sm);cursor:pointer;font-weight:600;font-size:11px;">
+                        <i class="fas fa-redo"></i> Resend
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+window.loadEmailLogs = loadEmailLogs;
+
+window.sendTestEmail = async function() {
+    try {
+        const testEmail = prompt('Enter email address to send test email:', 'test@example.com');
+        if (!testEmail) return;
+        
+        showToast('📧 Sending test email...', 'info');
+        
+        const result = await sendWelcomeEmail(testEmail, 'Test User');
+        
+        if (result.success) {
+            showToast('✅ Test email sent successfully!', 'success');
+            loadEmailLogs();
+        } else {
+            showToast('❌ Failed to send test email: ' + result.error, 'error');
+        }
+    } catch (error) {
+        showToast('❌ Error: ' + error.message, 'error');
+    }
+};
+
+window.previewEmail = function(logId) {
+    const log = emailLogs.find(l => l.id === logId);
+    if (!log || !log.html) {
+        showToast('❌ Email content not found', 'error');
+        return;
+    }
+    
+    const win = window.open('', '_blank', 'width=800,height=600');
+    if (win) {
+        win.document.write(log.html);
+        win.document.close();
+    } else {
+        showToast('⚠️ Please allow popups', 'warning');
+    }
+};
+
+window.resendEmail = async function(logId) {
+    const log = emailLogs.find(l => l.id === logId);
+    if (!log) {
+        showToast('❌ Email log not found', 'error');
+        return;
+    }
+    
+    if (!confirm(`Resend email to ${log.recipient}?`)) return;
+    
+    try {
+        showToast('📧 Resending...', 'info');
+        const result = await sendEmail(log.recipient, log.subject, log.html, log.text);
+        
+        if (result.success) {
+            showToast('✅ Email resent successfully!', 'success');
+            loadEmailLogs();
+        } else {
+            showToast('❌ Failed to resend: ' + result.error, 'error');
+        }
+    } catch (error) {
+        showToast('❌ Error: ' + error.message, 'error');
+    }
+};
+
+// ============================================================
+// ============================================================
+// 📧 EMAIL SYSTEM - END
+// ============================================================
+// ============================================================
 
 // ============================================================
 // FIX: Remove duplicate date, style header topup
@@ -716,19 +1422,7 @@ async function sendAdminNotification(title, message) {
 
         if (settings.enableEmailNotifications && settings.adminEmail) {
             try {
-                await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/send-email', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                    },
-                    body: JSON.stringify({
-                        to: settings.adminEmail,
-                        subject: title,
-                        message: message,
-                        from: 'noreply@zi-store.online'
-                    })
-                });
+                await sendAdminNotificationEmail(title, message);
                 sentCount++;
                 console.log('✅ Email sent to admin:', settings.adminEmail);
             } catch (error) {
@@ -1180,7 +1874,6 @@ window.loginUser = async function() {
             loadUserBalance();
             startTopupRealtimeListener();
             initTopInfoBar();
-            loadCoupons();
 
             if (isAdminCached) {
                 console.log('✅ Admin detected, loading admin features');
@@ -1258,7 +1951,7 @@ window.registerUser = async function() {
         btn.classList.remove('loading');
         await refreshAdminStatus();
         
-        // Send welcome email
+        // ===== SEND WELCOME EMAIL - ADDED HERE =====
         await sendWelcomeEmail(email, name);
 
         setTimeout(() => {
@@ -1325,6 +2018,7 @@ window.loginWithGoogle = function() {
             await refreshAdminStatus();
             await mergeGuestData(user.uid);
             
+            // ===== SEND WELCOME EMAIL - ADDED HERE =====
             await sendWelcomeEmail(user.email, user.displayName || user.email);
 
             setTimeout(() => {
@@ -1493,7 +2187,12 @@ window.sendForgotPassword = async function() {
     const successEl = document.getElementById('forgotSuccess');
     errorEl.textContent = ''; successEl.textContent = '';
     if (!email) { errorEl.textContent = 'Please enter your email'; return; }
-    try { await sendPasswordResetEmail(auth, email); successEl.textContent = '✅ Reset link sent to ' + email; showToast('📧 Password reset link sent!', 'success'); setTimeout(() => { closeForgotPasswordModal(); }, 2000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); }
+    try { 
+        await sendPasswordResetEmail(auth, email); 
+        successEl.textContent = '✅ Reset link sent to ' + email; 
+        showToast('📧 Password reset link sent!', 'success'); 
+        setTimeout(() => { closeForgotPasswordModal(); }, 2000); 
+    } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); }
 };
 
 // ============================================================
@@ -3788,14 +4487,15 @@ async function sendOrderToTelegram(method, txHash = null) {
         const userRef = doc(db, 'users', currentUser.uid);
         await updateDoc(userRef, { history: arrayUnion(orderItem) });
 
-        // Send order confirmation email
+        // ===== SEND ORDER CONFIRMATION EMAIL - ADDED HERE =====
         await sendOrderConfirmationEmail(currentUser.email, {
             orderId: orderId,
             userName: currentUser.displayName || currentUser.email,
             items: cartData,
             total: finalTotal,
             method: method,
-            status: 'pending'
+            status: 'pending',
+            txHash: txHash
         });
 
         try {
@@ -4614,7 +5314,8 @@ window.switchAdminTab = function(tab) {
         'stats': 'tabStats', 'logs': 'tabLogs', 'slider': 'tabSlider',
         'licences': 'tabLicences', 'marquee': 'tabMarquee', 'payments': 'tabPayments',
         'topups': 'tabTopups', 'fallback': 'tabFallback', 'settings': 'tabSettings',
-        'coupons': 'tabCoupons'
+        'coupons': 'tabCoupons',
+        'emails': 'tabEmails'
     };
     const tabId = tabMap[tab] || 'tabDashboard';
     const content = document.getElementById(tabId);
@@ -4629,7 +5330,8 @@ window.switchAdminTab = function(tab) {
         'stats': '📈 Stats', 'logs': '📜 Logs', 'slider': '🎨 Slider',
         'licences': '🔑 Licences', 'marquee': '🎬 Marquee', 'payments': '💳 Payments',
         'topups': '💰 Topups', 'fallback': '📦 Fallback', 'settings': '⚙️ Settings',
-        'coupons': '🎫 Coupons'
+        'coupons': '🎫 Coupons',
+        'emails': '📧 Emails'
     };
     const titleEl = document.getElementById('adminPageTitle');
     if (titleEl) titleEl.textContent = titles[tab] || tab;
@@ -4651,6 +5353,7 @@ window.switchAdminTab = function(tab) {
     if (tab === 'fallback') renderFallbackProductsAdmin();
     if (tab === 'settings') loadAdminSettingsUI();
     if (tab === 'coupons') renderAdminCoupons();
+    if (tab === 'emails') loadEmailLogs();
 };
 
 // ============================================================
@@ -4854,7 +5557,7 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
                 : `Your order #${orderId.slice(-6)} has been rejected. Please contact support for more information.`
         );
 
-        // Send status update email
+        // ===== SEND ORDER STATUS EMAIL - ADDED HERE =====
         await sendOrderStatusEmail(data.email || userId, orderId, newStatus);
 
         if (data.telegramChatId) {
@@ -6951,17 +7654,25 @@ window.approveTopup = async function(topupId) {
         await sendAdminNotification('✅ Topup Approved - Balance Updated', adminMessage);
 
         if (topupData) {
+            // ===== SEND TOPUP CONFIRMATION EMAIL - ADDED HERE =====
+            const userRef = doc(db, 'users', topupData.user_id);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+                const userEmail = userSnap.data().email || topupData.user_id;
+                await sendTopupConfirmationEmail(userEmail, topupData.amount_usd, topupData.tx_hash);
+            }
+            
             await sendTelegramTopupNotification(
                 topupData.user_id,
                 topupData.amount_usd,
                 topupData.tx_hash
             );
 
-            const userRef = doc(db, 'users', topupData.user_id);
-            const userSnap = await getDoc(userRef);
-            if (userSnap.exists()) {
-                const currentBalance = userSnap.data().balance || 0;
-                await updateDoc(userRef, {
+            const userRef2 = doc(db, 'users', topupData.user_id);
+            const userSnap2 = await getDoc(userRef2);
+            if (userSnap2.exists()) {
+                const currentBalance = userSnap2.data().balance || 0;
+                await updateDoc(userRef2, {
                     balance: currentBalance + topupData.amount_usd,
                     updatedAt: serverTimestamp()
                 });
@@ -8158,976 +8869,35 @@ function renderAdminCoupons() {
 }
 
 // ============================================================
-// 57. EMAIL SYSTEM
-// ============================================================
-
-async function sendEmail(to, subject, htmlContent, textContent = '') {
-    try {
-        const response = await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-            },
-            body: JSON.stringify({
-                to: to,
-                subject: subject,
-                html: htmlContent,
-                text: textContent
-            })
-        });
-        return await response.json();
-    } catch (error) {
-        console.error('Email error:', error);
-        return { success: false, error: error.message };
-    }
-}
-
-async function sendOrderConfirmationEmail(userEmail, orderData) {
-    const html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <style>
-                body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
-                .container { max-width: 600px; margin: 0 auto; background: #fff; border-radius: 10px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-                .header { text-align: center; border-bottom: 2px solid #6c5ce7; padding-bottom: 15px; }
-                .logo { font-size: 24px; font-weight: 900; color: #6c5ce7; }
-                .order-details { margin: 20px 0; padding: 15px; background: #f8f8f8; border-radius: 8px; }
-                .total { font-size: 20px; font-weight: 800; color: #6c5ce7; }
-                .footer { text-align: center; font-size: 12px; color: #888; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; }
-                .status { display: inline-block; padding: 5px 15px; background: #fbbf24; border-radius: 30px; font-weight: 700; }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="header">
-                    <div class="logo">🛒 ZI Store</div>
-                    <h2>Order Confirmation</h2>
-                </div>
-                <p>Hello <strong>${orderData.userName || 'Customer'}</strong>,</p>
-                <p>Thank you for your order! Here are the details:</p>
-                <div class="order-details">
-                    <p><strong>Order ID:</strong> #${orderData.orderId?.slice(-8) || '------'}</p>
-                    <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
-                    <p><strong>Status:</strong> <span class="status">${orderData.status || 'Pending'}</span></p>
-                    <p><strong>Payment Method:</strong> ${orderData.method || 'N/A'}</p>
-                    <hr />
-                    <h4>Items:</h4>
-                    ${(orderData.items || []).map(item => `
-                        <div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #eee;">
-                            <span>${item.name} × ${item.quantity || 1}</span>
-                            <span>$${(item.price * (item.quantity || 1)).toFixed(2)}</span>
-                        </div>
-                    `).join('')}
-                    <hr />
-                    <div style="display:flex; justify-content:space-between; font-size:18px;">
-                        <strong>Total:</strong>
-                        <strong class="total">$${(orderData.total || 0).toFixed(2)}</strong>
-                    </div>
-                </div>
-                <p>You will receive another email once your order is confirmed.</p>
-                <div class="footer">
-                    <p>&copy; 2026 ZI Store — All rights reserved.</p>
-                    <p><a href="https://zi-store.online">Visit Store</a> | <a href="mailto:support@zi-store.online">Support</a></p>
-                </div>
-            </div>
-        </body>
-        </html>
-    `;
-    return await sendEmail(userEmail, `Order Confirmation #${orderData.orderId?.slice(-6) || ''}`, html);
-}
-
-async function sendOrderStatusEmail(userEmail, orderId, newStatus) {
-    const statusMessages = {
-        'confirmed': '✅ Your order has been confirmed and is being processed!',
-        'rejected': '❌ Your order has been rejected. Please contact support for more information.',
-        'shipped': '📦 Your order has been shipped!',
-        'delivered': '🎉 Your order has been delivered!'
-    };
-    const html = `
-        <!DOCTYPE html>
-        <html>
-        <head><style>body{font-family:Arial,sans-serif;padding:20px;background:#f4f4f4;} .container{max-width:600px;margin:0 auto;background:#fff;border-radius:10px;padding:30px;box-shadow:0 4px 20px rgba(0,0,0,0.1);} .header{text-align:center;border-bottom:2px solid #6c5ce7;padding-bottom:15px;} .logo{font-size:24px;font-weight:900;color:#6c5ce7;} .status-update{padding:15px;background:#f8f8f8;border-radius:8px;margin:20px 0;text-align:center;} .status-badge{display:inline-block;padding:8px 20px;border-radius:30px;font-weight:700;background:${newStatus === 'confirmed' ? '#00d4aa' : newStatus === 'rejected' ? '#ff6b6b' : '#fbbf24'};color:#0a0a1a;} .footer{text-align:center;font-size:12px;color:#888;margin-top:20px;border-top:1px solid #eee;padding-top:15px;}</style></head>
-        <body>
-            <div class="container">
-                <div class="header"><div class="logo">🛒 ZI Store</div><h2>Order Status Update</h2></div>
-                <p>Hello,</p>
-                <div class="status-update">
-                    <p style="font-size:16px;">${statusMessages[newStatus] || 'Your order status has been updated.'}</p>
-                    <p><strong>Order ID:</strong> #${orderId?.slice(-8) || '------'}</p>
-                    <div><span class="status-badge">${newStatus.toUpperCase()}</span></div>
-                </div>
-                <p><a href="https://zi-store.online" style="background:#6c5ce7;color:#fff;padding:10px 20px;border-radius:5px;text-decoration:none;">View Order</a></p>
-                <div class="footer"><p>&copy; 2026 ZI Store — All rights reserved.</p></div>
-            </div>
-        </body>
-        </html>
-    `;
-    return await sendEmail(userEmail, `Order Status Update #${orderId?.slice(-6) || ''}`, html);
-}
-
-async function sendWelcomeEmail(userEmail, userName) {
-    const html = `
-        <!DOCTYPE html>
-        <html>
-        <head><style>body{font-family:Arial,sans-serif;padding:20px;background:#f4f4f4;} .container{max-width:600px;margin:0 auto;background:#fff;border-radius:10px;padding:30px;box-shadow:0 4px 20px rgba(0,0,0,0.1);} .header{text-align:center;border-bottom:2px solid #6c5ce7;padding-bottom:15px;} .logo{font-size:24px;font-weight:900;color:#6c5ce7;} .welcome{text-align:center;padding:20px 0;} .footer{text-align:center;font-size:12px;color:#888;margin-top:20px;border-top:1px solid #eee;padding-top:15px;}</style></head>
-        <body>
-            <div class="container">
-                <div class="header"><div class="logo">🛒 ZI Store</div><h2>Welcome to ZI Store!</h2></div>
-                <div class="welcome">
-                    <h3>Hi ${userName || 'there'}! 🎉</h3>
-                    <p>Thank you for joining ZI Store! We're excited to have you.</p>
-                    <p>Here's what you can do:</p>
-                    <ul style="text-align:left;display:inline-block;">
-                        <li>🛍️ Browse our premium products</li>
-                        <li>💳 Secure payments</li>
-                        <li>⚡ Instant delivery</li>
-                        <li>🎁 Exclusive discounts</li>
-                    </ul>
-                    <br />
-                    <a href="https://zi-store.online" style="background:#6c5ce7;color:#fff;padding:10px 30px;border-radius:5px;text-decoration:none;">Start Shopping</a>
-                </div>
-                <div class="footer"><p>&copy; 2026 ZI Store — All rights reserved.</p></div>
-            </div>
-        </body>
-        </html>
-    `;
-    return await sendEmail(userEmail, 'Welcome to ZI Store! 🎉', html);
-}
-
-// ============================================================
-// 58. PDF INVOICE GENERATOR
-// ============================================================
-
-window.generatePDFInvoice = function(orderData) {
-    if (!orderData) { showToast('❌ No order data for invoice', 'error'); return; }
-    try {
-        let order = typeof orderData === 'string' ? JSON.parse(orderData) : orderData;
-        if (!order.id) { order.id = 'INV-' + Date.now().toString().slice(-6); }
-        
-        const invoiceHtml = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Invoice #${order.id}</title>
-            <style>
-                * { margin:0; padding:0; box-sizing:border-box; }
-                body { font-family: 'Arial', sans-serif; padding: 40px; background: #fff; color: #1a1a2e; }
-                .invoice { max-width: 800px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 12px; padding: 40px; }
-                .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #6c5ce7; padding-bottom: 20px; margin-bottom: 20px; }
-                .logo { font-size: 28px; font-weight: 900; color: #6c5ce7; }
-                .logo span { color: #f2a900; }
-                .invoice-title { font-size: 24px; color: #6c5ce7; font-weight: 700; }
-                .details { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; padding: 15px; background: #f8f8ff; border-radius: 8px; }
-                .details .label { color: #888; font-size: 12px; font-weight: 600; text-transform: uppercase; }
-                .details .value { font-weight: 700; font-size: 14px; }
-                table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-                th { background: #6c5ce7; color: #fff; padding: 12px; text-align: left; font-size: 12px; text-transform: uppercase; }
-                td { padding: 12px; border-bottom: 1px solid #e0e0e0; }
-                .total-section { margin-top: 20px; padding-top: 20px; border-top: 2px solid #e0e0e0; text-align: right; }
-                .total-section .total { font-size: 24px; font-weight: 900; color: #6c5ce7; }
-                .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center; font-size: 12px; color: #888; }
-                @media print {
-                    body { padding: 0; }
-                    .invoice { border: none; padding: 20px; }
-                    .no-print { display: none; }
-                }
-                .status-badge { display: inline-block; padding: 4px 12px; border-radius: 30px; font-size: 12px; font-weight: 700; background: ${order.status === 'confirmed' ? '#00d4aa' : order.status === 'rejected' ? '#ff6b6b' : '#fbbf24'}; color: #0a0a1a; }
-            </style>
-        </head>
-        <body>
-            <div class="invoice">
-                <div class="header">
-                    <div class="logo">ZI <span>Store</span></div>
-                    <div class="invoice-title">INVOICE</div>
-                </div>
-                <div class="details">
-                    <div>
-                        <div class="label">Order ID</div>
-                        <div class="value">#${order.id}</div>
-                        <div class="label" style="margin-top:6px;">Date</div>
-                        <div class="value">${new Date(order.date || Date.now()).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
-                    </div>
-                    <div style="text-align:right;">
-                        <div class="label">Status</div>
-                        <div class="value"><span class="status-badge">${order.status || 'Pending'}</span></div>
-                        <div class="label" style="margin-top:6px;">Payment Method</div>
-                        <div class="value">${order.method || 'N/A'}</div>
-                    </div>
-                </div>
-                <table>
-                    <thead><tr><th>Product</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead>
-                    <tbody>
-                        ${(order.items || []).map(item => `
-                            <tr>
-                                <td>${item.name}${item.selectedQuantity ? ' (x'+item.selectedQuantity+')' : ''}</td>
-                                <td>${item.quantity || 1}</td>
-                                <td>$${(item.price || 0).toFixed(2)}</td>
-                                <td>$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-                <div class="total-section">
-                    <div style="font-size:16px; color:#888; margin-bottom:4px;">Total Amount</div>
-                    <div class="total">$${(order.total || 0).toFixed(2)}</div>
-                </div>
-                <div class="footer">
-                    <p>Thank you for your purchase at ZI Store!</p>
-                    <p style="margin-top:4px;">© 2026 ZI Store — All rights reserved.</p>
-                </div>
-            </div>
-            <div style="text-align:center; margin-top:20px;" class="no-print">
-                <button onclick="window.print()" style="padding:10px 30px; background:#6c5ce7; color:#fff; border:none; border-radius:8px; font-weight:700; cursor:pointer; font-size:14px;">
-                    <i class="fas fa-print"></i> Print / Save as PDF
-                </button>
-            </div>
-        </body>
-        </html>
-        `;
-        
-        const win = window.open('', '_blank');
-        if (!win) { showToast('⚠️ Please allow popups to generate invoice', 'warning'); return; }
-        win.document.write(invoiceHtml);
-        win.document.close();
-        setTimeout(() => win.print(), 500);
-        showToast('📄 Invoice generated!', 'success');
-    } catch (error) {
-        console.error('Invoice generation error:', error);
-        showToast('❌ Failed to generate invoice', 'error');
-    }
-};
-
-// ============================================================
-// 59. ADD MISSING FUNCTIONS
+// 57. EMAIL SYSTEM EXPORTS
 // ============================================================
 
 // ============================================================
-// 59.1 CHECKOUT FUNCTION
+// 58. EXPORT ALL FUNCTIONS TO WINDOW
 // ============================================================
 
-window.checkout = function() {
-    if (cart.length === 0) {
-        showToast('⚠️ Your cart is empty', 'warning');
-        return;
-    }
+// ... (جميع التصديرات الموجودة مع إضافة دوال الإيميل)
 
-    if (!currentUser) {
-        showToast('⚠️ Please login to checkout', 'warning');
-        openAuthModal();
-        return;
-    }
+window.sendEmail = sendEmail;
+window.sendWelcomeEmail = sendWelcomeEmail;
+window.sendOrderConfirmationEmail = sendOrderConfirmationEmail;
+window.sendOrderStatusEmail = sendOrderStatusEmail;
+window.sendTopupConfirmationEmail = sendTopupConfirmationEmail;
+window.sendPasswordResetEmail = sendPasswordResetEmail;
+window.sendAdminNotificationEmail = sendAdminNotificationEmail;
+window.loadEmailLogs = loadEmailLogs;
+window.sendTestEmail = sendTestEmail;
+window.previewEmail = previewEmail;
+window.resendEmail = resendEmail;
 
-    openPaymentModal();
-};
 
-// ============================================================
-// 59.2 PAYMENT MODAL FUNCTIONS
-// ============================================================
-
-window.openPaymentModal = function() {
-    if (cart.length === 0) {
-        showToast('⚠️ Cart is empty', 'warning');
-        return;
-    }
-
-    if (!currentUser) {
-        showToast('⚠️ Please login to checkout', 'warning');
-        openAuthModal();
-        return;
-    }
-
-    const modal = document.getElementById('paymentModal');
-    if (modal) {
-        goToStep1();
-        modal.classList.add('open');
-        document.body.style.overflow = 'hidden';
-        updatePayableTotal();
-        renderPaymentProducts();
-        fetchCryptoPrices();
-        loadUserBalance();
-    } else {
-        showToast('❌ Payment modal not found', 'error');
-    }
-};
-
-window.closePaymentModal = function() {
-    const modal = document.getElementById('paymentModal');
-    if (modal) {
-        modal.classList.remove('open');
-        document.body.style.overflow = '';
-        selectedPayment = null;
-        document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
-        document.getElementById('paymentStep1').style.display = 'block';
-        document.getElementById('paymentStep2').style.display = 'none';
-    }
-};
-
-window.goToStep1 = function() {
-    document.getElementById('paymentStep1').style.display = 'block';
-    document.getElementById('paymentStep2').style.display = 'none';
-    selectedPayment = null;
-    document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
-};
 
 // ============================================================
-// 59.3 COPY WALLET ADDRESS
-// ============================================================
-
-window.copyWalletAddress = function() {
-    const addressElement = document.getElementById('walletAddressDisplay');
-    if (!addressElement) {
-        showToast('⚠️ Wallet address not found', 'warning');
-        return;
-    }
-    const address = addressElement.textContent.trim();
-    if (!address || address === '') {
-        showToast('⚠️ No wallet address to copy', 'warning');
-        return;
-    }
-
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(address)
-            .then(() => showToast('✅ Wallet address copied!', 'success'))
-            .catch(() => fallbackCopyText(address));
-    } else {
-        fallbackCopyText(address);
-    }
-};
-
-// ============================================================
-// 59.4 ADD PRODUCT MODAL FUNCTIONS
-// ============================================================
-
-window.openAddProductModal = function() {
-    if (!currentUser || !isAdminCached) {
-        showToast('⛔ Unauthorized. Admin only.', 'error');
-        return;
-    }
-
-    const modal = document.getElementById('productModal');
-    if (!modal) {
-        console.error('❌ Product modal not found');
-        showToast('❌ Product modal not found in HTML', 'error');
-        return;
-    }
-
-    const titleEl = document.getElementById('productFormTitle');
-    const form = document.getElementById('productForm');
-    const idField = document.getElementById('productIdField');
-    const currency = document.getElementById('productCurrency');
-    const type = document.getElementById('productType');
-    const quantityContainer = document.getElementById('quantityOptionsContainer');
-    const list = document.getElementById('quantityOptionsList');
-    const badgesInput = document.getElementById('productBadges');
-
-    if (titleEl) titleEl.textContent = '➕ Add New Product';
-    if (form) form.reset();
-    if (idField) idField.value = '';
-    if (currency) currency.value = 'USD';
-    if (type) type.value = 'standard';
-    if (quantityContainer) quantityContainer.style.display = 'none';
-    
-    document.querySelectorAll('.currency-option').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.type-option').forEach(el => el.classList.remove('active'));
-    document.querySelector('.currency-option[data-currency="USD"]')?.classList.add('active');
-    document.querySelector('.type-option[data-type="standard"]')?.classList.add('active');
-
-    document.querySelectorAll('.badge-option').forEach(el => el.classList.remove('selected'));
-    if (badgesInput) badgesInput.value = '';
-
-    if (list) list.innerHTML = '';
-    addQuantityOption();
-
-    modal.classList.add('open');
-    document.body.style.overflow = 'hidden';
-};
-
-window.openEditProductModal = function(productId) {
-    if (!currentUser || !isAdminCached) {
-        showToast('⛔ Unauthorized. Admin only.', 'error');
-        return;
-    }
-
-    const product = products.find(p => p.id === productId);
-    if (!product) {
-        showToast('❌ Product not found', 'error');
-        return;
-    }
-
-    const modal = document.getElementById('productModal');
-    if (!modal) {
-        console.error('❌ Product modal not found');
-        showToast('❌ Product modal not found in HTML', 'error');
-        return;
-    }
-
-    const titleEl = document.getElementById('productFormTitle');
-    const idField = document.getElementById('productIdField');
-    const nameEl = document.getElementById('productName');
-    const priceEl = document.getElementById('productPrice');
-    const badgeEl = document.getElementById('productBadge');
-    const statusEl = document.getElementById('productStatus');
-    const imageEl = document.getElementById('productImage');
-    const descEl = document.getElementById('productDescription');
-    const featuresEl = document.getElementById('productFeatures');
-    const videoEl = document.getElementById('productVideo');
-    const downloadEl = document.getElementById('productDownloadLink');
-    const currencyEl = document.getElementById('productCurrency');
-    const typeEl = document.getElementById('productType');
-    const quantityContainer = document.getElementById('quantityOptionsContainer');
-    const badgesInput = document.getElementById('productBadges');
-
-    if (titleEl) titleEl.textContent = '✏️ Edit Product';
-    if (idField) idField.value = product.id;
-    if (nameEl) nameEl.value = product.name || '';
-    if (priceEl) priceEl.value = product.price || 0;
-    if (badgeEl) badgeEl.value = product.badge || 'FREE';
-    if (statusEl) statusEl.value = product.status || 'available';
-    if (imageEl) imageEl.value = product.image || '';
-    if (descEl) descEl.value = product.description || '';
-    if (featuresEl) featuresEl.value = (product.features || []).join(', ');
-    if (videoEl) videoEl.value = product.video || '';
-    if (downloadEl) downloadEl.value = product.downloadLink || '';
-    if (currencyEl) currencyEl.value = product.currency || 'USD';
-    if (typeEl) typeEl.value = product.productType || 'standard';
-
-    document.querySelectorAll('.currency-option').forEach(el => {
-        el.classList.toggle('active', el.dataset.currency === (product.currency || 'USD'));
-    });
-
-    document.querySelectorAll('.type-option').forEach(el => {
-        el.classList.toggle('active', el.dataset.type === (product.productType || 'standard'));
-    });
-
-    if (product.productType === 'quantity' && quantityContainer) {
-        quantityContainer.style.display = 'block';
-        if (product.quantityOptions) {
-            setQuantityOptions(product.quantityOptions);
-        }
-    } else if (quantityContainer) {
-        quantityContainer.style.display = 'none';
-    }
-
-    if (product.badges) {
-        setBadges(product.badges);
-    } else {
-        document.querySelectorAll('.badge-option').forEach(el => el.classList.remove('selected'));
-        if (badgesInput) badgesInput.value = '';
-    }
-
-    modal.classList.add('open');
-    document.body.style.overflow = 'hidden';
-};
-
-window.closeProductModal = function() {
-    const modal = document.getElementById('productModal');
-    if (modal) {
-        modal.classList.remove('open');
-        document.body.style.overflow = '';
-    }
-};
-
-window.saveProduct = async function() {
-    if (!currentUser || !isAdminCached) {
-        showToast('⛔ Unauthorized. Admin only.', 'error');
-        return;
-    }
-
-    const id = document.getElementById('productIdField')?.value;
-    const name = document.getElementById('productName')?.value.trim();
-    const price = parseFloat(document.getElementById('productPrice')?.value) || 0;
-    const badge = document.getElementById('productBadge')?.value || 'FREE';
-    const status = document.getElementById('productStatus')?.value || 'available';
-    const image = document.getElementById('productImage')?.value.trim() || '';
-    const description = document.getElementById('productDescription')?.value.trim() || '';
-    const featuresText = document.getElementById('productFeatures')?.value.trim() || '';
-    const video = document.getElementById('productVideo')?.value.trim() || '';
-    const downloadLink = document.getElementById('productDownloadLink')?.value.trim() || '';
-    const currency = document.getElementById('productCurrency')?.value || 'USD';
-    const productType = document.getElementById('productType')?.value || 'standard';
-
-    if (!name) {
-        showToast('⚠️ Product name is required', 'warning');
-        return;
-    }
-
-    const features = featuresText ? featuresText.split(',').map(f => f.trim()).filter(f => f) : [];
-    const badgesText = document.getElementById('productBadges')?.value || '';
-    const badges = badgesText ? badgesText.split(',').map(b => b.trim()).filter(b => b) : [];
-
-    const productData = {
-        name,
-        price,
-        badge,
-        status,
-        image,
-        description,
-        features,
-        video,
-        downloadLink,
-        currency,
-        productType,
-        badges,
-        updatedAt: serverTimestamp()
-    };
-
-    if (productType === 'quantity') {
-        const quantityOptions = getQuantityOptions();
-        if (quantityOptions.length === 0) {
-            showToast('⚠️ Please add at least one quantity option', 'warning');
-            return;
-        }
-        productData.quantityOptions = quantityOptions;
-    }
-
-    try {
-        if (id) {
-            await updateDoc(doc(db, 'products', id), productData);
-            showToast('✅ Product updated successfully!', 'success');
-        } else {
-            productData.createdAt = serverTimestamp();
-            await addDoc(collection(db, 'products'), productData);
-            showToast('✅ Product added successfully!', 'success');
-        }
-
-        closeProductModal();
-    } catch (error) {
-        console.error('Error saving product:', error);
-        showToast('❌ Error: ' + error.message, 'error');
-    }
-};
-
-window.deleteProduct = async function(productId) {
-    if (!currentUser || !isAdminCached) {
-        showToast('⛔ Unauthorized. Admin only.', 'error');
-        return;
-    }
-
-    if (!confirm('Are you sure you want to delete this product?')) return;
-
-    try {
-        await deleteDoc(doc(db, 'products', productId));
-        showToast('🗑️ Product deleted successfully', 'success');
-    } catch (error) {
-        console.error('Error deleting product:', error);
-        showToast('❌ Error: ' + error.message, 'error');
-    }
-};
-
-// ============================================================
-// 59.5 FILTER ORDERS FUNCTION
-// ============================================================
-
-window.filterOrders = function(filter) {
-    ordersFilter = filter;
-    renderHistoryFull();
-};
-
-// ============================================================
-// 59.6 ADMIN SETTINGS UI
-// ============================================================
-
-async function loadAdminSettingsUI() {
-    if (!currentUser || !isAdminCached) return;
-    
-    const container = document.getElementById('adminSettingsContainer');
-    if (!container) {
-        const tabContent = document.getElementById('tabSettings');
-        if (tabContent) {
-            const div = document.createElement('div');
-            div.id = 'adminSettingsContainer';
-            tabContent.appendChild(div);
-            container = div;
-        } else {
-            console.error('❌ tabSettings not found');
-            return;
-        }
-    }
-
-    try {
-        const settings = await getAdminSettings();
-        
-        container.innerHTML = `
-            <div style="background:var(--glass-bg); padding:20px; border-radius:var(--radius-md); border:1px solid var(--glass-border);">
-                <h3 style="margin-bottom:16px; color:var(--vip-color);">🔔 Notification Settings</h3>
-                
-                <div class="admin-form-group">
-                    <label>Admin Email</label>
-                    <input id="adminEmailInput" type="email" value="${settings.adminEmail || ''}" 
-                           style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); 
-                                  background:var(--card-bg); color:var(--text);" />
-                    <div style="font-size:11px; color:var(--text-secondary); opacity:0.4; margin-top:4px;">
-                        All notifications will be sent to this email
-                    </div>
-                </div>
-                
-                <div class="admin-form-group" style="margin-top:12px;">
-                    <label>Admin Telegram Chat ID</label>
-                    <input id="adminTelegramInput" type="text" value="${settings.adminTelegramChatId || ''}" 
-                           style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); 
-                                  background:var(--card-bg); color:var(--text); font-family:monospace;" />
-                    <div style="font-size:11px; color:var(--text-secondary); opacity:0.4; margin-top:4px;">
-                        Send /start to @${BOT_USERNAME} then /chatid to get your Chat ID
-                        <button onclick="getMyTelegramChatId()" style="margin-left:8px; padding:2px 12px; border:none; border-radius:4px; background:var(--primary); color:#fff; cursor:pointer; font-size:11px;">
-                            <i class="fas fa-sync"></i> Get My Chat ID
-                        </button>
-                    </div>
-                </div>
-                
-                <div style="display:flex; gap:16px; margin-top:12px; flex-wrap:wrap;">
-                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                        <input type="checkbox" id="enableEmailNotif" ${settings.enableEmailNotifications !== false ? 'checked' : ''} />
-                        <span>📧 Email Notifications</span>
-                    </label>
-                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                        <input type="checkbox" id="enableTelegramNotif" ${settings.enableTelegramNotifications !== false ? 'checked' : ''} />
-                        <span>📱 Telegram Notifications</span>
-                    </label>
-                </div>
-                
-                <button onclick="saveAdminSettings()" style="margin-top:16px; padding:8px 24px; border:none; border-radius:var(--radius-sm); 
-                        background:var(--primary); color:#fff; font-weight:700; cursor:pointer;">
-                    <i class="fas fa-save"></i> Save Settings
-                </button>
-                
-                <div id="adminSettingsStatus" style="margin-top:8px; font-size:13px;"></div>
-            </div>
-        `;
-    } catch (error) {
-        console.error('Error loading admin settings:', error);
-        container.innerHTML = `<div style="color:var(--danger);">Failed to load settings: ${error.message}</div>`;
-    }
-}
-
-window.saveAdminSettings = async function() {
-    if (!currentUser || !isAdminCached) {
-        showToast('⛔ Unauthorized', 'error');
-        return;
-    }
-    
-    const email = document.getElementById('adminEmailInput')?.value.trim();
-    const telegramId = document.getElementById('adminTelegramInput')?.value.trim();
-    const enableEmail = document.getElementById('enableEmailNotif')?.checked || false;
-    const enableTelegram = document.getElementById('enableTelegramNotif')?.checked || false;
-    
-    if (!email) {
-        showToast('⚠️ Admin email is required', 'warning');
-        return;
-    }
-    
-    const statusEl = document.getElementById('adminSettingsStatus');
-    statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-    statusEl.style.color = 'var(--text-secondary)';
-    
-    try {
-        const settings = {
-            adminEmail: email,
-            adminTelegramChatId: telegramId || '',
-            enableEmailNotifications: enableEmail,
-            enableTelegramNotifications: enableTelegram
-        };
-        
-        await updateAdminSettings(settings);
-        statusEl.innerHTML = '✅ Settings saved successfully!';
-        statusEl.style.color = 'var(--success)';
-        showToast('✅ Admin settings saved!', 'success');
-        setTimeout(() => { statusEl.innerHTML = ''; }, 3000);
-    } catch (error) {
-        statusEl.innerHTML = '❌ Error: ' + error.message;
-        statusEl.style.color = 'var(--danger)';
-    }
-};
-
-window.getMyTelegramChatId = function() {
-    if (!currentUser) {
-        showToast('⚠️ Please login first', 'warning');
-        return;
-    }
-    
-    if (!userProfile.telegramChatId) {
-        showToast('⚠️ Please link your Telegram account first', 'warning');
-        bindTelegram();
-        return;
-    }
-    
-    const input = document.getElementById('adminTelegramInput');
-    if (input) {
-        input.value = userProfile.telegramChatId;
-        showToast(`✅ Chat ID set: ${userProfile.telegramChatId}`, 'success');
-    }
-};
-
-// ============================================================
-// FIX: Missing functions for cart and banner
-// ============================================================
-window.removeFromCartAndCloseBanner = function(productId) {
-    if (productId) {
-        cart = cart.filter(item => item.id !== productId);
-        saveUserData();
-        updateCartUI();
-        renderProducts(products);
-        updateBottomCartBar();
-        showToast('🗑️ Removed from cart', 'info');
-    }
-    const banner = document.getElementById('quickPurchaseBanner');
-    if (banner) banner.style.display = 'none';
-};
-
-window.closeQuickPurchaseBanner = function() {
-    const banner = document.getElementById('quickPurchaseBanner');
-    if (banner) banner.style.display = 'none';
-};
-
-// ============================================================
-// 60. EXPORT ALL FUNCTIONS TO WINDOW
-// ============================================================
-
-window.showLogin = showLogin;
-window.showRegister = showRegister;
-window.loginUser = loginUser;
-window.registerUser = registerUser;
-window.loginWithGoogle = loginWithGoogle;
-window.logoutUser = logoutUser;
-window.openForgotPassword = openForgotPassword;
-window.closeForgotPasswordModal = closeForgotPasswordModal;
-window.sendForgotPassword = sendForgotPassword;
-window.openAuthModal = openAuthModal;
-window.openUserMenuFull = openUserMenuFull;
-window.closeUserMenuFull = closeUserMenuFull;
-window.openCartFull = openCartFull;
-window.closeCartFull = closeCartFull;
-window.openWishlistFull = openWishlistFull;
-window.closeWishlistFull = closeWishlistFull;
-window.openProfileFull = openProfileFull;
-window.closeProfileFull = closeProfileFull;
-window.openHistoryFull = openHistoryFull;
-window.closeHistoryFull = closeHistoryFull;
-window.openDownloads = openDownloads;
-window.closeDownloads = closeDownloads;
-window.openNotifications = openNotifications;
-window.closeNotifications = closeNotifications;
-window.openTransactionsModal = openTransactionsModal;
-window.closeTransactionsModal = closeTransactionsModal;
-window.openSupportModal = openSupportModal;
-window.closeSupportModal = closeSupportModal;
-window.filterProducts = filterProducts;
-window.openDetails = openDetails;
-window.closeProductDetails = closeProductDetails;
-window.addToCart = addToCart;
-window.addToCartFromDetails = addToCartFromDetails;
-window.toggleWishlist = toggleWishlist;
-window.removeFromWishlist = removeFromWishlist;
-window.openShareModal = openShareModal;
-window.closeShareModal = closeShareModal;
-window.shareToWhatsApp = shareToWhatsApp;
-window.shareToTelegram = shareToTelegram;
-window.shareToFacebook = shareToFacebook;
-window.copyShareLink = copyShareLink;
-window.selectQuantityOption = selectQuantityOption;
-window.selectVipPlan = selectVipPlan;
-window.addVipPlanToCart = addVipPlanToCart;
-window.clearSearch = clearSearch;
-window.closeSearchResults = closeSearchResults;
-window.performLiveSearch = performLiveSearch;
-window.selectPayment = selectPayment;
-window.continuePayment = continuePayment;
-window.placeOrder = placeOrder;
-window.placeOrderTelegram = placeOrderTelegram;
-window.copyWalletAddress = copyWalletAddress;
-window.copyBinanceId = copyBinanceId;
-window.verifyTransaction = verifyTransaction;
-window.handleTxPaste = handleTxPaste;
-window.handleScreenshot = handleScreenshot;
-window.removeScreenshot = removeScreenshot;
-window.submitManualPayment = submitManualPayment;
-window.checkout = checkout;
-window.openPaymentModal = openPaymentModal;
-window.closePaymentModal = closePaymentModal;
-window.goToStep1 = goToStep1;
-window.clearCart = clearCart;
-window.removeFromCart = removeFromCart;
-window.updateCartQuantity = updateCartQuantity;
-window.toggleRpInCart = toggleRpInCart;
-window.applyCartPromo = applyCartPromo;
-window.renderWishlistFull = renderWishlistFull;
-window.renderProfileFull = renderProfileFull;
-window.renderCartFull = renderCartFull;
-window.saveProfileChangesInline = saveProfileChangesInline;
-window.sendResetLinkInline = sendResetLinkInline;
-window.changePasswordInline = changePasswordInline;
-window.togglePasswordVisibility = togglePasswordVisibility;
-window.bindTelegram = bindTelegram;
-window.checkTelegramStatus = checkTelegramStatus;
-window.testTelegramNotification = testTelegramNotification;
-window.unlinkTelegram = unlinkTelegram;
-window.showTelegramBanner = showTelegramBanner;
-window.showTelegramBannerAgain = showTelegramBannerAgain;
-window.adminToggleBanner = adminToggleBanner;
-window.resetBannerForAll = resetBannerForAll;
-window.closeTelegramBanner = closeTelegramBanner;
-window.ensureAdminPanel = ensureAdminPanel;
-window.openAdminPanel = openAdminPanel;
-window.closeAdminPanel = closeAdminPanel;
-window.switchAdminTab = switchAdminTab;
-window.loadAdminOrders = loadAdminOrders;
-window.updateOrderStatus = updateOrderStatus;
-window.deleteOrderImmediately = deleteOrderImmediately;
-window.searchAdminOrders = searchAdminOrders;
-window.clearAdminSearch = clearAdminSearch;
-window.refreshAdminOrders = refreshAdminOrders;
-window.loadAdminUsers = loadAdminUsers;
-window.toggleUserBan = toggleUserBan;
-window.deleteUserAccount = deleteUserAccount;
-window.viewUserDetails = viewUserDetails;
-window.closeUserDetailsModal = closeUserDetailsModal;
-window.searchAdminUsers = searchAdminUsers;
-window.clearAdminUserSearch = clearAdminUserSearch;
-window.refreshAdminUsers = refreshAdminUsers;
-window.openAddProductModal = openAddProductModal;
-window.openEditProductModal = openEditProductModal;
-window.closeProductModal = closeProductModal;
-window.saveProduct = saveProduct;
-window.deleteProduct = deleteProduct;
-window.selectCurrency = selectCurrency;
-window.selectProductType = selectProductType;
-window.addQuantityOption = addQuantityOption;
-window.removeQuantityOption = removeQuantityOption;
-window.toggleBadge = toggleBadge;
-window.openCreateDownloadModal = openCreateDownloadModal;
-window.closeCreateDownloadModal = closeCreateDownloadModal;
-window.createDownload = createDownload;
-window.deleteDownload = deleteDownload;
-window.editDownload = editDownload;
-window.openCreateNotificationModal = openCreateNotificationModal;
-window.closeCreateNotificationModal = closeCreateNotificationModal;
-window.createNotification = createNotification;
-window.deleteNotification = deleteNotification;
-window.markAllNotificationsRead = markAllNotificationsRead;
-window.clearAllNotifications = clearAllNotifications;
-window.openRequestsModal = openRequestsModal;
-window.closeRequestsModal = closeRequestsModal;
-window.openNewRequestModal = openNewRequestModal;
-window.closeNewRequestModal = closeNewRequestModal;
-window.submitRequest = submitRequest;
-window.openReferralModal = openReferralModal;
-window.closeReferralModal = closeReferralModal;
-window.copyReferralCode2 = copyReferralCode2;
-window.openLicenceModal = openLicenceModal;
-window.closeLicenceModal = closeLicenceModal;
-window.activateLicence = activateLicence;
-window.toggleLicencesList = toggleLicencesList;
-window.copyLicenceCode = copyLicenceCode;
-window.loadLicences = loadLicences;
-window.renderLicences = renderLicences;
-window.openCreateLicenceModal = openCreateLicenceModal;
-window.closeCreateLicenceModal = closeCreateLicenceModal;
-window.createLicenceManually = createLicenceManually;
-window.approveLicence = approveLicence;
-window.revokeLicence = revokeLicence;
-window.deleteLicence = deleteLicence;
-window.editLicence = editLicence;
-window.saveLicenceEdit = saveLicenceEdit;
-window.searchLicences = searchLicences;
-window.clearLicenceSearch = clearLicenceSearch;
-window.refreshLicences = refreshLicences;
-window.renderHistoryFull = renderHistoryFull;
-window.clearOrderHistory = clearOrderHistory;
-window.filterOrders = filterOrders;
-window.refreshDashboardStats = refreshDashboardStats;
-window.loadDashboardStats = loadDashboardStats;
-window.refreshAdvancedStats = refreshAdvancedStats;
-window.loadAuditLogs = loadAuditLogs;
-window.goToSlide = goToSlide;
-window.nextSlide = nextSlide;
-window.prevSlide = prevSlide;
-window.pauseSlider = pauseSlider;
-window.resumeSlider = resumeSlider;
-window.loadSliderSettings = loadSliderSettings;
-window.updateSlideProductSelect = updateSlideProductSelect;
-window.saveSliderData = saveSliderData;
-window.saveSliderInterval = saveSliderInterval;
-window.saveSlideEdit = saveSlideEdit;
-window.editSlide = editSlide;
-window.deleteSlide = deleteSlide;
-window.openAddSlideModal = openAddSlideModal;
-window.closeAddSlideModal = closeAddSlideModal;
-window.loadMarqueeSettings = loadMarqueeSettings;
-window.saveMarqueeSettings = saveMarqueeSettings;
-window.renderMarqueeSettingsUI = renderMarqueeSettingsUI;
-window.applyMarqueeSettings = applyMarqueeSettings;
-window.setRating = setRating;
-window.submitRating = submitRating;
-window.openTopupModal = openTopupModal;
-window.closeTopupModal = closeTopupModal;
-window.selectTopupAmount = selectTopupAmount;
-window.selectTopupCurrency = selectTopupCurrency;
-window.processTopup = processTopup;
-window.submitTopupWithTxHash = submitTopupWithTxHash;
-window.approveTopup = approveTopup;
-window.rejectTopup = rejectTopup;
-window.openTopupStatus = openTopupStatus;
-window.closeTopupStatus = closeTopupStatus;
-window.loadUserBalance = loadUserBalance;
-window.updateBalanceDisplay = updateBalanceDisplay;
-window.checkoutWithBalance = checkoutWithBalance;
-window.copyToClipboard = copyToClipboard;
-window.toggleSupportMenu = toggleSupportMenu;
-window.openWhatsAppSupport = openWhatsAppSupport;
-window.openTelegramSupport = openTelegramSupport;
-window.openEmailSupport = openEmailSupport;
-window.openPhoneSupport = openPhoneSupport;
-window.acceptCookies = acceptCookies;
-window.rejectCookies = rejectCookies;
-window.openCookieSettings = openCookieSettings;
-window.closeCookieSettings = closeCookieSettings;
-window.saveCookieSettings = saveCookieSettings;
-window.closeCookieBanner = closeCookieBanner;
-window.addProxyToCart = addProxyToCart;
-window.generateInvoice = generateInvoice;
-window.generatePDFInvoice = generatePDFInvoice;
-window.exportOrders = exportOrders;
-window.renderPaymentProducts = renderPaymentProducts;
-window.hideLoadingScreenManually = hideLoadingScreenManually;
-window.updateLoadingText = updateLoadingText;
-window.showMainApp = showMainApp;
-window.fixHeaderAndModals = fixDirection;
-window.refreshAdminPayments = refreshAdminPayments;
-window.adminApprovePayment = adminApprovePayment;
-window.adminRejectPayment = adminRejectPayment;
-window.adminDeletePayment = adminDeletePayment;
-window.renderFallbackProductsAdmin = renderFallbackProductsAdmin;
-window.editFallbackProduct = editFallbackProduct;
-window.openAddFallbackProductModal = openAddFallbackProductModal;
-window.closeFallbackProductModal = closeFallbackProductModal;
-window.saveFallbackProduct = saveFallbackProduct;
-window.deleteFallbackProduct = deleteFallbackProduct;
-window.removeFromCartAndCloseBanner = removeFromCartAndCloseBanner;
-window.closeQuickPurchaseBanner = closeQuickPurchaseBanner;
-window.saveAdminSettings = saveAdminSettings;
-window.getMyTelegramChatId = getMyTelegramChatId;
-window.loadAdminSettingsUI = loadAdminSettingsUI;
-window.openCreateCouponModal = openCreateCouponModal;
-window.closeCreateCouponModal = closeCreateCouponModal;
-window.saveCoupon = saveCoupon;
-window.deleteCoupon = deleteCoupon;
-window.editCoupon = editCoupon;
-window.loadCoupons = loadCoupons;
-window.renderAdminCoupons = renderAdminCoupons;
-window.applyPopupCoupon = applyPopupCoupon;
-window.subscribeAndApply = subscribeAndApply;
-window.closePopup = closePopup;
-window.generatePDFInvoice = generatePDFInvoice;
-
-console.log('✅ All functions exported to window scope');
-
-// ============================================================
-// 61. INIT
+// 59. INIT
 // ============================================================
 
 async function init() {
-    console.log('🚀 Initializing ZI Store...');
+   
 
     const authSection = document.getElementById('authSection');
     if (authSection) authSection.style.display = 'none';
@@ -9208,7 +8978,7 @@ async function init() {
 }
 
 // ============================================================
-// 62. AUTH STATE LISTENER
+// 60. AUTH STATE LISTENER
 // ============================================================
 
 onAuthStateChanged(auth, async (user) => {
@@ -9249,7 +9019,7 @@ onAuthStateChanged(auth, async (user) => {
         } catch (error) { console.error('Error checking ban status:', error); }
 
         await refreshAdminStatus();
-        console.log('🔍 Admin status after login:', isAdminCached);
+        
 
         if (authSection) authSection.style.display = 'none';
         if (mainApp) mainApp.style.display = 'block';
@@ -9262,7 +9032,7 @@ onAuthStateChanged(auth, async (user) => {
         initPopups();
 
         if (isAdminCached) {
-            console.log('✅ Admin detected, loading admin features');
+            
             loadAdminOrders();
             startAdminRealtimeListener();
             renderAdminProducts(products);
@@ -9319,7 +9089,7 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// 63. START APP
+// 61. START APP
 // ============================================================
 
 if (document.readyState === 'loading') {
