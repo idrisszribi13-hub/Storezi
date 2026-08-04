@@ -1,10 +1,11 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - COMPLETE FIXED VERSION
-// ALL ERRORS FIXED:
+// SCRIPT.JS - ZI Store - COMPLETE WITH ALL FEATURES
+// ============================================================
+// FEATURES INCLUDED:
 // 1. process is defined for browser
 // 2. removeFromCartAndCloseBanner defined
 // 3. Duplicate date removed
-// 4. Products show correctly, loading screen hidden properly
+// 4. Products show correctly, loading screen with progress
 // 5. All functions exported to window
 // 6. Admin settings from Firestore (admin_settings/notifications)
 // 7. Topup custom amount fixed
@@ -13,6 +14,17 @@
 // 10. Auto-detect country on registration
 // 11. Country shown in profile and admin panel
 // 12. Proxy packages - only one (5 Proxies - 30 Days)
+// 13. Advanced Coupon System with full admin control
+// 14. Email System (Order confirmation, status updates, welcome)
+// 15. Smart Popups (Exit intent & time-based)
+// 16. AI-based Recommendations (user behavior tracking)
+// 17. Limited Stock Products with countdown
+// 18. Fraud Detection System
+// 19. Smart Chatbot
+// 20. PDF Invoice Generation
+// 21. Loading screen with progress percentage
+// 22. Full Dark/Light mode support
+// 23. Performance optimizations (lazy loading, debouncing)
 // ============================================================
 
 // ============================================================
@@ -21,9 +33,55 @@
 window.process = window.process || { env: { NODE_ENV: 'production' } };
 
 // ============================================================
-// FIX: Loading screen - controlled by auth state
+// FIX: Loading screen with progress
 // ============================================================
 (function() {
+    let loadingProgress = 0;
+    let loadingInterval = null;
+
+    function updateLoadingProgress(progress, text = null) {
+        loadingProgress = Math.min(progress, 100);
+        const bar = document.getElementById('progressBar');
+        const textEl = document.getElementById('progressText');
+        const statusEl = document.getElementById('loadingStatus');
+        if (bar) bar.style.width = loadingProgress + '%';
+        if (textEl) textEl.textContent = loadingProgress + '%';
+        if (text && statusEl) statusEl.textContent = text;
+        if (loadingProgress >= 100) {
+            if (loadingInterval) {
+                clearInterval(loadingInterval);
+                loadingInterval = null;
+            }
+            setTimeout(function() {
+                const screen = document.getElementById('loadingScreen');
+                if (screen) {
+                    screen.classList.add('hidden');
+                    setTimeout(function() {
+                        screen.classList.add('hidden-force');
+                    }, 600);
+                }
+            }, 500);
+        }
+    }
+
+    function startLoadingSimulation() {
+        loadingProgress = 0;
+        updateLoadingProgress(0, 'Starting...');
+        if (loadingInterval) clearInterval(loadingInterval);
+        loadingInterval = setInterval(function() {
+            var increment = Math.random() * 5 + 2;
+            var newProgress = loadingProgress + increment;
+            if (newProgress >= 90) {
+                newProgress = 90 + (Math.random() * 8);
+            }
+            if (newProgress > 100) newProgress = 100;
+            updateLoadingProgress(newProgress);
+        }, 200);
+    }
+
+    window.updateLoadingProgress = updateLoadingProgress;
+    window.startLoadingSimulation = startLoadingSimulation;
+
     function hideLoadingScreenImmediate() {
         var screen = document.getElementById('loadingScreen');
         if (screen) {
@@ -31,13 +89,15 @@ window.process = window.process || { env: { NODE_ENV: 'production' } };
             setTimeout(function() {
                 screen.style.display = 'none';
             }, 600);
-            console.log('âœ… Loading screen hidden immediately');
+            console.log('✅ Loading screen hidden immediately');
         }
     }
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', hideLoadingScreenImmediate);
+        document.addEventListener('DOMContentLoaded', function() {
+            startLoadingSimulation();
+        });
     } else {
-        hideLoadingScreenImmediate();
+        startLoadingSimulation();
     }
     setTimeout(hideLoadingScreenImmediate, 300);
 })();
@@ -90,15 +150,15 @@ isSupported().then(supported => {
     if (supported) {
         try {
             analytics = getAnalytics(app);
-            console.log('âœ… Firebase Analytics initialized');
+            console.log('✅ Firebase Analytics initialized');
         } catch (e) {
-            console.log('â„¹ï¸ Analytics not available, continuing...');
+            console.log('ℹ️ Analytics not available, continuing...');
         }
     } else {
-        console.log('â„¹ï¸ Analytics not supported in this environment');
+        console.log('ℹ️ Analytics not supported in this environment');
     }
 }).catch(() => {
-    console.log('â„¹ï¸ Analytics skipped');
+    console.log('ℹ️ Analytics skipped');
 });
 
 // ============================================================
@@ -115,7 +175,7 @@ const DISABLE_PROXY = true;
 
 const ADMIN_EMAIL = 'idriss.zribi13@gmail.com';
 
-// FIX: Only one proxy package (5 Proxies - 30 Days)
+// Only one proxy package (5 Proxies - 30 Days)
 const proxyPackages = [
     { id: 'proxy_2', name: '5 Proxies - 30 Days', price: 20, duration: 30, quantity: 5, plan: 'residential' }
 ];
@@ -149,6 +209,12 @@ let allLicences = [];
 let isProcessingOrder = false;
 let isAdminCached = false;
 let adminCheckPromise = null;
+let popupShown = false;
+let exitIntentEnabled = true;
+let userHistory = [];
+let userPreferences = {};
+let coupons = [];
+let activeCoupons = [];
 
 // ============================================================
 // TOPUP SYSTEM VARIABLES
@@ -169,7 +235,7 @@ let isSliderPaused = false;
 // Marquee variables
 let marqueeSettings = {
     enabled: true,
-    text: 'ðŸš€ Welcome to ZI Store | âš¡ Instant Delivery | ðŸ”’ Secure Payment | ðŸ’¬ 24/7 Support'
+    text: '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support'
 };
 
 let featuredProducts = [];
@@ -327,7 +393,7 @@ function hideLoadingScreen() {
         setTimeout(() => {
             screen.classList.add('hidden-force');
         }, 600);
-        console.log('âœ… Loading screen hidden');
+        console.log('✅ Loading screen hidden');
     }
 }
 
@@ -344,6 +410,7 @@ function updateLoadingText(text) {
     if (statusEl) {
         statusEl.textContent = text || 'Loading...';
     }
+    window.updateLoadingProgress(90, text);
 }
 
 window.hideLoadingScreenManually = function() {
@@ -363,10 +430,10 @@ window.showMainApp = function() {
         mainApp.style.display = 'block';
         mainApp.style.visibility = 'visible';
         mainApp.style.opacity = '1';
-        console.log('âœ… Main app shown');
+        console.log('✅ Main app shown');
         return true;
     }
-    console.warn('âš ï¸ Main app element not found');
+    console.warn('⚠️ Main app element not found');
     return false;
 };
 
@@ -436,7 +503,7 @@ function updateServerTime() {
 
 async function fetchUserInfo() {
     try {
-        console.log('ðŸ“ Fetching IP info via Supabase proxy...');
+        console.log('📍 Fetching IP info via Supabase proxy...');
         const response = await fetch(`${SUPABASE_URL}/functions/v1/get-ip-info`, {
             method: 'GET',
             headers: {
@@ -451,7 +518,7 @@ async function fetchUserInfo() {
         }
 
         const data = await response.json();
-        console.log('ðŸ“ IP Info from proxy:', data);
+        console.log('📍 IP Info from proxy:', data);
 
         if (data.error) {
             throw new Error(data.error);
@@ -471,11 +538,11 @@ async function fetchUserInfo() {
 
         return data;
     } catch (error) {
-        console.error('âŒ Failed to fetch IP info:', error);
+        console.error('❌ Failed to fetch IP info:', error);
         const ipEl = document.getElementById('userIP');
-        if (ipEl) ipEl.textContent = 'âš ï¸ Unavailable';
+        if (ipEl) ipEl.textContent = '⚠️ Unavailable';
         const countryEl = document.getElementById('userCountry');
-        if (countryEl) countryEl.textContent = 'ðŸŒ Unknown';
+        if (countryEl) countryEl.textContent = '🌍 Unknown';
         const timezoneEl = document.getElementById('userTimezone');
         if (timezoneEl) timezoneEl.textContent = 'UTC';
         return null;
@@ -483,25 +550,25 @@ async function fetchUserInfo() {
 }
 
 function getCountryFlag(countryCode) {
-    if (!countryCode) return 'ðŸŒ';
+    if (!countryCode) return '🌍';
     const flags = {
-        'US': 'ðŸ‡ºðŸ‡¸', 'GB': 'ðŸ‡¬ðŸ‡§', 'CA': 'ðŸ‡¨ðŸ‡¦', 'AU': 'ðŸ‡¦ðŸ‡º', 'DE': 'ðŸ‡©ðŸ‡ª',
-        'FR': 'ðŸ‡«ðŸ‡·', 'IT': 'ðŸ‡®ðŸ‡¹', 'ES': 'ðŸ‡ªðŸ‡¸', 'PT': 'ðŸ‡µðŸ‡¹', 'NL': 'ðŸ‡³ðŸ‡±',
-        'BE': 'ðŸ‡§ðŸ‡ª', 'CH': 'ðŸ‡¨ðŸ‡­', 'AT': 'ðŸ‡¦ðŸ‡¹', 'SE': 'ðŸ‡¸ðŸ‡ª', 'NO': 'ðŸ‡³ðŸ‡´',
-        'DK': 'ðŸ‡©ðŸ‡°', 'FI': 'ðŸ‡«ðŸ‡®', 'IE': 'ðŸ‡®ðŸ‡ª', 'NZ': 'ðŸ‡³ðŸ‡¿', 'ZA': 'ðŸ‡¿ðŸ‡¦',
-        'BR': 'ðŸ‡§ðŸ‡·', 'AR': 'ðŸ‡¦ðŸ‡·', 'MX': 'ðŸ‡²ðŸ‡½', 'CO': 'ðŸ‡¨ðŸ‡´', 'CL': 'ðŸ‡¨ðŸ‡±',
-        'AE': 'ðŸ‡¦ðŸ‡ª', 'SA': 'ðŸ‡¸ðŸ‡¦', 'QA': 'ðŸ‡¶ðŸ‡¦', 'OM': 'ðŸ‡´ðŸ‡²', 'KW': 'ðŸ‡°ðŸ‡¼',
-        'BH': 'ðŸ‡§ðŸ‡­', 'JO': 'ðŸ‡¯ðŸ‡´', 'IL': 'ðŸ‡®ðŸ‡±', 'LB': 'ðŸ‡±ðŸ‡§', 'EG': 'ðŸ‡ªðŸ‡¬',
-        'DZ': 'ðŸ‡©ðŸ‡¿', 'MA': 'ðŸ‡²ðŸ‡¦', 'TN': 'ðŸ‡¹ðŸ‡³', 'LY': 'ðŸ‡±ðŸ‡¾', 'SD': 'ðŸ‡¸ðŸ‡©',
-        'ET': 'ðŸ‡ªðŸ‡¹', 'KE': 'ðŸ‡°ðŸ‡ª', 'UG': 'ðŸ‡ºðŸ‡¬', 'TZ': 'ðŸ‡¹ðŸ‡¿', 'RW': 'ðŸ‡·ðŸ‡¼',
-        'ZM': 'ðŸ‡¿ðŸ‡²', 'ZW': 'ðŸ‡¿ðŸ‡¼', 'MW': 'ðŸ‡²ðŸ‡¼', 'MZ': 'ðŸ‡²ðŸ‡¿',
-        'NG': 'ðŸ‡³ðŸ‡¬', 'GH': 'ðŸ‡¬ðŸ‡­', 'CI': 'ðŸ‡¨ðŸ‡®', 'SN': 'ðŸ‡¸ðŸ‡³', 'ML': 'ðŸ‡²ðŸ‡±',
-        'IN': 'ðŸ‡®ðŸ‡³', 'PK': 'ðŸ‡µðŸ‡°', 'BD': 'ðŸ‡§ðŸ‡©', 'MM': 'ðŸ‡²ðŸ‡²', 'TH': 'ðŸ‡¹ðŸ‡­',
-        'VN': 'ðŸ‡»ðŸ‡³', 'MY': 'ðŸ‡²ðŸ‡¾', 'SG': 'ðŸ‡¸ðŸ‡¬', 'PH': 'ðŸ‡µðŸ‡­', 'ID': 'ðŸ‡®ðŸ‡©',
-        'CN': 'ðŸ‡¨ðŸ‡³', 'JP': 'ðŸ‡¯ðŸ‡µ', 'KR': 'ðŸ‡°ðŸ‡·', 'TR': 'ðŸ‡¹ðŸ‡·', 'RU': 'ðŸ‡·ðŸ‡º',
-        'UA': 'ðŸ‡ºðŸ‡¦', 'PL': 'ðŸ‡µðŸ‡±', 'RO': 'ðŸ‡·ðŸ‡´', 'HU': 'ðŸ‡­ðŸ‡º', 'GR': 'ðŸ‡¬ðŸ‡·'
+        'US': '🇺🇸', 'GB': '🇬🇧', 'CA': '🇨🇦', 'AU': '🇦🇺', 'DE': '🇩🇪',
+        'FR': '🇫🇷', 'IT': '🇮🇹', 'ES': '🇪🇸', 'PT': '🇵🇹', 'NL': '🇳🇱',
+        'BE': '🇧🇪', 'CH': '🇨🇭', 'AT': '🇦🇹', 'SE': '🇸🇪', 'NO': '🇳🇴',
+        'DK': '🇩🇰', 'FI': '🇫🇮', 'IE': '🇮🇪', 'NZ': '🇳🇿', 'ZA': '🇿🇦',
+        'BR': '🇧🇷', 'AR': '🇦🇷', 'MX': '🇲🇽', 'CO': '🇨🇴', 'CL': '🇨🇱',
+        'AE': '🇦🇪', 'SA': '🇸🇦', 'QA': '🇶🇦', 'OM': '🇴🇲', 'KW': '🇰🇼',
+        'BH': '🇧🇭', 'JO': '🇯🇴', 'IL': '🇮🇱', 'LB': '🇱🇧', 'EG': '🇪🇬',
+        'DZ': '🇩🇿', 'MA': '🇲🇦', 'TN': '🇹🇳', 'LY': '🇱🇾', 'SD': '🇸🇩',
+        'ET': '🇪🇹', 'KE': '🇰🇪', 'UG': '🇺🇬', 'TZ': '🇹🇿', 'RW': '🇷🇼',
+        'ZM': '🇿🇲', 'ZW': '🇿🇼', 'MW': '🇲🇼', 'MZ': '🇲🇿',
+        'NG': '🇳🇬', 'GH': '🇬🇭', 'CI': '🇨🇮', 'SN': '🇸🇳', 'ML': '🇲🇱',
+        'IN': '🇮🇳', 'PK': '🇵🇰', 'BD': '🇧🇩', 'MM': '🇲🇲', 'TH': '🇹🇭',
+        'VN': '🇻🇳', 'MY': '🇲🇾', 'SG': '🇸🇬', 'PH': '🇵🇭', 'ID': '🇮🇩',
+        'CN': '🇨🇳', 'JP': '🇯🇵', 'KR': '🇰🇷', 'TR': '🇹🇷', 'RU': '🇷🇺',
+        'UA': '🇺🇦', 'PL': '🇵🇱', 'RO': '🇷🇴', 'HU': '🇭🇺', 'GR': '🇬🇷'
     };
-    return flags[countryCode] || 'ðŸŒ';
+    return flags[countryCode] || '🌍';
 }
 
 async function initTopInfoBar() {
@@ -522,11 +589,11 @@ async function checkIsAdmin() {
     adminCheckPromise = (async () => {
         try {
             const uid = currentUser.uid;
-            console.log('ðŸ” Checking admin for UID:', uid);
+            console.log('🔍 Checking admin for UID:', uid);
             const adminRef = doc(db, 'admins', uid);
             const adminSnap = await getDoc(adminRef);
             const isAdmin = adminSnap.exists() && adminSnap.data().isAdmin === true;
-            console.log('âœ… Admin status:', isAdmin);
+            console.log('✅ Admin status:', isAdmin);
             isAdminCached = isAdmin;
             return isAdmin;
         } catch (error) {
@@ -548,14 +615,14 @@ async function refreshAdminStatus() {
 
 window.ensureAdminPanel = function() {
     if (!currentUser) {
-        console.warn('âš ï¸ No user logged in');
+        console.warn('⚠️ No user logged in');
         return false;
     }
     const adminMenuItem = document.getElementById('adminMenuItem');
     if (isAdminCached) {
         if (adminMenuItem) {
             adminMenuItem.style.display = 'flex';
-            console.log('âœ… Admin panel already active');
+            console.log('✅ Admin panel already active');
         }
         return true;
     }
@@ -564,11 +631,11 @@ window.ensureAdminPanel = function() {
             isAdminCached = true;
             if (adminMenuItem) {
                 adminMenuItem.style.display = 'flex';
-                console.log('âœ… Admin panel activated successfully');
+                console.log('✅ Admin panel activated successfully');
             }
             updateFullUserMenu();
             updateUI();
-            showToast('ðŸ‘‘ Admin panel activated', 'success');
+            showToast('👑 Admin panel activated', 'success');
             loadAdminOrders();
             startAdminRealtimeListener();
             renderAdminProducts(products);
@@ -576,13 +643,13 @@ window.ensureAdminPanel = function() {
             loadAdminTopups();
             renderFallbackProductsAdmin();
         } else {
-            console.warn('âš ï¸ User is not an admin');
+            console.warn('⚠️ User is not an admin');
             if (adminMenuItem) {
                 adminMenuItem.style.display = 'none';
             }
         }
     }).catch((error) => {
-        console.error('âŒ Error ensuring admin panel:', error);
+        console.error('❌ Error ensuring admin panel:', error);
     });
 };
 
@@ -622,7 +689,7 @@ async function getAdminSettings() {
 
 async function updateAdminSettings(settings) {
     if (!currentUser || !isAdminCached) {
-        showToast('â›” Unauthorized', 'error');
+        showToast('⛔ Unauthorized', 'error');
         return false;
     }
     
@@ -633,11 +700,11 @@ async function updateAdminSettings(settings) {
             updatedAt: serverTimestamp(),
             updatedBy: currentUser.uid
         }, { merge: true });
-        showToast('âœ… Admin settings updated!', 'success');
+        showToast('✅ Admin settings updated!', 'success');
         return true;
     } catch (error) {
         console.error('Error updating admin settings:', error);
-        showToast('âŒ Error: ' + error.message, 'error');
+        showToast('❌ Error: ' + error.message, 'error');
         return false;
     }
 }
@@ -663,21 +730,21 @@ async function sendAdminNotification(title, message) {
                     })
                 });
                 sentCount++;
-                console.log('âœ… Email sent to admin:', settings.adminEmail);
+                console.log('✅ Email sent to admin:', settings.adminEmail);
             } catch (error) {
-                console.error('âŒ Failed to send email:', error);
+                console.error('❌ Failed to send email:', error);
             }
         }
 
         if (settings.enableTelegramNotifications && settings.adminTelegramChatId) {
             try {
                 await sendTelegramNotification(settings.adminTelegramChatId, 
-                    `ðŸ“¢ *${title}*\n\n${message}`
+                    `📢 *${title}*\n\n${message}`
                 );
                 sentCount++;
-                console.log('âœ… Telegram sent to admin');
+                console.log('✅ Telegram sent to admin');
             } catch (error) {
-                console.error('âŒ Failed to send Telegram:', error);
+                console.error('❌ Failed to send Telegram:', error);
             }
         }
 
@@ -690,14 +757,14 @@ async function sendAdminNotification(title, message) {
                 createdAt: serverTimestamp()
             });
             sentCount++;
-            console.log('âœ… Firebase notification added for admin');
+            console.log('✅ Firebase notification added for admin');
         } catch (error) {
-            console.error('âŒ Failed to add Firebase notification:', error);
+            console.error('❌ Failed to add Firebase notification:', error);
         }
 
         return sentCount > 0;
     } catch (error) {
-        console.error('âŒ Error sending admin notification:', error);
+        console.error('❌ Error sending admin notification:', error);
         return false;
     }
 }
@@ -768,7 +835,7 @@ let lastUserLoadTime = 0;
 function startUserRealtimeListener() {
     if (unsubscribeUser) { unsubscribeUser(); unsubscribeUser = null; }
     if (!currentUser) {
-        console.log('â„¹ï¸ No authenticated user, skipping realtime listener');
+        console.log('ℹ️ No authenticated user, skipping realtime listener');
         return;
     }
     const uid = currentUser.uid;
@@ -832,7 +899,7 @@ function startUserRealtimeListener() {
 
 async function loadUserData() {
     if (!currentUser) {
-        console.log('â„¹ï¸ No authenticated user, loading from localStorage');
+        console.log('ℹ️ No authenticated user, loading from localStorage');
         loadFromLocalStorage();
         return;
     }
@@ -1063,7 +1130,7 @@ function updateFullUserMenu() {
         if (isAdminCached) {
             adminMenuItem.style.display = 'flex';
             if (pendingCount > 0) { adminBadge.style.display = 'inline-block'; adminBadge.textContent = pendingCount; } else { adminBadge.style.display = 'none'; }
-            console.log('âœ… Admin menu displayed');
+            console.log('✅ Admin menu displayed');
         } else {
             adminMenuItem.style.display = 'none';
         }
@@ -1100,8 +1167,8 @@ window.loginUser = async function() {
     try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         currentUser = userCredential.user;
-        successEl.textContent = 'âœ… Login successful!';
-        showToast('ðŸ‘‹ Welcome back!', 'success');
+        successEl.textContent = '✅ Login successful!';
+        showToast('👋 Welcome back!', 'success');
         btn.classList.remove('loading');
         await refreshAdminStatus();
 
@@ -1113,9 +1180,10 @@ window.loginUser = async function() {
             loadUserBalance();
             startTopupRealtimeListener();
             initTopInfoBar();
+            loadCoupons();
 
             if (isAdminCached) {
-                console.log('âœ… Admin detected, loading admin features');
+                console.log('✅ Admin detected, loading admin features');
                 loadAdminOrders();
                 startAdminRealtimeListener();
                 loadLicences();
@@ -1125,7 +1193,7 @@ window.loginUser = async function() {
                     const adminMenuItem = document.getElementById('adminMenuItem');
                     if (adminMenuItem) {
                         adminMenuItem.style.display = 'flex';
-                        console.log('âœ… Admin menu button displayed');
+                        console.log('✅ Admin menu button displayed');
                     }
                     updateFullUserMenu();
                 }, 200);
@@ -1135,11 +1203,12 @@ window.loginUser = async function() {
             loadSliderSettings();
             loadMarqueeSettings();
             window.ensureAdminPanel();
-            updateLoadingText('âœ… Ready!');
+            window.updateLoadingProgress(100, '✅ Ready!');
             window.showMainApp();
+            initPopups();
             hideLoadingScreen();
         }, 500);
-    } catch (error) { errorEl.textContent = 'âŒ ' + error.message; showToast('âŒ Login failed', 'error'); btn.classList.remove('loading'); }
+    } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Login failed', 'error'); btn.classList.remove('loading'); }
 };
 
 window.registerUser = async function() {
@@ -1161,16 +1230,15 @@ window.registerUser = async function() {
     if (password !== confirmPassword) { errorEl.textContent = 'Passwords do not match'; btn.classList.remove('loading'); return; }
     if (!termsChecked) { errorEl.textContent = 'Please agree to the terms'; btn.classList.remove('loading'); return; }
     try {
-        // ===== FIX: Auto-detect country from IP =====
         let detectedCountry = country;
         try {
             const ipInfo = await fetchUserInfo();
             if (ipInfo && ipInfo.country_name) {
                 detectedCountry = ipInfo.country_name;
-                console.log('ðŸ“ Detected country from IP:', detectedCountry);
+                console.log('📍 Detected country from IP:', detectedCountry);
             }
         } catch (e) {
-            console.warn('âš ï¸ Could not detect country from IP, using selected:', country);
+            console.warn('⚠️ Could not detect country from IP, using selected:', country);
         }
 
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -1185,10 +1253,13 @@ window.registerUser = async function() {
             balance: 0,
             createdAt: serverTimestamp(), updatedAt: serverTimestamp()
         });
-        successEl.textContent = 'âœ… Registration successful!';
-        showToast(`ðŸŽ‰ Welcome, ${name}!`, 'success');
+        successEl.textContent = '✅ Registration successful!';
+        showToast(`🎉 Welcome, ${name}!`, 'success');
         btn.classList.remove('loading');
         await refreshAdminStatus();
+        
+        // Send welcome email
+        await sendWelcomeEmail(email, name);
 
         setTimeout(() => {
             document.getElementById('authSection').style.display = 'none';
@@ -1196,15 +1267,17 @@ window.registerUser = async function() {
             loadUserData(); updateDropdownStats(); loadDownloads(); loadNotifications(); fetchCryptoPrices(); updateFullUserMenu(); showTelegramBanner();
             loadSliderSettings();
             loadMarqueeSettings();
+            loadCoupons();
             window.ensureAdminPanel();
-            updateLoadingText('âœ… Ready!');
+            window.updateLoadingProgress(100, '✅ Ready!');
             window.showMainApp();
             hideLoadingScreen();
             loadUserBalance();
             startTopupRealtimeListener();
             initTopInfoBar();
+            initPopups();
         }, 500);
-    } catch (error) { errorEl.textContent = 'âŒ ' + error.message; showToast('âŒ Registration failed', 'error'); btn.classList.remove('loading'); }
+    } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Registration failed', 'error'); btn.classList.remove('loading'); }
 };
 
 // Google Login with Popup
@@ -1225,16 +1298,15 @@ window.loginWithGoogle = function() {
             const photoURL = user.photoURL || '';
             userProfile.photoURL = photoURL;
 
-            // ===== FIX: Auto-detect country from IP for Google login =====
             let detectedCountry = 'Unknown';
             try {
                 const ipInfo = await fetchUserInfo();
                 if (ipInfo && ipInfo.country_name) {
                     detectedCountry = ipInfo.country_name;
-                    console.log('ðŸ“ Detected country from IP for Google login:', detectedCountry);
+                    console.log('📍 Detected country from IP for Google login:', detectedCountry);
                 }
             } catch (e) {
-                console.warn('âš ï¸ Could not detect country from IP for Google login');
+                console.warn('⚠️ Could not detect country from IP for Google login');
             }
 
             const userRef = doc(db, 'users', user.uid);
@@ -1249,9 +1321,11 @@ window.loginWithGoogle = function() {
             }, { merge: true });
 
             currentUser = user;
-            showToast('ðŸ‘‹ Welcome via Google!', 'success');
+            showToast('👋 Welcome via Google!', 'success');
             await refreshAdminStatus();
             await mergeGuestData(user.uid);
+            
+            await sendWelcomeEmail(user.email, user.displayName || user.email);
 
             setTimeout(() => {
                 document.getElementById('authSection').style.display = 'none';
@@ -1261,9 +1335,10 @@ window.loginWithGoogle = function() {
                 loadUserBalance();
                 startTopupRealtimeListener();
                 initTopInfoBar();
+                loadCoupons();
 
                 if (isAdminCached) {
-                    console.log('âœ… Admin detected, loading admin features');
+                    console.log('✅ Admin detected, loading admin features');
                     loadAdminOrders();
                     startAdminRealtimeListener();
                     loadLicences();
@@ -1273,7 +1348,7 @@ window.loginWithGoogle = function() {
                         const adminMenuItem = document.getElementById('adminMenuItem');
                         if (adminMenuItem) {
                             adminMenuItem.style.display = 'flex';
-                            console.log('âœ… Admin menu button displayed');
+                            console.log('✅ Admin menu button displayed');
                         }
                         updateFullUserMenu();
                     }, 200);
@@ -1283,9 +1358,10 @@ window.loginWithGoogle = function() {
                 loadSliderSettings();
                 loadMarqueeSettings();
                 window.ensureAdminPanel();
-                updateLoadingText('âœ… Ready!');
+                window.updateLoadingProgress(100, '✅ Ready!');
                 window.showMainApp();
                 hideLoadingScreen();
+                initPopups();
             }, 500);
         })
         .catch((error) => {
@@ -1294,9 +1370,9 @@ window.loginWithGoogle = function() {
             if (error.code === 'auth/account-exists-with-different-credential') {
                 const email = error.email;
                 if (errorEl) {
-                    errorEl.textContent = `âš ï¸ This email (${email}) is already registered with another method. Please login with password first, then you can link your Google account from profile.`;
+                    errorEl.textContent = `⚠️ This email (${email}) is already registered with another method. Please login with password first, then you can link your Google account from profile.`;
                 }
-                showToast('âš ï¸ This email is already in use. Please login with password.', 'warning');
+                showToast('⚠️ This email is already in use. Please login with password.', 'warning');
                 const loginEmail = document.getElementById('loginEmail');
                 if (loginEmail) loginEmail.value = email;
                 document.getElementById('loginContainer').style.display = 'block';
@@ -1304,8 +1380,8 @@ window.loginWithGoogle = function() {
             } else if (error.code === 'auth/popup-closed-by-user') {
                 showToast('Login cancelled', 'info');
             } else {
-                if (errorEl) errorEl.textContent = 'âŒ ' + error.message;
-                showToast('âŒ Google login failed: ' + error.message, 'error');
+                if (errorEl) errorEl.textContent = '❌ ' + error.message;
+                showToast('❌ Google login failed: ' + error.message, 'error');
             }
         });
 };
@@ -1378,7 +1454,7 @@ async function mergeGuestData(newUid) {
         }
 
         if (updated) {
-            showToast('ðŸ”„ Your previous data has been merged successfully!', 'success');
+            showToast('🔄 Your previous data has been merged successfully!', 'success');
             localStorage.removeItem('zi_wishlist_backup');
             localStorage.removeItem('zi_cart_backup');
             localStorage.removeItem('zi_history_backup');
@@ -1404,9 +1480,9 @@ window.logoutUser = async function() {
         pendingCount = 0; unreadNotifications = 0;
         document.getElementById('authSection').style.display = 'block';
         document.getElementById('mainApp').style.display = 'none';
-        showToast('ðŸ‘‹ Logged out', 'info');
+        showToast('👋 Logged out', 'info');
         updateUI(); updateNotificationBadge(); loadUserData(); updateFullUserMenu();
-    } catch (error) { showToast('âŒ Logout error', 'error'); }
+    } catch (error) { showToast('❌ Logout error', 'error'); }
 };
 
 window.openForgotPassword = function() { document.getElementById('forgotPasswordModal').classList.add('open'); document.getElementById('forgotError').textContent = ''; document.getElementById('forgotSuccess').textContent = ''; };
@@ -1417,7 +1493,7 @@ window.sendForgotPassword = async function() {
     const successEl = document.getElementById('forgotSuccess');
     errorEl.textContent = ''; successEl.textContent = '';
     if (!email) { errorEl.textContent = 'Please enter your email'; return; }
-    try { await sendPasswordResetEmail(auth, email); successEl.textContent = 'âœ… Reset link sent to ' + email; showToast('ðŸ“§ Password reset link sent!', 'success'); setTimeout(() => { closeForgotPasswordModal(); }, 2000); } catch (error) { errorEl.textContent = 'âŒ ' + error.message; showToast('âŒ ' + error.message, 'error'); }
+    try { await sendPasswordResetEmail(auth, email); successEl.textContent = '✅ Reset link sent to ' + email; showToast('📧 Password reset link sent!', 'success'); setTimeout(() => { closeForgotPasswordModal(); }, 2000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); }
 };
 
 // ============================================================
@@ -1430,9 +1506,9 @@ window.openCartFull = function() { document.getElementById('cartFull').classList
 window.closeCartFull = function() { document.getElementById('cartFull').classList.remove('open'); document.body.style.overflow = ''; };
 window.openWishlistFull = function() { document.getElementById('wishlistFull').classList.add('open'); renderWishlistFull(); document.body.style.overflow = 'hidden'; };
 window.closeWishlistFull = function() { document.getElementById('wishlistFull').classList.remove('open'); document.body.style.overflow = ''; };
-window.openProfileFull = function() { if (!currentUser) { showToast('âš ï¸ Please login first', 'warning'); openAuthModal(); return; } document.getElementById('profileFull').classList.add('open'); renderProfileFull(); document.body.style.overflow = 'hidden'; };
+window.openProfileFull = function() { if (!currentUser) { showToast('⚠️ Please login first', 'warning'); openAuthModal(); return; } document.getElementById('profileFull').classList.add('open'); renderProfileFull(); document.body.style.overflow = 'hidden'; };
 window.closeProfileFull = function() { document.getElementById('profileFull').classList.remove('open'); document.body.style.overflow = ''; };
-window.openHistoryFull = function() { if (!currentUser) { showToast('âš ï¸ Please login first', 'warning'); openAuthModal(); return; } document.getElementById('historyFull').classList.add('open'); renderHistoryFull(); document.body.style.overflow = 'hidden'; };
+window.openHistoryFull = function() { if (!currentUser) { showToast('⚠️ Please login first', 'warning'); openAuthModal(); return; } document.getElementById('historyFull').classList.add('open'); renderHistoryFull(); document.body.style.overflow = 'hidden'; };
 window.closeHistoryFull = function() { document.getElementById('historyFull').classList.remove('open'); document.body.style.overflow = ''; };
 window.openDownloads = function() { document.getElementById('downloadsModal').classList.add('open'); };
 window.closeDownloads = function() { document.getElementById('downloadsModal').classList.remove('open'); };
@@ -1446,7 +1522,7 @@ window.openAuthModal = function() { document.getElementById('authSection').scrol
 
 window.openTransactionsModal = function() {
     if (!currentUser) {
-        showToast('âš ï¸ Please login first', 'warning');
+        showToast('⚠️ Please login first', 'warning');
         return;
     }
     document.getElementById('transactionsModal').classList.add('open');
@@ -1507,13 +1583,13 @@ function renderTransactions(transactions) {
         const isPositive = t.amount > 0;
         const sign = isPositive ? '+' : '';
         const color = isPositive ? 'var(--success)' : 'var(--danger)';
-        const icon = isPositive ? 'â†‘' : 'â†“';
+        const icon = isPositive ? '↑' : '↓';
         const typeLabels = {
-            'topup': 'ðŸ’° Topup',
-            'purchase': 'ðŸ›’ Purchase',
-            'refund': 'â†©ï¸ Refund',
-            'admin_adjustment': 'âš™ï¸ Admin Adjustment',
-            'referral_bonus': 'ðŸŽ Referral Bonus'
+            'topup': '💰 Topup',
+            'purchase': '🛒 Purchase',
+            'refund': '↩️ Refund',
+            'admin_adjustment': '⚙️ Admin Adjustment',
+            'referral_bonus': '🎁 Referral Bonus'
         };
         const typeLabel = typeLabels[t.type] || t.type;
 
@@ -1562,10 +1638,10 @@ function renderProfileFull() {
                     <div class="hero-name">${displayName}</div>
                     <div class="hero-email">${currentUser.email || 'No email'}</div>
                     <div class="hero-badges">
-                        <span class="hero-badge rp">ðŸŽ¯ RP: ${userProfile.rp || 0}</span>
-                        <span class="hero-badge licence">ðŸ”‘ Licences: ${activeLicences}</span>
-                        <span class="hero-badge balance">ðŸ’° Balance: $${balance.toFixed(2)}</span>
-                        ${userProfile.isBanned ? '<span class="hero-badge banned">ðŸš« BANNED</span>' : ''}
+                        <span class="hero-badge rp">🎯 RP: ${userProfile.rp || 0}</span>
+                        <span class="hero-badge licence">🔑 Licences: ${activeLicences}</span>
+                        <span class="hero-badge balance">💰 Balance: $${balance.toFixed(2)}</span>
+                        ${userProfile.isBanned ? '<span class="hero-badge banned">🚫 BANNED</span>' : ''}
                     </div>
                     <div class="hero-joined"><i class="fas fa-calendar-alt"></i> Joined: ${joinedDate}</div>
                     <div style="font-size:12px; color:var(--text-secondary); opacity:0.5; margin-top:2px;">
@@ -1608,21 +1684,21 @@ function renderProfileFull() {
                 <div class="profile-form-group">
                     <label>Country</label>
                     <select id="editLocationInline">
-                        <option value="Tunisia" ${userProfile.location==='Tunisia'?'selected':''}>ðŸ‡¹ðŸ‡³ Tunisia</option>
-                        <option value="Algeria" ${userProfile.location==='Algeria'?'selected':''}>ðŸ‡©ðŸ‡¿ Algeria</option>
-                        <option value="Morocco" ${userProfile.location==='Morocco'?'selected':''}>ðŸ‡²ðŸ‡¦ Morocco</option>
-                        <option value="Egypt" ${userProfile.location==='Egypt'?'selected':''}>ðŸ‡ªðŸ‡¬ Egypt</option>
-                        <option value="Saudi Arabia" ${userProfile.location==='Saudi Arabia'?'selected':''}>ðŸ‡¸ðŸ‡¦ Saudi Arabia</option>
-                        <option value="UAE" ${userProfile.location==='UAE'?'selected':''}>ðŸ‡¦ðŸ‡ª UAE</option>
-                        <option value="Other" ${userProfile.location==='Other'?'selected':''}>ðŸŒ Other</option>
+                        <option value="Tunisia" ${userProfile.location==='Tunisia'?'selected':''}>🇹🇳 Tunisia</option>
+                        <option value="Algeria" ${userProfile.location==='Algeria'?'selected':''}>🇩🇿 Algeria</option>
+                        <option value="Morocco" ${userProfile.location==='Morocco'?'selected':''}>🇲🇦 Morocco</option>
+                        <option value="Egypt" ${userProfile.location==='Egypt'?'selected':''}>🇪🇬 Egypt</option>
+                        <option value="Saudi Arabia" ${userProfile.location==='Saudi Arabia'?'selected':''}>🇸🇦 Saudi Arabia</option>
+                        <option value="UAE" ${userProfile.location==='UAE'?'selected':''}>🇦🇪 UAE</option>
+                        <option value="Other" ${userProfile.location==='Other'?'selected':''}>🌍 Other</option>
                     </select>
                 </div>
                 <div class="profile-form-group">
                     <label>Language</label>
                     <select id="editLangInline">
-                        <option value="English" ${userProfile.lang==='English'?'selected':''}>ðŸ‡¬ðŸ‡§ English</option>
-                        <option value="Arabic" ${userProfile.lang==='Arabic'?'selected':''}>ðŸ‡¸ðŸ‡¦ Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©</option>
-                        <option value="French" ${userProfile.lang==='French'?'selected':''}>ðŸ‡«ðŸ‡· FranÃ§ais</option>
+                        <option value="English" ${userProfile.lang==='English'?'selected':''}>🇬🇧 English</option>
+                        <option value="Arabic" ${userProfile.lang==='Arabic'?'selected':''}>🇸🇦 العربية</option>
+                        <option value="French" ${userProfile.lang==='French'?'selected':''}>🇫🇷 Français</option>
                     </select>
                 </div>
                 <div class="profile-actions">
@@ -1673,7 +1749,7 @@ function renderProfileFull() {
             <div class="section-title"><i class="fab fa-telegram-plane" style="color:#0088cc;"></i> Telegram Notifications</div>
             <div class="telegram-status-row">
                 <span class="label">Status</span>
-                <span class="value ${userProfile.telegramChatId?'linked':'unlinked'}">${userProfile.telegramChatId?'âœ… Linked':'âŒ Unlinked'}</span>
+                <span class="value ${userProfile.telegramChatId?'linked':'unlinked'}">${userProfile.telegramChatId?'✅ Linked':'❌ Unlinked'}</span>
             </div>
             ${userProfile.telegramChatId ? `
                 <div class="telegram-status-row">
@@ -1720,24 +1796,24 @@ window.togglePasswordVisibility = function(inputId) {
 
 window.saveProfileChangesInline = async function(e) {
     e.preventDefault();
-    if (!currentUser) { showToast('âš ï¸ Please login first', 'warning'); return; }
+    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
     const name = document.getElementById('editNameInline').value.trim();
     const telegram = document.getElementById('editTelegramInline').value.trim();
     const location = document.getElementById('editLocationInline').value;
     const lang = document.getElementById('editLangInline').value;
-    if (!name) { showToast('âš ï¸ Name is required', 'warning'); return; }
+    if (!name) { showToast('⚠️ Name is required', 'warning'); return; }
     try {
         await updateProfile(currentUser, { displayName: name });
         const userRef = doc(db, 'users', currentUser.uid);
         await updateDoc(userRef, { name, telegram, location, lang, updatedAt: serverTimestamp() });
         userProfile.name = name; userProfile.telegram = telegram; userProfile.location = location; userProfile.country = location; userProfile.lang = lang;
-        showToast('âœ… Profile updated!', 'success');
+        showToast('✅ Profile updated!', 'success');
         updateUI(); renderProfileFull(); updateFullUserMenu();
-    } catch (error) { showToast('âŒ Error: ' + error.message, 'error'); }
+    } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
 };
 
-window.sendResetLinkInline = async function() { if (!currentUser) return; try { await sendPasswordResetEmail(auth, currentUser.email); showToast(`ðŸ“§ Reset link sent to ${currentUser.email}`, 'success'); } catch (error) { showToast('âŒ ' + error.message, 'error'); } };
-window.changePasswordInline = async function() { if (!currentUser) return; const currentPwd = document.getElementById('currentPasswordInline').value; const newPwd = document.getElementById('newPasswordInline').value; const confirmPwd = document.getElementById('confirmNewPasswordInline').value; const errorEl = document.getElementById('passwordErrorInline'); const successEl = document.getElementById('passwordSuccessInline'); errorEl.textContent = ''; successEl.textContent = ''; if (!currentPwd || !newPwd || !confirmPwd) { errorEl.textContent = 'Please fill all fields'; return; } if (newPwd.length < 6) { errorEl.textContent = 'New password must be at least 6 characters'; return; } if (newPwd !== confirmPwd) { errorEl.textContent = 'Passwords do not match'; return; } try { const credential = EmailAuthProvider.credential(currentUser.email, currentPwd); await reauthenticateWithCredential(currentUser, credential); await updatePassword(currentUser, newPwd); successEl.textContent = 'âœ… Password changed successfully!'; showToast('âœ… Password updated!', 'success'); document.getElementById('currentPasswordInline').value = ''; document.getElementById('newPasswordInline').value = ''; document.getElementById('confirmNewPasswordInline').value = ''; setTimeout(() => { successEl.textContent = ''; }, 3000); } catch (error) { errorEl.textContent = 'âŒ ' + error.message; showToast('âŒ ' + error.message, 'error'); } };
+window.sendResetLinkInline = async function() { if (!currentUser) return; try { await sendPasswordResetEmail(auth, currentUser.email); showToast(`📧 Reset link sent to ${currentUser.email}`, 'success'); } catch (error) { showToast('❌ ' + error.message, 'error'); } };
+window.changePasswordInline = async function() { if (!currentUser) return; const currentPwd = document.getElementById('currentPasswordInline').value; const newPwd = document.getElementById('newPasswordInline').value; const confirmPwd = document.getElementById('confirmNewPasswordInline').value; const errorEl = document.getElementById('passwordErrorInline'); const successEl = document.getElementById('passwordSuccessInline'); errorEl.textContent = ''; successEl.textContent = ''; if (!currentPwd || !newPwd || !confirmPwd) { errorEl.textContent = 'Please fill all fields'; return; } if (newPwd.length < 6) { errorEl.textContent = 'New password must be at least 6 characters'; return; } if (newPwd !== confirmPwd) { errorEl.textContent = 'Passwords do not match'; return; } try { const credential = EmailAuthProvider.credential(currentUser.email, currentPwd); await reauthenticateWithCredential(currentUser, credential); await updatePassword(currentUser, newPwd); successEl.textContent = '✅ Password changed successfully!'; showToast('✅ Password updated!', 'success'); document.getElementById('currentPasswordInline').value = ''; document.getElementById('newPasswordInline').value = ''; document.getElementById('confirmNewPasswordInline').value = ''; setTimeout(() => { successEl.textContent = ''; }, 3000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); } };
 
 // ============================================================
 // Product Functions - CRITICAL FOR PRODUCTS TO SHOW
@@ -1745,22 +1821,22 @@ window.changePasswordInline = async function() { if (!currentUser) return; const
 
 async function loadProductsFromFirestore() {
     try {
-        console.log('ðŸ”„ Loading products from Firestore...');
+        console.log('🔄 Loading products from Firestore...');
         const productsRef = collection(db, 'products');
         const querySnapshot = await getDocs(query(productsRef, orderBy('createdAt', 'desc')));
         const productsList = [];
         querySnapshot.forEach((doc) => {
             productsList.push({ id: doc.id, ...doc.data() });
         });
-        console.log(`âœ… Loaded ${productsList.length} products from Firestore`);
+        console.log(`✅ Loaded ${productsList.length} products from Firestore`);
         if (productsList.length === 0) {
-            console.warn('âš ï¸ No products in Firestore, using fallback');
+            console.warn('⚠️ No products in Firestore, using fallback');
             return fallbackProducts;
         }
         return productsList;
     } catch (error) {
         console.error('Error loading products:', error);
-        console.warn('âš ï¸ Using fallback products due to error');
+        console.warn('⚠️ Using fallback products due to error');
         return fallbackProducts;
     }
 }
@@ -1778,9 +1854,9 @@ function startProductsRealtimeListener() {
             snapshot.forEach((doc) => {
                 productsList.push({ id: doc.id, ...doc.data() });
             });
-            console.log(`ðŸ”„ Products updated: ${productsList.length} products`);
+            console.log(`🔄 Products updated: ${productsList.length} products`);
             if (productsList.length === 0) {
-                console.warn('âš ï¸ No products in Firestore, using fallback');
+                console.warn('⚠️ No products in Firestore, using fallback');
                 products = fallbackProducts;
             } else {
                 products = productsList;
@@ -1794,16 +1870,18 @@ function startProductsRealtimeListener() {
             renderFeaturedProducts();
             updateSlideProductSelect();
             renderProxyPackages();
+            renderLimitedProducts();
         }, (error) => {
             console.error('Products listener error:', error);
             // Fallback to fallback products if listener fails
             products = fallbackProducts;
-            console.log(`âš ï¸ Using fallback products (${products.length})`);
+            console.log(`⚠️ Using fallback products (${products.length})`);
             renderProducts(products, false);
             renderAdminProducts(products);
             updateStatsFromProducts(products);
             renderFeaturedProducts();
             renderProxyPackages();
+            renderLimitedProducts();
         });
     } catch (error) {
         console.error('Failed to set up products listener:', error);
@@ -1813,14 +1891,15 @@ function startProductsRealtimeListener() {
         updateStatsFromProducts(products);
         renderFeaturedProducts();
         renderProxyPackages();
+        renderLimitedProducts();
     }
 }
 
 function getCurrencySymbol(currency) {
     const symbols = {
         'USD': '$',
-        'TND': 'Ø¯.Øª',
-        'OTHER': 'ðŸ’±'
+        'TND': 'د.ت',
+        'OTHER': '💱'
     };
     return symbols[currency] || '$';
 }
@@ -1841,10 +1920,10 @@ function renderBadges(badges) {
 function renderProducts(productsList, isLoading = false) {
     const container = document.getElementById('productList');
     if (!container) {
-        console.warn('âš ï¸ productList element not found!');
+        console.warn('⚠️ productList element not found!');
         return;
     }
-    console.log(`ðŸ”„ Rendering products, count: ${productsList.length}, loading: ${isLoading}`);
+    console.log(`🔄 Rendering products, count: ${productsList.length}, loading: ${isLoading}`);
     if (isLoading) {
         container.innerHTML = Array(4).fill(`
             <div class="product-card skeleton">
@@ -1887,7 +1966,7 @@ function renderProducts(productsList, isLoading = false) {
             discountBadge = `<span class="discount-badge">-${activeDiscount}%</span>`;
         }
         const currencySymbol = getCurrencySymbol(p.currency || 'USD');
-        const priceDisplay = isUnavailable ? 'â›” Unavailable' : (isFree ? 'FREE' : `${currencySymbol}${displayPrice.toFixed(2)}`);
+        const priceDisplay = isUnavailable ? '⛔ Unavailable' : (isFree ? 'FREE' : `${currencySymbol}${displayPrice.toFixed(2)}`);
 
         return `
       <div class="product-card" onclick="window.openDetails('${p.id}')">
@@ -1911,7 +1990,7 @@ function renderProducts(productsList, isLoading = false) {
         </div>
         <div class="card-actions">
           <button class="btn-details" onclick="event.stopPropagation(); window.openDetails('${p.id}')"><i class="fas fa-info-circle"></i></button>
-          ${isUnavailable?`<button class="btn-download" style="background:var(--text-secondary);color:#fff;cursor:not-allowed;opacity:0.4;" onclick="event.preventDefault();showToast('â›” Unavailable','warning')"><i class="fas fa-times-circle"></i></button>`:(isFree?`<a href="${p.downloadLink||'#'}" class="btn-download" ${p.downloadLink?'target="_blank"':'onclick="event.preventDefault();showToast(\'â³ Coming soon\',\'info\')"'}><i class="fas fa-download"></i></a>`:`<button class="btn-add-cart ${inCart?'added':''}" onclick="event.stopPropagation(); window.addToCart('${p.id}')"><i class="fas ${inCart?'fa-check':'fa-cart-plus'}"></i> ${inCart?qty:''}</button>`)}
+          ${isUnavailable?`<button class="btn-download" style="background:var(--text-secondary);color:#fff;cursor:not-allowed;opacity:0.4;" onclick="event.preventDefault();showToast('⛔ Unavailable','warning')"><i class="fas fa-times-circle"></i></button>`:(isFree?`<a href="${p.downloadLink||'#'}" class="btn-download" ${p.downloadLink?'target="_blank"':'onclick="event.preventDefault();showToast(\'⏳ Coming soon\',\'info\')"'}><i class="fas fa-download"></i></a>`:`<button class="btn-add-cart ${inCart?'added':''}" onclick="event.stopPropagation(); window.addToCart('${p.id}')"><i class="fas ${inCart?'fa-check':'fa-cart-plus'}"></i> ${inCart?qty:''}</button>`)}
         </div>
         <div class="product-footer-icons">
           <span class="icon-item"><i class="fas fa-bolt"></i> Instant</span>
@@ -1940,11 +2019,31 @@ function updateStatsFromProducts(productsList) {
 function generateRecommendations(productsList) {
     const grid = document.getElementById('recommendationsGrid');
     if (!grid) return;
-    const list = productsList || [];
-    const shuffled = [...list].sort(() => 0.5 - Math.random());
-    const top = shuffled.slice(0, 4);
-    if (top.length === 0) { grid.innerHTML = `<div class="rec-empty" style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text-secondary);font-size:13px;"><i class="fas fa-lightbulb" style="display:block;font-size:24px;opacity:0.2;margin-bottom:4px;"></i><p>Start exploring scripts!</p></div>`; return; }
-    grid.innerHTML = top.map(p => `<div class="rec-item" onclick="window.openDetails('${p.id}')"><img src="${p.image||'https://picsum.photos/seed/default/200/120'}" alt="${p.name}" /><div class="r-name">${p.name}</div><div class="r-price">${p.price===0?'FREE':getCurrencySymbol(p.currency || 'USD') + p.price.toFixed(2)}</div></div>`).join('');
+    
+    let recs = [];
+    if (currentUser) {
+        recs = getRecommendations(4);
+        if (recs.length === 0) {
+            recs = productsList.filter(p => p.price > 0).slice(0, 4);
+        }
+    } else {
+        recs = productsList.filter(p => p.price > 0).slice(0, 4);
+    }
+    
+    if (recs.length === 0) {
+        grid.innerHTML = `<div class="rec-empty" style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text-secondary);font-size:13px;">
+            <i class="fas fa-lightbulb" style="display:block;font-size:24px;opacity:0.2;margin-bottom:4px;"></i>
+            <p>Start exploring scripts!</p>
+        </div>`;
+        return;
+    }
+    grid.innerHTML = recs.map(p => `
+        <div class="rec-item" onclick="window.openDetails('${p.id}')">
+            <img src="${p.image||'https://picsum.photos/seed/default/200/120'}" alt="${p.name}" loading="lazy" />
+            <div class="r-name">${p.name}</div>
+            <div class="r-price">${p.price===0?'FREE':getCurrencySymbol(p.currency || 'USD') + p.price.toFixed(2)}</div>
+        </div>
+    `).join('');
 }
 
 // ============================================================
@@ -2000,7 +2099,7 @@ window.removeQuantityOption = function(btn) {
         item.remove();
         updateQuantityOptionsUI();
     } else {
-        showToast('âš ï¸ You need at least one quantity option', 'warning');
+        showToast('⚠️ You need at least one quantity option', 'warning');
     }
 };
 
@@ -2085,7 +2184,7 @@ function renderFallbackProductsAdmin() {
 
     container.innerHTML = `
         <div style="background:var(--glass-bg); backdrop-filter:blur(8px); border-radius:var(--radius-sm); padding:16px; border:1px solid var(--glass-border); margin-bottom:12px;">
-            <h4 style="font-weight:700; margin-bottom:8px; color:var(--vip-color);">ðŸ“¦ Fallback Products</h4>
+            <h4 style="font-weight:700; margin-bottom:8px; color:var(--vip-color);">📦 Fallback Products</h4>
             <div style="font-size:12px; color:var(--text-secondary); opacity:0.6; margin-bottom:12px;">
                 These products appear when no products exist in the database. You can edit or add new ones.
             </div>
@@ -2123,7 +2222,7 @@ function renderFallbackProductsAdmin() {
 
 window.editFallbackProduct = function(index) {
     const product = fallbackProducts[index];
-    if (!product) { showToast('âŒ Product not found', 'error'); return; }
+    if (!product) { showToast('❌ Product not found', 'error'); return; }
 
     document.getElementById('fallbackProductId').value = index;
     document.getElementById('fallbackProductName').value = product.name || '';
@@ -2136,7 +2235,7 @@ window.editFallbackProduct = function(index) {
     document.getElementById('fallbackProductVideo').value = product.video || 'https://www.youtube.com/embed/dQw4w9WgXcQ';
     document.getElementById('fallbackProductDownloadLink').value = product.downloadLink || '';
 
-    document.getElementById('fallbackProductModalTitle').textContent = 'âœï¸ Edit Fallback Product';
+    document.getElementById('fallbackProductModalTitle').textContent = '✏️ Edit Fallback Product';
     document.getElementById('fallbackProductModal').classList.add('open');
 };
 
@@ -2152,7 +2251,7 @@ window.openAddFallbackProductModal = function() {
     document.getElementById('fallbackProductVideo').value = 'https://www.youtube.com/embed/dQw4w9WgXcQ';
     document.getElementById('fallbackProductDownloadLink').value = '';
 
-    document.getElementById('fallbackProductModalTitle').textContent = 'âž• Add Fallback Product';
+    document.getElementById('fallbackProductModalTitle').textContent = '➕ Add Fallback Product';
     document.getElementById('fallbackProductModal').classList.add('open');
 };
 
@@ -2172,7 +2271,7 @@ window.saveFallbackProduct = function() {
     const video = document.getElementById('fallbackProductVideo').value.trim();
     const downloadLink = document.getElementById('fallbackProductDownloadLink').value.trim();
 
-    if (!name) { showToast('âš ï¸ Product name is required', 'warning'); return; }
+    if (!name) { showToast('⚠️ Product name is required', 'warning'); return; }
 
     const features = featuresText ? featuresText.split(',').map(f => f.trim()).filter(f => f) : [];
     const productData = {
@@ -2186,10 +2285,10 @@ window.saveFallbackProduct = function() {
 
     if (index !== '' && index >= 0 && index < fallbackProducts.length) {
         fallbackProducts[parseInt(index)] = { ...fallbackProducts[parseInt(index)], ...productData };
-        showToast('âœ… Fallback product updated!', 'success');
+        showToast('✅ Fallback product updated!', 'success');
     } else {
         fallbackProducts.push(productData);
-        showToast('âœ… Fallback product added!', 'success');
+        showToast('✅ Fallback product added!', 'success');
     }
 
     if (products.length === 0 || products === fallbackProducts) {
@@ -2209,7 +2308,7 @@ window.deleteFallbackProduct = function(index) {
         renderProducts(products, false);
     }
     renderFallbackProductsAdmin();
-    showToast('ðŸ—‘ï¸ Fallback product deleted', 'success');
+    showToast('🗑️ Fallback product deleted', 'success');
 };
 
 // ============================================================
@@ -2300,13 +2399,13 @@ function updateProductCardButton(productId) {
 
 window.addToCart = async function(productId) {
     const product = products.find(p => p.id === productId);
-    if (!product) { showToast('âš ï¸ Product not found', 'warning'); return; }
+    if (!product) { showToast('⚠️ Product not found', 'warning'); return; }
 
     if (product.productType === 'quantity') {
         const selectedQty = window._selectedQuantity || product.quantityOptions?.[0]?.quantity;
         const selectedPrice = window._selectedQuantityPrice || product.quantityOptions?.[0]?.price;
         if (!selectedQty || !selectedPrice) {
-            showToast('âš ï¸ Please select a quantity option', 'warning');
+            showToast('⚠️ Please select a quantity option', 'warning');
             return;
         }
         const existing = cart.find(item => item.id === productId && item.selectedQuantity === selectedQty);
@@ -2325,24 +2424,24 @@ window.addToCart = async function(productId) {
         updateCartUI();
         renderProducts(products);
         updateBottomCartBar();
-        showToast(`âœ… Added ${product.name} (${selectedQty}) to cart`, 'success');
+        showToast(`✅ Added ${product.name} (${selectedQty}) to cart`, 'success');
         updateProductCardButton(productId);
         return;
     }
 
-    if (product.price === 0) { showToast('âš ï¸ This script is free', 'warning'); return; }
+    if (product.price === 0) { showToast('⚠️ This script is free', 'warning'); return; }
     const existing = cart.find(item => item.id === productId && !item.isVip);
     if (existing) { existing.quantity = (existing.quantity || 1) + 1; } else { cart.push({ ...product, quantity: 1 }); }
     await saveUserData(true);
     updateCartUI();
     renderProducts(products);
     updateBottomCartBar();
-    showToast(`âœ… Added ${product.name} to cart`, 'success');
+    showToast(`✅ Added ${product.name} to cart`, 'success');
     updateProductCardButton(productId);
 };
 
-window.clearCart = async function() { if (cart.length === 0) return; cart = []; await saveUserData(); updateCartUI(); renderProducts(products); updateBottomCartBar(); showToast('ðŸ—‘ï¸ Cart cleared', 'info'); };
-window.removeFromCart = async function(productId) { cart = cart.filter(item => item.id !== productId); await saveUserData(true); updateCartUI(); renderProducts(products); updateBottomCartBar(); showToast('ðŸ—‘ï¸ Removed from cart', 'info'); };
+window.clearCart = async function() { if (cart.length === 0) return; cart = []; await saveUserData(); updateCartUI(); renderProducts(products); updateBottomCartBar(); showToast('🗑️ Cart cleared', 'info'); };
+window.removeFromCart = async function(productId) { cart = cart.filter(item => item.id !== productId); await saveUserData(true); updateCartUI(); renderProducts(products); updateBottomCartBar(); showToast('🗑️ Removed from cart', 'info'); };
 window.updateCartQuantity = async function(productId, change) {
     const item = cart.find(item => item.id === productId);
     if (!item) return;
@@ -2385,7 +2484,7 @@ function updateCartUI() {
 }
 
 // ============================================================
-// RENDER CART FULL - FIXED (removed duplicate checkout button)
+// RENDER CART FULL
 // ============================================================
 function renderCartFull() {
     const container = document.getElementById('cartFullContent');
@@ -2413,9 +2512,9 @@ function renderCartFull() {
         total += itemTotal;
         const product = products.find(p => p.id === item.id);
         const image = product?.image || item.image || 'https://picsum.photos/seed/default/100/100';
-        const vipLabel = item.isVip ? `ðŸ‘‘ ${item.vipPlanLabel || 'VIP'}` : '';
-        const qtyLabel = item.isQuantityProduct ? `ðŸ“¦ ${item.selectedQuantity || ''}` : '';
-        const proxyLabel = item.isProxy ? ' ðŸŒ' : '';
+        const vipLabel = item.isVip ? `👑 ${item.vipPlanLabel || 'VIP'}` : '';
+        const qtyLabel = item.isQuantityProduct ? `📦 ${item.selectedQuantity || ''}` : '';
+        const proxyLabel = item.isProxy ? ' 🌐' : '';
         html += `<div class="cart-item">
             <div class="ci-left">
                 <img src="${image}" alt="${item.name}" />
@@ -2442,11 +2541,11 @@ function renderCartFull() {
     <div style="background:var(--bg);border-radius:10px;padding:12px;border:1px solid var(--border);margin:8px 0;">
       <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:13px;">
         <span style="color:var(--text-secondary);opacity:0.5;display:flex;align-items:center;gap:6px;"><i class="fas fa-star" style="color:var(--vip-color);"></i> Loyalty Points (RP)</span>
-        <span style="color:var(--text);font-weight:600;">${userProfile.rp || 0} RP (â‰ˆ $${((userProfile.rp || 0) * RP_TO_DOLLAR).toFixed(2)})</span>
+        <span style="color:var(--text);font-weight:600;">${userProfile.rp || 0} RP (≈ $${((userProfile.rp || 0) * RP_TO_DOLLAR).toFixed(2)})</span>
       </div>
       <button class="rp-btn ${userProfile.useRpForCart?'active':''}" onclick="toggleRpInCart()" style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;transition:0.3s;margin-top:4px;">
         <i class="fas ${userProfile.useRpForCart?'fa-check-circle':'fa-circle'}"></i>
-        ${userProfile.useRpForCart?'Use RP âœ“':'Use RP'}
+        ${userProfile.useRpForCart?'Use RP ✓':'Use RP'}
       </button>
     </div>
     <div style="background:var(--bg);border-radius:10px;padding:12px;border:1px solid var(--border);margin:8px 0;">
@@ -2454,12 +2553,12 @@ function renderCartFull() {
         <input id="cartPromoInput" placeholder="Enter promo code..." style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);font-size:13px;outline:none;font-weight:500;" type="text" />
         <button onclick="applyCartPromo()" style="padding:6px 14px;border:none;border-radius:6px;background:var(--primary);color:#fff;font-weight:600;cursor:pointer;font-size:12px;transition:0.3s;white-space:nowrap;"><i class="fas fa-ticket-alt"></i> Apply</button>
       </div>
-      <div class="promo-status" id="cartPromoStatus" style="font-size:11px;color:var(--text-secondary);opacity:0.4;margin-top:4px;font-weight:500;">${activeDiscount>0?`âœ… ${activeDiscount}% discount active`:'Enter a promo code for a discount'}</div>
+      <div class="promo-status" id="cartPromoStatus" style="font-size:11px;color:var(--text-secondary);opacity:0.4;margin-top:4px;font-weight:500;">${activeDiscount>0?`✅ ${activeDiscount}% discount active`:'Enter a promo code for a discount'}</div>
     </div>
     <div style="margin-top:12px;padding-top:12px;border-top:2px solid var(--border);">
       <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;font-weight:500;"><span style="color:var(--text-secondary);opacity:0.5;">Subtotal</span><span style="color:var(--text);font-weight:600;">${getCurrencySymbol('USD')}${total.toFixed(2)}</span></div>
-      ${rpDiscountAmount>0?`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;color:var(--success);"><span style="color:var(--text-secondary);opacity:0.5;">ðŸŽ¯ RP discount (${Math.floor(rpDiscountAmount/RP_TO_DOLLAR)} RP)</span><span style="font-weight:600;">-${getCurrencySymbol('USD')}${rpDiscountAmount.toFixed(2)}</span></div>`:''}
-      ${activeDiscount>0?`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;color:var(--success);"><span style="color:var(--text-secondary);opacity:0.5;">ðŸŽ« Promo (${activeDiscount}%)</span><span style="font-weight:600;">-${getCurrencySymbol('USD')}${promoDiscountAmount.toFixed(2)}</span></div>`:''}
+      ${rpDiscountAmount>0?`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;color:var(--success);"><span style="color:var(--text-secondary);opacity:0.5;">🎯 RP discount (${Math.floor(rpDiscountAmount/RP_TO_DOLLAR)} RP)</span><span style="font-weight:600;">-${getCurrencySymbol('USD')}${rpDiscountAmount.toFixed(2)}</span></div>`:''}
+      ${activeDiscount>0?`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;color:var(--success);"><span style="color:var(--text-secondary);opacity:0.5;">🎫 Promo (${activeDiscount}%)</span><span style="font-weight:600;">-${getCurrencySymbol('USD')}${promoDiscountAmount.toFixed(2)}</span></div>`:''}
       <div style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid var(--border);margin-top:4px;padding-top:6px;font-size:18px;font-weight:700;"><span style="color:var(--text-secondary);opacity:0.5;">Total</span><span style="color:var(--primary);">${getCurrencySymbol('USD')}${finalTotal.toFixed(2)}</span></div>
       <div style="display:flex;align-items:center;gap:12px;margin-top:16px;">
         <button onclick="closeCartFull();checkoutWithBalance();" style="flex:1;padding:12px 16px;border:none;border-radius:var(--radius-sm);background:var(--vip-color);color:#0a0a1a;font-weight:700;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;gap:6px;transition:0.3s;">
@@ -2470,7 +2569,6 @@ function renderCartFull() {
         </button>
       </div>
     </div>
-    <!-- Only one "Continue Shopping" button at the bottom -->
     <div style="margin-top:16px;display:flex;justify-content:center;">
         <button onclick="closeCartFull();document.getElementById('productList').scrollIntoView({behavior:'smooth'})" 
                 style="padding:8px 24px;border:none;border-radius:var(--radius-sm);background:var(--glass-bg);color:var(--text);font-weight:700;cursor:pointer;border:1px solid var(--glass-border);">
@@ -2491,12 +2589,12 @@ window.applyCartPromo = function() {
     const input = document.getElementById('cartPromoInput');
     const code = input.value.trim().toUpperCase();
     const statusEl = document.getElementById('cartPromoStatus');
-    if (!code) { statusEl.textContent = 'âš ï¸ Please enter a code'; statusEl.className = 'promo-status error'; return; }
+    if (!code) { statusEl.textContent = '⚠️ Please enter a code'; statusEl.className = 'promo-status error'; return; }
     const codeData = discountCodes[code];
-    if (!codeData) { statusEl.textContent = 'âŒ Invalid code'; statusEl.className = 'promo-status error'; return; }
+    if (!codeData) { statusEl.textContent = '❌ Invalid code'; statusEl.className = 'promo-status error'; return; }
     activeDiscount = codeData.discount; activeDiscountCode = code;
-    statusEl.textContent = `âœ… ${codeData.discount}% discount applied!`; statusEl.className = 'promo-status success';
-    input.value = ''; renderCartFull(); showToast(`ðŸŽ‰ ${codeData.discount}% discount applied!`, 'success');
+    statusEl.textContent = `✅ ${codeData.discount}% discount applied!`; statusEl.className = 'promo-status success';
+    input.value = ''; renderCartFull(); showToast(`🎉 ${codeData.discount}% discount applied!`, 'success');
 };
 
 // ============================================================
@@ -2508,10 +2606,10 @@ window.toggleWishlist = async function(productId) {
     if (index === -1) {
         wishlist.push(productId);
         createFloatingHearts();
-        showToast(`â¤ï¸ Added ${product ? product.name : ''} to favorites`, 'success');
+        showToast(`❤️ Added ${product ? product.name : ''} to favorites`, 'success');
     } else {
         wishlist = wishlist.filter(id => id !== productId);
-        showToast(`ðŸ’” Removed ${product ? product.name : ''} from favorites`, 'info');
+        showToast(`💔 Removed ${product ? product.name : ''} from favorites`, 'info');
     }
     await saveUserData(true);
     updateWishlistUI();
@@ -2539,7 +2637,7 @@ function updateWishlistUI() {
 }
 
 // ============================================================
-// FIXED: createFloatingHearts - creates container if missing
+// createFloatingHearts
 // ============================================================
 function createFloatingHearts() {
     let container = document.getElementById('floatingHearts');
@@ -2553,7 +2651,7 @@ function createFloatingHearts() {
     for (let i = 0; i < heartCount; i++) {
         const heart = document.createElement('div');
         heart.className = 'floating-heart';
-        heart.textContent = ['â¤ï¸', 'ðŸ’–', 'ðŸ’—', 'ðŸ’•', 'â™¥ï¸', 'ðŸ’'][Math.floor(Math.random() * 6)];
+        heart.textContent = ['❤️', '💖', '💗', '💕', '♥️', '💝'][Math.floor(Math.random() * 6)];
         heart.style.left = (10 + Math.random() * 80) + '%';
         heart.style.top = (60 + Math.random() * 30) + '%';
         heart.style.fontSize = (16 + Math.random() * 20) + 'px';
@@ -2621,7 +2719,7 @@ function renderWishlistFull() {
 window.openDetails = function(id) {
     const p = products.find(x => x.id === id);
     if (!p) {
-        showToast('âš ï¸ Product not found', 'warning');
+        showToast('⚠️ Product not found', 'warning');
         return;
     }
     window._currentProduct = p;
@@ -2631,14 +2729,14 @@ window.openDetails = function(id) {
 
     const container = document.getElementById('productDetailsContent');
     if (!container) {
-        console.error('âŒ productDetailsContent not found');
+        console.error('❌ productDetailsContent not found');
         return;
     }
 
     const isFree = p.price === 0;
     const isUnavailable = p.status === 'unavailable';
     const badgeClass = isUnavailable ? 'unavailable' : (isFree ? 'free' : 'vip');
-    const badgeText = isUnavailable ? 'â›” Unavailable' : (isFree ? 'FREE' : (p.badge || 'PREMIUM'));
+    const badgeText = isUnavailable ? '⛔ Unavailable' : (isFree ? 'FREE' : (p.badge || 'PREMIUM'));
     const currencySymbol = getCurrencySymbol(p.currency || 'USD');
 
     let videoHtml = '';
@@ -2754,7 +2852,7 @@ window.openDetails = function(id) {
                 <img src="${p.image || 'https://picsum.photos/seed/default/600/400'}" alt="${p.name}" style="width:100%;max-height:320px;object-fit:cover;display:block;" />
                 <div style="padding:8px 12px;display:flex;justify-content:space-between;align-items:center;background:var(--bg-secondary);border-top:1px solid var(--border);">
                     <span class="image-badge ${badgeClass}" style="padding:2px 14px;border-radius:20px;font-size:11px;font-weight:700;background:${badgeClass==='vip'?'var(--vip-color)':badgeClass==='free'?'var(--free-color)':'var(--danger)'};color:${badgeClass==='vip'||badgeClass==='free'?'#0a0a1a':'#fff'};">${badgeText}</span>
-                    <span style="font-size:13px;color:var(--success);font-weight:600;">âœ… ${p.status === 'available' ? '100% VERIFIED WORKING' : 'UNAVAILABLE'}</span>
+                    <span style="font-size:13px;color:var(--success);font-weight:600;">✅ ${p.status === 'available' ? '100% VERIFIED WORKING' : 'UNAVAILABLE'}</span>
                 </div>
             </div>
 
@@ -2780,7 +2878,7 @@ window.openDetails = function(id) {
                     ` : (isUnavailable ? `
                         <button style="flex:1;padding:12px;border:none;border-radius:var(--radius-sm);background:var(--text-secondary);color:#fff;font-weight:700;cursor:not-allowed;font-size:16px;opacity:0.4;"><i class="fas fa-times-circle"></i> Unavailable</button>
                     ` : (isFree ? `
-                        <a href="${p.downloadLink || '#'}" target="${p.downloadLink ? '_blank' : '_self'}" style="flex:1;padding:12px;border:none;border-radius:var(--radius-sm);background:var(--free-color);color:#0a0a1a;font-weight:700;cursor:pointer;font-size:16px;text-decoration:none;text-align:center;display:block;" onclick="${!p.downloadLink ? 'event.preventDefault();showToast(\'â³ Coming soon\',\'info\');' : ''}"><i class="fas fa-download"></i> Download</a>
+                        <a href="${p.downloadLink || '#'}" target="${p.downloadLink ? '_blank' : '_self'}" style="flex:1;padding:12px;border:none;border-radius:var(--radius-sm);background:var(--free-color);color:#0a0a1a;font-weight:700;cursor:pointer;font-size:16px;text-decoration:none;text-align:center;display:block;" onclick="${!p.downloadLink ? 'event.preventDefault();showToast(\'⏳ Coming soon\',\'info\');' : ''}"><i class="fas fa-download"></i> Download</a>
                     ` : `
                         <button onclick="addToCartFromDetails()" style="flex:1;padding:12px;border:none;border-radius:var(--radius-sm);background:var(--primary);color:#fff;font-weight:700;cursor:pointer;font-size:16px;transition:0.3s;"><i class="fas fa-cart-plus"></i> Add to Cart</button>
                     `))}
@@ -2797,14 +2895,14 @@ window.openDetails = function(id) {
                     <div>
                         <div style="font-weight:700;font-size:16px;color:var(--text);">${p.name}</div>
                         <div style="font-size:13px;color:var(--primary);font-weight:700;">${isFree ? 'FREE' : currencySymbol + p.price.toFixed(2)}</div>
-                        <div style="font-size:11px;color:var(--text-secondary);opacity:0.5;">${p.status === 'available' ? 'âœ… In Stock' : 'â›” Unavailable'}</div>
+                        <div style="font-size:11px;color:var(--text-secondary);opacity:0.5;">${p.status === 'available' ? '✅ In Stock' : '⛔ Unavailable'}</div>
                     </div>
                 </div>
                 <div style="display:flex;align-items:center;gap:8px;">
                     ${isUnavailable ? `
                         <button style="padding:8px 20px;border:none;border-radius:var(--radius-sm);background:var(--text-secondary);color:#fff;font-weight:700;cursor:not-allowed;opacity:0.5;font-size:14px;" disabled>Unavailable</button>
                     ` : (isFree ? `
-                        <a href="${p.downloadLink || '#'}" target="${p.downloadLink ? '_blank' : '_self'}" style="padding:8px 20px;border:none;border-radius:var(--radius-sm);background:var(--free-color);color:#0a0a1a;font-weight:700;text-decoration:none;font-size:14px;display:inline-flex;align-items:center;gap:6px;" onclick="${!p.downloadLink ? 'event.preventDefault();showToast(\'â³ Coming soon\',\'info\');' : ''}">
+                        <a href="${p.downloadLink || '#'}" target="${p.downloadLink ? '_blank' : '_self'}" style="padding:8px 20px;border:none;border-radius:var(--radius-sm);background:var(--free-color);color:#0a0a1a;font-weight:700;text-decoration:none;font-size:14px;display:inline-flex;align-items:center;gap:6px;" onclick="${!p.downloadLink ? 'event.preventDefault();showToast(\'⏳ Coming soon\',\'info\');' : ''}">
                             <i class="fas fa-download"></i> Download
                         </a>
                     ` : (isInCart ? `
@@ -2835,7 +2933,7 @@ window.openDetails = function(id) {
         modal.classList.add('open');
         document.body.style.overflow = 'hidden';
     } else {
-        console.error('âŒ productDetailsFull modal not found');
+        console.error('❌ productDetailsFull modal not found');
     }
 
     setTimeout(() => {
@@ -2853,7 +2951,7 @@ window.addToCartFromDetails = function() {
             const selectedQty = window._selectedQuantity || p.quantityOptions?.[0]?.quantity;
             const selectedPrice = window._selectedQuantityPrice || p.quantityOptions?.[0]?.price;
             if (!selectedQty || !selectedPrice) {
-                showToast('âš ï¸ Please select a quantity option', 'warning');
+                showToast('⚠️ Please select a quantity option', 'warning');
                 return;
             }
             const existing = cart.find(item => item.id === p.id && item.selectedQuantity === selectedQty);
@@ -2872,14 +2970,14 @@ window.addToCartFromDetails = function() {
             updateCartUI();
             renderProducts(products);
             updateBottomCartBar();
-            showToast(`âœ… Added ${p.name} (${selectedQty}) to cart`, 'success');
+            showToast(`✅ Added ${p.name} (${selectedQty}) to cart`, 'success');
             closeProductDetails();
             openCartFull();
             return;
         }
 
         if (p.price === 0) {
-            showToast('âš ï¸ This script is free', 'warning');
+            showToast('⚠️ This script is free', 'warning');
             return;
         }
         const existing = cart.find(item => item.id === p.id && !item.isVip);
@@ -2892,11 +2990,11 @@ window.addToCartFromDetails = function() {
         updateCartUI();
         renderProducts(products);
         updateBottomCartBar();
-        showToast(`âœ… Added ${p.name} to cart`, 'success');
+        showToast(`✅ Added ${p.name} to cart`, 'success');
         closeProductDetails();
         openCartFull();
     } else {
-        showToast('âš ï¸ Product not found', 'warning');
+        showToast('⚠️ Product not found', 'warning');
     }
 };
 
@@ -2948,19 +3046,19 @@ window.addVipPlanToCart = function(product) {
     if (!product) {
         product = window._currentProduct;
         if (!product) {
-            showToast('âš ï¸ Product not found', 'warning');
+            showToast('⚠️ Product not found', 'warning');
             return;
         }
     }
     const selectedPlan = window._selectedVipPlan || '1m';
     const vipPrices = product.vipPrices;
     if (!vipPrices || !vipPrices[selectedPlan]) {
-        showToast('âš ï¸ Invalid VIP plan', 'warning');
+        showToast('⚠️ Invalid VIP plan', 'warning');
         return;
     }
     const price = parseFloat(vipPrices[selectedPlan]);
     if (isNaN(price) || price <= 0) {
-        showToast('âš ï¸ Invalid price', 'warning');
+        showToast('⚠️ Invalid price', 'warning');
         return;
     }
     const planLabels = { '1m': '1 Month', '3m': '3 Months', '1y': '1 Year', 'lifetime': 'LIFETIME' };
@@ -2982,7 +3080,7 @@ window.addVipPlanToCart = function(product) {
     updateCartUI();
     renderProducts(products);
     updateBottomCartBar();
-    showToast(`âœ… Added ${planLabels[selectedPlan]} VIP plan for ${product.name}`, 'success');
+    showToast(`✅ Added ${planLabels[selectedPlan]} VIP plan for ${product.name}`, 'success');
     closeProductDetails();
     openCartFull();
 };
@@ -2999,10 +3097,10 @@ window.openShareModal = function(productId) {
     document.getElementById('shareModal').classList.add('open');
 };
 window.closeShareModal = function() { document.getElementById('shareModal').classList.remove('open'); shareProduct = null; };
-window.shareToWhatsApp = function() { if (!shareProduct) return; const text = `ðŸ›’ *${shareProduct.name}*\nðŸ’° Price: ${shareProduct.price===0?'FREE':shareProduct.price+' $'}\nðŸ“ ${shareProduct.description||''}\nðŸ”— Visit the store to get it!`; window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank'); closeShareModal(); };
-window.shareToTelegram = function() { if (!shareProduct) return; const text = `ðŸ›’ *${shareProduct.name}*\nðŸ’° Price: ${shareProduct.price===0?'FREE':shareProduct.price+' $'}\nðŸ“ ${shareProduct.description||''}\nðŸ”— Visit the store to get it!`; window.open(`https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`, '_blank'); closeShareModal(); };
+window.shareToWhatsApp = function() { if (!shareProduct) return; const text = `🛒 *${shareProduct.name}*\n💰 Price: ${shareProduct.price===0?'FREE':shareProduct.price+' $'}\n📝 ${shareProduct.description||''}\n🔗 Visit the store to get it!`; window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank'); closeShareModal(); };
+window.shareToTelegram = function() { if (!shareProduct) return; const text = `🛒 *${shareProduct.name}*\n💰 Price: ${shareProduct.price===0?'FREE':shareProduct.price+' $'}\n📝 ${shareProduct.description||''}\n🔗 Visit the store to get it!`; window.open(`https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`, '_blank'); closeShareModal(); };
 window.shareToFacebook = function() { if (!shareProduct) return; window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}&quote=${encodeURIComponent(shareProduct.name)}`, '_blank'); closeShareModal(); };
-window.copyShareLink = function() { const url = window.location.href; navigator.clipboard.writeText(url).then(() => { showToast('âœ… Link copied!', 'success'); closeShareModal(); }).catch(() => { const textArea = document.createElement('textarea'); textArea.value = url; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); showToast('âœ… Link copied!', 'success'); closeShareModal(); }); };
+window.copyShareLink = function() { const url = window.location.href; navigator.clipboard.writeText(url).then(() => { showToast('✅ Link copied!', 'success'); closeShareModal(); }).catch(() => { const textArea = document.createElement('textarea'); textArea.value = url; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); showToast('✅ Link copied!', 'success'); closeShareModal(); }); };
 
 // ============================================================
 // 16. Filter & Search
@@ -3038,9 +3136,9 @@ function performLiveSearch(query) {
     searchResults.innerHTML = results.slice(0, 10).map(p => {
         const isFree = p.price === 0;
         const isUnavailable = p.status === 'unavailable';
-        const priceDisplay = isUnavailable ? 'â›” Unavailable' : (isFree ? 'FREE' : getCurrencySymbol(p.currency || 'USD') + p.price.toFixed(2));
+        const priceDisplay = isUnavailable ? '⛔ Unavailable' : (isFree ? 'FREE' : getCurrencySymbol(p.currency || 'USD') + p.price.toFixed(2));
         const badgeClass = isUnavailable ? 'unavailable' : (isFree ? 'free' : 'vip');
-        const badgeText = isUnavailable ? 'â›”' : (isFree ? 'FREE' : 'VIP');
+        const badgeText = isUnavailable ? '⛔' : (isFree ? 'FREE' : 'VIP');
         return `
       <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;transition:0.2s;border-bottom:1px solid var(--border);" onclick="window.openDetails('${p.id}'); closeSearchResults();">
         <img src="${p.image||'https://picsum.photos/seed/default/100/100'}" style="width:36px;height:36px;border-radius:6px;object-fit:cover;" />
@@ -3078,7 +3176,7 @@ async function getVisitorInfo() {
             ip = ipData.ip || 'Unknown';
         }
     } catch (e) {
-        console.warn('âš ï¸ ipify failed:', e);
+        console.warn('⚠️ ipify failed:', e);
     }
 
     let country = 'Unknown', city = 'Unknown', region = 'Unknown', timezone = 'Unknown', isp = 'Unknown';
@@ -3096,7 +3194,7 @@ async function getVisitorInfo() {
                 }
             }
         } catch (e) {
-            console.warn('âš ï¸ ip-api.com detail failed:', e);
+            console.warn('⚠️ ip-api.com detail failed:', e);
         }
     }
     return { ip, country, city, region, timezone, isp };
@@ -3128,7 +3226,7 @@ function getDeviceInfo() {
 }
 
 // ============================================================
-// 17.1 Payment Products Render - FIXED with nice cards
+// 17.1 Payment Products Render
 // ============================================================
 window.renderPaymentProducts = function() {
     const container = document.getElementById('paymentProductsList');
@@ -3142,9 +3240,9 @@ window.renderPaymentProducts = function() {
         const total = item.price * qty;
         const product = products.find(p => p.id === item.id);
         const image = product?.image || item.image || 'https://picsum.photos/seed/default/80/80';
-        const name = item.isVip ? `${item.name} ðŸ‘‘ ${item.vipPlanLabel || 'VIP'}` : item.name;
-        const qtyLabel = item.isQuantityProduct ? `ðŸ“¦ ${item.selectedQuantity || ''}` : '';
-        const proxyLabel = item.isProxy ? ' ðŸŒ' : '';
+        const name = item.isVip ? `${item.name} 👑 ${item.vipPlanLabel || 'VIP'}` : item.name;
+        const qtyLabel = item.isQuantityProduct ? `📦 ${item.selectedQuantity || ''}` : '';
+        const proxyLabel = item.isProxy ? ' 🌐' : '';
         
         return `
             <div style="display:flex; align-items:center; gap:10px; background:var(--glass-bg); backdrop-filter:blur(12px); border:1px solid var(--glass-border); border-radius:var(--radius-sm); padding:10px 12px; margin-bottom:8px;">
@@ -3153,7 +3251,7 @@ window.renderPaymentProducts = function() {
                     <div style="font-weight:700; font-size:14px; color:var(--text);">${name} ${proxyLabel} ${qtyLabel}</div>
                     <div style="font-size:12px; color:var(--primary); font-weight:700;">${getCurrencySymbol(item.currency || 'USD')}${total.toFixed(2)}</div>
                 </div>
-                <div style="font-size:12px; color:var(--text-secondary); opacity:0.4; font-weight:500;">Ã—${qty}</div>
+                <div style="font-size:12px; color:var(--text-secondary); opacity:0.4; font-weight:500;">×${qty}</div>
             </div>
         `;
     }).join('');
@@ -3181,7 +3279,7 @@ async function fetchCryptoPrices() {
             }
         }
     } catch (e) {
-        console.warn('âš ï¸ CoinGecko failed, trying Binance...', e);
+        console.warn('⚠️ CoinGecko failed, trying Binance...', e);
     }
 
     try {
@@ -3198,7 +3296,7 @@ async function fetchCryptoPrices() {
             }
         }
     } catch (e) {
-        console.warn('âš ï¸ Binance failed:', e);
+        console.warn('⚠️ Binance failed:', e);
     }
 
     if (!cryptoPrices.ltc) {
@@ -3214,11 +3312,11 @@ function updatePriceUI() {
     const exchangeRate = document.getElementById('exchangeRate');
     if (exchangeRate) {
         if (selectedPayment === 'litecoin' && cryptoPrices.ltc > 0) {
-            exchangeRate.textContent = `1 LTC â‰ˆ $${cryptoPrices.ltc.toFixed(2)} USD`;
+            exchangeRate.textContent = `1 LTC ≈ $${cryptoPrices.ltc.toFixed(2)} USD`;
         } else if (selectedPayment === 'usdt' && cryptoPrices.usdt > 0) {
-            exchangeRate.textContent = `1 USDT â‰ˆ $${cryptoPrices.usdt.toFixed(2)} USD`;
+            exchangeRate.textContent = `1 USDT ≈ $${cryptoPrices.usdt.toFixed(2)} USD`;
         } else {
-            exchangeRate.textContent = 'â³ Loading prices...';
+            exchangeRate.textContent = '⏳ Loading prices...';
         }
     }
     const cryptoAmount = document.getElementById('cryptoAmount');
@@ -3278,7 +3376,7 @@ window.selectPayment = function(method) {
 // ============================================================
 window.continuePayment = function() {
     if (!selectedPayment) {
-        showToast('âš ï¸ Please select a payment method', 'warning');
+        showToast('⚠️ Please select a payment method', 'warning');
         return;
     }
     document.getElementById('paymentStep1').style.display = 'none';
@@ -3338,7 +3436,7 @@ window.continuePayment = function() {
             mainBtn.style.display = 'block';
             mainBtn.innerHTML = `<i class="fab fa-telegram-plane"></i> Contact via Telegram - $${finalTotal.toFixed(2)}`;
             mainBtn.onclick = function() {
-                const message = `ðŸ›’ New Order\n\nTotal: $${finalTotal.toFixed(2)}\nProducts: ${cart.map(i => i.name).join(', ')}`;
+                const message = `🛒 New Order\n\nTotal: $${finalTotal.toFixed(2)}\nProducts: ${cart.map(i => i.name).join(', ')}`;
                 window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(message)}`, '_blank');
                 placeOrderTelegram();
             };
@@ -3356,7 +3454,7 @@ window.continuePayment = function() {
         }
     } else if (selectedPayment === 'balance') {
         if (userBalance < finalTotal) {
-            showToast(`âš ï¸ Insufficient balance! Need $${finalTotal.toFixed(2)}, have $${userBalance.toFixed(2)}`, 'warning');
+            showToast(`⚠️ Insufficient balance! Need $${finalTotal.toFixed(2)}, have $${userBalance.toFixed(2)}`, 'warning');
             setTimeout(() => openTopupModal(), 500);
             return;
         }
@@ -3371,11 +3469,11 @@ window.continuePayment = function() {
 
 async function processBalancePayment(totalAmount) {
     if (!currentUser) {
-        showToast('âš ï¸ Please login first', 'warning');
+        showToast('⚠️ Please login first', 'warning');
         return;
     }
     if (isProcessingOrder) {
-        showToast('â³ Order is already being processed...', 'warning');
+        showToast('⏳ Order is already being processed...', 'warning');
         return;
     }
     isProcessingOrder = true;
@@ -3408,10 +3506,10 @@ async function processBalancePayment(totalAmount) {
         updateBottomCartBar();
         renderProducts(products);
 
-        showToast(`âœ… Payment successful! $${totalAmount.toFixed(2)} deducted from balance.`, 'success');
+        showToast(`✅ Payment successful! $${totalAmount.toFixed(2)} deducted from balance.`, 'success');
 
         await addDoc(collection(db, 'notifications'), {
-            title: 'âœ… Order Paid with Balance',
+            title: '✅ Order Paid with Balance',
             message: `Order #${orderId.slice(-6)} - $${totalAmount.toFixed(2)}`,
             userId: currentUser.uid,
             readBy: [],
@@ -3425,7 +3523,7 @@ async function processBalancePayment(totalAmount) {
 
     } catch (error) {
         console.error('Balance payment error:', error);
-        showToast('âŒ Error: ' + error.message, 'error');
+        showToast('❌ Error: ' + error.message, 'error');
     } finally {
         isProcessingOrder = false;
     }
@@ -3436,7 +3534,7 @@ async function processBalancePayment(totalAmount) {
 // ============================================================
 window.placeOrder = function() {
     if (!currentUser || currentUser.isAnonymous) {
-        showToast('âš ï¸ Please sign in to confirm payment.', 'warning');
+        showToast('⚠️ Please sign in to confirm payment.', 'warning');
         openAuthModal();
         return;
     }
@@ -3445,7 +3543,7 @@ window.placeOrder = function() {
     if (selectedPayment === 'binanceId') {
         txHash = document.getElementById('txHashInput').value.trim();
         if (!txHash) {
-            showToast('âš ï¸ Please paste the transaction ID', 'warning');
+            showToast('⚠️ Please paste the transaction ID', 'warning');
             document.getElementById('txHashInput').style.borderColor = 'var(--danger)';
             setTimeout(() => { document.getElementById('txHashInput').style.borderColor = ''; }, 2000);
             return;
@@ -3453,7 +3551,7 @@ window.placeOrder = function() {
     } else if (selectedPayment === 'litecoin' || selectedPayment === 'usdt') {
         txHash = document.getElementById('transactionHashInput').value.trim();
         if (!txHash) {
-            showToast('âš ï¸ Please paste the transaction hash', 'warning');
+            showToast('⚠️ Please paste the transaction hash', 'warning');
             document.getElementById('transactionHashInput').style.borderColor = 'var(--danger)';
             setTimeout(() => { document.getElementById('transactionHashInput').style.borderColor = ''; }, 2000);
             return;
@@ -3473,7 +3571,7 @@ window.copyBinanceId = function() {
     const id = document.getElementById('binanceIdDisplay').textContent;
     if (!id) return;
     navigator.clipboard.writeText(id).then(() => {
-        showToast('âœ… Binance ID copied!', 'success');
+        showToast('✅ Binance ID copied!', 'success');
     }).catch(() => {
         const textarea = document.createElement('textarea');
         textarea.value = id;
@@ -3481,7 +3579,7 @@ window.copyBinanceId = function() {
         textarea.select();
         document.execCommand('copy');
         document.body.removeChild(textarea);
-        showToast('âœ… Binance ID copied!', 'success');
+        showToast('✅ Binance ID copied!', 'success');
     });
 };
 
@@ -3492,17 +3590,17 @@ window.verifyTransaction = function() {
     if (!tx) {
         result.style.display = 'block';
         result.className = 'bv-result error';
-        result.textContent = 'âš ï¸ Please enter a transaction ID.';
+        result.textContent = '⚠️ Please enter a transaction ID.';
         return;
     }
     if (tx.length < 6) {
         result.style.display = 'block';
         result.className = 'bv-result error';
-        result.textContent = 'âŒ Transaction ID seems too short. Please check and try again.';
+        result.textContent = '❌ Transaction ID seems too short. Please check and try again.';
     } else {
         result.style.display = 'block';
         result.className = 'bv-result success';
-        result.textContent = 'âœ… Transaction ID format looks valid. You can now confirm payment.';
+        result.textContent = '✅ Transaction ID format looks valid. You can now confirm payment.';
     }
 };
 
@@ -3522,7 +3620,7 @@ window.handleScreenshot = function(event) {
         const img = document.getElementById('screenshotImg');
         img.src = e.target.result;
         preview.style.display = 'flex';
-        document.querySelector('.bv-drop-zone p').textContent = 'âœ… Image selected';
+        document.querySelector('.bv-drop-zone p').textContent = '✅ Image selected';
     };
     reader.readAsDataURL(file);
 };
@@ -3537,7 +3635,7 @@ window.removeScreenshot = function() {
 window.submitManualPayment = function() {
     const txHash = document.getElementById('txHashInput').value.trim();
     if (!txHash) {
-        showToast('âš ï¸ Please paste the transaction ID', 'warning');
+        showToast('⚠️ Please paste the transaction ID', 'warning');
         document.getElementById('txHashInput').style.borderColor = 'var(--danger)';
         setTimeout(() => { document.getElementById('txHashInput').style.borderColor = ''; }, 2000);
         return;
@@ -3551,20 +3649,20 @@ window.submitManualPayment = function() {
 // ============================================================
 async function sendOrderToTelegram(method, txHash = null) {
     if (isProcessingOrder) {
-        showToast('â³ Order is already being processed...', 'warning');
+        showToast('⏳ Order is already being processed...', 'warning');
         return;
     }
     isProcessingOrder = true;
 
     try {
-        if (!currentUser) { showToast('âš ï¸ Please login first', 'warning'); return; }
+        if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
         if (currentUser.isAnonymous) {
-            showToast('âš ï¸ Please sign in to place an order.', 'warning');
+            showToast('⚠️ Please sign in to place an order.', 'warning');
             openAuthModal();
             return;
         }
 
-        console.log('ðŸ“¦ Starting order process...');
+        console.log('📦 Starting order process...');
 
         const visitorInfo = await getVisitorInfo();
         const deviceInfo = getDeviceInfo();
@@ -3584,9 +3682,9 @@ async function sendOrderToTelegram(method, txHash = null) {
                     reader.readAsDataURL(file);
                 });
                 if (screenshotBase64) {
-                    console.log('ðŸ“¸ Screenshot loaded, size:', screenshotBase64.length);
+                    console.log('📸 Screenshot loaded, size:', screenshotBase64.length);
                 } else {
-                    console.warn('âš ï¸ Failed to read screenshot');
+                    console.warn('⚠️ Failed to read screenshot');
                 }
             } catch (e) {
                 console.error('Error reading screenshot:', e);
@@ -3614,7 +3712,21 @@ async function sendOrderToTelegram(method, txHash = null) {
         cart.forEach(item => { total += item.price * (item.quantity || 1); });
         let finalTotal = total;
 
-        console.log('ðŸ’° Total:', finalTotal);
+        console.log('💰 Total:', finalTotal);
+
+        // Fraud detection
+        const fraudCheck = await detectFraud({
+            userId: currentUser.uid,
+            email: currentUser.email,
+            total: finalTotal,
+            items: cartData,
+            ip: visitorInfo.ip
+        });
+        if (fraudCheck.isSuspicious && fraudCheck.severity === 'high') {
+            showToast('⚠️ Order flagged for review. Please contact support.', 'warning');
+            isProcessingOrder = false;
+            return;
+        }
 
         const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/place-order', {
             method: 'POST',
@@ -3650,7 +3762,7 @@ async function sendOrderToTelegram(method, txHash = null) {
                 const errorJson = JSON.parse(errorText);
                 errorText = errorJson.error || errorText;
             } catch (e) {}
-            showToast('âŒ ' + errorText, 'error');
+            showToast('❌ ' + errorText, 'error');
             throw new Error(`Request failed: ${response.status} - ${errorText}`);
         }
 
@@ -3658,7 +3770,7 @@ async function sendOrderToTelegram(method, txHash = null) {
         if (!result.success) throw new Error(result.error || 'Request failed');
 
         const orderId = result.orderId || 'order_' + Date.now();
-        console.log('âœ… Order placed successfully, ID:', orderId);
+        console.log('✅ Order placed successfully, ID:', orderId);
 
         const orderItem = {
             id: orderId,
@@ -3676,104 +3788,114 @@ async function sendOrderToTelegram(method, txHash = null) {
         const userRef = doc(db, 'users', currentUser.uid);
         await updateDoc(userRef, { history: arrayUnion(orderItem) });
 
+        // Send order confirmation email
+        await sendOrderConfirmationEmail(currentUser.email, {
+            orderId: orderId,
+            userName: currentUser.displayName || currentUser.email,
+            items: cartData,
+            total: finalTotal,
+            method: method,
+            status: 'pending'
+        });
+
         try {
             await addDoc(collection(db, 'notifications'), {
-                title: 'ðŸ†• New Order Placed',
+                title: '🆕 New Order Placed',
                 message: `Order #${orderId.slice(-6)} - Total: $${finalTotal.toFixed(2)}`,
                 userId: currentUser.uid,
                 readBy: [],
                 createdAt: serverTimestamp()
             });
-            console.log('âœ… Firebase notification sent to user');
+            console.log('✅ Firebase notification sent to user');
         } catch (error) {
             console.error('Failed to send Firebase user notification:', error);
         }
 
         try {
             await addDoc(collection(db, 'notifications'), {
-                title: 'ðŸ“¦ New Order Received',
+                title: '📦 New Order Received',
                 message: `Order #${orderId.slice(-6)} from ${currentUser.email} - $${finalTotal.toFixed(2)}`,
                 readBy: [],
                 createdAt: serverTimestamp()
             });
-            console.log('âœ… Firebase global notification sent');
+            console.log('✅ Firebase global notification sent');
         } catch (error) {
             console.error('Failed to send Firebase global notification:', error);
         }
 
-        console.log('ðŸ“¤ Preparing Telegram notification...');
-        console.log('ðŸ‘¤ User Telegram Chat ID:', userProfile.telegramChatId);
+        console.log('📤 Preparing Telegram notification...');
+        console.log('👤 User Telegram Chat ID:', userProfile.telegramChatId);
 
         const userTelegramMessage = `
-ðŸ›’ *ORDER PLACED SUCCESSFULLY!*
+🛒 *ORDER PLACED SUCCESSFULLY!*
 
-ðŸ“‹ *Order ID:* #${orderId.slice(-6)}
-ðŸ’° *Total:* $${finalTotal.toFixed(2)}
-ðŸ’³ *Payment Method:* ${method}
-ðŸ“¦ *Items:* ${cartData.map(item => `${item.name} x${item.quantity}`).join(', ')}
+📋 *Order ID:* #${orderId.slice(-6)}
+💰 *Total:* $${finalTotal.toFixed(2)}
+💳 *Payment Method:* ${method}
+📦 *Items:* ${cartData.map(item => `${item.name} x${item.quantity}`).join(', ')}
 
-${txHash ? `ðŸ”— *TX Hash:* ${txHash}` : ''}
-ðŸ“… *Date:* ${new Date().toLocaleString()}
+${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
+📅 *Date:* ${new Date().toLocaleString()}
 
-âœ… Your order is pending confirmation.
-â³ You will receive a notification once confirmed.
+✅ Your order is pending confirmation.
+⏳ You will receive a notification once confirmed.
         `;
 
         const adminTelegramMessage = `
-ðŸ›’ *NEW ORDER RECEIVED!*
+🛒 *NEW ORDER RECEIVED!*
 
-ðŸ“‹ *Order ID:* #${orderId.slice(-6)}
-ðŸ‘¤ *User:* ${currentUser.displayName || currentUser.email || 'User'}
-ðŸ“§ *Email:* ${currentUser.email || 'N/A'}
-ðŸ’° *Total:* $${finalTotal.toFixed(2)}
-ðŸ’³ *Payment Method:* ${method}
-ðŸ“¦ *Items:* ${cartData.map(item => `${item.name} x${item.quantity}`).join(', ')}
+📋 *Order ID:* #${orderId.slice(-6)}
+👤 *User:* ${currentUser.displayName || currentUser.email || 'User'}
+📧 *Email:* ${currentUser.email || 'N/A'}
+💰 *Total:* $${finalTotal.toFixed(2)}
+💳 *Payment Method:* ${method}
+📦 *Items:* ${cartData.map(item => `${item.name} x${item.quantity}`).join(', ')}
 
-${txHash ? `ðŸ”— *TX Hash:* ${txHash}` : ''}
-ðŸ“… *Date:* ${new Date().toLocaleString()}
+${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
+📅 *Date:* ${new Date().toLocaleString()}
 
-ðŸŒ *Location:* ${visitorInfo.country}, ${visitorInfo.city}
-ðŸ“± *Device:* ${deviceInfo.device} (${deviceInfo.os} / ${deviceInfo.browser})
+🌐 *Location:* ${visitorInfo.country}, ${visitorInfo.city}
+📱 *Device:* ${deviceInfo.device} (${deviceInfo.os} / ${deviceInfo.browser})
 
-ðŸ”” *Status:* Pending - Awaiting confirmation
+🔔 *Status:* Pending - Awaiting confirmation
         `;
 
         if (userProfile.telegramChatId) {
             try {
-                console.log('ðŸ“¤ Sending Telegram to user...');
+                console.log('📤 Sending Telegram to user...');
                 const sent = await sendTelegramNotification(userProfile.telegramChatId, userTelegramMessage);
                 if (sent) {
-                    console.log('âœ… Telegram sent to user');
+                    console.log('✅ Telegram sent to user');
                 } else {
-                    console.warn('âš ï¸ Telegram to user failed (but order saved)');
+                    console.warn('⚠️ Telegram to user failed (but order saved)');
                 }
             } catch (error) {
-                console.error('âŒ Error sending Telegram to user:', error);
+                console.error('❌ Error sending Telegram to user:', error);
             }
         } else {
-            console.log('â„¹ï¸ User has no Telegram linked');
+            console.log('ℹ️ User has no Telegram linked');
         }
 
         // Send admin notification via settings
         const adminMessage = `
-ðŸ‘¤ *User:* ${currentUser.displayName || currentUser.email || 'User'}
-ðŸ“§ *Email:* ${currentUser.email || 'N/A'}
-ðŸ’° *Total:* $${finalTotal.toFixed(2)}
-ðŸ’³ *Payment Method:* ${method}
-ðŸ“¦ *Items:* ${cartData.map(item => `${item.name} x${item.quantity}`).join(', ')}
-${txHash ? `ðŸ”— *TX Hash:* ${txHash}` : ''}
-ðŸ“… *Date:* ${new Date().toLocaleString()}
-ðŸŒ *Location:* ${visitorInfo.country}, ${visitorInfo.city}
-ðŸ”” *Status:* Pending - Awaiting confirmation
+👤 *User:* ${currentUser.displayName || currentUser.email || 'User'}
+📧 *Email:* ${currentUser.email || 'N/A'}
+💰 *Total:* $${finalTotal.toFixed(2)}
+💳 *Payment Method:* ${method}
+📦 *Items:* ${cartData.map(item => `${item.name} x${item.quantity}`).join(', ')}
+${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
+📅 *Date:* ${new Date().toLocaleString()}
+🌐 *Location:* ${visitorInfo.country}, ${visitorInfo.city}
+🔔 *Status:* Pending - Awaiting confirmation
         `;
-        await sendAdminNotification('ðŸ“¦ New Order Received', adminMessage);
+        await sendAdminNotification('📦 New Order Received', adminMessage);
 
         const proxyItems = cart.filter(item => item.isProxy);
         if (proxyItems.length > 0 && DISABLE_PROXY) {
-            console.log('â„¹ï¸ Proxy creation is disabled.');
-            showToast('ðŸ“¦ Proxy details will be sent within 24 hours.', 'info');
+            console.log('ℹ️ Proxy creation is disabled.');
+            showToast('📦 Proxy details will be sent within 24 hours.', 'info');
             await addDoc(collection(db, 'notifications'), {
-                title: 'â„¹ï¸ Proxy request pending',
+                title: 'ℹ️ Proxy request pending',
                 message: `User: ${currentUser.email} - ${proxyItems.length} proxies`,
                 readBy: [],
                 createdAt: serverTimestamp()
@@ -3791,7 +3913,7 @@ ${txHash ? `ðŸ”— *TX Hash:* ${txHash}` : ''}
         updateRpDisplay();
 
         document.getElementById('paymentModal').classList.remove('open');
-        showToast('âœ… Order placed successfully!', 'success');
+        showToast('✅ Order placed successfully!', 'success');
 
         setTimeout(() => {
             if (currentUser && isAdminCached) { loadAdminOrders(); }
@@ -3801,8 +3923,8 @@ ${txHash ? `ðŸ”— *TX Hash:* ${txHash}` : ''}
         }, 1000);
 
     } catch (error) {
-        console.error('âŒ Order error:', error);
-        showToast('âŒ Error placing order: ' + error.message, 'error');
+        console.error('❌ Order error:', error);
+        showToast('❌ Error placing order: ' + error.message, 'error');
     } finally {
         isProcessingOrder = false;
     }
@@ -3812,22 +3934,22 @@ ${txHash ? `ðŸ”— *TX Hash:* ${txHash}` : ''}
 // 17.9 Place Order Telegram
 // ============================================================
 window.placeOrderTelegram = function() {
-    if (!currentUser) { showToast('âš ï¸ Please login first', 'warning'); return; }
-    const message = `ðŸ›’ New Order\n\nTotal: $${document.getElementById('step2Total')?.textContent || '0.00'}\nProducts: ${cart.map(i => i.name).join(', ')}`;
+    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
+    const message = `🛒 New Order\n\nTotal: $${document.getElementById('step2Total')?.textContent || '0.00'}\nProducts: ${cart.map(i => i.name).join(', ')}`;
     window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(message)}`, '_blank');
-    showToast('ðŸ“¨ Please send the message to complete your order.', 'info');
+    showToast('📨 Please send the message to complete your order.', 'info');
     setTimeout(() => {
         document.getElementById('paymentModal').classList.remove('open');
         cart = [];
         updateCartUI();
         updateBottomCartBar();
         renderProducts(products);
-        showToast('âœ… Order submitted via Telegram!', 'success');
+        showToast('✅ Order submitted via Telegram!', 'success');
     }, 1500);
 };
 
 // ============================================================
-// 17.10 Proxy Functions - FIXED: only one package
+// 17.10 Proxy Functions
 // ============================================================
 
 function renderProxyPackages() {
@@ -3837,9 +3959,9 @@ function renderProxyPackages() {
         const isInCart = cart.some(item => item.id === pkg.id && item.isProxy);
         return `
             <div class="product-card" style="border: 2px solid var(--border); border-radius: var(--radius-md); padding: 12px; text-align: center; background: var(--card-bg);">
-                <div style="font-size: 28px; margin-bottom: 4px;">ðŸŒ</div>
+                <div style="font-size: 28px; margin-bottom: 4px;">🌐</div>
                 <div style="font-weight: 700; font-size: 16px; color: var(--text);">${pkg.name}</div>
-                <div style="font-size: 13px; color: var(--text-secondary); opacity: 0.5;">${pkg.quantity} proxy(ies) Â· ${pkg.duration} days</div>
+                <div style="font-size: 13px; color: var(--text-secondary); opacity: 0.5;">${pkg.quantity} proxy(ies) · ${pkg.duration} days</div>
                 <div style="font-size: 20px; font-weight: 700; color: var(--primary); margin: 6px 0;">$${pkg.price.toFixed(2)}</div>
                 <button class="btn-add-cart ${isInCart ? 'added' : ''}" onclick="addProxyToCart('${pkg.id}')" style="width: 100%; padding: 8px; border: none; border-radius: var(--radius-sm); background: ${isInCart ? 'var(--success)' : 'var(--primary)'}; color: #fff; font-weight: 600; cursor: pointer; transition: 0.2s;">
                     <i class="fas ${isInCart ? 'fa-check' : 'fa-cart-plus'}"></i> ${isInCart ? 'Added' : 'Add to Cart'}
@@ -3851,10 +3973,10 @@ function renderProxyPackages() {
 
 window.addProxyToCart = function(packageId) {
     const pkg = proxyPackages.find(p => p.id === packageId);
-    if (!pkg) { showToast('âš ï¸ Package not found', 'warning'); return; }
+    if (!pkg) { showToast('⚠️ Package not found', 'warning'); return; }
     const existing = cart.find(item => item.id === packageId && item.isProxy);
     if (existing) {
-        showToast('âš ï¸ Already in cart', 'warning');
+        showToast('⚠️ Already in cart', 'warning');
         return;
     }
     cart.push({
@@ -3866,7 +3988,7 @@ window.addProxyToCart = function(packageId) {
     saveUserData(true);
     updateCartUI();
     renderProxyPackages();
-    showToast(`âœ… Added ${pkg.name} to cart`, 'success');
+    showToast(`✅ Added ${pkg.name} to cart`, 'success');
     updateProductCardButton(packageId);
 };
 
@@ -3880,7 +4002,7 @@ async function sendUserNotification(userId, title, message) {
         const userRef = doc(db, 'users', userId);
         const userSnap = await getDoc(userRef);
         if (!userSnap.exists()) {
-            console.log('â„¹ï¸ User not found, skipping notification');
+            console.log('ℹ️ User not found, skipping notification');
             return;
         }
         await addDoc(collection(db, 'notifications'), {
@@ -3891,7 +4013,7 @@ async function sendUserNotification(userId, title, message) {
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
         });
-        console.log('âœ… User notification sent to:', userId);
+        console.log('✅ User notification sent to:', userId);
     } catch (error) {
         console.error('Error sending user notification:', error);
     }
@@ -3903,11 +4025,11 @@ async function sendUserNotification(userId, title, message) {
 
 async function sendTelegramNotification(chatId, message) {
     if (!chatId) {
-        console.log('âš ï¸ No chatId provided');
+        console.log('⚠️ No chatId provided');
         return false;
     }
     try {
-        console.log('ðŸ“¤ Sending Telegram to:', chatId);
+        console.log('📤 Sending Telegram to:', chatId);
         const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/send-telegram', {
             method: 'POST',
             headers: {
@@ -3927,7 +4049,7 @@ async function sendTelegramNotification(chatId, message) {
             return false;
         }
         const result = await response.json();
-        console.log('âœ… Telegram response:', result);
+        console.log('✅ Telegram response:', result);
         return result.success || false;
     } catch (error) {
         console.error('Send error:', error);
@@ -3936,15 +4058,15 @@ async function sendTelegramNotification(chatId, message) {
 }
 
 window.bindTelegram = async function() {
-    if (!currentUser) { showToast('âš ï¸ Please login first', 'warning'); return; }
+    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
     try {
         const bindCode = currentUser.uid.slice(-8) + Math.random().toString(36).substring(2, 6);
         const bindRef = doc(db, 'telegram_binds', bindCode);
         await setDoc(bindRef, { userId: currentUser.uid, userEmail: currentUser.email, userName: currentUser.displayName || 'User', createdAt: serverTimestamp(), status: 'pending' });
         window.open(`https://t.me/${BOT_USERNAME}?start=bind`, '_blank');
-        showToast('ðŸ“¨ Open bot and press "Start" then "Link Account".', 'success');
+        showToast('📨 Open bot and press "Start" then "Link Account".', 'success');
         startBindingListener(bindCode);
-    } catch (error) { console.error('Telegram bind error:', error); showToast('âŒ Connection error', 'error'); }
+    } catch (error) { console.error('Telegram bind error:', error); showToast('❌ Connection error', 'error'); }
 };
 
 function startBindingListener(bindCode) {
@@ -3957,7 +4079,7 @@ function startBindingListener(bindCode) {
                 renderProfileFull();
                 updateFullUserMenu();
                 updateUI();
-                showToast('âœ… Telegram linked successfully!', 'success');
+                showToast('✅ Telegram linked successfully!', 'success');
                 const banner = document.getElementById('telegramBanner');
                 if (banner) banner.classList.add('hidden');
                 localStorage.removeItem('telegram_banner_hidden');
@@ -3968,9 +4090,9 @@ function startBindingListener(bindCode) {
 }
 
 window.testTelegramNotification = async function() {
-    if (!currentUser) { showToast('âš ï¸ Please login first', 'warning'); return; }
-    if (!userProfile.telegramChatId) { showToast('âš ï¸ No Telegram linked', 'warning'); return; }
-    showToast('ðŸ“¤ Test notification sent via backend.', 'info');
+    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
+    if (!userProfile.telegramChatId) { showToast('⚠️ No Telegram linked', 'warning'); return; }
+    showToast('📤 Test notification sent via backend.', 'info');
     try {
         const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/send-test-notification', {
             method: 'POST',
@@ -3987,12 +4109,12 @@ window.testTelegramNotification = async function() {
         });
         const result = await response.json();
         if (result.success) {
-            showToast('âœ… Test notification sent!', 'success');
+            showToast('✅ Test notification sent!', 'success');
         } else {
-            showToast('âŒ Failed to send test: ' + result.error, 'error');
+            showToast('❌ Failed to send test: ' + result.error, 'error');
         }
     } catch (error) {
-        showToast('âŒ Error: ' + error.message, 'error');
+        showToast('❌ Error: ' + error.message, 'error');
     }
 };
 
@@ -4005,8 +4127,8 @@ window.unlinkTelegram = async function() {
         userProfile.telegramChatId = ''; userProfile.telegram = '';
         await saveUserData();
         renderProfileFull(); updateFullUserMenu(); updateUI();
-        showToast('âœ… Telegram unlinked!', 'success');
-    } catch (error) { showToast('âŒ Error unlinking: ' + error.message, 'error'); }
+        showToast('✅ Telegram unlinked!', 'success');
+    } catch (error) { showToast('❌ Error unlinking: ' + error.message, 'error'); }
 };
 
 function maskChatId(chatId) {
@@ -4016,11 +4138,11 @@ function maskChatId(chatId) {
 }
 
 window.checkTelegramStatus = async function() {
-    if (!currentUser) { showToast('âš ï¸ Please login first', 'warning'); return; }
+    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
     try {
         const userRef = doc(db, 'users', currentUser.uid);
         const userSnap = await getDoc(userRef);
-        if (!userSnap.exists()) { showToast('âŒ User data not found', 'error'); return; }
+        if (!userSnap.exists()) { showToast('❌ User data not found', 'error'); return; }
         const data = userSnap.data();
         const chatId = data.telegramChatId || '';
         const username = data.telegram || '';
@@ -4028,14 +4150,14 @@ window.checkTelegramStatus = async function() {
         userProfile.telegram = username;
         if (chatId) {
             const maskedId = chatId.slice(0, 4) + '***' + chatId.slice(-4);
-            showToast(`âœ… Telegram is linked!\nðŸ“± Chat ID: ${maskedId}\nðŸ‘¤ Username: ${username || 'Not set'}`, 'success');
+            showToast(`✅ Telegram is linked!\n📱 Chat ID: ${maskedId}\n👤 Username: ${username || 'Not set'}`, 'success');
             renderProfileFull();
             updateFullUserMenu();
         } else {
-            showToast('âŒ Telegram is NOT linked.\n\nPlease click "Link Bot" to connect your account.', 'warning');
+            showToast('❌ Telegram is NOT linked.\n\nPlease click "Link Bot" to connect your account.', 'warning');
         }
         await saveUserData();
-    } catch (error) { console.error('âŒ Error checking Telegram status:', error); showToast('âŒ Failed to check Telegram status: ' + error.message, 'error'); }
+    } catch (error) { console.error('❌ Error checking Telegram status:', error); showToast('❌ Failed to check Telegram status: ' + error.message, 'error'); }
 };
 
 // ============================================================
@@ -4059,40 +4181,40 @@ function renderDownloads() {
     if (downloads.length === 0) { container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-file" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">No downloads</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Stay tuned for new content</div></div>`; return; }
     container.innerHTML = downloads.map(d => {
         const date = d.date || (d.createdAt ? new Date(d.createdAt.toDate()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '');
-        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);margin-bottom:8px;"><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);">${d.title}</div><div style="font-size:11px;color:var(--text-secondary);opacity:0.4;">${d.type||'File'} â€¢ ${date}</div></div><a href="${d.downloadUrl||'#'}" target="_blank" style="padding:6px 16px;border:none;border-radius:8px;background:var(--free-color);color:#0a0a1a;font-weight:600;cursor:pointer;font-size:12px;text-decoration:none;transition:0.3s;"><i class="fas fa-download"></i></a></div>`;
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);margin-bottom:8px;"><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);">${d.title}</div><div style="font-size:11px;color:var(--text-secondary);opacity:0.4;">${d.type||'File'} • ${date}</div></div><a href="${d.downloadUrl||'#'}" target="_blank" style="padding:6px 16px;border:none;border-radius:8px;background:var(--free-color);color:#0a0a1a;font-weight:600;cursor:pointer;font-size:12px;text-decoration:none;transition:0.3s;"><i class="fas fa-download"></i></a></div>`;
     }).join('');
 }
 
 function renderAdminDownloads() {
     const container = document.getElementById('adminDownloadsList');
     if (!container) return;
-    if (downloads.length === 0) { container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">ðŸ“­ No downloads</div>`; return; }
-    container.innerHTML = downloads.map(d => `<div class="admin-item"><div class="item-info"><div class="item-title">${d.title}</div><div class="item-meta">${d.type||'File'} â€¢ ${d.downloadUrl||'No link'}</div></div><div class="item-actions"><button class="btn-edit" onclick="editDownload('${d.id}')"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="deleteDownload('${d.id}')"><i class="fas fa-trash"></i></button></div></div>`).join('');
+    if (downloads.length === 0) { container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">📭 No downloads</div>`; return; }
+    container.innerHTML = downloads.map(d => `<div class="admin-item"><div class="item-info"><div class="item-title">${d.title}</div><div class="item-meta">${d.type||'File'} • ${d.downloadUrl||'No link'}</div></div><div class="item-actions"><button class="btn-edit" onclick="editDownload('${d.id}')"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="deleteDownload('${d.id}')"><i class="fas fa-trash"></i></button></div></div>`).join('');
 }
 
 window.createDownload = async function(e) {
     e.preventDefault();
-    if (!currentUser || !isAdminCached) { showToast('â›” Unauthorized', 'error'); return; }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     const title = document.getElementById('dlTitle').value.trim();
     const type = document.getElementById('dlType').value.trim();
     const description = document.getElementById('dlDescription').value.trim();
     const downloadUrl = document.getElementById('dlUrl').value.trim();
     const date = document.getElementById('dlDate').value;
-    if (!title || !type || !description || !downloadUrl) { showToast('âš ï¸ Please fill all fields', 'warning'); return; }
+    if (!title || !type || !description || !downloadUrl) { showToast('⚠️ Please fill all fields', 'warning'); return; }
     try {
         await addDoc(collection(db, 'downloads'), { title, type, description, downloadUrl, date: date || new Date().toISOString().split('T')[0], createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
-        showToast('âœ… Download added', 'success');
+        showToast('✅ Download added', 'success');
         closeCreateDownloadModal();
         document.getElementById('createDownloadForm').reset();
-    } catch (error) { showToast('âŒ Error: ' + error.message, 'error'); }
+    } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
 };
 window.deleteDownload = async function(id) {
-    if (!currentUser || !isAdminCached) { showToast('â›” Unauthorized', 'error'); return; }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!confirm('Delete this download?')) return;
-    try { await deleteDoc(doc(db, 'downloads', id)); showToast('ðŸ—‘ï¸ Download deleted', 'success'); } catch (error) { showToast('âŒ Error: ' + error.message, 'error'); }
+    try { await deleteDoc(doc(db, 'downloads', id)); showToast('🗑️ Download deleted', 'success'); } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
 };
-window.editDownload = function(id) { showToast('âœï¸ Edit feature coming soon', 'info'); };
-window.openCreateDownloadModal = function() { if (!currentUser || !isAdminCached) { showToast('â›” Unauthorized', 'error'); return; } document.getElementById('createDownloadModal').classList.add('open'); document.getElementById('createDownloadForm').reset(); };
+window.editDownload = function(id) { showToast('✏️ Edit feature coming soon', 'info'); };
+window.openCreateDownloadModal = function() { if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; } document.getElementById('createDownloadModal').classList.add('open'); document.getElementById('createDownloadForm').reset(); };
 window.closeCreateDownloadModal = function() { document.getElementById('createDownloadModal').classList.remove('open'); };
 
 function loadNotifications() {
@@ -4164,8 +4286,8 @@ function renderAdminNotifications() {
     getDocs(query(notifRef, orderBy('createdAt', 'desc'))).then((snapshot) => {
         let allNotifs = [];
         snapshot.forEach((doc) => { allNotifs.push({ id: doc.id, ...doc.data() }); });
-        if (allNotifs.length === 0) { container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">ðŸ“­ No notifications</div>`; return; }
-        container.innerHTML = allNotifs.map(n => `<div class="admin-item"><div class="item-info"><div class="item-title">${n.title||'Notification'}</div><div class="item-meta">${n.message||''} â€¢ ${n.userId ? 'User: ' + n.userId.slice(-6) : 'Global'} â€¢ ${n.createdAt?new Date(n.createdAt.toDate()).toLocaleDateString('en-US'):''}</div></div><div class="item-actions"><button class="btn-delete" onclick="deleteNotification('${n.id}')"><i class="fas fa-trash"></i></button></div></div>`).join('');
+        if (allNotifs.length === 0) { container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">📭 No notifications</div>`; return; }
+        container.innerHTML = allNotifs.map(n => `<div class="admin-item"><div class="item-info"><div class="item-title">${n.title||'Notification'}</div><div class="item-meta">${n.message||''} • ${n.userId ? 'User: ' + n.userId.slice(-6) : 'Global'} • ${n.createdAt?new Date(n.createdAt.toDate()).toLocaleDateString('en-US'):''}</div></div><div class="item-actions"><button class="btn-delete" onclick="deleteNotification('${n.id}')"><i class="fas fa-trash"></i></button></div></div>`).join('');
     }).catch((error) => { console.error('Error loading admin notifications:', error); });
 }
 
@@ -4182,17 +4304,17 @@ window.markAllNotificationsRead = async function() {
     if (isUpdatingNotifications) return;
     const userId = currentUser.uid;
     const unreadNotifs = notifications.filter(n => !(n.readBy || []).includes(userId));
-    if (unreadNotifs.length === 0) { showToast('ðŸ“­ No unread notifications', 'info'); return; }
+    if (unreadNotifs.length === 0) { showToast('📭 No unread notifications', 'info'); return; }
     isUpdatingNotifications = true;
     let updatedCount = 0;
     for (const n of unreadNotifs) {
         try { await updateDoc(doc(db, 'notifications', n.id), { readBy: arrayUnion(userId) }); updatedCount++; } catch (e) { console.error('Error marking notification read:', e); }
     }
-    if (updatedCount > 0) { unreadNotifications = 0; updateNotificationBadge(); renderUserNotifications(); showToast(`âœ… ${updatedCount} notifications marked read`, 'success'); }
+    if (updatedCount > 0) { unreadNotifications = 0; updateNotificationBadge(); renderUserNotifications(); showToast(`✅ ${updatedCount} notifications marked read`, 'success'); }
     isUpdatingNotifications = false;
 };
 window.clearAllNotifications = async function() {
-    if (!currentUser) { showToast('âš ï¸ Please login first', 'warning'); return; }
+    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
     try {
         const notifRef = collection(db, 'notifications');
         const snapshot = await getDocs(query(notifRef, where('userId', '==', currentUser.uid)));
@@ -4202,28 +4324,28 @@ window.clearAllNotifications = async function() {
         notifications = notifications.filter(n => n.userId !== currentUser.uid);
         unreadNotifications = 0;
         updateNotificationBadge(); renderUserNotifications(); renderAdminNotifications();
-        showToast('ðŸ—‘ï¸ All notifications cleared', 'success');
-    } catch (error) { console.error('Error clearing notifications:', error); showToast('âŒ Error clearing notifications', 'error'); }
+        showToast('🗑️ All notifications cleared', 'success');
+    } catch (error) { console.error('Error clearing notifications:', error); showToast('❌ Error clearing notifications', 'error'); }
 };
 window.createNotification = async function(e) {
     e.preventDefault();
-    if (!currentUser || !isAdminCached) { showToast('â›” Unauthorized', 'error'); return; }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     const title = document.getElementById('notifTitle').value.trim();
     const message = document.getElementById('notifMessage').value.trim();
-    if (!title || !message) { showToast('âš ï¸ Please fill all fields', 'warning'); return; }
+    if (!title || !message) { showToast('⚠️ Please fill all fields', 'warning'); return; }
     try {
         await addDoc(collection(db, 'notifications'), { title, message, readBy: [], createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
-        showToast('âœ… Notification sent', 'success');
+        showToast('✅ Notification sent', 'success');
         closeCreateNotificationModal();
         document.getElementById('createNotificationForm').reset();
-    } catch (error) { showToast('âŒ Error: ' + error.message, 'error'); }
+    } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
 };
 window.deleteNotification = async function(id) {
-    if (!currentUser || !isAdminCached) { showToast('â›” Unauthorized', 'error'); return; }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!confirm('Delete this notification?')) return;
-    try { await deleteDoc(doc(db, 'notifications', id)); showToast('ðŸ—‘ï¸ Notification deleted', 'success'); } catch (error) { showToast('âŒ Error: ' + error.message, 'error'); }
+    try { await deleteDoc(doc(db, 'notifications', id)); showToast('🗑️ Notification deleted', 'success'); } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
 };
-window.openCreateNotificationModal = function() { if (!currentUser || !isAdminCached) { showToast('â›” Unauthorized', 'error'); return; } document.getElementById('createNotificationModal').classList.add('open'); document.getElementById('createNotificationForm').reset(); };
+window.openCreateNotificationModal = function() { if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; } document.getElementById('createNotificationModal').classList.add('open'); document.getElementById('createNotificationForm').reset(); };
 window.closeCreateNotificationModal = function() { document.getElementById('createNotificationModal').classList.remove('open'); };
 
 // ============================================================
@@ -4231,11 +4353,11 @@ window.closeCreateNotificationModal = function() { document.getElementById('crea
 // ============================================================
 
 // ============================================================
-// 21.0 Requests - FIXED with "Request New" button
+// 21.0 Requests
 // ============================================================
 window.openRequestsModal = function() {
     if (!currentUser) {
-        showToast('âš ï¸ Please login first', 'warning');
+        showToast('⚠️ Please login first', 'warning');
         openAuthModal();
         return;
     }
@@ -4276,34 +4398,34 @@ window.openRequestsModal = function() {
 };
 
 window.closeRequestsModal = function() { document.getElementById('requestsModal').classList.remove('open'); };
-window.openNewRequestModal = function() { if (!currentUser) { showToast('âš ï¸ Please login first', 'warning'); openAuthModal(); return; } document.getElementById('newRequestModal').classList.add('open'); document.getElementById('requestForm').reset(); };
+window.openNewRequestModal = function() { if (!currentUser) { showToast('⚠️ Please login first', 'warning'); openAuthModal(); return; } document.getElementById('newRequestModal').classList.add('open'); document.getElementById('requestForm').reset(); };
 window.closeNewRequestModal = function() { document.getElementById('newRequestModal').classList.remove('open'); };
 window.submitRequest = function(e) {
     e.preventDefault();
-    if (!currentUser) { showToast('âš ï¸ Please login first', 'warning'); return; }
+    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
     const gameName = document.getElementById('reqGameName').value.trim();
     const playStore = document.getElementById('reqPlayStore').value.trim();
     const features = document.getElementById('reqFeatures').value.trim();
     const budget = document.getElementById('reqBudget').value.trim();
-    if (!gameName || !playStore || !features || !budget) { showToast('âš ï¸ Please fill all fields', 'warning'); return; }
+    if (!gameName || !playStore || !features || !budget) { showToast('⚠️ Please fill all fields', 'warning'); return; }
     const newRequest = { gameName, playStore, features, budget, status: 'pending', date: new Date().toISOString(), userId: currentUser.uid };
     const userRef = doc(db, 'users', currentUser.uid);
     updateDoc(userRef, { requests: arrayUnion(newRequest) }).then(() => {
         userProfile.requests.push(newRequest);
         document.getElementById('newRequestModal').classList.remove('open');
-        showToast('âœ… Request sent', 'success');
-        const msg = `ðŸ“ New Script Request!\n\nðŸ‘¤ User: ${currentUser.displayName||currentUser.email}\nðŸŽ® Game: ${gameName}\nðŸ”— Store Link: ${playStore}\nâš¡ Features: ${features}\nðŸ’° Budget: ${budget}`;
+        showToast('✅ Request sent', 'success');
+        const msg = `📝 New Script Request!\n\n👤 User: ${currentUser.displayName||currentUser.email}\n🎮 Game: ${gameName}\n🔗 Store Link: ${playStore}\n⚡ Features: ${features}\n💰 Budget: ${budget}`;
         window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(msg)}`, '_blank');
-    }).catch(error => { showToast('âŒ Error: ' + error.message, 'error'); });
+    }).catch(error => { showToast('❌ Error: ' + error.message, 'error'); });
 };
 
 // ============================================================
-// 21.1 Referral Modal - FIXED with full UI
+// 21.1 Referral Modal
 // ============================================================
 
 window.openReferralModal = function() {
     if (!currentUser) {
-        showToast('âš ï¸ Please login first', 'warning');
+        showToast('⚠️ Please login first', 'warning');
         openAuthModal();
         return;
     }
@@ -4318,7 +4440,7 @@ window.closeReferralModal = function() {
 function updateReferralUI() {
     const container = document.getElementById('referralContent');
     if (!container) {
-        console.warn('âš ï¸ referralContent not found');
+        console.warn('⚠️ referralContent not found');
         return;
     }
 
@@ -4364,7 +4486,7 @@ function updateReferralUI() {
                         <div style="font-weight:600;font-size:13px;">${ref.name || 'User'}</div>
                         <div style="font-size:11px;color:var(--text-secondary);opacity:0.4;">${date}</div>
                     </div>
-                    <span style="font-size:11px;background:var(--success);color:#0a0a1a;padding:2px 12px;border-radius:30px;font-weight:700;">âœ… Joined</span>
+                    <span style="font-size:11px;background:var(--success);color:#0a0a1a;padding:2px 12px;border-radius:30px;font-weight:700;">✅ Joined</span>
                 </div>
             `;
         }).join('');
@@ -4395,12 +4517,12 @@ function updateReferralUI() {
         </div>
 
         <div style="background:var(--glass-bg);backdrop-filter:blur(8px);border-radius:var(--radius-md);padding:16px;border:1px solid var(--glass-border);margin-bottom:16px;">
-            <div style="font-weight:700;font-size:16px;margin-bottom:8px;">ðŸ“‹ Referral Activity</div>
+            <div style="font-weight:700;font-size:16px;margin-bottom:8px;">📋 Referral Activity</div>
             <div id="referralActivity">${activityHtml}</div>
         </div>
 
         <div style="background:var(--glass-bg);backdrop-filter:blur(8px);border-radius:var(--radius-md);padding:16px;border:1px solid var(--glass-border);">
-            <div style="font-weight:700;font-size:16px;margin-bottom:8px;">ðŸ“Œ How It Works</div>
+            <div style="font-weight:700;font-size:16px;margin-bottom:8px;">📌 How It Works</div>
             <div id="referralSteps" style="display:flex;flex-direction:column;gap:6px;">
                 <div style="display:flex;align-items:center;gap:10px;background:var(--bg);padding:8px 12px;border-radius:8px;border:1px solid var(--glass-border);">
                     <span style="width:24px;height:24px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;">1</span>
@@ -4421,20 +4543,20 @@ function updateReferralUI() {
 
 window.copyReferralCode2 = function() {
     const codeDisplay = document.getElementById('referralCodeDisplay2');
-    if (!codeDisplay) { showToast('âš ï¸ Referral code not found', 'warning'); return; }
+    if (!codeDisplay) { showToast('⚠️ Referral code not found', 'warning'); return; }
     const code = codeDisplay.textContent;
     if (code && code !== 'Loading...' && code !== 'Login to get your code') {
-        navigator.clipboard.writeText(code).then(() => { showToast('âœ… Referral code copied!', 'success'); })
-        .catch(() => { const textArea = document.createElement('textarea'); textArea.value = code; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); showToast('âœ… Referral code copied!', 'success'); });
-    } else { showToast('âš ï¸ Please login first', 'warning'); }
+        navigator.clipboard.writeText(code).then(() => { showToast('✅ Referral code copied!', 'success'); })
+        .catch(() => { const textArea = document.createElement('textarea'); textArea.value = code; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); showToast('✅ Referral code copied!', 'success'); });
+    } else { showToast('⚠️ Please login first', 'warning'); }
 };
 
 // ============================================================
-// 22. Admin Panel - FIXED
+// 22. Admin Panel
 // ============================================================
 
 window.openAdminPanel = function() {
-    if (!currentUser || !isAdminCached) { showToast('â›” Unauthorized. Admin only.', 'error'); return; }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized. Admin only.', 'error'); return; }
     const panel = document.getElementById('adminPanel');
     if (panel.classList.contains('open')) { 
         panel.classList.remove('open'); 
@@ -4443,7 +4565,6 @@ window.openAdminPanel = function() {
     } else {
         panel.classList.add('open');
         document.body.style.overflow = 'hidden';
-        // Ensure dashboard is active by default
         switchAdminTab('dashboard');
         loadAdminOrders();
         startAdminRealtimeListener();
@@ -4455,6 +4576,7 @@ window.openAdminPanel = function() {
         loadDashboardStats();
         loadAdminTopups();
         renderFallbackProductsAdmin();
+        loadCoupons();
         setTimeout(addBannerAdminControls, 300);
         ensureSliderTab();
         loadSliderSettings();
@@ -4480,12 +4602,10 @@ window.closeAdminPanel = function() {
 };
 
 // ============================================================
-// FIXED: switchAdminTab - works with sidebar buttons and full-screen content
+// switchAdminTab
 // ============================================================
 window.switchAdminTab = function(tab) {
-    // Hide all tab contents
     document.querySelectorAll('#adminPanel .admin-tab-content').forEach(el => el.classList.remove('active'));
-    // Remove active class from all nav buttons
     document.querySelectorAll('#adminPanel .admin-nav-btn').forEach(el => el.classList.remove('active'));
 
     const tabMap = {
@@ -4493,7 +4613,8 @@ window.switchAdminTab = function(tab) {
         'users': 'tabUsers', 'downloads': 'tabDownloads', 'notifications': 'tabNotifications',
         'stats': 'tabStats', 'logs': 'tabLogs', 'slider': 'tabSlider',
         'licences': 'tabLicences', 'marquee': 'tabMarquee', 'payments': 'tabPayments',
-        'topups': 'tabTopups', 'fallback': 'tabFallback', 'settings': 'tabSettings'
+        'topups': 'tabTopups', 'fallback': 'tabFallback', 'settings': 'tabSettings',
+        'coupons': 'tabCoupons'
     };
     const tabId = tabMap[tab] || 'tabDashboard';
     const content = document.getElementById(tabId);
@@ -4503,16 +4624,16 @@ window.switchAdminTab = function(tab) {
     if (btn) btn.classList.add('active');
 
     const titles = {
-        'dashboard': 'ðŸ“Š Dashboard', 'orders': 'ðŸ“¦ Orders', 'products': 'ðŸ›ï¸ Products',
-        'users': 'ðŸ‘¥ Users', 'downloads': 'ðŸ“ Downloads', 'notifications': 'ðŸ”” Notifications',
-        'stats': 'ðŸ“ˆ Stats', 'logs': 'ðŸ“œ Logs', 'slider': 'ðŸŽ¨ Slider',
-        'licences': 'ðŸ”‘ Licences', 'marquee': 'ðŸŽ¬ Marquee', 'payments': 'ðŸ’³ Payments',
-        'topups': 'ðŸ’° Topups', 'fallback': 'ðŸ“¦ Fallback', 'settings': 'âš™ï¸ Settings'
+        'dashboard': '📊 Dashboard', 'orders': '📦 Orders', 'products': '🛍️ Products',
+        'users': '👥 Users', 'downloads': '📁 Downloads', 'notifications': '🔔 Notifications',
+        'stats': '📈 Stats', 'logs': '📜 Logs', 'slider': '🎨 Slider',
+        'licences': '🔑 Licences', 'marquee': '🎬 Marquee', 'payments': '💳 Payments',
+        'topups': '💰 Topups', 'fallback': '📦 Fallback', 'settings': '⚙️ Settings',
+        'coupons': '🎫 Coupons'
     };
     const titleEl = document.getElementById('adminPageTitle');
     if (titleEl) titleEl.textContent = titles[tab] || tab;
 
-    // Load data for the selected tab
     if (tab === 'products') renderAdminProducts(products);
     if (tab === 'users') loadAdminUsers();
     if (tab === 'dashboard') loadDashboardStats();
@@ -4529,17 +4650,18 @@ window.switchAdminTab = function(tab) {
     if (tab === 'topups') loadAdminTopups();
     if (tab === 'fallback') renderFallbackProductsAdmin();
     if (tab === 'settings') loadAdminSettingsUI();
+    if (tab === 'coupons') renderAdminCoupons();
 };
 
 // ============================================================
-// 23. Admin Products - FIXED with delete button
+// 23. Admin Products
 // ============================================================
 
 function renderAdminProducts(productsList) {
     const container = document.getElementById('adminProductsList');
     if (!container) return;
     if (!productsList || productsList.length === 0) {
-        container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">ðŸ“­ No products</div>`;
+        container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">📭 No products</div>`;
         return;
     }
     container.innerHTML = productsList.map(p => {
@@ -4551,7 +4673,7 @@ function renderAdminProducts(productsList) {
                 </div>
                 <div class="product-info">
                     <div class="name">${p.name}</div>
-                    <div class="meta">${p.price === 0 ? 'ðŸŽ FREE' : '$' + p.price} â€¢ ${p.badge || 'FREE'}</div>
+                    <div class="meta">${p.price === 0 ? '🎁 FREE' : '$' + p.price} • ${p.badge || 'FREE'}</div>
                 </div>
                 <div class="product-actions">
                     <button class="edit-btn" onclick="openEditProductModal('${p.id}')" title="Edit"><i class="fas fa-edit"></i></button>
@@ -4569,13 +4691,13 @@ function renderAdminProducts(productsList) {
 function startAdminRealtimeListener() {
     if (unsubscribeAdmin) { unsubscribeAdmin(); }
     if (!currentUser || !isAdminCached) {
-        console.log('â„¹ï¸ Admin listener skipped (not admin)');
+        console.log('ℹ️ Admin listener skipped (not admin)');
         return;
     }
     const usersRef = collection(db, 'users');
-    console.log('ðŸ”„ Admin listener starting...');
+    console.log('🔄 Admin listener starting...');
     unsubscribeAdmin = onSnapshot(usersRef, (snapshot) => {
-        console.log('ðŸ”„ Admin listener triggered, snapshot size:', snapshot.size);
+        console.log('🔄 Admin listener triggered, snapshot size:', snapshot.size);
         let orders = [];
         let pending = 0, confirmed = 0, rejected = 0;
         snapshot.forEach((userDoc) => {
@@ -4602,16 +4724,16 @@ function startAdminRealtimeListener() {
         if (badge) { if (pendingCount > 0) { badge.style.display = 'inline-block'; badge.textContent = pendingCount; } else { badge.style.display = 'none'; } }
         updateFullUserMenu();
     }, (error) => {
-        console.error('âŒ Admin listener error:', error);
+        console.error('❌ Admin listener error:', error);
         if (error.code === 'permission-denied') {
-            console.warn('âš ï¸ Missing permissions to read orders. Check Firestore rules.');
+            console.warn('⚠️ Missing permissions to read orders. Check Firestore rules.');
         }
     });
 }
 
 function loadAdminOrders() {
     if (!currentUser || !isAdminCached) {
-        console.log('â„¹ï¸ loadAdminOrders skipped (not admin)');
+        console.log('ℹ️ loadAdminOrders skipped (not admin)');
         return;
     }
     const tbody = document.getElementById('adminOrdersBody');
@@ -4648,7 +4770,7 @@ function loadAdminOrders() {
         console.error('Error loading admin orders:', error);
         tbody.innerHTML = `<tr><td colspan="7"><div style="text-align:center;padding:30px;color:var(--danger);">${error.message}</div></td></tr>`;
         if (error.code === 'permission-denied') {
-            console.warn('âš ï¸ Missing permissions to read orders. Check Firestore rules.');
+            console.warn('⚠️ Missing permissions to read orders. Check Firestore rules.');
         }
     });
 }
@@ -4666,18 +4788,18 @@ function renderAdminOrders(orders) {
     uniqueOrders.forEach(order => {
         const status = order.status || 'pending';
         const statusMap = {
-            'pending': { label: 'â³ Pending', class: 'pending' },
-            'confirmed': { label: 'âœ… Confirmed', class: 'confirmed' },
-            'rejected': { label: 'âŒ Rejected', class: 'rejected' }
+            'pending': { label: '⏳ Pending', class: 'pending' },
+            'confirmed': { label: '✅ Confirmed', class: 'confirmed' },
+            'rejected': { label: '❌ Rejected', class: 'rejected' }
         };
         const info = statusMap[status] || statusMap['pending'];
         const date = order.date ? new Date(order.date) : new Date();
         const dateStr = date.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
-        const itemsList = order.items ? order.items.map(item => `<span style="display:inline-block;background:var(--bg);padding:2px 8px;border-radius:10px;font-size:11px;border:1px solid var(--border);margin:1px;">${item.name} ${item.selectedQuantity ? 'ðŸ“¦'+item.selectedQuantity : ''} Ã—${item.quantity||1}</span>`).join('') : 'â€”';
+        const itemsList = order.items ? order.items.map(item => `<span style="display:inline-block;background:var(--bg);padding:2px 8px;border-radius:10px;font-size:11px;border:1px solid var(--border);margin:1px;">${item.name} ${item.selectedQuantity ? '📦'+item.selectedQuantity : ''} ×${item.quantity||1}</span>`).join('') : '—';
         const total = order.total || 0;
         const orderIdStr = String(order.orderId || order.id || '');
         const orderIdDisplay = orderIdStr.slice(-6) || '------';
-        html += `<tr><td><span class="order-id">#${orderIdDisplay}</span></td><td><div style="font-weight:600;font-size:12px;">${order.userName||'Unknown'}</div><div class="user-email">${order.userEmail||'N/A'}</div></td><td><div style="display:flex;flex-wrap:wrap;gap:2px;">${itemsList}</div></td><td><span class="order-total">${total.toFixed(2)} $</span></td><td><span class="order-date">${dateStr}</span></td><td><span class="status-badge ${info.class}">${info.label}</span></td><td><div class="actions-cell"><select onchange="updateOrderStatus('${order.orderId||order.id}','${order.userId}',this.value)" style="padding:2px 6px;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);font-size:10px;"><option value="pending" ${status==='pending'?'selected':''}>â³ Pending</option><option value="confirmed" ${status==='confirmed'?'selected':''}>âœ… Confirmed</option><option value="rejected" ${status==='rejected'?'selected':''}>âŒ Rejected</option></select><button onclick="deleteOrderImmediately('${order.orderId||order.id}','${order.userId}')" class="btn-delete-order"><i class="fas fa-trash"></i> Delete</button></div></td></tr>`;
+        html += `<tr><td><span class="order-id">#${orderIdDisplay}</span></td><td><div style="font-weight:600;font-size:12px;">${order.userName||'Unknown'}</div><div class="user-email">${order.userEmail||'N/A'}</div></td><td><div style="display:flex;flex-wrap:wrap;gap:2px;">${itemsList}</div></td><td><span class="order-total">${total.toFixed(2)} $</span></td><td><span class="order-date">${dateStr}</span></td><td><span class="status-badge ${info.class}">${info.label}</span></td><td><div class="actions-cell"><select onchange="updateOrderStatus('${order.orderId||order.id}','${order.userId}',this.value)" style="padding:2px 6px;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);font-size:10px;"><option value="pending" ${status==='pending'?'selected':''}>⏳ Pending</option><option value="confirmed" ${status==='confirmed'?'selected':''}>✅ Confirmed</option><option value="rejected" ${status==='rejected'?'selected':''}>❌ Rejected</option></select><button onclick="deleteOrderImmediately('${order.orderId||order.id}','${order.userId}')" class="btn-delete-order"><i class="fas fa-trash"></i> Delete</button></div></td></tr>`;
     });
     tbody.innerHTML = html;
 }
@@ -4704,14 +4826,14 @@ function updateAdminStats(orders) {
 // ============================================================
 
 window.updateOrderStatus = async function(orderId, userId, newStatus) {
-    if (!currentUser || !isAdminCached) { showToast('â›” Unauthorized', 'error'); return; }
-    if (!orderId || !userId) { showToast('âŒ Invalid data', 'error'); return; }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (!orderId || !userId) { showToast('❌ Invalid data', 'error'); return; }
     const validStatuses = ['pending', 'confirmed', 'rejected'];
-    if (!validStatuses.includes(newStatus)) { showToast('âš ï¸ Invalid status', 'warning'); return; }
+    if (!validStatuses.includes(newStatus)) { showToast('⚠️ Invalid status', 'warning'); return; }
     try {
         const userRef = doc(db, 'users', userId);
         const userSnap = await getDoc(userRef);
-        if (!userSnap.exists()) { showToast('âŒ User not found', 'error'); return; }
+        if (!userSnap.exists()) { showToast('❌ User not found', 'error'); return; }
         const data = userSnap.data();
         const history = data.history || [];
         let orderFound = null;
@@ -4726,28 +4848,31 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
 
         await sendUserNotification(
             userId,
-            newStatus === 'confirmed' ? 'âœ… Order Confirmed!' : 'âŒ Order Rejected',
+            newStatus === 'confirmed' ? '✅ Order Confirmed!' : '❌ Order Rejected',
             newStatus === 'confirmed'
                 ? `Your order #${orderId.slice(-6)} has been confirmed and is ready.`
                 : `Your order #${orderId.slice(-6)} has been rejected. Please contact support for more information.`
         );
 
+        // Send status update email
+        await sendOrderStatusEmail(data.email || userId, orderId, newStatus);
+
         if (data.telegramChatId) {
-            const statusEmoji = newStatus === 'confirmed' ? 'âœ…' : 'âŒ';
+            const statusEmoji = newStatus === 'confirmed' ? '✅' : '❌';
             const statusText = newStatus === 'confirmed' ? 'CONFIRMED' : 'REJECTED';
             const telegramMessage = `
 ${statusEmoji} *ORDER ${statusText}!*
 
-ðŸ“‹ Order #${orderId.slice(-6)}
-ðŸ“¦ ${orderFound?.items?.map(i => i.name).join(', ') || 'Order'}
-ðŸ’° Total: $${(orderFound?.total || 0).toFixed(2)}
+📋 Order #${orderId.slice(-6)}
+📦 ${orderFound?.items?.map(i => i.name).join(', ') || 'Order'}
+💰 Total: $${(orderFound?.total || 0).toFixed(2)}
 
-${newStatus === 'confirmed' ? 'ðŸ”‘ Your licence has been generated and sent to your account.' : 'Please contact support for more information.'}
+${newStatus === 'confirmed' ? '🔑 Your licence has been generated and sent to your account.' : 'Please contact support for more information.'}
 
-ðŸ“… ${new Date().toLocaleString()}
+📅 ${new Date().toLocaleString()}
             `;
             await sendTelegramNotification(data.telegramChatId, telegramMessage);
-            console.log('âœ… Telegram notification sent to user for status update');
+            console.log('✅ Telegram notification sent to user for status update');
         }
 
         if (newStatus === 'confirmed') {
@@ -4755,36 +4880,36 @@ ${newStatus === 'confirmed' ? 'ðŸ”‘ Your licence has been generated and se
             await sendLicenceForOrder(orderId, userId, userEmail);
         }
 
-        showToast(`ðŸ“¦ Order updated to ${newStatus}`, 'success');
+        showToast(`📦 Order updated to ${newStatus}`, 'success');
         loadAdminOrders();
         if (currentUser && currentUser.uid === userId) { userProfile.history = updatedHistory; }
         updateFullUserMenu();
     } catch (error) {
         console.error('Error updating order:', error);
-        showToast('âŒ Error: ' + error.message, 'error');
+        showToast('❌ Error: ' + error.message, 'error');
     }
 };
 
 window.deleteOrderImmediately = async function(orderId, userId) {
-    if (!currentUser || !isAdminCached) { showToast('â›” Unauthorized', 'error'); return; }
-    if (!orderId || !userId) { showToast('âŒ Invalid data', 'error'); return; }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (!orderId || !userId) { showToast('❌ Invalid data', 'error'); return; }
     try {
         const userRef = doc(db, 'users', userId);
         const userSnap = await getDoc(userRef);
-        if (!userSnap.exists()) { showToast('âŒ User not found', 'error'); return; }
+        if (!userSnap.exists()) { showToast('❌ User not found', 'error'); return; }
         const data = userSnap.data();
         const history = data.history || [];
         const updatedHistory = history.filter(order => order.id !== orderId);
         await updateDoc(userRef, { history: updatedHistory });
-        showToast(`ðŸ—‘ï¸ Order #${String(orderId).slice(-6)} deleted permanently`, 'success');
+        showToast(`🗑️ Order #${String(orderId).slice(-6)} deleted permanently`, 'success');
         loadAdminOrders();
         if (currentUser && currentUser.uid === userId) { userProfile.history = updatedHistory; }
-    } catch (error) { console.error('Error deleting order:', error); showToast('âŒ Error: ' + error.message, 'error'); }
+    } catch (error) { console.error('Error deleting order:', error); showToast('❌ Error: ' + error.message, 'error'); }
 };
 
 window.searchAdminOrders = function() {
     const query = document.getElementById('adminSearchInput').value.trim().toLowerCase();
-    if (!query) { renderAdminOrders(allOrders); showToast('ðŸ“‹ Showing all orders', 'info'); return; }
+    if (!query) { renderAdminOrders(allOrders); showToast('📋 Showing all orders', 'info'); return; }
     const filtered = allOrders.filter(order => {
         const email = (order.userEmail || '').toLowerCase();
         const orderId = String(order.orderId || order.id || '').toLowerCase();
@@ -4792,10 +4917,10 @@ window.searchAdminOrders = function() {
         return email.includes(query) || orderId.includes(query) || userName.includes(query);
     });
     renderAdminOrders(filtered);
-    if (filtered.length === 0) { showToast(`ðŸ” No matching orders`, 'warning'); } else { showToast(`ðŸ” Found ${filtered.length} orders`, 'success'); }
+    if (filtered.length === 0) { showToast(`🔍 No matching orders`, 'warning'); } else { showToast(`🔍 Found ${filtered.length} orders`, 'success'); }
 };
-window.clearAdminSearch = function() { document.getElementById('adminSearchInput').value = ''; renderAdminOrders(allOrders); showToast('ðŸ“‹ Search cleared', 'info'); };
-window.refreshAdminOrders = function() { loadAdminOrders(); showToast('ðŸ”„ Refreshed', 'info'); };
+window.clearAdminSearch = function() { document.getElementById('adminSearchInput').value = ''; renderAdminOrders(allOrders); showToast('📋 Search cleared', 'info'); };
+window.refreshAdminOrders = function() { loadAdminOrders(); showToast('🔄 Refreshed', 'info'); };
 
 // ============================================================
 // 26. Send Licence via Edge Function
@@ -4803,7 +4928,7 @@ window.refreshAdminOrders = function() { loadAdminOrders(); showToast('ðŸ”�
 
 async function sendLicenceForOrder(orderId, userId, userEmail = null) {
     try {
-        console.log('ðŸ” sendLicenceForOrder called:', { orderId, userId, userEmail });
+        console.log('🔍 sendLicenceForOrder called:', { orderId, userId, userEmail });
 
         let email = userEmail;
         if (!email) {
@@ -4814,20 +4939,20 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
                 email = userData.email || userId;
             } else {
                 email = userId;
-                console.warn('âš ï¸ User document not found, using UID as email');
+                console.warn('⚠️ User document not found, using UID as email');
             }
         }
 
         const userRef = doc(db, 'users', userId);
         const userSnap = await getDoc(userRef);
         if (!userSnap.exists()) {
-            console.error('âŒ User not found');
+            console.error('❌ User not found');
             throw new Error('User not found');
         }
         const userData = userSnap.data();
         const order = userData.history?.find(o => o.id === orderId);
         if (!order) {
-            console.error('âŒ Order not found');
+            console.error('❌ Order not found');
             throw new Error('Order not found');
         }
         const productName = order.items?.[0]?.name || 'Product';
@@ -4854,7 +4979,7 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
             throw new Error(data.error || 'Failed to create licence');
         }
 
-        console.log('âœ… Licence created via backend:', data.licence);
+        console.log('✅ Licence created via backend:', data.licence);
 
         const userLicences = userData.licences || [];
         const newLicence = {
@@ -4869,18 +4994,18 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
 
         if (userData.telegramChatId) {
             const licenceMessage = `
-ðŸ”‘ *LICENCE GENERATED!*
+🔑 *LICENCE GENERATED!*
 
-ðŸ“‹ Order ID: #${orderId.slice(-6)}
-ðŸ“¦ Product: ${productName}
-ðŸ”‘ Licence Code: \`${data.licence.code}\`
-ðŸ“… Expiry: ${new Date(data.licence.expiryDate).toLocaleDateString()}
+📋 Order ID: #${orderId.slice(-6)}
+📦 Product: ${productName}
+🔑 Licence Code: \`${data.licence.code}\`
+📅 Expiry: ${new Date(data.licence.expiryDate).toLocaleDateString()}
 
-âœ… Your licence has been generated successfully!
-ðŸ’¡ Use this code in the "Licences" section of the store to activate your product.
+✅ Your licence has been generated successfully!
+💡 Use this code in the "Licences" section of the store to activate your product.
             `;
             await sendTelegramNotification(userData.telegramChatId, licenceMessage);
-            console.log('âœ… Licence Telegram notification sent to user');
+            console.log('✅ Licence Telegram notification sent to user');
         }
 
         if (currentUser && currentUser.uid === userId) {
@@ -4889,11 +5014,11 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
             updateFullUserMenu();
         }
 
-        showToast(`âœ… Licence sent to user`, 'success');
+        showToast(`✅ Licence sent to user`, 'success');
     } catch (error) {
-        console.error('âŒ Error in sendLicenceForOrder:', error);
+        console.error('❌ Error in sendLicenceForOrder:', error);
         await addDoc(collection(db, 'notifications'), {
-            title: 'âŒ Failed to send licence',
+            title: '❌ Failed to send licence',
             message: `Order: ${orderId} - User: ${userId} - Error: ${error.message}`,
             readBy: [],
             createdAt: serverTimestamp()
@@ -4903,12 +5028,12 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
 }
 
 // ============================================================
-// 27. Admin Users - FIXED with country display
+// 27. Admin Users
 // ============================================================
 
 async function loadAdminUsers() {
     if (!currentUser || !isAdminCached) {
-        console.log('â„¹ï¸ loadAdminUsers skipped (not admin)');
+        console.log('ℹ️ loadAdminUsers skipped (not admin)');
         return;
     }
     const container = document.getElementById('adminUsersContainer');
@@ -4928,7 +5053,7 @@ async function loadAdminUsers() {
         console.error('Error loading users:', error);
         container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--danger);">Error loading users: ${error.message}</div>`;
         if (error.code === 'permission-denied') {
-            console.warn('âš ï¸ Missing permissions to read users. Check Firestore rules.');
+            console.warn('⚠️ Missing permissions to read users. Check Firestore rules.');
         }
     }
 }
@@ -4936,11 +5061,11 @@ async function loadAdminUsers() {
 function renderAdminUsers(usersList) {
     const container = document.getElementById('adminUsersContainer');
     if (!container) return;
-    if (!usersList || usersList.length === 0) { container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">ðŸ‘¥ No users</div>`; return; }
+    if (!usersList || usersList.length === 0) { container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">👥 No users</div>`; return; }
     const searchQuery = document.getElementById('adminUserSearchInput')?.value.trim().toLowerCase() || '';
     let filtered = usersList;
     if (searchQuery) { filtered = filtered.filter(u => u.email?.toLowerCase().includes(searchQuery) || u.name?.toLowerCase().includes(searchQuery)); }
-    if (filtered.length === 0) { container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">ðŸ” No results</div>`; return; }
+    if (filtered.length === 0) { container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">🔍 No results</div>`; return; }
     container.innerHTML = `<div style="display:flex;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:4px;"><span style="font-size:12px;color:var(--text-secondary);opacity:0.4;">${filtered.length} users</span></div><div class="admin-users-grid">${filtered.map(user=>{
         const isAdmin = user.email === 'zribiidriss3@gmail.com';
         const isBanned = user.isBanned || false;
@@ -4951,37 +5076,37 @@ function renderAdminUsers(usersList) {
         const initials = (user.name || 'U').charAt(0).toUpperCase();
         const dateStr = user.createdAt ? user.createdAt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '--';
         const location = user.location || user.country || 'N/A';
-        return `<div class="admin-user-card ${isBanned?'banned':''}"><div class="user-avatar">${photo ? `<img src="${photo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />` : initials}</div><div class="user-name">${user.name||'Unknown'}</div><div class="user-email">${user.email||'No email'}</div><div class="user-meta">ðŸ“ ${location}</div><div class="user-meta">ðŸ“… ${dateStr} â€¢ ðŸŽ¯ ${rp} RP â€¢ ðŸ’° $${balance.toFixed(2)}</div><div class="user-meta">ðŸ“¦ ${orderCount} orders</div>${isBanned?`<span class="user-badge banned">ðŸš« Banned</span>`:''}${isAdmin?`<span class="user-badge admin">ðŸ‘‘ Admin</span>`:''}<div class="user-actions"><button class="btn-view" onclick="viewUserDetails('${user.uid}')"><i class="fas fa-eye"></i> View</button>${!isAdmin ? (isBanned ? `<button class="btn-unban" onclick="toggleUserBan('${user.uid}',false)"><i class="fas fa-user-check"></i> Unban</button>` : `<button class="btn-ban" onclick="toggleUserBan('${user.uid}',true)"><i class="fas fa-ban"></i> Ban</button>`) : ''}${!isAdmin ? `<button class="btn-delete" onclick="deleteUserAccount('${user.uid}')"><i class="fas fa-trash"></i></button>` : ''}</div></div>`;
+        return `<div class="admin-user-card ${isBanned?'banned':''}"><div class="user-avatar">${photo ? `<img src="${photo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />` : initials}</div><div class="user-name">${user.name||'Unknown'}</div><div class="user-email">${user.email||'No email'}</div><div class="user-meta">📍 ${location}</div><div class="user-meta">📅 ${dateStr} • 🎯 ${rp} RP • 💰 $${balance.toFixed(2)}</div><div class="user-meta">📦 ${orderCount} orders</div>${isBanned?`<span class="user-badge banned">🚫 Banned</span>`:''}${isAdmin?`<span class="user-badge admin">👑 Admin</span>`:''}<div class="user-actions"><button class="btn-view" onclick="viewUserDetails('${user.uid}')"><i class="fas fa-eye"></i> View</button>${!isAdmin ? (isBanned ? `<button class="btn-unban" onclick="toggleUserBan('${user.uid}',false)"><i class="fas fa-user-check"></i> Unban</button>` : `<button class="btn-ban" onclick="toggleUserBan('${user.uid}',true)"><i class="fas fa-ban"></i> Ban</button>`) : ''}${!isAdmin ? `<button class="btn-delete" onclick="deleteUserAccount('${user.uid}')"><i class="fas fa-trash"></i></button>` : ''}</div></div>`;
     }).join('')}</div>`;
 }
 window.searchAdminUsers = function() { renderAdminUsers(allUsers); };
 window.clearAdminUserSearch = function() { document.getElementById('adminUserSearchInput').value = ''; renderAdminUsers(allUsers); };
-window.refreshAdminUsers = function() { loadAdminUsers(); showToast('ðŸ”„ Users refreshed', 'info'); };
+window.refreshAdminUsers = function() { loadAdminUsers(); showToast('🔄 Users refreshed', 'info'); };
 window.toggleUserBan = async function(uid, ban) {
-    if (!currentUser || !isAdminCached) { showToast('â›” Unauthorized', 'error'); return; }
-    if (uid === currentUser.uid) { showToast('âš ï¸ You cannot ban yourself', 'warning'); return; }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (uid === currentUser.uid) { showToast('⚠️ You cannot ban yourself', 'warning'); return; }
     try {
         await updateDoc(doc(db, 'users', uid), { isBanned: ban });
-        showToast(`âœ… User ${ban?'banned':'unbanned'}`, 'success');
+        showToast(`✅ User ${ban?'banned':'unbanned'}`, 'success');
         loadAdminUsers();
-    } catch (error) { console.error('Error toggling user ban:', error); showToast('âŒ Error: ' + error.message, 'error'); }
+    } catch (error) { console.error('Error toggling user ban:', error); showToast('❌ Error: ' + error.message, 'error'); }
 };
 window.deleteUserAccount = async function(uid) {
-    if (!currentUser || !isAdminCached) { showToast('â›” Unauthorized', 'error'); return; }
-    if (uid === currentUser.uid) { showToast('âš ï¸ You cannot delete your own account', 'warning'); return; }
-    if (!confirm('âš ï¸ Delete this user account permanently?')) return;
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (uid === currentUser.uid) { showToast('⚠️ You cannot delete your own account', 'warning'); return; }
+    if (!confirm('⚠️ Delete this user account permanently?')) return;
     try {
         await deleteDoc(doc(db, 'users', uid));
-        showToast('ðŸ—‘ï¸ User account deleted', 'success');
+        showToast('🗑️ User account deleted', 'success');
         loadAdminUsers(); loadAdminOrders();
-    } catch (error) { console.error('Error deleting user:', error); showToast('âŒ Error: ' + error.message, 'error'); }
+    } catch (error) { console.error('Error deleting user:', error); showToast('❌ Error: ' + error.message, 'error'); }
 };
 window.viewUserDetails = async function(uid) {
-    if (!currentUser || !isAdminCached) { showToast('â›” Unauthorized', 'error'); return; }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     try {
         const userRef = doc(db, 'users', uid);
         const userSnap = await getDoc(userRef);
-        if (!userSnap.exists()) { showToast('âŒ User not found', 'error'); return; }
+        if (!userSnap.exists()) { showToast('❌ User not found', 'error'); return; }
         const data = userSnap.data();
         const orders = data.history || [];
         const totalSpent = orders.reduce((sum, o) => sum + (o.total || 0), 0);
@@ -4996,7 +5121,7 @@ window.viewUserDetails = async function(uid) {
               <div style="width:44px;height:44px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;overflow:hidden;">
                 ${photo ? `<img src="${photo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />` : (data.name||'U').charAt(0).toUpperCase()}
               </div>
-              <div><div style="font-size:15px;font-weight:700;color:var(--text);">${data.name||'Unknown'}</div><div style="font-size:12px;color:var(--text-secondary);">${data.email||'No email'}</div><div style="font-size:12px;color:var(--text-secondary);">ðŸ“ Country: ${location}</div><div style="font-size:11px;color:var(--text-secondary);opacity:0.4;">ðŸ“… Joined: ${joinedDate}</div><div style="font-size:12px;color:var(--vip-color);font-weight:600;">ðŸŽ¯ RP: ${data.rp||0} â€¢ ðŸ’° Balance: $${balance.toFixed(2)}</div><div style="font-size:12px;color:var(--text-secondary);">ðŸ“¦ ${orders.length} orders</div></div>
+              <div><div style="font-size:15px;font-weight:700;color:var(--text);">${data.name||'Unknown'}</div><div style="font-size:12px;color:var(--text-secondary);">${data.email||'No email'}</div><div style="font-size:12px;color:var(--text-secondary);">📍 Country: ${location}</div><div style="font-size:11px;color:var(--text-secondary);opacity:0.4;">📅 Joined: ${joinedDate}</div><div style="font-size:12px;color:var(--vip-color);font-weight:600;">🎯 RP: ${data.rp||0} • 💰 Balance: $${balance.toFixed(2)}</div><div style="font-size:12px;color:var(--text-secondary);">📦 ${orders.length} orders</div></div>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:10px;">
               <div style="background:var(--bg);border-radius:6px;padding:6px;text-align:center;border:1px solid var(--border);"><div style="font-size:14px;font-weight:700;color:var(--text);">${orders.length}</div><div style="font-size:9px;color:var(--text-secondary);">Orders</div></div>
@@ -5013,7 +5138,7 @@ window.viewUserDetails = async function(uid) {
             </div>
           </div>`;
         document.getElementById('userDetailsModal').classList.add('open');
-    } catch (error) { console.error('Error viewing user details:', error); showToast('âŒ Error loading user details', 'error'); }
+    } catch (error) { console.error('Error viewing user details:', error); showToast('❌ Error loading user details', 'error'); }
 };
 window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
@@ -5034,23 +5159,23 @@ async function loadLicences() {
     } catch (error) {
         console.error('Error loading licences:', error);
         const container = document.getElementById('adminLicencesList');
-        if (container) container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--danger);">âš ï¸ Failed to load licences: ${error.message}</div>`;
+        if (container) container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--danger);">⚠️ Failed to load licences: ${error.message}</div>`;
     }
 }
 
 function renderLicences(licences) {
     const container = document.getElementById('adminLicencesList');
     if (!container) return;
-    if (!licences || licences.length === 0) { container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">ðŸ”‘ No licences found</div>`; return; }
+    if (!licences || licences.length === 0) { container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">🔑 No licences found</div>`; return; }
     container.innerHTML = licences.map(l => {
         const statusMap = {
-            'pending': '<span class="status-badge pending">â³ Pending</span>',
-            'active': '<span class="status-badge active">âœ… Active</span>',
-            'used': '<span class="status-badge used">ðŸ”’ Used</span>',
-            'expired': '<span class="status-badge expired">â›” Expired</span>',
-            'revoked': '<span class="status-badge revoked">ðŸš« Revoked</span>'
+            'pending': '<span class="status-badge pending">⏳ Pending</span>',
+            'active': '<span class="status-badge active">✅ Active</span>',
+            'used': '<span class="status-badge used">🔒 Used</span>',
+            'expired': '<span class="status-badge expired">⛔ Expired</span>',
+            'revoked': '<span class="status-badge revoked">🚫 Revoked</span>'
         };
-        const statusBadge = statusMap[l.status] || '<span class="status-badge">â“ Unknown</span>';
+        const statusBadge = statusMap[l.status] || '<span class="status-badge">❓ Unknown</span>';
         const userDisplay = l.user_email || l.user_id || 'Not assigned';
         const expiryDate = l.expiry_date ? new Date(l.expiry_date).toLocaleDateString() : '--';
         const isExpired = l.expiry_date && new Date(l.expiry_date) < new Date();
@@ -5061,11 +5186,11 @@ function renderLicences(licences) {
                         ${l.code}
                         <button onclick="copyLicenceCode('${l.code}')" style="background:none;border:none;color:var(--primary);cursor:pointer;font-size:13px;padding:2px 6px;margin-left:4px;" title="Copy code"><i class="fas fa-copy"></i></button>
                         <span style="font-size:11px;font-weight:400;opacity:0.5;margin-left:6px;">${l.script_name || 'Unknown'}</span>
-                        ${l.script_id ? `<span style="font-size:10px;opacity:0.3;margin-left:4px;">ðŸ“Ž ${l.script_id}</span>` : ''}
+                        ${l.script_id ? `<span style="font-size:10px;opacity:0.3;margin-left:4px;">📎 ${l.script_id}</span>` : ''}
                     </div>
                     <div class="item-meta">
-                        ðŸ‘¤ ${userDisplay} â€¢ ðŸ“… ${expiryDate} â€¢ ${statusBadge}
-                        ${l.order_id ? `â€¢ ðŸ“Ž #${l.order_id.slice(-6)}` : ''}
+                        👤 ${userDisplay} • 📅 ${expiryDate} • ${statusBadge}
+                        ${l.order_id ? `• 📎 #${l.order_id.slice(-6)}` : ''}
                     </div>
                 </div>
                 <div class="item-actions">
@@ -5091,7 +5216,7 @@ async function createLicenceManually() {
     const productName = document.getElementById('newLicenceProduct')?.value.trim();
     const userId = document.getElementById('newLicenceUser')?.value.trim();
     const expiryDate = document.getElementById('newLicenceExpiry')?.value;
-    if (!productName) { showToast('âš ï¸ Product name required', 'warning'); return; }
+    if (!productName) { showToast('⚠️ Product name required', 'warning'); return; }
     try {
         const response = await fetch(`${SUPABASE_URL}/functions/v1/create-licence`, {
             method: 'POST',
@@ -5100,7 +5225,7 @@ async function createLicenceManually() {
         });
         const data = await response.json();
         if (!response.ok || !data.success) throw new Error(data.error);
-        showToast(`âœ… Licence created: ${data.licence.code}`, 'success');
+        showToast(`✅ Licence created: ${data.licence.code}`, 'success');
         closeCreateLicenceModal();
         loadLicences();
         if (userId) {
@@ -5122,7 +5247,7 @@ async function createLicenceManually() {
                 }
             }
         }
-    } catch (error) { showToast('âŒ Error: ' + error.message, 'error'); }
+    } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
 }
 async function updateLicenceInSupabase(licenceId, data) {
     const { error } = await supabase.from('licenses').update({ ...data, updated_at: new Date().toISOString() }).eq('id', licenceId);
@@ -5130,7 +5255,7 @@ async function updateLicenceInSupabase(licenceId, data) {
     return true;
 }
 async function approveLicence(licenceId, code, scriptName) {
-    if (!currentUser || !isAdminCached) { showToast('â›” Unauthorized', 'error'); return; }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!confirm(`Approve licence ${code} and send to user?`)) return;
     try {
         const { data: licenceData, error: fetchError } = await supabase.from('licenses').select('*').eq('id', licenceId).single();
@@ -5138,15 +5263,15 @@ async function approveLicence(licenceId, code, scriptName) {
         await updateLicenceInSupabase(licenceId, { status: 'active', user_id: currentUser.uid, user_email: currentUser.email });
         await sendUserNotification(
             currentUser.uid,
-            'ðŸ”‘ Licence Activated!',
+            '🔑 Licence Activated!',
             `Your licence for ${scriptName} has been activated. Code: ${code}`
         );
-        showToast(`âœ… Licence ${code} approved!`, 'success');
+        showToast(`✅ Licence ${code} approved!`, 'success');
         loadLicences();
-    } catch (error) { showToast('âŒ Error: ' + error.message, 'error'); }
+    } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
 }
 async function revokeLicence(licenceId) {
-    if (!currentUser || !isAdminCached) { showToast('â›” Unauthorized', 'error'); return; }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!confirm('Revoke this licence?')) return;
     try {
         await updateLicenceInSupabase(licenceId, { status: 'revoked' });
@@ -5154,7 +5279,7 @@ async function revokeLicence(licenceId) {
         if (licence && licence.user_id) {
             await sendUserNotification(
                 licence.user_id,
-                'ðŸš« Licence Revoked',
+                '🚫 Licence Revoked',
                 `Your licence for ${licence.script_name || 'product'} has been revoked.`
             );
             const userRef = doc(db, 'users', licence.user_id);
@@ -5174,12 +5299,12 @@ async function revokeLicence(licenceId) {
                 }
             }
         }
-        showToast('ðŸš« Licence revoked', 'success');
+        showToast('🚫 Licence revoked', 'success');
         loadLicences();
-    } catch (error) { showToast('âŒ Error: ' + error.message, 'error'); }
+    } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
 }
 async function deleteLicence(licenceId) {
-    if (!currentUser || !isAdminCached) { showToast('â›” Unauthorized', 'error'); return; }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!confirm('Delete this licence permanently?')) return;
     try {
         const licence = allLicences.find(l => l.id === licenceId);
@@ -5200,15 +5325,15 @@ async function deleteLicence(licenceId) {
                 }
             }
         }
-        showToast('ðŸ—‘ï¸ Licence deleted', 'success');
+        showToast('🗑️ Licence deleted', 'success');
         loadLicences();
-    } catch (error) { showToast('âŒ Error: ' + error.message, 'error'); }
+    } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
 }
 async function editLicence(licenceId) {
-    if (!currentUser || !isAdminCached) { showToast('â›” Unauthorized', 'error'); return; }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     try {
         const { data: licence, error } = await supabase.from('licenses').select('*').eq('id', licenceId).single();
-        if (error || !licence) { showToast('âŒ Licence not found', 'error'); return; }
+        if (error || !licence) { showToast('❌ Licence not found', 'error'); return; }
         document.getElementById('editLicenceId').value = licenceId;
         document.getElementById('editLicenceCode').value = licence.code || '';
         document.getElementById('editLicenceScript').value = licence.script_name || '';
@@ -5223,10 +5348,10 @@ async function editLicence(licenceId) {
         } else { document.getElementById('editLicenceExpiry').value = ''; }
         document.getElementById('editLicenceStatus').value = licence.status || 'active';
         document.getElementById('editLicenceModal').classList.add('open');
-    } catch (error) { showToast('âŒ Failed to load licence details', 'error'); }
+    } catch (error) { showToast('❌ Failed to load licence details', 'error'); }
 }
 async function saveLicenceEdit() {
-    if (!currentUser || !isAdminCached) { showToast('â›” Unauthorized', 'error'); return; }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     const licenceId = document.getElementById('editLicenceId').value;
     const expiryDate = document.getElementById('editLicenceExpiry').value;
     const status = document.getElementById('editLicenceStatus').value;
@@ -5246,9 +5371,9 @@ async function saveLicenceEdit() {
             }
         }
         loadLicences();
-        showToast('âœ… Licence updated!', 'success');
+        showToast('✅ Licence updated!', 'success');
         document.getElementById('editLicenceModal').classList.remove('open');
-    } catch (error) { showToast('âŒ Error: ' + error.message, 'error'); }
+    } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
 }
 function searchLicences() {
     const query = document.getElementById('adminLicenceSearch').value.trim().toLowerCase();
@@ -5262,7 +5387,7 @@ function searchLicences() {
     renderLicences(filtered);
 }
 function clearLicenceSearch() { document.getElementById('adminLicenceSearch').value = ''; renderLicences(allLicences); }
-function refreshLicences() { loadLicences(); showToast('ðŸ”„ Refreshed', 'info'); }
+function refreshLicences() { loadLicences(); showToast('🔄 Refreshed', 'info'); }
 
 function renderUserLicences() {
     const container = document.getElementById('userLicencesList');
@@ -5276,7 +5401,7 @@ function renderUserLicences() {
             <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--bg);border-radius:6px;border:1px solid var(--border);margin-bottom:4px;">
                 <div>
                     <div style="font-size:12px;font-weight:600;color:var(--text);">${l.scriptName}</div>
-                    <div style="font-size:10px;color:var(--text-secondary);opacity:0.5;">${isExpired ? 'â›” Expired' : 'âœ… Active until ' + new Date(l.expiryDate).toLocaleDateString()}</div>
+                    <div style="font-size:10px;color:var(--text-secondary);opacity:0.5;">${isExpired ? '⛔ Expired' : '✅ Active until ' + new Date(l.expiryDate).toLocaleDateString()}</div>
                 </div>
                 <div style="display:flex;align-items:center;gap:6px;">
                     <span style="font-size:10px;font-family:monospace;opacity:0.3;">${l.code.slice(-6)}</span>
@@ -5291,7 +5416,7 @@ function toggleLicencesList() {
     if (list) list.style.display = list.style.display === 'none' ? 'block' : 'none';
 }
 function openLicenceModal() {
-    if (!currentUser) { showToast('âš ï¸ Please login first', 'warning'); return; }
+    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
     document.getElementById('licenceModal').classList.add('open');
 }
 function closeLicenceModal() { document.getElementById('licenceModal').classList.remove('open'); }
@@ -5299,10 +5424,10 @@ async function activateLicence() {
     const input = document.getElementById('licenceInput');
     const resultEl = document.getElementById('licenceResult');
     const code = input?.value?.trim().toUpperCase();
-    if (!code) { resultEl.innerHTML = '<span style="color:var(--danger);">âš ï¸ Please enter a licence code.</span>'; return; }
-    if (!currentUser) { resultEl.innerHTML = '<span style="color:var(--danger);">âš ï¸ You must be logged in.</span>'; return; }
+    if (!code) { resultEl.innerHTML = '<span style="color:var(--danger);">⚠️ Please enter a licence code.</span>'; return; }
+    if (!currentUser) { resultEl.innerHTML = '<span style="color:var(--danger);">⚠️ You must be logged in.</span>'; return; }
     try {
-        resultEl.innerHTML = '<span style="color:var(--text-secondary);">â³ Verifying...</span>';
+        resultEl.innerHTML = '<span style="color:var(--text-secondary);">⏳ Verifying...</span>';
         const response = await fetch(`${SUPABASE_URL}/functions/v1/public-verify?code=${encodeURIComponent(code)}&token=${currentUser.uid}`, {
             headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
         });
@@ -5322,7 +5447,7 @@ async function activateLicence() {
                 updateFullUserMenu();
                 await sendUserNotification(
                     currentUser.uid,
-                    'ðŸ”‘ Licence Activated',
+                    '🔑 Licence Activated',
                     `Your licence for ${licence.scriptName} has been activated successfully!`
                 );
             }
@@ -5330,17 +5455,17 @@ async function activateLicence() {
         const expiryDate = new Date(licence.expiryDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
         resultEl.innerHTML = `
             <div style="background:var(--success-glow);border-radius:8px;padding:10px;border:1px solid var(--success);">
-                <div style="font-weight:700;color:var(--success);">âœ… Activated Successfully!</div>
+                <div style="font-weight:700;color:var(--success);">✅ Activated Successfully!</div>
                 <div style="font-size:13px;color:var(--text);margin-top:4px;">
                     <strong>Script:</strong> ${licence.scriptName || 'Unknown'}<br>
                     <strong>Expires:</strong> ${expiryDate}
                 </div>
                 <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;opacity:0.5;">
-                    ðŸ”’ This script is now linked to your account.
+                    🔒 This script is now linked to your account.
                 </div>
             </div>
         `;
-    } catch (error) { resultEl.innerHTML = `<span style="color:var(--danger);">âŒ Error: ${error.message}</span>`; }
+    } catch (error) { resultEl.innerHTML = `<span style="color:var(--danger);">❌ Error: ${error.message}</span>`; }
 }
 
 // ============================================================
@@ -5364,12 +5489,12 @@ async function loadRatings(productId) {
             const data = doc.data();
             total += data.rating || 0; count++;
             const date = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '--';
-            const stars = 'â­'.repeat(Math.round(data.rating || 0));
-            reviewsHtml += `<div class="rating-review-item"><div class="rr-header"><span class="rr-name">${data.userName || 'User'}</span><span class="rr-stars">${stars}</span>${data.verified ? '<span class="rr-badge">âœ… Verified</span>' : ''}<span class="rr-date">${date}</span></div>${data.comment ? `<div class="rr-comment">${data.comment}</div>` : ''}</div>`;
+            const stars = '⭐'.repeat(Math.round(data.rating || 0));
+            reviewsHtml += `<div class="rating-review-item"><div class="rr-header"><span class="rr-name">${data.userName || 'User'}</span><span class="rr-stars">${stars}</span>${data.verified ? '<span class="rr-badge">✅ Verified</span>' : ''}<span class="rr-date">${date}</span></div>${data.comment ? `<div class="rr-comment">${data.comment}</div>` : ''}</div>`;
         });
         const avg = count > 0 ? (total / count) : 0;
-        const fullStars = 'â­'.repeat(Math.round(avg));
-        const emptyStars = 'â˜†'.repeat(5 - Math.round(avg));
+        const fullStars = '⭐'.repeat(Math.round(avg));
+        const emptyStars = '☆'.repeat(5 - Math.round(avg));
         if (avgEl) avgEl.textContent = avg.toFixed(1);
         if (countEl) countEl.textContent = `(${count} reviews)`;
         container.innerHTML = reviewsHtml || `<div style="text-align:center;padding:10px;color:var(--text-secondary);opacity:0.4;">No reviews yet. Be the first!</div>`;
@@ -5389,27 +5514,27 @@ function hasUserPurchasedProduct(productId) {
 }
 
 async function submitRating(productId) {
-    if (!currentUser) { showToast('âš ï¸ Please login to rate', 'warning'); return; }
+    if (!currentUser) { showToast('⚠️ Please login to rate', 'warning'); return; }
     const comment = document.getElementById('ratingCommentInput')?.value.trim() || '';
     const rating = currentRating;
-    if (rating === 0) { showToast('â­ Please select a star rating', 'warning'); return; }
-    if (!hasUserPurchasedProduct(productId)) { showToast('âš ï¸ You can only rate products you have purchased', 'warning'); return; }
+    if (rating === 0) { showToast('⭐ Please select a star rating', 'warning'); return; }
+    if (!hasUserPurchasedProduct(productId)) { showToast('⚠️ You can only rate products you have purchased', 'warning'); return; }
     try {
         const ratingsRef = collection(db, 'ratings');
         const q = query(ratingsRef, where('productId', '==', productId), where('userId', '==', currentUser.uid));
         const snapshot = await getDocs(q);
-        if (!snapshot.empty) { showToast('âš ï¸ You already rated this product', 'warning'); return; }
+        if (!snapshot.empty) { showToast('⚠️ You already rated this product', 'warning'); return; }
         await addDoc(collection(db, 'ratings'), { productId, userId: currentUser.uid, userName: currentUser.displayName || currentUser.email || 'User', rating, comment, verified: true, timestamp: serverTimestamp() });
-        showToast('âœ… Rating submitted! Thank you!', 'success');
+        showToast('✅ Rating submitted! Thank you!', 'success');
         currentRating = 0;
         document.getElementById('ratingStarsContainer').innerHTML = renderStarHTML(0);
         document.getElementById('ratingCommentInput').value = '';
         loadRatings(productId);
         updateProductRatingDisplay(productId);
-    } catch (error) { console.error('Error submitting rating:', error); showToast('âŒ Error: ' + error.message, 'error'); }
+    } catch (error) { console.error('Error submitting rating:', error); showToast('❌ Error: ' + error.message, 'error'); }
 }
 
-function renderStarHTML(rating) { let html = ''; for (let i = 1; i <= 5; i++) { html += `<span class="star ${i <= rating ? 'active' : ''}" data-value="${i}" onclick="setRating(${i})">â˜…</span>`; } return html; }
+function renderStarHTML(rating) { let html = ''; for (let i = 1; i <= 5; i++) { html += `<span class="star ${i <= rating ? 'active' : ''}" data-value="${i}" onclick="setRating(${i})">★</span>`; } return html; }
 window.setRating = function(value) { currentRating = value; const container = document.getElementById('ratingStarsContainer'); if (container) { container.innerHTML = renderStarHTML(value); } };
 
 function renderRatingSection(productId) {
@@ -5420,7 +5545,7 @@ function renderRatingSection(productId) {
     section.innerHTML = `
         <div class="rating-section">
             <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px;">
-                <span class="stars-small" id="ratingAvgStars" style="font-size:18px;">â˜†â˜†â˜†â˜†â˜†</span>
+                <span class="stars-small" id="ratingAvgStars" style="font-size:18px;">☆☆☆☆☆</span>
                 <span class="count" id="ratingCountDisplay" style="font-size:13px;color:var(--text-secondary);opacity:0.5;">(0 reviews)</span>
                 <span style="font-weight:700;color:var(--vip-color);font-size:16px;" id="ratingAvgDisplay">0.0</span>
             </div>
@@ -5429,15 +5554,15 @@ function renderRatingSection(productId) {
             </div>
             ${canRate ? `
                 <div style="border-top:1px solid var(--border);padding-top:10px;margin-top:8px;">
-                    <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">â­ Rate this product</div>
+                    <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">⭐ Rate this product</div>
                     <div class="rating-stars" id="ratingStarsContainer">${renderStarHTML(0)}</div>
                     <textarea class="rating-comment-input" id="ratingCommentInput" placeholder="Share your experience... (optional)" rows="2" style="width:100%;padding:8px 12px;border:2px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-family:var(--font);resize:vertical;margin-top:4px;"></textarea>
                     <button class="rating-submit-btn" onclick="submitRating('${productId}')" style="padding:6px 16px;border:none;border-radius:var(--radius-sm);background:var(--primary);color:#fff;font-weight:600;cursor:pointer;margin-top:4px;"><i class="fas fa-paper-plane"></i> Submit Review</button>
                 </div>
             ` : (isLoggedIn ? `
-                <div style="font-size:12px;color:var(--text-secondary);opacity:0.4;text-align:center;padding:4px;">ðŸ“Œ Purchase this product to leave a review</div>
+                <div style="font-size:12px;color:var(--text-secondary);opacity:0.4;text-align:center;padding:4px;">📌 Purchase this product to leave a review</div>
             ` : `
-                <div style="font-size:12px;color:var(--text-secondary);opacity:0.4;text-align:center;padding:4px;">ðŸ”’ Login to rate this product</div>
+                <div style="font-size:12px;color:var(--text-secondary);opacity:0.4;text-align:center;padding:4px;">🔒 Login to rate this product</div>
             `)}
         </div>
     `;
@@ -5486,11 +5611,11 @@ window.saveSliderData = async function() {
             slides: sliderSlides,
             updatedAt: serverTimestamp()
         }, { merge: true });
-        showToast('âœ… Slider saved successfully!', 'success');
+        showToast('✅ Slider saved successfully!', 'success');
         return true;
     } catch (error) {
         console.error('Error saving slider data:', error);
-        showToast('âŒ Failed to save slider: ' + error.message, 'error');
+        showToast('❌ Failed to save slider: ' + error.message, 'error');
         return false;
     }
 };
@@ -5498,19 +5623,19 @@ window.saveSliderData = async function() {
 window.saveSliderInterval = async function() {
     const input = document.getElementById('sliderIntervalInput');
     if (!input) {
-        showToast('âŒ Interval field not found', 'error');
+        showToast('❌ Interval field not found', 'error');
         return;
     }
     const interval = parseFloat(input.value);
     if (isNaN(interval) || interval < 1) {
-        showToast('âš ï¸ Please enter a valid number (minimum 1 second)', 'warning');
+        showToast('⚠️ Please enter a valid number (minimum 1 second)', 'warning');
         return;
     }
     sliderIntervalTime = interval;
     await window.saveSliderData();
     resetSliderTimer();
     renderSlider();
-    showToast('âœ… Interval saved: ' + interval + ' seconds', 'success');
+    showToast('✅ Interval saved: ' + interval + ' seconds', 'success');
 };
 
 window.saveSlideEdit = async function() {
@@ -5520,7 +5645,7 @@ window.saveSlideEdit = async function() {
     if (isEdit) {
         const idx = parseInt(editIndex);
         if (isNaN(idx) || idx < 0 || idx >= sliderSlides.length) {
-            showToast('âŒ Slide not found for editing', 'error');
+            showToast('❌ Slide not found for editing', 'error');
             return;
         }
     }
@@ -5534,19 +5659,19 @@ window.saveSlideEdit = async function() {
     if (linkType === 'product') {
         productId = document.getElementById('slideProductSelect')?.value || '';
         if (!productId) {
-            showToast('âš ï¸ Please select a product', 'warning');
+            showToast('⚠️ Please select a product', 'warning');
             return;
         }
     } else if (linkType === 'download') {
         downloadUrl = document.getElementById('slideDownloadUrl')?.value.trim() || '';
         if (!downloadUrl) {
-            showToast('âš ï¸ Please enter download URL', 'warning');
+            showToast('⚠️ Please enter download URL', 'warning');
             return;
         }
     } else if (linkType === 'url') {
         customUrl = document.getElementById('slideCustomUrl')?.value.trim() || '';
         if (!customUrl) {
-            showToast('âš ï¸ Please enter custom URL', 'warning');
+            showToast('⚠️ Please enter custom URL', 'warning');
             return;
         }
     }
@@ -5559,16 +5684,16 @@ window.saveSlideEdit = async function() {
     }
 
     if (fileInput && fileInput.files && fileInput.files[0]) {
-        showToast('â³ Uploading image...', 'info');
+        showToast('⏳ Uploading image...', 'info');
         const uploadedUrl = await uploadToCloudinary(fileInput.files[0]);
         if (uploadedUrl) {
             imageUrl = uploadedUrl;
         } else {
-            showToast('âŒ Failed to upload image', 'error');
+            showToast('❌ Failed to upload image', 'error');
             return;
         }
     } else if (!imageUrl) {
-        showToast('âš ï¸ Please select an image for the slide', 'warning');
+        showToast('⚠️ Please select an image for the slide', 'warning');
         return;
     }
 
@@ -5586,10 +5711,10 @@ window.saveSlideEdit = async function() {
 
     if (isEdit) {
         sliderSlides[parseInt(editIndex)] = updatedSlide;
-        showToast('âœ… Slide updated successfully!', 'success');
+        showToast('✅ Slide updated successfully!', 'success');
     } else {
         sliderSlides.push(updatedSlide);
-        showToast('âœ… Slide added successfully!', 'success');
+        showToast('✅ Slide added successfully!', 'success');
     }
 
     delete document.getElementById('addSlideForm').dataset.editIndex;
@@ -5608,14 +5733,14 @@ window.deleteSlide = function(index) {
     renderSlider();
     renderSliderSettingsUI();
     resetSliderTimer();
-    showToast('ðŸ—‘ï¸ Slide deleted', 'success');
+    showToast('🗑️ Slide deleted', 'success');
 };
 
 window.editSlide = function(index) {
     const slide = sliderSlides[index];
-    if (!slide) { showToast('âŒ Slide not found', 'error'); return; }
+    if (!slide) { showToast('❌ Slide not found', 'error'); return; }
     const modal = document.getElementById('addSlideModal');
-    if (!modal) { showToast('âŒ Modal not found', 'error'); return; }
+    if (!modal) { showToast('❌ Modal not found', 'error'); return; }
 
     document.getElementById('slideTitle').value = slide.title || '';
     document.getElementById('slideSubtitle').value = slide.subtitle || '';
@@ -5631,9 +5756,9 @@ window.editSlide = function(index) {
     }
 
     document.getElementById('addSlideForm').dataset.editIndex = index;
-    document.querySelector('#addSlideModal .modal-title').textContent = 'âœï¸ Edit Slide';
+    document.querySelector('#addSlideModal .modal-title').textContent = '✏️ Edit Slide';
     const submitBtn = document.querySelector('#addSlideForm button[type="button"]');
-    if (submitBtn) submitBtn.textContent = 'ðŸ’¾ Save Changes';
+    if (submitBtn) submitBtn.textContent = '💾 Save Changes';
 
     modal.classList.add('open');
     document.body.style.overflow = 'hidden';
@@ -5642,7 +5767,7 @@ window.editSlide = function(index) {
 window.openAddSlideModal = function() {
     updateSlideProductSelect();
     const modal = document.getElementById('addSlideModal');
-    if (!modal) { showToast('âŒ Modal not found', 'error'); return; }
+    if (!modal) { showToast('❌ Modal not found', 'error'); return; }
 
     const form = document.getElementById('addSlideForm');
     if (form) form.reset();
@@ -5650,9 +5775,9 @@ window.openAddSlideModal = function() {
     if (preview) preview.style.display = 'none';
 
     delete document.getElementById('addSlideForm').dataset.editIndex;
-    document.querySelector('#addSlideModal .modal-title').textContent = 'âž• Add New Slide';
+    document.querySelector('#addSlideModal .modal-title').textContent = '➕ Add New Slide';
     const submitBtn = document.querySelector('#addSlideForm button[type="button"]');
-    if (submitBtn) submitBtn.textContent = 'âž• Add Slide';
+    if (submitBtn) submitBtn.textContent = '➕ Add Slide';
 
     toggleSlideLinkFields();
     modal.classList.add('open');
@@ -5774,7 +5899,7 @@ function renderSliderSettingsUI() {
     container.innerHTML = sliderSlides.map((slide, index) => {
         const product = products.find(p => p.id === slide.productId);
         const productName = product ? product.name : 'Unknown';
-        return `<div class="admin-item"><div class="item-info"><div class="item-title"><img src="${slide.imageUrl || 'https://picsum.photos/seed/default/60/60'}" style="width:40px;height:40px;border-radius:var(--radius-sm);object-fit:cover;margin-right:8px;" />${slide.title || 'Slide ' + (index+1)}<span style="font-size:11px;opacity:0.4;font-weight:400;">${slide.linkType === 'product' ? 'ðŸ“¦ Product: ' + productName : slide.linkType === 'download' ? 'ðŸ“¥ Download' : 'ðŸ”— Custom Link'}</span></div><div class="item-meta">${slide.subtitle || ''}</div></div><div class="item-actions"><button class="btn-edit" onclick="editSlide(${index})"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="deleteSlide(${index})"><i class="fas fa-trash"></i></button></div></div>`;
+        return `<div class="admin-item"><div class="item-info"><div class="item-title"><img src="${slide.imageUrl || 'https://picsum.photos/seed/default/60/60'}" style="width:40px;height:40px;border-radius:var(--radius-sm);object-fit:cover;margin-right:8px;" />${slide.title || 'Slide ' + (index+1)}<span style="font-size:11px;opacity:0.4;font-weight:400;">${slide.linkType === 'product' ? '📦 Product: ' + productName : slide.linkType === 'download' ? '📥 Download' : '🔗 Custom Link'}</span></div><div class="item-meta">${slide.subtitle || ''}</div></div><div class="item-actions"><button class="btn-edit" onclick="editSlide(${index})"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="deleteSlide(${index})"><i class="fas fa-trash"></i></button></div></div>`;
     }).join('');
 }
 
@@ -5786,16 +5911,16 @@ window.saveMarqueeSettings = async function() {
     const enabledCheckbox = document.getElementById('marqueeEnabled');
     const textArea = document.getElementById('marqueeText');
     const enabled = enabledCheckbox ? enabledCheckbox.checked : true;
-    const text = textArea ? textArea.value.trim() : 'ðŸš€ Welcome to ZI Store | âš¡ Instant Delivery | ðŸ”’ Secure Payment | ðŸ’¬ 24/7 Support';
-    if (!text) { showToast('âš ï¸ Please enter marquee text', 'warning'); return; }
+    const text = textArea ? textArea.value.trim() : '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+    if (!text) { showToast('⚠️ Please enter marquee text', 'warning'); return; }
     try {
         const settingsRef = doc(db, 'settings', 'marquee');
         await setDoc(settingsRef, { enabled, text, updatedAt: serverTimestamp() }, { merge: true });
         marqueeSettings.enabled = enabled;
         marqueeSettings.text = text;
         applyMarqueeSettings();
-        showToast('âœ… Marquee settings saved!', 'success');
-    } catch (error) { showToast('âŒ Failed to save settings: ' + error.message, 'error'); }
+        showToast('✅ Marquee settings saved!', 'success');
+    } catch (error) { showToast('❌ Failed to save settings: ' + error.message, 'error'); }
 };
 
 window.applyMarqueeSettings = function() {
@@ -5818,7 +5943,7 @@ function renderMarqueeSettingsUI() {
     const enabledCheckbox = document.getElementById('marqueeEnabled');
     const textArea = document.getElementById('marqueeText');
     if (enabledCheckbox) enabledCheckbox.checked = marqueeSettings.enabled !== false;
-    if (textArea) textArea.value = marqueeSettings.text || 'ðŸš€ Welcome to ZI Store | âš¡ Instant Delivery | ðŸ”’ Secure Payment | ðŸ’¬ 24/7 Support';
+    if (textArea) textArea.value = marqueeSettings.text || '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
 }
 
 async function loadMarqueeSettings() {
@@ -5828,17 +5953,17 @@ async function loadMarqueeSettings() {
         if (settingsSnap.exists()) {
             const data = settingsSnap.data();
             marqueeSettings.enabled = data.enabled !== undefined ? data.enabled : true;
-            marqueeSettings.text = data.text || 'ðŸš€ Welcome to ZI Store | âš¡ Instant Delivery | ðŸ”’ Secure Payment | ðŸ’¬ 24/7 Support';
+            marqueeSettings.text = data.text || '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
         } else {
             marqueeSettings.enabled = true;
-            marqueeSettings.text = 'ðŸš€ Welcome to ZI Store | âš¡ Instant Delivery | ðŸ”’ Secure Payment | ðŸ’¬ 24/7 Support';
+            marqueeSettings.text = '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
         }
         applyMarqueeSettings();
     } catch (error) {
         console.error('Error loading marquee settings:', error);
         if (error.code === 'permission-denied') {
             marqueeSettings.enabled = true;
-            marqueeSettings.text = 'ðŸš€ Welcome to ZI Store | âš¡ Instant Delivery | ðŸ”’ Secure Payment | ðŸ’¬ 24/7 Support';
+            marqueeSettings.text = '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
             applyMarqueeSettings();
         }
     }
@@ -5849,7 +5974,7 @@ async function loadMarqueeSettings() {
 // ============================================================
 
 async function loadDashboardStats() {
-    if (!currentUser || !isAdminCached) { console.log('â„¹ï¸ loadDashboardStats skipped (not admin)'); return; }
+    if (!currentUser || !isAdminCached) { console.log('ℹ️ loadDashboardStats skipped (not admin)'); return; }
     try {
         const statsRef = doc(db, 'global_stats', 'stats');
         const statsSnap = await getDoc(statsRef);
@@ -5860,12 +5985,12 @@ async function loadDashboardStats() {
         document.getElementById('dashboardNetRevenue').textContent = `$${(totalRevenue * 0.1).toFixed(2)}`;
     } catch (error) {
         console.error('Error loading dashboard stats:', error);
-        if (error.code === 'permission-denied') { console.warn('âš ï¸ Missing permissions to read stats.'); }
+        if (error.code === 'permission-denied') { console.warn('⚠️ Missing permissions to read stats.'); }
     }
 }
-window.refreshDashboardStats = function() { loadDashboardStats(); showToast('ðŸ”„ Stats refreshed', 'success'); };
+window.refreshDashboardStats = function() { loadDashboardStats(); showToast('🔄 Stats refreshed', 'success'); };
 async function loadAdvancedStats() {
-    if (!currentUser || !isAdminCached) { console.log('â„¹ï¸ loadAdvancedStats skipped (not admin)'); return; }
+    if (!currentUser || !isAdminCached) { console.log('ℹ️ loadAdvancedStats skipped (not admin)'); return; }
     const container = document.getElementById('advancedStatsContainer');
     if (!container) return;
     container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading statistics...</div>`;
@@ -5917,9 +6042,9 @@ async function loadAdvancedStats() {
         container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load statistics: ${error.message}</div>`;
     }
 }
-window.refreshAdvancedStats = function() { loadAdvancedStats(); showToast('ðŸ”„ Advanced stats refreshed', 'success'); };
+window.refreshAdvancedStats = function() { loadAdvancedStats(); showToast('🔄 Advanced stats refreshed', 'success'); };
 async function loadAuditLogs() {
-    if (!currentUser || !isAdminCached) { console.log('â„¹ï¸ loadAuditLogs skipped (not admin)'); return; }
+    if (!currentUser || !isAdminCached) { console.log('ℹ️ loadAuditLogs skipped (not admin)'); return; }
     const container = document.getElementById('auditLogsContainer');
     if (!container) return;
     container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading logs...</div>`;
@@ -5928,7 +6053,7 @@ async function loadAuditLogs() {
         const q = query(logsRef, orderBy('timestamp', 'desc'));
         const snapshot = await getDocs(q);
         if (snapshot.empty) {
-            container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">ðŸ“­ No audit logs</div>`;
+            container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">📭 No audit logs</div>`;
             return;
         }
         let html = `<div style="display:flex;flex-direction:column;gap:6px;max-height:400px;overflow-y:auto;">`;
@@ -5939,7 +6064,7 @@ async function loadAuditLogs() {
             const action = data.action || 'Action';
             const details = data.details || '';
             html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg);border-radius:8px;border:1px solid var(--border);font-size:13px;">
-                <div><span style="font-weight:600;color:var(--text);">${admin}</span><span style="color:var(--text-secondary);opacity:0.5;margin:0 4px;">â†’</span><span style="color:var(--primary);font-weight:500;">${action}</span>${details ? `<span style="color:var(--text-secondary);opacity:0.4;margin-left:4px;">${details}</span>` : ''}</div>
+                <div><span style="font-weight:600;color:var(--text);">${admin}</span><span style="color:var(--text-secondary);opacity:0.5;margin:0 4px;">→</span><span style="color:var(--primary);font-weight:500;">${action}</span>${details ? `<span style="color:var(--text-secondary);opacity:0.4;margin-left:4px;">${details}</span>` : ''}</div>
                 <span style="font-size:11px;color:var(--text-secondary);opacity:0.3;">${date}</span>
             </div>`;
         });
@@ -5958,10 +6083,10 @@ window.loadAuditLogs = loadAuditLogs;
 
 window.clearOrderHistory = async function() {
     if (!currentUser) {
-        showToast('âš ï¸ Please login first', 'warning');
+        showToast('⚠️ Please login first', 'warning');
         return;
     }
-    if (!confirm('âš ï¸ Are you sure you want to clear all order history? This cannot be undone!')) {
+    if (!confirm('⚠️ Are you sure you want to clear all order history? This cannot be undone!')) {
         return;
     }
     try {
@@ -5970,10 +6095,10 @@ window.clearOrderHistory = async function() {
         userProfile.history = [];
         renderHistoryFull();
         updateFullUserMenu();
-        showToast('ðŸ—‘ï¸ Order history cleared successfully!', 'success');
+        showToast('🗑️ Order history cleared successfully!', 'success');
     } catch (error) {
         console.error('Error clearing order history:', error);
-        showToast('âŒ Failed to clear order history', 'error');
+        showToast('❌ Failed to clear order history', 'error');
     }
 };
 
@@ -6006,7 +6131,7 @@ window.renderHistoryFull = function() {
         return {
             id: order.id || '#' + String(Date.now()).slice(-6),
             currency: currencyCode,
-            icon: currencyCode === 'LTC' ? 'L' : (currencyCode === 'BTC' ? 'â‚¿' : (currencyCode === 'ETH' ? 'âŸ ' : 'â‚®')),
+            icon: currencyCode === 'LTC' ? 'L' : (currencyCode === 'BTC' ? '₿' : (currencyCode === 'ETH' ? '⟠' : '₮')),
             date: order.date ? new Date(order.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '--',
             amount: amount.toFixed(2),
             value: `$${amount.toFixed(2)}`,
@@ -6041,7 +6166,7 @@ window.renderHistoryFull = function() {
     filtered.forEach(p => {
         let statusText = p.status === 'pending' ? 'Pending' : (p.status === 'confirmed' ? 'Completed' : 'Rejected');
         if (isLtcFilter && p.status === 'pending') {
-            statusText = 'Pending (24â€“48h)';
+            statusText = 'Pending (24–48h)';
         }
         const statusClass = p.status === 'confirmed' ? 'completed' : p.status;
 
@@ -6066,8 +6191,8 @@ window.renderHistoryFull = function() {
                 </div>
                 <div class="payment-to">
                     <i class="fas fa-arrow-right"></i> To: ${p.to}
-                    ${p.method ? ` â€¢ <span class="payment-method">${p.method}</span>` : ''}
-                    ${p.screenshotUrl ? ` â€¢ <a href="${p.screenshotUrl}" target="_blank" style="color:var(--primary);text-decoration:underline;">ðŸ“¸ View Screenshot</a>` : ''}
+                    ${p.method ? ` • <span class="payment-method">${p.method}</span>` : ''}
+                    ${p.screenshotUrl ? ` • <a href="${p.screenshotUrl}" target="_blank" style="color:var(--primary);text-decoration:underline;">📸 View Screenshot</a>` : ''}
                 </div>
             </div>
         `;
@@ -6127,7 +6252,7 @@ function startTopupRealtimeListener() {
         topupSubscription = null;
     }
 
-    console.log('ðŸ”„ Starting topup realtime listener for user:', currentUser.uid);
+    console.log('🔄 Starting topup realtime listener for user:', currentUser.uid);
 
     topupSubscription = supabase
         .channel('topups-changes')
@@ -6140,11 +6265,11 @@ function startTopupRealtimeListener() {
                 filter: `user_id=eq.${currentUser.uid}`
             },
             (payload) => {
-                console.log('ðŸ“¦ Topup update received:', payload);
+                console.log('📦 Topup update received:', payload);
                 const topup = payload.new;
 
                 if (topup.status === 'completed' && topup.amount_usd) {
-                    console.log('ðŸ’° Topup approved! Updating balance...');
+                    console.log('💰 Topup approved! Updating balance...');
 
                     userBalance = (userBalance || 0) + topup.amount_usd;
                     userProfile.balance = userBalance;
@@ -6152,7 +6277,7 @@ function startTopupRealtimeListener() {
                     updateUI();
                     updateFullUserMenu();
 
-                    showToast(`ðŸ’° $${topup.amount_usd.toFixed(2)} has been added to your balance!`, 'success');
+                    showToast(`💰 $${topup.amount_usd.toFixed(2)} has been added to your balance!`, 'success');
 
                     if (document.getElementById('topupStatusList')) {
                         loadUserTopups();
@@ -6186,7 +6311,7 @@ function playNotificationSound() {
             oscillator.stop();
         }, 300);
     } catch (e) {
-        console.log('âš ï¸ Sound notification not available');
+        console.log('⚠️ Sound notification not available');
     }
 }
 
@@ -6196,7 +6321,7 @@ function playNotificationSound() {
 
 window.openTopupStatus = async function() {
     if (!currentUser) {
-        showToast('âš ï¸ Please login first', 'warning');
+        showToast('⚠️ Please login first', 'warning');
         return;
     }
 
@@ -6267,14 +6392,14 @@ async function loadUserTopups() {
                 'rejected': 'var(--danger)'
             };
             const statusLabels = {
-                'pending': 'â³ Pending Review',
-                'completed': 'âœ… Approved & Added',
-                'rejected': 'âŒ Rejected'
+                'pending': '⏳ Pending Review',
+                'completed': '✅ Approved & Added',
+                'rejected': '❌ Rejected'
             };
             const statusIcons = {
-                'pending': 'ðŸ•',
-                'completed': 'âœ…',
-                'rejected': 'âŒ'
+                'pending': '🕐',
+                'completed': '✅',
+                'rejected': '❌'
             };
             const date = new Date(t.created_at).toLocaleString();
 
@@ -6304,7 +6429,7 @@ async function loadUserTopups() {
                             </span>
                             ${t.status === 'completed' ? `
                                 <div style="font-size:12px;color:var(--success);font-weight:600;margin-top:2px;">
-                                    ðŸ’° Balance updated
+                                    💰 Balance updated
                                 </div>
                             ` : ''}
                             ${t.status === 'rejected' ? `
@@ -6343,7 +6468,7 @@ async function loadUserTopups() {
         console.error('Error loading topups:', error);
         container.innerHTML = `
             <div style="text-align:center;padding:20px;color:var(--danger);">
-                âŒ Failed to load topup status
+                ❌ Failed to load topup status
                 <button onclick="loadUserTopups()" style="display:block;margin:8px auto;padding:6px 16px;background:var(--primary);border:none;border-radius:var(--radius-sm);color:#fff;cursor:pointer;">Retry</button>
             </div>
         `;
@@ -6356,7 +6481,7 @@ async function loadUserTopups() {
 
 window.openTopupModal = function() {
     if (!currentUser) {
-        showToast('âš ï¸ Please login first to topup', 'warning');
+        showToast('⚠️ Please login first to topup', 'warning');
         openAuthModal();
         return;
     }
@@ -6378,7 +6503,7 @@ window.closeTopupModal = function() {
 };
 
 // ============================================================
-// 38. TOPUP SYSTEM - Select Currency (FIXED)
+// 38. TOPUP SYSTEM - Select Currency
 // ============================================================
 
 window.selectTopupCurrency = function(currency) {
@@ -6420,7 +6545,7 @@ window.selectTopupCurrency = function(currency) {
 };
 
 // ============================================================
-// FIXED: updateTopupAmounts - shows correct currency
+// updateTopupAmounts
 // ============================================================
 function updateTopupAmounts(currency) {
     const container = document.getElementById('topupAmountsContainer');
@@ -6435,11 +6560,11 @@ function updateTopupAmounts(currency) {
                 let displayText, subText;
                 if (currency === 'USDT') {
                     displayText = `$${amount}`;
-                    subText = `â‰ˆ ${(amount / ltcPrice).toFixed(4)} LTC`;
+                    subText = `≈ ${(amount / ltcPrice).toFixed(4)} LTC`;
                 } else {
                     const ltcAmount = amount / ltcPrice;
                     displayText = `${ltcAmount.toFixed(4)} LTC`;
-                    subText = `â‰ˆ $${amount}`;
+                    subText = `≈ $${amount}`;
                 }
                 return `
                     <div class="topup-amount" data-amount="${amount}" onclick="selectTopupAmount(${amount})">
@@ -6469,7 +6594,7 @@ function updateTopupAmounts(currency) {
 }
 
 // ============================================================
-// FIXED: selectTopupAmount - shows correct currency and updates custom input
+// selectTopupAmount
 // ============================================================
 window.selectTopupAmount = function(amount) {
     document.querySelectorAll('.topup-amount').forEach(el => {
@@ -6544,7 +6669,7 @@ window.selectTopupAmount = function(amount) {
 
 window.processTopup = async function() {
     if (!currentUser) {
-        showToast('âš ï¸ Please login first', 'warning');
+        showToast('⚠️ Please login first', 'warning');
         return;
     }
 
@@ -6553,14 +6678,14 @@ window.processTopup = async function() {
     if (document.getElementById('customAmountContainer').style.display !== 'none' && customInput) {
         const customVal = parseFloat(customInput.value);
         if (!customVal || customVal <= 0) {
-            showToast('âš ï¸ Please enter a valid amount', 'warning');
+            showToast('⚠️ Please enter a valid amount', 'warning');
             return;
         }
         amount = customVal;
     }
 
     if (!amount || amount <= 0) {
-        showToast('âš ï¸ Please select or enter an amount', 'warning');
+        showToast('⚠️ Please select or enter an amount', 'warning');
         return;
     }
 
@@ -6610,7 +6735,7 @@ window.processTopup = async function() {
         statusEl.innerHTML = `
             <div style="background:var(--primary-glow); border-radius:8px; padding:16px; border:1px solid var(--primary);">
                 <div style="font-weight:700; color:var(--primary); font-size:16px; margin-bottom:12px;">
-                    ðŸ’³ Complete Your Payment
+                    💳 Complete Your Payment
                 </div>
 
                 ${warningHtml}
@@ -6641,7 +6766,7 @@ window.processTopup = async function() {
 
                 <div style="margin-bottom:12px;">
                     <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">
-                        ðŸ“‹ Transaction Hash (TXID)
+                        📋 Transaction Hash (TXID)
                     </label>
                     <input type="text" id="topupTxHash" placeholder="Paste your transaction hash here..."
                            style="width:100%; padding:10px 14px; border:2px solid var(--border); border-radius:var(--radius-sm);
@@ -6658,7 +6783,7 @@ window.processTopup = async function() {
                 </button>
 
                 <div style="font-size:11px; color:var(--text-secondary); opacity:0.5; margin-top:8px; text-align:center;">
-                    â³ Your request will be reviewed within 5-30 minutes
+                    ⏳ Your request will be reviewed within 5-30 minutes
                     <br>
                     <span style="font-size:10px;">Order ID: ${result.paymentId}</span>
                 </div>
@@ -6668,17 +6793,17 @@ window.processTopup = async function() {
         window._currentTopupId = result.topupId;
         window._currentTopupAmount = amount;
 
-        showToast(`ðŸ“¤ Payment instructions generated for ${result.displayCurrency}`, 'info');
+        showToast(`📤 Payment instructions generated for ${result.displayCurrency}`, 'info');
 
     } catch (error) {
         console.error('Topup error:', error);
-        statusEl.innerHTML = `<span style="color:var(--danger);">âŒ ${error.message}</span>`;
-        showToast('âŒ Error: ' + error.message, 'error');
+        statusEl.innerHTML = `<span style="color:var(--danger);">❌ ${error.message}</span>`;
+        showToast('❌ Error: ' + error.message, 'error');
     }
 };
 
 // ============================================================
-// 40. TOPUP SYSTEM - Submit with TX Hash (FIXED with full TXID and admin notification)
+// 40. TOPUP SYSTEM - Submit with TX Hash
 // ============================================================
 
 window.submitTopupWithTxHash = async function(topupId, amount) {
@@ -6686,14 +6811,14 @@ window.submitTopupWithTxHash = async function(topupId, amount) {
     const txHash = txHashInput?.value?.trim();
 
     if (!txHash) {
-        showToast('âš ï¸ Please paste your transaction hash', 'warning');
+        showToast('⚠️ Please paste your transaction hash', 'warning');
         txHashInput.style.borderColor = 'var(--danger)';
         setTimeout(() => { txHashInput.style.borderColor = ''; }, 3000);
         return;
     }
 
     if (txHash.length < 10) {
-        showToast('âš ï¸ Please enter a valid transaction hash', 'warning');
+        showToast('⚠️ Please enter a valid transaction hash', 'warning');
         return;
     }
 
@@ -6701,7 +6826,6 @@ window.submitTopupWithTxHash = async function(topupId, amount) {
     statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting for verification...';
 
     try {
-        // Update database with TXID
         const { error } = await supabase
             .from('topups')
             .update({
@@ -6712,51 +6836,47 @@ window.submitTopupWithTxHash = async function(topupId, amount) {
 
         if (error) throw error;
 
-        // ============================================================
-        // Send admin notification with FULL TXID, amount, email
-        // ============================================================
         const adminMessage = `
-ðŸ‘¤ *User Email:* ${currentUser.email || 'N/A'}
-ðŸ†” *User ID:* ${currentUser.uid}
-ðŸ’µ *Amount:* $${amount.toFixed(2)}
-ðŸ”— *TXID:* \`${txHash}\`
-ðŸ“… *Date:* ${new Date().toLocaleString()}
-ðŸ”” *Status:* Pending - Awaiting verification
+👤 *User Email:* ${currentUser.email || 'N/A'}
+🆔 *User ID:* ${currentUser.uid}
+💵 *Amount:* $${amount.toFixed(2)}
+🔗 *TXID:* \`${txHash}\`
+📅 *Date:* ${new Date().toLocaleString()}
+🔔 *Status:* Pending - Awaiting verification
 
-âš ï¸ *Please verify this transaction before approving.*
+⚠️ *Please verify this transaction before approving.*
         `;
         
-        await sendAdminNotification('ðŸ’° New Topup Request - Pending Verification', adminMessage);
+        await sendAdminNotification('💰 New Topup Request - Pending Verification', adminMessage);
 
-        // Send notification to user if Telegram linked
         if (userProfile.telegramChatId) {
             const userMessage = `
-ðŸ“¤ *TOPUP REQUEST SUBMITTED*
+📤 *TOPUP REQUEST SUBMITTED*
 
-âœ… Your topup request has been submitted successfully!
+✅ Your topup request has been submitted successfully!
 
-ðŸ’µ *Amount:* $${amount.toFixed(2)}
-ðŸ”— *TXID:* \`${txHash}\`
-ðŸ“… *Date:* ${new Date().toLocaleString()}
+💵 *Amount:* $${amount.toFixed(2)}
+🔗 *TXID:* \`${txHash}\`
+📅 *Date:* ${new Date().toLocaleString()}
 
-â³ Your request is being reviewed by our team.
+⏳ Your request is being reviewed by our team.
 You will receive a notification once approved.
 
-ðŸ”— *Visit Store:* https://zi-store.online
+🔗 *Visit Store:* https://zi-store.online
             `;
             await sendTelegramNotification(userProfile.telegramChatId, userMessage);
         }
 
         statusEl.innerHTML = `
             <div style="background:var(--success-glow); border-radius:8px; padding:12px; border:1px solid var(--success);">
-                <div style="font-weight:700; color:var(--success); font-size:16px;">âœ… Request Submitted!</div>
+                <div style="font-weight:700; color:var(--success); font-size:16px;">✅ Request Submitted!</div>
                 <div style="font-size:13px; color:var(--text-secondary); margin-top:4px;">
                     Amount: $${amount.toFixed(2)}
                     <br>
                     TXID: <span style="font-family:monospace; font-size:11px; word-break:break-all;">${txHash}</span>
                 </div>
                 <div style="font-size:12px; color:var(--text-secondary); opacity:0.6; margin-top:6px;">
-                    â³ Your request is being reviewed by our team.
+                    ⏳ Your request is being reviewed by our team.
                     <br>
                     You will receive a notification once approved.
                 </div>
@@ -6766,7 +6886,7 @@ You will receive a notification once approved.
             </div>
         `;
 
-        showToast('âœ… Request submitted! Waiting for verification.', 'success');
+        showToast('✅ Request submitted! Waiting for verification.', 'success');
 
         setTimeout(() => {
             closeTopupModal();
@@ -6774,25 +6894,24 @@ You will receive a notification once approved.
 
     } catch (error) {
         console.error('Submit error:', error);
-        statusEl.innerHTML = `<span style="color:var(--danger);">âŒ ${error.message}</span>`;
-        showToast('âŒ Error: ' + error.message, 'error');
+        statusEl.innerHTML = `<span style="color:var(--danger);">❌ ${error.message}</span>`;
+        showToast('❌ Error: ' + error.message, 'error');
     }
 };
 
 // ============================================================
-// 41. TOPUP SYSTEM - Admin Functions (with full notification)
+// 41. TOPUP SYSTEM - Admin Functions
 // ============================================================
 
 window.approveTopup = async function(topupId) {
     if (!currentUser || !isAdminCached) {
-        showToast('â›” Unauthorized', 'error');
+        showToast('⛔ Unauthorized', 'error');
         return;
     }
 
     if (!confirm('Approve this topup and add balance to user?')) return;
 
     try {
-        // Get topup data
         const { data: topupData, error: fetchError } = await supabase
             .from('topups')
             .select('*')
@@ -6801,7 +6920,6 @@ window.approveTopup = async function(topupId) {
 
         if (fetchError) throw fetchError;
 
-        // Update topup status
         const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/approve-topup', {
             method: 'POST',
             headers: {
@@ -6821,21 +6939,17 @@ window.approveTopup = async function(topupId) {
             throw new Error(result.error || 'Failed to approve topup');
         }
 
-        // ============================================================
-        // Send admin notification for approval
-        // ============================================================
         const adminMessage = `
-ðŸ‘¤ *User:* ${topupData?.user_email || 'Unknown'}
-ðŸ†” *User ID:* ${topupData?.user_id || 'N/A'}
-ðŸ’µ *Amount:* $${topupData?.amount_usd || 0}
-ðŸ”— *TXID:* \`${topupData?.tx_hash || 'N/A'}\`
-ðŸ“… *Date:* ${new Date().toLocaleString()}
-âœ… *Status:* APPROVED - Balance Updated
+👤 *User:* ${topupData?.user_email || 'Unknown'}
+🆔 *User ID:* ${topupData?.user_id || 'N/A'}
+💵 *Amount:* $${topupData?.amount_usd || 0}
+🔗 *TXID:* \`${topupData?.tx_hash || 'N/A'}\`
+📅 *Date:* ${new Date().toLocaleString()}
+✅ *Status:* APPROVED - Balance Updated
         `;
         
-        await sendAdminNotification('âœ… Topup Approved - Balance Updated', adminMessage);
+        await sendAdminNotification('✅ Topup Approved - Balance Updated', adminMessage);
 
-        // Add balance to user and send notification
         if (topupData) {
             await sendTelegramTopupNotification(
                 topupData.user_id,
@@ -6854,19 +6968,19 @@ window.approveTopup = async function(topupId) {
             }
         }
 
-        showToast(`âœ… ${result.message}`, 'success');
+        showToast(`✅ ${result.message}`, 'success');
         loadAdminTopups();
         loadUserBalance();
 
     } catch (error) {
         console.error('Approve error:', error);
-        showToast('âŒ Error: ' + error.message, 'error');
+        showToast('❌ Error: ' + error.message, 'error');
     }
 };
 
 window.rejectTopup = async function(topupId) {
     if (!currentUser || !isAdminCached) {
-        showToast('â›” Unauthorized', 'error');
+        showToast('⛔ Unauthorized', 'error');
         return;
     }
 
@@ -6900,25 +7014,22 @@ window.rejectTopup = async function(topupId) {
             throw new Error(result.error || 'Failed to reject topup');
         }
 
-        // ============================================================
-        // Send admin notification for rejection
-        // ============================================================
         const adminMessage = `
-ðŸ‘¤ *User:* ${topupData?.user_email || 'Unknown'}
-ðŸ’µ *Amount:* $${topupData?.amount_usd || 0}
-ðŸ”— *TXID:* \`${topupData?.tx_hash || 'N/A'}\`
-ðŸ“… *Date:* ${new Date().toLocaleString()}
-âŒ *Status:* REJECTED
+👤 *User:* ${topupData?.user_email || 'Unknown'}
+💵 *Amount:* $${topupData?.amount_usd || 0}
+🔗 *TXID:* \`${topupData?.tx_hash || 'N/A'}\`
+📅 *Date:* ${new Date().toLocaleString()}
+❌ *Status:* REJECTED
         `;
         
-        await sendAdminNotification('âŒ Topup Rejected', adminMessage);
+        await sendAdminNotification('❌ Topup Rejected', adminMessage);
 
-        showToast('âœ… Topup rejected', 'success');
+        showToast('✅ Topup rejected', 'success');
         loadAdminTopups();
 
     } catch (error) {
         console.error('Reject error:', error);
-        showToast('âŒ Error: ' + error.message, 'error');
+        showToast('❌ Error: ' + error.message, 'error');
     }
 };
 
@@ -6951,9 +7062,9 @@ async function loadAdminTopups() {
                 'rejected': 'var(--danger)'
             };
             const statusLabels = {
-                'pending': 'â³ Pending',
-                'completed': 'âœ… Completed',
-                'rejected': 'âŒ Rejected'
+                'pending': '⏳ Pending',
+                'completed': '✅ Completed',
+                'rejected': '❌ Rejected'
             };
             const date = new Date(t.created_at).toLocaleString();
 
@@ -6961,29 +7072,29 @@ async function loadAdminTopups() {
                 <div class="admin-item" style="border-left:4px solid ${statusColors[t.status] || 'var(--border)'};">
                     <div class="item-info">
                         <div class="item-title">
-                            ðŸ’° $${t.amount_usd.toFixed(2)} - ${t.user_email || t.user_id}
+                            💰 $${t.amount_usd.toFixed(2)} - ${t.user_email || t.user_id}
                             <span style="font-size:11px;font-weight:400;opacity:0.5;">${t.payment_id || t.id}</span>
                         </div>
                         <div class="item-meta">
-                            ðŸ“… ${date}
-                            ${t.tx_hash ? `â€¢ ðŸ”— TXID: <span style="font-family:monospace;font-size:11px;word-break:break-all;">${t.tx_hash}</span>` : ''}
-                            â€¢ Status: ${statusLabels[t.status] || t.status}
+                            📅 ${date}
+                            ${t.tx_hash ? `• 🔗 TXID: <span style="font-family:monospace;font-size:11px;word-break:break-all;">${t.tx_hash}</span>` : ''}
+                            • Status: ${statusLabels[t.status] || t.status}
                         </div>
                     </div>
                     <div class="item-actions">
                         ${t.status === 'pending' ? `
                             <button onclick="window.approveTopup('${t.id}')" style="background:var(--success);color:#0a0a1a;border:none;padding:4px 12px;border-radius:6px;cursor:pointer;font-weight:700;">
-                                âœ… Approve
+                                ✅ Approve
                             </button>
                             <button onclick="window.rejectTopup('${t.id}')" style="background:var(--danger);color:#fff;border:none;padding:4px 12px;border-radius:6px;cursor:pointer;font-weight:700;">
-                                âŒ Reject
+                                ❌ Reject
                             </button>
                         ` : `
                             <span style="font-size:12px;color:var(--text-secondary);opacity:0.4;">
-                                ${t.status === 'completed' ? 'âœ… Verified' : 'âŒ Rejected'}
+                                ${t.status === 'completed' ? '✅ Verified' : '❌ Rejected'}
                             </span>
                         `}
-                        ${t.tx_hash ? `<a href="https://etherscan.io/tx/${t.tx_hash}" target="_blank" style="color:var(--primary);font-size:12px;text-decoration:underline;">ðŸ” View</a>` : ''}
+                        ${t.tx_hash ? `<a href="https://etherscan.io/tx/${t.tx_hash}" target="_blank" style="color:var(--primary);font-size:12px;text-decoration:underline;">🔍 View</a>` : ''}
                     </div>
                 </div>
             `;
@@ -7004,7 +7115,7 @@ async function sendTelegramTopupNotification(userId, amount, txHash = null) {
         const userRef = doc(db, 'users', userId);
         const userSnap = await getDoc(userRef);
         if (!userSnap.exists()) {
-            console.log('âš ï¸ User not found for Telegram notification');
+            console.log('⚠️ User not found for Telegram notification');
             return;
         }
 
@@ -7012,31 +7123,31 @@ async function sendTelegramTopupNotification(userId, amount, txHash = null) {
         const chatId = userData.telegramChatId;
 
         if (!chatId) {
-            console.log('â„¹ï¸ User has no Telegram linked');
+            console.log('ℹ️ User has no Telegram linked');
             return;
         }
 
         const message = `
-ðŸ’° *TOPUP APPROVED!*
+💰 *TOPUP APPROVED!*
 
-âœ… Your topup request has been approved!
+✅ Your topup request has been approved!
 
-ðŸ“Š *Amount:* $${amount.toFixed(2)} USDT
-ðŸ’³ *Method:* USDT (ERC20)
-${txHash ? `ðŸ”— *TXID:* \`${txHash}\`` : ''}
-ðŸ“… *Date:* ${new Date().toLocaleString()}
+📊 *Amount:* $${amount.toFixed(2)} USDT
+💳 *Method:* USDT (ERC20)
+${txHash ? `🔗 *TXID:* \`${txHash}\`` : ''}
+📅 *Date:* ${new Date().toLocaleString()}
 
-ðŸŽ‰ Your balance has been updated successfully!
-ðŸ’¡ You can now use your balance to purchase products instantly.
+🎉 Your balance has been updated successfully!
+💡 You can now use your balance to purchase products instantly.
 
-ðŸ”— *Visit Store:* https://zi-store.online
+🔗 *Visit Store:* https://zi-store.online
         `;
 
         await sendTelegramNotification(chatId, message);
-        console.log('âœ… Telegram notification sent for topup approval');
+        console.log('✅ Telegram notification sent for topup approval');
 
     } catch (error) {
-        console.error('âŒ Error sending Telegram notification:', error);
+        console.error('❌ Error sending Telegram notification:', error);
     }
 }
 
@@ -7047,7 +7158,7 @@ ${txHash ? `ðŸ”— *TXID:* \`${txHash}\`` : ''}
 window.copyToClipboard = function(text) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text)
-            .then(() => showToast('âœ… Copied!', 'success'))
+            .then(() => showToast('✅ Copied!', 'success'))
             .catch(() => fallbackCopy(text));
     } else {
         fallbackCopy(text);
@@ -7063,9 +7174,9 @@ function fallbackCopy(text) {
     textarea.select();
     try {
         document.execCommand('copy');
-        showToast('âœ… Copied!', 'success');
+        showToast('✅ Copied!', 'success');
     } catch (e) {
-        showToast('âŒ Failed to copy', 'error');
+        showToast('❌ Failed to copy', 'error');
     }
     document.body.removeChild(textarea);
 }
@@ -7076,7 +7187,7 @@ function fallbackCopy(text) {
 
 window.checkoutWithBalance = function() {
     if (cart.length === 0) {
-        showToast('âš ï¸ Cart is empty', 'warning');
+        showToast('⚠️ Cart is empty', 'warning');
         return;
     }
     let total = 0;
@@ -7087,7 +7198,7 @@ window.checkoutWithBalance = function() {
     if (userBalance >= finalTotal) {
         processBalancePayment(finalTotal);
     } else {
-        showToast(`âš ï¸ Insufficient balance! Need $${finalTotal.toFixed(2)}, have $${userBalance.toFixed(2)}`, 'warning');
+        showToast(`⚠️ Insufficient balance! Need $${finalTotal.toFixed(2)}, have $${userBalance.toFixed(2)}`, 'warning');
         setTimeout(() => openTopupModal(), 500);
     }
 };
@@ -7157,7 +7268,7 @@ window.acceptCookies = function() {
     localStorage.setItem('analyticsConsent', 'true');
     document.getElementById('cookieConsent').classList.remove('show');
     enableAnalytics();
-    showToast('âœ… Cookies accepted', 'success');
+    showToast('✅ Cookies accepted', 'success');
 };
 
 window.rejectCookies = function() {
@@ -7165,7 +7276,7 @@ window.rejectCookies = function() {
     localStorage.setItem('analyticsConsent', 'false');
     document.getElementById('cookieConsent').classList.remove('show');
     disableAnalytics();
-    showToast('âŒ Cookies rejected', 'info');
+    showToast('❌ Cookies rejected', 'info');
 };
 
 window.openCookieSettings = function() {
@@ -7204,23 +7315,23 @@ window.saveCookieSettings = function() {
 
     document.getElementById('cookieConsent').classList.remove('show');
     closeCookieSettings();
-    showToast('âœ… Settings saved', 'success');
+    showToast('✅ Settings saved', 'success');
 };
 
 function enableAnalytics() {
     try {
         if (typeof analytics !== 'undefined' && analytics.setAnalyticsCollectionEnabled) {
             analytics.setAnalyticsCollectionEnabled(true);
-            console.log('âœ… Firebase Analytics enabled');
+            console.log('✅ Firebase Analytics enabled');
         }
         if (typeof gtag !== 'undefined') {
             gtag('consent', 'update', {
                 'analytics_storage': 'granted'
             });
-            console.log('âœ… Google Analytics enabled');
+            console.log('✅ Google Analytics enabled');
         }
     } catch (e) {
-        console.log('âš ï¸ Analytics enable error:', e);
+        console.log('⚠️ Analytics enable error:', e);
     }
 }
 
@@ -7228,16 +7339,16 @@ function disableAnalytics() {
     try {
         if (typeof analytics !== 'undefined' && analytics.setAnalyticsCollectionEnabled) {
             analytics.setAnalyticsCollectionEnabled(false);
-            console.log('âŒ Firebase Analytics disabled');
+            console.log('❌ Firebase Analytics disabled');
         }
         if (typeof gtag !== 'undefined') {
             gtag('consent', 'update', {
                 'analytics_storage': 'denied'
             });
-            console.log('âŒ Google Analytics disabled');
+            console.log('❌ Google Analytics disabled');
         }
     } catch (e) {
-        console.log('âš ï¸ Analytics disable error:', e);
+        console.log('⚠️ Analytics disable error:', e);
     }
 }
 
@@ -7283,7 +7394,7 @@ function showTelegramBanner() {
     const adminDisabled = localStorage.getItem('telegram_banner_admin_disabled') === 'true';
     if (userProfile.telegramChatId) {
         banner.classList.add('linked');
-        banner.querySelector('.banner-title').textContent = 'âœ… Connected!';
+        banner.querySelector('.banner-title').textContent = '✅ Connected!';
         banner.querySelector('.banner-subtitle').textContent = 'You will receive order notifications here.';
         banner.querySelector('.banner-action').innerHTML = '<i class="fas fa-check"></i> Linked';
         banner.querySelector('.banner-action').onclick = () => openProfileFull();
@@ -7294,7 +7405,7 @@ function showTelegramBanner() {
     }
     if (bannerHidden || adminDisabled) { banner.classList.add('hidden'); return; }
     banner.classList.remove('linked', 'hidden');
-    banner.querySelector('.banner-title').innerHTML = 'ðŸ”” Stay Connected! <span class="badge-new">New</span>';
+    banner.querySelector('.banner-title').innerHTML = '🔔 Stay Connected! <span class="badge-new">New</span>';
     banner.querySelector('.banner-subtitle').textContent = 'Link your Telegram account to receive instant order notifications';
     banner.querySelector('.banner-action').innerHTML = '<i class="fab fa-telegram-plane"></i> Link Now';
     banner.querySelector('.banner-action').onclick = () => bindTelegram();
@@ -7314,7 +7425,7 @@ function adminToggleBanner(show) {
     addBannerAdminControls();
     if (show) { localStorage.removeItem('telegram_banner_hidden'); setTimeout(showTelegramBanner, 300); }
 }
-function resetBannerForAll() { localStorage.removeItem('telegram_banner_admin_disabled'); localStorage.removeItem('telegram_banner_hidden'); showToast('ðŸ”„ Banner reset', 'info'); addBannerAdminControls(); setTimeout(showTelegramBanner, 300); }
+function resetBannerForAll() { localStorage.removeItem('telegram_banner_admin_disabled'); localStorage.removeItem('telegram_banner_hidden'); showToast('🔄 Banner reset', 'info'); addBannerAdminControls(); setTimeout(showTelegramBanner, 300); }
 
 // ============================================================
 // 48. Cloudinary Upload
@@ -7357,7 +7468,7 @@ function fixDirection() {
         el.style.top = 'auto';
     });
 
-    console.log('âœ… Direction fixed: Close buttons on right');
+    console.log('✅ Direction fixed: Close buttons on right');
 }
 window.fixHeaderAndModals = fixDirection;
 
@@ -7366,10 +7477,10 @@ window.fixHeaderAndModals = fixDirection;
 // ============================================================
 
 window.copyLicenceCode = function(code) {
-    if (!code) { showToast('âš ï¸ No code to copy', 'warning'); return; }
+    if (!code) { showToast('⚠️ No code to copy', 'warning'); return; }
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(code)
-            .then(() => showToast('âœ… Licence code copied!', 'success'))
+            .then(() => showToast('✅ Licence code copied!', 'success'))
             .catch(() => fallbackCopyText(code));
     } else {
         fallbackCopyText(code);
@@ -7384,29 +7495,29 @@ function fallbackCopyText(text) {
     textarea.select();
     try {
         document.execCommand('copy');
-        showToast('âœ… Licence code copied!', 'success');
+        showToast('✅ Licence code copied!', 'success');
     } catch (e) {
-        showToast('âŒ Failed to copy. Please copy manually.', 'error');
+        showToast('❌ Failed to copy. Please copy manually.', 'error');
     }
     document.body.removeChild(textarea);
 }
 window.generateInvoice = function(orderData) {
-    if (!orderData) { showToast('âŒ No order data for invoice', 'error'); return; }
+    if (!orderData) { showToast('❌ No order data for invoice', 'error'); return; }
     try {
         let order = typeof orderData === 'string' ? JSON.parse(orderData) : orderData;
         if (!order.id) { order.id = 'INV-' + Date.now().toString().slice(-6); }
-        const invoiceHtml = `<html><head><title>Invoice #${order.id}</title><style>body{font-family:Arial;padding:40px;background:#fff;color:#000;}h1{color:#333;}table{width:100%;border-collapse:collapse;margin:20px 0;}th,td{padding:10px;border:1px solid #ddd;text-align:left;}th{background:#f5f5f5;}.total{font-size:18px;font-weight:bold;}</style></head><body><h1>ðŸ§¾ Invoice</h1><p><strong>Order ID:</strong> ${order.id}</p><p><strong>Date:</strong> ${order.date ? new Date(order.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '--'}</p><p><strong>Status:</strong> ${order.status || 'Pending'}</p><table><thead><tr><th>Product</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead><tbody>${(order.items || []).map(item => `<tr><td>${item.name}${item.selectedQuantity ? ' (x'+item.selectedQuantity+')' : ''}</td><td>${item.quantity || 1}</td><td>$${(item.price || 0).toFixed(2)}</td><td>$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td></tr>`).join('')}</tbody></table><div class="total">Total: $${(order.total || 0).toFixed(2)}</div><div class="status">Payment Method: ${order.method || 'N/A'}</div><hr><p style="color:gray;">Thank you for your purchase at ZI Store!</p></body></html>`;
+        const invoiceHtml = `<html><head><title>Invoice #${order.id}</title><style>body{font-family:Arial;padding:40px;background:#fff;color:#000;}h1{color:#333;}table{width:100%;border-collapse:collapse;margin:20px 0;}th,td{padding:10px;border:1px solid #ddd;text-align:left;}th{background:#f5f5f5;}.total{font-size:18px;font-weight:bold;}</style></head><body><h1>🧾 Invoice</h1><p><strong>Order ID:</strong> ${order.id}</p><p><strong>Date:</strong> ${order.date ? new Date(order.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '--'}</p><p><strong>Status:</strong> ${order.status || 'Pending'}</p><table><thead><tr><th>Product</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead><tbody>${(order.items || []).map(item => `<tr><td>${item.name}${item.selectedQuantity ? ' (x'+item.selectedQuantity+')' : ''}</td><td>${item.quantity || 1}</td><td>$${(item.price || 0).toFixed(2)}</td><td>$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td></tr>`).join('')}</tbody></table><div class="total">Total: $${(order.total || 0).toFixed(2)}</div><div class="status">Payment Method: ${order.method || 'N/A'}</div><hr><p style="color:gray;">Thank you for your purchase at ZI Store!</p></body></html>`;
         const win = window.open('', '_blank');
-        if (!win) { showToast('âš ï¸ Please allow popups to generate invoice', 'warning'); return; }
+        if (!win) { showToast('⚠️ Please allow popups to generate invoice', 'warning'); return; }
         win.document.write(invoiceHtml);
         win.document.close();
         win.print();
-        showToast('ðŸ“„ Invoice generated!', 'success');
-    } catch (error) { console.error('Invoice generation error:', error); showToast('âŒ Failed to generate invoice', 'error'); }
+        showToast('📄 Invoice generated!', 'success');
+    } catch (error) { console.error('Invoice generation error:', error); showToast('❌ Failed to generate invoice', 'error'); }
 };
 window.exportOrders = function() {
-    if (!currentUser || !isAdminCached) { showToast('â›” Unauthorized', 'error'); return; }
-    if (!allOrders || allOrders.length === 0) { showToast('ðŸ“­ No orders to export', 'info'); return; }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (!allOrders || allOrders.length === 0) { showToast('📭 No orders to export', 'info'); return; }
     try {
         let csv = 'Order ID,User,Email,Total,Status,Date,Items\n';
         allOrders.forEach(order => {
@@ -7420,8 +7531,8 @@ window.exportOrders = function() {
         a.download = `orders_${new Date().toISOString().slice(0,10)}.csv`;
         a.click();
         URL.revokeObjectURL(url);
-        showToast('ðŸ“¥ Orders exported!', 'success');
-    } catch (error) { showToast('âŒ Export failed', 'error'); }
+        showToast('📥 Orders exported!', 'success');
+    } catch (error) { showToast('❌ Export failed', 'error'); }
 };
 
 // ============================================================
@@ -7492,7 +7603,7 @@ function refreshAdminPayments() {
                              <button onclick="adminRejectPayment('${p.id}','${p.userId}')" style="background:var(--danger); border:none; color:#fff; padding:2px 10px; border-radius:12px; cursor:pointer; font-size:11px; font-weight:600;"><i class="fas fa-times"></i></button>` :
                             `<button onclick="adminDeletePayment('${p.id}','${p.userId}')" style="background:var(--danger); border:none; color:#fff; padding:2px 10px; border-radius:12px; cursor:pointer; font-size:11px; font-weight:600;"><i class="fas fa-trash"></i></button>`
                         }
-                        ${p.screenshotUrl ? `<a href="${p.screenshotUrl}" target="_blank" style="color:var(--primary);text-decoration:underline;font-size:11px;margin-left:4px;">ðŸ“¸</a>` : ''}
+                        ${p.screenshotUrl ? `<a href="${p.screenshotUrl}" target="_blank" style="color:var(--primary);text-decoration:underline;font-size:11px;margin-left:4px;">📸</a>` : ''}
                     </td>
                 </tr>
             `;
@@ -7505,40 +7616,805 @@ function refreshAdminPayments() {
 }
 
 window.adminApprovePayment = function(orderId, userId) {
-    if (!currentUser || !isAdminCached) { showToast('â›” Unauthorized', 'error'); return; }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     updateOrderStatus(orderId, userId, 'confirmed');
     setTimeout(refreshAdminPayments, 500);
 };
 
 window.adminRejectPayment = function(orderId, userId) {
-    if (!currentUser || !isAdminCached) { showToast('â›” Unauthorized', 'error'); return; }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     updateOrderStatus(orderId, userId, 'rejected');
     setTimeout(refreshAdminPayments, 500);
 };
 
 window.adminDeletePayment = function(orderId, userId) {
-    if (!currentUser || !isAdminCached) { showToast('â›” Unauthorized', 'error'); return; }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!confirm(`Delete payment ${orderId}?`)) return;
     deleteOrderImmediately(orderId, userId);
     setTimeout(refreshAdminPayments, 500);
 };
 
 // ============================================================
-// 52. ADD MISSING FUNCTIONS
+// 52. AI-BASED RECOMMENDATIONS
+// ============================================================
+
+function trackUserBehavior(productId, action) {
+    if (!currentUser) return;
+    userHistory.push({
+        productId,
+        action, // view, add_to_cart, purchase, wishlist
+        timestamp: new Date().toISOString(),
+        userId: currentUser.uid
+    });
+    if (userHistory.length > 50) userHistory = userHistory.slice(-50);
+    updateUserPreferences();
+}
+
+function updateUserPreferences() {
+    userPreferences = {
+        favoriteCategories: {},
+        viewedProducts: [],
+        purchasedProducts: [],
+        cartProducts: []
+    };
+    
+    userHistory.forEach(item => {
+        const product = products.find(p => p.id === item.productId);
+        if (!product) return;
+        if (item.action === 'view') {
+            userPreferences.viewedProducts.push(item.productId);
+        }
+        if (item.action === 'purchase') {
+            userPreferences.purchasedProducts.push(item.productId);
+        }
+        if (item.action === 'add_to_cart') {
+            userPreferences.cartProducts.push(item.productId);
+        }
+        if (product.category) {
+            userPreferences.favoriteCategories[product.category] = 
+                (userPreferences.favoriteCategories[product.category] || 0) + 1;
+        }
+    });
+}
+
+function getRecommendations(limit = 6) {
+    if (!currentUser || userHistory.length === 0) {
+        return getDefaultRecommendations(limit);
+    }
+    
+    const viewedIds = userPreferences.viewedProducts;
+    const viewedProducts = products.filter(p => viewedIds.includes(p.id));
+    const similarProducts = products.filter(p => {
+        if (viewedIds.includes(p.id)) return false;
+        return p.features?.some(f => viewedProducts.some(vp => vp.features?.includes(f)));
+    });
+    
+    const cartIds = userPreferences.cartProducts;
+    const cartProducts = products.filter(p => cartIds.includes(p.id));
+    const cartSimilar = products.filter(p => {
+        if (cartIds.includes(p.id)) return false;
+        return p.features?.some(f => cartProducts.some(cp => cp.features?.includes(f)));
+    });
+    
+    const purchasedIds = userPreferences.purchasedProducts;
+    const purchasedProducts = products.filter(p => purchasedIds.includes(p.id));
+    const purchasedSimilar = products.filter(p => {
+        if (purchasedIds.includes(p.id)) return false;
+        return p.features?.some(f => purchasedProducts.some(pp => pp.features?.includes(f)));
+    });
+    
+    const popularProducts = products.filter(p => p.price > 0).sort((a, b) => b.price - a.price);
+    
+    let recommendations = [];
+    recommendations.push(...similarProducts);
+    recommendations.push(...cartSimilar);
+    recommendations.push(...purchasedSimilar);
+    recommendations.push(...popularProducts);
+    
+    const unique = [];
+    const seen = new Set();
+    for (const item of recommendations) {
+        if (!seen.has(item.id)) {
+            seen.add(item.id);
+            unique.push(item);
+        }
+    }
+    
+    return unique.slice(0, limit);
+}
+
+function getDefaultRecommendations(limit) {
+    return products.filter(p => p.price > 0)
+        .sort((a, b) => b.price - a.price)
+        .slice(0, limit);
+}
+
+// ============================================================
+// 53. FRAUD DETECTION SYSTEM
+// ============================================================
+
+const fraudRules = {
+    maxOrdersPerDay: 10,
+    maxAmountPerOrder: 1000,
+    suspiciousCountries: ['XX', 'YY'],
+    maxFailedAttempts: 5,
+    timeWindowMinutes: 15,
+    maxOrdersPerIP: 5,
+    sameIPDifferentAccounts: 3
+};
+
+let fraudLogs = [];
+let userActivity = {};
+
+async function detectFraud(orderData) {
+    const warnings = [];
+    const userId = orderData.userId || currentUser?.uid;
+    const ip = orderData.ip || (await getVisitorInfo()).ip;
+    const email = orderData.email || currentUser?.email;
+    
+    if (orderData.total > fraudRules.maxAmountPerOrder) {
+        warnings.push('⚠️ High order amount detected');
+    }
+    
+    const visitorInfo = await getVisitorInfo();
+    if (fraudRules.suspiciousCountries.includes(visitorInfo.country_code)) {
+        warnings.push('⚠️ Suspicious country detected');
+    }
+    
+    const userOrders = allOrders.filter(o => o.userId === userId);
+    const todayOrders = userOrders.filter(o => {
+        return new Date(o.date).toDateString() === new Date().toDateString();
+    });
+    if (todayOrders.length > fraudRules.maxOrdersPerDay) {
+        warnings.push('⚠️ Too many orders today');
+    }
+    
+    if (!userActivity[userId]) userActivity[userId] = { failedAttempts: 0, lastAttempt: 0 };
+    if (userActivity[userId].failedAttempts > fraudRules.maxFailedAttempts) {
+        warnings.push('⚠️ Too many failed attempts');
+    }
+    
+    const usersWithSameIP = allUsers.filter(u => u.ip === ip);
+    if (usersWithSameIP.length > fraudRules.sameIPDifferentAccounts) {
+        warnings.push('⚠️ Multiple accounts from same IP');
+    }
+    
+    if (email && (email.includes('tempmail') || email.includes('10minutemail'))) {
+        warnings.push('⚠️ Temporary email detected');
+    }
+    
+    if (warnings.length > 0) {
+        await logFraudDetection({
+            userId,
+            email,
+            ip,
+            warnings,
+            orderData,
+            timestamp: new Date().toISOString()
+        });
+    }
+    
+    return {
+        isSuspicious: warnings.length > 0,
+        warnings,
+        severity: warnings.length > 3 ? 'high' : (warnings.length > 1 ? 'medium' : 'low')
+    };
+}
+
+async function logFraudDetection(data) {
+    try {
+        await addDoc(collection(db, 'fraudLogs'), {
+            ...data,
+            createdAt: serverTimestamp()
+        });
+        console.log('🚨 Fraud detected:', data.warnings);
+        
+        if (data.warnings.length > 3) {
+            await sendAdminNotification(
+                '🚨 High Risk Fraud Detected!',
+                `User: ${data.email || data.userId}\nIP: ${data.ip}\nWarnings: ${data.warnings.join(', ')}\nAmount: $${data.orderData?.total || 0}`
+            );
+        }
+    } catch (error) {
+        console.error('Error logging fraud:', error);
+    }
+}
+
+// ============================================================
+// 54. LIMITED QUANTITY PRODUCTS
+// ============================================================
+
+function renderLimitedProducts() {
+    const container = document.getElementById('limitedProductsGrid');
+    if (!container) return;
+    
+    const limited = products.filter(p => p.limitedQuantity && p.limitedQuantity > 0);
+    if (limited.length === 0) {
+        container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text-secondary);opacity:0.5;">No limited products available</div>`;
+        return;
+    }
+    
+    container.innerHTML = limited.map(p => {
+        const percentLeft = (p.limitedQuantity / p.limitedTotal) * 100;
+        const isLowStock = percentLeft < 20;
+        const isUrgent = percentLeft < 10;
+        
+        return `
+            <div class="product-card" onclick="window.openDetails('${p.id}')" style="border:2px solid ${isUrgent ? 'var(--danger)' : isLowStock ? 'var(--warning)' : 'var(--vip-color)'};">
+                <div class="image-wrapper">
+                    <img src="${p.image || 'https://picsum.photos/seed/limited/400/300'}" alt="${p.name}" loading="lazy" />
+                    <div class="image-badge vip" style="${isUrgent ? 'background:var(--danger);color:#fff;' : ''}">
+                        ${isUrgent ? '🔥 LAST CHANCE' : '⭐ LIMITED'}
+                    </div>
+                    <div style="position:absolute;bottom:4px;left:4px;right:4px;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);border-radius:4px;padding:4px 8px;text-align:center;font-size:11px;font-weight:700;">
+                        <span style="color:${isUrgent ? 'var(--danger)' : 'var(--vip-color)'}">${p.limitedQuantity}</span>
+                        <span style="color:var(--text-secondary);opacity:0.5;">/${p.limitedTotal} left</span>
+                        <div style="height:3px;background:var(--glass-border);border-radius:3px;margin-top:2px;overflow:hidden;">
+                            <div style="height:100%;width:${percentLeft}%;background:${isUrgent ? 'var(--danger)' : isLowStock ? 'var(--warning)' : 'var(--vip-color)'};border-radius:3px;transition:width 0.5s;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="product-name">${p.name}</div>
+                <div class="price">${getCurrencySymbol(p.currency || 'USD')}${p.price.toFixed(2)}</div>
+                <div style="padding:0 12px 8px;display:flex;gap:6px;align-items:center;">
+                    <span style="font-size:10px;color:var(--text-secondary);opacity:0.4;">${isUrgent ? '⚡ Selling fast!' : isLowStock ? '⚠️ Only a few left!' : '🎯 Limited edition'}</span>
+                </div>
+                <div class="card-actions">
+                    <button class="btn-add-cart" onclick="event.stopPropagation(); window.addToCart('${p.id}')" style="flex:1;padding:6px;border:none;border-radius:var(--radius-sm);background:var(--primary);color:#fff;font-weight:700;cursor:pointer;font-size:11px;">
+                        <i class="fas fa-cart-plus"></i> Add to Cart
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// ============================================================
+// 55. SMART POPUPS
+// ============================================================
+
+function initPopups() {
+    // Exit Intent Popup
+    if (exitIntentEnabled) {
+        document.addEventListener('mouseleave', (e) => {
+            if (e.clientY < 0 && !popupShown) {
+                showExitPopup();
+            }
+        });
+    }
+    
+    // Time-based Popup (after 30 seconds)
+    setTimeout(() => {
+        if (!popupShown && !document.hidden) {
+            showOfferPopup();
+        }
+    }, 30000);
+}
+
+function showExitPopup() {
+    if (popupShown) return;
+    popupShown = true;
+    const popup = document.getElementById('exitPopup');
+    if (popup) {
+        popup.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function showOfferPopup() {
+    if (popupShown) return;
+    popupShown = true;
+    const popup = document.getElementById('offerPopup');
+    if (popup) {
+        popup.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+window.closePopup = function(popupId) {
+    const popup = document.getElementById(popupId);
+    if (popup) {
+        popup.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+};
+
+window.applyPopupCoupon = function(couponCode) {
+    const input = document.getElementById('cartPromoInput');
+    if (input) {
+        input.value = couponCode;
+        applyCartPromo();
+    }
+    closePopup('offerPopup');
+    showToast(`🎉 Coupon ${couponCode} applied!`, 'success');
+};
+
+window.subscribeAndApply = function(couponCode) {
+    const email = document.getElementById('exitPopupEmail');
+    if (email && email.value.trim()) {
+        showToast(`📧 Thanks! Coupon ${couponCode} sent to your email.`, 'success');
+        closePopup('exitPopup');
+    } else {
+        showToast('⚠️ Please enter your email.', 'warning');
+    }
+};
+
+// ============================================================
+// 56. ADVANCED COUPON SYSTEM
+// ============================================================
+
+async function loadCoupons() {
+    try {
+        const couponsRef = collection(db, 'coupons');
+        const snapshot = await getDocs(couponsRef);
+        coupons = [];
+        snapshot.forEach(doc => {
+            coupons.push({ id: doc.id, ...doc.data() });
+        });
+        updateActiveCoupons();
+        renderAdminCoupons();
+        return coupons;
+    } catch (error) {
+        console.error('Error loading coupons:', error);
+        return [];
+    }
+}
+
+function updateActiveCoupons() {
+    const now = new Date();
+    activeCoupons = coupons.filter(c => {
+        if (!c.active) return false;
+        if (c.expiresAt && new Date(c.expiresAt) < now) return false;
+        if (c.usageLimit && c.usedCount >= c.usageLimit) return false;
+        return true;
+    });
+}
+
+async function validateCoupon(code, cartTotal, userId, productIds = []) {
+    const coupon = coupons.find(c => c.code.toUpperCase() === code.toUpperCase());
+    if (!coupon) return { valid: false, message: 'Invalid coupon code' };
+    if (!coupon.active) return { valid: false, message: 'This coupon is no longer active' };
+    
+    const now = new Date();
+    if (coupon.expiresAt && new Date(coupon.expiresAt) < now) {
+        return { valid: false, message: 'This coupon has expired' };
+    }
+    if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) {
+        return { valid: false, message: 'This coupon has reached its usage limit' };
+    }
+    if (coupon.minOrder && cartTotal < coupon.minOrder) {
+        return { valid: false, message: `Minimum order $${coupon.minOrder} required` };
+    }
+    if (coupon.userIds && coupon.userIds.length > 0 && !coupon.userIds.includes(userId)) {
+        return { valid: false, message: 'This coupon is not available for your account' };
+    }
+    if (coupon.productIds && coupon.productIds.length > 0) {
+        const hasValidProduct = productIds.some(id => coupon.productIds.includes(id));
+        if (!hasValidProduct) {
+            return { valid: false, message: 'This coupon is not valid for the products in your cart' };
+        }
+    }
+    if (coupon.firstOrderOnly) {
+        const userOrders = allOrders.filter(o => o.userId === userId);
+        if (userOrders.length > 0) {
+            return { valid: false, message: 'This coupon is only for first-time customers' };
+        }
+    }
+
+    let discount = 0;
+    if (coupon.type === 'percentage') {
+        discount = (cartTotal * coupon.value) / 100;
+        if (coupon.maxDiscount && discount > coupon.maxDiscount) {
+            discount = coupon.maxDiscount;
+        }
+    } else {
+        discount = coupon.value;
+        if (discount > cartTotal) discount = cartTotal;
+    }
+
+    return { valid: true, discount, coupon, message: `✅ ${discount.toFixed(2)} $ discount applied!` };
+}
+
+async function useCoupon(code, userId) {
+    const coupon = coupons.find(c => c.code.toUpperCase() === code.toUpperCase());
+    if (!coupon) return false;
+    coupon.usedCount = (coupon.usedCount || 0) + 1;
+    await updateDoc(doc(db, 'coupons', coupon.id), {
+        usedCount: coupon.usedCount,
+        updatedAt: serverTimestamp()
+    });
+    return true;
+}
+
+window.openCreateCouponModal = function() {
+    if (!currentUser || !isAdminCached) {
+        showToast('⛔ Unauthorized', 'error');
+        return;
+    }
+    document.getElementById('createCouponModal').classList.add('open');
+    document.getElementById('couponForm').reset();
+    document.getElementById('couponIdField').value = '';
+};
+
+window.closeCreateCouponModal = function() {
+    document.getElementById('createCouponModal').classList.remove('open');
+};
+
+window.saveCoupon = async function() {
+    if (!currentUser || !isAdminCached) {
+        showToast('⛔ Unauthorized', 'error');
+        return;
+    }
+    
+    const id = document.getElementById('couponIdField').value;
+    const code = document.getElementById('couponCode').value.trim().toUpperCase();
+    const type = document.getElementById('couponType').value;
+    const value = parseFloat(document.getElementById('couponValue').value);
+    const minOrder = parseFloat(document.getElementById('couponMinOrder').value) || 0;
+    const maxDiscount = parseFloat(document.getElementById('couponMaxDiscount').value) || null;
+    const expiresAt = document.getElementById('couponExpiresAt').value;
+    const usageLimit = parseInt(document.getElementById('couponUsageLimit').value) || null;
+    const firstOrderOnly = document.getElementById('couponFirstOrder').checked;
+    const active = document.getElementById('couponActive').checked;
+
+    if (!code || !value) {
+        showToast('⚠️ Code and value are required', 'warning');
+        return;
+    }
+
+    const couponData = {
+        code, type, value, minOrder, maxDiscount, firstOrderOnly, active,
+        usageLimit, usedCount: 0,
+        expiresAt: expiresAt ? new Date(expiresAt).toISOString() : null,
+        updatedAt: serverTimestamp()
+    };
+
+    try {
+        if (id) {
+            await updateDoc(doc(db, 'coupons', id), couponData);
+            showToast('✅ Coupon updated successfully!', 'success');
+        } else {
+            couponData.createdAt = serverTimestamp();
+            await addDoc(collection(db, 'coupons'), couponData);
+            showToast('✅ Coupon created successfully!', 'success');
+        }
+        closeCreateCouponModal();
+        loadCoupons();
+    } catch (error) {
+        console.error('Error saving coupon:', error);
+        showToast('❌ Error: ' + error.message, 'error');
+    }
+};
+
+window.deleteCoupon = async function(couponId) {
+    if (!currentUser || !isAdminCached) {
+        showToast('⛔ Unauthorized', 'error');
+        return;
+    }
+    if (!confirm('Delete this coupon?')) return;
+    try {
+        await deleteDoc(doc(db, 'coupons', couponId));
+        showToast('🗑️ Coupon deleted', 'success');
+        loadCoupons();
+    } catch (error) {
+        showToast('❌ Error: ' + error.message, 'error');
+    }
+};
+
+window.editCoupon = function(couponId) {
+    const coupon = coupons.find(c => c.id === couponId);
+    if (!coupon) { showToast('❌ Coupon not found', 'error'); return; }
+    
+    document.getElementById('couponIdField').value = coupon.id;
+    document.getElementById('couponCode').value = coupon.code;
+    document.getElementById('couponType').value = coupon.type;
+    document.getElementById('couponValue').value = coupon.value;
+    document.getElementById('couponMinOrder').value = coupon.minOrder || '';
+    document.getElementById('couponMaxDiscount').value = coupon.maxDiscount || '';
+    document.getElementById('couponExpiresAt').value = coupon.expiresAt ? new Date(coupon.expiresAt).toISOString().slice(0, 16) : '';
+    document.getElementById('couponUsageLimit').value = coupon.usageLimit || '';
+    document.getElementById('couponFirstOrder').checked = coupon.firstOrderOnly || false;
+    document.getElementById('couponActive').checked = coupon.active !== false;
+    
+    document.getElementById('createCouponModal').classList.add('open');
+};
+
+function renderAdminCoupons() {
+    const container = document.getElementById('adminCouponsList');
+    if (!container) return;
+    if (!coupons || coupons.length === 0) {
+        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);opacity:0.5;">No coupons created yet</div>`;
+        return;
+    }
+    container.innerHTML = coupons.map(c => {
+        const isExpired = c.expiresAt && new Date(c.expiresAt) < new Date();
+        const isActive = c.active && !isExpired && (!c.usageLimit || c.usedCount < c.usageLimit);
+        return `
+            <div class="admin-item" style="${isExpired ? 'opacity:0.5;' : ''}">
+                <div class="item-info">
+                    <div class="item-title">
+                        <span style="font-family:monospace;font-size:16px;font-weight:800;color:var(--primary);">${c.code}</span>
+                        <span style="font-size:11px;font-weight:400;opacity:0.5;margin-left:6px;">
+                            ${c.type === 'percentage' ? `${c.value}% OFF` : `$${c.value} OFF`}
+                            ${c.minOrder > 0 ? ` • Min: $${c.minOrder}` : ''}
+                        </span>
+                        <span class="status-badge ${isActive ? 'confirmed' : 'rejected'}" style="font-size:9px;padding:1px 10px;">
+                            ${isActive ? '✅ Active' : (isExpired ? '⛔ Expired' : '🔒 Disabled')}
+                        </span>
+                        <span style="font-size:10px;opacity:0.3;">${c.usedCount || 0}/${c.usageLimit || '∞'}</span>
+                    </div>
+                    <div class="item-meta">
+                        ${c.firstOrderOnly ? '🎯 First order only • ' : ''}
+                        ${c.expiresAt ? `📅 ${new Date(c.expiresAt).toLocaleDateString()}` : '♾️ No expiry'}
+                    </div>
+                </div>
+                <div class="item-actions">
+                    <button class="btn-edit" onclick="editCoupon('${c.id}')"><i class="fas fa-edit"></i></button>
+                    <button class="btn-delete" onclick="deleteCoupon('${c.id}')"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// ============================================================
+// 57. EMAIL SYSTEM
+// ============================================================
+
+async function sendEmail(to, subject, htmlContent, textContent = '') {
+    try {
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify({
+                to: to,
+                subject: subject,
+                html: htmlContent,
+                text: textContent
+            })
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('Email error:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+async function sendOrderConfirmationEmail(userEmail, orderData) {
+    const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
+                .container { max-width: 600px; margin: 0 auto; background: #fff; border-radius: 10px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+                .header { text-align: center; border-bottom: 2px solid #6c5ce7; padding-bottom: 15px; }
+                .logo { font-size: 24px; font-weight: 900; color: #6c5ce7; }
+                .order-details { margin: 20px 0; padding: 15px; background: #f8f8f8; border-radius: 8px; }
+                .total { font-size: 20px; font-weight: 800; color: #6c5ce7; }
+                .footer { text-align: center; font-size: 12px; color: #888; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; }
+                .status { display: inline-block; padding: 5px 15px; background: #fbbf24; border-radius: 30px; font-weight: 700; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <div class="logo">🛒 ZI Store</div>
+                    <h2>Order Confirmation</h2>
+                </div>
+                <p>Hello <strong>${orderData.userName || 'Customer'}</strong>,</p>
+                <p>Thank you for your order! Here are the details:</p>
+                <div class="order-details">
+                    <p><strong>Order ID:</strong> #${orderData.orderId?.slice(-8) || '------'}</p>
+                    <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
+                    <p><strong>Status:</strong> <span class="status">${orderData.status || 'Pending'}</span></p>
+                    <p><strong>Payment Method:</strong> ${orderData.method || 'N/A'}</p>
+                    <hr />
+                    <h4>Items:</h4>
+                    ${(orderData.items || []).map(item => `
+                        <div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #eee;">
+                            <span>${item.name} × ${item.quantity || 1}</span>
+                            <span>$${(item.price * (item.quantity || 1)).toFixed(2)}</span>
+                        </div>
+                    `).join('')}
+                    <hr />
+                    <div style="display:flex; justify-content:space-between; font-size:18px;">
+                        <strong>Total:</strong>
+                        <strong class="total">$${(orderData.total || 0).toFixed(2)}</strong>
+                    </div>
+                </div>
+                <p>You will receive another email once your order is confirmed.</p>
+                <div class="footer">
+                    <p>&copy; 2026 ZI Store — All rights reserved.</p>
+                    <p><a href="https://zi-store.online">Visit Store</a> | <a href="mailto:support@zi-store.online">Support</a></p>
+                </div>
+            </div>
+        </body>
+        </html>
+    `;
+    return await sendEmail(userEmail, `Order Confirmation #${orderData.orderId?.slice(-6) || ''}`, html);
+}
+
+async function sendOrderStatusEmail(userEmail, orderId, newStatus) {
+    const statusMessages = {
+        'confirmed': '✅ Your order has been confirmed and is being processed!',
+        'rejected': '❌ Your order has been rejected. Please contact support for more information.',
+        'shipped': '📦 Your order has been shipped!',
+        'delivered': '🎉 Your order has been delivered!'
+    };
+    const html = `
+        <!DOCTYPE html>
+        <html>
+        <head><style>body{font-family:Arial,sans-serif;padding:20px;background:#f4f4f4;} .container{max-width:600px;margin:0 auto;background:#fff;border-radius:10px;padding:30px;box-shadow:0 4px 20px rgba(0,0,0,0.1);} .header{text-align:center;border-bottom:2px solid #6c5ce7;padding-bottom:15px;} .logo{font-size:24px;font-weight:900;color:#6c5ce7;} .status-update{padding:15px;background:#f8f8f8;border-radius:8px;margin:20px 0;text-align:center;} .status-badge{display:inline-block;padding:8px 20px;border-radius:30px;font-weight:700;background:${newStatus === 'confirmed' ? '#00d4aa' : newStatus === 'rejected' ? '#ff6b6b' : '#fbbf24'};color:#0a0a1a;} .footer{text-align:center;font-size:12px;color:#888;margin-top:20px;border-top:1px solid #eee;padding-top:15px;}</style></head>
+        <body>
+            <div class="container">
+                <div class="header"><div class="logo">🛒 ZI Store</div><h2>Order Status Update</h2></div>
+                <p>Hello,</p>
+                <div class="status-update">
+                    <p style="font-size:16px;">${statusMessages[newStatus] || 'Your order status has been updated.'}</p>
+                    <p><strong>Order ID:</strong> #${orderId?.slice(-8) || '------'}</p>
+                    <div><span class="status-badge">${newStatus.toUpperCase()}</span></div>
+                </div>
+                <p><a href="https://zi-store.online" style="background:#6c5ce7;color:#fff;padding:10px 20px;border-radius:5px;text-decoration:none;">View Order</a></p>
+                <div class="footer"><p>&copy; 2026 ZI Store — All rights reserved.</p></div>
+            </div>
+        </body>
+        </html>
+    `;
+    return await sendEmail(userEmail, `Order Status Update #${orderId?.slice(-6) || ''}`, html);
+}
+
+async function sendWelcomeEmail(userEmail, userName) {
+    const html = `
+        <!DOCTYPE html>
+        <html>
+        <head><style>body{font-family:Arial,sans-serif;padding:20px;background:#f4f4f4;} .container{max-width:600px;margin:0 auto;background:#fff;border-radius:10px;padding:30px;box-shadow:0 4px 20px rgba(0,0,0,0.1);} .header{text-align:center;border-bottom:2px solid #6c5ce7;padding-bottom:15px;} .logo{font-size:24px;font-weight:900;color:#6c5ce7;} .welcome{text-align:center;padding:20px 0;} .footer{text-align:center;font-size:12px;color:#888;margin-top:20px;border-top:1px solid #eee;padding-top:15px;}</style></head>
+        <body>
+            <div class="container">
+                <div class="header"><div class="logo">🛒 ZI Store</div><h2>Welcome to ZI Store!</h2></div>
+                <div class="welcome">
+                    <h3>Hi ${userName || 'there'}! 🎉</h3>
+                    <p>Thank you for joining ZI Store! We're excited to have you.</p>
+                    <p>Here's what you can do:</p>
+                    <ul style="text-align:left;display:inline-block;">
+                        <li>🛍️ Browse our premium products</li>
+                        <li>💳 Secure payments</li>
+                        <li>⚡ Instant delivery</li>
+                        <li>🎁 Exclusive discounts</li>
+                    </ul>
+                    <br />
+                    <a href="https://zi-store.online" style="background:#6c5ce7;color:#fff;padding:10px 30px;border-radius:5px;text-decoration:none;">Start Shopping</a>
+                </div>
+                <div class="footer"><p>&copy; 2026 ZI Store — All rights reserved.</p></div>
+            </div>
+        </body>
+        </html>
+    `;
+    return await sendEmail(userEmail, 'Welcome to ZI Store! 🎉', html);
+}
+
+// ============================================================
+// 58. PDF INVOICE GENERATOR
+// ============================================================
+
+window.generatePDFInvoice = function(orderData) {
+    if (!orderData) { showToast('❌ No order data for invoice', 'error'); return; }
+    try {
+        let order = typeof orderData === 'string' ? JSON.parse(orderData) : orderData;
+        if (!order.id) { order.id = 'INV-' + Date.now().toString().slice(-6); }
+        
+        const invoiceHtml = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Invoice #${order.id}</title>
+            <style>
+                * { margin:0; padding:0; box-sizing:border-box; }
+                body { font-family: 'Arial', sans-serif; padding: 40px; background: #fff; color: #1a1a2e; }
+                .invoice { max-width: 800px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 12px; padding: 40px; }
+                .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #6c5ce7; padding-bottom: 20px; margin-bottom: 20px; }
+                .logo { font-size: 28px; font-weight: 900; color: #6c5ce7; }
+                .logo span { color: #f2a900; }
+                .invoice-title { font-size: 24px; color: #6c5ce7; font-weight: 700; }
+                .details { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; padding: 15px; background: #f8f8ff; border-radius: 8px; }
+                .details .label { color: #888; font-size: 12px; font-weight: 600; text-transform: uppercase; }
+                .details .value { font-weight: 700; font-size: 14px; }
+                table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                th { background: #6c5ce7; color: #fff; padding: 12px; text-align: left; font-size: 12px; text-transform: uppercase; }
+                td { padding: 12px; border-bottom: 1px solid #e0e0e0; }
+                .total-section { margin-top: 20px; padding-top: 20px; border-top: 2px solid #e0e0e0; text-align: right; }
+                .total-section .total { font-size: 24px; font-weight: 900; color: #6c5ce7; }
+                .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center; font-size: 12px; color: #888; }
+                @media print {
+                    body { padding: 0; }
+                    .invoice { border: none; padding: 20px; }
+                    .no-print { display: none; }
+                }
+                .status-badge { display: inline-block; padding: 4px 12px; border-radius: 30px; font-size: 12px; font-weight: 700; background: ${order.status === 'confirmed' ? '#00d4aa' : order.status === 'rejected' ? '#ff6b6b' : '#fbbf24'}; color: #0a0a1a; }
+            </style>
+        </head>
+        <body>
+            <div class="invoice">
+                <div class="header">
+                    <div class="logo">ZI <span>Store</span></div>
+                    <div class="invoice-title">INVOICE</div>
+                </div>
+                <div class="details">
+                    <div>
+                        <div class="label">Order ID</div>
+                        <div class="value">#${order.id}</div>
+                        <div class="label" style="margin-top:6px;">Date</div>
+                        <div class="value">${new Date(order.date || Date.now()).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div class="label">Status</div>
+                        <div class="value"><span class="status-badge">${order.status || 'Pending'}</span></div>
+                        <div class="label" style="margin-top:6px;">Payment Method</div>
+                        <div class="value">${order.method || 'N/A'}</div>
+                    </div>
+                </div>
+                <table>
+                    <thead><tr><th>Product</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead>
+                    <tbody>
+                        ${(order.items || []).map(item => `
+                            <tr>
+                                <td>${item.name}${item.selectedQuantity ? ' (x'+item.selectedQuantity+')' : ''}</td>
+                                <td>${item.quantity || 1}</td>
+                                <td>$${(item.price || 0).toFixed(2)}</td>
+                                <td>$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                <div class="total-section">
+                    <div style="font-size:16px; color:#888; margin-bottom:4px;">Total Amount</div>
+                    <div class="total">$${(order.total || 0).toFixed(2)}</div>
+                </div>
+                <div class="footer">
+                    <p>Thank you for your purchase at ZI Store!</p>
+                    <p style="margin-top:4px;">© 2026 ZI Store — All rights reserved.</p>
+                </div>
+            </div>
+            <div style="text-align:center; margin-top:20px;" class="no-print">
+                <button onclick="window.print()" style="padding:10px 30px; background:#6c5ce7; color:#fff; border:none; border-radius:8px; font-weight:700; cursor:pointer; font-size:14px;">
+                    <i class="fas fa-print"></i> Print / Save as PDF
+                </button>
+            </div>
+        </body>
+        </html>
+        `;
+        
+        const win = window.open('', '_blank');
+        if (!win) { showToast('⚠️ Please allow popups to generate invoice', 'warning'); return; }
+        win.document.write(invoiceHtml);
+        win.document.close();
+        setTimeout(() => win.print(), 500);
+        showToast('📄 Invoice generated!', 'success');
+    } catch (error) {
+        console.error('Invoice generation error:', error);
+        showToast('❌ Failed to generate invoice', 'error');
+    }
+};
+
+// ============================================================
+// 59. ADD MISSING FUNCTIONS
 // ============================================================
 
 // ============================================================
-// 52.1 CHECKOUT FUNCTION
+// 59.1 CHECKOUT FUNCTION
 // ============================================================
 
 window.checkout = function() {
     if (cart.length === 0) {
-        showToast('âš ï¸ Your cart is empty', 'warning');
+        showToast('⚠️ Your cart is empty', 'warning');
         return;
     }
 
     if (!currentUser) {
-        showToast('âš ï¸ Please login to checkout', 'warning');
+        showToast('⚠️ Please login to checkout', 'warning');
         openAuthModal();
         return;
     }
@@ -7547,17 +8423,17 @@ window.checkout = function() {
 };
 
 // ============================================================
-// 52.2 PAYMENT MODAL FUNCTIONS
+// 59.2 PAYMENT MODAL FUNCTIONS
 // ============================================================
 
 window.openPaymentModal = function() {
     if (cart.length === 0) {
-        showToast('âš ï¸ Cart is empty', 'warning');
+        showToast('⚠️ Cart is empty', 'warning');
         return;
     }
 
     if (!currentUser) {
-        showToast('âš ï¸ Please login to checkout', 'warning');
+        showToast('⚠️ Please login to checkout', 'warning');
         openAuthModal();
         return;
     }
@@ -7572,7 +8448,7 @@ window.openPaymentModal = function() {
         fetchCryptoPrices();
         loadUserBalance();
     } else {
-        showToast('âŒ Payment modal not found', 'error');
+        showToast('❌ Payment modal not found', 'error');
     }
 };
 
@@ -7596,24 +8472,24 @@ window.goToStep1 = function() {
 };
 
 // ============================================================
-// 52.3 COPY WALLET ADDRESS
+// 59.3 COPY WALLET ADDRESS
 // ============================================================
 
 window.copyWalletAddress = function() {
     const addressElement = document.getElementById('walletAddressDisplay');
     if (!addressElement) {
-        showToast('âš ï¸ Wallet address not found', 'warning');
+        showToast('⚠️ Wallet address not found', 'warning');
         return;
     }
     const address = addressElement.textContent.trim();
     if (!address || address === '') {
-        showToast('âš ï¸ No wallet address to copy', 'warning');
+        showToast('⚠️ No wallet address to copy', 'warning');
         return;
     }
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(address)
-            .then(() => showToast('âœ… Wallet address copied!', 'success'))
+            .then(() => showToast('✅ Wallet address copied!', 'success'))
             .catch(() => fallbackCopyText(address));
     } else {
         fallbackCopyText(address);
@@ -7621,23 +8497,22 @@ window.copyWalletAddress = function() {
 };
 
 // ============================================================
-// 52.4 ADD PRODUCT MODAL FUNCTIONS - FIXED (null check)
+// 59.4 ADD PRODUCT MODAL FUNCTIONS
 // ============================================================
 
 window.openAddProductModal = function() {
     if (!currentUser || !isAdminCached) {
-        showToast('â›” Unauthorized. Admin only.', 'error');
+        showToast('⛔ Unauthorized. Admin only.', 'error');
         return;
     }
 
     const modal = document.getElementById('productModal');
     if (!modal) {
-        console.error('âŒ Product modal not found');
-        showToast('âŒ Product modal not found in HTML', 'error');
+        console.error('❌ Product modal not found');
+        showToast('❌ Product modal not found in HTML', 'error');
         return;
     }
 
-    // Safe element checks
     const titleEl = document.getElementById('productFormTitle');
     const form = document.getElementById('productForm');
     const idField = document.getElementById('productIdField');
@@ -7647,7 +8522,7 @@ window.openAddProductModal = function() {
     const list = document.getElementById('quantityOptionsList');
     const badgesInput = document.getElementById('productBadges');
 
-    if (titleEl) titleEl.textContent = 'âž• Add New Product';
+    if (titleEl) titleEl.textContent = '➕ Add New Product';
     if (form) form.reset();
     if (idField) idField.value = '';
     if (currency) currency.value = 'USD';
@@ -7669,30 +8544,25 @@ window.openAddProductModal = function() {
     document.body.style.overflow = 'hidden';
 };
 
-// ============================================================
-// 52.4 EDIT PRODUCT MODAL - FIXED (null check)
-// ============================================================
-
 window.openEditProductModal = function(productId) {
     if (!currentUser || !isAdminCached) {
-        showToast('â›” Unauthorized. Admin only.', 'error');
+        showToast('⛔ Unauthorized. Admin only.', 'error');
         return;
     }
 
     const product = products.find(p => p.id === productId);
     if (!product) {
-        showToast('âŒ Product not found', 'error');
+        showToast('❌ Product not found', 'error');
         return;
     }
 
     const modal = document.getElementById('productModal');
     if (!modal) {
-        console.error('âŒ Product modal not found');
-        showToast('âŒ Product modal not found in HTML', 'error');
+        console.error('❌ Product modal not found');
+        showToast('❌ Product modal not found in HTML', 'error');
         return;
     }
 
-    // Safe element checks
     const titleEl = document.getElementById('productFormTitle');
     const idField = document.getElementById('productIdField');
     const nameEl = document.getElementById('productName');
@@ -7709,7 +8579,7 @@ window.openEditProductModal = function(productId) {
     const quantityContainer = document.getElementById('quantityOptionsContainer');
     const badgesInput = document.getElementById('productBadges');
 
-    if (titleEl) titleEl.textContent = 'âœï¸ Edit Product';
+    if (titleEl) titleEl.textContent = '✏️ Edit Product';
     if (idField) idField.value = product.id;
     if (nameEl) nameEl.value = product.name || '';
     if (priceEl) priceEl.value = product.price || 0;
@@ -7761,7 +8631,7 @@ window.closeProductModal = function() {
 
 window.saveProduct = async function() {
     if (!currentUser || !isAdminCached) {
-        showToast('â›” Unauthorized. Admin only.', 'error');
+        showToast('⛔ Unauthorized. Admin only.', 'error');
         return;
     }
 
@@ -7779,7 +8649,7 @@ window.saveProduct = async function() {
     const productType = document.getElementById('productType')?.value || 'standard';
 
     if (!name) {
-        showToast('âš ï¸ Product name is required', 'warning');
+        showToast('⚠️ Product name is required', 'warning');
         return;
     }
 
@@ -7806,7 +8676,7 @@ window.saveProduct = async function() {
     if (productType === 'quantity') {
         const quantityOptions = getQuantityOptions();
         if (quantityOptions.length === 0) {
-            showToast('âš ï¸ Please add at least one quantity option', 'warning');
+            showToast('⚠️ Please add at least one quantity option', 'warning');
             return;
         }
         productData.quantityOptions = quantityOptions;
@@ -7815,23 +8685,23 @@ window.saveProduct = async function() {
     try {
         if (id) {
             await updateDoc(doc(db, 'products', id), productData);
-            showToast('âœ… Product updated successfully!', 'success');
+            showToast('✅ Product updated successfully!', 'success');
         } else {
             productData.createdAt = serverTimestamp();
             await addDoc(collection(db, 'products'), productData);
-            showToast('âœ… Product added successfully!', 'success');
+            showToast('✅ Product added successfully!', 'success');
         }
 
         closeProductModal();
     } catch (error) {
         console.error('Error saving product:', error);
-        showToast('âŒ Error: ' + error.message, 'error');
+        showToast('❌ Error: ' + error.message, 'error');
     }
 };
 
 window.deleteProduct = async function(productId) {
     if (!currentUser || !isAdminCached) {
-        showToast('â›” Unauthorized. Admin only.', 'error');
+        showToast('⛔ Unauthorized. Admin only.', 'error');
         return;
     }
 
@@ -7839,15 +8709,15 @@ window.deleteProduct = async function(productId) {
 
     try {
         await deleteDoc(doc(db, 'products', productId));
-        showToast('ðŸ—‘ï¸ Product deleted successfully', 'success');
+        showToast('🗑️ Product deleted successfully', 'success');
     } catch (error) {
         console.error('Error deleting product:', error);
-        showToast('âŒ Error: ' + error.message, 'error');
+        showToast('❌ Error: ' + error.message, 'error');
     }
 };
 
 // ============================================================
-// 52.5 FILTER ORDERS FUNCTION
+// 59.5 FILTER ORDERS FUNCTION
 // ============================================================
 
 window.filterOrders = function(filter) {
@@ -7856,7 +8726,7 @@ window.filterOrders = function(filter) {
 };
 
 // ============================================================
-// 52.6 ADMIN SETTINGS UI
+// 59.6 ADMIN SETTINGS UI
 // ============================================================
 
 async function loadAdminSettingsUI() {
@@ -7864,7 +8734,6 @@ async function loadAdminSettingsUI() {
     
     const container = document.getElementById('adminSettingsContainer');
     if (!container) {
-        // Create container if it doesn't exist
         const tabContent = document.getElementById('tabSettings');
         if (tabContent) {
             const div = document.createElement('div');
@@ -7872,7 +8741,7 @@ async function loadAdminSettingsUI() {
             tabContent.appendChild(div);
             container = div;
         } else {
-            console.error('âŒ tabSettings not found');
+            console.error('❌ tabSettings not found');
             return;
         }
     }
@@ -7882,7 +8751,7 @@ async function loadAdminSettingsUI() {
         
         container.innerHTML = `
             <div style="background:var(--glass-bg); padding:20px; border-radius:var(--radius-md); border:1px solid var(--glass-border);">
-                <h3 style="margin-bottom:16px; color:var(--vip-color);">ðŸ”” Notification Settings</h3>
+                <h3 style="margin-bottom:16px; color:var(--vip-color);">🔔 Notification Settings</h3>
                 
                 <div class="admin-form-group">
                     <label>Admin Email</label>
@@ -7910,11 +8779,11 @@ async function loadAdminSettingsUI() {
                 <div style="display:flex; gap:16px; margin-top:12px; flex-wrap:wrap;">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" id="enableEmailNotif" ${settings.enableEmailNotifications !== false ? 'checked' : ''} />
-                        <span>ðŸ“§ Email Notifications</span>
+                        <span>📧 Email Notifications</span>
                     </label>
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" id="enableTelegramNotif" ${settings.enableTelegramNotifications !== false ? 'checked' : ''} />
-                        <span>ðŸ“± Telegram Notifications</span>
+                        <span>📱 Telegram Notifications</span>
                     </label>
                 </div>
                 
@@ -7934,7 +8803,7 @@ async function loadAdminSettingsUI() {
 
 window.saveAdminSettings = async function() {
     if (!currentUser || !isAdminCached) {
-        showToast('â›” Unauthorized', 'error');
+        showToast('⛔ Unauthorized', 'error');
         return;
     }
     
@@ -7944,7 +8813,7 @@ window.saveAdminSettings = async function() {
     const enableTelegram = document.getElementById('enableTelegramNotif')?.checked || false;
     
     if (!email) {
-        showToast('âš ï¸ Admin email is required', 'warning');
+        showToast('⚠️ Admin email is required', 'warning');
         return;
     }
     
@@ -7961,24 +8830,24 @@ window.saveAdminSettings = async function() {
         };
         
         await updateAdminSettings(settings);
-        statusEl.innerHTML = 'âœ… Settings saved successfully!';
+        statusEl.innerHTML = '✅ Settings saved successfully!';
         statusEl.style.color = 'var(--success)';
-        showToast('âœ… Admin settings saved!', 'success');
+        showToast('✅ Admin settings saved!', 'success');
         setTimeout(() => { statusEl.innerHTML = ''; }, 3000);
     } catch (error) {
-        statusEl.innerHTML = 'âŒ Error: ' + error.message;
+        statusEl.innerHTML = '❌ Error: ' + error.message;
         statusEl.style.color = 'var(--danger)';
     }
 };
 
 window.getMyTelegramChatId = function() {
     if (!currentUser) {
-        showToast('âš ï¸ Please login first', 'warning');
+        showToast('⚠️ Please login first', 'warning');
         return;
     }
     
     if (!userProfile.telegramChatId) {
-        showToast('âš ï¸ Please link your Telegram account first', 'warning');
+        showToast('⚠️ Please link your Telegram account first', 'warning');
         bindTelegram();
         return;
     }
@@ -7986,7 +8855,7 @@ window.getMyTelegramChatId = function() {
     const input = document.getElementById('adminTelegramInput');
     if (input) {
         input.value = userProfile.telegramChatId;
-        showToast(`âœ… Chat ID set: ${userProfile.telegramChatId}`, 'success');
+        showToast(`✅ Chat ID set: ${userProfile.telegramChatId}`, 'success');
     }
 };
 
@@ -8000,7 +8869,7 @@ window.removeFromCartAndCloseBanner = function(productId) {
         updateCartUI();
         renderProducts(products);
         updateBottomCartBar();
-        showToast('ðŸ—‘ï¸ Removed from cart', 'info');
+        showToast('🗑️ Removed from cart', 'info');
     }
     const banner = document.getElementById('quickPurchaseBanner');
     if (banner) banner.style.display = 'none';
@@ -8012,7 +8881,7 @@ window.closeQuickPurchaseBanner = function() {
 };
 
 // ============================================================
-// 53. Export all functions to global scope
+// 60. EXPORT ALL FUNCTIONS TO WINDOW
 // ============================================================
 
 window.showLogin = showLogin;
@@ -8217,6 +9086,7 @@ window.saveCookieSettings = saveCookieSettings;
 window.closeCookieBanner = closeCookieBanner;
 window.addProxyToCart = addProxyToCart;
 window.generateInvoice = generateInvoice;
+window.generatePDFInvoice = generatePDFInvoice;
 window.exportOrders = exportOrders;
 window.renderPaymentProducts = renderPaymentProducts;
 window.hideLoadingScreenManually = hideLoadingScreenManually;
@@ -8238,27 +9108,38 @@ window.closeQuickPurchaseBanner = closeQuickPurchaseBanner;
 window.saveAdminSettings = saveAdminSettings;
 window.getMyTelegramChatId = getMyTelegramChatId;
 window.loadAdminSettingsUI = loadAdminSettingsUI;
+window.openCreateCouponModal = openCreateCouponModal;
+window.closeCreateCouponModal = closeCreateCouponModal;
+window.saveCoupon = saveCoupon;
+window.deleteCoupon = deleteCoupon;
+window.editCoupon = editCoupon;
+window.loadCoupons = loadCoupons;
+window.renderAdminCoupons = renderAdminCoupons;
+window.applyPopupCoupon = applyPopupCoupon;
+window.subscribeAndApply = subscribeAndApply;
+window.closePopup = closePopup;
+window.generatePDFInvoice = generatePDFInvoice;
 
-console.log('âœ… All functions exported to window scope');
+console.log('✅ All functions exported to window scope');
 
 // ============================================================
-// 54. Init
+// 61. INIT
 // ============================================================
 
 async function init() {
-    console.log('ðŸš€ Initializing ZI Store...');
+    console.log('🚀 Initializing ZI Store...');
 
     const authSection = document.getElementById('authSection');
     if (authSection) authSection.style.display = 'none';
 
-    updateLoadingText('Loading...');
+    window.updateLoadingProgress(5, 'Starting...');
 
     try {
-        updateLoadingText('Loading products...');
+        window.updateLoadingProgress(15, 'Loading products...');
         const productsFromFirestore = await loadProductsFromFirestore();
         products = productsFromFirestore;
 
-        updateLoadingText('Initializing app...');
+        window.updateLoadingProgress(40, 'Initializing app...');
         startProductsRealtimeListener();
         await loadUserData();
         renderProducts(products, false);
@@ -8275,22 +9156,26 @@ async function init() {
         setInterval(fetchCryptoPrices, 60000);
         loadUserBalance();
         initTopInfoBar();
+        loadCoupons();
 
         setTimeout(removeDuplicateDate, 500);
         setTimeout(styleHeaderTopup, 500);
         setTimeout(fixDirection, 100);
 
-        updateLoadingText('âœ… Ready!');
-        console.log('âœ… ZI Store ready with all features!');
+        window.updateLoadingProgress(90, 'Almost ready...');
+        console.log('✅ ZI Store ready with all features!');
         setTimeout(window.ensureAdminPanel, 3000);
         setTimeout(checkCookieConsent, 1500);
 
         if (auth.currentUser) {
             window.showMainApp();
+            initPopups();
         } else {
             if (authSection) authSection.style.display = 'block';
             document.getElementById('mainApp').style.display = 'none';
         }
+        
+        window.updateLoadingProgress(100, '✅ Ready!');
         hideLoadingScreen();
 
         setTimeout(function() {
@@ -8298,12 +9183,12 @@ async function init() {
             if (screen) {
                 const icon = screen.querySelector('.loader-icon');
                 if (icon) {
-                    icon.textContent = 'âœ…';
+                    icon.textContent = '✅';
                     icon.style.animation = 'none';
                 }
                 const text = document.getElementById('loadingStatus');
                 if (text) {
-                    text.textContent = 'Ready! ðŸŽ‰';
+                    text.textContent = 'Ready! 🎉';
                     text.style.webkitTextFillColor = 'var(--success)';
                 }
                 const subtext = document.querySelector('.loader-subtext');
@@ -8313,9 +9198,9 @@ async function init() {
         }, 2000);
 
     } catch (error) {
-        console.error('âŒ Initialization error:', error);
-        updateLoadingText('âš ï¸ Error occurred, please refresh');
-        showToast('âš ï¸ Error loading store. Please refresh.', 'error');
+        console.error('❌ Initialization error:', error);
+        window.updateLoadingProgress(100, '⚠️ Error occurred');
+        showToast('⚠️ Error loading store. Please refresh.', 'error');
         if (authSection) authSection.style.display = 'block';
         document.getElementById('mainApp').style.display = 'none';
         hideLoadingScreen();
@@ -8323,7 +9208,7 @@ async function init() {
 }
 
 // ============================================================
-// 55. Auth State Listener
+// 62. AUTH STATE LISTENER
 // ============================================================
 
 onAuthStateChanged(auth, async (user) => {
@@ -8341,7 +9226,7 @@ onAuthStateChanged(auth, async (user) => {
                 isAdminCached = false;
                 if (authSection) authSection.style.display = 'block';
                 if (mainApp) mainApp.style.display = 'none';
-                showToast('ðŸš« Your account has been banned.', 'error');
+                showToast('🚫 Your account has been banned.', 'error');
                 hideLoadingScreen();
                 return;
             }
@@ -8364,7 +9249,7 @@ onAuthStateChanged(auth, async (user) => {
         } catch (error) { console.error('Error checking ban status:', error); }
 
         await refreshAdminStatus();
-        console.log('ðŸ” Admin status after login:', isAdminCached);
+        console.log('🔍 Admin status after login:', isAdminCached);
 
         if (authSection) authSection.style.display = 'none';
         if (mainApp) mainApp.style.display = 'block';
@@ -8374,15 +9259,17 @@ onAuthStateChanged(auth, async (user) => {
         loadUserBalance();
         startTopupRealtimeListener();
         initTopInfoBar();
+        initPopups();
 
         if (isAdminCached) {
-            console.log('âœ… Admin detected, loading admin features');
+            console.log('✅ Admin detected, loading admin features');
             loadAdminOrders();
             startAdminRealtimeListener();
             renderAdminProducts(products);
             loadLicences();
             loadAdminTopups();
             renderFallbackProductsAdmin();
+            loadCoupons();
             setTimeout(addBannerAdminControls, 500);
             setTimeout(() => {
                 const adminMenuItem = document.getElementById('adminMenuItem');
@@ -8401,7 +9288,7 @@ onAuthStateChanged(auth, async (user) => {
         setTimeout(showTelegramBanner, 1000);
         setTimeout(window.ensureAdminPanel, 2000);
         setTimeout(checkCookieConsent, 1000);
-        updateLoadingText('âœ… Ready!');
+        window.updateLoadingProgress(100, '✅ Ready!');
 
         window.showMainApp();
         hideLoadingScreen();
@@ -8420,7 +9307,7 @@ onAuthStateChanged(auth, async (user) => {
         loadSliderSettings();
         loadMarqueeSettings();
         setTimeout(checkCookieConsent, 1000);
-        updateLoadingText('ðŸ‘‹ Please login');
+        window.updateLoadingProgress(100, '👋 Please login');
 
         setTimeout(() => {
             hideLoadingScreen();
@@ -8432,7 +9319,7 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// 56. Start App
+// 63. START APP
 // ============================================================
 
 if (document.readyState === 'loading') {
