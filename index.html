@@ -3,9 +3,49 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>ZI Store - Premium Scripts</title>
+    
+    <!-- ===== SEO META TAGS ===== -->
+    <title>ZI Store - Premium Scripts & Digital Products</title>
+    <meta name="description" content="ZI Store offers premium digital products, scripts, and tools for gamers and developers. Instant delivery, secure payment, 24/7 support." />
+    <meta name="keywords" content="ZI Store, premium scripts, digital products, gaming tools, mods, VIP scripts, free scripts" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://zi-store.online/" />
+
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://zi-store.online/" />
+    <meta property="og:title" content="ZI Store - Premium Scripts & Digital Products" />
+    <meta property="og:description" content="Premium digital products, scripts, and tools for gamers and developers." />
+    <meta property="og:image" content="https://zi-store.online/og-image.jpg" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="ZI Store - Premium Scripts & Digital Products" />
+    <meta name="twitter:description" content="Premium digital products, scripts, and tools for gamers and developers." />
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "ZI Store",
+        "url": "https://zi-store.online",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://zi-store.online/?search={search_term_string}",
+            "query-input": "required name=search_term_string"
+        }
+    }
+    </script>
+
+    <!-- ===== PRELOAD & PREFETCH ===== -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    
     <script type="importmap">
         {
             "imports": {
@@ -16,6 +56,7 @@
             }
         }
     </script>
+    
     <style>
         /* ============================================================
            GLOBAL STYLES - MODERN & GLASSMORPHISM
@@ -70,7 +111,7 @@
         ::-webkit-scrollbar-track { background:var(--bg-secondary); }
         ::-webkit-scrollbar-thumb { background:var(--primary); border-radius:10px; }
 
-        /* ===== LOADING SCREEN ===== */
+        /* ===== LOADING SCREEN WITH PROGRESS ===== */
         #loadingScreen {
             position:fixed; inset:0; z-index:99999;
             background:var(--bg);
@@ -96,6 +137,28 @@
         }
         .loader-subtext {
             font-size:13px; color:var(--text-secondary); opacity:0.3; margin-top:4px;
+        }
+        .progress-container {
+            width: 200px;
+            height: 4px;
+            background: var(--glass-border);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 8px 0 4px;
+            position: relative;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--vip-color));
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+        .progress-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+            opacity: 0.4;
+            font-weight: 600;
         }
         @keyframes spin { to { transform:rotate(360deg); } }
 
@@ -1989,67 +2052,185 @@
             font-weight: 500;
         }
 
-        /* ===== RESPONSIVE ===== */
-        @media (max-width: 480px) {
-            .product-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-            .header { padding: 6px 12px; }
-            .logo { font-size: 17px; }
-            .header-actions button { width: 30px; height: 30px; font-size: 12px; }
-            .balance-btn { height: 30px; font-size: 11px; padding: 0 8px !important; }
-            .balance-btn .balance-text { font-size: 11px; }
-            .payment-options { grid-template-columns: 1fr 1fr; }
-            .stats-bar { grid-template-columns: repeat(2, 1fr); }
-            .slide-title { font-size: 18px; }
-            .auth-container { padding: 20px; }
-            #toast { min-width: auto; width: 90%; font-size: 12px; padding: 10px 14px; }
-            .admin-sidebar {
-                width: 52px;
-                min-width: 52px;
-                padding: 8px 2px;
-            }
-            .admin-sidebar-header span,
-            .admin-nav-btn span,
-            .admin-nav-btn .nav-badge,
-            .admin-sidebar-footer .admin-close-btn span {
-                display: none;
-            }
-            .admin-nav-btn {
-                justify-content: center;
-                padding: 8px;
-            }
-            .admin-nav-btn i {
-                font-size: 16px;
-                width: auto;
-            }
-            .admin-main { padding: 10px 12px; }
-            .admin-stats-grid { grid-template-columns: 1fr 1fr; }
-            .admin-products-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
-            .profile-stats-grid { grid-template-columns: repeat(2, 1fr); }
-            .profile-hero .hero-content { flex-direction: column; text-align: center; }
-            .profile-hero .hero-badges { justify-content: center; }
+        /* ===== POPUPS ===== */
+        .popup-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 999;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(12px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
         }
-        @media (min-width: 768px) {
-            .product-grid { grid-template-columns: repeat(3, 1fr); }
+        .popup-overlay.show { display: flex; }
+        .popup-content {
+            background: var(--card-bg);
+            backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            padding: 30px 24px;
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+            animation: popupSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
         }
-        @media (min-width: 1024px) {
-            .product-grid { grid-template-columns: repeat(4, 1fr); }
+        @keyframes popupSlideIn {
+            0% { opacity:0; transform: scale(0.9) translateY(20px); }
+            100% { opacity:1; transform: scale(1) translateY(0); }
         }
+        .popup-close {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            font-size: 24px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+        .popup-icon { font-size: 48px; margin-bottom: 8px; }
+        .popup-content h2 { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+        .popup-content p { font-size: 14px; color: var(--text-secondary); font-weight: 500; }
 
-        .hidden { display: none !important; }
-        .text-center { text-align: center; }
-        .w-full { width: 100%; }
-
-        .wishlist-empty { text-align:center; padding:20px 0; color:var(--text-secondary); font-size:14px; }
-        .wishlist-empty i { font-size:36px; opacity:0.15; display:block; margin-bottom:4px; }
-
-        .rating-stars .star {
+        /* ===== CHATBOT ===== */
+        #chatbot {
+            position: fixed;
+            bottom: 130px;
+            right: 16px;
+            z-index: 250;
+        }
+        .chatbot-toggle {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--vip-color));
+            color: #fff;
+            border: none;
             font-size: 22px;
             cursor: pointer;
-            color: var(--text-secondary);
-            opacity: 0.2;
+            box-shadow: 0 4px 20px var(--primary-glow);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .chatbot-toggle:hover { transform: scale(1.06); }
+        .chatbot-window {
+            position: absolute;
+            bottom: 60px;
+            right: 0;
+            width: 320px;
+            max-height: 420px;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+        .chatbot-window.open { display: flex; }
+        .chatbot-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+        }
+        .chatbot-title { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 14px; }
+        .chatbot-close { background: none; border: none; color: var(--text-secondary); font-size: 20px; cursor: pointer; }
+        .chatbot-messages {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+            max-height: 280px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .chatbot-msg { display: flex; }
+        .chatbot-msg.bot { justify-content: flex-start; }
+        .chatbot-msg.user { justify-content: flex-end; }
+        .msg-bubble {
+            max-width: 85%;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 500;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+        }
+        .chatbot-msg.user .msg-bubble {
+            background: var(--primary);
+            color: #fff;
+        }
+        .chatbot-input {
+            display: flex;
+            padding: 8px 10px;
+            border-top: 1px solid var(--glass-border);
+            gap: 4px;
+        }
+        .chatbot-input input {
+            flex: 1;
+            padding: 6px 10px;
+            border: 2px solid var(--glass-border);
+            border-radius: var(--radius-sm);
+            background: var(--card-bg);
+            color: var(--text);
+            font-size: 13px;
+            font-family: var(--font);
+            outline: none;
+        }
+        .chatbot-input input:focus { border-color: var(--primary); }
+        .chatbot-input button {
+            padding: 6px 12px;
+            border: none;
+            border-radius: var(--radius-sm);
+            background: var(--primary);
+            color: #fff;
+            cursor: pointer;
             transition: var(--transition);
         }
-        .rating-stars .star.active { color: #fbbf24; opacity: 1; }
+        .chatbot-input button:hover { opacity: 0.8; }
+
+        /* ===== TELEGRAM BANNER ===== */
+        #telegramBanner {
+            display: none;
+            background: var(--primary-glow);
+            border: 1px solid var(--primary);
+            border-radius: var(--radius-sm);
+            padding: 10px 16px;
+            margin: 0 18px 10px;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            animation: bannerSlideDown 0.5s ease forwards;
+        }
+        #telegramBanner.hidden { display: none; }
+        .banner-icon i { font-size: 24px; color: #0088cc; }
+        .banner-text { flex: 1; min-width: 120px; }
+        .banner-title { font-weight: 800; font-size: 14px; }
+        .banner-title .badge-new { background: var(--danger); color: #fff; font-size: 8px; padding: 0 8px; border-radius: 30px; margin-left: 4px; font-weight: 700; }
+        .banner-subtitle { font-size: 12px; color: var(--text-secondary); opacity: 0.7; font-weight: 500; }
+        .banner-action {
+            padding: 6px 16px;
+            border: none;
+            border-radius: 30px;
+            background: var(--primary);
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 12px;
+        }
+        .banner-action:hover { opacity: 0.8; }
+        .banner-close { background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 18px; opacity: 0.3; }
 
         /* ===== COOKIE BANNER ===== */
         #cookieConsent {
@@ -2152,40 +2333,6 @@
         #supportFloat .support-menu button:hover { background: var(--primary-glow); }
         #supportFloat .support-menu button i { width: 18px; color: var(--primary); }
 
-        /* ===== TELEGRAM BANNER ===== */
-        #telegramBanner {
-            display: none;
-            background: var(--primary-glow);
-            border: 1px solid var(--primary);
-            border-radius: var(--radius-sm);
-            padding: 10px 16px;
-            margin: 0 18px 10px;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 8px;
-            animation: bannerSlideDown 0.5s ease forwards;
-        }
-        #telegramBanner.hidden { display: none; }
-        .banner-icon i { font-size: 24px; color: #0088cc; }
-        .banner-text { flex: 1; min-width: 120px; }
-        .banner-title { font-weight: 800; font-size: 14px; }
-        .banner-title .badge-new { background: var(--danger); color: #fff; font-size: 8px; padding: 0 8px; border-radius: 30px; margin-left: 4px; font-weight: 700; }
-        .banner-subtitle { font-size: 12px; color: var(--text-secondary); opacity: 0.7; font-weight: 500; }
-        .banner-action {
-            padding: 6px 16px;
-            border: none;
-            border-radius: 30px;
-            background: var(--primary);
-            color: #fff;
-            font-weight: 700;
-            cursor: pointer;
-            transition: var(--transition);
-            font-size: 12px;
-        }
-        .banner-action:hover { opacity: 0.8; }
-        .banner-close { background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 18px; opacity: 0.3; }
-
         /* ===== FOOTER ===== */
         .site-footer {
             background: var(--glass-bg);
@@ -2238,14 +2385,81 @@
             font-weight: 500;
         }
         .site-footer .footer-copyright strong { color: var(--primary); opacity: 0.6; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 480px) {
+            .product-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+            .header { padding: 6px 12px; }
+            .logo { font-size: 17px; }
+            .header-actions button { width: 30px; height: 30px; font-size: 12px; }
+            .balance-btn { height: 30px; font-size: 11px; padding: 0 8px !important; }
+            .balance-btn .balance-text { font-size: 11px; }
+            .payment-options { grid-template-columns: 1fr 1fr; }
+            .stats-bar { grid-template-columns: repeat(2, 1fr); }
+            .slide-title { font-size: 18px; }
+            .auth-container { padding: 20px; }
+            #toast { min-width: auto; width: 90%; font-size: 12px; padding: 10px 14px; }
+            .admin-sidebar {
+                width: 52px;
+                min-width: 52px;
+                padding: 8px 2px;
+            }
+            .admin-sidebar-header span,
+            .admin-nav-btn span,
+            .admin-nav-btn .nav-badge,
+            .admin-sidebar-footer .admin-close-btn span {
+                display: none;
+            }
+            .admin-nav-btn {
+                justify-content: center;
+                padding: 8px;
+            }
+            .admin-nav-btn i {
+                font-size: 16px;
+                width: auto;
+            }
+            .admin-main { padding: 10px 12px; }
+            .admin-stats-grid { grid-template-columns: 1fr 1fr; }
+            .admin-products-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+            .profile-stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .profile-hero .hero-content { flex-direction: column; text-align: center; }
+            .profile-hero .hero-badges { justify-content: center; }
+            .chatbot-window { width: 280px; right: -10px; }
+        }
+        @media (min-width: 768px) {
+            .product-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (min-width: 1024px) {
+            .product-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+
+        .hidden { display: none !important; }
+        .text-center { text-align: center; }
+        .w-full { width: 100%; }
+
+        .wishlist-empty { text-align:center; padding:20px 0; color:var(--text-secondary); font-size:14px; }
+        .wishlist-empty i { font-size:36px; opacity:0.15; display:block; margin-bottom:4px; }
+
+        .rating-stars .star {
+            font-size: 22px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            opacity: 0.2;
+            transition: var(--transition);
+        }
+        .rating-stars .star.active { color: #fbbf24; opacity: 1; }
     </style>
 </head>
 <body>
 
-    <!-- ===== LOADING SCREEN ===== -->
+    <!-- ===== LOADING SCREEN WITH PROGRESS ===== -->
     <div id="loadingScreen">
         <div class="spinner-ring"></div>
         <div id="loadingStatus">Loading...</div>
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar" style="width:0%;"></div>
+            <div class="progress-text" id="progressText">0%</div>
+        </div>
         <div class="loader-subtext">ZI Store</div>
     </div>
 
@@ -2345,6 +2559,10 @@
         <!-- PRODUCT GRID -->
         <div class="product-grid" id="productList"></div>
 
+        <!-- LIMITED PRODUCTS -->
+        <div style="padding:0 18px 6px; font-size:17px; font-weight:800; color:var(--danger);">🔥 Limited Stock</div>
+        <div id="limitedProductsGrid" class="product-grid"></div>
+
         <!-- FEATURED -->
         <div style="padding:0 18px 6px; font-size:17px; font-weight:800; color:var(--primary);">⭐ Featured</div>
         <div id="featuredGrid" class="featured-grid"></div>
@@ -2374,6 +2592,63 @@
                 <button onclick="openSupportModal()"><i class="fas fa-envelope"></i> Contact</button>
                 <button onclick="openTelegramSupport()"><i class="fab fa-telegram-plane"></i> Telegram</button>
                 <button onclick="openWhatsAppSupport()"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+            </div>
+        </div>
+
+        <!-- CHATBOT -->
+        <div id="chatbot">
+            <button class="chatbot-toggle" onclick="toggleChatbot()">
+                <i class="fas fa-robot"></i>
+            </button>
+            <div class="chatbot-window" id="chatbotWindow">
+                <div class="chatbot-header">
+                    <div class="chatbot-title">
+                        <i class="fas fa-robot" style="color:var(--primary);"></i>
+                        <span>ZI Assistant</span>
+                        <span style="font-size:10px;opacity:0.4;font-weight:400;">Online</span>
+                    </div>
+                    <button class="chatbot-close" onclick="toggleChatbot()">&times;</button>
+                </div>
+                <div class="chatbot-messages" id="chatbotMessages">
+                    <div class="chatbot-msg bot">
+                        <div class="msg-bubble">👋 Hello! I'm ZI Assistant. How can I help you today?</div>
+                    </div>
+                </div>
+                <div class="chatbot-input">
+                    <input type="text" id="chatbotInput" placeholder="Ask me anything..." onkeypress="if(event.key==='Enter') sendChatMessage()" />
+                    <button onclick="sendChatMessage()"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== POPUPS ===== -->
+        <!-- EXIT POPUP -->
+        <div class="popup-overlay" id="exitPopup">
+            <div class="popup-content">
+                <button class="popup-close" onclick="closePopup('exitPopup')">&times;</button>
+                <div class="popup-icon">🚀</div>
+                <h2>Wait! Don't Leave Yet!</h2>
+                <p>Get <strong>10% OFF</strong> your first order when you join our newsletter!</p>
+                <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
+                    <input type="email" id="exitPopupEmail" placeholder="Enter your email" style="flex:1; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--card-bg); color:var(--text); font-size:13px; outline:none;" />
+                    <button onclick="subscribeAndApply('EXIT10')" style="padding:8px 20px; border:none; border-radius:var(--radius-sm); background:var(--primary); color:#fff; font-weight:700; cursor:pointer;">Get 10% Off</button>
+                </div>
+                <div style="font-size:11px; color:var(--text-secondary); opacity:0.4; margin-top:6px;">No spam, unsubscribe anytime.</div>
+            </div>
+        </div>
+
+        <!-- OFFER POPUP -->
+        <div class="popup-overlay" id="offerPopup">
+            <div class="popup-content">
+                <button class="popup-close" onclick="closePopup('offerPopup')">&times;</button>
+                <div class="popup-icon">🎁</div>
+                <h2>Special Offer!</h2>
+                <p>Use code <strong style="color:var(--vip-color);">WELCOME15</strong> to get <strong>15% OFF</strong> your first order!</p>
+                <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; justify-content:center;">
+                    <button onclick="applyPopupCoupon('WELCOME15')" style="padding:8px 24px; border:none; border-radius:var(--radius-sm); background:var(--primary); color:#fff; font-weight:700; cursor:pointer;">Apply Code</button>
+                    <button onclick="closePopup('offerPopup')" style="padding:8px 24px; border:1px solid var(--glass-border); border-radius:var(--radius-sm); background:transparent; color:var(--text-secondary); cursor:pointer;">No Thanks</button>
+                </div>
+                <div style="font-size:11px; color:var(--text-secondary); opacity:0.4; margin-top:6px;">Valid for first-time customers only.</div>
             </div>
         </div>
 
@@ -2965,6 +3240,9 @@
                     <button class="admin-nav-btn" data-tab="settings" onclick="switchAdminTab('settings')">
                         <i class="fas fa-cog"></i> <span>Settings</span>
                     </button>
+                    <button class="admin-nav-btn" data-tab="coupons" onclick="switchAdminTab('coupons')">
+                        <i class="fas fa-ticket-alt"></i> <span>Coupons</span>
+                    </button>
                 </nav>
                 <div class="admin-sidebar-footer">
                     <button onclick="closeAdminPanel()" class="admin-close-btn">
@@ -3159,6 +3437,15 @@
                     <!-- Settings -->
                     <div class="admin-tab-content" id="tabSettings">
                         <div id="adminSettingsContainer"></div>
+                    </div>
+
+                    <!-- Coupons -->
+                    <div class="admin-tab-content" id="tabCoupons">
+                        <div class="admin-toolbar">
+                            <button onclick="openCreateCouponModal()" class="admin-add-btn"><i class="fas fa-plus"></i> Create Coupon</button>
+                            <button onclick="loadCoupons()" class="admin-refresh-btn"><i class="fas fa-sync-alt"></i> Refresh</button>
+                        </div>
+                        <div id="adminCouponsList"></div>
                     </div>
                 </div>
             </div>
@@ -3372,6 +3659,35 @@
         </div>
     </div>
 
+    <!-- COUPON MODAL -->
+    <div class="modal" id="createCouponModal">
+        <div class="modal-content" style="max-width:520px;">
+            <span class="modal-close" onclick="closeCreateCouponModal()">&times;</span>
+            <h3 id="couponFormTitle" style="font-weight:800; font-size:18px;">🎫 Create Coupon</h3>
+            <form id="couponForm" onsubmit="saveCoupon(event)">
+                <input type="hidden" id="couponIdField" />
+                <div class="admin-form-group"><label>Coupon Code *</label><input type="text" id="couponCode" placeholder="e.g., SAVE10" required style="text-transform:uppercase;" /></div>
+                <div class="admin-form-group"><label>Type</label><select id="couponType"><option value="percentage">Percentage (%)</option><option value="fixed">Fixed ($)</option></select></div>
+                <div class="admin-form-group"><label>Value *</label><input type="number" id="couponValue" step="0.01" min="0.01" required placeholder="10" /></div>
+                <div class="admin-form-group"><label>Minimum Order ($)</label><input type="number" id="couponMinOrder" step="0.01" min="0" placeholder="0" /></div>
+                <div class="admin-form-group"><label>Maximum Discount ($)</label><input type="number" id="couponMaxDiscount" step="0.01" min="0" placeholder="Leave empty for no limit" /></div>
+                <div class="admin-form-group"><label>Expiry Date</label><input type="datetime-local" id="couponExpiresAt" /></div>
+                <div class="admin-form-group"><label>Usage Limit</label><input type="number" id="couponUsageLimit" min="1" placeholder="Leave empty for unlimited" /></div>
+                <div class="admin-form-group" style="display:flex; gap:12px; flex-wrap:wrap;">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px;">
+                        <input type="checkbox" id="couponFirstOrder" />
+                        <span>First Order Only</span>
+                    </label>
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px;">
+                        <input type="checkbox" id="couponActive" checked />
+                        <span>Active</span>
+                    </label>
+                </div>
+                <button type="submit" class="admin-submit-btn" style="width:100%;">Save Coupon</button>
+            </form>
+        </div>
+    </div>
+
     <!-- USER DETAILS -->
     <div class="modal" id="userDetailsModal">
         <div class="modal-content" style="max-width:460px;">
@@ -3440,6 +3756,14 @@
                 const icon = document.querySelector('.theme-toggle i');
                 if (icon) icon.className = 'fas fa-moon';
             }
+            // Auto-detect system theme
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+                if (!localStorage.getItem('theme')) {
+                    document.body.classList.add('light');
+                    const icon = document.querySelector('.theme-toggle i');
+                    if (icon) icon.className = 'fas fa-moon';
+                }
+            }
         });
 
         // Admin tab switching (used by sidebar buttons)
@@ -3452,7 +3776,8 @@
                 'users': 'tabUsers', 'downloads': 'tabDownloads', 'notifications': 'tabNotifications',
                 'stats': 'tabStats', 'logs': 'tabLogs', 'slider': 'tabSlider',
                 'licences': 'tabLicences', 'marquee': 'tabMarquee', 'payments': 'tabPayments',
-                'topups': 'tabTopups', 'fallback': 'tabFallback', 'settings': 'tabSettings'
+                'topups': 'tabTopups', 'fallback': 'tabFallback', 'settings': 'tabSettings',
+                'coupons': 'tabCoupons'
             };
             const tabId = tabMap[tab] || 'tabDashboard';
             const content = document.getElementById(tabId);
@@ -3466,7 +3791,8 @@
                 'users': '👥 Users', 'downloads': '📁 Downloads', 'notifications': '🔔 Notifications',
                 'stats': '📈 Stats', 'logs': '📜 Logs', 'slider': '🎨 Slider',
                 'licences': '🔑 Licences', 'marquee': '🎬 Marquee', 'payments': '💳 Payments',
-                'topups': '💰 Topups', 'fallback': '📦 Fallback', 'settings': '⚙️ Settings'
+                'topups': '💰 Topups', 'fallback': '📦 Fallback', 'settings': '⚙️ Settings',
+                'coupons': '🎫 Coupons'
             };
             const titleEl = document.getElementById('adminPageTitle');
             if (titleEl) titleEl.textContent = titles[tab] || tab;
@@ -3493,6 +3819,83 @@
                 document.body.style.overflow = '';
             }
         };
+
+        // Chatbot functions
+        window.toggleChatbot = function() {
+            const window = document.getElementById('chatbotWindow');
+            if (window) window.classList.toggle('open');
+        };
+
+        window.sendChatMessage = function() {
+            const input = document.getElementById('chatbotInput');
+            const messages = document.getElementById('chatbotMessages');
+            if (!input || !messages || !input.value.trim()) return;
+            const userMsg = input.value.trim();
+            input.value = '';
+            messages.innerHTML += `<div class="chatbot-msg user"><div class="msg-bubble">${userMsg}</div></div>`;
+            messages.scrollTop = messages.scrollHeight;
+            setTimeout(() => {
+                const responses = {
+                    'hello': '👋 Hello! How can I help you today?',
+                    'hi': '👋 Hi there! What brings you to ZI Store?',
+                    'help': '🛍️ I can help you with:\n- Finding products\n- Order status\n- Payment issues\n- Licences\n- Support',
+                    'order': '📦 To place an order:\n1. Browse products\n2. Add to cart\n3. Checkout\n4. Select payment method\n5. Confirm payment',
+                    'payment': '💳 We accept:\n- USDT (ERC20)\n- Litecoin (LTC)\n- Balance\n- Telegram\n- Binance ID',
+                    'support': '📞 Contact us:\n- Telegram: @Mitalica69\n- Email: idriss.zribi13@gmail.com',
+                    'licence': '🔑 Licences are generated automatically after order confirmation.',
+                    'refund': '↩️ 14-day money-back guarantee. Contact support for refunds.',
+                    'discount': '🎫 Use code WELCOME15 for 15% off your first order!',
+                    'default': '🤔 I\'m not sure about that. Please contact our support team for more help.'
+                };
+                const lower = userMsg.toLowerCase();
+                let response = responses.default;
+                for (const [key, val] of Object.entries(responses)) {
+                    if (lower.includes(key)) { response = val; break; }
+                }
+                messages.innerHTML += `<div class="chatbot-msg bot"><div class="msg-bubble">${response}</div></div>`;
+                messages.scrollTop = messages.scrollHeight;
+            }, 400);
+        };
+
+        // Popup functions
+        window.closePopup = function(popupId) {
+            const popup = document.getElementById(popupId);
+            if (popup) {
+                popup.classList.remove('show');
+                document.body.style.overflow = '';
+            }
+        };
+
+        window.applyPopupCoupon = function(couponCode) {
+            const input = document.getElementById('cartPromoInput');
+            if (input) {
+                input.value = couponCode;
+                if (typeof applyCartPromo === 'function') applyCartPromo();
+            }
+            closePopup('offerPopup');
+            showToast(`🎉 Coupon ${couponCode} applied!`, 'success');
+        };
+
+        window.subscribeAndApply = function(couponCode) {
+            const email = document.getElementById('exitPopupEmail');
+            if (email && email.value.trim()) {
+                showToast(`📧 Thanks! Coupon ${couponCode} sent to your email.`, 'success');
+                closePopup('exitPopup');
+            } else {
+                showToast('⚠️ Please enter your email.', 'warning');
+            }
+        };
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                // Close any open modal
+                document.querySelectorAll('.fullscreen-modal.open, .modal.open, .popup-overlay.show').forEach(el => {
+                    el.classList.remove('open', 'show');
+                });
+                document.body.style.overflow = '';
+            }
+        });
     </script>
 </body>
     </html>
