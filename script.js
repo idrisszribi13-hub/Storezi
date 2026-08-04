@@ -1,9 +1,9 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - COMPLETE WORKING VERSION v3.0
+// SCRIPT.JS - ZI Store - COMPLETE WORKING VERSION v4.0
 // ============================================================
 
 // ============================================================
-// FIX: Define process for browser environment (Firebase Analytics)
+// FIX: Define process for browser environment
 // ============================================================
 window.process = window.process || { env: { NODE_ENV: 'production' } };
 
@@ -266,7 +266,7 @@ const fallbackProducts = [
         status: "available",
         image: "https://picsum.photos/seed/2048/400/300",
         downloadLink: "https://example.com/download/2048-mod.apk",
-        description: "Classic 2048 game with exclusive mod features. Unlimited moves and custom themes.",
+        description: "Classic 2048 game with exclusive mod features.",
         features: ["Unlimited Device", "Block Spawn Modify", "Game Speed"],
         video: "https://www.youtube.com/embed/dQw4w9WgXcQ",
         currency: "USD",
@@ -282,7 +282,7 @@ const fallbackProducts = [
         status: "available",
         image: "https://picsum.photos/seed/screwdom/400/300",
         downloadLink: "https://example.com/download/screwdom.apk",
-        description: "Exciting 3D puzzle game with unlimited boosts and auto-complete features.",
+        description: "Exciting 3D puzzle game with unlimited boosts.",
         features: ["Unlimited Boost", "Level Auto Complete", "Game Speed"],
         video: "https://www.youtube.com/embed/dQw4w9WgXcQ",
         currency: "USD",
@@ -314,7 +314,7 @@ const fallbackProducts = [
         status: "available",
         image: "https://picsum.photos/seed/premium/400/300",
         downloadLink: "",
-        description: "Complete premium script pack with 10+ tools for game development and automation.",
+        description: "Complete premium script pack with 10+ tools.",
         features: ["10+ Scripts", "Lifetime Updates", "Support Included"],
         video: "https://www.youtube.com/embed/dQw4w9WgXcQ",
         currency: "USD",
@@ -330,7 +330,7 @@ const fallbackProducts = [
         status: "available",
         image: "https://picsum.photos/seed/ai/400/300",
         downloadLink: "",
-        description: "AI-powered chat assistant for Discord and Telegram with advanced NLP.",
+        description: "AI-powered chat assistant for Discord and Telegram.",
         features: ["NLP Engine", "Multi-Platform", "Custom Commands"],
         video: "https://www.youtube.com/embed/dQw4w9WgXcQ",
         currency: "USD",
@@ -8410,6 +8410,68 @@ window.closeQuickPurchaseBanner = function() {
 };
 
 // ============================================================
+// MISSING FUNCTIONS FIXED
+// ============================================================
+
+// CHECKOUT FUNCTION - opens payment modal
+window.checkout = function() {
+    if (cart.length === 0) {
+        showToast('⚠️ Cart is empty', 'warning');
+        return;
+    }
+    openPaymentModal();
+};
+
+// OPEN PAYMENT MODAL
+window.openPaymentModal = function() {
+    if (!currentUser) {
+        showToast('⚠️ Please login first', 'warning');
+        openAuthModal();
+        return;
+    }
+    if (cart.length === 0) {
+        showToast('⚠️ Cart is empty', 'warning');
+        return;
+    }
+    document.getElementById('paymentModal').classList.add('open');
+    document.getElementById('paymentStep1').style.display = 'block';
+    document.getElementById('paymentStep2').style.display = 'none';
+    selectedPayment = null;
+    renderPaymentProducts();
+    updatePayableTotal();
+    document.body.style.overflow = 'hidden';
+    fetchCryptoPrices();
+};
+
+// CLOSE PAYMENT MODAL
+window.closePaymentModal = function() {
+    document.getElementById('paymentModal').classList.remove('open');
+    document.body.style.overflow = '';
+    selectedPayment = null;
+};
+
+// GO TO STEP 1
+window.goToStep1 = function() {
+    document.getElementById('paymentStep1').style.display = 'block';
+    document.getElementById('paymentStep2').style.display = 'none';
+    selectedPayment = null;
+    document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
+};
+
+// COPY WALLET ADDRESS
+window.copyWalletAddress = function() {
+    const address = document.getElementById('walletAddressDisplay')?.textContent;
+    if (!address) {
+        showToast('⚠️ No wallet address to copy', 'warning');
+        return;
+    }
+    copyToClipboard(address);
+};
+
+// OPEN LICENCE MODAL - already defined above, but ensure it's exported
+// The function is already defined as openLicenceModal and exported
+
+// ============================================================
 // EXPORT ALL FUNCTIONS TO WINDOW
 // ============================================================
 window.showLogin = showLogin;
@@ -8657,6 +8719,9 @@ window.loadEmailLogs = loadEmailLogs;
 window.sendTestEmail = sendTestEmail;
 window.previewEmail = previewEmail;
 window.resendEmail = resendEmail;
+
+console.log('✅ All functions exported to window scope');
+console.log('✅ ZI Store ready!');
 
 // ============================================================
 // AUTH STATE LISTENER
