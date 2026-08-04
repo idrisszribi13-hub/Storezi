@@ -1,30 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - COMPLETE WITH ALL FEATURES
-// ============================================================
-// FEATURES INCLUDED:
-// 1. process is defined for browser
-// 2. removeFromCartAndCloseBanner defined
-// 3. Duplicate date removed
-// 4. Products show correctly, loading screen with progress
-// 5. All functions exported to window
-// 6. Admin settings from Firestore (admin_settings/notifications)
-// 7. Topup custom amount fixed
-// 8. LTC/USDT display fixed
-// 9. Add/Edit product modal fixed
-// 10. Auto-detect country on registration
-// 11. Country shown in profile and admin panel
-// 12. Proxy packages - only one (5 Proxies - 30 Days)
-// 13. Advanced Coupon System with full admin control
-// 14. Email System (Order confirmation, status updates, welcome)
-// 15. Smart Popups (Exit intent & time-based)
-// 16. AI-based Recommendations (user behavior tracking)
-// 17. Limited Stock Products with countdown
-// 18. Fraud Detection System
-// 19. Smart Chatbot
-// 20. PDF Invoice Generation
-// 21. Loading screen with progress percentage
-// 22. Full Dark/Light mode support
-// 23. Performance optimizations (lazy loading, debouncing)
+// SCRIPT.JS - ZI Store - COMPLETE WORKING VERSION v3.0
 // ============================================================
 
 // ============================================================
@@ -33,7 +8,7 @@
 window.process = window.process || { env: { NODE_ENV: 'production' } };
 
 // ============================================================
-// FIX: Loading screen with progress
+// LOADING SCREEN WITH PROGRESS
 // ============================================================
 (function() {
     let loadingProgress = 0;
@@ -103,7 +78,7 @@ window.process = window.process || { env: { NODE_ENV: 'production' } };
 })();
 
 // ============================================================
-// Firebase & Supabase Imports
+// FIREBASE & SUPABASE IMPORTS
 // ============================================================
 import { initializeApp } from "firebase/app";
 import {
@@ -120,14 +95,31 @@ import {
     GoogleAuthProvider,
     signInWithPopup
 } from "firebase/auth";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, collection, query, where, getDocs, onSnapshot, addDoc, deleteDoc, orderBy, limit } from "firebase/firestore";
+import { 
+    getFirestore, 
+    doc, 
+    getDoc, 
+    setDoc, 
+    updateDoc, 
+    arrayUnion, 
+    arrayRemove, 
+    serverTimestamp, 
+    collection, 
+    query, 
+    where, 
+    getDocs, 
+    onSnapshot, 
+    addDoc, 
+    deleteDoc, 
+    orderBy, 
+    limit 
+} from "firebase/firestore";
 import { getAnalytics, isSupported } from "firebase/analytics";
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
 // ============================================================
-// Configuration
+// CONFIGURATION
 // ============================================================
-
 const SUPABASE_URL = 'https://kvsyzgavfxnwqmtsginv.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_1uSIqgNONAV53GjOoBoZUw_niAGJXO6';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -154,28 +146,21 @@ isSupported().then(supported => {
         } catch (e) {
             console.log('ℹ️ Analytics not available, continuing...');
         }
-    } else {
-        console.log('ℹ️ Analytics not supported in this environment');
     }
 }).catch(() => {
     console.log('ℹ️ Analytics skipped');
 });
 
 // ============================================================
-// Global Variables & Constants
+// GLOBAL VARIABLES & CONSTANTS
 // ============================================================
-
 const BOT_USERNAME = 'Zistore_Notif_bot';
 const RP_TO_DOLLAR = 0.1;
-
 const CLOUDINARY_CLOUD_NAME = 'y14bgb5s';
 const CLOUDINARY_UPLOAD_PRESET = 'zi_store_uploads';
-
 const DISABLE_PROXY = true;
-
 const ADMIN_EMAIL = 'idriss.zribi13@gmail.com';
 
-// Only one proxy package (5 Proxies - 30 Days)
 const proxyPackages = [
     { id: 'proxy_2', name: '5 Proxies - 30 Days', price: 20, duration: 30, quantity: 5, plan: 'residential' }
 ];
@@ -216,23 +201,20 @@ let userPreferences = {};
 let coupons = [];
 let activeCoupons = [];
 
-// ============================================================
-// TOPUP SYSTEM VARIABLES
-// ============================================================
+// TOPUP SYSTEM
 let userBalance = 0;
 let selectedTopupAmount = 0;
 let selectedTopupCurrency = 'USDT';
 let topupSubscription = null;
-let defaultProducts = [];
 
-// Slider variables
+// SLIDER VARIABLES
 let sliderSlides = [];
 let sliderIntervalTime = 3;
 let currentSlideIndex = 0;
 let sliderTimer = null;
 let isSliderPaused = false;
 
-// Marquee variables
+// MARQUEE VARIABLES
 let marqueeSettings = {
     enabled: true,
     text: '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support'
@@ -257,7 +239,7 @@ let userProfile = {
 };
 
 // ============================================================
-// DEFAULT PRODUCTS (Fallback) - MUST BE PRESENT FOR PRODUCTS TO SHOW
+// FALLBACK PRODUCTS
 // ============================================================
 const fallbackProducts = [
     {
@@ -366,9 +348,8 @@ const paymentWallets = {
 let cryptoPrices = { ltc: 0, usdt: 1, lastUpdate: null, isUpdating: false };
 
 // ============================================================
-// Helper Functions (Toast, Loading Screen)
+// HELPER FUNCTIONS
 // ============================================================
-
 function showToast(message, type = 'success') {
     const toast = document.getElementById('toast');
     const messageEl = document.getElementById('toastMessage');
@@ -405,14 +386,6 @@ function showLoadingScreen() {
     }
 }
 
-function updateLoadingText(text) {
-    const statusEl = document.getElementById('loadingStatus');
-    if (statusEl) {
-        statusEl.textContent = text || 'Loading...';
-    }
-    window.updateLoadingProgress(90, text);
-}
-
 window.hideLoadingScreenManually = function() {
     const screen = document.getElementById('loadingScreen');
     if (screen) {
@@ -422,6 +395,14 @@ window.hideLoadingScreenManually = function() {
         }, 600);
         showToast('Loading screen hidden', 'info');
     }
+};
+
+window.updateLoadingText = function(text) {
+    const statusEl = document.getElementById('loadingStatus');
+    if (statusEl) {
+        statusEl.textContent = text || 'Loading...';
+    }
+    window.updateLoadingProgress(90, text);
 };
 
 window.showMainApp = function() {
@@ -437,9 +418,6 @@ window.showMainApp = function() {
     return false;
 };
 
-// ============================================================
-// FIX: Remove duplicate date, style header topup
-// ============================================================
 function removeDuplicateDate() {
     const dates = document.querySelectorAll('#serverTime, .server-time, .header-date');
     if (dates.length > 1) {
@@ -465,14 +443,11 @@ function styleHeaderTopup() {
         topupBtn.style.padding = '3px 8px';
         topupBtn.style.marginLeft = '2px';
     }
-    const topupIcon = document.getElementById('topupIcon');
-    if (topupIcon) topupIcon.style.fontSize = '13px';
 }
 
 // ============================================================
-// TOP INFO BAR - Server Time, IP, Country
+// TOP INFO BAR
 // ============================================================
-
 let serverTimeInterval = null;
 
 function updateServerTime() {
@@ -580,9 +555,8 @@ async function initTopInfoBar() {
 }
 
 // ============================================================
-// Admin Check Functions
+// ADMIN CHECK FUNCTIONS
 // ============================================================
-
 async function checkIsAdmin() {
     if (!currentUser) return false;
     if (adminCheckPromise) return adminCheckPromise;
@@ -654,9 +628,8 @@ window.ensureAdminPanel = function() {
 };
 
 // ============================================================
-// Admin Settings Functions (from Firestore)
+// ADMIN SETTINGS FUNCTIONS
 // ============================================================
-
 async function getAdminSettings() {
     try {
         const settingsRef = doc(db, 'admin_settings', 'notifications');
@@ -716,19 +689,7 @@ async function sendAdminNotification(title, message) {
 
         if (settings.enableEmailNotifications && settings.adminEmail) {
             try {
-                await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/send-email', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                    },
-                    body: JSON.stringify({
-                        to: settings.adminEmail,
-                        subject: title,
-                        message: message,
-                        from: 'noreply@zi-store.online'
-                    })
-                });
+                await sendAdminNotificationEmail(title, message);
                 sentCount++;
                 console.log('✅ Email sent to admin:', settings.adminEmail);
             } catch (error) {
@@ -770,9 +731,8 @@ async function sendAdminNotification(title, message) {
 }
 
 // ============================================================
-// User Functions (Firestore + LocalStorage)
+// USER FUNCTIONS
 // ============================================================
-
 function loadFromLocalStorage() {
     try {
         const wishlistData = localStorage.getItem('zi_wishlist_backup');
@@ -1059,9 +1019,8 @@ function generateReferralCode(name, email) {
 }
 
 // ============================================================
-// UI Updates
+// UI UPDATES
 // ============================================================
-
 function updateDropdownStats() {
     const userAvatar = document.getElementById('userAvatarText');
     if (currentUser) {
@@ -1148,9 +1107,8 @@ function updateFullUserMenu() {
 }
 
 // ============================================================
-// Auth Functions (with Google Popup)
+// AUTH FUNCTIONS
 // ============================================================
-
 window.showLogin = function() { document.getElementById('loginContainer').style.display = 'block'; document.getElementById('registerContainer').style.display = 'none'; };
 window.showRegister = function() { document.getElementById('loginContainer').style.display = 'none'; document.getElementById('registerContainer').style.display = 'block'; };
 window.toggleReferral = function() { document.getElementById('referralField').classList.toggle('show'); };
@@ -1180,7 +1138,6 @@ window.loginUser = async function() {
             loadUserBalance();
             startTopupRealtimeListener();
             initTopInfoBar();
-            loadCoupons();
 
             if (isAdminCached) {
                 console.log('✅ Admin detected, loading admin features');
@@ -1221,16 +1178,16 @@ window.registerUser = async function() {
     const email = document.getElementById('registerEmail').value.trim();
     const password = document.getElementById('registerPassword').value;
     const confirmPassword = document.getElementById('registerConfirmPassword').value;
-    const country = document.getElementById('registerCountry').value;
     const lang = document.getElementById('registerLang').value;
     const referralCode = document.getElementById('registerReferral').value.trim().toUpperCase();
     const termsChecked = document.getElementById('termsCheck').checked;
+    
     if (!name || !email || !password || !confirmPassword) { errorEl.textContent = 'Please fill in all fields'; btn.classList.remove('loading'); return; }
     if (password.length < 6) { errorEl.textContent = 'Password must be at least 6 characters'; btn.classList.remove('loading'); return; }
     if (password !== confirmPassword) { errorEl.textContent = 'Passwords do not match'; btn.classList.remove('loading'); return; }
     if (!termsChecked) { errorEl.textContent = 'Please agree to the terms'; btn.classList.remove('loading'); return; }
     try {
-        let detectedCountry = country;
+        let detectedCountry = 'Tunisia';
         try {
             const ipInfo = await fetchUserInfo();
             if (ipInfo && ipInfo.country_name) {
@@ -1238,7 +1195,7 @@ window.registerUser = async function() {
                 console.log('📍 Detected country from IP:', detectedCountry);
             }
         } catch (e) {
-            console.warn('⚠️ Could not detect country from IP, using selected:', country);
+            console.warn('⚠️ Could not detect country from IP, using default:', detectedCountry);
         }
 
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -1247,24 +1204,49 @@ window.registerUser = async function() {
         const newReferralCode = generateReferralCode(name, email);
         const userRef = doc(db, 'users', currentUser.uid);
         await setDoc(userRef, {
-            userId: currentUser.uid, name, email, country: detectedCountry, lang, telegram: '', telegramChatId: '', location: detectedCountry,
-            wishlist: [], cart: [], history: [], requests: [], usedCodes: [], referrals: [], referralRewards: 0, rp: 0, useRpForCart: false,
-            referralCode: newReferralCode, isBanned: false, lastDailyReward: 0, licences: [], photoURL: '',
+            userId: currentUser.uid, 
+            name, 
+            email, 
+            country: detectedCountry, 
+            lang, 
+            telegram: '', 
+            telegramChatId: '', 
+            location: detectedCountry,
+            wishlist: [], 
+            cart: [], 
+            history: [], 
+            requests: [], 
+            usedCodes: [], 
+            referrals: [], 
+            referralRewards: 0, 
+            rp: 0, 
+            useRpForCart: false,
+            referralCode: newReferralCode, 
+            isBanned: false, 
+            lastDailyReward: 0, 
+            licences: [], 
+            photoURL: '',
             balance: 0,
-            createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+            createdAt: serverTimestamp(), 
+            updatedAt: serverTimestamp()
         });
         successEl.textContent = '✅ Registration successful!';
         showToast(`🎉 Welcome, ${name}!`, 'success');
         btn.classList.remove('loading');
         await refreshAdminStatus();
         
-        // Send welcome email
         await sendWelcomeEmail(email, name);
 
         setTimeout(() => {
             document.getElementById('authSection').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
-            loadUserData(); updateDropdownStats(); loadDownloads(); loadNotifications(); fetchCryptoPrices(); updateFullUserMenu(); showTelegramBanner();
+            loadUserData(); 
+            updateDropdownStats(); 
+            loadDownloads(); 
+            loadNotifications(); 
+            fetchCryptoPrices(); 
+            updateFullUserMenu(); 
+            showTelegramBanner();
             loadSliderSettings();
             loadMarqueeSettings();
             loadCoupons();
@@ -1280,7 +1262,6 @@ window.registerUser = async function() {
     } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Registration failed', 'error'); btn.classList.remove('loading'); }
 };
 
-// Google Login with Popup
 window.loginWithGoogle = function() {
     const btn = document.getElementById('googleLoginBtn');
     if (btn) btn.classList.add('loading');
@@ -1493,13 +1474,17 @@ window.sendForgotPassword = async function() {
     const successEl = document.getElementById('forgotSuccess');
     errorEl.textContent = ''; successEl.textContent = '';
     if (!email) { errorEl.textContent = 'Please enter your email'; return; }
-    try { await sendPasswordResetEmail(auth, email); successEl.textContent = '✅ Reset link sent to ' + email; showToast('📧 Password reset link sent!', 'success'); setTimeout(() => { closeForgotPasswordModal(); }, 2000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); }
+    try { 
+        await sendPasswordResetEmail(auth, email); 
+        successEl.textContent = '✅ Reset link sent to ' + email; 
+        showToast('📧 Password reset link sent!', 'success'); 
+        setTimeout(() => { closeForgotPasswordModal(); }, 2000); 
+    } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); }
 };
 
 // ============================================================
-// General Modals
+// GENERAL MODALS
 // ============================================================
-
 window.openUserMenuFull = function() { if (!currentUser) { openAuthModal(); return; } document.getElementById('userMenuFull').classList.add('open'); updateFullUserMenu(); document.body.style.overflow = 'hidden'; };
 window.closeUserMenuFull = function() { document.getElementById('userMenuFull').classList.remove('open'); document.body.style.overflow = ''; };
 window.openCartFull = function() { document.getElementById('cartFull').classList.add('open'); renderCartFull(); document.body.style.overflow = 'hidden'; };
@@ -1515,310 +1500,20 @@ window.closeDownloads = function() { document.getElementById('downloadsModal').c
 window.openNotifications = function() { document.getElementById('notificationsModal').classList.add('open'); };
 window.closeNotifications = function() { document.getElementById('notificationsModal').classList.remove('open'); };
 window.openAuthModal = function() { document.getElementById('authSection').scrollIntoView({ behavior: 'smooth' }); };
-
-// ============================================================
-// 7.1 Transactions Modal
-// ============================================================
-
 window.openTransactionsModal = function() {
-    if (!currentUser) {
-        showToast('⚠️ Please login first', 'warning');
-        return;
-    }
+    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
     document.getElementById('transactionsModal').classList.add('open');
     document.body.style.overflow = 'hidden';
     loadTransactionHistory();
 };
-
 window.closeTransactionsModal = function() {
     document.getElementById('transactionsModal').classList.remove('open');
     document.body.style.overflow = '';
 };
 
-async function loadTransactionHistory() {
-    if (!currentUser) return;
-
-    const container = document.getElementById('transactionHistoryList');
-    if (!container) return;
-
-    container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
-
-    try {
-        const { data, error } = await supabase
-            .from('transactions')
-            .select('*')
-            .eq('user_id', currentUser.uid)
-            .order('created_at', { ascending: false })
-            .limit(50);
-
-        if (error) throw error;
-
-        renderTransactions(data || []);
-    } catch (error) {
-        console.error('Error loading transactions:', error);
-        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);opacity:0.5;">Failed to load transactions</div>`;
-    }
-}
-
-function renderTransactions(transactions) {
-    const container = document.getElementById('transactionHistoryList');
-    if (!container) return;
-
-    if (!transactions || transactions.length === 0) {
-        container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">
-            <i class="fas fa-receipt" style="font-size:36px;display:block;margin-bottom:8px;opacity:0.2;"></i>
-            No transactions yet
-        </div>`;
-        return;
-    }
-
-    container.innerHTML = transactions.map(t => {
-        const date = new Date(t.created_at).toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-
-        const isPositive = t.amount > 0;
-        const sign = isPositive ? '+' : '';
-        const color = isPositive ? 'var(--success)' : 'var(--danger)';
-        const icon = isPositive ? '↑' : '↓';
-        const typeLabels = {
-            'topup': '💰 Topup',
-            'purchase': '🛒 Purchase',
-            'refund': '↩️ Refund',
-            'admin_adjustment': '⚙️ Admin Adjustment',
-            'referral_bonus': '🎁 Referral Bonus'
-        };
-        const typeLabel = typeLabels[t.type] || t.type;
-
-        return `
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--glass-bg);border-radius:8px;border:1px solid var(--glass-border);margin-bottom:6px;">
-                <div>
-                    <div style="font-weight:600;font-size:14px;">${typeLabel}</div>
-                    <div style="font-size:11px;color:var(--text-secondary);opacity:0.5;">${t.description || ''}</div>
-                    <div style="font-size:10px;color:var(--text-secondary);opacity:0.3;">${date}</div>
-                </div>
-                <div style="font-weight:700;font-size:16px;color:${color};">
-                    ${sign}$${Math.abs(t.amount).toFixed(2)}
-                </div>
-            </div>
-        `;
-    }).join('');
-}
-
 // ============================================================
-// Render Profile Full (with password toggle, country, joined date)
+// PRODUCT FUNCTIONS
 // ============================================================
-
-function renderProfileFull() {
-    const container = document.getElementById('profileFullContent');
-    if (!currentUser) {
-        container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-user-circle" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">Please login</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Login to view your profile</div></div>`;
-        return;
-    }
-    const displayName = currentUser.displayName || currentUser.email || 'User';
-    const photoURL = userProfile.photoURL || currentUser.photoURL || '';
-    const maskedChatId = userProfile.telegramChatId ? userProfile.telegramChatId.slice(0, 4) + '***' + userProfile.telegramChatId.slice(-4) : 'Not linked';
-    const activeLicences = (userProfile.licences || []).filter(l => new Date(l.expiryDate) > new Date()).length;
-    const balance = userProfile.balance || 0;
-    const userCountry = userProfile.location || userProfile.country || 'Not set';
-    const joinedDate = userProfile.joined || '--';
-    
-    container.innerHTML = `
-    <div class="profile-container">
-        <!-- Hero Section -->
-        <div class="profile-hero">
-            <div class="hero-content">
-                <div class="hero-avatar">
-                    ${photoURL ? `<img src="${photoURL}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />` : displayName.charAt(0).toUpperCase()}
-                </div>
-                <div class="hero-info">
-                    <div class="hero-name">${displayName}</div>
-                    <div class="hero-email">${currentUser.email || 'No email'}</div>
-                    <div class="hero-badges">
-                        <span class="hero-badge rp">🎯 RP: ${userProfile.rp || 0}</span>
-                        <span class="hero-badge licence">🔑 Licences: ${activeLicences}</span>
-                        <span class="hero-badge balance">💰 Balance: $${balance.toFixed(2)}</span>
-                        ${userProfile.isBanned ? '<span class="hero-badge banned">🚫 BANNED</span>' : ''}
-                    </div>
-                    <div class="hero-joined"><i class="fas fa-calendar-alt"></i> Joined: ${joinedDate}</div>
-                    <div style="font-size:12px; color:var(--text-secondary); opacity:0.5; margin-top:2px;">
-                        <i class="fas fa-map-marker-alt" style="color:var(--vip-color);"></i> Country: ${userCountry}
-                    </div>
-                </div>
-            </div>
-            <div class="profile-stats-grid">
-                <div class="profile-stat-item">
-                    <div class="stat-number">${userProfile.history.length}</div>
-                    <div class="stat-label">Orders</div>
-                </div>
-                <div class="profile-stat-item">
-                    <div class="stat-number">${userProfile.rp || 0}</div>
-                    <div class="stat-label">RP Points</div>
-                </div>
-                <div class="profile-stat-item">
-                    <div class="stat-number">${wishlist.length}</div>
-                    <div class="stat-label">Favorites</div>
-                </div>
-                <div class="profile-stat-item">
-                    <div class="stat-number">${userProfile.referrals?.length || 0}</div>
-                    <div class="stat-label">Referrals</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Edit Profile Section -->
-        <div class="profile-section-card">
-            <div class="section-title"><i class="fas fa-edit"></i> Edit Profile</div>
-            <form onsubmit="saveProfileChangesInline(event)">
-                <div class="profile-form-group">
-                    <label>Name</label>
-                    <input id="editNameInline" value="${userProfile.name || currentUser.displayName || ''}" placeholder="Enter your name" type="text" />
-                </div>
-                <div class="profile-form-group">
-                    <label>Telegram Username</label>
-                    <input id="editTelegramInline" value="${userProfile.telegram || ''}" placeholder="@username" type="text" />
-                </div>
-                <div class="profile-form-group">
-                    <label>Country</label>
-                    <select id="editLocationInline">
-                        <option value="Tunisia" ${userProfile.location==='Tunisia'?'selected':''}>🇹🇳 Tunisia</option>
-                        <option value="Algeria" ${userProfile.location==='Algeria'?'selected':''}>🇩🇿 Algeria</option>
-                        <option value="Morocco" ${userProfile.location==='Morocco'?'selected':''}>🇲🇦 Morocco</option>
-                        <option value="Egypt" ${userProfile.location==='Egypt'?'selected':''}>🇪🇬 Egypt</option>
-                        <option value="Saudi Arabia" ${userProfile.location==='Saudi Arabia'?'selected':''}>🇸🇦 Saudi Arabia</option>
-                        <option value="UAE" ${userProfile.location==='UAE'?'selected':''}>🇦🇪 UAE</option>
-                        <option value="Other" ${userProfile.location==='Other'?'selected':''}>🌍 Other</option>
-                    </select>
-                </div>
-                <div class="profile-form-group">
-                    <label>Language</label>
-                    <select id="editLangInline">
-                        <option value="English" ${userProfile.lang==='English'?'selected':''}>🇬🇧 English</option>
-                        <option value="Arabic" ${userProfile.lang==='Arabic'?'selected':''}>🇸🇦 العربية</option>
-                        <option value="French" ${userProfile.lang==='French'?'selected':''}>🇫🇷 Français</option>
-                    </select>
-                </div>
-                <div class="profile-actions">
-                    <button type="button" class="btn-secondary" onclick="renderProfileFull()">Cancel</button>
-                    <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Save</button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Password & Security -->
-        <div class="profile-section-card">
-            <div class="section-title"><i class="fas fa-lock"></i> Password & Security</div>
-            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px; margin-bottom:8px; background:var(--glass-bg); padding:8px 12px; border-radius:var(--radius-sm); border:1px solid var(--glass-border);">
-                <span style="font-size:13px; font-weight:500; color:var(--text-secondary);">${currentUser.email || 'No email'}</span>
-                <button onclick="sendResetLinkInline()" class="btn-primary" style="padding:4px 14px; font-size:12px;"><i class="fas fa-paper-plane"></i> Send Reset Link</button>
-            </div>
-            <div style="border-top:1px solid var(--glass-border);padding-top:12px;margin-top:4px;">
-                <div style="font-size:12px;color:var(--text-secondary);opacity:0.4;margin-bottom:6px;">Use your current password to set a new one instantly.</div>
-                <div class="profile-form-group">
-                    <label>Current Password</label>
-                    <div class="password-wrapper">
-                        <input id="currentPasswordInline" placeholder="Enter current password" type="password" />
-                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('currentPasswordInline')"><i class="fas fa-eye"></i></button>
-                    </div>
-                </div>
-                <div class="profile-form-group">
-                    <label>New Password</label>
-                    <div class="password-wrapper">
-                        <input id="newPasswordInline" placeholder="Enter new password (min 6 chars)" type="password" />
-                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('newPasswordInline')"><i class="fas fa-eye"></i></button>
-                    </div>
-                </div>
-                <div class="profile-form-group">
-                    <label>Confirm New Password</label>
-                    <div class="password-wrapper">
-                        <input id="confirmNewPasswordInline" placeholder="Confirm new password" type="password" />
-                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('confirmNewPasswordInline')"><i class="fas fa-eye"></i></button>
-                    </div>
-                </div>
-                <button class="btn-primary" onclick="changePasswordInline()" style="width:100%;"><i class="fas fa-key"></i> Change Password</button>
-                <div class="auth-error" id="passwordErrorInline"></div>
-                <div class="auth-success" id="passwordSuccessInline"></div>
-            </div>
-        </div>
-
-        <!-- Telegram Notifications -->
-        <div class="profile-section-card">
-            <div class="section-title"><i class="fab fa-telegram-plane" style="color:#0088cc;"></i> Telegram Notifications</div>
-            <div class="telegram-status-row">
-                <span class="label">Status</span>
-                <span class="value ${userProfile.telegramChatId?'linked':'unlinked'}">${userProfile.telegramChatId?'✅ Linked':'❌ Unlinked'}</span>
-            </div>
-            ${userProfile.telegramChatId ? `
-                <div class="telegram-status-row">
-                    <span class="label">Bound Chat ID</span>
-                    <span class="value" style="font-family:monospace;letter-spacing:1px;">${maskedChatId}</span>
-                </div>
-                <div class="telegram-status-row">
-                    <span class="label">Bot</span>
-                    <span class="value" style="color:#0088cc;">@${BOT_USERNAME}</span>
-                </div>
-            ` : ''}
-            <div class="tb-info">
-                <i class="fas fa-info-circle" style="color:var(--primary);"></i>
-                ${userProfile.telegramChatId ? 'You will receive order notifications here.' : 'Click "Link Bot" to connect your Telegram account.'}
-            </div>
-            <div class="telegram-actions">
-                <button class="btn-bind" onclick="bindTelegram()"><i class="fab fa-telegram-plane"></i> ${userProfile.telegramChatId?'Re-link':'Link Bot'}</button>
-                ${userProfile.telegramChatId ? `<button class="btn-test" onclick="testTelegramNotification()"><i class="fas fa-paper-plane"></i> Test</button>` : ''}
-                <button class="btn-check" onclick="checkTelegramStatus()"><i class="fas fa-sync-alt"></i> Check</button>
-                ${userProfile.telegramChatId ? `<button class="btn-unlink" onclick="unlinkTelegram()"><i class="fas fa-unlink"></i> Unlink</button>` : ''}
-            </div>
-            <div style="font-size:11px;color:var(--text-secondary);opacity:0.4;margin-top:6px;display:flex;align-items:center;gap:4px;">
-                <i class="fab fa-telegram-plane" style="color:#0088cc;"></i>
-                ${userProfile.telegramChatId ? `Connected to @${BOT_USERNAME}` : `Start @${BOT_USERNAME} and click "Link Bot" to connect`}
-            </div>
-        </div>
-    </div>`;
-    setTimeout(showTelegramBanner, 300);
-}
-
-// Password toggle function
-window.togglePasswordVisibility = function(inputId) {
-    const input = document.getElementById(inputId);
-    if (!input) return;
-    const toggle = input.parentElement.querySelector('.password-toggle');
-    if (input.type === 'password') {
-        input.type = 'text';
-        toggle.innerHTML = '<i class="fas fa-eye-slash"></i>';
-    } else {
-        input.type = 'password';
-        toggle.innerHTML = '<i class="fas fa-eye"></i>';
-    }
-};
-
-window.saveProfileChangesInline = async function(e) {
-    e.preventDefault();
-    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
-    const name = document.getElementById('editNameInline').value.trim();
-    const telegram = document.getElementById('editTelegramInline').value.trim();
-    const location = document.getElementById('editLocationInline').value;
-    const lang = document.getElementById('editLangInline').value;
-    if (!name) { showToast('⚠️ Name is required', 'warning'); return; }
-    try {
-        await updateProfile(currentUser, { displayName: name });
-        const userRef = doc(db, 'users', currentUser.uid);
-        await updateDoc(userRef, { name, telegram, location, lang, updatedAt: serverTimestamp() });
-        userProfile.name = name; userProfile.telegram = telegram; userProfile.location = location; userProfile.country = location; userProfile.lang = lang;
-        showToast('✅ Profile updated!', 'success');
-        updateUI(); renderProfileFull(); updateFullUserMenu();
-    } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
-};
-
-window.sendResetLinkInline = async function() { if (!currentUser) return; try { await sendPasswordResetEmail(auth, currentUser.email); showToast(`📧 Reset link sent to ${currentUser.email}`, 'success'); } catch (error) { showToast('❌ ' + error.message, 'error'); } };
-window.changePasswordInline = async function() { if (!currentUser) return; const currentPwd = document.getElementById('currentPasswordInline').value; const newPwd = document.getElementById('newPasswordInline').value; const confirmPwd = document.getElementById('confirmNewPasswordInline').value; const errorEl = document.getElementById('passwordErrorInline'); const successEl = document.getElementById('passwordSuccessInline'); errorEl.textContent = ''; successEl.textContent = ''; if (!currentPwd || !newPwd || !confirmPwd) { errorEl.textContent = 'Please fill all fields'; return; } if (newPwd.length < 6) { errorEl.textContent = 'New password must be at least 6 characters'; return; } if (newPwd !== confirmPwd) { errorEl.textContent = 'Passwords do not match'; return; } try { const credential = EmailAuthProvider.credential(currentUser.email, currentPwd); await reauthenticateWithCredential(currentUser, credential); await updatePassword(currentUser, newPwd); successEl.textContent = '✅ Password changed successfully!'; showToast('✅ Password updated!', 'success'); document.getElementById('currentPasswordInline').value = ''; document.getElementById('newPasswordInline').value = ''; document.getElementById('confirmNewPasswordInline').value = ''; setTimeout(() => { successEl.textContent = ''; }, 3000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); } };
-
-// ============================================================
-// Product Functions - CRITICAL FOR PRODUCTS TO SHOW
-// ============================================================
-
 async function loadProductsFromFirestore() {
     try {
         console.log('🔄 Loading products from Firestore...');
@@ -1845,7 +1540,6 @@ function startProductsRealtimeListener() {
     if (unsubscribeProducts) {
         unsubscribeProducts();
     }
-    // Show skeleton loading
     renderProducts([], true);
     const productsRef = collection(db, 'products');
     try {
@@ -1873,7 +1567,6 @@ function startProductsRealtimeListener() {
             renderLimitedProducts();
         }, (error) => {
             console.error('Products listener error:', error);
-            // Fallback to fallback products if listener fails
             products = fallbackProducts;
             console.log(`⚠️ Using fallback products (${products.length})`);
             renderProducts(products, false);
@@ -2047,9 +1740,8 @@ function generateRecommendations(productsList) {
 }
 
 // ============================================================
-// Currency, Product Type, Quantity, Badge Functions
+// CURRENCY, PRODUCT TYPE, QUANTITY, BADGE FUNCTIONS
 // ============================================================
-
 window.selectCurrency = function(currency) {
     document.querySelectorAll('.currency-option').forEach(el => {
         el.classList.toggle('active', el.dataset.currency === currency);
@@ -2175,9 +1867,8 @@ function setBadges(badges) {
 }
 
 // ============================================================
-// Admin Fallback Products
+// ADMIN FALLBACK PRODUCTS
 // ============================================================
-
 function renderFallbackProductsAdmin() {
     const container = document.getElementById('adminFallbackProducts');
     if (!container) return;
@@ -2312,9 +2003,8 @@ window.deleteFallbackProduct = function(index) {
 };
 
 // ============================================================
-// Featured Products, Cart, Wishlist
+// FEATURED PRODUCTS, CART, WISHLIST
 // ============================================================
-
 function renderFeaturedProducts() {
     const grid = document.getElementById('featuredGrid');
     if (!grid) return;
@@ -2373,9 +2063,8 @@ async function loadFeaturedSettings() {
 }
 
 // ============================================================
-// Cart Management
+// CART MANAGEMENT
 // ============================================================
-
 function updateProductCardButton(productId) {
     const cards = document.querySelectorAll('.product-card');
     cards.forEach(card => {
@@ -2598,7 +2287,7 @@ window.applyCartPromo = function() {
 };
 
 // ============================================================
-// FIXED Wishlist toggle - now properly updates UI
+// WISHLIST
 // ============================================================
 window.toggleWishlist = async function(productId) {
     const index = wishlist.indexOf(productId);
@@ -2636,9 +2325,6 @@ function updateWishlistUI() {
     updateFullUserMenu();
 }
 
-// ============================================================
-// createFloatingHearts
-// ============================================================
 function createFloatingHearts() {
     let container = document.getElementById('floatingHearts');
     if (!container) {
@@ -2713,9 +2399,8 @@ function renderWishlistFull() {
 }
 
 // ============================================================
-// 14. Product Preview (with embedded banner)
+// PRODUCT PREVIEW
 // ============================================================
-
 window.openDetails = function(id) {
     const p = products.find(x => x.id === id);
     if (!p) {
@@ -2845,7 +2530,6 @@ window.openDetails = function(id) {
 
     const isInCart = cart.some(item => item.id === id && !item.isVip);
 
-    // Main content with embedded banner
     container.innerHTML = `
         <div style="max-width:600px;margin:0 auto;width:100%;">
             <div style="width:100%;border-radius:var(--radius-md);overflow:hidden;background:var(--bg-secondary);border:1px solid var(--border);margin-bottom:12px;">
@@ -2886,7 +2570,6 @@ window.openDetails = function(id) {
                 </div>
             </div>
 
-            <!-- Embedded Banner -->
             <div style="margin-top:16px;padding:16px 20px;background:linear-gradient(135deg, rgba(108,92,231,0.1), rgba(249,202,36,0.08));border-radius:var(--radius-md);border:1px solid var(--glass-border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
                 <div style="display:flex;align-items:center;gap:14px;">
                     <div style="width:56px;height:56px;border-radius:var(--radius-sm);overflow:hidden;background:var(--bg-secondary);flex-shrink:0;">
@@ -3086,9 +2769,8 @@ window.addVipPlanToCart = function(product) {
 };
 
 // ============================================================
-// 15. Share Modal
+// SHARE MODAL
 // ============================================================
-
 window.openShareModal = function(productId) {
     const product = products.find(p => p.id === productId);
     if (!product) return;
@@ -3103,9 +2785,8 @@ window.shareToFacebook = function() { if (!shareProduct) return; window.open(`ht
 window.copyShareLink = function() { const url = window.location.href; navigator.clipboard.writeText(url).then(() => { showToast('✅ Link copied!', 'success'); closeShareModal(); }).catch(() => { const textArea = document.createElement('textarea'); textArea.value = url; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); showToast('✅ Link copied!', 'success'); closeShareModal(); }); };
 
 // ============================================================
-// 16. Filter & Search
+// FILTER & SEARCH
 // ============================================================
-
 window.filterProducts = function(filter) {
     currentFilter = filter;
     document.querySelectorAll('.filter-btn').forEach(btn => { btn.classList.toggle('active', btn.dataset.filter === filter); });
@@ -3160,73 +2841,7 @@ function closeSearchResults() { searchResults.classList.remove('active'); search
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeSearchResults(); closeUserMenuFull(); closeCartFull(); closeWishlistFull(); closeProfileFull(); closeHistoryFull(); } });
 
 // ============================================================
-// 17. Payment (with Supabase Functions Backend)
-// ============================================================
-
-// ============================================================
-// 17.0 Visitor Info Functions
-// ============================================================
-
-async function getVisitorInfo() {
-    let ip = 'Unknown';
-    try {
-        const ipRes = await fetch('https://api.ipify.org?format=json');
-        if (ipRes.ok) {
-            const ipData = await ipRes.json();
-            ip = ipData.ip || 'Unknown';
-        }
-    } catch (e) {
-        console.warn('⚠️ ipify failed:', e);
-    }
-
-    let country = 'Unknown', city = 'Unknown', region = 'Unknown', timezone = 'Unknown', isp = 'Unknown';
-    if (ip !== 'Unknown') {
-        try {
-            const detailRes = await fetch(`https://ip-api.com/json/${ip}?fields=status,country,city,regionName,timezone,isp`);
-            if (detailRes.ok) {
-                const data = await detailRes.json();
-                if (data.status === 'success') {
-                    country = data.country || 'Unknown';
-                    city = data.city || 'Unknown';
-                    region = data.regionName || 'Unknown';
-                    timezone = data.timezone || 'Unknown';
-                    isp = data.isp || 'Unknown';
-                }
-            }
-        } catch (e) {
-            console.warn('⚠️ ip-api.com detail failed:', e);
-        }
-    }
-    return { ip, country, city, region, timezone, isp };
-}
-
-function getDeviceInfo() {
-    const ua = navigator.userAgent;
-    let os = 'Unknown';
-    let browser = 'Unknown';
-    let device = 'Desktop';
-
-    if (ua.indexOf('Windows') !== -1) os = 'Windows';
-    else if (ua.indexOf('Mac OS') !== -1) os = 'macOS';
-    else if (ua.indexOf('Linux') !== -1) os = 'Linux';
-    else if (ua.indexOf('Android') !== -1) os = 'Android';
-    else if (ua.indexOf('iOS') !== -1 || ua.indexOf('iPhone') !== -1 || ua.indexOf('iPad') !== -1) os = 'iOS';
-
-    if (ua.indexOf('Firefox') !== -1) browser = 'Firefox';
-    else if (ua.indexOf('Chrome') !== -1 && ua.indexOf('Edg') === -1) browser = 'Chrome';
-    else if (ua.indexOf('Safari') !== -1 && ua.indexOf('Chrome') === -1) browser = 'Safari';
-    else if (ua.indexOf('Edg') !== -1) browser = 'Edge';
-    else if (ua.indexOf('Opera') !== -1 || ua.indexOf('OPR') !== -1) browser = 'Opera';
-
-    if (/(tablet|ipad|playbook|silk)|(android(?!.*mobile))/i.test(ua)) device = 'Tablet';
-    else if (/Mobile|iP(hone|od)|Android|BlackBerry|IEMobile|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/i.test(ua)) device = 'Mobile';
-    else device = 'Desktop';
-
-    return { os, browser, device };
-}
-
-// ============================================================
-// 17.1 Payment Products Render
+// PAYMENT FUNCTIONS
 // ============================================================
 window.renderPaymentProducts = function() {
     const container = document.getElementById('paymentProductsList');
@@ -3256,10 +2871,6 @@ window.renderPaymentProducts = function() {
         `;
     }).join('');
 };
-
-// ============================================================
-// 17.2 Crypto Price Functions
-// ============================================================
 
 async function fetchCryptoPrices() {
     if (cryptoPrices.isUpdating) return;
@@ -3329,6 +2940,7 @@ function updatePriceUI() {
         }
     }
 }
+
 function updatePayableTotal() {
     let total = 0; cart.forEach(item => { const qty = item.quantity || 1; total += item.price * qty; });
     let finalTotal = total;
@@ -3339,9 +2951,6 @@ function updatePayableTotal() {
     if (el) el.textContent = '$' + finalTotal.toFixed(2);
 }
 
-// ============================================================
-// 17.3 Payment Selection
-// ============================================================
 window.selectPayment = function(method) {
     selectedPayment = method;
     document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
@@ -3371,9 +2980,6 @@ window.selectPayment = function(method) {
     updatePayableTotal();
 };
 
-// ============================================================
-// 17.4 Continue Payment
-// ============================================================
 window.continuePayment = function() {
     if (!selectedPayment) {
         showToast('⚠️ Please select a payment method', 'warning');
@@ -3463,10 +3069,6 @@ window.continuePayment = function() {
     }
 };
 
-// ============================================================
-// 17.5 Balance Payment Function
-// ============================================================
-
 async function processBalancePayment(totalAmount) {
     if (!currentUser) {
         showToast('⚠️ Please login first', 'warning');
@@ -3529,9 +3131,6 @@ async function processBalancePayment(totalAmount) {
     }
 }
 
-// ============================================================
-// 17.6 Place Order
-// ============================================================
 window.placeOrder = function() {
     if (!currentUser || currentUser.isAnonymous) {
         showToast('⚠️ Please sign in to confirm payment.', 'warning');
@@ -3565,87 +3164,7 @@ window.placeOrder = function() {
 };
 
 // ============================================================
-// 17.7 Binance ID specific functions
-// ============================================================
-window.copyBinanceId = function() {
-    const id = document.getElementById('binanceIdDisplay').textContent;
-    if (!id) return;
-    navigator.clipboard.writeText(id).then(() => {
-        showToast('✅ Binance ID copied!', 'success');
-    }).catch(() => {
-        const textarea = document.createElement('textarea');
-        textarea.value = id;
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-        showToast('✅ Binance ID copied!', 'success');
-    });
-};
-
-window.verifyTransaction = function() {
-    const input = document.getElementById('txHashInput');
-    const result = document.getElementById('verificationResult');
-    const tx = input.value.trim();
-    if (!tx) {
-        result.style.display = 'block';
-        result.className = 'bv-result error';
-        result.textContent = '⚠️ Please enter a transaction ID.';
-        return;
-    }
-    if (tx.length < 6) {
-        result.style.display = 'block';
-        result.className = 'bv-result error';
-        result.textContent = '❌ Transaction ID seems too short. Please check and try again.';
-    } else {
-        result.style.display = 'block';
-        result.className = 'bv-result success';
-        result.textContent = '✅ Transaction ID format looks valid. You can now confirm payment.';
-    }
-};
-
-window.handleTxPaste = function(event) {
-    const input = event.target;
-    setTimeout(() => {
-        input.value = input.value.trim();
-    }, 10);
-};
-
-window.handleScreenshot = function(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const preview = document.getElementById('screenshotPreview');
-        const img = document.getElementById('screenshotImg');
-        img.src = e.target.result;
-        preview.style.display = 'flex';
-        document.querySelector('.bv-drop-zone p').textContent = '✅ Image selected';
-    };
-    reader.readAsDataURL(file);
-};
-
-window.removeScreenshot = function() {
-    document.getElementById('screenshotPreview').style.display = 'none';
-    document.getElementById('screenshotImg').src = '#';
-    document.getElementById('screenshotInput').value = '';
-    document.querySelector('.bv-drop-zone p').textContent = 'Drag image here or click to select';
-};
-
-window.submitManualPayment = function() {
-    const txHash = document.getElementById('txHashInput').value.trim();
-    if (!txHash) {
-        showToast('⚠️ Please paste the transaction ID', 'warning');
-        document.getElementById('txHashInput').style.borderColor = 'var(--danger)';
-        setTimeout(() => { document.getElementById('txHashInput').style.borderColor = ''; }, 2000);
-        return;
-    }
-    document.getElementById('transactionHashInput').value = txHash;
-    placeOrder();
-};
-
-// ============================================================
-// 17.8 sendOrderToTelegram
+// ORDER FUNCTIONS
 // ============================================================
 async function sendOrderToTelegram(method, txHash = null) {
     if (isProcessingOrder) {
@@ -3714,20 +3233,6 @@ async function sendOrderToTelegram(method, txHash = null) {
 
         console.log('💰 Total:', finalTotal);
 
-        // Fraud detection
-        const fraudCheck = await detectFraud({
-            userId: currentUser.uid,
-            email: currentUser.email,
-            total: finalTotal,
-            items: cartData,
-            ip: visitorInfo.ip
-        });
-        if (fraudCheck.isSuspicious && fraudCheck.severity === 'high') {
-            showToast('⚠️ Order flagged for review. Please contact support.', 'warning');
-            isProcessingOrder = false;
-            return;
-        }
-
         const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/place-order', {
             method: 'POST',
             headers: {
@@ -3788,14 +3293,14 @@ async function sendOrderToTelegram(method, txHash = null) {
         const userRef = doc(db, 'users', currentUser.uid);
         await updateDoc(userRef, { history: arrayUnion(orderItem) });
 
-        // Send order confirmation email
         await sendOrderConfirmationEmail(currentUser.email, {
             orderId: orderId,
             userName: currentUser.displayName || currentUser.email,
             items: cartData,
             total: finalTotal,
             method: method,
-            status: 'pending'
+            status: 'pending',
+            txHash: txHash
         });
 
         try {
@@ -3876,7 +3381,6 @@ ${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
             console.log('ℹ️ User has no Telegram linked');
         }
 
-        // Send admin notification via settings
         const adminMessage = `
 👤 *User:* ${currentUser.displayName || currentUser.email || 'User'}
 📧 *Email:* ${currentUser.email || 'N/A'}
@@ -3930,9 +3434,6 @@ ${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
     }
 }
 
-// ============================================================
-// 17.9 Place Order Telegram
-// ============================================================
 window.placeOrderTelegram = function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
     const message = `🛒 New Order\n\nTotal: $${document.getElementById('step2Total')?.textContent || '0.00'}\nProducts: ${cart.map(i => i.name).join(', ')}`;
@@ -3949,9 +3450,8 @@ window.placeOrderTelegram = function() {
 };
 
 // ============================================================
-// 17.10 Proxy Functions
+// PROXY FUNCTIONS
 // ============================================================
-
 function renderProxyPackages() {
     const container = document.getElementById('proxyPackages');
     if (!container) return;
@@ -3993,36 +3493,8 @@ window.addProxyToCart = function(packageId) {
 };
 
 // ============================================================
-// 18. Order Functions with User Notification
+// TELEGRAM FUNCTIONS
 // ============================================================
-
-async function sendUserNotification(userId, title, message) {
-    if (!userId) return;
-    try {
-        const userRef = doc(db, 'users', userId);
-        const userSnap = await getDoc(userRef);
-        if (!userSnap.exists()) {
-            console.log('ℹ️ User not found, skipping notification');
-            return;
-        }
-        await addDoc(collection(db, 'notifications'), {
-            title: title,
-            message: message,
-            userId: userId,
-            readBy: [],
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp()
-        });
-        console.log('✅ User notification sent to:', userId);
-    } catch (error) {
-        console.error('Error sending user notification:', error);
-    }
-}
-
-// ============================================================
-// 19. Telegram Functions
-// ============================================================
-
 async function sendTelegramNotification(chatId, message) {
     if (!chatId) {
         console.log('⚠️ No chatId provided');
@@ -4131,12 +3603,6 @@ window.unlinkTelegram = async function() {
     } catch (error) { showToast('❌ Error unlinking: ' + error.message, 'error'); }
 };
 
-function maskChatId(chatId) {
-    if (!chatId) return 'Not linked';
-    if (chatId.length <= 8) return chatId;
-    return chatId.slice(0, 4) + '***' + chatId.slice(-4);
-}
-
 window.checkTelegramStatus = async function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
     try {
@@ -4161,9 +3627,8 @@ window.checkTelegramStatus = async function() {
 };
 
 // ============================================================
-// 20. Downloads & Notifications
+// DOWNLOADS & NOTIFICATIONS
 // ============================================================
-
 function loadDownloads() {
     if (unsubscribeDownloads) { unsubscribeDownloads(); }
     const dlRef = collection(db, 'downloads');
@@ -4225,7 +3690,6 @@ function loadNotifications() {
             notifications = [];
             snapshot.forEach((doc) => {
                 const data = doc.data();
-                // Only show notifications for this user
                 if (data.userId === currentUser?.uid || !data.userId) {
                     notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] });
                 }
@@ -4243,7 +3707,6 @@ function loadNotifications() {
             notifications = [];
             snapshot.forEach((doc) => {
                 const data = doc.data();
-                // Only show notifications for this user
                 if (data.userId === currentUser?.uid || !data.userId) {
                     notifications.push({ id: doc.id, ...data, readBy: data.readBy || [] });
                 }
@@ -4349,11 +3812,7 @@ window.openCreateNotificationModal = function() { if (!currentUser || !isAdminCa
 window.closeCreateNotificationModal = function() { document.getElementById('createNotificationModal').classList.remove('open'); };
 
 // ============================================================
-// 21. Requests & Referrals
-// ============================================================
-
-// ============================================================
-// 21.0 Requests
+// REQUESTS & REFERRALS
 // ============================================================
 window.openRequestsModal = function() {
     if (!currentUser) {
@@ -4418,10 +3877,6 @@ window.submitRequest = function(e) {
         window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(msg)}`, '_blank');
     }).catch(error => { showToast('❌ Error: ' + error.message, 'error'); });
 };
-
-// ============================================================
-// 21.1 Referral Modal
-// ============================================================
 
 window.openReferralModal = function() {
     if (!currentUser) {
@@ -4552,9 +4007,8 @@ window.copyReferralCode2 = function() {
 };
 
 // ============================================================
-// 22. Admin Panel
+// ADMIN PANEL
 // ============================================================
-
 window.openAdminPanel = function() {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized. Admin only.', 'error'); return; }
     const panel = document.getElementById('adminPanel');
@@ -4578,7 +4032,6 @@ window.openAdminPanel = function() {
         renderFallbackProductsAdmin();
         loadCoupons();
         setTimeout(addBannerAdminControls, 300);
-        ensureSliderTab();
         loadSliderSettings();
         renderSliderSettingsUI();
         document.getElementById('sliderIntervalInput').value = sliderIntervalTime;
@@ -4601,9 +4054,6 @@ window.closeAdminPanel = function() {
     }
 };
 
-// ============================================================
-// switchAdminTab
-// ============================================================
 window.switchAdminTab = function(tab) {
     document.querySelectorAll('#adminPanel .admin-tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('#adminPanel .admin-nav-btn').forEach(el => el.classList.remove('active'));
@@ -4614,7 +4064,8 @@ window.switchAdminTab = function(tab) {
         'stats': 'tabStats', 'logs': 'tabLogs', 'slider': 'tabSlider',
         'licences': 'tabLicences', 'marquee': 'tabMarquee', 'payments': 'tabPayments',
         'topups': 'tabTopups', 'fallback': 'tabFallback', 'settings': 'tabSettings',
-        'coupons': 'tabCoupons'
+        'coupons': 'tabCoupons',
+        'emails': 'tabEmails'
     };
     const tabId = tabMap[tab] || 'tabDashboard';
     const content = document.getElementById(tabId);
@@ -4629,7 +4080,8 @@ window.switchAdminTab = function(tab) {
         'stats': '📈 Stats', 'logs': '📜 Logs', 'slider': '🎨 Slider',
         'licences': '🔑 Licences', 'marquee': '🎬 Marquee', 'payments': '💳 Payments',
         'topups': '💰 Topups', 'fallback': '📦 Fallback', 'settings': '⚙️ Settings',
-        'coupons': '🎫 Coupons'
+        'coupons': '🎫 Coupons',
+        'emails': '📧 Emails'
     };
     const titleEl = document.getElementById('adminPageTitle');
     if (titleEl) titleEl.textContent = titles[tab] || tab;
@@ -4651,12 +4103,12 @@ window.switchAdminTab = function(tab) {
     if (tab === 'fallback') renderFallbackProductsAdmin();
     if (tab === 'settings') loadAdminSettingsUI();
     if (tab === 'coupons') renderAdminCoupons();
+    if (tab === 'emails') loadEmailLogs();
 };
 
 // ============================================================
-// 23. Admin Products
+// ADMIN PRODUCTS
 // ============================================================
-
 function renderAdminProducts(productsList) {
     const container = document.getElementById('adminProductsList');
     if (!container) return;
@@ -4685,9 +4137,8 @@ function renderAdminProducts(productsList) {
 }
 
 // ============================================================
-// 24. Admin Orders
+// ADMIN ORDERS
 // ============================================================
-
 function startAdminRealtimeListener() {
     if (unsubscribeAdmin) { unsubscribeAdmin(); }
     if (!currentUser || !isAdminCached) {
@@ -4822,9 +4273,8 @@ function updateAdminStats(orders) {
 }
 
 // ============================================================
-// 25. Update Order Status with User Notification
+// UPDATE ORDER STATUS
 // ============================================================
-
 window.updateOrderStatus = async function(orderId, userId, newStatus) {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!orderId || !userId) { showToast('❌ Invalid data', 'error'); return; }
@@ -4854,7 +4304,6 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
                 : `Your order #${orderId.slice(-6)} has been rejected. Please contact support for more information.`
         );
 
-        // Send status update email
         await sendOrderStatusEmail(data.email || userId, orderId, newStatus);
 
         if (data.telegramChatId) {
@@ -4923,9 +4372,8 @@ window.clearAdminSearch = function() { document.getElementById('adminSearchInput
 window.refreshAdminOrders = function() { loadAdminOrders(); showToast('🔄 Refreshed', 'info'); };
 
 // ============================================================
-// 26. Send Licence via Edge Function
+// SEND LICENCE VIA EDGE FUNCTION
 // ============================================================
-
 async function sendLicenceForOrder(orderId, userId, userEmail = null) {
     try {
         console.log('🔍 sendLicenceForOrder called:', { orderId, userId, userEmail });
@@ -5028,9 +4476,8 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
 }
 
 // ============================================================
-// 27. Admin Users
+// ADMIN USERS
 // ============================================================
-
 async function loadAdminUsers() {
     if (!currentUser || !isAdminCached) {
         console.log('ℹ️ loadAdminUsers skipped (not admin)');
@@ -5143,9 +4590,8 @@ window.viewUserDetails = async function(uid) {
 window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
 // ============================================================
-// 28. Licence Management System (with Supabase)
+// LICENCE MANAGEMENT
 // ============================================================
-
 async function loadLicences() {
     try {
         const container = document.getElementById('adminLicencesList');
@@ -5469,9 +4915,8 @@ async function activateLicence() {
 }
 
 // ============================================================
-// 29. Ratings
+// RATINGS
 // ============================================================
-
 let currentRating = 0;
 let currentProductIdForRating = null;
 
@@ -5579,9 +5024,8 @@ async function updateProductRatingDisplay(productId) {
 }
 
 // ============================================================
-// 30. Slider & Marquee Functions
+// SLIDER FUNCTIONS
 // ============================================================
-
 window.goToSlide = function(index) {
     if (index < 0 || index >= sliderSlides.length) return;
     currentSlideIndex = index;
@@ -5904,9 +5348,8 @@ function renderSliderSettingsUI() {
 }
 
 // ============================================================
-// 31. Marquee Functions
+// MARQUEE FUNCTIONS
 // ============================================================
-
 window.saveMarqueeSettings = async function() {
     const enabledCheckbox = document.getElementById('marqueeEnabled');
     const textArea = document.getElementById('marqueeText');
@@ -5970,9 +5413,8 @@ async function loadMarqueeSettings() {
 }
 
 // ============================================================
-// 32. Dashboard Stats, Advanced Stats, Audit Logs
+// DASHBOARD STATS
 // ============================================================
-
 async function loadDashboardStats() {
     if (!currentUser || !isAdminCached) { console.log('ℹ️ loadDashboardStats skipped (not admin)'); return; }
     try {
@@ -6078,9 +5520,8 @@ async function loadAuditLogs() {
 window.loadAuditLogs = loadAuditLogs;
 
 // ============================================================
-// 33. Order History (User-specific) - with Clear History
+// ORDER HISTORY
 // ============================================================
-
 window.clearOrderHistory = async function() {
     if (!currentUser) {
         showToast('⚠️ Please login first', 'warning');
@@ -6202,9 +5643,8 @@ window.renderHistoryFull = function() {
 };
 
 // ============================================================
-// 34. TOPUP SYSTEM - Balance Functions
+// TOPUP SYSTEM - BALANCE FUNCTIONS
 // ============================================================
-
 async function loadUserBalance() {
     if (!currentUser) {
         userBalance = 0;
@@ -6239,10 +5679,6 @@ function updateBalanceDisplay() {
         balancePaymentSub.textContent = `$${userBalance.toFixed(2)} available`;
     }
 }
-
-// ============================================================
-// 35. TOPUP SYSTEM - Realtime Listener
-// ============================================================
 
 function startTopupRealtimeListener() {
     if (!currentUser) return;
@@ -6316,9 +5752,8 @@ function playNotificationSound() {
 }
 
 // ============================================================
-// 36. TOPUP SYSTEM - Check Status
+// TOPUP SYSTEM - CHECK STATUS
 // ============================================================
-
 window.openTopupStatus = async function() {
     if (!currentUser) {
         showToast('⚠️ Please login first', 'warning');
@@ -6476,9 +5911,8 @@ async function loadUserTopups() {
 }
 
 // ============================================================
-// 37. TOPUP SYSTEM - Modal Functions
+// TOPUP SYSTEM - MODAL FUNCTIONS
 // ============================================================
-
 window.openTopupModal = function() {
     if (!currentUser) {
         showToast('⚠️ Please login first to topup', 'warning');
@@ -6503,9 +5937,8 @@ window.closeTopupModal = function() {
 };
 
 // ============================================================
-// 38. TOPUP SYSTEM - Select Currency
+// TOPUP SYSTEM - SELECT CURRENCY
 // ============================================================
-
 window.selectTopupCurrency = function(currency) {
     selectedTopupCurrency = currency;
     document.getElementById('topupCurrency').value = currency;
@@ -6544,9 +5977,6 @@ window.selectTopupCurrency = function(currency) {
     updateTopupAmounts(currency);
 };
 
-// ============================================================
-// updateTopupAmounts
-// ============================================================
 function updateTopupAmounts(currency) {
     const container = document.getElementById('topupAmountsContainer');
     if (!container) return;
@@ -6593,9 +6023,6 @@ function updateTopupAmounts(currency) {
     `;
 }
 
-// ============================================================
-// selectTopupAmount
-// ============================================================
 window.selectTopupAmount = function(amount) {
     document.querySelectorAll('.topup-amount').forEach(el => {
         el.style.borderColor = 'var(--glass-border)';
@@ -6664,9 +6091,8 @@ window.selectTopupAmount = function(amount) {
 };
 
 // ============================================================
-// 39. TOPUP SYSTEM - Process Topup
+// TOPUP SYSTEM - PROCESS TOPUP
 // ============================================================
-
 window.processTopup = async function() {
     if (!currentUser) {
         showToast('⚠️ Please login first', 'warning');
@@ -6803,9 +6229,8 @@ window.processTopup = async function() {
 };
 
 // ============================================================
-// 40. TOPUP SYSTEM - Submit with TX Hash
+// TOPUP SYSTEM - SUBMIT WITH TX HASH
 // ============================================================
-
 window.submitTopupWithTxHash = async function(topupId, amount) {
     const txHashInput = document.getElementById('topupTxHash');
     const txHash = txHashInput?.value?.trim();
@@ -6900,9 +6325,8 @@ You will receive a notification once approved.
 };
 
 // ============================================================
-// 41. TOPUP SYSTEM - Admin Functions
+// TOPUP SYSTEM - ADMIN FUNCTIONS
 // ============================================================
-
 window.approveTopup = async function(topupId) {
     if (!currentUser || !isAdminCached) {
         showToast('⛔ Unauthorized', 'error');
@@ -6951,17 +6375,24 @@ window.approveTopup = async function(topupId) {
         await sendAdminNotification('✅ Topup Approved - Balance Updated', adminMessage);
 
         if (topupData) {
+            const userRef = doc(db, 'users', topupData.user_id);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+                const userEmail = userSnap.data().email || topupData.user_id;
+                await sendTopupConfirmationEmail(userEmail, topupData.amount_usd, topupData.tx_hash);
+            }
+            
             await sendTelegramTopupNotification(
                 topupData.user_id,
                 topupData.amount_usd,
                 topupData.tx_hash
             );
 
-            const userRef = doc(db, 'users', topupData.user_id);
-            const userSnap = await getDoc(userRef);
-            if (userSnap.exists()) {
-                const currentBalance = userSnap.data().balance || 0;
-                await updateDoc(userRef, {
+            const userRef2 = doc(db, 'users', topupData.user_id);
+            const userSnap2 = await getDoc(userRef2);
+            if (userSnap2.exists()) {
+                const currentBalance = userSnap2.data().balance || 0;
+                await updateDoc(userRef2, {
                     balance: currentBalance + topupData.amount_usd,
                     updatedAt: serverTimestamp()
                 });
@@ -7106,10 +6537,6 @@ async function loadAdminTopups() {
     }
 }
 
-// ============================================================
-// 42. TOPUP SYSTEM - Telegram Notification
-// ============================================================
-
 async function sendTelegramTopupNotification(userId, amount, txHash = null) {
     try {
         const userRef = doc(db, 'users', userId);
@@ -7152,9 +6579,8 @@ ${txHash ? `🔗 *TXID:* \`${txHash}\`` : ''}
 }
 
 // ============================================================
-// 43. TOPUP SYSTEM - Copy Helper
+// COPY HELPER
 // ============================================================
-
 window.copyToClipboard = function(text) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text)
@@ -7182,9 +6608,8 @@ function fallbackCopy(text) {
 }
 
 // ============================================================
-// 44. CHECKOUT WITH BALANCE
+// CHECKOUT WITH BALANCE
 // ============================================================
-
 window.checkoutWithBalance = function() {
     if (cart.length === 0) {
         showToast('⚠️ Cart is empty', 'warning');
@@ -7204,9 +6629,8 @@ window.checkoutWithBalance = function() {
 };
 
 // ============================================================
-// 45. Support Functions
+// SUPPORT FUNCTIONS
 // ============================================================
-
 window.toggleSupportMenu = function() {
     const float = document.getElementById('supportFloat');
     if (float) {
@@ -7258,9 +6682,8 @@ window.openPhoneSupport = function() {
 };
 
 // ============================================================
-// 46. Cookie Consent Functions
+// COOKIE CONSENT FUNCTIONS
 // ============================================================
-
 let cookieConsentStatus = localStorage.getItem('cookieConsent');
 
 window.acceptCookies = function() {
@@ -7384,9 +6807,8 @@ window.closeCookieBanner = function() {
 };
 
 // ============================================================
-// 47. Telegram Banner, Social Proof, Upload
+// TELEGRAM BANNER
 // ============================================================
-
 function showTelegramBanner() {
     const banner = document.getElementById('telegramBanner');
     if (!banner) return;
@@ -7428,9 +6850,8 @@ function adminToggleBanner(show) {
 function resetBannerForAll() { localStorage.removeItem('telegram_banner_admin_disabled'); localStorage.removeItem('telegram_banner_hidden'); showToast('🔄 Banner reset', 'info'); addBannerAdminControls(); setTimeout(showTelegramBanner, 300); }
 
 // ============================================================
-// 48. Cloudinary Upload
+// CLOUDINARY UPLOAD
 // ============================================================
-
 async function uploadToCloudinary(file) {
     try {
         const formData = new FormData();
@@ -7443,9 +6864,8 @@ async function uploadToCloudinary(file) {
 }
 
 // ============================================================
-// 49. Direction Fix (CLOSE BUTTONS ON RIGHT)
+// DIRECTION FIX
 // ============================================================
-
 function fixDirection() {
     document.querySelectorAll('.header, .logo, .header-actions, .modal-content, .fullscreen-modal, .admin-panel').forEach(el => {
         el.style.direction = 'ltr';
@@ -7473,9 +6893,8 @@ function fixDirection() {
 window.fixHeaderAndModals = fixDirection;
 
 // ============================================================
-// 50. Copy Licence & Export
+// COPY LICENCE & EXPORT
 // ============================================================
-
 window.copyLicenceCode = function(code) {
     if (!code) { showToast('⚠️ No code to copy', 'warning'); return; }
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -7536,9 +6955,8 @@ window.exportOrders = function() {
 };
 
 // ============================================================
-// 51. Admin Payments
+// ADMIN PAYMENTS
 // ============================================================
-
 function refreshAdminPayments() {
     if (!currentUser || !isAdminCached) return;
     const tbody = document.getElementById('adminPaymentsBody');
@@ -7635,14 +7053,13 @@ window.adminDeletePayment = function(orderId, userId) {
 };
 
 // ============================================================
-// 52. AI-BASED RECOMMENDATIONS
+// AI-BASED RECOMMENDATIONS
 // ============================================================
-
 function trackUserBehavior(productId, action) {
     if (!currentUser) return;
     userHistory.push({
         productId,
-        action, // view, add_to_cart, purchase, wishlist
+        action,
         timestamp: new Date().toISOString(),
         userId: currentUser.uid
     });
@@ -7730,9 +7147,8 @@ function getDefaultRecommendations(limit) {
 }
 
 // ============================================================
-// 53. FRAUD DETECTION SYSTEM
+// FRAUD DETECTION SYSTEM
 // ============================================================
-
 const fraudRules = {
     maxOrdersPerDay: 10,
     maxAmountPerOrder: 1000,
@@ -7745,6 +7161,64 @@ const fraudRules = {
 
 let fraudLogs = [];
 let userActivity = {};
+
+async function getVisitorInfo() {
+    let ip = 'Unknown';
+    try {
+        const ipRes = await fetch('https://api.ipify.org?format=json');
+        if (ipRes.ok) {
+            const ipData = await ipRes.json();
+            ip = ipData.ip || 'Unknown';
+        }
+    } catch (e) {
+        console.warn('⚠️ ipify failed:', e);
+    }
+
+    let country = 'Unknown', city = 'Unknown', region = 'Unknown', timezone = 'Unknown', isp = 'Unknown';
+    if (ip !== 'Unknown') {
+        try {
+            const detailRes = await fetch(`https://ip-api.com/json/${ip}?fields=status,country,city,regionName,timezone,isp`);
+            if (detailRes.ok) {
+                const data = await detailRes.json();
+                if (data.status === 'success') {
+                    country = data.country || 'Unknown';
+                    city = data.city || 'Unknown';
+                    region = data.regionName || 'Unknown';
+                    timezone = data.timezone || 'Unknown';
+                    isp = data.isp || 'Unknown';
+                }
+            }
+        } catch (e) {
+            console.warn('⚠️ ip-api.com detail failed:', e);
+        }
+    }
+    return { ip, country, city, region, timezone, isp };
+}
+
+function getDeviceInfo() {
+    const ua = navigator.userAgent;
+    let os = 'Unknown';
+    let browser = 'Unknown';
+    let device = 'Desktop';
+
+    if (ua.indexOf('Windows') !== -1) os = 'Windows';
+    else if (ua.indexOf('Mac OS') !== -1) os = 'macOS';
+    else if (ua.indexOf('Linux') !== -1) os = 'Linux';
+    else if (ua.indexOf('Android') !== -1) os = 'Android';
+    else if (ua.indexOf('iOS') !== -1 || ua.indexOf('iPhone') !== -1 || ua.indexOf('iPad') !== -1) os = 'iOS';
+
+    if (ua.indexOf('Firefox') !== -1) browser = 'Firefox';
+    else if (ua.indexOf('Chrome') !== -1 && ua.indexOf('Edg') === -1) browser = 'Chrome';
+    else if (ua.indexOf('Safari') !== -1 && ua.indexOf('Chrome') === -1) browser = 'Safari';
+    else if (ua.indexOf('Edg') !== -1) browser = 'Edge';
+    else if (ua.indexOf('Opera') !== -1 || ua.indexOf('OPR') !== -1) browser = 'Opera';
+
+    if (/(tablet|ipad|playbook|silk)|(android(?!.*mobile))/i.test(ua)) device = 'Tablet';
+    else if (/Mobile|iP(hone|od)|Android|BlackBerry|IEMobile|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/i.test(ua)) device = 'Mobile';
+    else device = 'Desktop';
+
+    return { os, browser, device };
+}
 
 async function detectFraud(orderData) {
     const warnings = [];
@@ -7821,9 +7295,8 @@ async function logFraudDetection(data) {
 }
 
 // ============================================================
-// 54. LIMITED QUANTITY PRODUCTS
+// LIMITED QUANTITY PRODUCTS
 // ============================================================
-
 function renderLimitedProducts() {
     const container = document.getElementById('limitedProductsGrid');
     if (!container) return;
@@ -7870,11 +7343,9 @@ function renderLimitedProducts() {
 }
 
 // ============================================================
-// 55. SMART POPUPS
+// SMART POPUPS
 // ============================================================
-
 function initPopups() {
-    // Exit Intent Popup
     if (exitIntentEnabled) {
         document.addEventListener('mouseleave', (e) => {
             if (e.clientY < 0 && !popupShown) {
@@ -7883,7 +7354,6 @@ function initPopups() {
         });
     }
     
-    // Time-based Popup (after 30 seconds)
     setTimeout(() => {
         if (!popupShown && !document.hidden) {
             showOfferPopup();
@@ -7940,9 +7410,8 @@ window.subscribeAndApply = function(couponCode) {
 };
 
 // ============================================================
-// 56. ADVANCED COUPON SYSTEM
+// ADVANCED COUPON SYSTEM
 // ============================================================
-
 async function loadCoupons() {
     try {
         const couponsRef = collection(db, 'coupons');
@@ -7968,62 +7437,6 @@ function updateActiveCoupons() {
         if (c.usageLimit && c.usedCount >= c.usageLimit) return false;
         return true;
     });
-}
-
-async function validateCoupon(code, cartTotal, userId, productIds = []) {
-    const coupon = coupons.find(c => c.code.toUpperCase() === code.toUpperCase());
-    if (!coupon) return { valid: false, message: 'Invalid coupon code' };
-    if (!coupon.active) return { valid: false, message: 'This coupon is no longer active' };
-    
-    const now = new Date();
-    if (coupon.expiresAt && new Date(coupon.expiresAt) < now) {
-        return { valid: false, message: 'This coupon has expired' };
-    }
-    if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) {
-        return { valid: false, message: 'This coupon has reached its usage limit' };
-    }
-    if (coupon.minOrder && cartTotal < coupon.minOrder) {
-        return { valid: false, message: `Minimum order $${coupon.minOrder} required` };
-    }
-    if (coupon.userIds && coupon.userIds.length > 0 && !coupon.userIds.includes(userId)) {
-        return { valid: false, message: 'This coupon is not available for your account' };
-    }
-    if (coupon.productIds && coupon.productIds.length > 0) {
-        const hasValidProduct = productIds.some(id => coupon.productIds.includes(id));
-        if (!hasValidProduct) {
-            return { valid: false, message: 'This coupon is not valid for the products in your cart' };
-        }
-    }
-    if (coupon.firstOrderOnly) {
-        const userOrders = allOrders.filter(o => o.userId === userId);
-        if (userOrders.length > 0) {
-            return { valid: false, message: 'This coupon is only for first-time customers' };
-        }
-    }
-
-    let discount = 0;
-    if (coupon.type === 'percentage') {
-        discount = (cartTotal * coupon.value) / 100;
-        if (coupon.maxDiscount && discount > coupon.maxDiscount) {
-            discount = coupon.maxDiscount;
-        }
-    } else {
-        discount = coupon.value;
-        if (discount > cartTotal) discount = cartTotal;
-    }
-
-    return { valid: true, discount, coupon, message: `✅ ${discount.toFixed(2)} $ discount applied!` };
-}
-
-async function useCoupon(code, userId) {
-    const coupon = coupons.find(c => c.code.toUpperCase() === code.toUpperCase());
-    if (!coupon) return false;
-    coupon.usedCount = (coupon.usedCount || 0) + 1;
-    await updateDoc(doc(db, 'coupons', coupon.id), {
-        usedCount: coupon.usedCount,
-        updatedAt: serverTimestamp()
-    });
-    return true;
 }
 
 window.openCreateCouponModal = function() {
@@ -8158,12 +7571,14 @@ function renderAdminCoupons() {
 }
 
 // ============================================================
-// 57. EMAIL SYSTEM
+// EMAIL SYSTEM
 // ============================================================
-
 async function sendEmail(to, subject, htmlContent, textContent = '') {
     try {
-        const response = await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
+        console.log('📧 Sending email to:', to);
+        console.log('📧 Subject:', subject);
+        
+        const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/send-email', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -8173,562 +7588,676 @@ async function sendEmail(to, subject, htmlContent, textContent = '') {
                 to: to,
                 subject: subject,
                 html: htmlContent,
-                text: textContent
+                text: textContent || htmlContent.replace(/<[^>]*>/g, '')
             })
         });
-        return await response.json();
+
+        const result = await response.json();
+        console.log('📧 Email result:', result);
+        
+        if (!response.ok) {
+            throw new Error(result.error || 'Failed to send email');
+        }
+        
+        return { success: true, data: result };
     } catch (error) {
-        console.error('Email error:', error);
+        console.error('❌ Email error:', error);
         return { success: false, error: error.message };
     }
 }
 
-async function sendOrderConfirmationEmail(userEmail, orderData) {
+async function sendWelcomeEmail(userEmail, userName) {
     const html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <style>
-                body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
-                .container { max-width: 600px; margin: 0 auto; background: #fff; border-radius: 10px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-                .header { text-align: center; border-bottom: 2px solid #6c5ce7; padding-bottom: 15px; }
-                .logo { font-size: 24px; font-weight: 900; color: #6c5ce7; }
-                .order-details { margin: 20px 0; padding: 15px; background: #f8f8f8; border-radius: 8px; }
-                .total { font-size: 20px; font-weight: 800; color: #6c5ce7; }
-                .footer { text-align: center; font-size: 12px; color: #888; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; }
-                .status { display: inline-block; padding: 5px 15px; background: #fbbf24; border-radius: 30px; font-weight: 700; }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="header">
-                    <div class="logo">🛒 ZI Store</div>
-                    <h2>Order Confirmation</h2>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to ZI Store</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f0f2f8; padding: 20px; margin: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+        .header { background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%); padding: 40px 30px 30px; text-align: center; }
+        .logo { font-size: 32px; font-weight: 900; color: #fff; letter-spacing: -0.5px; }
+        .logo span { color: #f2a900; }
+        .logo-sub { font-size: 14px; color: rgba(255,255,255,0.7); margin-top: 4px; font-weight: 400; }
+        .content { padding: 40px 35px; }
+        .welcome-title { font-size: 26px; font-weight: 800; color: #1a1a2e; text-align: center; }
+        .welcome-title .emoji { font-size: 32px; display: block; margin-bottom: 4px; }
+        .welcome-text { font-size: 15px; color: #4a4a6a; line-height: 1.8; text-align: center; margin: 12px 0 20px; }
+        .features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
+        .feature-box { background: #f8f8ff; padding: 16px 18px; border-radius: 12px; border-left: 4px solid #6c5ce7; }
+        .feature-box .icon { font-size: 20px; display: block; margin-bottom: 4px; }
+        .feature-box .title { font-weight: 700; color: #1a1a2e; font-size: 14px; }
+        .feature-box .desc { font-size: 12px; color: #4a4a6a; opacity: 0.7; }
+        .coupon-box { background: linear-gradient(135deg, #f2a900, #fbbf24); border-radius: 12px; padding: 16px 20px; text-align: center; margin: 16px 0; }
+        .coupon-box .code { font-size: 20px; font-weight: 900; color: #1a1a2e; font-family: monospace; letter-spacing: 2px; }
+        .coupon-box .label { font-size: 13px; color: rgba(26,26,46,0.7); }
+        .btn-primary { display: inline-block; background: #6c5ce7; color: #fff; padding: 14px 40px; border-radius: 30px; text-decoration: none; font-weight: 700; font-size: 16px; transition: all 0.3s; margin: 8px 0; }
+        .btn-primary:hover { background: #5a4bd1; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(108,92,231,0.3); }
+        .text-center { text-align: center; }
+        .divider { border: none; border-top: 2px solid #f0f2f8; margin: 20px 0; }
+        .footer { padding: 20px 35px; text-align: center; background: #f8f8ff; }
+        .footer-text { font-size: 12px; color: #888; }
+        .footer-links a { color: #6c5ce7; text-decoration: none; margin: 0 6px; font-size: 12px; }
+        @media (max-width: 480px) {
+            .header { padding: 30px 20px; }
+            .content { padding: 25px 18px; }
+            .features-grid { grid-template-columns: 1fr; }
+            .logo { font-size: 26px; }
+            .welcome-title { font-size: 22px; }
+            .btn-primary { padding: 12px 28px; font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">ZI <span>Store</span></div>
+            <div class="logo-sub">Premium Scripts & Digital Products</div>
+        </div>
+        <div class="content">
+            <div class="welcome-title">
+                <span class="emoji">🎉</span>
+                Welcome to ZI Store!
+            </div>
+            <p class="welcome-text">
+                Hello <strong>${userName || 'there'}</strong>! We're thrilled to have you on board. 🚀<br>
+                Here's everything you need to get started:
+            </p>
+            <div class="features-grid">
+                <div class="feature-box">
+                    <span class="icon">🛍️</span>
+                    <div class="title">Premium Products</div>
+                    <div class="desc">Access exclusive scripts and tools</div>
                 </div>
-                <p>Hello <strong>${orderData.userName || 'Customer'}</strong>,</p>
-                <p>Thank you for your order! Here are the details:</p>
-                <div class="order-details">
-                    <p><strong>Order ID:</strong> #${orderData.orderId?.slice(-8) || '------'}</p>
-                    <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
-                    <p><strong>Status:</strong> <span class="status">${orderData.status || 'Pending'}</span></p>
-                    <p><strong>Payment Method:</strong> ${orderData.method || 'N/A'}</p>
-                    <hr />
-                    <h4>Items:</h4>
-                    ${(orderData.items || []).map(item => `
-                        <div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #eee;">
-                            <span>${item.name} × ${item.quantity || 1}</span>
-                            <span>$${(item.price * (item.quantity || 1)).toFixed(2)}</span>
-                        </div>
-                    `).join('')}
-                    <hr />
-                    <div style="display:flex; justify-content:space-between; font-size:18px;">
-                        <strong>Total:</strong>
-                        <strong class="total">$${(orderData.total || 0).toFixed(2)}</strong>
-                    </div>
+                <div class="feature-box">
+                    <span class="icon">💳</span>
+                    <div class="title">Secure Payments</div>
+                    <div class="desc">Multiple payment methods</div>
                 </div>
-                <p>You will receive another email once your order is confirmed.</p>
-                <div class="footer">
-                    <p>&copy; 2026 ZI Store — All rights reserved.</p>
-                    <p><a href="https://zi-store.online">Visit Store</a> | <a href="mailto:support@zi-store.online">Support</a></p>
+                <div class="feature-box">
+                    <span class="icon">⚡</span>
+                    <div class="title">Instant Delivery</div>
+                    <div class="desc">Get your products immediately</div>
+                </div>
+                <div class="feature-box">
+                    <span class="icon">🎁</span>
+                    <div class="title">Exclusive Discounts</div>
+                    <div class="desc">Special offers for members</div>
                 </div>
             </div>
-        </body>
-        </html>
+            <div class="coupon-box">
+                <div class="label">🎫 Use this coupon for 15% off your first order</div>
+                <div class="code">WELCOME15</div>
+            </div>
+            <div class="text-center">
+                <a href="https://zi-store.online" class="btn-primary">🛒 Start Shopping Now</a>
+            </div>
+            <hr class="divider">
+            <div style="text-align: center; font-size: 13px; color: #888; line-height: 1.6;">
+                <p>Need help? <a href="mailto:support@zi-store.online" style="color:#6c5ce7;">Contact Support</a></p>
+            </div>
+        </div>
+        <div class="footer">
+            <div class="footer-links">
+                <a href="https://zi-store.online">Store</a>
+                <a href="mailto:support@zi-store.online">Support</a>
+                <a href="https://zi-store.online/privacy.html">Privacy</a>
+                <a href="https://zi-store.online/refund.html">Refund Policy</a>
+            </div>
+            <div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div>
+        </div>
+    </div>
+</body>
+</html>
     `;
-    return await sendEmail(userEmail, `Order Confirmation #${orderData.orderId?.slice(-6) || ''}`, html);
+    
+    return await sendEmail(userEmail, '🎉 Welcome to ZI Store!', html);
+}
+
+async function sendOrderConfirmationEmail(userEmail, orderData) {
+    const orderId = orderData.orderId || orderData.id || '------';
+    const orderIdDisplay = orderId.slice(-8);
+    
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation #${orderIdDisplay}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f0f2f8; padding: 20px; margin: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+        .header { background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%); padding: 30px 30px 20px; text-align: center; }
+        .logo { font-size: 28px; font-weight: 900; color: #fff; }
+        .logo span { color: #f2a900; }
+        .order-status { display: inline-block; padding: 4px 16px; border-radius: 30px; background: #fbbf24; color: #1a1a2e; font-weight: 700; font-size: 13px; margin-top: 6px; }
+        .content { padding: 35px 30px; }
+        .greeting { font-size: 18px; font-weight: 700; color: #1a1a2e; }
+        .greeting span { color: #6c5ce7; }
+        .order-summary { background: #f8f8ff; border-radius: 12px; padding: 16px 18px; margin: 16px 0; }
+        .summary-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; }
+        .summary-row:last-child { border-bottom: none; }
+        .summary-label { color: #888; font-weight: 500; font-size: 13px; }
+        .summary-value { font-weight: 600; color: #1a1a2e; font-size: 13px; }
+        .items-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+        .items-table th { text-align: left; padding: 10px 0; border-bottom: 2px solid #eee; color: #888; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .items-table td { padding: 10px 0; border-bottom: 1px solid #f0f2f8; }
+        .items-table .item-name { font-weight: 600; color: #1a1a2e; }
+        .items-table .item-meta { font-size: 12px; color: #888; }
+        .items-table .item-price { text-align: right; font-weight: 600; }
+        .total-box { background: linear-gradient(135deg, #f8f8ff, #f0f2f8); border-radius: 12px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+        .total-label { font-size: 16px; font-weight: 700; color: #1a1a2e; }
+        .total-amount { font-size: 24px; font-weight: 900; color: #6c5ce7; }
+        .btn-primary { display: inline-block; background: #6c5ce7; color: #fff; padding: 12px 32px; border-radius: 30px; text-decoration: none; font-weight: 700; font-size: 14px; transition: all 0.3s; }
+        .btn-primary:hover { background: #5a4bd1; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(108,92,231,0.3); }
+        .text-center { text-align: center; }
+        .divider { border: none; border-top: 2px solid #f0f2f8; margin: 16px 0; }
+        .footer { padding: 16px 30px; text-align: center; background: #f8f8ff; }
+        .footer-text { font-size: 11px; color: #888; }
+        .footer-links a { color: #6c5ce7; text-decoration: none; margin: 0 4px; font-size: 11px; }
+        @media (max-width: 480px) {
+            .header { padding: 20px; }
+            .content { padding: 20px 15px; }
+            .total-amount { font-size: 20px; }
+            .items-table td, .items-table th { font-size: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">ZI <span>Store</span></div>
+            <div><span class="order-status">${orderData.status || 'PENDING'}</span></div>
+        </div>
+        <div class="content">
+            <div class="greeting">Hello <span>${orderData.userName || 'Customer'}</span> 👋</div>
+            <p style="color: #4a4a6a; font-size: 14px; margin: 6px 0 12px;">Thank you for your order! Here are the details:</p>
+            
+            <div class="order-summary">
+                <div class="summary-row">
+                    <span class="summary-label">📋 Order ID</span>
+                    <span class="summary-value">#${orderIdDisplay}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">📅 Date</span>
+                    <span class="summary-value">${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">💳 Payment Method</span>
+                    <span class="summary-value">${orderData.method || 'N/A'}</span>
+                </div>
+                ${orderData.txHash ? `
+                <div class="summary-row">
+                    <span class="summary-label">🔗 Transaction ID</span>
+                    <span class="summary-value" style="font-family:monospace;font-size:11px;word-break:break-all;">${orderData.txHash}</span>
+                </div>
+                ` : ''}
+            </div>
+
+            <h3 style="color: #1a1a2e; margin: 12px 0 8px; font-size: 16px;">🛍️ Items</h3>
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th style="text-align: center;">Qty</th>
+                        <th style="text-align: right;">Price</th>
+                        <th style="text-align: right;">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${(orderData.items || []).map(item => `
+                        <tr>
+                            <td>
+                                <div class="item-name">${item.name}</div>
+                                ${item.selectedQuantity ? `<div class="item-meta">📦 ${item.selectedQuantity}</div>` : ''}
+                                ${item.isVip ? `<div class="item-meta">👑 ${item.vipPlanLabel || 'VIP'}</div>` : ''}
+                            </td>
+                            <td style="text-align: center;">${item.quantity || 1}</td>
+                            <td style="text-align: right;">$${(item.price || 0).toFixed(2)}</td>
+                            <td style="text-align: right; font-weight: 600;">$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+
+            <div class="total-box">
+                <span class="total-label">Total Amount</span>
+                <span class="total-amount">$${(orderData.total || 0).toFixed(2)}</span>
+            </div>
+
+            <hr class="divider">
+            <div class="text-center">
+                <a href="https://zi-store.online" class="btn-primary">📦 View My Orders</a>
+            </div>
+            <p style="text-align: center; font-size: 12px; color: #888; margin-top: 10px;">
+                You will receive another email once your order is confirmed.
+            </p>
+        </div>
+        <div class="footer">
+            <div class="footer-links">
+                <a href="https://zi-store.online">Store</a>
+                <a href="mailto:support@zi-store.online">Support</a>
+                <a href="https://zi-store.online/refund.html">Refund Policy</a>
+            </div>
+            <div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div>
+        </div>
+    </div>
+</body>
+</html>
+    `;
+    
+    return await sendEmail(userEmail, `📦 Order Confirmation #${orderIdDisplay}`, html);
 }
 
 async function sendOrderStatusEmail(userEmail, orderId, newStatus) {
-    const statusMessages = {
-        'confirmed': '✅ Your order has been confirmed and is being processed!',
-        'rejected': '❌ Your order has been rejected. Please contact support for more information.',
-        'shipped': '📦 Your order has been shipped!',
-        'delivered': '🎉 Your order has been delivered!'
+    const statusConfig = {
+        'confirmed': {
+            emoji: '✅',
+            title: 'Order Confirmed!',
+            message: 'Your order has been confirmed and is being processed!',
+            color: '#00d4aa',
+            textColor: '#0a0a1a',
+            button: '📦 View Order'
+        },
+        'rejected': {
+            emoji: '❌',
+            title: 'Order Rejected',
+            message: 'Your order has been rejected. Please contact support for more information.',
+            color: '#ff6b6b',
+            textColor: '#ffffff',
+            button: '📞 Contact Support'
+        }
     };
-    const html = `
-        <!DOCTYPE html>
-        <html>
-        <head><style>body{font-family:Arial,sans-serif;padding:20px;background:#f4f4f4;} .container{max-width:600px;margin:0 auto;background:#fff;border-radius:10px;padding:30px;box-shadow:0 4px 20px rgba(0,0,0,0.1);} .header{text-align:center;border-bottom:2px solid #6c5ce7;padding-bottom:15px;} .logo{font-size:24px;font-weight:900;color:#6c5ce7;} .status-update{padding:15px;background:#f8f8f8;border-radius:8px;margin:20px 0;text-align:center;} .status-badge{display:inline-block;padding:8px 20px;border-radius:30px;font-weight:700;background:${newStatus === 'confirmed' ? '#00d4aa' : newStatus === 'rejected' ? '#ff6b6b' : '#fbbf24'};color:#0a0a1a;} .footer{text-align:center;font-size:12px;color:#888;margin-top:20px;border-top:1px solid #eee;padding-top:15px;}</style></head>
-        <body>
-            <div class="container">
-                <div class="header"><div class="logo">🛒 ZI Store</div><h2>Order Status Update</h2></div>
-                <p>Hello,</p>
-                <div class="status-update">
-                    <p style="font-size:16px;">${statusMessages[newStatus] || 'Your order status has been updated.'}</p>
-                    <p><strong>Order ID:</strong> #${orderId?.slice(-8) || '------'}</p>
-                    <div><span class="status-badge">${newStatus.toUpperCase()}</span></div>
-                </div>
-                <p><a href="https://zi-store.online" style="background:#6c5ce7;color:#fff;padding:10px 20px;border-radius:5px;text-decoration:none;">View Order</a></p>
-                <div class="footer"><p>&copy; 2026 ZI Store — All rights reserved.</p></div>
-            </div>
-        </body>
-        </html>
-    `;
-    return await sendEmail(userEmail, `Order Status Update #${orderId?.slice(-6) || ''}`, html);
-}
-
-async function sendWelcomeEmail(userEmail, userName) {
-    const html = `
-        <!DOCTYPE html>
-        <html>
-        <head><style>body{font-family:Arial,sans-serif;padding:20px;background:#f4f4f4;} .container{max-width:600px;margin:0 auto;background:#fff;border-radius:10px;padding:30px;box-shadow:0 4px 20px rgba(0,0,0,0.1);} .header{text-align:center;border-bottom:2px solid #6c5ce7;padding-bottom:15px;} .logo{font-size:24px;font-weight:900;color:#6c5ce7;} .welcome{text-align:center;padding:20px 0;} .footer{text-align:center;font-size:12px;color:#888;margin-top:20px;border-top:1px solid #eee;padding-top:15px;}</style></head>
-        <body>
-            <div class="container">
-                <div class="header"><div class="logo">🛒 ZI Store</div><h2>Welcome to ZI Store!</h2></div>
-                <div class="welcome">
-                    <h3>Hi ${userName || 'there'}! 🎉</h3>
-                    <p>Thank you for joining ZI Store! We're excited to have you.</p>
-                    <p>Here's what you can do:</p>
-                    <ul style="text-align:left;display:inline-block;">
-                        <li>🛍️ Browse our premium products</li>
-                        <li>💳 Secure payments</li>
-                        <li>⚡ Instant delivery</li>
-                        <li>🎁 Exclusive discounts</li>
-                    </ul>
-                    <br />
-                    <a href="https://zi-store.online" style="background:#6c5ce7;color:#fff;padding:10px 30px;border-radius:5px;text-decoration:none;">Start Shopping</a>
-                </div>
-                <div class="footer"><p>&copy; 2026 ZI Store — All rights reserved.</p></div>
-            </div>
-        </body>
-        </html>
-    `;
-    return await sendEmail(userEmail, 'Welcome to ZI Store! 🎉', html);
-}
-
-// ============================================================
-// 58. PDF INVOICE GENERATOR
-// ============================================================
-
-window.generatePDFInvoice = function(orderData) {
-    if (!orderData) { showToast('❌ No order data for invoice', 'error'); return; }
-    try {
-        let order = typeof orderData === 'string' ? JSON.parse(orderData) : orderData;
-        if (!order.id) { order.id = 'INV-' + Date.now().toString().slice(-6); }
-        
-        const invoiceHtml = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Invoice #${order.id}</title>
-            <style>
-                * { margin:0; padding:0; box-sizing:border-box; }
-                body { font-family: 'Arial', sans-serif; padding: 40px; background: #fff; color: #1a1a2e; }
-                .invoice { max-width: 800px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 12px; padding: 40px; }
-                .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #6c5ce7; padding-bottom: 20px; margin-bottom: 20px; }
-                .logo { font-size: 28px; font-weight: 900; color: #6c5ce7; }
-                .logo span { color: #f2a900; }
-                .invoice-title { font-size: 24px; color: #6c5ce7; font-weight: 700; }
-                .details { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; padding: 15px; background: #f8f8ff; border-radius: 8px; }
-                .details .label { color: #888; font-size: 12px; font-weight: 600; text-transform: uppercase; }
-                .details .value { font-weight: 700; font-size: 14px; }
-                table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-                th { background: #6c5ce7; color: #fff; padding: 12px; text-align: left; font-size: 12px; text-transform: uppercase; }
-                td { padding: 12px; border-bottom: 1px solid #e0e0e0; }
-                .total-section { margin-top: 20px; padding-top: 20px; border-top: 2px solid #e0e0e0; text-align: right; }
-                .total-section .total { font-size: 24px; font-weight: 900; color: #6c5ce7; }
-                .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center; font-size: 12px; color: #888; }
-                @media print {
-                    body { padding: 0; }
-                    .invoice { border: none; padding: 20px; }
-                    .no-print { display: none; }
-                }
-                .status-badge { display: inline-block; padding: 4px 12px; border-radius: 30px; font-size: 12px; font-weight: 700; background: ${order.status === 'confirmed' ? '#00d4aa' : order.status === 'rejected' ? '#ff6b6b' : '#fbbf24'}; color: #0a0a1a; }
-            </style>
-        </head>
-        <body>
-            <div class="invoice">
-                <div class="header">
-                    <div class="logo">ZI <span>Store</span></div>
-                    <div class="invoice-title">INVOICE</div>
-                </div>
-                <div class="details">
-                    <div>
-                        <div class="label">Order ID</div>
-                        <div class="value">#${order.id}</div>
-                        <div class="label" style="margin-top:6px;">Date</div>
-                        <div class="value">${new Date(order.date || Date.now()).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
-                    </div>
-                    <div style="text-align:right;">
-                        <div class="label">Status</div>
-                        <div class="value"><span class="status-badge">${order.status || 'Pending'}</span></div>
-                        <div class="label" style="margin-top:6px;">Payment Method</div>
-                        <div class="value">${order.method || 'N/A'}</div>
-                    </div>
-                </div>
-                <table>
-                    <thead><tr><th>Product</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead>
-                    <tbody>
-                        ${(order.items || []).map(item => `
-                            <tr>
-                                <td>${item.name}${item.selectedQuantity ? ' (x'+item.selectedQuantity+')' : ''}</td>
-                                <td>${item.quantity || 1}</td>
-                                <td>$${(item.price || 0).toFixed(2)}</td>
-                                <td>$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-                <div class="total-section">
-                    <div style="font-size:16px; color:#888; margin-bottom:4px;">Total Amount</div>
-                    <div class="total">$${(order.total || 0).toFixed(2)}</div>
-                </div>
-                <div class="footer">
-                    <p>Thank you for your purchase at ZI Store!</p>
-                    <p style="margin-top:4px;">© 2026 ZI Store — All rights reserved.</p>
-                </div>
-            </div>
-            <div style="text-align:center; margin-top:20px;" class="no-print">
-                <button onclick="window.print()" style="padding:10px 30px; background:#6c5ce7; color:#fff; border:none; border-radius:8px; font-weight:700; cursor:pointer; font-size:14px;">
-                    <i class="fas fa-print"></i> Print / Save as PDF
-                </button>
-            </div>
-        </body>
-        </html>
-        `;
-        
-        const win = window.open('', '_blank');
-        if (!win) { showToast('⚠️ Please allow popups to generate invoice', 'warning'); return; }
-        win.document.write(invoiceHtml);
-        win.document.close();
-        setTimeout(() => win.print(), 500);
-        showToast('📄 Invoice generated!', 'success');
-    } catch (error) {
-        console.error('Invoice generation error:', error);
-        showToast('❌ Failed to generate invoice', 'error');
-    }
-};
-
-// ============================================================
-// 59. ADD MISSING FUNCTIONS
-// ============================================================
-
-// ============================================================
-// 59.1 CHECKOUT FUNCTION
-// ============================================================
-
-window.checkout = function() {
-    if (cart.length === 0) {
-        showToast('⚠️ Your cart is empty', 'warning');
-        return;
-    }
-
-    if (!currentUser) {
-        showToast('⚠️ Please login to checkout', 'warning');
-        openAuthModal();
-        return;
-    }
-
-    openPaymentModal();
-};
-
-// ============================================================
-// 59.2 PAYMENT MODAL FUNCTIONS
-// ============================================================
-
-window.openPaymentModal = function() {
-    if (cart.length === 0) {
-        showToast('⚠️ Cart is empty', 'warning');
-        return;
-    }
-
-    if (!currentUser) {
-        showToast('⚠️ Please login to checkout', 'warning');
-        openAuthModal();
-        return;
-    }
-
-    const modal = document.getElementById('paymentModal');
-    if (modal) {
-        goToStep1();
-        modal.classList.add('open');
-        document.body.style.overflow = 'hidden';
-        updatePayableTotal();
-        renderPaymentProducts();
-        fetchCryptoPrices();
-        loadUserBalance();
-    } else {
-        showToast('❌ Payment modal not found', 'error');
-    }
-};
-
-window.closePaymentModal = function() {
-    const modal = document.getElementById('paymentModal');
-    if (modal) {
-        modal.classList.remove('open');
-        document.body.style.overflow = '';
-        selectedPayment = null;
-        document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
-        document.getElementById('paymentStep1').style.display = 'block';
-        document.getElementById('paymentStep2').style.display = 'none';
-    }
-};
-
-window.goToStep1 = function() {
-    document.getElementById('paymentStep1').style.display = 'block';
-    document.getElementById('paymentStep2').style.display = 'none';
-    selectedPayment = null;
-    document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
-};
-
-// ============================================================
-// 59.3 COPY WALLET ADDRESS
-// ============================================================
-
-window.copyWalletAddress = function() {
-    const addressElement = document.getElementById('walletAddressDisplay');
-    if (!addressElement) {
-        showToast('⚠️ Wallet address not found', 'warning');
-        return;
-    }
-    const address = addressElement.textContent.trim();
-    if (!address || address === '') {
-        showToast('⚠️ No wallet address to copy', 'warning');
-        return;
-    }
-
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(address)
-            .then(() => showToast('✅ Wallet address copied!', 'success'))
-            .catch(() => fallbackCopyText(address));
-    } else {
-        fallbackCopyText(address);
-    }
-};
-
-// ============================================================
-// 59.4 ADD PRODUCT MODAL FUNCTIONS
-// ============================================================
-
-window.openAddProductModal = function() {
-    if (!currentUser || !isAdminCached) {
-        showToast('⛔ Unauthorized. Admin only.', 'error');
-        return;
-    }
-
-    const modal = document.getElementById('productModal');
-    if (!modal) {
-        console.error('❌ Product modal not found');
-        showToast('❌ Product modal not found in HTML', 'error');
-        return;
-    }
-
-    const titleEl = document.getElementById('productFormTitle');
-    const form = document.getElementById('productForm');
-    const idField = document.getElementById('productIdField');
-    const currency = document.getElementById('productCurrency');
-    const type = document.getElementById('productType');
-    const quantityContainer = document.getElementById('quantityOptionsContainer');
-    const list = document.getElementById('quantityOptionsList');
-    const badgesInput = document.getElementById('productBadges');
-
-    if (titleEl) titleEl.textContent = '➕ Add New Product';
-    if (form) form.reset();
-    if (idField) idField.value = '';
-    if (currency) currency.value = 'USD';
-    if (type) type.value = 'standard';
-    if (quantityContainer) quantityContainer.style.display = 'none';
     
-    document.querySelectorAll('.currency-option').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.type-option').forEach(el => el.classList.remove('active'));
-    document.querySelector('.currency-option[data-currency="USD"]')?.classList.add('active');
-    document.querySelector('.type-option[data-type="standard"]')?.classList.add('active');
-
-    document.querySelectorAll('.badge-option').forEach(el => el.classList.remove('selected'));
-    if (badgesInput) badgesInput.value = '';
-
-    if (list) list.innerHTML = '';
-    addQuantityOption();
-
-    modal.classList.add('open');
-    document.body.style.overflow = 'hidden';
-};
-
-window.openEditProductModal = function(productId) {
-    if (!currentUser || !isAdminCached) {
-        showToast('⛔ Unauthorized. Admin only.', 'error');
-        return;
-    }
-
-    const product = products.find(p => p.id === productId);
-    if (!product) {
-        showToast('❌ Product not found', 'error');
-        return;
-    }
-
-    const modal = document.getElementById('productModal');
-    if (!modal) {
-        console.error('❌ Product modal not found');
-        showToast('❌ Product modal not found in HTML', 'error');
-        return;
-    }
-
-    const titleEl = document.getElementById('productFormTitle');
-    const idField = document.getElementById('productIdField');
-    const nameEl = document.getElementById('productName');
-    const priceEl = document.getElementById('productPrice');
-    const badgeEl = document.getElementById('productBadge');
-    const statusEl = document.getElementById('productStatus');
-    const imageEl = document.getElementById('productImage');
-    const descEl = document.getElementById('productDescription');
-    const featuresEl = document.getElementById('productFeatures');
-    const videoEl = document.getElementById('productVideo');
-    const downloadEl = document.getElementById('productDownloadLink');
-    const currencyEl = document.getElementById('productCurrency');
-    const typeEl = document.getElementById('productType');
-    const quantityContainer = document.getElementById('quantityOptionsContainer');
-    const badgesInput = document.getElementById('productBadges');
-
-    if (titleEl) titleEl.textContent = '✏️ Edit Product';
-    if (idField) idField.value = product.id;
-    if (nameEl) nameEl.value = product.name || '';
-    if (priceEl) priceEl.value = product.price || 0;
-    if (badgeEl) badgeEl.value = product.badge || 'FREE';
-    if (statusEl) statusEl.value = product.status || 'available';
-    if (imageEl) imageEl.value = product.image || '';
-    if (descEl) descEl.value = product.description || '';
-    if (featuresEl) featuresEl.value = (product.features || []).join(', ');
-    if (videoEl) videoEl.value = product.video || '';
-    if (downloadEl) downloadEl.value = product.downloadLink || '';
-    if (currencyEl) currencyEl.value = product.currency || 'USD';
-    if (typeEl) typeEl.value = product.productType || 'standard';
-
-    document.querySelectorAll('.currency-option').forEach(el => {
-        el.classList.toggle('active', el.dataset.currency === (product.currency || 'USD'));
-    });
-
-    document.querySelectorAll('.type-option').forEach(el => {
-        el.classList.toggle('active', el.dataset.type === (product.productType || 'standard'));
-    });
-
-    if (product.productType === 'quantity' && quantityContainer) {
-        quantityContainer.style.display = 'block';
-        if (product.quantityOptions) {
-            setQuantityOptions(product.quantityOptions);
-        }
-    } else if (quantityContainer) {
-        quantityContainer.style.display = 'none';
-    }
-
-    if (product.badges) {
-        setBadges(product.badges);
-    } else {
-        document.querySelectorAll('.badge-option').forEach(el => el.classList.remove('selected'));
-        if (badgesInput) badgesInput.value = '';
-    }
-
-    modal.classList.add('open');
-    document.body.style.overflow = 'hidden';
-};
-
-window.closeProductModal = function() {
-    const modal = document.getElementById('productModal');
-    if (modal) {
-        modal.classList.remove('open');
-        document.body.style.overflow = '';
-    }
-};
-
-window.saveProduct = async function() {
-    if (!currentUser || !isAdminCached) {
-        showToast('⛔ Unauthorized. Admin only.', 'error');
-        return;
-    }
-
-    const id = document.getElementById('productIdField')?.value;
-    const name = document.getElementById('productName')?.value.trim();
-    const price = parseFloat(document.getElementById('productPrice')?.value) || 0;
-    const badge = document.getElementById('productBadge')?.value || 'FREE';
-    const status = document.getElementById('productStatus')?.value || 'available';
-    const image = document.getElementById('productImage')?.value.trim() || '';
-    const description = document.getElementById('productDescription')?.value.trim() || '';
-    const featuresText = document.getElementById('productFeatures')?.value.trim() || '';
-    const video = document.getElementById('productVideo')?.value.trim() || '';
-    const downloadLink = document.getElementById('productDownloadLink')?.value.trim() || '';
-    const currency = document.getElementById('productCurrency')?.value || 'USD';
-    const productType = document.getElementById('productType')?.value || 'standard';
-
-    if (!name) {
-        showToast('⚠️ Product name is required', 'warning');
-        return;
-    }
-
-    const features = featuresText ? featuresText.split(',').map(f => f.trim()).filter(f => f) : [];
-    const badgesText = document.getElementById('productBadges')?.value || '';
-    const badges = badgesText ? badgesText.split(',').map(b => b.trim()).filter(b => b) : [];
-
-    const productData = {
-        name,
-        price,
-        badge,
-        status,
-        image,
-        description,
-        features,
-        video,
-        downloadLink,
-        currency,
-        productType,
-        badges,
-        updatedAt: serverTimestamp()
+    const config = statusConfig[newStatus] || {
+        emoji: '📋',
+        title: 'Order Status Updated',
+        message: 'Your order status has been updated.',
+        color: '#6c5ce7',
+        textColor: '#ffffff',
+        button: '📦 View Order'
     };
-
-    if (productType === 'quantity') {
-        const quantityOptions = getQuantityOptions();
-        if (quantityOptions.length === 0) {
-            showToast('⚠️ Please add at least one quantity option', 'warning');
-            return;
+    
+    const orderIdDisplay = orderId?.slice(-8) || '------';
+    
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Status Update #${orderIdDisplay}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f0f2f8; padding: 20px; margin: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+        .header { background: linear-gradient(135deg, ${config.color}, ${config.color}dd); padding: 30px 30px 20px; text-align: center; }
+        .logo { font-size: 28px; font-weight: 900; color: #fff; }
+        .logo span { color: #f2a900; }
+        .status-icon { font-size: 48px; text-align: center; margin: 8px 0; }
+        .status-title { font-size: 24px; font-weight: 800; color: #fff; }
+        .status-badge { display: inline-block; padding: 4px 20px; border-radius: 30px; background: rgba(255,255,255,0.2); color: #fff; font-weight: 700; font-size: 14px; margin-top: 4px; }
+        .content { padding: 35px 30px; }
+        .greeting { font-size: 16px; color: #1a1a2e; }
+        .greeting strong { color: #6c5ce7; }
+        .message-box { background: #f8f8ff; border-radius: 12px; padding: 16px 20px; margin: 12px 0 16px; border-left: 4px solid ${config.color}; }
+        .message-box p { font-size: 15px; color: #4a4a6a; line-height: 1.6; }
+        .order-info { background: #f8f8ff; border-radius: 12px; padding: 12px 16px; margin: 12px 0; }
+        .info-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; }
+        .info-label { color: #888; font-weight: 500; }
+        .info-value { font-weight: 600; color: #1a1a2e; }
+        .btn-primary { display: inline-block; background: ${config.color}; color: ${config.textColor}; padding: 12px 32px; border-radius: 30px; text-decoration: none; font-weight: 700; font-size: 14px; transition: all 0.3s; }
+        .btn-primary:hover { opacity: 0.85; transform: translateY(-2px); }
+        .text-center { text-align: center; }
+        .divider { border: none; border-top: 2px solid #f0f2f8; margin: 16px 0; }
+        .footer { padding: 16px 30px; text-align: center; background: #f8f8ff; }
+        .footer-text { font-size: 11px; color: #888; }
+        .footer-links a { color: #6c5ce7; text-decoration: none; margin: 0 4px; font-size: 11px; }
+        @media (max-width: 480px) {
+            .header { padding: 20px; }
+            .content { padding: 20px 15px; }
+            .status-icon { font-size: 36px; }
+            .status-title { font-size: 20px; }
+            .btn-primary { padding: 10px 24px; font-size: 13px; }
         }
-        productData.quantityOptions = quantityOptions;
-    }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">ZI <span>Store</span></div>
+            <div class="status-icon">${config.emoji}</div>
+            <div class="status-title">${config.title}</div>
+            <div><span class="status-badge">${newStatus.toUpperCase()}</span></div>
+        </div>
+        <div class="content">
+            <div class="greeting">Hello <strong>Customer</strong>,</div>
+            <div class="message-box">
+                <p>${config.message}</p>
+            </div>
+            <div class="order-info">
+                <div class="info-row">
+                    <span class="info-label">📋 Order ID</span>
+                    <span class="info-value">#${orderIdDisplay}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">📅 Date</span>
+                    <span class="info-value">${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">📦 Status</span>
+                    <span class="info-value" style="color:${config.color};">${newStatus.toUpperCase()}</span>
+                </div>
+            </div>
+            <hr class="divider">
+            <div class="text-center">
+                <a href="https://zi-store.online" class="btn-primary">${config.button}</a>
+            </div>
+        </div>
+        <div class="footer">
+            <div class="footer-links">
+                <a href="https://zi-store.online">Store</a>
+                <a href="mailto:support@zi-store.online">Support</a>
+            </div>
+            <div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div>
+        </div>
+    </div>
+</body>
+</html>
+    `;
+    
+    return await sendEmail(userEmail, `${config.emoji} Order Status Update #${orderIdDisplay}`, html);
+}
 
+async function sendTopupConfirmationEmail(userEmail, amount, txHash = null) {
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Topup Confirmation</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f0f2f8; padding: 20px; margin: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+        .header { background: linear-gradient(135deg, #f2a900, #fbbf24); padding: 30px 30px 20px; text-align: center; }
+        .logo { font-size: 28px; font-weight: 900; color: #1a1a2e; }
+        .logo span { color: #6c5ce7; }
+        .amount-display { background: rgba(255,255,255,0.2); border-radius: 16px; padding: 16px 20px; margin-top: 10px; display: inline-block; }
+        .amount-display .amount { font-size: 36px; font-weight: 900; color: #1a1a2e; }
+        .amount-display .label { font-size: 14px; color: rgba(26,26,46,0.7); }
+        .content { padding: 35px 30px; }
+        .greeting { font-size: 16px; color: #1a1a2e; }
+        .greeting strong { color: #6c5ce7; }
+        .details-box { background: #f8f8ff; border-radius: 12px; padding: 14px 18px; margin: 12px 0; }
+        .detail-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; border-bottom: 1px solid #eee; }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label { color: #888; font-weight: 500; }
+        .detail-value { font-weight: 600; color: #1a1a2e; }
+        .btn-primary { display: inline-block; background: #6c5ce7; color: #fff; padding: 12px 32px; border-radius: 30px; text-decoration: none; font-weight: 700; font-size: 14px; transition: all 0.3s; }
+        .btn-primary:hover { background: #5a4bd1; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(108,92,231,0.3); }
+        .text-center { text-align: center; }
+        .divider { border: none; border-top: 2px solid #f0f2f8; margin: 16px 0; }
+        .footer { padding: 16px 30px; text-align: center; background: #f8f8ff; }
+        .footer-text { font-size: 11px; color: #888; }
+        .footer-links a { color: #6c5ce7; text-decoration: none; margin: 0 4px; font-size: 11px; }
+        @media (max-width: 480px) {
+            .header { padding: 20px; }
+            .content { padding: 20px 15px; }
+            .amount-display .amount { font-size: 28px; }
+            .btn-primary { padding: 10px 24px; font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">ZI <span>Store</span></div>
+            <div class="amount-display">
+                <div class="label">💰 Amount Added</div>
+                <div class="amount">+$${amount.toFixed(2)}</div>
+            </div>
+        </div>
+        <div class="content">
+            <div class="greeting">Hello <strong>Customer</strong>,</div>
+            <p style="color: #4a4a6a; font-size: 14px; margin: 4px 0 12px;">Your balance has been updated successfully!</p>
+            <div class="details-box">
+                <div class="detail-row">
+                    <span class="detail-label">📅 Date</span>
+                    <span class="detail-value">${new Date().toLocaleString()}</span>
+                </div>
+                ${txHash ? `
+                <div class="detail-row">
+                    <span class="detail-label">🔗 Transaction ID</span>
+                    <span class="detail-value" style="font-family:monospace;font-size:11px;word-break:break-all;">${txHash}</span>
+                </div>
+                ` : ''}
+            </div>
+            <hr class="divider">
+            <div class="text-center">
+                <a href="https://zi-store.online" class="btn-primary">🛒 Start Shopping</a>
+            </div>
+        </div>
+        <div class="footer">
+            <div class="footer-links">
+                <a href="https://zi-store.online">Store</a>
+                <a href="mailto:support@zi-store.online">Support</a>
+            </div>
+            <div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div>
+        </div>
+    </div>
+</body>
+</html>
+    `;
+    
+    return await sendEmail(userEmail, `💰 Balance Added - $${amount.toFixed(2)}`, html);
+}
+
+async function sendAdminNotificationEmail(subject, message) {
+    const adminEmail = 'idriss.zribi13@gmail.com';
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Notification</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f0f2f8; padding: 20px; margin: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+        .header { background: linear-gradient(135deg, #ff6b6b, #ee5a24); padding: 30px 30px 20px; text-align: center; }
+        .logo { font-size: 28px; font-weight: 900; color: #fff; }
+        .logo span { color: #f2a900; }
+        .content { padding: 35px 30px; }
+        .message-box { background: #f8f8ff; border-radius: 12px; padding: 16px 20px; margin: 12px 0; border-left: 4px solid #ff6b6b; }
+        .message-box p { font-size: 14px; color: #4a4a6a; line-height: 1.8; white-space: pre-wrap; }
+        .footer { padding: 16px 30px; text-align: center; background: #f8f8ff; }
+        .footer-text { font-size: 11px; color: #888; }
+        @media (max-width: 480px) {
+            .header { padding: 20px; }
+            .content { padding: 20px 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">ZI <span>Store</span></div>
+            <div style="color: rgba(255,255,255,0.8); font-size: 14px;">Admin Notification</div>
+        </div>
+        <div class="content">
+            <h2 style="color: #1a1a2e; font-size: 20px;">${subject}</h2>
+            <div class="message-box">
+                <p>${message}</p>
+            </div>
+            <p style="text-align: center; font-size: 12px; color: #888; margin-top: 12px;">📅 ${new Date().toLocaleString()}</p>
+        </div>
+        <div class="footer">
+            <div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div>
+        </div>
+    </div>
+</body>
+</html>
+    `;
+    
+    return await sendEmail(adminEmail, `🔔 Admin: ${subject}`, html);
+}
+
+// ============================================================
+// EMAIL MANAGEMENT - ADMIN FUNCTIONS
+// ============================================================
+let emailLogs = [];
+
+async function loadEmailLogs() {
+    const container = document.getElementById('emailLogsContainer');
+    if (!container) return;
+    
     try {
-        if (id) {
-            await updateDoc(doc(db, 'products', id), productData);
-            showToast('✅ Product updated successfully!', 'success');
-        } else {
-            productData.createdAt = serverTimestamp();
-            await addDoc(collection(db, 'products'), productData);
-            showToast('✅ Product added successfully!', 'success');
-        }
-
-        closeProductModal();
+        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
+        
+        const { data, error } = await supabase
+            .from('email_logs')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(50);
+        
+        if (error) throw error;
+        
+        emailLogs = data || [];
+        renderEmailLogs(emailLogs);
     } catch (error) {
-        console.error('Error saving product:', error);
-        showToast('❌ Error: ' + error.message, 'error');
+        console.error('Error loading email logs:', error);
+        container.innerHTML = `
+            <div style="text-align:center;padding:20px;color:var(--danger);">
+                Failed to load email logs: ${error.message}
+                <br>
+                <button onclick="loadEmailLogs()" style="margin-top:8px;padding:6px 16px;background:var(--primary);border:none;border-radius:var(--radius-sm);color:#fff;cursor:pointer;">Retry</button>
+            </div>
+        `;
     }
-};
+}
 
-window.deleteProduct = async function(productId) {
-    if (!currentUser || !isAdminCached) {
-        showToast('⛔ Unauthorized. Admin only.', 'error');
+function renderEmailLogs(logs) {
+    const container = document.getElementById('emailLogsContainer');
+    if (!container) return;
+    
+    if (!logs || logs.length === 0) {
+        container.innerHTML = `
+            <div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">
+                <i class="fas fa-envelope" style="font-size:36px;display:block;margin-bottom:8px;opacity:0.2;"></i>
+                No emails sent yet
+            </div>
+        `;
         return;
     }
+    
+    container.innerHTML = logs.map(log => {
+        const statusColor = log.status === 'sent' ? 'var(--success)' : log.status === 'failed' ? 'var(--danger)' : 'var(--warning)';
+        const statusIcon = log.status === 'sent' ? '✅' : log.status === 'failed' ? '❌' : '⏳';
+        const date = new Date(log.created_at).toLocaleString();
+        
+        return `
+            <div class="admin-item" style="border-left:4px solid ${statusColor};">
+                <div class="item-info">
+                    <div class="item-title">
+                        ${statusIcon} ${log.subject || 'No Subject'}
+                        <span style="font-size:11px;font-weight:400;opacity:0.5;margin-left:6px;">
+                            to: ${log.recipient}
+                        </span>
+                        <span class="status-badge ${log.status}" style="font-size:9px;padding:1px 10px;">
+                            ${log.status || 'unknown'}
+                        </span>
+                    </div>
+                    <div class="item-meta">
+                        📅 ${date}
+                        ${log.error ? `• ❌ ${log.error}` : ''}
+                    </div>
+                </div>
+                <div class="item-actions">
+                    ${log.html ? `<button onclick="previewEmail('${log.id}')" class="btn-edit" style="background:var(--primary);color:#fff;border:none;padding:4px 10px;border-radius:var(--radius-sm);cursor:pointer;font-weight:600;font-size:11px;">
+                        <i class="fas fa-eye"></i> Preview
+                    </button>` : ''}
+                    <button onclick="resendEmail('${log.id}')" class="btn-edit" style="background:var(--vip-color);color:#0a0a1a;border:none;padding:4px 10px;border-radius:var(--radius-sm);cursor:pointer;font-weight:600;font-size:11px;">
+                        <i class="fas fa-redo"></i> Resend
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
 
-    if (!confirm('Are you sure you want to delete this product?')) return;
+window.loadEmailLogs = loadEmailLogs;
 
+window.sendTestEmail = async function() {
     try {
-        await deleteDoc(doc(db, 'products', productId));
-        showToast('🗑️ Product deleted successfully', 'success');
+        const testEmail = prompt('Enter email address to send test email:', 'test@example.com');
+        if (!testEmail) return;
+        
+        showToast('📧 Sending test email...', 'info');
+        
+        const result = await sendWelcomeEmail(testEmail, 'Test User');
+        
+        if (result.success) {
+            showToast('✅ Test email sent successfully!', 'success');
+            loadEmailLogs();
+        } else {
+            showToast('❌ Failed to send test email: ' + result.error, 'error');
+        }
     } catch (error) {
-        console.error('Error deleting product:', error);
+        showToast('❌ Error: ' + error.message, 'error');
+    }
+};
+
+window.previewEmail = function(logId) {
+    const log = emailLogs.find(l => l.id === logId);
+    if (!log || !log.html) {
+        showToast('❌ Email content not found', 'error');
+        return;
+    }
+    
+    const win = window.open('', '_blank', 'width=800,height=600');
+    if (win) {
+        win.document.write(log.html);
+        win.document.close();
+    } else {
+        showToast('⚠️ Please allow popups', 'warning');
+    }
+};
+
+window.resendEmail = async function(logId) {
+    const log = emailLogs.find(l => l.id === logId);
+    if (!log) {
+        showToast('❌ Email log not found', 'error');
+        return;
+    }
+    
+    if (!confirm(`Resend email to ${log.recipient}?`)) return;
+    
+    try {
+        showToast('📧 Resending...', 'info');
+        const result = await sendEmail(log.recipient, log.subject, log.html, log.text);
+        
+        if (result.success) {
+            showToast('✅ Email resent successfully!', 'success');
+            loadEmailLogs();
+        } else {
+            showToast('❌ Failed to resend: ' + result.error, 'error');
+        }
+    } catch (error) {
         showToast('❌ Error: ' + error.message, 'error');
     }
 };
 
 // ============================================================
-// 59.5 FILTER ORDERS FUNCTION
+// ADMIN SETTINGS UI
 // ============================================================
-
-window.filterOrders = function(filter) {
-    ordersFilter = filter;
-    renderHistoryFull();
-};
-
-// ============================================================
-// 59.6 ADMIN SETTINGS UI
-// ============================================================
-
 async function loadAdminSettingsUI() {
     if (!currentUser || !isAdminCached) return;
     
@@ -8860,7 +8389,7 @@ window.getMyTelegramChatId = function() {
 };
 
 // ============================================================
-// FIX: Missing functions for cart and banner
+// MISSING FUNCTIONS FOR CART AND BANNER
 // ============================================================
 window.removeFromCartAndCloseBanner = function(productId) {
     if (productId) {
@@ -8881,9 +8410,8 @@ window.closeQuickPurchaseBanner = function() {
 };
 
 // ============================================================
-// 60. EXPORT ALL FUNCTIONS TO WINDOW
+// EXPORT ALL FUNCTIONS TO WINDOW
 // ============================================================
-
 window.showLogin = showLogin;
 window.showRegister = showRegister;
 window.loginUser = loginUser;
@@ -9118,99 +8646,21 @@ window.renderAdminCoupons = renderAdminCoupons;
 window.applyPopupCoupon = applyPopupCoupon;
 window.subscribeAndApply = subscribeAndApply;
 window.closePopup = closePopup;
-window.generatePDFInvoice = generatePDFInvoice;
-
-console.log('✅ All functions exported to window scope');
-
-// ============================================================
-// 61. INIT
-// ============================================================
-
-async function init() {
-    console.log('🚀 Initializing ZI Store...');
-
-    const authSection = document.getElementById('authSection');
-    if (authSection) authSection.style.display = 'none';
-
-    window.updateLoadingProgress(5, 'Starting...');
-
-    try {
-        window.updateLoadingProgress(15, 'Loading products...');
-        const productsFromFirestore = await loadProductsFromFirestore();
-        products = productsFromFirestore;
-
-        window.updateLoadingProgress(40, 'Initializing app...');
-        startProductsRealtimeListener();
-        await loadUserData();
-        renderProducts(products, false);
-        renderFeaturedProducts();
-        generateRecommendations(products);
-        updateBottomCartBar();
-        updateDropdownStats();
-        loadDownloads();
-        loadNotifications();
-        fetchCryptoPrices();
-        loadFeaturedSettings();
-        loadSliderSettings();
-        loadMarqueeSettings();
-        setInterval(fetchCryptoPrices, 60000);
-        loadUserBalance();
-        initTopInfoBar();
-        loadCoupons();
-
-        setTimeout(removeDuplicateDate, 500);
-        setTimeout(styleHeaderTopup, 500);
-        setTimeout(fixDirection, 100);
-
-        window.updateLoadingProgress(90, 'Almost ready...');
-        console.log('✅ ZI Store ready with all features!');
-        setTimeout(window.ensureAdminPanel, 3000);
-        setTimeout(checkCookieConsent, 1500);
-
-        if (auth.currentUser) {
-            window.showMainApp();
-            initPopups();
-        } else {
-            if (authSection) authSection.style.display = 'block';
-            document.getElementById('mainApp').style.display = 'none';
-        }
-        
-        window.updateLoadingProgress(100, '✅ Ready!');
-        hideLoadingScreen();
-
-        setTimeout(function() {
-            const screen = document.getElementById('loadingScreen');
-            if (screen) {
-                const icon = screen.querySelector('.loader-icon');
-                if (icon) {
-                    icon.textContent = '✅';
-                    icon.style.animation = 'none';
-                }
-                const text = document.getElementById('loadingStatus');
-                if (text) {
-                    text.textContent = 'Ready! 🎉';
-                    text.style.webkitTextFillColor = 'var(--success)';
-                }
-                const subtext = document.querySelector('.loader-subtext');
-                if (subtext) subtext.textContent = 'You can start now';
-                document.querySelectorAll('.spinner-ring').forEach(el => el.style.display = 'none');
-            }
-        }, 2000);
-
-    } catch (error) {
-        console.error('❌ Initialization error:', error);
-        window.updateLoadingProgress(100, '⚠️ Error occurred');
-        showToast('⚠️ Error loading store. Please refresh.', 'error');
-        if (authSection) authSection.style.display = 'block';
-        document.getElementById('mainApp').style.display = 'none';
-        hideLoadingScreen();
-    }
-}
+window.sendEmail = sendEmail;
+window.sendWelcomeEmail = sendWelcomeEmail;
+window.sendOrderConfirmationEmail = sendOrderConfirmationEmail;
+window.sendOrderStatusEmail = sendOrderStatusEmail;
+window.sendTopupConfirmationEmail = sendTopupConfirmationEmail;
+window.sendAdminNotificationEmail = sendAdminNotificationEmail;
+window.sendCustomResetEmail = sendCustomResetEmail;
+window.loadEmailLogs = loadEmailLogs;
+window.sendTestEmail = sendTestEmail;
+window.previewEmail = previewEmail;
+window.resendEmail = resendEmail;
 
 // ============================================================
-// 62. AUTH STATE LISTENER
+// AUTH STATE LISTENER
 // ============================================================
-
 onAuthStateChanged(auth, async (user) => {
     currentUser = user;
     const authSection = document.getElementById('authSection');
@@ -9319,8 +8769,88 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// 63. START APP
+// INIT
 // ============================================================
+async function init() {
+    console.log('🚀 Initializing ZI Store...');
+
+    const authSection = document.getElementById('authSection');
+    if (authSection) authSection.style.display = 'none';
+
+    window.updateLoadingProgress(5, 'Starting...');
+
+    try {
+        window.updateLoadingProgress(15, 'Loading products...');
+        const productsFromFirestore = await loadProductsFromFirestore();
+        products = productsFromFirestore;
+
+        window.updateLoadingProgress(40, 'Initializing app...');
+        startProductsRealtimeListener();
+        await loadUserData();
+        renderProducts(products, false);
+        renderFeaturedProducts();
+        generateRecommendations(products);
+        updateBottomCartBar();
+        updateDropdownStats();
+        loadDownloads();
+        loadNotifications();
+        fetchCryptoPrices();
+        loadFeaturedSettings();
+        loadSliderSettings();
+        loadMarqueeSettings();
+        setInterval(fetchCryptoPrices, 60000);
+        loadUserBalance();
+        initTopInfoBar();
+        loadCoupons();
+
+        setTimeout(removeDuplicateDate, 500);
+        setTimeout(styleHeaderTopup, 500);
+        setTimeout(fixDirection, 100);
+
+        window.updateLoadingProgress(90, 'Almost ready...');
+        console.log('✅ ZI Store ready with all features!');
+        setTimeout(window.ensureAdminPanel, 3000);
+        setTimeout(checkCookieConsent, 1500);
+
+        if (auth.currentUser) {
+            window.showMainApp();
+            initPopups();
+        } else {
+            if (authSection) authSection.style.display = 'block';
+            document.getElementById('mainApp').style.display = 'none';
+        }
+        
+        window.updateLoadingProgress(100, '✅ Ready!');
+        hideLoadingScreen();
+
+        setTimeout(function() {
+            const screen = document.getElementById('loadingScreen');
+            if (screen) {
+                const icon = screen.querySelector('.loader-icon');
+                if (icon) {
+                    icon.textContent = '✅';
+                    icon.style.animation = 'none';
+                }
+                const text = document.getElementById('loadingStatus');
+                if (text) {
+                    text.textContent = 'Ready! 🎉';
+                    text.style.webkitTextFillColor = 'var(--success)';
+                }
+                const subtext = document.querySelector('.loader-subtext');
+                if (subtext) subtext.textContent = 'You can start now';
+                document.querySelectorAll('.spinner-ring').forEach(el => el.style.display = 'none');
+            }
+        }, 2000);
+
+    } catch (error) {
+        console.error('❌ Initialization error:', error);
+        window.updateLoadingProgress(100, '⚠️ Error occurred');
+        showToast('⚠️ Error loading store. Please refresh.', 'error');
+        if (authSection) authSection.style.display = 'block';
+        document.getElementById('mainApp').style.display = 'none';
+        hideLoadingScreen();
+    }
+}
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
@@ -9328,6 +8858,4 @@ if (document.readyState === 'loading') {
     init();
 }
 
-// ============================================================
-// END OF SCRIPT.JS
-// ============================================================
+console.log('✅ ZI Store script loaded successfully!');
