@@ -533,8 +533,7 @@ function updateServerTime() {
 
     const el = document.getElementById('serverTime');
     if (el) {
-        el.innerHTML =
-            `<i class="far fa-calendar-alt" style="margin-right:3px;color:var(--vip-color);"></i> ${dateStr} &nbsp;|&nbsp; <i class="far fa-clock" style="margin-right:3px;color:var(--primary);"></i> ${timeStr} UTC`;
+        el.innerHTML = `<i class="far fa-calendar-alt" style="margin-right:3px;color:var(--vip-color);"></i> ${dateStr} &nbsp;|&nbsp; <i class="far fa-clock" style="margin-right:3px;color:var(--primary);"></i> ${timeStr} UTC`;
     }
 }
 
@@ -9802,7 +9801,122 @@ window.getMyTelegramChatId = function() {
         showToast(`✅ Chat ID set: ${userProfile.telegramChatId}`, 'success');
     }
 };
+// ============================================================
+// GENERATE PDF INVOICE
+// ============================================================
 
+window.generatePDFInvoice = function(orderData) {
+    if (!orderData) { 
+        showToast('❌ No order data for invoice', 'error'); 
+        return; 
+    }
+    
+    try {
+        let order = typeof orderData === 'string' ? JSON.parse(orderData) : orderData;
+        
+        // Ensure order has an ID
+        if (!order.id) { 
+            order.id = 'INV-' + Date.now().toString().slice(-6); 
+        }
+        
+        // Build the invoice HTML
+        const invoiceHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Invoice #${order.id}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Arial', sans-serif; padding: 40px; background: #fff; color: #1a1a2e; }
+        .invoice { max-width: 800px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 12px; padding: 40px; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #6c5ce7; padding-bottom: 20px; margin-bottom: 20px; }
+        .logo { font-size: 28px; font-weight: 900; color: #6c5ce7; }
+        .logo span { color: #f2a900; }
+        .invoice-title { font-size: 24px; color: #6c5ce7; font-weight: 700; }
+        .details { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; padding: 15px; background: #f8f8ff; border-radius: 8px; }
+        .details .label { color: #888; font-size: 12px; font-weight: 600; text-transform: uppercase; }
+        .details .value { font-weight: 700; font-size: 14px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th { background: #6c5ce7; color: #fff; padding: 12px; text-align: left; font-size: 12px; text-transform: uppercase; }
+        td { padding: 12px; border-bottom: 1px solid #e0e0e0; }
+        .total-section { margin-top: 20px; padding-top: 20px; border-top: 2px solid #e0e0e0; text-align: right; }
+        .total-section .total { font-size: 24px; font-weight: 900; color: #6c5ce7; }
+        .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center; font-size: 12px; color: #888; }
+        @media print {
+            body { padding: 0; }
+            .invoice { border: none; padding: 20px; }
+        }
+        .status-badge { display: inline-block; padding: 4px 12px; border-radius: 30px; font-size: 12px; font-weight: 700; background: ${order.status === 'confirmed' ? '#00d4aa' : order.status === 'rejected' ? '#ff6b6b' : '#fbbf24'}; color: #0a0a1a; }
+    </style>
+</head>
+<body>
+    <div class="invoice">
+        <div class="header">
+            <div class="logo">ZI <span>Store</span></div>
+            <div class="invoice-title">INVOICE</div>
+        </div>
+        <div class="details">
+            <div>
+                <div class="label">Order ID</div>
+                <div class="value">#${order.id}</div>
+                <div class="label" style="margin-top:6px;">Date</div>
+                <div class="value">${new Date(order.date || Date.now()).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+            </div>
+            <div style="text-align:right;">
+                <div class="label">Status</div>
+                <div class="value"><span class="status-badge">${order.status || 'Pending'}</span></div>
+                <div class="label" style="margin-top:6px;">Payment Method</div>
+                <div class="value">${order.method || 'N/A'}</div>
+            </div>
+        </div>
+        <table>
+            <thead><tr><th>Product</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead>
+            <tbody>
+                ${(order.items || []).map(item => `
+                    <tr>
+                        <td>${item.name}${item.selectedQuantity ? ' (x'+item.selectedQuantity+')' : ''}</td>
+                        <td>${item.quantity || 1}</td>
+                        <td>$${(item.price || 0).toFixed(2)}</td>
+                        <td>$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+        <div class="total-section">
+            <div style="font-size:16px; color:#888; margin-bottom:4px;">Total Amount</div>
+            <div class="total">$${(order.total || 0).toFixed(2)}</div>
+        </div>
+        <div class="footer">
+            <p>Thank you for your purchase at ZI Store!</p>
+            <p style="margin-top:4px;">© 2026 ZI Store — All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
+        `;
+        
+        // Open new window for printing
+        const win = window.open('', '_blank', 'width=800,height=600');
+        if (!win) { 
+            showToast('⚠️ Please allow popups to generate invoice', 'warning'); 
+            return; 
+        }
+        
+        win.document.write(invoiceHtml);
+        win.document.close();
+        
+        // Wait for content to load then print
+        setTimeout(() => {
+            win.print();
+        }, 500);
+        
+        showToast('📄 Invoice generated!', 'success');
+        
+    } catch (error) {
+        console.error('Invoice generation error:', error);
+        showToast('❌ Failed to generate invoice: ' + error.message, 'error');
+    }
+};
 // ============================================================
 // EXPORT ALL FUNCTIONS TO WINDOW
 // ============================================================
