@@ -1,5 +1,20 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - FINAL VERSION (Licences enabled, auto country)
+// SCRIPT.JS - ZI Store - COMPLETE WORKING VERSION v5.0
+// ============================================================
+// ALL FEATURES:
+// 1. process defined for browser
+// 2. Loading screen with progress
+// 3. Firebase Auth + Firestore + Supabase
+// 4. Products, Cart, Wishlist
+// 5. Payment (LTC/USDT/Balance/Telegram/Binance)
+// 6. Orders with automatic licence generation (sendLicenceForOrder)
+// 7. Topup system (fixed amount_usd and payment_data)
+// 8. Email system (Welcome, Order Confirmation, Status Update, Topup Confirmation, Admin Notification)
+// 9. Admin panel with all tabs (Orders, Users, Products, Licences, Topups, Emails, etc.)
+// 10. Slider, Marquee, Coupons, Recommendations, Fraud Detection
+// 11. Full export of all functions to window
+// 12. Auto-detect country on registration, profile shows country (read-only)
+// 13. Licences visible in user profile
 // ============================================================
 
 // ============================================================
@@ -8,7 +23,7 @@
 window.process = window.process || { env: { NODE_ENV: 'production' } };
 
 // ============================================================
-// FIX: Loading screen with progress
+// LOADING SCREEN WITH PROGRESS
 // ============================================================
 (function() {
     let loadingProgress = 0;
@@ -78,7 +93,7 @@ window.process = window.process || { env: { NODE_ENV: 'production' } };
 })();
 
 // ============================================================
-// Firebase & Supabase Imports
+// FIREBASE & SUPABASE IMPORTS
 // ============================================================
 import { initializeApp } from "firebase/app";
 import {
@@ -95,14 +110,31 @@ import {
     GoogleAuthProvider,
     signInWithPopup
 } from "firebase/auth";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, collection, query, where, getDocs, onSnapshot, addDoc, deleteDoc, orderBy, limit } from "firebase/firestore";
+import {
+    getFirestore,
+    doc,
+    getDoc,
+    setDoc,
+    updateDoc,
+    arrayUnion,
+    arrayRemove,
+    serverTimestamp,
+    collection,
+    query,
+    where,
+    getDocs,
+    onSnapshot,
+    addDoc,
+    deleteDoc,
+    orderBy,
+    limit
+} from "firebase/firestore";
 import { getAnalytics, isSupported } from "firebase/analytics";
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
 // ============================================================
-// Configuration
+// CONFIGURATION
 // ============================================================
-
 const SUPABASE_URL = 'https://kvsyzgavfxnwqmtsginv.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_1uSIqgNONAV53GjOoBoZUw_niAGJXO6';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -137,9 +169,8 @@ isSupported().then(supported => {
 });
 
 // ============================================================
-// Global Variables & Constants
+// GLOBAL VARIABLES & CONSTANTS
 // ============================================================
-
 const BOT_USERNAME = 'Zistore_Notif_bot';
 const RP_TO_DOLLAR = 0.1;
 const CLOUDINARY_CLOUD_NAME = 'y14bgb5s';
@@ -193,14 +224,14 @@ let selectedTopupAmount = 0;
 let selectedTopupCurrency = 'USDT';
 let topupSubscription = null;
 
-// Slider variables
+// SLIDER
 let sliderSlides = [];
 let sliderIntervalTime = 3;
 let currentSlideIndex = 0;
 let sliderTimer = null;
 let isSliderPaused = false;
 
-// Marquee variables
+// MARQUEE
 let marqueeSettings = {
     enabled: true,
     text: '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support'
@@ -217,15 +248,31 @@ let featuredSettings = {
 };
 
 let userProfile = {
-    name: '', email: '', photoURL: '', telegram: '', telegramChatId: '',
-    location: 'Tunisia', country: 'Tunisia', lang: 'English', joined: '',
-    history: [], requests: [], usedCodes: [], referralCode: '',
-    referrals: [], referralRewards: 0, rp: 0, useRpForCart: false,
-    isBanned: false, lastDailyReward: 0, licences: [], balance: 0
+    name: '',
+    email: '',
+    photoURL: '',
+    telegram: '',
+    telegramChatId: '',
+    location: 'Tunisia',
+    country: 'Tunisia',
+    lang: 'English',
+    joined: '',
+    history: [],
+    requests: [],
+    usedCodes: [],
+    referralCode: '',
+    referrals: [],
+    referralRewards: 0,
+    rp: 0,
+    useRpForCart: false,
+    isBanned: false,
+    lastDailyReward: 0,
+    licences: [],
+    balance: 0
 };
 
 // ============================================================
-// DEFAULT PRODUCTS (Fallback)
+// FALLBACK PRODUCTS (if Firestore empty)
 // ============================================================
 const fallbackProducts = [
     {
@@ -326,17 +373,36 @@ const fallbackProducts = [
     }
 ];
 
-const discountCodes = { 'SAVE10': { discount: 10 }, 'SAVE15': { discount: 15 }, 'WELCOME': { discount: 10 }, 'VIP2024': { discount: 15 }, 'SUMMER': { discount: 10 } };
+const discountCodes = {
+    'SAVE10': { discount: 10 },
+    'SAVE15': { discount: 15 },
+    'WELCOME': { discount: 10 },
+    'VIP2024': { discount: 15 },
+    'SUMMER': { discount: 10 }
+};
 const paymentWallets = {
-    litecoin: { name: 'Litecoin', icon: 'fab fa-bitcoin', network: 'LTC', address: 'ltc1qy6ksn0g4hm6hlh93fwekgz8x74vr6hvdmh6zz8', currency: 'LTC', color: '#f2a900' },
-    usdt: { name: 'USDT (ERC20)', icon: 'fas fa-coins', network: 'ERC20', address: '0x1234567890abcdef1234567890abcdef12345678', currency: 'USDT', color: '#26a17b' }
+    litecoin: {
+        name: 'Litecoin',
+        icon: 'fab fa-bitcoin',
+        network: 'LTC',
+        address: 'ltc1qy6ksn0g4hm6hlh93fwekgz8x74vr6hvdmh6zz8',
+        currency: 'LTC',
+        color: '#f2a900'
+    },
+    usdt: {
+        name: 'USDT (ERC20)',
+        icon: 'fas fa-coins',
+        network: 'ERC20',
+        address: '0x1234567890abcdef1234567890abcdef12345678',
+        currency: 'USDT',
+        color: '#26a17b'
+    }
 };
 let cryptoPrices = { ltc: 0, usdt: 1, lastUpdate: null, isUpdating: false };
 
 // ============================================================
-// Helper Functions (Toast, Loading Screen)
+// HELPER FUNCTIONS (Toast, Loading)
 // ============================================================
-
 function showToast(message, type = 'success') {
     const toast = document.getElementById('toast');
     const messageEl = document.getElementById('toastMessage');
@@ -344,7 +410,12 @@ function showToast(message, type = 'success') {
     if (!toast || !messageEl) return;
     toast.className = 'toast';
     toast.classList.add(type);
-    const icons = { success: '<i class="fas fa-check-circle"></i>', error: '<i class="fas fa-exclamation-circle"></i>', warning: '<i class="fas fa-exclamation-triangle"></i>', info: '<i class="fas fa-info-circle"></i>' };
+    const icons = {
+        success: '<i class="fas fa-check-circle"></i>',
+        error: '<i class="fas fa-exclamation-circle"></i>',
+        warning: '<i class="fas fa-exclamation-triangle"></i>',
+        info: '<i class="fas fa-info-circle"></i>'
+    };
     if (iconEl) iconEl.innerHTML = icons[type] || icons.success;
     messageEl.textContent = message;
     void toast.offsetWidth;
@@ -405,6 +476,9 @@ window.showMainApp = function() {
     return false;
 };
 
+// ============================================================
+// FIX: Remove duplicate date, style header topup
+// ============================================================
 function removeDuplicateDate() {
     const dates = document.querySelectorAll('#serverTime, .server-time, .header-date');
     if (dates.length > 1) {
@@ -435,7 +509,6 @@ function styleHeaderTopup() {
 // ============================================================
 // TOP INFO BAR - Server Time, IP, Country
 // ============================================================
-
 let serverTimeInterval = null;
 
 function updateServerTime() {
@@ -460,7 +533,8 @@ function updateServerTime() {
 
     const el = document.getElementById('serverTime');
     if (el) {
-        el.innerHTML = `<i class="far fa-calendar-alt" style="margin-right:3px;color:var(--vip-color);"></i> ${dateStr} &nbsp;|&nbsp; <i class="far fa-clock" style="margin-right:3px;color:var(--primary);"></i> ${timeStr} UTC`;
+        el.innerHTML =
+            `<i class="far fa-calendar-alt" style="margin-right:3px;color:var(--vip-color);"></i> ${dateStr} &nbsp;|&nbsp; <i class="far fa-clock" style="margin-right:3px;color:var(--primary);"></i> ${timeStr} UTC`;
     }
 }
 
@@ -515,21 +589,80 @@ async function fetchUserInfo() {
 function getCountryFlag(countryCode) {
     if (!countryCode) return '🌍';
     const flags = {
-        'US': '🇺🇸', 'GB': '🇬🇧', 'CA': '🇨🇦', 'AU': '🇦🇺', 'DE': '🇩🇪',
-        'FR': '🇫🇷', 'IT': '🇮🇹', 'ES': '🇪🇸', 'PT': '🇵🇹', 'NL': '🇳🇱',
-        'BE': '🇧🇪', 'CH': '🇨🇭', 'AT': '🇦🇹', 'SE': '🇸🇪', 'NO': '🇳🇴',
-        'DK': '🇩🇰', 'FI': '🇫🇮', 'IE': '🇮🇪', 'NZ': '🇳🇿', 'ZA': '🇿🇦',
-        'BR': '🇧🇷', 'AR': '🇦🇷', 'MX': '🇲🇽', 'CO': '🇨🇴', 'CL': '🇨🇱',
-        'AE': '🇦🇪', 'SA': '🇸🇦', 'QA': '🇶🇦', 'OM': '🇴🇲', 'KW': '🇰🇼',
-        'BH': '🇧🇭', 'JO': '🇯🇴', 'IL': '🇮🇱', 'LB': '🇱🇧', 'EG': '🇪🇬',
-        'DZ': '🇩🇿', 'MA': '🇲🇦', 'TN': '🇹🇳', 'LY': '🇱🇾', 'SD': '🇸🇩',
-        'ET': '🇪🇹', 'KE': '🇰🇪', 'UG': '🇺🇬', 'TZ': '🇹🇿', 'RW': '🇷🇼',
-        'ZM': '🇿🇲', 'ZW': '🇿🇼', 'MW': '🇲🇼', 'MZ': '🇲🇿',
-        'NG': '🇳🇬', 'GH': '🇬🇭', 'CI': '🇨🇮', 'SN': '🇸🇳', 'ML': '🇲🇱',
-        'IN': '🇮🇳', 'PK': '🇵🇰', 'BD': '🇧🇩', 'MM': '🇲🇲', 'TH': '🇹🇭',
-        'VN': '🇻🇳', 'MY': '🇲🇾', 'SG': '🇸🇬', 'PH': '🇵🇭', 'ID': '🇮🇩',
-        'CN': '🇨🇳', 'JP': '🇯🇵', 'KR': '🇰🇷', 'TR': '🇹🇷', 'RU': '🇷🇺',
-        'UA': '🇺🇦', 'PL': '🇵🇱', 'RO': '🇷🇴', 'HU': '🇭🇺', 'GR': '🇬🇷'
+        'US': '🇺🇸',
+        'GB': '🇬🇧',
+        'CA': '🇨🇦',
+        'AU': '🇦🇺',
+        'DE': '🇩🇪',
+        'FR': '🇫🇷',
+        'IT': '🇮🇹',
+        'ES': '🇪🇸',
+        'PT': '🇵🇹',
+        'NL': '🇳🇱',
+        'BE': '🇧🇪',
+        'CH': '🇨🇭',
+        'AT': '🇦🇹',
+        'SE': '🇸🇪',
+        'NO': '🇳🇴',
+        'DK': '🇩🇰',
+        'FI': '🇫🇮',
+        'IE': '🇮🇪',
+        'NZ': '🇳🇿',
+        'ZA': '🇿🇦',
+        'BR': '🇧🇷',
+        'AR': '🇦🇷',
+        'MX': '🇲🇽',
+        'CO': '🇨🇴',
+        'CL': '🇨🇱',
+        'AE': '🇦🇪',
+        'SA': '🇸🇦',
+        'QA': '🇶🇦',
+        'OM': '🇴🇲',
+        'KW': '🇰🇼',
+        'BH': '🇧🇭',
+        'JO': '🇯🇴',
+        'IL': '🇮🇱',
+        'LB': '🇱🇧',
+        'EG': '🇪🇬',
+        'DZ': '🇩🇿',
+        'MA': '🇲🇦',
+        'TN': '🇹🇳',
+        'LY': '🇱🇾',
+        'SD': '🇸🇩',
+        'ET': '🇪🇹',
+        'KE': '🇰🇪',
+        'UG': '🇺🇬',
+        'TZ': '🇹🇿',
+        'RW': '🇷🇼',
+        'ZM': '🇿🇲',
+        'ZW': '🇿🇼',
+        'MW': '🇲🇼',
+        'MZ': '🇲🇿',
+        'NG': '🇳🇬',
+        'GH': '🇬🇭',
+        'CI': '🇨🇮',
+        'SN': '🇸🇳',
+        'ML': '🇲🇱',
+        'IN': '🇮🇳',
+        'PK': '🇵🇰',
+        'BD': '🇧🇩',
+        'MM': '🇲🇲',
+        'TH': '🇹🇭',
+        'VN': '🇻🇳',
+        'MY': '🇲🇾',
+        'SG': '🇸🇬',
+        'PH': '🇵🇭',
+        'ID': '🇮🇩',
+        'CN': '🇨🇳',
+        'JP': '🇯🇵',
+        'KR': '🇰🇷',
+        'TR': '🇹🇷',
+        'RU': '🇷🇺',
+        'UA': '🇺🇦',
+        'PL': '🇵🇱',
+        'RO': '🇷🇴',
+        'HU': '🇭🇺',
+        'GR': '🇬🇷'
     };
     return flags[countryCode] || '🌍';
 }
@@ -543,9 +676,8 @@ async function initTopInfoBar() {
 }
 
 // ============================================================
-// Admin Check Functions
+// ADMIN CHECK FUNCTIONS
 // ============================================================
-
 async function checkIsAdmin() {
     if (!currentUser) return false;
     if (adminCheckPromise) return adminCheckPromise;
@@ -617,14 +749,13 @@ window.ensureAdminPanel = function() {
 };
 
 // ============================================================
-// Admin Settings Functions (from Firestore)
+// ADMIN SETTINGS FUNCTIONS (from Firestore)
 // ============================================================
-
 async function getAdminSettings() {
     try {
         const settingsRef = doc(db, 'admin_settings', 'notifications');
         const settingsSnap = await getDoc(settingsRef);
-        
+
         if (settingsSnap.exists()) {
             return settingsSnap.data();
         } else {
@@ -655,7 +786,7 @@ async function updateAdminSettings(settings) {
         showToast('⛔ Unauthorized', 'error');
         return false;
     }
-    
+
     try {
         const settingsRef = doc(db, 'admin_settings', 'notifications');
         await setDoc(settingsRef, {
@@ -672,70 +803,9 @@ async function updateAdminSettings(settings) {
     }
 }
 
-async function sendAdminNotification(title, message) {
-    try {
-        const settings = await getAdminSettings();
-        let sentCount = 0;
-
-        if (settings.enableEmailNotifications && settings.adminEmail) {
-            try {
-                await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/send-email', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                    },
-                    body: JSON.stringify({
-                        to: settings.adminEmail,
-                        subject: title,
-                        message: message,
-                        from: 'noreply@zi-store.online'
-                    })
-                });
-                sentCount++;
-                console.log('✅ Email sent to admin:', settings.adminEmail);
-            } catch (error) {
-                console.error('❌ Failed to send email:', error);
-            }
-        }
-
-        if (settings.enableTelegramNotifications && settings.adminTelegramChatId) {
-            try {
-                await sendTelegramNotification(settings.adminTelegramChatId, 
-                    `📢 *${title}*\n\n${message}`
-                );
-                sentCount++;
-                console.log('✅ Telegram sent to admin');
-            } catch (error) {
-                console.error('❌ Failed to send Telegram:', error);
-            }
-        }
-
-        try {
-            await addDoc(collection(db, 'notifications'), {
-                title: title,
-                message: message,
-                adminOnly: true,
-                readBy: [],
-                createdAt: serverTimestamp()
-            });
-            sentCount++;
-            console.log('✅ Firebase notification added for admin');
-        } catch (error) {
-            console.error('❌ Failed to add Firebase notification:', error);
-        }
-
-        return sentCount > 0;
-    } catch (error) {
-        console.error('❌ Error sending admin notification:', error);
-        return false;
-    }
-}
-
 // ============================================================
-// User Functions (Firestore + LocalStorage)
+// USER FUNCTIONS (Firestore + LocalStorage)
 // ============================================================
-
 function loadFromLocalStorage() {
     try {
         const wishlistData = localStorage.getItem('zi_wishlist_backup');
@@ -1022,9 +1092,8 @@ function generateReferralCode(name, email) {
 }
 
 // ============================================================
-// UI Updates
+// UI UPDATES
 // ============================================================
-
 function updateDropdownStats() {
     const userAvatar = document.getElementById('userAvatarText');
     if (currentUser) {
@@ -1032,7 +1101,8 @@ function updateDropdownStats() {
         const photoURL = userProfile.photoURL || currentUser.photoURL || '';
         if (userAvatar) {
             if (photoURL) {
-                userAvatar.innerHTML = `<img src="${photoURL}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />`;
+                userAvatar.innerHTML =
+                    `<img src="${photoURL}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />`;
             } else {
                 userAvatar.textContent = name.charAt(0).toUpperCase();
             }
@@ -1050,7 +1120,8 @@ function updateUI() {
     const dot = document.getElementById('userDot');
     if (dot) {
         if (currentUser) {
-            if (pendingCount > 0 && isAdminCached) { dot.className = 'user-dot notification-dot'; } else { dot.className = 'user-dot'; }
+            if (pendingCount > 0 && isAdminCached) { dot.className = 'user-dot notification-dot'; } else { dot.className =
+                    'user-dot'; }
         } else { dot.className = 'user-dot guest'; }
     }
     updateDropdownStats();
@@ -1087,12 +1158,15 @@ function updateFullUserMenu() {
         wishlistBadge.style.display = wishlist.length > 0 ? 'inline-block' : 'none';
         const pendingOrders = userProfile.history.filter(o => (o.status || 'pending') === 'pending').length;
         const totalBadge = pendingOrders + unreadNotifications;
-        if (totalBadge > 0) { orderBadge.style.display = 'inline-block'; orderBadge.textContent = totalBadge; } else { orderBadge.style.display = 'none'; }
-        if (unreadNotifications > 0) { notifBadge.style.display = 'inline-block'; notifBadge.textContent = unreadNotifications; } else { notifBadge.style.display = 'none'; }
+        if (totalBadge > 0) { orderBadge.style.display = 'inline-block';
+            orderBadge.textContent = totalBadge; } else { orderBadge.style.display = 'none'; }
+        if (unreadNotifications > 0) { notifBadge.style.display = 'inline-block';
+            notifBadge.textContent = unreadNotifications; } else { notifBadge.style.display = 'none'; }
 
         if (isAdminCached) {
             adminMenuItem.style.display = 'flex';
-            if (pendingCount > 0) { adminBadge.style.display = 'inline-block'; adminBadge.textContent = pendingCount; } else { adminBadge.style.display = 'none'; }
+            if (pendingCount > 0) { adminBadge.style.display = 'inline-block';
+                adminBadge.textContent = pendingCount; } else { adminBadge.style.display = 'none'; }
             console.log('✅ Admin menu displayed');
         } else {
             adminMenuItem.style.display = 'none';
@@ -1100,22 +1174,29 @@ function updateFullUserMenu() {
 
         if (licencesBadge) {
             const activeLicences = (userProfile.licences || []).filter(l => new Date(l.expiryDate) > new Date()).length;
-            if (activeLicences > 0) { licencesBadge.style.display = 'inline-block'; licencesBadge.textContent = activeLicences; } else { licencesBadge.style.display = 'none'; }
+            if (activeLicences > 0) { licencesBadge.style.display = 'inline-block';
+                licencesBadge.textContent = activeLicences; } else { licencesBadge.style.display = 'none'; }
         }
     } else {
-        avatar.textContent = 'U'; name.textContent = 'Guest'; email.textContent = 'Not logged in'; rp.textContent = '0';
-        wishlistBadge.style.display = 'none'; orderBadge.style.display = 'none'; notifBadge.style.display = 'none';
+        avatar.textContent = 'U';
+        name.textContent = 'Guest';
+        email.textContent = 'Not logged in';
+        rp.textContent = '0';
+        wishlistBadge.style.display = 'none';
+        orderBadge.style.display = 'none';
+        notifBadge.style.display = 'none';
         adminMenuItem.style.display = 'none';
         if (licencesBadge) licencesBadge.style.display = 'none';
     }
 }
 
 // ============================================================
-// Auth Functions (with Google Popup)
+// AUTH FUNCTIONS
 // ============================================================
-
-window.showLogin = function() { document.getElementById('loginContainer').style.display = 'block'; document.getElementById('registerContainer').style.display = 'none'; };
-window.showRegister = function() { document.getElementById('loginContainer').style.display = 'none'; document.getElementById('registerContainer').style.display = 'block'; };
+window.showLogin = function() { document.getElementById('loginContainer').style.display = 'block';
+    document.getElementById('registerContainer').style.display = 'none'; };
+window.showRegister = function() { document.getElementById('loginContainer').style.display = 'none';
+    document.getElementById('registerContainer').style.display = 'block'; };
 window.toggleReferral = function() { document.getElementById('referralField').classList.toggle('show'); };
 
 window.loginUser = async function() {
@@ -1123,10 +1204,12 @@ window.loginUser = async function() {
     btn.classList.add('loading');
     const errorEl = document.getElementById('loginError');
     const successEl = document.getElementById('loginSuccess');
-    errorEl.textContent = ''; successEl.textContent = '';
+    errorEl.textContent = '';
+    successEl.textContent = '';
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
-    if (!email || !password) { errorEl.textContent = 'Please fill in all fields'; btn.classList.remove('loading'); return; }
+    if (!email || !password) { errorEl.textContent = 'Please fill in all fields';
+        btn.classList.remove('loading'); return; }
     try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         currentUser = userCredential.user;
@@ -1162,7 +1245,11 @@ window.loginUser = async function() {
                 }, 200);
             }
 
-            loadDownloads(); loadNotifications(); fetchCryptoPrices(); updateFullUserMenu(); showTelegramBanner();
+            loadDownloads();
+            loadNotifications();
+            fetchCryptoPrices();
+            updateFullUserMenu();
+            showTelegramBanner();
             loadSliderSettings();
             loadMarqueeSettings();
             window.ensureAdminPanel();
@@ -1171,7 +1258,9 @@ window.loginUser = async function() {
             initPopups();
             hideLoadingScreen();
         }, 500);
-    } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Login failed', 'error'); btn.classList.remove('loading'); }
+    } catch (error) { errorEl.textContent = '❌ ' + error.message;
+        showToast('❌ Login failed', 'error');
+        btn.classList.remove('loading'); }
 };
 
 window.registerUser = async function() {
@@ -1179,7 +1268,8 @@ window.registerUser = async function() {
     btn.classList.add('loading');
     const errorEl = document.getElementById('registerError');
     const successEl = document.getElementById('registerSuccess');
-    errorEl.textContent = ''; successEl.textContent = '';
+    errorEl.textContent = '';
+    successEl.textContent = '';
     const name = document.getElementById('registerName').value.trim();
     const email = document.getElementById('registerEmail').value.trim();
     const password = document.getElementById('registerPassword').value;
@@ -1187,12 +1277,16 @@ window.registerUser = async function() {
     const lang = document.getElementById('registerLang').value;
     const referralCode = document.getElementById('registerReferral').value.trim().toUpperCase();
     const termsChecked = document.getElementById('termsCheck').checked;
-    if (!name || !email || !password || !confirmPassword) { errorEl.textContent = 'Please fill in all fields'; btn.classList.remove('loading'); return; }
-    if (password.length < 6) { errorEl.textContent = 'Password must be at least 6 characters'; btn.classList.remove('loading'); return; }
-    if (password !== confirmPassword) { errorEl.textContent = 'Passwords do not match'; btn.classList.remove('loading'); return; }
-    if (!termsChecked) { errorEl.textContent = 'Please agree to the terms'; btn.classList.remove('loading'); return; }
+    if (!name || !email || !password || !confirmPassword) { errorEl.textContent = 'Please fill in all fields';
+        btn.classList.remove('loading'); return; }
+    if (password.length < 6) { errorEl.textContent = 'Password must be at least 6 characters';
+        btn.classList.remove('loading'); return; }
+    if (password !== confirmPassword) { errorEl.textContent = 'Passwords do not match';
+        btn.classList.remove('loading'); return; }
+    if (!termsChecked) { errorEl.textContent = 'Please agree to the terms';
+        btn.classList.remove('loading'); return; }
     try {
-        // Auto-detect country from IP
+        // Auto-detect country
         let detectedCountry = 'Tunisia';
         try {
             const ipInfo = await fetchUserInfo();
@@ -1240,7 +1334,7 @@ window.registerUser = async function() {
         showToast(`🎉 Welcome, ${name}!`, 'success');
         btn.classList.remove('loading');
         await refreshAdminStatus();
-        
+
         // Send welcome email
         await sendWelcomeEmail(email, name);
 
@@ -1266,10 +1360,11 @@ window.registerUser = async function() {
             initTopInfoBar();
             initPopups();
         }, 500);
-    } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ Registration failed', 'error'); btn.classList.remove('loading'); }
+    } catch (error) { errorEl.textContent = '❌ ' + error.message;
+        showToast('❌ Registration failed', 'error');
+        btn.classList.remove('loading'); }
 };
 
-// Google Login with Popup
 window.loginWithGoogle = function() {
     const btn = document.getElementById('googleLoginBtn');
     if (btn) btn.classList.add('loading');
@@ -1313,7 +1408,7 @@ window.loginWithGoogle = function() {
             showToast('👋 Welcome via Google!', 'success');
             await refreshAdminStatus();
             await mergeGuestData(user.uid);
-            
+
             await sendWelcomeEmail(user.email, user.displayName || user.email);
 
             setTimeout(() => {
@@ -1343,7 +1438,11 @@ window.loginWithGoogle = function() {
                     }, 200);
                 }
 
-                loadDownloads(); loadNotifications(); fetchCryptoPrices(); updateFullUserMenu(); showTelegramBanner();
+                loadDownloads();
+                loadNotifications();
+                fetchCryptoPrices();
+                updateFullUserMenu();
+                showTelegramBanner();
                 loadSliderSettings();
                 loadMarqueeSettings();
                 window.ensureAdminPanel();
@@ -1359,7 +1458,8 @@ window.loginWithGoogle = function() {
             if (error.code === 'auth/account-exists-with-different-credential') {
                 const email = error.email;
                 if (errorEl) {
-                    errorEl.textContent = `⚠️ This email (${email}) is already registered with another method. Please login with password first, then you can link your Google account from profile.`;
+                    errorEl.textContent =
+                        `⚠️ This email (${email}) is already registered with another method. Please login with password first, then you can link your Google account from profile.`;
                 }
                 showToast('⚠️ This email is already in use. Please login with password.', 'warning');
                 const loginEmail = document.getElementById('loginEmail');
@@ -1406,7 +1506,8 @@ async function mergeGuestData(newUid) {
             const existingCart = userData.cart || [];
             const mergedCart = [...existingCart];
             cartGuest.forEach(item => {
-                if (!existingCart.some(ex => ex.id === item.id && ex.isVip === item.isVip && ex.vipPlan === item.vipPlan)) {
+                if (!existingCart.some(ex => ex.id === item.id && ex.isVip === item.isVip && ex.vipPlan === item
+                        .vipPlan)) {
                     mergedCart.push(item);
                 }
             });
@@ -1460,45 +1561,80 @@ window.logoutUser = async function() {
         await signOut(auth);
         currentUser = null;
         isAdminCached = false;
-        activeDiscount = 0; activeDiscountCode = '';
+        activeDiscount = 0;
+        activeDiscountCode = '';
         document.getElementById('adminPanel').classList.remove('open');
         closeUserMenuFull();
-        if (unsubscribeAdmin) { unsubscribeAdmin(); unsubscribeAdmin = null; }
-        if (unsubscribeUser) { unsubscribeUser(); unsubscribeUser = null; }
-        if (topupSubscription) { topupSubscription.unsubscribe(); topupSubscription = null; }
-        pendingCount = 0; unreadNotifications = 0;
+        if (unsubscribeAdmin) { unsubscribeAdmin();
+            unsubscribeAdmin = null; }
+        if (unsubscribeUser) { unsubscribeUser();
+            unsubscribeUser = null; }
+        if (topupSubscription) { topupSubscription.unsubscribe();
+            topupSubscription = null; }
+        pendingCount = 0;
+        unreadNotifications = 0;
         document.getElementById('authSection').style.display = 'block';
         document.getElementById('mainApp').style.display = 'none';
         showToast('👋 Logged out', 'info');
-        updateUI(); updateNotificationBadge(); loadUserData(); updateFullUserMenu();
+        updateUI();
+        updateNotificationBadge();
+        loadUserData();
+        updateFullUserMenu();
     } catch (error) { showToast('❌ Logout error', 'error'); }
 };
 
-window.openForgotPassword = function() { document.getElementById('forgotPasswordModal').classList.add('open'); document.getElementById('forgotError').textContent = ''; document.getElementById('forgotSuccess').textContent = ''; };
-window.closeForgotPasswordModal = function() { document.getElementById('forgotPasswordModal').classList.remove('open'); document.getElementById('authSection').style.display = 'block'; };
+window.openForgotPassword = function() { document.getElementById('forgotPasswordModal').classList.add('open');
+    document.getElementById('forgotError').textContent = '';
+    document.getElementById('forgotSuccess').textContent = ''; };
+window.closeForgotPasswordModal = function() { document.getElementById('forgotPasswordModal').classList.remove('open');
+    document.getElementById('authSection').style.display = 'block'; };
 window.sendForgotPassword = async function() {
     const email = document.getElementById('forgotEmail').value.trim();
     const errorEl = document.getElementById('forgotError');
     const successEl = document.getElementById('forgotSuccess');
-    errorEl.textContent = ''; successEl.textContent = '';
+    errorEl.textContent = '';
+    successEl.textContent = '';
     if (!email) { errorEl.textContent = 'Please enter your email'; return; }
-    try { await sendPasswordResetEmail(auth, email); successEl.textContent = '✅ Reset link sent to ' + email; showToast('📧 Password reset link sent!', 'success'); setTimeout(() => { closeForgotPasswordModal(); }, 2000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); }
+    try {
+        await sendPasswordResetEmail(auth, email);
+        successEl.textContent = '✅ Reset link sent to ' + email;
+        showToast('📧 Password reset link sent!', 'success');
+        setTimeout(() => { closeForgotPasswordModal(); }, 2000);
+    } catch (error) { errorEl.textContent = '❌ ' + error.message;
+        showToast('❌ ' + error.message, 'error'); }
 };
 
 // ============================================================
-// General Modals
+// GENERAL MODALS
 // ============================================================
-
-window.openUserMenuFull = function() { if (!currentUser) { openAuthModal(); return; } document.getElementById('userMenuFull').classList.add('open'); updateFullUserMenu(); document.body.style.overflow = 'hidden'; };
-window.closeUserMenuFull = function() { document.getElementById('userMenuFull').classList.remove('open'); document.body.style.overflow = ''; };
-window.openCartFull = function() { document.getElementById('cartFull').classList.add('open'); renderCartFull(); document.body.style.overflow = 'hidden'; };
-window.closeCartFull = function() { document.getElementById('cartFull').classList.remove('open'); document.body.style.overflow = ''; };
-window.openWishlistFull = function() { document.getElementById('wishlistFull').classList.add('open'); renderWishlistFull(); document.body.style.overflow = 'hidden'; };
-window.closeWishlistFull = function() { document.getElementById('wishlistFull').classList.remove('open'); document.body.style.overflow = ''; };
-window.openProfileFull = function() { if (!currentUser) { showToast('⚠️ Please login first', 'warning'); openAuthModal(); return; } document.getElementById('profileFull').classList.add('open'); renderProfileFull(); document.body.style.overflow = 'hidden'; };
-window.closeProfileFull = function() { document.getElementById('profileFull').classList.remove('open'); document.body.style.overflow = ''; };
-window.openHistoryFull = function() { if (!currentUser) { showToast('⚠️ Please login first', 'warning'); openAuthModal(); return; } document.getElementById('historyFull').classList.add('open'); renderHistoryFull(); document.body.style.overflow = 'hidden'; };
-window.closeHistoryFull = function() { document.getElementById('historyFull').classList.remove('open'); document.body.style.overflow = ''; };
+window.openUserMenuFull = function() { if (!currentUser) { openAuthModal(); return; } document.getElementById('userMenuFull')
+        .classList.add('open');
+    updateFullUserMenu();
+    document.body.style.overflow = 'hidden'; };
+window.closeUserMenuFull = function() { document.getElementById('userMenuFull').classList.remove('open');
+    document.body.style.overflow = ''; };
+window.openCartFull = function() { document.getElementById('cartFull').classList.add('open');
+    renderCartFull();
+    document.body.style.overflow = 'hidden'; };
+window.closeCartFull = function() { document.getElementById('cartFull').classList.remove('open');
+    document.body.style.overflow = ''; };
+window.openWishlistFull = function() { document.getElementById('wishlistFull').classList.add('open');
+    renderWishlistFull();
+    document.body.style.overflow = 'hidden'; };
+window.closeWishlistFull = function() { document.getElementById('wishlistFull').classList.remove('open');
+    document.body.style.overflow = ''; };
+window.openProfileFull = function() { if (!currentUser) { showToast('⚠️ Please login first', 'warning');
+        openAuthModal(); return; } document.getElementById('profileFull').classList.add('open');
+    renderProfileFull();
+    document.body.style.overflow = 'hidden'; };
+window.closeProfileFull = function() { document.getElementById('profileFull').classList.remove('open');
+    document.body.style.overflow = ''; };
+window.openHistoryFull = function() { if (!currentUser) { showToast('⚠️ Please login first', 'warning');
+        openAuthModal(); return; } document.getElementById('historyFull').classList.add('open');
+    renderHistoryFull();
+    document.body.style.overflow = 'hidden'; };
+window.closeHistoryFull = function() { document.getElementById('historyFull').classList.remove('open');
+    document.body.style.overflow = ''; };
 window.openDownloads = function() { document.getElementById('downloadsModal').classList.add('open'); };
 window.closeDownloads = function() { document.getElementById('downloadsModal').classList.remove('open'); };
 window.openNotifications = function() { document.getElementById('notificationsModal').classList.add('open'); };
@@ -1506,9 +1642,8 @@ window.closeNotifications = function() { document.getElementById('notificationsM
 window.openAuthModal = function() { document.getElementById('authSection').scrollIntoView({ behavior: 'smooth' }); };
 
 // ============================================================
-// 7.1 Transactions Modal
+// TRANSACTIONS MODAL
 // ============================================================
-
 window.openTransactionsModal = function() {
     if (!currentUser) {
         showToast('⚠️ Please login first', 'warning');
@@ -1530,7 +1665,8 @@ async function loadTransactionHistory() {
     const container = document.getElementById('transactionHistoryList');
     if (!container) return;
 
-    container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
+    container.innerHTML =
+        `<div style="text-align:center;padding:30px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
 
     try {
         const { data, error } = await supabase
@@ -1545,7 +1681,8 @@ async function loadTransactionHistory() {
         renderTransactions(data || []);
     } catch (error) {
         console.error('Error loading transactions:', error);
-        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);opacity:0.5;">Failed to load transactions</div>`;
+        container.innerHTML =
+            `<div style="text-align:center;padding:20px;color:var(--text-secondary);opacity:0.5;">Failed to load transactions</div>`;
     }
 }
 
@@ -1554,7 +1691,8 @@ function renderTransactions(transactions) {
     if (!container) return;
 
     if (!transactions || transactions.length === 0) {
-        container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">
+        container.innerHTML =
+            `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">
             <i class="fas fa-receipt" style="font-size:36px;display:block;margin-bottom:8px;opacity:0.2;"></i>
             No transactions yet
         </div>`;
@@ -1598,23 +1736,24 @@ function renderTransactions(transactions) {
 }
 
 // ============================================================
-// Render Profile Full (with password toggle, country auto-display)
+// RENDER PROFILE FULL (with auto-detected country, read-only)
 // ============================================================
-
 function renderProfileFull() {
     const container = document.getElementById('profileFullContent');
     if (!currentUser) {
-        container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-user-circle" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">Please login</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Login to view your profile</div></div>`;
+        container.innerHTML =
+            `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-user-circle" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">Please login</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Login to view your profile</div></div>`;
         return;
     }
     const displayName = currentUser.displayName || currentUser.email || 'User';
     const photoURL = userProfile.photoURL || currentUser.photoURL || '';
-    const maskedChatId = userProfile.telegramChatId ? userProfile.telegramChatId.slice(0, 4) + '***' + userProfile.telegramChatId.slice(-4) : 'Not linked';
+    const maskedChatId = userProfile.telegramChatId ? userProfile.telegramChatId.slice(0, 4) + '***' + userProfile
+        .telegramChatId.slice(-4) : 'Not linked';
     const activeLicences = (userProfile.licences || []).filter(l => new Date(l.expiryDate) > new Date()).length;
     const balance = userProfile.balance || 0;
     const userCountry = userProfile.location || userProfile.country || 'Not set';
     const joinedDate = userProfile.joined || '--';
-    
+
     container.innerHTML = `
     <div class="profile-container">
         <!-- Hero Section -->
@@ -1658,7 +1797,7 @@ function renderProfileFull() {
             </div>
         </div>
 
-        <!-- Edit Profile Section - Country removed from edit -->
+        <!-- Edit Profile Section - Country is auto-detected, read-only -->
         <div class="profile-section-card">
             <div class="section-title"><i class="fas fa-edit"></i> Edit Profile</div>
             <form onsubmit="saveProfileChangesInline(event)">
@@ -1762,7 +1901,9 @@ function renderProfileFull() {
     setTimeout(showTelegramBanner, 300);
 }
 
-// Password toggle function
+// ============================================================
+// PASSWORD TOGGLE
+// ============================================================
 window.togglePasswordVisibility = function(inputId) {
     const input = document.getElementById(inputId);
     if (!input) return;
@@ -1793,17 +1934,42 @@ window.saveProfileChangesInline = async function(e) {
         userProfile.lang = lang;
         // country remains auto-detected
         showToast('✅ Profile updated!', 'success');
-        updateUI(); renderProfileFull(); updateFullUserMenu();
+        updateUI();
+        renderProfileFull();
+        updateFullUserMenu();
     } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
 };
 
-window.sendResetLinkInline = async function() { if (!currentUser) return; try { await sendPasswordResetEmail(auth, currentUser.email); showToast(`📧 Reset link sent to ${currentUser.email}`, 'success'); } catch (error) { showToast('❌ ' + error.message, 'error'); } };
-window.changePasswordInline = async function() { if (!currentUser) return; const currentPwd = document.getElementById('currentPasswordInline').value; const newPwd = document.getElementById('newPasswordInline').value; const confirmPwd = document.getElementById('confirmNewPasswordInline').value; const errorEl = document.getElementById('passwordErrorInline'); const successEl = document.getElementById('passwordSuccessInline'); errorEl.textContent = ''; successEl.textContent = ''; if (!currentPwd || !newPwd || !confirmPwd) { errorEl.textContent = 'Please fill all fields'; return; } if (newPwd.length < 6) { errorEl.textContent = 'New password must be at least 6 characters'; return; } if (newPwd !== confirmPwd) { errorEl.textContent = 'Passwords do not match'; return; } try { const credential = EmailAuthProvider.credential(currentUser.email, currentPwd); await reauthenticateWithCredential(currentUser, credential); await updatePassword(currentUser, newPwd); successEl.textContent = '✅ Password changed successfully!'; showToast('✅ Password updated!', 'success'); document.getElementById('currentPasswordInline').value = ''; document.getElementById('newPasswordInline').value = ''; document.getElementById('confirmNewPasswordInline').value = ''; setTimeout(() => { successEl.textContent = ''; }, 3000); } catch (error) { errorEl.textContent = '❌ ' + error.message; showToast('❌ ' + error.message, 'error'); } };
+window.sendResetLinkInline = async function() { if (!currentUser) return; try { await sendPasswordResetEmail(auth,
+        currentUser.email);
+        showToast(`📧 Reset link sent to ${currentUser.email}`, 'success'); } catch (error) { showToast('❌ ' + error.message,
+            'error'); } };
+window.changePasswordInline = async function() { if (!currentUser) return; const currentPwd = document.getElementById(
+        'currentPasswordInline').value; const newPwd = document.getElementById('newPasswordInline').value; const confirmPwd =
+        document.getElementById('confirmNewPasswordInline').value; const errorEl = document.getElementById(
+        'passwordErrorInline'); const successEl = document.getElementById('passwordSuccessInline');
+    errorEl.textContent = '';
+    successEl.textContent = '';
+    if (!currentPwd || !newPwd || !confirmPwd) { errorEl.textContent = 'Please fill all fields'; return; }
+    if (newPwd.length < 6) { errorEl.textContent = 'New password must be at least 6 characters'; return; }
+    if (newPwd !== confirmPwd) { errorEl.textContent = 'Passwords do not match'; return; }
+    try {
+        const credential = EmailAuthProvider.credential(currentUser.email, currentPwd);
+        await reauthenticateWithCredential(currentUser, credential);
+        await updatePassword(currentUser, newPwd);
+        successEl.textContent = '✅ Password changed successfully!';
+        showToast('✅ Password updated!', 'success');
+        document.getElementById('currentPasswordInline').value = '';
+        document.getElementById('newPasswordInline').value = '';
+        document.getElementById('confirmNewPasswordInline').value = '';
+        setTimeout(() => { successEl.textContent = ''; }, 3000);
+    } catch (error) { errorEl.textContent = '❌ ' + error.message;
+        showToast('❌ ' + error.message, 'error'); }
+};
 
 // ============================================================
-// Product Functions - CRITICAL FOR PRODUCTS TO SHOW
+// PRODUCT FUNCTIONS
 // ============================================================
-
 async function loadProductsFromFirestore() {
     try {
         console.log('🔄 Loading products from Firestore...');
@@ -1830,7 +1996,6 @@ function startProductsRealtimeListener() {
     if (unsubscribeProducts) {
         unsubscribeProducts();
     }
-    // Show skeleton loading
     renderProducts([], true);
     const productsRef = collection(db, 'products');
     try {
@@ -1858,7 +2023,6 @@ function startProductsRealtimeListener() {
             renderLimitedProducts();
         }, (error) => {
             console.error('Products listener error:', error);
-            // Fallback to fallback products if listener fails
             products = fallbackProducts;
             console.log(`⚠️ Using fallback products (${products.length})`);
             renderProducts(products, false);
@@ -1922,14 +2086,16 @@ function renderProducts(productsList, isLoading = false) {
     }
     const list = productsList || [];
     if (list.length === 0) {
-        container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:20px 0;color:var(--text-secondary);font-size:14px;"><i class="fas fa-search" style="font-size:28px;opacity:0.2;display:block;margin-bottom:4px;"></i><p>No products</p></div>`;
+        container.innerHTML =
+            `<div style="grid-column:1/-1;text-align:center;padding:20px 0;color:var(--text-secondary);font-size:14px;"><i class="fas fa-search" style="font-size:28px;opacity:0.2;display:block;margin-bottom:4px;"></i><p>No products</p></div>`;
         return;
     }
     let filtered = [...list];
     if (currentFilter === 'free') filtered = filtered.filter(p => p.price === 0);
     else if (currentFilter === 'paid') filtered = filtered.filter(p => p.price > 0);
     if (filtered.length === 0) {
-        container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:20px 0;color:var(--text-secondary);font-size:14px;"><i class="fas fa-search" style="font-size:28px;opacity:0.2;display:block;margin-bottom:4px;"></i><p>No results</p></div>`;
+        container.innerHTML =
+            `<div style="grid-column:1/-1;text-align:center;padding:20px 0;color:var(--text-secondary);font-size:14px;"><i class="fas fa-search" style="font-size:28px;opacity:0.2;display:block;margin-bottom:4px;"></i><p>No results</p></div>`;
         return;
     }
     container.innerHTML = filtered.map(p => {
@@ -1947,11 +2113,13 @@ function renderProducts(productsList, isLoading = false) {
         if (activeDiscount > 0 && p.price > 0) {
             const discounted = displayPrice - (displayPrice * activeDiscount / 100);
             displayPrice = discounted;
-            originalPrice = `<span class="original-price">${getCurrencySymbol(p.currency || 'USD')}${p.price.toFixed(2)}</span>`;
+            originalPrice =
+                `<span class="original-price">${getCurrencySymbol(p.currency || 'USD')}${p.price.toFixed(2)}</span>`;
             discountBadge = `<span class="discount-badge">-${activeDiscount}%</span>`;
         }
         const currencySymbol = getCurrencySymbol(p.currency || 'USD');
-        const priceDisplay = isUnavailable ? '⛔ Unavailable' : (isFree ? 'FREE' : `${currencySymbol}${displayPrice.toFixed(2)}`);
+        const priceDisplay = isUnavailable ? '⛔ Unavailable' : (isFree ? 'FREE' :
+            `${currencySymbol}${displayPrice.toFixed(2)}`);
 
         return `
       <div class="product-card" onclick="window.openDetails('${p.id}')">
@@ -2004,7 +2172,7 @@ function updateStatsFromProducts(productsList) {
 function generateRecommendations(productsList) {
     const grid = document.getElementById('recommendationsGrid');
     if (!grid) return;
-    
+
     let recs = [];
     if (currentUser) {
         recs = getRecommendations(4);
@@ -2014,9 +2182,10 @@ function generateRecommendations(productsList) {
     } else {
         recs = productsList.filter(p => p.price > 0).slice(0, 4);
     }
-    
+
     if (recs.length === 0) {
-        grid.innerHTML = `<div class="rec-empty" style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text-secondary);font-size:13px;">
+        grid.innerHTML =
+            `<div class="rec-empty" style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text-secondary);font-size:13px;">
             <i class="fas fa-lightbulb" style="display:block;font-size:24px;opacity:0.2;margin-bottom:4px;"></i>
             <p>Start exploring scripts!</p>
         </div>`;
@@ -2032,9 +2201,8 @@ function generateRecommendations(productsList) {
 }
 
 // ============================================================
-// Currency, Product Type, Quantity, Badge Functions
+// CURRENCY, PRODUCT TYPE, QUANTITY, BADGE FUNCTIONS
 // ============================================================
-
 window.selectCurrency = function(currency) {
     document.querySelectorAll('.currency-option').forEach(el => {
         el.classList.toggle('active', el.dataset.currency === currency);
@@ -2160,9 +2328,8 @@ function setBadges(badges) {
 }
 
 // ============================================================
-// Admin Fallback Products
+// ADMIN FALLBACK PRODUCTS
 // ============================================================
-
 function renderFallbackProductsAdmin() {
     const container = document.getElementById('adminFallbackProducts');
     if (!container) return;
@@ -2230,7 +2397,8 @@ window.openAddFallbackProductModal = function() {
     document.getElementById('fallbackProductPrice').value = 0;
     document.getElementById('fallbackProductBadge').value = 'FREE';
     document.getElementById('fallbackProductStatus').value = 'available';
-    document.getElementById('fallbackProductImage').value = 'https://picsum.photos/seed/' + Math.random().toString(36).substring(2, 8) + '/400/300';
+    document.getElementById('fallbackProductImage').value = 'https://picsum.photos/seed/' + Math.random().toString(36)
+        .substring(2, 8) + '/400/300';
     document.getElementById('fallbackProductDescription').value = '';
     document.getElementById('fallbackProductFeatures').value = '';
     document.getElementById('fallbackProductVideo').value = 'https://www.youtube.com/embed/dQw4w9WgXcQ';
@@ -2261,7 +2429,15 @@ window.saveFallbackProduct = function() {
     const features = featuresText ? featuresText.split(',').map(f => f.trim()).filter(f => f) : [];
     const productData = {
         id: 'fallback_' + Date.now(),
-        name, price, badge, status, image, description, features, video, downloadLink,
+        name,
+        price,
+        badge,
+        status,
+        image,
+        description,
+        features,
+        video,
+        downloadLink,
         currency: 'USD',
         productType: 'standard',
         badges: ['new'],
@@ -2297,9 +2473,8 @@ window.deleteFallbackProduct = function(index) {
 };
 
 // ============================================================
-// Featured Products, Cart, Wishlist
+// FEATURED PRODUCTS, CART, WISHLIST
 // ============================================================
-
 function renderFeaturedProducts() {
     const grid = document.getElementById('featuredGrid');
     if (!grid) return;
@@ -2311,7 +2486,8 @@ function renderFeaturedProducts() {
         productsToShow = products.slice(0, 4);
     }
     if (productsToShow.length === 0) {
-        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text-secondary);font-size:13px;">No products available</div>`;
+        grid.innerHTML =
+            `<div style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text-secondary);font-size:13px;">No products available</div>`;
         return;
     }
     featuredProducts = productsToShow;
@@ -2325,7 +2501,8 @@ function displayFeaturedSlice() {
     const start = featuredCurrentIndex;
     const end = Math.min(start + 4, featuredProducts.length);
     const slice = featuredProducts.slice(start, end);
-    if (slice.length === 0) { featuredCurrentIndex = 0; displayFeaturedSlice(); return; }
+    if (slice.length === 0) { featuredCurrentIndex = 0;
+        displayFeaturedSlice(); return; }
     grid.innerHTML = slice.map(p => {
         const badgeClass = p.price === 0 ? 'free' : (p.status === 'unavailable' ? 'unavailable' : 'vip');
         const badgeText = p.price === 0 ? 'FREE' : (p.badge || 'VIP');
@@ -2341,14 +2518,20 @@ function displayFeaturedSlice() {
     `}).join('');
 }
 
-function startFeaturedRotation() { if (featuredRotationInterval) { clearInterval(featuredRotationInterval); featuredRotationInterval = null; } if (!featuredSettings.enabled || featuredProducts.length <= 4) return; featuredRotationInterval = setInterval(() => { featuredCurrentIndex = (featuredCurrentIndex + 4) % featuredProducts.length; displayFeaturedSlice(); }, featuredSettings.rotationInterval); }
-function stopFeaturedRotation() { if (featuredRotationInterval) { clearInterval(featuredRotationInterval); featuredRotationInterval = null; } }
+function startFeaturedRotation() { if (featuredRotationInterval) { clearInterval(featuredRotationInterval);
+        featuredRotationInterval = null; } if (!featuredSettings.enabled || featuredProducts.length <= 4) return;
+    featuredRotationInterval = setInterval(() => { featuredCurrentIndex = (featuredCurrentIndex + 4) % featuredProducts
+            .length;
+        displayFeaturedSlice(); }, featuredSettings.rotationInterval); }
+function stopFeaturedRotation() { if (featuredRotationInterval) { clearInterval(featuredRotationInterval);
+        featuredRotationInterval = null; } }
 
 async function loadFeaturedSettings() {
     try {
         const settingsRef = doc(db, 'settings', 'featured');
         const settingsSnap = await getDoc(settingsRef);
-        if (settingsSnap.exists()) { const data = settingsSnap.data(); featuredSettings = { ...featuredSettings, ...data }; }
+        if (settingsSnap.exists()) { const data = settingsSnap.data();
+            featuredSettings = { ...featuredSettings, ...data }; }
         renderFeaturedProducts();
         if (featuredSettings.enabled) { startFeaturedRotation(); } else { stopFeaturedRotation(); }
     } catch (error) {
@@ -2358,9 +2541,8 @@ async function loadFeaturedSettings() {
 }
 
 // ============================================================
-// Cart Management
+// CART MANAGEMENT
 // ============================================================
-
 function updateProductCardButton(productId) {
     const cards = document.querySelectorAll('.product-card');
     cards.forEach(card => {
@@ -2425,8 +2607,19 @@ window.addToCart = async function(productId) {
     updateProductCardButton(productId);
 };
 
-window.clearCart = async function() { if (cart.length === 0) return; cart = []; await saveUserData(); updateCartUI(); renderProducts(products); updateBottomCartBar(); showToast('🗑️ Cart cleared', 'info'); };
-window.removeFromCart = async function(productId) { cart = cart.filter(item => item.id !== productId); await saveUserData(true); updateCartUI(); renderProducts(products); updateBottomCartBar(); showToast('🗑️ Removed from cart', 'info'); };
+window.clearCart = async function() { if (cart.length === 0) return;
+    cart = [];
+    await saveUserData();
+    updateCartUI();
+    renderProducts(products);
+    updateBottomCartBar();
+    showToast('🗑️ Cart cleared', 'info'); };
+window.removeFromCart = async function(productId) { cart = cart.filter(item => item.id !== productId);
+    await saveUserData(true);
+    updateCartUI();
+    renderProducts(products);
+    updateBottomCartBar();
+    showToast('🗑️ Removed from cart', 'info'); };
 window.updateCartQuantity = async function(productId, change) {
     const item = cart.find(item => item.id === productId);
     if (!item) return;
@@ -2445,12 +2638,14 @@ function updateBottomCartBar() {
     const totalEl = document.getElementById('bottomCartTotal');
     const totalItems = cart.reduce((s, i) => s + (i.quantity || 1), 0);
     let totalSum = 0;
-    cart.forEach(item => { const qty = item.quantity || 1; totalSum += item.price * qty; });
+    cart.forEach(item => { const qty = item.quantity || 1;
+        totalSum += item.price * qty; });
     let rpDiscountAmount = 0;
     if (userProfile.useRpForCart) { rpDiscountAmount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, totalSum); }
     let finalTotal = totalSum - rpDiscountAmount;
     let promoDiscountAmount = 0;
-    if (activeDiscount > 0 && totalSum > 0) { promoDiscountAmount = (finalTotal * activeDiscount) / 100; finalTotal = finalTotal - promoDiscountAmount; }
+    if (activeDiscount > 0 && totalSum > 0) { promoDiscountAmount = (finalTotal * activeDiscount) / 100;
+        finalTotal = finalTotal - promoDiscountAmount; }
     if (finalTotal < 0) finalTotal = 0;
     if (cart.length === 0) { bar.classList.remove('open'); return; }
     bar.classList.add('open');
@@ -2519,8 +2714,10 @@ function renderCartFull() {
     let rpDiscountAmount = 0;
     let promoDiscountAmount = 0;
     let finalTotal = total;
-    if (userProfile.useRpForCart) { rpDiscountAmount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total); finalTotal = total - rpDiscountAmount; }
-    if (activeDiscount > 0 && total > 0) { promoDiscountAmount = (finalTotal * activeDiscount) / 100; finalTotal = finalTotal - promoDiscountAmount; }
+    if (userProfile.useRpForCart) { rpDiscountAmount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total);
+        finalTotal = total - rpDiscountAmount; }
+    if (activeDiscount > 0 && total > 0) { promoDiscountAmount = (finalTotal * activeDiscount) / 100;
+        finalTotal = finalTotal - promoDiscountAmount; }
     if (finalTotal < 0) finalTotal = 0;
     html += `
     <div style="background:var(--bg);border-radius:10px;padding:12px;border:1px solid var(--border);margin:8px 0;">
@@ -2574,16 +2771,22 @@ window.applyCartPromo = function() {
     const input = document.getElementById('cartPromoInput');
     const code = input.value.trim().toUpperCase();
     const statusEl = document.getElementById('cartPromoStatus');
-    if (!code) { statusEl.textContent = '⚠️ Please enter a code'; statusEl.className = 'promo-status error'; return; }
+    if (!code) { statusEl.textContent = '⚠️ Please enter a code';
+        statusEl.className = 'promo-status error'; return; }
     const codeData = discountCodes[code];
-    if (!codeData) { statusEl.textContent = '❌ Invalid code'; statusEl.className = 'promo-status error'; return; }
-    activeDiscount = codeData.discount; activeDiscountCode = code;
-    statusEl.textContent = `✅ ${codeData.discount}% discount applied!`; statusEl.className = 'promo-status success';
-    input.value = ''; renderCartFull(); showToast(`🎉 ${codeData.discount}% discount applied!`, 'success');
+    if (!codeData) { statusEl.textContent = '❌ Invalid code';
+        statusEl.className = 'promo-status error'; return; }
+    activeDiscount = codeData.discount;
+    activeDiscountCode = code;
+    statusEl.textContent = `✅ ${codeData.discount}% discount applied!`;
+    statusEl.className = 'promo-status success';
+    input.value = '';
+    renderCartFull();
+    showToast(`🎉 ${codeData.discount}% discount applied!`, 'success');
 };
 
 // ============================================================
-// FIXED Wishlist toggle - now properly updates UI
+// WISHLIST
 // ============================================================
 window.toggleWishlist = async function(productId) {
     const index = wishlist.indexOf(productId);
@@ -2614,22 +2817,23 @@ function updateWishlistUI() {
     if (count) count.textContent = wlCount;
     if (stats) stats.textContent = wlCount;
     if (sub) sub.textContent = wlCount + ' items';
-    if (wlCount === 0) { if (section) section.style.display = 'none'; if (grid) grid.innerHTML = `<div class="wishlist-empty"><i class="fas fa-heart"></i><p>No favorites yet</p></div>`; return; }
+    if (wlCount === 0) { if (section) section.style.display = 'none'; if (grid) grid.innerHTML =
+            `<div class="wishlist-empty"><i class="fas fa-heart"></i><p>No favorites yet</p></div>`; return; }
     if (section) section.style.display = 'block';
     const wlProducts = products.filter(p => wishlist.includes(p.id));
-    if (grid) { grid.innerHTML = wlProducts.map(p => `<div class="wishlist-item" style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:var(--bg);border-radius:8px;border:1px solid var(--border);transition:0.3s;"><img src="${p.image || 'https://picsum.photos/seed/default/60/60'}" style="width:30px;height:30px;border-radius:6px;object-fit:cover;" /><div class="info" style="flex:1;min-width:0;"><h4 style="font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</h4><div class="price" style="font-size:10px;color:var(--primary);font-weight:700;">${p.price===0?'FREE':getCurrencySymbol(p.currency || 'USD') + p.price.toFixed(2)}</div></div><button class="remove-btn" onclick="window.removeFromWishlist('${p.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:11px;opacity:0.3;transition:0.3s;"><i class="fas fa-times"></i></button></div>`).join(''); }
+    if (grid) { grid.innerHTML = wlProducts.map(p =>
+            `<div class="wishlist-item" style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:var(--bg);border-radius:8px;border:1px solid var(--border);transition:0.3s;"><img src="${p.image || 'https://picsum.photos/seed/default/60/60'}" style="width:30px;height:30px;border-radius:6px;object-fit:cover;" /><div class="info" style="flex:1;min-width:0;"><h4 style="font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</h4><div class="price" style="font-size:10px;color:var(--primary);font-weight:700;">${p.price===0?'FREE':getCurrencySymbol(p.currency || 'USD') + p.price.toFixed(2)}</div></div><button class="remove-btn" onclick="window.removeFromWishlist('${p.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:11px;opacity:0.3;transition:0.3s;"><i class="fas fa-times"></i></button></div>`
+        ).join(''); }
     updateFullUserMenu();
 }
 
-// ============================================================
-// createFloatingHearts
-// ============================================================
 function createFloatingHearts() {
     let container = document.getElementById('floatingHearts');
     if (!container) {
         container = document.createElement('div');
         container.id = 'floatingHearts';
-        container.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;overflow:hidden;';
+        container.style.cssText =
+            'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;overflow:hidden;';
         document.body.appendChild(container);
     }
     const heartCount = 6;
@@ -2698,9 +2902,8 @@ function renderWishlistFull() {
 }
 
 // ============================================================
-// 14. Product Preview (with embedded banner)
+// PRODUCT PREVIEW
 // ============================================================
-
 window.openDetails = function(id) {
     const p = products.find(x => x.id === id);
     if (!p) {
@@ -2824,13 +3027,14 @@ window.openDetails = function(id) {
     if (activeDiscount > 0 && p.price > 0) {
         const discounted = p.price - (p.price * activeDiscount / 100);
         priceDisplay = `${currencySymbol}${discounted.toFixed(2)}`;
-        originalPriceHtml = `<span style="font-size:14px;text-decoration:line-through;opacity:0.3;margin-left:8px;">${currencySymbol}${p.price.toFixed(2)}</span>`;
-        discountBadgeHtml = `<span style="font-size:11px;background:var(--danger);color:#fff;padding:0 8px;border-radius:10px;margin-left:6px;">-${activeDiscount}%</span>`;
+        originalPriceHtml =
+            `<span style="font-size:14px;text-decoration:line-through;opacity:0.3;margin-left:8px;">${currencySymbol}${p.price.toFixed(2)}</span>`;
+        discountBadgeHtml =
+            `<span style="font-size:11px;background:var(--danger);color:#fff;padding:0 8px;border-radius:10px;margin-left:6px;">-${activeDiscount}%</span>`;
     }
 
     const isInCart = cart.some(item => item.id === id && !item.isVip);
 
-    // Main content with embedded banner
     container.innerHTML = `
         <div style="max-width:600px;margin:0 auto;width:100%;">
             <div style="width:100%;border-radius:var(--radius-md);overflow:hidden;background:var(--bg-secondary);border:1px solid var(--border);margin-bottom:12px;">
@@ -3071,29 +3275,50 @@ window.addVipPlanToCart = function(product) {
 };
 
 // ============================================================
-// 15. Share Modal
+// SHARE MODAL
 // ============================================================
-
 window.openShareModal = function(productId) {
     const product = products.find(p => p.id === productId);
     if (!product) return;
     shareProduct = product;
-    document.getElementById('shareProductInfo').innerHTML = `<div style="display:flex;align-items:center;gap:10px;justify-content:center;"><img src="${product.image||'https://picsum.photos/seed/default/80/80'}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" /><div><div style="font-size:15px;font-weight:600;color:var(--text);">${product.name}</div><div style="font-size:13px;color:var(--primary);font-weight:700;">${product.price===0?'FREE':getCurrencySymbol(product.currency || 'USD') + product.price.toFixed(2)}</div></div></div>`;
+    document.getElementById('shareProductInfo').innerHTML =
+        `<div style="display:flex;align-items:center;gap:10px;justify-content:center;"><img src="${product.image||'https://picsum.photos/seed/default/80/80'}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" /><div><div style="font-size:15px;font-weight:600;color:var(--text);">${product.name}</div><div style="font-size:13px;color:var(--primary);font-weight:700;">${product.price===0?'FREE':getCurrencySymbol(product.currency || 'USD') + product.price.toFixed(2)}</div></div></div>`;
     document.getElementById('shareModal').classList.add('open');
 };
-window.closeShareModal = function() { document.getElementById('shareModal').classList.remove('open'); shareProduct = null; };
-window.shareToWhatsApp = function() { if (!shareProduct) return; const text = `🛒 *${shareProduct.name}*\n💰 Price: ${shareProduct.price===0?'FREE':shareProduct.price+' $'}\n📝 ${shareProduct.description||''}\n🔗 Visit the store to get it!`; window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank'); closeShareModal(); };
-window.shareToTelegram = function() { if (!shareProduct) return; const text = `🛒 *${shareProduct.name}*\n💰 Price: ${shareProduct.price===0?'FREE':shareProduct.price+' $'}\n📝 ${shareProduct.description||''}\n🔗 Visit the store to get it!`; window.open(`https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`, '_blank'); closeShareModal(); };
-window.shareToFacebook = function() { if (!shareProduct) return; window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}&quote=${encodeURIComponent(shareProduct.name)}`, '_blank'); closeShareModal(); };
-window.copyShareLink = function() { const url = window.location.href; navigator.clipboard.writeText(url).then(() => { showToast('✅ Link copied!', 'success'); closeShareModal(); }).catch(() => { const textArea = document.createElement('textarea'); textArea.value = url; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); showToast('✅ Link copied!', 'success'); closeShareModal(); }); };
+window.closeShareModal = function() { document.getElementById('shareModal').classList.remove('open');
+    shareProduct = null; };
+window.shareToWhatsApp = function() { if (!shareProduct) return; const text =
+        `🛒 *${shareProduct.name}*\n💰 Price: ${shareProduct.price===0?'FREE':shareProduct.price+' $'}\n📝 ${shareProduct.description||''}\n🔗 Visit the store to get it!`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    closeShareModal(); };
+window.shareToTelegram = function() { if (!shareProduct) return; const text =
+        `🛒 *${shareProduct.name}*\n💰 Price: ${shareProduct.price===0?'FREE':shareProduct.price+' $'}\n📝 ${shareProduct.description||''}\n🔗 Visit the store to get it!`;
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`,
+        '_blank');
+    closeShareModal(); };
+window.shareToFacebook = function() { if (!shareProduct) return;
+    window.open(
+        `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}&quote=${encodeURIComponent(shareProduct.name)}`,
+        '_blank');
+    closeShareModal(); };
+window.copyShareLink = function() { const url = window.location.href;
+    navigator.clipboard.writeText(url).then(() => { showToast('✅ Link copied!', 'success');
+        closeShareModal(); }).catch(() => { const textArea = document.createElement('textarea');
+        textArea.value = url;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showToast('✅ Link copied!', 'success');
+        closeShareModal(); }); };
 
 // ============================================================
-// 16. Filter & Search
+// FILTER & SEARCH
 // ============================================================
-
 window.filterProducts = function(filter) {
     currentFilter = filter;
-    document.querySelectorAll('.filter-btn').forEach(btn => { btn.classList.toggle('active', btn.dataset.filter === filter); });
+    document.querySelectorAll('.filter-btn').forEach(btn => { btn.classList.toggle('active', btn.dataset.filter ===
+        filter); });
     renderProducts(products, false);
 };
 
@@ -3101,13 +3326,17 @@ const searchInput = document.getElementById('liveSearchInput');
 const searchResults = document.getElementById('searchResults');
 const searchClear = document.getElementById('searchClear');
 searchInput.addEventListener('input', function() {
-    if (this.value.length > 0) { searchClear.classList.add('visible'); } else { searchClear.classList.remove('visible'); searchResults.classList.remove('active'); }
+    if (this.value.length > 0) { searchClear.classList.add('visible'); } else { searchClear.classList.remove(
+        'visible');
+        searchResults.classList.remove('active'); }
     performLiveSearch(this.value);
 });
+
 function performLiveSearch(query) {
     const searchTerm = query.trim().toLowerCase();
     if (!searchTerm) { searchResults.classList.remove('active'); return; }
-    const results = products.filter(p => p.name.toLowerCase().includes(searchTerm) || (p.description && p.description.toLowerCase().includes(searchTerm)));
+    const results = products.filter(p => p.name.toLowerCase().includes(searchTerm) || (p.description && p.description
+        .toLowerCase().includes(searchTerm)));
     results.sort((a, b) => {
         const aName = a.name.toLowerCase();
         const bName = b.name.toLowerCase();
@@ -3117,11 +3346,14 @@ function performLiveSearch(query) {
         if (!aStartsWith && bStartsWith) return 1;
         return aName.indexOf(searchTerm) - bName.indexOf(searchTerm);
     });
-    if (results.length === 0) { searchResults.innerHTML = `<div style="text-align:center;padding:16px;color:var(--text-secondary);"><i class="fas fa-search" style="font-size:24px;opacity:0.2;display:block;margin-bottom:4px;"></i><div style="font-size:14px;font-weight:600;">No results</div><div style="font-size:12px;opacity:0.4;">No products match "${searchTerm}"</div></div>`; searchResults.classList.add('active'); return; }
+    if (results.length === 0) { searchResults.innerHTML =
+            `<div style="text-align:center;padding:16px;color:var(--text-secondary);"><i class="fas fa-search" style="font-size:24px;opacity:0.2;display:block;margin-bottom:4px;"></i><div style="font-size:14px;font-weight:600;">No results</div><div style="font-size:12px;opacity:0.4;">No products match "${searchTerm}"</div></div>`;
+        searchResults.classList.add('active'); return; }
     searchResults.innerHTML = results.slice(0, 10).map(p => {
         const isFree = p.price === 0;
         const isUnavailable = p.status === 'unavailable';
-        const priceDisplay = isUnavailable ? '⛔ Unavailable' : (isFree ? 'FREE' : getCurrencySymbol(p.currency || 'USD') + p.price.toFixed(2));
+        const priceDisplay = isUnavailable ? '⛔ Unavailable' : (isFree ? 'FREE' : getCurrencySymbol(p
+            .currency || 'USD') + p.price.toFixed(2));
         const badgeClass = isUnavailable ? 'unavailable' : (isFree ? 'free' : 'vip');
         const badgeText = isUnavailable ? '⛔' : (isFree ? 'FREE' : 'VIP');
         return `
@@ -3138,86 +3370,35 @@ function performLiveSearch(query) {
     searchResults.classList.add('active');
 }
 
-function highlightText(text, query) { if (!query) return text; const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi'); return text.replace(regex, '<span style="color: var(--primary); font-weight: 700;">$1</span>'); }
-document.addEventListener('click', function(e) { const wrapper = document.querySelector('.search-wrapper'); if (wrapper && !wrapper.contains(e.target)) { searchResults.classList.remove('active'); } });
-window.clearSearch = function() { searchInput.value = ''; searchClear.classList.remove('visible'); searchResults.classList.remove('active'); searchInput.focus(); };
-function closeSearchResults() { searchResults.classList.remove('active'); searchInput.value = ''; searchClear.classList.remove('visible'); }
-document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeSearchResults(); closeUserMenuFull(); closeCartFull(); closeWishlistFull(); closeProfileFull(); closeHistoryFull(); } });
+function highlightText(text, query) { if (!query) return text; const regex = new RegExp(
+        `(${query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi'); return text.replace(regex,
+        '<span style="color: var(--primary); font-weight: 700;">$1</span>'); }
+document.addEventListener('click', function(e) { const wrapper = document.querySelector('.search-wrapper'); if (wrapper &&
+        !wrapper.contains(e.target)) { searchResults.classList.remove('active'); } });
+window.clearSearch = function() { searchInput.value = '';
+    searchClear.classList.remove('visible');
+    searchResults.classList.remove('active');
+    searchInput.focus(); };
+
+function closeSearchResults() { searchResults.classList.remove('active');
+    searchInput.value = '';
+    searchClear.classList.remove('visible'); }
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeSearchResults();
+        closeUserMenuFull();
+        closeCartFull();
+        closeWishlistFull();
+        closeProfileFull();
+        closeHistoryFull(); } });
 
 // ============================================================
-// 17. Payment (with Supabase Functions Backend)
-// ============================================================
-
-// ============================================================
-// 17.0 Visitor Info Functions
-// ============================================================
-
-async function getVisitorInfo() {
-    let ip = 'Unknown';
-    try {
-        const ipRes = await fetch('https://api.ipify.org?format=json');
-        if (ipRes.ok) {
-            const ipData = await ipRes.json();
-            ip = ipData.ip || 'Unknown';
-        }
-    } catch (e) {
-        console.warn('⚠️ ipify failed:', e);
-    }
-
-    let country = 'Unknown', city = 'Unknown', region = 'Unknown', timezone = 'Unknown', isp = 'Unknown';
-    if (ip !== 'Unknown') {
-        try {
-            const detailRes = await fetch(`https://ip-api.com/json/${ip}?fields=status,country,city,regionName,timezone,isp`);
-            if (detailRes.ok) {
-                const data = await detailRes.json();
-                if (data.status === 'success') {
-                    country = data.country || 'Unknown';
-                    city = data.city || 'Unknown';
-                    region = data.regionName || 'Unknown';
-                    timezone = data.timezone || 'Unknown';
-                    isp = data.isp || 'Unknown';
-                }
-            }
-        } catch (e) {
-            console.warn('⚠️ ip-api.com detail failed:', e);
-        }
-    }
-    return { ip, country, city, region, timezone, isp };
-}
-
-function getDeviceInfo() {
-    const ua = navigator.userAgent;
-    let os = 'Unknown';
-    let browser = 'Unknown';
-    let device = 'Desktop';
-
-    if (ua.indexOf('Windows') !== -1) os = 'Windows';
-    else if (ua.indexOf('Mac OS') !== -1) os = 'macOS';
-    else if (ua.indexOf('Linux') !== -1) os = 'Linux';
-    else if (ua.indexOf('Android') !== -1) os = 'Android';
-    else if (ua.indexOf('iOS') !== -1 || ua.indexOf('iPhone') !== -1 || ua.indexOf('iPad') !== -1) os = 'iOS';
-
-    if (ua.indexOf('Firefox') !== -1) browser = 'Firefox';
-    else if (ua.indexOf('Chrome') !== -1 && ua.indexOf('Edg') === -1) browser = 'Chrome';
-    else if (ua.indexOf('Safari') !== -1 && ua.indexOf('Chrome') === -1) browser = 'Safari';
-    else if (ua.indexOf('Edg') !== -1) browser = 'Edge';
-    else if (ua.indexOf('Opera') !== -1 || ua.indexOf('OPR') !== -1) browser = 'Opera';
-
-    if (/(tablet|ipad|playbook|silk)|(android(?!.*mobile))/i.test(ua)) device = 'Tablet';
-    else if (/Mobile|iP(hone|od)|Android|BlackBerry|IEMobile|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/i.test(ua)) device = 'Mobile';
-    else device = 'Desktop';
-
-    return { os, browser, device };
-}
-
-// ============================================================
-// 17.1 Payment Products Render
+// PAYMENT FUNCTIONS
 // ============================================================
 window.renderPaymentProducts = function() {
     const container = document.getElementById('paymentProductsList');
     if (!container) return;
     if (!cart || cart.length === 0) {
-        container.innerHTML = '<div style="text-align:center;padding:8px;color:var(--text-secondary);opacity:0.4;">No products</div>';
+        container.innerHTML =
+        '<div style="text-align:center;padding:8px;color:var(--text-secondary);opacity:0.4;">No products</div>';
         return;
     }
     container.innerHTML = cart.map(item => {
@@ -3228,7 +3409,7 @@ window.renderPaymentProducts = function() {
         const name = item.isVip ? `${item.name} 👑 ${item.vipPlanLabel || 'VIP'}` : item.name;
         const qtyLabel = item.isQuantityProduct ? `📦 ${item.selectedQuantity || ''}` : '';
         const proxyLabel = item.isProxy ? ' 🌐' : '';
-        
+
         return `
             <div style="display:flex; align-items:center; gap:10px; background:var(--glass-bg); backdrop-filter:blur(12px); border:1px solid var(--glass-border); border-radius:var(--radius-sm); padding:10px 12px; margin-bottom:8px;">
                 <img src="${image}" alt="${item.name}" style="width:44px; height:44px; border-radius:var(--radius-sm); object-fit:cover;" />
@@ -3242,16 +3423,13 @@ window.renderPaymentProducts = function() {
     }).join('');
 };
 
-// ============================================================
-// 17.2 Crypto Price Functions
-// ============================================================
-
 async function fetchCryptoPrices() {
     if (cryptoPrices.isUpdating) return;
     cryptoPrices.isUpdating = true;
 
     try {
-        const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=litecoin&vs_currencies=usd');
+        const response = await fetch(
+            'https://api.coingecko.com/api/v3/simple/price?ids=litecoin&vs_currencies=usd');
         if (response.ok) {
             const data = await response.json();
             if (data.litecoin && data.litecoin.usd) {
@@ -3292,7 +3470,9 @@ async function fetchCryptoPrices() {
 }
 
 function getLTCPrice() { return cryptoPrices.ltc || 42; }
+
 function getUSDTPrice() { return cryptoPrices.usdt || 1; }
+
 function updatePriceUI() {
     const exchangeRate = document.getElementById('exchangeRate');
     if (exchangeRate) {
@@ -3314,19 +3494,21 @@ function updatePriceUI() {
         }
     }
 }
+
 function updatePayableTotal() {
-    let total = 0; cart.forEach(item => { const qty = item.quantity || 1; total += item.price * qty; });
+    let total = 0;
+    cart.forEach(item => { const qty = item.quantity || 1;
+        total += item.price * qty; });
     let finalTotal = total;
-    if (userProfile.useRpForCart) { const rpDiscount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total); finalTotal = total - rpDiscount; }
-    if (activeDiscount > 0 && total > 0) { const discountAmount = (finalTotal * activeDiscount) / 100; finalTotal = finalTotal - discountAmount; }
+    if (userProfile.useRpForCart) { const rpDiscount = Math.min((userProfile.rp || 0) * RP_TO_DOLLAR, total);
+        finalTotal = total - rpDiscount; }
+    if (activeDiscount > 0 && total > 0) { const discountAmount = (finalTotal * activeDiscount) / 100;
+        finalTotal = finalTotal - discountAmount; }
     if (finalTotal < 0) finalTotal = 0;
     const el = document.getElementById('payableTotal');
     if (el) el.textContent = '$' + finalTotal.toFixed(2);
 }
 
-// ============================================================
-// 17.3 Payment Selection
-// ============================================================
 window.selectPayment = function(method) {
     selectedPayment = method;
     document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
@@ -3356,9 +3538,6 @@ window.selectPayment = function(method) {
     updatePayableTotal();
 };
 
-// ============================================================
-// 17.4 Continue Payment
-// ============================================================
 window.continuePayment = function() {
     if (!selectedPayment) {
         showToast('⚠️ Please select a payment method', 'warning');
@@ -3419,7 +3598,8 @@ window.continuePayment = function() {
         if (telegramContact) telegramContact.style.display = 'block';
         if (mainBtn) {
             mainBtn.style.display = 'block';
-            mainBtn.innerHTML = `<i class="fab fa-telegram-plane"></i> Contact via Telegram - $${finalTotal.toFixed(2)}`;
+            mainBtn.innerHTML =
+                `<i class="fab fa-telegram-plane"></i> Contact via Telegram - $${finalTotal.toFixed(2)}`;
             mainBtn.onclick = function() {
                 const message = `🛒 New Order\n\nTotal: $${finalTotal.toFixed(2)}\nProducts: ${cart.map(i => i.name).join(', ')}`;
                 window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(message)}`, '_blank');
@@ -3439,7 +3619,8 @@ window.continuePayment = function() {
         }
     } else if (selectedPayment === 'balance') {
         if (userBalance < finalTotal) {
-            showToast(`⚠️ Insufficient balance! Need $${finalTotal.toFixed(2)}, have $${userBalance.toFixed(2)}`, 'warning');
+            showToast(`⚠️ Insufficient balance! Need $${finalTotal.toFixed(2)}, have $${userBalance.toFixed(2)}`,
+                'warning');
             setTimeout(() => openTopupModal(), 500);
             return;
         }
@@ -3447,10 +3628,6 @@ window.continuePayment = function() {
         return;
     }
 };
-
-// ============================================================
-// 17.5 Balance Payment Function
-// ============================================================
 
 async function processBalancePayment(totalAmount) {
     if (!currentUser) {
@@ -3514,9 +3691,6 @@ async function processBalancePayment(totalAmount) {
     }
 }
 
-// ============================================================
-// 17.6 Place Order
-// ============================================================
 window.placeOrder = function() {
     if (!currentUser || currentUser.isAnonymous) {
         showToast('⚠️ Please sign in to confirm payment.', 'warning');
@@ -3549,9 +3723,6 @@ window.placeOrder = function() {
     sendOrderToTelegram(selectedPayment, txHash);
 };
 
-// ============================================================
-// 17.7 Binance ID specific functions
-// ============================================================
 window.copyBinanceId = function() {
     const id = document.getElementById('binanceIdDisplay').textContent;
     if (!id) return;
@@ -3581,11 +3752,13 @@ window.verifyTransaction = function() {
     if (tx.length < 6) {
         result.style.display = 'block';
         result.className = 'bv-result error';
-        result.textContent = '❌ Transaction ID seems too short. Please check and try again.';
+        result.textContent =
+        '❌ Transaction ID seems too short. Please check and try again.';
     } else {
         result.style.display = 'block';
         result.className = 'bv-result success';
-        result.textContent = '✅ Transaction ID format looks valid. You can now confirm payment.';
+        result.textContent =
+        '✅ Transaction ID format looks valid. You can now confirm payment.';
     }
 };
 
@@ -3630,7 +3803,7 @@ window.submitManualPayment = function() {
 };
 
 // ============================================================
-// 17.8 sendOrderToTelegram (FIXED: adminOnly and proper user notifications)
+// SEND ORDER TO TELEGRAM (with email integration)
 // ============================================================
 async function sendOrderToTelegram(method, txHash = null) {
     if (isProcessingOrder) {
@@ -3699,7 +3872,6 @@ async function sendOrderToTelegram(method, txHash = null) {
 
         console.log('💰 Total:', finalTotal);
 
-        // Fraud detection
         const fraudCheck = await detectFraud({
             userId: currentUser.uid,
             email: currentUser.email,
@@ -3773,41 +3945,41 @@ async function sendOrderToTelegram(method, txHash = null) {
         const userRef = doc(db, 'users', currentUser.uid);
         await updateDoc(userRef, { history: arrayUnion(orderItem) });
 
-        // Send order confirmation email
+        // ===== SEND ORDER CONFIRMATION EMAIL =====
         await sendOrderConfirmationEmail(currentUser.email, {
             orderId: orderId,
             userName: currentUser.displayName || currentUser.email,
             items: cartData,
             total: finalTotal,
             method: method,
-            status: 'pending'
+            status: 'pending',
+            txHash: txHash
         });
 
-        // --- NOTIFICATIONS FIX: user-specific + admin-only ---
         try {
             await addDoc(collection(db, 'notifications'), {
                 title: '🆕 New Order Placed',
                 message: `Order #${orderId.slice(-6)} - Total: $${finalTotal.toFixed(2)}`,
-                userId: currentUser.uid,   // specific to this user
+                userId: currentUser.uid,
                 readBy: [],
                 createdAt: serverTimestamp()
             });
-            console.log('✅ User notification sent (new order placed)');
+            console.log('✅ Firebase notification sent to user');
         } catch (error) {
-            console.error('Failed to send user notification:', error);
+            console.error('Failed to send Firebase user notification:', error);
         }
 
         try {
             await addDoc(collection(db, 'notifications'), {
                 title: '📦 New Order Received',
                 message: `Order #${orderId.slice(-6)} from ${currentUser.email} - $${finalTotal.toFixed(2)}`,
-                adminOnly: true,   // only admin can see this
+                adminOnly: true,
                 readBy: [],
                 createdAt: serverTimestamp()
             });
-            console.log('✅ Admin notification added (adminOnly)');
+            console.log('✅ Firebase global notification sent');
         } catch (error) {
-            console.error('Failed to add admin notification:', error);
+            console.error('Failed to send Firebase global notification:', error);
         }
 
         console.log('📤 Preparing Telegram notification...');
@@ -3847,7 +4019,6 @@ ${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
 🔔 *Status:* Pending - Awaiting confirmation
         `;
 
-        // Send Telegram to user if linked
         if (userProfile.telegramChatId) {
             try {
                 console.log('📤 Sending Telegram to user...');
@@ -3864,7 +4035,6 @@ ${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
             console.log('ℹ️ User has no Telegram linked');
         }
 
-        // Send admin notification (email + Telegram) via the new admin notification system
         const adminMessage = `
 👤 *User:* ${currentUser.displayName || currentUser.email || 'User'}
 📧 *Email:* ${currentUser.email || 'N/A'}
@@ -3885,7 +4055,7 @@ ${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
             await addDoc(collection(db, 'notifications'), {
                 title: 'ℹ️ Proxy request pending',
                 message: `User: ${currentUser.email} - ${proxyItems.length} proxies`,
-                userId: currentUser.uid,  // specific to user
+                userId: currentUser.uid,
                 readBy: [],
                 createdAt: serverTimestamp()
             });
@@ -3919,12 +4089,10 @@ ${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
     }
 }
 
-// ============================================================
-// 17.9 Place Order Telegram
-// ============================================================
 window.placeOrderTelegram = function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
-    const message = `🛒 New Order\n\nTotal: $${document.getElementById('step2Total')?.textContent || '0.00'}\nProducts: ${cart.map(i => i.name).join(', ')}`;
+    const message =
+        `🛒 New Order\n\nTotal: $${document.getElementById('step2Total')?.textContent || '0.00'}\nProducts: ${cart.map(i => i.name).join(', ')}`;
     window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(message)}`, '_blank');
     showToast('📨 Please send the message to complete your order.', 'info');
     setTimeout(() => {
@@ -3938,9 +4106,8 @@ window.placeOrderTelegram = function() {
 };
 
 // ============================================================
-// 17.10 Proxy Functions
+// PROXY FUNCTIONS
 // ============================================================
-
 function renderProxyPackages() {
     const container = document.getElementById('proxyPackages');
     if (!container) return;
@@ -3982,36 +4149,8 @@ window.addProxyToCart = function(packageId) {
 };
 
 // ============================================================
-// 18. Order Functions with User Notification
+// TELEGRAM FUNCTIONS
 // ============================================================
-
-async function sendUserNotification(userId, title, message) {
-    if (!userId) return;
-    try {
-        const userRef = doc(db, 'users', userId);
-        const userSnap = await getDoc(userRef);
-        if (!userSnap.exists()) {
-            console.log('ℹ️ User not found, skipping notification');
-            return;
-        }
-        await addDoc(collection(db, 'notifications'), {
-            title: title,
-            message: message,
-            userId: userId,
-            readBy: [],
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp()
-        });
-        console.log('✅ User notification sent to:', userId);
-    } catch (error) {
-        console.error('Error sending user notification:', error);
-    }
-}
-
-// ============================================================
-// 19. Telegram Functions
-// ============================================================
-
 async function sendTelegramNotification(chatId, message) {
     if (!chatId) {
         console.log('⚠️ No chatId provided');
@@ -4054,11 +4193,13 @@ window.bindTelegram = async function() {
     try {
         const bindCode = currentUser.uid.slice(-8) + Math.random().toString(36).substring(2, 6);
         const bindRef = doc(db, 'telegram_binds', bindCode);
-        await setDoc(bindRef, { userId: currentUser.uid, userEmail: currentUser.email, userName: currentUser.displayName || 'User', createdAt: serverTimestamp(), status: 'pending' });
+        await setDoc(bindRef, { userId: currentUser.uid, userEmail: currentUser.email,
+            userName: currentUser.displayName || 'User', createdAt: serverTimestamp(), status: 'pending' });
         window.open(`https://t.me/${BOT_USERNAME}?start=bind`, '_blank');
         showToast('📨 Open bot and press "Start" then "Link Account".', 'success');
         startBindingListener(bindCode);
-    } catch (error) { console.error('Telegram bind error:', error); showToast('❌ Connection error', 'error'); }
+    } catch (error) { console.error('Telegram bind error:', error);
+        showToast('❌ Connection error', 'error'); }
 };
 
 function startBindingListener(bindCode) {
@@ -4116,18 +4257,15 @@ window.unlinkTelegram = async function() {
     try {
         const userRef = doc(db, 'users', currentUser.uid);
         await updateDoc(userRef, { telegramChatId: '', telegram: '', updatedAt: serverTimestamp() });
-        userProfile.telegramChatId = ''; userProfile.telegram = '';
+        userProfile.telegramChatId = '';
+        userProfile.telegram = '';
         await saveUserData();
-        renderProfileFull(); updateFullUserMenu(); updateUI();
+        renderProfileFull();
+        updateFullUserMenu();
+        updateUI();
         showToast('✅ Telegram unlinked!', 'success');
     } catch (error) { showToast('❌ Error unlinking: ' + error.message, 'error'); }
 };
-
-function maskChatId(chatId) {
-    if (!chatId) return 'Not linked';
-    if (chatId.length <= 8) return chatId;
-    return chatId.slice(0, 4) + '***' + chatId.slice(-4);
-}
 
 window.checkTelegramStatus = async function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
@@ -4142,20 +4280,22 @@ window.checkTelegramStatus = async function() {
         userProfile.telegram = username;
         if (chatId) {
             const maskedId = chatId.slice(0, 4) + '***' + chatId.slice(-4);
-            showToast(`✅ Telegram is linked!\n📱 Chat ID: ${maskedId}\n👤 Username: ${username || 'Not set'}`, 'success');
+            showToast(`✅ Telegram is linked!\n📱 Chat ID: ${maskedId}\n👤 Username: ${username || 'Not set'}`,
+            'success');
             renderProfileFull();
             updateFullUserMenu();
         } else {
-            showToast('❌ Telegram is NOT linked.\n\nPlease click "Link Bot" to connect your account.', 'warning');
+            showToast('❌ Telegram is NOT linked.\n\nPlease click "Link Bot" to connect your account.',
+            'warning');
         }
         await saveUserData();
-    } catch (error) { console.error('❌ Error checking Telegram status:', error); showToast('❌ Failed to check Telegram status: ' + error.message, 'error'); }
+    } catch (error) { console.error('❌ Error checking Telegram status:', error);
+        showToast('❌ Failed to check Telegram status: ' + error.message, 'error'); }
 };
 
 // ============================================================
-// 20. Downloads & Notifications (FIXED: user-specific + admin-only)
+// DOWNLOADS & NOTIFICATIONS
 // ============================================================
-
 function loadDownloads() {
     if (unsubscribeDownloads) { unsubscribeDownloads(); }
     const dlRef = collection(db, 'downloads');
@@ -4170,9 +4310,12 @@ function loadDownloads() {
 function renderDownloads() {
     const container = document.getElementById('downloadsList');
     if (!container) return;
-    if (downloads.length === 0) { container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-file" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">No downloads</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Stay tuned for new content</div></div>`; return; }
+    if (downloads.length === 0) { container.innerHTML =
+            `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-file" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">No downloads</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Stay tuned for new content</div></div>`;
+        return; }
     container.innerHTML = downloads.map(d => {
-        const date = d.date || (d.createdAt ? new Date(d.createdAt.toDate()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '');
+        const date = d.date || (d.createdAt ? new Date(d.createdAt.toDate()).toLocaleDateString('en-US',
+            { month: 'short', day: 'numeric', year: 'numeric' }) : '');
         return `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);margin-bottom:8px;"><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);">${d.title}</div><div style="font-size:11px;color:var(--text-secondary);opacity:0.4;">${d.type||'File'} • ${date}</div></div><a href="${d.downloadUrl||'#'}" target="_blank" style="padding:6px 16px;border:none;border-radius:8px;background:var(--free-color);color:#0a0a1a;font-weight:600;cursor:pointer;font-size:12px;text-decoration:none;transition:0.3s;"><i class="fas fa-download"></i></a></div>`;
     }).join('');
 }
@@ -4180,8 +4323,12 @@ function renderDownloads() {
 function renderAdminDownloads() {
     const container = document.getElementById('adminDownloadsList');
     if (!container) return;
-    if (downloads.length === 0) { container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">📭 No downloads</div>`; return; }
-    container.innerHTML = downloads.map(d => `<div class="admin-item"><div class="item-info"><div class="item-title">${d.title}</div><div class="item-meta">${d.type||'File'} • ${d.downloadUrl||'No link'}</div></div><div class="item-actions"><button class="btn-edit" onclick="editDownload('${d.id}')"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="deleteDownload('${d.id}')"><i class="fas fa-trash"></i></button></div></div>`).join('');
+    if (downloads.length === 0) { container.innerHTML =
+            `<div style="text-align:center;padding:30px;color:var(--text-secondary);">📭 No downloads</div>`;
+        return; }
+    container.innerHTML = downloads.map(d =>
+        `<div class="admin-item"><div class="item-info"><div class="item-title">${d.title}</div><div class="item-meta">${d.type||'File'} • ${d.downloadUrl||'No link'}</div></div><div class="item-actions"><button class="btn-edit" onclick="editDownload('${d.id}')"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="deleteDownload('${d.id}')"><i class="fas fa-trash"></i></button></div></div>`
+        ).join('');
 }
 
 window.createDownload = async function(e) {
@@ -4192,9 +4339,12 @@ window.createDownload = async function(e) {
     const description = document.getElementById('dlDescription').value.trim();
     const downloadUrl = document.getElementById('dlUrl').value.trim();
     const date = document.getElementById('dlDate').value;
-    if (!title || !type || !description || !downloadUrl) { showToast('⚠️ Please fill all fields', 'warning'); return; }
+    if (!title || !type || !description || !downloadUrl) { showToast('⚠️ Please fill all fields',
+        'warning'); return; }
     try {
-        await addDoc(collection(db, 'downloads'), { title, type, description, downloadUrl, date: date || new Date().toISOString().split('T')[0], createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+        await addDoc(collection(db, 'downloads'), { title, type, description, downloadUrl,
+            date: date || new Date().toISOString().split('T')[0], createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp() });
         showToast('✅ Download added', 'success');
         closeCreateDownloadModal();
         document.getElementById('createDownloadForm').reset();
@@ -4203,13 +4353,20 @@ window.createDownload = async function(e) {
 window.deleteDownload = async function(id) {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!confirm('Delete this download?')) return;
-    try { await deleteDoc(doc(db, 'downloads', id)); showToast('🗑️ Download deleted', 'success'); } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
+    try { await deleteDoc(doc(db, 'downloads', id));
+        showToast('🗑️ Download deleted', 'success'); } catch (error) { showToast('❌ Error: ' + error.message,
+            'error'); }
 };
 window.editDownload = function(id) { showToast('✏️ Edit feature coming soon', 'info'); };
-window.openCreateDownloadModal = function() { if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; } document.getElementById('createDownloadModal').classList.add('open'); document.getElementById('createDownloadForm').reset(); };
-window.closeCreateDownloadModal = function() { document.getElementById('createDownloadModal').classList.remove('open'); };
+window.openCreateDownloadModal = function() { if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized',
+        'error'); return; } document.getElementById('createDownloadModal').classList.add('open');
+    document.getElementById('createDownloadForm').reset(); };
+window.closeCreateDownloadModal = function() { document.getElementById('createDownloadModal').classList.remove(
+    'open'); };
 
-// FIXED: loadNotifications - filter for user-specific and admin-only
+// ============================================================
+// LOAD NOTIFICATIONS (user-specific + admin-only)
+// ============================================================
 function loadNotifications() {
     if (unsubscribeNotifications) { unsubscribeNotifications(); }
     const notifRef = collection(db, 'notifications');
@@ -4227,12 +4384,14 @@ function loadNotifications() {
             });
             if (currentUser) {
                 const userId = currentUser.uid;
-                unreadNotifications = notifications.filter(n => !(n.readBy || []).includes(userId)).length;
+                unreadNotifications = notifications.filter(n => !(n.readBy || []).includes(userId))
+                    .length;
             } else { unreadNotifications = 0; }
             updateNotificationBadge();
             renderAdminNotifications();
             renderUserNotifications();
-        }).catch((error) => { console.error('Error loading notifications:', error); renderUserNotificationsFallback(); });
+        }).catch((error) => { console.error('Error loading notifications:', error);
+            renderUserNotificationsFallback(); });
         unsubscribeNotifications = onSnapshot(query(notifRef, orderBy('createdAt', 'desc')), (snapshot) => {
             if (isUpdatingNotifications) return;
             notifications = [];
@@ -4247,34 +4406,42 @@ function loadNotifications() {
             });
             if (currentUser) {
                 const userId = currentUser.uid;
-                unreadNotifications = notifications.filter(n => !(n.readBy || []).includes(userId)).length;
+                unreadNotifications = notifications.filter(n => !(n.readBy || []).includes(userId))
+                    .length;
             } else { unreadNotifications = 0; }
             updateNotificationBadge();
             renderAdminNotifications();
             renderUserNotifications();
         }, (error) => { console.error('Notifications listener error:', error); });
-    } catch (error) { console.error('Error setting up notifications:', error); renderUserNotificationsFallback(); }
+    } catch (error) { console.error('Error setting up notifications:', error);
+        renderUserNotificationsFallback(); }
 }
 
 function renderUserNotificationsFallback() {
     const container = document.getElementById('notificationsList');
     if (!container) return;
-    container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-bell" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">No notifications</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Notifications will appear here</div></div>`;
+    container.innerHTML =
+        `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-bell" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">No notifications</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Notifications will appear here</div></div>`;
 }
 
 function renderUserNotifications() {
     const container = document.getElementById('notificationsList');
     if (!container) return;
     const userNotifs = notifications.filter(n => n.userId === currentUser?.uid);
-    if (!userNotifs || userNotifs.length === 0) { 
-        container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-bell" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">No notifications</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Notifications will appear here</div></div>`;
-        return; 
+    if (!userNotifs || userNotifs.length === 0) {
+        container.innerHTML =
+            `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-bell" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">No notifications</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Notifications will appear here</div></div>`;
+        return;
     }
     let html = '';
     userNotifs.forEach(n => {
         const isRead = currentUser && (n.readBy || []).includes(currentUser.uid);
         let dateStr = '';
-        try { if (n.createdAt) { const date = n.createdAt.toDate ? n.createdAt.toDate() : new Date(n.createdAt); dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); } } catch (e) { dateStr = new Date().toLocaleDateString('en-US'); }
+        try { if (n.createdAt) { const date = n.createdAt.toDate ? n.createdAt.toDate() : new Date(n
+                    .createdAt);
+                dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric',
+                    year: 'numeric' }); } } catch (e) { dateStr = new Date().toLocaleDateString(
+                'en-US'); }
         html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:${!isRead?'var(--primary-glow)':'var(--bg)'};border-radius:10px;border:1px solid var(--border);margin-bottom:8px;${!isRead?'border-left:3px solid var(--primary);':''}"><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);">${n.title||'Notification'}</div><div style="font-size:12px;color:var(--text-secondary);">${n.message||''}</div><div style="font-size:11px;color:var(--text-secondary);opacity:0.3;">${dateStr}</div></div>${!isRead?'<span style="background:var(--notification-red);color:#fff;font-size:9px;font-weight:700;padding:2px 10px;border-radius:12px;">New</span>':''}</div>`;
     });
     container.innerHTML = html;
@@ -4287,15 +4454,20 @@ function renderAdminNotifications() {
     getDocs(query(notifRef, orderBy('createdAt', 'desc'))).then((snapshot) => {
         let allNotifs = [];
         snapshot.forEach((doc) => { allNotifs.push({ id: doc.id, ...doc.data() }); });
-        if (allNotifs.length === 0) { container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">📭 No notifications</div>`; return; }
-        container.innerHTML = allNotifs.map(n => `<div class="admin-item"><div class="item-info"><div class="item-title">${n.title||'Notification'}</div><div class="item-meta">${n.message||''} ${n.userId ? '• User: ' + n.userId.slice(-6) : ''} ${n.adminOnly ? '🔒 Admin' : ''} • ${n.createdAt?new Date(n.createdAt.toDate()).toLocaleDateString('en-US'):''}</div></div><div class="item-actions"><button class="btn-delete" onclick="deleteNotification('${n.id}')"><i class="fas fa-trash"></i></button></div></div>`).join('');
+        if (allNotifs.length === 0) { container.innerHTML =
+                `<div style="text-align:center;padding:30px;color:var(--text-secondary);">📭 No notifications</div>`;
+            return; }
+        container.innerHTML = allNotifs.map(n =>
+            `<div class="admin-item"><div class="item-info"><div class="item-title">${n.title||'Notification'}</div><div class="item-meta">${n.message||''} ${n.userId ? '• User: ' + n.userId.slice(-6) : ''} ${n.adminOnly ? '🔒 Admin' : ''} • ${n.createdAt?new Date(n.createdAt.toDate()).toLocaleDateString('en-US'):''}</div></div><div class="item-actions"><button class="btn-delete" onclick="deleteNotification('${n.id}')"><i class="fas fa-trash"></i></button></div></div>`
+        ).join('');
     }).catch((error) => { console.error('Error loading admin notifications:', error); });
 }
 
 function updateNotificationBadge() {
     const badge = document.getElementById('notifBadge');
     if (badge) {
-        if (unreadNotifications > 0) { badge.style.display = 'inline-flex'; badge.textContent = unreadNotifications; } else { badge.style.display = 'none'; }
+        if (unreadNotifications > 0) { badge.style.display = 'inline-flex';
+            badge.textContent = unreadNotifications; } else { badge.style.display = 'none'; }
     }
     updateFullUserMenu();
 }
@@ -4309,9 +4481,13 @@ window.markAllNotificationsRead = async function() {
     isUpdatingNotifications = true;
     let updatedCount = 0;
     for (const n of unreadNotifs) {
-        try { await updateDoc(doc(db, 'notifications', n.id), { readBy: arrayUnion(userId) }); updatedCount++; } catch (e) { console.error('Error marking notification read:', e); }
+        try { await updateDoc(doc(db, 'notifications', n.id), { readBy: arrayUnion(userId) });
+            updatedCount++; } catch (e) { console.error('Error marking notification read:', e); }
     }
-    if (updatedCount > 0) { unreadNotifications = 0; updateNotificationBadge(); renderUserNotifications(); showToast(`✅ ${updatedCount} notifications marked read`, 'success'); }
+    if (updatedCount > 0) { unreadNotifications = 0;
+        updateNotificationBadge();
+        renderUserNotifications();
+        showToast(`✅ ${updatedCount} notifications marked read`, 'success'); }
     isUpdatingNotifications = false;
 };
 window.clearAllNotifications = async function() {
@@ -4324,9 +4500,12 @@ window.clearAllNotifications = async function() {
         await Promise.all(batch);
         notifications = notifications.filter(n => n.userId !== currentUser.uid);
         unreadNotifications = 0;
-        updateNotificationBadge(); renderUserNotifications(); renderAdminNotifications();
+        updateNotificationBadge();
+        renderUserNotifications();
+        renderAdminNotifications();
         showToast('🗑️ All notifications cleared', 'success');
-    } catch (error) { console.error('Error clearing notifications:', error); showToast('❌ Error clearing notifications', 'error'); }
+    } catch (error) { console.error('Error clearing notifications:', error);
+        showToast('❌ Error clearing notifications', 'error'); }
 };
 window.createNotification = async function(e) {
     e.preventDefault();
@@ -4335,7 +4514,8 @@ window.createNotification = async function(e) {
     const message = document.getElementById('notifMessage').value.trim();
     if (!title || !message) { showToast('⚠️ Please fill all fields', 'warning'); return; }
     try {
-        await addDoc(collection(db, 'notifications'), { title, message, readBy: [], createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+        await addDoc(collection(db, 'notifications'), { title, message, readBy: [],
+            createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
         showToast('✅ Notification sent', 'success');
         closeCreateNotificationModal();
         document.getElementById('createNotificationForm').reset();
@@ -4344,17 +4524,18 @@ window.createNotification = async function(e) {
 window.deleteNotification = async function(id) {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!confirm('Delete this notification?')) return;
-    try { await deleteDoc(doc(db, 'notifications', id)); showToast('🗑️ Notification deleted', 'success'); } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
+    try { await deleteDoc(doc(db, 'notifications', id));
+        showToast('🗑️ Notification deleted', 'success'); } catch (error) { showToast('❌ Error: ' + error.message,
+            'error'); }
 };
-window.openCreateNotificationModal = function() { if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; } document.getElementById('createNotificationModal').classList.add('open'); document.getElementById('createNotificationForm').reset(); };
-window.closeCreateNotificationModal = function() { document.getElementById('createNotificationModal').classList.remove('open'); };
+window.openCreateNotificationModal = function() { if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized',
+        'error'); return; } document.getElementById('createNotificationModal').classList.add('open');
+    document.getElementById('createNotificationForm').reset(); };
+window.closeCreateNotificationModal = function() { document.getElementById('createNotificationModal').classList
+    .remove('open'); };
 
 // ============================================================
-// 21. Requests & Referrals
-// ============================================================
-
-// ============================================================
-// 21.0 Requests
+// REQUESTS & REFERRALS
 // ============================================================
 window.openRequestsModal = function() {
     if (!currentUser) {
@@ -4364,7 +4545,7 @@ window.openRequestsModal = function() {
     }
     const list = document.getElementById('requestsList');
     const requests = userProfile.requests || [];
-    
+
     let html = `
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
             <span style="font-size:14px;font-weight:600;color:var(--text-secondary);">${requests.length} requests</span>
@@ -4373,7 +4554,7 @@ window.openRequestsModal = function() {
             </button>
         </div>
     `;
-    
+
     if (requests.length === 0) {
         html += `
             <div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
@@ -4393,13 +4574,15 @@ window.openRequestsModal = function() {
             </div>
         `).join('');
     }
-    
+
     list.innerHTML = html;
     document.getElementById('requestsModal').classList.add('open');
 };
 
 window.closeRequestsModal = function() { document.getElementById('requestsModal').classList.remove('open'); };
-window.openNewRequestModal = function() { if (!currentUser) { showToast('⚠️ Please login first', 'warning'); openAuthModal(); return; } document.getElementById('newRequestModal').classList.add('open'); document.getElementById('requestForm').reset(); };
+window.openNewRequestModal = function() { if (!currentUser) { showToast('⚠️ Please login first', 'warning');
+        openAuthModal(); return; } document.getElementById('newRequestModal').classList.add('open');
+    document.getElementById('requestForm').reset(); };
 window.closeNewRequestModal = function() { document.getElementById('newRequestModal').classList.remove('open'); };
 window.submitRequest = function(e) {
     e.preventDefault();
@@ -4409,20 +4592,18 @@ window.submitRequest = function(e) {
     const features = document.getElementById('reqFeatures').value.trim();
     const budget = document.getElementById('reqBudget').value.trim();
     if (!gameName || !playStore || !features || !budget) { showToast('⚠️ Please fill all fields', 'warning'); return; }
-    const newRequest = { gameName, playStore, features, budget, status: 'pending', date: new Date().toISOString(), userId: currentUser.uid };
+    const newRequest = { gameName, playStore, features, budget, status: 'pending', date: new Date().toISOString(),
+        userId: currentUser.uid };
     const userRef = doc(db, 'users', currentUser.uid);
     updateDoc(userRef, { requests: arrayUnion(newRequest) }).then(() => {
         userProfile.requests.push(newRequest);
         document.getElementById('newRequestModal').classList.remove('open');
         showToast('✅ Request sent', 'success');
-        const msg = `📝 New Script Request!\n\n👤 User: ${currentUser.displayName||currentUser.email}\n🎮 Game: ${gameName}\n🔗 Store Link: ${playStore}\n⚡ Features: ${features}\n💰 Budget: ${budget}`;
+        const msg =
+            `📝 New Script Request!\n\n👤 User: ${currentUser.displayName||currentUser.email}\n🎮 Game: ${gameName}\n🔗 Store Link: ${playStore}\n⚡ Features: ${features}\n💰 Budget: ${budget}`;
         window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(msg)}`, '_blank');
     }).catch(error => { showToast('❌ Error: ' + error.message, 'error'); });
 };
-
-// ============================================================
-// 21.1 Referral Modal
-// ============================================================
 
 window.openReferralModal = function() {
     if (!currentUser) {
@@ -4477,7 +4658,8 @@ function updateReferralUI() {
         `;
     } else {
         activityHtml = referrals.slice().reverse().map(ref => {
-            const date = ref.date ? new Date(ref.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '--';
+            const date = ref.date ? new Date(ref.date).toLocaleDateString('en-US', { month: 'short',
+                    day: 'numeric' }) : '--';
             return `
                 <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--glass-border);">
                     <div style="width:32px;height:32px;border-radius:50%;background:var(--primary-glow);display:flex;align-items:center;justify-content:center;color:var(--primary);">
@@ -4548,19 +4730,24 @@ window.copyReferralCode2 = function() {
     const code = codeDisplay.textContent;
     if (code && code !== 'Loading...' && code !== 'Login to get your code') {
         navigator.clipboard.writeText(code).then(() => { showToast('✅ Referral code copied!', 'success'); })
-        .catch(() => { const textArea = document.createElement('textarea'); textArea.value = code; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); showToast('✅ Referral code copied!', 'success'); });
+            .catch(() => { const textArea = document.createElement('textarea');
+                textArea.value = code;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showToast('✅ Referral code copied!', 'success'); });
     } else { showToast('⚠️ Please login first', 'warning'); }
 };
 
 // ============================================================
-// 22. Admin Panel
+// ADMIN PANEL
 // ============================================================
-
 window.openAdminPanel = function() {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized. Admin only.', 'error'); return; }
     const panel = document.getElementById('adminPanel');
-    if (panel.classList.contains('open')) { 
-        panel.classList.remove('open'); 
+    if (panel.classList.contains('open')) {
+        panel.classList.remove('open');
         document.body.style.overflow = '';
         return;
     } else {
@@ -4587,15 +4774,15 @@ window.openAdminPanel = function() {
     }
 };
 
-window.closeAdminPanel = function() { 
+window.closeAdminPanel = function() {
     const panel = document.getElementById('adminPanel');
     if (panel) {
         panel.classList.remove('open');
         document.body.style.overflow = '';
     }
-    if (unsubscribeAdmin) { 
-        unsubscribeAdmin(); 
-        unsubscribeAdmin = null; 
+    if (unsubscribeAdmin) {
+        unsubscribeAdmin();
+        unsubscribeAdmin = null;
     }
 };
 
@@ -4607,12 +4794,23 @@ window.switchAdminTab = function(tab) {
     document.querySelectorAll('#adminPanel .admin-nav-btn').forEach(el => el.classList.remove('active'));
 
     const tabMap = {
-        'dashboard': 'tabDashboard', 'orders': 'tabOrders', 'products': 'tabProducts',
-        'users': 'tabUsers', 'downloads': 'tabDownloads', 'notifications': 'tabNotifications',
-        'stats': 'tabStats', 'logs': 'tabLogs', 'slider': 'tabSlider',
-        'licences': 'tabLicences', 'marquee': 'tabMarquee', 'payments': 'tabPayments',
-        'topups': 'tabTopups', 'fallback': 'tabFallback', 'settings': 'tabSettings',
-        'coupons': 'tabCoupons'
+        'dashboard': 'tabDashboard',
+        'orders': 'tabOrders',
+        'products': 'tabProducts',
+        'users': 'tabUsers',
+        'downloads': 'tabDownloads',
+        'notifications': 'tabNotifications',
+        'stats': 'tabStats',
+        'logs': 'tabLogs',
+        'slider': 'tabSlider',
+        'licences': 'tabLicences',
+        'marquee': 'tabMarquee',
+        'payments': 'tabPayments',
+        'topups': 'tabTopups',
+        'fallback': 'tabFallback',
+        'settings': 'tabSettings',
+        'coupons': 'tabCoupons',
+        'emails': 'tabEmails'
     };
     const tabId = tabMap[tab] || 'tabDashboard';
     const content = document.getElementById(tabId);
@@ -4622,12 +4820,23 @@ window.switchAdminTab = function(tab) {
     if (btn) btn.classList.add('active');
 
     const titles = {
-        'dashboard': '📊 Dashboard', 'orders': '📦 Orders', 'products': '🛍️ Products',
-        'users': '👥 Users', 'downloads': '📁 Downloads', 'notifications': '🔔 Notifications',
-        'stats': '📈 Stats', 'logs': '📜 Logs', 'slider': '🎨 Slider',
-        'licences': '🔑 Licences', 'marquee': '🎬 Marquee', 'payments': '💳 Payments',
-        'topups': '💰 Topups', 'fallback': '📦 Fallback', 'settings': '⚙️ Settings',
-        'coupons': '🎫 Coupons'
+        'dashboard': '📊 Dashboard',
+        'orders': '📦 Orders',
+        'products': '🛍️ Products',
+        'users': '👥 Users',
+        'downloads': '📁 Downloads',
+        'notifications': '🔔 Notifications',
+        'stats': '📈 Stats',
+        'logs': '📜 Logs',
+        'slider': '🎨 Slider',
+        'licences': '🔑 Licences',
+        'marquee': '🎬 Marquee',
+        'payments': '💳 Payments',
+        'topups': '💰 Topups',
+        'fallback': '📦 Fallback',
+        'settings': '⚙️ Settings',
+        'coupons': '🎫 Coupons',
+        'emails': '📧 Emails'
     };
     const titleEl = document.getElementById('adminPageTitle');
     if (titleEl) titleEl.textContent = titles[tab] || tab;
@@ -4649,17 +4858,18 @@ window.switchAdminTab = function(tab) {
     if (tab === 'fallback') renderFallbackProductsAdmin();
     if (tab === 'settings') loadAdminSettingsUI();
     if (tab === 'coupons') renderAdminCoupons();
+    if (tab === 'emails') loadEmailLogs();
 };
 
 // ============================================================
-// 23. Admin Products
+// ADMIN PRODUCTS
 // ============================================================
-
 function renderAdminProducts(productsList) {
     const container = document.getElementById('adminProductsList');
     if (!container) return;
     if (!productsList || productsList.length === 0) {
-        container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">📭 No products</div>`;
+        container.innerHTML =
+            `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">📭 No products</div>`;
         return;
     }
     container.innerHTML = productsList.map(p => {
@@ -4683,9 +4893,8 @@ function renderAdminProducts(productsList) {
 }
 
 // ============================================================
-// 24. Admin Orders
+// ADMIN ORDERS
 // ============================================================
-
 function startAdminRealtimeListener() {
     if (unsubscribeAdmin) { unsubscribeAdmin(); }
     if (!currentUser || !isAdminCached) {
@@ -4697,7 +4906,9 @@ function startAdminRealtimeListener() {
     unsubscribeAdmin = onSnapshot(usersRef, (snapshot) => {
         console.log('🔄 Admin listener triggered, snapshot size:', snapshot.size);
         let orders = [];
-        let pending = 0, confirmed = 0, rejected = 0;
+        let pending = 0,
+            confirmed = 0,
+            rejected = 0;
         snapshot.forEach((userDoc) => {
             const data = userDoc.data();
             const email = data.email || userDoc.id;
@@ -4709,7 +4920,9 @@ function startAdminRealtimeListener() {
                 else if (status === 'confirmed') confirmed++;
                 else if (status === 'rejected') rejected++;
                 const orderId = order.id || 'order_' + Date.now();
-                orders.push({ ...order, userId: userDoc.id, userEmail: email, userName: name, orderId: orderId, _checked: selectedOrders.has(orderId) });
+                orders.push({ ...order, userId: userDoc.id, userEmail: email,
+                    userName: name, orderId: orderId, _checked: selectedOrders.has(
+                        orderId) });
             });
         });
         orders.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -4719,7 +4932,8 @@ function startAdminRealtimeListener() {
         updateAdminStats(orders);
         updateUI();
         const badge = document.getElementById('adminNavBadge');
-        if (badge) { if (pendingCount > 0) { badge.style.display = 'inline-block'; badge.textContent = pendingCount; } else { badge.style.display = 'none'; } }
+        if (badge) { if (pendingCount > 0) { badge.style.display = 'inline-block';
+                badge.textContent = pendingCount; } else { badge.style.display = 'none'; } }
         updateFullUserMenu();
     }, (error) => {
         console.error('❌ Admin listener error:', error);
@@ -4736,11 +4950,14 @@ function loadAdminOrders() {
     }
     const tbody = document.getElementById('adminOrdersBody');
     if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="7"><div style="text-align:center;padding:30px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading...</div></td></tr>';
+    tbody.innerHTML =
+        '<tr><td colspan="7"><div style="text-align:center;padding:30px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading...</div></td></tr>';
     const usersRef = collection(db, 'users');
     getDocs(usersRef).then((snapshot) => {
         let orders = [];
-        let pending = 0, confirmed = 0, rejected = 0;
+        let pending = 0,
+            confirmed = 0,
+            rejected = 0;
         snapshot.forEach((userDoc) => {
             const data = userDoc.data();
             const email = data.email || userDoc.id;
@@ -4752,7 +4969,9 @@ function loadAdminOrders() {
                 else if (status === 'confirmed') confirmed++;
                 else if (status === 'rejected') rejected++;
                 const orderId = order.id || 'order_' + Date.now();
-                orders.push({ ...order, userId: userDoc.id, userEmail: email, userName: name, orderId: orderId, _checked: selectedOrders.has(orderId) });
+                orders.push({ ...order, userId: userDoc.id, userEmail: email,
+                    userName: name, orderId: orderId, _checked: selectedOrders.has(
+                        orderId) });
             });
         });
         orders.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -4762,11 +4981,13 @@ function loadAdminOrders() {
         updateAdminStats(orders);
         updateUI();
         const badge = document.getElementById('adminNavBadge');
-        if (badge) { if (pendingCount > 0) { badge.style.display = 'inline-block'; badge.textContent = pendingCount; } else { badge.style.display = 'none'; } }
+        if (badge) { if (pendingCount > 0) { badge.style.display = 'inline-block';
+                badge.textContent = pendingCount; } else { badge.style.display = 'none'; } }
         updateFullUserMenu();
     }).catch(error => {
         console.error('Error loading admin orders:', error);
-        tbody.innerHTML = `<tr><td colspan="7"><div style="text-align:center;padding:30px;color:var(--danger);">${error.message}</div></td></tr>`;
+        tbody.innerHTML =
+            `<tr><td colspan="7"><div style="text-align:center;padding:30px;color:var(--danger);">${error.message}</div></td></tr>`;
         if (error.code === 'permission-denied') {
             console.warn('⚠️ Missing permissions to read orders. Check Firestore rules.');
         }
@@ -4776,11 +4997,15 @@ function loadAdminOrders() {
 function renderAdminOrders(orders) {
     const tbody = document.getElementById('adminOrdersBody');
     if (!tbody) return;
-    if (!orders || orders.length === 0) { tbody.innerHTML = `<tr><td colspan="7"><div style="text-align:center;padding:30px;color:var(--text-secondary);"><i class="fas fa-inbox"></i> No orders</div></td></tr>`; return; }
-    const uniqueOrders = []; const seen = new Set();
+    if (!orders || orders.length === 0) { tbody.innerHTML =
+            `<tr><td colspan="7"><div style="text-align:center;padding:30px;color:var(--text-secondary);"><i class="fas fa-inbox"></i> No orders</div></td></tr>`;
+        return; }
+    const uniqueOrders = [];
+    const seen = new Set();
     orders.forEach(order => {
         const orderId = order.orderId || order.id;
-        if (orderId && !seen.has(orderId)) { seen.add(orderId); uniqueOrders.push(order); }
+        if (orderId && !seen.has(orderId)) { seen.add(orderId);
+            uniqueOrders.push(order); }
     });
     let html = '';
     uniqueOrders.forEach(order => {
@@ -4792,8 +5017,11 @@ function renderAdminOrders(orders) {
         };
         const info = statusMap[status] || statusMap['pending'];
         const date = order.date ? new Date(order.date) : new Date();
-        const dateStr = date.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
-        const itemsList = order.items ? order.items.map(item => `<span style="display:inline-block;background:var(--bg);padding:2px 8px;border-radius:10px;font-size:11px;border:1px solid var(--border);margin:1px;">${item.name} ${item.selectedQuantity ? '📦'+item.selectedQuantity : ''} ×${item.quantity||1}</span>`).join('') : '—';
+        const dateStr = date.toLocaleDateString('en-US', { day: '2-digit', month: 'short',
+            year: 'numeric' });
+        const itemsList = order.items ? order.items.map(item =>
+            `<span style="display:inline-block;background:var(--bg);padding:2px 8px;border-radius:10px;font-size:11px;border:1px solid var(--border);margin:1px;">${item.name} ${item.selectedQuantity ? '📦'+item.selectedQuantity : ''} ×${item.quantity||1}</span>`
+            ).join('') : '—';
         const total = order.total || 0;
         const orderIdStr = String(order.orderId || order.id || '');
         const orderIdDisplay = orderIdStr.slice(-6) || '------';
@@ -4820,9 +5048,8 @@ function updateAdminStats(orders) {
 }
 
 // ============================================================
-// 25. Update Order Status with User Notification
+// UPDATE ORDER STATUS (with email)
 // ============================================================
-
 window.updateOrderStatus = async function(orderId, userId, newStatus) {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!orderId || !userId) { showToast('❌ Invalid data', 'error'); return; }
@@ -4847,12 +5074,12 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
         await sendUserNotification(
             userId,
             newStatus === 'confirmed' ? '✅ Order Confirmed!' : '❌ Order Rejected',
-            newStatus === 'confirmed'
-                ? `Your order #${orderId.slice(-6)} has been confirmed and is ready.`
-                : `Your order #${orderId.slice(-6)} has been rejected. Please contact support for more information.`
+            newStatus === 'confirmed' ?
+            `Your order #${orderId.slice(-6)} has been confirmed and is ready.` :
+            `Your order #${orderId.slice(-6)} has been rejected. Please contact support for more information.`
         );
 
-        // Send status update email
+        // ===== SEND ORDER STATUS EMAIL =====
         await sendOrderStatusEmail(data.email || userId, orderId, newStatus);
 
         if (data.telegramChatId) {
@@ -4902,12 +5129,14 @@ window.deleteOrderImmediately = async function(orderId, userId) {
         showToast(`🗑️ Order #${String(orderId).slice(-6)} deleted permanently`, 'success');
         loadAdminOrders();
         if (currentUser && currentUser.uid === userId) { userProfile.history = updatedHistory; }
-    } catch (error) { console.error('Error deleting order:', error); showToast('❌ Error: ' + error.message, 'error'); }
+    } catch (error) { console.error('Error deleting order:', error);
+        showToast('❌ Error: ' + error.message, 'error'); }
 };
 
 window.searchAdminOrders = function() {
     const query = document.getElementById('adminSearchInput').value.trim().toLowerCase();
-    if (!query) { renderAdminOrders(allOrders); showToast('📋 Showing all orders', 'info'); return; }
+    if (!query) { renderAdminOrders(allOrders);
+        showToast('📋 Showing all orders', 'info'); return; }
     const filtered = allOrders.filter(order => {
         const email = (order.userEmail || '').toLowerCase();
         const orderId = String(order.orderId || order.id || '').toLowerCase();
@@ -4915,20 +5144,22 @@ window.searchAdminOrders = function() {
         return email.includes(query) || orderId.includes(query) || userName.includes(query);
     });
     renderAdminOrders(filtered);
-    if (filtered.length === 0) { showToast(`🔍 No matching orders`, 'warning'); } else { showToast(`🔍 Found ${filtered.length} orders`, 'success'); }
+    if (filtered.length === 0) { showToast(`🔍 No matching orders`, 'warning'); } else { showToast(
+            `🔍 Found ${filtered.length} orders`, 'success'); }
 };
-window.clearAdminSearch = function() { document.getElementById('adminSearchInput').value = ''; renderAdminOrders(allOrders); showToast('📋 Search cleared', 'info'); };
-window.refreshAdminOrders = function() { loadAdminOrders(); showToast('🔄 Refreshed', 'info'); };
+window.clearAdminSearch = function() { document.getElementById('adminSearchInput').value = '';
+    renderAdminOrders(allOrders);
+    showToast('📋 Search cleared', 'info'); };
+window.refreshAdminOrders = function() { loadAdminOrders();
+    showToast('🔄 Refreshed', 'info'); };
 
 // ============================================================
-// 26. Send Licence via Edge Function (UPDATED)
+// SEND LICENCE VIA EDGE FUNCTION (FIXED)
 // ============================================================
-
 async function sendLicenceForOrder(orderId, userId, userEmail = null) {
     try {
         console.log('🔍 sendLicenceForOrder called:', { orderId, userId, userEmail });
 
-        // جلب البريد الإلكتروني إذا لم يتم توفيره
         let email = userEmail;
         if (!email) {
             const userRef = doc(db, 'users', userId);
@@ -4942,7 +5173,6 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
             }
         }
 
-        // جلب بيانات المستخدم والطلب
         const userRef = doc(db, 'users', userId);
         const userSnap = await getDoc(userRef);
         if (!userSnap.exists()) {
@@ -4956,28 +5186,26 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
             throw new Error('Order not found');
         }
 
-        // استخراج اسم المنتج وبياناته
         const firstItem = order.items?.[0];
         const productName = firstItem?.name || 'Product';
         const productId = firstItem?.id || 'unknown';
         const productPrice = firstItem?.price || 0;
 
-        // تاريخ انتهاء الصلاحية (افتراضي: سنة واحدة من الآن)
         const expiryDate = new Date();
         expiryDate.setFullYear(expiryDate.getFullYear() + 1);
         const expiryDateISO = expiryDate.toISOString();
 
-        // معرف تيليجرام للمستخدم (إذا وجد)
         const telegramChatId = userData.telegramChatId || null;
 
-        // ===== بناء البيانات المرسلة مع scriptName =====
+        // ===== FIX: Send ALL required parameters =====
         const payload = {
             orderId: orderId,
             userId: userId,
             userEmail: email,
             productName: productName,
-            scriptName: productName,   // ✅ إضافة scriptName (مطابق لاسم السكربت في جدول scripts)
             productId: productId,
+            scriptId: productId,
+            scriptName: productName,
             price: productPrice,
             expiryDate: expiryDateISO,
             telegramChatId: telegramChatId,
@@ -4988,7 +5216,6 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
 
         console.log('📤 Sending licence creation payload:', JSON.stringify(payload, null, 2));
 
-        // ===== إرسال الطلب إلى Edge Function =====
         const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/create-licence', {
             method: 'POST',
             headers: {
@@ -5000,7 +5227,6 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
             body: JSON.stringify(payload)
         });
 
-        // قراءة الرد
         const responseText = await response.text();
         console.log('📥 Raw response:', responseText);
 
@@ -5019,7 +5245,6 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
 
         console.log('✅ Licence created via backend:', data.licence);
 
-        // ===== تحديث التراخيص في Firestore =====
         const userLicences = userData.licences || [];
         const newLicence = {
             code: data.licence.code,
@@ -5033,7 +5258,6 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
         userLicences.push(newLicence);
         await updateDoc(userRef, { licences: userLicences });
 
-        // ===== إرسال إشعار تيليجرام =====
         if (userData.telegramChatId) {
             const licenceMessage = `
 🔑 *LICENCE GENERATED!*
@@ -5050,7 +5274,6 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
             console.log('✅ Licence Telegram notification sent to user');
         }
 
-        // ===== تحديث واجهة المستخدم إذا كان هو المستخدم الحالي =====
         if (currentUser && currentUser.uid === userId) {
             userProfile.licences = userLicences;
             renderUserLicences();
@@ -5063,7 +5286,6 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
     } catch (error) {
         console.error('❌ Error in sendLicenceForOrder:', error);
 
-        // إرسال إشعار خطأ للإدمن
         try {
             await addDoc(collection(db, 'notifications'), {
                 title: '❌ Failed to send licence',
@@ -5076,7 +5298,6 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
             console.error('Failed to send admin notification:', e);
         }
 
-        // إشعار للمستخدم
         try {
             await addDoc(collection(db, 'notifications'), {
                 title: '⚠️ Licence Generation Issue',
@@ -5092,10 +5313,10 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
         throw error;
     }
 }
-// ============================================================
-// 27. Admin Users
-// ============================================================
 
+// ============================================================
+// ADMIN USERS
+// ============================================================
 async function loadAdminUsers() {
     if (!currentUser || !isAdminCached) {
         console.log('ℹ️ loadAdminUsers skipped (not admin)');
@@ -5103,20 +5324,27 @@ async function loadAdminUsers() {
     }
     const container = document.getElementById('adminUsersContainer');
     if (!container) return;
-    container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
+    container.innerHTML =
+        `<div style="text-align:center;padding:30px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
     try {
         const usersRef = collection(db, 'users');
         const snapshot = await getDocs(usersRef);
         const usersList = [];
         snapshot.forEach((doc) => {
             const data = doc.data();
-            usersList.push({ uid: doc.id, ...data, email: data.email || doc.id, name: data.name || 'Unknown', createdAt: data.createdAt ? new Date(data.createdAt.toDate()) : new Date(), isBanned: data.isBanned || false, history: data.history || [], rp: data.rp || 0, referralCode: data.referralCode || '', location: data.location || data.country || 'N/A', photoURL: data.photoURL || '', balance: data.balance || 0 });
+            usersList.push({ uid: doc.id, ...data, email: data.email || doc.id, name: data.name ||
+                    'Unknown', createdAt: data.createdAt ? new Date(data.createdAt.toDate()) :
+                    new Date(), isBanned: data.isBanned || false, history: data.history || [],
+                rp: data.rp || 0, referralCode: data.referralCode || '', location: data.location ||
+                    data.country || 'N/A', photoURL: data.photoURL || '', balance: data
+                    .balance || 0 });
         });
         allUsers = usersList;
         renderAdminUsers(usersList);
     } catch (error) {
         console.error('Error loading users:', error);
-        container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--danger);">Error loading users: ${error.message}</div>`;
+        container.innerHTML =
+            `<div style="text-align:center;padding:30px;color:var(--danger);">Error loading users: ${error.message}</div>`;
         if (error.code === 'permission-denied') {
             console.warn('⚠️ Missing permissions to read users. Check Firestore rules.');
         }
@@ -5126,12 +5354,18 @@ async function loadAdminUsers() {
 function renderAdminUsers(usersList) {
     const container = document.getElementById('adminUsersContainer');
     if (!container) return;
-    if (!usersList || usersList.length === 0) { container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">👥 No users</div>`; return; }
+    if (!usersList || usersList.length === 0) { container.innerHTML =
+            `<div style="text-align:center;padding:30px;color:var(--text-secondary);">👥 No users</div>`;
+        return; }
     const searchQuery = document.getElementById('adminUserSearchInput')?.value.trim().toLowerCase() || '';
     let filtered = usersList;
-    if (searchQuery) { filtered = filtered.filter(u => u.email?.toLowerCase().includes(searchQuery) || u.name?.toLowerCase().includes(searchQuery)); }
-    if (filtered.length === 0) { container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">🔍 No results</div>`; return; }
-    container.innerHTML = `<div style="display:flex;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:4px;"><span style="font-size:12px;color:var(--text-secondary);opacity:0.4;">${filtered.length} users</span></div><div class="admin-users-grid">${filtered.map(user=>{
+    if (searchQuery) { filtered = filtered.filter(u => u.email?.toLowerCase().includes(searchQuery) || u.name
+            ?.toLowerCase().includes(searchQuery)); }
+    if (filtered.length === 0) { container.innerHTML =
+            `<div style="text-align:center;padding:30px;color:var(--text-secondary);">🔍 No results</div>`;
+        return; }
+    container.innerHTML =
+        `<div style="display:flex;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:4px;"><span style="font-size:12px;color:var(--text-secondary);opacity:0.4;">${filtered.length} users</span></div><div class="admin-users-grid">${filtered.map(user=>{
         const isAdmin = user.email === 'zribiidriss3@gmail.com';
         const isBanned = user.isBanned || false;
         const orderCount = user.history?.length || 0;
@@ -5145,8 +5379,10 @@ function renderAdminUsers(usersList) {
     }).join('')}</div>`;
 }
 window.searchAdminUsers = function() { renderAdminUsers(allUsers); };
-window.clearAdminUserSearch = function() { document.getElementById('adminUserSearchInput').value = ''; renderAdminUsers(allUsers); };
-window.refreshAdminUsers = function() { loadAdminUsers(); showToast('🔄 Users refreshed', 'info'); };
+window.clearAdminUserSearch = function() { document.getElementById('adminUserSearchInput').value = '';
+    renderAdminUsers(allUsers); };
+window.refreshAdminUsers = function() { loadAdminUsers();
+    showToast('🔄 Users refreshed', 'info'); };
 window.toggleUserBan = async function(uid, ban) {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     if (uid === currentUser.uid) { showToast('⚠️ You cannot ban yourself', 'warning'); return; }
@@ -5154,7 +5390,8 @@ window.toggleUserBan = async function(uid, ban) {
         await updateDoc(doc(db, 'users', uid), { isBanned: ban });
         showToast(`✅ User ${ban?'banned':'unbanned'}`, 'success');
         loadAdminUsers();
-    } catch (error) { console.error('Error toggling user ban:', error); showToast('❌ Error: ' + error.message, 'error'); }
+    } catch (error) { console.error('Error toggling user ban:', error);
+        showToast('❌ Error: ' + error.message, 'error'); }
 };
 window.deleteUserAccount = async function(uid) {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
@@ -5163,8 +5400,10 @@ window.deleteUserAccount = async function(uid) {
     try {
         await deleteDoc(doc(db, 'users', uid));
         showToast('🗑️ User account deleted', 'success');
-        loadAdminUsers(); loadAdminOrders();
-    } catch (error) { console.error('Error deleting user:', error); showToast('❌ Error: ' + error.message, 'error'); }
+        loadAdminUsers();
+        loadAdminOrders();
+    } catch (error) { console.error('Error deleting user:', error);
+        showToast('❌ Error: ' + error.message, 'error'); }
 };
 window.viewUserDetails = async function(uid) {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
@@ -5178,7 +5417,8 @@ window.viewUserDetails = async function(uid) {
         const location = data.location || data.country || 'Not specified';
         const photo = data.photoURL || '';
         const balance = data.balance || 0;
-        const joinedDate = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '--';
+        const joinedDate = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('en-US', { year: 'numeric',
+                month: 'long', day: 'numeric' }) : '--';
         const content = document.getElementById('userDetailsContent');
         content.innerHTML = `
           <div style="padding:4px 0;">
@@ -5203,19 +5443,20 @@ window.viewUserDetails = async function(uid) {
             </div>
           </div>`;
         document.getElementById('userDetailsModal').classList.add('open');
-    } catch (error) { console.error('Error viewing user details:', error); showToast('❌ Error loading user details', 'error'); }
+    } catch (error) { console.error('Error viewing user details:', error);
+        showToast('❌ Error loading user details', 'error'); }
 };
 window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
 // ============================================================
-// 28. Licence Management System (with Supabase)
+// LICENCE MANAGEMENT
 // ============================================================
-
 async function loadLicences() {
     try {
         const container = document.getElementById('adminLicencesList');
         if (!container) return;
-        container.innerHTML = `<div style="text-align:center;padding:30px;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
+        container.innerHTML =
+            `<div style="text-align:center;padding:30px;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
         if (typeof supabase === 'undefined') { throw new Error('supabase is not defined'); }
         const { data, error } = await supabase.from('licenses').select('*').order('created_at', { ascending: false });
         if (error) throw error;
@@ -5224,14 +5465,17 @@ async function loadLicences() {
     } catch (error) {
         console.error('Error loading licences:', error);
         const container = document.getElementById('adminLicencesList');
-        if (container) container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--danger);">⚠️ Failed to load licences: ${error.message}</div>`;
+        if (container) container.innerHTML =
+            `<div style="text-align:center;padding:30px;color:var(--danger);">⚠️ Failed to load licences: ${error.message}</div>`;
     }
 }
 
 function renderLicences(licences) {
     const container = document.getElementById('adminLicencesList');
     if (!container) return;
-    if (!licences || licences.length === 0) { container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">🔑 No licences found</div>`; return; }
+    if (!licences || licences.length === 0) { container.innerHTML =
+            `<div style="text-align:center;padding:30px;color:var(--text-secondary);">🔑 No licences found</div>`;
+        return; }
     container.innerHTML = licences.map(l => {
         const statusMap = {
             'pending': '<span class="status-badge pending">⏳ Pending</span>',
@@ -5273,10 +5517,12 @@ function openCreateLicenceModal() {
     const modal = document.getElementById('createLicenceModal');
     if (modal) modal.classList.add('open');
 }
+
 function closeCreateLicenceModal() {
     const modal = document.getElementById('createLicenceModal');
     if (modal) modal.classList.remove('open');
 }
+
 async function createLicenceManually() {
     const productName = document.getElementById('newLicenceProduct')?.value.trim();
     const userId = document.getElementById('newLicenceUser')?.value.trim();
@@ -5295,14 +5541,17 @@ async function createLicenceManually() {
         loadLicences();
         if (userId) {
             const usersRef = collection(db, 'users');
-            let q = userId.includes('@') ? query(usersRef, where('email', '==', userId)) : query(usersRef, where('userId', '==', userId));
+            let q = userId.includes('@') ? query(usersRef, where('email', '==', userId)) : query(usersRef, where(
+                'userId', '==', userId));
             const querySnapshot = await getDocs(q);
             if (!querySnapshot.empty) {
                 const userDoc = querySnapshot.docs[0];
                 const userData = userDoc.data();
                 const userLicences = userData.licences || [];
                 if (!userLicences.find(l => l.code === data.licence.code)) {
-                    userLicences.push({ code: data.licence.code, scriptId: productName, scriptName: productName, expiryDate: data.licence.expiryDate, activatedAt: new Date().toISOString() });
+                    userLicences.push({ code: data.licence.code, scriptId: productName,
+                        scriptName: productName, expiryDate: data.licence.expiryDate,
+                        activatedAt: new Date().toISOString() });
                     await updateDoc(userDoc.ref, { licences: userLicences, updatedAt: serverTimestamp() });
                     if (currentUser && userDoc.id === currentUser.uid) {
                         userProfile.licences = userLicences;
@@ -5314,18 +5563,23 @@ async function createLicenceManually() {
         }
     } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
 }
+
 async function updateLicenceInSupabase(licenceId, data) {
-    const { error } = await supabase.from('licenses').update({ ...data, updated_at: new Date().toISOString() }).eq('id', licenceId);
+    const { error } = await supabase.from('licenses').update({ ...data, updated_at: new Date().toISOString() }).eq(
+        'id', licenceId);
     if (error) throw error;
     return true;
 }
+
 async function approveLicence(licenceId, code, scriptName) {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!confirm(`Approve licence ${code} and send to user?`)) return;
     try {
-        const { data: licenceData, error: fetchError } = await supabase.from('licenses').select('*').eq('id', licenceId).single();
+        const { data: licenceData, error: fetchError } = await supabase.from('licenses').select('*').eq('id',
+            licenceId).single();
         if (fetchError || !licenceData) throw fetchError || new Error('Licence not found');
-        await updateLicenceInSupabase(licenceId, { status: 'active', user_id: currentUser.uid, user_email: currentUser.email });
+        await updateLicenceInSupabase(licenceId, { status: 'active', user_id: currentUser.uid, user_email: currentUser
+                .email });
         await sendUserNotification(
             currentUser.uid,
             '🔑 Licence Activated!',
@@ -5335,6 +5589,7 @@ async function approveLicence(licenceId, code, scriptName) {
         loadLicences();
     } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
 }
+
 async function revokeLicence(licenceId) {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!confirm('Revoke this licence?')) return;
@@ -5368,6 +5623,7 @@ async function revokeLicence(licenceId) {
         loadLicences();
     } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
 }
+
 async function deleteLicence(licenceId) {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!confirm('Delete this licence permanently?')) return;
@@ -5394,6 +5650,7 @@ async function deleteLicence(licenceId) {
         loadLicences();
     } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
 }
+
 async function editLicence(licenceId) {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     try {
@@ -5415,13 +5672,15 @@ async function editLicence(licenceId) {
         document.getElementById('editLicenceModal').classList.add('open');
     } catch (error) { showToast('❌ Failed to load licence details', 'error'); }
 }
+
 async function saveLicenceEdit() {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     const licenceId = document.getElementById('editLicenceId').value;
     const expiryDate = document.getElementById('editLicenceExpiry').value;
     const status = document.getElementById('editLicenceStatus').value;
     try {
-        await updateLicenceInSupabase(licenceId, { expiry_date: expiryDate ? new Date(expiryDate).toISOString() : null, status });
+        await updateLicenceInSupabase(licenceId, { expiry_date: expiryDate ? new Date(expiryDate).toISOString() :
+                null, status });
         const licenceIndex = allLicences.findIndex(l => l.id === licenceId);
         if (licenceIndex !== -1) {
             allLicences[licenceIndex].expiry_date = expiryDate ? new Date(expiryDate).toISOString() : null;
@@ -5440,6 +5699,7 @@ async function saveLicenceEdit() {
         document.getElementById('editLicenceModal').classList.remove('open');
     } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
 }
+
 function searchLicences() {
     const query = document.getElementById('adminLicenceSearch').value.trim().toLowerCase();
     if (!query) { renderLicences(allLicences); return; }
@@ -5451,15 +5711,21 @@ function searchLicences() {
     });
     renderLicences(filtered);
 }
-function clearLicenceSearch() { document.getElementById('adminLicenceSearch').value = ''; renderLicences(allLicences); }
-function refreshLicences() { loadLicences(); showToast('🔄 Refreshed', 'info'); }
+
+function clearLicenceSearch() { document.getElementById('adminLicenceSearch').value = '';
+    renderLicences(allLicences); }
+
+function refreshLicences() { loadLicences();
+    showToast('🔄 Refreshed', 'info'); }
 
 function renderUserLicences() {
     const container = document.getElementById('userLicencesList');
     if (!container) return;
     if (!currentUser) { container.innerHTML = ''; return; }
     const userLicences = userProfile.licences || [];
-    if (userLicences.length === 0) { container.innerHTML = `<div style="text-align:center;padding:8px;color:var(--text-secondary);font-size:12px;">No active licences</div>`; return; }
+    if (userLicences.length === 0) { container.innerHTML =
+            `<div style="text-align:center;padding:8px;color:var(--text-secondary);font-size:12px;">No active licences</div>`;
+        return; }
     container.innerHTML = userLicences.map(l => {
         const isExpired = new Date(l.expiryDate) < new Date();
         return `
@@ -5476,26 +5742,32 @@ function renderUserLicences() {
         `;
     }).join('');
 }
+
 function toggleLicencesList() {
     const list = document.getElementById('userLicencesList');
     if (list) list.style.display = list.style.display === 'none' ? 'block' : 'none';
 }
+
 function openLicenceModal() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
     document.getElementById('licenceModal').classList.add('open');
 }
+
 function closeLicenceModal() { document.getElementById('licenceModal').classList.remove('open'); }
+
 async function activateLicence() {
     const input = document.getElementById('licenceInput');
     const resultEl = document.getElementById('licenceResult');
     const code = input?.value?.trim().toUpperCase();
     if (!code) { resultEl.innerHTML = '<span style="color:var(--danger);">⚠️ Please enter a licence code.</span>'; return; }
-    if (!currentUser) { resultEl.innerHTML = '<span style="color:var(--danger);">⚠️ You must be logged in.</span>'; return; }
+    if (!currentUser) { resultEl.innerHTML =
+            '<span style="color:var(--danger);">⚠️ You must be logged in.</span>'; return; }
     try {
         resultEl.innerHTML = '<span style="color:var(--text-secondary);">⏳ Verifying...</span>';
-        const response = await fetch(`${SUPABASE_URL}/functions/v1/public-verify?code=${encodeURIComponent(code)}&token=${currentUser.uid}`, {
-            headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
-        });
+        const response = await fetch(
+            `${SUPABASE_URL}/functions/v1/public-verify?code=${encodeURIComponent(code)}&token=${currentUser.uid}`, {
+                headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+            });
         const data = await response.json();
         if (!response.ok || !data.success) throw new Error(data.error);
         const licence = data.data;
@@ -5505,7 +5777,8 @@ async function activateLicence() {
             const userData = userSnap.data();
             const userLicences = userData.licences || [];
             if (!userLicences.find(l => l.code === code)) {
-                userLicences.push({ code, scriptId: licence.scriptId, scriptName: licence.scriptName, expiryDate: licence.expiryDate, activatedAt: new Date().toISOString() });
+                userLicences.push({ code, scriptId: licence.scriptId, scriptName: licence.scriptName,
+                    expiryDate: licence.expiryDate, activatedAt: new Date().toISOString() });
                 await updateDoc(userRef, { licences: userLicences, updatedAt: serverTimestamp() });
                 userProfile.licences = userLicences;
                 renderUserLicences();
@@ -5517,7 +5790,8 @@ async function activateLicence() {
                 );
             }
         }
-        const expiryDate = new Date(licence.expiryDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        const expiryDate = new Date(licence.expiryDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long',
+            day: 'numeric' });
         resultEl.innerHTML = `
             <div style="background:var(--success-glow);border-radius:8px;padding:10px;border:1px solid var(--success);">
                 <div style="font-weight:700;color:var(--success);">✅ Activated Successfully!</div>
@@ -5534,9 +5808,8 @@ async function activateLicence() {
 }
 
 // ============================================================
-// 29. Ratings
+// RATINGS
 // ============================================================
-
 let currentRating = 0;
 let currentProductIdForRating = null;
 
@@ -5549,24 +5822,33 @@ async function loadRatings(productId) {
         const ratingsRef = collection(db, 'ratings');
         const q = query(ratingsRef, where('productId', '==', productId));
         const snapshot = await getDocs(q);
-        let total = 0, count = 0, reviewsHtml = '';
+        let total = 0,
+            count = 0,
+            reviewsHtml = '';
         snapshot.forEach(doc => {
             const data = doc.data();
-            total += data.rating || 0; count++;
-            const date = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '--';
+            total += data.rating || 0;
+            count++;
+            const date = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleDateString('en-US',
+                { month: 'short', day: 'numeric', year: 'numeric' }) : '--';
             const stars = '⭐'.repeat(Math.round(data.rating || 0));
-            reviewsHtml += `<div class="rating-review-item"><div class="rr-header"><span class="rr-name">${data.userName || 'User'}</span><span class="rr-stars">${stars}</span>${data.verified ? '<span class="rr-badge">✅ Verified</span>' : ''}<span class="rr-date">${date}</span></div>${data.comment ? `<div class="rr-comment">${data.comment}</div>` : ''}</div>`;
+            reviewsHtml +=
+                `<div class="rating-review-item"><div class="rr-header"><span class="rr-name">${data.userName || 'User'}</span><span class="rr-stars">${stars}</span>${data.verified ? '<span class="rr-badge">✅ Verified</span>' : ''}<span class="rr-date">${date}</span></div>${data.comment ? `<div class="rr-comment">${data.comment}</div>` : ''}</div>`;
         });
         const avg = count > 0 ? (total / count) : 0;
         const fullStars = '⭐'.repeat(Math.round(avg));
         const emptyStars = '☆'.repeat(5 - Math.round(avg));
         if (avgEl) avgEl.textContent = avg.toFixed(1);
         if (countEl) countEl.textContent = `(${count} reviews)`;
-        container.innerHTML = reviewsHtml || `<div style="text-align:center;padding:10px;color:var(--text-secondary);opacity:0.4;">No reviews yet. Be the first!</div>`;
+        container.innerHTML = reviewsHtml ||
+            `<div style="text-align:center;padding:10px;color:var(--text-secondary);opacity:0.4;">No reviews yet. Be the first!</div>`;
         const avgStarsEl = document.getElementById('ratingAvgStars');
         if (avgStarsEl) { avgStarsEl.textContent = fullStars + emptyStars; }
         return { avg, count };
-    } catch (error) { console.error('Error loading ratings:', error); container.innerHTML = `<div style="text-align:center;padding:10px;color:var(--danger);">Failed to load reviews</div>`; return { avg: 0, count: 0 }; }
+    } catch (error) { console.error('Error loading ratings:', error);
+        container.innerHTML =
+            `<div style="text-align:center;padding:10px;color:var(--danger);">Failed to load reviews</div>`;
+        return { avg: 0, count: 0 }; }
 }
 
 function hasUserPurchasedProduct(productId) {
@@ -5583,24 +5865,30 @@ async function submitRating(productId) {
     const comment = document.getElementById('ratingCommentInput')?.value.trim() || '';
     const rating = currentRating;
     if (rating === 0) { showToast('⭐ Please select a star rating', 'warning'); return; }
-    if (!hasUserPurchasedProduct(productId)) { showToast('⚠️ You can only rate products you have purchased', 'warning'); return; }
+    if (!hasUserPurchasedProduct(productId)) { showToast('⚠️ You can only rate products you have purchased',
+            'warning'); return; }
     try {
         const ratingsRef = collection(db, 'ratings');
         const q = query(ratingsRef, where('productId', '==', productId), where('userId', '==', currentUser.uid));
         const snapshot = await getDocs(q);
         if (!snapshot.empty) { showToast('⚠️ You already rated this product', 'warning'); return; }
-        await addDoc(collection(db, 'ratings'), { productId, userId: currentUser.uid, userName: currentUser.displayName || currentUser.email || 'User', rating, comment, verified: true, timestamp: serverTimestamp() });
+        await addDoc(collection(db, 'ratings'), { productId, userId: currentUser.uid, userName: currentUser
+                .displayName || currentUser.email || 'User', rating, comment, verified: true,
+            timestamp: serverTimestamp() });
         showToast('✅ Rating submitted! Thank you!', 'success');
         currentRating = 0;
         document.getElementById('ratingStarsContainer').innerHTML = renderStarHTML(0);
         document.getElementById('ratingCommentInput').value = '';
         loadRatings(productId);
         updateProductRatingDisplay(productId);
-    } catch (error) { console.error('Error submitting rating:', error); showToast('❌ Error: ' + error.message, 'error'); }
+    } catch (error) { console.error('Error submitting rating:', error);
+        showToast('❌ Error: ' + error.message, 'error'); }
 }
 
-function renderStarHTML(rating) { let html = ''; for (let i = 1; i <= 5; i++) { html += `<span class="star ${i <= rating ? 'active' : ''}" data-value="${i}" onclick="setRating(${i})">★</span>`; } return html; }
-window.setRating = function(value) { currentRating = value; const container = document.getElementById('ratingStarsContainer'); if (container) { container.innerHTML = renderStarHTML(value); } };
+function renderStarHTML(rating) { let html = ''; for (let i = 1; i <= 5; i++) { html +=
+        `<span class="star ${i <= rating ? 'active' : ''}" data-value="${i}" onclick="setRating(${i})">★</span>`; } return html; }
+window.setRating = function(value) { currentRating = value; const container = document.getElementById(
+        'ratingStarsContainer'); if (container) { container.innerHTML = renderStarHTML(value); } };
 
 function renderRatingSection(productId) {
     const section = document.getElementById('ratingSection');
@@ -5638,15 +5926,16 @@ async function updateProductRatingDisplay(productId) {
     const ratingsRef = collection(db, 'ratings');
     const q = query(ratingsRef, where('productId', '==', productId));
     const snapshot = await getDocs(q);
-    let total = 0, count = 0;
-    snapshot.forEach(doc => { total += doc.data().rating || 0; count++; });
+    let total = 0,
+        count = 0;
+    snapshot.forEach(doc => { total += doc.data().rating || 0;
+        count++; });
     const avg = count > 0 ? total / count : 0;
 }
 
 // ============================================================
-// 30. Slider & Marquee Functions
+// SLIDER FUNCTIONS
 // ============================================================
-
 window.goToSlide = function(index) {
     if (index < 0 || index >= sliderSlides.length) return;
     currentSlideIndex = index;
@@ -5719,7 +6008,9 @@ window.saveSlideEdit = async function() {
     const subtitle = document.getElementById('slideSubtitle')?.value.trim() || '';
     const buttonText = document.getElementById('slideButtonText')?.value.trim() || 'Buy Now';
     const linkType = document.getElementById('slideLinkType')?.value || 'product';
-    let productId = '', downloadUrl = '', customUrl = '';
+    let productId = '',
+        downloadUrl = '',
+        customUrl = '';
 
     if (linkType === 'product') {
         productId = document.getElementById('slideProductSelect')?.value || '';
@@ -5861,7 +6152,8 @@ window.closeAddSlideModal = function() {
 function updateSlideProductSelect() {
     const select = document.getElementById('slideProductSelect');
     if (!select) return;
-    select.innerHTML = products.map(p => `<option value="${p.id}">${p.name} (${getCurrencySymbol(p.currency || 'USD')}${p.price})</option>`).join('');
+    select.innerHTML = products.map(p =>
+        `<option value="${p.id}">${p.name} (${getCurrencySymbol(p.currency || 'USD')}${p.price})</option>`).join('');
 }
 
 function toggleSlideLinkFields() {
@@ -5907,7 +6199,8 @@ function renderSlider() {
     const dots = document.getElementById('sliderDots');
     if (!wrapper) return;
     if (sliderSlides.length === 0) {
-        wrapper.innerHTML = `<div class="slide-item" style="background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;min-height:150px;border-radius:var(--radius-sm);"><div style="text-align:center;color:var(--text-secondary);opacity:0.4;"><i class="fas fa-images" style="font-size:36px;display:block;margin-bottom:6px;"></i><p style="font-size:12px;">No slides. Add slides from admin panel.</p></div></div>`;
+        wrapper.innerHTML =
+            `<div class="slide-item" style="background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;min-height:150px;border-radius:var(--radius-sm);"><div style="text-align:center;color:var(--text-secondary);opacity:0.4;"><i class="fas fa-images" style="font-size:36px;display:block;margin-bottom:6px;"></i><p style="font-size:12px;">No slides. Add slides from admin panel.</p></div></div>`;
         dots.innerHTML = '';
         return;
     }
@@ -5922,9 +6215,11 @@ function renderSlider() {
         if (slide.linkType === 'product' && slide.productId) {
             buttonLink = `javascript:window.openDetails('${slide.productId}')`;
         } else if (slide.linkType === 'download' && slide.downloadUrl) {
-            buttonLink = slide.downloadUrl; buttonTarget = '_blank';
+            buttonLink = slide.downloadUrl;
+            buttonTarget = '_blank';
         } else if (slide.linkType === 'url' && slide.customUrl) {
-            buttonLink = slide.customUrl; buttonTarget = '_blank';
+            buttonLink = slide.customUrl;
+            buttonTarget = '_blank';
         }
         return `
             <div class="slide-item ${isActive}" style="background-image: url('${imageUrl}');">
@@ -5951,14 +6246,16 @@ function startSliderRotation() {
 }
 
 function resetSliderTimer() {
-    if (sliderTimer) { clearInterval(sliderTimer); startSliderRotation(); }
+    if (sliderTimer) { clearInterval(sliderTimer);
+        startSliderRotation(); }
 }
 
 function renderSliderSettingsUI() {
     const container = document.getElementById('sliderSlidesList');
     if (!container) return;
     if (sliderSlides.length === 0) {
-        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);opacity:0.5;">No slides. Click "Add Slide" to get started.</div>`;
+        container.innerHTML =
+            `<div style="text-align:center;padding:20px;color:var(--text-secondary);opacity:0.5;">No slides. Click "Add Slide" to get started.</div>`;
         return;
     }
     container.innerHTML = sliderSlides.map((slide, index) => {
@@ -5969,14 +6266,14 @@ function renderSliderSettingsUI() {
 }
 
 // ============================================================
-// 31. Marquee Functions
+// MARQUEE FUNCTIONS
 // ============================================================
-
 window.saveMarqueeSettings = async function() {
     const enabledCheckbox = document.getElementById('marqueeEnabled');
     const textArea = document.getElementById('marqueeText');
     const enabled = enabledCheckbox ? enabledCheckbox.checked : true;
-    const text = textArea ? textArea.value.trim() : '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+    const text = textArea ? textArea.value.trim() :
+        '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
     if (!text) { showToast('⚠️ Please enter marquee text', 'warning'); return; }
     try {
         const settingsRef = doc(db, 'settings', 'marquee');
@@ -6008,7 +6305,8 @@ function renderMarqueeSettingsUI() {
     const enabledCheckbox = document.getElementById('marqueeEnabled');
     const textArea = document.getElementById('marqueeText');
     if (enabledCheckbox) enabledCheckbox.checked = marqueeSettings.enabled !== false;
-    if (textArea) textArea.value = marqueeSettings.text || '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+    if (textArea) textArea.value = marqueeSettings.text ||
+        '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
 }
 
 async function loadMarqueeSettings() {
@@ -6018,33 +6316,37 @@ async function loadMarqueeSettings() {
         if (settingsSnap.exists()) {
             const data = settingsSnap.data();
             marqueeSettings.enabled = data.enabled !== undefined ? data.enabled : true;
-            marqueeSettings.text = data.text || '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+            marqueeSettings.text = data.text ||
+                '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
         } else {
             marqueeSettings.enabled = true;
-            marqueeSettings.text = '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+            marqueeSettings.text =
+                '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
         }
         applyMarqueeSettings();
     } catch (error) {
         console.error('Error loading marquee settings:', error);
         if (error.code === 'permission-denied') {
             marqueeSettings.enabled = true;
-            marqueeSettings.text = '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+            marqueeSettings.text =
+                '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
             applyMarqueeSettings();
         }
     }
 }
 
 // ============================================================
-// 32. Dashboard Stats, Advanced Stats, Audit Logs
+// DASHBOARD STATS, ADVANCED STATS, AUDIT LOGS
 // ============================================================
-
 async function loadDashboardStats() {
     if (!currentUser || !isAdminCached) { console.log('ℹ️ loadDashboardStats skipped (not admin)'); return; }
     try {
         const statsRef = doc(db, 'global_stats', 'stats');
         const statsSnap = await getDoc(statsRef);
-        let totalOrders = 0, totalRevenue = 0;
-        if (statsSnap.exists()) { totalOrders = statsSnap.data().totalOrders || 0; totalRevenue = statsSnap.data().totalRevenue || 0; }
+        let totalOrders = 0,
+            totalRevenue = 0;
+        if (statsSnap.exists()) { totalOrders = statsSnap.data().totalOrders || 0;
+            totalRevenue = statsSnap.data().totalRevenue || 0; }
         document.getElementById('dashboardTotalOrders').textContent = totalOrders;
         document.getElementById('dashboardTotalRevenue').textContent = `$${totalRevenue.toFixed(2)}`;
         document.getElementById('dashboardNetRevenue').textContent = `$${(totalRevenue * 0.1).toFixed(2)}`;
@@ -6053,12 +6355,14 @@ async function loadDashboardStats() {
         if (error.code === 'permission-denied') { console.warn('⚠️ Missing permissions to read stats.'); }
     }
 }
-window.refreshDashboardStats = function() { loadDashboardStats(); showToast('🔄 Stats refreshed', 'success'); };
+window.refreshDashboardStats = function() { loadDashboardStats();
+    showToast('🔄 Stats refreshed', 'success'); };
 async function loadAdvancedStats() {
     if (!currentUser || !isAdminCached) { console.log('ℹ️ loadAdvancedStats skipped (not admin)'); return; }
     const container = document.getElementById('advancedStatsContainer');
     if (!container) return;
-    container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading statistics...</div>`;
+    container.innerHTML =
+        `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading statistics...</div>`;
     try {
         const usersRef = collection(db, 'users');
         const snapshot = await getDocs(usersRef);
@@ -6067,7 +6371,9 @@ async function loadAdvancedStats() {
             const data = doc.data();
             const history = data.history || [];
             history.forEach(order => {
-                allOrders.push({ ...order, userEmail: data.email || doc.id, userName: data.name || 'Unknown', userId: doc.id, orderId: order.id || 'order_' + Date.now() });
+                allOrders.push({ ...order, userEmail: data.email || doc.id, userName: data
+                        .name || 'Unknown', userId: doc.id, orderId: order.id ||
+                        'order_' + Date.now() });
             });
         });
         const totalOrders = allOrders.length;
@@ -6076,7 +6382,8 @@ async function loadAdvancedStats() {
         const confirmedOrders = allOrders.filter(o => o.status === 'confirmed').length;
         const rejectedOrders = allOrders.filter(o => o.status === 'rejected').length;
         const totalUsers = snapshot.size;
-        container.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px;">
+        container.innerHTML =
+            `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px;">
             <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
                 <div style="font-size:28px;font-weight:700;color:var(--primary);">${totalOrders}</div>
                 <div style="font-size:12px;color:var(--text-secondary);">Total Orders</div>
@@ -6104,27 +6411,32 @@ async function loadAdvancedStats() {
         </div>`;
     } catch (error) {
         console.error('Error loading advanced stats:', error);
-        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load statistics: ${error.message}</div>`;
+        container.innerHTML =
+            `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load statistics: ${error.message}</div>`;
     }
 }
-window.refreshAdvancedStats = function() { loadAdvancedStats(); showToast('🔄 Advanced stats refreshed', 'success'); };
+window.refreshAdvancedStats = function() { loadAdvancedStats();
+    showToast('🔄 Advanced stats refreshed', 'success'); };
 async function loadAuditLogs() {
     if (!currentUser || !isAdminCached) { console.log('ℹ️ loadAuditLogs skipped (not admin)'); return; }
     const container = document.getElementById('auditLogsContainer');
     if (!container) return;
-    container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading logs...</div>`;
+    container.innerHTML =
+        `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading logs...</div>`;
     try {
         const logsRef = collection(db, 'auditLogs');
         const q = query(logsRef, orderBy('timestamp', 'desc'));
         const snapshot = await getDocs(q);
         if (snapshot.empty) {
-            container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">📭 No audit logs</div>`;
+            container.innerHTML =
+                `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">📭 No audit logs</div>`;
             return;
         }
         let html = `<div style="display:flex;flex-direction:column;gap:6px;max-height:400px;overflow-y:auto;">`;
         snapshot.forEach(doc => {
             const data = doc.data();
-            const date = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '--';
+            const date = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString('en-US', { month: 'short',
+                    day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '--';
             const admin = data.adminName || data.adminEmail || 'Admin';
             const action = data.action || 'Action';
             const details = data.details || '';
@@ -6137,15 +6449,15 @@ async function loadAuditLogs() {
         container.innerHTML = html;
     } catch (error) {
         console.error('Error loading audit logs:', error);
-        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load logs: ${error.message}</div>`;
+        container.innerHTML =
+            `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load logs: ${error.message}</div>`;
     }
 }
 window.loadAuditLogs = loadAuditLogs;
 
 // ============================================================
-// 33. Order History (User-specific) - with Clear History
+// ORDER HISTORY (User-specific)
 // ============================================================
-
 window.clearOrderHistory = async function() {
     if (!currentUser) {
         showToast('⚠️ Please login first', 'warning');
@@ -6176,7 +6488,8 @@ window.renderHistoryFull = function() {
 
     const history = userProfile.history || [];
     if (history.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:40px 20px; color:var(--text-secondary);">
+        container.innerHTML =
+            `<div style="text-align:center; padding:40px 20px; color:var(--text-secondary);">
             <i class="fas fa-shopping-bag" style="font-size:48px; opacity:0.15; display:block; margin-bottom:12px;"></i>
             <div style="font-size:18px; font-weight:600;">No orders yet</div>
             <div style="font-size:13px; opacity:0.4; margin-top:4px;">Your orders will appear here</div>
@@ -6196,8 +6509,10 @@ window.renderHistoryFull = function() {
         return {
             id: order.id || '#' + String(Date.now()).slice(-6),
             currency: currencyCode,
-            icon: currencyCode === 'LTC' ? 'L' : (currencyCode === 'BTC' ? '₿' : (currencyCode === 'ETH' ? '⟠' : '₮')),
-            date: order.date ? new Date(order.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '--',
+            icon: currencyCode === 'LTC' ? 'L' : (currencyCode === 'BTC' ? '₿' : (currencyCode === 'ETH' ?
+                '⟠' : '₮')),
+            date: order.date ? new Date(order.date).toLocaleDateString('en-US', { month: 'short',
+                    day: 'numeric', year: 'numeric' }) : '--',
             amount: amount.toFixed(2),
             value: `$${amount.toFixed(2)}`,
             status: order.status || 'pending',
@@ -6221,7 +6536,8 @@ window.renderHistoryFull = function() {
     }
 
     if (filtered.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-secondary);">No orders match your filters.</div>`;
+        container.innerHTML =
+            `<div style="text-align:center; padding:30px; color:var(--text-secondary);">No orders match your filters.</div>`;
         return;
     }
 
@@ -6229,13 +6545,15 @@ window.renderHistoryFull = function() {
 
     let html = '';
     filtered.forEach(p => {
-        let statusText = p.status === 'pending' ? 'Pending' : (p.status === 'confirmed' ? 'Completed' : 'Rejected');
+        let statusText = p.status === 'pending' ? 'Pending' : (p.status === 'confirmed' ? 'Completed' :
+            'Rejected');
         if (isLtcFilter && p.status === 'pending') {
             statusText = 'Pending (24–48h)';
         }
         const statusClass = p.status === 'confirmed' ? 'completed' : p.status;
 
-        const borderColor = p.currency === 'LTC' ? '#3fcb7a' : (p.currency === 'BTC' ? '#f7931a' : (p.currency === 'ETH' ? '#627eea' : '#3e8cff'));
+        const borderColor = p.currency === 'LTC' ? '#3fcb7a' : (p.currency === 'BTC' ? '#f7931a' : (p
+            .currency === 'ETH' ? '#627eea' : '#3e8cff'));
 
         html += `
             <div class="payment-card" style="border-left-color: ${borderColor};">
@@ -6267,9 +6585,8 @@ window.renderHistoryFull = function() {
 };
 
 // ============================================================
-// 34. TOPUP SYSTEM - Balance Functions
+// TOPUP SYSTEM - BALANCE FUNCTIONS
 // ============================================================
-
 async function loadUserBalance() {
     if (!currentUser) {
         userBalance = 0;
@@ -6306,9 +6623,8 @@ function updateBalanceDisplay() {
 }
 
 // ============================================================
-// 35. TOPUP SYSTEM - Realtime Listener
+// TOPUP SYSTEM - REALTIME LISTENER
 // ============================================================
-
 function startTopupRealtimeListener() {
     if (!currentUser) return;
 
@@ -6322,8 +6638,7 @@ function startTopupRealtimeListener() {
     topupSubscription = supabase
         .channel('topups-changes')
         .on(
-            'postgres_changes',
-            {
+            'postgres_changes', {
                 event: 'UPDATE',
                 schema: 'public',
                 table: 'topups',
@@ -6342,7 +6657,8 @@ function startTopupRealtimeListener() {
                     updateUI();
                     updateFullUserMenu();
 
-                    showToast(`💰 $${topup.amount_usd.toFixed(2)} has been added to your balance!`, 'success');
+                    showToast(`💰 $${topup.amount_usd.toFixed(2)} has been added to your balance!`,
+                        'success');
 
                     if (document.getElementById('topupStatusList')) {
                         loadUserTopups();
@@ -6357,7 +6673,7 @@ function startTopupRealtimeListener() {
 
 function playNotificationSound() {
     try {
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const audioContext = new(window.AudioContext || window.webkitAudioContext)();
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
 
@@ -6381,9 +6697,8 @@ function playNotificationSound() {
 }
 
 // ============================================================
-// 36. TOPUP SYSTEM - Check Status
+// TOPUP SYSTEM - CHECK STATUS
 // ============================================================
-
 window.openTopupStatus = async function() {
     if (!currentUser) {
         showToast('⚠️ Please login first', 'warning');
@@ -6541,9 +6856,8 @@ async function loadUserTopups() {
 }
 
 // ============================================================
-// 37. TOPUP SYSTEM - Modal Functions
+// TOPUP SYSTEM - MODAL FUNCTIONS
 // ============================================================
-
 window.openTopupModal = function() {
     if (!currentUser) {
         showToast('⚠️ Please login first to topup', 'warning');
@@ -6568,9 +6882,8 @@ window.closeTopupModal = function() {
 };
 
 // ============================================================
-// 38. TOPUP SYSTEM - Select Currency
+// TOPUP SYSTEM - SELECT CURRENCY
 // ============================================================
-
 window.selectTopupCurrency = function(currency) {
     selectedTopupCurrency = currency;
     document.getElementById('topupCurrency').value = currency;
@@ -6609,9 +6922,6 @@ window.selectTopupCurrency = function(currency) {
     updateTopupAmounts(currency);
 };
 
-// ============================================================
-// updateTopupAmounts
-// ============================================================
 function updateTopupAmounts(currency) {
     const container = document.getElementById('topupAmountsContainer');
     if (!container) return;
@@ -6672,7 +6982,7 @@ window.selectTopupAmount = function(amount) {
         selectedTopupAmount = 0;
         document.getElementById('topupSelectedAmount').textContent = 'Enter amount';
         document.getElementById('topupLtcAmount').textContent = '0.0000 LTC';
-        
+
         const customInput = document.getElementById('customTopupAmount');
         if (customInput) {
             customInput.value = '';
@@ -6696,7 +7006,7 @@ window.selectTopupAmount = function(amount) {
                 }
             };
         }
-        
+
         const customEl = document.querySelector('.topup-amount[data-amount="custom"]');
         if (customEl) {
             customEl.style.borderColor = 'var(--primary)';
@@ -6714,7 +7024,7 @@ window.selectTopupAmount = function(amount) {
     selectedTopupAmount = amount;
     const ltcPrice = cryptoPrices.ltc || 42;
     const currency = selectedTopupCurrency || 'USDT';
-    
+
     let displayText, ltcDisplay;
     if (currency === 'USDT') {
         displayText = `$${amount.toFixed(2)}`;
@@ -6729,9 +7039,8 @@ window.selectTopupAmount = function(amount) {
 };
 
 // ============================================================
-// 39. TOPUP SYSTEM - Process Topup
+// TOPUP SYSTEM - PROCESS TOPUP (FIXED)
 // ============================================================
-
 window.processTopup = async function() {
     if (!currentUser) {
         showToast('⚠️ Please login first', 'warning');
@@ -6761,17 +7070,17 @@ window.processTopup = async function() {
     statusEl.style.color = 'var(--text-secondary)';
 
     try {
-        // ===== إرسال البيانات بالشكل الصحيح =====
+        // ===== FIX: Send both amount and amount_usd to satisfy the Edge Function =====
         const requestBody = {
             userId: currentUser.uid,
             userEmail: currentUser.email,
             amount: amount,
-            amount_usd: amount,      // العمود الصحيح
+            amount_usd: amount,
             currency: currency,
             txHash: null
         };
 
-        console.log('📤 Sending topup request:', requestBody);
+        console.log('📤 Sending topup request with amount_usd:', requestBody);
 
         const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/create-topup', {
             method: 'POST',
@@ -6800,7 +7109,6 @@ window.processTopup = async function() {
             throw new Error(result.error || result.message || 'Failed to create topup');
         }
 
-        // عرض تعليمات الدفع (نفس الكود السابق)
         let warningHtml = '';
         if (result.currency === 'USDT') {
             warningHtml = `
@@ -6883,16 +7191,17 @@ window.processTopup = async function() {
         console.error('❌ Topup error:', error);
         let errorMsg = error.message;
         if (error.message.includes('Failed to fetch')) {
-            errorMsg = 'Cannot connect to server. Please check your internet connection and try again.';
+            errorMsg =
+                'Cannot connect to server. Please check your internet connection and try again.';
         }
         statusEl.innerHTML = `<span style="color:var(--danger);">❌ ${errorMsg}</span>`;
         showToast('❌ Error: ' + errorMsg, 'error');
     }
 };
-// ============================================================
-// 40. TOPUP SYSTEM - Submit with TX Hash
-// ============================================================
 
+// ============================================================
+// TOPUP SYSTEM - SUBMIT WITH TX HASH
+// ============================================================
 window.submitTopupWithTxHash = async function(topupId, amount) {
     const txHashInput = document.getElementById('topupTxHash');
     const txHash = txHashInput?.value?.trim();
@@ -6933,7 +7242,7 @@ window.submitTopupWithTxHash = async function(topupId, amount) {
 
 ⚠️ *Please verify this transaction before approving.*
         `;
-        
+
         await sendAdminNotification('💰 New Topup Request - Pending Verification', adminMessage);
 
         if (userProfile.telegramChatId) {
@@ -6987,9 +7296,8 @@ You will receive a notification once approved.
 };
 
 // ============================================================
-// 41. TOPUP SYSTEM - Admin Functions
+// TOPUP SYSTEM - ADMIN FUNCTIONS
 // ============================================================
-
 window.approveTopup = async function(topupId) {
     if (!currentUser || !isAdminCached) {
         showToast('⛔ Unauthorized', 'error');
@@ -7034,21 +7342,29 @@ window.approveTopup = async function(topupId) {
 📅 *Date:* ${new Date().toLocaleString()}
 ✅ *Status:* APPROVED - Balance Updated
         `;
-        
+
         await sendAdminNotification('✅ Topup Approved - Balance Updated', adminMessage);
 
         if (topupData) {
+            // ===== SEND TOPUP CONFIRMATION EMAIL =====
+            const userRef = doc(db, 'users', topupData.user_id);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+                const userEmail = userSnap.data().email || topupData.user_id;
+                await sendTopupConfirmationEmail(userEmail, topupData.amount_usd, topupData.tx_hash);
+            }
+
             await sendTelegramTopupNotification(
                 topupData.user_id,
                 topupData.amount_usd,
                 topupData.tx_hash
             );
 
-            const userRef = doc(db, 'users', topupData.user_id);
-            const userSnap = await getDoc(userRef);
-            if (userSnap.exists()) {
-                const currentBalance = userSnap.data().balance || 0;
-                await updateDoc(userRef, {
+            const userRef2 = doc(db, 'users', topupData.user_id);
+            const userSnap2 = await getDoc(userRef2);
+            if (userSnap2.exists()) {
+                const currentBalance = userSnap2.data().balance || 0;
+                await updateDoc(userRef2, {
                     balance: currentBalance + topupData.amount_usd,
                     updatedAt: serverTimestamp()
                 });
@@ -7108,7 +7424,7 @@ window.rejectTopup = async function(topupId) {
 📅 *Date:* ${new Date().toLocaleString()}
 ❌ *Status:* REJECTED
         `;
-        
+
         await sendAdminNotification('❌ Topup Rejected', adminMessage);
 
         showToast('✅ Topup rejected', 'success');
@@ -7138,7 +7454,8 @@ async function loadAdminTopups() {
         if (countEl) countEl.textContent = topups?.length || 0;
 
         if (!topups || topups.length === 0) {
-            container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">No topup requests</div>`;
+            container.innerHTML =
+                `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">No topup requests</div>`;
             return;
         }
 
@@ -7189,14 +7506,14 @@ async function loadAdminTopups() {
 
     } catch (error) {
         console.error('Error loading topups:', error);
-        container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--danger);">Failed to load topups</div>`;
+        container.innerHTML =
+            `<div style="text-align:center;padding:30px;color:var(--danger);">Failed to load topups</div>`;
     }
 }
 
 // ============================================================
-// 42. TOPUP SYSTEM - Telegram Notification
+// TOPUP SYSTEM - TELEGRAM NOTIFICATION
 // ============================================================
-
 async function sendTelegramTopupNotification(userId, amount, txHash = null) {
     try {
         const userRef = doc(db, 'users', userId);
@@ -7239,9 +7556,8 @@ ${txHash ? `🔗 *TXID:* \`${txHash}\`` : ''}
 }
 
 // ============================================================
-// 43. TOPUP SYSTEM - Copy Helper
+// COPY HELPER
 // ============================================================
-
 window.copyToClipboard = function(text) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text)
@@ -7269,9 +7585,8 @@ function fallbackCopy(text) {
 }
 
 // ============================================================
-// 44. CHECKOUT WITH BALANCE
+// CHECKOUT WITH BALANCE
 // ============================================================
-
 window.checkoutWithBalance = function() {
     if (cart.length === 0) {
         showToast('⚠️ Cart is empty', 'warning');
@@ -7285,15 +7600,15 @@ window.checkoutWithBalance = function() {
     if (userBalance >= finalTotal) {
         processBalancePayment(finalTotal);
     } else {
-        showToast(`⚠️ Insufficient balance! Need $${finalTotal.toFixed(2)}, have $${userBalance.toFixed(2)}`, 'warning');
+        showToast(`⚠️ Insufficient balance! Need $${finalTotal.toFixed(2)}, have $${userBalance.toFixed(2)}`,
+            'warning');
         setTimeout(() => openTopupModal(), 500);
     }
 };
 
 // ============================================================
-// 45. Support Functions
+// SUPPORT FUNCTIONS
 // ============================================================
-
 window.toggleSupportMenu = function() {
     const float = document.getElementById('supportFloat');
     if (float) {
@@ -7345,9 +7660,8 @@ window.openPhoneSupport = function() {
 };
 
 // ============================================================
-// 46. Cookie Consent Functions
+// COOKIE CONSENT FUNCTIONS
 // ============================================================
-
 let cookieConsentStatus = localStorage.getItem('cookieConsent');
 
 window.acceptCookies = function() {
@@ -7471,9 +7785,8 @@ window.closeCookieBanner = function() {
 };
 
 // ============================================================
-// 47. Telegram Banner, Social Proof, Upload
+// TELEGRAM BANNER
 // ============================================================
-
 function showTelegramBanner() {
     const banner = document.getElementById('telegramBanner');
     if (!banner) return;
@@ -7492,52 +7805,71 @@ function showTelegramBanner() {
     }
     if (bannerHidden || adminDisabled) { banner.classList.add('hidden'); return; }
     banner.classList.remove('linked', 'hidden');
-    banner.querySelector('.banner-title').innerHTML = '🔔 Stay Connected! <span class="badge-new">New</span>';
+    banner.querySelector('.banner-title').innerHTML =
+    '🔔 Stay Connected! <span class="badge-new">New</span>';
     banner.querySelector('.banner-subtitle').textContent = 'Link your Telegram account to receive instant order notifications';
     banner.querySelector('.banner-action').innerHTML = '<i class="fab fa-telegram-plane"></i> Link Now';
     banner.querySelector('.banner-action').onclick = () => bindTelegram();
     banner.querySelector('.banner-icon i').className = 'fab fa-telegram-plane';
     banner.style.display = 'block';
     banner.style.animation = 'none';
-    setTimeout(() => { banner.style.animation = 'bannerSlideDown 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'; }, 10);
+    setTimeout(() => { banner.style.animation =
+            'bannerSlideDown 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'; }, 10);
 }
+
 function closeTelegramBanner() {
     const banner = document.getElementById('telegramBanner');
-    if (banner) { banner.classList.add('hidden'); localStorage.setItem('telegram_banner_hidden', 'true'); setTimeout(() => { localStorage.removeItem('telegram_banner_hidden'); if (!userProfile.telegramChatId) { showTelegramBanner(); } }, 600000); }
+    if (banner) { banner.classList.add('hidden');
+        localStorage.setItem('telegram_banner_hidden', 'true');
+        setTimeout(() => { localStorage.removeItem('telegram_banner_hidden'); if (!userProfile
+                .telegramChatId) { showTelegramBanner(); } }, 600000); }
 }
-function showTelegramBannerAgain() { localStorage.removeItem('telegram_banner_hidden'); showTelegramBanner(); }
+
+function showTelegramBannerAgain() { localStorage.removeItem('telegram_banner_hidden');
+    showTelegramBanner(); }
+
 function addBannerAdminControls() { /* Will be implemented in admin */ }
+
 function adminToggleBanner(show) {
-    if (show) { localStorage.setItem('telegram_banner_admin_disabled', 'false'); } else { localStorage.setItem('telegram_banner_admin_disabled', 'true'); const banner = document.getElementById('telegramBanner'); if (banner) banner.classList.add('hidden'); }
+    if (show) { localStorage.setItem('telegram_banner_admin_disabled', 'false'); } else { localStorage.setItem(
+            'telegram_banner_admin_disabled', 'true'); const banner = document.getElementById(
+            'telegramBanner'); if (banner) banner.classList.add('hidden'); }
     addBannerAdminControls();
-    if (show) { localStorage.removeItem('telegram_banner_hidden'); setTimeout(showTelegramBanner, 300); }
+    if (show) { localStorage.removeItem('telegram_banner_hidden');
+        setTimeout(showTelegramBanner, 300); }
 }
-function resetBannerForAll() { localStorage.removeItem('telegram_banner_admin_disabled'); localStorage.removeItem('telegram_banner_hidden'); showToast('🔄 Banner reset', 'info'); addBannerAdminControls(); setTimeout(showTelegramBanner, 300); }
+
+function resetBannerForAll() { localStorage.removeItem('telegram_banner_admin_disabled');
+    localStorage.removeItem('telegram_banner_hidden');
+    showToast('🔄 Banner reset', 'info');
+    addBannerAdminControls();
+    setTimeout(showTelegramBanner, 300); }
 
 // ============================================================
-// 48. Cloudinary Upload
+// CLOUDINARY UPLOAD
 // ============================================================
-
 async function uploadToCloudinary(file) {
     try {
         const formData = new FormData();
         formData.append('file', file);
         formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-        const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, { method: 'POST', body: formData });
+        const response = await fetch(
+            `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, { method: 'POST',
+                body: formData });
         const data = await response.json();
         return data.secure_url || null;
     } catch (error) { console.error('Cloudinary upload error:', error); return null; }
 }
 
 // ============================================================
-// 49. Direction Fix (CLOSE BUTTONS ON RIGHT)
+// DIRECTION FIX (CLOSE BUTTONS ON RIGHT)
 // ============================================================
-
 function fixDirection() {
-    document.querySelectorAll('.header, .logo, .header-actions, .modal-content, .fullscreen-modal, .admin-panel').forEach(el => {
-        el.style.direction = 'ltr';
-        el.style.textAlign = 'left';
-    });
+    document.querySelectorAll('.header, .logo, .header-actions, .modal-content, .fullscreen-modal, .admin-panel')
+        .forEach(el => {
+            el.style.direction = 'ltr';
+            el.style.textAlign = 'left';
+        });
 
     document.querySelectorAll('.modal-close, .close-modal-btn').forEach(el => {
         el.style.position = 'absolute';
@@ -7560,9 +7892,8 @@ function fixDirection() {
 window.fixHeaderAndModals = fixDirection;
 
 // ============================================================
-// 50. Copy Licence & Export
+// COPY LICENCE & EXPORT
 // ============================================================
-
 window.copyLicenceCode = function(code) {
     if (!code) { showToast('⚠️ No code to copy', 'warning'); return; }
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -7573,6 +7904,7 @@ window.copyLicenceCode = function(code) {
         fallbackCopyText(code);
     }
 };
+
 function fallbackCopyText(text) {
     const textarea = document.createElement('textarea');
     textarea.value = text;
@@ -7588,27 +7920,32 @@ function fallbackCopyText(text) {
     }
     document.body.removeChild(textarea);
 }
+
 window.generateInvoice = function(orderData) {
     if (!orderData) { showToast('❌ No order data for invoice', 'error'); return; }
     try {
         let order = typeof orderData === 'string' ? JSON.parse(orderData) : orderData;
         if (!order.id) { order.id = 'INV-' + Date.now().toString().slice(-6); }
-        const invoiceHtml = `<html><head><title>Invoice #${order.id}</title><style>body{font-family:Arial;padding:40px;background:#fff;color:#000;}h1{color:#333;}table{width:100%;border-collapse:collapse;margin:20px 0;}th,td{padding:10px;border:1px solid #ddd;text-align:left;}th{background:#f5f5f5;}.total{font-size:18px;font-weight:bold;}</style></head><body><h1>🧾 Invoice</h1><p><strong>Order ID:</strong> ${order.id}</p><p><strong>Date:</strong> ${order.date ? new Date(order.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '--'}</p><p><strong>Status:</strong> ${order.status || 'Pending'}</p><table><thead><tr><th>Product</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead><tbody>${(order.items || []).map(item => `<tr><td>${item.name}${item.selectedQuantity ? ' (x'+item.selectedQuantity+')' : ''}</td><td>${item.quantity || 1}</td><td>$${(item.price || 0).toFixed(2)}</td><td>$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td></tr>`).join('')}</tbody></table><div class="total">Total: $${(order.total || 0).toFixed(2)}</div><div class="status">Payment Method: ${order.method || 'N/A'}</div><hr><p style="color:gray;">Thank you for your purchase at ZI Store!</p></body></html>`;
+        const invoiceHtml =
+            `<html><head><title>Invoice #${order.id}</title><style>body{font-family:Arial;padding:40px;background:#fff;color:#000;}h1{color:#333;}table{width:100%;border-collapse:collapse;margin:20px 0;}th,td{padding:10px;border:1px solid #ddd;text-align:left;}th{background:#f5f5f5;}.total{font-size:18px;font-weight:bold;}</style></head><body><h1>🧾 Invoice</h1><p><strong>Order ID:</strong> ${order.id}</p><p><strong>Date:</strong> ${order.date ? new Date(order.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '--'}</p><p><strong>Status:</strong> ${order.status || 'Pending'}</p><table><thead><tr><th>Product</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead><tbody>${(order.items || []).map(item => `<tr><td>${item.name}${item.selectedQuantity ? ' (x'+item.selectedQuantity+')' : ''}</td><td>${item.quantity || 1}</td><td>$${(item.price || 0).toFixed(2)}</td><td>$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td></tr>`).join('')}</tbody></table><div class="total">Total: $${(order.total || 0).toFixed(2)}</div><div class="status">Payment Method: ${order.method || 'N/A'}</div><hr><p style="color:gray;">Thank you for your purchase at ZI Store!</p></body></html>`;
         const win = window.open('', '_blank');
         if (!win) { showToast('⚠️ Please allow popups to generate invoice', 'warning'); return; }
         win.document.write(invoiceHtml);
         win.document.close();
         win.print();
         showToast('📄 Invoice generated!', 'success');
-    } catch (error) { console.error('Invoice generation error:', error); showToast('❌ Failed to generate invoice', 'error'); }
+    } catch (error) { console.error('Invoice generation error:', error);
+        showToast('❌ Failed to generate invoice', 'error'); }
 };
+
 window.exportOrders = function() {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!allOrders || allOrders.length === 0) { showToast('📭 No orders to export', 'info'); return; }
     try {
         let csv = 'Order ID,User,Email,Total,Status,Date,Items\n';
         allOrders.forEach(order => {
-            const items = order.items ? order.items.map(i => i.name + (i.selectedQuantity ? ' ('+i.selectedQuantity+')' : '')).join('; ') : '';
+            const items = order.items ? order.items.map(i => i.name + (i.selectedQuantity ? ' (' + i
+                    .selectedQuantity + ')' : '')).join('; ') : '';
             csv += `${order.orderId || ''},${order.userName || ''},${order.userEmail || ''},${order.total || 0},${order.status || 'pending'},${new Date(order.date).toLocaleDateString()},${items}\n`;
         });
         const blob = new Blob([csv], { type: 'text/csv' });
@@ -7623,14 +7960,14 @@ window.exportOrders = function() {
 };
 
 // ============================================================
-// 51. Admin Payments
+// ADMIN PAYMENTS
 // ============================================================
-
 function refreshAdminPayments() {
     if (!currentUser || !isAdminCached) return;
     const tbody = document.getElementById('adminPaymentsBody');
     if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
+    tbody.innerHTML =
+        '<tr><td colspan="7" style="text-align:center;padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
 
     const usersRef = collection(db, 'users');
     getDocs(usersRef).then((snapshot) => {
@@ -7660,7 +7997,8 @@ function refreshAdminPayments() {
 
         const total = allPayments.length;
         const pending = allPayments.filter(p => p.status === 'pending').length;
-        const completed = allPayments.filter(p => p.status === 'confirmed' || p.status === 'completed').length;
+        const completed = allPayments.filter(p => p.status === 'confirmed' || p.status === 'completed')
+            .length;
         const rejected = allPayments.filter(p => p.status === 'rejected').length;
         document.getElementById('adminPaymentTotal').textContent = total;
         document.getElementById('adminPaymentPending').textContent = pending;
@@ -7668,14 +8006,17 @@ function refreshAdminPayments() {
         document.getElementById('adminPaymentRejected').textContent = rejected;
 
         if (allPayments.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-secondary);">No payments found.</td></tr>';
+            tbody.innerHTML =
+                '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-secondary);">No payments found.</td></tr>';
             return;
         }
 
         let rows = '';
         allPayments.forEach(p => {
-            const statusBadge = `<span class="status-badge ${p.status === 'confirmed' ? 'confirmed' : p.status}">${p.status.charAt(0).toUpperCase()+p.status.slice(1)}</span>`;
-            const dateStr = new Date(p.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            const statusBadge =
+                `<span class="status-badge ${p.status === 'confirmed' ? 'confirmed' : p.status}">${p.status.charAt(0).toUpperCase()+p.status.slice(1)}</span>`;
+            const dateStr = new Date(p.date).toLocaleDateString('en-US', { month: 'short',
+                day: 'numeric', year: 'numeric' });
             rows += `
                 <tr style="border-bottom:1px solid var(--border);">
                     <td style="padding:6px 4px; font-family:monospace; font-size:12px;">${p.id}</td>
@@ -7698,7 +8039,8 @@ function refreshAdminPayments() {
         tbody.innerHTML = rows;
     }).catch(error => {
         console.error('Error loading admin payments:', error);
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--danger);">${error.message}</td></tr>`;
+        tbody.innerHTML =
+            `<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--danger);">${error.message}</td></tr>`;
     });
 }
 
@@ -7722,14 +8064,13 @@ window.adminDeletePayment = function(orderId, userId) {
 };
 
 // ============================================================
-// 52. AI-BASED RECOMMENDATIONS
+// AI-BASED RECOMMENDATIONS
 // ============================================================
-
 function trackUserBehavior(productId, action) {
     if (!currentUser) return;
     userHistory.push({
         productId,
-        action, // view, add_to_cart, purchase, wishlist
+        action,
         timestamp: new Date().toISOString(),
         userId: currentUser.uid
     });
@@ -7744,7 +8085,7 @@ function updateUserPreferences() {
         purchasedProducts: [],
         cartProducts: []
     };
-    
+
     userHistory.forEach(item => {
         const product = products.find(p => p.id === item.productId);
         if (!product) return;
@@ -7758,7 +8099,7 @@ function updateUserPreferences() {
             userPreferences.cartProducts.push(item.productId);
         }
         if (product.category) {
-            userPreferences.favoriteCategories[product.category] = 
+            userPreferences.favoriteCategories[product.category] =
                 (userPreferences.favoriteCategories[product.category] || 0) + 1;
         }
     });
@@ -7768,36 +8109,36 @@ function getRecommendations(limit = 6) {
     if (!currentUser || userHistory.length === 0) {
         return getDefaultRecommendations(limit);
     }
-    
+
     const viewedIds = userPreferences.viewedProducts;
     const viewedProducts = products.filter(p => viewedIds.includes(p.id));
     const similarProducts = products.filter(p => {
         if (viewedIds.includes(p.id)) return false;
         return p.features?.some(f => viewedProducts.some(vp => vp.features?.includes(f)));
     });
-    
+
     const cartIds = userPreferences.cartProducts;
     const cartProducts = products.filter(p => cartIds.includes(p.id));
     const cartSimilar = products.filter(p => {
         if (cartIds.includes(p.id)) return false;
         return p.features?.some(f => cartProducts.some(cp => cp.features?.includes(f)));
     });
-    
+
     const purchasedIds = userPreferences.purchasedProducts;
     const purchasedProducts = products.filter(p => purchasedIds.includes(p.id));
     const purchasedSimilar = products.filter(p => {
         if (purchasedIds.includes(p.id)) return false;
         return p.features?.some(f => purchasedProducts.some(pp => pp.features?.includes(f)));
     });
-    
+
     const popularProducts = products.filter(p => p.price > 0).sort((a, b) => b.price - a.price);
-    
+
     let recommendations = [];
     recommendations.push(...similarProducts);
     recommendations.push(...cartSimilar);
     recommendations.push(...purchasedSimilar);
     recommendations.push(...popularProducts);
-    
+
     const unique = [];
     const seen = new Set();
     for (const item of recommendations) {
@@ -7806,7 +8147,7 @@ function getRecommendations(limit = 6) {
             unique.push(item);
         }
     }
-    
+
     return unique.slice(0, limit);
 }
 
@@ -7817,9 +8158,8 @@ function getDefaultRecommendations(limit) {
 }
 
 // ============================================================
-// 53. FRAUD DETECTION SYSTEM
+// FRAUD DETECTION SYSTEM
 // ============================================================
-
 const fraudRules = {
     maxOrdersPerDay: 10,
     maxAmountPerOrder: 1000,
@@ -7838,16 +8178,16 @@ async function detectFraud(orderData) {
     const userId = orderData.userId || currentUser?.uid;
     const ip = orderData.ip || (await getVisitorInfo()).ip;
     const email = orderData.email || currentUser?.email;
-    
+
     if (orderData.total > fraudRules.maxAmountPerOrder) {
         warnings.push('⚠️ High order amount detected');
     }
-    
+
     const visitorInfo = await getVisitorInfo();
     if (fraudRules.suspiciousCountries.includes(visitorInfo.country_code)) {
         warnings.push('⚠️ Suspicious country detected');
     }
-    
+
     const userOrders = allOrders.filter(o => o.userId === userId);
     const todayOrders = userOrders.filter(o => {
         return new Date(o.date).toDateString() === new Date().toDateString();
@@ -7855,21 +8195,21 @@ async function detectFraud(orderData) {
     if (todayOrders.length > fraudRules.maxOrdersPerDay) {
         warnings.push('⚠️ Too many orders today');
     }
-    
+
     if (!userActivity[userId]) userActivity[userId] = { failedAttempts: 0, lastAttempt: 0 };
     if (userActivity[userId].failedAttempts > fraudRules.maxFailedAttempts) {
         warnings.push('⚠️ Too many failed attempts');
     }
-    
+
     const usersWithSameIP = allUsers.filter(u => u.ip === ip);
     if (usersWithSameIP.length > fraudRules.sameIPDifferentAccounts) {
         warnings.push('⚠️ Multiple accounts from same IP');
     }
-    
+
     if (email && (email.includes('tempmail') || email.includes('10minutemail'))) {
         warnings.push('⚠️ Temporary email detected');
     }
-    
+
     if (warnings.length > 0) {
         await logFraudDetection({
             userId,
@@ -7880,7 +8220,7 @@ async function detectFraud(orderData) {
             timestamp: new Date().toISOString()
         });
     }
-    
+
     return {
         isSuspicious: warnings.length > 0,
         warnings,
@@ -7895,7 +8235,7 @@ async function logFraudDetection(data) {
             createdAt: serverTimestamp()
         });
         console.log('🚨 Fraud detected:', data.warnings);
-        
+
         if (data.warnings.length > 3) {
             await sendAdminNotification(
                 '🚨 High Risk Fraud Detected!',
@@ -7908,24 +8248,24 @@ async function logFraudDetection(data) {
 }
 
 // ============================================================
-// 54. LIMITED QUANTITY PRODUCTS
+// LIMITED QUANTITY PRODUCTS
 // ============================================================
-
 function renderLimitedProducts() {
     const container = document.getElementById('limitedProductsGrid');
     if (!container) return;
-    
+
     const limited = products.filter(p => p.limitedQuantity && p.limitedQuantity > 0);
     if (limited.length === 0) {
-        container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text-secondary);opacity:0.5;">No limited products available</div>`;
+        container.innerHTML =
+            `<div style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text-secondary);opacity:0.5;">No limited products available</div>`;
         return;
     }
-    
+
     container.innerHTML = limited.map(p => {
         const percentLeft = (p.limitedQuantity / p.limitedTotal) * 100;
         const isLowStock = percentLeft < 20;
         const isUrgent = percentLeft < 10;
-        
+
         return `
             <div class="product-card" onclick="window.openDetails('${p.id}')" style="border:2px solid ${isUrgent ? 'var(--danger)' : isLowStock ? 'var(--warning)' : 'var(--vip-color)'};">
                 <div class="image-wrapper">
@@ -7957,11 +8297,9 @@ function renderLimitedProducts() {
 }
 
 // ============================================================
-// 55. SMART POPUPS
+// SMART POPUPS
 // ============================================================
-
 function initPopups() {
-    // Exit Intent Popup
     if (exitIntentEnabled) {
         document.addEventListener('mouseleave', (e) => {
             if (e.clientY < 0 && !popupShown) {
@@ -7969,8 +8307,7 @@ function initPopups() {
             }
         });
     }
-    
-    // Time-based Popup (after 30 seconds)
+
     setTimeout(() => {
         if (!popupShown && !document.hidden) {
             showOfferPopup();
@@ -8027,9 +8364,8 @@ window.subscribeAndApply = function(couponCode) {
 };
 
 // ============================================================
-// 56. ADVANCED COUPON SYSTEM
+// ADVANCED COUPON SYSTEM
 // ============================================================
-
 async function loadCoupons() {
     try {
         const couponsRef = collection(db, 'coupons');
@@ -8057,62 +8393,6 @@ function updateActiveCoupons() {
     });
 }
 
-async function validateCoupon(code, cartTotal, userId, productIds = []) {
-    const coupon = coupons.find(c => c.code.toUpperCase() === code.toUpperCase());
-    if (!coupon) return { valid: false, message: 'Invalid coupon code' };
-    if (!coupon.active) return { valid: false, message: 'This coupon is no longer active' };
-    
-    const now = new Date();
-    if (coupon.expiresAt && new Date(coupon.expiresAt) < now) {
-        return { valid: false, message: 'This coupon has expired' };
-    }
-    if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) {
-        return { valid: false, message: 'This coupon has reached its usage limit' };
-    }
-    if (coupon.minOrder && cartTotal < coupon.minOrder) {
-        return { valid: false, message: `Minimum order $${coupon.minOrder} required` };
-    }
-    if (coupon.userIds && coupon.userIds.length > 0 && !coupon.userIds.includes(userId)) {
-        return { valid: false, message: 'This coupon is not available for your account' };
-    }
-    if (coupon.productIds && coupon.productIds.length > 0) {
-        const hasValidProduct = productIds.some(id => coupon.productIds.includes(id));
-        if (!hasValidProduct) {
-            return { valid: false, message: 'This coupon is not valid for the products in your cart' };
-        }
-    }
-    if (coupon.firstOrderOnly) {
-        const userOrders = allOrders.filter(o => o.userId === userId);
-        if (userOrders.length > 0) {
-            return { valid: false, message: 'This coupon is only for first-time customers' };
-        }
-    }
-
-    let discount = 0;
-    if (coupon.type === 'percentage') {
-        discount = (cartTotal * coupon.value) / 100;
-        if (coupon.maxDiscount && discount > coupon.maxDiscount) {
-            discount = coupon.maxDiscount;
-        }
-    } else {
-        discount = coupon.value;
-        if (discount > cartTotal) discount = cartTotal;
-    }
-
-    return { valid: true, discount, coupon, message: `✅ ${discount.toFixed(2)} $ discount applied!` };
-}
-
-async function useCoupon(code, userId) {
-    const coupon = coupons.find(c => c.code.toUpperCase() === code.toUpperCase());
-    if (!coupon) return false;
-    coupon.usedCount = (coupon.usedCount || 0) + 1;
-    await updateDoc(doc(db, 'coupons', coupon.id), {
-        usedCount: coupon.usedCount,
-        updatedAt: serverTimestamp()
-    });
-    return true;
-}
-
 window.openCreateCouponModal = function() {
     if (!currentUser || !isAdminCached) {
         showToast('⛔ Unauthorized', 'error');
@@ -8132,7 +8412,7 @@ window.saveCoupon = async function() {
         showToast('⛔ Unauthorized', 'error');
         return;
     }
-    
+
     const id = document.getElementById('couponIdField').value;
     const code = document.getElementById('couponCode').value.trim().toUpperCase();
     const type = document.getElementById('couponType').value;
@@ -8150,8 +8430,15 @@ window.saveCoupon = async function() {
     }
 
     const couponData = {
-        code, type, value, minOrder, maxDiscount, firstOrderOnly, active,
-        usageLimit, usedCount: 0,
+        code,
+        type,
+        value,
+        minOrder,
+        maxDiscount,
+        firstOrderOnly,
+        active,
+        usageLimit,
+        usedCount: 0,
         expiresAt: expiresAt ? new Date(expiresAt).toISOString() : null,
         updatedAt: serverTimestamp()
     };
@@ -8191,18 +8478,19 @@ window.deleteCoupon = async function(couponId) {
 window.editCoupon = function(couponId) {
     const coupon = coupons.find(c => c.id === couponId);
     if (!coupon) { showToast('❌ Coupon not found', 'error'); return; }
-    
+
     document.getElementById('couponIdField').value = coupon.id;
     document.getElementById('couponCode').value = coupon.code;
     document.getElementById('couponType').value = coupon.type;
     document.getElementById('couponValue').value = coupon.value;
     document.getElementById('couponMinOrder').value = coupon.minOrder || '';
     document.getElementById('couponMaxDiscount').value = coupon.maxDiscount || '';
-    document.getElementById('couponExpiresAt').value = coupon.expiresAt ? new Date(coupon.expiresAt).toISOString().slice(0, 16) : '';
+    document.getElementById('couponExpiresAt').value = coupon.expiresAt ? new Date(coupon.expiresAt).toISOString()
+        .slice(0, 16) : '';
     document.getElementById('couponUsageLimit').value = coupon.usageLimit || '';
     document.getElementById('couponFirstOrder').checked = coupon.firstOrderOnly || false;
     document.getElementById('couponActive').checked = coupon.active !== false;
-    
+
     document.getElementById('createCouponModal').classList.add('open');
 };
 
@@ -8210,7 +8498,8 @@ function renderAdminCoupons() {
     const container = document.getElementById('adminCouponsList');
     if (!container) return;
     if (!coupons || coupons.length === 0) {
-        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);opacity:0.5;">No coupons created yet</div>`;
+        container.innerHTML =
+            `<div style="text-align:center;padding:20px;color:var(--text-secondary);opacity:0.5;">No coupons created yet</div>`;
         return;
     }
     container.innerHTML = coupons.map(c => {
@@ -8245,12 +8534,19 @@ function renderAdminCoupons() {
 }
 
 // ============================================================
-// 57. EMAIL SYSTEM
+// EMAIL SYSTEM - Complete Integration
+// ============================================================
+
+// ============================================================
+// 1. BASE SEND EMAIL FUNCTION
 // ============================================================
 
 async function sendEmail(to, subject, htmlContent, textContent = '') {
     try {
-        const response = await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
+        console.log('📧 Sending email to:', to);
+        console.log('📧 Subject:', subject);
+
+        const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/send-email', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -8260,240 +8556,805 @@ async function sendEmail(to, subject, htmlContent, textContent = '') {
                 to: to,
                 subject: subject,
                 html: htmlContent,
-                text: textContent
+                text: textContent || htmlContent.replace(/<[^>]*>/g, '')
             })
         });
-        return await response.json();
+
+        const result = await response.json();
+        console.log('📧 Email result:', result);
+
+        if (!response.ok) {
+            throw new Error(result.error || 'Failed to send email');
+        }
+
+        return { success: true, data: result };
     } catch (error) {
-        console.error('Email error:', error);
+        console.error('❌ Email error:', error);
         return { success: false, error: error.message };
     }
 }
 
-async function sendOrderConfirmationEmail(userEmail, orderData) {
-    const html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <style>
-                body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
-                .container { max-width: 600px; margin: 0 auto; background: #fff; border-radius: 10px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-                .header { text-align: center; border-bottom: 2px solid #6c5ce7; padding-bottom: 15px; }
-                .logo { font-size: 24px; font-weight: 900; color: #6c5ce7; }
-                .order-details { margin: 20px 0; padding: 15px; background: #f8f8f8; border-radius: 8px; }
-                .total { font-size: 20px; font-weight: 800; color: #6c5ce7; }
-                .footer { text-align: center; font-size: 12px; color: #888; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; }
-                .status { display: inline-block; padding: 5px 15px; background: #fbbf24; border-radius: 30px; font-weight: 700; }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="header">
-                    <div class="logo">🛒 ZI Store</div>
-                    <h2>Order Confirmation</h2>
-                </div>
-                <p>Hello <strong>${orderData.userName || 'Customer'}</strong>,</p>
-                <p>Thank you for your order! Here are the details:</p>
-                <div class="order-details">
-                    <p><strong>Order ID:</strong> #${orderData.orderId?.slice(-8) || '------'}</p>
-                    <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
-                    <p><strong>Status:</strong> <span class="status">${orderData.status || 'Pending'}</span></p>
-                    <p><strong>Payment Method:</strong> ${orderData.method || 'N/A'}</p>
-                    <hr />
-                    <h4>Items:</h4>
-                    ${(orderData.items || []).map(item => `
-                        <div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #eee;">
-                            <span>${item.name} × ${item.quantity || 1}</span>
-                            <span>$${(item.price * (item.quantity || 1)).toFixed(2)}</span>
-                        </div>
-                    `).join('')}
-                    <hr />
-                    <div style="display:flex; justify-content:space-between; font-size:18px;">
-                        <strong>Total:</strong>
-                        <strong class="total">$${(orderData.total || 0).toFixed(2)}</strong>
-                    </div>
-                </div>
-                <p>You will receive another email once your order is confirmed.</p>
-                <div class="footer">
-                    <p>&copy; 2026 ZI Store — All rights reserved.</p>
-                    <p><a href="https://zi-store.online">Visit Store</a> | <a href="mailto:support@zi-store.online">Support</a></p>
-                </div>
-            </div>
-        </body>
-        </html>
-    `;
-    return await sendEmail(userEmail, `Order Confirmation #${orderData.orderId?.slice(-6) || ''}`, html);
-}
-
-async function sendOrderStatusEmail(userEmail, orderId, newStatus) {
-    const statusMessages = {
-        'confirmed': '✅ Your order has been confirmed and is being processed!',
-        'rejected': '❌ Your order has been rejected. Please contact support for more information.',
-        'shipped': '📦 Your order has been shipped!',
-        'delivered': '🎉 Your order has been delivered!'
-    };
-    const html = `
-        <!DOCTYPE html>
-        <html>
-        <head><style>body{font-family:Arial,sans-serif;padding:20px;background:#f4f4f4;} .container{max-width:600px;margin:0 auto;background:#fff;border-radius:10px;padding:30px;box-shadow:0 4px 20px rgba(0,0,0,0.1);} .header{text-align:center;border-bottom:2px solid #6c5ce7;padding-bottom:15px;} .logo{font-size:24px;font-weight:900;color:#6c5ce7;} .status-update{padding:15px;background:#f8f8f8;border-radius:8px;margin:20px 0;text-align:center;} .status-badge{display:inline-block;padding:8px 20px;border-radius:30px;font-weight:700;background:${newStatus === 'confirmed' ? '#00d4aa' : newStatus === 'rejected' ? '#ff6b6b' : '#fbbf24'};color:#0a0a1a;} .footer{text-align:center;font-size:12px;color:#888;margin-top:20px;border-top:1px solid #eee;padding-top:15px;}</style></head>
-        <body>
-            <div class="container">
-                <div class="header"><div class="logo">🛒 ZI Store</div><h2>Order Status Update</h2></div>
-                <p>Hello,</p>
-                <div class="status-update">
-                    <p style="font-size:16px;">${statusMessages[newStatus] || 'Your order status has been updated.'}</p>
-                    <p><strong>Order ID:</strong> #${orderId?.slice(-8) || '------'}</p>
-                    <div><span class="status-badge">${newStatus.toUpperCase()}</span></div>
-                </div>
-                <p><a href="https://zi-store.online" style="background:#6c5ce7;color:#fff;padding:10px 20px;border-radius:5px;text-decoration:none;">View Order</a></p>
-                <div class="footer"><p>&copy; 2026 ZI Store — All rights reserved.</p></div>
-            </div>
-        </body>
-        </html>
-    `;
-    return await sendEmail(userEmail, `Order Status Update #${orderId?.slice(-6) || ''}`, html);
-}
+// ============================================================
+// 2. WELCOME EMAIL
+// ============================================================
 
 async function sendWelcomeEmail(userEmail, userName) {
     const html = `
-        <!DOCTYPE html>
-        <html>
-        <head><style>body{font-family:Arial,sans-serif;padding:20px;background:#f4f4f4;} .container{max-width:600px;margin:0 auto;background:#fff;border-radius:10px;padding:30px;box-shadow:0 4px 20px rgba(0,0,0,0.1);} .header{text-align:center;border-bottom:2px solid #6c5ce7;padding-bottom:15px;} .logo{font-size:24px;font-weight:900;color:#6c5ce7;} .welcome{text-align:center;padding:20px 0;} .footer{text-align:center;font-size:12px;color:#888;margin-top:20px;border-top:1px solid #eee;padding-top:15px;}</style></head>
-        <body>
-            <div class="container">
-                <div class="header"><div class="logo">🛒 ZI Store</div><h2>Welcome to ZI Store!</h2></div>
-                <div class="welcome">
-                    <h3>Hi ${userName || 'there'}! 🎉</h3>
-                    <p>Thank you for joining ZI Store! We're excited to have you.</p>
-                    <p>Here's what you can do:</p>
-                    <ul style="text-align:left;display:inline-block;">
-                        <li>🛍️ Browse our premium products</li>
-                        <li>💳 Secure payments</li>
-                        <li>⚡ Instant delivery</li>
-                        <li>🎁 Exclusive discounts</li>
-                    </ul>
-                    <br />
-                    <a href="https://zi-store.online" style="background:#6c5ce7;color:#fff;padding:10px 30px;border-radius:5px;text-decoration:none;">Start Shopping</a>
-                </div>
-                <div class="footer"><p>&copy; 2026 ZI Store — All rights reserved.</p></div>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to ZI Store</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f0f2f8; padding: 20px; margin: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+        .header { background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%); padding: 40px 30px 30px; text-align: center; }
+        .logo { font-size: 32px; font-weight: 900; color: #fff; letter-spacing: -0.5px; }
+        .logo span { color: #f2a900; }
+        .logo-sub { font-size: 14px; color: rgba(255,255,255,0.7); margin-top: 4px; font-weight: 400; }
+        .content { padding: 40px 35px; }
+        .welcome-title { font-size: 26px; font-weight: 800; color: #1a1a2e; text-align: center; }
+        .welcome-title .emoji { font-size: 32px; display: block; margin-bottom: 4px; }
+        .welcome-text { font-size: 15px; color: #4a4a6a; line-height: 1.8; text-align: center; margin: 12px 0 20px; }
+        .features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
+        .feature-box { background: #f8f8ff; padding: 16px 18px; border-radius: 12px; border-left: 4px solid #6c5ce7; }
+        .feature-box .icon { font-size: 20px; display: block; margin-bottom: 4px; }
+        .feature-box .title { font-weight: 700; color: #1a1a2e; font-size: 14px; }
+        .feature-box .desc { font-size: 12px; color: #4a4a6a; opacity: 0.7; }
+        .coupon-box { background: linear-gradient(135deg, #f2a900, #fbbf24); border-radius: 12px; padding: 16px 20px; text-align: center; margin: 16px 0; }
+        .coupon-box .code { font-size: 20px; font-weight: 900; color: #1a1a2e; font-family: monospace; letter-spacing: 2px; }
+        .coupon-box .label { font-size: 13px; color: rgba(26,26,46,0.7); }
+        .btn-primary { display: inline-block; background: #6c5ce7; color: #fff; padding: 14px 40px; border-radius: 30px; text-decoration: none; font-weight: 700; font-size: 16px; transition: all 0.3s; margin: 8px 0; }
+        .btn-primary:hover { background: #5a4bd1; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(108,92,231,0.3); }
+        .text-center { text-align: center; }
+        .divider { border: none; border-top: 2px solid #f0f2f8; margin: 20px 0; }
+        .footer { padding: 20px 35px; text-align: center; background: #f8f8ff; }
+        .footer-text { font-size: 12px; color: #888; }
+        .footer-links a { color: #6c5ce7; text-decoration: none; margin: 0 6px; font-size: 12px; }
+        .footer-links a:hover { text-decoration: underline; }
+        @media (max-width: 480px) {
+            .header { padding: 30px 20px; }
+            .content { padding: 25px 18px; }
+            .features-grid { grid-template-columns: 1fr; }
+            .logo { font-size: 26px; }
+            .welcome-title { font-size: 22px; }
+            .btn-primary { padding: 12px 28px; font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">ZI <span>Store</span></div>
+            <div class="logo-sub">Premium Scripts & Digital Products</div>
+        </div>
+        <div class="content">
+            <div class="welcome-title">
+                <span class="emoji">🎉</span>
+                Welcome to ZI Store!
             </div>
-        </body>
-        </html>
+            <p class="welcome-text">
+                Hello <strong>${userName || 'there'}</strong>! We're thrilled to have you on board. 🚀<br>
+                Here's everything you need to get started:
+            </p>
+            <div class="features-grid">
+                <div class="feature-box">
+                    <span class="icon">🛍️</span>
+                    <div class="title">Premium Products</div>
+                    <div class="desc">Access exclusive scripts and tools</div>
+                </div>
+                <div class="feature-box">
+                    <span class="icon">💳</span>
+                    <div class="title">Secure Payments</div>
+                    <div class="desc">Multiple payment methods</div>
+                </div>
+                <div class="feature-box">
+                    <span class="icon">⚡</span>
+                    <div class="title">Instant Delivery</div>
+                    <div class="desc">Get your products immediately</div>
+                </div>
+                <div class="feature-box">
+                    <span class="icon">🎁</span>
+                    <div class="title">Exclusive Discounts</div>
+                    <div class="desc">Special offers for members</div>
+                </div>
+            </div>
+            <div class="coupon-box">
+                <div class="label">🎫 Use this coupon for 15% off your first order</div>
+                <div class="code">WELCOME15</div>
+            </div>
+            <div class="text-center">
+                <a href="https://zi-store.online" class="btn-primary">🛒 Start Shopping Now</a>
+            </div>
+            <hr class="divider">
+            <div style="text-align: center; font-size: 13px; color: #888; line-height: 1.6;">
+                <p>Need help? <a href="mailto:support@zi-store.online" style="color:#6c5ce7;">Contact Support</a></p>
+            </div>
+        </div>
+        <div class="footer">
+            <div class="footer-links">
+                <a href="https://zi-store.online">Store</a>
+                <a href="mailto:support@zi-store.online">Support</a>
+                <a href="https://zi-store.online/privacy.html">Privacy</a>
+                <a href="https://zi-store.online/refund.html">Refund Policy</a>
+            </div>
+            <div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div>
+        </div>
+    </div>
+</body>
+</html>
     `;
-    return await sendEmail(userEmail, 'Welcome to ZI Store! 🎉', html);
+
+    return await sendEmail(userEmail, '🎉 Welcome to ZI Store!', html);
 }
 
 // ============================================================
-// 58. PDF INVOICE GENERATOR
+// 3. ORDER CONFIRMATION EMAIL
 // ============================================================
 
-window.generatePDFInvoice = function(orderData) {
-    if (!orderData) { showToast('❌ No order data for invoice', 'error'); return; }
+async function sendOrderConfirmationEmail(userEmail, orderData) {
+    const orderId = orderData.orderId || orderData.id || '------';
+    const orderIdDisplay = orderId.slice(-8);
+
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation #${orderIdDisplay}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f0f2f8; padding: 20px; margin: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+        .header { background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%); padding: 30px 30px 20px; text-align: center; }
+        .logo { font-size: 28px; font-weight: 900; color: #fff; }
+        .logo span { color: #f2a900; }
+        .order-status { display: inline-block; padding: 4px 16px; border-radius: 30px; background: #fbbf24; color: #1a1a2e; font-weight: 700; font-size: 13px; margin-top: 6px; }
+        .content { padding: 35px 30px; }
+        .greeting { font-size: 18px; font-weight: 700; color: #1a1a2e; }
+        .greeting span { color: #6c5ce7; }
+        .order-summary { background: #f8f8ff; border-radius: 12px; padding: 16px 18px; margin: 16px 0; }
+        .summary-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; }
+        .summary-row:last-child { border-bottom: none; }
+        .summary-label { color: #888; font-weight: 500; font-size: 13px; }
+        .summary-value { font-weight: 600; color: #1a1a2e; font-size: 13px; }
+        .items-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+        .items-table th { text-align: left; padding: 10px 0; border-bottom: 2px solid #eee; color: #888; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .items-table td { padding: 10px 0; border-bottom: 1px solid #f0f2f8; }
+        .items-table .item-name { font-weight: 600; color: #1a1a2e; }
+        .items-table .item-meta { font-size: 12px; color: #888; }
+        .items-table .item-price { text-align: right; font-weight: 600; }
+        .total-box { background: linear-gradient(135deg, #f8f8ff, #f0f2f8); border-radius: 12px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+        .total-label { font-size: 16px; font-weight: 700; color: #1a1a2e; }
+        .total-amount { font-size: 24px; font-weight: 900; color: #6c5ce7; }
+        .btn-primary { display: inline-block; background: #6c5ce7; color: #fff; padding: 12px 32px; border-radius: 30px; text-decoration: none; font-weight: 700; font-size: 14px; transition: all 0.3s; }
+        .btn-primary:hover { background: #5a4bd1; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(108,92,231,0.3); }
+        .text-center { text-align: center; }
+        .divider { border: none; border-top: 2px solid #f0f2f8; margin: 16px 0; }
+        .footer { padding: 16px 30px; text-align: center; background: #f8f8ff; }
+        .footer-text { font-size: 11px; color: #888; }
+        .footer-links a { color: #6c5ce7; text-decoration: none; margin: 0 4px; font-size: 11px; }
+        @media (max-width: 480px) {
+            .header { padding: 20px; }
+            .content { padding: 20px 15px; }
+            .total-amount { font-size: 20px; }
+            .items-table td, .items-table th { font-size: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">ZI <span>Store</span></div>
+            <div><span class="order-status">${orderData.status || 'PENDING'}</span></div>
+        </div>
+        <div class="content">
+            <div class="greeting">Hello <span>${orderData.userName || 'Customer'}</span> 👋</div>
+            <p style="color: #4a4a6a; font-size: 14px; margin: 6px 0 12px;">Thank you for your order! Here are the details:</p>
+            
+            <div class="order-summary">
+                <div class="summary-row">
+                    <span class="summary-label">📋 Order ID</span>
+                    <span class="summary-value">#${orderIdDisplay}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">📅 Date</span>
+                    <span class="summary-value">${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">💳 Payment Method</span>
+                    <span class="summary-value">${orderData.method || 'N/A'}</span>
+                </div>
+                ${orderData.txHash ? `
+                <div class="summary-row">
+                    <span class="summary-label">🔗 Transaction ID</span>
+                    <span class="summary-value" style="font-family:monospace;font-size:11px;word-break:break-all;">${orderData.txHash}</span>
+                </div>
+                ` : ''}
+            </div>
+
+            <h3 style="color: #1a1a2e; margin: 12px 0 8px; font-size: 16px;">🛍️ Items</h3>
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th style="text-align: center;">Qty</th>
+                        <th style="text-align: right;">Price</th>
+                        <th style="text-align: right;">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${(orderData.items || []).map(item => `
+                        <tr>
+                            <td>
+                                <div class="item-name">${item.name}</div>
+                                ${item.selectedQuantity ? `<div class="item-meta">📦 ${item.selectedQuantity}</div>` : ''}
+                                ${item.isVip ? `<div class="item-meta">👑 ${item.vipPlanLabel || 'VIP'}</div>` : ''}
+                            </td>
+                            <td style="text-align: center;">${item.quantity || 1}</td>
+                            <td style="text-align: right;">$${(item.price || 0).toFixed(2)}</td>
+                            <td style="text-align: right; font-weight: 600;">$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+
+            <div class="total-box">
+                <span class="total-label">Total Amount</span>
+                <span class="total-amount">$${(orderData.total || 0).toFixed(2)}</span>
+            </div>
+
+            <hr class="divider">
+            <div class="text-center">
+                <a href="https://zi-store.online" class="btn-primary">📦 View My Orders</a>
+            </div>
+            <p style="text-align: center; font-size: 12px; color: #888; margin-top: 10px;">
+                You will receive another email once your order is confirmed.
+            </p>
+        </div>
+        <div class="footer">
+            <div class="footer-links">
+                <a href="https://zi-store.online">Store</a>
+                <a href="mailto:support@zi-store.online">Support</a>
+                <a href="https://zi-store.online/refund.html">Refund Policy</a>
+            </div>
+            <div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div>
+        </div>
+    </div>
+</body>
+</html>
+    `;
+
+    return await sendEmail(userEmail, `📦 Order Confirmation #${orderIdDisplay}`, html);
+}
+
+// ============================================================
+// 4. ORDER STATUS UPDATE EMAIL
+// ============================================================
+
+async function sendOrderStatusEmail(userEmail, orderId, newStatus) {
+    const statusConfig = {
+        'confirmed': {
+            emoji: '✅',
+            title: 'Order Confirmed!',
+            message: 'Your order has been confirmed and is being processed!',
+            color: '#00d4aa',
+            textColor: '#0a0a1a',
+            button: '📦 View Order'
+        },
+        'rejected': {
+            emoji: '❌',
+            title: 'Order Rejected',
+            message: 'Your order has been rejected. Please contact support for more information.',
+            color: '#ff6b6b',
+            textColor: '#ffffff',
+            button: '📞 Contact Support'
+        }
+    };
+
+    const config = statusConfig[newStatus] || {
+        emoji: '📋',
+        title: 'Order Status Updated',
+        message: 'Your order status has been updated.',
+        color: '#6c5ce7',
+        textColor: '#ffffff',
+        button: '📦 View Order'
+    };
+
+    const orderIdDisplay = orderId?.slice(-8) || '------';
+
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Status Update #${orderIdDisplay}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f0f2f8; padding: 20px; margin: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+        .header { background: linear-gradient(135deg, ${config.color}, ${config.color}dd); padding: 30px 30px 20px; text-align: center; }
+        .logo { font-size: 28px; font-weight: 900; color: #fff; }
+        .logo span { color: #f2a900; }
+        .status-icon { font-size: 48px; text-align: center; margin: 8px 0; }
+        .status-title { font-size: 24px; font-weight: 800; color: #fff; }
+        .status-badge { display: inline-block; padding: 4px 20px; border-radius: 30px; background: rgba(255,255,255,0.2); color: #fff; font-weight: 700; font-size: 14px; margin-top: 4px; }
+        .content { padding: 35px 30px; }
+        .greeting { font-size: 16px; color: #1a1a2e; }
+        .greeting strong { color: #6c5ce7; }
+        .message-box { background: #f8f8ff; border-radius: 12px; padding: 16px 20px; margin: 12px 0 16px; border-left: 4px solid ${config.color}; }
+        .message-box p { font-size: 15px; color: #4a4a6a; line-height: 1.6; }
+        .order-info { background: #f8f8ff; border-radius: 12px; padding: 12px 16px; margin: 12px 0; }
+        .info-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; }
+        .info-label { color: #888; font-weight: 500; }
+        .info-value { font-weight: 600; color: #1a1a2e; }
+        .btn-primary { display: inline-block; background: ${config.color}; color: ${config.textColor}; padding: 12px 32px; border-radius: 30px; text-decoration: none; font-weight: 700; font-size: 14px; transition: all 0.3s; }
+        .btn-primary:hover { opacity: 0.85; transform: translateY(-2px); }
+        .text-center { text-align: center; }
+        .divider { border: none; border-top: 2px solid #f0f2f8; margin: 16px 0; }
+        .footer { padding: 16px 30px; text-align: center; background: #f8f8ff; }
+        .footer-text { font-size: 11px; color: #888; }
+        .footer-links a { color: #6c5ce7; text-decoration: none; margin: 0 4px; font-size: 11px; }
+        @media (max-width: 480px) {
+            .header { padding: 20px; }
+            .content { padding: 20px 15px; }
+            .status-icon { font-size: 36px; }
+            .status-title { font-size: 20px; }
+            .btn-primary { padding: 10px 24px; font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">ZI <span>Store</span></div>
+            <div class="status-icon">${config.emoji}</div>
+            <div class="status-title">${config.title}</div>
+            <div><span class="status-badge">${newStatus.toUpperCase()}</span></div>
+        </div>
+        <div class="content">
+            <div class="greeting">Hello <strong>Customer</strong>,</div>
+            <div class="message-box">
+                <p>${config.message}</p>
+            </div>
+            <div class="order-info">
+                <div class="info-row">
+                    <span class="info-label">📋 Order ID</span>
+                    <span class="info-value">#${orderIdDisplay}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">📅 Date</span>
+                    <span class="info-value">${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">📦 Status</span>
+                    <span class="info-value" style="color:${config.color};">${newStatus.toUpperCase()}</span>
+                </div>
+            </div>
+            <hr class="divider">
+            <div class="text-center">
+                <a href="https://zi-store.online" class="btn-primary">${config.button}</a>
+            </div>
+        </div>
+        <div class="footer">
+            <div class="footer-links">
+                <a href="https://zi-store.online">Store</a>
+                <a href="mailto:support@zi-store.online">Support</a>
+            </div>
+            <div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div>
+        </div>
+    </div>
+</body>
+</html>
+    `;
+
+    return await sendEmail(userEmail, `${config.emoji} Order Status Update #${orderIdDisplay}`, html);
+}
+
+// ============================================================
+// 5. TOPUP CONFIRMATION EMAIL
+// ============================================================
+
+async function sendTopupConfirmationEmail(userEmail, amount, txHash = null) {
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Topup Confirmation</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f0f2f8; padding: 20px; margin: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+        .header { background: linear-gradient(135deg, #f2a900, #fbbf24); padding: 30px 30px 20px; text-align: center; }
+        .logo { font-size: 28px; font-weight: 900; color: #1a1a2e; }
+        .logo span { color: #6c5ce7; }
+        .amount-display { background: rgba(255,255,255,0.2); border-radius: 16px; padding: 16px 20px; margin-top: 10px; display: inline-block; }
+        .amount-display .amount { font-size: 36px; font-weight: 900; color: #1a1a2e; }
+        .amount-display .label { font-size: 14px; color: rgba(26,26,46,0.7); }
+        .content { padding: 35px 30px; }
+        .greeting { font-size: 16px; color: #1a1a2e; }
+        .greeting strong { color: #6c5ce7; }
+        .details-box { background: #f8f8ff; border-radius: 12px; padding: 14px 18px; margin: 12px 0; }
+        .detail-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; border-bottom: 1px solid #eee; }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label { color: #888; font-weight: 500; }
+        .detail-value { font-weight: 600; color: #1a1a2e; }
+        .btn-primary { display: inline-block; background: #6c5ce7; color: #fff; padding: 12px 32px; border-radius: 30px; text-decoration: none; font-weight: 700; font-size: 14px; transition: all 0.3s; }
+        .btn-primary:hover { background: #5a4bd1; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(108,92,231,0.3); }
+        .text-center { text-align: center; }
+        .divider { border: none; border-top: 2px solid #f0f2f8; margin: 16px 0; }
+        .footer { padding: 16px 30px; text-align: center; background: #f8f8ff; }
+        .footer-text { font-size: 11px; color: #888; }
+        .footer-links a { color: #6c5ce7; text-decoration: none; margin: 0 4px; font-size: 11px; }
+        @media (max-width: 480px) {
+            .header { padding: 20px; }
+            .content { padding: 20px 15px; }
+            .amount-display .amount { font-size: 28px; }
+            .btn-primary { padding: 10px 24px; font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">ZI <span>Store</span></div>
+            <div class="amount-display">
+                <div class="label">💰 Amount Added</div>
+                <div class="amount">+$${amount.toFixed(2)}</div>
+            </div>
+        </div>
+        <div class="content">
+            <div class="greeting">Hello <strong>Customer</strong>,</div>
+            <p style="color: #4a4a6a; font-size: 14px; margin: 4px 0 12px;">Your balance has been updated successfully!</p>
+            <div class="details-box">
+                <div class="detail-row">
+                    <span class="detail-label">📅 Date</span>
+                    <span class="detail-value">${new Date().toLocaleString()}</span>
+                </div>
+                ${txHash ? `
+                <div class="detail-row">
+                    <span class="detail-label">🔗 Transaction ID</span>
+                    <span class="detail-value" style="font-family:monospace;font-size:11px;word-break:break-all;">${txHash}</span>
+                </div>
+                ` : ''}
+            </div>
+            <hr class="divider">
+            <div class="text-center">
+                <a href="https://zi-store.online" class="btn-primary">🛒 Start Shopping</a>
+            </div>
+        </div>
+        <div class="footer">
+            <div class="footer-links">
+                <a href="https://zi-store.online">Store</a>
+                <a href="mailto:support@zi-store.online">Support</a>
+            </div>
+            <div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div>
+        </div>
+    </div>
+</body>
+</html>
+    `;
+
+    return await sendEmail(userEmail, `💰 Balance Added - $${amount.toFixed(2)}`, html);
+}
+
+// ============================================================
+// 6. CUSTOM RESET EMAIL (avoid conflict with Firebase)
+// ============================================================
+
+async function sendCustomResetEmail(userEmail, resetLink) {
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Reset</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f0f2f8; padding: 20px; margin: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+        .header { background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%); padding: 30px 30px 20px; text-align: center; }
+        .logo { font-size: 28px; font-weight: 900; color: #fff; }
+        .logo span { color: #f2a900; }
+        .content { padding: 35px 30px; }
+        .greeting { font-size: 18px; font-weight: 700; color: #1a1a2e; }
+        .btn-primary { display: inline-block; background: #6c5ce7; color: #fff; padding: 14px 40px; border-radius: 30px; text-decoration: none; font-weight: 700; font-size: 15px; transition: all 0.3s; }
+        .btn-primary:hover { background: #5a4bd1; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(108,92,231,0.3); }
+        .text-center { text-align: center; }
+        .warning-box { background: #fff3cd; border-radius: 12px; padding: 12px 16px; margin: 12px 0; border-left: 4px solid #fbbf24; }
+        .warning-box p { font-size: 13px; color: #856404; }
+        .divider { border: none; border-top: 2px solid #f0f2f8; margin: 16px 0; }
+        .footer { padding: 16px 30px; text-align: center; background: #f8f8ff; }
+        .footer-text { font-size: 11px; color: #888; }
+        .footer-links a { color: #6c5ce7; text-decoration: none; margin: 0 4px; font-size: 11px; }
+        @media (max-width: 480px) {
+            .header { padding: 20px; }
+            .content { padding: 20px 15px; }
+            .btn-primary { padding: 12px 28px; font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">ZI <span>Store</span></div>
+        </div>
+        <div class="content">
+            <div class="greeting">🔐 Reset Your Password</div>
+            <p style="color: #4a4a6a; font-size: 14px; margin: 8px 0 16px;">We received a request to reset your password. Click the button below to create a new one.</p>
+            <div class="text-center">
+                <a href="${resetLink}" class="btn-primary">🔑 Reset Password</a>
+            </div>
+            <div class="warning-box">
+                <p>⚠️ This link will expire in 1 hour. If you didn't request this, please ignore this email.</p>
+            </div>
+            <hr class="divider">
+            <p style="text-align: center; font-size: 12px; color: #888;">Or copy and paste this link into your browser:</p>
+            <p style="text-align: center; font-size: 11px; color: #888; word-break: break-all; font-family: monospace;">${resetLink}</p>
+        </div>
+        <div class="footer">
+            <div class="footer-links">
+                <a href="https://zi-store.online">Store</a>
+                <a href="mailto:support@zi-store.online">Support</a>
+            </div>
+            <div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div>
+        </div>
+    </div>
+</body>
+</html>
+    `;
+
+    return await sendEmail(userEmail, '🔐 Password Reset Request', html);
+}
+
+// ============================================================
+// 7. ADMIN NOTIFICATION EMAIL
+// ============================================================
+
+async function sendAdminNotificationEmail(subject, message) {
+    const adminEmail = 'idriss.zribi13@gmail.com';
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Notification</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f0f2f8; padding: 20px; margin: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+        .header { background: linear-gradient(135deg, #ff6b6b, #ee5a24); padding: 30px 30px 20px; text-align: center; }
+        .logo { font-size: 28px; font-weight: 900; color: #fff; }
+        .logo span { color: #f2a900; }
+        .content { padding: 35px 30px; }
+        .message-box { background: #f8f8ff; border-radius: 12px; padding: 16px 20px; margin: 12px 0; border-left: 4px solid #ff6b6b; }
+        .message-box p { font-size: 14px; color: #4a4a6a; line-height: 1.8; white-space: pre-wrap; }
+        .footer { padding: 16px 30px; text-align: center; background: #f8f8ff; }
+        .footer-text { font-size: 11px; color: #888; }
+        @media (max-width: 480px) {
+            .header { padding: 20px; }
+            .content { padding: 20px 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">ZI <span>Store</span></div>
+            <div style="color: rgba(255,255,255,0.8); font-size: 14px;">Admin Notification</div>
+        </div>
+        <div class="content">
+            <h2 style="color: #1a1a2e; font-size: 20px;">${subject}</h2>
+            <div class="message-box">
+                <p>${message}</p>
+            </div>
+            <p style="text-align: center; font-size: 12px; color: #888; margin-top: 12px;">📅 ${new Date().toLocaleString()}</p>
+        </div>
+        <div class="footer">
+            <div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div>
+        </div>
+    </div>
+</body>
+</html>
+    `;
+
+    return await sendEmail(adminEmail, `🔔 Admin: ${subject}`, html);
+}
+
+// ============================================================
+// 8. EMAIL MANAGEMENT - Admin Functions
+// ============================================================
+
+let emailLogs = [];
+
+async function loadEmailLogs() {
+    const container = document.getElementById('emailLogsContainer');
+    if (!container) return;
+
     try {
-        let order = typeof orderData === 'string' ? JSON.parse(orderData) : orderData;
-        if (!order.id) { order.id = 'INV-' + Date.now().toString().slice(-6); }
-        
-        const invoiceHtml = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Invoice #${order.id}</title>
-            <style>
-                * { margin:0; padding:0; box-sizing:border-box; }
-                body { font-family: 'Arial', sans-serif; padding: 40px; background: #fff; color: #1a1a2e; }
-                .invoice { max-width: 800px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 12px; padding: 40px; }
-                .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #6c5ce7; padding-bottom: 20px; margin-bottom: 20px; }
-                .logo { font-size: 28px; font-weight: 900; color: #6c5ce7; }
-                .logo span { color: #f2a900; }
-                .invoice-title { font-size: 24px; color: #6c5ce7; font-weight: 700; }
-                .details { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; padding: 15px; background: #f8f8ff; border-radius: 8px; }
-                .details .label { color: #888; font-size: 12px; font-weight: 600; text-transform: uppercase; }
-                .details .value { font-weight: 700; font-size: 14px; }
-                table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-                th { background: #6c5ce7; color: #fff; padding: 12px; text-align: left; font-size: 12px; text-transform: uppercase; }
-                td { padding: 12px; border-bottom: 1px solid #e0e0e0; }
-                .total-section { margin-top: 20px; padding-top: 20px; border-top: 2px solid #e0e0e0; text-align: right; }
-                .total-section .total { font-size: 24px; font-weight: 900; color: #6c5ce7; }
-                .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center; font-size: 12px; color: #888; }
-                @media print {
-                    body { padding: 0; }
-                    .invoice { border: none; padding: 20px; }
-                    .no-print { display: none; }
-                }
-                .status-badge { display: inline-block; padding: 4px 12px; border-radius: 30px; font-size: 12px; font-weight: 700; background: ${order.status === 'confirmed' ? '#00d4aa' : order.status === 'rejected' ? '#ff6b6b' : '#fbbf24'}; color: #0a0a1a; }
-            </style>
-        </head>
-        <body>
-            <div class="invoice">
-                <div class="header">
-                    <div class="logo">ZI <span>Store</span></div>
-                    <div class="invoice-title">INVOICE</div>
-                </div>
-                <div class="details">
-                    <div>
-                        <div class="label">Order ID</div>
-                        <div class="value">#${order.id}</div>
-                        <div class="label" style="margin-top:6px;">Date</div>
-                        <div class="value">${new Date(order.date || Date.now()).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
-                    </div>
-                    <div style="text-align:right;">
-                        <div class="label">Status</div>
-                        <div class="value"><span class="status-badge">${order.status || 'Pending'}</span></div>
-                        <div class="label" style="margin-top:6px;">Payment Method</div>
-                        <div class="value">${order.method || 'N/A'}</div>
-                    </div>
-                </div>
-                <table>
-                    <thead><tr><th>Product</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead>
-                    <tbody>
-                        ${(order.items || []).map(item => `
-                            <tr>
-                                <td>${item.name}${item.selectedQuantity ? ' (x'+item.selectedQuantity+')' : ''}</td>
-                                <td>${item.quantity || 1}</td>
-                                <td>$${(item.price || 0).toFixed(2)}</td>
-                                <td>$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-                <div class="total-section">
-                    <div style="font-size:16px; color:#888; margin-bottom:4px;">Total Amount</div>
-                    <div class="total">$${(order.total || 0).toFixed(2)}</div>
-                </div>
-                <div class="footer">
-                    <p>Thank you for your purchase at ZI Store!</p>
-                    <p style="margin-top:4px;">© 2026 ZI Store — All rights reserved.</p>
-                </div>
-            </div>
-            <div style="text-align:center; margin-top:20px;" class="no-print">
-                <button onclick="window.print()" style="padding:10px 30px; background:#6c5ce7; color:#fff; border:none; border-radius:8px; font-weight:700; cursor:pointer; font-size:14px;">
-                    <i class="fas fa-print"></i> Print / Save as PDF
-                </button>
-            </div>
-        </body>
-        </html>
-        `;
-        
-        const win = window.open('', '_blank');
-        if (!win) { showToast('⚠️ Please allow popups to generate invoice', 'warning'); return; }
-        win.document.write(invoiceHtml);
-        win.document.close();
-        setTimeout(() => win.print(), 500);
-        showToast('📄 Invoice generated!', 'success');
+        container.innerHTML =
+            `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
+
+        const { data, error } = await supabase
+            .from('email_logs')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(50);
+
+        if (error) throw error;
+
+        emailLogs = data || [];
+        renderEmailLogs(emailLogs);
     } catch (error) {
-        console.error('Invoice generation error:', error);
-        showToast('❌ Failed to generate invoice', 'error');
+        console.error('Error loading email logs:', error);
+        container.innerHTML = `
+            <div style="text-align:center;padding:20px;color:var(--danger);">
+                Failed to load email logs: ${error.message}
+                <br>
+                <button onclick="loadEmailLogs()" style="margin-top:8px;padding:6px 16px;background:var(--primary);border:none;border-radius:var(--radius-sm);color:#fff;cursor:pointer;">Retry</button>
+            </div>
+        `;
+    }
+}
+
+function renderEmailLogs(logs) {
+    const container = document.getElementById('emailLogsContainer');
+    if (!container) return;
+
+    if (!logs || logs.length === 0) {
+        container.innerHTML = `
+            <div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">
+                <i class="fas fa-envelope" style="font-size:36px;display:block;margin-bottom:8px;opacity:0.2;"></i>
+                No emails sent yet
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = logs.map(log => {
+        const statusColor = log.status === 'sent' ? 'var(--success)' : log.status === 'failed' ? 'var(--danger)' :
+            'var(--warning)';
+        const statusIcon = log.status === 'sent' ? '✅' : log.status === 'failed' ? '❌' : '⏳';
+        const date = new Date(log.created_at).toLocaleString();
+
+        return `
+            <div class="admin-item" style="border-left:4px solid ${statusColor};">
+                <div class="item-info">
+                    <div class="item-title">
+                        ${statusIcon} ${log.subject || 'No Subject'}
+                        <span style="font-size:11px;font-weight:400;opacity:0.5;margin-left:6px;">
+                            to: ${log.recipient}
+                        </span>
+                        <span class="status-badge ${log.status}" style="font-size:9px;padding:1px 10px;">
+                            ${log.status || 'unknown'}
+                        </span>
+                    </div>
+                    <div class="item-meta">
+                        📅 ${date}
+                        ${log.error ? `• ❌ ${log.error}` : ''}
+                    </div>
+                </div>
+                <div class="item-actions">
+                    ${log.html ? `<button onclick="previewEmail('${log.id}')" class="btn-edit" style="background:var(--primary);color:#fff;border:none;padding:4px 10px;border-radius:var(--radius-sm);cursor:pointer;font-weight:600;font-size:11px;">
+                        <i class="fas fa-eye"></i> Preview
+                    </button>` : ''}
+                    <button onclick="resendEmail('${log.id}')" class="btn-edit" style="background:var(--vip-color);color:#0a0a1a;border:none;padding:4px 10px;border-radius:var(--radius-sm);cursor:pointer;font-weight:600;font-size:11px;">
+                        <i class="fas fa-redo"></i> Resend
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+window.loadEmailLogs = loadEmailLogs;
+
+window.sendTestEmail = async function() {
+    try {
+        const testEmail = prompt('Enter email address to send test email:', 'test@example.com');
+        if (!testEmail) return;
+
+        showToast('📧 Sending test email...', 'info');
+
+        const result = await sendWelcomeEmail(testEmail, 'Test User');
+
+        if (result.success) {
+            showToast('✅ Test email sent successfully!', 'success');
+            loadEmailLogs();
+        } else {
+            showToast('❌ Failed to send test email: ' + result.error, 'error');
+        }
+    } catch (error) {
+        showToast('❌ Error: ' + error.message, 'error');
+    }
+};
+
+window.previewEmail = function(logId) {
+    const log = emailLogs.find(l => l.id === logId);
+    if (!log || !log.html) {
+        showToast('❌ Email content not found', 'error');
+        return;
+    }
+
+    const win = window.open('', '_blank', 'width=800,height=600');
+    if (win) {
+        win.document.write(log.html);
+        win.document.close();
+    } else {
+        showToast('⚠️ Please allow popups', 'warning');
+    }
+};
+
+window.resendEmail = async function(logId) {
+    const log = emailLogs.find(l => l.id === logId);
+    if (!log) {
+        showToast('❌ Email log not found', 'error');
+        return;
+    }
+
+    if (!confirm(`Resend email to ${log.recipient}?`)) return;
+
+    try {
+        showToast('📧 Resending...', 'info');
+        const result = await sendEmail(log.recipient, log.subject, log.html, log.text);
+
+        if (result.success) {
+            showToast('✅ Email resent successfully!', 'success');
+            loadEmailLogs();
+        } else {
+            showToast('❌ Failed to resend: ' + result.error, 'error');
+        }
+    } catch (error) {
+        showToast('❌ Error: ' + error.message, 'error');
     }
 };
 
 // ============================================================
-// 59. ADD MISSING FUNCTIONS
+// 9. EXPORT ALL EMAIL FUNCTIONS
 // ============================================================
 
-// ============================================================
-// 59.1 CHECKOUT FUNCTION
-// ============================================================
+window.sendEmail = sendEmail;
+window.sendWelcomeEmail = sendWelcomeEmail;
+window.sendOrderConfirmationEmail = sendOrderConfirmationEmail;
+window.sendOrderStatusEmail = sendOrderStatusEmail;
+window.sendTopupConfirmationEmail = sendTopupConfirmationEmail;
+window.sendCustomResetEmail = sendCustomResetEmail;
+window.sendAdminNotificationEmail = sendAdminNotificationEmail;
 
+console.log('✅ Email system ready!');
+
+// ============================================================
+// FIX: Missing functions for cart and banner
+// ============================================================
+window.removeFromCartAndCloseBanner = function(productId) {
+    if (productId) {
+        cart = cart.filter(item => item.id !== productId);
+        saveUserData();
+        updateCartUI();
+        renderProducts(products);
+        updateBottomCartBar();
+        showToast('🗑️ Removed from cart', 'info');
+    }
+    const banner = document.getElementById('quickPurchaseBanner');
+    if (banner) banner.style.display = 'none';
+};
+
+window.closeQuickPurchaseBanner = function() {
+    const banner = document.getElementById('quickPurchaseBanner');
+    if (banner) banner.style.display = 'none';
+};
+
+// ============================================================
+// CHECKOUT FUNCTION (opens payment modal)
+// ============================================================
 window.checkout = function() {
     if (cart.length === 0) {
         showToast('⚠️ Your cart is empty', 'warning');
@@ -8510,9 +9371,8 @@ window.checkout = function() {
 };
 
 // ============================================================
-// 59.2 PAYMENT MODAL FUNCTIONS
+// PAYMENT MODAL FUNCTIONS
 // ============================================================
-
 window.openPaymentModal = function() {
     if (cart.length === 0) {
         showToast('⚠️ Cart is empty', 'warning');
@@ -8559,9 +9419,8 @@ window.goToStep1 = function() {
 };
 
 // ============================================================
-// 59.3 COPY WALLET ADDRESS
+// COPY WALLET ADDRESS
 // ============================================================
-
 window.copyWalletAddress = function() {
     const addressElement = document.getElementById('walletAddressDisplay');
     if (!addressElement) {
@@ -8584,9 +9443,8 @@ window.copyWalletAddress = function() {
 };
 
 // ============================================================
-// 59.4 ADD PRODUCT MODAL FUNCTIONS
+// ADD PRODUCT MODAL FUNCTIONS
 // ============================================================
-
 window.openAddProductModal = function() {
     if (!currentUser || !isAdminCached) {
         showToast('⛔ Unauthorized. Admin only.', 'error');
@@ -8615,7 +9473,7 @@ window.openAddProductModal = function() {
     if (currency) currency.value = 'USD';
     if (type) type.value = 'standard';
     if (quantityContainer) quantityContainer.style.display = 'none';
-    
+
     document.querySelectorAll('.currency-option').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.type-option').forEach(el => el.classList.remove('active'));
     document.querySelector('.currency-option[data-currency="USD"]')?.classList.add('active');
@@ -8804,21 +9662,19 @@ window.deleteProduct = async function(productId) {
 };
 
 // ============================================================
-// 59.5 FILTER ORDERS FUNCTION
+// FILTER ORDERS FUNCTION
 // ============================================================
-
 window.filterOrders = function(filter) {
     ordersFilter = filter;
     renderHistoryFull();
 };
 
 // ============================================================
-// 59.6 ADMIN SETTINGS UI
+// ADMIN SETTINGS UI
 // ============================================================
-
 async function loadAdminSettingsUI() {
     if (!currentUser || !isAdminCached) return;
-    
+
     const container = document.getElementById('adminSettingsContainer');
     if (!container) {
         const tabContent = document.getElementById('tabSettings');
@@ -8835,7 +9691,7 @@ async function loadAdminSettingsUI() {
 
     try {
         const settings = await getAdminSettings();
-        
+
         container.innerHTML = `
             <div style="background:var(--glass-bg); padding:20px; border-radius:var(--radius-md); border:1px solid var(--glass-border);">
                 <h3 style="margin-bottom:16px; color:var(--vip-color);">🔔 Notification Settings</h3>
@@ -8884,7 +9740,8 @@ async function loadAdminSettingsUI() {
         `;
     } catch (error) {
         console.error('Error loading admin settings:', error);
-        container.innerHTML = `<div style="color:var(--danger);">Failed to load settings: ${error.message}</div>`;
+        container.innerHTML =
+            `<div style="color:var(--danger);">Failed to load settings: ${error.message}</div>`;
     }
 }
 
@@ -8893,21 +9750,21 @@ window.saveAdminSettings = async function() {
         showToast('⛔ Unauthorized', 'error');
         return;
     }
-    
+
     const email = document.getElementById('adminEmailInput')?.value.trim();
     const telegramId = document.getElementById('adminTelegramInput')?.value.trim();
     const enableEmail = document.getElementById('enableEmailNotif')?.checked || false;
     const enableTelegram = document.getElementById('enableTelegramNotif')?.checked || false;
-    
+
     if (!email) {
         showToast('⚠️ Admin email is required', 'warning');
         return;
     }
-    
+
     const statusEl = document.getElementById('adminSettingsStatus');
     statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
     statusEl.style.color = 'var(--text-secondary)';
-    
+
     try {
         const settings = {
             adminEmail: email,
@@ -8915,7 +9772,7 @@ window.saveAdminSettings = async function() {
             enableEmailNotifications: enableEmail,
             enableTelegramNotifications: enableTelegram
         };
-        
+
         await updateAdminSettings(settings);
         statusEl.innerHTML = '✅ Settings saved successfully!';
         statusEl.style.color = 'var(--success)';
@@ -8932,13 +9789,13 @@ window.getMyTelegramChatId = function() {
         showToast('⚠️ Please login first', 'warning');
         return;
     }
-    
+
     if (!userProfile.telegramChatId) {
         showToast('⚠️ Please link your Telegram account first', 'warning');
         bindTelegram();
         return;
     }
-    
+
     const input = document.getElementById('adminTelegramInput');
     if (input) {
         input.value = userProfile.telegramChatId;
@@ -8947,28 +9804,7 @@ window.getMyTelegramChatId = function() {
 };
 
 // ============================================================
-// FIX: Missing functions for cart and banner
-// ============================================================
-window.removeFromCartAndCloseBanner = function(productId) {
-    if (productId) {
-        cart = cart.filter(item => item.id !== productId);
-        saveUserData();
-        updateCartUI();
-        renderProducts(products);
-        updateBottomCartBar();
-        showToast('🗑️ Removed from cart', 'info');
-    }
-    const banner = document.getElementById('quickPurchaseBanner');
-    if (banner) banner.style.display = 'none';
-};
-
-window.closeQuickPurchaseBanner = function() {
-    const banner = document.getElementById('quickPurchaseBanner');
-    if (banner) banner.style.display = 'none';
-};
-
-// ============================================================
-// 60. EXPORT ALL FUNCTIONS TO WINDOW
+// EXPORT ALL FUNCTIONS TO WINDOW
 // ============================================================
 
 window.showLogin = showLogin;
@@ -9205,14 +10041,24 @@ window.renderAdminCoupons = renderAdminCoupons;
 window.applyPopupCoupon = applyPopupCoupon;
 window.subscribeAndApply = subscribeAndApply;
 window.closePopup = closePopup;
+window.sendEmail = sendEmail;
+window.sendWelcomeEmail = sendWelcomeEmail;
+window.sendOrderConfirmationEmail = sendOrderConfirmationEmail;
+window.sendOrderStatusEmail = sendOrderStatusEmail;
+window.sendTopupConfirmationEmail = sendTopupConfirmationEmail;
+window.sendAdminNotificationEmail = sendAdminNotificationEmail;
+window.sendCustomResetEmail = sendCustomResetEmail;
+window.loadEmailLogs = loadEmailLogs;
+window.sendTestEmail = sendTestEmail;
+window.previewEmail = previewEmail;
+window.resendEmail = resendEmail;
 window.generatePDFInvoice = generatePDFInvoice;
 
 console.log('✅ All functions exported to window scope');
 
 // ============================================================
-// 61. INIT
+// INIT
 // ============================================================
-
 async function init() {
     console.log('🚀 Initializing ZI Store...');
 
@@ -9261,7 +10107,7 @@ async function init() {
             if (authSection) authSection.style.display = 'block';
             document.getElementById('mainApp').style.display = 'none';
         }
-        
+
         window.updateLoadingProgress(100, '✅ Ready!');
         hideLoadingScreen();
 
@@ -9295,9 +10141,8 @@ async function init() {
 }
 
 // ============================================================
-// 62. AUTH STATE LISTENER
+// AUTH STATE LISTENER
 // ============================================================
-
 onAuthStateChanged(auth, async (user) => {
     currentUser = user;
     const authSection = document.getElementById('authSection');
@@ -9324,7 +10169,9 @@ onAuthStateChanged(auth, async (user) => {
                 userBalance = userProfile.balance;
                 userProfile.country = data.country || data.location || 'Unknown';
                 userProfile.location = data.location || data.country || 'Unknown';
-                userProfile.joined = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '--';
+                userProfile.joined = data.createdAt ? new Date(data.createdAt.toDate())
+                    .toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) :
+                    '--';
             } else {
                 userProfile.photoURL = user.photoURL || '';
                 userProfile.balance = 0;
@@ -9406,9 +10253,8 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// 63. START APP
+// START APP
 // ============================================================
-
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
 } else {
