@@ -3800,7 +3800,61 @@ window.submitManualPayment = function() {
     document.getElementById('transactionHashInput').value = txHash;
     placeOrder();
 };
+// ============================================================
+// SEND ADMIN NOTIFICATION (Email + Telegram + Firebase)
+// ============================================================
 
+async function sendAdminNotification(title, message) {
+    try {
+        // 1. جلب إعدادات المدير من Firestore
+        const settings = await getAdminSettings();
+        let sentCount = 0;
+
+        // 2. إرسال إشعار عبر البريد الإلكتروني إذا كان مفعلاً
+        if (settings.enableEmailNotifications && settings.adminEmail) {
+            try {
+                await sendAdminNotificationEmail(title, message);
+                sentCount++;
+                console.log('✅ Email sent to admin:', settings.adminEmail);
+            } catch (error) {
+                console.error('❌ Failed to send email:', error);
+            }
+        }
+
+        // 3. إرسال إشعار عبر Telegram إذا كان مفعلاً
+        if (settings.enableTelegramNotifications && settings.adminTelegramChatId) {
+            try {
+                await sendTelegramNotification(settings.adminTelegramChatId, 
+                    `📢 *${title}*\n\n${message}`
+                );
+                sentCount++;
+                console.log('✅ Telegram sent to admin');
+            } catch (error) {
+                console.error('❌ Failed to send Telegram:', error);
+            }
+        }
+
+        // 4. إضافة إشعار في Firebase (للإدمن فقط)
+        try {
+            await addDoc(collection(db, 'notifications'), {
+                title: title,
+                message: message,
+                adminOnly: true,
+                readBy: [],
+                createdAt: serverTimestamp()
+            });
+            sentCount++;
+            console.log('✅ Firebase notification added for admin');
+        } catch (error) {
+            console.error('❌ Failed to add Firebase notification:', error);
+        }
+
+        return sentCount > 0;
+    } catch (error) {
+        console.error('❌ Error sending admin notification:', error);
+        return false;
+    }
+}
 // ============================================================
 // SEND ORDER TO TELEGRAM (with email integration)
 // ============================================================
