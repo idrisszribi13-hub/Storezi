@@ -3239,6 +3239,9 @@
                     <button class="admin-nav-btn" data-tab="coupons" onclick="switchAdminTab('coupons')">
                         <i class="fas fa-ticket-alt"></i> <span>Coupons</span>
                     </button>
+                    <button class="admin-nav-btn" data-tab="emails" onclick="switchAdminTab('emails')">
+                        <i class="fas fa-envelope"></i> <span>Emails</span>
+                    </button>
                 </nav>
                 <div class="admin-sidebar-footer">
                     <button onclick="closeAdminPanel()" class="admin-close-btn">
@@ -3443,6 +3446,19 @@
                         </div>
                         <div id="adminCouponsList"></div>
                     </div>
+                    <div class="admin-tab-content" id="tabEmails">
+    <div class="admin-toolbar">
+        <button onclick="loadEmailLogs()" class="admin-refresh-btn"><i class="fas fa-sync-alt"></i> Refresh</button>
+        <button onclick="sendTestEmail()" class="admin-add-btn"><i class="fas fa-paper-plane"></i> Send Test Email</button>
+    </div>
+    <div id="emailLogsContainer">
+        <div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">
+            <i class="fas fa-envelope" style="font-size:36px;display:block;margin-bottom:8px;opacity:0.2;"></i>
+            Email logs will appear here
+        </div>
+    </div>
+</div>
+
                 </div>
             </div>
         </div>
