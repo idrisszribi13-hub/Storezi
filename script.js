@@ -4921,14 +4921,14 @@ window.clearAdminSearch = function() { document.getElementById('adminSearchInput
 window.refreshAdminOrders = function() { loadAdminOrders(); showToast('🔄 Refreshed', 'info'); };
 
 // ============================================================
-// 26. Send Licence via Edge Function
+// 26. Send Licence via Edge Function (UPDATED)
 // ============================================================
 
 async function sendLicenceForOrder(orderId, userId, userEmail = null) {
     try {
         console.log('🔍 sendLicenceForOrder called:', { orderId, userId, userEmail });
 
-        // Get user email if not provided
+        // جلب البريد الإلكتروني إذا لم يتم توفيره
         let email = userEmail;
         if (!email) {
             const userRef = doc(db, 'users', userId);
@@ -4942,7 +4942,7 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
             }
         }
 
-        // Get user data and order
+        // جلب بيانات المستخدم والطلب
         const userRef = doc(db, 'users', userId);
         const userSnap = await getDoc(userRef);
         if (!userSnap.exists()) {
@@ -4955,34 +4955,32 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
             console.error('❌ Order not found');
             throw new Error('Order not found');
         }
-        
-        // Get product details from the order
+
+        // استخراج اسم المنتج وبياناته
         const firstItem = order.items?.[0];
         const productName = firstItem?.name || 'Product';
         const productId = firstItem?.id || 'unknown';
         const productPrice = firstItem?.price || 0;
-        
-        // Calculate expiry date (default: 1 year from now)
+
+        // تاريخ انتهاء الصلاحية (افتراضي: سنة واحدة من الآن)
         const expiryDate = new Date();
         expiryDate.setFullYear(expiryDate.getFullYear() + 1);
         const expiryDateISO = expiryDate.toISOString();
 
-        // Get user's Telegram chat ID if available
+        // معرف تيليجرام للمستخدم (إذا وجد)
         const telegramChatId = userData.telegramChatId || null;
 
-        // ===== FIX: Send ALL required parameters =====
+        // ===== بناء البيانات المرسلة مع scriptName =====
         const payload = {
             orderId: orderId,
             userId: userId,
             userEmail: email,
             productName: productName,
+            scriptName: productName,   // ✅ إضافة scriptName (مطابق لاسم السكربت في جدول scripts)
             productId: productId,
-            scriptId: productId,
-            scriptName: productName,
             price: productPrice,
             expiryDate: expiryDateISO,
             telegramChatId: telegramChatId,
-            // Additional fields the Edge Function might expect
             duration: firstItem?.duration || '1 year',
             status: 'active',
             orderItems: order.items || []
@@ -4990,6 +4988,7 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
 
         console.log('📤 Sending licence creation payload:', JSON.stringify(payload, null, 2));
 
+        // ===== إرسال الطلب إلى Edge Function =====
         const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/create-licence', {
             method: 'POST',
             headers: {
@@ -5001,7 +5000,7 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
             body: JSON.stringify(payload)
         });
 
-        // Read response text first
+        // قراءة الرد
         const responseText = await response.text();
         console.log('📥 Raw response:', responseText);
 
@@ -5020,7 +5019,7 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
 
         console.log('✅ Licence created via backend:', data.licence);
 
-        // Update user's licences in Firestore
+        // ===== تحديث التراخيص في Firestore =====
         const userLicences = userData.licences || [];
         const newLicence = {
             code: data.licence.code,
@@ -5034,7 +5033,7 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
         userLicences.push(newLicence);
         await updateDoc(userRef, { licences: userLicences });
 
-        // Send Telegram notification if user has chat ID
+        // ===== إرسال إشعار تيليجرام =====
         if (userData.telegramChatId) {
             const licenceMessage = `
 🔑 *LICENCE GENERATED!*
@@ -5051,7 +5050,7 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
             console.log('✅ Licence Telegram notification sent to user');
         }
 
-        // Update current user's profile if this is the current user
+        // ===== تحديث واجهة المستخدم إذا كان هو المستخدم الحالي =====
         if (currentUser && currentUser.uid === userId) {
             userProfile.licences = userLicences;
             renderUserLicences();
@@ -5060,11 +5059,11 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
 
         showToast(`✅ Licence sent to user`, 'success');
         return data.licence;
-        
+
     } catch (error) {
         console.error('❌ Error in sendLicenceForOrder:', error);
-        
-        // Send error notification to admin
+
+        // إرسال إشعار خطأ للإدمن
         try {
             await addDoc(collection(db, 'notifications'), {
                 title: '❌ Failed to send licence',
@@ -5076,8 +5075,8 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
         } catch (e) {
             console.error('Failed to send admin notification:', e);
         }
-        
-        // Also send user notification about the error
+
+        // إشعار للمستخدم
         try {
             await addDoc(collection(db, 'notifications'), {
                 title: '⚠️ Licence Generation Issue',
@@ -5089,7 +5088,7 @@ async function sendLicenceForOrder(orderId, userId, userEmail = null) {
         } catch (e) {
             console.error('Failed to send user notification:', e);
         }
-        
+
         throw error;
     }
 }
@@ -6762,27 +6761,46 @@ window.processTopup = async function() {
     statusEl.style.color = 'var(--text-secondary)';
 
     try {
+        // ===== إرسال البيانات بالشكل الصحيح =====
+        const requestBody = {
+            userId: currentUser.uid,
+            userEmail: currentUser.email,
+            amount: amount,
+            amount_usd: amount,      // العمود الصحيح
+            currency: currency,
+            txHash: null
+        };
+
+        console.log('📤 Sending topup request:', requestBody);
+
         const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/create-topup', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Accept': 'application/json',
             },
-            body: JSON.stringify({
-                userId: currentUser.uid,
-                userEmail: currentUser.email,
-                amount: amount,
-                currency: currency,
-                txHash: null
-            })
+            mode: 'cors',
+            body: JSON.stringify(requestBody)
         });
 
-        const result = await response.json();
+        const responseText = await response.text();
+        console.log('📥 Raw response:', responseText);
 
-        if (!result.success) {
-            throw new Error(result.error || 'Failed to create topup');
+        let result;
+        try {
+            result = JSON.parse(responseText);
+        } catch (e) {
+            console.error('❌ Failed to parse JSON:', e);
+            throw new Error(`Invalid server response: ${responseText.substring(0, 100)}`);
         }
 
+        if (!response.ok || !result.success) {
+            console.error('❌ Topup error:', result);
+            throw new Error(result.error || result.message || 'Failed to create topup');
+        }
+
+        // عرض تعليمات الدفع (نفس الكود السابق)
         let warningHtml = '';
         if (result.currency === 'USDT') {
             warningHtml = `
@@ -6862,12 +6880,15 @@ window.processTopup = async function() {
         showToast(`📤 Payment instructions generated for ${result.displayCurrency}`, 'info');
 
     } catch (error) {
-        console.error('Topup error:', error);
-        statusEl.innerHTML = `<span style="color:var(--danger);">❌ ${error.message}</span>`;
-        showToast('❌ Error: ' + error.message, 'error');
+        console.error('❌ Topup error:', error);
+        let errorMsg = error.message;
+        if (error.message.includes('Failed to fetch')) {
+            errorMsg = 'Cannot connect to server. Please check your internet connection and try again.';
+        }
+        statusEl.innerHTML = `<span style="color:var(--danger);">❌ ${errorMsg}</span>`;
+        showToast('❌ Error: ' + errorMsg, 'error');
     }
 };
-
 // ============================================================
 // 40. TOPUP SYSTEM - Submit with TX Hash
 // ============================================================
