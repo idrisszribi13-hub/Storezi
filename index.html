@@ -3248,7 +3248,13 @@
                     </button>
                     <button class="admin-nav-btn" data-tab="logs" onclick="switchAdminTab('logs')">
                         <i class="fas fa-history"></i> <span>Logs</span>
+                    </button>                    
+                    <button class="admin-nav-btn" data-tab="activity" onclick="switchAdminTab('activity')">
+                    <i class="fas fa-activity"></i> <span>Activity</span>
                     </button>
+                    <button class="admin-nav-btn" data-tab="fraud" onclick="switchAdminTab('fraud')">
+                    <i class="fas fa-shield-virus"></i> <span>Fraud</span>
+                    </button>                    
                     <button class="admin-nav-btn" data-tab="slider" onclick="switchAdminTab('slider')">
                         <i class="fas fa-images"></i> <span>Slider</span>
                     </button>
@@ -3498,6 +3504,38 @@
                             </div>
                         </div>
                     </div>
+                    <!-- ===== ACTIVITY LOGS TAB ===== -->
+<div class="admin-tab-content" id="tabActivity">
+    <div class="admin-toolbar">
+        <button onclick="loadActivityLogs()" class="admin-refresh-btn">
+            <i class="fas fa-sync-alt"></i> Refresh
+        </button>
+        <button onclick="exportActivityLogs()" class="admin-add-btn">
+            <i class="fas fa-download"></i> Export CSV
+        </button>
+    </div>
+    <div id="adminActivityContainer">
+        <div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">
+            <i class="fas fa-activity" style="font-size:36px;display:block;margin-bottom:8px;opacity:0.2;"></i>
+            Loading activity logs...
+        </div>
+    </div>
+</div>
+
+<!-- ===== FRAUD LOGS TAB ===== -->
+<div class="admin-tab-content" id="tabFraud">
+    <div class="admin-toolbar">
+        <button onclick="loadFraudLogs()" class="admin-refresh-btn">
+            <i class="fas fa-sync-alt"></i> Refresh
+        </button>
+    </div>
+    <div id="adminFraudContainer">
+        <div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">
+            <i class="fas fa-shield-virus" style="font-size:36px;display:block;margin-bottom:8px;opacity:0.2;"></i>
+            Loading fraud logs...
+        </div>
+    </div>
+</div>
 
                     <!-- ===== BRANDING TAB ===== -->
                     <div class="admin-tab-content" id="tabBranding">
