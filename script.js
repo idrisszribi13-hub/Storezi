@@ -3677,6 +3677,49 @@ async function processBalancePayment(totalAmount) {
             createdAt: serverTimestamp()
         });
 
+        // ===== FIX: Send order confirmation email and admin notifications =====
+        const visitorInfo = await getVisitorInfo();
+        const deviceInfo = getDeviceInfo();
+
+        await sendOrderConfirmationEmail(currentUser.email, {
+            orderId: orderId,
+            userName: currentUser.displayName || currentUser.email,
+            items: orderItem.items,
+            total: totalAmount,
+            method: 'balance',
+            status: 'confirmed',
+            txHash: null
+        });
+
+        const adminMessage = `
+👤 *User:* ${currentUser.displayName || currentUser.email || 'User'}
+📧 *Email:* ${currentUser.email || 'N/A'}
+💰 *Total:* $${totalAmount.toFixed(2)}
+💳 *Payment Method:* balance
+📦 *Items:* ${orderItem.items.map(i => i.name).join(', ')}
+📅 *Date:* ${new Date().toLocaleString()}
+🌐 *Location:* ${visitorInfo.country}, ${visitorInfo.city}
+🔔 *Status:* Confirmed (Balance Payment)
+        `;
+        await sendAdminNotification('✅ Order Paid with Balance', adminMessage);
+
+        if (userProfile.telegramChatId) {
+            const userTelegramMessage = `
+🛒 *ORDER PAID WITH BALANCE!*
+
+📋 *Order ID:* #${orderId.slice(-6)}
+💰 *Total:* $${totalAmount.toFixed(2)}
+💳 *Payment Method:* Balance
+📦 *Items:* ${orderItem.items.map(item => `${item.name} x${item.quantity}`).join(', ')}
+
+📅 *Date:* ${new Date().toLocaleString()}
+
+✅ Your order has been confirmed and completed.
+🔑 Your licences are now available in your profile.
+            `;
+            await sendTelegramNotification(userProfile.telegramChatId, userTelegramMessage);
+        }
+
         document.getElementById('paymentModal').classList.remove('open');
 
         loadUserData();
@@ -10223,6 +10266,62 @@ window.resendEmail = resendEmail;
 window.generatePDFInvoice = generatePDFInvoice;
 
 console.log('✅ All functions exported to window scope');
+
+// ============================================================
+// FIX: Missing getVisitorInfo and getDeviceInfo functions
+// ============================================================
+
+async function getVisitorInfo() {
+    try {
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/get-ip-info`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Accept': 'application/json',
+            }
+        });
+        if (!response.ok) throw new Error('Failed to fetch IP info');
+        const data = await response.json();
+        return {
+            ip: data.ip || 'Unknown',
+            country: data.country_name || 'Unknown',
+            country_code: data.country_code || 'XX',
+            city: data.city || 'Unknown',
+            timezone: data.timezone || 'UTC'
+        };
+    } catch (error) {
+        console.error('Error fetching visitor info:', error);
+        return {
+            ip: 'Unknown',
+            country: 'Unknown',
+            country_code: 'XX',
+            city: 'Unknown',
+            timezone: 'UTC'
+        };
+    }
+}
+
+function getDeviceInfo() {
+    const ua = navigator.userAgent;
+    let device = 'Desktop';
+    let os = 'Unknown';
+    let browser = 'Unknown';
+
+    if (/Mobi|Android|iPhone|iPad|iPod/i.test(ua)) device = 'Mobile';
+    if (/Windows/i.test(ua)) os = 'Windows';
+    else if (/Mac/i.test(ua)) os = 'MacOS';
+    else if (/Linux/i.test(ua)) os = 'Linux';
+    else if (/Android/i.test(ua)) os = 'Android';
+    else if (/iOS|iPhone|iPad/i.test(ua)) os = 'iOS';
+
+    if (/Chrome/i.test(ua) && !/Edg/i.test(ua)) browser = 'Chrome';
+    else if (/Firefox/i.test(ua)) browser = 'Firefox';
+    else if (/Safari/i.test(ua) && !/Chrome/i.test(ua)) browser = 'Safari';
+    else if (/Edg/i.test(ua)) browser = 'Edge';
+    else if (/Opera|OPR/i.test(ua)) browser = 'Opera';
+
+    return { device, os, browser };
+}
 
 // ============================================================
 // INIT
