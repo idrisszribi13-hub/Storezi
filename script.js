@@ -7,14 +7,15 @@
 // 3. Firebase Auth + Firestore + Supabase
 // 4. Products, Cart, Wishlist
 // 5. Payment (LTC/USDT/Balance/Telegram/Binance)
-// 6. Orders with automatic licence generation (sendLicenceForOrder)
+// 6. Orders with automatic licence generation ONLY after admin confirmation
 // 7. Topup system (fixed amount_usd and payment_data)
 // 8. Email system (Welcome, Order Confirmation, Status Update, Topup Confirmation, Admin Notification)
-// 9. Admin panel with all tabs (Orders, Users, Products, Licences, Topups, Emails, etc.)
+// 9. Admin panel with all tabs (Orders, Users, Products, Licences, Topups, Emails, Activity, Fraud, Branding, etc.)
 // 10. Slider, Marquee, Coupons, Recommendations, Fraud Detection
 // 11. Full export of all functions to window
 // 12. Auto-detect country on registration, profile shows country (read-only)
-// 13. Licences visible in user profile
+// 13. Licences visible in user profile ONLY after admin confirmation
+// 14. Date appears only ONCE in top bar (fixed duplicate issue)
 // ============================================================
 
 // ============================================================
@@ -507,7 +508,7 @@ function styleHeaderTopup() {
 }
 
 // ============================================================
-// TOP INFO BAR - Server Time, IP, Country
+// TOP INFO BAR - Server Time, IP, Country (SINGLE DATE DISPLAY)
 // ============================================================
 let serverTimeInterval = null;
 
@@ -523,17 +524,13 @@ function updateServerTime() {
         second: '2-digit',
         hour12: false
     };
+    // Single date+time display - only ONE element shows the date
     const timeStr = now.toLocaleString('en-US', options);
-    const dateStr = now.toLocaleDateString('en-US', {
-        weekday: 'short',
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-    });
 
     const el = document.getElementById('serverTime');
     if (el) {
-        el.innerHTML = `<i class="far fa-calendar-alt" style="margin-right:3px;color:var(--vip-color);"></i> ${dateStr} &nbsp;|&nbsp; <i class="far fa-clock" style="margin-right:3px;color:var(--primary);"></i> ${timeStr} UTC`;
+        // Only show date once with time
+        el.innerHTML = `<i class="far fa-calendar-alt" style="margin-right:3px;color:var(--vip-color);"></i> ${timeStr} UTC`;
     }
 }
 
@@ -588,80 +585,25 @@ async function fetchUserInfo() {
 function getCountryFlag(countryCode) {
     if (!countryCode) return '🌍';
     const flags = {
-        'US': '🇺🇸',
-        'GB': '🇬🇧',
-        'CA': '🇨🇦',
-        'AU': '🇦🇺',
-        'DE': '🇩🇪',
-        'FR': '🇫🇷',
-        'IT': '🇮🇹',
-        'ES': '🇪🇸',
-        'PT': '🇵🇹',
-        'NL': '🇳🇱',
-        'BE': '🇧🇪',
-        'CH': '🇨🇭',
-        'AT': '🇦🇹',
-        'SE': '🇸🇪',
-        'NO': '🇳🇴',
-        'DK': '🇩🇰',
-        'FI': '🇫🇮',
-        'IE': '🇮🇪',
-        'NZ': '🇳🇿',
-        'ZA': '🇿🇦',
-        'BR': '🇧🇷',
-        'AR': '🇦🇷',
-        'MX': '🇲🇽',
-        'CO': '🇨🇴',
-        'CL': '🇨🇱',
-        'AE': '🇦🇪',
-        'SA': '🇸🇦',
-        'QA': '🇶🇦',
-        'OM': '🇴🇲',
-        'KW': '🇰🇼',
-        'BH': '🇧🇭',
-        'JO': '🇯🇴',
-        'IL': '🇮🇱',
-        'LB': '🇱🇧',
-        'EG': '🇪🇬',
-        'DZ': '🇩🇿',
-        'MA': '🇲🇦',
-        'TN': '🇹🇳',
-        'LY': '🇱🇾',
-        'SD': '🇸🇩',
-        'ET': '🇪🇹',
-        'KE': '🇰🇪',
-        'UG': '🇺🇬',
-        'TZ': '🇹🇿',
-        'RW': '🇷🇼',
-        'ZM': '🇿🇲',
-        'ZW': '🇿🇼',
-        'MW': '🇲🇼',
-        'MZ': '🇲🇿',
-        'NG': '🇳🇬',
-        'GH': '🇬🇭',
-        'CI': '🇨🇮',
-        'SN': '🇸🇳',
-        'ML': '🇲🇱',
-        'IN': '🇮🇳',
-        'PK': '🇵🇰',
-        'BD': '🇧🇩',
-        'MM': '🇲🇲',
-        'TH': '🇹🇭',
-        'VN': '🇻🇳',
-        'MY': '🇲🇾',
-        'SG': '🇸🇬',
-        'PH': '🇵🇭',
-        'ID': '🇮🇩',
-        'CN': '🇨🇳',
-        'JP': '🇯🇵',
-        'KR': '🇰🇷',
-        'TR': '🇹🇷',
-        'RU': '🇷🇺',
-        'UA': '🇺🇦',
-        'PL': '🇵🇱',
-        'RO': '🇷🇴',
-        'HU': '🇭🇺',
-        'GR': '🇬🇷'
+        'US': '🇺🇸', 'GB': '🇬🇧', 'CA': '🇨🇦', 'AU': '🇦🇺',
+        'DE': '🇩🇪', 'FR': '🇫🇷', 'IT': '🇮🇹', 'ES': '🇪🇸',
+        'PT': '🇵🇹', 'NL': '🇳🇱', 'BE': '🇧🇪', 'CH': '🇨🇭',
+        'AT': '🇦🇹', 'SE': '🇸🇪', 'NO': '🇳🇴', 'DK': '🇩🇰',
+        'FI': '🇫🇮', 'IE': '🇮🇪', 'NZ': '🇳🇿', 'ZA': '🇿🇦',
+        'BR': '🇧🇷', 'AR': '🇦🇷', 'MX': '🇲🇽', 'CO': '🇨🇴',
+        'CL': '🇨🇱', 'AE': '🇦🇪', 'SA': '🇸🇦', 'QA': '🇶🇦',
+        'OM': '🇴🇲', 'KW': '🇰🇼', 'BH': '🇧🇭', 'JO': '🇯🇴',
+        'IL': '🇮🇱', 'LB': '🇱🇧', 'EG': '🇪🇬', 'DZ': '🇩🇿',
+        'MA': '🇲🇦', 'TN': '🇹🇳', 'LY': '🇱🇾', 'SD': '🇸🇩',
+        'ET': '🇪🇹', 'KE': '🇰🇪', 'UG': '🇺🇬', 'TZ': '🇹🇿',
+        'RW': '🇷🇼', 'ZM': '🇿🇲', 'ZW': '🇿🇼', 'MW': '🇲🇼',
+        'MZ': '🇲🇿', 'NG': '🇳🇬', 'GH': '🇬🇭', 'CI': '🇨🇮',
+        'SN': '🇸🇳', 'ML': '🇲🇱', 'IN': '🇮🇳', 'PK': '🇵🇰',
+        'BD': '🇧🇩', 'MM': '🇲🇲', 'TH': '🇹🇭', 'VN': '🇻🇳',
+        'MY': '🇲🇾', 'SG': '🇸🇬', 'PH': '🇵🇭', 'ID': '🇮🇩',
+        'CN': '🇨🇳', 'JP': '🇯🇵', 'KR': '🇰🇷', 'TR': '🇹🇷',
+        'RU': '🇷🇺', 'UA': '🇺🇦', 'PL': '🇵🇱', 'RO': '🇷🇴',
+        'HU': '🇭🇺', 'GR': '🇬🇷'
     };
     return flags[countryCode] || '🌍';
 }
@@ -1172,7 +1114,12 @@ function updateFullUserMenu() {
         }
 
         if (licencesBadge) {
-            const activeLicences = (userProfile.licences || []).filter(l => new Date(l.expiryDate) > new Date()).length;
+            // Only show active licences (not expired)
+            const activeLicences = (userProfile.licences || []).filter(l => {
+                // Only show licences that are active and not expired
+                if (l.status === 'revoked' || l.status === 'expired') return false;
+                return new Date(l.expiryDate) > new Date();
+            }).length;
             if (activeLicences > 0) { licencesBadge.style.display = 'inline-block';
                 licencesBadge.textContent = activeLicences; } else { licencesBadge.style.display = 'none'; }
         }
@@ -1748,7 +1695,11 @@ function renderProfileFull() {
     const photoURL = userProfile.photoURL || currentUser.photoURL || '';
     const maskedChatId = userProfile.telegramChatId ? userProfile.telegramChatId.slice(0, 4) + '***' + userProfile
         .telegramChatId.slice(-4) : 'Not linked';
-    const activeLicences = (userProfile.licences || []).filter(l => new Date(l.expiryDate) > new Date()).length;
+    // Only count active licences (not revoked/expired)
+    const activeLicences = (userProfile.licences || []).filter(l => {
+        if (l.status === 'revoked' || l.status === 'expired') return false;
+        return new Date(l.expiryDate) > new Date();
+    }).length;
     const balance = userProfile.balance || 0;
     const userCountry = userProfile.location || userProfile.country || 'Not set';
     const joinedDate = userProfile.joined || '--';
@@ -3656,31 +3607,16 @@ async function processBalancePayment(totalAmount) {
             total: totalAmount,
             method: 'balance',
             date: new Date().toISOString(),
-            status: 'confirmed',
+            status: 'confirmed', // Auto-confirmed for balance payments
         };
         userProfile.history.push(orderItem);
         await updateDoc(userRef, { history: arrayUnion(orderItem) });
 
-        cart = [];
-        await saveUserData();
-        updateCartUI();
-        updateBottomCartBar();
-        renderProducts(products);
-
-        showToast(`✅ Payment successful! $${totalAmount.toFixed(2)} deducted from balance.`, 'success');
-
-        await addDoc(collection(db, 'notifications'), {
-            title: '✅ Order Paid with Balance',
-            message: `Order #${orderId.slice(-6)} - $${totalAmount.toFixed(2)}`,
-            userId: currentUser.uid,
-            readBy: [],
-            createdAt: serverTimestamp()
-        });
-
-        // ===== FIX: Send order confirmation email and admin notifications =====
+        // Generate licence immediately for balance payments (auto-confirmed)
         const visitorInfo = await getVisitorInfo();
         const deviceInfo = getDeviceInfo();
 
+        // Send order confirmation email
         await sendOrderConfirmationEmail(currentUser.email, {
             orderId: orderId,
             userName: currentUser.displayName || currentUser.email,
@@ -3691,6 +3627,7 @@ async function processBalancePayment(totalAmount) {
             txHash: null
         });
 
+        // Send admin notification
         const adminMessage = `
 👤 *User:* ${currentUser.displayName || currentUser.email || 'User'}
 📧 *Email:* ${currentUser.email || 'N/A'}
@@ -3703,6 +3640,7 @@ async function processBalancePayment(totalAmount) {
         `;
         await sendAdminNotification('✅ Order Paid with Balance', adminMessage);
 
+        // Send user Telegram notification
         if (userProfile.telegramChatId) {
             const userTelegramMessage = `
 🛒 *ORDER PAID WITH BALANCE!*
@@ -3719,6 +3657,27 @@ async function processBalancePayment(totalAmount) {
             `;
             await sendTelegramNotification(userProfile.telegramChatId, userTelegramMessage);
         }
+
+        // Generate licences for each item
+        for (const item of orderItem.items) {
+            await generateLicenceForUser(currentUser.uid, currentUser.email, item, orderId);
+        }
+
+        cart = [];
+        await saveUserData();
+        updateCartUI();
+        updateBottomCartBar();
+        renderProducts(products);
+
+        showToast(`✅ Payment successful! $${totalAmount.toFixed(2)} deducted from balance.`, 'success');
+
+        await addDoc(collection(db, 'notifications'), {
+            title: '✅ Order Paid with Balance',
+            message: `Order #${orderId.slice(-6)} - $${totalAmount.toFixed(2)}`,
+            userId: currentUser.uid,
+            readBy: [],
+            createdAt: serverTimestamp()
+        });
 
         document.getElementById('paymentModal').classList.remove('open');
 
@@ -3843,17 +3802,149 @@ window.submitManualPayment = function() {
     document.getElementById('transactionHashInput').value = txHash;
     placeOrder();
 };
+
+// ============================================================
+// SEND USER NOTIFICATION - FIXED (was missing)
+// ============================================================
+async function sendUserNotification(userId, title, message) {
+    try {
+        // Send to Firebase notifications collection
+        await addDoc(collection(db, 'notifications'), {
+            title: title,
+            message: message,
+            userId: userId,
+            readBy: [],
+            createdAt: serverTimestamp()
+        });
+        console.log('✅ User notification sent to Firebase');
+
+        // Send to Telegram if user has chat ID
+        const userRef = doc(db, 'users', userId);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+            const userData = userSnap.data();
+            if (userData.telegramChatId) {
+                await sendTelegramNotification(userData.telegramChatId, `📢 *${title}*\n\n${message}`);
+                console.log('✅ Telegram notification sent to user');
+            }
+        }
+        return true;
+    } catch (error) {
+        console.error('Error sending user notification:', error);
+        return false;
+    }
+}
+
+// ============================================================
+// GENERATE LICENCE FOR USER (only after admin confirmation)
+// ============================================================
+async function generateLicenceForUser(userId, userEmail, item, orderId) {
+    try {
+        const productName = item.name || 'Product';
+        const productId = item.id || 'unknown';
+        const productPrice = item.price || 0;
+        const duration = item.duration || '1 year';
+
+        const expiryDate = new Date();
+        if (duration.includes('month')) {
+            const months = parseInt(duration) || 1;
+            expiryDate.setMonth(expiryDate.getMonth() + months);
+        } else if (duration.includes('year')) {
+            const years = parseInt(duration) || 1;
+            expiryDate.setFullYear(expiryDate.getFullYear() + years);
+        } else if (duration.includes('lifetime')) {
+            expiryDate.setFullYear(expiryDate.getFullYear() + 100);
+        } else {
+            expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+        }
+        const expiryDateISO = expiryDate.toISOString();
+
+        const userRef = doc(db, 'users', userId);
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) {
+            console.error('User not found for licence generation');
+            return;
+        }
+
+        const userData = userSnap.data();
+
+        // Create licence via Edge Function
+        const payload = {
+            orderId: orderId,
+            userId: userId,
+            userEmail: userEmail,
+            productName: productName,
+            productId: productId,
+            scriptId: productId,
+            scriptName: productName,
+            price: productPrice,
+            expiryDate: expiryDateISO,
+            telegramChatId: userData.telegramChatId || null,
+            duration: duration,
+            status: 'active',
+            orderItems: [item]
+        };
+
+        const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/create-licence', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Accept': 'application/json',
+            },
+            mode: 'cors',
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+            throw new Error(data.error || 'Failed to create licence');
+        }
+
+        // Add licence to user's profile
+        const userLicences = userData.licences || [];
+        const newLicence = {
+            code: data.licence.code,
+            scriptId: productId,
+            scriptName: productName,
+            expiryDate: expiryDateISO,
+            activatedAt: new Date().toISOString(),
+            orderId: orderId,
+            status: 'active'
+        };
+        userLicences.push(newLicence);
+        await updateDoc(userRef, { licences: userLicences, updatedAt: serverTimestamp() });
+
+        if (currentUser && currentUser.uid === userId) {
+            userProfile.licences = userLicences;
+            renderUserLicences();
+            updateFullUserMenu();
+        }
+
+        // Send notification to user
+        await sendUserNotification(
+            userId,
+            '🔑 Licence Generated!',
+            `Your licence for ${productName} has been generated.\nCode: ${data.licence.code}\nExpires: ${new Date(expiryDateISO).toLocaleDateString()}`
+        );
+
+        console.log('✅ Licence generated for user:', userId);
+        return data.licence;
+
+    } catch (error) {
+        console.error('Error generating licence:', error);
+        return null;
+    }
+}
+
 // ============================================================
 // SEND ADMIN NOTIFICATION (Email + Telegram + Firebase)
 // ============================================================
-
 async function sendAdminNotification(title, message) {
     try {
-        // 1. جلب إعدادات المدير من Firestore
         const settings = await getAdminSettings();
         let sentCount = 0;
 
-        // 2. إرسال إشعار عبر البريد الإلكتروني إذا كان مفعلاً
         if (settings.enableEmailNotifications && settings.adminEmail) {
             try {
                 await sendAdminNotificationEmail(title, message);
@@ -3864,7 +3955,6 @@ async function sendAdminNotification(title, message) {
             }
         }
 
-        // 3. إرسال إشعار عبر Telegram إذا كان مفعلاً
         if (settings.enableTelegramNotifications && settings.adminTelegramChatId) {
             try {
                 await sendTelegramNotification(settings.adminTelegramChatId, 
@@ -3877,7 +3967,6 @@ async function sendAdminNotification(title, message) {
             }
         }
 
-        // 4. إضافة إشعار في Firebase (للإدمن فقط)
         try {
             await addDoc(collection(db, 'notifications'), {
                 title: title,
@@ -3898,6 +3987,7 @@ async function sendAdminNotification(title, message) {
         return false;
     }
 }
+
 // ============================================================
 // SEND ORDER TO TELEGRAM (with email integration)
 // ============================================================
@@ -4031,7 +4121,7 @@ async function sendOrderToTelegram(method, txHash = null) {
             total: finalTotal,
             method: method,
             date: new Date().toISOString(),
-            status: 'pending',
+            status: 'pending', // Pending admin confirmation
             txHash: txHash || null,
             screenshotUrl: result.screenshotUrl || null,
             rpUsed: 0,
@@ -4079,7 +4169,6 @@ async function sendOrderToTelegram(method, txHash = null) {
         }
 
         console.log('📤 Preparing Telegram notification...');
-        console.log('👤 User Telegram Chat ID:', userProfile.telegramChatId);
 
         const userTelegramMessage = `
 🛒 *ORDER PLACED SUCCESSFULLY!*
@@ -4092,8 +4181,8 @@ async function sendOrderToTelegram(method, txHash = null) {
 ${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
 📅 *Date:* ${new Date().toLocaleString()}
 
-✅ Your order is pending confirmation.
-⏳ You will receive a notification once confirmed.
+⏳ Your order is pending admin confirmation.
+🔑 You will receive your licence once the order is confirmed.
         `;
 
         const adminTelegramMessage = `
@@ -4168,7 +4257,7 @@ ${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
         updateRpDisplay();
 
         document.getElementById('paymentModal').classList.remove('open');
-        showToast('✅ Order placed successfully!', 'success');
+        showToast('✅ Order placed successfully! Waiting for admin confirmation.', 'success');
 
         setTimeout(() => {
             if (currentUser && isAdminCached) { loadAdminOrders(); }
@@ -4943,7 +5032,6 @@ window.switchAdminTab = function(tab) {
     const titleEl = document.getElementById('adminPageTitle');
     if (titleEl) titleEl.textContent = titles[tab] || tab;
 
-    // Load data based on tab
     if (tab === 'products') renderAdminProducts(products);
     if (tab === 'users') loadAdminUsers();
     if (tab === 'dashboard') loadDashboardStats();
@@ -5154,7 +5242,7 @@ function updateAdminStats(orders) {
 }
 
 // ============================================================
-// UPDATE ORDER STATUS (with email)
+// UPDATE ORDER STATUS (with email + licence generation on confirm)
 // ============================================================
 window.updateOrderStatus = async function(orderId, userId, newStatus) {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
@@ -5177,17 +5265,19 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
         });
         await updateDoc(userRef, { history: updatedHistory });
 
+        // Send user notification
         await sendUserNotification(
             userId,
             newStatus === 'confirmed' ? '✅ Order Confirmed!' : '❌ Order Rejected',
             newStatus === 'confirmed' ?
-            `Your order #${orderId.slice(-6)} has been confirmed and is ready.` :
+            `Your order #${orderId.slice(-6)} has been confirmed. Your licences are now available in your profile!` :
             `Your order #${orderId.slice(-6)} has been rejected. Please contact support for more information.`
         );
 
-        // ===== SEND ORDER STATUS EMAIL =====
+        // Send order status email
         await sendOrderStatusEmail(data.email || userId, orderId, newStatus);
 
+        // Send Telegram notification
         if (data.telegramChatId) {
             const statusEmoji = newStatus === 'confirmed' ? '✅' : '❌';
             const statusText = newStatus === 'confirmed' ? 'CONFIRMED' : 'REJECTED';
@@ -5198,7 +5288,7 @@ ${statusEmoji} *ORDER ${statusText}!*
 📦 ${orderFound?.items?.map(i => i.name).join(', ') || 'Order'}
 💰 Total: $${(orderFound?.total || 0).toFixed(2)}
 
-${newStatus === 'confirmed' ? '🔑 Your licence has been generated and sent to your account.' : 'Please contact support for more information.'}
+${newStatus === 'confirmed' ? '🔑 Your licences have been generated and are available in your profile.' : 'Please contact support for more information.'}
 
 📅 ${new Date().toLocaleString()}
             `;
@@ -5206,9 +5296,16 @@ ${newStatus === 'confirmed' ? '🔑 Your licence has been generated and sent to 
             console.log('✅ Telegram notification sent to user for status update');
         }
 
+        // IMPORTANT: ONLY generate licences when status changes to confirmed
         if (newStatus === 'confirmed') {
             const userEmail = orderFound?.userEmail || data.email || userId;
-            await sendLicenceForOrder(orderId, userId, userEmail);
+            // Generate licences for each item in the order
+            if (orderFound && orderFound.items) {
+                for (const item of orderFound.items) {
+                    await generateLicenceForUser(userId, userEmail, item, orderId);
+                }
+                showToast(`✅ Licences generated for user`, 'success');
+            }
         }
 
         showToast(`📦 Order updated to ${newStatus}`, 'success');
@@ -5258,167 +5355,6 @@ window.clearAdminSearch = function() { document.getElementById('adminSearchInput
     showToast('📋 Search cleared', 'info'); };
 window.refreshAdminOrders = function() { loadAdminOrders();
     showToast('🔄 Refreshed', 'info'); };
-
-// ============================================================
-// SEND LICENCE VIA EDGE FUNCTION (FIXED)
-// ============================================================
-async function sendLicenceForOrder(orderId, userId, userEmail = null) {
-    try {
-        console.log('🔍 sendLicenceForOrder called:', { orderId, userId, userEmail });
-
-        let email = userEmail;
-        if (!email) {
-            const userRef = doc(db, 'users', userId);
-            const userSnap = await getDoc(userRef);
-            if (userSnap.exists()) {
-                const userData = userSnap.data();
-                email = userData.email || userId;
-            } else {
-                email = userId;
-                console.warn('⚠️ User document not found, using UID as email');
-            }
-        }
-
-        const userRef = doc(db, 'users', userId);
-        const userSnap = await getDoc(userRef);
-        if (!userSnap.exists()) {
-            console.error('❌ User not found');
-            throw new Error('User not found');
-        }
-        const userData = userSnap.data();
-        const order = userData.history?.find(o => o.id === orderId);
-        if (!order) {
-            console.error('❌ Order not found');
-            throw new Error('Order not found');
-        }
-
-        const firstItem = order.items?.[0];
-        const productName = firstItem?.name || 'Product';
-        const productId = firstItem?.id || 'unknown';
-        const productPrice = firstItem?.price || 0;
-
-        const expiryDate = new Date();
-        expiryDate.setFullYear(expiryDate.getFullYear() + 1);
-        const expiryDateISO = expiryDate.toISOString();
-
-        const telegramChatId = userData.telegramChatId || null;
-
-        // ===== FIX: Send ALL required parameters =====
-        const payload = {
-            orderId: orderId,
-            userId: userId,
-            userEmail: email,
-            productName: productName,
-            productId: productId,
-            scriptId: productId,
-            scriptName: productName,
-            price: productPrice,
-            expiryDate: expiryDateISO,
-            telegramChatId: telegramChatId,
-            duration: firstItem?.duration || '1 year',
-            status: 'active',
-            orderItems: order.items || []
-        };
-
-        console.log('📤 Sending licence creation payload:', JSON.stringify(payload, null, 2));
-
-        const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/create-licence', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                'Accept': 'application/json',
-            },
-            mode: 'cors',
-            body: JSON.stringify(payload)
-        });
-
-        const responseText = await response.text();
-        console.log('📥 Raw response:', responseText);
-
-        let data;
-        try {
-            data = JSON.parse(responseText);
-        } catch (e) {
-            console.error('❌ Failed to parse JSON response:', e);
-            throw new Error(`Invalid response from server: ${responseText.substring(0, 100)}`);
-        }
-
-        if (!response.ok || !data.success) {
-            console.error('❌ Edge Function error:', data);
-            throw new Error(data.error || data.message || 'Failed to create licence');
-        }
-
-        console.log('✅ Licence created via backend:', data.licence);
-
-        const userLicences = userData.licences || [];
-        const newLicence = {
-            code: data.licence.code,
-            scriptId: productId,
-            scriptName: productName,
-            expiryDate: expiryDateISO,
-            activatedAt: new Date().toISOString(),
-            orderId: orderId,
-            status: 'active'
-        };
-        userLicences.push(newLicence);
-        await updateDoc(userRef, { licences: userLicences });
-
-        if (userData.telegramChatId) {
-            const licenceMessage = `
-🔑 *LICENCE GENERATED!*
-
-📋 Order ID: #${orderId.slice(-6)}
-📦 Product: ${productName}
-🔑 Licence Code: \`${data.licence.code}\`
-📅 Expiry: ${new Date(expiryDateISO).toLocaleDateString()}
-
-✅ Your licence has been generated successfully!
-💡 Use this code in the "Licences" section of the store to activate your product.
-            `;
-            await sendTelegramNotification(userData.telegramChatId, licenceMessage);
-            console.log('✅ Licence Telegram notification sent to user');
-        }
-
-        if (currentUser && currentUser.uid === userId) {
-            userProfile.licences = userLicences;
-            renderUserLicences();
-            updateFullUserMenu();
-        }
-
-        showToast(`✅ Licence sent to user`, 'success');
-        return data.licence;
-
-    } catch (error) {
-        console.error('❌ Error in sendLicenceForOrder:', error);
-
-        try {
-            await addDoc(collection(db, 'notifications'), {
-                title: '❌ Failed to send licence',
-                message: `Order: ${orderId} - User: ${userId} - Error: ${error.message}`,
-                adminOnly: true,
-                readBy: [],
-                createdAt: serverTimestamp()
-            });
-        } catch (e) {
-            console.error('Failed to send admin notification:', e);
-        }
-
-        try {
-            await addDoc(collection(db, 'notifications'), {
-                title: '⚠️ Licence Generation Issue',
-                message: `We're experiencing a technical issue with your licence for order #${orderId?.slice(-6) || 'unknown'}. Our team has been notified and will resolve it shortly.`,
-                userId: userId,
-                readBy: [],
-                createdAt: serverTimestamp()
-            });
-        } catch (e) {
-            console.error('Failed to send user notification:', e);
-        }
-
-        throw error;
-    }
-}
 
 // ============================================================
 // ADMIN USERS
@@ -5834,11 +5770,15 @@ function renderUserLicences() {
         return; }
     container.innerHTML = userLicences.map(l => {
         const isExpired = new Date(l.expiryDate) < new Date();
+        const isRevoked = l.status === 'revoked';
+        const isActive = !isExpired && !isRevoked && l.status !== 'expired';
         return `
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--bg);border-radius:6px;border:1px solid var(--border);margin-bottom:4px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--bg);border-radius:6px;border:1px solid var(--border);margin-bottom:4px;${!isActive ? 'opacity:0.5;' : ''}">
                 <div>
                     <div style="font-size:12px;font-weight:600;color:var(--text);">${l.scriptName}</div>
-                    <div style="font-size:10px;color:var(--text-secondary);opacity:0.5;">${isExpired ? '⛔ Expired' : '✅ Active until ' + new Date(l.expiryDate).toLocaleDateString()}</div>
+                    <div style="font-size:10px;color:var(--text-secondary);opacity:0.5;">
+                        ${isRevoked ? '🚫 Revoked' : isExpired ? '⛔ Expired' : '✅ Active until ' + new Date(l.expiryDate).toLocaleDateString()}
+                    </div>
                 </div>
                 <div style="display:flex;align-items:center;gap:6px;">
                     <span style="font-size:10px;font-family:monospace;opacity:0.3;">${l.code.slice(-6)}</span>
@@ -6562,6 +6502,193 @@ async function loadAuditLogs() {
 window.loadAuditLogs = loadAuditLogs;
 
 // ============================================================
+// ACTIVITY LOGS
+// ============================================================
+window.loadActivityLogs = async function() {
+    if (!currentUser || !isAdminCached) return;
+    const container = document.getElementById('adminActivityContainer');
+    if (!container) return;
+
+    container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
+
+    try {
+        const activityRef = collection(db, 'user_activity');
+        const q = query(activityRef, orderBy('createdAt', 'desc'), limit(100));
+        const snapshot = await getDocs(q);
+
+        const activities = [];
+        snapshot.forEach(doc => {
+            activities.push({ id: doc.id, ...doc.data() });
+        });
+
+        if (activities.length === 0) {
+            container.innerHTML = `
+                <div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">
+                    <i class="fas fa-activity" style="font-size:36px;display:block;margin-bottom:8px;opacity:0.2;"></i>
+                    No activities logged yet
+                </div>
+            `;
+            return;
+        }
+
+        // Categorize by type
+        const types = {};
+        activities.forEach(a => {
+            types[a.type] = (types[a.type] || 0) + 1;
+        });
+
+        let html = `
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(120px,1fr)); gap:6px; margin-bottom:12px;">
+                ${Object.entries(types).map(([type, count]) => `
+                    <div style="background:var(--glass-bg); padding:6px; border-radius:var(--radius-sm); text-align:center; border:1px solid var(--glass-border);">
+                        <div style="font-size:16px; font-weight:800; color:var(--primary);">${count}</div>
+                        <div style="font-size:9px; color:var(--text-secondary); opacity:0.5; text-transform:uppercase;">${type}</div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+
+        html += activities.map(a => {
+            const date = a.createdAt ? new Date(a.createdAt.toDate()).toLocaleString() : a.timestamp || '--';
+            const iconMap = {
+                'login': '🔐',
+                'logout': '🚪',
+                'page_view': '👀',
+                'view_product': '📦',
+                'add_to_cart': '🛒',
+                'purchase': '💳',
+                'search': '🔍',
+                'click': '🖱️'
+            };
+            const icon = iconMap[a.type] || '📌';
+            const user = a.userEmail || a.userName || 'Unknown';
+            const detail = a.data ? Object.entries(a.data).map(([k,v]) => `${k}:${v}`).join(' | ') : '';
+            
+            return `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 10px; background:var(--glass-bg); border-radius:var(--radius-sm); border:1px solid var(--glass-border); margin-bottom:4px; font-size:12px;">
+                    <div style="display:flex; align-items:center; gap:6px; flex:1; min-width:0;">
+                        <span style="font-size:16px;">${icon}</span>
+                        <span style="font-weight:600; font-size:11px;">${user}</span>
+                        <span style="color:var(--text-secondary); opacity:0.5;">${a.type}</span>
+                        ${detail ? `<span style="color:var(--text-secondary); opacity:0.3; font-size:10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${detail}</span>` : ''}
+                    </div>
+                    <div style="font-size:10px; color:var(--text-secondary); opacity:0.3; white-space:nowrap;">${date}</div>
+                </div>
+            `;
+        }).join('');
+
+        container.innerHTML = html;
+
+    } catch (error) {
+        console.error('Error loading activity logs:', error);
+        container.innerHTML = `
+            <div style="text-align:center;padding:20px;color:var(--danger);">
+                Failed to load activity logs: ${error.message}
+            </div>
+        `;
+    }
+};
+
+window.exportActivityLogs = async function() {
+    if (!currentUser || !isAdminCached) return;
+    try {
+        const activityRef = collection(db, 'user_activity');
+        const q = query(activityRef, orderBy('createdAt', 'desc'), limit(500));
+        const snapshot = await getDocs(q);
+        
+        const activities = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            activities.push({
+                timestamp: data.createdAt?.toDate?.() || data.timestamp || new Date(),
+                user: data.userEmail || data.userName || 'Unknown',
+                type: data.type || 'unknown',
+                ip: data.ip || 'N/A',
+                data: JSON.stringify(data.data || {})
+            });
+        });
+
+        let csv = 'Timestamp,User,Type,IP,Data\n';
+        activities.forEach(a => {
+            csv += `${a.timestamp.toISOString()},${a.user},${a.type},${a.ip},"${a.data}"\n`;
+        });
+
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `activity_logs_${new Date().toISOString().slice(0,10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        showToast(`📥 Exported ${activities.length} activities`, 'success');
+    } catch (error) {
+        console.error('Export error:', error);
+        showToast('❌ Failed to export activities', 'error');
+    }
+};
+
+// ============================================================
+// FRAUD LOGS
+// ============================================================
+window.loadFraudLogs = async function() {
+    if (!currentUser || !isAdminCached) return;
+    const container = document.getElementById('adminFraudContainer');
+    if (!container) return;
+
+    container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading fraud logs...</div>`;
+
+    try {
+        const fraudRef = collection(db, 'fraudLogs');
+        const q = query(fraudRef, orderBy('createdAt', 'desc'), limit(100));
+        const snapshot = await getDocs(q);
+
+        if (snapshot.empty) {
+            container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">✅ No fraud activities detected</div>`;
+            return;
+        }
+
+        let html = '';
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const date = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleString() : '--';
+            const warnings = data.warnings ? data.warnings.join(' | ') : 'No warnings';
+            const severity = data.severity || 'low';
+            const user = data.email || data.userId || 'Unknown';
+            const ip = data.ip || 'N/A';
+
+            const severityColor = severity === 'high' ? 'var(--danger)' : severity === 'medium' ? 'var(--warning)' : 'var(--success)';
+
+            html += `
+                <div class="admin-item" style="border-left:4px solid ${severityColor};">
+                    <div class="item-info">
+                        <div class="item-title">
+                            <span style="color:${severityColor};font-weight:800;">${severity.toUpperCase()}</span>
+                            ${user}
+                            <span style="font-size:11px;font-weight:400;opacity:0.5;margin-left:6px;">IP: ${ip}</span>
+                        </div>
+                        <div class="item-meta">
+                            ⚠️ ${warnings}
+                            <br>
+                            <span style="font-size:10px;opacity:0.4;">📅 ${date}</span>
+                        </div>
+                    </div>
+                    <div class="item-actions">
+                        <span style="font-size:10px;background:${severityColor}20;padding:2px 8px;border-radius:30px;color:${severityColor};font-weight:700;">${severity}</span>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+
+    } catch (error) {
+        console.error('Error loading fraud logs:', error);
+        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load fraud logs: ${error.message}</div>`;
+    }
+};
+
+// ============================================================
 // ORDER HISTORY (User-specific)
 // ============================================================
 window.clearOrderHistory = async function() {
@@ -7176,7 +7303,6 @@ window.processTopup = async function() {
     statusEl.style.color = 'var(--text-secondary)';
 
     try {
-        // ===== FIX: Send both amount and amount_usd to satisfy the Edge Function =====
         const requestBody = {
             userId: currentUser.uid,
             userEmail: currentUser.email,
@@ -7452,7 +7578,6 @@ window.approveTopup = async function(topupId) {
         await sendAdminNotification('✅ Topup Approved - Balance Updated', adminMessage);
 
         if (topupData) {
-            // ===== SEND TOPUP CONFIRMATION EMAIL =====
             const userRef = doc(db, 'users', topupData.user_id);
             const userSnap = await getDoc(userRef);
             if (userSnap.exists()) {
@@ -8946,10 +9071,10 @@ async function sendOrderStatusEmail(userEmail, orderId, newStatus) {
         'confirmed': {
             emoji: '✅',
             title: 'Order Confirmed!',
-            message: 'Your order has been confirmed and is being processed!',
+            message: 'Your order has been confirmed and your licences are now available!',
             color: '#00d4aa',
             textColor: '#0a0a1a',
-            button: '📦 View Order'
+            button: '📦 View My Licences'
         },
         'rejected': {
             emoji: '❌',
@@ -9908,10 +10033,156 @@ window.getMyTelegramChatId = function() {
         showToast(`✅ Chat ID set: ${userProfile.telegramChatId}`, 'success');
     }
 };
+
+// ============================================================
+// BRANDING SYSTEM
+// ============================================================
+const BRANDING = {
+    colors: {
+        primary: '#6c5ce7',
+        secondary: '#f2a900',
+        accent: '#00d4aa',
+        danger: '#ff6b6b',
+        warning: '#fbbf24',
+        dark: '#0a0a1a',
+        light: '#f0f2f8'
+    },
+    logo: {
+        text: 'ZI Store',
+        icon: 'fa-crown',
+        tagline: 'Premium Scripts & Digital Products'
+    },
+    social: {
+        youtube: 'https://youtube.com/@zistore',
+        telegram: 'https://t.me/zistore',
+        discord: 'https://discord.gg/zistore',
+        twitter: 'https://twitter.com/zistore',
+        instagram: 'https://instagram.com/zistore'
+    },
+    contact: {
+        email: 'support@zi-store.online',
+        phone: '+216 12345678',
+        address: 'Tunis, Tunisia'
+    },
+    site: {
+        name: 'ZI Store',
+        domain: 'zi-store.online',
+        year: new Date().getFullYear(),
+        version: '4.0.0'
+    }
+};
+
+function loadBranding() {
+    try {
+        const saved = localStorage.getItem('zi_branding');
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            Object.assign(BRANDING, parsed);
+        }
+    } catch (e) {
+        console.warn('Failed to load branding:', e);
+    }
+    applyBranding();
+}
+
+function saveBranding(branding) {
+    try {
+        localStorage.setItem('zi_branding', JSON.stringify(branding));
+        Object.assign(BRANDING, branding);
+        applyBranding();
+    } catch (e) {
+        console.warn('Failed to save branding:', e);
+    }
+}
+
+function applyBranding() {
+    const root = document.documentElement;
+    root.style.setProperty('--primary', BRANDING.colors.primary);
+    root.style.setProperty('--vip-color', BRANDING.colors.secondary);
+    root.style.setProperty('--success', BRANDING.colors.accent);
+    root.style.setProperty('--danger', BRANDING.colors.danger);
+    root.style.setProperty('--warning', BRANDING.colors.warning);
+    
+    const logoEl = document.querySelector('.logo');
+    if (logoEl) {
+        logoEl.innerHTML = `<i class="fas ${BRANDING.logo.icon}"></i> ${BRANDING.logo.text}`;
+    }
+    
+    document.title = `${BRANDING.site.name} - ${BRANDING.logo.tagline}`;
+    
+    const footer = document.querySelector('.site-footer .footer-copyright');
+    if (footer) {
+        footer.innerHTML = `&copy; ${BRANDING.site.year} <strong>${BRANDING.site.name}</strong> — All rights reserved.`;
+    }
+}
+
+window.loadBrandingSettings = function() {
+    document.getElementById('brandPrimary').value = BRANDING.colors.primary;
+    document.getElementById('brandSecondary').value = BRANDING.colors.secondary;
+    document.getElementById('brandAccent').value = BRANDING.colors.accent;
+    document.getElementById('brandLogoText').value = BRANDING.logo.text;
+    document.getElementById('brandLogoIcon').value = BRANDING.logo.icon;
+    document.getElementById('brandTagline').value = BRANDING.logo.tagline;
+    document.getElementById('brandYoutube').value = BRANDING.social.youtube;
+    document.getElementById('brandTelegram').value = BRANDING.social.telegram;
+    document.getElementById('brandDiscord').value = BRANDING.social.discord;
+    document.getElementById('brandTwitter').value = BRANDING.social.twitter;
+    document.getElementById('brandEmail').value = BRANDING.contact.email;
+    document.getElementById('brandPhone').value = BRANDING.contact.phone;
+};
+
+window.saveBrandingSettings = function() {
+    const newBranding = {
+        colors: {
+            primary: document.getElementById('brandPrimary').value,
+            secondary: document.getElementById('brandSecondary').value,
+            accent: document.getElementById('brandAccent').value,
+            danger: '#ff6b6b',
+            warning: '#fbbf24',
+            dark: '#0a0a1a',
+            light: '#f0f2f8'
+        },
+        logo: {
+            text: document.getElementById('brandLogoText').value || 'ZI Store',
+            icon: document.getElementById('brandLogoIcon').value || 'fa-crown',
+            tagline: document.getElementById('brandTagline').value || 'Premium Scripts & Digital Products'
+        },
+        social: {
+            youtube: document.getElementById('brandYoutube').value,
+            telegram: document.getElementById('brandTelegram').value,
+            discord: document.getElementById('brandDiscord').value,
+            twitter: document.getElementById('brandTwitter').value,
+            instagram: BRANDING.social.instagram
+        },
+        contact: {
+            email: document.getElementById('brandEmail').value,
+            phone: document.getElementById('brandPhone').value,
+            address: BRANDING.contact.address
+        },
+        site: {
+            name: BRANDING.site.name,
+            domain: BRANDING.site.domain,
+            year: new Date().getFullYear(),
+            version: BRANDING.site.version
+        }
+    };
+    
+    saveBranding(newBranding);
+    showToast('✅ Branding saved successfully!', 'success');
+    loadBrandingSettings();
+};
+
+window.resetBranding = function() {
+    if (!confirm('Reset branding to default?')) return;
+    localStorage.removeItem('zi_branding');
+    loadBranding();
+    loadBrandingSettings();
+    showToast('🔄 Branding reset to defaults', 'info');
+};
+
 // ============================================================
 // GENERATE PDF INVOICE
 // ============================================================
-
 window.generatePDFInvoice = function(orderData) {
     if (!orderData) { 
         showToast('❌ No order data for invoice', 'error'); 
@@ -9921,12 +10192,10 @@ window.generatePDFInvoice = function(orderData) {
     try {
         let order = typeof orderData === 'string' ? JSON.parse(orderData) : orderData;
         
-        // Ensure order has an ID
         if (!order.id) { 
             order.id = 'INV-' + Date.now().toString().slice(-6); 
         }
         
-        // Build the invoice HTML
         const invoiceHtml = `
 <!DOCTYPE html>
 <html>
@@ -10002,7 +10271,6 @@ window.generatePDFInvoice = function(orderData) {
 </html>
         `;
         
-        // Open new window for printing
         const win = window.open('', '_blank', 'width=800,height=600');
         if (!win) { 
             showToast('⚠️ Please allow popups to generate invoice', 'warning'); 
@@ -10012,7 +10280,6 @@ window.generatePDFInvoice = function(orderData) {
         win.document.write(invoiceHtml);
         win.document.close();
         
-        // Wait for content to load then print
         setTimeout(() => {
             win.print();
         }, 500);
@@ -10024,6 +10291,7 @@ window.generatePDFInvoice = function(orderData) {
         showToast('❌ Failed to generate invoice: ' + error.message, 'error');
     }
 };
+
 // ============================================================
 // EXPORT ALL FUNCTIONS TO WINDOW
 // ============================================================
@@ -10183,6 +10451,9 @@ window.refreshDashboardStats = refreshDashboardStats;
 window.loadDashboardStats = loadDashboardStats;
 window.refreshAdvancedStats = refreshAdvancedStats;
 window.loadAuditLogs = loadAuditLogs;
+window.loadActivityLogs = loadActivityLogs;
+window.exportActivityLogs = exportActivityLogs;
+window.loadFraudLogs = loadFraudLogs;
 window.goToSlide = goToSlide;
 window.nextSlide = nextSlide;
 window.prevSlide = prevSlide;
@@ -10274,6 +10545,9 @@ window.sendTestEmail = sendTestEmail;
 window.previewEmail = previewEmail;
 window.resendEmail = resendEmail;
 window.generatePDFInvoice = generatePDFInvoice;
+window.loadBrandingSettings = loadBrandingSettings;
+window.saveBrandingSettings = saveBrandingSettings;
+window.resetBranding = resetBranding;
 
 console.log('✅ All functions exported to window scope');
 
@@ -10367,6 +10641,7 @@ async function init() {
         loadUserBalance();
         initTopInfoBar();
         loadCoupons();
+        loadBranding();
 
         setTimeout(removeDuplicateDate, 500);
         setTimeout(styleHeaderTopup, 500);
