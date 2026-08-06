@@ -3248,13 +3248,13 @@
                     </button>
                     <button class="admin-nav-btn" data-tab="logs" onclick="switchAdminTab('logs')">
                         <i class="fas fa-history"></i> <span>Logs</span>
-                    </button>                    
+                    </button>
                     <button class="admin-nav-btn" data-tab="activity" onclick="switchAdminTab('activity')">
-                    <i class="fas fa-activity"></i> <span>Activity</span>
+                        <i class="fas fa-activity"></i> <span>Activity</span>
                     </button>
                     <button class="admin-nav-btn" data-tab="fraud" onclick="switchAdminTab('fraud')">
-                    <i class="fas fa-shield-virus"></i> <span>Fraud</span>
-                    </button>                    
+                        <i class="fas fa-shield-virus"></i> <span>Fraud</span>
+                    </button>
                     <button class="admin-nav-btn" data-tab="slider" onclick="switchAdminTab('slider')">
                         <i class="fas fa-images"></i> <span>Slider</span>
                     </button>
@@ -3282,7 +3282,6 @@
                     <button class="admin-nav-btn" data-tab="emails" onclick="switchAdminTab('emails')">
                         <i class="fas fa-envelope"></i> <span>Emails</span>
                     </button>
-                    <!-- ===== NEW BRANDING TAB ===== -->
                     <button class="admin-nav-btn" data-tab="branding" onclick="switchAdminTab('branding')">
                         <i class="fas fa-palette"></i> <span>Branding</span>
                     </button>
@@ -3404,6 +3403,39 @@
                         <div id="auditLogsContainer"></div>
                     </div>
 
+                    <!-- ===== ACTIVITY LOGS TAB ===== -->
+                    <div class="admin-tab-content" id="tabActivity">
+                        <div class="admin-toolbar">
+                            <button onclick="loadActivityLogs()" class="admin-refresh-btn">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                            <button onclick="exportActivityLogs()" class="admin-add-btn">
+                                <i class="fas fa-download"></i> Export CSV
+                            </button>
+                        </div>
+                        <div id="adminActivityContainer">
+                            <div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">
+                                <i class="fas fa-activity" style="font-size:36px;display:block;margin-bottom:8px;opacity:0.2;"></i>
+                                Loading activity logs...
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== FRAUD LOGS TAB ===== -->
+                    <div class="admin-tab-content" id="tabFraud">
+                        <div class="admin-toolbar">
+                            <button onclick="loadFraudLogs()" class="admin-refresh-btn">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                        </div>
+                        <div id="adminFraudContainer">
+                            <div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">
+                                <i class="fas fa-shield-virus" style="font-size:36px;display:block;margin-bottom:8px;opacity:0.2;"></i>
+                                Loading fraud logs...
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Slider -->
                     <div class="admin-tab-content" id="tabSlider">
                         <div class="admin-toolbar">
@@ -3504,40 +3536,8 @@
                             </div>
                         </div>
                     </div>
-                    <!-- ===== ACTIVITY LOGS TAB ===== -->
-<div class="admin-tab-content" id="tabActivity">
-    <div class="admin-toolbar">
-        <button onclick="loadActivityLogs()" class="admin-refresh-btn">
-            <i class="fas fa-sync-alt"></i> Refresh
-        </button>
-        <button onclick="exportActivityLogs()" class="admin-add-btn">
-            <i class="fas fa-download"></i> Export CSV
-        </button>
-    </div>
-    <div id="adminActivityContainer">
-        <div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">
-            <i class="fas fa-activity" style="font-size:36px;display:block;margin-bottom:8px;opacity:0.2;"></i>
-            Loading activity logs...
-        </div>
-    </div>
-</div>
 
-<!-- ===== FRAUD LOGS TAB ===== -->
-<div class="admin-tab-content" id="tabFraud">
-    <div class="admin-toolbar">
-        <button onclick="loadFraudLogs()" class="admin-refresh-btn">
-            <i class="fas fa-sync-alt"></i> Refresh
-        </button>
-    </div>
-    <div id="adminFraudContainer">
-        <div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">
-            <i class="fas fa-shield-virus" style="font-size:36px;display:block;margin-bottom:8px;opacity:0.2;"></i>
-            Loading fraud logs...
-        </div>
-    </div>
-</div>
-
-                    <!-- ===== BRANDING TAB ===== -->
+                    <!-- Branding -->
                     <div class="admin-tab-content" id="tabBranding">
                         <div class="admin-toolbar">
                             <button onclick="saveBrandingSettings()" class="admin-save-btn">
@@ -3952,17 +3952,32 @@
         });
 
         // Admin tab switching (used by sidebar buttons)
+        // Updated to include activity and fraud
         window.switchAdminTab = function(tab) {
             document.querySelectorAll('#adminPanel .admin-tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('#adminPanel .admin-nav-btn').forEach(el => el.classList.remove('active'));
 
             const tabMap = {
-                'dashboard': 'tabDashboard', 'orders': 'tabOrders', 'products': 'tabProducts',
-                'users': 'tabUsers', 'downloads': 'tabDownloads', 'notifications': 'tabNotifications',
-                'stats': 'tabStats', 'logs': 'tabLogs', 'slider': 'tabSlider',
-                'licences': 'tabLicences', 'marquee': 'tabMarquee', 'payments': 'tabPayments',
-                'topups': 'tabTopups', 'fallback': 'tabFallback', 'settings': 'tabSettings',
-                'coupons': 'tabCoupons', 'emails': 'tabEmails', 'branding': 'tabBranding'
+                'dashboard': 'tabDashboard',
+                'orders': 'tabOrders',
+                'products': 'tabProducts',
+                'users': 'tabUsers',
+                'downloads': 'tabDownloads',
+                'notifications': 'tabNotifications',
+                'stats': 'tabStats',
+                'logs': 'tabLogs',
+                'activity': 'tabActivity',
+                'fraud': 'tabFraud',
+                'slider': 'tabSlider',
+                'licences': 'tabLicences',
+                'marquee': 'tabMarquee',
+                'payments': 'tabPayments',
+                'topups': 'tabTopups',
+                'fallback': 'tabFallback',
+                'settings': 'tabSettings',
+                'coupons': 'tabCoupons',
+                'emails': 'tabEmails',
+                'branding': 'tabBranding'
             };
             const tabId = tabMap[tab] || 'tabDashboard';
             const content = document.getElementById(tabId);
@@ -3972,12 +3987,26 @@
             if (btn) btn.classList.add('active');
 
             const titles = {
-                'dashboard': '📊 Dashboard', 'orders': '📦 Orders', 'products': '🛍️ Products',
-                'users': '👥 Users', 'downloads': '📁 Downloads', 'notifications': '🔔 Notifications',
-                'stats': '📈 Stats', 'logs': '📜 Logs', 'slider': '🎨 Slider',
-                'licences': '🔑 Licences', 'marquee': '🎬 Marquee', 'payments': '💳 Payments',
-                'topups': '💰 Topups', 'fallback': '📦 Fallback', 'settings': '⚙️ Settings',
-                'coupons': '🎫 Coupons', 'emails': '📧 Emails', 'branding': '🎨 Branding'
+                'dashboard': '📊 Dashboard',
+                'orders': '📦 Orders',
+                'products': '🛍️ Products',
+                'users': '👥 Users',
+                'downloads': '📁 Downloads',
+                'notifications': '🔔 Notifications',
+                'stats': '📈 Stats',
+                'logs': '📜 Logs',
+                'activity': '📊 Activity',
+                'fraud': '🛡️ Fraud',
+                'slider': '🎨 Slider',
+                'licences': '🔑 Licences',
+                'marquee': '🎬 Marquee',
+                'payments': '💳 Payments',
+                'topups': '💰 Topups',
+                'fallback': '📦 Fallback',
+                'settings': '⚙️ Settings',
+                'coupons': '🎫 Coupons',
+                'emails': '📧 Emails',
+                'branding': '🎨 Branding'
             };
             const titleEl = document.getElementById('adminPageTitle');
             if (titleEl) titleEl.textContent = titles[tab] || tab;
@@ -4082,4 +4111,4 @@
         });
     </script>
 </body>
-    </html>
+        </html>
