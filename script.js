@@ -4883,7 +4883,7 @@ window.closeAdminPanel = function() {
 };
 
 // ============================================================
-// switchAdminTab
+// switchAdminTab - COMPLETE VERSION WITH ALL TABS
 // ============================================================
 window.switchAdminTab = function(tab) {
     document.querySelectorAll('#adminPanel .admin-tab-content').forEach(el => el.classList.remove('active'));
@@ -4898,6 +4898,8 @@ window.switchAdminTab = function(tab) {
         'notifications': 'tabNotifications',
         'stats': 'tabStats',
         'logs': 'tabLogs',
+        'activity': 'tabActivity',
+        'fraud': 'tabFraud',
         'slider': 'tabSlider',
         'licences': 'tabLicences',
         'marquee': 'tabMarquee',
@@ -4906,7 +4908,8 @@ window.switchAdminTab = function(tab) {
         'fallback': 'tabFallback',
         'settings': 'tabSettings',
         'coupons': 'tabCoupons',
-        'emails': 'tabEmails'
+        'emails': 'tabEmails',
+        'branding': 'tabBranding'
     };
     const tabId = tabMap[tab] || 'tabDashboard';
     const content = document.getElementById(tabId);
@@ -4924,6 +4927,8 @@ window.switchAdminTab = function(tab) {
         'notifications': '🔔 Notifications',
         'stats': '📈 Stats',
         'logs': '📜 Logs',
+        'activity': '📊 Activity',
+        'fraud': '🛡️ Fraud',
         'slider': '🎨 Slider',
         'licences': '🔑 Licences',
         'marquee': '🎬 Marquee',
@@ -4932,16 +4937,20 @@ window.switchAdminTab = function(tab) {
         'fallback': '📦 Fallback',
         'settings': '⚙️ Settings',
         'coupons': '🎫 Coupons',
-        'emails': '📧 Emails'
+        'emails': '📧 Emails',
+        'branding': '🎨 Branding'
     };
     const titleEl = document.getElementById('adminPageTitle');
     if (titleEl) titleEl.textContent = titles[tab] || tab;
 
+    // Load data based on tab
     if (tab === 'products') renderAdminProducts(products);
     if (tab === 'users') loadAdminUsers();
     if (tab === 'dashboard') loadDashboardStats();
     if (tab === 'stats') loadAdvancedStats();
     if (tab === 'logs') loadAuditLogs();
+    if (tab === 'activity') loadActivityLogs();
+    if (tab === 'fraud') loadFraudLogs();
     if (tab === 'slider') {
         renderSliderSettingsUI();
         document.getElementById('sliderIntervalInput').value = sliderIntervalTime;
@@ -4955,6 +4964,7 @@ window.switchAdminTab = function(tab) {
     if (tab === 'settings') loadAdminSettingsUI();
     if (tab === 'coupons') renderAdminCoupons();
     if (tab === 'emails') loadEmailLogs();
+    if (tab === 'branding') loadBrandingSettings();
 };
 
 // ============================================================
