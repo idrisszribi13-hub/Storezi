@@ -16,6 +16,9 @@
 // 12. Auto-detect country on registration, profile shows country (read-only)
 // 13. Licences visible in user profile ONLY after admin confirmation
 // 14. Date appears only ONCE in top bar (fixed duplicate issue)
+// 15. Topup approval only adds balance once and updates status correctly
+// 16. Transaction history works with Supabase
+// 17. Activity logs work with Firestore
 // ============================================================
 
 // ============================================================
@@ -481,10 +484,11 @@ window.showMainApp = function() {
 // FIX: Remove duplicate date, style header topup
 // ============================================================
 function removeDuplicateDate() {
-    const dates = document.querySelectorAll('#serverTime, .server-time, .header-date');
+    const dates = document.querySelectorAll('#serverTime, .server-time, .header-date, .date-display, [data-date]');
     if (dates.length > 1) {
         for (let i = 1; i < dates.length; i++) {
             dates[i].style.display = 'none';
+            console.log('🔇 Hidden duplicate date element:', dates[i]);
         }
     }
 }
@@ -508,7 +512,7 @@ function styleHeaderTopup() {
 }
 
 // ============================================================
-// TOP INFO BAR - Server Time, IP, Country (SINGLE DATE DISPLAY)
+// TOP INFO BAR - Server Time, IP, Country (SINGLE DATE DISPLAY - FIXED)
 // ============================================================
 let serverTimeInterval = null;
 
@@ -522,15 +526,16 @@ function updateServerTime() {
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',
-        hour12: false
+        hour12: false,
+        weekday: 'short'
     };
-    // Single date+time display - only ONE element shows the date
-    const timeStr = now.toLocaleString('en-US', options);
+    // صيغة واحدة فقط: "Thu, Aug 06, 2026, 20:46:21"
+    const dateTimeStr = now.toLocaleString('en-US', options);
 
     const el = document.getElementById('serverTime');
     if (el) {
-        // Only show date once with time
-        el.innerHTML = `<i class="far fa-calendar-alt" style="margin-right:3px;color:var(--vip-color);"></i> ${timeStr} UTC`;
+        // عرض التاريخ والوقت مرة واحدة فقط
+        el.innerHTML = `<i class="far fa-calendar-alt" style="margin-right:3px;color:var(--vip-color);"></i> ${dateTimeStr}`;
     }
 }
 
@@ -566,9 +571,6 @@ async function fetchUserInfo() {
             countryEl.innerHTML = `${flag} ${data.country_name || 'Unknown'}`;
         }
 
-        const timezoneEl = document.getElementById('userTimezone');
-        if (timezoneEl) timezoneEl.textContent = data.timezone || 'UTC';
-
         return data;
     } catch (error) {
         console.error('❌ Failed to fetch IP info:', error);
@@ -576,8 +578,6 @@ async function fetchUserInfo() {
         if (ipEl) ipEl.textContent = '⚠️ Unavailable';
         const countryEl = document.getElementById('userCountry');
         if (countryEl) countryEl.textContent = '🌍 Unknown';
-        const timezoneEl = document.getElementById('userTimezone');
-        if (timezoneEl) timezoneEl.textContent = 'UTC';
         return null;
     }
 }
@@ -614,6 +614,8 @@ async function initTopInfoBar() {
     serverTimeInterval = setInterval(updateServerTime, 1000);
     await fetchUserInfo();
     setInterval(fetchUserInfo, 300000);
+    // إزالة أي عناصر تاريخ مكررة
+    setTimeout(removeDuplicateDate, 100);
 }
 
 // ============================================================
@@ -1114,9 +1116,7 @@ function updateFullUserMenu() {
         }
 
         if (licencesBadge) {
-            // Only show active licences (not expired)
             const activeLicences = (userProfile.licences || []).filter(l => {
-                // Only show licences that are active and not expired
                 if (l.status === 'revoked' || l.status === 'expired') return false;
                 return new Date(l.expiryDate) > new Date();
             }).length;
@@ -1232,7 +1232,6 @@ window.registerUser = async function() {
     if (!termsChecked) { errorEl.textContent = 'Please agree to the terms';
         btn.classList.remove('loading'); return; }
     try {
-        // Auto-detect country
         let detectedCountry = 'Tunisia';
         try {
             const ipInfo = await fetchUserInfo();
@@ -1281,7 +1280,6 @@ window.registerUser = async function() {
         btn.classList.remove('loading');
         await refreshAdminStatus();
 
-        // Send welcome email
         await sendWelcomeEmail(email, name);
 
         setTimeout(() => {
@@ -1624,11 +1622,28 @@ async function loadTransactionHistory() {
 
         if (error) throw error;
 
-        renderTransactions(data || []);
+        if (!data || data.length === 0) {
+            container.innerHTML = `
+                <div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
+                    <i class="fas fa-receipt" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i>
+                    <div style="font-size:18px;font-weight:600;">No transactions yet</div>
+                    <div style="font-size:13px;opacity:0.4;margin-top:4px;">Your transactions will appear here</div>
+                </div>
+            `;
+            return;
+        }
+
+        renderTransactions(data);
+
     } catch (error) {
         console.error('Error loading transactions:', error);
-        container.innerHTML =
-            `<div style="text-align:center;padding:20px;color:var(--text-secondary);opacity:0.5;">Failed to load transactions</div>`;
+        container.innerHTML = `
+            <div style="text-align:center;padding:20px;color:var(--danger);">
+                Failed to load transactions: ${error.message}
+                <br>
+                <button onclick="loadTransactionHistory()" style="margin-top:8px;padding:6px 16px;background:var(--primary);border:none;border-radius:var(--radius-sm);color:#fff;cursor:pointer;">Retry</button>
+            </div>
+        `;
     }
 }
 
@@ -1637,11 +1652,12 @@ function renderTransactions(transactions) {
     if (!container) return;
 
     if (!transactions || transactions.length === 0) {
-        container.innerHTML =
-            `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">
-            <i class="fas fa-receipt" style="font-size:36px;display:block;margin-bottom:8px;opacity:0.2;"></i>
-            No transactions yet
-        </div>`;
+        container.innerHTML = `
+            <div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">
+                <i class="fas fa-receipt" style="font-size:36px;display:block;margin-bottom:8px;opacity:0.2;"></i>
+                No transactions yet
+            </div>
+        `;
         return;
     }
 
@@ -1649,6 +1665,7 @@ function renderTransactions(transactions) {
         const date = new Date(t.created_at).toLocaleDateString('en-US', {
             month: 'short',
             day: 'numeric',
+            year: 'numeric',
             hour: '2-digit',
             minute: '2-digit'
         });
@@ -1656,7 +1673,6 @@ function renderTransactions(transactions) {
         const isPositive = t.amount > 0;
         const sign = isPositive ? '+' : '';
         const color = isPositive ? 'var(--success)' : 'var(--danger)';
-        const icon = isPositive ? '↑' : '↓';
         const typeLabels = {
             'topup': '💰 Topup',
             'purchase': '🛒 Purchase',
@@ -1664,17 +1680,18 @@ function renderTransactions(transactions) {
             'admin_adjustment': '⚙️ Admin Adjustment',
             'referral_bonus': '🎁 Referral Bonus'
         };
-        const typeLabel = typeLabels[t.type] || t.type;
+        const typeLabel = typeLabels[t.type] || t.type || 'Transaction';
+        const statusBadge = t.status === 'completed' ? '✅' : t.status === 'pending' ? '⏳' : '❌';
 
         return `
             <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--glass-bg);border-radius:8px;border:1px solid var(--glass-border);margin-bottom:6px;">
                 <div>
-                    <div style="font-weight:600;font-size:14px;">${typeLabel}</div>
+                    <div style="font-weight:600;font-size:14px;">${typeLabel} ${statusBadge}</div>
                     <div style="font-size:11px;color:var(--text-secondary);opacity:0.5;">${t.description || ''}</div>
                     <div style="font-size:10px;color:var(--text-secondary);opacity:0.3;">${date}</div>
                 </div>
                 <div style="font-weight:700;font-size:16px;color:${color};">
-                    ${sign}$${Math.abs(t.amount).toFixed(2)}
+                    ${sign}$${Math.abs(t.amount || 0).toFixed(2)}
                 </div>
             </div>
         `;
@@ -1695,7 +1712,6 @@ function renderProfileFull() {
     const photoURL = userProfile.photoURL || currentUser.photoURL || '';
     const maskedChatId = userProfile.telegramChatId ? userProfile.telegramChatId.slice(0, 4) + '***' + userProfile
         .telegramChatId.slice(-4) : 'Not linked';
-    // Only count active licences (not revoked/expired)
     const activeLicences = (userProfile.licences || []).filter(l => {
         if (l.status === 'revoked' || l.status === 'expired') return false;
         return new Date(l.expiryDate) > new Date();
@@ -1706,7 +1722,6 @@ function renderProfileFull() {
 
     container.innerHTML = `
     <div class="profile-container">
-        <!-- Hero Section -->
         <div class="profile-hero">
             <div class="hero-content">
                 <div class="hero-avatar">
@@ -1747,7 +1762,6 @@ function renderProfileFull() {
             </div>
         </div>
 
-        <!-- Edit Profile Section - Country is auto-detected, read-only -->
         <div class="profile-section-card">
             <div class="section-title"><i class="fas fa-edit"></i> Edit Profile</div>
             <form onsubmit="saveProfileChangesInline(event)">
@@ -1759,7 +1773,6 @@ function renderProfileFull() {
                     <label>Telegram Username</label>
                     <input id="editTelegramInline" value="${userProfile.telegram || ''}" placeholder="@username" type="text" />
                 </div>
-                <!-- Country is auto-detected, not editable -->
                 <div class="profile-form-group" style="opacity:0.6;">
                     <label>Country (auto-detected)</label>
                     <input type="text" value="${userCountry}" disabled style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--card-bg);color:var(--text);" />
@@ -1779,7 +1792,6 @@ function renderProfileFull() {
             </form>
         </div>
 
-        <!-- Password & Security -->
         <div class="profile-section-card">
             <div class="section-title"><i class="fas fa-lock"></i> Password & Security</div>
             <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px; margin-bottom:8px; background:var(--glass-bg); padding:8px 12px; border-radius:var(--radius-sm); border:1px solid var(--glass-border);">
@@ -1815,7 +1827,6 @@ function renderProfileFull() {
             </div>
         </div>
 
-        <!-- Telegram Notifications -->
         <div class="profile-section-card">
             <div class="section-title"><i class="fab fa-telegram-plane" style="color:#0088cc;"></i> Telegram Notifications</div>
             <div class="telegram-status-row">
@@ -1873,7 +1884,6 @@ window.saveProfileChangesInline = async function(e) {
     const name = document.getElementById('editNameInline').value.trim();
     const telegram = document.getElementById('editTelegramInline').value.trim();
     const lang = document.getElementById('editLangInline').value;
-    // Country is not editable - keep existing
     if (!name) { showToast('⚠️ Name is required', 'warning'); return; }
     try {
         await updateProfile(currentUser, { displayName: name });
@@ -1882,7 +1892,6 @@ window.saveProfileChangesInline = async function(e) {
         userProfile.name = name;
         userProfile.telegram = telegram;
         userProfile.lang = lang;
-        // country remains auto-detected
         showToast('✅ Profile updated!', 'success');
         updateUI();
         renderProfileFull();
@@ -2543,6 +2552,8 @@ window.addToCart = async function(productId) {
         updateBottomCartBar();
         showToast(`✅ Added ${product.name} (${selectedQty}) to cart`, 'success');
         updateProductCardButton(productId);
+        // Log activity
+        await logActivity('add_to_cart', { productId, productName: product.name, price: product.price, quantity: selectedQty });
         return;
     }
 
@@ -2555,6 +2566,8 @@ window.addToCart = async function(productId) {
     updateBottomCartBar();
     showToast(`✅ Added ${product.name} to cart`, 'success');
     updateProductCardButton(productId);
+    // Log activity
+    await logActivity('add_to_cart', { productId, productName: product.name, price: product.price });
 };
 
 window.clearCart = async function() { if (cart.length === 0) return;
@@ -2871,6 +2884,9 @@ window.openDetails = function(id) {
         return;
     }
 
+    // Log activity
+    logActivity('view_product', { productId: id, productName: p.name, price: p.price });
+
     const isFree = p.price === 0;
     const isUnavailable = p.status === 'unavailable';
     const badgeClass = isUnavailable ? 'unavailable' : (isFree ? 'free' : 'vip');
@@ -3025,7 +3041,6 @@ window.openDetails = function(id) {
                 </div>
             </div>
 
-            <!-- Embedded Banner -->
             <div style="margin-top:16px;padding:16px 20px;background:linear-gradient(135deg, rgba(108,92,231,0.1), rgba(249,202,36,0.08));border-radius:var(--radius-md);border:1px solid var(--glass-border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
                 <div style="display:flex;align-items:center;gap:14px;">
                     <div style="width:56px;height:56px;border-radius:var(--radius-sm);overflow:hidden;background:var(--bg-secondary);flex-shrink:0;">
@@ -3607,16 +3622,31 @@ async function processBalancePayment(totalAmount) {
             total: totalAmount,
             method: 'balance',
             date: new Date().toISOString(),
-            status: 'confirmed', // Auto-confirmed for balance payments
+            status: 'confirmed',
         };
         userProfile.history.push(orderItem);
         await updateDoc(userRef, { history: arrayUnion(orderItem) });
 
-        // Generate licence immediately for balance payments (auto-confirmed)
+        // Add transaction record
+        try {
+            await supabase.from('transactions').insert({
+                user_id: currentUser.uid,
+                user_email: currentUser.email,
+                amount: totalAmount,
+                type: 'purchase',
+                description: `Order #${orderId.slice(-6)} - Balance Payment`,
+                status: 'completed',
+                order_id: orderId,
+                created_at: new Date().toISOString()
+            });
+            console.log('✅ Transaction record created for balance payment');
+        } catch (txError) {
+            console.error('Failed to create transaction record:', txError);
+        }
+
         const visitorInfo = await getVisitorInfo();
         const deviceInfo = getDeviceInfo();
 
-        // Send order confirmation email
         await sendOrderConfirmationEmail(currentUser.email, {
             orderId: orderId,
             userName: currentUser.displayName || currentUser.email,
@@ -3627,7 +3657,6 @@ async function processBalancePayment(totalAmount) {
             txHash: null
         });
 
-        // Send admin notification
         const adminMessage = `
 👤 *User:* ${currentUser.displayName || currentUser.email || 'User'}
 📧 *Email:* ${currentUser.email || 'N/A'}
@@ -3640,7 +3669,6 @@ async function processBalancePayment(totalAmount) {
         `;
         await sendAdminNotification('✅ Order Paid with Balance', adminMessage);
 
-        // Send user Telegram notification
         if (userProfile.telegramChatId) {
             const userTelegramMessage = `
 🛒 *ORDER PAID WITH BALANCE!*
@@ -3658,10 +3686,12 @@ async function processBalancePayment(totalAmount) {
             await sendTelegramNotification(userProfile.telegramChatId, userTelegramMessage);
         }
 
-        // Generate licences for each item
         for (const item of orderItem.items) {
             await generateLicenceForUser(currentUser.uid, currentUser.email, item, orderId);
         }
+
+        // Log activity
+        await logActivity('purchase', { orderId, total: totalAmount, items: orderItem.items.length });
 
         cart = [];
         await saveUserData();
@@ -3804,11 +3834,10 @@ window.submitManualPayment = function() {
 };
 
 // ============================================================
-// SEND USER NOTIFICATION - FIXED (was missing)
+// SEND USER NOTIFICATION - FIXED
 // ============================================================
 async function sendUserNotification(userId, title, message) {
     try {
-        // Send to Firebase notifications collection
         await addDoc(collection(db, 'notifications'), {
             title: title,
             message: message,
@@ -3818,7 +3847,6 @@ async function sendUserNotification(userId, title, message) {
         });
         console.log('✅ User notification sent to Firebase');
 
-        // Send to Telegram if user has chat ID
         const userRef = doc(db, 'users', userId);
         const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
@@ -3868,7 +3896,6 @@ async function generateLicenceForUser(userId, userEmail, item, orderId) {
 
         const userData = userSnap.data();
 
-        // Create licence via Edge Function
         const payload = {
             orderId: orderId,
             userId: userId,
@@ -3901,7 +3928,6 @@ async function generateLicenceForUser(userId, userEmail, item, orderId) {
             throw new Error(data.error || 'Failed to create licence');
         }
 
-        // Add licence to user's profile
         const userLicences = userData.licences || [];
         const newLicence = {
             code: data.licence.code,
@@ -3921,7 +3947,6 @@ async function generateLicenceForUser(userId, userEmail, item, orderId) {
             updateFullUserMenu();
         }
 
-        // Send notification to user
         await sendUserNotification(
             userId,
             '🔑 Licence Generated!',
@@ -3989,7 +4014,7 @@ async function sendAdminNotification(title, message) {
 }
 
 // ============================================================
-// SEND ORDER TO TELEGRAM (with email integration)
+// SEND ORDER TO TELEGRAM
 // ============================================================
 async function sendOrderToTelegram(method, txHash = null) {
     if (isProcessingOrder) {
@@ -4121,7 +4146,7 @@ async function sendOrderToTelegram(method, txHash = null) {
             total: finalTotal,
             method: method,
             date: new Date().toISOString(),
-            status: 'pending', // Pending admin confirmation
+            status: 'pending',
             txHash: txHash || null,
             screenshotUrl: result.screenshotUrl || null,
             rpUsed: 0,
@@ -4131,7 +4156,23 @@ async function sendOrderToTelegram(method, txHash = null) {
         const userRef = doc(db, 'users', currentUser.uid);
         await updateDoc(userRef, { history: arrayUnion(orderItem) });
 
-        // ===== SEND ORDER CONFIRMATION EMAIL =====
+        // Add transaction record (pending)
+        try {
+            await supabase.from('transactions').insert({
+                user_id: currentUser.uid,
+                user_email: currentUser.email,
+                amount: finalTotal,
+                type: 'purchase',
+                description: `Order #${orderId.slice(-6)} - Pending Confirmation`,
+                status: 'pending',
+                order_id: orderId,
+                created_at: new Date().toISOString()
+            });
+            console.log('✅ Transaction record created for order (pending)');
+        } catch (txError) {
+            console.error('Failed to create transaction record:', txError);
+        }
+
         await sendOrderConfirmationEmail(currentUser.email, {
             orderId: orderId,
             userName: currentUser.displayName || currentUser.email,
@@ -4232,6 +4273,9 @@ ${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
 🔔 *Status:* Pending - Awaiting confirmation
         `;
         await sendAdminNotification('📦 New Order Received', adminMessage);
+
+        // Log activity
+        await logActivity('purchase', { orderId, total: finalTotal, items: cartData.length, method, status: 'pending' });
 
         const proxyItems = cart.filter(item => item.isProxy);
         if (proxyItems.length > 0 && DISABLE_PROXY) {
@@ -5265,7 +5309,22 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
         });
         await updateDoc(userRef, { history: updatedHistory });
 
-        // Send user notification
+        // Update transaction status
+        try {
+            if (orderFound) {
+                await supabase
+                    .from('transactions')
+                    .update({ 
+                        status: newStatus === 'confirmed' ? 'completed' : newStatus,
+                        description: `Order #${orderId.slice(-6)} - ${newStatus === 'confirmed' ? 'Confirmed' : 'Rejected'}`
+                    })
+                    .eq('order_id', orderId);
+                console.log('✅ Transaction status updated');
+            }
+        } catch (txError) {
+            console.error('Failed to update transaction status:', txError);
+        }
+
         await sendUserNotification(
             userId,
             newStatus === 'confirmed' ? '✅ Order Confirmed!' : '❌ Order Rejected',
@@ -5274,10 +5333,8 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
             `Your order #${orderId.slice(-6)} has been rejected. Please contact support for more information.`
         );
 
-        // Send order status email
         await sendOrderStatusEmail(data.email || userId, orderId, newStatus);
 
-        // Send Telegram notification
         if (data.telegramChatId) {
             const statusEmoji = newStatus === 'confirmed' ? '✅' : '❌';
             const statusText = newStatus === 'confirmed' ? 'CONFIRMED' : 'REJECTED';
@@ -5296,10 +5353,8 @@ ${newStatus === 'confirmed' ? '🔑 Your licences have been generated and are av
             console.log('✅ Telegram notification sent to user for status update');
         }
 
-        // IMPORTANT: ONLY generate licences when status changes to confirmed
         if (newStatus === 'confirmed') {
             const userEmail = orderFound?.userEmail || data.email || userId;
-            // Generate licences for each item in the order
             if (orderFound && orderFound.items) {
                 for (const item of orderFound.items) {
                     await generateLicenceForUser(userId, userEmail, item, orderId);
@@ -5329,6 +5384,12 @@ window.deleteOrderImmediately = async function(orderId, userId) {
         const history = data.history || [];
         const updatedHistory = history.filter(order => order.id !== orderId);
         await updateDoc(userRef, { history: updatedHistory });
+        // Delete transaction record
+        try {
+            await supabase.from('transactions').delete().eq('order_id', orderId);
+        } catch (txError) {
+            console.error('Failed to delete transaction:', txError);
+        }
         showToast(`🗑️ Order #${String(orderId).slice(-6)} deleted permanently`, 'success');
         loadAdminOrders();
         if (currentUser && currentUser.uid === userId) { userProfile.history = updatedHistory; }
@@ -6505,33 +6566,37 @@ window.loadAuditLogs = loadAuditLogs;
 // ACTIVITY LOGS
 // ============================================================
 window.loadActivityLogs = async function() {
-    if (!currentUser || !isAdminCached) return;
+    if (!currentUser || !isAdminCached) {
+        console.log('ℹ️ loadActivityLogs skipped (not admin)');
+        return;
+    }
+    
     const container = document.getElementById('adminActivityContainer');
     if (!container) return;
 
-    container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
+    container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading activity logs...</div>`;
 
     try {
         const activityRef = collection(db, 'user_activity');
         const q = query(activityRef, orderBy('createdAt', 'desc'), limit(100));
         const snapshot = await getDocs(q);
 
-        const activities = [];
-        snapshot.forEach(doc => {
-            activities.push({ id: doc.id, ...doc.data() });
-        });
-
-        if (activities.length === 0) {
+        if (snapshot.empty) {
             container.innerHTML = `
                 <div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">
                     <i class="fas fa-activity" style="font-size:36px;display:block;margin-bottom:8px;opacity:0.2;"></i>
                     No activities logged yet
+                    <div style="font-size:12px;margin-top:8px;opacity:0.3;">Try performing some actions like viewing products or adding to cart</div>
                 </div>
             `;
             return;
         }
 
-        // Categorize by type
+        const activities = [];
+        snapshot.forEach(doc => {
+            activities.push({ id: doc.id, ...doc.data() });
+        });
+
         const types = {};
         activities.forEach(a => {
             types[a.type] = (types[a.type] || 0) + 1;
@@ -6584,13 +6649,19 @@ window.loadActivityLogs = async function() {
         container.innerHTML = `
             <div style="text-align:center;padding:20px;color:var(--danger);">
                 Failed to load activity logs: ${error.message}
+                ${error.code === 'permission-denied' ? '<br><span style="font-size:12px;">⚠️ Check Firestore rules for user_activity collection</span>' : ''}
+                <br>
+                <button onclick="loadActivityLogs()" style="margin-top:8px;padding:6px 16px;background:var(--primary);border:none;border-radius:var(--radius-sm);color:#fff;cursor:pointer;">Retry</button>
             </div>
         `;
     }
 };
 
 window.exportActivityLogs = async function() {
-    if (!currentUser || !isAdminCached) return;
+    if (!currentUser || !isAdminCached) {
+        showToast('⛔ Unauthorized', 'error');
+        return;
+    }
     try {
         const activityRef = collection(db, 'user_activity');
         const q = query(activityRef, orderBy('createdAt', 'desc'), limit(500));
@@ -7272,7 +7343,7 @@ window.selectTopupAmount = function(amount) {
 };
 
 // ============================================================
-// TOPUP SYSTEM - PROCESS TOPUP (FIXED)
+// TOPUP SYSTEM - PROCESS TOPUP (FIXED - Uses Edge Function only)
 // ============================================================
 window.processTopup = async function() {
     if (!currentUser) {
@@ -7528,7 +7599,7 @@ You will receive a notification once approved.
 };
 
 // ============================================================
-// TOPUP SYSTEM - ADMIN FUNCTIONS
+// TOPUP SYSTEM - ADMIN FUNCTIONS (FIXED - Only Edge Function updates balance)
 // ============================================================
 window.approveTopup = async function(topupId) {
     if (!currentUser || !isAdminCached) {
@@ -7547,6 +7618,7 @@ window.approveTopup = async function(topupId) {
 
         if (fetchError) throw fetchError;
 
+        // Use Edge Function to handle everything (balance update + status change)
         const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/approve-topup', {
             method: 'POST',
             headers: {
@@ -7566,45 +7638,29 @@ window.approveTopup = async function(topupId) {
             throw new Error(result.error || 'Failed to approve topup');
         }
 
-        const adminMessage = `
+        // DO NOT update balance manually here - Edge Function already did it
+        // Just refresh the UI
+        showToast(`✅ Topup approved successfully!`, 'success');
+        loadAdminTopups();
+        loadUserBalance();
+        
+        // Send notifications
+        if (topupData) {
+            const adminMessage = `
 👤 *User:* ${topupData?.user_email || 'Unknown'}
-🆔 *User ID:* ${topupData?.user_id || 'N/A'}
 💵 *Amount:* $${topupData?.amount_usd || 0}
 🔗 *TXID:* \`${topupData?.tx_hash || 'N/A'}\`
 📅 *Date:* ${new Date().toLocaleString()}
-✅ *Status:* APPROVED - Balance Updated
-        `;
-
-        await sendAdminNotification('✅ Topup Approved - Balance Updated', adminMessage);
-
-        if (topupData) {
-            const userRef = doc(db, 'users', topupData.user_id);
-            const userSnap = await getDoc(userRef);
-            if (userSnap.exists()) {
-                const userEmail = userSnap.data().email || topupData.user_id;
-                await sendTopupConfirmationEmail(userEmail, topupData.amount_usd, topupData.tx_hash);
-            }
-
+✅ *Status:* APPROVED
+            `;
+            await sendAdminNotification('✅ Topup Approved', adminMessage);
+            
             await sendTelegramTopupNotification(
                 topupData.user_id,
                 topupData.amount_usd,
                 topupData.tx_hash
             );
-
-            const userRef2 = doc(db, 'users', topupData.user_id);
-            const userSnap2 = await getDoc(userRef2);
-            if (userSnap2.exists()) {
-                const currentBalance = userSnap2.data().balance || 0;
-                await updateDoc(userRef2, {
-                    balance: currentBalance + topupData.amount_usd,
-                    updatedAt: serverTimestamp()
-                });
-            }
         }
-
-        showToast(`✅ ${result.message}`, 'success');
-        loadAdminTopups();
-        loadUserBalance();
 
     } catch (error) {
         console.error('Approve error:', error);
@@ -7647,16 +7703,6 @@ window.rejectTopup = async function(topupId) {
         if (!result.success) {
             throw new Error(result.error || 'Failed to reject topup');
         }
-
-        const adminMessage = `
-👤 *User:* ${topupData?.user_email || 'Unknown'}
-💵 *Amount:* $${topupData?.amount_usd || 0}
-🔗 *TXID:* \`${topupData?.tx_hash || 'N/A'}\`
-📅 *Date:* ${new Date().toLocaleString()}
-❌ *Status:* REJECTED
-        `;
-
-        await sendAdminNotification('❌ Topup Rejected', adminMessage);
 
         showToast('✅ Topup rejected', 'success');
         loadAdminTopups();
@@ -10608,8 +10654,77 @@ function getDeviceInfo() {
 }
 
 // ============================================================
+// LOG ACTIVITY
+// ============================================================
+async function logActivity(type, data = {}) {
+    if (!currentUser) return;
+    if (!isLoggingActive) return;
+    
+    const activity = {
+        userId: currentUser.uid,
+        userEmail: currentUser.email,
+        userName: currentUser.displayName || 'User',
+        type: type,
+        data: data,
+        ip: (await getVisitorInfo()).ip || 'Unknown',
+        userAgent: navigator.userAgent,
+        timestamp: new Date().toISOString()
+    };
+    
+    activityQueue.push(activity);
+    
+    if (activityQueue.length >= 10) {
+        await flushActivities();
+    }
+}
+
+async function flushActivities() {
+    if (activityQueue.length === 0) return;
+    
+    const batch = [...activityQueue];
+    activityQueue = [];
+    
+    try {
+        for (const activity of batch) {
+            await addDoc(collection(db, 'user_activity'), {
+                ...activity,
+                createdAt: serverTimestamp()
+            });
+        }
+        console.log(`✅ ${batch.length} activities logged`);
+    } catch (error) {
+        console.error('❌ Failed to log activities:', error);
+        activityQueue = [...batch, ...activityQueue];
+    }
+}
+
+function startActivityLogger() {
+    if (flushInterval) clearInterval(flushInterval);
+    flushInterval = setInterval(flushActivities, 30000);
+    
+    document.addEventListener('click', (e) => {
+        const target = e.target.closest('[data-track]');
+        if (target) {
+            const action = target.dataset.track || 'click';
+            logActivity('click', { 
+                element: action,
+                text: target.textContent?.slice(0, 50) || ''
+            });
+        }
+    });
+    
+    window.addEventListener('beforeunload', () => {
+        flushActivities();
+    });
+}
+
+// ============================================================
 // INIT
 // ============================================================
+let isLoggingActive = true;
+let activityQueue = [];
+let flushInterval = null;
+
 async function init() {
     console.log('🚀 Initializing ZI Store...');
 
@@ -10642,6 +10757,7 @@ async function init() {
         initTopInfoBar();
         loadCoupons();
         loadBranding();
+        startActivityLogger();
 
         setTimeout(removeDuplicateDate, 500);
         setTimeout(styleHeaderTopup, 500);
