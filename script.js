@@ -9,7 +9,7 @@
 // 5. Payment (LTC/USDT/Balance/Telegram/Binance)
 // 6. Orders with automatic licence generation ONLY after admin confirmation
 // 7. Topup system (fixed amount_usd and payment_data)
-// 8. Email system (Welcome, Order Confirmation, Status Update, Topup Confirmation, Admin Notification)
+// 8. Email system (Welcome, Order Confirmation, Status Update, Topup Confirmation, Admin Notification, Security Alert)
 // 9. Admin panel with all tabs (Orders, Users, Products, Licences, Topups, Emails, Activity, Fraud, Branding, etc.)
 // 10. Slider, Marquee, Coupons, Recommendations, Fraud Detection
 // 11. Full export of all functions to window
@@ -19,6 +19,8 @@
 // 15. Topup approval only adds balance once and updates status correctly
 // 16. Transaction history works with Supabase
 // 17. Activity logs work with Firestore
+// 18. Security alert on IP change with email notification
+// 19. Welcome email sent only once per user
 // ============================================================
 
 // ============================================================
@@ -272,7 +274,13 @@ let userProfile = {
     isBanned: false,
     lastDailyReward: 0,
     licences: [],
-    balance: 0
+    balance: 0,
+    // Security fields
+    lastIP: '',
+    lastCountry: '',
+    lastLoginDate: null,
+    welcomeEmailSent: false,
+    loginCount: 0
 };
 
 // ============================================================
@@ -481,7 +489,7 @@ window.showMainApp = function() {
 };
 
 // ============================================================
-// FIX: Remove duplicate date, style header topup
+// REMOVE DUPLICATE DATE
 // ============================================================
 function removeDuplicateDate() {
     const dates = document.querySelectorAll('#serverTime, .server-time, .header-date, .date-display, [data-date]');
@@ -529,12 +537,11 @@ function updateServerTime() {
         hour12: false,
         weekday: 'short'
     };
-    // صيغة واحدة فقط: "Thu, Aug 06, 2026, 20:46:21"
+    // ONE date format only: "Thu, Aug 06, 2026, 20:46:21"
     const dateTimeStr = now.toLocaleString('en-US', options);
 
     const el = document.getElementById('serverTime');
     if (el) {
-        // عرض التاريخ والوقت مرة واحدة فقط
         el.innerHTML = `<i class="far fa-calendar-alt" style="margin-right:3px;color:var(--vip-color);"></i> ${dateTimeStr}`;
     }
 }
@@ -614,7 +621,6 @@ async function initTopInfoBar() {
     serverTimeInterval = setInterval(updateServerTime, 1000);
     await fetchUserInfo();
     setInterval(fetchUserInfo, 300000);
-    // إزالة أي عناصر تاريخ مكررة
     setTimeout(removeDuplicateDate, 100);
 }
 
@@ -764,6 +770,10 @@ function loadFromLocalStorage() {
         const licencesData = localStorage.getItem('zi_licences_backup');
         const photoURLData = localStorage.getItem('zi_photoURL_backup');
         const balanceData = localStorage.getItem('zi_balance_backup');
+        const lastIPData = localStorage.getItem('zi_lastIP_backup');
+        const lastCountryData = localStorage.getItem('zi_lastCountry_backup');
+        const welcomeEmailSentData = localStorage.getItem('zi_welcomeEmailSent_backup');
+        const loginCountData = localStorage.getItem('zi_loginCount_backup');
 
         wishlist = wishlistData ? JSON.parse(wishlistData) : [];
         cart = cartData ? JSON.parse(cartData) : [];
@@ -778,6 +788,10 @@ function loadFromLocalStorage() {
         userProfile.licences = licencesData ? JSON.parse(licencesData) : [];
         userProfile.photoURL = photoURLData || '';
         userProfile.balance = balanceData ? parseFloat(balanceData) : 0;
+        userProfile.lastIP = lastIPData || '';
+        userProfile.lastCountry = lastCountryData || '';
+        userProfile.welcomeEmailSent = welcomeEmailSentData === 'true';
+        userProfile.loginCount = loginCountData ? parseInt(loginCountData) : 0;
         userBalance = userProfile.balance;
 
         updateWishlistUI();
@@ -844,6 +858,10 @@ function startUserRealtimeListener() {
             userProfile.lastDailyReward = data.lastDailyReward || 0;
             userProfile.licences = data.licences || [];
             userProfile.balance = data.balance || 0;
+            userProfile.lastIP = data.lastIP || '';
+            userProfile.lastCountry = data.lastCountry || '';
+            userProfile.welcomeEmailSent = data.welcomeEmailSent || false;
+            userProfile.loginCount = data.loginCount || 0;
             userBalance = userProfile.balance;
 
             updateWishlistUI();
@@ -914,6 +932,10 @@ async function loadUserData() {
             userProfile.lastDailyReward = data.lastDailyReward || 0;
             userProfile.licences = data.licences || [];
             userProfile.balance = data.balance || 0;
+            userProfile.lastIP = data.lastIP || '';
+            userProfile.lastCountry = data.lastCountry || '';
+            userProfile.welcomeEmailSent = data.welcomeEmailSent || false;
+            userProfile.loginCount = data.loginCount || 0;
             userBalance = userProfile.balance;
 
             updateWishlistUI();
@@ -954,6 +976,10 @@ async function loadUserData() {
                 balance: 0,
                 country: 'Tunisia',
                 location: 'Tunisia',
+                lastIP: '',
+                lastCountry: 'Tunisia',
+                welcomeEmailSent: false,
+                loginCount: 0,
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp()
             });
@@ -980,6 +1006,10 @@ async function saveUserData(silent = false) {
         localStorage.setItem('zi_licences_backup', JSON.stringify(userProfile.licences || []));
         localStorage.setItem('zi_photoURL_backup', userProfile.photoURL || '');
         localStorage.setItem('zi_balance_backup', JSON.stringify(userProfile.balance || 0));
+        localStorage.setItem('zi_lastIP_backup', userProfile.lastIP || '');
+        localStorage.setItem('zi_lastCountry_backup', userProfile.lastCountry || '');
+        localStorage.setItem('zi_welcomeEmailSent_backup', userProfile.welcomeEmailSent ? 'true' : 'false');
+        localStorage.setItem('zi_loginCount_backup', JSON.stringify(userProfile.loginCount || 0));
         return true;
     }
     const uid = currentUser.uid;
@@ -1006,6 +1036,10 @@ async function saveUserData(silent = false) {
             lastDailyReward: userProfile.lastDailyReward || 0,
             licences: userProfile.licences || [],
             balance: userProfile.balance || 0,
+            lastIP: userProfile.lastIP || '',
+            lastCountry: userProfile.lastCountry || '',
+            welcomeEmailSent: userProfile.welcomeEmailSent || false,
+            loginCount: userProfile.loginCount || 0,
             updatedAt: serverTimestamp()
         }, { merge: true });
         localStorage.setItem('zi_wishlist_backup', JSON.stringify(wishlist));
@@ -1021,6 +1055,10 @@ async function saveUserData(silent = false) {
         localStorage.setItem('zi_licences_backup', JSON.stringify(userProfile.licences || []));
         localStorage.setItem('zi_photoURL_backup', userProfile.photoURL || '');
         localStorage.setItem('zi_balance_backup', JSON.stringify(userProfile.balance || 0));
+        localStorage.setItem('zi_lastIP_backup', userProfile.lastIP || '');
+        localStorage.setItem('zi_lastCountry_backup', userProfile.lastCountry || '');
+        localStorage.setItem('zi_welcomeEmailSent_backup', userProfile.welcomeEmailSent ? 'true' : 'false');
+        localStorage.setItem('zi_loginCount_backup', JSON.stringify(userProfile.loginCount || 0));
         return true;
     } catch (e) {
         console.error('Save failed:', e);
@@ -1145,6 +1183,192 @@ window.showRegister = function() { document.getElementById('loginContainer').sty
     document.getElementById('registerContainer').style.display = 'block'; };
 window.toggleReferral = function() { document.getElementById('referralField').classList.toggle('show'); };
 
+// ============================================================
+// CHECK IP CHANGE & SEND SECURITY ALERT
+// ============================================================
+async function checkIPChange(user, currentIP, currentCountry) {
+    if (!user) return;
+
+    try {
+        const userRef = doc(db, 'users', user.uid);
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) return;
+
+        const data = userSnap.data();
+        const lastIP = data.lastIP || null;
+        const lastCountry = data.lastCountry || null;
+        const welcomeEmailSent = data.welcomeEmailSent || false;
+        const loginCount = data.loginCount || 0;
+
+        // ===== 1. Send welcome email (only once) =====
+        if (!welcomeEmailSent && loginCount === 0) {
+            await sendWelcomeEmail(user.email, user.displayName || user.email);
+            await updateDoc(userRef, {
+                welcomeEmailSent: true,
+                loginCount: loginCount + 1,
+                lastIP: currentIP,
+                lastCountry: currentCountry,
+                lastLoginDate: serverTimestamp(),
+                updatedAt: serverTimestamp()
+            });
+            console.log('✅ Welcome email sent (first login)');
+            return;
+        }
+
+        // ===== 2. Check IP change =====
+        const ipChanged = lastIP && currentIP && lastIP !== currentIP;
+        const countryChanged = lastCountry && currentCountry && lastCountry !== currentCountry;
+
+        if (ipChanged || countryChanged) {
+            console.log(`⚠️ IP/Country changed for user ${user.email}`);
+            console.log(`Old: ${lastIP} (${lastCountry}) → New: ${currentIP} (${currentCountry})`);
+
+            // Send security alert email
+            await sendSecurityAlertEmail(
+                user.email,
+                user.displayName || user.email,
+                currentIP,
+                currentCountry,
+                lastIP,
+                lastCountry,
+                new Date().toLocaleString()
+            );
+
+            // Send admin notification
+            await sendAdminNotification(
+                '🔐 Security Alert: IP Changed',
+                `User: ${user.email}\nOld IP: ${lastIP}\nNew IP: ${currentIP}\nOld Country: ${lastCountry}\nNew Country: ${currentCountry}\nTime: ${new Date().toLocaleString()}`
+            );
+
+            // Update user document
+            await updateDoc(userRef, {
+                lastIP: currentIP,
+                lastCountry: currentCountry,
+                lastLoginDate: serverTimestamp(),
+                loginCount: loginCount + 1,
+                updatedAt: serverTimestamp()
+            });
+
+            showToast('🔐 Security alert sent to your email.', 'warning');
+        } else {
+            // Just update login count and last login date
+            await updateDoc(userRef, {
+                lastLoginDate: serverTimestamp(),
+                loginCount: loginCount + 1,
+                updatedAt: serverTimestamp()
+            });
+        }
+
+        // Update local profile
+        userProfile.lastIP = currentIP;
+        userProfile.lastCountry = currentCountry;
+        userProfile.loginCount = (loginCount || 0) + 1;
+        await saveUserData(true);
+
+    } catch (error) {
+        console.error('Error in checkIPChange:', error);
+    }
+}
+
+// ============================================================
+// SECURITY ALERT EMAIL
+// ============================================================
+async function sendSecurityAlertEmail(userEmail, userName, newIP, newCountry, oldIP, oldCountry, loginTime) {
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔐 Security Alert</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f0f2f8; padding: 20px; margin: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+        .header { background: linear-gradient(135deg, #ff6b6b, #ee5a24); padding: 30px 30px 20px; text-align: center; }
+        .logo { font-size: 28px; font-weight: 900; color: #fff; }
+        .logo span { color: #f2a900; }
+        .status-icon { font-size: 48px; text-align: center; margin: 8px 0; }
+        .status-title { font-size: 24px; font-weight: 800; color: #fff; }
+        .content { padding: 35px 30px; }
+        .greeting { font-size: 16px; color: #1a1a2e; }
+        .greeting strong { color: #6c5ce7; }
+        .alert-box { background: #fff3cd; border-radius: 12px; padding: 16px 20px; margin: 12px 0; border-left: 4px solid #fbbf24; }
+        .alert-box p { font-size: 14px; color: #856404; line-height: 1.6; }
+        .details-table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+        .details-table td { padding: 8px 12px; border-bottom: 1px solid #f0f2f8; font-size: 13px; }
+        .details-table .label { color: #888; font-weight: 500; }
+        .details-table .value { font-weight: 600; color: #1a1a2e; }
+        .btn-primary { display: inline-block; background: #6c5ce7; color: #fff; padding: 12px 32px; border-radius: 30px; text-decoration: none; font-weight: 700; font-size: 14px; transition: all 0.3s; }
+        .btn-primary:hover { background: #5a4bd1; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(108,92,231,0.3); }
+        .btn-danger { display: inline-block; background: #ff6b6b; color: #fff; padding: 12px 32px; border-radius: 30px; text-decoration: none; font-weight: 700; font-size: 14px; transition: all 0.3s; }
+        .btn-danger:hover { background: #e55a5a; transform: translateY(-2px); }
+        .text-center { text-align: center; }
+        .divider { border: none; border-top: 2px solid #f0f2f8; margin: 16px 0; }
+        .footer { padding: 16px 30px; text-align: center; background: #f8f8ff; }
+        .footer-text { font-size: 11px; color: #888; }
+        .footer-links a { color: #6c5ce7; text-decoration: none; margin: 0 4px; font-size: 11px; }
+        .warning-badge { display: inline-block; padding: 4px 16px; border-radius: 30px; background: #ff6b6b; color: #fff; font-weight: 700; font-size: 12px; margin-top: 4px; }
+        @media (max-width: 480px) {
+            .header { padding: 20px; }
+            .content { padding: 20px 15px; }
+            .btn-primary, .btn-danger { padding: 10px 24px; font-size: 13px; display: block; margin: 6px 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">ZI <span>Store</span></div>
+            <div class="status-icon">🔐</div>
+            <div class="status-title">Security Alert</div>
+            <div><span class="warning-badge">⚠️ New Login Detected</span></div>
+        </div>
+        <div class="content">
+            <div class="greeting">Hello <strong>${userName || 'Customer'}</strong>,</div>
+            <p style="color: #4a4a6a; font-size: 14px; margin: 6px 0 12px;">We noticed a login to your account from a new device or location. If this was you, you can ignore this message. If not, please take immediate action.</p>
+            
+            <div class="alert-box">
+                <p><strong>⚠️ If you didn't perform this action, your account may be compromised.</strong><br>
+                We recommend changing your password immediately and contacting support.</p>
+            </div>
+
+            <h3 style="color: #1a1a2e; margin: 12px 0 8px; font-size: 16px;">📍 Login Details</h3>
+            <table class="details-table">
+                <tr><td class="label">📅 Date & Time</td><td class="value">${loginTime}</td></tr>
+                <tr><td class="label">🌍 New Country</td><td class="value">${newCountry || 'Unknown'}</td></tr>
+                <tr><td class="label">📶 New IP Address</td><td class="value" style="font-family:monospace;">${newIP || 'Unknown'}</td></tr>
+                ${oldIP ? `<tr><td class="label">🔄 Previous IP</td><td class="value" style="font-family:monospace;">${oldIP}</td></tr>` : ''}
+                ${oldCountry ? `<tr><td class="label">🌍 Previous Country</td><td class="value">${oldCountry}</td></tr>` : ''}
+            </table>
+
+            <hr class="divider">
+            <div class="text-center">
+                <a href="https://zi-store.online/profile" class="btn-danger" style="margin-right:6px;">🔑 Change Password</a>
+                <a href="mailto:support@zi-store.online" class="btn-primary">📧 Contact Support</a>
+            </div>
+            <p style="text-align: center; font-size: 12px; color: #888; margin-top: 10px;">
+                If you have any concerns, please contact our support team immediately.
+            </p>
+        </div>
+        <div class="footer">
+            <div class="footer-links">
+                <a href="https://zi-store.online">Store</a>
+                <a href="mailto:support@zi-store.online">Support</a>
+            </div>
+            <div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div>
+        </div>
+    </div>
+</body>
+</html>
+    `;
+
+    return await sendEmail(userEmail, '🔐 Security Alert: New Login Detected', html);
+}
+
+// ============================================================
+// LOGIN USER
+// ============================================================
 window.loginUser = async function() {
     const btn = document.getElementById('loginBtn');
     btn.classList.add('loading');
@@ -1163,6 +1387,10 @@ window.loginUser = async function() {
         showToast('👋 Welcome back!', 'success');
         btn.classList.remove('loading');
         await refreshAdminStatus();
+
+        // ===== CHECK IP CHANGE =====
+        const visitorInfo = await getVisitorInfo();
+        await checkIPChange(currentUser, visitorInfo.ip, visitorInfo.country);
 
         setTimeout(() => {
             document.getElementById('authSection').style.display = 'none';
@@ -1209,6 +1437,9 @@ window.loginUser = async function() {
         btn.classList.remove('loading'); }
 };
 
+// ============================================================
+// REGISTER USER
+// ============================================================
 window.registerUser = async function() {
     const btn = document.getElementById('registerBtn');
     btn.classList.add('loading');
@@ -1216,6 +1447,7 @@ window.registerUser = async function() {
     const successEl = document.getElementById('registerSuccess');
     errorEl.textContent = '';
     successEl.textContent = '';
+    
     const name = document.getElementById('registerName').value.trim();
     const email = document.getElementById('registerEmail').value.trim();
     const password = document.getElementById('registerPassword').value;
@@ -1223,40 +1455,54 @@ window.registerUser = async function() {
     const lang = document.getElementById('registerLang').value;
     const referralCode = document.getElementById('registerReferral').value.trim().toUpperCase();
     const termsChecked = document.getElementById('termsCheck').checked;
-    if (!name || !email || !password || !confirmPassword) { errorEl.textContent = 'Please fill in all fields';
-        btn.classList.remove('loading'); return; }
-    if (password.length < 6) { errorEl.textContent = 'Password must be at least 6 characters';
-        btn.classList.remove('loading'); return; }
-    if (password !== confirmPassword) { errorEl.textContent = 'Passwords do not match';
-        btn.classList.remove('loading'); return; }
-    if (!termsChecked) { errorEl.textContent = 'Please agree to the terms';
-        btn.classList.remove('loading'); return; }
+    
+    if (!name || !email || !password || !confirmPassword) {
+        errorEl.textContent = 'Please fill in all fields';
+        btn.classList.remove('loading');
+        return;
+    }
+    if (password.length < 6) {
+        errorEl.textContent = 'Password must be at least 6 characters';
+        btn.classList.remove('loading');
+        return;
+    }
+    if (password !== confirmPassword) {
+        errorEl.textContent = 'Passwords do not match';
+        btn.classList.remove('loading');
+        return;
+    }
+    if (!termsChecked) {
+        errorEl.textContent = 'Please agree to the terms';
+        btn.classList.remove('loading');
+        return;
+    }
+    
     try {
-        let detectedCountry = 'Tunisia';
-        try {
-            const ipInfo = await fetchUserInfo();
-            if (ipInfo && ipInfo.country_name) {
-                detectedCountry = ipInfo.country_name;
-                console.log('📍 Detected country from IP:', detectedCountry);
-            }
-        } catch (e) {
-            console.warn('⚠️ Could not detect country from IP, using default: Tunisia');
-        }
+        // ===== GET IP INFO =====
+        const visitorInfo = await fetchUserInfo();
+        const detectedCountry = visitorInfo?.country_name || 'Tunisia';
+        const detectedIP = visitorInfo?.ip || 'Unknown';
+        console.log('📍 Detected country from IP:', detectedCountry);
+        console.log('📍 Detected IP:', detectedIP);
 
+        // ===== CREATE USER =====
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(userCredential.user, { displayName: name });
         currentUser = userCredential.user;
+        
         const newReferralCode = generateReferralCode(name, email);
         const userRef = doc(db, 'users', currentUser.uid);
+        
+        // ===== SAVE USER WITH ALL FIELDS =====
         await setDoc(userRef, {
             userId: currentUser.uid,
             name,
             email,
             country: detectedCountry,
+            location: detectedCountry,
             lang,
             telegram: '',
             telegramChatId: '',
-            location: detectedCountry,
             wishlist: [],
             cart: [],
             history: [],
@@ -1272,15 +1518,23 @@ window.registerUser = async function() {
             licences: [],
             photoURL: '',
             balance: 0,
+            // ===== SECURITY FIELDS =====
+            lastIP: detectedIP,
+            lastCountry: detectedCountry,
+            lastLoginDate: serverTimestamp(),
+            welcomeEmailSent: false,
+            loginCount: 0,
+            // ===========================
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
         });
+        
         successEl.textContent = '✅ Registration successful!';
         showToast(`🎉 Welcome, ${name}!`, 'success');
         btn.classList.remove('loading');
         await refreshAdminStatus();
 
-        await sendWelcomeEmail(email, name);
+        // Welcome email will be sent by checkIPChange on first login
 
         setTimeout(() => {
             document.getElementById('authSection').style.display = 'none';
@@ -1304,11 +1558,17 @@ window.registerUser = async function() {
             initTopInfoBar();
             initPopups();
         }, 500);
-    } catch (error) { errorEl.textContent = '❌ ' + error.message;
+        
+    } catch (error) {
+        errorEl.textContent = '❌ ' + error.message;
         showToast('❌ Registration failed', 'error');
-        btn.classList.remove('loading'); }
+        btn.classList.remove('loading');
+    }
 };
 
+// ============================================================
+// LOGIN WITH GOOGLE
+// ============================================================
 window.loginWithGoogle = function() {
     const btn = document.getElementById('googleLoginBtn');
     if (btn) btn.classList.add('loading');
@@ -1327,10 +1587,12 @@ window.loginWithGoogle = function() {
             userProfile.photoURL = photoURL;
 
             let detectedCountry = 'Unknown';
+            let detectedIP = 'Unknown';
             try {
                 const ipInfo = await fetchUserInfo();
                 if (ipInfo && ipInfo.country_name) {
                     detectedCountry = ipInfo.country_name;
+                    detectedIP = ipInfo.ip || 'Unknown';
                     console.log('📍 Detected country from IP for Google login:', detectedCountry);
                 }
             } catch (e) {
@@ -1345,6 +1607,11 @@ window.loginWithGoogle = function() {
                 country: detectedCountry,
                 location: detectedCountry,
                 balance: 0,
+                lastIP: detectedIP,
+                lastCountry: detectedCountry,
+                lastLoginDate: serverTimestamp(),
+                welcomeEmailSent: false,
+                loginCount: 0,
                 updatedAt: serverTimestamp()
             }, { merge: true });
 
@@ -1353,7 +1620,8 @@ window.loginWithGoogle = function() {
             await refreshAdminStatus();
             await mergeGuestData(user.uid);
 
-            await sendWelcomeEmail(user.email, user.displayName || user.email);
+            // ===== CHECK IP CHANGE =====
+            await checkIPChange(currentUser, detectedIP, detectedCountry);
 
             setTimeout(() => {
                 document.getElementById('authSection').style.display = 'none';
@@ -1699,7 +1967,7 @@ function renderTransactions(transactions) {
 }
 
 // ============================================================
-// RENDER PROFILE FULL (with auto-detected country, read-only)
+// RENDER PROFILE FULL
 // ============================================================
 function renderProfileFull() {
     const container = document.getElementById('profileFullContent');
@@ -1719,9 +1987,13 @@ function renderProfileFull() {
     const balance = userProfile.balance || 0;
     const userCountry = userProfile.location || userProfile.country || 'Not set';
     const joinedDate = userProfile.joined || '--';
+    const lastIP = userProfile.lastIP || 'Not recorded';
+    const lastCountry = userProfile.lastCountry || 'Not recorded';
+    const loginCount = userProfile.loginCount || 0;
 
     container.innerHTML = `
     <div class="profile-container">
+        <!-- Hero Section -->
         <div class="profile-hero">
             <div class="hero-content">
                 <div class="hero-avatar">
@@ -1739,6 +2011,9 @@ function renderProfileFull() {
                     <div class="hero-joined"><i class="fas fa-calendar-alt"></i> Joined: ${joinedDate}</div>
                     <div style="font-size:12px; color:var(--text-secondary); opacity:0.5; margin-top:2px;">
                         <i class="fas fa-map-marker-alt" style="color:var(--vip-color);"></i> Country: ${userCountry} <span style="font-size:10px;opacity:0.4;">(auto-detected)</span>
+                    </div>
+                    <div style="font-size:11px; color:var(--text-secondary); opacity:0.3; margin-top:2px;">
+                        <i class="fas fa-shield-alt" style="color:var(--success);"></i> Last IP: ${lastIP} · Last Login: ${lastCountry} · Logins: ${loginCount}
                     </div>
                 </div>
             </div>
@@ -1762,6 +2037,7 @@ function renderProfileFull() {
             </div>
         </div>
 
+        <!-- Edit Profile -->
         <div class="profile-section-card">
             <div class="section-title"><i class="fas fa-edit"></i> Edit Profile</div>
             <form onsubmit="saveProfileChangesInline(event)">
@@ -1792,6 +2068,7 @@ function renderProfileFull() {
             </form>
         </div>
 
+        <!-- Password & Security -->
         <div class="profile-section-card">
             <div class="section-title"><i class="fas fa-lock"></i> Password & Security</div>
             <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px; margin-bottom:8px; background:var(--glass-bg); padding:8px 12px; border-radius:var(--radius-sm); border:1px solid var(--glass-border);">
@@ -1827,6 +2104,7 @@ function renderProfileFull() {
             </div>
         </div>
 
+        <!-- Telegram Notifications -->
         <div class="profile-section-card">
             <div class="section-title"><i class="fab fa-telegram-plane" style="color:#0088cc;"></i> Telegram Notifications</div>
             <div class="telegram-status-row">
@@ -2552,7 +2830,6 @@ window.addToCart = async function(productId) {
         updateBottomCartBar();
         showToast(`✅ Added ${product.name} (${selectedQty}) to cart`, 'success');
         updateProductCardButton(productId);
-        // Log activity
         await logActivity('add_to_cart', { productId, productName: product.name, price: product.price, quantity: selectedQty });
         return;
     }
@@ -2566,7 +2843,6 @@ window.addToCart = async function(productId) {
     updateBottomCartBar();
     showToast(`✅ Added ${product.name} to cart`, 'success');
     updateProductCardButton(productId);
-    // Log activity
     await logActivity('add_to_cart', { productId, productName: product.name, price: product.price });
 };
 
@@ -3686,11 +3962,11 @@ async function processBalancePayment(totalAmount) {
             await sendTelegramNotification(userProfile.telegramChatId, userTelegramMessage);
         }
 
+        // Generate licences (balance payments are auto-confirmed)
         for (const item of orderItem.items) {
             await generateLicenceForUser(currentUser.uid, currentUser.email, item, orderId);
         }
 
-        // Log activity
         await logActivity('purchase', { orderId, total: totalAmount, items: orderItem.items.length });
 
         cart = [];
@@ -3864,7 +4140,7 @@ async function sendUserNotification(userId, title, message) {
 }
 
 // ============================================================
-// GENERATE LICENCE FOR USER (only after admin confirmation)
+// GENERATE LICENCE FOR USER (ONLY after admin confirmation)
 // ============================================================
 async function generateLicenceForUser(userId, userEmail, item, orderId) {
     try {
@@ -3963,7 +4239,7 @@ async function generateLicenceForUser(userId, userEmail, item, orderId) {
 }
 
 // ============================================================
-// SEND ADMIN NOTIFICATION (Email + Telegram + Firebase)
+// SEND ADMIN NOTIFICATION
 // ============================================================
 async function sendAdminNotification(title, message) {
     try {
@@ -4594,7 +4870,7 @@ window.closeCreateDownloadModal = function() { document.getElementById('createDo
     'open'); };
 
 // ============================================================
-// LOAD NOTIFICATIONS (user-specific + admin-only)
+// LOAD NOTIFICATIONS
 // ============================================================
 function loadNotifications() {
     if (unsubscribeNotifications) { unsubscribeNotifications(); }
@@ -5286,7 +5562,7 @@ function updateAdminStats(orders) {
 }
 
 // ============================================================
-// UPDATE ORDER STATUS (with email + licence generation on confirm)
+// UPDATE ORDER STATUS (with email + licence generation ONLY on confirm)
 // ============================================================
 window.updateOrderStatus = async function(orderId, userId, newStatus) {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
@@ -5353,6 +5629,7 @@ ${newStatus === 'confirmed' ? '🔑 Your licences have been generated and are av
             console.log('✅ Telegram notification sent to user for status update');
         }
 
+        // ===== ONLY generate licences when status changes to confirmed =====
         if (newStatus === 'confirmed') {
             const userEmail = orderFound?.userEmail || data.email || userId;
             if (orderFound && orderFound.items) {
@@ -6787,13 +7064,9 @@ window.renderHistoryFull = function() {
     const container = document.getElementById('historyFullContent');
     if (!container) return;
 
-    const currency = document.getElementById('historyCurrencyFilter')?.value || 'all';
-    const status = document.getElementById('historyStatusFilter')?.value || 'all';
-
     const history = userProfile.history || [];
     if (history.length === 0) {
-        container.innerHTML =
-            `<div style="text-align:center; padding:40px 20px; color:var(--text-secondary);">
+        container.innerHTML = `<div style="text-align:center; padding:40px 20px; color:var(--text-secondary);">
             <i class="fas fa-shopping-bag" style="font-size:48px; opacity:0.15; display:block; margin-bottom:12px;"></i>
             <div style="font-size:18px; font-weight:600;">No orders yet</div>
             <div style="font-size:13px; opacity:0.4; margin-top:4px;">Your orders will appear here</div>
@@ -6801,85 +7074,32 @@ window.renderHistoryFull = function() {
         return;
     }
 
-    let paymentItems = history.map(order => {
-        let currencyCode = 'LTC';
-        let amount = 0;
-        if (order.items && order.items.length > 0) {
-            const firstItem = order.items[0];
-            currencyCode = firstItem.currency || 'LTC';
-            amount = order.total || 0;
-        }
-        const toAddress = order.txHash ? order.txHash.slice(0, 20) + '...' : 'N/A';
-        return {
-            id: order.id || '#' + String(Date.now()).slice(-6),
-            currency: currencyCode,
-            icon: currencyCode === 'LTC' ? 'L' : (currencyCode === 'BTC' ? '₿' : (currencyCode === 'ETH' ?
-                '⟠' : '₮')),
-            date: order.date ? new Date(order.date).toLocaleDateString('en-US', { month: 'short',
-                    day: 'numeric', year: 'numeric' }) : '--',
-            amount: amount.toFixed(2),
-            value: `$${amount.toFixed(2)}`,
-            status: order.status || 'pending',
-            to: toAddress,
-            method: order.method || 'Unknown',
-            screenshotUrl: order.screenshotUrl || null
-        };
-    });
-
-    let filtered = paymentItems.filter(p => {
-        const matchCurrency = currency === 'all' || p.currency === currency;
-        const matchStatus = status === 'all' || p.status === status;
-        return matchCurrency && matchStatus;
-    });
-
-    const isLtcFilter = (currency === 'LTC');
-
-    const delayNote = document.getElementById('historyDelayNote');
-    if (delayNote) {
-        delayNote.style.display = isLtcFilter ? 'block' : 'none';
-    }
-
-    if (filtered.length === 0) {
-        container.innerHTML =
-            `<div style="text-align:center; padding:30px; color:var(--text-secondary);">No orders match your filters.</div>`;
-        return;
-    }
-
-    filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
-
     let html = '';
-    filtered.forEach(p => {
-        let statusText = p.status === 'pending' ? 'Pending' : (p.status === 'confirmed' ? 'Completed' :
-            'Rejected');
-        if (isLtcFilter && p.status === 'pending') {
-            statusText = 'Pending (24–48h)';
-        }
-        const statusClass = p.status === 'confirmed' ? 'completed' : p.status;
+    history.forEach(order => {
+        const date = order.date ? new Date(order.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '--';
+        const total = order.total || 0;
+        const status = order.status || 'pending';
+        const itemsList = order.items ? order.items.map(item => `${item.name} (x${item.quantity || 1})`).join(', ') : 'No items';
+        const orderId = order.id || '------';
+        const orderIdDisplay = orderId.slice(-6);
 
-        const borderColor = p.currency === 'LTC' ? '#3fcb7a' : (p.currency === 'BTC' ? '#f7931a' : (p
-            .currency === 'ETH' ? '#627eea' : '#3e8cff'));
+        const statusMap = {
+            'pending': { label: '⏳ Pending', class: 'pending' },
+            'confirmed': { label: '✅ Confirmed', class: 'confirmed' },
+            'rejected': { label: '❌ Rejected', class: 'rejected' }
+        };
+        const info = statusMap[status] || statusMap['pending'];
 
         html += `
-            <div class="payment-card" style="border-left-color: ${borderColor};">
-                <div style="display:flex; align-items:center; gap:14px; flex:1; min-width:150px;">
-                    <div class="payment-icon" style="color: ${borderColor};">${p.icon}</div>
-                    <div class="payment-info">
-                        <div class="payment-currency">${p.currency}</div>
-                        <div class="payment-date">${p.date}</div>
-                        <div class="payment-id">${p.id}</div>
-                    </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--glass-bg);border-radius:var(--radius-sm);border:1px solid var(--glass-border);margin-bottom:6px;">
+                <div>
+                    <div style="font-weight:700;font-size:14px;">#${orderIdDisplay}</div>
+                    <div style="font-size:12px;color:var(--text-secondary);opacity:0.5;">${itemsList}</div>
+                    <div style="font-size:11px;color:var(--text-secondary);opacity:0.3;">${date}</div>
                 </div>
-                <div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap; margin-top:6px;">
-                    <div class="payment-amount">
-                        <div class="payment-coins">${p.amount} <small>${p.currency}</small></div>
-                        <div class="payment-value">${p.value}</div>
-                    </div>
-                    <div class="payment-status ${statusClass}">${statusText}</div>
-                </div>
-                <div class="payment-to">
-                    <i class="fas fa-arrow-right"></i> To: ${p.to}
-                    ${p.method ? ` • <span class="payment-method">${p.method}</span>` : ''}
-                    ${p.screenshotUrl ? ` • <a href="${p.screenshotUrl}" target="_blank" style="color:var(--primary);text-decoration:underline;">📸 View Screenshot</a>` : ''}
+                <div style="text-align:right;">
+                    <div style="font-weight:800;font-size:16px;color:var(--primary);">$${total.toFixed(2)}</div>
+                    <span class="status-badge ${info.class}" style="font-size:10px;padding:2px 10px;">${info.label}</span>
                 </div>
             </div>
         `;
@@ -7343,7 +7563,7 @@ window.selectTopupAmount = function(amount) {
 };
 
 // ============================================================
-// TOPUP SYSTEM - PROCESS TOPUP (FIXED - Uses Edge Function only)
+// TOPUP SYSTEM - PROCESS TOPUP (Uses Edge Function only)
 // ============================================================
 window.processTopup = async function() {
     if (!currentUser) {
@@ -7599,7 +7819,7 @@ You will receive a notification once approved.
 };
 
 // ============================================================
-// TOPUP SYSTEM - ADMIN FUNCTIONS (FIXED - Only Edge Function updates balance)
+// TOPUP SYSTEM - ADMIN FUNCTIONS (ONLY Edge Function updates balance)
 // ============================================================
 window.approveTopup = async function(topupId) {
     if (!currentUser || !isAdminCached) {
@@ -8852,7 +9072,7 @@ async function sendEmail(to, subject, htmlContent, textContent = '') {
 }
 
 // ============================================================
-// 2. WELCOME EMAIL
+// 2. WELCOME EMAIL (sent only once via checkIPChange)
 // ============================================================
 
 async function sendWelcomeEmail(userEmail, userName) {
@@ -9322,7 +9542,7 @@ async function sendTopupConfirmationEmail(userEmail, amount, txHash = null) {
 }
 
 // ============================================================
-// 6. CUSTOM RESET EMAIL (avoid conflict with Firebase)
+// 6. CUSTOM RESET EMAIL
 // ============================================================
 
 async function sendCustomResetEmail(userEmail, resetLink) {
@@ -10594,6 +10814,8 @@ window.generatePDFInvoice = generatePDFInvoice;
 window.loadBrandingSettings = loadBrandingSettings;
 window.saveBrandingSettings = saveBrandingSettings;
 window.resetBranding = resetBranding;
+window.checkIPChange = checkIPChange;
+window.sendSecurityAlertEmail = sendSecurityAlertEmail;
 
 console.log('✅ All functions exported to window scope');
 
@@ -10840,6 +11062,10 @@ onAuthStateChanged(auth, async (user) => {
                 userProfile.joined = data.createdAt ? new Date(data.createdAt.toDate())
                     .toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) :
                     '--';
+                userProfile.lastIP = data.lastIP || '';
+                userProfile.lastCountry = data.lastCountry || '';
+                userProfile.welcomeEmailSent = data.welcomeEmailSent || false;
+                userProfile.loginCount = data.loginCount || 0;
             } else {
                 userProfile.photoURL = user.photoURL || '';
                 userProfile.balance = 0;
@@ -10847,6 +11073,10 @@ onAuthStateChanged(auth, async (user) => {
                 userProfile.country = 'Unknown';
                 userProfile.location = 'Unknown';
                 userProfile.joined = '--';
+                userProfile.lastIP = '';
+                userProfile.lastCountry = '';
+                userProfile.welcomeEmailSent = false;
+                userProfile.loginCount = 0;
             }
         } catch (error) { console.error('Error checking ban status:', error); }
 
