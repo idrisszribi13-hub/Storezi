@@ -1,7 +1,26 @@
 // ============================================================
 // SCRIPT.JS - ZI Store - COMPLETE WORKING VERSION v5.0
 // ============================================================
-// ALL FEATURES + ALL FIXES - NO SHORTCUTS
+// ALL FEATURES:
+// 1. process defined for browser
+// 2. Loading screen with progress
+// 3. Firebase Auth + Firestore + Supabase
+// 4. Products, Cart, Wishlist
+// 5. Payment (LTC/USDT/Balance/Telegram/Binance)
+// 6. Orders with automatic licence generation ONLY after admin confirmation
+// 7. Topup system (fixed amount_usd and payment_data)
+// 8. Email system (Welcome, Order Confirmation, Status Update, Topup Confirmation, Admin Notification, Security Alert)
+// 9. Admin panel with all tabs (Orders, Users, Products, Licences, Topups, Emails, Activity, Fraud, Branding, etc.)
+// 10. Slider, Marquee, Coupons, Recommendations, Fraud Detection
+// 11. Full export of all functions to window
+// 12. Auto-detect country on registration, profile shows country (read-only)
+// 13. Licences visible in user profile ONLY after admin confirmation
+// 14. Date appears only ONCE in top bar (fixed duplicate issue)
+// 15. Topup approval only adds balance once and updates status correctly
+// 16. Transaction history works with Supabase
+// 17. Activity logs work with Firestore
+// 18. Security alert on IP change with email notification
+// 19. Welcome email sent only once per user
 // ============================================================
 
 // ============================================================
@@ -256,6 +275,7 @@ let userProfile = {
     lastDailyReward: 0,
     licences: [],
     balance: 0,
+    // Security fields
     lastIP: '',
     lastCountry: '',
     lastLoginDate: null,
@@ -269,14 +289,14 @@ let userProfile = {
 const fallbackProducts = [
     {
         id: "fallback_1",
-        name: "Survive Idle Run",
-        price: 16,
+        name: "Mergedom VIP",
+        price: 11,
         badge: "VIP",
         status: "available",
-        image: "https://picsum.photos/seed/survive/400/300",
+        image: "https://picsum.photos/seed/mergedom/400/300",
         downloadLink: "",
-        description: "Survive Idle Run with premium features. Unlock all levels and get unlimited boosts.",
-        features: ["Gems Hack", "Ticket Hack", "AutoKill"],
+        description: "Mergedom game with premium features. Unlock all levels and get unlimited boosts.",
+        features: ["Level Auto Bypass", "Unlimited Boost", "Game Speed"],
         video: "https://www.youtube.com/embed/dQw4w9WgXcQ",
         currency: "USD",
         productType: "standard",
@@ -285,14 +305,14 @@ const fallbackProducts = [
     },
     {
         id: "fallback_2",
-        name: "Animal and Coin",
+        name: "2048 Game Mod",
         price: 0,
         badge: "FREE",
         status: "available",
-        image: "https://picsum.photos/seed/animal/400/300",
-        downloadLink: "https://example.com/download/animal.apk",
-        description: "Animal and Coin game with exclusive mod features.",
-        features: ["Level Bypass", "SpeedHack"],
+        image: "https://picsum.photos/seed/2048/400/300",
+        downloadLink: "https://example.com/download/2048-mod.apk",
+        description: "Classic 2048 game with exclusive mod features.",
+        features: ["Unlimited Device", "Block Spawn Modify", "Game Speed"],
         video: "https://www.youtube.com/embed/dQw4w9WgXcQ",
         currency: "USD",
         productType: "standard",
@@ -317,18 +337,18 @@ const fallbackProducts = [
     },
     {
         id: "fallback_4",
-        name: "Mergedom VIP",
-        price: 11,
-        badge: "VIP",
+        name: "Smart Telegram Bot",
+        price: 0,
+        badge: "FREE",
         status: "available",
-        image: "https://picsum.photos/seed/mergedom/400/300",
-        downloadLink: "",
-        description: "Mergedom game with premium features.",
-        features: ["Level Auto Bypass", "Unlimited Boost", "Game Speed"],
+        image: "https://picsum.photos/seed/bot/400/300",
+        downloadLink: "https://example.com/download/bot.zip",
+        description: "Advanced Telegram bot with auto-reply and group management features.",
+        features: ["Auto Replies", "Group Management", "Notifications"],
         video: "https://www.youtube.com/embed/dQw4w9WgXcQ",
         currency: "USD",
         productType: "standard",
-        badges: ["hot"],
+        badges: ["new", "exclusive"],
         createdAt: new Date()
     },
     {
@@ -393,113 +413,30 @@ const paymentWallets = {
 let cryptoPrices = { ltc: 0, usdt: 1, lastUpdate: null, isUpdating: false };
 
 // ============================================================
-// ENHANCED TOAST SYSTEM
+// HELPER FUNCTIONS (Toast, Loading)
 // ============================================================
-function showToast(message, type = 'success', duration = 4000, large = false) {
+function showToast(message, type = 'success') {
     const toast = document.getElementById('toast');
     const messageEl = document.getElementById('toastMessage');
     const iconEl = toast?.querySelector('.toast-icon');
     if (!toast || !messageEl) return;
     toast.className = 'toast';
     toast.classList.add(type);
-    if (large) toast.classList.add('large');
     const icons = {
-        success: '<i class="fas fa-check-circle" style="color: #00d4aa;"></i>',
-        error: '<i class="fas fa-exclamation-circle" style="color: #ff6b6b;"></i>',
-        warning: '<i class="fas fa-exclamation-triangle" style="color: #fbbf24;"></i>',
-        info: '<i class="fas fa-info-circle" style="color: #6c5ce7;"></i>'
+        success: '<i class="fas fa-check-circle"></i>',
+        error: '<i class="fas fa-exclamation-circle"></i>',
+        warning: '<i class="fas fa-exclamation-triangle"></i>',
+        info: '<i class="fas fa-info-circle"></i>'
     };
     if (iconEl) iconEl.innerHTML = icons[type] || icons.success;
-    if (large && typeof message === 'object') {
-        const { title, details, total, orderId, date, method } = message;
-        let detailsHtml = '';
-        if (details && details.length > 0) {
-            detailsHtml = details.map(item => 
-                `<div style="display:flex; justify-content:space-between; padding:3px 0; font-size:13px; border-bottom:1px solid rgba(255,255,255,0.05);">
-                    <span>${item.name} ×${item.quantity || 1}</span>
-                    <span style="font-weight:600;">$${(item.price * (item.quantity || 1)).toFixed(2)}</span>
-                </div>`
-            ).join('');
-        }
-        messageEl.innerHTML = `
-            <div style="text-align:center; width:100%;">
-                <div style="font-size:48px; margin-bottom:6px;">✅</div>
-                <div style="font-size:22px; font-weight:800; color:var(--success);">${title || 'Payment Successful!'}</div>
-                ${orderId ? `<div style="font-size:13px; opacity:0.6; margin-top:2px;">📋 Order #${orderId}</div>` : ''}
-                ${method ? `<div style="font-size:12px; opacity:0.4;">💳 ${method}</div>` : ''}
-                <div style="background:rgba(255,255,255,0.05); border-radius:8px; padding:10px; margin:8px 0; text-align:left; max-height:120px; overflow-y:auto;">
-                    ${detailsHtml}
-                </div>
-                <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:700; border-top:1px solid rgba(255,255,255,0.1); padding-top:6px;">
-                    <span>Total</span>
-                    <span style="color:var(--success); font-size:18px;">$${total.toFixed(2)}</span>
-                </div>
-                <div style="font-size:11px; opacity:0.4; margin-top:4px;">
-                    📅 ${date || new Date().toLocaleString()}
-                </div>
-            </div>
-        `;
-        toast.style.display = 'flex';
-        toast.style.flexDirection = 'column';
-        toast.style.alignItems = 'center';
-        toast.style.maxWidth = '420px';
-        toast.style.padding = '20px 24px';
-    } else {
-        messageEl.innerHTML = message;
-        toast.style.display = 'flex';
-        toast.style.flexDirection = 'row';
-        toast.style.alignItems = 'center';
-        toast.style.maxWidth = '90%';
-        toast.style.padding = '12px 24px';
-    }
+    messageEl.textContent = message;
     void toast.offsetWidth;
     toast.classList.add('show');
     clearTimeout(window.toastTimeout);
-    window.toastTimeout = setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => { toast.style.display = 'none'; }, 500);
-    }, duration);
+    window.toastTimeout = setTimeout(() => { toast.classList.remove('show'); }, 3500);
 }
+window.hideToast = function() { document.getElementById('toast')?.classList.remove('show'); };
 
-window.hideToast = function() {
-    const toast = document.getElementById('toast');
-    if (toast) {
-        toast.classList.remove('show');
-        setTimeout(() => { toast.style.display = 'none'; }, 500);
-    }
-};
-
-// ============================================================
-// BUTTON LOADING STATE
-// ============================================================
-function showButtonLoading(button, loadingText = 'Processing...') {
-    if (!button) return;
-    button.disabled = true;
-    button._originalText = button.innerHTML;
-    button.innerHTML = `<span class="spinner-btn"></span> ${loadingText}`;
-    button.classList.add('btn-loading');
-}
-
-function hideButtonLoading(button, successText = null) {
-    if (!button) return;
-    button.disabled = false;
-    button.classList.remove('btn-loading');
-    if (successText) {
-        button.innerHTML = `<i class="fas fa-check"></i> ${successText}`;
-        button.style.background = 'var(--success)';
-        setTimeout(() => {
-            button.innerHTML = button._originalText || 'Continue';
-            button.style.background = '';
-        }, 2000);
-    } else if (button._originalText) {
-        button.innerHTML = button._originalText;
-        button.style.background = '';
-    }
-}
-
-// ============================================================
-// HELPER FUNCTIONS
-// ============================================================
 function hideLoadingScreen() {
     const screen = document.getElementById('loadingScreen');
     if (screen) {
@@ -519,6 +456,25 @@ function showLoadingScreen() {
     }
 }
 
+window.hideLoadingScreenManually = function() {
+    const screen = document.getElementById('loadingScreen');
+    if (screen) {
+        screen.classList.add('hidden');
+        setTimeout(() => {
+            screen.classList.add('hidden-force');
+        }, 600);
+        showToast('Loading screen hidden', 'info');
+    }
+};
+
+window.updateLoadingText = function(text) {
+    const statusEl = document.getElementById('loadingStatus');
+    if (statusEl) {
+        statusEl.textContent = text || 'Loading...';
+    }
+    window.updateLoadingProgress(90, text);
+};
+
 window.showMainApp = function() {
     const mainApp = document.getElementById('mainApp');
     if (mainApp) {
@@ -532,6 +488,9 @@ window.showMainApp = function() {
     return false;
 };
 
+// ============================================================
+// REMOVE DUPLICATE DATE
+// ============================================================
 function removeDuplicateDate() {
     const dates = document.querySelectorAll('#serverTime, .server-time, .header-date, .date-display, [data-date]');
     if (dates.length > 1) {
@@ -561,7 +520,7 @@ function styleHeaderTopup() {
 }
 
 // ============================================================
-// TOP INFO BAR - Server Time, IP, Country
+// TOP INFO BAR - Server Time, IP, Country (SINGLE DATE DISPLAY - FIXED)
 // ============================================================
 let serverTimeInterval = null;
 
@@ -578,7 +537,9 @@ function updateServerTime() {
         hour12: false,
         weekday: 'short'
     };
+    // ONE date format only: "Thu, Aug 06, 2026, 20:46:21"
     const dateTimeStr = now.toLocaleString('en-US', options);
+
     const el = document.getElementById('serverTime');
     if (el) {
         el.innerHTML = `<i class="far fa-calendar-alt" style="margin-right:3px;color:var(--vip-color);"></i> ${dateTimeStr}`;
@@ -596,19 +557,27 @@ async function fetchUserInfo() {
             },
             mode: 'cors',
         });
+
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${await response.text()}`);
         }
+
         const data = await response.json();
         console.log('📍 IP Info from proxy:', data);
-        if (data.error) throw new Error(data.error);
+
+        if (data.error) {
+            throw new Error(data.error);
+        }
+
         const ipEl = document.getElementById('userIP');
         if (ipEl) ipEl.textContent = data.ip || 'Unknown';
+
         const countryEl = document.getElementById('userCountry');
         if (countryEl) {
             const flag = getCountryFlag(data.country_code);
             countryEl.innerHTML = `${flag} ${data.country_name || 'Unknown'}`;
         }
+
         return data;
     } catch (error) {
         console.error('❌ Failed to fetch IP info:', error);
@@ -735,6 +704,7 @@ async function getAdminSettings() {
     try {
         const settingsRef = doc(db, 'admin_settings', 'notifications');
         const settingsSnap = await getDoc(settingsRef);
+
         if (settingsSnap.exists()) {
             return settingsSnap.data();
         } else {
@@ -765,6 +735,7 @@ async function updateAdminSettings(settings) {
         showToast('⛔ Unauthorized', 'error');
         return false;
     }
+
     try {
         const settingsRef = doc(db, 'admin_settings', 'notifications');
         await setDoc(settingsRef, {
@@ -859,6 +830,7 @@ function startUserRealtimeListener() {
     }
     const uid = currentUser.uid;
     if (!uid) return;
+
     const userRef = doc(db, 'users', uid);
     unsubscribeUser = onSnapshot(userRef, (docSnap) => {
         if (docSnap.exists()) {
@@ -929,7 +901,9 @@ async function loadUserData() {
     if (isLoadingUser || (Date.now() - lastUserLoadTime < 500)) return;
     isLoadingUser = true;
     lastUserLoadTime = Date.now();
+
     startUserRealtimeListener();
+
     try {
         const userRef = doc(db, 'users', uid);
         const userSnap = await getDoc(userRef);
@@ -1108,7 +1082,8 @@ function updateDropdownStats() {
         const photoURL = userProfile.photoURL || currentUser.photoURL || '';
         if (userAvatar) {
             if (photoURL) {
-                userAvatar.innerHTML = `<img src="${photoURL}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />`;
+                userAvatar.innerHTML =
+                    `<img src="${photoURL}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />`;
             } else {
                 userAvatar.textContent = name.charAt(0).toUpperCase();
             }
@@ -1126,7 +1101,8 @@ function updateUI() {
     const dot = document.getElementById('userDot');
     if (dot) {
         if (currentUser) {
-            if (pendingCount > 0 && isAdminCached) { dot.className = 'user-dot notification-dot'; } else { dot.className = 'user-dot'; }
+            if (pendingCount > 0 && isAdminCached) { dot.className = 'user-dot notification-dot'; } else { dot.className =
+                    'user-dot'; }
         } else { dot.className = 'user-dot guest'; }
     }
     updateDropdownStats();
@@ -1163,21 +1139,27 @@ function updateFullUserMenu() {
         wishlistBadge.style.display = wishlist.length > 0 ? 'inline-block' : 'none';
         const pendingOrders = userProfile.history.filter(o => (o.status || 'pending') === 'pending').length;
         const totalBadge = pendingOrders + unreadNotifications;
-        if (totalBadge > 0) { orderBadge.style.display = 'inline-block'; orderBadge.textContent = totalBadge; } else { orderBadge.style.display = 'none'; }
-        if (unreadNotifications > 0) { notifBadge.style.display = 'inline-block'; notifBadge.textContent = unreadNotifications; } else { notifBadge.style.display = 'none'; }
+        if (totalBadge > 0) { orderBadge.style.display = 'inline-block';
+            orderBadge.textContent = totalBadge; } else { orderBadge.style.display = 'none'; }
+        if (unreadNotifications > 0) { notifBadge.style.display = 'inline-block';
+            notifBadge.textContent = unreadNotifications; } else { notifBadge.style.display = 'none'; }
+
         if (isAdminCached) {
             adminMenuItem.style.display = 'flex';
-            if (pendingCount > 0) { adminBadge.style.display = 'inline-block'; adminBadge.textContent = pendingCount; } else { adminBadge.style.display = 'none'; }
+            if (pendingCount > 0) { adminBadge.style.display = 'inline-block';
+                adminBadge.textContent = pendingCount; } else { adminBadge.style.display = 'none'; }
             console.log('✅ Admin menu displayed');
         } else {
             adminMenuItem.style.display = 'none';
         }
+
         if (licencesBadge) {
             const activeLicences = (userProfile.licences || []).filter(l => {
                 if (l.status === 'revoked' || l.status === 'expired') return false;
                 return new Date(l.expiryDate) > new Date();
             }).length;
-            if (activeLicences > 0) { licencesBadge.style.display = 'inline-block'; licencesBadge.textContent = activeLicences; } else { licencesBadge.style.display = 'none'; }
+            if (activeLicences > 0) { licencesBadge.style.display = 'inline-block';
+                licencesBadge.textContent = activeLicences; } else { licencesBadge.style.display = 'none'; }
         }
     } else {
         avatar.textContent = 'U';
@@ -1206,16 +1188,19 @@ window.toggleReferral = function() { document.getElementById('referralField').cl
 // ============================================================
 async function checkIPChange(user, currentIP, currentCountry) {
     if (!user) return;
+
     try {
         const userRef = doc(db, 'users', user.uid);
         const userSnap = await getDoc(userRef);
         if (!userSnap.exists()) return;
+
         const data = userSnap.data();
         const lastIP = data.lastIP || null;
         const lastCountry = data.lastCountry || null;
         const welcomeEmailSent = data.welcomeEmailSent || false;
         const loginCount = data.loginCount || 0;
 
+        // ===== 1. Send welcome email (only once) =====
         if (!welcomeEmailSent && loginCount === 0) {
             await sendWelcomeEmail(user.email, user.displayName || user.email);
             await updateDoc(userRef, {
@@ -1230,12 +1215,15 @@ async function checkIPChange(user, currentIP, currentCountry) {
             return;
         }
 
+        // ===== 2. Check IP change =====
         const ipChanged = lastIP && currentIP && lastIP !== currentIP;
         const countryChanged = lastCountry && currentCountry && lastCountry !== currentCountry;
 
         if (ipChanged || countryChanged) {
             console.log(`⚠️ IP/Country changed for user ${user.email}`);
             console.log(`Old: ${lastIP} (${lastCountry}) → New: ${currentIP} (${currentCountry})`);
+
+            // Send security alert email
             await sendSecurityAlertEmail(
                 user.email,
                 user.displayName || user.email,
@@ -1245,10 +1233,14 @@ async function checkIPChange(user, currentIP, currentCountry) {
                 lastCountry,
                 new Date().toLocaleString()
             );
+
+            // Send admin notification
             await sendAdminNotification(
                 '🔐 Security Alert: IP Changed',
                 `User: ${user.email}\nOld IP: ${lastIP}\nNew IP: ${currentIP}\nOld Country: ${lastCountry}\nNew Country: ${currentCountry}\nTime: ${new Date().toLocaleString()}`
             );
+
+            // Update user document
             await updateDoc(userRef, {
                 lastIP: currentIP,
                 lastCountry: currentCountry,
@@ -1256,18 +1248,23 @@ async function checkIPChange(user, currentIP, currentCountry) {
                 loginCount: loginCount + 1,
                 updatedAt: serverTimestamp()
             });
+
             showToast('🔐 Security alert sent to your email.', 'warning');
         } else {
+            // Just update login count and last login date
             await updateDoc(userRef, {
                 lastLoginDate: serverTimestamp(),
                 loginCount: loginCount + 1,
                 updatedAt: serverTimestamp()
             });
         }
+
+        // Update local profile
         userProfile.lastIP = currentIP;
         userProfile.lastCountry = currentCountry;
         userProfile.loginCount = (loginCount || 0) + 1;
         await saveUserData(true);
+
     } catch (error) {
         console.error('Error in checkIPChange:', error);
     }
@@ -1277,7 +1274,95 @@ async function checkIPChange(user, currentIP, currentCountry) {
 // SECURITY ALERT EMAIL
 // ============================================================
 async function sendSecurityAlertEmail(userEmail, userName, newIP, newCountry, oldIP, oldCountry, loginTime) {
-    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>🔐 Security Alert</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:#f0f2f8;padding:20px;margin:0}.container{max-width:600px;margin:0 auto;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.08)}.header{background:linear-gradient(135deg,#ff6b6b,#ee5a24);padding:30px 30px 20px;text-align:center}.logo{font-size:28px;font-weight:900;color:#fff}.logo span{color:#f2a900}.status-icon{font-size:48px;text-align:center;margin:8px 0}.status-title{font-size:24px;font-weight:800;color:#fff}.content{padding:35px 30px}.greeting{font-size:16px;color:#1a1a2e}.greeting strong{color:#6c5ce7}.alert-box{background:#fff3cd;border-radius:12px;padding:16px 20px;margin:12px 0;border-left:4px solid #fbbf24}.alert-box p{font-size:14px;color:#856404;line-height:1.6}.details-table{width:100%;border-collapse:collapse;margin:12px 0}.details-table td{padding:8px 12px;border-bottom:1px solid #f0f2f8;font-size:13px}.details-table .label{color:#888;font-weight:500}.details-table .value{font-weight:600;color:#1a1a2e}.btn-primary{display:inline-block;background:#6c5ce7;color:#fff;padding:12px 32px;border-radius:30px;text-decoration:none;font-weight:700;font-size:14px;transition:all .3s}.btn-primary:hover{background:#5a4bd1;transform:translateY(-2px);box-shadow:0 8px 25px rgba(108,92,231,0.3)}.btn-danger{display:inline-block;background:#ff6b6b;color:#fff;padding:12px 32px;border-radius:30px;text-decoration:none;font-weight:700;font-size:14px;transition:all .3s}.btn-danger:hover{background:#e55a5a;transform:translateY(-2px)}.text-center{text-align:center}.divider{border:none;border-top:2px solid #f0f2f8;margin:16px 0}.footer{padding:16px 30px;text-align:center;background:#f8f8ff}.footer-text{font-size:11px;color:#888}.footer-links a{color:#6c5ce7;text-decoration:none;margin:0 4px;font-size:11px}.warning-badge{display:inline-block;padding:4px 16px;border-radius:30px;background:#ff6b6b;color:#fff;font-weight:700;font-size:12px;margin-top:4px}@media(max-width:480px){.header{padding:20px}.content{padding:20px 15px}.btn-primary,.btn-danger{padding:10px 24px;font-size:13px;display:block;margin:6px 0}}</style></head><body><div class="container"><div class="header"><div class="logo">ZI <span>Store</span></div><div class="status-icon">🔐</div><div class="status-title">Security Alert</div><div><span class="warning-badge">⚠️ New Login Detected</span></div></div><div class="content"><div class="greeting">Hello <strong>${userName || 'Customer'}</strong>,</div><p style="color:#4a4a6a;font-size:14px;margin:6px 0 12px;">We noticed a login to your account from a new device or location. If this was you, you can ignore this message. If not, please take immediate action.</p><div class="alert-box"><p><strong>⚠️ If you didn't perform this action, your account may be compromised.</strong><br>We recommend changing your password immediately and contacting support.</p></div><h3 style="color:#1a1a2e;margin:12px 0 8px;font-size:16px;">📍 Login Details</h3><table class="details-table"><tr><td class="label">📅 Date & Time</td><td class="value">${loginTime}</td></tr><tr><td class="label">🌍 New Country</td><td class="value">${newCountry || 'Unknown'}</td></tr><tr><td class="label">📶 New IP Address</td><td class="value" style="font-family:monospace;">${newIP || 'Unknown'}</td></tr>${oldIP ? `<tr><td class="label">🔄 Previous IP</td><td class="value" style="font-family:monospace;">${oldIP}</td></tr>` : ''}${oldCountry ? `<tr><td class="label">🌍 Previous Country</td><td class="value">${oldCountry}</td></tr>` : ''}</table><hr class="divider"><div class="text-center"><a href="https://zi-store.online/profile" class="btn-danger" style="margin-right:6px;">🔑 Change Password</a><a href="mailto:support@zi-store.online" class="btn-primary">📧 Contact Support</a></div><p style="text-align:center;font-size:12px;color:#888;margin-top:10px;">If you have any concerns, please contact our support team immediately.</p></div><div class="footer"><div class="footer-links"><a href="https://zi-store.online">Store</a><a href="mailto:support@zi-store.online">Support</a></div><div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div></div></div></body></html>`;
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔐 Security Alert</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f0f2f8; padding: 20px; margin: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+        .header { background: linear-gradient(135deg, #ff6b6b, #ee5a24); padding: 30px 30px 20px; text-align: center; }
+        .logo { font-size: 28px; font-weight: 900; color: #fff; }
+        .logo span { color: #f2a900; }
+        .status-icon { font-size: 48px; text-align: center; margin: 8px 0; }
+        .status-title { font-size: 24px; font-weight: 800; color: #fff; }
+        .content { padding: 35px 30px; }
+        .greeting { font-size: 16px; color: #1a1a2e; }
+        .greeting strong { color: #6c5ce7; }
+        .alert-box { background: #fff3cd; border-radius: 12px; padding: 16px 20px; margin: 12px 0; border-left: 4px solid #fbbf24; }
+        .alert-box p { font-size: 14px; color: #856404; line-height: 1.6; }
+        .details-table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+        .details-table td { padding: 8px 12px; border-bottom: 1px solid #f0f2f8; font-size: 13px; }
+        .details-table .label { color: #888; font-weight: 500; }
+        .details-table .value { font-weight: 600; color: #1a1a2e; }
+        .btn-primary { display: inline-block; background: #6c5ce7; color: #fff; padding: 12px 32px; border-radius: 30px; text-decoration: none; font-weight: 700; font-size: 14px; transition: all 0.3s; }
+        .btn-primary:hover { background: #5a4bd1; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(108,92,231,0.3); }
+        .btn-danger { display: inline-block; background: #ff6b6b; color: #fff; padding: 12px 32px; border-radius: 30px; text-decoration: none; font-weight: 700; font-size: 14px; transition: all 0.3s; }
+        .btn-danger:hover { background: #e55a5a; transform: translateY(-2px); }
+        .text-center { text-align: center; }
+        .divider { border: none; border-top: 2px solid #f0f2f8; margin: 16px 0; }
+        .footer { padding: 16px 30px; text-align: center; background: #f8f8ff; }
+        .footer-text { font-size: 11px; color: #888; }
+        .footer-links a { color: #6c5ce7; text-decoration: none; margin: 0 4px; font-size: 11px; }
+        .warning-badge { display: inline-block; padding: 4px 16px; border-radius: 30px; background: #ff6b6b; color: #fff; font-weight: 700; font-size: 12px; margin-top: 4px; }
+        @media (max-width: 480px) {
+            .header { padding: 20px; }
+            .content { padding: 20px 15px; }
+            .btn-primary, .btn-danger { padding: 10px 24px; font-size: 13px; display: block; margin: 6px 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">ZI <span>Store</span></div>
+            <div class="status-icon">🔐</div>
+            <div class="status-title">Security Alert</div>
+            <div><span class="warning-badge">⚠️ New Login Detected</span></div>
+        </div>
+        <div class="content">
+            <div class="greeting">Hello <strong>${userName || 'Customer'}</strong>,</div>
+            <p style="color: #4a4a6a; font-size: 14px; margin: 6px 0 12px;">We noticed a login to your account from a new device or location. If this was you, you can ignore this message. If not, please take immediate action.</p>
+            
+            <div class="alert-box">
+                <p><strong>⚠️ If you didn't perform this action, your account may be compromised.</strong><br>
+                We recommend changing your password immediately and contacting support.</p>
+            </div>
+
+            <h3 style="color: #1a1a2e; margin: 12px 0 8px; font-size: 16px;">📍 Login Details</h3>
+            <table class="details-table">
+                <tr><td class="label">📅 Date & Time</td><td class="value">${loginTime}</td></tr>
+                <tr><td class="label">🌍 New Country</td><td class="value">${newCountry || 'Unknown'}</td></tr>
+                <tr><td class="label">📶 New IP Address</td><td class="value" style="font-family:monospace;">${newIP || 'Unknown'}</td></tr>
+                ${oldIP ? `<tr><td class="label">🔄 Previous IP</td><td class="value" style="font-family:monospace;">${oldIP}</td></tr>` : ''}
+                ${oldCountry ? `<tr><td class="label">🌍 Previous Country</td><td class="value">${oldCountry}</td></tr>` : ''}
+            </table>
+
+            <hr class="divider">
+            <div class="text-center">
+                <a href="https://zi-store.online/profile" class="btn-danger" style="margin-right:6px;">🔑 Change Password</a>
+                <a href="mailto:support@zi-store.online" class="btn-primary">📧 Contact Support</a>
+            </div>
+            <p style="text-align: center; font-size: 12px; color: #888; margin-top: 10px;">
+                If you have any concerns, please contact our support team immediately.
+            </p>
+        </div>
+        <div class="footer">
+            <div class="footer-links">
+                <a href="https://zi-store.online">Store</a>
+                <a href="mailto:support@zi-store.online">Support</a>
+            </div>
+            <div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div>
+        </div>
+    </div>
+</body>
+</html>
+    `;
+
     return await sendEmail(userEmail, '🔐 Security Alert: New Login Detected', html);
 }
 
@@ -1286,7 +1371,7 @@ async function sendSecurityAlertEmail(userEmail, userName, newIP, newCountry, ol
 // ============================================================
 window.loginUser = async function() {
     const btn = document.getElementById('loginBtn');
-    showButtonLoading(btn, 'Logging in...');
+    btn.classList.add('loading');
     const errorEl = document.getElementById('loginError');
     const successEl = document.getElementById('loginSuccess');
     errorEl.textContent = '';
@@ -1294,16 +1379,19 @@ window.loginUser = async function() {
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
     if (!email || !password) { errorEl.textContent = 'Please fill in all fields';
-        hideButtonLoading(btn); return; }
+        btn.classList.remove('loading'); return; }
     try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         currentUser = userCredential.user;
         successEl.textContent = '✅ Login successful!';
         showToast('👋 Welcome back!', 'success');
-        hideButtonLoading(btn, 'Welcome!');
+        btn.classList.remove('loading');
         await refreshAdminStatus();
-        const visitorInfo = await fetchUserInfo();
+
+        // ===== CHECK IP CHANGE =====
+        const visitorInfo = await getVisitorInfo();
         await checkIPChange(currentUser, visitorInfo.ip, visitorInfo.country);
+
         setTimeout(() => {
             document.getElementById('authSection').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
@@ -1313,6 +1401,7 @@ window.loginUser = async function() {
             startTopupRealtimeListener();
             initTopInfoBar();
             loadCoupons();
+
             if (isAdminCached) {
                 console.log('✅ Admin detected, loading admin features');
                 loadAdminOrders();
@@ -1329,6 +1418,7 @@ window.loginUser = async function() {
                     updateFullUserMenu();
                 }, 200);
             }
+
             loadDownloads();
             loadNotifications();
             fetchCryptoPrices();
@@ -1344,7 +1434,7 @@ window.loginUser = async function() {
         }, 500);
     } catch (error) { errorEl.textContent = '❌ ' + error.message;
         showToast('❌ Login failed', 'error');
-        hideButtonLoading(btn); }
+        btn.classList.remove('loading'); }
 };
 
 // ============================================================
@@ -1352,11 +1442,12 @@ window.loginUser = async function() {
 // ============================================================
 window.registerUser = async function() {
     const btn = document.getElementById('registerBtn');
-    showButtonLoading(btn, 'Creating account...');
+    btn.classList.add('loading');
     const errorEl = document.getElementById('registerError');
     const successEl = document.getElementById('registerSuccess');
     errorEl.textContent = '';
     successEl.textContent = '';
+    
     const name = document.getElementById('registerName').value.trim();
     const email = document.getElementById('registerEmail').value.trim();
     const password = document.getElementById('registerPassword').value;
@@ -1364,37 +1455,45 @@ window.registerUser = async function() {
     const lang = document.getElementById('registerLang').value;
     const referralCode = document.getElementById('registerReferral').value.trim().toUpperCase();
     const termsChecked = document.getElementById('termsCheck').checked;
+    
     if (!name || !email || !password || !confirmPassword) {
         errorEl.textContent = 'Please fill in all fields';
-        hideButtonLoading(btn);
+        btn.classList.remove('loading');
         return;
     }
     if (password.length < 6) {
         errorEl.textContent = 'Password must be at least 6 characters';
-        hideButtonLoading(btn);
+        btn.classList.remove('loading');
         return;
     }
     if (password !== confirmPassword) {
         errorEl.textContent = 'Passwords do not match';
-        hideButtonLoading(btn);
+        btn.classList.remove('loading');
         return;
     }
     if (!termsChecked) {
         errorEl.textContent = 'Please agree to the terms';
-        hideButtonLoading(btn);
+        btn.classList.remove('loading');
         return;
     }
+    
     try {
+        // ===== GET IP INFO =====
         const visitorInfo = await fetchUserInfo();
         const detectedCountry = visitorInfo?.country_name || 'Tunisia';
         const detectedIP = visitorInfo?.ip || 'Unknown';
         console.log('📍 Detected country from IP:', detectedCountry);
         console.log('📍 Detected IP:', detectedIP);
+
+        // ===== CREATE USER =====
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(userCredential.user, { displayName: name });
         currentUser = userCredential.user;
+        
         const newReferralCode = generateReferralCode(name, email);
         const userRef = doc(db, 'users', currentUser.uid);
+        
+        // ===== SAVE USER WITH ALL FIELDS =====
         await setDoc(userRef, {
             userId: currentUser.uid,
             name,
@@ -1419,18 +1518,24 @@ window.registerUser = async function() {
             licences: [],
             photoURL: '',
             balance: 0,
+            // ===== SECURITY FIELDS =====
             lastIP: detectedIP,
             lastCountry: detectedCountry,
             lastLoginDate: serverTimestamp(),
             welcomeEmailSent: false,
             loginCount: 0,
+            // ===========================
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
         });
+        
         successEl.textContent = '✅ Registration successful!';
         showToast(`🎉 Welcome, ${name}!`, 'success');
-        hideButtonLoading(btn, 'Welcome!');
+        btn.classList.remove('loading');
         await refreshAdminStatus();
+
+        // Welcome email will be sent by checkIPChange on first login
+
         setTimeout(() => {
             document.getElementById('authSection').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
@@ -1453,10 +1558,11 @@ window.registerUser = async function() {
             initTopInfoBar();
             initPopups();
         }, 500);
+        
     } catch (error) {
         errorEl.textContent = '❌ ' + error.message;
         showToast('❌ Registration failed', 'error');
-        hideButtonLoading(btn);
+        btn.classList.remove('loading');
     }
 };
 
@@ -1465,17 +1571,21 @@ window.registerUser = async function() {
 // ============================================================
 window.loginWithGoogle = function() {
     const btn = document.getElementById('googleLoginBtn');
-    if (btn) showButtonLoading(btn, 'Connecting...');
+    if (btn) btn.classList.add('loading');
     const errorEl = document.getElementById('loginError');
     if (errorEl) errorEl.textContent = '';
+
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
+
     signInWithPopup(auth, provider)
         .then(async (result) => {
             const user = result.user;
-            if (btn) hideButtonLoading(btn, 'Connected!');
+            if (btn) btn.classList.remove('loading');
+
             const photoURL = user.photoURL || '';
             userProfile.photoURL = photoURL;
+
             let detectedCountry = 'Unknown';
             let detectedIP = 'Unknown';
             try {
@@ -1488,6 +1598,7 @@ window.loginWithGoogle = function() {
             } catch (e) {
                 console.warn('⚠️ Could not detect country from IP for Google login');
             }
+
             const userRef = doc(db, 'users', user.uid);
             await setDoc(userRef, {
                 photoURL: photoURL,
@@ -1503,11 +1614,15 @@ window.loginWithGoogle = function() {
                 loginCount: 0,
                 updatedAt: serverTimestamp()
             }, { merge: true });
+
             currentUser = user;
             showToast('👋 Welcome via Google!', 'success');
             await refreshAdminStatus();
             await mergeGuestData(user.uid);
+
+            // ===== CHECK IP CHANGE =====
             await checkIPChange(currentUser, detectedIP, detectedCountry);
+
             setTimeout(() => {
                 document.getElementById('authSection').style.display = 'none';
                 document.getElementById('mainApp').style.display = 'block';
@@ -1517,6 +1632,7 @@ window.loginWithGoogle = function() {
                 startTopupRealtimeListener();
                 initTopInfoBar();
                 loadCoupons();
+
                 if (isAdminCached) {
                     console.log('✅ Admin detected, loading admin features');
                     loadAdminOrders();
@@ -1533,6 +1649,7 @@ window.loginWithGoogle = function() {
                         updateFullUserMenu();
                     }, 200);
                 }
+
                 loadDownloads();
                 loadNotifications();
                 fetchCryptoPrices();
@@ -1549,11 +1666,12 @@ window.loginWithGoogle = function() {
         })
         .catch((error) => {
             console.error('Google login error:', error);
-            if (btn) hideButtonLoading(btn);
+            if (btn) btn.classList.remove('loading');
             if (error.code === 'auth/account-exists-with-different-credential') {
                 const email = error.email;
                 if (errorEl) {
-                    errorEl.textContent = `⚠️ This email (${email}) is already registered with another method. Please login with password first, then you can link your Google account from profile.`;
+                    errorEl.textContent =
+                        `⚠️ This email (${email}) is already registered with another method. Please login with password first, then you can link your Google account from profile.`;
                 }
                 showToast('⚠️ This email is already in use. Please login with password.', 'warning');
                 const loginEmail = document.getElementById('loginEmail');
@@ -1575,13 +1693,17 @@ async function mergeGuestData(newUid) {
     const guestHistory = localStorage.getItem('zi_history_backup');
     const guestRp = localStorage.getItem('zi_rp_backup');
     const guestBalance = localStorage.getItem('zi_balance_backup');
+
     if (!guestWishlist && !guestCart && !guestBalance) return;
+
     try {
         const userRef = doc(db, 'users', newUid);
         const userSnap = await getDoc(userRef);
         if (!userSnap.exists()) return;
+
         const userData = userSnap.data();
         let updated = false;
+
         const wishlistGuest = guestWishlist ? JSON.parse(guestWishlist) : [];
         if (wishlistGuest.length > 0) {
             const merged = [...new Set([...userData.wishlist || [], ...wishlistGuest])];
@@ -1590,12 +1712,14 @@ async function mergeGuestData(newUid) {
                 updated = true;
             }
         }
+
         const cartGuest = guestCart ? JSON.parse(guestCart) : [];
         if (cartGuest.length > 0) {
             const existingCart = userData.cart || [];
             const mergedCart = [...existingCart];
             cartGuest.forEach(item => {
-                if (!existingCart.some(ex => ex.id === item.id && ex.isVip === item.isVip && ex.vipPlan === item.vipPlan)) {
+                if (!existingCart.some(ex => ex.id === item.id && ex.isVip === item.isVip && ex.vipPlan === item
+                        .vipPlan)) {
                     mergedCart.push(item);
                 }
             });
@@ -1604,6 +1728,7 @@ async function mergeGuestData(newUid) {
                 updated = true;
             }
         }
+
         const historyGuest = guestHistory ? JSON.parse(guestHistory) : [];
         if (historyGuest.length > 0) {
             const existingHistory = userData.history || [];
@@ -1613,6 +1738,7 @@ async function mergeGuestData(newUid) {
                 updated = true;
             }
         }
+
         const rpGuest = guestRp ? parseFloat(guestRp) : 0;
         if (rpGuest > 0) {
             const currentRp = userData.rp || 0;
@@ -1621,12 +1747,14 @@ async function mergeGuestData(newUid) {
                 updated = true;
             }
         }
+
         const balanceGuest = guestBalance ? parseFloat(guestBalance) : 0;
         if (balanceGuest > 0) {
             const currentBalance = userData.balance || 0;
             await updateDoc(userRef, { balance: currentBalance + balanceGuest });
             updated = true;
         }
+
         if (updated) {
             showToast('🔄 Your previous data has been merged successfully!', 'success');
             localStorage.removeItem('zi_wishlist_backup');
@@ -1745,9 +1873,13 @@ window.closeTransactionsModal = function() {
 
 async function loadTransactionHistory() {
     if (!currentUser) return;
+
     const container = document.getElementById('transactionHistoryList');
     if (!container) return;
-    container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
+
+    container.innerHTML =
+        `<div style="text-align:center;padding:30px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
+
     try {
         const { data, error } = await supabase
             .from('transactions')
@@ -1755,34 +1887,82 @@ async function loadTransactionHistory() {
             .eq('user_id', currentUser.uid)
             .order('created_at', { ascending: false })
             .limit(50);
+
         if (error) throw error;
+
         if (!data || data.length === 0) {
-            container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-receipt" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">No transactions yet</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Your transactions will appear here</div></div>`;
+            container.innerHTML = `
+                <div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
+                    <i class="fas fa-receipt" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i>
+                    <div style="font-size:18px;font-weight:600;">No transactions yet</div>
+                    <div style="font-size:13px;opacity:0.4;margin-top:4px;">Your transactions will appear here</div>
+                </div>
+            `;
             return;
         }
+
         renderTransactions(data);
+
     } catch (error) {
         console.error('Error loading transactions:', error);
-        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load transactions: ${error.message}<br><button onclick="loadTransactionHistory()" style="margin-top:8px;padding:6px 16px;background:var(--primary);border:none;border-radius:var(--radius-sm);color:#fff;cursor:pointer;">Retry</button></div>`;
+        container.innerHTML = `
+            <div style="text-align:center;padding:20px;color:var(--danger);">
+                Failed to load transactions: ${error.message}
+                <br>
+                <button onclick="loadTransactionHistory()" style="margin-top:8px;padding:6px 16px;background:var(--primary);border:none;border-radius:var(--radius-sm);color:#fff;cursor:pointer;">Retry</button>
+            </div>
+        `;
     }
 }
 
 function renderTransactions(transactions) {
     const container = document.getElementById('transactionHistoryList');
     if (!container) return;
+
     if (!transactions || transactions.length === 0) {
-        container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;"><i class="fas fa-receipt" style="font-size:36px;display:block;margin-bottom:8px;opacity:0.2;"></i>No transactions yet</div>`;
+        container.innerHTML = `
+            <div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">
+                <i class="fas fa-receipt" style="font-size:36px;display:block;margin-bottom:8px;opacity:0.2;"></i>
+                No transactions yet
+            </div>
+        `;
         return;
     }
+
     container.innerHTML = transactions.map(t => {
-        const date = new Date(t.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const date = new Date(t.created_at).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
         const isPositive = t.amount > 0;
         const sign = isPositive ? '+' : '';
         const color = isPositive ? 'var(--success)' : 'var(--danger)';
-        const typeLabels = { 'topup': '💰 Topup', 'purchase': '🛒 Purchase', 'refund': '↩️ Refund', 'admin_adjustment': '⚙️ Admin Adjustment', 'referral_bonus': '🎁 Referral Bonus' };
+        const typeLabels = {
+            'topup': '💰 Topup',
+            'purchase': '🛒 Purchase',
+            'refund': '↩️ Refund',
+            'admin_adjustment': '⚙️ Admin Adjustment',
+            'referral_bonus': '🎁 Referral Bonus'
+        };
         const typeLabel = typeLabels[t.type] || t.type || 'Transaction';
         const statusBadge = t.status === 'completed' ? '✅' : t.status === 'pending' ? '⏳' : '❌';
-        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--glass-bg);border-radius:8px;border:1px solid var(--glass-border);margin-bottom:6px;"><div><div style="font-weight:600;font-size:14px;">${typeLabel} ${statusBadge}</div><div style="font-size:11px;color:var(--text-secondary);opacity:0.5;">${t.description || ''}</div><div style="font-size:10px;color:var(--text-secondary);opacity:0.3;">${date}</div></div><div style="font-weight:700;font-size:16px;color:${color};">${sign}$${Math.abs(t.amount || 0).toFixed(2)}</div></div>`;
+
+        return `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--glass-bg);border-radius:8px;border:1px solid var(--glass-border);margin-bottom:6px;">
+                <div>
+                    <div style="font-weight:600;font-size:14px;">${typeLabel} ${statusBadge}</div>
+                    <div style="font-size:11px;color:var(--text-secondary);opacity:0.5;">${t.description || ''}</div>
+                    <div style="font-size:10px;color:var(--text-secondary);opacity:0.3;">${date}</div>
+                </div>
+                <div style="font-weight:700;font-size:16px;color:${color};">
+                    ${sign}$${Math.abs(t.amount || 0).toFixed(2)}
+                </div>
+            </div>
+        `;
     }).join('');
 }
 
@@ -1792,12 +1972,14 @@ function renderTransactions(transactions) {
 function renderProfileFull() {
     const container = document.getElementById('profileFullContent');
     if (!currentUser) {
-        container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-user-circle" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">Please login</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Login to view your profile</div></div>`;
+        container.innerHTML =
+            `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-user-circle" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">Please login</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Login to view your profile</div></div>`;
         return;
     }
     const displayName = currentUser.displayName || currentUser.email || 'User';
     const photoURL = userProfile.photoURL || currentUser.photoURL || '';
-    const maskedChatId = userProfile.telegramChatId ? userProfile.telegramChatId.slice(0, 4) + '***' + userProfile.telegramChatId.slice(-4) : 'Not linked';
+    const maskedChatId = userProfile.telegramChatId ? userProfile.telegramChatId.slice(0, 4) + '***' + userProfile
+        .telegramChatId.slice(-4) : 'Not linked';
     const activeLicences = (userProfile.licences || []).filter(l => {
         if (l.status === 'revoked' || l.status === 'expired') return false;
         return new Date(l.expiryDate) > new Date();
@@ -1808,11 +1990,15 @@ function renderProfileFull() {
     const lastIP = userProfile.lastIP || 'Not recorded';
     const lastCountry = userProfile.lastCountry || 'Not recorded';
     const loginCount = userProfile.loginCount || 0;
+
     container.innerHTML = `
     <div class="profile-container">
+        <!-- Hero Section -->
         <div class="profile-hero">
             <div class="hero-content">
-                <div class="hero-avatar">${photoURL ? `<img src="${photoURL}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />` : displayName.charAt(0).toUpperCase()}</div>
+                <div class="hero-avatar">
+                    ${photoURL ? `<img src="${photoURL}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />` : displayName.charAt(0).toUpperCase()}
+                </div>
                 <div class="hero-info">
                     <div class="hero-name">${displayName}</div>
                     <div class="hero-email">${currentUser.email || 'No email'}</div>
@@ -1823,54 +2009,132 @@ function renderProfileFull() {
                         ${userProfile.isBanned ? '<span class="hero-badge banned">🚫 BANNED</span>' : ''}
                     </div>
                     <div class="hero-joined"><i class="fas fa-calendar-alt"></i> Joined: ${joinedDate}</div>
-                    <div style="font-size:12px;color:var(--text-secondary);opacity:0.5;margin-top:2px;"><i class="fas fa-map-marker-alt" style="color:var(--vip-color);"></i> Country: ${userCountry} <span style="font-size:10px;opacity:0.4;">(auto-detected)</span></div>
-                    <div style="font-size:11px;color:var(--text-secondary);opacity:0.3;margin-top:2px;"><i class="fas fa-shield-alt" style="color:var(--success);"></i> Last IP: ${lastIP} · Last Login: ${lastCountry} · Logins: ${loginCount}</div>
+                    <div style="font-size:12px; color:var(--text-secondary); opacity:0.5; margin-top:2px;">
+                        <i class="fas fa-map-marker-alt" style="color:var(--vip-color);"></i> Country: ${userCountry} <span style="font-size:10px;opacity:0.4;">(auto-detected)</span>
+                    </div>
+                    <div style="font-size:11px; color:var(--text-secondary); opacity:0.3; margin-top:2px;">
+                        <i class="fas fa-shield-alt" style="color:var(--success);"></i> Last IP: ${lastIP} · Last Login: ${lastCountry} · Logins: ${loginCount}
+                    </div>
                 </div>
             </div>
             <div class="profile-stats-grid">
-                <div class="profile-stat-item"><div class="stat-number">${userProfile.history.length}</div><div class="stat-label">Orders</div></div>
-                <div class="profile-stat-item"><div class="stat-number">${userProfile.rp || 0}</div><div class="stat-label">RP Points</div></div>
-                <div class="profile-stat-item"><div class="stat-number">${wishlist.length}</div><div class="stat-label">Favorites</div></div>
-                <div class="profile-stat-item"><div class="stat-number">${userProfile.referrals?.length || 0}</div><div class="stat-label">Referrals</div></div>
+                <div class="profile-stat-item">
+                    <div class="stat-number">${userProfile.history.length}</div>
+                    <div class="stat-label">Orders</div>
+                </div>
+                <div class="profile-stat-item">
+                    <div class="stat-number">${userProfile.rp || 0}</div>
+                    <div class="stat-label">RP Points</div>
+                </div>
+                <div class="profile-stat-item">
+                    <div class="stat-number">${wishlist.length}</div>
+                    <div class="stat-label">Favorites</div>
+                </div>
+                <div class="profile-stat-item">
+                    <div class="stat-number">${userProfile.referrals?.length || 0}</div>
+                    <div class="stat-label">Referrals</div>
+                </div>
             </div>
         </div>
+
+        <!-- Edit Profile -->
         <div class="profile-section-card">
             <div class="section-title"><i class="fas fa-edit"></i> Edit Profile</div>
             <form onsubmit="saveProfileChangesInline(event)">
-                <div class="profile-form-group"><label>Name</label><input id="editNameInline" value="${userProfile.name || currentUser.displayName || ''}" placeholder="Enter your name" type="text" /></div>
-                <div class="profile-form-group"><label>Telegram Username</label><input id="editTelegramInline" value="${userProfile.telegram || ''}" placeholder="@username" type="text" /></div>
-                <div class="profile-form-group" style="opacity:0.6;"><label>Country (auto-detected)</label><input type="text" value="${userCountry}" disabled style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--card-bg);color:var(--text);" /></div>
-                <div class="profile-form-group"><label>Language</label><select id="editLangInline"><option value="English" ${userProfile.lang==='English'?'selected':''}>🇬🇧 English</option><option value="Arabic" ${userProfile.lang==='Arabic'?'selected':''}>🇸🇦 العربية</option><option value="French" ${userProfile.lang==='French'?'selected':''}>🇫🇷 Français</option></select></div>
-                <div class="profile-actions"><button type="button" class="btn-secondary" onclick="renderProfileFull()">Cancel</button><button type="submit" class="btn-primary"><i class="fas fa-save"></i> Save</button></div>
+                <div class="profile-form-group">
+                    <label>Name</label>
+                    <input id="editNameInline" value="${userProfile.name || currentUser.displayName || ''}" placeholder="Enter your name" type="text" />
+                </div>
+                <div class="profile-form-group">
+                    <label>Telegram Username</label>
+                    <input id="editTelegramInline" value="${userProfile.telegram || ''}" placeholder="@username" type="text" />
+                </div>
+                <div class="profile-form-group" style="opacity:0.6;">
+                    <label>Country (auto-detected)</label>
+                    <input type="text" value="${userCountry}" disabled style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--card-bg);color:var(--text);" />
+                </div>
+                <div class="profile-form-group">
+                    <label>Language</label>
+                    <select id="editLangInline">
+                        <option value="English" ${userProfile.lang==='English'?'selected':''}>🇬🇧 English</option>
+                        <option value="Arabic" ${userProfile.lang==='Arabic'?'selected':''}>🇸🇦 العربية</option>
+                        <option value="French" ${userProfile.lang==='French'?'selected':''}>🇫🇷 Français</option>
+                    </select>
+                </div>
+                <div class="profile-actions">
+                    <button type="button" class="btn-secondary" onclick="renderProfileFull()">Cancel</button>
+                    <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Save</button>
+                </div>
             </form>
         </div>
+
+        <!-- Password & Security -->
         <div class="profile-section-card">
             <div class="section-title"><i class="fas fa-lock"></i> Password & Security</div>
-            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:8px;background:var(--glass-bg);padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--glass-border);">
-                <span style="font-size:13px;font-weight:500;color:var(--text-secondary);">${currentUser.email || 'No email'}</span>
-                <button onclick="sendResetLinkInline()" class="btn-primary" style="padding:4px 14px;font-size:12px;"><i class="fas fa-paper-plane"></i> Send Reset Link</button>
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px; margin-bottom:8px; background:var(--glass-bg); padding:8px 12px; border-radius:var(--radius-sm); border:1px solid var(--glass-border);">
+                <span style="font-size:13px; font-weight:500; color:var(--text-secondary);">${currentUser.email || 'No email'}</span>
+                <button onclick="sendResetLinkInline()" class="btn-primary" style="padding:4px 14px; font-size:12px;"><i class="fas fa-paper-plane"></i> Send Reset Link</button>
             </div>
             <div style="border-top:1px solid var(--glass-border);padding-top:12px;margin-top:4px;">
                 <div style="font-size:12px;color:var(--text-secondary);opacity:0.4;margin-bottom:6px;">Use your current password to set a new one instantly.</div>
-                <div class="profile-form-group"><label>Current Password</label><div class="password-wrapper"><input id="currentPasswordInline" placeholder="Enter current password" type="password" /><button type="button" class="password-toggle" onclick="togglePasswordVisibility('currentPasswordInline')"><i class="fas fa-eye"></i></button></div></div>
-                <div class="profile-form-group"><label>New Password</label><div class="password-wrapper"><input id="newPasswordInline" placeholder="Enter new password (min 6 chars)" type="password" /><button type="button" class="password-toggle" onclick="togglePasswordVisibility('newPasswordInline')"><i class="fas fa-eye"></i></button></div></div>
-                <div class="profile-form-group"><label>Confirm New Password</label><div class="password-wrapper"><input id="confirmNewPasswordInline" placeholder="Confirm new password" type="password" /><button type="button" class="password-toggle" onclick="togglePasswordVisibility('confirmNewPasswordInline')"><i class="fas fa-eye"></i></button></div></div>
+                <div class="profile-form-group">
+                    <label>Current Password</label>
+                    <div class="password-wrapper">
+                        <input id="currentPasswordInline" placeholder="Enter current password" type="password" />
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('currentPasswordInline')"><i class="fas fa-eye"></i></button>
+                    </div>
+                </div>
+                <div class="profile-form-group">
+                    <label>New Password</label>
+                    <div class="password-wrapper">
+                        <input id="newPasswordInline" placeholder="Enter new password (min 6 chars)" type="password" />
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('newPasswordInline')"><i class="fas fa-eye"></i></button>
+                    </div>
+                </div>
+                <div class="profile-form-group">
+                    <label>Confirm New Password</label>
+                    <div class="password-wrapper">
+                        <input id="confirmNewPasswordInline" placeholder="Confirm new password" type="password" />
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('confirmNewPasswordInline')"><i class="fas fa-eye"></i></button>
+                    </div>
+                </div>
                 <button class="btn-primary" onclick="changePasswordInline()" style="width:100%;"><i class="fas fa-key"></i> Change Password</button>
-                <div class="auth-error" id="passwordErrorInline"></div><div class="auth-success" id="passwordSuccessInline"></div>
+                <div class="auth-error" id="passwordErrorInline"></div>
+                <div class="auth-success" id="passwordSuccessInline"></div>
             </div>
         </div>
+
+        <!-- Telegram Notifications -->
         <div class="profile-section-card">
             <div class="section-title"><i class="fab fa-telegram-plane" style="color:#0088cc;"></i> Telegram Notifications</div>
-            <div class="telegram-status-row"><span class="label">Status</span><span class="value ${userProfile.telegramChatId?'linked':'unlinked'}">${userProfile.telegramChatId?'✅ Linked':'❌ Unlinked'}</span></div>
-            ${userProfile.telegramChatId ? `<div class="telegram-status-row"><span class="label">Bound Chat ID</span><span class="value" style="font-family:monospace;letter-spacing:1px;">${maskedChatId}</span></div><div class="telegram-status-row"><span class="label">Bot</span><span class="value" style="color:#0088cc;">@${BOT_USERNAME}</span></div>` : ''}
-            <div class="tb-info"><i class="fas fa-info-circle" style="color:var(--primary);"></i> ${userProfile.telegramChatId ? 'You will receive order notifications here.' : 'Click "Link Bot" to connect your Telegram account.'}</div>
+            <div class="telegram-status-row">
+                <span class="label">Status</span>
+                <span class="value ${userProfile.telegramChatId?'linked':'unlinked'}">${userProfile.telegramChatId?'✅ Linked':'❌ Unlinked'}</span>
+            </div>
+            ${userProfile.telegramChatId ? `
+                <div class="telegram-status-row">
+                    <span class="label">Bound Chat ID</span>
+                    <span class="value" style="font-family:monospace;letter-spacing:1px;">${maskedChatId}</span>
+                </div>
+                <div class="telegram-status-row">
+                    <span class="label">Bot</span>
+                    <span class="value" style="color:#0088cc;">@${BOT_USERNAME}</span>
+                </div>
+            ` : ''}
+            <div class="tb-info">
+                <i class="fas fa-info-circle" style="color:var(--primary);"></i>
+                ${userProfile.telegramChatId ? 'You will receive order notifications here.' : 'Click "Link Bot" to connect your Telegram account.'}
+            </div>
             <div class="telegram-actions">
                 <button class="btn-bind" onclick="bindTelegram()"><i class="fab fa-telegram-plane"></i> ${userProfile.telegramChatId?'Re-link':'Link Bot'}</button>
                 ${userProfile.telegramChatId ? `<button class="btn-test" onclick="testTelegramNotification()"><i class="fas fa-paper-plane"></i> Test</button>` : ''}
                 <button class="btn-check" onclick="checkTelegramStatus()"><i class="fas fa-sync-alt"></i> Check</button>
                 ${userProfile.telegramChatId ? `<button class="btn-unlink" onclick="unlinkTelegram()"><i class="fas fa-unlink"></i> Unlink</button>` : ''}
             </div>
-            <div style="font-size:11px;color:var(--text-secondary);opacity:0.4;margin-top:6px;display:flex;align-items:center;gap:4px;"><i class="fab fa-telegram-plane" style="color:#0088cc;"></i> ${userProfile.telegramChatId ? `Connected to @${BOT_USERNAME}` : `Start @${BOT_USERNAME} and click "Link Bot" to connect`}</div>
+            <div style="font-size:11px;color:var(--text-secondary);opacity:0.4;margin-top:6px;display:flex;align-items:center;gap:4px;">
+                <i class="fab fa-telegram-plane" style="color:#0088cc;"></i>
+                ${userProfile.telegramChatId ? `Connected to @${BOT_USERNAME}` : `Start @${BOT_USERNAME} and click "Link Bot" to connect`}
+            </div>
         </div>
     </div>`;
     setTimeout(showTelegramBanner, 300);
@@ -1913,9 +2177,14 @@ window.saveProfileChangesInline = async function(e) {
     } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
 };
 
-window.sendResetLinkInline = async function() { if (!currentUser) return; try { await sendPasswordResetEmail(auth, currentUser.email);
-        showToast(`📧 Reset link sent to ${currentUser.email}`, 'success'); } catch (error) { showToast('❌ ' + error.message, 'error'); } };
-window.changePasswordInline = async function() { if (!currentUser) return; const currentPwd = document.getElementById('currentPasswordInline').value; const newPwd = document.getElementById('newPasswordInline').value; const confirmPwd = document.getElementById('confirmNewPasswordInline').value; const errorEl = document.getElementById('passwordErrorInline'); const successEl = document.getElementById('passwordSuccessInline');
+window.sendResetLinkInline = async function() { if (!currentUser) return; try { await sendPasswordResetEmail(auth,
+        currentUser.email);
+        showToast(`📧 Reset link sent to ${currentUser.email}`, 'success'); } catch (error) { showToast('❌ ' + error.message,
+            'error'); } };
+window.changePasswordInline = async function() { if (!currentUser) return; const currentPwd = document.getElementById(
+        'currentPasswordInline').value; const newPwd = document.getElementById('newPasswordInline').value; const confirmPwd =
+        document.getElementById('confirmNewPasswordInline').value; const errorEl = document.getElementById(
+        'passwordErrorInline'); const successEl = document.getElementById('passwordSuccessInline');
     errorEl.textContent = '';
     successEl.textContent = '';
     if (!currentPwd || !newPwd || !confirmPwd) { errorEl.textContent = 'Please fill all fields'; return; }
@@ -1950,27 +2219,12 @@ async function loadProductsFromFirestore() {
         console.log(`✅ Loaded ${productsList.length} products from Firestore`);
         if (productsList.length === 0) {
             console.warn('⚠️ No products in Firestore, using fallback');
-            products = fallbackProducts;
-            renderProducts(products, false);
-            renderAdminProducts(products);
-            updateStatsFromProducts(products);
-            generateRecommendations(products);
             return fallbackProducts;
         }
-        products = productsList;
-        renderProducts(products, false);
-        renderAdminProducts(products);
-        updateStatsFromProducts(products);
-        generateRecommendations(products);
         return productsList;
     } catch (error) {
         console.error('Error loading products:', error);
         console.warn('⚠️ Using fallback products due to error');
-        products = fallbackProducts;
-        renderProducts(products, false);
-        renderAdminProducts(products);
-        updateStatsFromProducts(products);
-        generateRecommendations(products);
         return fallbackProducts;
     }
 }
@@ -2028,27 +2282,34 @@ function startProductsRealtimeListener() {
 }
 
 function getCurrencySymbol(currency) {
-    const symbols = { 'USD': '$', 'TND': 'د.ت', 'OTHER': '💱' };
+    const symbols = {
+        'USD': '$',
+        'TND': 'د.ت',
+        'OTHER': '💱'
+    };
     return symbols[currency] || '$';
 }
 
 function renderBadges(badges) {
     if (!badges || badges.length === 0) return '';
-    const badgeMap = { 'new': 'mb-new', 'hot': 'mb-hot', 'exclusive': 'mb-exclusive', 'important': 'mb-important', 'limited': 'mb-limited', 'best': 'mb-best' };
+    const badgeMap = {
+        'new': 'mb-new',
+        'hot': 'mb-hot',
+        'exclusive': 'mb-exclusive',
+        'important': 'mb-important',
+        'limited': 'mb-limited',
+        'best': 'mb-best'
+    };
     return `<div class="product-badges">${badges.map(b => `<span class="mini-badge ${badgeMap[b] || ''}">${b}</span>`).join('')}</div>`;
 }
 
-// ============================================================
-// RENDER PRODUCTS - COMPLETE FIXED VERSION
-// ============================================================
 function renderProducts(productsList, isLoading = false) {
     const container = document.getElementById('productList');
     if (!container) {
-        console.error('❌ productList element not found!');
+        console.warn('⚠️ productList element not found!');
         return;
     }
-    console.log(`🔄 Rendering products, count: ${productsList?.length || 0}, loading: ${isLoading}`);
-    
+    console.log(`🔄 Rendering products, count: ${productsList.length}, loading: ${isLoading}`);
     if (isLoading) {
         container.innerHTML = Array(4).fill(`
             <div class="product-card skeleton">
@@ -2060,36 +2321,20 @@ function renderProducts(productsList, isLoading = false) {
         `).join('');
         return;
     }
-    
     const list = productsList || [];
     if (list.length === 0) {
-        container.innerHTML = `
-            <div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--text-secondary);">
-                <i class="fas fa-box-open" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i>
-                <div style="font-size:18px;font-weight:600;">No products available</div>
-                <div style="font-size:13px;opacity:0.4;margin-top:4px;">Check back later for new scripts</div>
-            </div>
-        `;
+        container.innerHTML =
+            `<div style="grid-column:1/-1;text-align:center;padding:20px 0;color:var(--text-secondary);font-size:14px;"><i class="fas fa-search" style="font-size:28px;opacity:0.2;display:block;margin-bottom:4px;"></i><p>No products</p></div>`;
         return;
     }
-    
     let filtered = [...list];
-    if (currentFilter === 'free') {
-        filtered = filtered.filter(p => p.price === 0);
-    } else if (currentFilter === 'paid') {
-        filtered = filtered.filter(p => p.price > 0);
-    }
-    
+    if (currentFilter === 'free') filtered = filtered.filter(p => p.price === 0);
+    else if (currentFilter === 'paid') filtered = filtered.filter(p => p.price > 0);
     if (filtered.length === 0) {
-        container.innerHTML = `
-            <div style="grid-column:1/-1;text-align:center;padding:20px 0;color:var(--text-secondary);font-size:14px;">
-                <i class="fas fa-search" style="font-size:28px;opacity:0.2;display:block;margin-bottom:4px;"></i>
-                <p>No products match this filter</p>
-            </div>
-        `;
+        container.innerHTML =
+            `<div style="grid-column:1/-1;text-align:center;padding:20px 0;color:var(--text-secondary);font-size:14px;"><i class="fas fa-search" style="font-size:28px;opacity:0.2;display:block;margin-bottom:4px;"></i><p>No results</p></div>`;
         return;
     }
-    
     container.innerHTML = filtered.map(p => {
         const isFree = p.price === 0;
         const isUnavailable = p.status === 'unavailable';
@@ -2105,49 +2350,45 @@ function renderProducts(productsList, isLoading = false) {
         if (activeDiscount > 0 && p.price > 0) {
             const discounted = displayPrice - (displayPrice * activeDiscount / 100);
             displayPrice = discounted;
-            originalPrice = `<span class="original-price">${getCurrencySymbol(p.currency || 'USD')}${p.price.toFixed(2)}</span>`;
+            originalPrice =
+                `<span class="original-price">${getCurrencySymbol(p.currency || 'USD')}${p.price.toFixed(2)}</span>`;
             discountBadge = `<span class="discount-badge">-${activeDiscount}%</span>`;
         }
         const currencySymbol = getCurrencySymbol(p.currency || 'USD');
-        const priceDisplay = isUnavailable ? '⛔ Unavailable' : (isFree ? 'FREE' : `${currencySymbol}${displayPrice.toFixed(2)}`);
-        
+        const priceDisplay = isUnavailable ? '⛔ Unavailable' : (isFree ? 'FREE' :
+            `${currencySymbol}${displayPrice.toFixed(2)}`);
+
         return `
-            <div class="product-card" onclick="window.openDetails('${p.id}')">
-                <div class="product-actions-top">
-                    <button class="share-btn" onclick="event.stopPropagation(); openShareModal('${p.id}')" title="Share"><i class="fas fa-share-alt"></i></button>
-                    <button class="wishlist-btn" onclick="event.stopPropagation(); window.toggleWishlist('${p.id}')"><i class="fas fa-heart heart-icon ${inWish?'liked':''}"></i></button>
-                </div>
-                <div class="image-wrapper">
-                    ${p.image ? `<img src="${p.image}" alt="${p.name}" loading="lazy" />` : `<div class="placeholder"><i class="fas fa-code"></i></div>`}
-                    <div class="image-badge ${badgeClass}">${badgeLabel}</div>
-                </div>
-                <div class="product-name">${p.name}</div>
-                ${p.badges && p.badges.length > 0 ? renderBadges(p.badges) : ''}
-                <div class="features-list">
-                    ${displayFeatures.map(f => `<span class="feature-item"><i class="fas fa-circle"></i> ${f}</span>`).join('')}
-                    ${displayFeatures.length > 0 && p.features && p.features.length > 3 ? `<span class="feature-item" style="opacity:0.2;">+${p.features.length-3}</span>` : ''}
-                </div>
-                <div class="price">
-                    ${priceDisplay}
-                    ${originalPrice} ${discountBadge}
-                </div>
-                <div class="card-actions">
-                    <button class="btn-details" onclick="event.stopPropagation(); window.openDetails('${p.id}')"><i class="fas fa-info-circle"></i></button>
-                    ${isUnavailable ? 
-                        `<button class="btn-download" style="background:var(--text-secondary);color:#fff;cursor:not-allowed;opacity:0.4;" onclick="event.preventDefault();showToast('⛔ Unavailable','warning')"><i class="fas fa-times-circle"></i></button>` : 
-                        (isFree ? 
-                            `<a href="${p.downloadLink || '#'}" class="btn-download" ${p.downloadLink ? 'target="_blank"' : 'onclick="event.preventDefault();showToast(\'⏳ Coming soon\',\'info\')"'}><i class="fas fa-download"></i></a>` : 
-                            `<button class="btn-add-cart ${inCart ? 'added' : ''}" onclick="event.stopPropagation(); window.addToCart('${p.id}')"><i class="fas ${inCart ? 'fa-check' : 'fa-cart-plus'}"></i> ${inCart ? qty : ''}</button>`
-                        )
-                    }
-                </div>
-                <div class="product-footer-icons">
-                    <span class="icon-item"><i class="fas fa-bolt"></i> Instant</span>
-                    <span class="icon-item"><i class="fas fa-lock"></i> Secure</span>
-                    <span class="icon-item"><i class="fas fa-headset"></i> 24/7</span>
-                </div>
-            </div>
-        `;
+      <div class="product-card" onclick="window.openDetails('${p.id}')">
+        <div class="product-actions-top">
+          <button class="share-btn" onclick="event.stopPropagation(); openShareModal('${p.id}')" title="Share"><i class="fas fa-share-alt"></i></button>
+          <button class="wishlist-btn" onclick="event.stopPropagation(); window.toggleWishlist('${p.id}')"><i class="fas fa-heart heart-icon ${inWish?'liked':''}"></i></button>
+        </div>
+        <div class="image-wrapper">
+          ${p.image?`<img src="${p.image}" alt="${p.name}" loading="lazy" />`:`<div class="placeholder"><i class="fas fa-code"></i></div>`}
+          <div class="image-badge ${badgeClass}">${badgeLabel}</div>
+        </div>
+        <div class="product-name">${p.name}</div>
+        ${p.badges && p.badges.length > 0 ? renderBadges(p.badges) : ''}
+        <div class="features-list">
+          ${displayFeatures.map(f=>`<span class="feature-item"><i class="fas fa-circle"></i> ${f}</span>`).join('')}
+          ${displayFeatures.length>0 && p.features && p.features.length>3?`<span class="feature-item" style="opacity:0.2;">+${p.features.length-3}</span>`:''}
+        </div>
+        <div class="price">
+          ${priceDisplay}
+          ${originalPrice} ${discountBadge}
+        </div>
+        <div class="card-actions">
+          <button class="btn-details" onclick="event.stopPropagation(); window.openDetails('${p.id}')"><i class="fas fa-info-circle"></i></button>
+          ${isUnavailable?`<button class="btn-download" style="background:var(--text-secondary);color:#fff;cursor:not-allowed;opacity:0.4;" onclick="event.preventDefault();showToast('⛔ Unavailable','warning')"><i class="fas fa-times-circle"></i></button>`:(isFree?`<a href="${p.downloadLink||'#'}" class="btn-download" ${p.downloadLink?'target="_blank"':'onclick="event.preventDefault();showToast(\'⏳ Coming soon\',\'info\')"'}><i class="fas fa-download"></i></a>`:`<button class="btn-add-cart ${inCart?'added':''}" onclick="event.stopPropagation(); window.addToCart('${p.id}')"><i class="fas ${inCart?'fa-check':'fa-cart-plus'}"></i> ${inCart?qty:''}</button>`)}
+        </div>
+        <div class="product-footer-icons">
+          <span class="icon-item"><i class="fas fa-bolt"></i> Instant</span>
+          <span class="icon-item"><i class="fas fa-lock"></i> Secure</span>
+          <span class="icon-item"><i class="fas fa-headset"></i> 24/7</span>
+        </div>
+      </div>
+    `;
     }).join('');
 }
 
@@ -2168,6 +2409,7 @@ function updateStatsFromProducts(productsList) {
 function generateRecommendations(productsList) {
     const grid = document.getElementById('recommendationsGrid');
     if (!grid) return;
+
     let recs = [];
     if (currentUser) {
         recs = getRecommendations(4);
@@ -2177,8 +2419,10 @@ function generateRecommendations(productsList) {
     } else {
         recs = productsList.filter(p => p.price > 0).slice(0, 4);
     }
+
     if (recs.length === 0) {
-        grid.innerHTML = `<div class="rec-empty" style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text-secondary);font-size:13px;">
+        grid.innerHTML =
+            `<div class="rec-empty" style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text-secondary);font-size:13px;">
             <i class="fas fa-lightbulb" style="display:block;font-size:24px;opacity:0.2;margin-bottom:4px;"></i>
             <p>Start exploring scripts!</p>
         </div>`;
@@ -2208,6 +2452,7 @@ window.selectProductType = function(type) {
         el.classList.toggle('active', el.dataset.type === type);
     });
     document.getElementById('productType').value = type;
+
     const container = document.getElementById('quantityOptionsContainer');
     if (type === 'quantity') {
         container.style.display = 'block';
@@ -2325,6 +2570,7 @@ function setBadges(badges) {
 function renderFallbackProductsAdmin() {
     const container = document.getElementById('adminFallbackProducts');
     if (!container) return;
+
     container.innerHTML = `
         <div style="background:var(--glass-bg); backdrop-filter:blur(8px); border-radius:var(--radius-sm); padding:16px; border:1px solid var(--glass-border); margin-bottom:12px;">
             <h4 style="font-weight:700; margin-bottom:8px; color:var(--vip-color);">📦 Fallback Products</h4>
@@ -2333,6 +2579,7 @@ function renderFallbackProductsAdmin() {
             </div>
         </div>
     `;
+
     fallbackProducts.forEach((p, index) => {
         const div = document.createElement('div');
         div.className = 'admin-item';
@@ -2353,6 +2600,7 @@ function renderFallbackProductsAdmin() {
         `;
         container.appendChild(div);
     });
+
     const addBtn = document.createElement('button');
     addBtn.className = 'add-btn';
     addBtn.style.marginTop = '8px';
@@ -2364,6 +2612,7 @@ function renderFallbackProductsAdmin() {
 window.editFallbackProduct = function(index) {
     const product = fallbackProducts[index];
     if (!product) { showToast('❌ Product not found', 'error'); return; }
+
     document.getElementById('fallbackProductId').value = index;
     document.getElementById('fallbackProductName').value = product.name || '';
     document.getElementById('fallbackProductPrice').value = product.price || 0;
@@ -2374,6 +2623,7 @@ window.editFallbackProduct = function(index) {
     document.getElementById('fallbackProductFeatures').value = (product.features || []).join(', ');
     document.getElementById('fallbackProductVideo').value = product.video || 'https://www.youtube.com/embed/dQw4w9WgXcQ';
     document.getElementById('fallbackProductDownloadLink').value = product.downloadLink || '';
+
     document.getElementById('fallbackProductModalTitle').textContent = '✏️ Edit Fallback Product';
     document.getElementById('fallbackProductModal').classList.add('open');
 };
@@ -2384,11 +2634,13 @@ window.openAddFallbackProductModal = function() {
     document.getElementById('fallbackProductPrice').value = 0;
     document.getElementById('fallbackProductBadge').value = 'FREE';
     document.getElementById('fallbackProductStatus').value = 'available';
-    document.getElementById('fallbackProductImage').value = 'https://picsum.photos/seed/' + Math.random().toString(36).substring(2, 8) + '/400/300';
+    document.getElementById('fallbackProductImage').value = 'https://picsum.photos/seed/' + Math.random().toString(36)
+        .substring(2, 8) + '/400/300';
     document.getElementById('fallbackProductDescription').value = '';
     document.getElementById('fallbackProductFeatures').value = '';
     document.getElementById('fallbackProductVideo').value = 'https://www.youtube.com/embed/dQw4w9WgXcQ';
     document.getElementById('fallbackProductDownloadLink').value = '';
+
     document.getElementById('fallbackProductModalTitle').textContent = '➕ Add Fallback Product';
     document.getElementById('fallbackProductModal').classList.add('open');
 };
@@ -2408,7 +2660,9 @@ window.saveFallbackProduct = function() {
     const featuresText = document.getElementById('fallbackProductFeatures').value.trim();
     const video = document.getElementById('fallbackProductVideo').value.trim();
     const downloadLink = document.getElementById('fallbackProductDownloadLink').value.trim();
+
     if (!name) { showToast('⚠️ Product name is required', 'warning'); return; }
+
     const features = featuresText ? featuresText.split(',').map(f => f.trim()).filter(f => f) : [];
     const productData = {
         id: 'fallback_' + Date.now(),
@@ -2426,6 +2680,7 @@ window.saveFallbackProduct = function() {
         badges: ['new'],
         createdAt: new Date()
     };
+
     if (index !== '' && index >= 0 && index < fallbackProducts.length) {
         fallbackProducts[parseInt(index)] = { ...fallbackProducts[parseInt(index)], ...productData };
         showToast('✅ Fallback product updated!', 'success');
@@ -2433,10 +2688,12 @@ window.saveFallbackProduct = function() {
         fallbackProducts.push(productData);
         showToast('✅ Fallback product added!', 'success');
     }
+
     if (products.length === 0 || products === fallbackProducts) {
         products = fallbackProducts;
         renderProducts(products, false);
     }
+
     closeFallbackProductModal();
     renderFallbackProductsAdmin();
 };
@@ -2466,7 +2723,8 @@ function renderFeaturedProducts() {
         productsToShow = products.slice(0, 4);
     }
     if (productsToShow.length === 0) {
-        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text-secondary);font-size:13px;">No products available</div>`;
+        grid.innerHTML =
+            `<div style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text-secondary);font-size:13px;">No products available</div>`;
         return;
     }
     featuredProducts = productsToShow;
@@ -2499,7 +2757,8 @@ function displayFeaturedSlice() {
 
 function startFeaturedRotation() { if (featuredRotationInterval) { clearInterval(featuredRotationInterval);
         featuredRotationInterval = null; } if (!featuredSettings.enabled || featuredProducts.length <= 4) return;
-    featuredRotationInterval = setInterval(() => { featuredCurrentIndex = (featuredCurrentIndex + 4) % featuredProducts.length;
+    featuredRotationInterval = setInterval(() => { featuredCurrentIndex = (featuredCurrentIndex + 4) % featuredProducts
+            .length;
         displayFeaturedSlice(); }, featuredSettings.rotationInterval); }
 function stopFeaturedRotation() { if (featuredRotationInterval) { clearInterval(featuredRotationInterval);
         featuredRotationInterval = null; } }
@@ -2545,6 +2804,7 @@ function updateProductCardButton(productId) {
 window.addToCart = async function(productId) {
     const product = products.find(p => p.id === productId);
     if (!product) { showToast('⚠️ Product not found', 'warning'); return; }
+
     if (product.productType === 'quantity') {
         const selectedQty = window._selectedQuantity || product.quantityOptions?.[0]?.quantity;
         const selectedPrice = window._selectedQuantityPrice || product.quantityOptions?.[0]?.price;
@@ -2573,6 +2833,7 @@ window.addToCart = async function(productId) {
         await logActivity('add_to_cart', { productId, productName: product.name, price: product.price, quantity: selectedQty });
         return;
     }
+
     if (product.price === 0) { showToast('⚠️ This script is free', 'warning'); return; }
     const existing = cart.find(item => item.id === productId && !item.isVip);
     if (existing) { existing.quantity = (existing.quantity || 1) + 1; } else { cart.push({ ...product, quantity: 1 }); }
@@ -2647,6 +2908,7 @@ function updateCartUI() {
 function renderCartFull() {
     const container = document.getElementById('cartFullContent');
     if (!container) return;
+
     if (cart.length === 0) {
         container.innerHTML = `
             <div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
@@ -2809,7 +3071,8 @@ function createFloatingHearts() {
     if (!container) {
         container = document.createElement('div');
         container.id = 'floatingHearts';
-        container.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;overflow:hidden;';
+        container.style.cssText =
+            'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;overflow:hidden;';
         document.body.appendChild(container);
     }
     const heartCount = 6;
@@ -2887,19 +3150,25 @@ window.openDetails = function(id) {
         return;
     }
     window._currentProduct = p;
+
     const titleEl = document.getElementById('productDetailsTitle');
     if (titleEl) titleEl.textContent = p.name;
+
     const container = document.getElementById('productDetailsContent');
     if (!container) {
         console.error('❌ productDetailsContent not found');
         return;
     }
+
+    // Log activity
     logActivity('view_product', { productId: id, productName: p.name, price: p.price });
+
     const isFree = p.price === 0;
     const isUnavailable = p.status === 'unavailable';
     const badgeClass = isUnavailable ? 'unavailable' : (isFree ? 'free' : 'vip');
     const badgeText = isUnavailable ? '⛔ Unavailable' : (isFree ? 'FREE' : (p.badge || 'PREMIUM'));
     const currencySymbol = getCurrencySymbol(p.currency || 'USD');
+
     let videoHtml = '';
     if (p.video && p.video.includes('youtube.com/embed/')) {
         videoHtml = `
@@ -2908,6 +3177,7 @@ window.openDetails = function(id) {
             </div>
         `;
     }
+
     let featuresHtml = '';
     if (p.features && p.features.length > 0) {
         featuresHtml = `
@@ -2921,6 +3191,7 @@ window.openDetails = function(id) {
             </div>
         `;
     }
+
     let vipHtml = '';
     if (p.vipEnabled && p.vipPrices) {
         const plans = [
@@ -2964,6 +3235,7 @@ window.openDetails = function(id) {
             `;
         }
     }
+
     let quantityHtml = '';
     if (p.productType === 'quantity' && p.quantityOptions && p.quantityOptions.length > 0) {
         quantityHtml = `
@@ -2990,16 +3262,21 @@ window.openDetails = function(id) {
             window._selectedQuantityPrice = firstOpt.price;
         }
     }
+
     let priceDisplay = isFree ? 'FREE' : `${currencySymbol}${p.price.toFixed(2)}`;
     let originalPriceHtml = '';
     let discountBadgeHtml = '';
     if (activeDiscount > 0 && p.price > 0) {
         const discounted = p.price - (p.price * activeDiscount / 100);
         priceDisplay = `${currencySymbol}${discounted.toFixed(2)}`;
-        originalPriceHtml = `<span style="font-size:14px;text-decoration:line-through;opacity:0.3;margin-left:8px;">${currencySymbol}${p.price.toFixed(2)}</span>`;
-        discountBadgeHtml = `<span style="font-size:11px;background:var(--danger);color:#fff;padding:0 8px;border-radius:10px;margin-left:6px;">-${activeDiscount}%</span>`;
+        originalPriceHtml =
+            `<span style="font-size:14px;text-decoration:line-through;opacity:0.3;margin-left:8px;">${currencySymbol}${p.price.toFixed(2)}</span>`;
+        discountBadgeHtml =
+            `<span style="font-size:11px;background:var(--danger);color:#fff;padding:0 8px;border-radius:10px;margin-left:6px;">-${activeDiscount}%</span>`;
     }
+
     const isInCart = cart.some(item => item.id === id && !item.isVip);
+
     container.innerHTML = `
         <div style="max-width:600px;margin:0 auto;width:100%;">
             <div style="width:100%;border-radius:var(--radius-md);overflow:hidden;background:var(--bg-secondary);border:1px solid var(--border);margin-bottom:12px;">
@@ -3009,13 +3286,16 @@ window.openDetails = function(id) {
                     <span style="font-size:13px;color:var(--success);font-weight:600;">✅ ${p.status === 'available' ? '100% VERIFIED WORKING' : 'UNAVAILABLE'}</span>
                 </div>
             </div>
+
             <h1 style="font-size:22px;font-weight:800;color:var(--text);margin:0 0 4px 0;">${p.name}</h1>
             ${p.duration ? `<div style="font-size:13px;color:var(--text-secondary);opacity:0.5;margin-bottom:6px;"><i class="fas fa-clock"></i> ${p.duration}</div>` : ''}
             <p style="font-size:14px;color:var(--text-secondary);line-height:1.6;margin:6px 0 12px 0;">${p.description || 'No description available for this product.'}</p>
+
             ${videoHtml}
             ${featuresHtml}
             ${quantityHtml}
             ${vipHtml}
+
             <div style="background:var(--bg-secondary);border-radius:var(--radius-md);padding:14px 16px;border:1px solid var(--border);margin:12px 0;">
                 <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px;">
                     <span style="font-size:24px;font-weight:800;color:var(--primary);">${priceDisplay}</span>
@@ -3036,6 +3316,7 @@ window.openDetails = function(id) {
                     <button onclick="openShareModal('${p.id}')" style="padding:12px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:16px;transition:0.3s;"><i class="fas fa-share-alt"></i></button>
                 </div>
             </div>
+
             <div style="margin-top:16px;padding:16px 20px;background:linear-gradient(135deg, rgba(108,92,231,0.1), rgba(249,202,36,0.08));border-radius:var(--radius-md);border:1px solid var(--glass-border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
                 <div style="display:flex;align-items:center;gap:14px;">
                     <div style="width:56px;height:56px;border-radius:var(--radius-sm);overflow:hidden;background:var(--bg-secondary);flex-shrink:0;">
@@ -3065,7 +3346,9 @@ window.openDetails = function(id) {
                     `))}
                 </div>
             </div>
+
             <div id="ratingSection" style="margin-top:8px;"></div>
+
             <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--text-secondary);opacity:0.3;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
                 <span><i class="fas fa-bolt"></i> Instant Delivery</span>
                 <span><i class="fas fa-lock"></i> Secure Payment</span>
@@ -3074,6 +3357,7 @@ window.openDetails = function(id) {
             </div>
         </div>
     `;
+
     const modal = document.getElementById('productDetailsFull');
     if (modal) {
         modal.classList.add('open');
@@ -3081,6 +3365,7 @@ window.openDetails = function(id) {
     } else {
         console.error('❌ productDetailsFull modal not found');
     }
+
     setTimeout(() => {
         currentProductIdForRating = id;
         currentRating = 0;
@@ -3091,6 +3376,7 @@ window.openDetails = function(id) {
 window.addToCartFromDetails = function() {
     if (window._currentProduct) {
         const p = window._currentProduct;
+
         if (p.productType === 'quantity') {
             const selectedQty = window._selectedQuantity || p.quantityOptions?.[0]?.quantity;
             const selectedPrice = window._selectedQuantityPrice || p.quantityOptions?.[0]?.price;
@@ -3119,6 +3405,7 @@ window.addToCartFromDetails = function() {
             openCartFull();
             return;
         }
+
         if (p.price === 0) {
             showToast('⚠️ This script is free', 'warning');
             return;
@@ -3151,6 +3438,7 @@ window.closeProductDetails = function() {
     window._selectedQuantity = null;
     window._selectedQuantityPrice = null;
 };
+
 window.closePreviewModal = window.closeProductDetails;
 
 window.selectQuantityOption = function(element, productId) {
@@ -3161,10 +3449,12 @@ window.selectQuantityOption = function(element, productId) {
         document.querySelectorAll('.preview-quantity-option').forEach(el => el.classList.remove('selected'));
     }
     element.classList.add('selected');
+
     const price = parseFloat(element.dataset.price);
     const quantity = parseInt(element.dataset.quantity);
     window._selectedQuantity = quantity;
     window._selectedQuantityPrice = price;
+
     const product = products.find(p => p.id === productId);
     if (product) {
         const currency = product.currency || 'USD';
@@ -3232,7 +3522,8 @@ window.openShareModal = function(productId) {
     const product = products.find(p => p.id === productId);
     if (!product) return;
     shareProduct = product;
-    document.getElementById('shareProductInfo').innerHTML = `<div style="display:flex;align-items:center;gap:10px;justify-content:center;"><img src="${product.image||'https://picsum.photos/seed/default/80/80'}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" /><div><div style="font-size:15px;font-weight:600;color:var(--text);">${product.name}</div><div style="font-size:13px;color:var(--primary);font-weight:700;">${product.price===0?'FREE':getCurrencySymbol(product.currency || 'USD') + product.price.toFixed(2)}</div></div></div>`;
+    document.getElementById('shareProductInfo').innerHTML =
+        `<div style="display:flex;align-items:center;gap:10px;justify-content:center;"><img src="${product.image||'https://picsum.photos/seed/default/80/80'}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" /><div><div style="font-size:15px;font-weight:600;color:var(--text);">${product.name}</div><div style="font-size:13px;color:var(--primary);font-weight:700;">${product.price===0?'FREE':getCurrencySymbol(product.currency || 'USD') + product.price.toFixed(2)}</div></div></div>`;
     document.getElementById('shareModal').classList.add('open');
 };
 window.closeShareModal = function() { document.getElementById('shareModal').classList.remove('open');
@@ -3266,9 +3557,9 @@ window.copyShareLink = function() { const url = window.location.href;
 // FILTER & SEARCH
 // ============================================================
 window.filterProducts = function(filter) {
-    if (!filter) filter = 'all';
     currentFilter = filter;
-    document.querySelectorAll('.filter-btn').forEach(btn => { btn.classList.toggle('active', btn.dataset.filter === filter); });
+    document.querySelectorAll('.filter-btn').forEach(btn => { btn.classList.toggle('active', btn.dataset.filter ===
+        filter); });
     renderProducts(products, false);
 };
 
@@ -3276,7 +3567,8 @@ const searchInput = document.getElementById('liveSearchInput');
 const searchResults = document.getElementById('searchResults');
 const searchClear = document.getElementById('searchClear');
 searchInput.addEventListener('input', function() {
-    if (this.value.length > 0) { searchClear.classList.add('visible'); } else { searchClear.classList.remove('visible');
+    if (this.value.length > 0) { searchClear.classList.add('visible'); } else { searchClear.classList.remove(
+        'visible');
         searchResults.classList.remove('active'); }
     performLiveSearch(this.value);
 });
@@ -3301,25 +3593,29 @@ function performLiveSearch(query) {
     searchResults.innerHTML = results.slice(0, 10).map(p => {
         const isFree = p.price === 0;
         const isUnavailable = p.status === 'unavailable';
-        const priceDisplay = isUnavailable ? '⛔ Unavailable' : (isFree ? 'FREE' : getCurrencySymbol(p.currency || 'USD') + p.price.toFixed(2));
+        const priceDisplay = isUnavailable ? '⛔ Unavailable' : (isFree ? 'FREE' : getCurrencySymbol(p
+            .currency || 'USD') + p.price.toFixed(2));
         const badgeClass = isUnavailable ? 'unavailable' : (isFree ? 'free' : 'vip');
         const badgeText = isUnavailable ? '⛔' : (isFree ? 'FREE' : 'VIP');
         return `
-            <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;transition:0.2s;border-bottom:1px solid var(--border);" onclick="window.openDetails('${p.id}'); closeSearchResults();">
-                <img src="${p.image||'https://picsum.photos/seed/default/100/100'}" style="width:36px;height:36px;border-radius:6px;object-fit:cover;" />
-                <div style="flex:1;min-width:0;">
-                    <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${highlightText(p.name,searchTerm)}</div>
-                    <div style="font-size:12px;color:var(--primary);font-weight:700;">${priceDisplay}</div>
-                </div>
-                <span style="padding:2px 10px;border-radius:12px;font-size:9px;font-weight:700;background:${badgeClass==='vip'?'var(--vip-color)':badgeClass==='free'?'var(--free-color)':'var(--danger)'};color:${badgeClass==='vip'||badgeClass==='free'?'#0a0a1a':'#fff'};">${badgeText}</span>
-            </div>
-        `;
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;transition:0.2s;border-bottom:1px solid var(--border);" onclick="window.openDetails('${p.id}'); closeSearchResults();">
+        <img src="${p.image||'https://picsum.photos/seed/default/100/100'}" style="width:36px;height:36px;border-radius:6px;object-fit:cover;" />
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${highlightText(p.name,searchTerm)}</div>
+          <div style="font-size:12px;color:var(--primary);font-weight:700;">${priceDisplay}</div>
+        </div>
+        <span style="padding:2px 10px;border-radius:12px;font-size:9px;font-weight:700;background:${badgeClass==='vip'?'var(--vip-color)':badgeClass==='free'?'var(--free-color)':'var(--danger)'};color:${badgeClass==='vip'||badgeClass==='free'?'#0a0a1a':'#fff'};">${badgeText}</span>
+      </div>
+    `;
     }).join('');
     searchResults.classList.add('active');
 }
 
-function highlightText(text, query) { if (!query) return text; const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi'); return text.replace(regex, '<span style="color: var(--primary); font-weight: 700;">$1</span>'); }
-document.addEventListener('click', function(e) { const wrapper = document.querySelector('.search-wrapper'); if (wrapper && !wrapper.contains(e.target)) { searchResults.classList.remove('active'); } });
+function highlightText(text, query) { if (!query) return text; const regex = new RegExp(
+        `(${query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi'); return text.replace(regex,
+        '<span style="color: var(--primary); font-weight: 700;">$1</span>'); }
+document.addEventListener('click', function(e) { const wrapper = document.querySelector('.search-wrapper'); if (wrapper &&
+        !wrapper.contains(e.target)) { searchResults.classList.remove('active'); } });
 window.clearSearch = function() { searchInput.value = '';
     searchClear.classList.remove('visible');
     searchResults.classList.remove('active');
@@ -3342,7 +3638,8 @@ window.renderPaymentProducts = function() {
     const container = document.getElementById('paymentProductsList');
     if (!container) return;
     if (!cart || cart.length === 0) {
-        container.innerHTML = '<div style="text-align:center;padding:8px;color:var(--text-secondary);opacity:0.4;">No products</div>';
+        container.innerHTML =
+        '<div style="text-align:center;padding:8px;color:var(--text-secondary);opacity:0.4;">No products</div>';
         return;
     }
     container.innerHTML = cart.map(item => {
@@ -3353,14 +3650,15 @@ window.renderPaymentProducts = function() {
         const name = item.isVip ? `${item.name} 👑 ${item.vipPlanLabel || 'VIP'}` : item.name;
         const qtyLabel = item.isQuantityProduct ? `📦 ${item.selectedQuantity || ''}` : '';
         const proxyLabel = item.isProxy ? ' 🌐' : '';
+
         return `
-            <div style="display:flex;align-items:center;gap:10px;background:var(--glass-bg);backdrop-filter:blur(12px);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:8px;">
-                <img src="${image}" alt="${item.name}" style="width:44px;height:44px;border-radius:var(--radius-sm);object-fit:cover;" />
+            <div style="display:flex; align-items:center; gap:10px; background:var(--glass-bg); backdrop-filter:blur(12px); border:1px solid var(--glass-border); border-radius:var(--radius-sm); padding:10px 12px; margin-bottom:8px;">
+                <img src="${image}" alt="${item.name}" style="width:44px; height:44px; border-radius:var(--radius-sm); object-fit:cover;" />
                 <div style="flex:1;">
-                    <div style="font-weight:700;font-size:14px;color:var(--text);">${name} ${proxyLabel} ${qtyLabel}</div>
-                    <div style="font-size:12px;color:var(--primary);font-weight:700;">${getCurrencySymbol(item.currency || 'USD')}${total.toFixed(2)}</div>
+                    <div style="font-weight:700; font-size:14px; color:var(--text);">${name} ${proxyLabel} ${qtyLabel}</div>
+                    <div style="font-size:12px; color:var(--primary); font-weight:700;">${getCurrencySymbol(item.currency || 'USD')}${total.toFixed(2)}</div>
                 </div>
-                <div style="font-size:12px;color:var(--text-secondary);opacity:0.4;font-weight:500;">×${qty}</div>
+                <div style="font-size:12px; color:var(--text-secondary); opacity:0.4; font-weight:500;">×${qty}</div>
             </div>
         `;
     }).join('');
@@ -3369,8 +3667,10 @@ window.renderPaymentProducts = function() {
 async function fetchCryptoPrices() {
     if (cryptoPrices.isUpdating) return;
     cryptoPrices.isUpdating = true;
+
     try {
-        const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=litecoin&vs_currencies=usd');
+        const response = await fetch(
+            'https://api.coingecko.com/api/v3/simple/price?ids=litecoin&vs_currencies=usd');
         if (response.ok) {
             const data = await response.json();
             if (data.litecoin && data.litecoin.usd) {
@@ -3382,7 +3682,10 @@ async function fetchCryptoPrices() {
                 return;
             }
         }
-    } catch (e) { console.warn('⚠️ CoinGecko failed, trying Binance...', e); }
+    } catch (e) {
+        console.warn('⚠️ CoinGecko failed, trying Binance...', e);
+    }
+
     try {
         const response = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=LTCUSDT');
         if (response.ok) {
@@ -3396,9 +3699,14 @@ async function fetchCryptoPrices() {
                 return;
             }
         }
-    } catch (e) { console.warn('⚠️ Binance failed:', e); }
-    if (!cryptoPrices.ltc) { cryptoPrices.ltc = 42;
-        cryptoPrices.usdt = 1; }
+    } catch (e) {
+        console.warn('⚠️ Binance failed:', e);
+    }
+
+    if (!cryptoPrices.ltc) {
+        cryptoPrices.ltc = 42;
+        cryptoPrices.usdt = 1;
+    }
     cryptoPrices.isUpdating = false;
 }
 
@@ -3454,11 +3762,13 @@ window.selectPayment = function(method) {
     };
     const optionEl = document.getElementById(optionMap[method]);
     if (optionEl) optionEl.classList.add('selected');
+
     if (method === 'balance') {
         loadUserBalance();
         const sub = document.getElementById('balancePaymentSub');
         if (sub) sub.textContent = `$${userBalance.toFixed(2)} available`;
     }
+
     if (method === 'litecoin' || method === 'usdt') {
         const wallet = method === 'litecoin' ? paymentWallets.litecoin : paymentWallets.usdt;
         document.getElementById('paymentMethodName').textContent = wallet.name;
@@ -3477,34 +3787,40 @@ window.continuePayment = function() {
     document.getElementById('paymentStep1').style.display = 'none';
     document.getElementById('paymentStep2').style.display = 'block';
     window.renderPaymentProducts();
+
     let total = 0;
     cart.forEach(item => {
         const qty = item.quantity || 1;
         total += item.price * qty;
     });
     let finalTotal = total;
+
     document.getElementById('step2Subtotal').textContent = `$${total.toFixed(2)}`;
     document.getElementById('step2Total').textContent = `$${finalTotal.toFixed(2)}`;
+
     const instructionsContainer = document.getElementById('paymentInstructionsContainer');
     if (instructionsContainer) instructionsContainer.style.display = 'block';
+
     const walletInfo = document.getElementById('paymentWalletInfo');
     const txInput = document.getElementById('paymentTxInput');
     const telegramContact = document.getElementById('paymentTelegramContact');
     const binanceSection = document.getElementById('paymentBinanceIdSection');
     const mainBtn = document.getElementById('mainConfirmBtn');
+
     if (walletInfo) walletInfo.style.display = 'none';
     if (txInput) txInput.style.display = 'none';
     if (telegramContact) telegramContact.style.display = 'none';
     if (binanceSection) binanceSection.style.display = 'none';
     if (mainBtn) mainBtn.style.display = 'none';
+
     if (selectedPayment === 'litecoin' || selectedPayment === 'usdt') {
         if (walletInfo) walletInfo.style.display = 'block';
         if (txInput) txInput.style.display = 'block';
         if (mainBtn) {
             mainBtn.style.display = 'block';
             const ltcPrice = cryptoPrices.ltc || 42;
-            let amountDisplay = '',
-                currencyDisplay = '';
+            let amountDisplay = '';
+            let currencyDisplay = '';
             if (selectedPayment === 'litecoin') {
                 const ltcAmount = finalTotal / ltcPrice;
                 amountDisplay = ltcAmount.toFixed(4);
@@ -3515,11 +3831,7 @@ window.continuePayment = function() {
                 currencyDisplay = 'USDT';
                 mainBtn.innerHTML = `<i class="fas fa-check"></i> Place Order - ${amountDisplay} ${currencyDisplay}`;
             }
-            mainBtn.onclick = function() {
-                const btn = this;
-                showButtonLoading(btn, 'Placing order...');
-                placeOrder();
-            };
+            mainBtn.onclick = placeOrder;
         }
         fetchCryptoPrices();
         setTimeout(updatePriceUI, 500);
@@ -3527,14 +3839,12 @@ window.continuePayment = function() {
         if (telegramContact) telegramContact.style.display = 'block';
         if (mainBtn) {
             mainBtn.style.display = 'block';
-            mainBtn.innerHTML = `<i class="fab fa-telegram-plane"></i> Contact via Telegram - $${finalTotal.toFixed(2)}`;
+            mainBtn.innerHTML =
+                `<i class="fab fa-telegram-plane"></i> Contact via Telegram - $${finalTotal.toFixed(2)}`;
             mainBtn.onclick = function() {
-                const btn = this;
-                showButtonLoading(btn, 'Sending...');
                 const message = `🛒 New Order\n\nTotal: $${finalTotal.toFixed(2)}\nProducts: ${cart.map(i => i.name).join(', ')}`;
                 window.open(`https://t.me/Mitalica69?text=${encodeURIComponent(message)}`, '_blank');
                 placeOrderTelegram();
-                hideButtonLoading(btn);
             };
         }
     } else if (selectedPayment === 'binanceId') {
@@ -3550,7 +3860,8 @@ window.continuePayment = function() {
         }
     } else if (selectedPayment === 'balance') {
         if (userBalance < finalTotal) {
-            showToast(`⚠️ Insufficient balance! Need $${finalTotal.toFixed(2)}, have $${userBalance.toFixed(2)}`, 'warning');
+            showToast(`⚠️ Insufficient balance! Need $${finalTotal.toFixed(2)}, have $${userBalance.toFixed(2)}`,
+                'warning');
             setTimeout(() => openTopupModal(), 500);
             return;
         }
@@ -3559,9 +3870,6 @@ window.continuePayment = function() {
     }
 };
 
-// ============================================================
-// PROCESS BALANCE PAYMENT
-// ============================================================
 async function processBalancePayment(totalAmount) {
     if (!currentUser) {
         showToast('⚠️ Please login first', 'warning');
@@ -3571,9 +3879,8 @@ async function processBalancePayment(totalAmount) {
         showToast('⏳ Order is already being processed...', 'warning');
         return;
     }
-    const btn = document.getElementById('mainConfirmBtn');
-    showButtonLoading(btn, 'Processing payment...');
     isProcessingOrder = true;
+
     try {
         const userRef = doc(db, 'users', currentUser.uid);
         await updateDoc(userRef, {
@@ -3583,6 +3890,7 @@ async function processBalancePayment(totalAmount) {
         userBalance = userBalance - totalAmount;
         userProfile.balance = userBalance;
         updateBalanceDisplay();
+
         const orderId = 'order_' + Date.now();
         const orderItem = {
             id: orderId,
@@ -3594,11 +3902,13 @@ async function processBalancePayment(totalAmount) {
         };
         userProfile.history.push(orderItem);
         await updateDoc(userRef, { history: arrayUnion(orderItem) });
+
+        // Add transaction record
         try {
             await supabase.from('transactions').insert({
                 user_id: currentUser.uid,
                 user_email: currentUser.email,
-                amount: parseFloat(totalAmount),
+                amount: totalAmount,
                 type: 'purchase',
                 description: `Order #${orderId.slice(-6)} - Balance Payment`,
                 status: 'completed',
@@ -3609,8 +3919,10 @@ async function processBalancePayment(totalAmount) {
         } catch (txError) {
             console.error('Failed to create transaction record:', txError);
         }
+
         const visitorInfo = await getVisitorInfo();
         const deviceInfo = getDeviceInfo();
+
         await sendOrderConfirmationEmail(currentUser.email, {
             orderId: orderId,
             userName: currentUser.displayName || currentUser.email,
@@ -3620,6 +3932,7 @@ async function processBalancePayment(totalAmount) {
             status: 'confirmed',
             txHash: null
         });
+
         const adminMessage = `
 👤 *User:* ${currentUser.displayName || currentUser.email || 'User'}
 📧 *Email:* ${currentUser.email || 'N/A'}
@@ -3631,44 +3944,39 @@ async function processBalancePayment(totalAmount) {
 🔔 *Status:* Confirmed (Balance Payment)
         `;
         await sendAdminNotification('✅ Order Paid with Balance', adminMessage);
+
         if (userProfile.telegramChatId) {
             const userTelegramMessage = `
-<b>🛒 ORDER PAID WITH BALANCE!</b>
+🛒 *ORDER PAID WITH BALANCE!*
 
-📋 <b>Order ID:</b> #${orderId.slice(-6)}
-💰 <b>Total:</b> $${totalAmount.toFixed(2)}
-💳 <b>Payment Method:</b> Balance
-📦 <b>Items:</b> ${orderItem.items.map(item => `${item.name} x${item.quantity}`).join(', ')}
+📋 *Order ID:* #${orderId.slice(-6)}
+💰 *Total:* $${totalAmount.toFixed(2)}
+💳 *Payment Method:* Balance
+📦 *Items:* ${orderItem.items.map(item => `${item.name} x${item.quantity}`).join(', ')}
 
-📅 <b>Date:</b> ${new Date().toLocaleString()}
+📅 *Date:* ${new Date().toLocaleString()}
 
 ✅ Your order has been confirmed and completed.
 🔑 Your licences are now available in your profile.
             `;
             await sendTelegramNotification(userProfile.telegramChatId, userTelegramMessage);
         }
+
+        // Generate licences (balance payments are auto-confirmed)
         for (const item of orderItem.items) {
             await generateLicenceForUser(currentUser.uid, currentUser.email, item, orderId);
         }
+
         await logActivity('purchase', { orderId, total: totalAmount, items: orderItem.items.length });
-        showToast({
-            title: '✅ Payment Successful!',
-            orderId: orderId.slice(-6),
-            details: orderItem.items.map(item => ({
-                name: item.name,
-                price: item.price,
-                quantity: item.quantity || 1
-            })),
-            total: totalAmount,
-            method: 'Balance',
-            date: new Date().toLocaleString()
-        }, 'success', 8000, true);
+
         cart = [];
         await saveUserData();
         updateCartUI();
         updateBottomCartBar();
         renderProducts(products);
+
         showToast(`✅ Payment successful! $${totalAmount.toFixed(2)} deducted from balance.`, 'success');
+
         await addDoc(collection(db, 'notifications'), {
             title: '✅ Order Paid with Balance',
             message: `Order #${orderId.slice(-6)} - $${totalAmount.toFixed(2)}`,
@@ -3676,26 +3984,268 @@ async function processBalancePayment(totalAmount) {
             readBy: [],
             createdAt: serverTimestamp()
         });
+
         document.getElementById('paymentModal').classList.remove('open');
-        hideButtonLoading(btn, 'Done!');
+
         loadUserData();
         updateFullUserMenu();
+
     } catch (error) {
         console.error('Balance payment error:', error);
-        hideButtonLoading(btn);
         showToast('❌ Error: ' + error.message, 'error');
     } finally {
         isProcessingOrder = false;
     }
 }
 
+window.placeOrder = function() {
+    if (!currentUser || currentUser.isAnonymous) {
+        showToast('⚠️ Please sign in to confirm payment.', 'warning');
+        openAuthModal();
+        return;
+    }
+
+    let txHash = '';
+    if (selectedPayment === 'binanceId') {
+        txHash = document.getElementById('txHashInput').value.trim();
+        if (!txHash) {
+            showToast('⚠️ Please paste the transaction ID', 'warning');
+            document.getElementById('txHashInput').style.borderColor = 'var(--danger)';
+            setTimeout(() => { document.getElementById('txHashInput').style.borderColor = ''; }, 2000);
+            return;
+        }
+    } else if (selectedPayment === 'litecoin' || selectedPayment === 'usdt') {
+        txHash = document.getElementById('transactionHashInput').value.trim();
+        if (!txHash) {
+            showToast('⚠️ Please paste the transaction hash', 'warning');
+            document.getElementById('transactionHashInput').style.borderColor = 'var(--danger)';
+            setTimeout(() => { document.getElementById('transactionHashInput').style.borderColor = ''; }, 2000);
+            return;
+        }
+    } else if (selectedPayment === 'telegram') {
+        placeOrderTelegram();
+        return;
+    }
+
+    sendOrderToTelegram(selectedPayment, txHash);
+};
+
+window.copyBinanceId = function() {
+    const id = document.getElementById('binanceIdDisplay').textContent;
+    if (!id) return;
+    navigator.clipboard.writeText(id).then(() => {
+        showToast('✅ Binance ID copied!', 'success');
+    }).catch(() => {
+        const textarea = document.createElement('textarea');
+        textarea.value = id;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showToast('✅ Binance ID copied!', 'success');
+    });
+};
+
+window.verifyTransaction = function() {
+    const input = document.getElementById('txHashInput');
+    const result = document.getElementById('verificationResult');
+    const tx = input.value.trim();
+    if (!tx) {
+        result.style.display = 'block';
+        result.className = 'bv-result error';
+        result.textContent = '⚠️ Please enter a transaction ID.';
+        return;
+    }
+    if (tx.length < 6) {
+        result.style.display = 'block';
+        result.className = 'bv-result error';
+        result.textContent =
+        '❌ Transaction ID seems too short. Please check and try again.';
+    } else {
+        result.style.display = 'block';
+        result.className = 'bv-result success';
+        result.textContent =
+        '✅ Transaction ID format looks valid. You can now confirm payment.';
+    }
+};
+
+window.handleTxPaste = function(event) {
+    const input = event.target;
+    setTimeout(() => {
+        input.value = input.value.trim();
+    }, 10);
+};
+
+window.handleScreenshot = function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const preview = document.getElementById('screenshotPreview');
+        const img = document.getElementById('screenshotImg');
+        img.src = e.target.result;
+        preview.style.display = 'flex';
+        document.querySelector('.bv-drop-zone p').textContent = '✅ Image selected';
+    };
+    reader.readAsDataURL(file);
+};
+
+window.removeScreenshot = function() {
+    document.getElementById('screenshotPreview').style.display = 'none';
+    document.getElementById('screenshotImg').src = '#';
+    document.getElementById('screenshotInput').value = '';
+    document.querySelector('.bv-drop-zone p').textContent = 'Drag image here or click to select';
+};
+
+window.submitManualPayment = function() {
+    const txHash = document.getElementById('txHashInput').value.trim();
+    if (!txHash) {
+        showToast('⚠️ Please paste the transaction ID', 'warning');
+        document.getElementById('txHashInput').style.borderColor = 'var(--danger)';
+        setTimeout(() => { document.getElementById('txHashInput').style.borderColor = ''; }, 2000);
+        return;
+    }
+    document.getElementById('transactionHashInput').value = txHash;
+    placeOrder();
+};
+
 // ============================================================
-// SEND ADMIN NOTIFICATION (EXPORTED)
+// SEND USER NOTIFICATION - FIXED
+// ============================================================
+async function sendUserNotification(userId, title, message) {
+    try {
+        await addDoc(collection(db, 'notifications'), {
+            title: title,
+            message: message,
+            userId: userId,
+            readBy: [],
+            createdAt: serverTimestamp()
+        });
+        console.log('✅ User notification sent to Firebase');
+
+        const userRef = doc(db, 'users', userId);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+            const userData = userSnap.data();
+            if (userData.telegramChatId) {
+                await sendTelegramNotification(userData.telegramChatId, `📢 *${title}*\n\n${message}`);
+                console.log('✅ Telegram notification sent to user');
+            }
+        }
+        return true;
+    } catch (error) {
+        console.error('Error sending user notification:', error);
+        return false;
+    }
+}
+
+// ============================================================
+// GENERATE LICENCE FOR USER (ONLY after admin confirmation)
+// ============================================================
+async function generateLicenceForUser(userId, userEmail, item, orderId) {
+    try {
+        const productName = item.name || 'Product';
+        const productId = item.id || 'unknown';
+        const productPrice = item.price || 0;
+        const duration = item.duration || '1 year';
+
+        const expiryDate = new Date();
+        if (duration.includes('month')) {
+            const months = parseInt(duration) || 1;
+            expiryDate.setMonth(expiryDate.getMonth() + months);
+        } else if (duration.includes('year')) {
+            const years = parseInt(duration) || 1;
+            expiryDate.setFullYear(expiryDate.getFullYear() + years);
+        } else if (duration.includes('lifetime')) {
+            expiryDate.setFullYear(expiryDate.getFullYear() + 100);
+        } else {
+            expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+        }
+        const expiryDateISO = expiryDate.toISOString();
+
+        const userRef = doc(db, 'users', userId);
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) {
+            console.error('User not found for licence generation');
+            return;
+        }
+
+        const userData = userSnap.data();
+
+        const payload = {
+            orderId: orderId,
+            userId: userId,
+            userEmail: userEmail,
+            productName: productName,
+            productId: productId,
+            scriptId: productId,
+            scriptName: productName,
+            price: productPrice,
+            expiryDate: expiryDateISO,
+            telegramChatId: userData.telegramChatId || null,
+            duration: duration,
+            status: 'active',
+            orderItems: [item]
+        };
+
+        const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/create-licence', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Accept': 'application/json',
+            },
+            mode: 'cors',
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+            throw new Error(data.error || 'Failed to create licence');
+        }
+
+        const userLicences = userData.licences || [];
+        const newLicence = {
+            code: data.licence.code,
+            scriptId: productId,
+            scriptName: productName,
+            expiryDate: expiryDateISO,
+            activatedAt: new Date().toISOString(),
+            orderId: orderId,
+            status: 'active'
+        };
+        userLicences.push(newLicence);
+        await updateDoc(userRef, { licences: userLicences, updatedAt: serverTimestamp() });
+
+        if (currentUser && currentUser.uid === userId) {
+            userProfile.licences = userLicences;
+            renderUserLicences();
+            updateFullUserMenu();
+        }
+
+        await sendUserNotification(
+            userId,
+            '🔑 Licence Generated!',
+            `Your licence for ${productName} has been generated.\nCode: ${data.licence.code}\nExpires: ${new Date(expiryDateISO).toLocaleDateString()}`
+        );
+
+        console.log('✅ Licence generated for user:', userId);
+        return data.licence;
+
+    } catch (error) {
+        console.error('Error generating licence:', error);
+        return null;
+    }
+}
+
+// ============================================================
+// SEND ADMIN NOTIFICATION
 // ============================================================
 async function sendAdminNotification(title, message) {
     try {
         const settings = await getAdminSettings();
         let sentCount = 0;
+
         if (settings.enableEmailNotifications && settings.adminEmail) {
             try {
                 await sendAdminNotificationEmail(title, message);
@@ -3705,15 +4255,19 @@ async function sendAdminNotification(title, message) {
                 console.error('❌ Failed to send email:', error);
             }
         }
+
         if (settings.enableTelegramNotifications && settings.adminTelegramChatId) {
             try {
-                await sendTelegramNotification(settings.adminTelegramChatId, `📢 *${title}*\n\n${message}`);
+                await sendTelegramNotification(settings.adminTelegramChatId, 
+                    `📢 *${title}*\n\n${message}`
+                );
                 sentCount++;
                 console.log('✅ Telegram sent to admin');
             } catch (error) {
                 console.error('❌ Failed to send Telegram:', error);
             }
         }
+
         try {
             await addDoc(collection(db, 'notifications'), {
                 title: title,
@@ -3727,71 +4281,37 @@ async function sendAdminNotification(title, message) {
         } catch (error) {
             console.error('❌ Failed to add Firebase notification:', error);
         }
+
         return sentCount > 0;
     } catch (error) {
         console.error('❌ Error sending admin notification:', error);
         return false;
     }
 }
-window.sendAdminNotification = sendAdminNotification;
 
 // ============================================================
-// PLACE ORDER
+// SEND ORDER TO TELEGRAM
 // ============================================================
-window.placeOrder = function() {
-    const btn = document.getElementById('mainConfirmBtn');
-    if (btn) showButtonLoading(btn, 'Placing order...');
-    if (!currentUser || currentUser.isAnonymous) {
-        showToast('⚠️ Please sign in to confirm payment.', 'warning');
-        openAuthModal();
-        if (btn) hideButtonLoading(btn);
-        return;
-    }
-    let txHash = '';
-    if (selectedPayment === 'binanceId') {
-        txHash = document.getElementById('txHashInput').value.trim();
-        if (!txHash) {
-            showToast('⚠️ Please paste the transaction ID', 'warning');
-            document.getElementById('txHashInput').style.borderColor = 'var(--danger)';
-            setTimeout(() => { document.getElementById('txHashInput').style.borderColor = ''; }, 2000);
-            if (btn) hideButtonLoading(btn);
-            return;
-        }
-    } else if (selectedPayment === 'litecoin' || selectedPayment === 'usdt') {
-        txHash = document.getElementById('transactionHashInput').value.trim();
-        if (!txHash) {
-            showToast('⚠️ Please paste the transaction hash', 'warning');
-            document.getElementById('transactionHashInput').style.borderColor = 'var(--danger)';
-            setTimeout(() => { document.getElementById('transactionHashInput').style.borderColor = ''; }, 2000);
-            if (btn) hideButtonLoading(btn);
-            return;
-        }
-    } else if (selectedPayment === 'telegram') {
-        placeOrderTelegram();
-        if (btn) hideButtonLoading(btn);
-        return;
-    }
-    sendOrderToTelegram(selectedPayment, txHash, btn);
-};
-
-async function sendOrderToTelegram(method, txHash = null, btn = null) {
+async function sendOrderToTelegram(method, txHash = null) {
     if (isProcessingOrder) {
         showToast('⏳ Order is already being processed...', 'warning');
-        if (btn) hideButtonLoading(btn);
         return;
     }
     isProcessingOrder = true;
+
     try {
         if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
         if (currentUser.isAnonymous) {
             showToast('⚠️ Please sign in to place an order.', 'warning');
             openAuthModal();
-            if (btn) hideButtonLoading(btn);
             return;
         }
+
         console.log('📦 Starting order process...');
+
         const visitorInfo = await getVisitorInfo();
         const deviceInfo = getDeviceInfo();
+
         let screenshotBase64 = null;
         const screenshotInput = document.getElementById('screenshotInput');
         if (screenshotInput && screenshotInput.files && screenshotInput.files[0]) {
@@ -3815,6 +4335,7 @@ async function sendOrderToTelegram(method, txHash = null, btn = null) {
                 console.error('Error reading screenshot:', e);
             }
         }
+
         const cartData = cart.map(item => ({
             id: item.id,
             name: item.name,
@@ -3831,10 +4352,13 @@ async function sendOrderToTelegram(method, txHash = null, btn = null) {
             proxyDuration: item.duration || null,
             proxyQuantity: item.quantity || 1
         }));
+
         let total = 0;
         cart.forEach(item => { total += item.price * (item.quantity || 1); });
         let finalTotal = total;
+
         console.log('💰 Total:', finalTotal);
+
         const fraudCheck = await detectFraud({
             userId: currentUser.uid,
             email: currentUser.email,
@@ -3845,9 +4369,9 @@ async function sendOrderToTelegram(method, txHash = null, btn = null) {
         if (fraudCheck.isSuspicious && fraudCheck.severity === 'high') {
             showToast('⚠️ Order flagged for review. Please contact support.', 'warning');
             isProcessingOrder = false;
-            if (btn) hideButtonLoading(btn);
             return;
         }
+
         const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/place-order', {
             method: 'POST',
             headers: {
@@ -3874,6 +4398,7 @@ async function sendOrderToTelegram(method, txHash = null, btn = null) {
                 discountCode: null
             })
         });
+
         if (!response.ok) {
             let errorText = await response.text();
             console.error('Order API error:', response.status, errorText);
@@ -3884,10 +4409,13 @@ async function sendOrderToTelegram(method, txHash = null, btn = null) {
             showToast('❌ ' + errorText, 'error');
             throw new Error(`Request failed: ${response.status} - ${errorText}`);
         }
+
         const result = await response.json();
         if (!result.success) throw new Error(result.error || 'Request failed');
+
         const orderId = result.orderId || 'order_' + Date.now();
         console.log('✅ Order placed successfully, ID:', orderId);
+
         const orderItem = {
             id: orderId,
             items: cartData,
@@ -3903,26 +4431,24 @@ async function sendOrderToTelegram(method, txHash = null, btn = null) {
         userProfile.history.push(orderItem);
         const userRef = doc(db, 'users', currentUser.uid);
         await updateDoc(userRef, { history: arrayUnion(orderItem) });
+
+        // Add transaction record (pending)
         try {
-            const txData = {
+            await supabase.from('transactions').insert({
                 user_id: currentUser.uid,
                 user_email: currentUser.email,
-                amount: parseFloat(finalTotal),
+                amount: finalTotal,
                 type: 'purchase',
                 description: `Order #${orderId.slice(-6)} - Pending Confirmation`,
                 status: 'pending',
                 order_id: orderId,
                 created_at: new Date().toISOString()
-            };
-            const { error: txError } = await supabase.from('transactions').insert(txData);
-            if (txError) {
-                console.error('Failed to create transaction record:', txError);
-            } else {
-                console.log('✅ Transaction record created for order (pending)');
-            }
+            });
+            console.log('✅ Transaction record created for order (pending)');
         } catch (txError) {
-            console.error('Exception creating transaction record:', txError);
+            console.error('Failed to create transaction record:', txError);
         }
+
         await sendOrderConfirmationEmail(currentUser.email, {
             orderId: orderId,
             userName: currentUser.displayName || currentUser.email,
@@ -3932,6 +4458,7 @@ async function sendOrderToTelegram(method, txHash = null, btn = null) {
             status: 'pending',
             txHash: txHash
         });
+
         try {
             await addDoc(collection(db, 'notifications'), {
                 title: '🆕 New Order Placed',
@@ -3944,6 +4471,7 @@ async function sendOrderToTelegram(method, txHash = null, btn = null) {
         } catch (error) {
             console.error('Failed to send Firebase user notification:', error);
         }
+
         try {
             await addDoc(collection(db, 'notifications'), {
                 title: '📦 New Order Received',
@@ -3956,39 +4484,43 @@ async function sendOrderToTelegram(method, txHash = null, btn = null) {
         } catch (error) {
             console.error('Failed to send Firebase global notification:', error);
         }
+
         console.log('📤 Preparing Telegram notification...');
+
         const userTelegramMessage = `
-<b>🛒 ORDER PLACED SUCCESSFULLY!</b>
+🛒 *ORDER PLACED SUCCESSFULLY!*
 
-📋 <b>Order ID:</b> #${orderId.slice(-6)}
-💰 <b>Total:</b> $${finalTotal.toFixed(2)}
-💳 <b>Payment Method:</b> ${method}
-📦 <b>Items:</b> ${cartData.map(item => `${item.name} x${item.quantity}`).join(', ')}
+📋 *Order ID:* #${orderId.slice(-6)}
+💰 *Total:* $${finalTotal.toFixed(2)}
+💳 *Payment Method:* ${method}
+📦 *Items:* ${cartData.map(item => `${item.name} x${item.quantity}`).join(', ')}
 
-${txHash ? `🔗 <b>TX Hash:</b> <code>${txHash}</code>` : ''}
-📅 <b>Date:</b> ${new Date().toLocaleString()}
+${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
+📅 *Date:* ${new Date().toLocaleString()}
 
 ⏳ Your order is pending admin confirmation.
 🔑 You will receive your licence once the order is confirmed.
         `;
+
         const adminTelegramMessage = `
-<b>🛒 NEW ORDER RECEIVED!</b>
+🛒 *NEW ORDER RECEIVED!*
 
-📋 <b>Order ID:</b> #${orderId.slice(-6)}
-👤 <b>User:</b> ${currentUser.displayName || currentUser.email || 'User'}
-📧 <b>Email:</b> ${currentUser.email || 'N/A'}
-💰 <b>Total:</b> $${finalTotal.toFixed(2)}
-💳 <b>Payment Method:</b> ${method}
-📦 <b>Items:</b> ${cartData.map(item => `${item.name} x${item.quantity}`).join(', ')}
+📋 *Order ID:* #${orderId.slice(-6)}
+👤 *User:* ${currentUser.displayName || currentUser.email || 'User'}
+📧 *Email:* ${currentUser.email || 'N/A'}
+💰 *Total:* $${finalTotal.toFixed(2)}
+💳 *Payment Method:* ${method}
+📦 *Items:* ${cartData.map(item => `${item.name} x${item.quantity}`).join(', ')}
 
-${txHash ? `🔗 <b>TX Hash:</b> <code>${txHash}</code>` : ''}
-📅 <b>Date:</b> ${new Date().toLocaleString()}
+${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
+📅 *Date:* ${new Date().toLocaleString()}
 
-🌐 <b>Location:</b> ${visitorInfo.country}, ${visitorInfo.city}
-📱 <b>Device:</b> ${deviceInfo.device} (${deviceInfo.os} / ${deviceInfo.browser})
+🌐 *Location:* ${visitorInfo.country}, ${visitorInfo.city}
+📱 *Device:* ${deviceInfo.device} (${deviceInfo.os} / ${deviceInfo.browser})
 
-🔔 <b>Status:</b> Pending - Awaiting confirmation
+🔔 *Status:* Pending - Awaiting confirmation
         `;
+
         if (userProfile.telegramChatId) {
             try {
                 console.log('📤 Sending Telegram to user...');
@@ -4004,6 +4536,7 @@ ${txHash ? `🔗 <b>TX Hash:</b> <code>${txHash}</code>` : ''}
         } else {
             console.log('ℹ️ User has no Telegram linked');
         }
+
         const adminMessage = `
 👤 *User:* ${currentUser.displayName || currentUser.email || 'User'}
 📧 *Email:* ${currentUser.email || 'N/A'}
@@ -4016,7 +4549,10 @@ ${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
 🔔 *Status:* Pending - Awaiting confirmation
         `;
         await sendAdminNotification('📦 New Order Received', adminMessage);
+
+        // Log activity
         await logActivity('purchase', { orderId, total: finalTotal, items: cartData.length, method, status: 'pending' });
+
         const proxyItems = cart.filter(item => item.isProxy);
         if (proxyItems.length > 0 && DISABLE_PROXY) {
             console.log('ℹ️ Proxy creation is disabled.');
@@ -4029,6 +4565,7 @@ ${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
                 createdAt: serverTimestamp()
             });
         }
+
         cart = [];
         activeDiscount = 0;
         activeDiscountCode = '';
@@ -4038,19 +4575,20 @@ ${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
         renderProducts(products);
         generateRecommendations(products);
         updateRpDisplay();
+
         document.getElementById('paymentModal').classList.remove('open');
-        showToast(`✅ Order placed successfully! Waiting for admin confirmation.`, 'success');
-        if (btn) hideButtonLoading(btn, 'Order placed!');
+        showToast('✅ Order placed successfully! Waiting for admin confirmation.', 'success');
+
         setTimeout(() => {
             if (currentUser && isAdminCached) { loadAdminOrders(); }
             loadUserData();
             updateDropdownStats();
             updateFullUserMenu();
         }, 1000);
+
     } catch (error) {
         console.error('❌ Order error:', error);
         showToast('❌ Error placing order: ' + error.message, 'error');
-        if (btn) hideButtonLoading(btn);
     } finally {
         isProcessingOrder = false;
     }
@@ -4070,65 +4608,6 @@ window.placeOrderTelegram = function() {
         renderProducts(products);
         showToast('✅ Order submitted via Telegram!', 'success');
     }, 1500);
-};
-
-// ============================================================
-// TELEGRAM NOTIFICATION (FIXED: HTML parse_mode)
-// ============================================================
-async function sendTelegramNotification(chatId, message) {
-    if (!chatId) {
-        console.log('⚠️ No chatId provided');
-        return false;
-    }
-    try {
-        console.log('📤 Sending Telegram to:', chatId);
-        if (message.length > 4096) {
-            message = message.substring(0, 4000) + '... (truncated)';
-        }
-        const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/send-telegram', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                'Accept': 'application/json',
-            },
-            mode: 'cors',
-            body: JSON.stringify({
-                chatId: chatId,
-                message: message,
-                parse_mode: 'HTML'
-            })
-        });
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Telegram API error:', response.status, errorText);
-            return false;
-        }
-        const result = await response.json();
-        console.log('✅ Telegram response:', result);
-        return result.success || false;
-    } catch (error) {
-        console.error('Send error:', error);
-        return false;
-    }
-}
-
-// ============================================================
-// HANDLE TOPUP (FIXED)
-// ============================================================
-window.handleTopup = async function() {
-    const btn = document.getElementById('topupProcessBtn');
-    if (!btn) {
-        showToast('❌ Topup button not found', 'error');
-        return;
-    }
-    showButtonLoading(btn, 'Creating request...');
-    try {
-        await window.processTopup();
-    } catch (error) {
-        hideButtonLoading(btn);
-        showToast('❌ Error: ' + error.message, 'error');
-    }
 };
 
 // ============================================================
@@ -4175,8 +4654,45 @@ window.addProxyToCart = function(packageId) {
 };
 
 // ============================================================
-// TELEGRAM BINDING
+// TELEGRAM FUNCTIONS
 // ============================================================
+async function sendTelegramNotification(chatId, message) {
+    if (!chatId) {
+        console.log('⚠️ No chatId provided');
+        return false;
+    }
+    try {
+        console.log('📤 Sending Telegram to:', chatId);
+        if (message.length > 4096) {
+            message = message.substring(0, 4000) + '... (truncated)';
+        }
+        const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/send-telegram', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Accept': 'application/json',
+            },
+            mode: 'cors',
+            body: JSON.stringify({
+                chatId: chatId,
+                message: message
+            })
+        });
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Telegram API error:', response.status, errorText);
+            return false;
+        }
+        const result = await response.json();
+        console.log('✅ Telegram response:', result);
+        return result.success || false;
+    } catch (error) {
+        console.error('Send error:', error);
+        return false;
+    }
+}
+
 window.bindTelegram = async function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
     try {
@@ -4776,7 +5292,7 @@ window.closeAdminPanel = function() {
 };
 
 // ============================================================
-// switchAdminTab (FULL)
+// switchAdminTab - COMPLETE VERSION WITH ALL TABS
 // ============================================================
 window.switchAdminTab = function(tab) {
     document.querySelectorAll('#adminPanel .admin-tab-content').forEach(el => el.classList.remove('active'));
@@ -4866,7 +5382,8 @@ function renderAdminProducts(productsList) {
     const container = document.getElementById('adminProductsList');
     if (!container) return;
     if (!productsList || productsList.length === 0) {
-        container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">📭 No products</div>`;
+        container.innerHTML =
+            `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">📭 No products</div>`;
         return;
     }
     container.innerHTML = productsList.map(p => {
@@ -5045,7 +5562,7 @@ function updateAdminStats(orders) {
 }
 
 // ============================================================
-// UPDATE ORDER STATUS (with large toast on confirm)
+// UPDATE ORDER STATUS (with email + licence generation ONLY on confirm)
 // ============================================================
 window.updateOrderStatus = async function(orderId, userId, newStatus) {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
@@ -5067,6 +5584,8 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
             return order;
         });
         await updateDoc(userRef, { history: updatedHistory });
+
+        // Update transaction status
         try {
             if (orderFound) {
                 await supabase
@@ -5081,6 +5600,7 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
         } catch (txError) {
             console.error('Failed to update transaction status:', txError);
         }
+
         await sendUserNotification(
             userId,
             newStatus === 'confirmed' ? '✅ Order Confirmed!' : '❌ Order Rejected',
@@ -5088,7 +5608,9 @@ window.updateOrderStatus = async function(orderId, userId, newStatus) {
             `Your order #${orderId.slice(-6)} has been confirmed. Your licences are now available in your profile!` :
             `Your order #${orderId.slice(-6)} has been rejected. Please contact support for more information.`
         );
+
         await sendOrderStatusEmail(data.email || userId, orderId, newStatus);
+
         if (data.telegramChatId) {
             const statusEmoji = newStatus === 'confirmed' ? '✅' : '❌';
             const statusText = newStatus === 'confirmed' ? 'CONFIRMED' : 'REJECTED';
@@ -5106,6 +5628,8 @@ ${newStatus === 'confirmed' ? '🔑 Your licences have been generated and are av
             await sendTelegramNotification(data.telegramChatId, telegramMessage);
             console.log('✅ Telegram notification sent to user for status update');
         }
+
+        // ===== ONLY generate licences when status changes to confirmed =====
         if (newStatus === 'confirmed') {
             const userEmail = orderFound?.userEmail || data.email || userId;
             if (orderFound && orderFound.items) {
@@ -5114,19 +5638,8 @@ ${newStatus === 'confirmed' ? '🔑 Your licences have been generated and are av
                 }
                 showToast(`✅ Licences generated for user`, 'success');
             }
-            showToast({
-                title: '✅ Order Confirmed!',
-                orderId: orderId.slice(-6),
-                details: orderFound.items.map(item => ({
-                    name: item.name,
-                    price: item.price,
-                    quantity: item.quantity || 1
-                })),
-                total: orderFound.total || 0,
-                method: orderFound.method || 'N/A',
-                date: new Date().toLocaleString()
-            }, 'success', 8000, true);
         }
+
         showToast(`📦 Order updated to ${newStatus}`, 'success');
         loadAdminOrders();
         if (currentUser && currentUser.uid === userId) { userProfile.history = updatedHistory; }
@@ -5148,6 +5661,7 @@ window.deleteOrderImmediately = async function(orderId, userId) {
         const history = data.history || [];
         const updatedHistory = history.filter(order => order.id !== orderId);
         await updateDoc(userRef, { history: updatedHistory });
+        // Delete transaction record
         try {
             await supabase.from('transactions').delete().eq('order_id', orderId);
         } catch (txError) {
@@ -5315,13 +5829,14 @@ window.viewUserDetails = async function(uid) {
 window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
 // ============================================================
-// LICENCE MANAGEMENT (COMPLETE)
+// LICENCE MANAGEMENT
 // ============================================================
 async function loadLicences() {
     try {
         const container = document.getElementById('adminLicencesList');
         if (!container) return;
-        container.innerHTML = `<div style="text-align:center;padding:30px;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
+        container.innerHTML =
+            `<div style="text-align:center;padding:30px;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
         if (typeof supabase === 'undefined') { throw new Error('supabase is not defined'); }
         const { data, error } = await supabase.from('licenses').select('*').order('created_at', { ascending: false });
         if (error) throw error;
@@ -5330,14 +5845,17 @@ async function loadLicences() {
     } catch (error) {
         console.error('Error loading licences:', error);
         const container = document.getElementById('adminLicencesList');
-        if (container) container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--danger);">⚠️ Failed to load licences: ${error.message}</div>`;
+        if (container) container.innerHTML =
+            `<div style="text-align:center;padding:30px;color:var(--danger);">⚠️ Failed to load licences: ${error.message}</div>`;
     }
 }
 
 function renderLicences(licences) {
     const container = document.getElementById('adminLicencesList');
     if (!container) return;
-    if (!licences || licences.length === 0) { container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">🔑 No licences found</div>`; return; }
+    if (!licences || licences.length === 0) { container.innerHTML =
+            `<div style="text-align:center;padding:30px;color:var(--text-secondary);">🔑 No licences found</div>`;
+        return; }
     container.innerHTML = licences.map(l => {
         const statusMap = {
             'pending': '<span class="status-badge pending">⏳ Pending</span>',
@@ -5403,14 +5921,17 @@ async function createLicenceManually() {
         loadLicences();
         if (userId) {
             const usersRef = collection(db, 'users');
-            let q = userId.includes('@') ? query(usersRef, where('email', '==', userId)) : query(usersRef, where('userId', '==', userId));
+            let q = userId.includes('@') ? query(usersRef, where('email', '==', userId)) : query(usersRef, where(
+                'userId', '==', userId));
             const querySnapshot = await getDocs(q);
             if (!querySnapshot.empty) {
                 const userDoc = querySnapshot.docs[0];
                 const userData = userDoc.data();
                 const userLicences = userData.licences || [];
                 if (!userLicences.find(l => l.code === data.licence.code)) {
-                    userLicences.push({ code: data.licence.code, scriptId: productName, scriptName: productName, expiryDate: data.licence.expiryDate, activatedAt: new Date().toISOString() });
+                    userLicences.push({ code: data.licence.code, scriptId: productName,
+                        scriptName: productName, expiryDate: data.licence.expiryDate,
+                        activatedAt: new Date().toISOString() });
                     await updateDoc(userDoc.ref, { licences: userLicences, updatedAt: serverTimestamp() });
                     if (currentUser && userDoc.id === currentUser.uid) {
                         userProfile.licences = userLicences;
@@ -5424,7 +5945,8 @@ async function createLicenceManually() {
 }
 
 async function updateLicenceInSupabase(licenceId, data) {
-    const { error } = await supabase.from('licenses').update({ ...data, updated_at: new Date().toISOString() }).eq('id', licenceId);
+    const { error } = await supabase.from('licenses').update({ ...data, updated_at: new Date().toISOString() }).eq(
+        'id', licenceId);
     if (error) throw error;
     return true;
 }
@@ -5433,10 +5955,16 @@ async function approveLicence(licenceId, code, scriptName) {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!confirm(`Approve licence ${code} and send to user?`)) return;
     try {
-        const { data: licenceData, error: fetchError } = await supabase.from('licenses').select('*').eq('id', licenceId).single();
+        const { data: licenceData, error: fetchError } = await supabase.from('licenses').select('*').eq('id',
+            licenceId).single();
         if (fetchError || !licenceData) throw fetchError || new Error('Licence not found');
-        await updateLicenceInSupabase(licenceId, { status: 'active', user_id: currentUser.uid, user_email: currentUser.email });
-        await sendUserNotification(currentUser.uid, '🔑 Licence Activated!', `Your licence for ${scriptName} has been activated. Code: ${code}`);
+        await updateLicenceInSupabase(licenceId, { status: 'active', user_id: currentUser.uid, user_email: currentUser
+                .email });
+        await sendUserNotification(
+            currentUser.uid,
+            '🔑 Licence Activated!',
+            `Your licence for ${scriptName} has been activated. Code: ${code}`
+        );
         showToast(`✅ Licence ${code} approved!`, 'success');
         loadLicences();
     } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
@@ -5449,7 +5977,11 @@ async function revokeLicence(licenceId) {
         await updateLicenceInSupabase(licenceId, { status: 'revoked' });
         const licence = allLicences.find(l => l.id === licenceId);
         if (licence && licence.user_id) {
-            await sendUserNotification(licence.user_id, '🚫 Licence Revoked', `Your licence for ${licence.script_name || 'product'} has been revoked.`);
+            await sendUserNotification(
+                licence.user_id,
+                '🚫 Licence Revoked',
+                `Your licence for ${licence.script_name || 'product'} has been revoked.`
+            );
             const userRef = doc(db, 'users', licence.user_id);
             const userSnap = await getDoc(userRef);
             if (userSnap.exists()) {
@@ -5527,7 +6059,8 @@ async function saveLicenceEdit() {
     const expiryDate = document.getElementById('editLicenceExpiry').value;
     const status = document.getElementById('editLicenceStatus').value;
     try {
-        await updateLicenceInSupabase(licenceId, { expiry_date: expiryDate ? new Date(expiryDate).toISOString() : null, status });
+        await updateLicenceInSupabase(licenceId, { expiry_date: expiryDate ? new Date(expiryDate).toISOString() :
+                null, status });
         const licenceIndex = allLicences.findIndex(l => l.id === licenceId);
         if (licenceIndex !== -1) {
             allLicences[licenceIndex].expiry_date = expiryDate ? new Date(expiryDate).toISOString() : null;
@@ -5559,25 +6092,20 @@ function searchLicences() {
     renderLicences(filtered);
 }
 
-function clearLicenceSearch() { document.getElementById('adminLicenceSearch').value = ''; renderLicences(allLicences); }
+function clearLicenceSearch() { document.getElementById('adminLicenceSearch').value = '';
+    renderLicences(allLicences); }
 
-function refreshLicences() { loadLicences(); showToast('🔄 Refreshed', 'info'); }
+function refreshLicences() { loadLicences();
+    showToast('🔄 Refreshed', 'info'); }
 
 function renderUserLicences() {
     const container = document.getElementById('userLicencesList');
-    if (!container) {
-        console.warn('⚠️ userLicencesList not found');
-        return;
-    }
-    if (!currentUser) {
-        container.innerHTML = '';
-        return;
-    }
+    if (!container) return;
+    if (!currentUser) { container.innerHTML = ''; return; }
     const userLicences = userProfile.licences || [];
-    if (userLicences.length === 0) {
-        container.innerHTML = `<div style="text-align:center;padding:8px;color:var(--text-secondary);font-size:12px;">No active licences</div>`;
-        return;
-    }
+    if (userLicences.length === 0) { container.innerHTML =
+            `<div style="text-align:center;padding:8px;color:var(--text-secondary);font-size:12px;">No active licences</div>`;
+        return; }
     container.innerHTML = userLicences.map(l => {
         const isExpired = new Date(l.expiryDate) < new Date();
         const isRevoked = l.status === 'revoked';
@@ -5604,120 +6132,28 @@ function toggleLicencesList() {
     if (list) list.style.display = list.style.display === 'none' ? 'block' : 'none';
 }
 
-window.openLicenceModal = function() {
-    if (!currentUser) {
-        showToast('⚠️ Please login first', 'warning');
-        openAuthModal();
-        return;
-    }
-    const modal = document.getElementById('licenceModal');
-    if (!modal) {
-        console.error('❌ licenceModal not found in DOM');
-        showToast('❌ Licence modal not found', 'error');
-        return;
-    }
-    renderUserLicences();
-    modal.classList.add('open');
-    document.body.style.overflow = 'hidden';
-};
+function openLicenceModal() {
+    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
+    document.getElementById('licenceModal').classList.add('open');
+}
 
-window.closeLicenceModal = function() {
-    const modal = document.getElementById('licenceModal');
-    if (modal) {
-        modal.classList.remove('open');
-        document.body.style.overflow = '';
-    }
-};
+function closeLicenceModal() { document.getElementById('licenceModal').classList.remove('open'); }
 
-// ============================================================
-// FIX: Missing/renamed functions for compatibility with HTML
-// ============================================================
-
-// 1. دالة مرادفة لـ activateLicence (لأن HTML يستخدم activatedLicence)
-window.activatedLicence = function() {
-    if (typeof activateLicence === 'function') {
-        activateLicence();
-    } else {
-        showToast('⚠️ Licence activation function not ready', 'warning');
-    }
-};
-
-// 2. دالة مرادفة لـ closeLicenseModal (لأن HTML يستخدم closeLicenseModal)
-window.closeLicenseModal = function() {
-    if (typeof closeLicenceModal === 'function') {
-        closeLicenceModal();
-    } else {
-        const modal = document.getElementById('licenceModal');
-        if (modal) {
-            modal.classList.remove('open');
-            document.body.style.overflow = '';
-        }
-    }
-};
-
-// 3. دالة checkout
-window.checkout = function() {
-    if (cart.length === 0) {
-        showToast('⚠️ Your cart is empty', 'warning');
-        return;
-    }
-    if (!currentUser) {
-        showToast('⚠️ Please login to checkout', 'warning');
-        openAuthModal();
-        return;
-    }
-    openPaymentModal();
-};
-
-// 4. دالة openPaymentModal
-window.openPaymentModal = function() {
-    if (cart.length === 0) {
-        showToast('⚠️ Cart is empty', 'warning');
-        return;
-    }
-    const modal = document.getElementById('paymentModal');
-    if (modal) {
-        modal.classList.add('open');
-        document.body.style.overflow = 'hidden';
-        document.getElementById('paymentStep1').style.display = 'block';
-        document.getElementById('paymentStep2').style.display = 'none';
-        selectedPayment = null;
-        document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
-        updatePayableTotal();
-    } else {
-        showToast('❌ Payment modal not found', 'error');
-    }
-};
-
-// ============================================================
-// FIX: ACTIVATE LICENCE - COMPLETE VERSION
-// ============================================================
-window.activateLicence = async function() {
+async function activateLicence() {
     const input = document.getElementById('licenceInput');
     const resultEl = document.getElementById('licenceResult');
-    if (!input) {
-        showToast('⚠️ Licence input not found', 'warning');
-        return;
-    }
-    const code = input.value.trim().toUpperCase();
-    if (!code) {
-        resultEl.innerHTML = '<span style="color:var(--danger);">⚠️ Please enter a licence code.</span>';
-        return;
-    }
-    if (!currentUser) {
-        resultEl.innerHTML = '<span style="color:var(--danger);">⚠️ You must be logged in.</span>';
-        return;
-    }
+    const code = input?.value?.trim().toUpperCase();
+    if (!code) { resultEl.innerHTML = '<span style="color:var(--danger);">⚠️ Please enter a licence code.</span>'; return; }
+    if (!currentUser) { resultEl.innerHTML =
+            '<span style="color:var(--danger);">⚠️ You must be logged in.</span>'; return; }
     try {
         resultEl.innerHTML = '<span style="color:var(--text-secondary);">⏳ Verifying...</span>';
         const response = await fetch(
-            `${SUPABASE_URL}/functions/v1/public-verify?code=${encodeURIComponent(code)}&token=${currentUser.uid}`,
-            {
+            `${SUPABASE_URL}/functions/v1/public-verify?code=${encodeURIComponent(code)}&token=${currentUser.uid}`, {
                 headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
-            }
-        );
+            });
         const data = await response.json();
-        if (!response.ok || !data.success) throw new Error(data.error || 'Invalid licence');
+        if (!response.ok || !data.success) throw new Error(data.error);
         const licence = data.data;
         const userRef = doc(db, 'users', currentUser.uid);
         const userSnap = await getDoc(userRef);
@@ -5725,13 +6161,8 @@ window.activateLicence = async function() {
             const userData = userSnap.data();
             const userLicences = userData.licences || [];
             if (!userLicences.find(l => l.code === code)) {
-                userLicences.push({
-                    code: code,
-                    scriptId: licence.scriptId,
-                    scriptName: licence.scriptName,
-                    expiryDate: licence.expiryDate,
-                    activatedAt: new Date().toISOString()
-                });
+                userLicences.push({ code, scriptId: licence.scriptId, scriptName: licence.scriptName,
+                    expiryDate: licence.expiryDate, activatedAt: new Date().toISOString() });
                 await updateDoc(userRef, { licences: userLicences, updatedAt: serverTimestamp() });
                 userProfile.licences = userLicences;
                 renderUserLicences();
@@ -5743,11 +6174,8 @@ window.activateLicence = async function() {
                 );
             }
         }
-        const expiryDate = new Date(licence.expiryDate).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
+        const expiryDate = new Date(licence.expiryDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long',
+            day: 'numeric' });
         resultEl.innerHTML = `
             <div style="background:var(--success-glow);border-radius:8px;padding:10px;border:1px solid var(--success);">
                 <div style="font-weight:700;color:var(--success);">✅ Activated Successfully!</div>
@@ -5760,35 +6188,8 @@ window.activateLicence = async function() {
                 </div>
             </div>
         `;
-        input.value = '';
-        renderUserLicences();
-        showToast('✅ Licence activated successfully!', 'success');
-    } catch (error) {
-        resultEl.innerHTML = `<span style="color:var(--danger);">❌ Error: ${error.message}</span>`;
-        showToast('❌ ' + error.message, 'error');
-    }
-};
-
-// Compatibility aliases for HTML onclick
-window.activatedLicence = window.activatedLicence || function() {
-    if (typeof window.activateLicence === 'function') {
-        window.activateLicence();
-    } else {
-        showToast('⚠️ Licence activation function not ready', 'warning');
-    }
-};
-
-window.closeLicenseModal = window.closeLicenseModal || function() {
-    if (typeof window.closeLicenceModal === 'function') {
-        window.closeLicenceModal();
-    } else {
-        const modal = document.getElementById('licenceModal');
-        if (modal) {
-            modal.classList.remove('open');
-            document.body.style.overflow = '';
-        }
-    }
-};
+    } catch (error) { resultEl.innerHTML = `<span style="color:var(--danger);">❌ Error: ${error.message}</span>`; }
+}
 
 // ============================================================
 // RATINGS
@@ -5805,25 +6206,33 @@ async function loadRatings(productId) {
         const ratingsRef = collection(db, 'ratings');
         const q = query(ratingsRef, where('productId', '==', productId));
         const snapshot = await getDocs(q);
-        let total = 0, count = 0, reviewsHtml = '';
+        let total = 0,
+            count = 0,
+            reviewsHtml = '';
         snapshot.forEach(doc => {
             const data = doc.data();
             total += data.rating || 0;
             count++;
-            const date = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '--';
+            const date = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleDateString('en-US',
+                { month: 'short', day: 'numeric', year: 'numeric' }) : '--';
             const stars = '⭐'.repeat(Math.round(data.rating || 0));
-            reviewsHtml += `<div class="rating-review-item"><div class="rr-header"><span class="rr-name">${data.userName || 'User'}</span><span class="rr-stars">${stars}</span>${data.verified ? '<span class="rr-badge">✅ Verified</span>' : ''}<span class="rr-date">${date}</span></div>${data.comment ? `<div class="rr-comment">${data.comment}</div>` : ''}</div>`;
+            reviewsHtml +=
+                `<div class="rating-review-item"><div class="rr-header"><span class="rr-name">${data.userName || 'User'}</span><span class="rr-stars">${stars}</span>${data.verified ? '<span class="rr-badge">✅ Verified</span>' : ''}<span class="rr-date">${date}</span></div>${data.comment ? `<div class="rr-comment">${data.comment}</div>` : ''}</div>`;
         });
         const avg = count > 0 ? (total / count) : 0;
         const fullStars = '⭐'.repeat(Math.round(avg));
         const emptyStars = '☆'.repeat(5 - Math.round(avg));
         if (avgEl) avgEl.textContent = avg.toFixed(1);
         if (countEl) countEl.textContent = `(${count} reviews)`;
-        container.innerHTML = reviewsHtml || `<div style="text-align:center;padding:10px;color:var(--text-secondary);opacity:0.4;">No reviews yet. Be the first!</div>`;
+        container.innerHTML = reviewsHtml ||
+            `<div style="text-align:center;padding:10px;color:var(--text-secondary);opacity:0.4;">No reviews yet. Be the first!</div>`;
         const avgStarsEl = document.getElementById('ratingAvgStars');
         if (avgStarsEl) { avgStarsEl.textContent = fullStars + emptyStars; }
         return { avg, count };
-    } catch (error) { console.error('Error loading ratings:', error); container.innerHTML = `<div style="text-align:center;padding:10px;color:var(--danger);">Failed to load reviews</div>`; return { avg: 0, count: 0 }; }
+    } catch (error) { console.error('Error loading ratings:', error);
+        container.innerHTML =
+            `<div style="text-align:center;padding:10px;color:var(--danger);">Failed to load reviews</div>`;
+        return { avg: 0, count: 0 }; }
 }
 
 function hasUserPurchasedProduct(productId) {
@@ -5840,24 +6249,30 @@ async function submitRating(productId) {
     const comment = document.getElementById('ratingCommentInput')?.value.trim() || '';
     const rating = currentRating;
     if (rating === 0) { showToast('⭐ Please select a star rating', 'warning'); return; }
-    if (!hasUserPurchasedProduct(productId)) { showToast('⚠️ You can only rate products you have purchased', 'warning'); return; }
+    if (!hasUserPurchasedProduct(productId)) { showToast('⚠️ You can only rate products you have purchased',
+            'warning'); return; }
     try {
         const ratingsRef = collection(db, 'ratings');
         const q = query(ratingsRef, where('productId', '==', productId), where('userId', '==', currentUser.uid));
         const snapshot = await getDocs(q);
         if (!snapshot.empty) { showToast('⚠️ You already rated this product', 'warning'); return; }
-        await addDoc(collection(db, 'ratings'), { productId, userId: currentUser.uid, userName: currentUser.displayName || currentUser.email || 'User', rating, comment, verified: true, timestamp: serverTimestamp() });
+        await addDoc(collection(db, 'ratings'), { productId, userId: currentUser.uid, userName: currentUser
+                .displayName || currentUser.email || 'User', rating, comment, verified: true,
+            timestamp: serverTimestamp() });
         showToast('✅ Rating submitted! Thank you!', 'success');
         currentRating = 0;
         document.getElementById('ratingStarsContainer').innerHTML = renderStarHTML(0);
         document.getElementById('ratingCommentInput').value = '';
         loadRatings(productId);
         updateProductRatingDisplay(productId);
-    } catch (error) { console.error('Error submitting rating:', error); showToast('❌ Error: ' + error.message, 'error'); }
+    } catch (error) { console.error('Error submitting rating:', error);
+        showToast('❌ Error: ' + error.message, 'error'); }
 }
 
-function renderStarHTML(rating) { let html = ''; for (let i = 1; i <= 5; i++) { html += `<span class="star ${i <= rating ? 'active' : ''}" data-value="${i}" onclick="setRating(${i})">★</span>`; } return html; }
-window.setRating = function(value) { currentRating = value; const container = document.getElementById('ratingStarsContainer'); if (container) { container.innerHTML = renderStarHTML(value); } };
+function renderStarHTML(rating) { let html = ''; for (let i = 1; i <= 5; i++) { html +=
+        `<span class="star ${i <= rating ? 'active' : ''}" data-value="${i}" onclick="setRating(${i})">★</span>`; } return html; }
+window.setRating = function(value) { currentRating = value; const container = document.getElementById(
+        'ratingStarsContainer'); if (container) { container.innerHTML = renderStarHTML(value); } };
 
 function renderRatingSection(productId) {
     const section = document.getElementById('ratingSection');
@@ -5895,8 +6310,10 @@ async function updateProductRatingDisplay(productId) {
     const ratingsRef = collection(db, 'ratings');
     const q = query(ratingsRef, where('productId', '==', productId));
     const snapshot = await getDocs(q);
-    let total = 0, count = 0;
-    snapshot.forEach(doc => { total += doc.data().rating || 0; count++; });
+    let total = 0,
+        count = 0;
+    snapshot.forEach(doc => { total += doc.data().rating || 0;
+        count++; });
     const avg = count > 0 ? total / count : 0;
 }
 
@@ -5962,6 +6379,7 @@ window.saveSliderInterval = async function() {
 window.saveSlideEdit = async function() {
     const editIndex = document.getElementById('addSlideForm')?.dataset.editIndex;
     const isEdit = editIndex !== undefined && editIndex !== '';
+
     if (isEdit) {
         const idx = parseInt(editIndex);
         if (isNaN(idx) || idx < 0 || idx >= sliderSlides.length) {
@@ -5969,11 +6387,15 @@ window.saveSlideEdit = async function() {
             return;
         }
     }
+
     const title = document.getElementById('slideTitle')?.value.trim() || '';
     const subtitle = document.getElementById('slideSubtitle')?.value.trim() || '';
     const buttonText = document.getElementById('slideButtonText')?.value.trim() || 'Buy Now';
     const linkType = document.getElementById('slideLinkType')?.value || 'product';
-    let productId = '', downloadUrl = '', customUrl = '';
+    let productId = '',
+        downloadUrl = '',
+        customUrl = '';
+
     if (linkType === 'product') {
         productId = document.getElementById('slideProductSelect')?.value || '';
         if (!productId) {
@@ -5993,11 +6415,14 @@ window.saveSlideEdit = async function() {
             return;
         }
     }
+
     const fileInput = document.getElementById('slideImageFile');
     let imageUrl = '';
+
     if (isEdit) {
         imageUrl = sliderSlides[parseInt(editIndex)]?.imageUrl || '';
     }
+
     if (fileInput && fileInput.files && fileInput.files[0]) {
         showToast('⏳ Uploading image...', 'info');
         const uploadedUrl = await uploadToCloudinary(fileInput.files[0]);
@@ -6011,6 +6436,7 @@ window.saveSlideEdit = async function() {
         showToast('⚠️ Please select an image for the slide', 'warning');
         return;
     }
+
     const updatedSlide = {
         imageUrl,
         title,
@@ -6022,6 +6448,7 @@ window.saveSlideEdit = async function() {
         customUrl,
         updatedAt: new Date().toISOString()
     };
+
     if (isEdit) {
         sliderSlides[parseInt(editIndex)] = updatedSlide;
         showToast('✅ Slide updated successfully!', 'success');
@@ -6029,7 +6456,9 @@ window.saveSlideEdit = async function() {
         sliderSlides.push(updatedSlide);
         showToast('✅ Slide added successfully!', 'success');
     }
+
     delete document.getElementById('addSlideForm').dataset.editIndex;
+
     await window.saveSliderData();
     renderSlider();
     renderSliderSettingsUI();
@@ -6052,6 +6481,7 @@ window.editSlide = function(index) {
     if (!slide) { showToast('❌ Slide not found', 'error'); return; }
     const modal = document.getElementById('addSlideModal');
     if (!modal) { showToast('❌ Modal not found', 'error'); return; }
+
     document.getElementById('slideTitle').value = slide.title || '';
     document.getElementById('slideSubtitle').value = slide.subtitle || '';
     document.getElementById('slideButtonText').value = slide.buttonText || 'Buy Now';
@@ -6064,10 +6494,12 @@ window.editSlide = function(index) {
     } else if (slide.linkType === 'url') {
         document.getElementById('slideCustomUrl').value = slide.customUrl || '';
     }
+
     document.getElementById('addSlideForm').dataset.editIndex = index;
     document.querySelector('#addSlideModal .modal-title').textContent = '✏️ Edit Slide';
     const submitBtn = document.querySelector('#addSlideForm button[type="button"]');
     if (submitBtn) submitBtn.textContent = '💾 Save Changes';
+
     modal.classList.add('open');
     document.body.style.overflow = 'hidden';
 };
@@ -6076,14 +6508,17 @@ window.openAddSlideModal = function() {
     updateSlideProductSelect();
     const modal = document.getElementById('addSlideModal');
     if (!modal) { showToast('❌ Modal not found', 'error'); return; }
+
     const form = document.getElementById('addSlideForm');
     if (form) form.reset();
     const preview = document.getElementById('slideImagePreview');
     if (preview) preview.style.display = 'none';
+
     delete document.getElementById('addSlideForm').dataset.editIndex;
     document.querySelector('#addSlideModal .modal-title').textContent = '➕ Add New Slide';
     const submitBtn = document.querySelector('#addSlideForm button[type="button"]');
     if (submitBtn) submitBtn.textContent = '➕ Add Slide';
+
     toggleSlideLinkFields();
     modal.classList.add('open');
     document.body.style.overflow = 'hidden';
@@ -6101,7 +6536,8 @@ window.closeAddSlideModal = function() {
 function updateSlideProductSelect() {
     const select = document.getElementById('slideProductSelect');
     if (!select) return;
-    select.innerHTML = products.map(p => `<option value="${p.id}">${p.name} (${getCurrencySymbol(p.currency || 'USD')}${p.price})</option>`).join('');
+    select.innerHTML = products.map(p =>
+        `<option value="${p.id}">${p.name} (${getCurrencySymbol(p.currency || 'USD')}${p.price})</option>`).join('');
 }
 
 function toggleSlideLinkFields() {
@@ -6147,7 +6583,8 @@ function renderSlider() {
     const dots = document.getElementById('sliderDots');
     if (!wrapper) return;
     if (sliderSlides.length === 0) {
-        wrapper.innerHTML = `<div class="slide-item" style="background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;min-height:150px;border-radius:var(--radius-sm);"><div style="text-align:center;color:var(--text-secondary);opacity:0.4;"><i class="fas fa-images" style="font-size:36px;display:block;margin-bottom:6px;"></i><p style="font-size:12px;">No slides. Add slides from admin panel.</p></div></div>`;
+        wrapper.innerHTML =
+            `<div class="slide-item" style="background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;min-height:150px;border-radius:var(--radius-sm);"><div style="text-align:center;color:var(--text-secondary);opacity:0.4;"><i class="fas fa-images" style="font-size:36px;display:block;margin-bottom:6px;"></i><p style="font-size:12px;">No slides. Add slides from admin panel.</p></div></div>`;
         dots.innerHTML = '';
         return;
     }
@@ -6193,14 +6630,16 @@ function startSliderRotation() {
 }
 
 function resetSliderTimer() {
-    if (sliderTimer) { clearInterval(sliderTimer); startSliderRotation(); }
+    if (sliderTimer) { clearInterval(sliderTimer);
+        startSliderRotation(); }
 }
 
 function renderSliderSettingsUI() {
     const container = document.getElementById('sliderSlidesList');
     if (!container) return;
     if (sliderSlides.length === 0) {
-        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);opacity:0.5;">No slides. Click "Add Slide" to get started.</div>`;
+        container.innerHTML =
+            `<div style="text-align:center;padding:20px;color:var(--text-secondary);opacity:0.5;">No slides. Click "Add Slide" to get started.</div>`;
         return;
     }
     container.innerHTML = sliderSlides.map((slide, index) => {
@@ -6217,7 +6656,8 @@ window.saveMarqueeSettings = async function() {
     const enabledCheckbox = document.getElementById('marqueeEnabled');
     const textArea = document.getElementById('marqueeText');
     const enabled = enabledCheckbox ? enabledCheckbox.checked : true;
-    const text = textArea ? textArea.value.trim() : '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+    const text = textArea ? textArea.value.trim() :
+        '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
     if (!text) { showToast('⚠️ Please enter marquee text', 'warning'); return; }
     try {
         const settingsRef = doc(db, 'settings', 'marquee');
@@ -6249,7 +6689,8 @@ function renderMarqueeSettingsUI() {
     const enabledCheckbox = document.getElementById('marqueeEnabled');
     const textArea = document.getElementById('marqueeText');
     if (enabledCheckbox) enabledCheckbox.checked = marqueeSettings.enabled !== false;
-    if (textArea) textArea.value = marqueeSettings.text || '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+    if (textArea) textArea.value = marqueeSettings.text ||
+        '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
 }
 
 async function loadMarqueeSettings() {
@@ -6259,17 +6700,20 @@ async function loadMarqueeSettings() {
         if (settingsSnap.exists()) {
             const data = settingsSnap.data();
             marqueeSettings.enabled = data.enabled !== undefined ? data.enabled : true;
-            marqueeSettings.text = data.text || '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+            marqueeSettings.text = data.text ||
+                '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
         } else {
             marqueeSettings.enabled = true;
-            marqueeSettings.text = '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+            marqueeSettings.text =
+                '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
         }
         applyMarqueeSettings();
     } catch (error) {
         console.error('Error loading marquee settings:', error);
         if (error.code === 'permission-denied') {
             marqueeSettings.enabled = true;
-            marqueeSettings.text = '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
+            marqueeSettings.text =
+                '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
             applyMarqueeSettings();
         }
     }
@@ -6283,8 +6727,10 @@ async function loadDashboardStats() {
     try {
         const statsRef = doc(db, 'global_stats', 'stats');
         const statsSnap = await getDoc(statsRef);
-        let totalOrders = 0, totalRevenue = 0;
-        if (statsSnap.exists()) { totalOrders = statsSnap.data().totalOrders || 0; totalRevenue = statsSnap.data().totalRevenue || 0; }
+        let totalOrders = 0,
+            totalRevenue = 0;
+        if (statsSnap.exists()) { totalOrders = statsSnap.data().totalOrders || 0;
+            totalRevenue = statsSnap.data().totalRevenue || 0; }
         document.getElementById('dashboardTotalOrders').textContent = totalOrders;
         document.getElementById('dashboardTotalRevenue').textContent = `$${totalRevenue.toFixed(2)}`;
         document.getElementById('dashboardNetRevenue').textContent = `$${(totalRevenue * 0.1).toFixed(2)}`;
@@ -6293,12 +6739,14 @@ async function loadDashboardStats() {
         if (error.code === 'permission-denied') { console.warn('⚠️ Missing permissions to read stats.'); }
     }
 }
-window.refreshDashboardStats = function() { loadDashboardStats(); showToast('🔄 Stats refreshed', 'success'); };
+window.refreshDashboardStats = function() { loadDashboardStats();
+    showToast('🔄 Stats refreshed', 'success'); };
 async function loadAdvancedStats() {
     if (!currentUser || !isAdminCached) { console.log('ℹ️ loadAdvancedStats skipped (not admin)'); return; }
     const container = document.getElementById('advancedStatsContainer');
     if (!container) return;
-    container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading statistics...</div>`;
+    container.innerHTML =
+        `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading statistics...</div>`;
     try {
         const usersRef = collection(db, 'users');
         const snapshot = await getDocs(usersRef);
@@ -6307,7 +6755,9 @@ async function loadAdvancedStats() {
             const data = doc.data();
             const history = data.history || [];
             history.forEach(order => {
-                allOrders.push({ ...order, userEmail: data.email || doc.id, userName: data.name || 'Unknown', userId: doc.id, orderId: order.id || 'order_' + Date.now() });
+                allOrders.push({ ...order, userEmail: data.email || doc.id, userName: data
+                        .name || 'Unknown', userId: doc.id, orderId: order.id ||
+                        'order_' + Date.now() });
             });
         });
         const totalOrders = allOrders.length;
@@ -6316,7 +6766,8 @@ async function loadAdvancedStats() {
         const confirmedOrders = allOrders.filter(o => o.status === 'confirmed').length;
         const rejectedOrders = allOrders.filter(o => o.status === 'rejected').length;
         const totalUsers = snapshot.size;
-        container.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px;">
+        container.innerHTML =
+            `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px;">
             <div class="stat-card" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
                 <div style="font-size:28px;font-weight:700;color:var(--primary);">${totalOrders}</div>
                 <div style="font-size:12px;color:var(--text-secondary);">Total Orders</div>
@@ -6344,27 +6795,32 @@ async function loadAdvancedStats() {
         </div>`;
     } catch (error) {
         console.error('Error loading advanced stats:', error);
-        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load statistics: ${error.message}</div>`;
+        container.innerHTML =
+            `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load statistics: ${error.message}</div>`;
     }
 }
-window.refreshAdvancedStats = function() { loadAdvancedStats(); showToast('🔄 Advanced stats refreshed', 'success'); };
+window.refreshAdvancedStats = function() { loadAdvancedStats();
+    showToast('🔄 Advanced stats refreshed', 'success'); };
 async function loadAuditLogs() {
     if (!currentUser || !isAdminCached) { console.log('ℹ️ loadAuditLogs skipped (not admin)'); return; }
     const container = document.getElementById('auditLogsContainer');
     if (!container) return;
-    container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading logs...</div>`;
+    container.innerHTML =
+        `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading logs...</div>`;
     try {
         const logsRef = collection(db, 'auditLogs');
         const q = query(logsRef, orderBy('timestamp', 'desc'));
         const snapshot = await getDocs(q);
         if (snapshot.empty) {
-            container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">📭 No audit logs</div>`;
+            container.innerHTML =
+                `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">📭 No audit logs</div>`;
             return;
         }
         let html = `<div style="display:flex;flex-direction:column;gap:6px;max-height:400px;overflow-y:auto;">`;
         snapshot.forEach(doc => {
             const data = doc.data();
-            const date = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '--';
+            const date = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString('en-US', { month: 'short',
+                    day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '--';
             const admin = data.adminName || data.adminEmail || 'Admin';
             const action = data.action || 'Action';
             const details = data.details || '';
@@ -6377,7 +6833,8 @@ async function loadAuditLogs() {
         container.innerHTML = html;
     } catch (error) {
         console.error('Error loading audit logs:', error);
-        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load logs: ${error.message}</div>`;
+        container.innerHTML =
+            `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load logs: ${error.message}</div>`;
     }
 }
 window.loadAuditLogs = loadAuditLogs;
@@ -6390,46 +6847,90 @@ window.loadActivityLogs = async function() {
         console.log('ℹ️ loadActivityLogs skipped (not admin)');
         return;
     }
+    
     const container = document.getElementById('adminActivityContainer');
     if (!container) return;
+
     container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading activity logs...</div>`;
+
     try {
         const activityRef = collection(db, 'user_activity');
         const q = query(activityRef, orderBy('createdAt', 'desc'), limit(100));
         const snapshot = await getDocs(q);
+
         if (snapshot.empty) {
-            container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;"><i class="fas fa-activity" style="font-size:36px;display:block;margin-bottom:8px;opacity:0.2;"></i>No activities logged yet<div style="font-size:12px;margin-top:8px;opacity:0.3;">Try performing some actions like viewing products or adding to cart</div></div>`;
+            container.innerHTML = `
+                <div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">
+                    <i class="fas fa-activity" style="font-size:36px;display:block;margin-bottom:8px;opacity:0.2;"></i>
+                    No activities logged yet
+                    <div style="font-size:12px;margin-top:8px;opacity:0.3;">Try performing some actions like viewing products or adding to cart</div>
+                </div>
+            `;
             return;
         }
+
         const activities = [];
         snapshot.forEach(doc => {
             activities.push({ id: doc.id, ...doc.data() });
         });
+
         const types = {};
         activities.forEach(a => {
             types[a.type] = (types[a.type] || 0) + 1;
         });
-        let html = `<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(120px,1fr)); gap:6px; margin-bottom:12px;">${Object.entries(types).map(([type, count]) => `<div style="background:var(--glass-bg); padding:6px; border-radius:var(--radius-sm); text-align:center; border:1px solid var(--glass-border);"><div style="font-size:16px; font-weight:800; color:var(--primary);">${count}</div><div style="font-size:9px; color:var(--text-secondary); opacity:0.5; text-transform:uppercase;">${type}</div></div>`).join('')}</div>`;
+
+        let html = `
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(120px,1fr)); gap:6px; margin-bottom:12px;">
+                ${Object.entries(types).map(([type, count]) => `
+                    <div style="background:var(--glass-bg); padding:6px; border-radius:var(--radius-sm); text-align:center; border:1px solid var(--glass-border);">
+                        <div style="font-size:16px; font-weight:800; color:var(--primary);">${count}</div>
+                        <div style="font-size:9px; color:var(--text-secondary); opacity:0.5; text-transform:uppercase;">${type}</div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+
         html += activities.map(a => {
             const date = a.createdAt ? new Date(a.createdAt.toDate()).toLocaleString() : a.timestamp || '--';
-            const iconMap = { 'login': '🔐', 'logout': '🚪', 'page_view': '👀', 'view_product': '📦', 'add_to_cart': '🛒', 'purchase': '💳', 'search': '🔍', 'click': '🖱️' };
+            const iconMap = {
+                'login': '🔐',
+                'logout': '🚪',
+                'page_view': '👀',
+                'view_product': '📦',
+                'add_to_cart': '🛒',
+                'purchase': '💳',
+                'search': '🔍',
+                'click': '🖱️'
+            };
             const icon = iconMap[a.type] || '📌';
             const user = a.userEmail || a.userName || 'Unknown';
             const detail = a.data ? Object.entries(a.data).map(([k,v]) => `${k}:${v}`).join(' | ') : '';
-            return `<div style="display:flex; justify-content:space-between; align-items:center; padding:6px 10px; background:var(--glass-bg); border-radius:var(--radius-sm); border:1px solid var(--glass-border); margin-bottom:4px; font-size:12px;">
-                <div style="display:flex; align-items:center; gap:6px; flex:1; min-width:0;">
-                    <span style="font-size:16px;">${icon}</span>
-                    <span style="font-weight:600; font-size:11px;">${user}</span>
-                    <span style="color:var(--text-secondary); opacity:0.5;">${a.type}</span>
-                    ${detail ? `<span style="color:var(--text-secondary); opacity:0.3; font-size:10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${detail}</span>` : ''}
+            
+            return `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 10px; background:var(--glass-bg); border-radius:var(--radius-sm); border:1px solid var(--glass-border); margin-bottom:4px; font-size:12px;">
+                    <div style="display:flex; align-items:center; gap:6px; flex:1; min-width:0;">
+                        <span style="font-size:16px;">${icon}</span>
+                        <span style="font-weight:600; font-size:11px;">${user}</span>
+                        <span style="color:var(--text-secondary); opacity:0.5;">${a.type}</span>
+                        ${detail ? `<span style="color:var(--text-secondary); opacity:0.3; font-size:10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${detail}</span>` : ''}
+                    </div>
+                    <div style="font-size:10px; color:var(--text-secondary); opacity:0.3; white-space:nowrap;">${date}</div>
                 </div>
-                <div style="font-size:10px; color:var(--text-secondary); opacity:0.3; white-space:nowrap;">${date}</div>
-            </div>`;
+            `;
         }).join('');
+
         container.innerHTML = html;
+
     } catch (error) {
         console.error('Error loading activity logs:', error);
-        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load activity logs: ${error.message}${error.code === 'permission-denied' ? '<br><span style="font-size:12px;">⚠️ Check Firestore rules for user_activity collection</span>' : ''}<br><button onclick="loadActivityLogs()" style="margin-top:8px;padding:6px 16px;background:var(--primary);border:none;border-radius:var(--radius-sm);color:#fff;cursor:pointer;">Retry</button></div>`;
+        container.innerHTML = `
+            <div style="text-align:center;padding:20px;color:var(--danger);">
+                Failed to load activity logs: ${error.message}
+                ${error.code === 'permission-denied' ? '<br><span style="font-size:12px;">⚠️ Check Firestore rules for user_activity collection</span>' : ''}
+                <br>
+                <button onclick="loadActivityLogs()" style="margin-top:8px;padding:6px 16px;background:var(--primary);border:none;border-radius:var(--radius-sm);color:#fff;cursor:pointer;">Retry</button>
+            </div>
+        `;
     }
 };
 
@@ -6442,6 +6943,7 @@ window.exportActivityLogs = async function() {
         const activityRef = collection(db, 'user_activity');
         const q = query(activityRef, orderBy('createdAt', 'desc'), limit(500));
         const snapshot = await getDocs(q);
+        
         const activities = [];
         snapshot.forEach(doc => {
             const data = doc.data();
@@ -6453,10 +6955,12 @@ window.exportActivityLogs = async function() {
                 data: JSON.stringify(data.data || {})
             });
         });
+
         let csv = 'Timestamp,User,Type,IP,Data\n';
         activities.forEach(a => {
             csv += `${a.timestamp.toISOString()},${a.user},${a.type},${a.ip},"${a.data}"\n`;
         });
+
         const blob = new Blob([csv], { type: 'text/csv' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -6464,6 +6968,7 @@ window.exportActivityLogs = async function() {
         a.download = `activity_logs_${new Date().toISOString().slice(0,10)}.csv`;
         a.click();
         URL.revokeObjectURL(url);
+
         showToast(`📥 Exported ${activities.length} activities`, 'success');
     } catch (error) {
         console.error('Export error:', error);
@@ -6478,15 +6983,19 @@ window.loadFraudLogs = async function() {
     if (!currentUser || !isAdminCached) return;
     const container = document.getElementById('adminFraudContainer');
     if (!container) return;
+
     container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading fraud logs...</div>`;
+
     try {
         const fraudRef = collection(db, 'fraudLogs');
         const q = query(fraudRef, orderBy('createdAt', 'desc'), limit(100));
         const snapshot = await getDocs(q);
+
         if (snapshot.empty) {
             container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">✅ No fraud activities detected</div>`;
             return;
         }
+
         let html = '';
         snapshot.forEach(doc => {
             const data = doc.data();
@@ -6495,10 +7004,32 @@ window.loadFraudLogs = async function() {
             const severity = data.severity || 'low';
             const user = data.email || data.userId || 'Unknown';
             const ip = data.ip || 'N/A';
+
             const severityColor = severity === 'high' ? 'var(--danger)' : severity === 'medium' ? 'var(--warning)' : 'var(--success)';
-            html += `<div class="admin-item" style="border-left:4px solid ${severityColor};"><div class="item-info"><div class="item-title"><span style="color:${severityColor};font-weight:800;">${severity.toUpperCase()}</span> ${user}<span style="font-size:11px;font-weight:400;opacity:0.5;margin-left:6px;">IP: ${ip}</span></div><div class="item-meta">⚠️ ${warnings}<br><span style="font-size:10px;opacity:0.4;">📅 ${date}</span></div></div><div class="item-actions"><span style="font-size:10px;background:${severityColor}20;padding:2px 8px;border-radius:30px;color:${severityColor};font-weight:700;">${severity}</span></div></div>`;
+
+            html += `
+                <div class="admin-item" style="border-left:4px solid ${severityColor};">
+                    <div class="item-info">
+                        <div class="item-title">
+                            <span style="color:${severityColor};font-weight:800;">${severity.toUpperCase()}</span>
+                            ${user}
+                            <span style="font-size:11px;font-weight:400;opacity:0.5;margin-left:6px;">IP: ${ip}</span>
+                        </div>
+                        <div class="item-meta">
+                            ⚠️ ${warnings}
+                            <br>
+                            <span style="font-size:10px;opacity:0.4;">📅 ${date}</span>
+                        </div>
+                    </div>
+                    <div class="item-actions">
+                        <span style="font-size:10px;background:${severityColor}20;padding:2px 8px;border-radius:30px;color:${severityColor};font-weight:700;">${severity}</span>
+                    </div>
+                </div>
+            `;
         });
+
         container.innerHTML = html;
+
     } catch (error) {
         console.error('Error loading fraud logs:', error);
         container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load fraud logs: ${error.message}</div>`;
@@ -6532,6 +7063,7 @@ window.clearOrderHistory = async function() {
 window.renderHistoryFull = function() {
     const container = document.getElementById('historyFullContent');
     if (!container) return;
+
     const history = userProfile.history || [];
     if (history.length === 0) {
         container.innerHTML = `<div style="text-align:center; padding:40px 20px; color:var(--text-secondary);">
@@ -6541,6 +7073,7 @@ window.renderHistoryFull = function() {
         </div>`;
         return;
     }
+
     let html = '';
     history.forEach(order => {
         const date = order.date ? new Date(order.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '--';
@@ -6549,12 +7082,14 @@ window.renderHistoryFull = function() {
         const itemsList = order.items ? order.items.map(item => `${item.name} (x${item.quantity || 1})`).join(', ') : 'No items';
         const orderId = order.id || '------';
         const orderIdDisplay = orderId.slice(-6);
+
         const statusMap = {
             'pending': { label: '⏳ Pending', class: 'pending' },
             'confirmed': { label: '✅ Confirmed', class: 'confirmed' },
             'rejected': { label: '❌ Rejected', class: 'rejected' }
         };
         const info = statusMap[status] || statusMap['pending'];
+
         html += `
             <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--glass-bg);border-radius:var(--radius-sm);border:1px solid var(--glass-border);margin-bottom:6px;">
                 <div>
@@ -6569,6 +7104,7 @@ window.renderHistoryFull = function() {
             </div>
         `;
     });
+
     container.innerHTML = html;
 };
 
@@ -6615,11 +7151,14 @@ function updateBalanceDisplay() {
 // ============================================================
 function startTopupRealtimeListener() {
     if (!currentUser) return;
+
     if (topupSubscription) {
         topupSubscription.unsubscribe();
         topupSubscription = null;
     }
+
     console.log('🔄 Starting topup realtime listener for user:', currentUser.uid);
+
     topupSubscription = supabase
         .channel('topups-changes')
         .on(
@@ -6632,20 +7171,23 @@ function startTopupRealtimeListener() {
             (payload) => {
                 console.log('📦 Topup update received:', payload);
                 const topup = payload.new;
+
                 if (topup.status === 'completed' && topup.amount_usd) {
                     console.log('💰 Topup approved! Updating balance...');
+
                     userBalance = (userBalance || 0) + topup.amount_usd;
                     userProfile.balance = userBalance;
                     updateBalanceDisplay();
                     updateUI();
                     updateFullUserMenu();
-                    showToast(`💰 $${topup.amount_usd.toFixed(2)} has been added to your balance!`, 'success');
+
+                    showToast(`💰 $${topup.amount_usd.toFixed(2)} has been added to your balance!`,
+                        'success');
+
                     if (document.getElementById('topupStatusList')) {
                         loadUserTopups();
                     }
-                    if (isAdminCached) {
-                        loadAdminTopups();
-                    }
+
                     playNotificationSound();
                 }
             }
@@ -6658,11 +7200,14 @@ function playNotificationSound() {
         const audioContext = new(window.AudioContext || window.webkitAudioContext)();
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
+
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
+
         oscillator.frequency.value = 880;
         oscillator.type = 'sine';
         gainNode.gain.value = 0.3;
+
         oscillator.start();
         setTimeout(() => {
             oscillator.frequency.value = 1100;
@@ -6683,6 +7228,7 @@ window.openTopupStatus = async function() {
         showToast('⚠️ Please login first', 'warning');
         return;
     }
+
     const modal = document.createElement('div');
     modal.className = 'fullscreen-modal open';
     modal.id = 'topupStatusModal';
@@ -6702,6 +7248,7 @@ window.openTopupStatus = async function() {
     `;
     document.body.appendChild(modal);
     document.body.style.overflow = 'hidden';
+
     await loadUserTopups();
 };
 
@@ -6715,15 +7262,19 @@ window.closeTopupStatus = function() {
 
 async function loadUserTopups() {
     if (!currentUser) return;
+
     const container = document.getElementById('topupStatusList');
     if (!container) return;
+
     try {
         const { data: topups, error } = await supabase
             .from('topups')
             .select('*')
             .eq('user_id', currentUser.uid)
             .order('created_at', { ascending: false });
+
         if (error) throw error;
+
         if (!topups || topups.length === 0) {
             container.innerHTML = `
                 <div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
@@ -6737,6 +7288,7 @@ async function loadUserTopups() {
             `;
             return;
         }
+
         container.innerHTML = topups.map(t => {
             const statusColors = {
                 'pending': 'var(--pending-color)',
@@ -6754,6 +7306,7 @@ async function loadUserTopups() {
                 'rejected': '❌'
             };
             const date = new Date(t.created_at).toLocaleString();
+
             return `
                 <div style="background:var(--glass-bg);border-radius:var(--radius-md);padding:16px;border:1px solid var(--glass-border);margin-bottom:12px;border-left:4px solid ${statusColors[t.status] || 'var(--border)'};">
                     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
@@ -6808,11 +7361,13 @@ async function loadUserTopups() {
                 </div>
             `;
         }).join('');
+
         container.innerHTML += `
             <button onclick="loadUserTopups()" style="width:100%;padding:10px;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:var(--radius-sm);color:var(--text);cursor:pointer;font-weight:600;margin-top:8px;">
                 <i class="fas fa-sync-alt"></i> Refresh
             </button>
         `;
+
     } catch (error) {
         console.error('Error loading topups:', error);
         container.innerHTML = `
@@ -6833,29 +7388,21 @@ window.openTopupModal = function() {
         openAuthModal();
         return;
     }
-    const modal = document.getElementById('topupModal');
-    if (modal) {
-        modal.classList.add('open');
-        document.body.style.overflow = 'hidden';
-        updateBalanceDisplay();
-        document.querySelectorAll('.topup-amount').forEach(el => el.style.borderColor = 'var(--glass-border)');
-        document.getElementById('topupSelectedAmount').textContent = '$0.00';
-        document.getElementById('topupLtcAmount').textContent = '0.0000 LTC';
-        document.getElementById('customAmountContainer').style.display = 'none';
-        document.getElementById('topupStatus').innerHTML = '';
-        selectedTopupAmount = 0;
-        selectTopupCurrency('USDT');
-    } else {
-        showToast('❌ Topup modal not found', 'error');
-    }
+    document.getElementById('topupModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    updateBalanceDisplay();
+    document.querySelectorAll('.topup-amount').forEach(el => el.style.borderColor = 'var(--glass-border)');
+    document.getElementById('topupSelectedAmount').textContent = '$0.00';
+    document.getElementById('topupLtcAmount').textContent = '0.0000 LTC';
+    document.getElementById('customAmountContainer').style.display = 'none';
+    document.getElementById('topupStatus').innerHTML = '';
+    selectedTopupAmount = 0;
+    selectTopupCurrency('USDT');
 };
 
 window.closeTopupModal = function() {
-    const modal = document.getElementById('topupModal');
-    if (modal) {
-        modal.classList.remove('open');
-        document.body.style.overflow = '';
-    }
+    document.getElementById('topupModal').classList.remove('open');
+    document.body.style.overflow = '';
 };
 
 // ============================================================
@@ -6864,8 +7411,10 @@ window.closeTopupModal = function() {
 window.selectTopupCurrency = function(currency) {
     selectedTopupCurrency = currency;
     document.getElementById('topupCurrency').value = currency;
+
     const usdtBtn = document.getElementById('topupCurrencyUSDT');
     const ltcBtn = document.getElementById('topupCurrencyLTC');
+
     if (currency === 'USDT') {
         if (usdtBtn) {
             usdtBtn.style.borderColor = 'var(--primary)';
@@ -6893,14 +7442,17 @@ window.selectTopupCurrency = function(currency) {
             usdtBtn.style.fontWeight = '600';
         }
     }
+
     updateTopupAmounts(currency);
 };
 
 function updateTopupAmounts(currency) {
     const container = document.getElementById('topupAmountsContainer');
     if (!container) return;
+
     const ltcPrice = cryptoPrices.ltc || 42;
     const amounts = [5, 10, 25, 50, 100];
+
     container.innerHTML = `
         <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px;">
             ${amounts.map(amount => {
@@ -6948,11 +7500,13 @@ window.selectTopupAmount = function(amount) {
         el.style.borderColor = 'var(--glass-border)';
         el.style.background = 'var(--glass-bg)';
     });
+
     if (amount === 'custom') {
         document.getElementById('customAmountContainer').style.display = 'block';
         selectedTopupAmount = 0;
         document.getElementById('topupSelectedAmount').textContent = 'Enter amount';
         document.getElementById('topupLtcAmount').textContent = '0.0000 LTC';
+
         const customInput = document.getElementById('customTopupAmount');
         if (customInput) {
             customInput.value = '';
@@ -6976,6 +7530,7 @@ window.selectTopupAmount = function(amount) {
                 }
             };
         }
+
         const customEl = document.querySelector('.topup-amount[data-amount="custom"]');
         if (customEl) {
             customEl.style.borderColor = 'var(--primary)';
@@ -6983,6 +7538,7 @@ window.selectTopupAmount = function(amount) {
         }
         return;
     }
+
     document.getElementById('customAmountContainer').style.display = 'none';
     const el = document.querySelector(`.topup-amount[data-amount="${amount}"]`);
     if (el) {
@@ -6992,6 +7548,7 @@ window.selectTopupAmount = function(amount) {
     selectedTopupAmount = amount;
     const ltcPrice = cryptoPrices.ltc || 42;
     const currency = selectedTopupCurrency || 'USDT';
+
     let displayText, ltcDisplay;
     if (currency === 'USDT') {
         displayText = `$${amount.toFixed(2)}`;
@@ -7006,34 +7563,36 @@ window.selectTopupAmount = function(amount) {
 };
 
 // ============================================================
-// TOPUP SYSTEM - PROCESS TOPUP
+// TOPUP SYSTEM - PROCESS TOPUP (Uses Edge Function only)
 // ============================================================
 window.processTopup = async function() {
     if (!currentUser) {
         showToast('⚠️ Please login first', 'warning');
         return;
     }
-    const btn = document.getElementById('topupProcessBtn');
+
     let amount = selectedTopupAmount;
     const customInput = document.getElementById('customTopupAmount');
     if (document.getElementById('customAmountContainer').style.display !== 'none' && customInput) {
         const customVal = parseFloat(customInput.value);
         if (!customVal || customVal <= 0) {
             showToast('⚠️ Please enter a valid amount', 'warning');
-            if (btn) hideButtonLoading(btn);
             return;
         }
         amount = customVal;
     }
+
     if (!amount || amount <= 0) {
         showToast('⚠️ Please select or enter an amount', 'warning');
-        if (btn) hideButtonLoading(btn);
         return;
     }
+
     const currency = selectedTopupCurrency || 'USDT';
+
     const statusEl = document.getElementById('topupStatus');
     statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating request...';
     statusEl.style.color = 'var(--text-secondary)';
+
     try {
         const requestBody = {
             userId: currentUser.uid,
@@ -7043,7 +7602,9 @@ window.processTopup = async function() {
             currency: currency,
             txHash: null
         };
+
         console.log('📤 Sending topup request with amount_usd:', requestBody);
+
         const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/create-topup', {
             method: 'POST',
             headers: {
@@ -7054,8 +7615,10 @@ window.processTopup = async function() {
             mode: 'cors',
             body: JSON.stringify(requestBody)
         });
+
         const responseText = await response.text();
         console.log('📥 Raw response:', responseText);
+
         let result;
         try {
             result = JSON.parse(responseText);
@@ -7063,10 +7626,12 @@ window.processTopup = async function() {
             console.error('❌ Failed to parse JSON:', e);
             throw new Error(`Invalid server response: ${responseText.substring(0, 100)}`);
         }
+
         if (!response.ok || !result.success) {
             console.error('❌ Topup error:', result);
             throw new Error(result.error || result.message || 'Failed to create topup');
         }
+
         let warningHtml = '';
         if (result.currency === 'USDT') {
             warningHtml = `
@@ -7081,12 +7646,15 @@ window.processTopup = async function() {
                 </div>
             `;
         }
+
         statusEl.innerHTML = `
             <div style="background:var(--primary-glow); border-radius:8px; padding:16px; border:1px solid var(--primary);">
                 <div style="font-weight:700; color:var(--primary); font-size:16px; margin-bottom:12px;">
                     💳 Complete Your Payment
                 </div>
+
                 ${warningHtml}
+
                 <div style="background:var(--card-bg); border-radius:6px; padding:12px; margin-bottom:12px; border:1px solid var(--border);">
                     <div style="display:flex; justify-content:space-between; padding:4px 0; font-size:14px;">
                         <span style="color:var(--text-secondary);">Amount:</span>
@@ -7110,6 +7678,7 @@ window.processTopup = async function() {
                         <span style="font-weight:700; font-family:monospace; font-size:12px;">${result.instructions?.memo || ''}</span>
                     </div>
                 </div>
+
                 <div style="margin-bottom:12px;">
                     <label style="font-size:13px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">
                         📋 Transaction Hash (TXID)
@@ -7121,11 +7690,13 @@ window.processTopup = async function() {
                         <i class="fas fa-info-circle"></i> Copy the TXID from your wallet after sending
                     </div>
                 </div>
+
                 <button onclick="submitTopupWithTxHash('${result.topupId}', ${amount})"
                         style="width:100%; padding:12px; border:none; border-radius:var(--radius-sm);
                                background:var(--success); color:#0a0a1a; font-weight:800; font-size:16px; cursor:pointer;">
                     <i class="fas fa-check-circle"></i> Submit for Verification
                 </button>
+
                 <div style="font-size:11px; color:var(--text-secondary); opacity:0.5; margin-top:8px; text-align:center;">
                     ⏳ Your request will be reviewed within 5-30 minutes
                     <br>
@@ -7133,19 +7704,21 @@ window.processTopup = async function() {
                 </div>
             </div>
         `;
+
         window._currentTopupId = result.topupId;
         window._currentTopupAmount = amount;
+
         showToast(`📤 Payment instructions generated for ${result.displayCurrency}`, 'info');
-        if (btn) hideButtonLoading(btn, 'Submitted!');
+
     } catch (error) {
         console.error('❌ Topup error:', error);
         let errorMsg = error.message;
         if (error.message.includes('Failed to fetch')) {
-            errorMsg = 'Cannot connect to server. Please check your internet connection and try again.';
+            errorMsg =
+                'Cannot connect to server. Please check your internet connection and try again.';
         }
         statusEl.innerHTML = `<span style="color:var(--danger);">❌ ${errorMsg}</span>`;
         showToast('❌ Error: ' + errorMsg, 'error');
-        if (btn) hideButtonLoading(btn);
     }
 };
 
@@ -7155,18 +7728,22 @@ window.processTopup = async function() {
 window.submitTopupWithTxHash = async function(topupId, amount) {
     const txHashInput = document.getElementById('topupTxHash');
     const txHash = txHashInput?.value?.trim();
+
     if (!txHash) {
         showToast('⚠️ Please paste your transaction hash', 'warning');
         txHashInput.style.borderColor = 'var(--danger)';
         setTimeout(() => { txHashInput.style.borderColor = ''; }, 3000);
         return;
     }
+
     if (txHash.length < 10) {
         showToast('⚠️ Please enter a valid transaction hash', 'warning');
         return;
     }
+
     const statusEl = document.getElementById('topupStatus');
     statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting for verification...';
+
     try {
         const { error } = await supabase
             .from('topups')
@@ -7175,7 +7752,9 @@ window.submitTopupWithTxHash = async function(topupId, amount) {
                 updated_at: new Date().toISOString()
             })
             .eq('id', topupId);
+
         if (error) throw error;
+
         const adminMessage = `
 👤 *User Email:* ${currentUser.email || 'N/A'}
 🆔 *User ID:* ${currentUser.uid}
@@ -7186,24 +7765,27 @@ window.submitTopupWithTxHash = async function(topupId, amount) {
 
 ⚠️ *Please verify this transaction before approving.*
         `;
+
         await sendAdminNotification('💰 New Topup Request - Pending Verification', adminMessage);
+
         if (userProfile.telegramChatId) {
             const userMessage = `
-📤 <b>TOPUP REQUEST SUBMITTED</b>
+📤 *TOPUP REQUEST SUBMITTED*
 
 ✅ Your topup request has been submitted successfully!
 
-💵 <b>Amount:</b> $${amount.toFixed(2)}
-🔗 <b>TXID:</b> <code>${txHash}</code>
-📅 <b>Date:</b> ${new Date().toLocaleString()}
+💵 *Amount:* $${amount.toFixed(2)}
+🔗 *TXID:* \`${txHash}\`
+📅 *Date:* ${new Date().toLocaleString()}
 
 ⏳ Your request is being reviewed by our team.
 You will receive a notification once approved.
 
-🔗 <b>Visit Store:</b> https://zi-store.online
+🔗 *Visit Store:* https://zi-store.online
             `;
             await sendTelegramNotification(userProfile.telegramChatId, userMessage);
         }
+
         statusEl.innerHTML = `
             <div style="background:var(--success-glow); border-radius:8px; padding:12px; border:1px solid var(--success);">
                 <div style="font-weight:700; color:var(--success); font-size:16px;">✅ Request Submitted!</div>
@@ -7222,10 +7804,13 @@ You will receive a notification once approved.
                 </button>
             </div>
         `;
+
         showToast('✅ Request submitted! Waiting for verification.', 'success');
+
         setTimeout(() => {
             closeTopupModal();
         }, 5000);
+
     } catch (error) {
         console.error('Submit error:', error);
         statusEl.innerHTML = `<span style="color:var(--danger);">❌ ${error.message}</span>`;
@@ -7234,88 +7819,69 @@ You will receive a notification once approved.
 };
 
 // ============================================================
-// TOPUP SYSTEM - ADMIN FUNCTIONS
+// TOPUP SYSTEM - ADMIN FUNCTIONS (ONLY Edge Function updates balance)
 // ============================================================
 window.approveTopup = async function(topupId) {
     if (!currentUser || !isAdminCached) {
         showToast('⛔ Unauthorized', 'error');
         return;
     }
+
     if (!confirm('Approve this topup and add balance to user?')) return;
+
     try {
         const { data: topupData, error: fetchError } = await supabase
             .from('topups')
             .select('*')
             .eq('id', topupId)
             .single();
+
         if (fetchError) throw fetchError;
-        if (!topupData) throw new Error('Topup not found');
-        const { error: updateError } = await supabase
-            .from('topups')
-            .update({ 
-                status: 'completed',
-                updated_at: new Date().toISOString()
+
+        // Use Edge Function to handle everything (balance update + status change)
+        const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/approve-topup', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify({
+                topupId: topupId,
+                approve: true,
+                adminEmail: currentUser.email
             })
-            .eq('id', topupId);
-        if (updateError) throw updateError;
-        const userId = topupData.user_id;
-        const amount = topupData.amount_usd || 0;
-        if (userId && amount > 0) {
-            const userRef = doc(db, 'users', userId);
-            const userSnap = await getDoc(userRef);
-            if (userSnap.exists()) {
-                const userData = userSnap.data();
-                const currentBalance = userData.balance || 0;
-                const newBalance = currentBalance + amount;
-                await updateDoc(userRef, {
-                    balance: newBalance,
-                    updatedAt: serverTimestamp()
-                });
-                if (currentUser && currentUser.uid === userId) {
-                    userBalance = newBalance;
-                    userProfile.balance = newBalance;
-                    updateBalanceDisplay();
-                    updateUI();
-                    updateFullUserMenu();
-                    showToast(`💰 $${amount.toFixed(2)} added to your balance!`, 'success');
-                }
-            }
+        });
+
+        const result = await response.json();
+
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to approve topup');
         }
+
+        // DO NOT update balance manually here - Edge Function already did it
+        // Just refresh the UI
+        showToast(`✅ Topup approved successfully!`, 'success');
         loadAdminTopups();
         loadUserBalance();
-        if (document.getElementById('topupStatusList')) {
-            loadUserTopups();
+        
+        // Send notifications
+        if (topupData) {
+            const adminMessage = `
+👤 *User:* ${topupData?.user_email || 'Unknown'}
+💵 *Amount:* $${topupData?.amount_usd || 0}
+🔗 *TXID:* \`${topupData?.tx_hash || 'N/A'}\`
+📅 *Date:* ${new Date().toLocaleString()}
+✅ *Status:* APPROVED
+            `;
+            await sendAdminNotification('✅ Topup Approved', adminMessage);
+            
+            await sendTelegramTopupNotification(
+                topupData.user_id,
+                topupData.amount_usd,
+                topupData.tx_hash
+            );
         }
-        if (topupData.user_id && topupData.user_email) {
-            await sendTopupConfirmationEmail(topupData.user_email, amount, topupData.tx_hash);
-            const userRef = doc(db, 'users', topupData.user_id);
-            const userSnap = await getDoc(userRef);
-            if (userSnap.exists()) {
-                const userData = userSnap.data();
-                if (userData.telegramChatId) {
-                    const telegramMsg = `
-💰 <b>TOPUP APPROVED!</b>
 
-✅ Your topup request has been approved!
-
-📊 <b>Amount:</b> $${amount.toFixed(2)} USDT
-💳 <b>Method:</b> USDT (ERC20)
-${topupData.tx_hash ? `🔗 <b>TXID:</b> <code>${topupData.tx_hash}</code>` : ''}
-📅 <b>Date:</b> ${new Date().toLocaleString()}
-
-🎉 Your balance has been updated successfully!
-💡 You can now use your balance to purchase products instantly.
-
-🔗 <b>Visit Store:</b> https://zi-store.online
-                    `;
-                    await sendTelegramNotification(userData.telegramChatId, telegramMsg);
-                }
-            }
-        }
-        await sendAdminNotification('✅ Topup Approved', 
-            `User: ${topupData.user_email || 'Unknown'}\nAmount: $${amount.toFixed(2)}\nTXID: ${topupData.tx_hash || 'N/A'}`
-        );
-        showToast(`✅ Topup approved successfully!`, 'success');
     } catch (error) {
         console.error('Approve error:', error);
         showToast('❌ Error: ' + error.message, 'error');
@@ -7327,24 +7893,40 @@ window.rejectTopup = async function(topupId) {
         showToast('⛔ Unauthorized', 'error');
         return;
     }
+
     if (!confirm('Reject this topup?')) return;
+
     try {
         const { data: topupData, error: fetchError } = await supabase
             .from('topups')
             .select('*')
             .eq('id', topupId)
             .single();
+
         if (fetchError) throw fetchError;
-        const { error: updateError } = await supabase
-            .from('topups')
-            .update({ 
-                status: 'rejected',
-                updated_at: new Date().toISOString()
+
+        const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/approve-topup', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify({
+                topupId: topupId,
+                approve: false,
+                adminEmail: currentUser.email
             })
-            .eq('id', topupId);
-        if (updateError) throw updateError;
+        });
+
+        const result = await response.json();
+
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to reject topup');
+        }
+
         showToast('✅ Topup rejected', 'success');
         loadAdminTopups();
+
     } catch (error) {
         console.error('Reject error:', error);
         showToast('❌ Error: ' + error.message, 'error');
@@ -7353,20 +7935,27 @@ window.rejectTopup = async function(topupId) {
 
 async function loadAdminTopups() {
     if (!currentUser || !isAdminCached) return;
+
     const container = document.getElementById('adminTopupsContainer');
     if (!container) return;
+
     try {
         const { data: topups, error } = await supabase
             .from('topups')
             .select('*')
             .order('created_at', { ascending: false });
+
         if (error) throw error;
+
         const countEl = document.getElementById('adminTopupsCount');
         if (countEl) countEl.textContent = topups?.length || 0;
+
         if (!topups || topups.length === 0) {
-            container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">No topup requests</div>`;
+            container.innerHTML =
+                `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">No topup requests</div>`;
             return;
         }
+
         container.innerHTML = topups.map(t => {
             const statusColors = {
                 'pending': 'var(--pending-color)',
@@ -7379,6 +7968,7 @@ async function loadAdminTopups() {
                 'rejected': '❌ Rejected'
             };
             const date = new Date(t.created_at).toLocaleString();
+
             return `
                 <div class="admin-item" style="border-left:4px solid ${statusColors[t.status] || 'var(--border)'};">
                     <div class="item-info">
@@ -7410,9 +8000,11 @@ async function loadAdminTopups() {
                 </div>
             `;
         }).join('');
+
     } catch (error) {
         console.error('Error loading topups:', error);
-        container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--danger);">Failed to load topups</div>`;
+        container.innerHTML =
+            `<div style="text-align:center;padding:30px;color:var(--danger);">Failed to load topups</div>`;
     }
 }
 
@@ -7427,12 +8019,15 @@ async function sendTelegramTopupNotification(userId, amount, txHash = null) {
             console.log('⚠️ User not found for Telegram notification');
             return;
         }
+
         const userData = userSnap.data();
         const chatId = userData.telegramChatId;
+
         if (!chatId) {
             console.log('ℹ️ User has no Telegram linked');
             return;
         }
+
         const message = `
 💰 *TOPUP APPROVED!*
 
@@ -7448,8 +8043,10 @@ ${txHash ? `🔗 *TXID:* \`${txHash}\`` : ''}
 
 🔗 *Visit Store:* https://zi-store.online
         `;
+
         await sendTelegramNotification(chatId, message);
         console.log('✅ Telegram notification sent for topup approval');
+
     } catch (error) {
         console.error('❌ Error sending Telegram notification:', error);
     }
@@ -7500,7 +8097,8 @@ window.checkoutWithBalance = function() {
     if (userBalance >= finalTotal) {
         processBalancePayment(finalTotal);
     } else {
-        showToast(`⚠️ Insufficient balance! Need $${finalTotal.toFixed(2)}, have $${userBalance.toFixed(2)}`, 'warning');
+        showToast(`⚠️ Insufficient balance! Need $${finalTotal.toFixed(2)}, have $${userBalance.toFixed(2)}`,
+            'warning');
         setTimeout(() => openTopupModal(), 500);
     }
 };
@@ -7514,6 +8112,7 @@ window.toggleSupportMenu = function() {
         float.classList.toggle('open');
     }
 };
+
 window.openSupportModal = function() {
     const modal = document.getElementById('supportModal');
     if (modal) {
@@ -7525,6 +8124,7 @@ window.openSupportModal = function() {
         float.classList.remove('open');
     }
 };
+
 window.closeSupportModal = function() {
     const modal = document.getElementById('supportModal');
     if (modal) {
@@ -7532,21 +8132,25 @@ window.closeSupportModal = function() {
         document.body.style.overflow = '';
     }
 };
+
 window.openWhatsAppSupport = function() {
     const phone = '1234567890';
     const message = 'Hi, I need help';
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
 };
+
 window.openTelegramSupport = function() {
     const username = 'Mitalica69';
     const message = 'Hi, I need help';
     window.open(`https://t.me/${username}?start=support`, '_blank');
 };
+
 window.openEmailSupport = function() {
     const email = 'idriss.zribi13@gmail.com';
     const subject = 'Support Request';
     window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}`;
 };
+
 window.openPhoneSupport = function() {
     const phone = '1234567890';
     window.location.href = `tel:${phone}`;
@@ -7556,6 +8160,7 @@ window.openPhoneSupport = function() {
 // COOKIE CONSENT FUNCTIONS
 // ============================================================
 let cookieConsentStatus = localStorage.getItem('cookieConsent');
+
 window.acceptCookies = function() {
     localStorage.setItem('cookieConsent', 'accepted');
     localStorage.setItem('analyticsConsent', 'true');
@@ -7563,6 +8168,7 @@ window.acceptCookies = function() {
     enableAnalytics();
     showToast('✅ Cookies accepted', 'success');
 };
+
 window.rejectCookies = function() {
     localStorage.setItem('cookieConsent', 'rejected');
     localStorage.setItem('analyticsConsent', 'false');
@@ -7570,6 +8176,7 @@ window.rejectCookies = function() {
     disableAnalytics();
     showToast('❌ Cookies rejected', 'info');
 };
+
 window.openCookieSettings = function() {
     const modal = document.getElementById('cookieSettingsModal');
     if (modal) {
@@ -7582,6 +8189,7 @@ window.openCookieSettings = function() {
         document.body.style.overflow = 'hidden';
     }
 };
+
 window.closeCookieSettings = function() {
     const modal = document.getElementById('cookieSettingsModal');
     if (modal) {
@@ -7589,16 +8197,25 @@ window.closeCookieSettings = function() {
         document.body.style.overflow = '';
     }
 };
+
 window.saveCookieSettings = function() {
     const analyticsToggle = document.getElementById('analyticsToggle');
     const analyticsEnabled = analyticsToggle ? analyticsToggle.checked : true;
+
     localStorage.setItem('cookieConsent', 'custom');
     localStorage.setItem('analyticsConsent', analyticsEnabled ? 'true' : 'false');
-    if (analyticsEnabled) { enableAnalytics(); } else { disableAnalytics(); }
+
+    if (analyticsEnabled) {
+        enableAnalytics();
+    } else {
+        disableAnalytics();
+    }
+
     document.getElementById('cookieConsent').classList.remove('show');
     closeCookieSettings();
     showToast('✅ Settings saved', 'success');
 };
+
 function enableAnalytics() {
     try {
         if (typeof analytics !== 'undefined' && analytics.setAnalyticsCollectionEnabled) {
@@ -7615,6 +8232,7 @@ function enableAnalytics() {
         console.log('⚠️ Analytics enable error:', e);
     }
 }
+
 function disableAnalytics() {
     try {
         if (typeof analytics !== 'undefined' && analytics.setAnalyticsCollectionEnabled) {
@@ -7631,9 +8249,11 @@ function disableAnalytics() {
         console.log('⚠️ Analytics disable error:', e);
     }
 }
+
 function checkCookieConsent() {
     const consent = localStorage.getItem('cookieConsent');
     const analyticsConsent = localStorage.getItem('analyticsConsent');
+
     if (!consent) {
         setTimeout(() => {
             const banner = document.getElementById('cookieConsent');
@@ -7653,6 +8273,7 @@ function checkCookieConsent() {
         }
     }
 }
+
 window.closeCookieBanner = function() {
     const banner = document.getElementById('cookieConsent');
     if (banner) {
@@ -7681,21 +8302,24 @@ function showTelegramBanner() {
     }
     if (bannerHidden || adminDisabled) { banner.classList.add('hidden'); return; }
     banner.classList.remove('linked', 'hidden');
-    banner.querySelector('.banner-title').innerHTML = '🔔 Stay Connected! <span class="badge-new">New</span>';
+    banner.querySelector('.banner-title').innerHTML =
+    '🔔 Stay Connected! <span class="badge-new">New</span>';
     banner.querySelector('.banner-subtitle').textContent = 'Link your Telegram account to receive instant order notifications';
     banner.querySelector('.banner-action').innerHTML = '<i class="fab fa-telegram-plane"></i> Link Now';
     banner.querySelector('.banner-action').onclick = () => bindTelegram();
     banner.querySelector('.banner-icon i').className = 'fab fa-telegram-plane';
     banner.style.display = 'block';
     banner.style.animation = 'none';
-    setTimeout(() => { banner.style.animation = 'bannerSlideDown 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'; }, 10);
+    setTimeout(() => { banner.style.animation =
+            'bannerSlideDown 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'; }, 10);
 }
 
 function closeTelegramBanner() {
     const banner = document.getElementById('telegramBanner');
     if (banner) { banner.classList.add('hidden');
         localStorage.setItem('telegram_banner_hidden', 'true');
-        setTimeout(() => { localStorage.removeItem('telegram_banner_hidden'); if (!userProfile.telegramChatId) { showTelegramBanner(); } }, 600000); }
+        setTimeout(() => { localStorage.removeItem('telegram_banner_hidden'); if (!userProfile
+                .telegramChatId) { showTelegramBanner(); } }, 600000); }
 }
 
 function showTelegramBannerAgain() { localStorage.removeItem('telegram_banner_hidden');
@@ -7704,7 +8328,9 @@ function showTelegramBannerAgain() { localStorage.removeItem('telegram_banner_hi
 function addBannerAdminControls() { /* Will be implemented in admin */ }
 
 function adminToggleBanner(show) {
-    if (show) { localStorage.setItem('telegram_banner_admin_disabled', 'false'); } else { localStorage.setItem('telegram_banner_admin_disabled', 'true'); const banner = document.getElementById('telegramBanner'); if (banner) banner.classList.add('hidden'); }
+    if (show) { localStorage.setItem('telegram_banner_admin_disabled', 'false'); } else { localStorage.setItem(
+            'telegram_banner_admin_disabled', 'true'); const banner = document.getElementById(
+            'telegramBanner'); if (banner) banner.classList.add('hidden'); }
     addBannerAdminControls();
     if (show) { localStorage.removeItem('telegram_banner_hidden');
         setTimeout(showTelegramBanner, 300); }
@@ -7724,8 +8350,9 @@ async function uploadToCloudinary(file) {
         const formData = new FormData();
         formData.append('file', file);
         formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-        const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, { method: 'POST',
-            body: formData });
+        const response = await fetch(
+            `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, { method: 'POST',
+                body: formData });
         const data = await response.json();
         return data.secure_url || null;
     } catch (error) { console.error('Cloudinary upload error:', error); return null; }
@@ -7740,6 +8367,7 @@ function fixDirection() {
             el.style.direction = 'ltr';
             el.style.textAlign = 'left';
         });
+
     document.querySelectorAll('.modal-close, .close-modal-btn').forEach(el => {
         el.style.position = 'absolute';
         el.style.top = '10px';
@@ -7748,12 +8376,14 @@ function fixDirection() {
         el.style.zIndex = '100';
         el.style.margin = '0';
     });
+
     document.querySelectorAll('.fullscreen-modal .close-btn, #adminPanel .admin-close-btn').forEach(el => {
         el.style.position = 'static';
         el.style.right = 'auto';
         el.style.left = 'auto';
         el.style.top = 'auto';
     });
+
     console.log('✅ Direction fixed: Close buttons on right');
 }
 window.fixHeaderAndModals = fixDirection;
@@ -7833,7 +8463,9 @@ function refreshAdminPayments() {
     if (!currentUser || !isAdminCached) return;
     const tbody = document.getElementById('adminPaymentsBody');
     if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
+    tbody.innerHTML =
+        '<tr><td colspan="7" style="text-align:center;padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
+
     const usersRef = collection(db, 'users');
     getDocs(usersRef).then((snapshot) => {
         let allPayments = [];
@@ -7859,18 +8491,23 @@ function refreshAdminPayments() {
             });
         });
         allPayments.sort((a, b) => new Date(b.date) - new Date(a.date));
+
         const total = allPayments.length;
         const pending = allPayments.filter(p => p.status === 'pending').length;
-        const completed = allPayments.filter(p => p.status === 'confirmed' || p.status === 'completed').length;
+        const completed = allPayments.filter(p => p.status === 'confirmed' || p.status === 'completed')
+            .length;
         const rejected = allPayments.filter(p => p.status === 'rejected').length;
         document.getElementById('adminPaymentTotal').textContent = total;
         document.getElementById('adminPaymentPending').textContent = pending;
         document.getElementById('adminPaymentCompleted').textContent = completed;
         document.getElementById('adminPaymentRejected').textContent = rejected;
+
         if (allPayments.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-secondary);">No payments found.</td></tr>';
+            tbody.innerHTML =
+                '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-secondary);">No payments found.</td></tr>';
             return;
         }
+
         let rows = '';
         allPayments.forEach(p => {
             const statusBadge =
@@ -7899,7 +8536,8 @@ function refreshAdminPayments() {
         tbody.innerHTML = rows;
     }).catch(error => {
         console.error('Error loading admin payments:', error);
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--danger);">${error.message}</td></tr>`;
+        tbody.innerHTML =
+            `<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--danger);">${error.message}</td></tr>`;
     });
 }
 
@@ -7908,11 +8546,13 @@ window.adminApprovePayment = function(orderId, userId) {
     updateOrderStatus(orderId, userId, 'confirmed');
     setTimeout(refreshAdminPayments, 500);
 };
+
 window.adminRejectPayment = function(orderId, userId) {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     updateOrderStatus(orderId, userId, 'rejected');
     setTimeout(refreshAdminPayments, 500);
 };
+
 window.adminDeletePayment = function(orderId, userId) {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!confirm(`Delete payment ${orderId}?`)) return;
@@ -7942,6 +8582,7 @@ function updateUserPreferences() {
         purchasedProducts: [],
         cartProducts: []
     };
+
     userHistory.forEach(item => {
         const product = products.find(p => p.id === item.productId);
         if (!product) return;
@@ -7965,30 +8606,36 @@ function getRecommendations(limit = 6) {
     if (!currentUser || userHistory.length === 0) {
         return getDefaultRecommendations(limit);
     }
+
     const viewedIds = userPreferences.viewedProducts;
     const viewedProducts = products.filter(p => viewedIds.includes(p.id));
     const similarProducts = products.filter(p => {
         if (viewedIds.includes(p.id)) return false;
         return p.features?.some(f => viewedProducts.some(vp => vp.features?.includes(f)));
     });
+
     const cartIds = userPreferences.cartProducts;
     const cartProducts = products.filter(p => cartIds.includes(p.id));
     const cartSimilar = products.filter(p => {
         if (cartIds.includes(p.id)) return false;
         return p.features?.some(f => cartProducts.some(cp => cp.features?.includes(f)));
     });
+
     const purchasedIds = userPreferences.purchasedProducts;
     const purchasedProducts = products.filter(p => purchasedIds.includes(p.id));
     const purchasedSimilar = products.filter(p => {
         if (purchasedIds.includes(p.id)) return false;
         return p.features?.some(f => purchasedProducts.some(pp => pp.features?.includes(f)));
     });
+
     const popularProducts = products.filter(p => p.price > 0).sort((a, b) => b.price - a.price);
+
     let recommendations = [];
     recommendations.push(...similarProducts);
     recommendations.push(...cartSimilar);
     recommendations.push(...purchasedSimilar);
     recommendations.push(...popularProducts);
+
     const unique = [];
     const seen = new Set();
     for (const item of recommendations) {
@@ -7997,6 +8644,7 @@ function getRecommendations(limit = 6) {
             unique.push(item);
         }
     }
+
     return unique.slice(0, limit);
 }
 
@@ -8027,13 +8675,16 @@ async function detectFraud(orderData) {
     const userId = orderData.userId || currentUser?.uid;
     const ip = orderData.ip || (await getVisitorInfo()).ip;
     const email = orderData.email || currentUser?.email;
+
     if (orderData.total > fraudRules.maxAmountPerOrder) {
         warnings.push('⚠️ High order amount detected');
     }
+
     const visitorInfo = await getVisitorInfo();
     if (fraudRules.suspiciousCountries.includes(visitorInfo.country_code)) {
         warnings.push('⚠️ Suspicious country detected');
     }
+
     const userOrders = allOrders.filter(o => o.userId === userId);
     const todayOrders = userOrders.filter(o => {
         return new Date(o.date).toDateString() === new Date().toDateString();
@@ -8041,17 +8692,21 @@ async function detectFraud(orderData) {
     if (todayOrders.length > fraudRules.maxOrdersPerDay) {
         warnings.push('⚠️ Too many orders today');
     }
+
     if (!userActivity[userId]) userActivity[userId] = { failedAttempts: 0, lastAttempt: 0 };
     if (userActivity[userId].failedAttempts > fraudRules.maxFailedAttempts) {
         warnings.push('⚠️ Too many failed attempts');
     }
+
     const usersWithSameIP = allUsers.filter(u => u.ip === ip);
     if (usersWithSameIP.length > fraudRules.sameIPDifferentAccounts) {
         warnings.push('⚠️ Multiple accounts from same IP');
     }
+
     if (email && (email.includes('tempmail') || email.includes('10minutemail'))) {
         warnings.push('⚠️ Temporary email detected');
     }
+
     if (warnings.length > 0) {
         await logFraudDetection({
             userId,
@@ -8062,6 +8717,7 @@ async function detectFraud(orderData) {
             timestamp: new Date().toISOString()
         });
     }
+
     return {
         isSuspicious: warnings.length > 0,
         warnings,
@@ -8076,6 +8732,7 @@ async function logFraudDetection(data) {
             createdAt: serverTimestamp()
         });
         console.log('🚨 Fraud detected:', data.warnings);
+
         if (data.warnings.length > 3) {
             await sendAdminNotification(
                 '🚨 High Risk Fraud Detected!',
@@ -8093,15 +8750,19 @@ async function logFraudDetection(data) {
 function renderLimitedProducts() {
     const container = document.getElementById('limitedProductsGrid');
     if (!container) return;
+
     const limited = products.filter(p => p.limitedQuantity && p.limitedQuantity > 0);
     if (limited.length === 0) {
-        container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text-secondary);opacity:0.5;">No limited products available</div>`;
+        container.innerHTML =
+            `<div style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text-secondary);opacity:0.5;">No limited products available</div>`;
         return;
     }
+
     container.innerHTML = limited.map(p => {
         const percentLeft = (p.limitedQuantity / p.limitedTotal) * 100;
         const isLowStock = percentLeft < 20;
         const isUrgent = percentLeft < 10;
+
         return `
             <div class="product-card" onclick="window.openDetails('${p.id}')" style="border:2px solid ${isUrgent ? 'var(--danger)' : isLowStock ? 'var(--warning)' : 'var(--vip-color)'};">
                 <div class="image-wrapper">
@@ -8143,6 +8804,7 @@ function initPopups() {
             }
         });
     }
+
     setTimeout(() => {
         if (!popupShown && !document.hidden) {
             showOfferPopup();
@@ -8177,6 +8839,7 @@ window.closePopup = function(popupId) {
         document.body.style.overflow = '';
     }
 };
+
 window.applyPopupCoupon = function(couponCode) {
     const input = document.getElementById('cartPromoInput');
     if (input) {
@@ -8186,6 +8849,7 @@ window.applyPopupCoupon = function(couponCode) {
     closePopup('offerPopup');
     showToast(`🎉 Coupon ${couponCode} applied!`, 'success');
 };
+
 window.subscribeAndApply = function(couponCode) {
     const email = document.getElementById('exitPopupEmail');
     if (email && email.value.trim()) {
@@ -8235,6 +8899,7 @@ window.openCreateCouponModal = function() {
     document.getElementById('couponForm').reset();
     document.getElementById('couponIdField').value = '';
 };
+
 window.closeCreateCouponModal = function() {
     document.getElementById('createCouponModal').classList.remove('open');
 };
@@ -8244,6 +8909,7 @@ window.saveCoupon = async function() {
         showToast('⛔ Unauthorized', 'error');
         return;
     }
+
     const id = document.getElementById('couponIdField').value;
     const code = document.getElementById('couponCode').value.trim().toUpperCase();
     const type = document.getElementById('couponType').value;
@@ -8254,10 +8920,12 @@ window.saveCoupon = async function() {
     const usageLimit = parseInt(document.getElementById('couponUsageLimit').value) || null;
     const firstOrderOnly = document.getElementById('couponFirstOrder').checked;
     const active = document.getElementById('couponActive').checked;
+
     if (!code || !value) {
         showToast('⚠️ Code and value are required', 'warning');
         return;
     }
+
     const couponData = {
         code,
         type,
@@ -8271,6 +8939,7 @@ window.saveCoupon = async function() {
         expiresAt: expiresAt ? new Date(expiresAt).toISOString() : null,
         updatedAt: serverTimestamp()
     };
+
     try {
         if (id) {
             await updateDoc(doc(db, 'coupons', id), couponData);
@@ -8306,16 +8975,19 @@ window.deleteCoupon = async function(couponId) {
 window.editCoupon = function(couponId) {
     const coupon = coupons.find(c => c.id === couponId);
     if (!coupon) { showToast('❌ Coupon not found', 'error'); return; }
+
     document.getElementById('couponIdField').value = coupon.id;
     document.getElementById('couponCode').value = coupon.code;
     document.getElementById('couponType').value = coupon.type;
     document.getElementById('couponValue').value = coupon.value;
     document.getElementById('couponMinOrder').value = coupon.minOrder || '';
     document.getElementById('couponMaxDiscount').value = coupon.maxDiscount || '';
-    document.getElementById('couponExpiresAt').value = coupon.expiresAt ? new Date(coupon.expiresAt).toISOString().slice(0, 16) : '';
+    document.getElementById('couponExpiresAt').value = coupon.expiresAt ? new Date(coupon.expiresAt).toISOString()
+        .slice(0, 16) : '';
     document.getElementById('couponUsageLimit').value = coupon.usageLimit || '';
     document.getElementById('couponFirstOrder').checked = coupon.firstOrderOnly || false;
     document.getElementById('couponActive').checked = coupon.active !== false;
+
     document.getElementById('createCouponModal').classList.add('open');
 };
 
@@ -8323,7 +8995,8 @@ function renderAdminCoupons() {
     const container = document.getElementById('adminCouponsList');
     if (!container) return;
     if (!coupons || coupons.length === 0) {
-        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);opacity:0.5;">No coupons created yet</div>`;
+        container.innerHTML =
+            `<div style="text-align:center;padding:20px;color:var(--text-secondary);opacity:0.5;">No coupons created yet</div>`;
         return;
     }
     container.innerHTML = coupons.map(c => {
@@ -8360,10 +9033,16 @@ function renderAdminCoupons() {
 // ============================================================
 // EMAIL SYSTEM - Complete Integration
 // ============================================================
+
+// ============================================================
+// 1. BASE SEND EMAIL FUNCTION
+// ============================================================
+
 async function sendEmail(to, subject, htmlContent, textContent = '') {
     try {
         console.log('📧 Sending email to:', to);
         console.log('📧 Subject:', subject);
+
         const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/send-email', {
             method: 'POST',
             headers: {
@@ -8377,11 +9056,14 @@ async function sendEmail(to, subject, htmlContent, textContent = '') {
                 text: textContent || htmlContent.replace(/<[^>]*>/g, '')
             })
         });
+
         const result = await response.json();
         console.log('📧 Email result:', result);
+
         if (!response.ok) {
             throw new Error(result.error || 'Failed to send email');
         }
+
         return { success: true, data: result };
     } catch (error) {
         console.error('❌ Email error:', error);
@@ -8389,114 +9071,1107 @@ async function sendEmail(to, subject, htmlContent, textContent = '') {
     }
 }
 
+// ============================================================
+// 2. WELCOME EMAIL (sent only once via checkIPChange)
+// ============================================================
+
 async function sendWelcomeEmail(userEmail, userName) {
-    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Welcome to ZI Store</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:#f0f2f8;padding:20px;margin:0}.container{max-width:600px;margin:0 auto;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.08)}.header{background:linear-gradient(135deg,#6c5ce7 0%,#a29bfe 100%);padding:40px 30px 30px;text-align:center}.logo{font-size:32px;font-weight:900;color:#fff;letter-spacing:-0.5px}.logo span{color:#f2a900}.logo-sub{font-size:14px;color:rgba(255,255,255,0.7);margin-top:4px;font-weight:400}.content{padding:40px 35px}.welcome-title{font-size:26px;font-weight:800;color:#1a1a2e;text-align:center}.welcome-title .emoji{font-size:32px;display:block;margin-bottom:4px}.welcome-text{font-size:15px;color:#4a4a6a;line-height:1.8;text-align:center;margin:12px 0 20px}.features-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}.feature-box{background:#f8f8ff;padding:16px 18px;border-radius:12px;border-left:4px solid #6c5ce7}.feature-box .icon{font-size:20px;display:block;margin-bottom:4px}.feature-box .title{font-weight:700;color:#1a1a2e;font-size:14px}.feature-box .desc{font-size:12px;color:#4a4a6a;opacity:0.7}.coupon-box{background:linear-gradient(135deg,#f2a900,#fbbf24);border-radius:12px;padding:16px 20px;text-align:center;margin:16px 0}.coupon-box .code{font-size:20px;font-weight:900;color:#1a1a2e;font-family:monospace;letter-spacing:2px}.coupon-box .label{font-size:13px;color:rgba(26,26,46,0.7)}.btn-primary{display:inline-block;background:#6c5ce7;color:#fff;padding:14px 40px;border-radius:30px;text-decoration:none;font-weight:700;font-size:16px;transition:all .3s}.btn-primary:hover{background:#5a4bd1;transform:translateY(-2px);box-shadow:0 8px 25px rgba(108,92,231,0.3)}.text-center{text-align:center}.divider{border:none;border-top:2px solid #f0f2f8;margin:20px 0}.footer{padding:20px 35px;text-align:center;background:#f8f8ff}.footer-text{font-size:12px;color:#888}.footer-links a{color:#6c5ce7;text-decoration:none;margin:0 6px;font-size:12px}.footer-links a:hover{text-decoration:underline}@media(max-width:480px){.header{padding:30px 20px}.content{padding:25px 18px}.features-grid{grid-template-columns:1fr}.logo{font-size:26px}.welcome-title{font-size:22px}.btn-primary{padding:12px 28px;font-size:14px}}</style></head><body><div class="container"><div class="header"><div class="logo">ZI <span>Store</span></div><div class="logo-sub">Premium Scripts & Digital Products</div></div><div class="content"><div class="welcome-title"><span class="emoji">🎉</span>Welcome to ZI Store!</div><p class="welcome-text">Hello <strong>${userName || 'there'}</strong>! We're thrilled to have you on board. 🚀<br>Here's everything you need to get started:</p><div class="features-grid"><div class="feature-box"><span class="icon">🛍️</span><div class="title">Premium Products</div><div class="desc">Access exclusive scripts and tools</div></div><div class="feature-box"><span class="icon">💳</span><div class="title">Secure Payments</div><div class="desc">Multiple payment methods</div></div><div class="feature-box"><span class="icon">⚡</span><div class="title">Instant Delivery</div><div class="desc">Get your products immediately</div></div><div class="feature-box"><span class="icon">🎁</span><div class="title">Exclusive Discounts</div><div class="desc">Special offers for members</div></div></div><div class="coupon-box"><div class="label">🎫 Use this coupon for 15% off your first order</div><div class="code">WELCOME15</div></div><div class="text-center"><a href="https://zi-store.online" class="btn-primary">🛒 Start Shopping Now</a></div><hr class="divider"><div style="text-align:center;font-size:13px;color:#888;line-height:1.6;"><p>Need help? <a href="mailto:support@zi-store.online" style="color:#6c5ce7;">Contact Support</a></p></div></div><div class="footer"><div class="footer-links"><a href="https://zi-store.online">Store</a><a href="mailto:support@zi-store.online">Support</a><a href="https://zi-store.online/privacy.html">Privacy</a><a href="https://zi-store.online/refund.html">Refund Policy</a></div><div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div></div></div></body></html>`;
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to ZI Store</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f0f2f8; padding: 20px; margin: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+        .header { background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%); padding: 40px 30px 30px; text-align: center; }
+        .logo { font-size: 32px; font-weight: 900; color: #fff; letter-spacing: -0.5px; }
+        .logo span { color: #f2a900; }
+        .logo-sub { font-size: 14px; color: rgba(255,255,255,0.7); margin-top: 4px; font-weight: 400; }
+        .content { padding: 40px 35px; }
+        .welcome-title { font-size: 26px; font-weight: 800; color: #1a1a2e; text-align: center; }
+        .welcome-title .emoji { font-size: 32px; display: block; margin-bottom: 4px; }
+        .welcome-text { font-size: 15px; color: #4a4a6a; line-height: 1.8; text-align: center; margin: 12px 0 20px; }
+        .features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
+        .feature-box { background: #f8f8ff; padding: 16px 18px; border-radius: 12px; border-left: 4px solid #6c5ce7; }
+        .feature-box .icon { font-size: 20px; display: block; margin-bottom: 4px; }
+        .feature-box .title { font-weight: 700; color: #1a1a2e; font-size: 14px; }
+        .feature-box .desc { font-size: 12px; color: #4a4a6a; opacity: 0.7; }
+        .coupon-box { background: linear-gradient(135deg, #f2a900, #fbbf24); border-radius: 12px; padding: 16px 20px; text-align: center; margin: 16px 0; }
+        .coupon-box .code { font-size: 20px; font-weight: 900; color: #1a1a2e; font-family: monospace; letter-spacing: 2px; }
+        .coupon-box .label { font-size: 13px; color: rgba(26,26,46,0.7); }
+        .btn-primary { display: inline-block; background: #6c5ce7; color: #fff; padding: 14px 40px; border-radius: 30px; text-decoration: none; font-weight: 700; font-size: 16px; transition: all 0.3s; margin: 8px 0; }
+        .btn-primary:hover { background: #5a4bd1; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(108,92,231,0.3); }
+        .text-center { text-align: center; }
+        .divider { border: none; border-top: 2px solid #f0f2f8; margin: 20px 0; }
+        .footer { padding: 20px 35px; text-align: center; background: #f8f8ff; }
+        .footer-text { font-size: 12px; color: #888; }
+        .footer-links a { color: #6c5ce7; text-decoration: none; margin: 0 6px; font-size: 12px; }
+        .footer-links a:hover { text-decoration: underline; }
+        @media (max-width: 480px) {
+            .header { padding: 30px 20px; }
+            .content { padding: 25px 18px; }
+            .features-grid { grid-template-columns: 1fr; }
+            .logo { font-size: 26px; }
+            .welcome-title { font-size: 22px; }
+            .btn-primary { padding: 12px 28px; font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">ZI <span>Store</span></div>
+            <div class="logo-sub">Premium Scripts & Digital Products</div>
+        </div>
+        <div class="content">
+            <div class="welcome-title">
+                <span class="emoji">🎉</span>
+                Welcome to ZI Store!
+            </div>
+            <p class="welcome-text">
+                Hello <strong>${userName || 'there'}</strong>! We're thrilled to have you on board. 🚀<br>
+                Here's everything you need to get started:
+            </p>
+            <div class="features-grid">
+                <div class="feature-box">
+                    <span class="icon">🛍️</span>
+                    <div class="title">Premium Products</div>
+                    <div class="desc">Access exclusive scripts and tools</div>
+                </div>
+                <div class="feature-box">
+                    <span class="icon">💳</span>
+                    <div class="title">Secure Payments</div>
+                    <div class="desc">Multiple payment methods</div>
+                </div>
+                <div class="feature-box">
+                    <span class="icon">⚡</span>
+                    <div class="title">Instant Delivery</div>
+                    <div class="desc">Get your products immediately</div>
+                </div>
+                <div class="feature-box">
+                    <span class="icon">🎁</span>
+                    <div class="title">Exclusive Discounts</div>
+                    <div class="desc">Special offers for members</div>
+                </div>
+            </div>
+            <div class="coupon-box">
+                <div class="label">🎫 Use this coupon for 15% off your first order</div>
+                <div class="code">WELCOME15</div>
+            </div>
+            <div class="text-center">
+                <a href="https://zi-store.online" class="btn-primary">🛒 Start Shopping Now</a>
+            </div>
+            <hr class="divider">
+            <div style="text-align: center; font-size: 13px; color: #888; line-height: 1.6;">
+                <p>Need help? <a href="mailto:support@zi-store.online" style="color:#6c5ce7;">Contact Support</a></p>
+            </div>
+        </div>
+        <div class="footer">
+            <div class="footer-links">
+                <a href="https://zi-store.online">Store</a>
+                <a href="mailto:support@zi-store.online">Support</a>
+                <a href="https://zi-store.online/privacy.html">Privacy</a>
+                <a href="https://zi-store.online/refund.html">Refund Policy</a>
+            </div>
+            <div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div>
+        </div>
+    </div>
+</body>
+</html>
+    `;
+
     return await sendEmail(userEmail, '🎉 Welcome to ZI Store!', html);
 }
+
+// ============================================================
+// 3. ORDER CONFIRMATION EMAIL
+// ============================================================
 
 async function sendOrderConfirmationEmail(userEmail, orderData) {
     const orderId = orderData.orderId || orderData.id || '------';
     const orderIdDisplay = orderId.slice(-8);
-    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Order Confirmation #${orderIdDisplay}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:#f0f2f8;padding:20px;margin:0}.container{max-width:600px;margin:0 auto;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.08)}.header{background:linear-gradient(135deg,#6c5ce7 0%,#a29bfe 100%);padding:30px 30px 20px;text-align:center}.logo{font-size:28px;font-weight:900;color:#fff}.logo span{color:#f2a900}.order-status{display:inline-block;padding:4px 16px;border-radius:30px;background:#fbbf24;color:#1a1a2e;font-weight:700;font-size:13px;margin-top:6px}.content{padding:35px 30px}.greeting{font-size:18px;font-weight:700;color:#1a1a2e}.greeting span{color:#6c5ce7}.order-summary{background:#f8f8ff;border-radius:12px;padding:16px 18px;margin:16px 0}.summary-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #eee}.summary-row:last-child{border-bottom:none}.summary-label{color:#888;font-weight:500;font-size:13px}.summary-value{font-weight:600;color:#1a1a2e;font-size:13px}.items-table{width:100%;border-collapse:collapse;margin:16px 0}.items-table th{text-align:left;padding:10px 0;border-bottom:2px solid #eee;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px}.items-table td{padding:10px 0;border-bottom:1px solid #f0f2f8}.items-table .item-name{font-weight:600;color:#1a1a2e}.items-table .item-meta{font-size:12px;color:#888}.items-table .item-price{text-align:right;font-weight:600}.total-box{background:linear-gradient(135deg,#f8f8ff,#f0f2f8);border-radius:12px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;margin-top:16px}.total-label{font-size:16px;font-weight:700;color:#1a1a2e}.total-amount{font-size:24px;font-weight:900;color:#6c5ce7}.btn-primary{display:inline-block;background:#6c5ce7;color:#fff;padding:12px 32px;border-radius:30px;text-decoration:none;font-weight:700;font-size:14px;transition:all .3s}.btn-primary:hover{background:#5a4bd1;transform:translateY(-2px);box-shadow:0 8px 25px rgba(108,92,231,0.3)}.text-center{text-align:center}.divider{border:none;border-top:2px solid #f0f2f8;margin:16px 0}.footer{padding:16px 30px;text-align:center;background:#f8f8ff}.footer-text{font-size:11px;color:#888}.footer-links a{color:#6c5ce7;text-decoration:none;margin:0 4px;font-size:11px}@media(max-width:480px){.header{padding:20px}.content{padding:20px 15px}.total-amount{font-size:20px}.items-table td,.items-table th{font-size:12px}}</style></head><body><div class="container"><div class="header"><div class="logo">ZI <span>Store</span></div><div><span class="order-status">${orderData.status || 'PENDING'}</span></div></div><div class="content"><div class="greeting">Hello <span>${orderData.userName || 'Customer'}</span> 👋</div><p style="color:#4a4a6a;font-size:14px;margin:6px 0 12px;">Thank you for your order! Here are the details:</p><div class="order-summary"><div class="summary-row"><span class="summary-label">📋 Order ID</span><span class="summary-value">#${orderIdDisplay}</span></div><div class="summary-row"><span class="summary-label">📅 Date</span><span class="summary-value">${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span></div><div class="summary-row"><span class="summary-label">💳 Payment Method</span><span class="summary-value">${orderData.method || 'N/A'}</span></div>${orderData.txHash ? `<div class="summary-row"><span class="summary-label">🔗 Transaction ID</span><span class="summary-value" style="font-family:monospace;font-size:11px;word-break:break-all;">${orderData.txHash}</span></div>` : ''}</div><h3 style="color:#1a1a2e;margin:12px 0 8px;font-size:16px;">🛍️ Items</h3><table class="items-table"><thead><tr><th>Product</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Price</th><th style="text-align:right;">Total</th></tr></thead><tbody>${(orderData.items || []).map(item => `<tr><td><div class="item-name">${item.name}</div>${item.selectedQuantity ? `<div class="item-meta">📦 ${item.selectedQuantity}</div>` : ''}${item.isVip ? `<div class="item-meta">👑 ${item.vipPlanLabel || 'VIP'}</div>` : ''}</td><td style="text-align:center;">${item.quantity || 1}</td><td style="text-align:right;">$${(item.price || 0).toFixed(2)}</td><td style="text-align:right;font-weight:600;">$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td></tr>`).join('')}</tbody></table><div class="total-box"><span class="total-label">Total Amount</span><span class="total-amount">$${(orderData.total || 0).toFixed(2)}</span></div><hr class="divider"><div class="text-center"><a href="https://zi-store.online" class="btn-primary">📦 View My Orders</a></div><p style="text-align:center;font-size:12px;color:#888;margin-top:10px;">You will receive another email once your order is confirmed.</p></div><div class="footer"><div class="footer-links"><a href="https://zi-store.online">Store</a><a href="mailto:support@zi-store.online">Support</a><a href="https://zi-store.online/refund.html">Refund Policy</a></div><div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div></div></div></body></html>`;
+
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation #${orderIdDisplay}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f0f2f8; padding: 20px; margin: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+        .header { background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%); padding: 30px 30px 20px; text-align: center; }
+        .logo { font-size: 28px; font-weight: 900; color: #fff; }
+        .logo span { color: #f2a900; }
+        .order-status { display: inline-block; padding: 4px 16px; border-radius: 30px; background: #fbbf24; color: #1a1a2e; font-weight: 700; font-size: 13px; margin-top: 6px; }
+        .content { padding: 35px 30px; }
+        .greeting { font-size: 18px; font-weight: 700; color: #1a1a2e; }
+        .greeting span { color: #6c5ce7; }
+        .order-summary { background: #f8f8ff; border-radius: 12px; padding: 16px 18px; margin: 16px 0; }
+        .summary-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; }
+        .summary-row:last-child { border-bottom: none; }
+        .summary-label { color: #888; font-weight: 500; font-size: 13px; }
+        .summary-value { font-weight: 600; color: #1a1a2e; font-size: 13px; }
+        .items-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+        .items-table th { text-align: left; padding: 10px 0; border-bottom: 2px solid #eee; color: #888; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .items-table td { padding: 10px 0; border-bottom: 1px solid #f0f2f8; }
+        .items-table .item-name { font-weight: 600; color: #1a1a2e; }
+        .items-table .item-meta { font-size: 12px; color: #888; }
+        .items-table .item-price { text-align: right; font-weight: 600; }
+        .total-box { background: linear-gradient(135deg, #f8f8ff, #f0f2f8); border-radius: 12px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+        .total-label { font-size: 16px; font-weight: 700; color: #1a1a2e; }
+        .total-amount { font-size: 24px; font-weight: 900; color: #6c5ce7; }
+        .btn-primary { display: inline-block; background: #6c5ce7; color: #fff; padding: 12px 32px; border-radius: 30px; text-decoration: none; font-weight: 700; font-size: 14px; transition: all 0.3s; }
+        .btn-primary:hover { background: #5a4bd1; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(108,92,231,0.3); }
+        .text-center { text-align: center; }
+        .divider { border: none; border-top: 2px solid #f0f2f8; margin: 16px 0; }
+        .footer { padding: 16px 30px; text-align: center; background: #f8f8ff; }
+        .footer-text { font-size: 11px; color: #888; }
+        .footer-links a { color: #6c5ce7; text-decoration: none; margin: 0 4px; font-size: 11px; }
+        @media (max-width: 480px) {
+            .header { padding: 20px; }
+            .content { padding: 20px 15px; }
+            .total-amount { font-size: 20px; }
+            .items-table td, .items-table th { font-size: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">ZI <span>Store</span></div>
+            <div><span class="order-status">${orderData.status || 'PENDING'}</span></div>
+        </div>
+        <div class="content">
+            <div class="greeting">Hello <span>${orderData.userName || 'Customer'}</span> 👋</div>
+            <p style="color: #4a4a6a; font-size: 14px; margin: 6px 0 12px;">Thank you for your order! Here are the details:</p>
+            
+            <div class="order-summary">
+                <div class="summary-row">
+                    <span class="summary-label">📋 Order ID</span>
+                    <span class="summary-value">#${orderIdDisplay}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">📅 Date</span>
+                    <span class="summary-value">${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">💳 Payment Method</span>
+                    <span class="summary-value">${orderData.method || 'N/A'}</span>
+                </div>
+                ${orderData.txHash ? `
+                <div class="summary-row">
+                    <span class="summary-label">🔗 Transaction ID</span>
+                    <span class="summary-value" style="font-family:monospace;font-size:11px;word-break:break-all;">${orderData.txHash}</span>
+                </div>
+                ` : ''}
+            </div>
+
+            <h3 style="color: #1a1a2e; margin: 12px 0 8px; font-size: 16px;">🛍️ Items</h3>
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th style="text-align: center;">Qty</th>
+                        <th style="text-align: right;">Price</th>
+                        <th style="text-align: right;">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${(orderData.items || []).map(item => `
+                        <tr>
+                            <td>
+                                <div class="item-name">${item.name}</div>
+                                ${item.selectedQuantity ? `<div class="item-meta">📦 ${item.selectedQuantity}</div>` : ''}
+                                ${item.isVip ? `<div class="item-meta">👑 ${item.vipPlanLabel || 'VIP'}</div>` : ''}
+                            </td>
+                            <td style="text-align: center;">${item.quantity || 1}</td>
+                            <td style="text-align: right;">$${(item.price || 0).toFixed(2)}</td>
+                            <td style="text-align: right; font-weight: 600;">$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+
+            <div class="total-box">
+                <span class="total-label">Total Amount</span>
+                <span class="total-amount">$${(orderData.total || 0).toFixed(2)}</span>
+            </div>
+
+            <hr class="divider">
+            <div class="text-center">
+                <a href="https://zi-store.online" class="btn-primary">📦 View My Orders</a>
+            </div>
+            <p style="text-align: center; font-size: 12px; color: #888; margin-top: 10px;">
+                You will receive another email once your order is confirmed.
+            </p>
+        </div>
+        <div class="footer">
+            <div class="footer-links">
+                <a href="https://zi-store.online">Store</a>
+                <a href="mailto:support@zi-store.online">Support</a>
+                <a href="https://zi-store.online/refund.html">Refund Policy</a>
+            </div>
+            <div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div>
+        </div>
+    </div>
+</body>
+</html>
+    `;
+
     return await sendEmail(userEmail, `📦 Order Confirmation #${orderIdDisplay}`, html);
 }
 
+// ============================================================
+// 4. ORDER STATUS UPDATE EMAIL
+// ============================================================
+
 async function sendOrderStatusEmail(userEmail, orderId, newStatus) {
     const statusConfig = {
-        'confirmed': { emoji: '✅', title: 'Order Confirmed!', message: 'Your order has been confirmed and your licences are now available!', color: '#00d4aa', textColor: '#0a0a1a', button: '📦 View My Licences' },
-        'rejected': { emoji: '❌', title: 'Order Rejected', message: 'Your order has been rejected. Please contact support for more information.', color: '#ff6b6b', textColor: '#ffffff', button: '📞 Contact Support' }
+        'confirmed': {
+            emoji: '✅',
+            title: 'Order Confirmed!',
+            message: 'Your order has been confirmed and your licences are now available!',
+            color: '#00d4aa',
+            textColor: '#0a0a1a',
+            button: '📦 View My Licences'
+        },
+        'rejected': {
+            emoji: '❌',
+            title: 'Order Rejected',
+            message: 'Your order has been rejected. Please contact support for more information.',
+            color: '#ff6b6b',
+            textColor: '#ffffff',
+            button: '📞 Contact Support'
+        }
     };
-    const config = statusConfig[newStatus] || { emoji: '📋', title: 'Order Status Updated', message: 'Your order status has been updated.', color: '#6c5ce7', textColor: '#ffffff', button: '📦 View Order' };
+
+    const config = statusConfig[newStatus] || {
+        emoji: '📋',
+        title: 'Order Status Updated',
+        message: 'Your order status has been updated.',
+        color: '#6c5ce7',
+        textColor: '#ffffff',
+        button: '📦 View Order'
+    };
+
     const orderIdDisplay = orderId?.slice(-8) || '------';
-    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Order Status Update #${orderIdDisplay}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:#f0f2f8;padding:20px;margin:0}.container{max-width:600px;margin:0 auto;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.08)}.header{background:linear-gradient(135deg,${config.color},${config.color}dd);padding:30px 30px 20px;text-align:center}.logo{font-size:28px;font-weight:900;color:#fff}.logo span{color:#f2a900}.status-icon{font-size:48px;text-align:center;margin:8px 0}.status-title{font-size:24px;font-weight:800;color:#fff}.status-badge{display:inline-block;padding:4px 20px;border-radius:30px;background:rgba(255,255,255,0.2);color:#fff;font-weight:700;font-size:14px;margin-top:4px}.content{padding:35px 30px}.greeting{font-size:16px;color:#1a1a2e}.greeting strong{color:#6c5ce7}.message-box{background:#f8f8ff;border-radius:12px;padding:16px 20px;margin:12px 0 16px;border-left:4px solid ${config.color}}.message-box p{font-size:15px;color:#4a4a6a;line-height:1.6}.order-info{background:#f8f8ff;border-radius:12px;padding:12px 16px;margin:12px 0}.info-row{display:flex;justify-content:space-between;padding:4px 0;font-size:13px}.info-label{color:#888;font-weight:500}.info-value{font-weight:600;color:#1a1a2e}.btn-primary{display:inline-block;background:${config.color};color:${config.textColor};padding:12px 32px;border-radius:30px;text-decoration:none;font-weight:700;font-size:14px;transition:all .3s}.btn-primary:hover{opacity:0.85;transform:translateY(-2px)}.text-center{text-align:center}.divider{border:none;border-top:2px solid #f0f2f8;margin:16px 0}.footer{padding:16px 30px;text-align:center;background:#f8f8ff}.footer-text{font-size:11px;color:#888}.footer-links a{color:#6c5ce7;text-decoration:none;margin:0 4px;font-size:11px}@media(max-width:480px){.header{padding:20px}.content{padding:20px 15px}.status-icon{font-size:36px}.status-title{font-size:20px}.btn-primary{padding:10px 24px;font-size:13px}}</style></head><body><div class="container"><div class="header"><div class="logo">ZI <span>Store</span></div><div class="status-icon">${config.emoji}</div><div class="status-title">${config.title}</div><div><span class="status-badge">${newStatus.toUpperCase()}</span></div></div><div class="content"><div class="greeting">Hello <strong>Customer</strong>,</div><div class="message-box"><p>${config.message}</p></div><div class="order-info"><div class="info-row"><span class="info-label">📋 Order ID</span><span class="info-value">#${orderIdDisplay}</span></div><div class="info-row"><span class="info-label">📅 Date</span><span class="info-value">${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span></div><div class="info-row"><span class="info-label">📦 Status</span><span class="info-value" style="color:${config.color};">${newStatus.toUpperCase()}</span></div></div><hr class="divider"><div class="text-center"><a href="https://zi-store.online" class="btn-primary">${config.button}</a></div></div><div class="footer"><div class="footer-links"><a href="https://zi-store.online">Store</a><a href="mailto:support@zi-store.online">Support</a></div><div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div></div></div></body></html>`;
+
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Status Update #${orderIdDisplay}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f0f2f8; padding: 20px; margin: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+        .header { background: linear-gradient(135deg, ${config.color}, ${config.color}dd); padding: 30px 30px 20px; text-align: center; }
+        .logo { font-size: 28px; font-weight: 900; color: #fff; }
+        .logo span { color: #f2a900; }
+        .status-icon { font-size: 48px; text-align: center; margin: 8px 0; }
+        .status-title { font-size: 24px; font-weight: 800; color: #fff; }
+        .status-badge { display: inline-block; padding: 4px 20px; border-radius: 30px; background: rgba(255,255,255,0.2); color: #fff; font-weight: 700; font-size: 14px; margin-top: 4px; }
+        .content { padding: 35px 30px; }
+        .greeting { font-size: 16px; color: #1a1a2e; }
+        .greeting strong { color: #6c5ce7; }
+        .message-box { background: #f8f8ff; border-radius: 12px; padding: 16px 20px; margin: 12px 0 16px; border-left: 4px solid ${config.color}; }
+        .message-box p { font-size: 15px; color: #4a4a6a; line-height: 1.6; }
+        .order-info { background: #f8f8ff; border-radius: 12px; padding: 12px 16px; margin: 12px 0; }
+        .info-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; }
+        .info-label { color: #888; font-weight: 500; }
+        .info-value { font-weight: 600; color: #1a1a2e; }
+        .btn-primary { display: inline-block; background: ${config.color}; color: ${config.textColor}; padding: 12px 32px; border-radius: 30px; text-decoration: none; font-weight: 700; font-size: 14px; transition: all 0.3s; }
+        .btn-primary:hover { opacity: 0.85; transform: translateY(-2px); }
+        .text-center { text-align: center; }
+        .divider { border: none; border-top: 2px solid #f0f2f8; margin: 16px 0; }
+        .footer { padding: 16px 30px; text-align: center; background: #f8f8ff; }
+        .footer-text { font-size: 11px; color: #888; }
+        .footer-links a { color: #6c5ce7; text-decoration: none; margin: 0 4px; font-size: 11px; }
+        @media (max-width: 480px) {
+            .header { padding: 20px; }
+            .content { padding: 20px 15px; }
+            .status-icon { font-size: 36px; }
+            .status-title { font-size: 20px; }
+            .btn-primary { padding: 10px 24px; font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">ZI <span>Store</span></div>
+            <div class="status-icon">${config.emoji}</div>
+            <div class="status-title">${config.title}</div>
+            <div><span class="status-badge">${newStatus.toUpperCase()}</span></div>
+        </div>
+        <div class="content">
+            <div class="greeting">Hello <strong>Customer</strong>,</div>
+            <div class="message-box">
+                <p>${config.message}</p>
+            </div>
+            <div class="order-info">
+                <div class="info-row">
+                    <span class="info-label">📋 Order ID</span>
+                    <span class="info-value">#${orderIdDisplay}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">📅 Date</span>
+                    <span class="info-value">${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">📦 Status</span>
+                    <span class="info-value" style="color:${config.color};">${newStatus.toUpperCase()}</span>
+                </div>
+            </div>
+            <hr class="divider">
+            <div class="text-center">
+                <a href="https://zi-store.online" class="btn-primary">${config.button}</a>
+            </div>
+        </div>
+        <div class="footer">
+            <div class="footer-links">
+                <a href="https://zi-store.online">Store</a>
+                <a href="mailto:support@zi-store.online">Support</a>
+            </div>
+            <div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div>
+        </div>
+    </div>
+</body>
+</html>
+    `;
+
     return await sendEmail(userEmail, `${config.emoji} Order Status Update #${orderIdDisplay}`, html);
 }
 
+// ============================================================
+// 5. TOPUP CONFIRMATION EMAIL
+// ============================================================
+
 async function sendTopupConfirmationEmail(userEmail, amount, txHash = null) {
-    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Topup Confirmation</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:#f0f2f8;padding:20px;margin:0}.container{max-width:600px;margin:0 auto;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.08)}.header{background:linear-gradient(135deg,#f2a900,#fbbf24);padding:30px 30px 20px;text-align:center}.logo{font-size:28px;font-weight:900;color:#1a1a2e}.logo span{color:#6c5ce7}.amount-display{background:rgba(255,255,255,0.2);border-radius:16px;padding:16px 20px;margin-top:10px;display:inline-block}.amount-display .amount{font-size:36px;font-weight:900;color:#1a1a2e}.amount-display .label{font-size:14px;color:rgba(26,26,46,0.7)}.content{padding:35px 30px}.greeting{font-size:16px;color:#1a1a2e}.greeting strong{color:#6c5ce7}.details-box{background:#f8f8ff;border-radius:12px;padding:14px 18px;margin:12px 0}.detail-row{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;border-bottom:1px solid #eee}.detail-row:last-child{border-bottom:none}.detail-label{color:#888;font-weight:500}.detail-value{font-weight:600;color:#1a1a2e}.btn-primary{display:inline-block;background:#6c5ce7;color:#fff;padding:12px 32px;border-radius:30px;text-decoration:none;font-weight:700;font-size:14px;transition:all .3s}.btn-primary:hover{background:#5a4bd1;transform:translateY(-2px);box-shadow:0 8px 25px rgba(108,92,231,0.3)}.text-center{text-align:center}.divider{border:none;border-top:2px solid #f0f2f8;margin:16px 0}.footer{padding:16px 30px;text-align:center;background:#f8f8ff}.footer-text{font-size:11px;color:#888}.footer-links a{color:#6c5ce7;text-decoration:none;margin:0 4px;font-size:11px}@media(max-width:480px){.header{padding:20px}.content{padding:20px 15px}.amount-display .amount{font-size:28px}.btn-primary{padding:10px 24px;font-size:13px}}</style></head><body><div class="container"><div class="header"><div class="logo">ZI <span>Store</span></div><div class="amount-display"><div class="label">💰 Amount Added</div><div class="amount">+$${amount.toFixed(2)}</div></div></div><div class="content"><div class="greeting">Hello <strong>Customer</strong>,</div><p style="color:#4a4a6a;font-size:14px;margin:4px 0 12px;">Your balance has been updated successfully!</p><div class="details-box"><div class="detail-row"><span class="detail-label">📅 Date</span><span class="detail-value">${new Date().toLocaleString()}</span></div>${txHash ? `<div class="detail-row"><span class="detail-label">🔗 Transaction ID</span><span class="detail-value" style="font-family:monospace;font-size:11px;word-break:break-all;">${txHash}</span></div>` : ''}</div><hr class="divider"><div class="text-center"><a href="https://zi-store.online" class="btn-primary">🛒 Start Shopping</a></div></div><div class="footer"><div class="footer-links"><a href="https://zi-store.online">Store</a><a href="mailto:support@zi-store.online">Support</a></div><div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div></div></div></body></html>`;
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Topup Confirmation</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f0f2f8; padding: 20px; margin: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+        .header { background: linear-gradient(135deg, #f2a900, #fbbf24); padding: 30px 30px 20px; text-align: center; }
+        .logo { font-size: 28px; font-weight: 900; color: #1a1a2e; }
+        .logo span { color: #6c5ce7; }
+        .amount-display { background: rgba(255,255,255,0.2); border-radius: 16px; padding: 16px 20px; margin-top: 10px; display: inline-block; }
+        .amount-display .amount { font-size: 36px; font-weight: 900; color: #1a1a2e; }
+        .amount-display .label { font-size: 14px; color: rgba(26,26,46,0.7); }
+        .content { padding: 35px 30px; }
+        .greeting { font-size: 16px; color: #1a1a2e; }
+        .greeting strong { color: #6c5ce7; }
+        .details-box { background: #f8f8ff; border-radius: 12px; padding: 14px 18px; margin: 12px 0; }
+        .detail-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; border-bottom: 1px solid #eee; }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label { color: #888; font-weight: 500; }
+        .detail-value { font-weight: 600; color: #1a1a2e; }
+        .btn-primary { display: inline-block; background: #6c5ce7; color: #fff; padding: 12px 32px; border-radius: 30px; text-decoration: none; font-weight: 700; font-size: 14px; transition: all 0.3s; }
+        .btn-primary:hover { background: #5a4bd1; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(108,92,231,0.3); }
+        .text-center { text-align: center; }
+        .divider { border: none; border-top: 2px solid #f0f2f8; margin: 16px 0; }
+        .footer { padding: 16px 30px; text-align: center; background: #f8f8ff; }
+        .footer-text { font-size: 11px; color: #888; }
+        .footer-links a { color: #6c5ce7; text-decoration: none; margin: 0 4px; font-size: 11px; }
+        @media (max-width: 480px) {
+            .header { padding: 20px; }
+            .content { padding: 20px 15px; }
+            .amount-display .amount { font-size: 28px; }
+            .btn-primary { padding: 10px 24px; font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">ZI <span>Store</span></div>
+            <div class="amount-display">
+                <div class="label">💰 Amount Added</div>
+                <div class="amount">+$${amount.toFixed(2)}</div>
+            </div>
+        </div>
+        <div class="content">
+            <div class="greeting">Hello <strong>Customer</strong>,</div>
+            <p style="color: #4a4a6a; font-size: 14px; margin: 4px 0 12px;">Your balance has been updated successfully!</p>
+            <div class="details-box">
+                <div class="detail-row">
+                    <span class="detail-label">📅 Date</span>
+                    <span class="detail-value">${new Date().toLocaleString()}</span>
+                </div>
+                ${txHash ? `
+                <div class="detail-row">
+                    <span class="detail-label">🔗 Transaction ID</span>
+                    <span class="detail-value" style="font-family:monospace;font-size:11px;word-break:break-all;">${txHash}</span>
+                </div>
+                ` : ''}
+            </div>
+            <hr class="divider">
+            <div class="text-center">
+                <a href="https://zi-store.online" class="btn-primary">🛒 Start Shopping</a>
+            </div>
+        </div>
+        <div class="footer">
+            <div class="footer-links">
+                <a href="https://zi-store.online">Store</a>
+                <a href="mailto:support@zi-store.online">Support</a>
+            </div>
+            <div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div>
+        </div>
+    </div>
+</body>
+</html>
+    `;
+
     return await sendEmail(userEmail, `💰 Balance Added - $${amount.toFixed(2)}`, html);
 }
 
+// ============================================================
+// 6. CUSTOM RESET EMAIL
+// ============================================================
+
+async function sendCustomResetEmail(userEmail, resetLink) {
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Reset</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f0f2f8; padding: 20px; margin: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+        .header { background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%); padding: 30px 30px 20px; text-align: center; }
+        .logo { font-size: 28px; font-weight: 900; color: #fff; }
+        .logo span { color: #f2a900; }
+        .content { padding: 35px 30px; }
+        .greeting { font-size: 18px; font-weight: 700; color: #1a1a2e; }
+        .btn-primary { display: inline-block; background: #6c5ce7; color: #fff; padding: 14px 40px; border-radius: 30px; text-decoration: none; font-weight: 700; font-size: 15px; transition: all 0.3s; }
+        .btn-primary:hover { background: #5a4bd1; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(108,92,231,0.3); }
+        .text-center { text-align: center; }
+        .warning-box { background: #fff3cd; border-radius: 12px; padding: 12px 16px; margin: 12px 0; border-left: 4px solid #fbbf24; }
+        .warning-box p { font-size: 13px; color: #856404; }
+        .divider { border: none; border-top: 2px solid #f0f2f8; margin: 16px 0; }
+        .footer { padding: 16px 30px; text-align: center; background: #f8f8ff; }
+        .footer-text { font-size: 11px; color: #888; }
+        .footer-links a { color: #6c5ce7; text-decoration: none; margin: 0 4px; font-size: 11px; }
+        @media (max-width: 480px) {
+            .header { padding: 20px; }
+            .content { padding: 20px 15px; }
+            .btn-primary { padding: 12px 28px; font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">ZI <span>Store</span></div>
+        </div>
+        <div class="content">
+            <div class="greeting">🔐 Reset Your Password</div>
+            <p style="color: #4a4a6a; font-size: 14px; margin: 8px 0 16px;">We received a request to reset your password. Click the button below to create a new one.</p>
+            <div class="text-center">
+                <a href="${resetLink}" class="btn-primary">🔑 Reset Password</a>
+            </div>
+            <div class="warning-box">
+                <p>⚠️ This link will expire in 1 hour. If you didn't request this, please ignore this email.</p>
+            </div>
+            <hr class="divider">
+            <p style="text-align: center; font-size: 12px; color: #888;">Or copy and paste this link into your browser:</p>
+            <p style="text-align: center; font-size: 11px; color: #888; word-break: break-all; font-family: monospace;">${resetLink}</p>
+        </div>
+        <div class="footer">
+            <div class="footer-links">
+                <a href="https://zi-store.online">Store</a>
+                <a href="mailto:support@zi-store.online">Support</a>
+            </div>
+            <div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div>
+        </div>
+    </div>
+</body>
+</html>
+    `;
+
+    return await sendEmail(userEmail, '🔐 Password Reset Request', html);
+}
+
+// ============================================================
+// 7. ADMIN NOTIFICATION EMAIL
+// ============================================================
+
 async function sendAdminNotificationEmail(subject, message) {
     const adminEmail = 'idriss.zribi13@gmail.com';
-    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Admin Notification</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:#f0f2f8;padding:20px;margin:0}.container{max-width:600px;margin:0 auto;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.08)}.header{background:linear-gradient(135deg,#ff6b6b,#ee5a24);padding:30px 30px 20px;text-align:center}.logo{font-size:28px;font-weight:900;color:#fff}.logo span{color:#f2a900}.content{padding:35px 30px}.message-box{background:#f8f8ff;border-radius:12px;padding:16px 20px;margin:12px 0;border-left:4px solid #ff6b6b}.message-box p{font-size:14px;color:#4a4a6a;line-height:1.8;white-space:pre-wrap}.footer{padding:16px 30px;text-align:center;background:#f8f8ff}.footer-text{font-size:11px;color:#888}@media(max-width:480px){.header{padding:20px}.content{padding:20px 15px}}</style></head><body><div class="container"><div class="header"><div class="logo">ZI <span>Store</span></div><div style="color:rgba(255,255,255,0.8);font-size:14px;">Admin Notification</div></div><div class="content"><h2 style="color:#1a1a2e;font-size:20px;">${subject}</h2><div class="message-box"><p>${message}</p></div><p style="text-align:center;font-size:12px;color:#888;margin-top:12px;">📅 ${new Date().toLocaleString()}</p></div><div class="footer"><div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div></div></div></body></html>`;
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Notification</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f0f2f8; padding: 20px; margin: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+        .header { background: linear-gradient(135deg, #ff6b6b, #ee5a24); padding: 30px 30px 20px; text-align: center; }
+        .logo { font-size: 28px; font-weight: 900; color: #fff; }
+        .logo span { color: #f2a900; }
+        .content { padding: 35px 30px; }
+        .message-box { background: #f8f8ff; border-radius: 12px; padding: 16px 20px; margin: 12px 0; border-left: 4px solid #ff6b6b; }
+        .message-box p { font-size: 14px; color: #4a4a6a; line-height: 1.8; white-space: pre-wrap; }
+        .footer { padding: 16px 30px; text-align: center; background: #f8f8ff; }
+        .footer-text { font-size: 11px; color: #888; }
+        @media (max-width: 480px) {
+            .header { padding: 20px; }
+            .content { padding: 20px 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">ZI <span>Store</span></div>
+            <div style="color: rgba(255,255,255,0.8); font-size: 14px;">Admin Notification</div>
+        </div>
+        <div class="content">
+            <h2 style="color: #1a1a2e; font-size: 20px;">${subject}</h2>
+            <div class="message-box">
+                <p>${message}</p>
+            </div>
+            <p style="text-align: center; font-size: 12px; color: #888; margin-top: 12px;">📅 ${new Date().toLocaleString()}</p>
+        </div>
+        <div class="footer">
+            <div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div>
+        </div>
+    </div>
+</body>
+</html>
+    `;
+
     return await sendEmail(adminEmail, `🔔 Admin: ${subject}`, html);
 }
 
 // ============================================================
-// EMAIL MANAGEMENT - Admin Functions
+// 8. EMAIL MANAGEMENT - Admin Functions
 // ============================================================
+
 let emailLogs = [];
 
 async function loadEmailLogs() {
     const container = document.getElementById('emailLogsContainer');
     if (!container) return;
+
     try {
-        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
+        container.innerHTML =
+            `<div style="text-align:center;padding:20px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
+
         const { data, error } = await supabase
             .from('email_logs')
             .select('*')
             .order('created_at', { ascending: false })
             .limit(50);
+
         if (error) throw error;
+
         emailLogs = data || [];
         renderEmailLogs(emailLogs);
     } catch (error) {
         console.error('Error loading email logs:', error);
-        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load email logs: ${error.message}<br><button onclick="loadEmailLogs()" style="margin-top:8px;padding:6px 16px;background:var(--primary);border:none;border-radius:var(--radius-sm);color:#fff;cursor:pointer;">Retry</button></div>`;
+        container.innerHTML = `
+            <div style="text-align:center;padding:20px;color:var(--danger);">
+                Failed to load email logs: ${error.message}
+                <br>
+                <button onclick="loadEmailLogs()" style="margin-top:8px;padding:6px 16px;background:var(--primary);border:none;border-radius:var(--radius-sm);color:#fff;cursor:pointer;">Retry</button>
+            </div>
+        `;
     }
 }
 
 function renderEmailLogs(logs) {
     const container = document.getElementById('emailLogsContainer');
     if (!container) return;
+
     if (!logs || logs.length === 0) {
-        container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;"><i class="fas fa-envelope" style="font-size:36px;display:block;margin-bottom:8px;opacity:0.2;"></i>No emails sent yet</div>`;
+        container.innerHTML = `
+            <div style="text-align:center;padding:30px;color:var(--text-secondary);opacity:0.5;">
+                <i class="fas fa-envelope" style="font-size:36px;display:block;margin-bottom:8px;opacity:0.2;"></i>
+                No emails sent yet
+            </div>
+        `;
         return;
     }
+
     container.innerHTML = logs.map(log => {
-        const statusColor = log.status === 'sent' ? 'var(--success)' : log.status === 'failed' ? 'var(--danger)' : 'var(--warning)';
+        const statusColor = log.status === 'sent' ? 'var(--success)' : log.status === 'failed' ? 'var(--danger)' :
+            'var(--warning)';
         const statusIcon = log.status === 'sent' ? '✅' : log.status === 'failed' ? '❌' : '⏳';
         const date = new Date(log.created_at).toLocaleString();
-        return `<div class="admin-item" style="border-left:4px solid ${statusColor};"><div class="item-info"><div class="item-title">${statusIcon} ${log.subject || 'No Subject'}<span style="font-size:11px;font-weight:400;opacity:0.5;margin-left:6px;">to: ${log.recipient}</span><span class="status-badge ${log.status}" style="font-size:9px;padding:1px 10px;">${log.status || 'unknown'}</span></div><div class="item-meta">📅 ${date}${log.error ? `• ❌ ${log.error}` : ''}</div></div><div class="item-actions">${log.html ? `<button onclick="previewEmail('${log.id}')" class="btn-edit" style="background:var(--primary);color:#fff;border:none;padding:4px 10px;border-radius:var(--radius-sm);cursor:pointer;font-weight:600;font-size:11px;"><i class="fas fa-eye"></i> Preview</button>` : ''}<button onclick="resendEmail('${log.id}')" class="btn-edit" style="background:var(--vip-color);color:#0a0a1a;border:none;padding:4px 10px;border-radius:var(--radius-sm);cursor:pointer;font-weight:600;font-size:11px;"><i class="fas fa-redo"></i> Resend</button></div></div>`;
+
+        return `
+            <div class="admin-item" style="border-left:4px solid ${statusColor};">
+                <div class="item-info">
+                    <div class="item-title">
+                        ${statusIcon} ${log.subject || 'No Subject'}
+                        <span style="font-size:11px;font-weight:400;opacity:0.5;margin-left:6px;">
+                            to: ${log.recipient}
+                        </span>
+                        <span class="status-badge ${log.status}" style="font-size:9px;padding:1px 10px;">
+                            ${log.status || 'unknown'}
+                        </span>
+                    </div>
+                    <div class="item-meta">
+                        📅 ${date}
+                        ${log.error ? `• ❌ ${log.error}` : ''}
+                    </div>
+                </div>
+                <div class="item-actions">
+                    ${log.html ? `<button onclick="previewEmail('${log.id}')" class="btn-edit" style="background:var(--primary);color:#fff;border:none;padding:4px 10px;border-radius:var(--radius-sm);cursor:pointer;font-weight:600;font-size:11px;">
+                        <i class="fas fa-eye"></i> Preview
+                    </button>` : ''}
+                    <button onclick="resendEmail('${log.id}')" class="btn-edit" style="background:var(--vip-color);color:#0a0a1a;border:none;padding:4px 10px;border-radius:var(--radius-sm);cursor:pointer;font-weight:600;font-size:11px;">
+                        <i class="fas fa-redo"></i> Resend
+                    </button>
+                </div>
+            </div>
+        `;
     }).join('');
 }
 
 window.loadEmailLogs = loadEmailLogs;
+
 window.sendTestEmail = async function() {
     try {
         const testEmail = prompt('Enter email address to send test email:', 'test@example.com');
         if (!testEmail) return;
+
         showToast('📧 Sending test email...', 'info');
+
         const result = await sendWelcomeEmail(testEmail, 'Test User');
-        if (result.success) { showToast('✅ Test email sent successfully!', 'success');
-            loadEmailLogs(); } else { showToast('❌ Failed to send test email: ' + result.error, 'error'); }
-    } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
+
+        if (result.success) {
+            showToast('✅ Test email sent successfully!', 'success');
+            loadEmailLogs();
+        } else {
+            showToast('❌ Failed to send test email: ' + result.error, 'error');
+        }
+    } catch (error) {
+        showToast('❌ Error: ' + error.message, 'error');
+    }
 };
+
 window.previewEmail = function(logId) {
     const log = emailLogs.find(l => l.id === logId);
-    if (!log || !log.html) { showToast('❌ Email content not found', 'error'); return; }
+    if (!log || !log.html) {
+        showToast('❌ Email content not found', 'error');
+        return;
+    }
+
     const win = window.open('', '_blank', 'width=800,height=600');
-    if (win) { win.document.write(log.html);
-        win.document.close(); } else { showToast('⚠️ Please allow popups', 'warning'); }
+    if (win) {
+        win.document.write(log.html);
+        win.document.close();
+    } else {
+        showToast('⚠️ Please allow popups', 'warning');
+    }
 };
+
 window.resendEmail = async function(logId) {
     const log = emailLogs.find(l => l.id === logId);
-    if (!log) { showToast('❌ Email log not found', 'error'); return; }
+    if (!log) {
+        showToast('❌ Email log not found', 'error');
+        return;
+    }
+
     if (!confirm(`Resend email to ${log.recipient}?`)) return;
+
     try {
         showToast('📧 Resending...', 'info');
         const result = await sendEmail(log.recipient, log.subject, log.html, log.text);
-        if (result.success) { showToast('✅ Email resent successfully!', 'success');
-            loadEmailLogs(); } else { showToast('❌ Failed to resend: ' + result.error, 'error'); }
-    } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
+
+        if (result.success) {
+            showToast('✅ Email resent successfully!', 'success');
+            loadEmailLogs();
+        } else {
+            showToast('❌ Failed to resend: ' + result.error, 'error');
+        }
+    } catch (error) {
+        showToast('❌ Error: ' + error.message, 'error');
+    }
 };
 
 // ============================================================
-// ADMIN SETTINGS UI - FIXED
+// 9. EXPORT ALL EMAIL FUNCTIONS
+// ============================================================
+
+window.sendEmail = sendEmail;
+window.sendWelcomeEmail = sendWelcomeEmail;
+window.sendOrderConfirmationEmail = sendOrderConfirmationEmail;
+window.sendOrderStatusEmail = sendOrderStatusEmail;
+window.sendTopupConfirmationEmail = sendTopupConfirmationEmail;
+window.sendCustomResetEmail = sendCustomResetEmail;
+window.sendAdminNotificationEmail = sendAdminNotificationEmail;
+
+console.log('✅ Email system ready!');
+
+// ============================================================
+// FIX: Missing functions for cart and banner
+// ============================================================
+window.removeFromCartAndCloseBanner = function(productId) {
+    if (productId) {
+        cart = cart.filter(item => item.id !== productId);
+        saveUserData();
+        updateCartUI();
+        renderProducts(products);
+        updateBottomCartBar();
+        showToast('🗑️ Removed from cart', 'info');
+    }
+    const banner = document.getElementById('quickPurchaseBanner');
+    if (banner) banner.style.display = 'none';
+};
+
+window.closeQuickPurchaseBanner = function() {
+    const banner = document.getElementById('quickPurchaseBanner');
+    if (banner) banner.style.display = 'none';
+};
+
+// ============================================================
+// CHECKOUT FUNCTION (opens payment modal)
+// ============================================================
+window.checkout = function() {
+    if (cart.length === 0) {
+        showToast('⚠️ Your cart is empty', 'warning');
+        return;
+    }
+
+    if (!currentUser) {
+        showToast('⚠️ Please login to checkout', 'warning');
+        openAuthModal();
+        return;
+    }
+
+    openPaymentModal();
+};
+
+// ============================================================
+// PAYMENT MODAL FUNCTIONS
+// ============================================================
+window.openPaymentModal = function() {
+    if (cart.length === 0) {
+        showToast('⚠️ Cart is empty', 'warning');
+        return;
+    }
+
+    if (!currentUser) {
+        showToast('⚠️ Please login to checkout', 'warning');
+        openAuthModal();
+        return;
+    }
+
+    const modal = document.getElementById('paymentModal');
+    if (modal) {
+        goToStep1();
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+        updatePayableTotal();
+        renderPaymentProducts();
+        fetchCryptoPrices();
+        loadUserBalance();
+    } else {
+        showToast('❌ Payment modal not found', 'error');
+    }
+};
+
+window.closePaymentModal = function() {
+    const modal = document.getElementById('paymentModal');
+    if (modal) {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+        selectedPayment = null;
+        document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
+        document.getElementById('paymentStep1').style.display = 'block';
+        document.getElementById('paymentStep2').style.display = 'none';
+    }
+};
+
+window.goToStep1 = function() {
+    document.getElementById('paymentStep1').style.display = 'block';
+    document.getElementById('paymentStep2').style.display = 'none';
+    selectedPayment = null;
+    document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
+};
+
+// ============================================================
+// COPY WALLET ADDRESS
+// ============================================================
+window.copyWalletAddress = function() {
+    const addressElement = document.getElementById('walletAddressDisplay');
+    if (!addressElement) {
+        showToast('⚠️ Wallet address not found', 'warning');
+        return;
+    }
+    const address = addressElement.textContent.trim();
+    if (!address || address === '') {
+        showToast('⚠️ No wallet address to copy', 'warning');
+        return;
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(address)
+            .then(() => showToast('✅ Wallet address copied!', 'success'))
+            .catch(() => fallbackCopyText(address));
+    } else {
+        fallbackCopyText(address);
+    }
+};
+
+// ============================================================
+// ADD PRODUCT MODAL FUNCTIONS
+// ============================================================
+window.openAddProductModal = function() {
+    if (!currentUser || !isAdminCached) {
+        showToast('⛔ Unauthorized. Admin only.', 'error');
+        return;
+    }
+
+    const modal = document.getElementById('productModal');
+    if (!modal) {
+        console.error('❌ Product modal not found');
+        showToast('❌ Product modal not found in HTML', 'error');
+        return;
+    }
+
+    const titleEl = document.getElementById('productFormTitle');
+    const form = document.getElementById('productForm');
+    const idField = document.getElementById('productIdField');
+    const currency = document.getElementById('productCurrency');
+    const type = document.getElementById('productType');
+    const quantityContainer = document.getElementById('quantityOptionsContainer');
+    const list = document.getElementById('quantityOptionsList');
+    const badgesInput = document.getElementById('productBadges');
+
+    if (titleEl) titleEl.textContent = '➕ Add New Product';
+    if (form) form.reset();
+    if (idField) idField.value = '';
+    if (currency) currency.value = 'USD';
+    if (type) type.value = 'standard';
+    if (quantityContainer) quantityContainer.style.display = 'none';
+
+    document.querySelectorAll('.currency-option').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.type-option').forEach(el => el.classList.remove('active'));
+    document.querySelector('.currency-option[data-currency="USD"]')?.classList.add('active');
+    document.querySelector('.type-option[data-type="standard"]')?.classList.add('active');
+
+    document.querySelectorAll('.badge-option').forEach(el => el.classList.remove('selected'));
+    if (badgesInput) badgesInput.value = '';
+
+    if (list) list.innerHTML = '';
+    addQuantityOption();
+
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+};
+
+window.openEditProductModal = function(productId) {
+    if (!currentUser || !isAdminCached) {
+        showToast('⛔ Unauthorized. Admin only.', 'error');
+        return;
+    }
+
+    const product = products.find(p => p.id === productId);
+    if (!product) {
+        showToast('❌ Product not found', 'error');
+        return;
+    }
+
+    const modal = document.getElementById('productModal');
+    if (!modal) {
+        console.error('❌ Product modal not found');
+        showToast('❌ Product modal not found in HTML', 'error');
+        return;
+    }
+
+    const titleEl = document.getElementById('productFormTitle');
+    const idField = document.getElementById('productIdField');
+    const nameEl = document.getElementById('productName');
+    const priceEl = document.getElementById('productPrice');
+    const badgeEl = document.getElementById('productBadge');
+    const statusEl = document.getElementById('productStatus');
+    const imageEl = document.getElementById('productImage');
+    const descEl = document.getElementById('productDescription');
+    const featuresEl = document.getElementById('productFeatures');
+    const videoEl = document.getElementById('productVideo');
+    const downloadEl = document.getElementById('productDownloadLink');
+    const currencyEl = document.getElementById('productCurrency');
+    const typeEl = document.getElementById('productType');
+    const quantityContainer = document.getElementById('quantityOptionsContainer');
+    const badgesInput = document.getElementById('productBadges');
+
+    if (titleEl) titleEl.textContent = '✏️ Edit Product';
+    if (idField) idField.value = product.id;
+    if (nameEl) nameEl.value = product.name || '';
+    if (priceEl) priceEl.value = product.price || 0;
+    if (badgeEl) badgeEl.value = product.badge || 'FREE';
+    if (statusEl) statusEl.value = product.status || 'available';
+    if (imageEl) imageEl.value = product.image || '';
+    if (descEl) descEl.value = product.description || '';
+    if (featuresEl) featuresEl.value = (product.features || []).join(', ');
+    if (videoEl) videoEl.value = product.video || '';
+    if (downloadEl) downloadEl.value = product.downloadLink || '';
+    if (currencyEl) currencyEl.value = product.currency || 'USD';
+    if (typeEl) typeEl.value = product.productType || 'standard';
+
+    document.querySelectorAll('.currency-option').forEach(el => {
+        el.classList.toggle('active', el.dataset.currency === (product.currency || 'USD'));
+    });
+
+    document.querySelectorAll('.type-option').forEach(el => {
+        el.classList.toggle('active', el.dataset.type === (product.productType || 'standard'));
+    });
+
+    if (product.productType === 'quantity' && quantityContainer) {
+        quantityContainer.style.display = 'block';
+        if (product.quantityOptions) {
+            setQuantityOptions(product.quantityOptions);
+        }
+    } else if (quantityContainer) {
+        quantityContainer.style.display = 'none';
+    }
+
+    if (product.badges) {
+        setBadges(product.badges);
+    } else {
+        document.querySelectorAll('.badge-option').forEach(el => el.classList.remove('selected'));
+        if (badgesInput) badgesInput.value = '';
+    }
+
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+};
+
+window.closeProductModal = function() {
+    const modal = document.getElementById('productModal');
+    if (modal) {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+};
+
+window.saveProduct = async function() {
+    if (!currentUser || !isAdminCached) {
+        showToast('⛔ Unauthorized. Admin only.', 'error');
+        return;
+    }
+
+    const id = document.getElementById('productIdField')?.value;
+    const name = document.getElementById('productName')?.value.trim();
+    const price = parseFloat(document.getElementById('productPrice')?.value) || 0;
+    const badge = document.getElementById('productBadge')?.value || 'FREE';
+    const status = document.getElementById('productStatus')?.value || 'available';
+    const image = document.getElementById('productImage')?.value.trim() || '';
+    const description = document.getElementById('productDescription')?.value.trim() || '';
+    const featuresText = document.getElementById('productFeatures')?.value.trim() || '';
+    const video = document.getElementById('productVideo')?.value.trim() || '';
+    const downloadLink = document.getElementById('productDownloadLink')?.value.trim() || '';
+    const currency = document.getElementById('productCurrency')?.value || 'USD';
+    const productType = document.getElementById('productType')?.value || 'standard';
+
+    if (!name) {
+        showToast('⚠️ Product name is required', 'warning');
+        return;
+    }
+
+    const features = featuresText ? featuresText.split(',').map(f => f.trim()).filter(f => f) : [];
+    const badgesText = document.getElementById('productBadges')?.value || '';
+    const badges = badgesText ? badgesText.split(',').map(b => b.trim()).filter(b => b) : [];
+
+    const productData = {
+        name,
+        price,
+        badge,
+        status,
+        image,
+        description,
+        features,
+        video,
+        downloadLink,
+        currency,
+        productType,
+        badges,
+        updatedAt: serverTimestamp()
+    };
+
+    if (productType === 'quantity') {
+        const quantityOptions = getQuantityOptions();
+        if (quantityOptions.length === 0) {
+            showToast('⚠️ Please add at least one quantity option', 'warning');
+            return;
+        }
+        productData.quantityOptions = quantityOptions;
+    }
+
+    try {
+        if (id) {
+            await updateDoc(doc(db, 'products', id), productData);
+            showToast('✅ Product updated successfully!', 'success');
+        } else {
+            productData.createdAt = serverTimestamp();
+            await addDoc(collection(db, 'products'), productData);
+            showToast('✅ Product added successfully!', 'success');
+        }
+
+        closeProductModal();
+    } catch (error) {
+        console.error('Error saving product:', error);
+        showToast('❌ Error: ' + error.message, 'error');
+    }
+};
+
+window.deleteProduct = async function(productId) {
+    if (!currentUser || !isAdminCached) {
+        showToast('⛔ Unauthorized. Admin only.', 'error');
+        return;
+    }
+
+    if (!confirm('Are you sure you want to delete this product?')) return;
+
+    try {
+        await deleteDoc(doc(db, 'products', productId));
+        showToast('🗑️ Product deleted successfully', 'success');
+    } catch (error) {
+        console.error('Error deleting product:', error);
+        showToast('❌ Error: ' + error.message, 'error');
+    }
+};
+
+// ============================================================
+// FILTER ORDERS FUNCTION
+// ============================================================
+window.filterOrders = function(filter) {
+    ordersFilter = filter;
+    renderHistoryFull();
+};
+
+// ============================================================
+// ADMIN SETTINGS UI
 // ============================================================
 async function loadAdminSettingsUI() {
     if (!currentUser || !isAdminCached) return;
+
     const container = document.getElementById('adminSettingsContainer');
     if (!container) {
         const tabContent = document.getElementById('tabSettings');
@@ -8510,11 +10185,14 @@ async function loadAdminSettingsUI() {
             return;
         }
     }
+
     try {
         const settings = await getAdminSettings();
+
         container.innerHTML = `
             <div style="background:var(--glass-bg); padding:20px; border-radius:var(--radius-md); border:1px solid var(--glass-border);">
                 <h3 style="margin-bottom:16px; color:var(--vip-color);">🔔 Notification Settings</h3>
+                
                 <div class="admin-form-group">
                     <label>Admin Email</label>
                     <input id="adminEmailInput" type="email" value="${settings.adminEmail || ''}" 
@@ -8524,6 +10202,7 @@ async function loadAdminSettingsUI() {
                         All notifications will be sent to this email
                     </div>
                 </div>
+                
                 <div class="admin-form-group" style="margin-top:12px;">
                     <label>Admin Telegram Chat ID</label>
                     <input id="adminTelegramInput" type="text" value="${settings.adminTelegramChatId || ''}" 
@@ -8536,6 +10215,7 @@ async function loadAdminSettingsUI() {
                         </button>
                     </div>
                 </div>
+                
                 <div style="display:flex; gap:16px; margin-top:12px; flex-wrap:wrap;">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" id="enableEmailNotif" ${settings.enableEmailNotifications !== false ? 'checked' : ''} />
@@ -8546,16 +10226,19 @@ async function loadAdminSettingsUI() {
                         <span>📱 Telegram Notifications</span>
                     </label>
                 </div>
+                
                 <button onclick="saveAdminSettings()" style="margin-top:16px; padding:8px 24px; border:none; border-radius:var(--radius-sm); 
                         background:var(--primary); color:#fff; font-weight:700; cursor:pointer;">
                     <i class="fas fa-save"></i> Save Settings
                 </button>
+                
                 <div id="adminSettingsStatus" style="margin-top:8px; font-size:13px;"></div>
             </div>
         `;
     } catch (error) {
         console.error('Error loading admin settings:', error);
-        container.innerHTML = `<div style="color:var(--danger);">Failed to load settings: ${error.message}</div>`;
+        container.innerHTML =
+            `<div style="color:var(--danger);">Failed to load settings: ${error.message}</div>`;
     }
 }
 
@@ -8564,17 +10247,21 @@ window.saveAdminSettings = async function() {
         showToast('⛔ Unauthorized', 'error');
         return;
     }
+
     const email = document.getElementById('adminEmailInput')?.value.trim();
     const telegramId = document.getElementById('adminTelegramInput')?.value.trim();
     const enableEmail = document.getElementById('enableEmailNotif')?.checked || false;
     const enableTelegram = document.getElementById('enableTelegramNotif')?.checked || false;
+
     if (!email) {
         showToast('⚠️ Admin email is required', 'warning');
         return;
     }
+
     const statusEl = document.getElementById('adminSettingsStatus');
     statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
     statusEl.style.color = 'var(--text-secondary)';
+
     try {
         const settings = {
             adminEmail: email,
@@ -8582,6 +10269,7 @@ window.saveAdminSettings = async function() {
             enableEmailNotifications: enableEmail,
             enableTelegramNotifications: enableTelegram
         };
+
         await updateAdminSettings(settings);
         statusEl.innerHTML = '✅ Settings saved successfully!';
         statusEl.style.color = 'var(--success)';
@@ -8598,11 +10286,13 @@ window.getMyTelegramChatId = function() {
         showToast('⚠️ Please login first', 'warning');
         return;
     }
+
     if (!userProfile.telegramChatId) {
         showToast('⚠️ Please link your Telegram account first', 'warning');
         bindTelegram();
         return;
     }
+
     const input = document.getElementById('adminTelegramInput');
     if (input) {
         input.value = userProfile.telegramChatId;
@@ -8655,7 +10345,9 @@ function loadBranding() {
             const parsed = JSON.parse(saved);
             Object.assign(BRANDING, parsed);
         }
-    } catch (e) { console.warn('Failed to load branding:', e); }
+    } catch (e) {
+        console.warn('Failed to load branding:', e);
+    }
     applyBranding();
 }
 
@@ -8664,7 +10356,9 @@ function saveBranding(branding) {
         localStorage.setItem('zi_branding', JSON.stringify(branding));
         Object.assign(BRANDING, branding);
         applyBranding();
-    } catch (e) { console.warn('Failed to save branding:', e); }
+    } catch (e) {
+        console.warn('Failed to save branding:', e);
+    }
 }
 
 function applyBranding() {
@@ -8674,11 +10368,14 @@ function applyBranding() {
     root.style.setProperty('--success', BRANDING.colors.accent);
     root.style.setProperty('--danger', BRANDING.colors.danger);
     root.style.setProperty('--warning', BRANDING.colors.warning);
+    
     const logoEl = document.querySelector('.logo');
     if (logoEl) {
         logoEl.innerHTML = `<i class="fas ${BRANDING.logo.icon}"></i> ${BRANDING.logo.text}`;
     }
+    
     document.title = `${BRANDING.site.name} - ${BRANDING.logo.tagline}`;
+    
     const footer = document.querySelector('.site-footer .footer-copyright');
     if (footer) {
         footer.innerHTML = `&copy; ${BRANDING.site.year} <strong>${BRANDING.site.name}</strong> — All rights reserved.`;
@@ -8735,6 +10432,7 @@ window.saveBrandingSettings = function() {
             version: BRANDING.site.version
         }
     };
+    
     saveBranding(newBranding);
     showToast('✅ Branding saved successfully!', 'success');
     loadBrandingSettings();
@@ -8752,435 +10450,120 @@ window.resetBranding = function() {
 // GENERATE PDF INVOICE
 // ============================================================
 window.generatePDFInvoice = function(orderData) {
-    if (!orderData) { showToast('❌ No order data for invoice', 'error'); return; }
+    if (!orderData) { 
+        showToast('❌ No order data for invoice', 'error'); 
+        return; 
+    }
+    
     try {
         let order = typeof orderData === 'string' ? JSON.parse(orderData) : orderData;
-        if (!order.id) { order.id = 'INV-' + Date.now().toString().slice(-6); }
-        const invoiceHtml = `<!DOCTYPE html><html><head><title>Invoice #${order.id}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Arial',sans-serif;padding:40px;background:#fff;color:#1a1a2e}.invoice{max-width:800px;margin:0 auto;border:1px solid #e0e0e0;border-radius:12px;padding:40px}.header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #6c5ce7;padding-bottom:20px;margin-bottom:20px}.logo{font-size:28px;font-weight:900;color:#6c5ce7}.logo span{color:#f2a900}.invoice-title{font-size:24px;color:#6c5ce7;font-weight:700}.details{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;padding:15px;background:#f8f8ff;border-radius:8px}.details .label{color:#888;font-size:12px;font-weight:600;text-transform:uppercase}.details .value{font-weight:700;font-size:14px}table{width:100%;border-collapse:collapse;margin:20px 0}th{background:#6c5ce7;color:#fff;padding:12px;text-align:left;font-size:12px;text-transform:uppercase}td{padding:12px;border-bottom:1px solid #e0e0e0}.total-section{margin-top:20px;padding-top:20px;border-top:2px solid #e0e0e0;text-align:right}.total-section .total{font-size:24px;font-weight:900;color:#6c5ce7}.footer{margin-top:30px;padding-top:20px;border-top:1px solid #e0e0e0;text-align:center;font-size:12px;color:#888}@media print{body{padding:0}.invoice{border:none;padding:20px}}.status-badge{display:inline-block;padding:4px 12px;border-radius:30px;font-size:12px;font-weight:700;background:${order.status === 'confirmed' ? '#00d4aa' : order.status === 'rejected' ? '#ff6b6b' : '#fbbf24'};color:#0a0a1a}</style></head><body><div class="invoice"><div class="header"><div class="logo">ZI <span>Store</span></div><div class="invoice-title">INVOICE</div></div><div class="details"><div><div class="label">Order ID</div><div class="value">#${order.id}</div><div class="label" style="margin-top:6px;">Date</div><div class="value">${new Date(order.date || Date.now()).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div></div><div style="text-align:right;"><div class="label">Status</div><div class="value"><span class="status-badge">${order.status || 'Pending'}</span></div><div class="label" style="margin-top:6px;">Payment Method</div><div class="value">${order.method || 'N/A'}</div></div></div><table><thead><tr><th>Product</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead><tbody>${(order.items || []).map(item => `<tr><td>${item.name}${item.selectedQuantity ? ' (x'+item.selectedQuantity+')' : ''}</td><td>${item.quantity || 1}</td><td>$${(item.price || 0).toFixed(2)}</td><td>$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td></tr>`).join('')}</tbody></table><div class="total-section"><div style="font-size:16px;color:#888;margin-bottom:4px;">Total Amount</div><div class="total">$${(order.total || 0).toFixed(2)}</div></div><div class="footer"><p>Thank you for your purchase at ZI Store!</p><p style="margin-top:4px;">© 2026 ZI Store — All rights reserved.</p></div></div></body></html>`;
+        
+        if (!order.id) { 
+            order.id = 'INV-' + Date.now().toString().slice(-6); 
+        }
+        
+        const invoiceHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Invoice #${order.id}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Arial', sans-serif; padding: 40px; background: #fff; color: #1a1a2e; }
+        .invoice { max-width: 800px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 12px; padding: 40px; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #6c5ce7; padding-bottom: 20px; margin-bottom: 20px; }
+        .logo { font-size: 28px; font-weight: 900; color: #6c5ce7; }
+        .logo span { color: #f2a900; }
+        .invoice-title { font-size: 24px; color: #6c5ce7; font-weight: 700; }
+        .details { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; padding: 15px; background: #f8f8ff; border-radius: 8px; }
+        .details .label { color: #888; font-size: 12px; font-weight: 600; text-transform: uppercase; }
+        .details .value { font-weight: 700; font-size: 14px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th { background: #6c5ce7; color: #fff; padding: 12px; text-align: left; font-size: 12px; text-transform: uppercase; }
+        td { padding: 12px; border-bottom: 1px solid #e0e0e0; }
+        .total-section { margin-top: 20px; padding-top: 20px; border-top: 2px solid #e0e0e0; text-align: right; }
+        .total-section .total { font-size: 24px; font-weight: 900; color: #6c5ce7; }
+        .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center; font-size: 12px; color: #888; }
+        @media print {
+            body { padding: 0; }
+            .invoice { border: none; padding: 20px; }
+        }
+        .status-badge { display: inline-block; padding: 4px 12px; border-radius: 30px; font-size: 12px; font-weight: 700; background: ${order.status === 'confirmed' ? '#00d4aa' : order.status === 'rejected' ? '#ff6b6b' : '#fbbf24'}; color: #0a0a1a; }
+    </style>
+</head>
+<body>
+    <div class="invoice">
+        <div class="header">
+            <div class="logo">ZI <span>Store</span></div>
+            <div class="invoice-title">INVOICE</div>
+        </div>
+        <div class="details">
+            <div>
+                <div class="label">Order ID</div>
+                <div class="value">#${order.id}</div>
+                <div class="label" style="margin-top:6px;">Date</div>
+                <div class="value">${new Date(order.date || Date.now()).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+            </div>
+            <div style="text-align:right;">
+                <div class="label">Status</div>
+                <div class="value"><span class="status-badge">${order.status || 'Pending'}</span></div>
+                <div class="label" style="margin-top:6px;">Payment Method</div>
+                <div class="value">${order.method || 'N/A'}</div>
+            </div>
+        </div>
+        <table>
+            <thead><tr><th>Product</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead>
+            <tbody>
+                ${(order.items || []).map(item => `
+                    <tr>
+                        <td>${item.name}${item.selectedQuantity ? ' (x'+item.selectedQuantity+')' : ''}</td>
+                        <td>${item.quantity || 1}</td>
+                        <td>$${(item.price || 0).toFixed(2)}</td>
+                        <td>$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+        <div class="total-section">
+            <div style="font-size:16px; color:#888; margin-bottom:4px;">Total Amount</div>
+            <div class="total">$${(order.total || 0).toFixed(2)}</div>
+        </div>
+        <div class="footer">
+            <p>Thank you for your purchase at ZI Store!</p>
+            <p style="margin-top:4px;">© 2026 ZI Store — All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
+        `;
+        
         const win = window.open('', '_blank', 'width=800,height=600');
-        if (!win) { showToast('⚠️ Please allow popups to generate invoice', 'warning'); return; }
+        if (!win) { 
+            showToast('⚠️ Please allow popups to generate invoice', 'warning'); 
+            return; 
+        }
+        
         win.document.write(invoiceHtml);
         win.document.close();
-        setTimeout(() => { win.print(); }, 500);
+        
+        setTimeout(() => {
+            win.print();
+        }, 500);
+        
         showToast('📄 Invoice generated!', 'success');
-    } catch (error) { console.error('Invoice generation error:', error);
-        showToast('❌ Failed to generate invoice: ' + error.message, 'error'); }
+        
+    } catch (error) {
+        console.error('Invoice generation error:', error);
+        showToast('❌ Failed to generate invoice: ' + error.message, 'error');
+    }
 };
 
 // ============================================================
-// GET VISITOR INFO
+// EXPORT ALL FUNCTIONS TO WINDOW
 // ============================================================
-async function getVisitorInfo() {
-    try {
-        const response = await fetch('https://api.ipify.org?format=json');
-        const data = await response.json();
-        const ip = data.ip || 'Unknown';
-        try {
-            const geoResponse = await fetch(`https://ipapi.co/${ip}/json/`);
-            const geoData = await geoResponse.json();
-            return {
-                ip: ip,
-                country: geoData.country_name || 'Unknown',
-                country_code: geoData.country_code || 'XX',
-                city: geoData.city || 'Unknown',
-                region: geoData.region || 'Unknown',
-                timezone: geoData.timezone || 'UTC',
-                isp: geoData.org || 'Unknown'
-            };
-        } catch (geoError) {
-            console.warn('Geo lookup failed:', geoError);
-            return { ip: ip, country: 'Unknown', country_code: 'XX', city: 'Unknown', region: 'Unknown', timezone: 'UTC', isp: 'Unknown' };
-        }
-    } catch (error) {
-        console.error('Error getting visitor info:', error);
-        return { ip: 'Unknown', country: 'Unknown', country_code: 'XX', city: 'Unknown', region: 'Unknown', timezone: 'UTC', isp: 'Unknown' };
-    }
-}
 
-// ============================================================
-// GET DEVICE INFO
-// ============================================================
-function getDeviceInfo() {
-    const ua = navigator.userAgent;
-    let device = 'Desktop';
-    let os = 'Unknown';
-    let browser = 'Unknown';
-    if (/Mobi|Android|iPhone|iPad|iPod/i.test(ua)) { device = 'Mobile'; }
-    if (/Windows/i.test(ua)) { os = 'Windows'; } else if (/Mac/i.test(ua)) { os = 'macOS'; } else if (/Linux/i.test(ua)) { os = 'Linux'; } else if (/Android/i.test(ua)) { os = 'Android'; } else if (/iOS|iPhone|iPad/i.test(ua)) { os = 'iOS'; }
-    if (/Chrome/i.test(ua) && !/Edg/i.test(ua)) { browser = 'Chrome'; } else if (/Firefox/i.test(ua)) { browser = 'Firefox'; } else if (/Safari/i.test(ua) && !/Chrome/i.test(ua)) { browser = 'Safari'; } else if (/Edg/i.test(ua)) { browser = 'Edge'; } else if (/Opera|OPR/i.test(ua)) { browser = 'Opera'; }
-    return { device, os, browser, userAgent: ua };
-}
-
-// ============================================================
-// LOG ACTIVITY
-// ============================================================
-async function logActivity(type, data) {
-    try {
-        if (!currentUser) return;
-        const activityRef = collection(db, 'user_activity');
-        await addDoc(activityRef, {
-            type: type,
-            data: data,
-            userId: currentUser.uid,
-            userEmail: currentUser.email || 'Unknown',
-            userName: currentUser.displayName || 'Unknown',
-            timestamp: new Date().toISOString(),
-            createdAt: serverTimestamp()
-        });
-        console.log(`📊 Activity logged: ${type}`);
-    } catch (error) {
-        console.error('Error logging activity:', error);
-    }
-}
-
-// ============================================================
-// SEND USER NOTIFICATION
-// ============================================================
-async function sendUserNotification(userId, title, message) {
-    try {
-        await addDoc(collection(db, 'notifications'), {
-            title: title,
-            message: message,
-            userId: userId,
-            readBy: [],
-            createdAt: serverTimestamp()
-        });
-        console.log(`📬 Notification sent to user ${userId}`);
-        return true;
-    } catch (error) {
-        console.error('Error sending notification:', error);
-        return false;
-    }
-}
-
-// ============================================================
-// GENERATE LICENCE FOR USER
-// ============================================================
-async function generateLicenceForUser(userId, userEmail, item, orderId) {
-    try {
-        if (!userId || !item || !item.name) {
-            console.warn('⚠️ Cannot generate licence: missing data');
-            return;
-        }
-        const response = await fetch(`${SUPABASE_URL}/functions/v1/create-licence`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-            },
-            body: JSON.stringify({
-                userId: userId,
-                userEmail: userEmail,
-                productName: item.name,
-                scriptId: item.id,
-                orderId: orderId,
-                manual: false
-            })
-        });
-        const result = await response.json();
-        if (result.success && result.licence) {
-            console.log(`✅ Licence generated for ${item.name}: ${result.licence.code}`);
-            const userRef = doc(db, 'users', userId);
-            const userSnap = await getDoc(userRef);
-            if (userSnap.exists()) {
-                const userData = userSnap.data();
-                const userLicences = userData.licences || [];
-                userLicences.push({
-                    code: result.licence.code,
-                    scriptId: item.id,
-                    scriptName: item.name,
-                    expiryDate: result.licence.expiryDate,
-                    activatedAt: new Date().toISOString(),
-                    status: 'active'
-                });
-                await updateDoc(userRef, { licences: userLicences, updatedAt: serverTimestamp() });
-                if (currentUser && currentUser.uid === userId) {
-                    userProfile.licences = userLicences;
-                    renderUserLicences();
-                    updateFullUserMenu();
-                }
-            }
-            if (userEmail) {
-                await sendLicenceEmail(userEmail, {
-                    code: result.licence.code,
-                    scriptName: item.name,
-                    expiryDate: result.licence.expiryDate
-                });
-            }
-            return result.licence;
-        } else {
-            console.warn('⚠️ Failed to generate licence:', result.error);
-            return null;
-        }
-    } catch (error) {
-        console.error('❌ Error generating licence:', error);
-        return null;
-    }
-}
-
-async function sendLicenceEmail(userEmail, licenceData) {
-    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Your Licence Code</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:#f0f2f8;padding:20px;margin:0}.container{max-width:600px;margin:0 auto;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.08)}.header{background:linear-gradient(135deg,#6c5ce7,#a29bfe);padding:30px 30px 20px;text-align:center}.logo{font-size:28px;font-weight:900;color:#fff}.logo span{color:#f2a900}.content{padding:35px 30px}.code-box{background:#f8f8ff;border-radius:12px;padding:20px;text-align:center;border:2px dashed #6c5ce7;margin:16px 0}.code-box .code{font-size:28px;font-weight:900;color:#6c5ce7;font-family:monospace;letter-spacing:4px}.code-box .label{font-size:12px;color:#888}.btn-primary{display:inline-block;background:#6c5ce7;color:#fff;padding:12px 32px;border-radius:30px;text-decoration:none;font-weight:700;font-size:14px;transition:all .3s}.btn-primary:hover{background:#5a4bd1;transform:translateY(-2px);box-shadow:0 8px 25px rgba(108,92,231,0.3)}.text-center{text-align:center}.footer{padding:16px 30px;text-align:center;background:#f8f8ff}.footer-text{font-size:11px;color:#888}@media(max-width:480px){.header{padding:20px}.content{padding:20px 15px}.code-box .code{font-size:22px}}</style></head><body><div class="container"><div class="header"><div class="logo">ZI <span>Store</span></div></div><div class="content"><h2 style="color:#1a1a2e;font-size:20px;">🔑 Your Licence Code</h2><p style="color:#4a4a6a;font-size:14px;margin:6px 0 12px;">Thank you for your purchase! Here is your licence code for <strong>${licenceData.scriptName}</strong>:</p><div class="code-box"><div class="label">LICENCE CODE</div><div class="code">${licenceData.code}</div></div><div style="background:#f8f8ff;border-radius:8px;padding:12px 16px;margin:12px 0;font-size:13px;color:#4a4a6a;"><strong>Expires:</strong> ${new Date(licenceData.expiryDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div><p style="text-align:center;font-size:12px;color:#888;margin-top:8px;">You can also find this licence in your account dashboard.</p><hr style="border:none;border-top:1px solid #f0f2f8;margin:16px 0;"><div class="text-center"><a href="https://zi-store.online" class="btn-primary">📦 Visit Store</a></div></div><div class="footer"><div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div></div></div></body></html>`;
-    return await sendEmail(userEmail, `🔑 Your Licence for ${licenceData.scriptName}`, html);
-}
-
-// ============================================================
-// INIT
-// ============================================================
-async function initApp() {
-    console.log('🚀 Initializing ZI Store...');
-    try {
-        loadBranding();
-        await loadProductsFromFirestore();
-        startProductsRealtimeListener();
-        await loadUserData();
-        updateUI();
-        updateDropdownStats();
-        updateFullUserMenu();
-        updateCartUI();
-        updateBottomCartBar();
-        updateBalanceDisplay();
-        renderUserLicences();
-        renderProxyPackages();
-        renderLimitedProducts();
-        loadDownloads();
-        loadNotifications();
-        loadFeaturedSettings();
-        checkCookieConsent();
-        initTopInfoBar();
-        loadMarqueeSettings();
-        applyMarqueeSettings();
-        loadSliderSettings();
-        renderSliderSettingsUI();
-        loadCoupons();
-        fetchCryptoPrices();
-        showTelegramBanner();
-        if (currentUser) {
-            loadUserBalance();
-            startTopupRealtimeListener();
-        }
-        window.updateLoadingProgress(100, '✅ Ready!');
-        setTimeout(window.showMainApp, 300);
-        setTimeout(hideLoadingScreen, 800);
-        console.log('✅ ZI Store initialized successfully!');
-    } catch (error) {
-        console.error('❌ Init error:', error);
-        window.updateLoadingProgress(100, '⚠️ Loaded with errors');
-        setTimeout(window.showMainApp, 500);
-        setTimeout(hideLoadingScreen, 1000);
-    }
-}
-
-// ============================================================
-// AUTH STATE LISTENER
-// ============================================================
-onAuthStateChanged(auth, async (user) => {
-    if (user) {
-        currentUser = user;
-        console.log('🔐 User authenticated:', user.email);
-        await refreshAdminStatus();
-        await loadUserData();
-        updateUI();
-        updateDropdownStats();
-        updateFullUserMenu();
-        loadUserBalance();
-        startTopupRealtimeListener();
-        loadNotifications();
-        renderUserLicences();
-        if (isAdminCached) {
-            console.log('👑 Admin user detected');
-            loadAdminOrders();
-            startAdminRealtimeListener();
-            loadLicences();
-            loadAdminTopups();
-            renderFallbackProductsAdmin();
-            setTimeout(() => {
-                const adminMenuItem = document.getElementById('adminMenuItem');
-                if (adminMenuItem) {
-                    adminMenuItem.style.display = 'flex';
-                }
-                updateFullUserMenu();
-            }, 300);
-        }
-        window.ensureAdminPanel();
-        showToast(`👋 Welcome ${user.displayName || user.email || 'User'}!`, 'success', 3000);
-        document.getElementById('authSection').style.display = 'none';
-        document.getElementById('mainApp').style.display = 'block';
-        window.showMainApp();
-        hideLoadingScreen();
-        initTopInfoBar();
-        loadCoupons();
-        loadFeaturedSettings();
-        loadMarqueeSettings();
-        loadSliderSettings();
-        showTelegramBanner();
-        initPopups();
-    } else {
-        currentUser = null;
-        isAdminCached = false;
-        console.log('🔓 No user authenticated');
-        if (unsubscribeAdmin) { unsubscribeAdmin();
-            unsubscribeAdmin = null; }
-        if (unsubscribeUser) { unsubscribeUser();
-            unsubscribeUser = null; }
-        if (topupSubscription) { topupSubscription.unsubscribe();
-            topupSubscription = null; }
-        document.getElementById('authSection').style.display = 'block';
-        document.getElementById('mainApp').style.display = 'none';
-        updateUI();
-        updateFullUserMenu();
-        loadFromLocalStorage();
-        hideLoadingScreen();
-        initTopInfoBar();
-        loadMarqueeSettings();
-        loadSliderSettings();
-        setTimeout(window.showMainApp, 500);
-        setTimeout(hideLoadingScreen, 800);
-    }
-});
-
-// ============================================================
-// START APP
-// ============================================================
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('📄 DOM loaded, starting app...');
-    initApp();
-});
-
-// ============================================================
-// EXPORT ALL FUNCTIONS TO WINDOW - COMPLETE
-// ============================================================
-// هذا يضمن أن جميع الدوال متاحة للـ HTML
-
-// دوال التراخيص
-window.loadLicences = loadLicences;
-window.renderLicences = renderLicences;
-window.openCreateLicenceModal = openCreateLicenceModal;
-window.closeCreateLicenceModal = closeCreateLicenceModal;
-window.createLicenceManually = createLicenceManually;
-window.approveLicence = approveLicence;
-window.revokeLicence = revokeLicence;
-window.deleteLicence = deleteLicence;
-window.editLicence = editLicence;
-window.saveLicenceEdit = saveLicenceEdit;
-window.searchLicences = searchLicences;
-window.clearLicenceSearch = clearLicenceSearch;
-window.refreshLicences = refreshLicences;
-window.renderUserLicences = renderUserLicences;
-window.toggleLicencesList = toggleLicencesList;
-window.activateLicence = activateLicence;
-window.closeLicenceModal = closeLicenceModal;
-
-// دوال التقييمات
-window.setRating = setRating;
-window.submitRating = submitRating;
-window.loadRatings = loadRatings;
-
-// دوال السلايدر
-window.goToSlide = goToSlide;
-window.nextSlide = nextSlide;
-window.prevSlide = prevSlide;
-window.pauseSlider = pauseSlider;
-window.resumeSlider = resumeSlider;
-window.loadSliderSettings = loadSliderSettings;
-window.saveSliderData = saveSliderData;
-window.saveSliderInterval = saveSliderInterval;
-window.saveSlideEdit = saveSlideEdit;
-window.editSlide = editSlide;
-window.deleteSlide = deleteSlide;
-window.openAddSlideModal = openAddSlideModal;
-window.closeAddSlideModal = closeAddSlideModal;
-
-// دوال الماركي
-window.loadMarqueeSettings = loadMarqueeSettings;
-window.saveMarqueeSettings = saveMarqueeSettings;
-window.renderMarqueeSettingsUI = renderMarqueeSettingsUI;
-window.applyMarqueeSettings = applyMarqueeSettings;
-
-// دوال الإحصائيات
-window.loadDashboardStats = loadDashboardStats;
-window.refreshDashboardStats = refreshDashboardStats;
-window.loadAdvancedStats = loadAdvancedStats;
-window.refreshAdvancedStats = refreshAdvancedStats;
-window.loadAuditLogs = loadAuditLogs;
-
-// دوال النشاط والاحتيال
-window.loadActivityLogs = loadActivityLogs;
-window.exportActivityLogs = exportActivityLogs;
-window.loadFraudLogs = loadFraudLogs;
-
-// دوال الكوبونات
-window.loadCoupons = loadCoupons;
-window.renderAdminCoupons = renderAdminCoupons;
-window.openCreateCouponModal = openCreateCouponModal;
-window.closeCreateCouponModal = closeCreateCouponModal;
-window.saveCoupon = saveCoupon;
-window.deleteCoupon = deleteCoupon;
-window.editCoupon = editCoupon;
-
-// دوال الإيميلات
-window.sendEmail = sendEmail;
-window.sendWelcomeEmail = sendWelcomeEmail;
-window.sendOrderConfirmationEmail = sendOrderConfirmationEmail;
-window.sendOrderStatusEmail = sendOrderStatusEmail;
-window.sendTopupConfirmationEmail = sendTopupConfirmationEmail;
-window.sendAdminNotificationEmail = sendAdminNotificationEmail;
-
-// دوال العلامة التجارية
-window.loadBrandingSettings = loadBrandingSettings;
-window.saveBrandingSettings = saveBrandingSettings;
-window.resetBranding = resetBranding;
-
-// دوال الدعم
-window.toggleSupportMenu = toggleSupportMenu;
-window.openSupportModal = openSupportModal;
-window.closeSupportModal = closeSupportModal;
-window.openWhatsAppSupport = openWhatsAppSupport;
-window.openTelegramSupport = openTelegramSupport;
-window.openEmailSupport = openEmailSupport;
-window.openPhoneSupport = openPhoneSupport;
-
-// دوال ملفات تعريف الارتباط
-window.acceptCookies = acceptCookies;
-window.rejectCookies = rejectCookies;
-window.openCookieSettings = openCookieSettings;
-window.closeCookieSettings = closeCookieSettings;
-window.saveCookieSettings = saveCookieSettings;
-window.closeCookieBanner = closeCookieBanner;
-
-// دوال إضافية
-window.uploadToCloudinary = uploadToCloudinary;
-window.fixHeaderAndModals = fixDirection;
-window.generatePDFInvoice = generatePDFInvoice;
-window.checkCookieConsent = checkCookieConsent;
-window.copyLicenceCode = copyLicenceCode;
-window.copyToClipboard = copyToClipboard;
-
-// دوال الدفع
-window.checkout = checkout;
-window.openPaymentModal = openPaymentModal;
-window.selectPayment = selectPayment;
-window.continuePayment = continuePayment;
-window.placeOrder = placeOrder;
-window.processBalancePayment = processBalancePayment;
-window.checkoutWithBalance = checkoutWithBalance;
-window.renderPaymentProducts = renderPaymentProducts;
-
-// دوال الـ Topup
-window.openTopupModal = openTopupModal;
-window.closeTopupModal = closeTopupModal;
-window.selectTopupCurrency = selectTopupCurrency;
-window.selectTopupAmount = selectTopupAmount;
-window.processTopup = processTopup;
-window.handleTopup = handleTopup;
-window.approveTopup = approveTopup;
-window.rejectTopup = rejectTopup;
-window.loadAdminTopups = loadAdminTopups;
-window.loadUserTopups = loadUserTopups;
-window.openTopupStatus = openTopupStatus;
-window.closeTopupStatus = closeTopupStatus;
-window.submitTopupWithTxHash = submitTopupWithTxHash;
-
-// دوال المستخدم
+window.showLogin = showLogin;
+window.showRegister = showRegister;
 window.loginUser = loginUser;
 window.registerUser = registerUser;
 window.loginWithGoogle = loginWithGoogle;
@@ -9188,11 +10571,7 @@ window.logoutUser = logoutUser;
 window.openForgotPassword = openForgotPassword;
 window.closeForgotPasswordModal = closeForgotPasswordModal;
 window.sendForgotPassword = sendForgotPassword;
-window.showLogin = showLogin;
-window.showRegister = showRegister;
-window.toggleReferral = toggleReferral;
-
-// دوال الواجهة
+window.openAuthModal = openAuthModal;
 window.openUserMenuFull = openUserMenuFull;
 window.closeUserMenuFull = closeUserMenuFull;
 window.openCartFull = openCartFull;
@@ -9207,7 +10586,104 @@ window.openDownloads = openDownloads;
 window.closeDownloads = closeDownloads;
 window.openNotifications = openNotifications;
 window.closeNotifications = closeNotifications;
-window.openAuthModal = openAuthModal;
+window.openTransactionsModal = openTransactionsModal;
+window.closeTransactionsModal = closeTransactionsModal;
+window.openSupportModal = openSupportModal;
+window.closeSupportModal = closeSupportModal;
+window.filterProducts = filterProducts;
+window.openDetails = openDetails;
+window.closeProductDetails = closeProductDetails;
+window.addToCart = addToCart;
+window.addToCartFromDetails = addToCartFromDetails;
+window.toggleWishlist = toggleWishlist;
+window.removeFromWishlist = removeFromWishlist;
+window.openShareModal = openShareModal;
+window.closeShareModal = closeShareModal;
+window.shareToWhatsApp = shareToWhatsApp;
+window.shareToTelegram = shareToTelegram;
+window.shareToFacebook = shareToFacebook;
+window.copyShareLink = copyShareLink;
+window.selectQuantityOption = selectQuantityOption;
+window.selectVipPlan = selectVipPlan;
+window.addVipPlanToCart = addVipPlanToCart;
+window.clearSearch = clearSearch;
+window.closeSearchResults = closeSearchResults;
+window.performLiveSearch = performLiveSearch;
+window.selectPayment = selectPayment;
+window.continuePayment = continuePayment;
+window.placeOrder = placeOrder;
+window.placeOrderTelegram = placeOrderTelegram;
+window.copyWalletAddress = copyWalletAddress;
+window.copyBinanceId = copyBinanceId;
+window.verifyTransaction = verifyTransaction;
+window.handleTxPaste = handleTxPaste;
+window.handleScreenshot = handleScreenshot;
+window.removeScreenshot = removeScreenshot;
+window.submitManualPayment = submitManualPayment;
+window.checkout = checkout;
+window.openPaymentModal = openPaymentModal;
+window.closePaymentModal = closePaymentModal;
+window.goToStep1 = goToStep1;
+window.clearCart = clearCart;
+window.removeFromCart = removeFromCart;
+window.updateCartQuantity = updateCartQuantity;
+window.toggleRpInCart = toggleRpInCart;
+window.applyCartPromo = applyCartPromo;
+window.renderWishlistFull = renderWishlistFull;
+window.renderProfileFull = renderProfileFull;
+window.renderCartFull = renderCartFull;
+window.saveProfileChangesInline = saveProfileChangesInline;
+window.sendResetLinkInline = sendResetLinkInline;
+window.changePasswordInline = changePasswordInline;
+window.togglePasswordVisibility = togglePasswordVisibility;
+window.bindTelegram = bindTelegram;
+window.checkTelegramStatus = checkTelegramStatus;
+window.testTelegramNotification = testTelegramNotification;
+window.unlinkTelegram = unlinkTelegram;
+window.showTelegramBanner = showTelegramBanner;
+window.showTelegramBannerAgain = showTelegramBannerAgain;
+window.adminToggleBanner = adminToggleBanner;
+window.resetBannerForAll = resetBannerForAll;
+window.closeTelegramBanner = closeTelegramBanner;
+window.ensureAdminPanel = ensureAdminPanel;
+window.openAdminPanel = openAdminPanel;
+window.closeAdminPanel = closeAdminPanel;
+window.switchAdminTab = switchAdminTab;
+window.loadAdminOrders = loadAdminOrders;
+window.updateOrderStatus = updateOrderStatus;
+window.deleteOrderImmediately = deleteOrderImmediately;
+window.searchAdminOrders = searchAdminOrders;
+window.clearAdminSearch = clearAdminSearch;
+window.refreshAdminOrders = refreshAdminOrders;
+window.loadAdminUsers = loadAdminUsers;
+window.toggleUserBan = toggleUserBan;
+window.deleteUserAccount = deleteUserAccount;
+window.viewUserDetails = viewUserDetails;
+window.closeUserDetailsModal = closeUserDetailsModal;
+window.searchAdminUsers = searchAdminUsers;
+window.clearAdminUserSearch = clearAdminUserSearch;
+window.refreshAdminUsers = refreshAdminUsers;
+window.openAddProductModal = openAddProductModal;
+window.openEditProductModal = openEditProductModal;
+window.closeProductModal = closeProductModal;
+window.saveProduct = saveProduct;
+window.deleteProduct = deleteProduct;
+window.selectCurrency = selectCurrency;
+window.selectProductType = selectProductType;
+window.addQuantityOption = addQuantityOption;
+window.removeQuantityOption = removeQuantityOption;
+window.toggleBadge = toggleBadge;
+window.openCreateDownloadModal = openCreateDownloadModal;
+window.closeCreateDownloadModal = closeCreateDownloadModal;
+window.createDownload = createDownload;
+window.deleteDownload = deleteDownload;
+window.editDownload = editDownload;
+window.openCreateNotificationModal = openCreateNotificationModal;
+window.closeCreateNotificationModal = closeCreateNotificationModal;
+window.createNotification = createNotification;
+window.deleteNotification = deleteNotification;
+window.markAllNotificationsRead = markAllNotificationsRead;
+window.clearAllNotifications = clearAllNotifications;
 window.openRequestsModal = openRequestsModal;
 window.closeRequestsModal = closeRequestsModal;
 window.openNewRequestModal = openNewRequestModal;
@@ -9216,104 +10692,473 @@ window.submitRequest = submitRequest;
 window.openReferralModal = openReferralModal;
 window.closeReferralModal = closeReferralModal;
 window.copyReferralCode2 = copyReferralCode2;
-window.openTransactionsModal = openTransactionsModal;
-window.closeTransactionsModal = closeTransactionsModal;
-
-// دوال المنتجات
-window.openDetails = openDetails;
-window.closeProductDetails = closeProductDetails;
-window.closePreviewModal = closeProductDetails;
-window.addToCart = addToCart;
-window.addToCartFromDetails = addToCartFromDetails;
-window.removeFromCart = removeFromCart;
-window.clearCart = clearCart;
-window.updateCartQuantity = updateCartQuantity;
-window.toggleWishlist = toggleWishlist;
-window.removeFromWishlist = removeFromWishlist;
-window.filterProducts = filterProducts;
-window.clearSearch = clearSearch;
-window.openShareModal = openShareModal;
-window.closeShareModal = closeShareModal;
-window.shareToWhatsApp = shareToWhatsApp;
-window.shareToTelegram = shareToTelegram;
-window.shareToFacebook = shareToFacebook;
-window.copyShareLink = copyShareLink;
-window.selectVipPlan = selectVipPlan;
-window.addVipPlanToCart = addVipPlanToCart;
-window.selectQuantityOption = selectQuantityOption;
-window.selectCurrency = selectCurrency;
-window.selectProductType = selectProductType;
-window.addQuantityOption = addQuantityOption;
-window.removeQuantityOption = removeQuantityOption;
-window.toggleBadge = toggleBadge;
-
-// دوال الـ Admin
-window.openAdminPanel = openAdminPanel;
-window.closeAdminPanel = closeAdminPanel;
-window.switchAdminTab = switchAdminTab;
-window.updateOrderStatus = updateOrderStatus;
-window.deleteOrderImmediately = deleteOrderImmediately;
-window.searchAdminOrders = searchAdminOrders;
-window.clearAdminSearch = clearAdminSearch;
-window.refreshAdminOrders = refreshAdminOrders;
-window.loadAdminUsers = loadAdminUsers;
-window.searchAdminUsers = searchAdminUsers;
-window.clearAdminUserSearch = clearAdminUserSearch;
-window.refreshAdminUsers = refreshAdminUsers;
-window.toggleUserBan = toggleUserBan;
-window.deleteUserAccount = deleteUserAccount;
-window.viewUserDetails = viewUserDetails;
-window.closeUserDetailsModal = closeUserDetailsModal;
-window.createDownload = createDownload;
-window.deleteDownload = deleteDownload;
-window.editDownload = editDownload;
-window.openCreateDownloadModal = openCreateDownloadModal;
-window.closeCreateDownloadModal = closeCreateDownloadModal;
-window.createNotification = createNotification;
-window.deleteNotification = deleteNotification;
-window.openCreateNotificationModal = openCreateNotificationModal;
-window.closeCreateNotificationModal = closeCreateNotificationModal;
-window.markAllNotificationsRead = markAllNotificationsRead;
-window.clearAllNotifications = clearAllNotifications;
+window.openLicenceModal = openLicenceModal;
+window.closeLicenceModal = closeLicenceModal;
+window.activateLicence = activateLicence;
+window.toggleLicencesList = toggleLicencesList;
+window.copyLicenceCode = copyLicenceCode;
+window.loadLicences = loadLicences;
+window.renderLicences = renderLicences;
+window.openCreateLicenceModal = openCreateLicenceModal;
+window.closeCreateLicenceModal = closeCreateLicenceModal;
+window.createLicenceManually = createLicenceManually;
+window.approveLicence = approveLicence;
+window.revokeLicence = revokeLicence;
+window.deleteLicence = deleteLicence;
+window.editLicence = editLicence;
+window.saveLicenceEdit = saveLicenceEdit;
+window.searchLicences = searchLicences;
+window.clearLicenceSearch = clearLicenceSearch;
+window.refreshLicences = refreshLicences;
+window.renderHistoryFull = renderHistoryFull;
+window.clearOrderHistory = clearOrderHistory;
+window.filterOrders = filterOrders;
+window.refreshDashboardStats = refreshDashboardStats;
+window.loadDashboardStats = loadDashboardStats;
+window.refreshAdvancedStats = refreshAdvancedStats;
+window.loadAuditLogs = loadAuditLogs;
+window.loadActivityLogs = loadActivityLogs;
+window.exportActivityLogs = exportActivityLogs;
+window.loadFraudLogs = loadFraudLogs;
+window.goToSlide = goToSlide;
+window.nextSlide = nextSlide;
+window.prevSlide = prevSlide;
+window.pauseSlider = pauseSlider;
+window.resumeSlider = resumeSlider;
+window.loadSliderSettings = loadSliderSettings;
+window.updateSlideProductSelect = updateSlideProductSelect;
+window.saveSliderData = saveSliderData;
+window.saveSliderInterval = saveSliderInterval;
+window.saveSlideEdit = saveSlideEdit;
+window.editSlide = editSlide;
+window.deleteSlide = deleteSlide;
+window.openAddSlideModal = openAddSlideModal;
+window.closeAddSlideModal = closeAddSlideModal;
+window.loadMarqueeSettings = loadMarqueeSettings;
+window.saveMarqueeSettings = saveMarqueeSettings;
+window.renderMarqueeSettingsUI = renderMarqueeSettingsUI;
+window.applyMarqueeSettings = applyMarqueeSettings;
+window.setRating = setRating;
+window.submitRating = submitRating;
+window.openTopupModal = openTopupModal;
+window.closeTopupModal = closeTopupModal;
+window.selectTopupAmount = selectTopupAmount;
+window.selectTopupCurrency = selectTopupCurrency;
+window.processTopup = processTopup;
+window.submitTopupWithTxHash = submitTopupWithTxHash;
+window.approveTopup = approveTopup;
+window.rejectTopup = rejectTopup;
+window.openTopupStatus = openTopupStatus;
+window.closeTopupStatus = closeTopupStatus;
+window.loadUserBalance = loadUserBalance;
+window.updateBalanceDisplay = updateBalanceDisplay;
+window.checkoutWithBalance = checkoutWithBalance;
+window.copyToClipboard = copyToClipboard;
+window.toggleSupportMenu = toggleSupportMenu;
+window.openWhatsAppSupport = openWhatsAppSupport;
+window.openTelegramSupport = openTelegramSupport;
+window.openEmailSupport = openEmailSupport;
+window.openPhoneSupport = openPhoneSupport;
+window.acceptCookies = acceptCookies;
+window.rejectCookies = rejectCookies;
+window.openCookieSettings = openCookieSettings;
+window.closeCookieSettings = closeCookieSettings;
+window.saveCookieSettings = saveCookieSettings;
+window.closeCookieBanner = closeCookieBanner;
+window.addProxyToCart = addProxyToCart;
+window.generateInvoice = generateInvoice;
+window.generatePDFInvoice = generatePDFInvoice;
+window.exportOrders = exportOrders;
+window.renderPaymentProducts = renderPaymentProducts;
+window.hideLoadingScreenManually = hideLoadingScreenManually;
+window.updateLoadingText = updateLoadingText;
+window.showMainApp = showMainApp;
+window.fixHeaderAndModals = fixDirection;
+window.refreshAdminPayments = refreshAdminPayments;
 window.adminApprovePayment = adminApprovePayment;
 window.adminRejectPayment = adminRejectPayment;
 window.adminDeletePayment = adminDeletePayment;
-window.refreshAdminPayments = refreshAdminPayments;
-window.exportOrders = exportOrders;
-window.generateInvoice = generateInvoice;
-window.ensureAdminPanel = ensureAdminPanel;
+window.renderFallbackProductsAdmin = renderFallbackProductsAdmin;
 window.editFallbackProduct = editFallbackProduct;
 window.openAddFallbackProductModal = openAddFallbackProductModal;
 window.closeFallbackProductModal = closeFallbackProductModal;
 window.saveFallbackProduct = saveFallbackProduct;
 window.deleteFallbackProduct = deleteFallbackProduct;
-
-// دوال التراخيص المرادفة (للتوافق مع HTML)
-window.activatedLicence = activatedLicence;
-window.closeLicenseModal = closeLicenseModal;
-
-// دوال عامة
-window.showToast = showToast;
-window.hideToast = hideToast;
-window.showButtonLoading = showButtonLoading;
-window.hideButtonLoading = hideButtonLoading;
-window.sendTelegramNotification = sendTelegramNotification;
-window.sendAdminNotification = sendAdminNotification;
-window.sendUserNotification = sendUserNotification;
-window.toggleRpInCart = toggleRpInCart;
-window.applyCartPromo = applyCartPromo;
-window.closePopup = closePopup;
+window.removeFromCartAndCloseBanner = removeFromCartAndCloseBanner;
+window.closeQuickPurchaseBanner = closeQuickPurchaseBanner;
+window.saveAdminSettings = saveAdminSettings;
+window.getMyTelegramChatId = getMyTelegramChatId;
+window.loadAdminSettingsUI = loadAdminSettingsUI;
+window.openCreateCouponModal = openCreateCouponModal;
+window.closeCreateCouponModal = closeCreateCouponModal;
+window.saveCoupon = saveCoupon;
+window.deleteCoupon = deleteCoupon;
+window.editCoupon = editCoupon;
+window.loadCoupons = loadCoupons;
+window.renderAdminCoupons = renderAdminCoupons;
 window.applyPopupCoupon = applyPopupCoupon;
 window.subscribeAndApply = subscribeAndApply;
-window.bindTelegram = bindTelegram;
-window.testTelegramNotification = testTelegramNotification;
-window.unlinkTelegram = unlinkTelegram;
-window.checkTelegramStatus = checkTelegramStatus;
-window.addProxyToCart = addProxyToCart;
-window.getMyTelegramChatId = getMyTelegramChatId;
-window.saveAdminSettings = saveAdminSettings;
+window.closePopup = closePopup;
+window.sendEmail = sendEmail;
+window.sendWelcomeEmail = sendWelcomeEmail;
+window.sendOrderConfirmationEmail = sendOrderConfirmationEmail;
+window.sendOrderStatusEmail = sendOrderStatusEmail;
+window.sendTopupConfirmationEmail = sendTopupConfirmationEmail;
+window.sendAdminNotificationEmail = sendAdminNotificationEmail;
+window.sendCustomResetEmail = sendCustomResetEmail;
+window.loadEmailLogs = loadEmailLogs;
+window.sendTestEmail = sendTestEmail;
+window.previewEmail = previewEmail;
+window.resendEmail = resendEmail;
+window.generatePDFInvoice = generatePDFInvoice;
+window.loadBrandingSettings = loadBrandingSettings;
+window.saveBrandingSettings = saveBrandingSettings;
+window.resetBranding = resetBranding;
+window.checkIPChange = checkIPChange;
+window.sendSecurityAlertEmail = sendSecurityAlertEmail;
 
-console.log('✅ All functions exported to window - COMPLETE');
-console.log('✅ ZI Store script loaded successfully - COMPLETE');
-console.log('✅ All functions exported to window - COMPLETE');
-console.log('✅ ZI Store script loaded successfully - COMPLETE');
+console.log('✅ All functions exported to window scope');
+
+// ============================================================
+// FIX: Missing getVisitorInfo and getDeviceInfo functions
+// ============================================================
+
+async function getVisitorInfo() {
+    try {
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/get-ip-info`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Accept': 'application/json',
+            }
+        });
+        if (!response.ok) throw new Error('Failed to fetch IP info');
+        const data = await response.json();
+        return {
+            ip: data.ip || 'Unknown',
+            country: data.country_name || 'Unknown',
+            country_code: data.country_code || 'XX',
+            city: data.city || 'Unknown',
+            timezone: data.timezone || 'UTC'
+        };
+    } catch (error) {
+        console.error('Error fetching visitor info:', error);
+        return {
+            ip: 'Unknown',
+            country: 'Unknown',
+            country_code: 'XX',
+            city: 'Unknown',
+            timezone: 'UTC'
+        };
+    }
+}
+
+function getDeviceInfo() {
+    const ua = navigator.userAgent;
+    let device = 'Desktop';
+    let os = 'Unknown';
+    let browser = 'Unknown';
+
+    if (/Mobi|Android|iPhone|iPad|iPod/i.test(ua)) device = 'Mobile';
+    if (/Windows/i.test(ua)) os = 'Windows';
+    else if (/Mac/i.test(ua)) os = 'MacOS';
+    else if (/Linux/i.test(ua)) os = 'Linux';
+    else if (/Android/i.test(ua)) os = 'Android';
+    else if (/iOS|iPhone|iPad/i.test(ua)) os = 'iOS';
+
+    if (/Chrome/i.test(ua) && !/Edg/i.test(ua)) browser = 'Chrome';
+    else if (/Firefox/i.test(ua)) browser = 'Firefox';
+    else if (/Safari/i.test(ua) && !/Chrome/i.test(ua)) browser = 'Safari';
+    else if (/Edg/i.test(ua)) browser = 'Edge';
+    else if (/Opera|OPR/i.test(ua)) browser = 'Opera';
+
+    return { device, os, browser };
+}
+
+// ============================================================
+// LOG ACTIVITY
+// ============================================================
+async function logActivity(type, data = {}) {
+    if (!currentUser) return;
+    if (!isLoggingActive) return;
+    
+    const activity = {
+        userId: currentUser.uid,
+        userEmail: currentUser.email,
+        userName: currentUser.displayName || 'User',
+        type: type,
+        data: data,
+        ip: (await getVisitorInfo()).ip || 'Unknown',
+        userAgent: navigator.userAgent,
+        timestamp: new Date().toISOString()
+    };
+    
+    activityQueue.push(activity);
+    
+    if (activityQueue.length >= 10) {
+        await flushActivities();
+    }
+}
+
+async function flushActivities() {
+    if (activityQueue.length === 0) return;
+    
+    const batch = [...activityQueue];
+    activityQueue = [];
+    
+    try {
+        for (const activity of batch) {
+            await addDoc(collection(db, 'user_activity'), {
+                ...activity,
+                createdAt: serverTimestamp()
+            });
+        }
+        console.log(`✅ ${batch.length} activities logged`);
+    } catch (error) {
+        console.error('❌ Failed to log activities:', error);
+        activityQueue = [...batch, ...activityQueue];
+    }
+}
+
+function startActivityLogger() {
+    if (flushInterval) clearInterval(flushInterval);
+    flushInterval = setInterval(flushActivities, 30000);
+    
+    document.addEventListener('click', (e) => {
+        const target = e.target.closest('[data-track]');
+        if (target) {
+            const action = target.dataset.track || 'click';
+            logActivity('click', { 
+                element: action,
+                text: target.textContent?.slice(0, 50) || ''
+            });
+        }
+    });
+    
+    window.addEventListener('beforeunload', () => {
+        flushActivities();
+    });
+}
+
+// ============================================================
+// INIT
+// ============================================================
+let isLoggingActive = true;
+let activityQueue = [];
+let flushInterval = null;
+
+async function init() {
+    console.log('🚀 Initializing ZI Store...');
+
+    const authSection = document.getElementById('authSection');
+    if (authSection) authSection.style.display = 'none';
+
+    window.updateLoadingProgress(5, 'Starting...');
+
+    try {
+        window.updateLoadingProgress(15, 'Loading products...');
+        const productsFromFirestore = await loadProductsFromFirestore();
+        products = productsFromFirestore;
+
+        window.updateLoadingProgress(40, 'Initializing app...');
+        startProductsRealtimeListener();
+        await loadUserData();
+        renderProducts(products, false);
+        renderFeaturedProducts();
+        generateRecommendations(products);
+        updateBottomCartBar();
+        updateDropdownStats();
+        loadDownloads();
+        loadNotifications();
+        fetchCryptoPrices();
+        loadFeaturedSettings();
+        loadSliderSettings();
+        loadMarqueeSettings();
+        setInterval(fetchCryptoPrices, 60000);
+        loadUserBalance();
+        initTopInfoBar();
+        loadCoupons();
+        loadBranding();
+        startActivityLogger();
+
+        setTimeout(removeDuplicateDate, 500);
+        setTimeout(styleHeaderTopup, 500);
+        setTimeout(fixDirection, 100);
+
+        window.updateLoadingProgress(90, 'Almost ready...');
+        console.log('✅ ZI Store ready with all features!');
+        setTimeout(window.ensureAdminPanel, 3000);
+        setTimeout(checkCookieConsent, 1500);
+
+        if (auth.currentUser) {
+            window.showMainApp();
+            initPopups();
+        } else {
+            if (authSection) authSection.style.display = 'block';
+            document.getElementById('mainApp').style.display = 'none';
+        }
+
+        window.updateLoadingProgress(100, '✅ Ready!');
+        hideLoadingScreen();
+
+        setTimeout(function() {
+            const screen = document.getElementById('loadingScreen');
+            if (screen) {
+                const icon = screen.querySelector('.loader-icon');
+                if (icon) {
+                    icon.textContent = '✅';
+                    icon.style.animation = 'none';
+                }
+                const text = document.getElementById('loadingStatus');
+                if (text) {
+                    text.textContent = 'Ready! 🎉';
+                    text.style.webkitTextFillColor = 'var(--success)';
+                }
+                const subtext = document.querySelector('.loader-subtext');
+                if (subtext) subtext.textContent = 'You can start now';
+                document.querySelectorAll('.spinner-ring').forEach(el => el.style.display = 'none');
+            }
+        }, 2000);
+
+    } catch (error) {
+        console.error('❌ Initialization error:', error);
+        window.updateLoadingProgress(100, '⚠️ Error occurred');
+        showToast('⚠️ Error loading store. Please refresh.', 'error');
+        if (authSection) authSection.style.display = 'block';
+        document.getElementById('mainApp').style.display = 'none';
+        hideLoadingScreen();
+    }
+}
+
+// ============================================================
+// AUTH STATE LISTENER
+// ============================================================
+onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    const authSection = document.getElementById('authSection');
+    const mainApp = document.getElementById('mainApp');
+
+    if (user) {
+        try {
+            const userRef = doc(db, 'users', user.uid);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists() && userSnap.data().isBanned === true) {
+                await signOut(auth);
+                currentUser = null;
+                isAdminCached = false;
+                if (authSection) authSection.style.display = 'block';
+                if (mainApp) mainApp.style.display = 'none';
+                showToast('🚫 Your account has been banned.', 'error');
+                hideLoadingScreen();
+                return;
+            }
+            if (userSnap.exists()) {
+                const data = userSnap.data();
+                userProfile.photoURL = data.photoURL || user.photoURL || '';
+                userProfile.balance = data.balance || 0;
+                userBalance = userProfile.balance;
+                userProfile.country = data.country || data.location || 'Unknown';
+                userProfile.location = data.location || data.country || 'Unknown';
+                userProfile.joined = data.createdAt ? new Date(data.createdAt.toDate())
+                    .toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) :
+                    '--';
+                userProfile.lastIP = data.lastIP || '';
+                userProfile.lastCountry = data.lastCountry || '';
+                userProfile.welcomeEmailSent = data.welcomeEmailSent || false;
+                userProfile.loginCount = data.loginCount || 0;
+            } else {
+                userProfile.photoURL = user.photoURL || '';
+                userProfile.balance = 0;
+                userBalance = 0;
+                userProfile.country = 'Unknown';
+                userProfile.location = 'Unknown';
+                userProfile.joined = '--';
+                userProfile.lastIP = '';
+                userProfile.lastCountry = '';
+                userProfile.welcomeEmailSent = false;
+                userProfile.loginCount = 0;
+            }
+        } catch (error) { console.error('Error checking ban status:', error); }
+
+        await refreshAdminStatus();
+        console.log('🔍 Admin status after login:', isAdminCached);
+
+        if (authSection) authSection.style.display = 'none';
+        if (mainApp) mainApp.style.display = 'block';
+
+        await loadUserData();
+        updateDropdownStats();
+        loadUserBalance();
+        startTopupRealtimeListener();
+        initTopInfoBar();
+        initPopups();
+
+        if (isAdminCached) {
+            console.log('✅ Admin detected, loading admin features');
+            loadAdminOrders();
+            startAdminRealtimeListener();
+            renderAdminProducts(products);
+            loadLicences();
+            loadAdminTopups();
+            renderFallbackProductsAdmin();
+            loadCoupons();
+            setTimeout(addBannerAdminControls, 500);
+            setTimeout(() => {
+                const adminMenuItem = document.getElementById('adminMenuItem');
+                if (adminMenuItem) adminMenuItem.style.display = 'flex';
+                updateFullUserMenu();
+                updateUI();
+            }, 300);
+        }
+
+        loadDownloads();
+        loadNotifications();
+        fetchCryptoPrices();
+        loadFeaturedSettings();
+        loadSliderSettings();
+        loadMarqueeSettings();
+        setTimeout(showTelegramBanner, 1000);
+        setTimeout(window.ensureAdminPanel, 2000);
+        setTimeout(checkCookieConsent, 1000);
+        window.updateLoadingProgress(100, '✅ Ready!');
+
+        window.showMainApp();
+        hideLoadingScreen();
+
+    } else {
+        isAdminCached = false;
+        if (authSection) authSection.style.display = 'block';
+        if (mainApp) mainApp.style.display = 'none';
+
+        await loadUserData();
+        updateDropdownStats();
+        loadDownloads();
+        loadNotifications();
+        fetchCryptoPrices();
+        loadFeaturedSettings();
+        loadSliderSettings();
+        loadMarqueeSettings();
+        setTimeout(checkCookieConsent, 1000);
+        window.updateLoadingProgress(100, '👋 Please login');
+
+        setTimeout(() => {
+            hideLoadingScreen();
+        }, 500);
+    }
+    updateUI();
+    updateFullUserMenu();
+    updateBalanceDisplay();
+});
+
+// ============================================================
+// START APP
+// ============================================================
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
+
+// ============================================================
+// END OF SCRIPT.JS
+// ============================================================
