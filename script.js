@@ -7354,8 +7354,7 @@ async function loadUserTopups() {
         `;
     }
 }
-
-// ============================================================
+// ============================
 // TOPUP SYSTEM - MODAL FUNCTIONS
 // ============================================================
 window.openTopupModal = function() {
@@ -7813,6 +7812,7 @@ window.approveTopup = async function(topupId) {
     if (!confirm('Approve this topup and add balance to user?')) return;
 
     try {
+        // 1. جلب بيانات الطلب
         const { data: topupData, error: fetchError } = await supabase
             .from('topups')
             .select('*')
@@ -7820,61 +7820,94 @@ window.approveTopup = async function(topupId) {
             .single();
 
         if (fetchError) throw fetchError;
+        if (!topupData) throw new Error('Topup not found');
 
-        const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/approve-topup', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-            },
-            body: JSON.stringify({
-                topupId: topupId,
-                approve: true,
-                adminEmail: currentUser.email
+        // 2. تحديث الحالة في Supabase مباشرة (بدون Edge Function)
+        const { error: updateError } = await supabase
+            .from('topups')
+            .update({ 
+                status: 'completed',
+                updated_at: new Date().toISOString()
             })
-        });
+            .eq('id', topupId);
 
-        const result = await response.json();
+        if (updateError) throw updateError;
 
-        if (!result.success) {
-            throw new Error(result.error || 'Failed to approve topup');
+        // 3. إضافة الرصيد للمستخدم
+        const userId = topupData.user_id;
+        const amount = topupData.amount_usd || 0;
+
+        if (userId && amount > 0) {
+            // جلب المستخدم من Firestore
+            const userRef = doc(db, 'users', userId);
+            const userSnap = await getDoc(userRef);
+            
+            if (userSnap.exists()) {
+                const userData = userSnap.data();
+                const currentBalance = userData.balance || 0;
+                const newBalance = currentBalance + amount;
+                
+                // تحديث الرصيد في Firestore
+                await updateDoc(userRef, {
+                    balance: newBalance,
+                    updatedAt: serverTimestamp()
+                });
+
+                // إذا كان المستخدم هو المستخدم الحالي، تحديث الرصيد محلياً
+                if (currentUser && currentUser.uid === userId) {
+                    userBalance = newBalance;
+                    userProfile.balance = newBalance;
+                    updateBalanceDisplay();
+                    updateUI();
+                    updateFullUserMenu();
+                    showToast(`💰 $${amount.toFixed(2)} added to your balance!`, 'success');
+                }
+            }
         }
 
-        // ===== FIX: تحديث الرصيد محلياً =====
-        const amount = topupData?.amount_usd || 0;
-        if (amount > 0) {
-            userBalance = (userBalance || 0) + amount;
-            userProfile.balance = userBalance;
-            updateBalanceDisplay();
-            updateUI();
-            updateFullUserMenu();
-            showToast(`💰 $${amount.toFixed(2)} added to user balance!`, 'success');
-        }
-
-        // ===== FIX: إعادة تحميل القوائم =====
+        // 4. تحديث قوائم الأدمن والمستخدم
         loadAdminTopups();
         loadUserBalance();
-
+        
         if (document.getElementById('topupStatusList')) {
             loadUserTopups();
         }
 
-        if (topupData) {
-            const adminMessage = `
-👤 *User:* ${topupData?.user_email || 'Unknown'}
-💵 *Amount:* $${topupData?.amount_usd || 0}
-🔗 *TXID:* \`${topupData?.tx_hash || 'N/A'}\`
-📅 *Date:* ${new Date().toLocaleString()}
-✅ *Status:* APPROVED
-            `;
-            await sendAdminNotification('✅ Topup Approved', adminMessage);
+        // 5. إرسال إشعارات
+        if (topupData.user_id && topupData.user_email) {
+            // إشعار للمستخدم عبر البريد الإلكتروني
+            await sendTopupConfirmationEmail(topupData.user_email, amount, topupData.tx_hash);
             
-            await sendTelegramTopupNotification(
-                topupData.user_id,
-                topupData.amount_usd,
-                topupData.tx_hash
-            );
+            // إشعار للمستخدم عبر Telegram إذا كان مرتبطاً
+            const userRef = doc(db, 'users', topupData.user_id);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+                const userData = userSnap.data();
+                if (userData.telegramChatId) {
+                    const telegramMsg = `
+💰 *TOPUP APPROVED!*
+
+✅ Your topup request has been approved!
+
+📊 *Amount:* $${amount.toFixed(2)} USDT
+💳 *Method:* USDT (ERC20)
+${topupData.tx_hash ? `🔗 *TXID:* \`${topupData.tx_hash}\`` : ''}
+📅 *Date:* ${new Date().toLocaleString()}
+
+🎉 Your balance has been updated successfully!
+💡 You can now use your balance to purchase products instantly.
+
+🔗 *Visit Store:* https://zi-store.online
+                    `;
+                    await sendTelegramNotification(userData.telegramChatId, telegramMsg);
+                }
+            }
         }
+
+        // 6. إشعار للأدمن
+        await sendAdminNotification('✅ Topup Approved', 
+            `User: ${topupData.user_email || 'Unknown'}\nAmount: $${amount.toFixed(2)}\nTXID: ${topupData.tx_hash || 'N/A'}`
+        );
 
         showToast(`✅ Topup approved successfully!`, 'success');
 
@@ -9735,8 +9768,7 @@ window.resendEmail = async function(logId) {
 
 // ============================================================
 // ADMIN SETTINGS UI
-// ============================================================
-async function loadAdminSettingsUI() {
+// ===========================================================SettingsUI() {
     if (!currentUser || !isAdminCached) return;
 
     const container = document.getElementById('adminSettingsContainer');
@@ -10639,7 +10671,8 @@ window.sendTelegramNotification = sendTelegramNotification;
 window.sendAdminNotification = sendAdminNotification;
 window.handleTopup = handleTopup;
 window.hideToast = hideToast;
-
+window.loadAdminTopups = loadAdminTopups;
+window.loadUserTopups = loadUserTopups;
 console.log('✅ All functions exported to window');
 
 // ============================================================
