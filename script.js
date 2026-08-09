@@ -2275,14 +2275,31 @@ async function loadProductsFromFirestore() {
             productsList.push({ id: doc.id, ...doc.data() });
         });
         console.log(`✅ Loaded ${productsList.length} products from Firestore`);
+        
         if (productsList.length === 0) {
             console.warn('⚠️ No products in Firestore, using fallback');
+            products = fallbackProducts;
+            renderProducts(products, false);
+            renderAdminProducts(products);
+            updateStatsFromProducts(products);
+            generateRecommendations(products);
             return fallbackProducts;
         }
+        
+        products = productsList;
+        renderProducts(products, false);
+        renderAdminProducts(products);
+        updateStatsFromProducts(products);
+        generateRecommendations(products);
         return productsList;
     } catch (error) {
         console.error('Error loading products:', error);
         console.warn('⚠️ Using fallback products due to error');
+        products = fallbackProducts;
+        renderProducts(products, false);
+        renderAdminProducts(products);
+        updateStatsFromProducts(products);
+        generateRecommendations(products);
         return fallbackProducts;
     }
 }
@@ -4565,7 +4582,6 @@ window.handleTopup = async function() {
         showToast('❌ Error: ' + error.message, 'error');
     }
 };
-
 // ============================================================
 // PROXY FUNCTIONS (unchanged)
 // ============================================================
@@ -6033,12 +6049,20 @@ function refreshLicences() { loadLicences();
 
 function renderUserLicences() {
     const container = document.getElementById('userLicencesList');
-    if (!container) return;
-    if (!currentUser) { container.innerHTML = ''; return; }
+    if (!container) {
+        console.warn('⚠️ userLicencesList not found');
+        return;
+    }
+    if (!currentUser) {
+        container.innerHTML = '';
+        return;
+    }
     const userLicences = userProfile.licences || [];
-    if (userLicences.length === 0) { container.innerHTML =
+    if (userLicences.length === 0) {
+        container.innerHTML =
             `<div style="text-align:center;padding:8px;color:var(--text-secondary);font-size:12px;">No active licences</div>`;
-        return; }
+        return;
+    }
     container.innerHTML = userLicences.map(l => {
         const isExpired = new Date(l.expiryDate) < new Date();
         const isRevoked = l.status === 'revoked';
@@ -6065,10 +6089,25 @@ function toggleLicencesList() {
     if (list) list.style.display = list.style.display === 'none' ? 'block' : 'none';
 }
 
-function openLicenceModal() {
-    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
-    document.getElementById('licenceModal').classList.add('open');
-}
+window.openLicenceModal = function() {
+    if (!currentUser) {
+        showToast('⚠️ Please login first', 'warning');
+        openAuthModal();
+        return;
+    }
+    
+    const modal = document.getElementById('licenceModal');
+    if (!modal) {
+        console.error('❌ licenceModal not found in DOM');
+        showToast('❌ Licence modal not found', 'error');
+        return;
+    }
+    
+    renderUserLicences();
+    
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+};
 
 function closeLicenceModal() { document.getElementById('licenceModal').classList.remove('open'); }
 
@@ -7120,6 +7159,10 @@ function startTopupRealtimeListener() {
                     if (document.getElementById('topupStatusList')) {
                         loadUserTopups();
                     }
+                    
+                    if (isAdminCached) {
+                        loadAdminTopups();
+                    }
 
                     playNotificationSound();
                 }
@@ -7797,10 +7840,25 @@ window.approveTopup = async function(topupId) {
             throw new Error(result.error || 'Failed to approve topup');
         }
 
-        showToast(`✅ Topup approved successfully!`, 'success');
+        // ===== FIX: تحديث الرصيد محلياً =====
+        const amount = topupData?.amount_usd || 0;
+        if (amount > 0) {
+            userBalance = (userBalance || 0) + amount;
+            userProfile.balance = userBalance;
+            updateBalanceDisplay();
+            updateUI();
+            updateFullUserMenu();
+            showToast(`💰 $${amount.toFixed(2)} added to user balance!`, 'success');
+        }
+
+        // ===== FIX: إعادة تحميل القوائم =====
         loadAdminTopups();
         loadUserBalance();
-        
+
+        if (document.getElementById('topupStatusList')) {
+            loadUserTopups();
+        }
+
         if (topupData) {
             const adminMessage = `
 👤 *User:* ${topupData?.user_email || 'Unknown'}
@@ -7817,6 +7875,8 @@ window.approveTopup = async function(topupId) {
                 topupData.tx_hash
             );
         }
+
+        showToast(`✅ Topup approved successfully!`, 'success');
 
     } catch (error) {
         console.error('Approve error:', error);
