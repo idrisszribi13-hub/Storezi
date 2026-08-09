@@ -46,7 +46,6 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* ============ CONTAINER ============ */
         .zs-player-wrapper {
             position: relative;
             width: 100%;
@@ -77,7 +76,6 @@
             aspect-ratio: unset;
         }
 
-        /* ============ VIDEO CONTAINER ============ */
         .zs-video-container {
             position: relative;
             width: 100%;
@@ -91,6 +89,69 @@
             object-fit: contain;
             display: block;
             background: #000;
+        }
+
+        /* ============ START OVERLAY (big play button) ============ */
+        .zs-start-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 15;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.78);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            transition: opacity 0.4s, visibility 0.4s;
+        }
+        .zs-start-overlay.zs-hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .zs-start-play-btn {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: var(--zs-accent);
+            color: #0a0a0f;
+            font-size: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 8px 30px rgba(228, 168, 61, 0.5);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: none;
+            outline: none;
+            font-family: var(--zs-font);
+            line-height: 1;
+            margin-bottom: 18px;
+        }
+        .zs-start-play-btn:hover {
+            transform: scale(1.07);
+            box-shadow: 0 12px 36px rgba(228, 168, 61, 0.7);
+        }
+        .zs-start-play-btn:active {
+            transform: scale(0.95);
+        }
+        .zs-start-brand {
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .zs-start-brand span {
+            background: rgba(255, 255, 255, 0.12);
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #ddd;
         }
 
         /* ============ WATERMARK ============ */
@@ -262,108 +323,6 @@
             box-shadow: 0 6px 20px rgba(228, 168, 61, 0.35);
         }
 
-        /* ============ URL INPUT OVERLAY ============ */
-        .zs-url-overlay {
-            position: absolute;
-            inset: 0;
-            z-index: 14;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: rgba(5, 5, 10, 0.92);
-            gap: 18px;
-            transition: opacity 0.4s, visibility 0.4s;
-            padding: 20px;
-        }
-        .zs-url-overlay.zs-hidden {
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-        }
-        .zs-url-brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 6px;
-        }
-        .zs-url-brand-icon {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--zs-accent), #c77d1a);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 900;
-            font-size: 20px;
-            color: #0a0a0f;
-            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
-        }
-        .zs-url-brand-text {
-            font-size: 22px;
-            font-weight: 700;
-            color: #fff;
-            letter-spacing: 0.5px;
-        }
-        .zs-url-input-wrap {
-            display: flex;
-            width: 100%;
-            max-width: 500px;
-            gap: 10px;
-            background: var(--zs-surface);
-            border-radius: 28px;
-            padding: 5px;
-            border: 1px solid var(--zs-border);
-            transition: border-color var(--zs-transition);
-        }
-        .zs-url-input-wrap:focus-within {
-            border-color: var(--zs-accent);
-            box-shadow: 0 0 20px rgba(228, 168, 61, 0.15);
-        }
-        .zs-url-input {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: #fff;
-            font-size: 14px;
-            padding: 12px 18px;
-            outline: none;
-            font-family: var(--zs-font);
-            direction: ltr;
-            text-align: left;
-            min-width: 0;
-        }
-        .zs-url-input::placeholder {
-            color: #666;
-            text-align: left;
-        }
-        .zs-url-submit {
-            padding: 10px 22px;
-            background: var(--zs-accent);
-            color: #0a0a0f;
-            border: none;
-            border-radius: 24px;
-            cursor: pointer;
-            font-weight: 700;
-            font-size: 14px;
-            font-family: var(--zs-font);
-            white-space: nowrap;
-            transition: all var(--zs-transition);
-            letter-spacing: 0.3px;
-        }
-        .zs-url-submit:hover {
-            background: var(--zs-accent2);
-            box-shadow: 0 4px 16px rgba(228, 168, 61, 0.3);
-        }
-        .zs-url-hint {
-            font-size: 12px;
-            color: #777;
-            max-width: 500px;
-            text-align: center;
-            line-height: 1.5;
-        }
-
         /* ============ CONTROL BAR ============ */
         .zs-controls {
             position: absolute;
@@ -388,7 +347,6 @@
             pointer-events: none;
         }
 
-        /* Control buttons */
         .zs-btn {
             background: none;
             border: none;
@@ -418,12 +376,10 @@
             background: rgba(228, 168, 61, 0.12);
         }
 
-        /* Play button */
         .zs-btn-play {
             font-size: 22px;
         }
 
-        /* Volume */
         .zs-volume-wrap {
             display: flex;
             align-items: center;
@@ -459,7 +415,6 @@
             border: none;
         }
 
-        /* Time */
         .zs-time-display {
             font-size: 12px;
             color: var(--zs-text-secondary);
@@ -472,7 +427,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* Progress */
         .zs-progress-wrap {
             flex: 1;
             min-width: 60px;
@@ -542,7 +496,6 @@
             pointer-events: none;
         }
 
-        /* Spacer */
         .zs-spacer {
             flex: 0 0 0;
         }
@@ -553,7 +506,6 @@
             }
         }
 
-        /* Dropdown menus */
         .zs-dropdown {
             position: relative;
             flex-shrink: 0;
@@ -606,7 +558,6 @@
             font-weight: 700;
         }
 
-        /* ============ SCREENSHOT FLASH ============ */
         .zs-flash {
             position: absolute;
             inset: 0;
@@ -684,30 +635,25 @@
                 padding: 7px 12px;
                 font-size: 11px;
             }
-            .zs-url-input-wrap {
-                max-width: 90%;
+            .zs-start-play-btn {
+                width: 70px;
+                height: 70px;
+                font-size: 32px;
             }
-            .zs-url-input {
-                font-size: 12px;
-                padding: 10px 14px;
-            }
-            .zs-url-submit {
-                padding: 8px 14px;
-                font-size: 12px;
+            .zs-start-brand {
+                font-size: 14px;
             }
         }
     </style>
 </head>
 <body>
 
-    <!-- ==================== PLAYER WRAPPER ==================== -->
     <div class="zs-player-wrapper" id="zsPlayerWrapper">
-        <!-- Video Container -->
         <div class="zs-video-container" id="zsVideoContainer">
             <video id="zsVideo" playsinline webkit-playsinline x-webkit-airplay="allow"
         disableRemotePlayback crossorigin="anonymous"></video>
 
-        <!-- Watermark -->
+        <!-- Watermark (always visible) -->
         <div class="zs-watermark" id="zsWatermark">
             <div class="zs-watermark-icon">Z</div>
             <span class="zs-watermark-text">Zi Store</span>
@@ -735,40 +681,23 @@
             <button class="zs-error-retry" id="zsErrorRetry">🔄 إعادة المحاولة</button>
         </div>
 
-        <!-- URL Input Overlay -->
-        <div class="zs-url-overlay" id="zsUrlOverlay">
-            <div class="zs-url-brand">
-                <div class="zs-url-brand-icon">Z</div>
-                <span class="zs-url-brand-text">Zi Store</span>
-            </div>
-            <div class="zs-url-input-wrap">
-                <input type="text" class="zs-url-input" id="zsUrlInput"
-                placeholder="🎥  ألصق رابط البث هنا ...  (m3u8 / mpd / mp4)"
-                dir="ltr">
-                <button class="zs-url-submit" id="zsUrlSubmit">▶ تشغيل</button>
-            </div>
-            <div class="zs-url-hint">
-                يدعم: HLS (.m3u8) • DASH (.mpd) • MP4 • WebRTC<br>
-                يمكنك أيضاً إضافة <code dir="ltr">?src=رابط_البث</code> في نهاية عنوان الصفحة
+        <!-- BIG START OVERLAY (Play button) -->
+        <div class="zs-start-overlay" id="zsStartOverlay">
+            <button class="zs-start-play-btn" id="zsStartPlayBtn">▶</button>
+            <div class="zs-start-brand">
+                Zi Store <span>بث مباشر</span>
             </div>
         </div>
     </div>
 
     <!-- Control Bar -->
     <div class="zs-controls" id="zsControls">
-        <!-- Play/Pause -->
         <button class="zs-btn zs-btn-play" id="zsBtnPlay" title="تشغيل / إيقاف">▶</button>
-
-        <!-- Volume -->
         <div class="zs-volume-wrap">
             <button class="zs-btn" id="zsBtnMute" title="كتم الصوت">🔊</button>
             <input type="range" class="zs-volume-slider" id="zsVolumeSlider" min="0" max="100" value="100" title="مستوى الصوت">
         </div>
-
-        <!-- Time -->
         <span class="zs-time-display" id="zsTimeDisplay">--:-- / --:--</span>
-
-        <!-- Progress -->
         <div class="zs-progress-wrap" id="zsProgressWrap">
             <div class="zs-progress-track" id="zsProgressTrack">
                 <div class="zs-progress-buffered" id="zsProgressBuffered"></div>
@@ -777,65 +706,45 @@
                 <div class="zs-progress-live" id="zsProgressLive">🔴 بث مباشر</div>
             </div>
         </div>
-
-        <!-- Spacer -->
         <div class="zs-spacer"></div>
-
-        <!-- Speed -->
         <div class="zs-dropdown" id="zsSpeedDropdown">
             <button class="zs-btn" id="zsBtnSpeed" title="سرعة التشغيل">⏱</button>
             <ul class="zs-dropdown-menu" id="zsSpeedMenu">
-                <li data-speed="0.25">0.25x</li>
-                <li data-speed="0.5">0.5x</li>
-                <li data-speed="0.75">0.75x</li>
-                <li data-speed="1" class="zs-selected">1x - عادي</li>
-                <li data-speed="1.25">1.25x</li>
-                <li data-speed="1.5">1.5x</li>
-                <li data-speed="2">2x</li>
+                <li data-speed="0.25">0.25x</li><li data-speed="0.5">0.5x</li><li data-speed="0.75">0.75x</li>
+                <li data-speed="1" class="zs-selected">1x - عادي</li><li data-speed="1.25">1.25x</li>
+                <li data-speed="1.5">1.5x</li><li data-speed="2">2x</li>
             </ul>
         </div>
-
-        <!-- Quality -->
         <div class="zs-dropdown" id="zsQualityDropdown">
             <button class="zs-btn" id="zsBtnQuality" title="الجودة">🎛</button>
             <ul class="zs-dropdown-menu" id="zsQualityMenu">
                 <li data-quality="-1" class="zs-selected">تلقائي</li>
             </ul>
         </div>
-
-        <!-- Screenshot -->
         <button class="zs-btn" id="zsBtnScreenshot" title="التقاط صورة">📸</button>
-
-        <!-- Picture in Picture -->
         <button class="zs-btn" id="zsBtnPiP" title="صورة داخل صورة">🖼</button>
-
-        <!-- Theater Mode -->
         <button class="zs-btn" id="zsBtnTheater" title="وضع المسرح">📐</button>
-
-        <!-- Fullscreen -->
         <button class="zs-btn" id="zsBtnFullscreen" title="ملء الشاشة">⛶</button>
-
-        <!-- Settings -->
         <button class="zs-btn" id="zsBtnSettings" title="الإعدادات">⚙</button>
     </div>
 </div>
 
 <script>
     (function() {
-        // ==================== DOM ELEMENTS ====================
+        // ⚠️ ضع رابط البث الذي تريده هنا (m3u8, mpd, mp4...)
+        const STREAM_URL = "https://example.com/stream.m3u8"; // <-- غيّر هذا الرابط إلى رابط البث الخاص بك
+
         const wrapper = document.getElementById('zsPlayerWrapper');
         const videoContainer = document.getElementById('zsVideoContainer');
         const video = document.getElementById('zsVideo');
-        const watermark = document.getElementById('zsWatermark');
         const liveBadge = document.getElementById('zsLiveBadge');
         const loadingEl = document.getElementById('zsLoading');
         const flashEl = document.getElementById('zsFlash');
         const errorOverlay = document.getElementById('zsErrorOverlay');
         const errorMsg = document.getElementById('zsErrorMsg');
         const errorRetry = document.getElementById('zsErrorRetry');
-        const urlOverlay = document.getElementById('zsUrlOverlay');
-        const urlInput = document.getElementById('zsUrlInput');
-        const urlSubmit = document.getElementById('zsUrlSubmit');
+        const startOverlay = document.getElementById('zsStartOverlay');
+        const startPlayBtn = document.getElementById('zsStartPlayBtn');
         const controls = document.getElementById('zsControls');
         const btnPlay = document.getElementById('zsBtnPlay');
         const btnMute = document.getElementById('zsBtnMute');
@@ -847,11 +756,9 @@
         const progressFilled = document.getElementById('zsProgressFilled');
         const progressThumb = document.getElementById('zsProgressThumb');
         const progressLive = document.getElementById('zsProgressLive');
-        const speedDropdown = document.getElementById('zsSpeedDropdown');
         const speedMenu = document.getElementById('zsSpeedMenu');
-        const btnSpeed = document.getElementById('zsBtnSpeed');
-        const qualityDropdown = document.getElementById('zsQualityDropdown');
         const qualityMenu = document.getElementById('zsQualityMenu');
+        const btnSpeed = document.getElementById('zsBtnSpeed');
         const btnQuality = document.getElementById('zsBtnQuality');
         const btnScreenshot = document.getElementById('zsBtnScreenshot');
         const btnPiP = document.getElementById('zsBtnPiP');
@@ -859,7 +766,6 @@
         const btnFullscreen = document.getElementById('zsBtnFullscreen');
         const btnSettings = document.getElementById('zsBtnSettings');
 
-        // ==================== STATE ====================
         let hls = null;
         let dashPlayer = null;
         let isLive = false;
@@ -869,28 +775,22 @@
         let maxReconnectAttempts = 10;
         let reconnectTimeout = null;
         let controlsHideTimeout = null;
-        let hideControlsOnIdle = true;
         let currentSpeed = 1;
         let currentQuality = -1;
         let qualityLevels = [];
         let lastVolume = 100;
         let screenshotCanvas = null;
 
-        // ==================== FUNCTIONS ====================
-
         function formatTime(seconds) {
             if (!isFinite(seconds) || seconds < 0) return '--:--';
             const h = Math.floor(seconds / 3600);
             const m = Math.floor((seconds % 3600) / 60);
             const s = Math.floor(seconds % 60);
-            if (h > 0) {
-                return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-            }
+            if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
             return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
         }
 
         function showLoading() { loadingEl.classList.add('zs-visible'); }
-
         function hideLoading() { loadingEl.classList.remove('zs-visible'); }
 
         function showError(msg) {
@@ -900,10 +800,6 @@
         }
 
         function hideError() { errorOverlay.classList.remove('zs-visible'); }
-
-        function showUrlOverlay() { urlOverlay.classList.remove('zs-hidden'); }
-
-        function hideUrlOverlay() { urlOverlay.classList.add('zs-hidden'); }
 
         function setLiveMode(live) {
             isLive = live;
@@ -946,7 +842,6 @@
             const pct = (video.currentTime / video.duration) * 100;
             progressFilled.style.width = pct + '%';
             progressThumb.style.left = pct + '%';
-
             if (video.buffered.length > 0) {
                 const bufferedEnd = video.buffered.end(video.buffered.length - 1);
                 const buffPct = (bufferedEnd / video.duration) * 100;
@@ -986,8 +881,7 @@
             qualityLevels.forEach((level, index) => {
                 const li = document.createElement('li');
                 li.dataset.quality = index;
-                const height = level.height || (level.bitrate ? Math.round(level.bitrate /
-                    1000) + 'k' : 'جودة ' + (index + 1));
+                const height = level.height || (level.bitrate ? Math.round(level.bitrate / 1000) + 'k' : 'جودة ' + (index + 1));
                 let label = '';
                 if (level.height) {
                     if (level.height >= 2160) label = '4K (2160p)';
@@ -1006,32 +900,23 @@
                 qualityMenu.appendChild(li);
             });
 
-            if (qualityLevels.length === 0) {
-                qualityDropdown.style.display = 'none';
-            } else {
-                qualityDropdown.style.display = 'block';
-            }
+            document.getElementById('zsQualityDropdown').style.display = qualityLevels.length > 0 ? 'block' : 'none';
         }
 
         function setQuality(index) {
             currentQuality = index;
             if (hls && isHLS) {
-                if (index === -1) {
-                    hls.currentLevel = -1;
-                } else if (index >= 0 && index < hls.levels.length) {
-                    hls.currentLevel = index;
-                }
+                if (index === -1) hls.currentLevel = -1;
+                else if (index >= 0 && index < hls.levels.length) hls.currentLevel = index;
             }
             buildQualityMenu();
-            // Save preference
             try { localStorage.setItem('zs-quality', index); } catch (e) {}
         }
 
         function setSpeed(speed) {
             currentSpeed = speed;
             video.playbackRate = speed;
-            const items = speedMenu.querySelectorAll('li');
-            items.forEach(li => {
+            speedMenu.querySelectorAll('li').forEach(li => {
                 li.classList.toggle('zs-selected', parseFloat(li.dataset.speed) === speed);
             });
             try { localStorage.setItem('zs-speed', speed); } catch (e) {}
@@ -1039,15 +924,11 @@
 
         function triggerScreenshot() {
             if (!video.videoWidth || !video.videoHeight) return;
-            if (!screenshotCanvas) {
-                screenshotCanvas = document.createElement('canvas');
-            }
+            if (!screenshotCanvas) screenshotCanvas = document.createElement('canvas');
             screenshotCanvas.width = video.videoWidth;
             screenshotCanvas.height = video.videoHeight;
             const ctx = screenshotCanvas.getContext('2d');
             ctx.drawImage(video, 0, 0, screenshotCanvas.width, screenshotCanvas.height);
-
-            // Add watermark to screenshot
             ctx.fillStyle = 'rgba(255,255,255,0.75)';
             ctx.font = 'bold ' + Math.max(18, screenshotCanvas.width * 0.025) + 'px "Segoe UI", Tahoma, sans-serif';
             ctx.textAlign = 'right';
@@ -1055,7 +936,6 @@
             ctx.shadowBlur = 6;
             ctx.fillText('Zi Store', screenshotCanvas.width - 25, screenshotCanvas.height - 20);
             ctx.shadowBlur = 0;
-
             screenshotCanvas.toBlob(blob => {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -1064,8 +944,6 @@
                 a.click();
                 URL.revokeObjectURL(url);
             }, 'image/png');
-
-            // Flash effect
             flashEl.classList.add('zs-active');
             setTimeout(() => flashEl.classList.remove('zs-active'), 100);
         }
@@ -1095,9 +973,7 @@
                 } else if (document.pictureInPictureEnabled && video.readyState >= 1) {
                     await video.requestPictureInPicture();
                 }
-            } catch (e) {
-                console.warn('PiP failed:', e);
-            }
+            } catch (e) {}
         }
 
         function togglePlay() {
@@ -1136,7 +1012,7 @@
         }
 
         function hideControls() {
-            if (!video.paused && hideControlsOnIdle && !document.querySelector('.zs-dropdown-menu.zs-open')) {
+            if (!video.paused && !document.querySelector('.zs-dropdown-menu.zs-open')) {
                 controls.classList.add('zs-hidden');
             }
         }
@@ -1148,15 +1024,6 @@
             }
         }
 
-        function toggleControls() {
-            if (controls.classList.contains('zs-hidden')) {
-                showControls();
-            } else {
-                controls.classList.add('zs-hidden');
-                if (controlsHideTimeout) clearTimeout(controlsHideTimeout);
-            }
-        }
-
         function closeAllDropdowns() {
             document.querySelectorAll('.zs-dropdown-menu.zs-open').forEach(m => m.classList.remove('zs-open'));
         }
@@ -1164,21 +1031,15 @@
         function toggleDropdown(menu) {
             const isOpen = menu.classList.contains('zs-open');
             closeAllDropdowns();
-            if (!isOpen) {
-                menu.classList.add('zs-open');
-            }
+            if (!isOpen) menu.classList.add('zs-open');
         }
 
-        // ==================== STREAM INITIALIZATION ====================
+        // ==================== STREAM INIT ====================
         function destroyExistingPlayer() {
-            if (hls) {
-                hls.destroy();
-                hls = null;
-            }
-            if (dashPlayer) {
-                dashPlayer.reset();
-                dashPlayer = null;
-            }
+            if (hls) { hls.destroy();
+                hls = null; }
+            if (dashPlayer) { dashPlayer.reset();
+                dashPlayer = null; }
             isHLS = false;
             isDASH = false;
             qualityLevels = [];
@@ -1192,30 +1053,23 @@
             hideLoading();
             setLiveMode(false);
             buildQualityMenu();
-            qualityDropdown.style.display = 'block';
         }
 
         function loadStream(url) {
             destroyExistingPlayer();
             hideError();
             showLoading();
-            hideUrlOverlay();
-            showControls();
+            startOverlay.classList.add('zs-hidden'); // hide big play button once stream starts loading
 
             const lowerUrl = url.toLowerCase().trim();
-
-            if (lowerUrl.endsWith('.m3u8') || lowerUrl.includes('.m3u8') || lowerUrl.includes('m3u8')) {
-                // HLS Stream
+            if (lowerUrl.endsWith('.m3u8') || lowerUrl.includes('.m3u8')) {
                 loadHLS(url);
-            } else if (lowerUrl.endsWith('.mpd') || lowerUrl.includes('.mpd') || lowerUrl.includes('dash')) {
-                // DASH Stream
+            } else if (lowerUrl.endsWith('.mpd') || lowerUrl.includes('.mpd')) {
                 loadDASH(url);
-            } else if (lowerUrl.endsWith('.mp4') || lowerUrl.endsWith('.webm') || lowerUrl.endsWith('.ogg') ||
-                lowerUrl.endsWith('.mov')) {
-                // Direct video file
+            } else if (lowerUrl.endsWith('.mp4') || lowerUrl.endsWith('.webm') || lowerUrl.endsWith('.ogg') || lowerUrl
+                .endsWith('.mov')) {
                 loadDirect(url);
             } else {
-                // Try HLS first, fallback to direct
                 loadHLS(url);
             }
         }
@@ -1239,46 +1093,31 @@
                     startFragPrefetch: true,
                     testBandwidth: true,
                 });
-
                 hls.loadSource(url);
                 hls.attachMedia(video);
-
                 hls.on(Hls.Events.MANIFEST_PARSED, function(event, data) {
                     hideLoading();
                     hideError();
-                    qualityLevels = data.levels.map(l => ({ height: l.height, bitrate: l
-                            .bitrate, width: l.width }));
+                    qualityLevels = data.levels.map(l => ({ height: l.height, bitrate: l.bitrate,
+                        width: l.width }));
                     buildQualityMenu();
-                    qualityDropdown.style.display = qualityLevels.length > 0 ? 'block' : 'none';
-
-                    // Detect live
-                    const liveDetected = data.levels.some(l => l.details && l.details
-                        .live === true) ||
-                        (hls.levels && hls.levels.length > 0 && hls.levels[0].details &&
-                            hls.levels[0].details.live);
-                    if (liveDetected || (data.levels.length > 0 && !isFinite(data.levels[0]
-                            .details?.totalduration))) {
-                        setLiveMode(true);
-                    } else {
-                        setLiveMode(false);
-                    }
-
-                    // Restore quality preference
+                    const liveDetected = data.levels.some(l => l.details && l.details.live === true) ||
+                        (hls.levels && hls.levels.length > 0 && hls.levels[0].details && hls.levels[0]
+                            .details.live);
+                    setLiveMode(liveDetected || (data.levels.length > 0 && !isFinite(data.levels[0].details
+                        ?.totalduration)));
                     try {
                         const saved = localStorage.getItem('zs-quality');
                         if (saved !== null) setQuality(parseInt(saved));
                     } catch (e) {}
-
                     video.play().catch(() => {});
                     updatePlayButton();
                     resetControlsTimer();
                 });
-
                 hls.on(Hls.Events.LEVEL_SWITCHED, function(event, data) {
                     currentQuality = data.level;
                     buildQualityMenu();
                 });
-
                 hls.on(Hls.Events.ERROR, function(event, data) {
                     if (data.fatal) {
                         switch (data.type) {
@@ -1294,10 +1133,8 @@
                         }
                     }
                 });
-
                 isHLS = true;
             } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                // Native HLS (Safari/iOS)
                 loadDirect(url);
                 isHLS = true;
             } else {
@@ -1310,29 +1147,23 @@
                 dashPlayer = dashjs.MediaPlayer().create();
                 dashPlayer.initialize(video, url, true);
                 dashPlayer.setAutoPlay(true);
-
                 dashPlayer.on(dashjs.MediaPlayer.events.MANIFEST_LOADED, function() {
                     hideLoading();
                     hideError();
                     const isDynamic = dashPlayer.isDynamic();
                     setLiveMode(isDynamic);
-                    // Get qualities
                     const bitrateInfo = dashPlayer.getBitrateInfoListFor('video');
                     if (bitrateInfo && bitrateInfo.length > 0) {
-                        qualityLevels = bitrateInfo.map(b => ({ height: b.height,
-                            bitrate: b.bitrate, width: b.width }));
+                        qualityLevels = bitrateInfo.map(b => ({ height: b.height, bitrate: b.bitrate,
+                            width: b.width }));
                         buildQualityMenu();
-                        qualityDropdown.style.display = 'block';
                     }
                     updatePlayButton();
                     resetControlsTimer();
                 });
-
                 dashPlayer.on(dashjs.MediaPlayer.events.ERROR, function(e) {
-                    console.error('DASH Error:', e);
                     handleReconnect(url, 'dash');
                 });
-
                 isDASH = true;
             } catch (e) {
                 showError('تعذر تحميل مشغل DASH: ' + e.message);
@@ -1345,7 +1176,6 @@
             video.play().then(() => {
                 hideLoading();
                 hideError();
-                // Check if it seems like a live stream (very long or infinite duration)
                 if (!isFinite(video.duration) || video.duration > 86400) {
                     setLiveMode(true);
                 } else {
@@ -1357,9 +1187,7 @@
                 hideLoading();
                 showError('تعذر تشغيل الفيديو: ' + err.message);
             });
-            isHLS = false;
-            isDASH = false;
-            qualityDropdown.style.display = 'none';
+            document.getElementById('zsQualityDropdown').style.display = 'none';
         }
 
         function handleReconnect(url, type) {
@@ -1369,7 +1197,6 @@
             }
             reconnectAttempts++;
             const delay = Math.min(2000 * Math.pow(1.5, reconnectAttempts - 1), 30000);
-            console.log(`🔄 إعادة الاتصال (محاولة ${reconnectAttempts}) خلال ${delay / 1000} ثانية...`);
             showLoading();
             if (reconnectTimeout) clearTimeout(reconnectTimeout);
             reconnectTimeout = setTimeout(() => {
@@ -1380,6 +1207,15 @@
         }
 
         // ==================== EVENT LISTENERS ====================
+        startPlayBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (STREAM_URL && STREAM_URL.trim() !== '') {
+                loadStream(STREAM_URL);
+            } else {
+                alert('الرجاء تعديل رابط البث داخل الكود (STREAM_URL)');
+            }
+        });
+
         btnPlay.addEventListener('click', (e) => { e.stopPropagation();
             togglePlay(); });
         btnMute.addEventListener('click', (e) => { e.stopPropagation();
@@ -1396,14 +1232,8 @@
             toggleFullscreen(); });
         btnSettings.addEventListener('click', (e) => {
             e.stopPropagation();
-            // Simple settings: toggle URL overlay to change stream
-            if (urlOverlay.classList.contains('zs-hidden')) {
-                showUrlOverlay();
-                urlInput.value = '';
-                urlInput.focus();
-            } else {
-                hideUrlOverlay();
-            }
+            // يمكنك تخصيصه لفتح نافذة تغيير الرابط مثلاً، لكن بما أنك تفضل إدخاله داخل الكود فقط، سنبقيه بدون وظيفة حالياً.
+            alert('تم تعيين الرابط داخل الكود. قم بتعديل المتغير STREAM_URL.');
             closeAllDropdowns();
         });
 
@@ -1412,7 +1242,6 @@
         btnQuality.addEventListener('click', (e) => { e.stopPropagation();
             toggleDropdown(qualityMenu); });
 
-        // Speed menu items
         speedMenu.querySelectorAll('li').forEach(li => {
             li.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -1421,36 +1250,12 @@
             });
         });
 
-        urlSubmit.addEventListener('click', () => {
-            const url = urlInput.value.trim();
-            if (url) {
-                loadStream(url);
-                // Update URL without reload
-                try {
-                    const newUrl = new URL(window.location);
-                    newUrl.searchParams.set('src', url);
-                    window.history.replaceState({}, '', newUrl);
-                } catch (e) {}
-            }
-        });
-        urlInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                urlSubmit.click();
-            }
-        });
-
         errorRetry.addEventListener('click', () => {
             hideError();
-            const currentSrc = video.src || (hls && hls.url) || '';
-            if (currentSrc) {
-                reconnectAttempts = 0;
-                loadStream(currentSrc);
-            } else {
-                showUrlOverlay();
-            }
+            reconnectAttempts = 0;
+            loadStream(STREAM_URL);
         });
 
-        // Progress bar seeking
         progressWrap.addEventListener('click', (e) => {
             if (isLive || !video.duration || !isFinite(video.duration)) return;
             const rect = progressTrack.getBoundingClientRect();
@@ -1461,7 +1266,6 @@
             resetControlsTimer();
         });
 
-        // Progress bar drag
         let isDragging = false;
         progressWrap.addEventListener('mousedown', (e) => {
             if (isLive || !video.duration || !isFinite(video.duration)) return;
@@ -1483,35 +1287,25 @@
         document.addEventListener('mouseup', () => { isDragging = false;
             resetControlsTimer(); });
 
-        // Video events
-        video.addEventListener('timeupdate', () => {
-            updateProgress();
-            updateTimeDisplay();
-        });
+        video.addEventListener('timeupdate', () => { updateProgress();
+            updateTimeDisplay(); });
         video.addEventListener('progress', updateProgress);
-        video.addEventListener('play', () => {
-            updatePlayButton();
-            resetControlsTimer();
-        });
-        video.addEventListener('pause', () => {
-            updatePlayButton();
+        video.addEventListener('play', () => { updatePlayButton();
+            resetControlsTimer(); });
+        video.addEventListener('pause', () => { updatePlayButton();
             showControls();
-            if (controlsHideTimeout) clearTimeout(controlsHideTimeout);
-        });
-        video.addEventListener('ended', () => {
-            updatePlayButton();
-            showControls();
-        });
+            if (controlsHideTimeout) clearTimeout(controlsHideTimeout); });
+        video.addEventListener('ended', () => { updatePlayButton();
+            showControls(); });
         video.addEventListener('waiting', showLoading);
         video.addEventListener('canplay', hideLoading);
         video.addEventListener('playing', hideLoading);
-        video.addEventListener('loadedmetadata', () => {
-            hideLoading();
+        video.addEventListener('loadedmetadata', () => { hideLoading();
             updateTimeDisplay();
-            updateProgress();
-        });
+            updateProgress(); });
         video.addEventListener('error', () => {
             hideLoading();
+            if (isHLS || isDASH) return;
             const err = video.error;
             let msg = 'خطأ في تشغيل الفيديو';
             if (err) {
@@ -1530,52 +1324,32 @@
                         break;
                 }
             }
-            if (isHLS || isDASH) {
-                // Let HLS/DASH handler deal with it
-                return;
-            }
             showError(msg);
         });
 
-        // Wrapper clicks
         wrapper.addEventListener('click', (e) => {
             if (e.target === wrapper || e.target === videoContainer || e.target === video) {
                 togglePlay();
             }
         });
-        video.addEventListener('click', (e) => {
-            e.stopPropagation();
-            togglePlay();
-        });
+        video.addEventListener('click', (e) => { e.stopPropagation();
+            togglePlay(); });
         wrapper.addEventListener('dblclick', (e) => {
             if (e.target === video || e.target === videoContainer || e.target === wrapper) {
                 toggleFullscreen();
             }
         });
 
-        // Mouse movement for controls
-        wrapper.addEventListener('mousemove', () => {
-            showControls();
-        });
+        wrapper.addEventListener('mousemove', showControls);
         wrapper.addEventListener('mouseenter', showControls);
-        wrapper.addEventListener('mouseleave', () => {
-            if (!video.paused) hideControls();
-            closeAllDropdowns();
-        });
+        wrapper.addEventListener('mouseleave', () => { if (!video.paused) hideControls();
+            closeAllDropdowns(); });
+        wrapper.addEventListener('touchstart', (e) => { if (e.target === video || e.target === videoContainer || e
+                .target === wrapper) showControls(); }, { passive: true });
 
-        // Touch events
-        wrapper.addEventListener('touchstart', (e) => {
-            if (e.target === video || e.target === videoContainer || e.target === wrapper) {
-                showControls();
-            }
-        }, { passive: true });
-
-        // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
-            // Only if player is in focus area
             const activeEl = document.activeElement;
             if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) return;
-
             switch (e.key.toLowerCase()) {
                 case ' ':
                 case 'k':
@@ -1599,18 +1373,13 @@
                     togglePiP();
                     break;
                 case 's':
-                    if (!e.ctrlKey && !e.metaKey) {
-                        e.preventDefault();
-                        triggerScreenshot();
-                    }
+                    if (!e.ctrlKey && !e.metaKey) { e.preventDefault();
+                        triggerScreenshot(); }
                     break;
                 case 'r':
-                    if (!e.ctrlKey && !e.metaKey) {
-                        e.preventDefault();
-                        const src = video.src || (hls && hls.url) || '';
-                        if (src) { reconnectAttempts = 0;
-                            loadStream(src); }
-                    }
+                    if (!e.ctrlKey && !e.metaKey) { e.preventDefault();
+                        reconnectAttempts = 0;
+                        loadStream(STREAM_URL); }
                     break;
                 case 'arrowup':
                     e.preventDefault();
@@ -1645,16 +1414,9 @@
             }
         });
 
-        // Fullscreen change
         document.addEventListener('fullscreenchange', () => {
             wrapper.classList.toggle('zs-fullscreen', !!document.fullscreenElement);
             btnFullscreen.classList.toggle('zs-active', !!document.fullscreenElement);
-            if (document.fullscreenElement) {
-                btnFullscreen.textContent = '⛶';
-            } else {
-                btnFullscreen.textContent = '⛶';
-                wrapper.classList.remove('zs-fullscreen');
-            }
             resetControlsTimer();
         });
         document.addEventListener('webkitfullscreenchange', () => {
@@ -1663,33 +1425,26 @@
             resetControlsTimer();
         });
 
-        // PiP change
         video.addEventListener('enterpictureinpicture', () => { btnPiP.classList.add('zs-active'); });
         video.addEventListener('leavepictureinpicture', () => { btnPiP.classList.remove('zs-active'); });
 
-        // Close dropdowns on outside click
         document.addEventListener('click', (e) => {
-            if (!e.target.closest('.zs-dropdown')) {
-                closeAllDropdowns();
-            }
+            if (!e.target.closest('.zs-dropdown')) closeAllDropdowns();
         });
 
-        // Context menu (custom right-click)
         video.addEventListener('contextmenu', (e) => {
             e.preventDefault();
-            // Show a simple alert or custom menu
             const action = confirm(
                 '🎬 Zi Store Player\n\nاختر إجراء:\n• موافق = التقاط صورة (Screenshot)\n• إلغاء = إظهار/إخفاء شريط التحكم');
-            if (action) {
-                triggerScreenshot();
-            } else {
-                toggleControls();
+            if (action) triggerScreenshot();
+            else {
+                controls.classList.toggle('zs-hidden');
+                if (!controls.classList.contains('zs-hidden')) resetControlsTimer();
             }
         });
 
         // ==================== INITIALIZATION ====================
         function init() {
-            // Restore preferences
             try {
                 const savedVol = localStorage.getItem('zs-volume');
                 if (savedVol !== null) {
@@ -1699,9 +1454,7 @@
                     volumeSlider.value = v;
                 }
                 const savedSpeed = localStorage.getItem('zs-speed');
-                if (savedSpeed !== null) {
-                    setSpeed(parseFloat(savedSpeed));
-                }
+                if (savedSpeed !== null) setSpeed(parseFloat(savedSpeed));
                 const savedTheater = localStorage.getItem('zs-theater');
                 if (savedTheater === '1') {
                     wrapper.classList.add('zs-theater');
@@ -1712,32 +1465,11 @@
             updateMuteButton();
             updatePlayButton();
             buildQualityMenu();
-
-            // Check for URL parameter
-            const urlParams = new URLSearchParams(window.location.search);
-            const srcParam = urlParams.get('src') || urlParams.get('stream') || urlParams.get('url');
-
-            if (srcParam) {
-                // Auto-load from URL parameter
-                urlInput.value = srcParam;
-                loadStream(srcParam);
-            } else if (window.ZS_PLAYER_SRC) {
-                // Global variable
-                urlInput.value = window.ZS_PLAYER_SRC;
-                loadStream(window.ZS_PLAYER_SRC);
-            } else {
-                // Show URL input overlay
-                showUrlOverlay();
-                urlInput.focus();
-                setLiveMode(false);
-            }
-
-            // Initial controls state
             showControls();
-            resetControlsTimer();
+            // لا نقوم بتحميل البث تلقائياً، ننتظر النقر على زر Play الكبير
+            startOverlay.classList.remove('zs-hidden');
         }
 
-        // ==================== PUBLIC API ====================
         window.ZiStorePlayer = {
             load: loadStream,
             play: () => { video.play().catch(() => {});
@@ -1754,26 +1486,15 @@
             setQuality: setQuality,
             setSpeed: setSpeed,
             getVideo: () => video,
-            getHls: () => hls,
             isLive: () => isLive,
-            showUrlInput: showUrlOverlay,
-            hideUrlInput: hideUrlOverlay,
+            reload: () => { reconnectAttempts = 0;
+                loadStream(STREAM_URL); },
             destroy: destroyExistingPlayer,
-            reload: () => {
-                const src = video.src || (hls && hls.url) || '';
-                if (src) { reconnectAttempts = 0;
-                    loadStream(src); }
-            },
         };
 
-        // Start
         init();
-
-        console.log('🏆 Zi Store Player ✓ جاهز');
-        console.log('💡 اختصارات لوحة المفاتيح: Space=تشغيل | F=ملء الشاشة | T=مسرح | M=كتم | I=صورة مصغرة | S=لقطة | R=إعادة تحميل | ⬆⬇=صوت | ⬅➡=تقدم');
-        console.log('🌐 يمكن تمرير الرابط عبر: ?src=رابط_البث');
-        console.log('📸 انقر بزر الفأرة الأيمن على الفيديو لخيارات سريعة');
+        console.log('🏆 Zi Store Player ✓ جاهز (اضغط على زر Play للبدء)');
     })();
 </script>
 </body>
-  </html>
+    </html>
