@@ -9767,8 +9767,9 @@ window.resendEmail = async function(logId) {
 };
 
 // ============================================================
-// ADMIN SETTINGS UI
-// ===========================================================SettingsUI() {
+// ADMIN SETTINGS UI - FIXED
+// ============================================================
+async function loadAdminSettingsUI() {
     if (!currentUser || !isAdminCached) return;
 
     const container = document.getElementById('adminSettingsContainer');
