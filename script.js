@@ -10312,7 +10312,46 @@ async function sendUserNotification(userId, title, message) {
         return false;
     }
 }
+// ============================================================
+// COPY WALLET ADDRESS
+// ============================================================
+window.copyWalletAddress = function() {
+    const addressElement = document.getElementById('walletAddressDisplay');
+    if (!addressElement) {
+        showToast('⚠️ Wallet address not found', 'warning');
+        return;
+    }
+    const address = addressElement.textContent.trim();
+    if (!address || address === '') {
+        showToast('⚠️ No wallet address to copy', 'warning');
+        return;
+    }
 
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(address)
+            .then(() => showToast('✅ Wallet address copied!', 'success'))
+            .catch(() => fallbackCopyText(address));
+    } else {
+        fallbackCopyText(address);
+    }
+};
+
+// دالة مساعدة للنسخ في حالة عدم توفر Clipboard API
+function fallbackCopyText(text) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+        document.execCommand('copy');
+        showToast('✅ Wallet address copied!', 'success');
+    } catch (e) {
+        showToast('❌ Failed to copy. Please copy manually.', 'error');
+    }
+    document.body.removeChild(textarea);
+}
 // ============================================================
 // GENERATE LICENCE FOR USER
 // ============================================================
