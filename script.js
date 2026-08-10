@@ -7619,34 +7619,6 @@ ${txHash ? `🔗 *TXID:* \`${txHash}\`` : ''}
     }
 }
 
-// ============================================================
-// COPY HELPER
-// ============================================================
-window.copyToClipboard = function(text) {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text)
-            .then(() => showToast('✅ Copied!', 'success'))
-            .catch(() => fallbackCopy(text));
-    } else {
-        fallbackCopy(text);
-    }
-};
-
-function fallbackCopy(text) {
-    const textarea = document.createElement('textarea');
-    textarea.value = text;
-    textarea.style.position = 'fixed';
-    textarea.style.opacity = '0';
-    document.body.appendChild(textarea);
-    textarea.select();
-    try {
-        document.execCommand('copy');
-        showToast('✅ Copied!', 'success');
-    } catch (e) {
-        showToast('❌ Failed to copy', 'error');
-    }
-    document.body.removeChild(textarea);
-}
 
 // ============================================================
 // CHECKOUT WITH BALANCE
