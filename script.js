@@ -377,6 +377,7 @@ const discountCodes = {
     'VIP2024': { discount: 15 },
     'SUMMER': { discount: 10 }
 };
+
 const paymentWallets = {
     litecoin: {
         name: 'Litecoin',
@@ -395,6 +396,7 @@ const paymentWallets = {
         color: '#26a17b'
     }
 };
+
 let cryptoPrices = { ltc: 0, usdt: 1, lastUpdate: null, isUpdating: false };
 
 // ============================================================
@@ -1112,7 +1114,7 @@ function generateReferralCode(name, email) {
     const prefix = name ? name.substring(0, 3).toUpperCase() : 'USR';
     const random = Math.random().toString(36).substring(2, 6).toUpperCase();
     return `${prefix}${random}`;
-    }
+}
 
 // ============================================================
 // UI UPDATES
@@ -1821,8 +1823,16 @@ function renderTransactions(transactions) {
 // ============================================================
 function renderProfileFull() {
     const container = document.getElementById('profileFullContent');
+    if (!container) {
+        console.warn('⚠️ profileFullContent not found');
+        return;
+    }
     if (!currentUser) {
-        container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-user-circle" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">Please login</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Login to view your profile</div></div>`;
+        container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
+            <i class="fas fa-user-circle" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i>
+            <div style="font-size:18px;font-weight:600;">Please login</div>
+            <div style="font-size:13px;opacity:0.4;margin-top:4px;">Login to view your profile</div>
+        </div>`;
         return;
     }
     const displayName = currentUser.displayName || currentUser.email || 'User';
@@ -2318,7 +2328,8 @@ function setBadges(badges) {
         }
     });
     updateBadgesInput();
-                }
+}
+
 // ============================================================
 // ADMIN FALLBACK PRODUCTS
 // ============================================================
@@ -4142,49 +4153,6 @@ window.placeOrderTelegram = function() {
 };
 
 // ============================================================
-// PROXY FUNCTIONS
-// ============================================================
-function renderProxyPackages() {
-    const container = document.getElementById('proxyPackages');
-    if (!container) return;
-    container.innerHTML = proxyPackages.map(pkg => {
-        const isInCart = cart.some(item => item.id === pkg.id && item.isProxy);
-        return `
-            <div class="product-card" style="border: 2px solid var(--border); border-radius: var(--radius-md); padding: 12px; text-align: center; background: var(--card-bg);">
-                <div style="font-size: 28px; margin-bottom: 4px;">🌐</div>
-                <div style="font-weight: 700; font-size: 16px; color: var(--text);">${pkg.name}</div>
-                <div style="font-size: 13px; color: var(--text-secondary); opacity: 0.5;">${pkg.quantity} proxy(ies) · ${pkg.duration} days</div>
-                <div style="font-size: 20px; font-weight: 700; color: var(--primary); margin: 6px 0;">$${pkg.price.toFixed(2)}</div>
-                <button class="btn-add-cart ${isInCart ? 'added' : ''}" onclick="addProxyToCart('${pkg.id}')" style="width: 100%; padding: 8px; border: none; border-radius: var(--radius-sm); background: ${isInCart ? 'var(--success)' : 'var(--primary)'}; color: #fff; font-weight: 600; cursor: pointer; transition: 0.2s;">
-                    <i class="fas ${isInCart ? 'fa-check' : 'fa-cart-plus'}"></i> ${isInCart ? 'Added' : 'Add to Cart'}
-                </button>
-            </div>
-        `;
-    }).join('');
-}
-
-window.addProxyToCart = function(packageId) {
-    const pkg = proxyPackages.find(p => p.id === packageId);
-    if (!pkg) { showToast('⚠️ Package not found', 'warning'); return; }
-    const existing = cart.find(item => item.id === packageId && item.isProxy);
-    if (existing) {
-        showToast('⚠️ Already in cart', 'warning');
-        return;
-    }
-    cart.push({
-        ...pkg,
-        isProxy: true,
-        quantity: 1,
-        currency: 'USD',
-    });
-    saveUserData(true);
-    updateCartUI();
-    renderProxyPackages();
-    showToast(`✅ Added ${pkg.name} to cart`, 'success');
-    updateProductCardButton(packageId);
-};
-
-// ============================================================
 // TELEGRAM FUNCTIONS
 // ============================================================
 async function sendTelegramNotification(chatId, message) {
@@ -4328,6 +4296,49 @@ window.checkTelegramStatus = async function() {
         await saveUserData();
     } catch (error) { console.error('❌ Error checking Telegram status:', error);
         showToast('❌ Failed to check Telegram status: ' + error.message, 'error'); }
+};
+
+// ============================================================
+// PROXY FUNCTIONS
+// ============================================================
+function renderProxyPackages() {
+    const container = document.getElementById('proxyPackages');
+    if (!container) return;
+    container.innerHTML = proxyPackages.map(pkg => {
+        const isInCart = cart.some(item => item.id === pkg.id && item.isProxy);
+        return `
+            <div class="proxy-card">
+                <div class="proxy-icon">🌐</div>
+                <div class="proxy-name">${pkg.name}</div>
+                <div class="proxy-meta">${pkg.quantity} proxies · ${pkg.duration} days</div>
+                <div class="proxy-price">$${pkg.price.toFixed(2)}</div>
+                <button class="proxy-btn ${isInCart ? 'added' : ''}" onclick="addProxyToCart('${pkg.id}')">
+                    ${isInCart ? '✅ Added' : 'Add to Cart'}
+                </button>
+            </div>
+        `;
+    }).join('');
+}
+
+window.addProxyToCart = function(packageId) {
+    const pkg = proxyPackages.find(p => p.id === packageId);
+    if (!pkg) { showToast('⚠️ Package not found', 'warning'); return; }
+    const existing = cart.find(item => item.id === packageId && item.isProxy);
+    if (existing) {
+        showToast('⚠️ Already in cart', 'warning');
+        return;
+    }
+    cart.push({
+        ...pkg,
+        isProxy: true,
+        quantity: 1,
+        currency: 'USD',
+    });
+    saveUserData(true);
+    updateCartUI();
+    renderProxyPackages();
+    showToast(`✅ Added ${pkg.name} to cart`, 'success');
+    updateProductCardButton(packageId);
 };
 
 // ============================================================
@@ -4781,34 +4792,41 @@ window.copyReferralCode2 = function() {
 // ADMIN PANEL
 // ============================================================
 window.openAdminPanel = function() {
-    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized. Admin only.', 'error'); return; }
+    if (!currentUser || !isAdminCached) {
+        showToast('⛔ Unauthorized. Admin only.', 'error');
+        return;
+    }
     const panel = document.getElementById('adminPanel');
+    if (!panel) {
+        showToast('❌ Admin panel not found in DOM', 'error');
+        console.error('❌ adminPanel element not found');
+        return;
+    }
     if (panel.classList.contains('open')) {
         panel.classList.remove('open');
         document.body.style.overflow = '';
         return;
-    } else {
-        panel.classList.add('open');
-        document.body.style.overflow = 'hidden';
-        switchAdminTab('dashboard');
-        loadAdminOrders();
-        startAdminRealtimeListener();
-        loadDownloads();
-        loadNotifications();
-        renderAdminProducts(products);
-        loadAdminUsers();
-        loadLicences();
-        loadDashboardStats();
-        loadAdminTopups();
-        renderFallbackProductsAdmin();
-        loadCoupons();
-        setTimeout(addBannerAdminControls, 300);
-        loadSliderSettings();
-        renderSliderSettingsUI();
-        document.getElementById('sliderIntervalInput').value = sliderIntervalTime;
-        loadMarqueeSettings();
-        renderMarqueeSettingsUI();
     }
+    panel.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    switchAdminTab('dashboard');
+    loadAdminOrders();
+    startAdminRealtimeListener();
+    loadDownloads();
+    loadNotifications();
+    renderAdminProducts(products);
+    loadAdminUsers();
+    loadLicences();
+    loadDashboardStats();
+    loadAdminTopups();
+    renderFallbackProductsAdmin();
+    loadCoupons();
+    setTimeout(addBannerAdminControls, 300);
+    loadSliderSettings();
+    renderSliderSettingsUI();
+    document.getElementById('sliderIntervalInput').value = sliderIntervalTime;
+    loadMarqueeSettings();
+    renderMarqueeSettingsUI();
 };
 
 window.closeAdminPanel = function() {
@@ -5320,94 +5338,51 @@ window.deleteUserAccount = async function(uid) {
         showToast('❌ Error: ' + error.message, 'error'); }
 };
 window.viewUserDetails = async function(uid) {
-    if (!currentUser || !isAdminCached) {
-        showToast('⛔ Unauthorized', 'error');
-        return;
-    }
+    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     try {
         const userRef = doc(db, 'users', uid);
         const userSnap = await getDoc(userRef);
-        if (!userSnap.exists()) {
-            showToast('❌ User not found', 'error');
-            return;
-        }
+        if (!userSnap.exists()) { showToast('❌ User not found', 'error'); return; }
         const data = userSnap.data();
         const orders = data.history || [];
         const totalSpent = orders.reduce((sum, o) => sum + (o.total || 0), 0);
         const location = data.location || data.country || 'Not specified';
         const photo = data.photoURL || '';
         const balance = data.balance || 0;
-        const joinedDate = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        }) : '--';
-        
+        const joinedDate = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('en-US', { year: 'numeric',
+                month: 'long', day: 'numeric' }) : '--';
         const content = document.getElementById('userDetailsContent');
         if (!content) {
             showToast('❌ User details content not found', 'error');
             return;
         }
-        
         content.innerHTML = `
-            <div style="padding:4px 0;">
-                <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
-                    <div style="width:44px; height:44px; border-radius:50%; background:var(--primary); display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:700; color:#fff; overflow:hidden;">
-                        ${photo ? `<img src="${photo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />` : (data.name || 'U').charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                        <div style="font-size:15px; font-weight:700; color:var(--text);">${data.name || 'Unknown'}</div>
-                        <div style="font-size:12px; color:var(--text-secondary);">${data.email || 'No email'}</div>
-                        <div style="font-size:12px; color:var(--text-secondary);">📍 Country: ${location}</div>
-                        <div style="font-size:11px; color:var(--text-secondary); opacity:0.4;">📅 Joined: ${joinedDate}</div>
-                        <div style="font-size:12px; color:var(--vip-color); font-weight:600;">🎯 RP: ${data.rp || 0} • 💰 Balance: $${balance.toFixed(2)}</div>
-                        <div style="font-size:12px; color:var(--text-secondary);">📦 ${orders.length} orders</div>
-                    </div>
-                </div>
-                <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:6px; margin-bottom:10px;">
-                    <div style="background:var(--bg); border-radius:6px; padding:6px; text-align:center; border:1px solid var(--border);">
-                        <div style="font-size:14px; font-weight:700; color:var(--text);">${orders.length}</div>
-                        <div style="font-size:9px; color:var(--text-secondary);">Orders</div>
-                    </div>
-                    <div style="background:var(--bg); border-radius:6px; padding:6px; text-align:center; border:1px solid var(--border);">
-                        <div style="font-size:14px; font-weight:700; color:var(--primary);">${totalSpent.toFixed(2)} $</div>
-                        <div style="font-size:9px; color:var(--text-secondary);">Spent</div>
-                    </div>
-                    <div style="background:var(--bg); border-radius:6px; padding:6px; text-align:center; border:1px solid var(--border);">
-                        <div style="font-size:14px; font-weight:700; color:var(--vip-color);">${data.rp || 0}</div>
-                        <div style="font-size:9px; color:var(--text-secondary);">RP</div>
-                    </div>
-                    <div style="background:var(--bg); border-radius:6px; padding:6px; text-align:center; border:1px solid var(--border);">
-                        <div style="font-size:14px; font-weight:700; color:var(--success);">$${balance.toFixed(2)}</div>
-                        <div style="font-size:9px; color:var(--text-secondary);">Balance</div>
-                    </div>
-                </div>
-                <div style="font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:4px;">Recent Orders</div>
-                ${orders.length > 0 ? orders.slice(-5).reverse().map(o => `
-                    <div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid var(--border); font-size:12px;">
-                        <span>${o.items ? o.items.map(i => i.name).join(', ') : 'Order'}</span>
-                        <span style="color:var(--primary);">${(o.total || 0).toFixed(2)} $</span>
-                        <span class="status-badge ${o.status || 'pending'}" style="font-size:9px; padding:1px 8px;">${o.status || 'pending'}</span>
-                    </div>
-                `).join('') : '<div style="text-align:center; color:var(--text-secondary); opacity:0.4; padding:10px;">No orders</div>'}
-                <div style="margin-top:10px; display:flex; gap:6px; flex-wrap:wrap;">
-                    <button onclick="closeUserDetailsModal();" style="padding:4px 14px; border:1px solid var(--border); border-radius:6px; background:var(--card-bg); color:var(--text); cursor:pointer; font-size:12px;">Close</button>
-                    ${data.isBanned ? 
-                        `<button onclick="closeUserDetailsModal(); toggleUserBan('${uid}', false);" style="padding:4px 14px; border:none; border-radius:6px; background:var(--success); color:#0a0a1a; cursor:pointer; font-weight:600; font-size:12px;"><i class="fas fa-user-check"></i> Unban</button>` : 
-                        `<button onclick="closeUserDetailsModal(); toggleUserBan('${uid}', true);" style="padding:4px 14px; border:none; border-radius:6px; background:var(--danger); color:#fff; cursor:pointer; font-weight:600; font-size:12px;"><i class="fas fa-ban"></i> Ban</button>`
-                    }
-                    ${uid !== currentUser.uid ? 
-                        `<button onclick="closeUserDetailsModal(); deleteUserAccount('${uid}');" style="padding:4px 14px; border:none; border-radius:6px; background:var(--danger); color:#fff; cursor:pointer; font-weight:600; font-size:12px;"><i class="fas fa-trash"></i> Delete</button>` : ''
-                    }
-                </div>
+          <div style="padding:4px 0;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+              <div style="width:44px;height:44px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;overflow:hidden;">
+                ${photo ? `<img src="${photo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />` : (data.name||'U').charAt(0).toUpperCase()}
+              </div>
+              <div><div style="font-size:15px;font-weight:700;color:var(--text);">${data.name||'Unknown'}</div><div style="font-size:12px;color:var(--text-secondary);">${data.email||'No email'}</div><div style="font-size:12px;color:var(--text-secondary);">📍 Country: ${location}</div><div style="font-size:11px;color:var(--text-secondary);opacity:0.4;">📅 Joined: ${joinedDate}</div><div style="font-size:12px;color:var(--vip-color);font-weight:600;">🎯 RP: ${data.rp||0} • 💰 Balance: $${balance.toFixed(2)}</div><div style="font-size:12px;color:var(--text-secondary);">📦 ${orders.length} orders</div></div>
             </div>
-        `;
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:10px;">
+              <div style="background:var(--bg);border-radius:6px;padding:6px;text-align:center;border:1px solid var(--border);"><div style="font-size:14px;font-weight:700;color:var(--text);">${orders.length}</div><div style="font-size:9px;color:var(--text-secondary);">Orders</div></div>
+              <div style="background:var(--bg);border-radius:6px;padding:6px;text-align:center;border:1px solid var(--border);"><div style="font-size:14px;font-weight:700;color:var(--primary);">${totalSpent.toFixed(2)} $</div><div style="font-size:9px;color:var(--text-secondary);">Spent</div></div>
+              <div style="background:var(--bg);border-radius:6px;padding:6px;text-align:center;border:1px solid var(--border);"><div style="font-size:14px;font-weight:700;color:var(--vip-color);">${data.rp||0}</div><div style="font-size:9px;color:var(--text-secondary);">RP</div></div>
+              <div style="background:var(--bg);border-radius:6px;padding:6px;text-align:center;border:1px solid var(--border);"><div style="font-size:14px;font-weight:700;color:var(--success);">$${balance.toFixed(2)}</div><div style="font-size:9px;color:var(--text-secondary);">Balance</div></div>
+            </div>
+            <div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;">Recent Orders</div>
+            ${orders.length > 0 ? orders.slice(-5).reverse().map(o => `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px;"><span>${o.items?o.items.map(i=>i.name).join(', '):'Order'}</span><span style="color:var(--primary);">${(o.total||0).toFixed(2)} $</span><span class="status-badge ${o.status||'pending'}" style="font-size:9px;padding:1px 8px;">${o.status||'pending'}</span></div>`).join('') : '<div style="text-align:center;color:var(--text-secondary);opacity:0.4;padding:10px;">No orders</div>'}
+            <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+              <button onclick="closeUserDetailsModal();" style="padding:4px 14px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;">Close</button>
+              ${data.isBanned?`<button onclick="closeUserDetailsModal();toggleUserBan('${uid}',false);" style="padding:4px 14px;border:none;border-radius:6px;background:var(--success);color:#0a0a1a;cursor:pointer;font-weight:600;font-size:12px;"><i class="fas fa-user-check"></i> Unban</button>`:`<button onclick="closeUserDetailsModal();toggleUserBan('${uid}',true);" style="padding:4px 14px;border:none;border-radius:6px;background:var(--danger);color:#fff;cursor:pointer;font-weight:600;font-size:12px;"><i class="fas fa-ban"></i> Ban</button>`}
+              ${uid!==currentUser.uid?`<button onclick="closeUserDetailsModal();deleteUserAccount('${uid}');" style="padding:4px 14px;border:none;border-radius:6px;background:var(--danger);color:#fff;cursor:pointer;font-weight:600;font-size:12px;"><i class="fas fa-trash"></i> Delete</button>`:''}
+            </div>
+          </div>`;
         document.getElementById('userDetailsModal').classList.add('open');
-    } catch (error) {
-        console.error('Error viewing user details:', error);
-        showToast('❌ Error loading user details', 'error');
-    }
+    } catch (error) { console.error('Error viewing user details:', error);
+        showToast('❌ Error loading user details', 'error'); }
 };
+window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
 // ============================================================
 // LICENCE MANAGEMENT
@@ -5713,12 +5688,51 @@ function toggleLicencesList() {
     if (list) list.style.display = list.style.display === 'none' ? 'block' : 'none';
 }
 
-function openLicenceModal() {
-    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
-    document.getElementById('licenceModal').classList.add('open');
-}
+window.openLicenceModal = function() {
+    if (!currentUser) {
+        showToast('⚠️ Please login first', 'warning');
+        openAuthModal();
+        return;
+    }
+    const modal = document.getElementById('licenceModal');
+    if (!modal) {
+        console.error('❌ licenceModal not found in DOM');
+        showToast('❌ Licence modal not found', 'error');
+        return;
+    }
+    renderUserLicences();
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+};
 
-function closeLicenceModal() { document.getElementById('licenceModal').classList.remove('open'); }
+window.closeLicenceModal = function() {
+    const modal = document.getElementById('licenceModal');
+    if (modal) {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+};
+
+// Compatibility aliases for HTML
+window.closeLicenseModal = function() {
+    if (typeof window.closeLicenceModal === 'function') {
+        window.closeLicenceModal();
+    } else {
+        const modal = document.getElementById('licenceModal');
+        if (modal) {
+            modal.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+    }
+};
+
+window.activatedLicence = function() {
+    if (typeof window.activateLicence === 'function') {
+        window.activateLicence();
+    } else {
+        showToast('⚠️ Licence activation function not ready', 'warning');
+    }
+};
 
 async function activateLicence() {
     const input = document.getElementById('licenceInput');
@@ -5770,204 +5784,8 @@ async function activateLicence() {
             </div>
         `;
     } catch (error) { resultEl.innerHTML = `<span style="color:var(--danger);">❌ Error: ${error.message}</span>`; }
-                    }
-
-// ============================================================
-// USER SETTINGS - TOGGLE SWITCHES
-// ============================================================
-
-// 1. تحميل إعدادات المستخدم من localStorage أو Firestore
-async function loadUserSettings() {
-    const defaultSettings = {
-        ipDetection: true,
-        emailNotifications: true,
-        twoFactorAuth: false
-    };
-    
-    try {
-        const saved = localStorage.getItem('zi_user_settings');
-        if (saved) {
-            const settings = JSON.parse(saved);
-            return { ...defaultSettings, ...settings };
-        }
-    } catch (e) {
-        console.warn('Failed to load settings from localStorage:', e);
-    }
-    
-    if (currentUser) {
-        try {
-            const userRef = doc(db, 'users', currentUser.uid);
-            const userSnap = await getDoc(userRef);
-            if (userSnap.exists()) {
-                const data = userSnap.data();
-                if (data.settings) {
-                    const settings = { ...defaultSettings, ...data.settings };
-                    localStorage.setItem('zi_user_settings', JSON.stringify(settings));
-                    return settings;
-                }
-            }
-        } catch (error) {
-            console.error('Error loading settings from Firestore:', error);
-        }
-    }
-    
-    return defaultSettings;
 }
-
-// 2. حفظ إعدادات المستخدم
-async function saveUserSettings(settings) {
-    try {
-        localStorage.setItem('zi_user_settings', JSON.stringify(settings));
-    } catch (e) {
-        console.warn('Failed to save settings to localStorage:', e);
-    }
-    
-    if (currentUser) {
-        try {
-            const userRef = doc(db, 'users', currentUser.uid);
-            await updateDoc(userRef, {
-                settings: settings,
-                updatedAt: serverTimestamp()
-            });
-            console.log('✅ Settings saved to Firestore');
-        } catch (error) {
-            console.error('Failed to save settings to Firestore:', error);
-        }
-    }
-}
-
-// 3. تبديل الإعداد (Toggle Switch)
-async function toggleSetting(element, settingName) {
-    if (element._isToggling) return;
-    element._isToggling = true;
-    
-    element.style.transition = 'transform 0.1s';
-    element.style.transform = 'scale(0.95)';
-    setTimeout(() => {
-        element.style.transform = 'scale(1)';
-    }, 100);
-    
-    const isActive = element.classList.contains('active');
-    const newState = !isActive;
-    
-    if (newState) {
-        element.classList.add('active');
-        element.classList.remove('inactive');
-    } else {
-        element.classList.remove('active');
-        element.classList.add('inactive');
-    }
-    
-    const settings = await loadUserSettings();
-    settings[settingName] = newState;
-    await saveUserSettings(settings);
-    
-    handleSettingChange(settingName, newState);
-    
-    const settingLabels = {
-        ipDetection: 'Auto Detection',
-        emailNotifications: 'Email Notifications',
-        twoFactorAuth: 'Two-Factor Auth'
-    };
-    const label = settingLabels[settingName] || settingName;
-    const status = newState ? 'enabled' : 'disabled';
-    showToast(`🔔 ${label} ${status}`, newState ? 'success' : 'info');
-    
-    await logActivity('settings_change', {
-        setting: settingName,
-        newState: newState,
-        timestamp: new Date().toISOString()
-    });
-    
-    element._isToggling = false;
-}
-
-// 4. معالجة تغيير الإعداد
-function handleSettingChange(settingName, newState) {
-    switch (settingName) {
-        case 'ipDetection':
-            if (newState) {
-                console.log('✅ IP Detection enabled');
-                if (currentUser) {
-                    fetchUserInfo().then(info => {
-                        if (info) {
-                            checkIPChange(currentUser, info.ip, info.country_name);
-                        }
-                    });
-                }
-            } else {
-                console.log('❌ IP Detection disabled');
-            }
-            break;
-        case 'emailNotifications':
-            if (newState) {
-                console.log('✅ Email Notifications enabled');
-                if (currentUser) {
-                    sendTestNotification(currentUser.email);
-                }
-            } else {
-                console.log('❌ Email Notifications disabled');
-            }
-            break;
-        case 'twoFactorAuth':
-            if (newState) {
-                console.log('✅ Two-Factor Auth enabled');
-                showToast('🔐 Two-Factor Authentication enabled', 'success', 3000);
-            } else {
-                console.log('❌ Two-Factor Auth disabled');
-            }
-            break;
-    }
-}
-
-// 5. إرسال إشعار تجريبي
-async function sendTestNotification(email) {
-    try {
-        await sendEmail(
-            email,
-            '🔔 Test Notification',
-            `
-            <div style="font-family: Arial, sans-serif; padding: 20px;">
-                <h2>🔔 Test Notification</h2>
-                <p>This is a test notification to confirm your email notifications are working.</p>
-                <p style="color: #888; font-size: 12px;">You received this because you enabled email notifications in your settings.</p>
-                <hr>
-                <p style="color: #888; font-size: 11px;">ZI Store - ${new Date().toLocaleString()}</p>
-            </div>
-            `
-        );
-        console.log('✅ Test notification sent to:', email);
-    } catch (error) {
-        console.error('Failed to send test notification:', error);
-    }
-}
-
-// 6. تحديث واجهة الإعدادات عند فتح القائمة
-async function renderSettingsUI() {
-    const settings = await loadUserSettings();
-    
-    document.querySelectorAll('.toggle-switch[data-setting]').forEach(el => {
-        const settingName = el.dataset.setting;
-        const isActive = settings[settingName] === true;
-        
-        if (isActive) {
-            el.classList.add('active');
-            el.classList.remove('inactive');
-        } else {
-            el.classList.remove('active');
-            el.classList.add('inactive');
-        }
-    });
-}
-
-// 7. تصدير دوال الإعدادات
-window.loadUserSettings = loadUserSettings;
-window.saveUserSettings = saveUserSettings;
-window.toggleSetting = toggleSetting;
-window.renderSettingsUI = renderSettingsUI;
-window.handleSettingChange = handleSettingChange;
-
-console.log('✅ Settings system loaded successfully!');
+window.activateLicence = activateLicence;
 
 // ============================================================
 // RATINGS
@@ -6794,6 +6612,79 @@ window.loadFraudLogs = async function() {
         container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load fraud logs: ${error.message}</div>`;
     }
 };
+
+// ============================================================
+// ORDER HISTORY (User-specific)
+// ============================================================
+window.clearOrderHistory = async function() {
+    if (!currentUser) {
+        showToast('⚠️ Please login first', 'warning');
+        return;
+    }
+    if (!confirm('⚠️ Are you sure you want to clear all order history? This cannot be undone!')) {
+        return;
+    }
+    try {
+        const userRef = doc(db, 'users', currentUser.uid);
+        await updateDoc(userRef, { history: [] });
+        userProfile.history = [];
+        renderHistoryFull();
+        updateFullUserMenu();
+        showToast('🗑️ Order history cleared successfully!', 'success');
+    } catch (error) {
+        console.error('Error clearing order history:', error);
+        showToast('❌ Failed to clear order history', 'error');
+    }
+};
+
+window.renderHistoryFull = function() {
+    const container = document.getElementById('historyFullContent');
+    if (!container) return;
+
+    const history = userProfile.history || [];
+    if (history.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:40px 20px; color:var(--text-secondary);">
+            <i class="fas fa-shopping-bag" style="font-size:48px; opacity:0.15; display:block; margin-bottom:12px;"></i>
+            <div style="font-size:18px; font-weight:600;">No orders yet</div>
+            <div style="font-size:13px; opacity:0.4; margin-top:4px;">Your orders will appear here</div>
+        </div>`;
+        return;
+    }
+
+    let html = '';
+    history.forEach(order => {
+        const date = order.date ? new Date(order.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '--';
+        const total = order.total || 0;
+        const status = order.status || 'pending';
+        const itemsList = order.items ? order.items.map(item => `${item.name} (x${item.quantity || 1})`).join(', ') : 'No items';
+        const orderId = order.id || '------';
+        const orderIdDisplay = orderId.slice(-6);
+
+        const statusMap = {
+            'pending': { label: '⏳ Pending', class: 'pending' },
+            'confirmed': { label: '✅ Confirmed', class: 'confirmed' },
+            'rejected': { label: '❌ Rejected', class: 'rejected' }
+        };
+        const info = statusMap[status] || statusMap['pending'];
+
+        html += `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--glass-bg);border-radius:var(--radius-sm);border:1px solid var(--glass-border);margin-bottom:6px;">
+                <div>
+                    <div style="font-weight:700;font-size:14px;">#${orderIdDisplay}</div>
+                    <div style="font-size:12px;color:var(--text-secondary);opacity:0.5;">${itemsList}</div>
+                    <div style="font-size:11px;color:var(--text-secondary);opacity:0.3;">${date}</div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-weight:800;font-size:16px;color:var(--primary);">$${total.toFixed(2)}</div>
+                    <span class="status-badge ${info.class}" style="font-size:10px;padding:2px 10px;">${info.label}</span>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+};
+
 // ============================================================
 // TOPUP SYSTEM - BALANCE FUNCTIONS
 // ============================================================
@@ -8408,7 +8299,7 @@ async function logFraudDetection(data) {
     } catch (error) {
         console.error('Error logging fraud:', error);
     }
-                    }
+}
 
 // ============================================================
 // LIMITED QUANTITY PRODUCTS
@@ -9308,31 +9199,28 @@ window.generatePDFInvoice = function(orderData) {
 // ============================================================
 async function getVisitorInfo() {
     try {
-        const response = await fetch(`${SUPABASE_URL}/functions/v1/get-ip-info`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                'Accept': 'application/json',
-            }
-        });
-        if (!response.ok) throw new Error('Failed to fetch IP info');
+        const response = await fetch('https://api.ipify.org?format=json');
         const data = await response.json();
-        return {
-            ip: data.ip || 'Unknown',
-            country: data.country_name || 'Unknown',
-            country_code: data.country_code || 'XX',
-            city: data.city || 'Unknown',
-            timezone: data.timezone || 'UTC'
-        };
+        const ip = data.ip || 'Unknown';
+        try {
+            const geoResponse = await fetch(`https://ipapi.co/${ip}/json/`);
+            const geoData = await geoResponse.json();
+            return {
+                ip: ip,
+                country: geoData.country_name || 'Unknown',
+                country_code: geoData.country_code || 'XX',
+                city: geoData.city || 'Unknown',
+                region: geoData.region || 'Unknown',
+                timezone: geoData.timezone || 'UTC',
+                isp: geoData.org || 'Unknown'
+            };
+        } catch (geoError) {
+            console.warn('Geo lookup failed:', geoError);
+            return { ip: ip, country: 'Unknown', country_code: 'XX', city: 'Unknown', region: 'Unknown', timezone: 'UTC', isp: 'Unknown' };
+        }
     } catch (error) {
-        console.error('Error fetching visitor info:', error);
-        return {
-            ip: 'Unknown',
-            country: 'Unknown',
-            country_code: 'XX',
-            city: 'Unknown',
-            timezone: 'UTC'
-        };
+        console.error('Error getting visitor info:', error);
+        return { ip: 'Unknown', country: 'Unknown', country_code: 'XX', city: 'Unknown', region: 'Unknown', timezone: 'UTC', isp: 'Unknown' };
     }
 }
 
@@ -9473,60 +9361,377 @@ async function sendLicenceEmail(userEmail, licenceData) {
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Your Licence Code</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:#f0f2f8;padding:20px;margin:0}.container{max-width:600px;margin:0 auto;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.08)}.header{background:linear-gradient(135deg,#6c5ce7,#a29bfe);padding:30px 30px 20px;text-align:center}.logo{font-size:28px;font-weight:900;color:#fff}.logo span{color:#f2a900}.content{padding:35px 30px}.code-box{background:#f8f8ff;border-radius:12px;padding:20px;text-align:center;border:2px dashed #6c5ce7;margin:16px 0}.code-box .code{font-size:28px;font-weight:900;color:#6c5ce7;font-family:monospace;letter-spacing:4px}.code-box .label{font-size:12px;color:#888}.btn-primary{display:inline-block;background:#6c5ce7;color:#fff;padding:12px 32px;border-radius:30px;text-decoration:none;font-weight:700;font-size:14px;transition:all .3s}.btn-primary:hover{background:#5a4bd1;transform:translateY(-2px);box-shadow:0 8px 25px rgba(108,92,231,0.3)}.text-center{text-align:center}.footer{padding:16px 30px;text-align:center;background:#f8f8ff}.footer-text{font-size:11px;color:#888}@media(max-width:480px){.header{padding:20px}.content{padding:20px 15px}.code-box .code{font-size:22px}}</style></head><body><div class="container"><div class="header"><div class="logo">ZI <span>Store</span></div></div><div class="content"><h2 style="color:#1a1a2e;font-size:20px;">🔑 Your Licence Code</h2><p style="color:#4a4a6a;font-size:14px;margin:6px 0 12px;">Thank you for your purchase! Here is your licence code for <strong>${licenceData.scriptName}</strong>:</p><div class="code-box"><div class="label">LICENCE CODE</div><div class="code">${licenceData.code}</div></div><div style="background:#f8f8ff;border-radius:8px;padding:12px 16px;margin:12px 0;font-size:13px;color:#4a4a6a;"><strong>Expires:</strong> ${new Date(licenceData.expiryDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div><p style="text-align:center;font-size:12px;color:#888;margin-top:8px;">You can also find this licence in your account dashboard.</p><hr style="border:none;border-top:1px solid #f0f2f8;margin:16px 0;"><div class="text-center"><a href="https://zi-store.online" class="btn-primary">📦 Visit Store</a></div></div><div class="footer"><div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div></div></div></body></html>`;
     return await sendEmail(userEmail, `🔑 Your Licence for ${licenceData.scriptName}`, html);
 }
-// ============================================================
-// FIX: MISSING FUNCTIONS
-// ============================================================
 
-// 1. دالة renderHistoryFull (كانت مفقودة)
-window.renderHistoryFull = function() {
-    const container = document.getElementById('historyFullContent');
-    if (!container) return;
+// ============================================================
+// NETWORK STATUS DETECTION - CONNECTION MONITOR
+// ============================================================
+let isOnline = navigator.onLine;
+let wasOffline = false;
 
-    const history = userProfile.history || [];
-    if (history.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:40px 20px; color:var(--text-secondary);">
-            <i class="fas fa-shopping-bag" style="font-size:48px; opacity:0.15; display:block; margin-bottom:12px;"></i>
-            <div style="font-size:18px; font-weight:600;">No orders yet</div>
-            <div style="font-size:13px; opacity:0.4; margin-top:4px;">Your orders will appear here</div>
-        </div>`;
-        return;
+function showOfflineToast() {
+    const toast = document.getElementById('toast');
+    const messageEl = document.getElementById('toastMessage');
+    const iconEl = toast?.querySelector('.toast-icon');
+    if (!toast || !messageEl) return;
+    toast.classList.remove('show');
+    clearTimeout(window.toastTimeout);
+    toast.className = 'toast';
+    toast.classList.add('error', 'large');
+    if (iconEl) {
+        iconEl.innerHTML = '<i class="fas fa-wifi" style="color: #ff6b6b; font-size: 24px;"></i>';
     }
-
-    let html = '';
-    history.forEach(order => {
-        const date = order.date ? new Date(order.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '--';
-        const total = order.total || 0;
-        const status = order.status || 'pending';
-        const itemsList = order.items ? order.items.map(item => `${item.name} (x${item.quantity || 1})`).join(', ') : 'No items';
-        const orderId = order.id || '------';
-        const orderIdDisplay = orderId.slice(-6);
-
-        const statusMap = {
-            'pending': { label: '⏳ Pending', class: 'pending' },
-            'confirmed': { label: '✅ Confirmed', class: 'confirmed' },
-            'rejected': { label: '❌ Rejected', class: 'rejected' }
-        };
-        const info = statusMap[status] || statusMap['pending'];
-
-        html += `
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:var(--glass-bg); border-radius:var(--radius-sm); border:1px solid var(--glass-border); margin-bottom:6px;">
-                <div>
-                    <div style="font-weight:700; font-size:14px;">#${orderIdDisplay}</div>
-                    <div style="font-size:12px; color:var(--text-secondary); opacity:0.5;">${itemsList}</div>
-                    <div style="font-size:11px; color:var(--text-secondary); opacity:0.3;">${date}</div>
-                </div>
-                <div style="text-align:right;">
-                    <div style="font-weight:800; font-size:16px; color:var(--primary);">$${total.toFixed(2)}</div>
-                    <span class="status-badge ${info.class}" style="font-size:10px; padding:2px 10px;">${info.label}</span>
-                </div>
+    messageEl.innerHTML = `
+        <div style="text-align: center;">
+            <div style="font-size: 18px; font-weight: 800; color: var(--danger);">
+                ⚠️ No Internet Connection
             </div>
-        `;
+            <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
+                Please check your connection and try again.
+            </div>
+            <div style="font-size: 11px; color: var(--text-secondary); opacity: 0.4; margin-top: 6px;">
+                <i class="fas fa-spinner fa-spin"></i> Waiting for connection...
+            </div>
+        </div>
+    `;
+    toast.style.display = 'flex';
+    toast.style.flexDirection = 'column';
+    toast.style.alignItems = 'center';
+    toast.style.maxWidth = '420px';
+    toast.style.padding = '20px 24px';
+    toast.style.borderColor = 'var(--danger)';
+    toast.style.background = 'rgba(255, 107, 107, 0.08)';
+    void toast.offsetWidth;
+    toast.classList.add('show');
+    wasOffline = true;
+}
+
+function showOnlineToast() {
+    const toast = document.getElementById('toast');
+    const messageEl = document.getElementById('toastMessage');
+    const iconEl = toast?.querySelector('.toast-icon');
+    if (!toast || !messageEl) return;
+    toast.classList.remove('show');
+    clearTimeout(window.toastTimeout);
+    toast.className = 'toast';
+    toast.classList.add('success', 'large');
+    if (iconEl) {
+        iconEl.innerHTML = '<i class="fas fa-wifi" style="color: #00d4aa; font-size: 24px;"></i>';
+    }
+    messageEl.innerHTML = `
+        <div style="text-align: center;">
+            <div style="font-size: 18px; font-weight: 800; color: var(--success);">
+                ✅ Internet Connected!
+            </div>
+            <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
+                Your connection has been restored.
+            </div>
+        </div>
+    `;
+    toast.style.display = 'flex';
+    toast.style.flexDirection = 'column';
+    toast.style.alignItems = 'center';
+    toast.style.maxWidth = '420px';
+    toast.style.padding = '20px 24px';
+    toast.style.borderColor = 'var(--success)';
+    toast.style.background = 'rgba(0, 212, 170, 0.08)';
+    void toast.offsetWidth;
+    toast.classList.add('show');
+    wasOffline = false;
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => { toast.style.display = 'none'; }, 500);
+    }, 3000);
+}
+
+function initNetworkMonitor() {
+    console.log('📡 Network monitor initialized');
+    if (!navigator.onLine) {
+        showOfflineToast();
+        wasOffline = true;
+        document.body.classList.add('offline-mode');
+    }
+    window.addEventListener('offline', function() {
+        console.warn('⚠️ Internet connection lost');
+        showOfflineToast();
+        isOnline = false;
+        document.body.classList.add('offline-mode');
+        pauseOnlineOperations();
     });
+    window.addEventListener('online', function() {
+        console.log('✅ Internet connection restored');
+        isOnline = true;
+        document.body.classList.remove('offline-mode');
+        if (wasOffline) {
+            showOnlineToast();
+        }
+        resumeOnlineOperations();
+    });
+    setInterval(function() {
+        if (navigator.onLine && !isOnline) {
+            isOnline = true;
+            document.body.classList.remove('offline-mode');
+            if (wasOffline) {
+                showOnlineToast();
+            }
+            resumeOnlineOperations();
+        } else if (!navigator.onLine && isOnline) {
+            isOnline = false;
+            document.body.classList.add('offline-mode');
+            showOfflineToast();
+            pauseOnlineOperations();
+        }
+    }, 10000);
+}
+window.initNetworkMonitor = initNetworkMonitor;
 
-    container.innerHTML = html;
-};
+function pauseOnlineOperations() {
+    if (window._productsInterval) {
+        clearInterval(window._productsInterval);
+        window._productsInterval = null;
+    }
+    if (sliderTimer) {
+        clearInterval(sliderTimer);
+        sliderTimer = null;
+    }
+    if (window._cryptoInterval) {
+        clearInterval(window._cryptoInterval);
+        window._cryptoInterval = null;
+    }
+    console.log('⏸️ Online operations paused');
+}
 
-// 2. دالة checkout (كانت مفقودة أو غير مصدرة)
+function resumeOnlineOperations() {
+    if (!window._productsInterval) {
+        window._productsInterval = setInterval(function() {
+            if (navigator.onLine) {
+                loadProductsFromFirestore();
+            }
+        }, 30000);
+    }
+    if (!sliderTimer && sliderSlides && sliderSlides.length > 0) {
+        startSliderRotation();
+    }
+    if (!window._cryptoInterval) {
+        window._cryptoInterval = setInterval(fetchCryptoPrices, 60000);
+    }
+    console.log('▶️ Online operations resumed');
+}
+
+function addOfflineStyles() {
+    if (document.getElementById('offlineStyles')) return;
+    const style = document.createElement('style');
+    style.id = 'offlineStyles';
+    style.textContent = `
+        body.offline-mode {
+            position: relative;
+        }
+        body.offline-mode::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #ff6b6b, #ee5a24, #ff6b6b);
+            background-size: 200% 100%;
+            animation: offlinePulse 1.5s ease-in-out infinite;
+            z-index: 9999;
+        }
+        @keyframes offlinePulse {
+            0%, 100% { background-position: 0% 0%; }
+            50% { background-position: 100% 0%; }
+        }
+        .offline-indicator {
+            position: fixed;
+            bottom: 16px;
+            left: 16px;
+            z-index: 9999;
+            background: var(--danger);
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 700;
+            display: none;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 20px rgba(255, 107, 107, 0.3);
+            animation: pulse-badge 2s infinite;
+        }
+        .offline-indicator i {
+            font-size: 14px;
+        }
+        @keyframes pulse-badge {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        body.offline-mode .offline-indicator {
+            display: flex !important;
+        }
+    `;
+    document.head.appendChild(style);
+    if (!document.getElementById('offlineIndicator')) {
+        const indicator = document.createElement('div');
+        indicator.className = 'offline-indicator';
+        indicator.id = 'offlineIndicator';
+        indicator.innerHTML = '<i class="fas fa-wifi"></i> Offline';
+        document.body.appendChild(indicator);
+    }
+}
+window.addOfflineStyles = addOfflineStyles;
+
+// ============================================================
+// USER SETTINGS - TOGGLE SWITCHES
+// ============================================================
+async function loadUserSettings() {
+    const defaultSettings = {
+        ipDetection: true,
+        emailNotifications: true,
+        twoFactorAuth: false
+    };
+    try {
+        const saved = localStorage.getItem('zi_user_settings');
+        if (saved) {
+            const settings = JSON.parse(saved);
+            return { ...defaultSettings, ...settings };
+        }
+    } catch (e) {
+        console.warn('Failed to load settings from localStorage:', e);
+    }
+    if (currentUser) {
+        try {
+            const userRef = doc(db, 'users', currentUser.uid);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+                const data = userSnap.data();
+                if (data.settings) {
+                    const settings = { ...defaultSettings, ...data.settings };
+                    localStorage.setItem('zi_user_settings', JSON.stringify(settings));
+                    return settings;
+                }
+            }
+        } catch (error) {
+            console.error('Error loading settings from Firestore:', error);
+        }
+    }
+    return defaultSettings;
+}
+
+async function saveUserSettings(settings) {
+    try {
+        localStorage.setItem('zi_user_settings', JSON.stringify(settings));
+    } catch (e) {
+        console.warn('Failed to save settings to localStorage:', e);
+    }
+    if (currentUser) {
+        try {
+            const userRef = doc(db, 'users', currentUser.uid);
+            await updateDoc(userRef, {
+                settings: settings,
+                updatedAt: serverTimestamp()
+            });
+            console.log('✅ Settings saved to Firestore');
+        } catch (error) {
+            console.error('Failed to save settings to Firestore:', error);
+        }
+    }
+}
+
+async function toggleSetting(element, settingName) {
+    if (element._isToggling) return;
+    element._isToggling = true;
+    element.style.transition = 'transform 0.1s';
+    element.style.transform = 'scale(0.95)';
+    setTimeout(() => {
+        element.style.transform = 'scale(1)';
+    }, 100);
+    const isActive = element.classList.contains('active');
+    const newState = !isActive;
+    if (newState) {
+        element.classList.add('active');
+        element.classList.remove('inactive');
+    } else {
+        element.classList.remove('active');
+        element.classList.add('inactive');
+    }
+    const settings = await loadUserSettings();
+    settings[settingName] = newState;
+    await saveUserSettings(settings);
+    handleSettingChange(settingName, newState);
+    const settingLabels = {
+        ipDetection: 'Auto Detection',
+        emailNotifications: 'Email Notifications',
+        twoFactorAuth: 'Two-Factor Auth'
+    };
+    const label = settingLabels[settingName] || settingName;
+    const status = newState ? 'enabled' : 'disabled';
+    showToast(`🔔 ${label} ${status}`, newState ? 'success' : 'info');
+    await logActivity('settings_change', {
+        setting: settingName,
+        newState: newState,
+        timestamp: new Date().toISOString()
+    });
+    element._isToggling = false;
+}
+window.toggleSetting = toggleSetting;
+
+function handleSettingChange(settingName, newState) {
+    switch (settingName) {
+        case 'ipDetection':
+            if (newState) {
+                console.log('✅ IP Detection enabled');
+                if (currentUser) {
+                    fetchUserInfo().then(info => {
+                        if (info) {
+                            checkIPChange(currentUser, info.ip, info.country_name);
+                        }
+                    });
+                }
+            } else {
+                console.log('❌ IP Detection disabled');
+            }
+            break;
+        case 'emailNotifications':
+            if (newState) {
+                console.log('✅ Email Notifications enabled');
+                if (currentUser) {
+                    sendTestNotification(currentUser.email);
+                }
+            } else {
+                console.log('❌ Email Notifications disabled');
+            }
+            break;
+        case 'twoFactorAuth':
+            if (newState) {
+                console.log('✅ Two-Factor Auth enabled');
+                showToast('🔐 Two-Factor Authentication enabled', 'success', 3000);
+            } else {
+                console.log('❌ Two-Factor Auth disabled');
+            }
+            break;
+    }
+}
+window.handleSettingChange = handleSettingChange;
+
+async function renderSettingsUI() {
+    const settings = await loadUserSettings();
+    document.querySelectorAll('.toggle-switch[data-setting]').forEach(el => {
+        const settingName = el.dataset.setting;
+        const isActive = settings[settingName] === true;
+        if (isActive) {
+            el.classList.add('active');
+            el.classList.remove('inactive');
+        } else {
+            el.classList.remove('active');
+            el.classList.add('inactive');
+        }
+    });
+}
+window.renderSettingsUI = renderSettingsUI;
+
+// ============================================================
+// CHECKOUT - FINAL FIX
+// ============================================================
 window.checkout = function() {
     if (cart.length === 0) {
         showToast('⚠️ Your cart is empty', 'warning');
@@ -9540,7 +9745,9 @@ window.checkout = function() {
     openPaymentModal();
 };
 
-// 3. دالة handleTopup (كانت مفقودة)
+// ============================================================
+// HANDLE TOPUP - FINAL FIX
+// ============================================================
 window.handleTopup = async function() {
     const btn = document.getElementById('topupProcessBtn');
     if (!btn) {
@@ -9556,456 +9763,174 @@ window.handleTopup = async function() {
     }
 };
 
-// 4. دالة openLicenceModal (كانت مفقودة)
-window.openLicenceModal = function() {
-    if (!currentUser) {
-        showToast('⚠️ Please login first', 'warning');
-        openAuthModal();
-        return;
-    }
-    const modal = document.getElementById('licenceModal');
-    if (!modal) {
-        console.error('❌ licenceModal not found in DOM');
-        showToast('❌ Licence modal not found', 'error');
-        return;
-    }
-    renderUserLicences();
-    modal.classList.add('open');
-    document.body.style.overflow = 'hidden';
-};
-
-// 5. دالة closeLicenceModal (كانت مفقودة)
-window.closeLicenceModal = function() {
-    const modal = document.getElementById('licenceModal');
+// ============================================================
+// CLOSE PAYMENT MODAL - FINAL FIX
+// ============================================================
+window.closePaymentModal = function() {
+    const modal = document.getElementById('paymentModal');
     if (modal) {
         modal.classList.remove('open');
         document.body.style.overflow = '';
+        selectedPayment = null;
+        document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
+        document.getElementById('paymentStep1').style.display = 'block';
+        document.getElementById('paymentStep2').style.display = 'none';
     }
 };
 
-// 6. دالة openCreateLicenceModal (كانت مفقودة)
-window.openCreateLicenceModal = function() {
-    if (!currentUser || !isAdminCached) {
-        showToast('⛔ Unauthorized', 'error');
+// ============================================================
+// GO TO STEP 1 - FINAL FIX
+// ============================================================
+window.goToStep1 = function() {
+    document.getElementById('paymentStep1').style.display = 'block';
+    document.getElementById('paymentStep2').style.display = 'none';
+    selectedPayment = null;
+    document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
+    const txInput = document.getElementById('transactionHashInput');
+    if (txInput) txInput.value = '';
+    const verificationResult = document.getElementById('verificationResult');
+    if (verificationResult) {
+        verificationResult.style.display = 'none';
+        verificationResult.textContent = '';
+    }
+};
+
+// ============================================================
+// COPY WALLET ADDRESS - FINAL FIX
+// ============================================================
+window.copyWalletAddress = function() {
+    const addressElement = document.getElementById('walletAddressDisplay');
+    if (!addressElement) {
+        showToast('⚠️ Wallet address not found', 'warning');
         return;
     }
-    const modal = document.getElementById('createLicenceModal');
-    if (modal) {
-        modal.classList.add('open');
+    const address = addressElement.textContent.trim();
+    if (!address || address === '') {
+        showToast('⚠️ No wallet address to copy', 'warning');
+        return;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(address)
+            .then(() => showToast('✅ Wallet address copied!', 'success'))
+            .catch(() => fallbackCopy(address));
     } else {
-        showToast('❌ Create licence modal not found', 'error');
+        fallbackCopy(address);
     }
 };
 
-// 7. دالة closeCreateLicenceModal (كانت مفقودة)
-window.closeCreateLicenceModal = function() {
-    const modal = document.getElementById('createLicenceModal');
-    if (modal) {
-        modal.classList.remove('open');
-    }
-};
-
-// 8. دالة approveLicence (كانت مفقودة)
-window.approveLicence = async function(licenceId, code, scriptName) {
-    if (!currentUser || !isAdminCached) {
-        showToast('⛔ Unauthorized', 'error');
-        return;
-    }
-    if (!confirm(`Approve licence ${code} and send to user?`)) return;
+function fallbackCopy(text) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
     try {
-        const { data: licenceData, error: fetchError } = await supabase
-            .from('licenses')
-            .select('*')
-            .eq('id', licenceId)
-            .single();
-        if (fetchError || !licenceData) throw fetchError || new Error('Licence not found');
-        
-        await updateLicenceInSupabase(licenceId, { 
-            status: 'active', 
-            user_id: currentUser.uid, 
-            user_email: currentUser.email 
-        });
-        
-        await sendUserNotification(
-            currentUser.uid,
-            '🔑 Licence Activated!',
-            `Your licence for ${scriptName} has been activated. Code: ${code}`
-        );
-        
-        showToast(`✅ Licence ${code} approved!`, 'success');
-        loadLicences();
-    } catch (error) {
-        showToast('❌ Error: ' + error.message, 'error');
+        document.execCommand('copy');
+        showToast('✅ Copied!', 'success');
+    } catch (e) {
+        showToast('❌ Failed to copy', 'error');
     }
-};
-
-// 9. دالة revokeLicence (كانت مفقودة)
-window.revokeLicence = async function(licenceId) {
-    if (!currentUser || !isAdminCached) {
-        showToast('⛔ Unauthorized', 'error');
-        return;
-    }
-    if (!confirm('Revoke this licence?')) return;
-    try {
-        await updateLicenceInSupabase(licenceId, { status: 'revoked' });
-        const licence = allLicences.find(l => l.id === licenceId);
-        if (licence && licence.user_id) {
-            await sendUserNotification(
-                licence.user_id,
-                '🚫 Licence Revoked',
-                `Your licence for ${licence.script_name || 'product'} has been revoked.`
-            );
-            const userRef = doc(db, 'users', licence.user_id);
-            const userSnap = await getDoc(userRef);
-            if (userSnap.exists()) {
-                const userData = userSnap.data();
-                const userLicences = userData.licences || [];
-                const updatedLicences = userLicences.map(l => {
-                    if (l.code === licence.code) {
-                        return { ...l, status: 'revoked' };
-                    }
-                    return l;
-                });
-                await updateDoc(userRef, { licences: updatedLicences, updatedAt: serverTimestamp() });
-                if (currentUser && currentUser.uid === licence.user_id) {
-                    userProfile.licences = updatedLicences;
-                    renderUserLicences();
-                    updateFullUserMenu();
-                }
-            }
-        }
-        showToast('🚫 Licence revoked', 'success');
-        loadLicences();
-    } catch (error) {
-        showToast('❌ Error: ' + error.message, 'error');
-    }
-};
-
-// 10. دالة deleteLicence (كانت مفقودة)
-window.deleteLicence = async function(licenceId) {
-    if (!currentUser || !isAdminCached) {
-        showToast('⛔ Unauthorized', 'error');
-        return;
-    }
-    if (!confirm('Delete this licence permanently?')) return;
-    try {
-        const licence = allLicences.find(l => l.id === licenceId);
-        const { error } = await supabase.from('licenses').delete().eq('id', licenceId);
-        if (error) throw error;
-        if (licence && licence.user_id) {
-            const userRef = doc(db, 'users', licence.user_id);
-            const userSnap = await getDoc(userRef);
-            if (userSnap.exists()) {
-                const userData = userSnap.data();
-                const userLicences = userData.licences || [];
-                const updatedLicences = userLicences.filter(l => l.code !== licence.code);
-                await updateDoc(userRef, { licences: updatedLicences, updatedAt: serverTimestamp() });
-                if (currentUser && currentUser.uid === licence.user_id) {
-                    userProfile.licences = updatedLicences;
-                    renderUserLicences();
-                    updateFullUserMenu();
-                }
-            }
-        }
-        showToast('🗑️ Licence deleted', 'success');
-        loadLicences();
-    } catch (error) {
-        showToast('❌ Error: ' + error.message, 'error');
-    }
-};
-
-// 11. دالة editLicence (كانت مفقودة)
-window.editLicence = async function(licenceId) {
-    if (!currentUser || !isAdminCached) {
-        showToast('⛔ Unauthorized', 'error');
-        return;
-    }
-    try {
-        const { data: licence, error } = await supabase
-            .from('licenses')
-            .select('*')
-            .eq('id', licenceId)
-            .single();
-        if (error || !licence) {
-            showToast('❌ Licence not found', 'error');
-            return;
-        }
-        document.getElementById('editLicenceId').value = licenceId;
-        document.getElementById('editLicenceCode').value = licence.code || '';
-        document.getElementById('editLicenceScript').value = licence.script_name || '';
-        if (licence.expiry_date) {
-            const date = new Date(licence.expiry_date);
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            const hours = String(date.getHours()).padStart(2, '0');
-            const minutes = String(date.getMinutes()).padStart(2, '0');
-            document.getElementById('editLicenceExpiry').value = `${year}-${month}-${day}T${hours}:${minutes}`;
-        } else {
-            document.getElementById('editLicenceExpiry').value = '';
-        }
-        document.getElementById('editLicenceStatus').value = licence.status || 'active';
-        document.getElementById('editLicenceModal').classList.add('open');
-    } catch (error) {
-        showToast('❌ Failed to load licence details', 'error');
-    }
-};
-
-// 12. دالة saveLicenceEdit (كانت مفقودة)
-window.saveLicenceEdit = async function() {
-    if (!currentUser || !isAdminCached) {
-        showToast('⛔ Unauthorized', 'error');
-        return;
-    }
-    const licenceId = document.getElementById('editLicenceId').value;
-    const expiryDate = document.getElementById('editLicenceExpiry').value;
-    const status = document.getElementById('editLicenceStatus').value;
-    try {
-        await updateLicenceInSupabase(licenceId, {
-            expiry_date: expiryDate ? new Date(expiryDate).toISOString() : null,
-            status: status
-        });
-        const licenceIndex = allLicences.findIndex(l => l.id === licenceId);
-        if (licenceIndex !== -1) {
-            allLicences[licenceIndex].expiry_date = expiryDate ? new Date(expiryDate).toISOString() : null;
-            allLicences[licenceIndex].status = status;
-        }
-        const licence = allLicences.find(l => l.id === licenceId);
-        if (licence && currentUser) {
-            if (licence.user_id === currentUser.uid || currentUser.email === 'zribiidriss3@gmail.com') {
-                await loadUserData();
-                renderUserLicences();
-                updateFullUserMenu();
-            }
-        }
-        loadLicences();
-        showToast('✅ Licence updated!', 'success');
-        document.getElementById('editLicenceModal').classList.remove('open');
-    } catch (error) {
-        showToast('❌ Error: ' + error.message, 'error');
-    }
-};
-
-// 13. دالة searchLicences (كانت مفقودة)
-window.searchLicences = function() {
-    const query = document.getElementById('adminLicenceSearch')?.value?.trim()?.toLowerCase() || '';
-    if (!query) {
-        renderLicences(allLicences);
-        return;
-    }
-    const filtered = allLicences.filter(l => {
-        const code = (l.code || '').toLowerCase();
-        const user = (l.user_email || l.user_id || '').toLowerCase();
-        const product = (l.script_name || l.product_name || '').toLowerCase();
-        return code.includes(query) || user.includes(query) || product.includes(query);
-    });
-    renderLicences(filtered);
-};
-
-// 14. دالة clearLicenceSearch (كانت مفقودة)
-window.clearLicenceSearch = function() {
-    const input = document.getElementById('adminLicenceSearch');
-    if (input) input.value = '';
-    renderLicences(allLicences);
-};
-
-// 15. دالة refreshLicences (كانت مفقودة)
-window.refreshLicences = function() {
-    loadLicences();
-    showToast('🔄 Refreshed', 'info');
-};
-
-// 16. دالة renderUserLicences (كانت مفقودة)
-window.renderUserLicences = function() {
-    const container = document.getElementById('userLicencesList');
-    if (!container) return;
-    if (!currentUser) {
-        container.innerHTML = '';
-        return;
-    }
-    const userLicences = userProfile.licences || [];
-    if (userLicences.length === 0) {
-        container.innerHTML = `<div style="text-align:center;padding:8px;color:var(--text-secondary);font-size:12px;">No active licences</div>`;
-        return;
-    }
-    container.innerHTML = userLicences.map(l => {
-        const isExpired = new Date(l.expiryDate) < new Date();
-        const isRevoked = l.status === 'revoked';
-        const isActive = !isExpired && !isRevoked && l.status !== 'expired';
-        return `
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--bg);border-radius:6px;border:1px solid var(--border);margin-bottom:4px;${!isActive ? 'opacity:0.5;' : ''}">
-                <div>
-                    <div style="font-size:12px;font-weight:600;color:var(--text);">${l.scriptName}</div>
-                    <div style="font-size:10px;color:var(--text-secondary);opacity:0.5;">
-                        ${isRevoked ? '🚫 Revoked' : isExpired ? '⛔ Expired' : '✅ Active until ' + new Date(l.expiryDate).toLocaleDateString()}
-                    </div>
-                </div>
-                <div style="display:flex;align-items:center;gap:6px;">
-                    <span style="font-size:10px;font-family:monospace;opacity:0.3;">${l.code.slice(-6)}</span>
-                    <button onclick="copyLicenceCode('${l.code}')" style="background:none;border:none;color:var(--primary);cursor:pointer;font-size:14px;padding:2px 6px;" title="Copy full code"><i class="fas fa-copy"></i></button>
-                </div>
-            </div>
-        `;
-    }).join('');
-};
-
-// 17. دالة toggleLicencesList (كانت مفقودة)
-window.toggleLicencesList = function() {
-    const list = document.getElementById('userLicencesList');
-    if (list) {
-        list.style.display = list.style.display === 'none' ? 'block' : 'none';
-    }
-};
-
-// 18. دالة activateLicence (كانت مفقودة)
-window.activateLicence = async function() {
-    const input = document.getElementById('licenceInput');
-    const resultEl = document.getElementById('licenceResult');
-    if (!input) {
-        showToast('⚠️ Licence input not found', 'warning');
-        return;
-    }
-    const code = input.value.trim().toUpperCase();
-    if (!code) {
-        resultEl.innerHTML = '<span style="color:var(--danger);">⚠️ Please enter a licence code.</span>';
-        return;
-    }
-    if (!currentUser) {
-        resultEl.innerHTML = '<span style="color:var(--danger);">⚠️ You must be logged in.</span>';
-        return;
-    }
-    try {
-        resultEl.innerHTML = '<span style="color:var(--text-secondary);">⏳ Verifying...</span>';
-        const response = await fetch(
-            `${SUPABASE_URL}/functions/v1/public-verify?code=${encodeURIComponent(code)}&token=${currentUser.uid}`,
-            {
-                headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
-            }
-        );
-        const data = await response.json();
-        if (!response.ok || !data.success) throw new Error(data.error || 'Invalid licence');
-        const licence = data.data;
-        const userRef = doc(db, 'users', currentUser.uid);
-        const userSnap = await getDoc(userRef);
-        if (userSnap.exists()) {
-            const userData = userSnap.data();
-            const userLicences = userData.licences || [];
-            if (!userLicences.find(l => l.code === code)) {
-                userLicences.push({
-                    code: code,
-                    scriptId: licence.scriptId,
-                    scriptName: licence.scriptName,
-                    expiryDate: licence.expiryDate,
-                    activatedAt: new Date().toISOString()
-                });
-                await updateDoc(userRef, { licences: userLicences, updatedAt: serverTimestamp() });
-                userProfile.licences = userLicences;
-                renderUserLicences();
-                updateFullUserMenu();
-                await sendUserNotification(
-                    currentUser.uid,
-                    '🔑 Licence Activated',
-                    `Your licence for ${licence.scriptName} has been activated successfully!`
-                );
-            }
-        }
-        const expiryDate = new Date(licence.expiryDate).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-        resultEl.innerHTML = `
-            <div style="background:var(--success-glow);border-radius:8px;padding:10px;border:1px solid var(--success);">
-                <div style="font-weight:700;color:var(--success);">✅ Activated Successfully!</div>
-                <div style="font-size:13px;color:var(--text);margin-top:4px;">
-                    <strong>Script:</strong> ${licence.scriptName || 'Unknown'}<br>
-                    <strong>Expires:</strong> ${expiryDate}
-                </div>
-                <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;opacity:0.5;">
-                    🔒 This script is now linked to your account.
-                </div>
-            </div>
-        `;
-        input.value = '';
-        renderUserLicences();
-        showToast('✅ Licence activated successfully!', 'success');
-    } catch (error) {
-        resultEl.innerHTML = `<span style="color:var(--danger);">❌ Error: ${error.message}</span>`;
-        showToast('❌ ' + error.message, 'error');
-    }
-};
-
-// 19. دالة createLicenceManually (كانت مفقودة)
-window.createLicenceManually = async function() {
-    if (!currentUser || !isAdminCached) {
-        showToast('⛔ Unauthorized', 'error');
-        return;
-    }
-    const productName = document.getElementById('newLicenceProduct')?.value?.trim();
-    const userId = document.getElementById('newLicenceUser')?.value?.trim();
-    const expiryDate = document.getElementById('newLicenceExpiry')?.value;
-    if (!productName) {
-        showToast('⚠️ Product name required', 'warning');
-        return;
-    }
-    try {
-        const response = await fetch(`${SUPABASE_URL}/functions/v1/create-licence`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                productName,
-                userId: userId,
-                userEmail: userId,
-                expiryDate,
-                manual: true
-            })
-        });
-        const data = await response.json();
-        if (!response.ok || !data.success) throw new Error(data.error);
-        showToast(`✅ Licence created: ${data.licence.code}`, 'success');
-        closeCreateLicenceModal();
-        loadLicences();
-        if (userId) {
-            const usersRef = collection(db, 'users');
-            let q = userId.includes('@') 
-                ? query(usersRef, where('email', '==', userId)) 
-                : query(usersRef, where('userId', '==', userId));
-            const querySnapshot = await getDocs(q);
-            if (!querySnapshot.empty) {
-                const userDoc = querySnapshot.docs[0];
-                const userData = userDoc.data();
-                const userLicences = userData.licences || [];
-                if (!userLicences.find(l => l.code === data.licence.code)) {
-                    userLicences.push({
-                        code: data.licence.code,
-                        scriptId: productName,
-                        scriptName: productName,
-                        expiryDate: data.licence.expiryDate,
-                        activatedAt: new Date().toISOString()
-                    });
-                    await updateDoc(userDoc.ref, { licences: userLicences, updatedAt: serverTimestamp() });
-                    if (currentUser && userDoc.id === currentUser.uid) {
-                        userProfile.licences = userLicences;
-                        renderUserLicences();
-                        updateFullUserMenu();
-                    }
-                }
-            }
-        }
-    } catch (error) {
-        showToast('❌ Error: ' + error.message, 'error');
-    }
-};
-
-// 20. دالة updateLicenceInSupabase (مساعدة)
-async function updateLicenceInSupabase(licenceId, data) {
-    const { error } = await supabase
-        .from('licenses')
-        .update({ ...data, updated_at: new Date().toISOString() })
-        .eq('id', licenceId);
-    if (error) throw error;
-    return true;
+    document.body.removeChild(textarea);
 }
+
+// ============================================================
+// COPY BINANCE ID - FINAL FIX
+// ============================================================
+window.copyBinanceId = function() {
+    const id = document.getElementById('binanceIdDisplay')?.textContent;
+    if (!id) {
+        showToast('⚠️ Binance ID not found', 'warning');
+        return;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(id)
+            .then(() => showToast('✅ Binance ID copied!', 'success'))
+            .catch(() => fallbackCopy(id));
+    } else {
+        fallbackCopy(id);
+    }
+};
+
+// ============================================================
+// VERIFY TRANSACTION - FINAL FIX
+// ============================================================
+window.verifyTransaction = function() {
+    const input = document.getElementById('txHashInput');
+    const result = document.getElementById('verificationResult');
+    if (!input || !result) {
+        showToast('⚠️ Verification elements not found', 'warning');
+        return;
+    }
+    const tx = input.value.trim();
+    if (!tx) {
+        result.style.display = 'block';
+        result.className = 'bv-result error';
+        result.textContent = '⚠️ Please enter a transaction ID.';
+        return;
+    }
+    if (tx.length < 6) {
+        result.style.display = 'block';
+        result.className = 'bv-result error';
+        result.textContent = '❌ Transaction ID seems too short. Please check and try again.';
+    } else {
+        result.style.display = 'block';
+        result.className = 'bv-result success';
+        result.textContent = '✅ Transaction ID format looks valid. You can now confirm payment.';
+    }
+};
+
+// ============================================================
+// HANDLE TX PASTE - FINAL FIX
+// ============================================================
+window.handleTxPaste = function(event) {
+    const input = event.target;
+    setTimeout(() => {
+        input.value = input.value.trim();
+    }, 10);
+};
+
+// ============================================================
+// SUBMIT MANUAL PAYMENT - FINAL FIX
+// ============================================================
+window.submitManualPayment = function() {
+    const txHash = document.getElementById('txHashInput')?.value.trim();
+    if (!txHash) {
+        showToast('⚠️ Please paste the transaction ID', 'warning');
+        const input = document.getElementById('txHashInput');
+        if (input) {
+            input.style.borderColor = 'var(--danger)';
+            setTimeout(() => { input.style.borderColor = ''; }, 2000);
+        }
+        return;
+    }
+    const txInput = document.getElementById('transactionHashInput');
+    if (txInput) txInput.value = txHash;
+    placeOrder();
+};
+
+// ============================================================
+// CHECK CONNECTION - FINAL FIX
+// ============================================================
+window.checkConnection = function() {
+    if (!navigator.onLine) {
+        showOfflineToast();
+        return false;
+    }
+    return true;
+};
+
+// ============================================================
+// REQUIRE CONNECTION - FINAL FIX
+// ============================================================
+window.requireConnection = function(message = 'This action requires internet connection.') {
+    if (!navigator.onLine) {
+        showToast('⚠️ ' + message, 'warning', 4000);
+        return false;
+    }
+    return true;
+};
+
 // ============================================================
 // INIT - COMPLETE
 // ============================================================
@@ -10099,7 +10024,6 @@ onAuthStateChanged(auth, async (user) => {
         currentUser = user;
         console.log('🔐 User authenticated:', user.email);
         
-        // Check ban status
         try {
             const userRef = doc(db, 'users', user.uid);
             const userSnap = await getDoc(userRef);
@@ -10218,271 +10142,197 @@ if (document.readyState === 'loading') {
 // ============================================================
 // EXPORT ALL FUNCTIONS TO WINDOW - COMPLETE
 // ============================================================
-window.showLogin = showLogin;
-window.showRegister = showRegister;
-window.loginUser = loginUser;
-window.registerUser = registerUser;
-window.loginWithGoogle = loginWithGoogle;
-window.logoutUser = logoutUser;
-window.openForgotPassword = openForgotPassword;
-window.closeForgotPasswordModal = closeForgotPasswordModal;
-window.sendForgotPassword = sendForgotPassword;
-window.openAuthModal = openAuthModal;
-window.openUserMenuFull = openUserMenuFull;
-window.closeUserMenuFull = closeUserMenuFull;
-window.openCartFull = openCartFull;
-window.closeCartFull = closeCartFull;
-window.openWishlistFull = openWishlistFull;
-window.closeWishlistFull = closeWishlistFull;
-window.openProfileFull = openProfileFull;
-window.closeProfileFull = closeProfileFull;
-window.openHistoryFull = openHistoryFull;
-window.closeHistoryFull = closeHistoryFull;
-window.openDownloads = openDownloads;
-window.closeDownloads = closeDownloads;
-window.openNotifications = openNotifications;
-window.closeNotifications = closeNotifications;
-window.openTransactionsModal = openTransactionsModal;
-window.closeTransactionsModal = closeTransactionsModal;
-window.openSupportModal = openSupportModal;
-window.closeSupportModal = closeSupportModal;
-window.filterProducts = filterProducts;
-window.openDetails = openDetails;
-window.closeProductDetails = closeProductDetails;
-window.addToCart = addToCart;
-window.addToCartFromDetails = addToCartFromDetails;
-window.toggleWishlist = toggleWishlist;
-window.removeFromWishlist = removeFromWishlist;
-window.openShareModal = openShareModal;
-window.closeShareModal = closeShareModal;
-window.shareToWhatsApp = shareToWhatsApp;
-window.shareToTelegram = shareToTelegram;
-window.shareToFacebook = shareToFacebook;
-window.copyShareLink = copyShareLink;
-window.selectQuantityOption = selectQuantityOption;
-window.selectVipPlan = selectVipPlan;
-window.addVipPlanToCart = addVipPlanToCart;
-window.clearSearch = clearSearch;
-window.closeSearchResults = closeSearchResults;
-window.performLiveSearch = performLiveSearch;
-window.selectPayment = selectPayment;
-window.continuePayment = continuePayment;
-window.placeOrder = placeOrder;
-window.placeOrderTelegram = placeOrderTelegram;
-window.copyWalletAddress = copyWalletAddress;
-window.copyBinanceId = copyBinanceId;
-window.verifyTransaction = verifyTransaction;
-window.handleTxPaste = handleTxPaste;
-window.handleScreenshot = handleScreenshot;
-window.removeScreenshot = removeScreenshot;
-window.submitManualPayment = submitManualPayment;
-window.checkout = checkout;
-window.openPaymentModal = openPaymentModal;
-window.closePaymentModal = closePaymentModal;
-window.goToStep1 = goToStep1;
-window.clearCart = clearCart;
-window.removeFromCart = removeFromCart;
-window.updateCartQuantity = updateCartQuantity;
-window.toggleRpInCart = toggleRpInCart;
-window.toggleRpSwitch = toggleRpSwitch;
-window.applyCartPromo = applyCartPromo;
-window.renderWishlistFull = renderWishlistFull;
-window.renderProfileFull = renderProfileFull;
-window.renderCartFull = renderCartFull;
-window.saveProfileChangesInline = saveProfileChangesInline;
-window.sendResetLinkInline = sendResetLinkInline;
-window.changePasswordInline = changePasswordInline;
-window.togglePasswordVisibility = togglePasswordVisibility;
-window.bindTelegram = bindTelegram;
-window.checkTelegramStatus = checkTelegramStatus;
-window.testTelegramNotification = testTelegramNotification;
-window.unlinkTelegram = unlinkTelegram;
-window.showTelegramBanner = showTelegramBanner;
-window.showTelegramBannerAgain = showTelegramBannerAgain;
-window.adminToggleBanner = adminToggleBanner;
-window.resetBannerForAll = resetBannerForAll;
-window.closeTelegramBanner = closeTelegramBanner;
-window.ensureAdminPanel = ensureAdminPanel;
-window.openAdminPanel = openAdminPanel;
-window.closeAdminPanel = closeAdminPanel;
-window.switchAdminTab = switchAdminTab;
-window.loadAdminOrders = loadAdminOrders;
-window.updateOrderStatus = updateOrderStatus;
-window.deleteOrderImmediately = deleteOrderImmediately;
-window.searchAdminOrders = searchAdminOrders;
-window.clearAdminSearch = clearAdminSearch;
-window.refreshAdminOrders = refreshAdminOrders;
-window.loadAdminUsers = loadAdminUsers;
-window.toggleUserBan = toggleUserBan;
-window.deleteUserAccount = deleteUserAccount;
-window.viewUserDetails = viewUserDetails;
-window.closeUserDetailsModal = closeUserDetailsModal;
-window.searchAdminUsers = searchAdminUsers;
-window.clearAdminUserSearch = clearAdminUserSearch;
-window.refreshAdminUsers = refreshAdminUsers;
-window.openAddProductModal = openAddProductModal;
-window.openEditProductModal = openEditProductModal;
-window.closeProductModal = closeProductModal;
-window.saveProduct = saveProduct;
-window.deleteProduct = deleteProduct;
-window.selectCurrency = selectCurrency;
-window.selectProductType = selectProductType;
-window.addQuantityOption = addQuantityOption;
-window.removeQuantityOption = removeQuantityOption;
-window.toggleBadge = toggleBadge;
-window.openCreateDownloadModal = openCreateDownloadModal;
-window.closeCreateDownloadModal = closeCreateDownloadModal;
-window.createDownload = createDownload;
-window.deleteDownload = deleteDownload;
-window.editDownload = editDownload;
-window.openCreateNotificationModal = openCreateNotificationModal;
-window.closeCreateNotificationModal = closeCreateNotificationModal;
-window.createNotification = createNotification;
-window.deleteNotification = deleteNotification;
-window.markAllNotificationsRead = markAllNotificationsRead;
-window.clearAllNotifications = clearAllNotifications;
-window.openRequestsModal = openRequestsModal;
-window.closeRequestsModal = closeRequestsModal;
-window.openNewRequestModal = openNewRequestModal;
-window.closeNewRequestModal = closeNewRequestModal;
-window.submitRequest = submitRequest;
-window.openReferralModal = openReferralModal;
-window.closeReferralModal = closeReferralModal;
-window.copyReferralCode2 = copyReferralCode2;
-window.openLicenceModal = openLicenceModal;
-window.closeLicenceModal = closeLicenceModal;
-window.activateLicence = activateLicence;
-window.toggleLicencesList = toggleLicencesList;
-window.copyLicenceCode = copyLicenceCode;
-window.loadLicences = loadLicences;
-window.renderLicences = renderLicences;
-window.openCreateLicenceModal = openCreateLicenceModal;
-window.closeCreateLicenceModal = closeCreateLicenceModal;
-window.createLicenceManually = createLicenceManually;
-window.approveLicence = approveLicence;
-window.revokeLicence = revokeLicence;
-window.deleteLicence = deleteLicence;
-window.editLicence = editLicence;
-window.saveLicenceEdit = saveLicenceEdit;
-window.searchLicences = searchLicences;
-window.clearLicenceSearch = clearLicenceSearch;
-window.refreshLicences = refreshLicences;
-window.renderHistoryFull = renderHistoryFull;
-window.clearOrderHistory = clearOrderHistory;
-window.filterOrders = filterOrders;
-window.refreshDashboardStats = refreshDashboardStats;
-window.loadDashboardStats = loadDashboardStats;
-window.refreshAdvancedStats = refreshAdvancedStats;
-window.loadAuditLogs = loadAuditLogs;
-window.loadActivityLogs = loadActivityLogs;
-window.exportActivityLogs = exportActivityLogs;
-window.loadFraudLogs = loadFraudLogs;
-window.goToSlide = goToSlide;
-window.nextSlide = nextSlide;
-window.prevSlide = prevSlide;
-window.pauseSlider = pauseSlider;
-window.resumeSlider = resumeSlider;
-window.loadSliderSettings = loadSliderSettings;
-window.updateSlideProductSelect = updateSlideProductSelect;
-window.saveSliderData = saveSliderData;
-window.saveSliderInterval = saveSliderInterval;
-window.saveSlideEdit = saveSlideEdit;
-window.editSlide = editSlide;
-window.deleteSlide = deleteSlide;
-window.openAddSlideModal = openAddSlideModal;
-window.closeAddSlideModal = closeAddSlideModal;
-window.loadMarqueeSettings = loadMarqueeSettings;
-window.saveMarqueeSettings = saveMarqueeSettings;
-window.renderMarqueeSettingsUI = renderMarqueeSettingsUI;
-window.applyMarqueeSettings = applyMarqueeSettings;
-window.setRating = setRating;
-window.submitRating = submitRating;
-window.openTopupModal = openTopupModal;
-window.closeTopupModal = closeTopupModal;
-window.selectTopupAmount = selectTopupAmount;
-window.selectTopupCurrency = selectTopupCurrency;
-window.processTopup = processTopup;
-window.submitTopupWithTxHash = submitTopupWithTxHash;
-window.approveTopup = approveTopup;
-window.rejectTopup = rejectTopup;
-window.openTopupStatus = openTopupStatus;
-window.closeTopupStatus = closeTopupStatus;
-window.loadUserBalance = loadUserBalance;
-window.updateBalanceDisplay = updateBalanceDisplay;
-window.checkoutWithBalance = checkoutWithBalance;
-window.copyToClipboard = copyToClipboard;
-window.toggleSupportMenu = toggleSupportMenu;
-window.openWhatsAppSupport = openWhatsAppSupport;
-window.openTelegramSupport = openTelegramSupport;
-window.openEmailSupport = openEmailSupport;
-window.openPhoneSupport = openPhoneSupport;
-window.acceptCookies = acceptCookies;
-window.rejectCookies = rejectCookies;
-window.openCookieSettings = openCookieSettings;
-window.closeCookieSettings = closeCookieSettings;
-window.saveCookieSettings = saveCookieSettings;
-window.closeCookieBanner = closeCookieBanner;
-window.addProxyToCart = addProxyToCart;
-window.generateInvoice = generateInvoice;
-window.generatePDFInvoice = generatePDFInvoice;
-window.exportOrders = exportOrders;
-window.renderPaymentProducts = renderPaymentProducts;
-window.hideLoadingScreenManually = hideLoadingScreenManually;
-window.updateLoadingText = updateLoadingText;
-window.showMainApp = showMainApp;
-window.fixHeaderAndModals = fixDirection;
-window.refreshAdminPayments = refreshAdminPayments;
-window.adminApprovePayment = adminApprovePayment;
-window.adminRejectPayment = adminRejectPayment;
-window.adminDeletePayment = adminDeletePayment;
-window.renderFallbackProductsAdmin = renderFallbackProductsAdmin;
-window.editFallbackProduct = editFallbackProduct;
-window.openAddFallbackProductModal = openAddFallbackProductModal;
-window.closeFallbackProductModal = closeFallbackProductModal;
-window.saveFallbackProduct = saveFallbackProduct;
-window.deleteFallbackProduct = deleteFallbackProduct;
-window.removeFromCartAndCloseBanner = removeFromCartAndCloseBanner;
-window.closeQuickPurchaseBanner = closeQuickPurchaseBanner;
-window.saveAdminSettings = saveAdminSettings;
-window.getMyTelegramChatId = getMyTelegramChatId;
-window.loadAdminSettingsUI = loadAdminSettingsUI;
-window.openCreateCouponModal = openCreateCouponModal;
-window.closeCreateCouponModal = closeCreateCouponModal;
-window.saveCoupon = saveCoupon;
-window.deleteCoupon = deleteCoupon;
-window.editCoupon = editCoupon;
-window.loadCoupons = loadCoupons;
-window.renderAdminCoupons = renderAdminCoupons;
-window.applyPopupCoupon = applyPopupCoupon;
-window.subscribeAndApply = subscribeAndApply;
-window.closePopup = closePopup;
-window.sendEmail = sendEmail;
-window.sendWelcomeEmail = sendWelcomeEmail;
-window.sendOrderConfirmationEmail = sendOrderConfirmationEmail;
-window.sendOrderStatusEmail = sendOrderStatusEmail;
-window.sendTopupConfirmationEmail = sendTopupConfirmationEmail;
-window.sendAdminNotificationEmail = sendAdminNotificationEmail;
-window.sendCustomResetEmail = sendCustomResetEmail;
-window.loadEmailLogs = loadEmailLogs;
-window.sendTestEmail = sendTestEmail;
-window.previewEmail = previewEmail;
-window.resendEmail = resendEmail;
-window.loadBrandingSettings = loadBrandingSettings;
-window.saveBrandingSettings = saveBrandingSettings;
-window.resetBranding = resetBranding;
-window.checkIPChange = checkIPChange;
-window.sendSecurityAlertEmail = sendSecurityAlertEmail;
-window.getVisitorInfo = getVisitorInfo;
-window.getDeviceInfo = getDeviceInfo;
-window.logActivity = logActivity;
-window.generateLicenceForUser = generateLicenceForUser;
-window.sendLicenceEmail = sendLicenceEmail;
-window.loadUserSettings = loadUserSettings;
-window.saveUserSettings = saveUserSettings;
-window.toggleSetting = toggleSetting;
-window.renderSettingsUI = renderSettingsUI;
-window.handleSettingChange = handleSettingChange;
-window.initApp = initApp;
+// All functions are already defined with window. prefix where needed
+// ============================================================
+// EXPORT ALL FUNCTIONS TO WINDOW (COMPLETE)
+// ============================================================
+(function exportAllToWindow() {
+    // قائمة بأسماء جميع الدوال التي يجب تصديرها إلى window
+    const functionNames = [
+        // دوال عامة
+        'showToast', 'hideToast', 'showButtonLoading', 'hideButtonLoading',
+        'hideLoadingScreen', 'showLoadingScreen', 'showMainApp',
+        'updateLoadingProgress', 'startLoadingSimulation',
+        'removeDuplicateDate', 'styleHeaderTopup', 'updateServerTime',
+        'fetchUserInfo', 'getCountryFlag', 'initTopInfoBar',
+        'checkIsAdmin', 'refreshAdminStatus', 'ensureAdminPanel',
+        'getAdminSettings', 'updateAdminSettings',
+        'loadFromLocalStorage', 'getUserId', 'startUserRealtimeListener',
+        'loadUserData', 'saveUserData', 'generateReferralCode',
+        'updateDropdownStats', 'updateRpDisplay', 'updateUI', 'updateFullUserMenu',
+        'showLogin', 'showRegister', 'toggleReferral',
+        'loginUser', 'registerUser', 'loginWithGoogle', 'mergeGuestData',
+        'logoutUser', 'openForgotPassword', 'closeForgotPasswordModal',
+        'sendForgotPassword',
+        'openUserMenuFull', 'closeUserMenuFull',
+        'openCartFull', 'closeCartFull',
+        'openWishlistFull', 'closeWishlistFull',
+        'openProfileFull', 'closeProfileFull',
+        'openHistoryFull', 'closeHistoryFull',
+        'openDownloads', 'closeDownloads',
+        'openNotifications', 'closeNotifications',
+        'openAuthModal',
+        'openTransactionsModal', 'closeTransactionsModal',
+        'loadTransactionHistory', 'renderTransactions',
+        'renderProfileFull',
+        'togglePasswordVisibility', 'saveProfileChangesInline',
+        'sendResetLinkInline', 'changePasswordInline',
+        'loadProductsFromFirestore', 'startProductsRealtimeListener',
+        'getCurrencySymbol', 'renderBadges', 'renderProducts',
+        'updateStatsFromProducts', 'generateRecommendations',
+        'selectCurrency', 'selectProductType',
+        'addQuantityOption', 'removeQuantityOption',
+        'setQuantityOptions', 'toggleBadge', 'updateBadgesInput', 'setBadges',
+        'renderFallbackProductsAdmin', 'editFallbackProduct',
+        'openAddFallbackProductModal', 'closeFallbackProductModal',
+        'saveFallbackProduct', 'deleteFallbackProduct',
+        'renderFeaturedProducts', 'displayFeaturedSlice',
+        'startFeaturedRotation', 'stopFeaturedRotation',
+        'loadFeaturedSettings',
+        'updateProductCardButton', 'addToCart', 'clearCart',
+        'removeFromCart', 'updateCartQuantity',
+        'updateBottomCartBar', 'updateCartUI', 'renderCartFull',
+        'toggleRpSwitch', 'toggleRpInCart', 'applyCartPromo',
+        'toggleWishlist', 'removeFromWishlist', 'updateWishlistUI',
+        'createFloatingHearts', 'renderWishlistFull',
+        'openDetails', 'addToCartFromDetails', 'closeProductDetails',
+        'closePreviewModal', 'selectQuantityOption', 'selectVipPlan',
+        'addVipPlanToCart',
+        'openShareModal', 'closeShareModal',
+        'shareToWhatsApp', 'shareToTelegram', 'shareToFacebook', 'copyShareLink',
+        'filterProducts', 'performLiveSearch', 'highlightText',
+        'clearSearch', 'closeSearchResults',
+        'renderPaymentProducts', 'fetchCryptoPrices',
+        'getLTCPrice', 'getUSDTPrice', 'updatePriceUI', 'updatePayableTotal',
+        'selectPayment', 'continuePayment',
+        'processBalancePayment', 'sendAdminNotification',
+        'placeOrder', 'placeOrderTelegram',
+        'sendTelegramNotification', 'bindTelegram',
+        'startBindingListener', 'testTelegramNotification',
+        'unlinkTelegram', 'checkTelegramStatus',
+        'renderProxyPackages', 'addProxyToCart',
+        'loadDownloads', 'renderDownloads', 'renderAdminDownloads',
+        'createDownload', 'deleteDownload', 'editDownload',
+        'openCreateDownloadModal', 'closeCreateDownloadModal',
+        'loadNotifications', 'renderUserNotificationsFallback',
+        'renderUserNotifications', 'renderAdminNotifications',
+        'updateNotificationBadge', 'markAllNotificationsRead',
+        'clearAllNotifications', 'createNotification',
+        'deleteNotification', 'openCreateNotificationModal',
+        'closeCreateNotificationModal',
+        'openRequestsModal', 'closeRequestsModal',
+        'openNewRequestModal', 'closeNewRequestModal', 'submitRequest',
+        'openReferralModal', 'closeReferralModal', 'updateReferralUI',
+        'copyReferralCode2',
+        'openAdminPanel', 'closeAdminPanel', 'switchAdminTab',
+        'renderAdminProducts', 'startAdminRealtimeListener',
+        'loadAdminOrders', 'renderAdminOrders', 'updateAdminStats',
+        'updateOrderStatus', 'deleteOrderImmediately',
+        'searchAdminOrders', 'clearAdminSearch', 'refreshAdminOrders',
+        'loadAdminUsers', 'renderAdminUsers',
+        'searchAdminUsers', 'clearAdminUserSearch', 'refreshAdminUsers',
+        'toggleUserBan', 'deleteUserAccount', 'viewUserDetails',
+        'closeUserDetailsModal',
+        'loadLicences', 'renderLicences',
+        'openCreateLicenceModal', 'closeCreateLicenceModal',
+        'createLicenceManually', 'updateLicenceInSupabase',
+        'approveLicence', 'revokeLicence', 'deleteLicence',
+        'editLicence', 'saveLicenceEdit',
+        'searchLicences', 'clearLicenceSearch', 'refreshLicences',
+        'renderUserLicences', 'toggleLicencesList',
+        'openLicenceModal', 'closeLicenceModal', 'closeLicenseModal',
+        'activatedLicence', 'activateLicence',
+        'loadRatings', 'hasUserPurchasedProduct', 'submitRating',
+        'renderStarHTML', 'setRating', 'renderRatingSection',
+        'updateProductRatingDisplay',
+        'goToSlide', 'nextSlide', 'prevSlide',
+        'pauseSlider', 'resumeSlider',
+        'saveSliderData', 'saveSliderInterval', 'saveSlideEdit',
+        'deleteSlide', 'editSlide',
+        'openAddSlideModal', 'closeAddSlideModal',
+        'updateSlideProductSelect', 'toggleSlideLinkFields',
+        'loadSliderSettings', 'renderSlider', 'startSliderRotation',
+        'resetSliderTimer', 'renderSliderSettingsUI',
+        'saveMarqueeSettings', 'applyMarqueeSettings',
+        'renderMarqueeSettingsUI', 'loadMarqueeSettings',
+        'loadDashboardStats', 'refreshDashboardStats',
+        'loadAdvancedStats', 'refreshAdvancedStats',
+        'loadAuditLogs', 'loadActivityLogs', 'exportActivityLogs',
+        'loadFraudLogs',
+        'clearOrderHistory', 'renderHistoryFull',
+        'loadUserBalance', 'updateBalanceDisplay',
+        'startTopupRealtimeListener', 'playNotificationSound',
+        'openTopupStatus', 'closeTopupStatus', 'loadUserTopups',
+        'openTopupModal', 'closeTopupModal',
+        'selectTopupCurrency', 'updateTopupAmounts', 'selectTopupAmount',
+        'processTopup', 'submitTopupWithTxHash',
+        'approveTopup', 'rejectTopup', 'loadAdminTopups',
+        'sendTelegramTopupNotification',
+        'copyToClipboard', 'fallbackCopy',
+        'checkoutWithBalance',
+        'toggleSupportMenu', 'openSupportModal', 'closeSupportModal',
+        'openWhatsAppSupport', 'openTelegramSupport',
+        'openEmailSupport', 'openPhoneSupport',
+        'acceptCookies', 'rejectCookies',
+        'openCookieSettings', 'closeCookieSettings', 'saveCookieSettings',
+        'enableAnalytics', 'disableAnalytics', 'checkCookieConsent',
+        'closeCookieBanner',
+        'showTelegramBanner', 'closeTelegramBanner', 'showTelegramBannerAgain',
+        'addBannerAdminControls', 'adminToggleBanner', 'resetBannerForAll',
+        'uploadToCloudinary', 'fixDirection',
+        'copyLicenceCode', 'fallbackCopyText',
+        'generateInvoice', 'exportOrders',
+        'refreshAdminPayments', 'adminApprovePayment', 'adminRejectPayment',
+        'adminDeletePayment',
+        'trackUserBehavior', 'updateUserPreferences',
+        'getRecommendations', 'getDefaultRecommendations',
+        'detectFraud', 'logFraudDetection',
+        'renderLimitedProducts',
+        'initPopups', 'showExitPopup', 'showOfferPopup',
+        'closePopup', 'applyPopupCoupon', 'subscribeAndApply',
+        'loadCoupons', 'updateActiveCoupons',
+        'openCreateCouponModal', 'closeCreateCouponModal',
+        'saveCoupon', 'deleteCoupon', 'editCoupon', 'renderAdminCoupons',
+        'sendEmail', 'sendWelcomeEmail', 'sendOrderConfirmationEmail',
+        'sendOrderStatusEmail', 'sendTopupConfirmationEmail',
+        'sendAdminNotificationEmail',
+        'loadEmailLogs', 'renderEmailLogs', 'sendTestEmail',
+        'previewEmail', 'resendEmail',
+        'loadAdminSettingsUI', 'saveAdminSettings', 'getMyTelegramChatId',
+        'loadBranding', 'saveBranding', 'applyBranding',
+        'loadBrandingSettings', 'saveBrandingSettings', 'resetBranding',
+        'generatePDFInvoice',
+        'getVisitorInfo', 'getDeviceInfo', 'logActivity',
+        'sendUserNotification', 'generateLicenceForUser', 'sendLicenceEmail',
+        'showOfflineToast', 'showOnlineToast',
+        'initNetworkMonitor', 'pauseOnlineOperations', 'resumeOnlineOperations',
+        'addOfflineStyles',
+        'loadUserSettings', 'saveUserSettings',
+        'toggleSetting', 'handleSettingChange', 'renderSettingsUI',
+        'checkout', 'handleTopup',
+        'closePaymentModal', 'goToStep1',
+        'copyWalletAddress', 'fallbackCopy',
+        'copyBinanceId',
+        'verifyTransaction', 'handleTxPaste', 'submitManualPayment',
+        'checkConnection', 'requireConnection',
+        'initApp'
+    ];
 
+    // تصدير كل دالة موجودة في النطاق الحالي
+    functionNames.forEach(name => {
+        try {
+            // الوصول إلى الدالة من نطاق الوحدة باستخدام eval
+            const func = eval(name);
+            if (typeof func === 'function') {
+                window[name] = func;
+                console.log(`✅ Exported: ${name}`);
+            } else {
+                console.warn(`⚠️ ${name} is not a function or not defined`);
+            }
+        } catch (e) {
+            console.warn(`⚠️ Could not export ${name}: ${e.message}`);
+        }
+    });
+})();
 console.log('✅ All functions exported to window - COMPLETE');
 console.log('✅ ZI Store script loaded successfully - COMPLETE');
