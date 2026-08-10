@@ -9938,29 +9938,34 @@ window.requireConnection = function(message = 'This action requires internet con
 };
 
 // ============================================================
-// INIT - COMPLETE
+// FIX: INIT WITH LOGGING AND FORCED HIDE
 // ============================================================
+
+// دالة مساعدة لإظهار رسائل في console مع timestamp
+function log(message) {
+    console.log(`[${new Date().toISOString()}] ${message}`);
+}
+
+// استبدال initApp
 async function initApp() {
-    console.log('🚀 Initializing ZI Store...');
+    log('🚀 initApp started');
     try {
-        // Branding
+        log('Loading branding...');
         loadBranding();
         
-        // Products
-        window.updateLoadingProgress(15, 'Loading products...');
+        log('Loading products...');
         await loadProductsFromFirestore();
         startProductsRealtimeListener();
         
-        // User data
-        window.updateLoadingProgress(40, 'Loading user data...');
+        log('Loading user data...');
         await loadUserData();
         
-        // Render
+        log('Rendering products...');
         renderProducts(products, false);
         renderFeaturedProducts();
         generateRecommendations(products);
         
-        // UI Updates
+        log('Updating UI...');
         updateUI();
         updateDropdownStats();
         updateFullUserMenu();
@@ -9971,7 +9976,7 @@ async function initApp() {
         renderProxyPackages();
         renderLimitedProducts();
         
-        // Data loading
+        log('Loading additional data...');
         loadDownloads();
         loadNotifications();
         loadFeaturedSettings();
@@ -9982,12 +9987,12 @@ async function initApp() {
         loadCoupons();
         fetchCryptoPrices();
         
-        // Settings
+        log('Checking cookies...');
         checkCookieConsent();
         initTopInfoBar();
         showTelegramBanner();
         
-        // Network Status Detection
+        log('Network monitor...');
         addOfflineStyles();
         initNetworkMonitor();
         
@@ -10000,36 +10005,48 @@ async function initApp() {
         window._cryptoInterval = setInterval(fetchCryptoPrices, 60000);
         
         if (currentUser) {
+            log('Loading user balance...');
             loadUserBalance();
             startTopupRealtimeListener();
         }
         
-        // Popups
+        log('Popups init...');
         initPopups();
         
-        // Finish
+        log('Update progress...');
         window.updateLoadingProgress(100, '✅ Ready!');
-        setTimeout(window.showMainApp, 300);
-        setTimeout(hideLoadingScreen, 800);
         
-        console.log('✅ ZI Store initialized successfully!');
+        log('Showing main app...');
+        setTimeout(() => {
+            window.showMainApp();
+            log('Main app shown');
+        }, 300);
+        
+        setTimeout(() => {
+            hideLoadingScreen();
+            log('Loading screen hidden');
+        }, 800);
+        
+        log('✅ ZI Store initialized successfully!');
     } catch (error) {
         console.error('❌ Init error:', error);
         window.updateLoadingProgress(100, '⚠️ Loaded with errors');
-        setTimeout(window.showMainApp, 500);
-        setTimeout(hideLoadingScreen, 1000);
+        setTimeout(() => {
+            window.showMainApp();
+            hideLoadingScreen();
+        }, 500);
         showToast('⚠️ Error loading store. Please refresh.', 'error');
     }
 }
 
-// ============================================================
-// AUTH STATE LISTENER
-// ============================================================
+// استبدال onAuthStateChanged
 onAuthStateChanged(auth, async (user) => {
+    log(`🔐 Auth state changed, user: ${user ? user.email : 'null'}`);
     if (user) {
         currentUser = user;
-        console.log('🔐 User authenticated:', user.email);
+        log('User authenticated');
         
+        // Check ban status
         try {
             const userRef = doc(db, 'users', user.uid);
             const userSnap = await getDoc(userRef);
@@ -10062,7 +10079,7 @@ onAuthStateChanged(auth, async (user) => {
         } catch (error) { console.error('Error checking user data:', error); }
 
         await refreshAdminStatus();
-        console.log('🔍 Admin status after login:', isAdminCached);
+        log('Admin status:', isAdminCached);
 
         document.getElementById('authSection').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
@@ -10075,7 +10092,7 @@ onAuthStateChanged(auth, async (user) => {
         initPopups();
 
         if (isAdminCached) {
-            console.log('✅ Admin detected, loading admin features');
+            log('Admin detected, loading admin features');
             loadAdminOrders();
             startAdminRealtimeListener();
             renderAdminProducts(products);
@@ -10111,7 +10128,7 @@ onAuthStateChanged(auth, async (user) => {
     } else {
         currentUser = null;
         isAdminCached = false;
-        console.log('🔓 No user authenticated');
+        log('No user authenticated');
 
         document.getElementById('authSection').style.display = 'block';
         document.getElementById('mainApp').style.display = 'none';
@@ -10136,6 +10153,20 @@ onAuthStateChanged(auth, async (user) => {
     updateBalanceDisplay();
 });
 
+// ============================================================
+// FORCED HIDE LOADING SCREEN AFTER 5 SECONDS (SAFETY NET)
+// ============================================================
+setTimeout(function() {
+    const screen = document.getElementById('loadingScreen');
+    if (screen && !screen.classList.contains('hidden')) {
+        console.warn('⚠️ Forcing loading screen hide (timeout)');
+        screen.classList.add('hidden');
+        setTimeout(function() {
+            screen.classList.add('hidden-force');
+        }, 600);
+        document.getElementById('mainApp').style.display = 'block';
+    }
+}, 5000);
 // ============================================================
 // START APP
 // ============================================================
@@ -10340,5 +10371,71 @@ if (document.readyState === 'loading') {
         }
     });
 })();
+// ============================================================
+// FORCE LOADING SCREEN HIDE - SAFETY NET
+// ============================================================
+
+// 1. تأكد من وجود العناصر
+console.log('🔍 Checking DOM elements...');
+console.log('loadingScreen:', document.getElementById('loadingScreen'));
+console.log('mainApp:', document.getElementById('mainApp'));
+console.log('authSection:', document.getElementById('authSection'));
+
+// 2. دالة لإخفاء شاشة التحميل فوراً
+function forceHideLoading() {
+    const screen = document.getElementById('loadingScreen');
+    const mainApp = document.getElementById('mainApp');
+    const authSection = document.getElementById('authSection');
+    
+    if (screen) {
+        screen.classList.add('hidden');
+        screen.style.display = 'none';
+        console.log('✅ Loading screen hidden (forced)');
+    }
+    
+    if (mainApp) {
+        mainApp.style.display = 'block';
+        mainApp.style.visibility = 'visible';
+        mainApp.style.opacity = '1';
+        console.log('✅ Main app shown (forced)');
+    }
+    
+    if (authSection) {
+        // إذا كان المستخدم غير مسجل، نظهر authSection
+        if (!currentUser) {
+            authSection.style.display = 'block';
+            mainApp.style.display = 'none';
+        }
+    }
+}
+
+// 3. تنفيذ الإخفاء فوراً بعد تحميل الصفحة
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    setTimeout(forceHideLoading, 100);
+} else {
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(forceHideLoading, 100);
+    });
+}
+
+// 4. إخفاء إضافي بعد 3 ثواني في حال لم يعمل الأول
+setTimeout(function() {
+    forceHideLoading();
+    console.log('🔄 Second attempt to hide loading screen');
+}, 3000);
+
+// 5. إخفاء ثالث بعد 10 ثواني (نهائي)
+setTimeout(function() {
+    const screen = document.getElementById('loadingScreen');
+    if (screen && screen.style.display !== 'none') {
+        screen.style.display = 'none';
+        console.warn('⚠️ Final forced hide of loading screen');
+    }
+    const mainApp = document.getElementById('mainApp');
+    if (mainApp && mainApp.style.display === 'none') {
+        mainApp.style.display = 'block';
+        console.warn('⚠️ Final forced show of main app');
+    }
+}, 10000);
 console.log('✅ All functions exported to window - COMPLETE');
 console.log('✅ ZI Store script loaded successfully - COMPLETE');
