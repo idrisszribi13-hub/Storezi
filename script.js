@@ -9839,22 +9839,7 @@ window.copyWalletAddress = function() {
     }
 };
 
-// ✅ صحيح - دالة النسخ الاحتياطي (تستخدم مرة واحدة فقط)
-function fallbackCopy(text) {
-    const textarea = document.createElement('textarea');
-    textarea.value = text;
-    textarea.style.position = 'fixed';
-    textarea.style.opacity = '0';
-    document.body.appendChild(textarea);
-    textarea.select();
-    try {
-        document.execCommand('copy');
-        showToast('✅ Copied!', 'success');
-    } catch (e) {
-        showToast('❌ Failed to copy', 'error');
-    }
-    document.body.removeChild(textarea);
-}
+
 // ============================================================
 // COPY BINANCE ID - FINAL FIX
 // ============================================================
