@@ -7931,48 +7931,6 @@ window.fixHeaderAndModals = fixDirection;
 // COPY LICENCE & EXPORT
 // ============================================================
 
-// دالة مساعدة للنسخ (تُستخدم في جميع دوال النسخ)
-function fallbackCopy(text) {
-    const textarea = document.createElement('textarea');
-    textarea.value = text;
-    textarea.style.position = 'fixed';
-    textarea.style.opacity = '0';
-    document.body.appendChild(textarea);
-    textarea.select();
-    try {
-        document.execCommand('copy');
-        showToast('✅ Copied!', 'success');
-    } catch (e) {
-        showToast('❌ Failed to copy', 'error');
-    }
-    document.body.removeChild(textarea);
-}
-
-// نسخ رمز الترخيص
-window.copyLicenceCode = function(code) {
-    if (!code) {
-        showToast('⚠️ No code to copy', 'warning');
-        return;
-    }
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(code)
-            .then(() => showToast('✅ Licence code copied!', 'success'))
-            .catch(() => fallbackCopy(code));
-    } else {
-        fallbackCopy(code);
-    }
-};
-
-// نسخ النص إلى الحافظة (عام)
-window.copyToClipboard = function(text) {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text)
-            .then(() => showToast('✅ Copied!', 'success'))
-            .catch(() => fallbackCopy(text));
-    } else {
-        fallbackCopy(text);
-    }
-};
 
 // إنشاء فاتورة PDF
 window.generateInvoice = function(orderData) {
@@ -9813,11 +9771,58 @@ window.goToStep1 = function() {
         verificationResult.textContent = '';
     }
 };
+// ============================================================
+// COPY FUNCTIONS - UNIFIED (ONLY ONE fallbackCopy)
+// ============================================================
 
-// ============================================================
-// COPY WALLET ADDRESS - FINAL FIX
-// ============================================================
-// ✅ صحيح - دالة نسخ عنوان المحفظة
+// دالة النسخ الاحتياطي (تستخدم مرة واحدة فقط في الملف بأكمله)
+function fallbackCopy(text) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+        document.execCommand('copy');
+        showToast('✅ Copied!', 'success');
+    } catch (e) {
+        showToast('❌ Failed to copy', 'error');
+    }
+    document.body.removeChild(textarea);
+}
+
+// 1. نسخ النص إلى الحافظة (عام)
+window.copyToClipboard = function(text) {
+    if (!text) {
+        showToast('⚠️ Nothing to copy', 'warning');
+        return;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text)
+            .then(() => showToast('✅ Copied!', 'success'))
+            .catch(() => fallbackCopy(text));
+    } else {
+        fallbackCopy(text);
+    }
+};
+
+// 2. نسخ رمز الترخيص
+window.copyLicenceCode = function(code) {
+    if (!code) {
+        showToast('⚠️ No code to copy', 'warning');
+        return;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code)
+            .then(() => showToast('✅ Licence code copied!', 'success'))
+            .catch(() => fallbackCopy(code));
+    } else {
+        fallbackCopy(code);
+    }
+};
+
+// 3. نسخ عنوان المحفظة
 window.copyWalletAddress = function() {
     const addressElement = document.getElementById('walletAddressDisplay');
     if (!addressElement) {
@@ -9825,11 +9830,10 @@ window.copyWalletAddress = function() {
         return;
     }
     const address = addressElement.textContent.trim();
-    if (!address || address === '') {
+    if (!address) {
         showToast('⚠️ No wallet address to copy', 'warning');
         return;
     }
-    // ✅ يستخدم fallbackCopy بشكل صحيح
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(address)
             .then(() => showToast('✅ Wallet address copied!', 'success'))
@@ -9839,14 +9843,16 @@ window.copyWalletAddress = function() {
     }
 };
 
-
-// ============================================================
-// COPY BINANCE ID - FINAL FIX
-// ============================================================
+// 4. نسخ Binance ID
 window.copyBinanceId = function() {
-    const id = document.getElementById('binanceIdDisplay')?.textContent;
-    if (!id) {
+    const idElement = document.getElementById('binanceIdDisplay');
+    if (!idElement) {
         showToast('⚠️ Binance ID not found', 'warning');
+        return;
+    }
+    const id = idElement.textContent.trim();
+    if (!id) {
+        showToast('⚠️ No Binance ID to copy', 'warning');
         return;
     }
     if (navigator.clipboard && navigator.clipboard.writeText) {
