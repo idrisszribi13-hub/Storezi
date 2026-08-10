@@ -10045,102 +10045,135 @@ async function initApp() {
     }
 }
 
-// استبدال onAuthStateChanged
+
+// ============================================================
+// AUTH STATE LISTENER - COMPLETE WITH FIXES
+// ============================================================
 onAuthStateChanged(auth, async (user) => {
-    log(`🔐 Auth state changed, user: ${user ? user.email : 'null'}`);
+    // ---- متغيرات DOM ----
+    const authSection = document.getElementById('authSection');
+    const mainApp = document.getElementById('mainApp');
+    const loadingScreen = document.getElementById('loadingScreen');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+
+    // ---- دالة مساعدة لإخفاء شاشة التحميل ----
+    function hideLoading() {
+        if (loadingScreen) {
+            loadingScreen.classList.add('hidden');
+            setTimeout(() => {
+                loadingScreen.classList.add('hidden-force');
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                }, 100);
+            }, 600);
+        }
+    }
+
+    // ---- دالة مساعدة لإظهار التطبيق ----
+    function showApp() {
+        if (authSection) authSection.style.display = 'none';
+        if (mainApp) {
+            mainApp.style.display = 'block';
+            mainApp.style.visibility = 'visible';
+            mainApp.style.opacity = '1';
+        }
+        hideLoading();
+    }
+
+    // ---- دالة مساعدة لإظهار الـ Login ----
+    function showLogin() {
+        if (authSection) authSection.style.display = 'block';
+        if (mainApp) mainApp.style.display = 'none';
+        hideLoading();
+    }
+
+    // ---- حالة تسجيل الدخول ----
     if (user) {
         currentUser = user;
-        log('User authenticated');
-        
-        // Check ban status
+        console.log('🔐 User authenticated:', user.email);
+
         try {
-            const userRef = doc(db, 'users', user.uid);
-            const userSnap = await getDoc(userRef);
-            if (userSnap.exists() && userSnap.data().isBanned === true) {
-                await signOut(auth);
-                currentUser = null;
-                isAdminCached = false;
-                document.getElementById('authSection').style.display = 'block';
-                document.getElementById('mainApp').style.display = 'none';
-                showToast('🚫 Your account has been banned.', 'error');
-                hideLoadingScreen();
-                return;
+            // 1. تحديث حالة الأدمن
+            await refreshAdminStatus();
+
+            // 2. تحميل بيانات المستخدم من Firestore
+            await loadUserData();
+
+            // 3. تحديث واجهة المستخدم
+            updateUI();
+            updateDropdownStats();
+            updateFullUserMenu();
+            updateBalanceDisplay();
+
+            // 4. تحميل الرصيد والإشعارات
+            loadUserBalance();
+            startTopupRealtimeListener();
+            loadNotifications();
+            renderUserLicences();
+
+            // 5. ميزات الأدمن (إذا كان أدمن)
+            if (isAdminCached) {
+                console.log('👑 Admin user detected');
+                loadAdminOrders();
+                startAdminRealtimeListener();
+                loadLicences();
+                loadAdminTopups();
+                renderFallbackProductsAdmin();
+                // عرض زر الأدمن في القائمة
+                setTimeout(() => {
+                    const adminMenuItem = document.getElementById('adminMenuItem');
+                    if (adminMenuItem) adminMenuItem.style.display = 'flex';
+                    updateFullUserMenu();
+                }, 300);
             }
-            if (userSnap.exists()) {
-                const data = userSnap.data();
-                userProfile.photoURL = data.photoURL || user.photoURL || '';
-                userProfile.balance = data.balance || 0;
-                userBalance = userProfile.balance;
-                userProfile.country = data.country || data.location || 'Unknown';
-                userProfile.location = data.location || data.country || 'Unknown';
-                userProfile.joined = data.createdAt ? new Date(data.createdAt.toDate())
-                    .toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) :
-                    '--';
-                userProfile.lastIP = data.lastIP || '';
-                userProfile.lastCountry = data.lastCountry || '';
-                userProfile.welcomeEmailSent = data.welcomeEmailSent || false;
-                userProfile.loginCount = data.loginCount || 0;
-                userProfile.settings = data.settings || { ipDetection: true, emailNotifications: true, twoFactorAuth: false };
-            }
-        } catch (error) { console.error('Error checking user data:', error); }
 
-        await refreshAdminStatus();
-        log('Admin status:', isAdminCached);
+            // 6. تحميل باقي البيانات
+            loadDownloads();
+            fetchCryptoPrices();
+            loadFeaturedSettings();
+            loadSliderSettings();
+            loadMarqueeSettings();
+            setTimeout(showTelegramBanner, 1000);
+            setTimeout(window.ensureAdminPanel, 2000);
+            setTimeout(checkCookieConsent, 1000);
 
-        document.getElementById('authSection').style.display = 'none';
-        document.getElementById('mainApp').style.display = 'block';
+            // 7. إظهار التطبيق وإخفاء التحميل
+            showApp();
 
-        await loadUserData();
-        updateDropdownStats();
-        loadUserBalance();
-        startTopupRealtimeListener();
-        initTopInfoBar();
-        initPopups();
+            // 8. تحديث شريط التقدم (في حال كان لا يزال موجوداً)
+            if (progressBar) progressBar.style.width = '100%';
+            if (progressText) progressText.textContent = '100%';
 
-        if (isAdminCached) {
-            log('Admin detected, loading admin features');
-            loadAdminOrders();
-            startAdminRealtimeListener();
-            renderAdminProducts(products);
-            loadLicences();
-            loadAdminTopups();
-            renderFallbackProductsAdmin();
-            loadCoupons();
-            setTimeout(addBannerAdminControls, 500);
-            setTimeout(() => {
-                const adminMenuItem = document.getElementById('adminMenuItem');
-                if (adminMenuItem) adminMenuItem.style.display = 'flex';
-                updateFullUserMenu();
-                updateUI();
-            }, 300);
+            // 9. رسالة ترحيب
+            showToast(`👋 Welcome ${user.displayName || user.email || 'User'}!`, 'success', 3000);
+
+        } catch (error) {
+            console.error('❌ Error during user initialization:', error);
+            showToast('⚠️ Error loading user data. Please refresh.', 'error');
+            showApp(); // إظهار التطبيق حتى لو حدث خطأ جزئي
         }
-
-        loadDownloads();
-        loadNotifications();
-        fetchCryptoPrices();
-        loadFeaturedSettings();
-        loadSliderSettings();
-        loadMarqueeSettings();
-        setTimeout(showTelegramBanner, 1000);
-        setTimeout(window.ensureAdminPanel, 2000);
-        setTimeout(checkCookieConsent, 1000);
-        window.updateLoadingProgress(100, '✅ Ready!');
-
-        window.showMainApp();
-        hideLoadingScreen();
-
-        showToast(`👋 Welcome ${user.displayName || user.email || 'User'}!`, 'success', 3000);
-
-    } else {
+    } 
+    // ---- حالة الخروج أو عدم وجود مستخدم ----
+    else {
         currentUser = null;
         isAdminCached = false;
-        log('No user authenticated');
+        console.log('🔓 No user authenticated');
 
-        document.getElementById('authSection').style.display = 'block';
-        document.getElementById('mainApp').style.display = 'none';
+        // إلغاء الاشتراكات والمستمعين
+        if (unsubscribeAdmin) { unsubscribeAdmin(); unsubscribeAdmin = null; }
+        if (unsubscribeUser) { unsubscribeUser(); unsubscribeUser = null; }
+        if (topupSubscription) { topupSubscription.unsubscribe(); topupSubscription = null; }
 
+        // تحميل البيانات من localStorage (للزوار)
         await loadUserData();
-        updateDropdownStats();
+
+        // تحديث الواجهة لعرض Login
+        updateUI();
+        updateFullUserMenu();
+        updateBalanceDisplay();
+
+        // تحميل بعض البيانات حتى للزوار (منتجات، سلايدر، إلخ)
         loadDownloads();
         loadNotifications();
         fetchCryptoPrices();
@@ -10148,17 +10181,33 @@ onAuthStateChanged(auth, async (user) => {
         loadSliderSettings();
         loadMarqueeSettings();
         setTimeout(checkCookieConsent, 1000);
-        window.updateLoadingProgress(100, '👋 Please login');
 
-        setTimeout(() => {
-            hideLoadingScreen();
-        }, 500);
+        // إظهار شاشة Login
+        showLogin();
+
+        // تحديث شريط التقدم
+        if (progressBar) progressBar.style.width = '100%';
+        if (progressText) progressText.textContent = '100%';
     }
-    updateUI();
-    updateFullUserMenu();
-    updateBalanceDisplay();
-});
 
+    // ---- في النهاية، تأكد من إخفاء شاشة التحميل في كل الأحوال (حماية) ----
+    setTimeout(() => {
+        if (loadingScreen && loadingScreen.style.display !== 'none') {
+            loadingScreen.style.display = 'none';
+            console.warn('⚠️ Final forced hide of loading screen');
+        }
+    }, 5000); // 5 ثواني كحد أقصى
+
+    // ---- إعادة تعيين حالة التحميل إذا بقيت شاشة التحميل ----
+    if (loadingScreen) {
+        loadingScreen.classList.add('hidden-force');
+        setTimeout(() => {
+            if (loadingScreen.style.display !== 'none') {
+                loadingScreen.style.display = 'none';
+            }
+        }, 1000);
+    }
+});
 // ============================================================
 // FORCED HIDE LOADING SCREEN AFTER 5 SECONDS (SAFETY NET)
 // ============================================================
