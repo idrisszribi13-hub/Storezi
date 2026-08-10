@@ -5683,11 +5683,19 @@ function renderUserLicences() {
     }).join('');
 }
 
+// ============================================================
+// LICENCE MODAL FUNCTIONS - FIXED
+// ============================================================
+
+// تبديل ظهور قائمة التراخيص
 function toggleLicencesList() {
     const list = document.getElementById('userLicencesList');
-    if (list) list.style.display = list.style.display === 'none' ? 'block' : 'none';
+    if (list) {
+        list.style.display = list.style.display === 'none' ? 'block' : 'none';
+    }
 }
 
+// فتح مودال التراخيص
 window.openLicenceModal = function() {
     if (!currentUser) {
         showToast('⚠️ Please login first', 'warning');
@@ -5705,6 +5713,7 @@ window.openLicenceModal = function() {
     document.body.style.overflow = 'hidden';
 };
 
+// إغلاق مودال التراخيص
 window.closeLicenceModal = function() {
     const modal = document.getElementById('licenceModal');
     if (modal) {
@@ -5713,7 +5722,7 @@ window.closeLicenceModal = function() {
     }
 };
 
-// Compatibility aliases for HTML
+// دالة مرادفة للتوافق مع HTML (closeLicenseModal)
 window.closeLicenseModal = function() {
     if (typeof window.closeLicenceModal === 'function') {
         window.closeLicenceModal();
@@ -5726,6 +5735,7 @@ window.closeLicenseModal = function() {
     }
 };
 
+// دالة مرادفة للتوافق مع HTML (activatedLicence)
 window.activatedLicence = function() {
     if (typeof window.activateLicence === 'function') {
         window.activateLicence();
@@ -7948,18 +7958,9 @@ window.fixHeaderAndModals = fixDirection;
 // ============================================================
 // COPY LICENCE & EXPORT
 // ============================================================
-window.copyLicenceCode = function(code) {
-    if (!code) { showToast('⚠️ No code to copy', 'warning'); return; }
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(code)
-            .then(() => showToast('✅ Licence code copied!', 'success'))
-            .catch(() => fallbackCopyText(code));
-    } else {
-        fallbackCopyText(code);
-    }
-};
 
-function fallbackCopyText(text) {
+// دالة مساعدة للنسخ (تُستخدم في جميع دوال النسخ)
+function fallbackCopy(text) {
     const textarea = document.createElement('textarea');
     textarea.value = text;
     textarea.style.position = 'fixed';
@@ -7968,33 +7969,77 @@ function fallbackCopyText(text) {
     textarea.select();
     try {
         document.execCommand('copy');
-        showToast('✅ Licence code copied!', 'success');
+        showToast('✅ Copied!', 'success');
     } catch (e) {
-        showToast('❌ Failed to copy. Please copy manually.', 'error');
+        showToast('❌ Failed to copy', 'error');
     }
     document.body.removeChild(textarea);
 }
 
+// نسخ رمز الترخيص
+window.copyLicenceCode = function(code) {
+    if (!code) {
+        showToast('⚠️ No code to copy', 'warning');
+        return;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code)
+            .then(() => showToast('✅ Licence code copied!', 'success'))
+            .catch(() => fallbackCopy(code));
+    } else {
+        fallbackCopy(code);
+    }
+};
+
+// نسخ النص إلى الحافظة (عام)
+window.copyToClipboard = function(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text)
+            .then(() => showToast('✅ Copied!', 'success'))
+            .catch(() => fallbackCopy(text));
+    } else {
+        fallbackCopy(text);
+    }
+};
+
+// إنشاء فاتورة PDF
 window.generateInvoice = function(orderData) {
-    if (!orderData) { showToast('❌ No order data for invoice', 'error'); return; }
+    if (!orderData) {
+        showToast('❌ No order data for invoice', 'error');
+        return;
+    }
     try {
         let order = typeof orderData === 'string' ? JSON.parse(orderData) : orderData;
-        if (!order.id) { order.id = 'INV-' + Date.now().toString().slice(-6); }
+        if (!order.id) {
+            order.id = 'INV-' + Date.now().toString().slice(-6);
+        }
         const invoiceHtml =
             `<html><head><title>Invoice #${order.id}</title><style>body{font-family:Arial;padding:40px;background:#fff;color:#000;}h1{color:#333;}table{width:100%;border-collapse:collapse;margin:20px 0;}th,td{padding:10px;border:1px solid #ddd;text-align:left;}th{background:#f5f5f5;}.total{font-size:18px;font-weight:bold;}</style></head><body><h1>🧾 Invoice</h1><p><strong>Order ID:</strong> ${order.id}</p><p><strong>Date:</strong> ${order.date ? new Date(order.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '--'}</p><p><strong>Status:</strong> ${order.status || 'Pending'}</p><table><thead><tr><th>Product</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead><tbody>${(order.items || []).map(item => `<tr><td>${item.name}${item.selectedQuantity ? ' (x'+item.selectedQuantity+')' : ''}</td><td>${item.quantity || 1}</td><td>$${(item.price || 0).toFixed(2)}</td><td>$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td></tr>`).join('')}</tbody></table><div class="total">Total: $${(order.total || 0).toFixed(2)}</div><div class="status">Payment Method: ${order.method || 'N/A'}</div><hr><p style="color:gray;">Thank you for your purchase at ZI Store!</p></body></html>`;
         const win = window.open('', '_blank');
-        if (!win) { showToast('⚠️ Please allow popups to generate invoice', 'warning'); return; }
+        if (!win) {
+            showToast('⚠️ Please allow popups to generate invoice', 'warning');
+            return;
+        }
         win.document.write(invoiceHtml);
         win.document.close();
         win.print();
         showToast('📄 Invoice generated!', 'success');
-    } catch (error) { console.error('Invoice generation error:', error);
-        showToast('❌ Failed to generate invoice', 'error'); }
+    } catch (error) {
+        console.error('Invoice generation error:', error);
+        showToast('❌ Failed to generate invoice', 'error');
+    }
 };
 
+// تصدير الطلبات إلى CSV
 window.exportOrders = function() {
-    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
-    if (!allOrders || allOrders.length === 0) { showToast('📭 No orders to export', 'info'); return; }
+    if (!currentUser || !isAdminCached) {
+        showToast('⛔ Unauthorized', 'error');
+        return;
+    }
+    if (!allOrders || allOrders.length === 0) {
+        showToast('📭 No orders to export', 'info');
+        return;
+    }
     try {
         let csv = 'Order ID,User,Email,Total,Status,Date,Items\n';
         allOrders.forEach(order => {
@@ -8010,9 +8055,11 @@ window.exportOrders = function() {
         a.click();
         URL.revokeObjectURL(url);
         showToast('📥 Orders exported!', 'success');
-    } catch (error) { showToast('❌ Export failed', 'error'); }
+    } catch (error) {
+        console.error('Export error:', error);
+        showToast('❌ Export failed', 'error');
+    }
 };
-
 // ============================================================
 // ADMIN PAYMENTS
 // ============================================================
@@ -9798,6 +9845,7 @@ window.goToStep1 = function() {
 // ============================================================
 // COPY WALLET ADDRESS - FINAL FIX
 // ============================================================
+// ✅ صحيح - دالة نسخ عنوان المحفظة
 window.copyWalletAddress = function() {
     const addressElement = document.getElementById('walletAddressDisplay');
     if (!addressElement) {
@@ -9809,6 +9857,7 @@ window.copyWalletAddress = function() {
         showToast('⚠️ No wallet address to copy', 'warning');
         return;
     }
+    // ✅ يستخدم fallbackCopy بشكل صحيح
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(address)
             .then(() => showToast('✅ Wallet address copied!', 'success'))
@@ -9818,6 +9867,7 @@ window.copyWalletAddress = function() {
     }
 };
 
+// ✅ صحيح - دالة النسخ الاحتياطي (تستخدم مرة واحدة فقط)
 function fallbackCopy(text) {
     const textarea = document.createElement('textarea');
     textarea.value = text;
@@ -9833,7 +9883,6 @@ function fallbackCopy(text) {
     }
     document.body.removeChild(textarea);
 }
-
 // ============================================================
 // COPY BINANCE ID - FINAL FIX
 // ============================================================
