@@ -5875,7 +5875,245 @@ async function updateProductRatingDisplay(productId) {
     snapshot.forEach(doc => { total += doc.data().rating || 0; count++; });
     const avg = count > 0 ? total / count : 0;
 }
+// ============================================================
+// NETWORK STATUS DETECTION - CONNECTION MONITOR
+// ============================================================
 
+// 1. متغيرات لتتبع حالة الاتصال
+let isOnline = navigator.onLine;
+let wasOffline = false;
+
+// 2. عرض إشعار عند فقدان الاتصال
+function showOfflineToast() {
+    const toast = document.getElementById('toast');
+    const messageEl = document.getElementById('toastMessage');
+    const iconEl = toast?.querySelector('.toast-icon');
+    
+    if (!toast || !messageEl) return;
+    
+    toast.classList.remove('show');
+    clearTimeout(window.toastTimeout);
+    
+    toast.className = 'toast';
+    toast.classList.add('error', 'large');
+    
+    if (iconEl) {
+        iconEl.innerHTML = '<i class="fas fa-wifi" style="color: #ff6b6b; font-size: 24px;"></i>';
+    }
+    
+    messageEl.innerHTML = `
+        <div style="text-align: center;">
+            <div style="font-size: 18px; font-weight: 800; color: var(--danger);">
+                ⚠️ No Internet Connection
+            </div>
+            <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
+                Please check your connection and try again.
+            </div>
+            <div style="font-size: 11px; color: var(--text-secondary); opacity: 0.4; margin-top: 6px;">
+                <i class="fas fa-spinner fa-spin"></i> Waiting for connection...
+            </div>
+        </div>
+    `;
+    
+    toast.style.display = 'flex';
+    toast.style.flexDirection = 'column';
+    toast.style.alignItems = 'center';
+    toast.style.maxWidth = '420px';
+    toast.style.padding = '20px 24px';
+    toast.style.borderColor = 'var(--danger)';
+    toast.style.background = 'rgba(255, 107, 107, 0.08)';
+    
+    void toast.offsetWidth;
+    toast.classList.add('show');
+    wasOffline = true;
+}
+
+// 3. عرض إشعار عند عودة الاتصال
+function showOnlineToast() {
+    const toast = document.getElementById('toast');
+    const messageEl = document.getElementById('toastMessage');
+    const iconEl = toast?.querySelector('.toast-icon');
+    
+    if (!toast || !messageEl) return;
+    
+    toast.classList.remove('show');
+    clearTimeout(window.toastTimeout);
+    
+    toast.className = 'toast';
+    toast.classList.add('success', 'large');
+    
+    if (iconEl) {
+        iconEl.innerHTML = '<i class="fas fa-wifi" style="color: #00d4aa; font-size: 24px;"></i>';
+    }
+    
+    messageEl.innerHTML = `
+        <div style="text-align: center;">
+            <div style="font-size: 18px; font-weight: 800; color: var(--success);">
+                ✅ Internet Connected!
+            </div>
+            <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
+                Your connection has been restored.
+            </div>
+        </div>
+    `;
+    
+    toast.style.display = 'flex';
+    toast.style.flexDirection = 'column';
+    toast.style.alignItems = 'center';
+    toast.style.maxWidth = '420px';
+    toast.style.padding = '20px 24px';
+    toast.style.borderColor = 'var(--success)';
+    toast.style.background = 'rgba(0, 212, 170, 0.08)';
+    
+    void toast.offsetWidth;
+    toast.classList.add('show');
+    wasOffline = false;
+    
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => { toast.style.display = 'none'; }, 500);
+    }, 3000);
+}
+
+// 4. مراقبة حالة الاتصال
+function initNetworkMonitor() {
+    if (!navigator.onLine) {
+        showOfflineToast();
+        wasOffline = true;
+    }
+    
+    window.addEventListener('offline', function() {
+        console.warn('⚠️ Internet connection lost');
+        showOfflineToast();
+        isOnline = false;
+        document.body.classList.add('offline-mode');
+        pauseOnlineOperations();
+    });
+    
+    window.addEventListener('online', function() {
+        console.log('✅ Internet connection restored');
+        isOnline = true;
+        document.body.classList.remove('offline-mode');
+        
+        if (wasOffline) {
+            showOnlineToast();
+        }
+        
+        resumeOnlineOperations();
+    });
+    
+    // فحص دوري كل 10 ثوانٍ
+    setInterval(function() {
+        if (navigator.onLine && !isOnline) {
+            isOnline = true;
+            document.body.classList.remove('offline-mode');
+            if (wasOffline) {
+                showOnlineToast();
+            }
+            resumeOnlineOperations();
+        } else if (!navigator.onLine && isOnline) {
+            isOnline = false;
+            document.body.classList.add('offline-mode');
+            showOfflineToast();
+            pauseOnlineOperations();
+        }
+    }, 10000);
+}
+
+// 5. إيقاف العمليات
+function pauseOnlineOperations() {
+    if (window._productsInterval) {
+        clearInterval(window._productsInterval);
+        window._productsInterval = null;
+    }
+    if (sliderTimer) {
+        clearInterval(sliderTimer);
+        sliderTimer = null;
+    }
+    if (window._cryptoInterval) {
+        clearInterval(window._cryptoInterval);
+        window._cryptoInterval = null;
+    }
+    console.log('⏸️ Online operations paused');
+}
+
+// 6. استئناف العمليات
+function resumeOnlineOperations() {
+    if (!window._productsInterval) {
+        window._productsInterval = setInterval(function() {
+            if (navigator.onLine) {
+                loadProductsFromFirestore();
+            }
+        }, 30000);
+    }
+    if (!sliderTimer && sliderSlides && sliderSlides.length > 0) {
+        startSliderRotation();
+    }
+    if (!window._cryptoInterval) {
+        window._cryptoInterval = setInterval(fetchCryptoPrices, 60000);
+    }
+    console.log('▶️ Online operations resumed');
+}
+
+// 7. إضافة CSS للوضع غير المتصل
+function addOfflineStyles() {
+    const style = document.createElement('style');
+    style.textContent = `
+        body.offline-mode {
+            position: relative;
+        }
+        body.offline-mode::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #ff6b6b, #ee5a24, #ff6b6b);
+            background-size: 200% 100%;
+            animation: offlinePulse 1.5s ease-in-out infinite;
+            z-index: 9999;
+        }
+        @keyframes offlinePulse {
+            0%, 100% { background-position: 0% 0%; }
+            50% { background-position: 100% 0%; }
+        }
+        .offline-indicator {
+            position: fixed;
+            bottom: 16px;
+            left: 16px;
+            z-index: 9999;
+            background: var(--danger);
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 700;
+            display: none;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 20px rgba(255, 107, 107, 0.3);
+            animation: pulse-badge 2s infinite;
+        }
+        .offline-indicator i {
+            font-size: 14px;
+        }
+        @keyframes pulse-badge {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        body.offline-mode .offline-indicator {
+            display: flex !important;
+        }
+    `;
+    document.head.appendChild(style);
+    
+    const indicator = document.createElement('div');
+    indicator.className = 'offline-indicator';
+    indicator.id = 'offlineIndicator';
+    indicator.innerHTML = '<i class="fas fa-wifi"></i> Offline';
+    document.body.appendChild(indicator);
+}
 // ============================================================
 // SLIDER FUNCTIONS
 // ============================================================
@@ -8900,15 +9138,29 @@ async function sendLicenceEmail(userEmail, licenceData) {
 }
 
 // ============================================================
-// INIT
+// INIT - COMPLETE WITH NETWORK STATUS DETECTION
 // ============================================================
 async function initApp() {
     console.log('🚀 Initializing ZI Store...');
     try {
+        // ===== 1. تحميل العلامة التجارية =====
         loadBranding();
+        
+        // ===== 2. تحميل المنتجات =====
+        window.updateLoadingProgress(15, 'Loading products...');
         await loadProductsFromFirestore();
         startProductsRealtimeListener();
+        
+        // ===== 3. تحميل بيانات المستخدم =====
+        window.updateLoadingProgress(40, 'Loading user data...');
         await loadUserData();
+        
+        // ===== 4. عرض المنتجات =====
+        renderProducts(products, false);
+        renderFeaturedProducts();
+        generateRecommendations(products);
+        
+        // ===== 5. تحديث الواجهة =====
         updateUI();
         updateDropdownStats();
         updateFullUserMenu();
@@ -8918,31 +9170,63 @@ async function initApp() {
         renderUserLicences();
         renderProxyPackages();
         renderLimitedProducts();
+        
+        // ===== 6. تحميل البيانات =====
         loadDownloads();
         loadNotifications();
         loadFeaturedSettings();
-        checkCookieConsent();
-        initTopInfoBar();
-        loadMarqueeSettings();
-        applyMarqueeSettings();
         loadSliderSettings();
         renderSliderSettingsUI();
+        loadMarqueeSettings();
+        applyMarqueeSettings();
         loadCoupons();
         fetchCryptoPrices();
+        
+        // ===== 7. إعدادات إضافية =====
+        checkCookieConsent();
+        initTopInfoBar();
         showTelegramBanner();
+        
         if (currentUser) {
             loadUserBalance();
             startTopupRealtimeListener();
         }
+        
+        // ============================================================
+        // ⭐⭐⭐ 8. NETWORK STATUS DETECTION ⭐⭐⭐
+        // ============================================================
+        // إضافة أنماط وضع عدم الاتصال
+        addOfflineStyles();
+        
+        // بدء مراقبة الاتصال
+        initNetworkMonitor();
+        
+        // حفظ مراجع للمؤقتات لإيقافها عند فقدان الاتصال
+        window._productsInterval = setInterval(function() {
+            if (navigator.onLine) {
+                loadProductsFromFirestore();
+            }
+        }, 30000);
+        
+        window._cryptoInterval = setInterval(fetchCryptoPrices, 60000);
+        
+        // ============================================================
+        // 9. إنهاء التحميل
+        // ============================================================
         window.updateLoadingProgress(100, '✅ Ready!');
         setTimeout(window.showMainApp, 300);
         setTimeout(hideLoadingScreen, 800);
+        
         console.log('✅ ZI Store initialized successfully!');
+        
     } catch (error) {
         console.error('❌ Init error:', error);
         window.updateLoadingProgress(100, '⚠️ Loaded with errors');
         setTimeout(window.showMainApp, 500);
         setTimeout(hideLoadingScreen, 1000);
+        
+        // عرض الإشعار في حالة الخطأ
+        showToast('⚠️ Error loading store. Please refresh.', 'error');
     }
 }
 
@@ -9296,6 +9580,14 @@ window.loadEmailLogs = loadEmailLogs;
 window.getVisitorInfo = getVisitorInfo;
 window.getDeviceInfo = getDeviceInfo;
 window.logActivity = logActivity;
+window.showOfflineToast = showOfflineToast;
+window.showOnlineToast = showOnlineToast;
+window.initNetworkMonitor = initNetworkMonitor;
+window.pauseOnlineOperations = pauseOnlineOperations;
+window.resumeOnlineOperations = resumeOnlineOperations;
+window.addOfflineStyles = addOfflineStyles;
+window.checkConnection = checkConnection;
+window.requireConnection = requireConnection;
 window.generateLicenceForUser = generateLicenceForUser;
 window.sendLicenceEmail = sendLicenceEmail;
 window.updateLoadingProgress = updateLoadingProgress;
