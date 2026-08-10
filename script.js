@@ -5320,47 +5320,94 @@ window.deleteUserAccount = async function(uid) {
         showToast('❌ Error: ' + error.message, 'error'); }
 };
 window.viewUserDetails = async function(uid) {
-    if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
+    if (!currentUser || !isAdminCached) {
+        showToast('⛔ Unauthorized', 'error');
+        return;
+    }
     try {
         const userRef = doc(db, 'users', uid);
         const userSnap = await getDoc(userRef);
-        if (!userSnap.exists()) { showToast('❌ User not found', 'error'); return; }
+        if (!userSnap.exists()) {
+            showToast('❌ User not found', 'error');
+            return;
+        }
         const data = userSnap.data();
         const orders = data.history || [];
         const totalSpent = orders.reduce((sum, o) => sum + (o.total || 0), 0);
         const location = data.location || data.country || 'Not specified';
         const photo = data.photoURL || '';
         const balance = data.balance || 0;
-        const joinedDate = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('en-US', { year: 'numeric',
-                month: 'long', day: 'numeric' }) : '--';
+        const joinedDate = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        }) : '--';
+        
         const content = document.getElementById('userDetailsContent');
+        if (!content) {
+            showToast('❌ User details content not found', 'error');
+            return;
+        }
+        
         content.innerHTML = `
-          <div style="padding:4px 0;">
-            <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
-              <div style="width:44px;height:44px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;overflow:hidden;">
-                ${photo ? `<img src="${photo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />` : (data.name||'U').charAt(0).toUpperCase()}
-              </div>
-              <div><div style="font-size:15px;font-weight:700;color:var(--text);">${data.name||'Unknown'}</div><div style="font-size:12px;color:var(--text-secondary);">${data.email||'No email'}</div><div style="font-size:12px;color:var(--text-secondary);">📍 Country: ${location}</div><div style="font-size:11px;color:var(--text-secondary);opacity:0.4;">📅 Joined: ${joinedDate}</div><div style="font-size:12px;color:var(--vip-color);font-weight:600;">🎯 RP: ${data.rp||0} • 💰 Balance: $${balance.toFixed(2)}</div><div style="font-size:12px;color:var(--text-secondary);">📦 ${orders.length} orders</div></div>
+            <div style="padding:4px 0;">
+                <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
+                    <div style="width:44px; height:44px; border-radius:50%; background:var(--primary); display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:700; color:#fff; overflow:hidden;">
+                        ${photo ? `<img src="${photo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />` : (data.name || 'U').charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                        <div style="font-size:15px; font-weight:700; color:var(--text);">${data.name || 'Unknown'}</div>
+                        <div style="font-size:12px; color:var(--text-secondary);">${data.email || 'No email'}</div>
+                        <div style="font-size:12px; color:var(--text-secondary);">📍 Country: ${location}</div>
+                        <div style="font-size:11px; color:var(--text-secondary); opacity:0.4;">📅 Joined: ${joinedDate}</div>
+                        <div style="font-size:12px; color:var(--vip-color); font-weight:600;">🎯 RP: ${data.rp || 0} • 💰 Balance: $${balance.toFixed(2)}</div>
+                        <div style="font-size:12px; color:var(--text-secondary);">📦 ${orders.length} orders</div>
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:6px; margin-bottom:10px;">
+                    <div style="background:var(--bg); border-radius:6px; padding:6px; text-align:center; border:1px solid var(--border);">
+                        <div style="font-size:14px; font-weight:700; color:var(--text);">${orders.length}</div>
+                        <div style="font-size:9px; color:var(--text-secondary);">Orders</div>
+                    </div>
+                    <div style="background:var(--bg); border-radius:6px; padding:6px; text-align:center; border:1px solid var(--border);">
+                        <div style="font-size:14px; font-weight:700; color:var(--primary);">${totalSpent.toFixed(2)} $</div>
+                        <div style="font-size:9px; color:var(--text-secondary);">Spent</div>
+                    </div>
+                    <div style="background:var(--bg); border-radius:6px; padding:6px; text-align:center; border:1px solid var(--border);">
+                        <div style="font-size:14px; font-weight:700; color:var(--vip-color);">${data.rp || 0}</div>
+                        <div style="font-size:9px; color:var(--text-secondary);">RP</div>
+                    </div>
+                    <div style="background:var(--bg); border-radius:6px; padding:6px; text-align:center; border:1px solid var(--border);">
+                        <div style="font-size:14px; font-weight:700; color:var(--success);">$${balance.toFixed(2)}</div>
+                        <div style="font-size:9px; color:var(--text-secondary);">Balance</div>
+                    </div>
+                </div>
+                <div style="font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:4px;">Recent Orders</div>
+                ${orders.length > 0 ? orders.slice(-5).reverse().map(o => `
+                    <div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid var(--border); font-size:12px;">
+                        <span>${o.items ? o.items.map(i => i.name).join(', ') : 'Order'}</span>
+                        <span style="color:var(--primary);">${(o.total || 0).toFixed(2)} $</span>
+                        <span class="status-badge ${o.status || 'pending'}" style="font-size:9px; padding:1px 8px;">${o.status || 'pending'}</span>
+                    </div>
+                `).join('') : '<div style="text-align:center; color:var(--text-secondary); opacity:0.4; padding:10px;">No orders</div>'}
+                <div style="margin-top:10px; display:flex; gap:6px; flex-wrap:wrap;">
+                    <button onclick="closeUserDetailsModal();" style="padding:4px 14px; border:1px solid var(--border); border-radius:6px; background:var(--card-bg); color:var(--text); cursor:pointer; font-size:12px;">Close</button>
+                    ${data.isBanned ? 
+                        `<button onclick="closeUserDetailsModal(); toggleUserBan('${uid}', false);" style="padding:4px 14px; border:none; border-radius:6px; background:var(--success); color:#0a0a1a; cursor:pointer; font-weight:600; font-size:12px;"><i class="fas fa-user-check"></i> Unban</button>` : 
+                        `<button onclick="closeUserDetailsModal(); toggleUserBan('${uid}', true);" style="padding:4px 14px; border:none; border-radius:6px; background:var(--danger); color:#fff; cursor:pointer; font-weight:600; font-size:12px;"><i class="fas fa-ban"></i> Ban</button>`
+                    }
+                    ${uid !== currentUser.uid ? 
+                        `<button onclick="closeUserDetailsModal(); deleteUserAccount('${uid}');" style="padding:4px 14px; border:none; border-radius:6px; background:var(--danger); color:#fff; cursor:pointer; font-weight:600; font-size:12px;"><i class="fas fa-trash"></i> Delete</button>` : ''
+                    }
+                </div>
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:10px;">
-              <div style="background:var(--bg);border-radius:6px;padding:6px;text-align:center;border:1px solid var(--border);"><div style="font-size:14px;font-weight:700;color:var(--text);">${orders.length}</div><div style="font-size:9px;color:var(--text-secondary);">Orders</div></div>
-              <div style="background:var(--bg);border-radius:6px;padding:6px;text-align:center;border:1px solid var(--border);"><div style="font-size:14px;font-weight:700;color:var(--primary);">${totalSpent.toFixed(2)} $</div><div style="font-size:9px;color:var(--text-secondary);">Spent</div></div>
-              <div style="background:var(--bg);border-radius:6px;padding:6px;text-align:center;border:1px solid var(--border);"><div style="font-size:14px;font-weight:700;color:var(--vip-color);">${data.rp||0}</div><div style="font-size:9px;color:var(--text-secondary);">RP</div></div>
-              <div style="background:var(--bg);border-radius:6px;padding:6px;text-align:center;border:1px solid var(--border);"><div style="font-size:14px;font-weight:700;color:var(--success);">$${balance.toFixed(2)}</div><div style="font-size:9px;color:var(--text-secondary);">Balance</div></div>
-            </div>
-            <div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;">Recent Orders</div>
-            ${orders.length > 0 ? orders.slice(-5).reverse().map(o => `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px;"><span>${o.items?o.items.map(i=>i.name).join(', '):'Order'}</span><span style="color:var(--primary);">${(o.total||0).toFixed(2)} $</span><span class="status-badge ${o.status||'pending'}" style="font-size:9px;padding:1px 8px;">${o.status||'pending'}</span></div>`).join('') : '<div style="text-align:center;color:var(--text-secondary);opacity:0.4;padding:10px;">No orders</div>'}
-            <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
-              <button onclick="closeUserDetailsModal();" style="padding:4px 14px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;">Close</button>
-              ${data.isBanned?`<button onclick="closeUserDetailsModal();toggleUserBan('${uid}',false);" style="padding:4px 14px;border:none;border-radius:6px;background:var(--success);color:#0a0a1a;cursor:pointer;font-weight:600;font-size:12px;"><i class="fas fa-user-check"></i> Unban</button>`:`<button onclick="closeUserDetailsModal();toggleUserBan('${uid}',true);" style="padding:4px 14px;border:none;border-radius:6px;background:var(--danger);color:#fff;cursor:pointer;font-weight:600;font-size:12px;"><i class="fas fa-ban"></i> Ban</button>`}
-              ${uid!==currentUser.uid?`<button onclick="closeUserDetailsModal();deleteUserAccount('${uid}');" style="padding:4px 14px;border:none;border-radius:6px;background:var(--danger);color:#fff;cursor:pointer;font-weight:600;font-size:12px;"><i class="fas fa-trash"></i> Delete</button>`:''}
-            </div>
-          </div>`;
+        `;
         document.getElementById('userDetailsModal').classList.add('open');
-    } catch (error) { console.error('Error viewing user details:', error);
-        showToast('❌ Error loading user details', 'error'); }
+    } catch (error) {
+        console.error('Error viewing user details:', error);
+        showToast('❌ Error loading user details', 'error');
+    }
 };
-window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
 // ============================================================
 // LICENCE MANAGEMENT
@@ -9426,7 +9473,539 @@ async function sendLicenceEmail(userEmail, licenceData) {
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Your Licence Code</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:#f0f2f8;padding:20px;margin:0}.container{max-width:600px;margin:0 auto;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.08)}.header{background:linear-gradient(135deg,#6c5ce7,#a29bfe);padding:30px 30px 20px;text-align:center}.logo{font-size:28px;font-weight:900;color:#fff}.logo span{color:#f2a900}.content{padding:35px 30px}.code-box{background:#f8f8ff;border-radius:12px;padding:20px;text-align:center;border:2px dashed #6c5ce7;margin:16px 0}.code-box .code{font-size:28px;font-weight:900;color:#6c5ce7;font-family:monospace;letter-spacing:4px}.code-box .label{font-size:12px;color:#888}.btn-primary{display:inline-block;background:#6c5ce7;color:#fff;padding:12px 32px;border-radius:30px;text-decoration:none;font-weight:700;font-size:14px;transition:all .3s}.btn-primary:hover{background:#5a4bd1;transform:translateY(-2px);box-shadow:0 8px 25px rgba(108,92,231,0.3)}.text-center{text-align:center}.footer{padding:16px 30px;text-align:center;background:#f8f8ff}.footer-text{font-size:11px;color:#888}@media(max-width:480px){.header{padding:20px}.content{padding:20px 15px}.code-box .code{font-size:22px}}</style></head><body><div class="container"><div class="header"><div class="logo">ZI <span>Store</span></div></div><div class="content"><h2 style="color:#1a1a2e;font-size:20px;">🔑 Your Licence Code</h2><p style="color:#4a4a6a;font-size:14px;margin:6px 0 12px;">Thank you for your purchase! Here is your licence code for <strong>${licenceData.scriptName}</strong>:</p><div class="code-box"><div class="label">LICENCE CODE</div><div class="code">${licenceData.code}</div></div><div style="background:#f8f8ff;border-radius:8px;padding:12px 16px;margin:12px 0;font-size:13px;color:#4a4a6a;"><strong>Expires:</strong> ${new Date(licenceData.expiryDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div><p style="text-align:center;font-size:12px;color:#888;margin-top:8px;">You can also find this licence in your account dashboard.</p><hr style="border:none;border-top:1px solid #f0f2f8;margin:16px 0;"><div class="text-center"><a href="https://zi-store.online" class="btn-primary">📦 Visit Store</a></div></div><div class="footer"><div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div></div></div></body></html>`;
     return await sendEmail(userEmail, `🔑 Your Licence for ${licenceData.scriptName}`, html);
 }
+// ============================================================
+// FIX: MISSING FUNCTIONS
+// ============================================================
 
+// 1. دالة renderHistoryFull (كانت مفقودة)
+window.renderHistoryFull = function() {
+    const container = document.getElementById('historyFullContent');
+    if (!container) return;
+
+    const history = userProfile.history || [];
+    if (history.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:40px 20px; color:var(--text-secondary);">
+            <i class="fas fa-shopping-bag" style="font-size:48px; opacity:0.15; display:block; margin-bottom:12px;"></i>
+            <div style="font-size:18px; font-weight:600;">No orders yet</div>
+            <div style="font-size:13px; opacity:0.4; margin-top:4px;">Your orders will appear here</div>
+        </div>`;
+        return;
+    }
+
+    let html = '';
+    history.forEach(order => {
+        const date = order.date ? new Date(order.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '--';
+        const total = order.total || 0;
+        const status = order.status || 'pending';
+        const itemsList = order.items ? order.items.map(item => `${item.name} (x${item.quantity || 1})`).join(', ') : 'No items';
+        const orderId = order.id || '------';
+        const orderIdDisplay = orderId.slice(-6);
+
+        const statusMap = {
+            'pending': { label: '⏳ Pending', class: 'pending' },
+            'confirmed': { label: '✅ Confirmed', class: 'confirmed' },
+            'rejected': { label: '❌ Rejected', class: 'rejected' }
+        };
+        const info = statusMap[status] || statusMap['pending'];
+
+        html += `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:var(--glass-bg); border-radius:var(--radius-sm); border:1px solid var(--glass-border); margin-bottom:6px;">
+                <div>
+                    <div style="font-weight:700; font-size:14px;">#${orderIdDisplay}</div>
+                    <div style="font-size:12px; color:var(--text-secondary); opacity:0.5;">${itemsList}</div>
+                    <div style="font-size:11px; color:var(--text-secondary); opacity:0.3;">${date}</div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-weight:800; font-size:16px; color:var(--primary);">$${total.toFixed(2)}</div>
+                    <span class="status-badge ${info.class}" style="font-size:10px; padding:2px 10px;">${info.label}</span>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+};
+
+// 2. دالة checkout (كانت مفقودة أو غير مصدرة)
+window.checkout = function() {
+    if (cart.length === 0) {
+        showToast('⚠️ Your cart is empty', 'warning');
+        return;
+    }
+    if (!currentUser) {
+        showToast('⚠️ Please login to checkout', 'warning');
+        openAuthModal();
+        return;
+    }
+    openPaymentModal();
+};
+
+// 3. دالة handleTopup (كانت مفقودة)
+window.handleTopup = async function() {
+    const btn = document.getElementById('topupProcessBtn');
+    if (!btn) {
+        showToast('❌ Topup button not found', 'error');
+        return;
+    }
+    showButtonLoading(btn, 'Creating request...');
+    try {
+        await window.processTopup();
+    } catch (error) {
+        hideButtonLoading(btn);
+        showToast('❌ Error: ' + error.message, 'error');
+    }
+};
+
+// 4. دالة openLicenceModal (كانت مفقودة)
+window.openLicenceModal = function() {
+    if (!currentUser) {
+        showToast('⚠️ Please login first', 'warning');
+        openAuthModal();
+        return;
+    }
+    const modal = document.getElementById('licenceModal');
+    if (!modal) {
+        console.error('❌ licenceModal not found in DOM');
+        showToast('❌ Licence modal not found', 'error');
+        return;
+    }
+    renderUserLicences();
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+};
+
+// 5. دالة closeLicenceModal (كانت مفقودة)
+window.closeLicenceModal = function() {
+    const modal = document.getElementById('licenceModal');
+    if (modal) {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+};
+
+// 6. دالة openCreateLicenceModal (كانت مفقودة)
+window.openCreateLicenceModal = function() {
+    if (!currentUser || !isAdminCached) {
+        showToast('⛔ Unauthorized', 'error');
+        return;
+    }
+    const modal = document.getElementById('createLicenceModal');
+    if (modal) {
+        modal.classList.add('open');
+    } else {
+        showToast('❌ Create licence modal not found', 'error');
+    }
+};
+
+// 7. دالة closeCreateLicenceModal (كانت مفقودة)
+window.closeCreateLicenceModal = function() {
+    const modal = document.getElementById('createLicenceModal');
+    if (modal) {
+        modal.classList.remove('open');
+    }
+};
+
+// 8. دالة approveLicence (كانت مفقودة)
+window.approveLicence = async function(licenceId, code, scriptName) {
+    if (!currentUser || !isAdminCached) {
+        showToast('⛔ Unauthorized', 'error');
+        return;
+    }
+    if (!confirm(`Approve licence ${code} and send to user?`)) return;
+    try {
+        const { data: licenceData, error: fetchError } = await supabase
+            .from('licenses')
+            .select('*')
+            .eq('id', licenceId)
+            .single();
+        if (fetchError || !licenceData) throw fetchError || new Error('Licence not found');
+        
+        await updateLicenceInSupabase(licenceId, { 
+            status: 'active', 
+            user_id: currentUser.uid, 
+            user_email: currentUser.email 
+        });
+        
+        await sendUserNotification(
+            currentUser.uid,
+            '🔑 Licence Activated!',
+            `Your licence for ${scriptName} has been activated. Code: ${code}`
+        );
+        
+        showToast(`✅ Licence ${code} approved!`, 'success');
+        loadLicences();
+    } catch (error) {
+        showToast('❌ Error: ' + error.message, 'error');
+    }
+};
+
+// 9. دالة revokeLicence (كانت مفقودة)
+window.revokeLicence = async function(licenceId) {
+    if (!currentUser || !isAdminCached) {
+        showToast('⛔ Unauthorized', 'error');
+        return;
+    }
+    if (!confirm('Revoke this licence?')) return;
+    try {
+        await updateLicenceInSupabase(licenceId, { status: 'revoked' });
+        const licence = allLicences.find(l => l.id === licenceId);
+        if (licence && licence.user_id) {
+            await sendUserNotification(
+                licence.user_id,
+                '🚫 Licence Revoked',
+                `Your licence for ${licence.script_name || 'product'} has been revoked.`
+            );
+            const userRef = doc(db, 'users', licence.user_id);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+                const userData = userSnap.data();
+                const userLicences = userData.licences || [];
+                const updatedLicences = userLicences.map(l => {
+                    if (l.code === licence.code) {
+                        return { ...l, status: 'revoked' };
+                    }
+                    return l;
+                });
+                await updateDoc(userRef, { licences: updatedLicences, updatedAt: serverTimestamp() });
+                if (currentUser && currentUser.uid === licence.user_id) {
+                    userProfile.licences = updatedLicences;
+                    renderUserLicences();
+                    updateFullUserMenu();
+                }
+            }
+        }
+        showToast('🚫 Licence revoked', 'success');
+        loadLicences();
+    } catch (error) {
+        showToast('❌ Error: ' + error.message, 'error');
+    }
+};
+
+// 10. دالة deleteLicence (كانت مفقودة)
+window.deleteLicence = async function(licenceId) {
+    if (!currentUser || !isAdminCached) {
+        showToast('⛔ Unauthorized', 'error');
+        return;
+    }
+    if (!confirm('Delete this licence permanently?')) return;
+    try {
+        const licence = allLicences.find(l => l.id === licenceId);
+        const { error } = await supabase.from('licenses').delete().eq('id', licenceId);
+        if (error) throw error;
+        if (licence && licence.user_id) {
+            const userRef = doc(db, 'users', licence.user_id);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+                const userData = userSnap.data();
+                const userLicences = userData.licences || [];
+                const updatedLicences = userLicences.filter(l => l.code !== licence.code);
+                await updateDoc(userRef, { licences: updatedLicences, updatedAt: serverTimestamp() });
+                if (currentUser && currentUser.uid === licence.user_id) {
+                    userProfile.licences = updatedLicences;
+                    renderUserLicences();
+                    updateFullUserMenu();
+                }
+            }
+        }
+        showToast('🗑️ Licence deleted', 'success');
+        loadLicences();
+    } catch (error) {
+        showToast('❌ Error: ' + error.message, 'error');
+    }
+};
+
+// 11. دالة editLicence (كانت مفقودة)
+window.editLicence = async function(licenceId) {
+    if (!currentUser || !isAdminCached) {
+        showToast('⛔ Unauthorized', 'error');
+        return;
+    }
+    try {
+        const { data: licence, error } = await supabase
+            .from('licenses')
+            .select('*')
+            .eq('id', licenceId)
+            .single();
+        if (error || !licence) {
+            showToast('❌ Licence not found', 'error');
+            return;
+        }
+        document.getElementById('editLicenceId').value = licenceId;
+        document.getElementById('editLicenceCode').value = licence.code || '';
+        document.getElementById('editLicenceScript').value = licence.script_name || '';
+        if (licence.expiry_date) {
+            const date = new Date(licence.expiry_date);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            document.getElementById('editLicenceExpiry').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+        } else {
+            document.getElementById('editLicenceExpiry').value = '';
+        }
+        document.getElementById('editLicenceStatus').value = licence.status || 'active';
+        document.getElementById('editLicenceModal').classList.add('open');
+    } catch (error) {
+        showToast('❌ Failed to load licence details', 'error');
+    }
+};
+
+// 12. دالة saveLicenceEdit (كانت مفقودة)
+window.saveLicenceEdit = async function() {
+    if (!currentUser || !isAdminCached) {
+        showToast('⛔ Unauthorized', 'error');
+        return;
+    }
+    const licenceId = document.getElementById('editLicenceId').value;
+    const expiryDate = document.getElementById('editLicenceExpiry').value;
+    const status = document.getElementById('editLicenceStatus').value;
+    try {
+        await updateLicenceInSupabase(licenceId, {
+            expiry_date: expiryDate ? new Date(expiryDate).toISOString() : null,
+            status: status
+        });
+        const licenceIndex = allLicences.findIndex(l => l.id === licenceId);
+        if (licenceIndex !== -1) {
+            allLicences[licenceIndex].expiry_date = expiryDate ? new Date(expiryDate).toISOString() : null;
+            allLicences[licenceIndex].status = status;
+        }
+        const licence = allLicences.find(l => l.id === licenceId);
+        if (licence && currentUser) {
+            if (licence.user_id === currentUser.uid || currentUser.email === 'zribiidriss3@gmail.com') {
+                await loadUserData();
+                renderUserLicences();
+                updateFullUserMenu();
+            }
+        }
+        loadLicences();
+        showToast('✅ Licence updated!', 'success');
+        document.getElementById('editLicenceModal').classList.remove('open');
+    } catch (error) {
+        showToast('❌ Error: ' + error.message, 'error');
+    }
+};
+
+// 13. دالة searchLicences (كانت مفقودة)
+window.searchLicences = function() {
+    const query = document.getElementById('adminLicenceSearch')?.value?.trim()?.toLowerCase() || '';
+    if (!query) {
+        renderLicences(allLicences);
+        return;
+    }
+    const filtered = allLicences.filter(l => {
+        const code = (l.code || '').toLowerCase();
+        const user = (l.user_email || l.user_id || '').toLowerCase();
+        const product = (l.script_name || l.product_name || '').toLowerCase();
+        return code.includes(query) || user.includes(query) || product.includes(query);
+    });
+    renderLicences(filtered);
+};
+
+// 14. دالة clearLicenceSearch (كانت مفقودة)
+window.clearLicenceSearch = function() {
+    const input = document.getElementById('adminLicenceSearch');
+    if (input) input.value = '';
+    renderLicences(allLicences);
+};
+
+// 15. دالة refreshLicences (كانت مفقودة)
+window.refreshLicences = function() {
+    loadLicences();
+    showToast('🔄 Refreshed', 'info');
+};
+
+// 16. دالة renderUserLicences (كانت مفقودة)
+window.renderUserLicences = function() {
+    const container = document.getElementById('userLicencesList');
+    if (!container) return;
+    if (!currentUser) {
+        container.innerHTML = '';
+        return;
+    }
+    const userLicences = userProfile.licences || [];
+    if (userLicences.length === 0) {
+        container.innerHTML = `<div style="text-align:center;padding:8px;color:var(--text-secondary);font-size:12px;">No active licences</div>`;
+        return;
+    }
+    container.innerHTML = userLicences.map(l => {
+        const isExpired = new Date(l.expiryDate) < new Date();
+        const isRevoked = l.status === 'revoked';
+        const isActive = !isExpired && !isRevoked && l.status !== 'expired';
+        return `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--bg);border-radius:6px;border:1px solid var(--border);margin-bottom:4px;${!isActive ? 'opacity:0.5;' : ''}">
+                <div>
+                    <div style="font-size:12px;font-weight:600;color:var(--text);">${l.scriptName}</div>
+                    <div style="font-size:10px;color:var(--text-secondary);opacity:0.5;">
+                        ${isRevoked ? '🚫 Revoked' : isExpired ? '⛔ Expired' : '✅ Active until ' + new Date(l.expiryDate).toLocaleDateString()}
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <span style="font-size:10px;font-family:monospace;opacity:0.3;">${l.code.slice(-6)}</span>
+                    <button onclick="copyLicenceCode('${l.code}')" style="background:none;border:none;color:var(--primary);cursor:pointer;font-size:14px;padding:2px 6px;" title="Copy full code"><i class="fas fa-copy"></i></button>
+                </div>
+            </div>
+        `;
+    }).join('');
+};
+
+// 17. دالة toggleLicencesList (كانت مفقودة)
+window.toggleLicencesList = function() {
+    const list = document.getElementById('userLicencesList');
+    if (list) {
+        list.style.display = list.style.display === 'none' ? 'block' : 'none';
+    }
+};
+
+// 18. دالة activateLicence (كانت مفقودة)
+window.activateLicence = async function() {
+    const input = document.getElementById('licenceInput');
+    const resultEl = document.getElementById('licenceResult');
+    if (!input) {
+        showToast('⚠️ Licence input not found', 'warning');
+        return;
+    }
+    const code = input.value.trim().toUpperCase();
+    if (!code) {
+        resultEl.innerHTML = '<span style="color:var(--danger);">⚠️ Please enter a licence code.</span>';
+        return;
+    }
+    if (!currentUser) {
+        resultEl.innerHTML = '<span style="color:var(--danger);">⚠️ You must be logged in.</span>';
+        return;
+    }
+    try {
+        resultEl.innerHTML = '<span style="color:var(--text-secondary);">⏳ Verifying...</span>';
+        const response = await fetch(
+            `${SUPABASE_URL}/functions/v1/public-verify?code=${encodeURIComponent(code)}&token=${currentUser.uid}`,
+            {
+                headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+            }
+        );
+        const data = await response.json();
+        if (!response.ok || !data.success) throw new Error(data.error || 'Invalid licence');
+        const licence = data.data;
+        const userRef = doc(db, 'users', currentUser.uid);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+            const userData = userSnap.data();
+            const userLicences = userData.licences || [];
+            if (!userLicences.find(l => l.code === code)) {
+                userLicences.push({
+                    code: code,
+                    scriptId: licence.scriptId,
+                    scriptName: licence.scriptName,
+                    expiryDate: licence.expiryDate,
+                    activatedAt: new Date().toISOString()
+                });
+                await updateDoc(userRef, { licences: userLicences, updatedAt: serverTimestamp() });
+                userProfile.licences = userLicences;
+                renderUserLicences();
+                updateFullUserMenu();
+                await sendUserNotification(
+                    currentUser.uid,
+                    '🔑 Licence Activated',
+                    `Your licence for ${licence.scriptName} has been activated successfully!`
+                );
+            }
+        }
+        const expiryDate = new Date(licence.expiryDate).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        resultEl.innerHTML = `
+            <div style="background:var(--success-glow);border-radius:8px;padding:10px;border:1px solid var(--success);">
+                <div style="font-weight:700;color:var(--success);">✅ Activated Successfully!</div>
+                <div style="font-size:13px;color:var(--text);margin-top:4px;">
+                    <strong>Script:</strong> ${licence.scriptName || 'Unknown'}<br>
+                    <strong>Expires:</strong> ${expiryDate}
+                </div>
+                <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;opacity:0.5;">
+                    🔒 This script is now linked to your account.
+                </div>
+            </div>
+        `;
+        input.value = '';
+        renderUserLicences();
+        showToast('✅ Licence activated successfully!', 'success');
+    } catch (error) {
+        resultEl.innerHTML = `<span style="color:var(--danger);">❌ Error: ${error.message}</span>`;
+        showToast('❌ ' + error.message, 'error');
+    }
+};
+
+// 19. دالة createLicenceManually (كانت مفقودة)
+window.createLicenceManually = async function() {
+    if (!currentUser || !isAdminCached) {
+        showToast('⛔ Unauthorized', 'error');
+        return;
+    }
+    const productName = document.getElementById('newLicenceProduct')?.value?.trim();
+    const userId = document.getElementById('newLicenceUser')?.value?.trim();
+    const expiryDate = document.getElementById('newLicenceExpiry')?.value;
+    if (!productName) {
+        showToast('⚠️ Product name required', 'warning');
+        return;
+    }
+    try {
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/create-licence`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                productName,
+                userId: userId,
+                userEmail: userId,
+                expiryDate,
+                manual: true
+            })
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) throw new Error(data.error);
+        showToast(`✅ Licence created: ${data.licence.code}`, 'success');
+        closeCreateLicenceModal();
+        loadLicences();
+        if (userId) {
+            const usersRef = collection(db, 'users');
+            let q = userId.includes('@') 
+                ? query(usersRef, where('email', '==', userId)) 
+                : query(usersRef, where('userId', '==', userId));
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                const userDoc = querySnapshot.docs[0];
+                const userData = userDoc.data();
+                const userLicences = userData.licences || [];
+                if (!userLicences.find(l => l.code === data.licence.code)) {
+                    userLicences.push({
+                        code: data.licence.code,
+                        scriptId: productName,
+                        scriptName: productName,
+                        expiryDate: data.licence.expiryDate,
+                        activatedAt: new Date().toISOString()
+                    });
+                    await updateDoc(userDoc.ref, { licences: userLicences, updatedAt: serverTimestamp() });
+                    if (currentUser && userDoc.id === currentUser.uid) {
+                        userProfile.licences = userLicences;
+                        renderUserLicences();
+                        updateFullUserMenu();
+                    }
+                }
+            }
+        }
+    } catch (error) {
+        showToast('❌ Error: ' + error.message, 'error');
+    }
+};
+
+// 20. دالة updateLicenceInSupabase (مساعدة)
+async function updateLicenceInSupabase(licenceId, data) {
+    const { error } = await supabase
+        .from('licenses')
+        .update({ ...data, updated_at: new Date().toISOString() })
+        .eq('id', licenceId);
+    if (error) throw error;
+    return true;
+}
 // ============================================================
 // INIT - COMPLETE
 // ============================================================
