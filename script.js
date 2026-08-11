@@ -4788,45 +4788,73 @@ window.copyReferralCode2 = function() {
     } else { showToast('⚠️ Please login first', 'warning'); }
 };
 // ============================================================
-// ADMIN PANEL FUNCTIONS - FIXED
+// OPEN ADMIN PANEL - FIXED (Safe version)
 // ============================================================
-
 window.openAdminPanel = function() {
     if (!currentUser || !isAdminCached) {
         showToast('⛔ Unauthorized. Admin only.', 'error');
         return;
     }
+    
     const panel = document.getElementById('adminPanel');
     if (!panel) {
         console.error('❌ Admin panel not found in DOM');
         showToast('❌ Admin panel not found', 'error');
         return;
     }
+    
     if (panel.classList.contains('open')) {
         panel.classList.remove('open');
         document.body.style.overflow = '';
         return;
     }
+    
     panel.classList.add('open');
     document.body.style.overflow = 'hidden';
-    // تحميل البيانات
-    if (typeof switchAdminTab === 'function') {
-        switchAdminTab('dashboard');
-    }
-    if (typeof loadAdminOrders === 'function') {
-        loadAdminOrders();
-    }
-    if (typeof loadLicences === 'function') {
-        loadLicences();
-    }
-    if (typeof loadAdminTopups === 'function') {
-        loadAdminTopups();
-    }
-    if (typeof loadDashboardStats === 'function') {
-        loadDashboardStats();
+    
+    // ✅ التحقق من وجود العناصر قبل استخدامها
+    try {
+        if (typeof switchAdminTab === 'function') {
+            switchAdminTab('dashboard');
+        }
+        
+        // تحميل البيانات بأمان
+        const safeLoad = (fn, name) => {
+            if (typeof fn === 'function') {
+                try {
+                    fn();
+                } catch (e) {
+                    console.warn(`⚠️ Error loading ${name}:`, e);
+                }
+            }
+        };
+        
+        safeLoad(loadAdminOrders, 'orders');
+        safeLoad(loadLicences, 'licences');
+        safeLoad(loadAdminTopups, 'topups');
+        safeLoad(loadDashboardStats, 'stats');
+        
+        // ✅ التحقق من وجود العناصر قبل تعيين القيم
+        const intervalInput = document.getElementById('sliderIntervalInput');
+        if (intervalInput) {
+            intervalInput.value = sliderIntervalTime || 3;
+        }
+        
+        const marqueeEnabled = document.getElementById('marqueeEnabled');
+        if (marqueeEnabled) {
+            marqueeEnabled.checked = marqueeSettings.enabled !== false;
+        }
+        
+        const marqueeText = document.getElementById('marqueeText');
+        if (marqueeText) {
+            marqueeText.value = marqueeSettings.text || '';
+        }
+        
+    } catch (error) {
+        console.error('❌ Error opening admin panel:', error);
+        showToast('⚠️ Error loading admin panel', 'warning');
     }
 };
-
 window.closeAdminPanel = function() {
     const panel = document.getElementById('adminPanel');
     if (panel) {
@@ -10257,10 +10285,118 @@ if (document.readyState === 'loading') {
     initApp();
 }
 
+
 // ============================================================
-// EXPORT ALL FUNCTIONS TO WINDOW - COMPLETE
+// IMPROVE UNAUTHENTICATED USER HANDLING
 // ============================================================
-// All functions are already defined with window. prefix where needed
+
+// تعديل دالة loadUserData للتعامل مع المستخدم غير المسجل بشكل أفضل
+const originalLoadUserData = loadUserData;
+loadUserData = async function() {
+    if (!currentUser) {
+        console.log('ℹ️ No authenticated user, loading from localStorage');
+        loadFromLocalStorage();
+        
+        // إظهار واجهة تسجيل الدخول
+        const authSection = document.getElementById('authSection');
+        const mainApp = document.getElementById('mainApp');
+        if (authSection) authSection.style.display = 'block';
+        if (mainApp) mainApp.style.display = 'none';
+        
+        // إخفاء شاشة التحميل
+        hideLoadingScreen();
+        return;
+    }
+    // استدعاء الدالة الأصلية
+    return originalLoadUserData.call(this);
+};
+
+// تعديل دالة loadNotifications للتعامل مع الأخطاء بشكل أفضل
+const originalLoadNotifications = loadNotifications;
+loadNotifications = function() {
+    if (!currentUser) {
+        console.log('ℹ️ Skipping notifications load - no user');
+        return;
+    }
+    try {
+        originalLoadNotifications.call(this);
+    } catch (error) {
+        console.warn('⚠️ Could not load notifications:', error.message);
+        // لا نعرض إشعار خطأ للمستخدم
+    }
+};
+
+// تعديل دالة startAdminRealtimeListener للتعامل مع الأذونات
+const originalStartAdminListener = startAdminRealtimeListener;
+startAdminRealtimeListener = function() {
+    if (!currentUser || !isAdminCached) {
+        console.log('ℹ️ Skipping admin listener - not admin');
+        return;
+    }
+    try {
+        originalStartAdminListener.call(this);
+    } catch (error) {
+        if (error.code === 'permission-denied') {
+            console.warn('⚠️ Admin listener permission denied - user may not be admin');
+        } else {
+            console.error('Error in admin listener:', error);
+        }
+    }
+};
+
+// ============================================================
+// FIX: REFRESH PAGE BEHAVIOR
+// ============================================================
+
+// حفظ حالة المستخدم في localStorage
+document.addEventListener('DOMContentLoaded', function() {
+    // التحقق من وجود مستخدم في Firebase
+    if (auth && auth.currentUser) {
+        // المستخدم مسجل، نخفي شاشة التحميل ونظهر التطبيق
+        setTimeout(function() {
+            const authSection = document.getElementById('authSection');
+            const mainApp = document.getElementById('mainApp');
+            const loadingScreen = document.getElementById('loadingScreen');
+            
+            if (authSection) authSection.style.display = 'none';
+            if (mainApp) {
+                mainApp.style.display = 'block';
+                mainApp.style.visibility = 'visible';
+                mainApp.style.opacity = '1';
+            }
+            if (loadingScreen) {
+                loadingScreen.classList.add('hidden');
+                setTimeout(() => {
+                    loadingScreen.classList.add('hidden-force');
+                }, 600);
+            }
+        }, 100);
+    } else {
+        // مستخدم غير مسجل، نظهر شاشة تسجيل الدخول
+        setTimeout(function() {
+            const authSection = document.getElementById('authSection');
+            const mainApp = document.getElementById('mainApp');
+            
+            if (authSection) authSection.style.display = 'block';
+            if (mainApp) mainApp.style.display = 'none';
+            
+            hideLoadingScreen();
+        }, 300);
+    }
+});
+
+// تعديل دالة onAuthStateChanged
+const originalOnAuthStateChanged = onAuthStateChanged;
+onAuthStateChanged = function(auth, callback) {
+    // التأكد من وجود callback قبل التنفيذ
+    if (typeof callback !== 'function') {
+        console.warn('⚠️ No callback provided to onAuthStateChanged');
+        return;
+    }
+    return originalOnAuthStateChanged.call(this, auth, callback);
+};
+
+
 // ============================================================
 // EXPORT ALL FUNCTIONS TO WINDOW (COMPLETE)
 // ============================================================
