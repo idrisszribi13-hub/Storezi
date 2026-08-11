@@ -3756,10 +3756,145 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- ADMIN PANEL - FULL SCREEN WITH SIDEBAR - COMPLETE -->
-    <!-- ============================================================ -->
-    <!-- تم تضمين لوحة التحكم الكاملة في هذا الملف -->
-    <!-- جميع التبويبات والأقسام موجودة هنا -->
+<!-- ADMIN PANEL - FULL SCREEN WITH SIDEBAR -->
+<!-- ============================================================ -->
+<div id="adminPanel" style="display:none;">
+    <div class="admin-container">
+        <div class="admin-sidebar">
+            <div class="admin-sidebar-header">
+                <i class="fas fa-shield-alt"></i>
+                <span>Admin</span>
+            </div>
+            <nav class="admin-nav">
+                <button class="admin-nav-btn active" data-tab="dashboard" onclick="switchAdminTab('dashboard')">
+                    <i class="fas fa-chart-pie"></i> <span>Dashboard</span>
+                </button>
+                <button class="admin-nav-btn" data-tab="orders" onclick="switchAdminTab('orders')">
+                    <i class="fas fa-shopping-cart"></i> <span>Orders</span>
+                    <span class="nav-badge" id="adminNavBadge">0</span>
+                </button>
+                <button class="admin-nav-btn" data-tab="products" onclick="switchAdminTab('products')">
+                    <i class="fas fa-box"></i> <span>Products</span>
+                </button>
+                <button class="admin-nav-btn" data-tab="users" onclick="switchAdminTab('users')">
+                    <i class="fas fa-users"></i> <span>Users</span>
+                </button>
+                <button class="admin-nav-btn" data-tab="licences" onclick="switchAdminTab('licences')">
+                    <i class="fas fa-key"></i> <span>Licences</span>
+                </button>
+                <button class="admin-nav-btn" data-tab="topups" onclick="switchAdminTab('topups')">
+                    <i class="fas fa-coins"></i> <span>Topups</span>
+                </button>
+                <button class="admin-nav-btn" data-tab="settings" onclick="switchAdminTab('settings')">
+                    <i class="fas fa-cog"></i> <span>Settings</span>
+                </button>
+            </nav>
+            <div class="admin-sidebar-footer">
+                <button onclick="closeAdminPanel()" class="admin-close-btn">
+                    <i class="fas fa-times"></i> <span>Close</span>
+                </button>
+            </div>
+        </div>
+        <div class="admin-main">
+            <div class="admin-main-header">
+                <h2 id="adminPageTitle">📊 Dashboard</h2>
+                <button onclick="closeAdminPanel()" class="back-to-menu-btn">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+            </div>
+            <div class="admin-main-content">
+                <!-- Dashboard -->
+                <div class="admin-tab-content active" id="tabDashboard">
+                    <div class="admin-stats-grid">
+                        <div class="admin-stat-card">
+                            <div class="admin-stat-icon"><i class="fas fa-shopping-bag"></i></div>
+                            <div class="admin-stat-info">
+                                <div class="admin-stat-number" id="dashboardTotalOrders">0</div>
+                                <div class="admin-stat-label">Total Orders</div>
+                            </div>
+                        </div>
+                        <div class="admin-stat-card" style="border-left-color: var(--vip-color);">
+                            <div class="admin-stat-icon" style="background:rgba(242,169,0,0.12);color:var(--vip-color);"><i class="fas fa-dollar-sign"></i></div>
+                            <div class="admin-stat-info">
+                                <div class="admin-stat-number" id="dashboardTotalRevenue" style="color:var(--vip-color);">$0</div>
+                                <div class="admin-stat-label">Revenue</div>
+                            </div>
+                        </div>
+                        <div class="admin-stat-card" style="border-left-color: var(--success);">
+                            <div class="admin-stat-icon" style="background:rgba(0,212,170,0.12);color:var(--success);"><i class="fas fa-percent"></i></div>
+                            <div class="admin-stat-info">
+                                <div class="admin-stat-number" id="dashboardNetRevenue" style="color:var(--success);">$0</div>
+                                <div class="admin-stat-label">Net (10%)</div>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="refreshDashboardStats()" class="admin-refresh-btn"><i class="fas fa-sync-alt"></i> Refresh</button>
+                </div>
+
+                <!-- Orders -->
+                <div class="admin-tab-content" id="tabOrders">
+                    <div class="admin-orders-stats">
+                        <div class="order-stat"><span class="stat-num" id="adminTotalOrders">0</span> Total</div>
+                        <div class="order-stat pending"><span class="stat-num" id="adminPendingOrders">0</span> Pending</div>
+                        <div class="order-stat confirmed"><span class="stat-num" id="adminConfirmedOrders">0</span> Confirmed</div>
+                        <div class="order-stat rejected"><span class="stat-num" id="adminRejectedOrders">0</span> Rejected</div>
+                    </div>
+                    <div class="admin-search-bar">
+                        <input type="text" id="adminSearchInput" placeholder="🔍 Search orders..." onkeyup="searchAdminOrders()" />
+                        <button onclick="searchAdminOrders()"><i class="fas fa-search"></i></button>
+                        <button onclick="refreshAdminOrders()"><i class="fas fa-sync-alt"></i></button>
+                    </div>
+                    <div class="admin-table-wrapper">
+                        <table class="admin-table">
+                            <thead>
+                                <tr><th>Order</th><th>User</th><th>Items</th><th>Total</th><th>Date</th><th>Status</th><th>Actions</th></tr>
+                            </thead>
+                            <tbody id="adminOrdersBody"><tr><td colspan="7" class="text-center">Loading...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Users -->
+                <div class="admin-tab-content" id="tabUsers">
+                    <div class="admin-search-bar">
+                        <input type="text" id="adminUserSearchInput" placeholder="🔍 Search users..." onkeyup="searchAdminUsers()" />
+                        <button onclick="searchAdminUsers()"><i class="fas fa-search"></i></button>
+                        <button onclick="refreshAdminUsers()"><i class="fas fa-sync-alt"></i></button>
+                    </div>
+                    <div id="adminUsersContainer"></div>
+                </div>
+
+                <!-- Licences -->
+                <div class="admin-tab-content" id="tabLicences">
+                    <div class="admin-toolbar">
+                        <button onclick="openCreateLicenceModal()" class="admin-add-btn"><i class="fas fa-plus"></i> Create Licence</button>
+                        <button onclick="refreshLicences()" class="admin-refresh-btn"><i class="fas fa-sync-alt"></i> Refresh</button>
+                        <div style="display:flex;gap:4px;flex:1;max-width:300px;">
+                            <input type="text" id="adminLicenceSearch" placeholder="🔍 Search licences..." onkeyup="searchLicences()" style="flex:1;padding:4px 10px;border:2px solid var(--glass-border);border-radius:var(--radius-sm);background:var(--card-bg);color:var(--text);font-size:12px;outline:none;" />
+                            <button onclick="searchLicences()" style="padding:4px 10px;border:none;border-radius:var(--radius-sm);background:var(--primary);color:#fff;cursor:pointer;font-weight:600;font-size:11px;"><i class="fas fa-search"></i></button>
+                            <button onclick="clearLicenceSearch()" style="padding:4px 10px;border:none;border-radius:var(--radius-sm);background:var(--glass-bg);color:var(--text);cursor:pointer;font-weight:600;font-size:11px;"><i class="fas fa-times"></i></button>
+                        </div>
+                    </div>
+                    <div id="adminLicencesList"><div style="text-align:center;padding:30px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading...</div></div>
+                </div>
+
+                <!-- Topups -->
+                <div class="admin-tab-content" id="tabTopups">
+                    <div class="admin-toolbar">
+                        <button onclick="loadAdminTopups()" class="admin-refresh-btn"><i class="fas fa-sync-alt"></i> Refresh</button>
+                        <span style="font-size:12px;color:var(--text-secondary);opacity:0.5;">Total: <span id="adminTopupsCount">0</span></span>
+                    </div>
+                    <div id="adminTopupsContainer"><div style="text-align:center;padding:30px;color:var(--text-secondary);">Loading topups...</div></div>
+                </div>
+
+                <!-- Settings -->
+                <div class="admin-tab-content" id="tabSettings">
+                    <div id="adminSettingsContainer"><div style="text-align:center;padding:30px;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading settings...</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
     <!-- ============================================================ -->
     <!-- ADMIN MODALS -->
