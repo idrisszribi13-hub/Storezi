@@ -377,7 +377,6 @@ const discountCodes = {
     'VIP2024': { discount: 15 },
     'SUMMER': { discount: 10 }
 };
-
 const paymentWallets = {
     litecoin: {
         name: 'Litecoin',
@@ -396,7 +395,6 @@ const paymentWallets = {
         color: '#26a17b'
     }
 };
-
 let cryptoPrices = { ltc: 0, usdt: 1, lastUpdate: null, isUpdating: false };
 
 // ============================================================
@@ -1669,71 +1667,31 @@ async function mergeGuestData(newUid) {
 }
 
 // ============================================================
-// LOGOUT USER - COMPLETE WITH CLEANUP
+// LOGOUT USER - COMPLETE WITH CLEANUP (NO ANONYMOUS)
 // ============================================================
 window.logoutUser = async function() {
     try {
         console.log('🚪 Logging out user...');
         
-        // 1. إلغاء جميع المستمعين (Listeners)
-        if (unsubscribeAdmin) { 
-            unsubscribeAdmin(); 
-            unsubscribeAdmin = null; 
-            console.log('✅ Admin listener unsubscribed');
-        }
-        if (unsubscribeUser) { 
-            unsubscribeUser(); 
-            unsubscribeUser = null; 
-            console.log('✅ User listener unsubscribed');
-        }
-        if (topupSubscription) { 
-            topupSubscription.unsubscribe(); 
-            topupSubscription = null; 
-            console.log('✅ Topup listener unsubscribed');
-        }
-        if (unsubscribeProducts) { 
-            unsubscribeProducts(); 
-            unsubscribeProducts = null; 
-            console.log('✅ Products listener unsubscribed');
-        }
-        if (unsubscribeDownloads) { 
-            unsubscribeDownloads(); 
-            unsubscribeDownloads = null; 
-            console.log('✅ Downloads listener unsubscribed');
-        }
-        if (unsubscribeNotifications) { 
-            unsubscribeNotifications(); 
-            unsubscribeNotifications = null; 
-            console.log('✅ Notifications listener unsubscribed');
-        }
+        // 1. إلغاء جميع المستمعين
+        if (unsubscribeAdmin) { unsubscribeAdmin(); unsubscribeAdmin = null; }
+        if (unsubscribeUser) { unsubscribeUser(); unsubscribeUser = null; }
+        if (topupSubscription) { topupSubscription.unsubscribe(); topupSubscription = null; }
+        if (unsubscribeProducts) { unsubscribeProducts(); unsubscribeProducts = null; }
+        if (unsubscribeDownloads) { unsubscribeDownloads(); unsubscribeDownloads = null; }
+        if (unsubscribeNotifications) { unsubscribeNotifications(); unsubscribeNotifications = null; }
 
         // 2. مسح جميع بيانات localStorage
         const keysToRemove = [
-            'zi_userId',
-            'zi_wishlist_backup',
-            'zi_cart_backup',
-            'zi_history_backup',
-            'zi_requests_backup',
-            'zi_usedcodes_backup',
-            'zi_referrals_backup',
-            'zi_referralRewards_backup',
-            'zi_rp_backup',
-            'zi_isBanned_backup',
-            'zi_lastDailyReward_backup',
-            'zi_licences_backup',
-            'zi_photoURL_backup',
-            'zi_balance_backup',
-            'zi_lastIP_backup',
-            'zi_lastCountry_backup',
-            'zi_welcomeEmailSent_backup',
-            'zi_loginCount_backup',
-            'zi_settings_backup',
-            'zi_user_settings'
+            'zi_userId', 'zi_wishlist_backup', 'zi_cart_backup',
+            'zi_history_backup', 'zi_requests_backup', 'zi_usedcodes_backup',
+            'zi_referrals_backup', 'zi_referralRewards_backup', 'zi_rp_backup',
+            'zi_isBanned_backup', 'zi_lastDailyReward_backup', 'zi_licences_backup',
+            'zi_photoURL_backup', 'zi_balance_backup', 'zi_lastIP_backup',
+            'zi_lastCountry_backup', 'zi_welcomeEmailSent_backup',
+            'zi_loginCount_backup', 'zi_settings_backup', 'zi_user_settings'
         ];
-        
-        keysToRemove.forEach(key => {
-            localStorage.removeItem(key);
-        });
+        keysToRemove.forEach(key => localStorage.removeItem(key));
         console.log('✅ LocalStorage cleaned');
 
         // 3. إعادة تعيين المتغيرات العامة
@@ -1754,8 +1712,9 @@ window.logoutUser = async function() {
         selectedPayment = null;
         selectedTopupAmount = 0;
         selectedTopupCurrency = 'USDT';
-        
-        // 4. إعادة تعيين userProfile
+        userBalance = 0;
+
+        // 4. إعادة تعيين userProfile بالكامل
         userProfile = {
             name: '',
             email: '',
@@ -1785,20 +1744,16 @@ window.logoutUser = async function() {
             loginCount: 0,
             settings: { ipDetection: true, emailNotifications: true, twoFactorAuth: false }
         };
-        userBalance = 0;
 
         // 5. تسجيل الخروج من Firebase
         await signOut(auth);
         console.log('✅ Firebase signOut completed');
 
-        // 6. إغلاق جميع القوائم والمودالات
-        const modals = [
-            'adminPanel', 'userMenuFull', 'cartFull', 
-            'wishlistFull', 'profileFull', 'historyFull',
-            'notificationsModal', 'downloadsModal', 'paymentModal',
-            'licenceModal', 'topupModal', 'shareModal',
-            'supportModal', 'cookieSettingsModal'
-        ];
+        // 6. إغلاق جميع المودالات والقوائم
+        const modals = ['adminPanel', 'userMenuFull', 'cartFull', 'wishlistFull',
+            'profileFull', 'historyFull', 'notificationsModal', 'downloadsModal',
+            'paymentModal', 'licenceModal', 'topupModal', 'shareModal',
+            'supportModal', 'cookieSettingsModal'];
         modals.forEach(id => {
             const el = document.getElementById(id);
             if (el) {
@@ -1807,9 +1762,9 @@ window.logoutUser = async function() {
             }
         });
         document.body.style.overflow = '';
-        console.log('✅ All modals closed');
+        closeUserMenuFull();
 
-        // 7. إظهار شاشة Login وإخفاء التطبيق
+        // 7. إظهار Login وإخفاء التطبيق
         const authSection = document.getElementById('authSection');
         const mainApp = document.getElementById('mainApp');
         if (authSection) {
@@ -1821,7 +1776,6 @@ window.logoutUser = async function() {
             mainApp.style.visibility = 'hidden';
             mainApp.style.opacity = '0';
         }
-        console.log('✅ Login screen shown, main app hidden');
 
         // 8. تحديث الواجهة
         updateUI();
@@ -1833,7 +1787,6 @@ window.logoutUser = async function() {
         updateCartUI();
         updateBottomCartBar();
 
-        // 9. إظهار إشعار الخروج
         showToast('👋 Logged out successfully', 'info', 3000);
         console.log('✅ Logout completed successfully');
 
@@ -1971,16 +1924,8 @@ function renderTransactions(transactions) {
 // ============================================================
 function renderProfileFull() {
     const container = document.getElementById('profileFullContent');
-    if (!container) {
-        console.warn('⚠️ profileFullContent not found');
-        return;
-    }
     if (!currentUser) {
-        container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
-            <i class="fas fa-user-circle" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i>
-            <div style="font-size:18px;font-weight:600;">Please login</div>
-            <div style="font-size:13px;opacity:0.4;margin-top:4px;">Login to view your profile</div>
-        </div>`;
+        container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-user-circle" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">Please login</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Login to view your profile</div></div>`;
         return;
     }
     const displayName = currentUser.displayName || currentUser.email || 'User';
@@ -4455,13 +4400,13 @@ function renderProxyPackages() {
     container.innerHTML = proxyPackages.map(pkg => {
         const isInCart = cart.some(item => item.id === pkg.id && item.isProxy);
         return `
-            <div class="proxy-card">
-                <div class="proxy-icon">🌐</div>
-                <div class="proxy-name">${pkg.name}</div>
-                <div class="proxy-meta">${pkg.quantity} proxies · ${pkg.duration} days</div>
-                <div class="proxy-price">$${pkg.price.toFixed(2)}</div>
-                <button class="proxy-btn ${isInCart ? 'added' : ''}" onclick="addProxyToCart('${pkg.id}')">
-                    ${isInCart ? '✅ Added' : 'Add to Cart'}
+            <div class="product-card" style="border: 2px solid var(--border); border-radius: var(--radius-md); padding: 12px; text-align: center; background: var(--card-bg);">
+                <div style="font-size: 28px; margin-bottom: 4px;">🌐</div>
+                <div style="font-weight: 700; font-size: 16px; color: var(--text);">${pkg.name}</div>
+                <div style="font-size: 13px; color: var(--text-secondary); opacity: 0.5;">${pkg.quantity} proxy(ies) · ${pkg.duration} days</div>
+                <div style="font-size: 20px; font-weight: 700; color: var(--primary); margin: 6px 0;">$${pkg.price.toFixed(2)}</div>
+                <button class="btn-add-cart ${isInCart ? 'added' : ''}" onclick="addProxyToCart('${pkg.id}')" style="width: 100%; padding: 8px; border: none; border-radius: var(--radius-sm); background: ${isInCart ? 'var(--success)' : 'var(--primary)'}; color: #fff; font-weight: 600; cursor: pointer; transition: 0.2s;">
+                    <i class="fas ${isInCart ? 'fa-check' : 'fa-cart-plus'}"></i> ${isInCart ? 'Added' : 'Add to Cart'}
                 </button>
             </div>
         `;
@@ -4935,95 +4880,79 @@ window.copyReferralCode2 = function() {
                 showToast('✅ Referral code copied!', 'success'); });
     } else { showToast('⚠️ Please login first', 'warning'); }
 };
+
 // ============================================================
-// OPEN ADMIN PANEL - FIXED (Safe version)
+// ADMIN PANEL FUNCTIONS - COMPLETE WITH FIXES
 // ============================================================
+
 window.openAdminPanel = function() {
     if (!currentUser || !isAdminCached) {
         showToast('⛔ Unauthorized. Admin only.', 'error');
         return;
     }
-    
     const panel = document.getElementById('adminPanel');
     if (!panel) {
         console.error('❌ Admin panel not found in DOM');
         showToast('❌ Admin panel not found', 'error');
         return;
     }
-    
     if (panel.classList.contains('open')) {
         panel.classList.remove('open');
         document.body.style.overflow = '';
         return;
     }
-    
     panel.classList.add('open');
     document.body.style.overflow = 'hidden';
     
-    // ✅ التحقق من وجود العناصر قبل استخدامها
+    // تحميل البيانات بأمان
     try {
         if (typeof switchAdminTab === 'function') {
             switchAdminTab('dashboard');
         }
-        
-        // تحميل البيانات بأمان
         const safeLoad = (fn, name) => {
             if (typeof fn === 'function') {
-                try {
-                    fn();
-                } catch (e) {
-                    console.warn(`⚠️ Error loading ${name}:`, e);
-                }
+                try { fn(); } catch (e) { console.warn(`⚠️ Error loading ${name}:`, e); }
             }
         };
-        
         safeLoad(loadAdminOrders, 'orders');
         safeLoad(loadLicences, 'licences');
         safeLoad(loadAdminTopups, 'topups');
         safeLoad(loadDashboardStats, 'stats');
+        safeLoad(loadAdminUsers, 'users');
+        safeLoad(loadCoupons, 'coupons');
         
-        // ✅ التحقق من وجود العناصر قبل تعيين القيم
+        // التحقق من العناصر
         const intervalInput = document.getElementById('sliderIntervalInput');
-        if (intervalInput) {
-            intervalInput.value = sliderIntervalTime || 3;
-        }
-        
+        if (intervalInput) intervalInput.value = sliderIntervalTime || 3;
         const marqueeEnabled = document.getElementById('marqueeEnabled');
-        if (marqueeEnabled) {
-            marqueeEnabled.checked = marqueeSettings.enabled !== false;
-        }
-        
+        if (marqueeEnabled) marqueeEnabled.checked = marqueeSettings.enabled !== false;
         const marqueeText = document.getElementById('marqueeText');
-        if (marqueeText) {
-            marqueeText.value = marqueeSettings.text || '';
-        }
-        
+        if (marqueeText) marqueeText.value = marqueeSettings.text || '';
     } catch (error) {
         console.error('❌ Error opening admin panel:', error);
         showToast('⚠️ Error loading admin panel', 'warning');
     }
 };
+
 window.closeAdminPanel = function() {
     const panel = document.getElementById('adminPanel');
     if (panel) {
         panel.classList.remove('open');
         document.body.style.overflow = '';
     }
+    if (unsubscribeAdmin) {
+        unsubscribeAdmin();
+        unsubscribeAdmin = null;
+    }
 };
-// ============================================================
-// SWITCH ADMIN TAB - FIXED
-// ============================================================
 
+// ============================================================
+// switchAdminTab - COMPLETE VERSION
+// ============================================================
 window.switchAdminTab = function(tab) {
-    // إخفاء جميع التبويبات
-    document.querySelectorAll('#adminPanel .admin-tab-content').forEach(el => {
-        el.classList.remove('active');
-    });
-    document.querySelectorAll('#adminPanel .admin-nav-btn').forEach(el => {
-        el.classList.remove('active');
-    });
+    document.querySelectorAll('#adminPanel .admin-tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('#adminPanel .admin-nav-btn').forEach(el => el.classList.remove('active'));
 
-    // إظهار التبويب المحدد
     const tabMap = {
         'dashboard': 'tabDashboard',
         'orders': 'tabOrders',
@@ -5046,7 +4975,6 @@ window.switchAdminTab = function(tab) {
         'emails': 'tabEmails',
         'branding': 'tabBranding'
     };
-    
     const tabId = tabMap[tab] || 'tabDashboard';
     const content = document.getElementById(tabId);
     if (content) content.classList.add('active');
@@ -5080,17 +5008,65 @@ window.switchAdminTab = function(tab) {
     if (titleEl) titleEl.textContent = titles[tab] || tab;
 
     // تحميل البيانات حسب التبويب
-    if (tab === 'licences' && typeof loadLicences === 'function') {
-        loadLicences();
-    }
-    if (tab === 'topups' && typeof loadAdminTopups === 'function') {
-        loadAdminTopups();
-    }
-    if (tab === 'orders' && typeof loadAdminOrders === 'function') {
-        loadAdminOrders();
-    }
-    if (tab === 'settings' && typeof loadAdminSettingsUI === 'function') {
-        loadAdminSettingsUI();
+    try {
+        if (tab === 'products' && typeof renderAdminProducts === 'function') {
+            renderAdminProducts(products);
+        }
+        if (tab === 'users' && typeof loadAdminUsers === 'function') {
+            loadAdminUsers();
+        }
+        if (tab === 'dashboard' && typeof loadDashboardStats === 'function') {
+            loadDashboardStats();
+        }
+        if (tab === 'stats' && typeof loadAdvancedStats === 'function') {
+            loadAdvancedStats();
+        }
+        if (tab === 'logs' && typeof loadAuditLogs === 'function') {
+            loadAuditLogs();
+        }
+        if (tab === 'activity' && typeof loadActivityLogs === 'function') {
+            loadActivityLogs();
+        }
+        if (tab === 'fraud' && typeof loadFraudLogs === 'function') {
+            loadFraudLogs();
+        }
+        if (tab === 'slider' && typeof renderSliderSettingsUI === 'function') {
+            renderSliderSettingsUI();
+            const intervalInput = document.getElementById('sliderIntervalInput');
+            if (intervalInput) intervalInput.value = sliderIntervalTime;
+        }
+        if (tab === 'licences' && typeof loadLicences === 'function') {
+            loadLicences();
+        }
+        if (tab === 'marquee' && typeof renderMarqueeSettingsUI === 'function') {
+            renderMarqueeSettingsUI();
+        }
+        if (tab === 'orders' && typeof loadAdminOrders === 'function') {
+            loadAdminOrders();
+        }
+        if (tab === 'payments' && typeof refreshAdminPayments === 'function') {
+            refreshAdminPayments();
+        }
+        if (tab === 'topups' && typeof loadAdminTopups === 'function') {
+            loadAdminTopups();
+        }
+        if (tab === 'fallback' && typeof renderFallbackProductsAdmin === 'function') {
+            renderFallbackProductsAdmin();
+        }
+        if (tab === 'settings' && typeof loadAdminSettingsUI === 'function') {
+            loadAdminSettingsUI();
+        }
+        if (tab === 'coupons' && typeof renderAdminCoupons === 'function') {
+            renderAdminCoupons();
+        }
+        if (tab === 'emails' && typeof loadEmailLogs === 'function') {
+            loadEmailLogs();
+        }
+        if (tab === 'branding' && typeof loadBrandingSettings === 'function') {
+            loadBrandingSettings();
+        }
+    } catch (error) {
+        console.warn('⚠️ Error loading tab data:', error);
     }
 };
 
@@ -5522,7 +5498,7 @@ window.viewUserDetails = async function(uid) {
                 month: 'long', day: 'numeric' }) : '--';
         const content = document.getElementById('userDetailsContent');
         if (!content) {
-            showToast('❌ User details content not found', 'error');
+            showToast('❌ User details container not found', 'error');
             return;
         }
         content.innerHTML = `
@@ -5531,7 +5507,14 @@ window.viewUserDetails = async function(uid) {
               <div style="width:44px;height:44px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;overflow:hidden;">
                 ${photo ? `<img src="${photo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />` : (data.name||'U').charAt(0).toUpperCase()}
               </div>
-              <div><div style="font-size:15px;font-weight:700;color:var(--text);">${data.name||'Unknown'}</div><div style="font-size:12px;color:var(--text-secondary);">${data.email||'No email'}</div><div style="font-size:12px;color:var(--text-secondary);">📍 Country: ${location}</div><div style="font-size:11px;color:var(--text-secondary);opacity:0.4;">📅 Joined: ${joinedDate}</div><div style="font-size:12px;color:var(--vip-color);font-weight:600;">🎯 RP: ${data.rp||0} • 💰 Balance: $${balance.toFixed(2)}</div><div style="font-size:12px;color:var(--text-secondary);">📦 ${orders.length} orders</div></div>
+              <div>
+                <div style="font-size:15px;font-weight:700;color:var(--text);">${data.name||'Unknown'}</div>
+                <div style="font-size:12px;color:var(--text-secondary);">${data.email||'No email'}</div>
+                <div style="font-size:12px;color:var(--text-secondary);">📍 Country: ${location}</div>
+                <div style="font-size:11px;color:var(--text-secondary);opacity:0.4;">📅 Joined: ${joinedDate}</div>
+                <div style="font-size:12px;color:var(--vip-color);font-weight:600;">🎯 RP: ${data.rp||0} • 💰 Balance: $${balance.toFixed(2)}</div>
+                <div style="font-size:12px;color:var(--text-secondary);">📦 ${orders.length} orders</div>
+              </div>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:10px;">
               <div style="background:var(--bg);border-radius:6px;padding:6px;text-align:center;border:1px solid var(--border);"><div style="font-size:14px;font-weight:700;color:var(--text);">${orders.length}</div><div style="font-size:9px;color:var(--text-secondary);">Orders</div></div>
@@ -5540,16 +5523,31 @@ window.viewUserDetails = async function(uid) {
               <div style="background:var(--bg);border-radius:6px;padding:6px;text-align:center;border:1px solid var(--border);"><div style="font-size:14px;font-weight:700;color:var(--success);">$${balance.toFixed(2)}</div><div style="font-size:9px;color:var(--text-secondary);">Balance</div></div>
             </div>
             <div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;">Recent Orders</div>
-            ${orders.length > 0 ? orders.slice(-5).reverse().map(o => `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px;"><span>${o.items?o.items.map(i=>i.name).join(', '):'Order'}</span><span style="color:var(--primary);">${(o.total||0).toFixed(2)} $</span><span class="status-badge ${o.status||'pending'}" style="font-size:9px;padding:1px 8px;">${o.status||'pending'}</span></div>`).join('') : '<div style="text-align:center;color:var(--text-secondary);opacity:0.4;padding:10px;">No orders</div>'}
+            ${orders.length > 0 ? orders.slice(-5).reverse().map(o => `
+              <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px;">
+                <span>${o.items?o.items.map(i=>i.name).join(', '):'Order'}</span>
+                <span style="color:var(--primary);">${(o.total||0).toFixed(2)} $</span>
+                <span class="status-badge ${o.status||'pending'}" style="font-size:9px;padding:1px 8px;">${o.status||'pending'}</span>
+              </div>
+            `).join('') : '<div style="text-align:center;color:var(--text-secondary);opacity:0.4;padding:10px;">No orders</div>'}
             <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
               <button onclick="closeUserDetailsModal();" style="padding:4px 14px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);cursor:pointer;font-size:12px;">Close</button>
-              ${data.isBanned?`<button onclick="closeUserDetailsModal();toggleUserBan('${uid}',false);" style="padding:4px 14px;border:none;border-radius:6px;background:var(--success);color:#0a0a1a;cursor:pointer;font-weight:600;font-size:12px;"><i class="fas fa-user-check"></i> Unban</button>`:`<button onclick="closeUserDetailsModal();toggleUserBan('${uid}',true);" style="padding:4px 14px;border:none;border-radius:6px;background:var(--danger);color:#fff;cursor:pointer;font-weight:600;font-size:12px;"><i class="fas fa-ban"></i> Ban</button>`}
-              ${uid!==currentUser.uid?`<button onclick="closeUserDetailsModal();deleteUserAccount('${uid}');" style="padding:4px 14px;border:none;border-radius:6px;background:var(--danger);color:#fff;cursor:pointer;font-weight:600;font-size:12px;"><i class="fas fa-trash"></i> Delete</button>`:''}
+              ${data.isBanned ? `
+                <button onclick="closeUserDetailsModal();toggleUserBan('${uid}',false);" style="padding:4px 14px;border:none;border-radius:6px;background:var(--success);color:#0a0a1a;cursor:pointer;font-weight:600;font-size:12px;"><i class="fas fa-user-check"></i> Unban</button>
+              ` : `
+                <button onclick="closeUserDetailsModal();toggleUserBan('${uid}',true);" style="padding:4px 14px;border:none;border-radius:6px;background:var(--danger);color:#fff;cursor:pointer;font-weight:600;font-size:12px;"><i class="fas fa-ban"></i> Ban</button>
+              `}
+              ${uid !== currentUser.uid ? `
+                <button onclick="closeUserDetailsModal();deleteUserAccount('${uid}');" style="padding:4px 14px;border:none;border-radius:6px;background:var(--danger);color:#fff;cursor:pointer;font-weight:600;font-size:12px;"><i class="fas fa-trash"></i> Delete</button>
+              ` : ''}
             </div>
-          </div>`;
+          </div>
+        `;
         document.getElementById('userDetailsModal').classList.add('open');
-    } catch (error) { console.error('Error viewing user details:', error);
-        showToast('❌ Error loading user details', 'error'); }
+    } catch (error) {
+        console.error('Error viewing user details:', error);
+        showToast('❌ Error loading user details', 'error');
+    }
 };
 window.closeUserDetailsModal = function() { document.getElementById('userDetailsModal').classList.remove('open'); };
 
@@ -5852,19 +5850,15 @@ function renderUserLicences() {
     }).join('');
 }
 
+function toggleLicencesList() {
+    const list = document.getElementById('userLicencesList');
+    if (list) list.style.display = list.style.display === 'none' ? 'block' : 'none';
+}
+
 // ============================================================
 // LICENCE MODAL FUNCTIONS - FIXED
 // ============================================================
 
-// تبديل ظهور قائمة التراخيص
-function toggleLicencesList() {
-    const list = document.getElementById('userLicencesList');
-    if (list) {
-        list.style.display = list.style.display === 'none' ? 'block' : 'none';
-    }
-}
-
-// فتح مودال التراخيص
 window.openLicenceModal = function() {
     if (!currentUser) {
         showToast('⚠️ Please login first', 'warning');
@@ -5882,7 +5876,6 @@ window.openLicenceModal = function() {
     document.body.style.overflow = 'hidden';
 };
 
-// إغلاق مودال التراخيص
 window.closeLicenceModal = function() {
     const modal = document.getElementById('licenceModal');
     if (modal) {
@@ -5913,13 +5906,25 @@ window.activatedLicence = function() {
     }
 };
 
-async function activateLicence() {
+// ============================================================
+// ACTIVATE LICENCE - COMPLETE
+// ============================================================
+window.activateLicence = async function() {
     const input = document.getElementById('licenceInput');
     const resultEl = document.getElementById('licenceResult');
-    const code = input?.value?.trim().toUpperCase();
-    if (!code) { resultEl.innerHTML = '<span style="color:var(--danger);">⚠️ Please enter a licence code.</span>'; return; }
-    if (!currentUser) { resultEl.innerHTML =
-            '<span style="color:var(--danger);">⚠️ You must be logged in.</span>'; return; }
+    if (!input) {
+        showToast('⚠️ Licence input not found', 'warning');
+        return;
+    }
+    const code = input.value.trim().toUpperCase();
+    if (!code) {
+        resultEl.innerHTML = '<span style="color:var(--danger);">⚠️ Please enter a licence code.</span>';
+        return;
+    }
+    if (!currentUser) {
+        resultEl.innerHTML = '<span style="color:var(--danger);">⚠️ You must be logged in.</span>';
+        return;
+    }
     try {
         resultEl.innerHTML = '<span style="color:var(--text-secondary);">⏳ Verifying...</span>';
         const response = await fetch(
@@ -5962,9 +5967,14 @@ async function activateLicence() {
                 </div>
             </div>
         `;
-    } catch (error) { resultEl.innerHTML = `<span style="color:var(--danger);">❌ Error: ${error.message}</span>`; }
-}
-window.activateLicence = activateLicence;
+        input.value = '';
+        renderUserLicences();
+        showToast('✅ Licence activated successfully!', 'success');
+    } catch (error) {
+        resultEl.innerHTML = `<span style="color:var(--danger);">❌ Error: ${error.message}</span>`;
+        showToast('❌ ' + error.message, 'error');
+    }
+};
 
 // ============================================================
 // RATINGS
@@ -7788,318 +7798,89 @@ ${txHash ? `🔗 *TXID:* \`${txHash}\`` : ''}
     }
 }
 
-
-// ============================================================
-// CHECKOUT WITH BALANCE
-// ============================================================
-window.checkoutWithBalance = function() {
-    if (cart.length === 0) {
-        showToast('⚠️ Cart is empty', 'warning');
-        return;
-    }
-    let total = 0;
-    cart.forEach(item => {
-        total += item.price * (item.quantity || 1);
-    });
-    let finalTotal = total;
-    if (userBalance >= finalTotal) {
-        processBalancePayment(finalTotal);
-    } else {
-        showToast(`⚠️ Insufficient balance! Need $${finalTotal.toFixed(2)}, have $${userBalance.toFixed(2)}`,
-            'warning');
-        setTimeout(() => openTopupModal(), 500);
-    }
-};
-
-// ============================================================
-// SUPPORT FUNCTIONS
-// ============================================================
-window.toggleSupportMenu = function() {
-    const float = document.getElementById('supportFloat');
-    if (float) {
-        float.classList.toggle('open');
-    }
-};
-
-window.openSupportModal = function() {
-    const modal = document.getElementById('supportModal');
-    if (modal) {
-        modal.classList.add('open');
-        document.body.style.overflow = 'hidden';
-    }
-    const float = document.getElementById('supportFloat');
-    if (float) {
-        float.classList.remove('open');
-    }
-};
-
-window.closeSupportModal = function() {
-    const modal = document.getElementById('supportModal');
-    if (modal) {
-        modal.classList.remove('open');
-        document.body.style.overflow = '';
-    }
-};
-
-window.openWhatsAppSupport = function() {
-    const phone = '1234567890';
-    const message = 'Hi, I need help';
-    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
-};
-
-window.openTelegramSupport = function() {
-    const username = 'Mitalica69';
-    const message = 'Hi, I need help';
-    window.open(`https://t.me/${username}?start=support`, '_blank');
-};
-
-window.openEmailSupport = function() {
-    const email = 'idriss.zribi13@gmail.com';
-    const subject = 'Support Request';
-    window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}`;
-};
-
-window.openPhoneSupport = function() {
-    const phone = '1234567890';
-    window.location.href = `tel:${phone}`;
-};
-
-// ============================================================
-// COOKIE CONSENT FUNCTIONS
-// ============================================================
-let cookieConsentStatus = localStorage.getItem('cookieConsent');
-
-window.acceptCookies = function() {
-    localStorage.setItem('cookieConsent', 'accepted');
-    localStorage.setItem('analyticsConsent', 'true');
-    document.getElementById('cookieConsent').classList.remove('show');
-    enableAnalytics();
-    showToast('✅ Cookies accepted', 'success');
-};
-
-window.rejectCookies = function() {
-    localStorage.setItem('cookieConsent', 'rejected');
-    localStorage.setItem('analyticsConsent', 'false');
-    document.getElementById('cookieConsent').classList.remove('show');
-    disableAnalytics();
-    showToast('❌ Cookies rejected', 'info');
-};
-
-window.openCookieSettings = function() {
-    const modal = document.getElementById('cookieSettingsModal');
-    if (modal) {
-        const analyticsToggle = document.getElementById('analyticsToggle');
-        if (analyticsToggle) {
-            const consent = localStorage.getItem('analyticsConsent');
-            analyticsToggle.checked = consent !== 'false';
-        }
-        modal.classList.add('open');
-        document.body.style.overflow = 'hidden';
-    }
-};
-
-window.closeCookieSettings = function() {
-    const modal = document.getElementById('cookieSettingsModal');
-    if (modal) {
-        modal.classList.remove('open');
-        document.body.style.overflow = '';
-    }
-};
-
-window.saveCookieSettings = function() {
-    const analyticsToggle = document.getElementById('analyticsToggle');
-    const analyticsEnabled = analyticsToggle ? analyticsToggle.checked : true;
-
-    localStorage.setItem('cookieConsent', 'custom');
-    localStorage.setItem('analyticsConsent', analyticsEnabled ? 'true' : 'false');
-
-    if (analyticsEnabled) {
-        enableAnalytics();
-    } else {
-        disableAnalytics();
-    }
-
-    document.getElementById('cookieConsent').classList.remove('show');
-    closeCookieSettings();
-    showToast('✅ Settings saved', 'success');
-};
-
-function enableAnalytics() {
-    try {
-        if (typeof analytics !== 'undefined' && analytics.setAnalyticsCollectionEnabled) {
-            analytics.setAnalyticsCollectionEnabled(true);
-            console.log('✅ Firebase Analytics enabled');
-        }
-        if (typeof gtag !== 'undefined') {
-            gtag('consent', 'update', {
-                'analytics_storage': 'granted'
-            });
-            console.log('✅ Google Analytics enabled');
-        }
-    } catch (e) {
-        console.log('⚠️ Analytics enable error:', e);
-    }
-}
-
-function disableAnalytics() {
-    try {
-        if (typeof analytics !== 'undefined' && analytics.setAnalyticsCollectionEnabled) {
-            analytics.setAnalyticsCollectionEnabled(false);
-            console.log('❌ Firebase Analytics disabled');
-        }
-        if (typeof gtag !== 'undefined') {
-            gtag('consent', 'update', {
-                'analytics_storage': 'denied'
-            });
-            console.log('❌ Google Analytics disabled');
-        }
-    } catch (e) {
-        console.log('⚠️ Analytics disable error:', e);
-    }
-}
-
-function checkCookieConsent() {
-    const consent = localStorage.getItem('cookieConsent');
-    const analyticsConsent = localStorage.getItem('analyticsConsent');
-
-    if (!consent) {
-        setTimeout(() => {
-            const banner = document.getElementById('cookieConsent');
-            if (banner) {
-                banner.classList.add('show');
-            }
-        }, 2000);
-    } else if (consent === 'accepted' || analyticsConsent === 'true') {
-        enableAnalytics();
-    } else if (consent === 'rejected' || analyticsConsent === 'false') {
-        disableAnalytics();
-    } else if (consent === 'custom') {
-        if (analyticsConsent === 'true') {
-            enableAnalytics();
-        } else {
-            disableAnalytics();
-        }
-    }
-}
-
-window.closeCookieBanner = function() {
-    const banner = document.getElementById('cookieConsent');
-    if (banner) {
-        banner.classList.remove('show');
-    }
-};
-
-// ============================================================
-// TELEGRAM BANNER
-// ============================================================
-function showTelegramBanner() {
-    const banner = document.getElementById('telegramBanner');
-    if (!banner) return;
-    const bannerHidden = localStorage.getItem('telegram_banner_hidden') === 'true';
-    const adminDisabled = localStorage.getItem('telegram_banner_admin_disabled') === 'true';
-    if (userProfile.telegramChatId) {
-        banner.classList.add('linked');
-        banner.querySelector('.banner-title').textContent = '✅ Connected!';
-        banner.querySelector('.banner-subtitle').textContent = 'You will receive order notifications here.';
-        banner.querySelector('.banner-action').innerHTML = '<i class="fas fa-check"></i> Linked';
-        banner.querySelector('.banner-action').onclick = () => openProfileFull();
-        banner.querySelector('.banner-icon i').className = 'fas fa-check-circle';
-        banner.style.display = 'block';
-        setTimeout(() => { banner.classList.add('hidden'); }, 3000);
-        return;
-    }
-    if (bannerHidden || adminDisabled) { banner.classList.add('hidden'); return; }
-    banner.classList.remove('linked', 'hidden');
-    banner.querySelector('.banner-title').innerHTML =
-    '🔔 Stay Connected! <span class="badge-new">New</span>';
-    banner.querySelector('.banner-subtitle').textContent = 'Link your Telegram account to receive instant order notifications';
-    banner.querySelector('.banner-action').innerHTML = '<i class="fab fa-telegram-plane"></i> Link Now';
-    banner.querySelector('.banner-action').onclick = () => bindTelegram();
-    banner.querySelector('.banner-icon i').className = 'fab fa-telegram-plane';
-    banner.style.display = 'block';
-    banner.style.animation = 'none';
-    setTimeout(() => { banner.style.animation =
-            'bannerSlideDown 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'; }, 10);
-}
-
-function closeTelegramBanner() {
-    const banner = document.getElementById('telegramBanner');
-    if (banner) { banner.classList.add('hidden');
-        localStorage.setItem('telegram_banner_hidden', 'true');
-        setTimeout(() => { localStorage.removeItem('telegram_banner_hidden'); if (!userProfile
-                .telegramChatId) { showTelegramBanner(); } }, 600000); }
-}
-
-function showTelegramBannerAgain() { localStorage.removeItem('telegram_banner_hidden');
-    showTelegramBanner(); }
-
-function addBannerAdminControls() { /* Will be implemented in admin */ }
-
-function adminToggleBanner(show) {
-    if (show) { localStorage.setItem('telegram_banner_admin_disabled', 'false'); } else { localStorage.setItem(
-            'telegram_banner_admin_disabled', 'true'); const banner = document.getElementById(
-            'telegramBanner'); if (banner) banner.classList.add('hidden'); }
-    addBannerAdminControls();
-    if (show) { localStorage.removeItem('telegram_banner_hidden');
-        setTimeout(showTelegramBanner, 300); }
-}
-
-function resetBannerForAll() { localStorage.removeItem('telegram_banner_admin_disabled');
-    localStorage.removeItem('telegram_banner_hidden');
-    showToast('🔄 Banner reset', 'info');
-    addBannerAdminControls();
-    setTimeout(showTelegramBanner, 300); }
-
-// ============================================================
-// CLOUDINARY UPLOAD
-// ============================================================
-async function uploadToCloudinary(file) {
-    try {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-        const response = await fetch(
-            `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, { method: 'POST',
-                body: formData });
-        const data = await response.json();
-        return data.secure_url || null;
-    } catch (error) { console.error('Cloudinary upload error:', error); return null; }
-}
-
-// ============================================================
-// DIRECTION FIX (CLOSE BUTTONS ON RIGHT)
-// ============================================================
-function fixDirection() {
-    document.querySelectorAll('.header, .logo, .header-actions, .modal-content, .fullscreen-modal, .admin-panel')
-        .forEach(el => {
-            el.style.direction = 'ltr';
-            el.style.textAlign = 'left';
-        });
-
-    document.querySelectorAll('.modal-close, .close-modal-btn').forEach(el => {
-        el.style.position = 'absolute';
-        el.style.top = '10px';
-        el.style.right = '10px';
-        el.style.left = 'auto';
-        el.style.zIndex = '100';
-        el.style.margin = '0';
-    });
-
-    document.querySelectorAll('.fullscreen-modal .close-btn, #adminPanel .admin-close-btn').forEach(el => {
-        el.style.position = 'static';
-        el.style.right = 'auto';
-        el.style.left = 'auto';
-        el.style.top = 'auto';
-    });
-
-    console.log('✅ Direction fixed: Close buttons on right');
-}
-window.fixHeaderAndModals = fixDirection;
-
 // ============================================================
 // COPY LICENCE & EXPORT
 // ============================================================
 
+// دالة مساعدة للنسخ (تُستخدم في جميع دوال النسخ)
+function fallbackCopy(text) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+        document.execCommand('copy');
+        showToast('✅ Copied!', 'success');
+    } catch (e) {
+        showToast('❌ Failed to copy', 'error');
+    }
+    document.body.removeChild(textarea);
+}
+
+// نسخ رمز الترخيص
+window.copyLicenceCode = function(code) {
+    if (!code) {
+        showToast('⚠️ No code to copy', 'warning');
+        return;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code)
+            .then(() => showToast('✅ Licence code copied!', 'success'))
+            .catch(() => fallbackCopy(code));
+    } else {
+        fallbackCopy(code);
+    }
+};
+
+// نسخ النص إلى الحافظة (عام)
+window.copyToClipboard = function(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text)
+            .then(() => showToast('✅ Copied!', 'success'))
+            .catch(() => fallbackCopy(text));
+    } else {
+        fallbackCopy(text);
+    }
+};
+
+// نسخ عنوان المحفظة
+window.copyWalletAddress = function() {
+    const addressElement = document.getElementById('walletAddressDisplay');
+    if (!addressElement) {
+        showToast('⚠️ Wallet address not found', 'warning');
+        return;
+    }
+    const address = addressElement.textContent.trim();
+    if (!address || address === '') {
+        showToast('⚠️ No wallet address to copy', 'warning');
+        return;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(address)
+            .then(() => showToast('✅ Wallet address copied!', 'success'))
+            .catch(() => fallbackCopy(address));
+    } else {
+        fallbackCopy(address);
+    }
+};
+
+// نسخ Binance ID
+window.copyBinanceId = function() {
+    const id = document.getElementById('binanceIdDisplay')?.textContent;
+    if (!id) {
+        showToast('⚠️ No ID to copy', 'warning');
+        return;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(id)
+            .then(() => showToast('✅ Binance ID copied!', 'success'))
+            .catch(() => fallbackCopy(id));
+    } else {
+        fallbackCopy(id);
+    }
+};
 
 // إنشاء فاتورة PDF
 window.generateInvoice = function(orderData) {
@@ -8159,6 +7940,7 @@ window.exportOrders = function() {
         showToast('❌ Export failed', 'error');
     }
 };
+
 // ============================================================
 // ADMIN PAYMENTS
 // ============================================================
@@ -9151,10 +8933,11 @@ function applyBranding() {
     root.style.setProperty('--danger', BRANDING.colors.danger);
     root.style.setProperty('--warning', BRANDING.colors.warning);
     
-    const logoEl = document.querySelector('.logo');
-    if (logoEl) {
-        logoEl.innerHTML = `<i class="fas ${BRANDING.logo.icon}"></i> ${BRANDING.logo.text}`;
-    }
+    // ✅ لا نغير الـ Logo حتى لا يتعارض مع الصورة
+    // const logoEl = document.querySelector('.logo');
+    // if (logoEl) {
+    //     logoEl.innerHTML = `<i class="fas ${BRANDING.logo.icon}"></i> ${BRANDING.logo.text}`;
+    // }
     
     document.title = `${BRANDING.site.name} - ${BRANDING.logo.tagline}`;
     
@@ -9229,144 +9012,35 @@ window.resetBranding = function() {
 };
 
 // ============================================================
-// GENERATE PDF INVOICE
-// ============================================================
-window.generatePDFInvoice = function(orderData) {
-    if (!orderData) { 
-        showToast('❌ No order data for invoice', 'error'); 
-        return; 
-    }
-    
-    try {
-        let order = typeof orderData === 'string' ? JSON.parse(orderData) : orderData;
-        
-        if (!order.id) { 
-            order.id = 'INV-' + Date.now().toString().slice(-6); 
-        }
-        
-        const invoiceHtml = `
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Invoice #${order.id}</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Arial', sans-serif; padding: 40px; background: #fff; color: #1a1a2e; }
-        .invoice { max-width: 800px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 12px; padding: 40px; }
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #6c5ce7; padding-bottom: 20px; margin-bottom: 20px; }
-        .logo { font-size: 28px; font-weight: 900; color: #6c5ce7; }
-        .logo span { color: #f2a900; }
-        .invoice-title { font-size: 24px; color: #6c5ce7; font-weight: 700; }
-        .details { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; padding: 15px; background: #f8f8ff; border-radius: 8px; }
-        .details .label { color: #888; font-size: 12px; font-weight: 600; text-transform: uppercase; }
-        .details .value { font-weight: 700; font-size: 14px; }
-        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-        th { background: #6c5ce7; color: #fff; padding: 12px; text-align: left; font-size: 12px; text-transform: uppercase; }
-        td { padding: 12px; border-bottom: 1px solid #e0e0e0; }
-        .total-section { margin-top: 20px; padding-top: 20px; border-top: 2px solid #e0e0e0; text-align: right; }
-        .total-section .total { font-size: 24px; font-weight: 900; color: #6c5ce7; }
-        .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center; font-size: 12px; color: #888; }
-        @media print {
-            body { padding: 0; }
-            .invoice { border: none; padding: 20px; }
-        }
-        .status-badge { display: inline-block; padding: 4px 12px; border-radius: 30px; font-size: 12px; font-weight: 700; background: ${order.status === 'confirmed' ? '#00d4aa' : order.status === 'rejected' ? '#ff6b6b' : '#fbbf24'}; color: #0a0a1a; }
-    </style>
-</head>
-<body>
-    <div class="invoice">
-        <div class="header">
-            <div class="logo">ZI <span>Store</span></div>
-            <div class="invoice-title">INVOICE</div>
-        </div>
-        <div class="details">
-            <div>
-                <div class="label">Order ID</div>
-                <div class="value">#${order.id}</div>
-                <div class="label" style="margin-top:6px;">Date</div>
-                <div class="value">${new Date(order.date || Date.now()).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
-            </div>
-            <div style="text-align:right;">
-                <div class="label">Status</div>
-                <div class="value"><span class="status-badge">${order.status || 'Pending'}</span></div>
-                <div class="label" style="margin-top:6px;">Payment Method</div>
-                <div class="value">${order.method || 'N/A'}</div>
-            </div>
-        </div>
-        <table>
-            <thead><tr><th>Product</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead>
-            <tbody>
-                ${(order.items || []).map(item => `
-                    <tr>
-                        <td>${item.name}${item.selectedQuantity ? ' (x'+item.selectedQuantity+')' : ''}</td>
-                        <td>${item.quantity || 1}</td>
-                        <td>$${(item.price || 0).toFixed(2)}</td>
-                        <td>$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td>
-                    </tr>
-                `).join('')}
-            </tbody>
-        </table>
-        <div class="total-section">
-            <div style="font-size:16px; color:#888; margin-bottom:4px;">Total Amount</div>
-            <div class="total">$${(order.total || 0).toFixed(2)}</div>
-        </div>
-        <div class="footer">
-            <p>Thank you for your purchase at ZI Store!</p>
-            <p style="margin-top:4px;">© 2026 ZI Store — All rights reserved.</p>
-        </div>
-    </div>
-</body>
-</html>
-        `;
-        
-        const win = window.open('', '_blank', 'width=800,height=600');
-        if (!win) { 
-            showToast('⚠️ Please allow popups to generate invoice', 'warning'); 
-            return; 
-        }
-        
-        win.document.write(invoiceHtml);
-        win.document.close();
-        
-        setTimeout(() => {
-            win.print();
-        }, 500);
-        
-        showToast('📄 Invoice generated!', 'success');
-        
-    } catch (error) {
-        console.error('Invoice generation error:', error);
-        showToast('❌ Failed to generate invoice: ' + error.message, 'error');
-    }
-};
-
-// ============================================================
 // GET VISITOR INFO & DEVICE INFO
 // ============================================================
 async function getVisitorInfo() {
     try {
-        const response = await fetch('https://api.ipify.org?format=json');
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/get-ip-info`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Accept': 'application/json',
+            }
+        });
+        if (!response.ok) throw new Error('Failed to fetch IP info');
         const data = await response.json();
-        const ip = data.ip || 'Unknown';
-        try {
-            const geoResponse = await fetch(`https://ipapi.co/${ip}/json/`);
-            const geoData = await geoResponse.json();
-            return {
-                ip: ip,
-                country: geoData.country_name || 'Unknown',
-                country_code: geoData.country_code || 'XX',
-                city: geoData.city || 'Unknown',
-                region: geoData.region || 'Unknown',
-                timezone: geoData.timezone || 'UTC',
-                isp: geoData.org || 'Unknown'
-            };
-        } catch (geoError) {
-            console.warn('Geo lookup failed:', geoError);
-            return { ip: ip, country: 'Unknown', country_code: 'XX', city: 'Unknown', region: 'Unknown', timezone: 'UTC', isp: 'Unknown' };
-        }
+        return {
+            ip: data.ip || 'Unknown',
+            country: data.country_name || 'Unknown',
+            country_code: data.country_code || 'XX',
+            city: data.city || 'Unknown',
+            timezone: data.timezone || 'UTC'
+        };
     } catch (error) {
-        console.error('Error getting visitor info:', error);
-        return { ip: 'Unknown', country: 'Unknown', country_code: 'XX', city: 'Unknown', region: 'Unknown', timezone: 'UTC', isp: 'Unknown' };
+        console.error('Error fetching visitor info:', error);
+        return {
+            ip: 'Unknown',
+            country: 'Unknown',
+            country_code: 'XX',
+            city: 'Unknown',
+            timezone: 'UTC'
+        };
     }
 }
 
@@ -9509,23 +9183,209 @@ async function sendLicenceEmail(userEmail, licenceData) {
 }
 
 // ============================================================
+// USER SETTINGS - TOGGLE SWITCHES
+// ============================================================
+
+// 1. تحميل إعدادات المستخدم من localStorage أو Firestore
+async function loadUserSettings() {
+    const defaultSettings = {
+        ipDetection: true,
+        emailNotifications: true,
+        twoFactorAuth: false
+    };
+    
+    try {
+        const saved = localStorage.getItem('zi_user_settings');
+        if (saved) {
+            const settings = JSON.parse(saved);
+            return { ...defaultSettings, ...settings };
+        }
+    } catch (e) {
+        console.warn('Failed to load settings from localStorage:', e);
+    }
+    
+    if (currentUser) {
+        try {
+            const userRef = doc(db, 'users', currentUser.uid);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+                const data = userSnap.data();
+                if (data.settings) {
+                    const settings = { ...defaultSettings, ...data.settings };
+                    localStorage.setItem('zi_user_settings', JSON.stringify(settings));
+                    return settings;
+                }
+            }
+        } catch (error) {
+            console.error('Error loading settings from Firestore:', error);
+        }
+    }
+    
+    return defaultSettings;
+}
+
+// 2. حفظ إعدادات المستخدم
+async function saveUserSettings(settings) {
+    try {
+        localStorage.setItem('zi_user_settings', JSON.stringify(settings));
+    } catch (e) {
+        console.warn('Failed to save settings to localStorage:', e);
+    }
+    
+    if (currentUser) {
+        try {
+            const userRef = doc(db, 'users', currentUser.uid);
+            await updateDoc(userRef, {
+                settings: settings,
+                updatedAt: serverTimestamp()
+            });
+            console.log('✅ Settings saved to Firestore');
+        } catch (error) {
+            console.error('Failed to save settings to Firestore:', error);
+        }
+    }
+}
+
+// 3. تبديل الإعداد (Toggle Switch)
+async function toggleSetting(element, settingName) {
+    if (element._isToggling) return;
+    element._isToggling = true;
+    
+    element.style.transition = 'transform 0.1s';
+    element.style.transform = 'scale(0.95)';
+    setTimeout(() => {
+        element.style.transform = 'scale(1)';
+    }, 100);
+    
+    const isActive = element.classList.contains('active');
+    const newState = !isActive;
+    
+    if (newState) {
+        element.classList.add('active');
+        element.classList.remove('inactive');
+    } else {
+        element.classList.remove('active');
+        element.classList.add('inactive');
+    }
+    
+    const settings = await loadUserSettings();
+    settings[settingName] = newState;
+    await saveUserSettings(settings);
+    
+    handleSettingChange(settingName, newState);
+    
+    const settingLabels = {
+        ipDetection: 'Auto Detection',
+        emailNotifications: 'Email Notifications',
+        twoFactorAuth: 'Two-Factor Auth'
+    };
+    const label = settingLabels[settingName] || settingName;
+    const status = newState ? 'enabled' : 'disabled';
+    showToast(`🔔 ${label} ${status}`, newState ? 'success' : 'info');
+    
+    await logActivity('settings_change', {
+        setting: settingName,
+        newState: newState,
+        timestamp: new Date().toISOString()
+    });
+    
+    element._isToggling = false;
+}
+
+// 4. معالجة تغيير الإعداد
+function handleSettingChange(settingName, newState) {
+    switch (settingName) {
+        case 'ipDetection':
+            if (newState) {
+                console.log('✅ IP Detection enabled');
+                if (currentUser) {
+                    fetchUserInfo().then(info => {
+                        if (info) {
+                            checkIPChange(currentUser, info.ip, info.country_name);
+                        }
+                    });
+                }
+            } else {
+                console.log('❌ IP Detection disabled');
+            }
+            break;
+        case 'emailNotifications':
+            if (newState) {
+                console.log('✅ Email Notifications enabled');
+                showToast('📧 Email notifications enabled', 'success');
+                // محاولة إرسال إشعار تجريبي
+                if (currentUser) {
+                    try {
+                        sendEmail(
+                            currentUser.email,
+                            '🔔 Test Notification',
+                            '<h2>Test Notification</h2><p>Your email notifications are working!</p>'
+                        );
+                    } catch (e) {
+                        console.log('Test email failed but notifications enabled');
+                    }
+                }
+            } else {
+                console.log('❌ Email Notifications disabled');
+                showToast('📧 Email notifications disabled', 'info');
+            }
+            break;
+        case 'twoFactorAuth':
+            if (newState) {
+                console.log('✅ Two-Factor Auth enabled');
+                showToast('🔐 Two-Factor Authentication enabled', 'success', 3000);
+            } else {
+                console.log('❌ Two-Factor Auth disabled');
+                showToast('🔐 Two-Factor Authentication disabled', 'info');
+            }
+            break;
+    }
+}
+
+// 5. تحديث واجهة الإعدادات عند فتح القائمة
+async function renderSettingsUI() {
+    const settings = await loadUserSettings();
+    
+    document.querySelectorAll('.toggle-switch[data-setting]').forEach(el => {
+        const settingName = el.dataset.setting;
+        const isActive = settings[settingName] === true;
+        
+        if (isActive) {
+            el.classList.add('active');
+            el.classList.remove('inactive');
+        } else {
+            el.classList.remove('active');
+            el.classList.add('inactive');
+        }
+    });
+}
+
+// ============================================================
 // NETWORK STATUS DETECTION - CONNECTION MONITOR
 // ============================================================
+
+// 1. متغيرات لتتبع حالة الاتصال
 let isOnline = navigator.onLine;
 let wasOffline = false;
 
+// 2. عرض إشعار عند فقدان الاتصال
 function showOfflineToast() {
     const toast = document.getElementById('toast');
     const messageEl = document.getElementById('toastMessage');
     const iconEl = toast?.querySelector('.toast-icon');
+    
     if (!toast || !messageEl) return;
+    
     toast.classList.remove('show');
     clearTimeout(window.toastTimeout);
+    
     toast.className = 'toast';
     toast.classList.add('error', 'large');
+    
     if (iconEl) {
         iconEl.innerHTML = '<i class="fas fa-wifi" style="color: #ff6b6b; font-size: 24px;"></i>';
     }
+    
     messageEl.innerHTML = `
         <div style="text-align: center;">
             <div style="font-size: 18px; font-weight: 800; color: var(--danger);">
@@ -9539,6 +9399,7 @@ function showOfflineToast() {
             </div>
         </div>
     `;
+    
     toast.style.display = 'flex';
     toast.style.flexDirection = 'column';
     toast.style.alignItems = 'center';
@@ -9546,23 +9407,30 @@ function showOfflineToast() {
     toast.style.padding = '20px 24px';
     toast.style.borderColor = 'var(--danger)';
     toast.style.background = 'rgba(255, 107, 107, 0.08)';
+    
     void toast.offsetWidth;
     toast.classList.add('show');
     wasOffline = true;
 }
 
+// 3. عرض إشعار عند عودة الاتصال
 function showOnlineToast() {
     const toast = document.getElementById('toast');
     const messageEl = document.getElementById('toastMessage');
     const iconEl = toast?.querySelector('.toast-icon');
+    
     if (!toast || !messageEl) return;
+    
     toast.classList.remove('show');
     clearTimeout(window.toastTimeout);
+    
     toast.className = 'toast';
     toast.classList.add('success', 'large');
+    
     if (iconEl) {
         iconEl.innerHTML = '<i class="fas fa-wifi" style="color: #00d4aa; font-size: 24px;"></i>';
     }
+    
     messageEl.innerHTML = `
         <div style="text-align: center;">
             <div style="font-size: 18px; font-weight: 800; color: var(--success);">
@@ -9573,6 +9441,7 @@ function showOnlineToast() {
             </div>
         </div>
     `;
+    
     toast.style.display = 'flex';
     toast.style.flexDirection = 'column';
     toast.style.alignItems = 'center';
@@ -9580,22 +9449,25 @@ function showOnlineToast() {
     toast.style.padding = '20px 24px';
     toast.style.borderColor = 'var(--success)';
     toast.style.background = 'rgba(0, 212, 170, 0.08)';
+    
     void toast.offsetWidth;
     toast.classList.add('show');
     wasOffline = false;
+    
     setTimeout(() => {
         toast.classList.remove('show');
         setTimeout(() => { toast.style.display = 'none'; }, 500);
     }, 3000);
 }
 
+// 4. مراقبة حالة الاتصال
 function initNetworkMonitor() {
-    console.log('📡 Network monitor initialized');
     if (!navigator.onLine) {
         showOfflineToast();
         wasOffline = true;
         document.body.classList.add('offline-mode');
     }
+    
     window.addEventListener('offline', function() {
         console.warn('⚠️ Internet connection lost');
         showOfflineToast();
@@ -9603,15 +9475,20 @@ function initNetworkMonitor() {
         document.body.classList.add('offline-mode');
         pauseOnlineOperations();
     });
+    
     window.addEventListener('online', function() {
         console.log('✅ Internet connection restored');
         isOnline = true;
         document.body.classList.remove('offline-mode');
+        
         if (wasOffline) {
             showOnlineToast();
         }
+        
         resumeOnlineOperations();
     });
+    
+    // فحص دوري كل 10 ثوانٍ
     setInterval(function() {
         if (navigator.onLine && !isOnline) {
             isOnline = true;
@@ -9628,8 +9505,8 @@ function initNetworkMonitor() {
         }
     }, 10000);
 }
-window.initNetworkMonitor = initNetworkMonitor;
 
+// 5. إيقاف العمليات
 function pauseOnlineOperations() {
     if (window._productsInterval) {
         clearInterval(window._productsInterval);
@@ -9646,6 +9523,7 @@ function pauseOnlineOperations() {
     console.log('⏸️ Online operations paused');
 }
 
+// 6. استئناف العمليات
 function resumeOnlineOperations() {
     if (!window._productsInterval) {
         window._productsInterval = setInterval(function() {
@@ -9663,8 +9541,10 @@ function resumeOnlineOperations() {
     console.log('▶️ Online operations resumed');
 }
 
+// 7. إضافة CSS للوضع غير المتصل
 function addOfflineStyles() {
     if (document.getElementById('offlineStyles')) return;
+    
     const style = document.createElement('style');
     style.id = 'offlineStyles';
     style.textContent = `
@@ -9716,6 +9596,7 @@ function addOfflineStyles() {
         }
     `;
     document.head.appendChild(style);
+    
     if (!document.getElementById('offlineIndicator')) {
         const indicator = document.createElement('div');
         indicator.className = 'offline-indicator';
@@ -9724,194 +9605,55 @@ function addOfflineStyles() {
         document.body.appendChild(indicator);
     }
 }
-window.addOfflineStyles = addOfflineStyles;
 
 // ============================================================
-// USER SETTINGS - TOGGLE SWITCHES
+// CHECKOUT FUNCTIONS - FIXED
 // ============================================================
-async function loadUserSettings() {
-    const defaultSettings = {
-        ipDetection: true,
-        emailNotifications: true,
-        twoFactorAuth: false
-    };
-    try {
-        const saved = localStorage.getItem('zi_user_settings');
-        if (saved) {
-            const settings = JSON.parse(saved);
-            return { ...defaultSettings, ...settings };
-        }
-    } catch (e) {
-        console.warn('Failed to load settings from localStorage:', e);
+window.checkout = function() {
+    if (cart.length === 0) {
+        showToast('⚠️ Your cart is empty', 'warning');
+        return;
     }
-    if (currentUser) {
-        try {
-            const userRef = doc(db, 'users', currentUser.uid);
-            const userSnap = await getDoc(userRef);
-            if (userSnap.exists()) {
-                const data = userSnap.data();
-                if (data.settings) {
-                    const settings = { ...defaultSettings, ...data.settings };
-                    localStorage.setItem('zi_user_settings', JSON.stringify(settings));
-                    return settings;
-                }
-            }
-        } catch (error) {
-            console.error('Error loading settings from Firestore:', error);
-        }
+    if (!currentUser) {
+        showToast('⚠️ Please login to checkout', 'warning');
+        openAuthModal();
+        return;
     }
-    return defaultSettings;
-}
-
-async function saveUserSettings(settings) {
-    try {
-        localStorage.setItem('zi_user_settings', JSON.stringify(settings));
-    } catch (e) {
-        console.warn('Failed to save settings to localStorage:', e);
-    }
-    if (currentUser) {
-        try {
-            const userRef = doc(db, 'users', currentUser.uid);
-            await updateDoc(userRef, {
-                settings: settings,
-                updatedAt: serverTimestamp()
-            });
-            console.log('✅ Settings saved to Firestore');
-        } catch (error) {
-            console.error('Failed to save settings to Firestore:', error);
-        }
-    }
-}
-
-async function toggleSetting(element, settingName) {
-    if (element._isToggling) return;
-    element._isToggling = true;
-    element.style.transition = 'transform 0.1s';
-    element.style.transform = 'scale(0.95)';
-    setTimeout(() => {
-        element.style.transform = 'scale(1)';
-    }, 100);
-    const isActive = element.classList.contains('active');
-    const newState = !isActive;
-    if (newState) {
-        element.classList.add('active');
-        element.classList.remove('inactive');
-    } else {
-        element.classList.remove('active');
-        element.classList.add('inactive');
-    }
-    const settings = await loadUserSettings();
-    settings[settingName] = newState;
-    await saveUserSettings(settings);
-    handleSettingChange(settingName, newState);
-    const settingLabels = {
-        ipDetection: 'Auto Detection',
-        emailNotifications: 'Email Notifications',
-        twoFactorAuth: 'Two-Factor Auth'
-    };
-    const label = settingLabels[settingName] || settingName;
-    const status = newState ? 'enabled' : 'disabled';
-    showToast(`🔔 ${label} ${status}`, newState ? 'success' : 'info');
-    await logActivity('settings_change', {
-        setting: settingName,
-        newState: newState,
-        timestamp: new Date().toISOString()
-    });
-    element._isToggling = false;
-}
-window.toggleSetting = toggleSetting;
-
-function handleSettingChange(settingName, newState) {
-    switch (settingName) {
-        case 'ipDetection':
-            if (newState) {
-                console.log('✅ IP Detection enabled');
-                if (currentUser) {
-                    fetchUserInfo().then(info => {
-                        if (info) {
-                            checkIPChange(currentUser, info.ip, info.country_name);
-                        }
-                    });
-                }
-            } else {
-                console.log('❌ IP Detection disabled');
-            }
-            break;
-        case 'emailNotifications':
-    if (newState) {
-        console.log('✅ Email Notifications enabled');
-        showToast('📧 Email notifications enabled', 'success');
-    } else {
-        console.log('❌ Email Notifications disabled');
-        showToast('📧 Email notifications disabled', 'info');
-    }
-    break;
-        case 'twoFactorAuth':
-            if (newState) {
-                console.log('✅ Two-Factor Auth enabled');
-                showToast('🔐 Two-Factor Authentication enabled', 'success', 3000);
-            } else {
-                console.log('❌ Two-Factor Auth disabled');
-            }
-            break;
-    }
-}
-window.handleSettingChange = handleSettingChange;
-
-async function renderSettingsUI() {
-    const settings = await loadUserSettings();
-    document.querySelectorAll('.toggle-switch[data-setting]').forEach(el => {
-        const settingName = el.dataset.setting;
-        const isActive = settings[settingName] === true;
-        if (isActive) {
-            el.classList.add('active');
-            el.classList.remove('inactive');
-        } else {
-            el.classList.remove('active');
-            el.classList.add('inactive');
-        }
-    });
-}
-window.renderSettingsUI = renderSettingsUI;
-
-
-// ============================================================
-// PAYMENT MODAL - FIX
-// ============================================================
+    openPaymentModal();
+};
 
 window.openPaymentModal = function() {
     if (cart.length === 0) {
         showToast('⚠️ Cart is empty', 'warning');
         return;
     }
-
     if (!currentUser) {
         showToast('⚠️ Please login to checkout', 'warning');
         openAuthModal();
         return;
     }
-
+    
     const modal = document.getElementById('paymentModal');
-    if (modal) {
-        // إعادة تعيين الحالة
-        document.getElementById('paymentStep1').style.display = 'block';
-        document.getElementById('paymentStep2').style.display = 'none';
-        selectedPayment = null;
-        document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
-        updatePayableTotal();
-        renderPaymentProducts();
-        fetchCryptoPrices();
-        loadUserBalance();
-        
-        modal.classList.add('open');
-        document.body.style.overflow = 'hidden';
-    } else {
-        showToast('❌ Payment modal not found in HTML', 'error');
-        console.error('❌ paymentModal element not found in DOM');
+    if (!modal) {
+        console.error('❌ paymentModal not found in DOM');
+        showToast('❌ Payment modal not found', 'error');
+        return;
     }
+    
+    // إعادة تعيين الحالة
+    document.getElementById('paymentStep1').style.display = 'block';
+    document.getElementById('paymentStep2').style.display = 'none';
+    selectedPayment = null;
+    document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
+    updatePayableTotal();
+    renderPaymentProducts();
+    fetchCryptoPrices();
+    loadUserBalance();
+    
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
 };
 
-// دالة الإغلاق
 window.closePaymentModal = function() {
     const modal = document.getElementById('paymentModal');
     if (modal) {
@@ -9924,7 +9666,6 @@ window.closePaymentModal = function() {
     }
 };
 
-// دالة الرجوع
 window.goToStep1 = function() {
     document.getElementById('paymentStep1').style.display = 'block';
     document.getElementById('paymentStep2').style.display = 'none';
@@ -9939,241 +9680,177 @@ window.goToStep1 = function() {
     }
 };
 
-// دالة checkout (الإصلاح)
-window.checkout = function() {
-    if (cart.length === 0) {
-        showToast('⚠️ Your cart is empty', 'warning');
-        return;
-    }
-    if (!currentUser) {
-        showToast('⚠️ Please login to checkout', 'warning');
-        openAuthModal();
-        return;
-    }
-    openPaymentModal();
-};
 // ============================================================
-// HANDLE TOPUP - FINAL FIX
+// HANDLE TOPUP - FIXED
 // ============================================================
-window.handleTopup = async function() {
+window.handleTopup = function() {
     const btn = document.getElementById('topupProcessBtn');
     if (!btn) {
         showToast('❌ Topup button not found', 'error');
         return;
     }
-    showButtonLoading(btn, 'Creating request...');
+    showButtonLoading(btn, 'Processing...');
     try {
-        await window.processTopup();
+        if (typeof window.processTopup === 'function') {
+            window.processTopup();
+        } else {
+            showToast('⚠️ Topup function not ready', 'warning');
+            hideButtonLoading(btn);
+        }
     } catch (error) {
         hideButtonLoading(btn);
         showToast('❌ Error: ' + error.message, 'error');
     }
 };
 
-
-
-
 // ============================================================
-// COPY FUNCTIONS - UNIFIED (ONLY ONE fallbackCopy)
+// CHECK CONNECTION HELPER
 // ============================================================
-
-// دالة النسخ الاحتياطي (تستخدم مرة واحدة فقط في الملف بأكمله)
-function fallbackCopy(text) {
-    const textarea = document.createElement('textarea');
-    textarea.value = text;
-    textarea.style.position = 'fixed';
-    textarea.style.opacity = '0';
-    document.body.appendChild(textarea);
-    textarea.select();
-    try {
-        document.execCommand('copy');
-        showToast('✅ Copied!', 'success');
-    } catch (e) {
-        showToast('❌ Failed to copy', 'error');
-    }
-    document.body.removeChild(textarea);
-}
-
-// 1. نسخ النص إلى الحافظة (عام)
-window.copyToClipboard = function(text) {
-    if (!text) {
-        showToast('⚠️ Nothing to copy', 'warning');
-        return;
-    }
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text)
-            .then(() => showToast('✅ Copied!', 'success'))
-            .catch(() => fallbackCopy(text));
-    } else {
-        fallbackCopy(text);
-    }
-};
-
-// 2. نسخ رمز الترخيص
-window.copyLicenceCode = function(code) {
-    if (!code) {
-        showToast('⚠️ No code to copy', 'warning');
-        return;
-    }
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(code)
-            .then(() => showToast('✅ Licence code copied!', 'success'))
-            .catch(() => fallbackCopy(code));
-    } else {
-        fallbackCopy(code);
-    }
-};
-
-// 3. نسخ عنوان المحفظة
-window.copyWalletAddress = function() {
-    const addressElement = document.getElementById('walletAddressDisplay');
-    if (!addressElement) {
-        showToast('⚠️ Wallet address not found', 'warning');
-        return;
-    }
-    const address = addressElement.textContent.trim();
-    if (!address) {
-        showToast('⚠️ No wallet address to copy', 'warning');
-        return;
-    }
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(address)
-            .then(() => showToast('✅ Wallet address copied!', 'success'))
-            .catch(() => fallbackCopy(address));
-    } else {
-        fallbackCopy(address);
-    }
-};
-
-// 4. نسخ Binance ID
-window.copyBinanceId = function() {
-    const idElement = document.getElementById('binanceIdDisplay');
-    if (!idElement) {
-        showToast('⚠️ Binance ID not found', 'warning');
-        return;
-    }
-    const id = idElement.textContent.trim();
-    if (!id) {
-        showToast('⚠️ No Binance ID to copy', 'warning');
-        return;
-    }
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(id)
-            .then(() => showToast('✅ Binance ID copied!', 'success'))
-            .catch(() => fallbackCopy(id));
-    } else {
-        fallbackCopy(id);
-    }
-};
-
-// ============================================================
-// VERIFY TRANSACTION - FINAL FIX
-// ============================================================
-window.verifyTransaction = function() {
-    const input = document.getElementById('txHashInput');
-    const result = document.getElementById('verificationResult');
-    if (!input || !result) {
-        showToast('⚠️ Verification elements not found', 'warning');
-        return;
-    }
-    const tx = input.value.trim();
-    if (!tx) {
-        result.style.display = 'block';
-        result.className = 'bv-result error';
-        result.textContent = '⚠️ Please enter a transaction ID.';
-        return;
-    }
-    if (tx.length < 6) {
-        result.style.display = 'block';
-        result.className = 'bv-result error';
-        result.textContent = '❌ Transaction ID seems too short. Please check and try again.';
-    } else {
-        result.style.display = 'block';
-        result.className = 'bv-result success';
-        result.textContent = '✅ Transaction ID format looks valid. You can now confirm payment.';
-    }
-};
-
-// ============================================================
-// HANDLE TX PASTE - FINAL FIX
-// ============================================================
-window.handleTxPaste = function(event) {
-    const input = event.target;
-    setTimeout(() => {
-        input.value = input.value.trim();
-    }, 10);
-};
-
-// ============================================================
-// SUBMIT MANUAL PAYMENT - FINAL FIX
-// ============================================================
-window.submitManualPayment = function() {
-    const txHash = document.getElementById('txHashInput')?.value.trim();
-    if (!txHash) {
-        showToast('⚠️ Please paste the transaction ID', 'warning');
-        const input = document.getElementById('txHashInput');
-        if (input) {
-            input.style.borderColor = 'var(--danger)';
-            setTimeout(() => { input.style.borderColor = ''; }, 2000);
-        }
-        return;
-    }
-    const txInput = document.getElementById('transactionHashInput');
-    if (txInput) txInput.value = txHash;
-    placeOrder();
-};
-
-// ============================================================
-// CHECK CONNECTION - FINAL FIX
-// ============================================================
-window.checkConnection = function() {
+function checkConnection() {
     if (!navigator.onLine) {
         showOfflineToast();
         return false;
     }
     return true;
-};
+}
 
-// ============================================================
-// REQUIRE CONNECTION - FINAL FIX
-// ============================================================
-window.requireConnection = function(message = 'This action requires internet connection.') {
+function requireConnection(message = 'This action requires internet connection.') {
     if (!navigator.onLine) {
         showToast('⚠️ ' + message, 'warning', 4000);
         return false;
     }
     return true;
+}
+
+// ============================================================
+// IMPROVE UNAUTHENTICATED USER HANDLING
+// ============================================================
+
+// تعديل دالة loadUserData للتعامل مع المستخدم غير المسجل بشكل أفضل
+const originalLoadUserData = loadUserData;
+loadUserData = async function() {
+    if (!currentUser) {
+        console.log('ℹ️ No authenticated user, loading from localStorage');
+        loadFromLocalStorage();
+        
+        const authSection = document.getElementById('authSection');
+        const mainApp = document.getElementById('mainApp');
+        if (authSection) authSection.style.display = 'block';
+        if (mainApp) mainApp.style.display = 'none';
+        
+        hideLoadingScreen();
+        return;
+    }
+    return originalLoadUserData.call(this);
+};
+
+// تعديل دالة loadNotifications للتعامل مع الأخطاء بشكل أفضل
+const originalLoadNotifications = loadNotifications;
+loadNotifications = function() {
+    if (!currentUser) {
+        console.log('ℹ️ Skipping notifications load - no user');
+        return;
+    }
+    try {
+        originalLoadNotifications.call(this);
+    } catch (error) {
+        console.warn('⚠️ Could not load notifications:', error.message);
+    }
+};
+
+// تعديل دالة startAdminRealtimeListener للتعامل مع الأذونات
+const originalStartAdminListener = startAdminRealtimeListener;
+startAdminRealtimeListener = function() {
+    if (!currentUser || !isAdminCached) {
+        console.log('ℹ️ Skipping admin listener - not admin');
+        return;
+    }
+    try {
+        originalStartAdminListener.call(this);
+    } catch (error) {
+        if (error.code === 'permission-denied') {
+            console.warn('⚠️ Admin listener permission denied - user may not be admin');
+        } else {
+            console.error('Error in admin listener:', error);
+        }
+    }
 };
 
 // ============================================================
-// CHECK IF USER IS ANONYMOUS
+// FORCE LOADING SCREEN HIDE - SAFETY NET
 // ============================================================
-function isAnonymousUser() {
-    return auth && auth.currentUser && auth.currentUser.isAnonymous;
+
+function forceHideLoading() {
+    const screen = document.getElementById('loadingScreen');
+    const mainApp = document.getElementById('mainApp');
+    const authSection = document.getElementById('authSection');
+    
+    if (screen) {
+        screen.classList.add('hidden');
+        screen.style.display = 'none';
+        console.log('✅ Loading screen hidden (forced)');
+    }
+    
+    if (mainApp) {
+        mainApp.style.display = 'block';
+        mainApp.style.visibility = 'visible';
+        mainApp.style.opacity = '1';
+        console.log('✅ Main app shown (forced)');
+    }
+    
+    if (authSection && !currentUser) {
+        authSection.style.display = 'block';
+        mainApp.style.display = 'none';
+    }
 }
 
-// استخدمها في أي مكان قبل تنفيذ أي عملية تتطلب مستخدم حقيقي
-function requireRealUser() {
-    if (isAnonymousUser()) {
-        showToast('⚠️ Please login with a real account.', 'warning');
-        signOut(auth);
-        return false;
-    }
-    return true;
+// تنفيذ الإخفاء فوراً
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    setTimeout(forceHideLoading, 100);
+} else {
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(forceHideLoading, 100);
+    });
 }
+
+// إخفاء إضافي بعد 3 ثواني
+setTimeout(function() {
+    forceHideLoading();
+    console.log('🔄 Second attempt to hide loading screen');
+}, 3000);
+
+// إخفاء نهائي بعد 10 ثواني
+setTimeout(function() {
+    const screen = document.getElementById('loadingScreen');
+    if (screen && screen.style.display !== 'none') {
+        screen.style.display = 'none';
+        console.warn('⚠️ Final forced hide of loading screen');
+    }
+    const mainApp = document.getElementById('mainApp');
+    if (mainApp && mainApp.style.display === 'none') {
+        mainApp.style.display = 'block';
+        console.warn('⚠️ Final forced show of main app');
+    }
+}, 10000);
+
 // ============================================================
-// INIT APP - NO ANONYMOUS
+// INIT - COMPLETE WITH FORCED HIDE
 // ============================================================
 async function initApp() {
     console.log('🚀 Initializing ZI Store...');
     
-    // ✅ التأكد من عدم وجود مستخدم مجهول
+    // 🔥 التحقق من وجود مستخدم مجهول عند بدء التشغيل
     if (auth && auth.currentUser && auth.currentUser.isAnonymous) {
-        console.warn('⚠️ Anonymous user detected on init, signing out...');
+        console.warn('🚫 Anonymous user detected on init - signing out...');
         await signOut(auth);
+        const authSection = document.getElementById('authSection');
+        const mainApp = document.getElementById('mainApp');
+        if (authSection) authSection.style.display = 'block';
+        if (mainApp) mainApp.style.display = 'none';
+        hideLoadingScreen();
         return;
     }
-
+    
     try {
         loadBranding();
         await loadProductsFromFirestore();
@@ -10218,20 +9895,32 @@ async function initApp() {
         
         initPopups();
         window.updateLoadingProgress(100, '✅ Ready!');
-        setTimeout(window.showMainApp, 300);
-        setTimeout(hideLoadingScreen, 800);
+        
+        setTimeout(function() {
+            window.showMainApp();
+            console.log('✅ Main app shown from init');
+        }, 300);
+        
+        setTimeout(function() {
+            hideLoadingScreen();
+            console.log('✅ Loading screen hidden from init');
+        }, 800);
+        
         console.log('✅ ZI Store initialized successfully!');
+        
     } catch (error) {
         console.error('❌ Init error:', error);
         window.updateLoadingProgress(100, '⚠️ Loaded with errors');
-        setTimeout(window.showMainApp, 500);
-        setTimeout(hideLoadingScreen, 1000);
+        setTimeout(function() {
+            window.showMainApp();
+            hideLoadingScreen();
+        }, 500);
         showToast('⚠️ Error loading store. Please refresh.', 'error');
     }
 }
 
 // ============================================================
-// AUTH STATE LISTENER - NO ANONYMOUS
+// AUTH STATE LISTENER - NO ANONYMOUS ALLOWED
 // ============================================================
 onAuthStateChanged(auth, async (user) => {
     const authSection = document.getElementById('authSection');
@@ -10256,19 +9945,20 @@ onAuthStateChanged(auth, async (user) => {
             mainApp.style.opacity = '1';
         }
         hideLoading();
+        console.log('✅ App shown, login hidden');
     }
 
     function showLogin() {
         if (authSection) authSection.style.display = 'block';
         if (mainApp) mainApp.style.display = 'none';
         hideLoading();
+        console.log('✅ Login shown, app hidden');
     }
 
-    // ✅ فقط المستخدم المصادق الحقيقي (ليس مجهول)
     if (user) {
-        // 🔥 منع المستخدم المجهول
+        // 🔥 منع المستخدم المجهول تماماً
         if (user.isAnonymous) {
-            console.warn('⚠️ Anonymous user detected, signing out...');
+            console.warn('🚫 Anonymous user detected - signing out and showing login');
             await signOut(auth);
             showLogin();
             return;
@@ -10321,12 +10011,10 @@ onAuthStateChanged(auth, async (user) => {
             showApp();
         }
     } else {
-        // ❌ لا يوجد مستخدم
         currentUser = null;
         isAdminCached = false;
-        console.log('🔓 No user authenticated');
+        console.log('🔓 No user authenticated - showing login');
 
-        // إلغاء المستمعين
         if (unsubscribeAdmin) { unsubscribeAdmin(); unsubscribeAdmin = null; }
         if (unsubscribeUser) { unsubscribeUser(); unsubscribeUser = null; }
         if (topupSubscription) { topupSubscription.unsubscribe(); topupSubscription = null; }
@@ -10343,25 +10031,10 @@ onAuthStateChanged(auth, async (user) => {
         loadMarqueeSettings();
         setTimeout(checkCookieConsent, 1000);
 
-        // ✅ إظهار Login
         showLogin();
     }
 });
 
-// ============================================================
-// FORCED HIDE LOADING SCREEN AFTER 5 SECONDS (SAFETY NET)
-// ============================================================
-setTimeout(function() {
-    const screen = document.getElementById('loadingScreen');
-    if (screen && !screen.classList.contains('hidden')) {
-        console.warn('⚠️ Forcing loading screen hide (timeout)');
-        screen.classList.add('hidden');
-        setTimeout(function() {
-            screen.classList.add('hidden-force');
-        }, 600);
-        document.getElementById('mainApp').style.display = 'block';
-    }
-}, 5000);
 // ============================================================
 // START APP
 // ============================================================
@@ -10370,69 +10043,7 @@ if (document.readyState === 'loading') {
 } else {
     initApp();
 }
-
-
-// ============================================================
-// IMPROVE UNAUTHENTICATED USER HANDLING
-// ============================================================
-
-// تعديل دالة loadUserData للتعامل مع المستخدم غير المسجل بشكل أفضل
-const originalLoadUserData = loadUserData;
-loadUserData = async function() {
-    if (!currentUser) {
-        console.log('ℹ️ No authenticated user, loading from localStorage');
-        loadFromLocalStorage();
-        
-        // إظهار واجهة تسجيل الدخول
-        const authSection = document.getElementById('authSection');
-        const mainApp = document.getElementById('mainApp');
-        if (authSection) authSection.style.display = 'block';
-        if (mainApp) mainApp.style.display = 'none';
-        
-        // إخفاء شاشة التحميل
-        hideLoadingScreen();
-        return;
-    }
-    // استدعاء الدالة الأصلية
-    return originalLoadUserData.call(this);
-};
-
-// تعديل دالة loadNotifications للتعامل مع الأخطاء بشكل أفضل
-const originalLoadNotifications = loadNotifications;
-loadNotifications = function() {
-    if (!currentUser) {
-        console.log('ℹ️ Skipping notifications load - no user');
-        return;
-    }
-    try {
-        originalLoadNotifications.call(this);
-    } catch (error) {
-        console.warn('⚠️ Could not load notifications:', error.message);
-        // لا نعرض إشعار خطأ للمستخدم
-    }
-};
-
-// تعديل دالة startAdminRealtimeListener للتعامل مع الأذونات
-const originalStartAdminListener = startAdminRealtimeListener;
-startAdminRealtimeListener = function() {
-    if (!currentUser || !isAdminCached) {
-        console.log('ℹ️ Skipping admin listener - not admin');
-        return;
-    }
-    try {
-        originalStartAdminListener.call(this);
-    } catch (error) {
-        if (error.code === 'permission-denied') {
-            console.warn('⚠️ Admin listener permission denied - user may not be admin');
-        } else {
-            console.error('Error in admin listener:', error);
-        }
-    }
-};
-
-// ============================================================
-// EXPORT ALL FUNCTIONS TO WINDOW (COMPLETE)
-// ============================================================
+============================================================
 (function exportAllToWindow() {
     // قائمة بأسماء جميع الدوال التي يجب تصديرها إلى window
     const functionNames = [
@@ -10621,71 +10232,9 @@ startAdminRealtimeListener = function() {
         }
     });
 })();
+//
 // ============================================================
-// FORCE LOADING SCREEN HIDE - SAFETY NET
+// EXPORT ALL FUNCTIONS TO WINDOW - COMPLETE
 // ============================================================
-
-// 1. تأكد من وجود العناصر
-console.log('🔍 Checking DOM elements...');
-console.log('loadingScreen:', document.getElementById('loadingScreen'));
-console.log('mainApp:', document.getElementById('mainApp'));
-console.log('authSection:', document.getElementById('authSection'));
-
-// 2. دالة لإخفاء شاشة التحميل فوراً
-function forceHideLoading() {
-    const screen = document.getElementById('loadingScreen');
-    const mainApp = document.getElementById('mainApp');
-    const authSection = document.getElementById('authSection');
-    
-    if (screen) {
-        screen.classList.add('hidden');
-        screen.style.display = 'none';
-        console.log('✅ Loading screen hidden (forced)');
-    }
-    
-    if (mainApp) {
-        mainApp.style.display = 'block';
-        mainApp.style.visibility = 'visible';
-        mainApp.style.opacity = '1';
-        console.log('✅ Main app shown (forced)');
-    }
-    
-    if (authSection) {
-        // إذا كان المستخدم غير مسجل، نظهر authSection
-        if (!currentUser) {
-            authSection.style.display = 'block';
-            mainApp.style.display = 'none';
-        }
-    }
-}
-
-// 3. تنفيذ الإخفاء فوراً بعد تحميل الصفحة
-if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    setTimeout(forceHideLoading, 100);
-} else {
-    document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(forceHideLoading, 100);
-    });
-}
-
-// 4. إخفاء إضافي بعد 3 ثواني في حال لم يعمل الأول
-setTimeout(function() {
-    forceHideLoading();
-    console.log('🔄 Second attempt to hide loading screen');
-}, 3000);
-
-// 5. إخفاء ثالث بعد 10 ثواني (نهائي)
-setTimeout(function() {
-    const screen = document.getElementById('loadingScreen');
-    if (screen && screen.style.display !== 'none') {
-        screen.style.display = 'none';
-        console.warn('⚠️ Final forced hide of loading screen');
-    }
-    const mainApp = document.getElementById('mainApp');
-    if (mainApp && mainApp.style.display === 'none') {
-        mainApp.style.display = 'block';
-        console.warn('⚠️ Final forced show of main app');
-    }
-}, 10000);
 console.log('✅ All functions exported to window - COMPLETE');
 console.log('✅ ZI Store script loaded successfully - COMPLETE');
