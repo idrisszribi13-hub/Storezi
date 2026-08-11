@@ -10108,8 +10108,6 @@ onAuthStateChanged(auth, async (user) => {
     const authSection = document.getElementById('authSection');
     const mainApp = document.getElementById('mainApp');
     const loadingScreen = document.getElementById('loadingScreen');
-    const progressBar = document.getElementById('progressBar');
-    const progressText = document.getElementById('progressText');
 
     // ---- دالة مساعدة لإخفاء شاشة التحميل ----
     function hideLoading() {
@@ -10117,9 +10115,7 @@ onAuthStateChanged(auth, async (user) => {
             loadingScreen.classList.add('hidden');
             setTimeout(() => {
                 loadingScreen.classList.add('hidden-force');
-                setTimeout(() => {
-                    loadingScreen.style.display = 'none';
-                }, 100);
+                loadingScreen.style.display = 'none';
             }, 600);
         }
     }
@@ -10148,25 +10144,17 @@ onAuthStateChanged(auth, async (user) => {
         console.log('🔐 User authenticated:', user.email);
 
         try {
-            // 1. تحديث حالة الأدمن
             await refreshAdminStatus();
-
-            // 2. تحميل بيانات المستخدم من Firestore
             await loadUserData();
-
-            // 3. تحديث واجهة المستخدم
             updateUI();
             updateDropdownStats();
             updateFullUserMenu();
             updateBalanceDisplay();
-
-            // 4. تحميل الرصيد والإشعارات
             loadUserBalance();
             startTopupRealtimeListener();
             loadNotifications();
             renderUserLicences();
 
-            // 5. ميزات الأدمن (إذا كان أدمن)
             if (isAdminCached) {
                 console.log('👑 Admin user detected');
                 loadAdminOrders();
@@ -10174,7 +10162,6 @@ onAuthStateChanged(auth, async (user) => {
                 loadLicences();
                 loadAdminTopups();
                 renderFallbackProductsAdmin();
-                // عرض زر الأدمن في القائمة
                 setTimeout(() => {
                     const adminMenuItem = document.getElementById('adminMenuItem');
                     if (adminMenuItem) adminMenuItem.style.display = 'flex';
@@ -10182,7 +10169,6 @@ onAuthStateChanged(auth, async (user) => {
                 }, 300);
             }
 
-            // 6. تحميل باقي البيانات
             loadDownloads();
             fetchCryptoPrices();
             loadFeaturedSettings();
@@ -10192,20 +10178,14 @@ onAuthStateChanged(auth, async (user) => {
             setTimeout(window.ensureAdminPanel, 2000);
             setTimeout(checkCookieConsent, 1000);
 
-            // 7. إظهار التطبيق وإخفاء التحميل
+            // ✅ إظهار التطبيق (وليس Login)
             showApp();
-
-            // 8. تحديث شريط التقدم (في حال كان لا يزال موجوداً)
-            if (progressBar) progressBar.style.width = '100%';
-            if (progressText) progressText.textContent = '100%';
-
-            // 9. رسالة ترحيب
             showToast(`👋 Welcome ${user.displayName || user.email || 'User'}!`, 'success', 3000);
 
         } catch (error) {
             console.error('❌ Error during user initialization:', error);
             showToast('⚠️ Error loading user data. Please refresh.', 'error');
-            showApp(); // إظهار التطبيق حتى لو حدث خطأ جزئي
+            showApp(); // حتى لو حدث خطأ، نظهر التطبيق
         }
     } 
     // ---- حالة الخروج أو عدم وجود مستخدم ----
@@ -10214,20 +10194,14 @@ onAuthStateChanged(auth, async (user) => {
         isAdminCached = false;
         console.log('🔓 No user authenticated');
 
-        // إلغاء الاشتراكات والمستمعين
         if (unsubscribeAdmin) { unsubscribeAdmin(); unsubscribeAdmin = null; }
         if (unsubscribeUser) { unsubscribeUser(); unsubscribeUser = null; }
         if (topupSubscription) { topupSubscription.unsubscribe(); topupSubscription = null; }
 
-        // تحميل البيانات من localStorage (للزوار)
         await loadUserData();
-
-        // تحديث الواجهة لعرض Login
         updateUI();
         updateFullUserMenu();
         updateBalanceDisplay();
-
-        // تحميل بعض البيانات حتى للزوار (منتجات، سلايدر، إلخ)
         loadDownloads();
         loadNotifications();
         fetchCryptoPrices();
@@ -10236,30 +10210,8 @@ onAuthStateChanged(auth, async (user) => {
         loadMarqueeSettings();
         setTimeout(checkCookieConsent, 1000);
 
-        // إظهار شاشة Login
+        // ✅ إظهار Login (وليس التطبيق)
         showLogin();
-
-        // تحديث شريط التقدم
-        if (progressBar) progressBar.style.width = '100%';
-        if (progressText) progressText.textContent = '100%';
-    }
-
-    // ---- في النهاية، تأكد من إخفاء شاشة التحميل في كل الأحوال (حماية) ----
-    setTimeout(() => {
-        if (loadingScreen && loadingScreen.style.display !== 'none') {
-            loadingScreen.style.display = 'none';
-            console.warn('⚠️ Final forced hide of loading screen');
-        }
-    }, 5000); // 5 ثواني كحد أقصى
-
-    // ---- إعادة تعيين حالة التحميل إذا بقيت شاشة التحميل ----
-    if (loadingScreen) {
-        loadingScreen.classList.add('hidden-force');
-        setTimeout(() => {
-            if (loadingScreen.style.display !== 'none') {
-                loadingScreen.style.display = 'none';
-            }
-        }, 1000);
     }
 });
 // ============================================================
@@ -10343,59 +10295,6 @@ startAdminRealtimeListener = function() {
         }
     }
 };
-
-// ============================================================
-// FIX: REFRESH PAGE BEHAVIOR
-// ============================================================
-
-// حفظ حالة المستخدم في localStorage
-document.addEventListener('DOMContentLoaded', function() {
-    // التحقق من وجود مستخدم في Firebase
-    if (auth && auth.currentUser) {
-        // المستخدم مسجل، نخفي شاشة التحميل ونظهر التطبيق
-        setTimeout(function() {
-            const authSection = document.getElementById('authSection');
-            const mainApp = document.getElementById('mainApp');
-            const loadingScreen = document.getElementById('loadingScreen');
-            
-            if (authSection) authSection.style.display = 'none';
-            if (mainApp) {
-                mainApp.style.display = 'block';
-                mainApp.style.visibility = 'visible';
-                mainApp.style.opacity = '1';
-            }
-            if (loadingScreen) {
-                loadingScreen.classList.add('hidden');
-                setTimeout(() => {
-                    loadingScreen.classList.add('hidden-force');
-                }, 600);
-            }
-        }, 100);
-    } else {
-        // مستخدم غير مسجل، نظهر شاشة تسجيل الدخول
-        setTimeout(function() {
-            const authSection = document.getElementById('authSection');
-            const mainApp = document.getElementById('mainApp');
-            
-            if (authSection) authSection.style.display = 'block';
-            if (mainApp) mainApp.style.display = 'none';
-            
-            hideLoadingScreen();
-        }, 300);
-    }
-});
-
-// تعديل دالة onAuthStateChanged
-const originalOnAuthStateChanged = onAuthStateChanged;
-onAuthStateChanged = function(auth, callback) {
-    // التأكد من وجود callback قبل التنفيذ
-    if (typeof callback !== 'function') {
-        console.warn('⚠️ No callback provided to onAuthStateChanged');
-        return;
-    }
-    return originalOnAuthStateChanged.call(this, auth, callback);
-};
-
 
 // ============================================================
 // EXPORT ALL FUNCTIONS TO WINDOW (COMPLETE)
