@@ -4787,10 +4787,10 @@ window.copyReferralCode2 = function() {
                 showToast('✅ Referral code copied!', 'success'); });
     } else { showToast('⚠️ Please login first', 'warning'); }
 };
+// ============================================================
+// ADMIN PANEL FUNCTIONS - FIXED
+// ============================================================
 
-// ============================================================
-// ADMIN PANEL
-// ============================================================
 window.openAdminPanel = function() {
     if (!currentUser || !isAdminCached) {
         showToast('⛔ Unauthorized. Admin only.', 'error');
@@ -4798,8 +4798,8 @@ window.openAdminPanel = function() {
     }
     const panel = document.getElementById('adminPanel');
     if (!panel) {
-        showToast('❌ Admin panel not found in DOM', 'error');
-        console.error('❌ adminPanel element not found');
+        console.error('❌ Admin panel not found in DOM');
+        showToast('❌ Admin panel not found', 'error');
         return;
     }
     if (panel.classList.contains('open')) {
@@ -4809,24 +4809,22 @@ window.openAdminPanel = function() {
     }
     panel.classList.add('open');
     document.body.style.overflow = 'hidden';
-    switchAdminTab('dashboard');
-    loadAdminOrders();
-    startAdminRealtimeListener();
-    loadDownloads();
-    loadNotifications();
-    renderAdminProducts(products);
-    loadAdminUsers();
-    loadLicences();
-    loadDashboardStats();
-    loadAdminTopups();
-    renderFallbackProductsAdmin();
-    loadCoupons();
-    setTimeout(addBannerAdminControls, 300);
-    loadSliderSettings();
-    renderSliderSettingsUI();
-    document.getElementById('sliderIntervalInput').value = sliderIntervalTime;
-    loadMarqueeSettings();
-    renderMarqueeSettingsUI();
+    // تحميل البيانات
+    if (typeof switchAdminTab === 'function') {
+        switchAdminTab('dashboard');
+    }
+    if (typeof loadAdminOrders === 'function') {
+        loadAdminOrders();
+    }
+    if (typeof loadLicences === 'function') {
+        loadLicences();
+    }
+    if (typeof loadAdminTopups === 'function') {
+        loadAdminTopups();
+    }
+    if (typeof loadDashboardStats === 'function') {
+        loadDashboardStats();
+    }
 };
 
 window.closeAdminPanel = function() {
@@ -4835,19 +4833,21 @@ window.closeAdminPanel = function() {
         panel.classList.remove('open');
         document.body.style.overflow = '';
     }
-    if (unsubscribeAdmin) {
-        unsubscribeAdmin();
-        unsubscribeAdmin = null;
-    }
 };
+// ============================================================
+// SWITCH ADMIN TAB - FIXED
+// ============================================================
 
-// ============================================================
-// switchAdminTab - COMPLETE VERSION
-// ============================================================
 window.switchAdminTab = function(tab) {
-    document.querySelectorAll('#adminPanel .admin-tab-content').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('#adminPanel .admin-nav-btn').forEach(el => el.classList.remove('active'));
+    // إخفاء جميع التبويبات
+    document.querySelectorAll('#adminPanel .admin-tab-content').forEach(el => {
+        el.classList.remove('active');
+    });
+    document.querySelectorAll('#adminPanel .admin-nav-btn').forEach(el => {
+        el.classList.remove('active');
+    });
 
+    // إظهار التبويب المحدد
     const tabMap = {
         'dashboard': 'tabDashboard',
         'orders': 'tabOrders',
@@ -4870,6 +4870,7 @@ window.switchAdminTab = function(tab) {
         'emails': 'tabEmails',
         'branding': 'tabBranding'
     };
+    
     const tabId = tabMap[tab] || 'tabDashboard';
     const content = document.getElementById(tabId);
     if (content) content.classList.add('active');
@@ -4902,27 +4903,19 @@ window.switchAdminTab = function(tab) {
     const titleEl = document.getElementById('adminPageTitle');
     if (titleEl) titleEl.textContent = titles[tab] || tab;
 
-    if (tab === 'products') renderAdminProducts(products);
-    if (tab === 'users') loadAdminUsers();
-    if (tab === 'dashboard') loadDashboardStats();
-    if (tab === 'stats') loadAdvancedStats();
-    if (tab === 'logs') loadAuditLogs();
-    if (tab === 'activity') loadActivityLogs();
-    if (tab === 'fraud') loadFraudLogs();
-    if (tab === 'slider') {
-        renderSliderSettingsUI();
-        document.getElementById('sliderIntervalInput').value = sliderIntervalTime;
+    // تحميل البيانات حسب التبويب
+    if (tab === 'licences' && typeof loadLicences === 'function') {
+        loadLicences();
     }
-    if (tab === 'licences') loadLicences();
-    if (tab === 'marquee') renderMarqueeSettingsUI();
-    if (tab === 'orders') loadAdminOrders();
-    if (tab === 'payments') refreshAdminPayments();
-    if (tab === 'topups') loadAdminTopups();
-    if (tab === 'fallback') renderFallbackProductsAdmin();
-    if (tab === 'settings') loadAdminSettingsUI();
-    if (tab === 'coupons') renderAdminCoupons();
-    if (tab === 'emails') loadEmailLogs();
-    if (tab === 'branding') loadBrandingSettings();
+    if (tab === 'topups' && typeof loadAdminTopups === 'function') {
+        loadAdminTopups();
+    }
+    if (tab === 'orders' && typeof loadAdminOrders === 'function') {
+        loadAdminOrders();
+    }
+    if (tab === 'settings' && typeof loadAdminSettingsUI === 'function') {
+        loadAdminSettingsUI();
+    }
 };
 
 // ============================================================
@@ -9669,15 +9662,14 @@ function handleSettingChange(settingName, newState) {
             }
             break;
         case 'emailNotifications':
-            if (newState) {
-                console.log('✅ Email Notifications enabled');
-                if (currentUser) {
-                    sendTestNotification(currentUser.email);
-                }
-            } else {
-                console.log('❌ Email Notifications disabled');
-            }
-            break;
+    if (newState) {
+        console.log('✅ Email Notifications enabled');
+        showToast('📧 Email notifications enabled', 'success');
+    } else {
+        console.log('❌ Email Notifications disabled');
+        showToast('📧 Email notifications disabled', 'info');
+    }
+    break;
         case 'twoFactorAuth':
             if (newState) {
                 console.log('✅ Two-Factor Auth enabled');
@@ -9706,9 +9698,72 @@ async function renderSettingsUI() {
 }
 window.renderSettingsUI = renderSettingsUI;
 
+
 // ============================================================
-// CHECKOUT - FINAL FIX
+// PAYMENT MODAL - FIX
 // ============================================================
+
+window.openPaymentModal = function() {
+    if (cart.length === 0) {
+        showToast('⚠️ Cart is empty', 'warning');
+        return;
+    }
+
+    if (!currentUser) {
+        showToast('⚠️ Please login to checkout', 'warning');
+        openAuthModal();
+        return;
+    }
+
+    const modal = document.getElementById('paymentModal');
+    if (modal) {
+        // إعادة تعيين الحالة
+        document.getElementById('paymentStep1').style.display = 'block';
+        document.getElementById('paymentStep2').style.display = 'none';
+        selectedPayment = null;
+        document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
+        updatePayableTotal();
+        renderPaymentProducts();
+        fetchCryptoPrices();
+        loadUserBalance();
+        
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    } else {
+        showToast('❌ Payment modal not found in HTML', 'error');
+        console.error('❌ paymentModal element not found in DOM');
+    }
+};
+
+// دالة الإغلاق
+window.closePaymentModal = function() {
+    const modal = document.getElementById('paymentModal');
+    if (modal) {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+        selectedPayment = null;
+        document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
+        document.getElementById('paymentStep1').style.display = 'block';
+        document.getElementById('paymentStep2').style.display = 'none';
+    }
+};
+
+// دالة الرجوع
+window.goToStep1 = function() {
+    document.getElementById('paymentStep1').style.display = 'block';
+    document.getElementById('paymentStep2').style.display = 'none';
+    selectedPayment = null;
+    document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
+    const txInput = document.getElementById('transactionHashInput');
+    if (txInput) txInput.value = '';
+    const verificationResult = document.getElementById('verificationResult');
+    if (verificationResult) {
+        verificationResult.style.display = 'none';
+        verificationResult.textContent = '';
+    }
+};
+
+// دالة checkout (الإصلاح)
 window.checkout = function() {
     if (cart.length === 0) {
         showToast('⚠️ Your cart is empty', 'warning');
@@ -9721,7 +9776,6 @@ window.checkout = function() {
     }
     openPaymentModal();
 };
-
 // ============================================================
 // HANDLE TOPUP - FINAL FIX
 // ============================================================
@@ -9740,37 +9794,9 @@ window.handleTopup = async function() {
     }
 };
 
-// ============================================================
-// CLOSE PAYMENT MODAL - FINAL FIX
-// ============================================================
-window.closePaymentModal = function() {
-    const modal = document.getElementById('paymentModal');
-    if (modal) {
-        modal.classList.remove('open');
-        document.body.style.overflow = '';
-        selectedPayment = null;
-        document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
-        document.getElementById('paymentStep1').style.display = 'block';
-        document.getElementById('paymentStep2').style.display = 'none';
-    }
-};
 
-// ============================================================
-// GO TO STEP 1 - FINAL FIX
-// ============================================================
-window.goToStep1 = function() {
-    document.getElementById('paymentStep1').style.display = 'block';
-    document.getElementById('paymentStep2').style.display = 'none';
-    selectedPayment = null;
-    document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
-    const txInput = document.getElementById('transactionHashInput');
-    if (txInput) txInput.value = '';
-    const verificationResult = document.getElementById('verificationResult');
-    if (verificationResult) {
-        verificationResult.style.display = 'none';
-        verificationResult.textContent = '';
-    }
-};
+
+
 // ============================================================
 // COPY FUNCTIONS - UNIFIED (ONLY ONE fallbackCopy)
 // ============================================================
