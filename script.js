@@ -1668,31 +1668,179 @@ async function mergeGuestData(newUid) {
     }
 }
 
+// ============================================================
+// LOGOUT USER - COMPLETE WITH CLEANUP
+// ============================================================
 window.logoutUser = async function() {
     try {
-        await signOut(auth);
+        console.log('🚪 Logging out user...');
+        
+        // 1. إلغاء جميع المستمعين (Listeners)
+        if (unsubscribeAdmin) { 
+            unsubscribeAdmin(); 
+            unsubscribeAdmin = null; 
+            console.log('✅ Admin listener unsubscribed');
+        }
+        if (unsubscribeUser) { 
+            unsubscribeUser(); 
+            unsubscribeUser = null; 
+            console.log('✅ User listener unsubscribed');
+        }
+        if (topupSubscription) { 
+            topupSubscription.unsubscribe(); 
+            topupSubscription = null; 
+            console.log('✅ Topup listener unsubscribed');
+        }
+        if (unsubscribeProducts) { 
+            unsubscribeProducts(); 
+            unsubscribeProducts = null; 
+            console.log('✅ Products listener unsubscribed');
+        }
+        if (unsubscribeDownloads) { 
+            unsubscribeDownloads(); 
+            unsubscribeDownloads = null; 
+            console.log('✅ Downloads listener unsubscribed');
+        }
+        if (unsubscribeNotifications) { 
+            unsubscribeNotifications(); 
+            unsubscribeNotifications = null; 
+            console.log('✅ Notifications listener unsubscribed');
+        }
+
+        // 2. مسح جميع بيانات localStorage
+        const keysToRemove = [
+            'zi_userId',
+            'zi_wishlist_backup',
+            'zi_cart_backup',
+            'zi_history_backup',
+            'zi_requests_backup',
+            'zi_usedcodes_backup',
+            'zi_referrals_backup',
+            'zi_referralRewards_backup',
+            'zi_rp_backup',
+            'zi_isBanned_backup',
+            'zi_lastDailyReward_backup',
+            'zi_licences_backup',
+            'zi_photoURL_backup',
+            'zi_balance_backup',
+            'zi_lastIP_backup',
+            'zi_lastCountry_backup',
+            'zi_welcomeEmailSent_backup',
+            'zi_loginCount_backup',
+            'zi_settings_backup',
+            'zi_user_settings'
+        ];
+        
+        keysToRemove.forEach(key => {
+            localStorage.removeItem(key);
+        });
+        console.log('✅ LocalStorage cleaned');
+
+        // 3. إعادة تعيين المتغيرات العامة
         currentUser = null;
         isAdminCached = false;
         activeDiscount = 0;
         activeDiscountCode = '';
-        document.getElementById('adminPanel').classList.remove('open');
-        closeUserMenuFull();
-        if (unsubscribeAdmin) { unsubscribeAdmin();
-            unsubscribeAdmin = null; }
-        if (unsubscribeUser) { unsubscribeUser();
-            unsubscribeUser = null; }
-        if (topupSubscription) { topupSubscription.unsubscribe();
-            topupSubscription = null; }
         pendingCount = 0;
         unreadNotifications = 0;
-        document.getElementById('authSection').style.display = 'block';
-        document.getElementById('mainApp').style.display = 'none';
-        showToast('👋 Logged out', 'info');
+        cart = [];
+        wishlist = [];
+        allOrders = [];
+        notifications = [];
+        allUsers = [];
+        allLicences = [];
+        userId = null;
+        isProcessingOrder = false;
+        selectedPayment = null;
+        selectedTopupAmount = 0;
+        selectedTopupCurrency = 'USDT';
+        
+        // 4. إعادة تعيين userProfile
+        userProfile = {
+            name: '',
+            email: '',
+            photoURL: '',
+            telegram: '',
+            telegramChatId: '',
+            location: 'Tunisia',
+            country: 'Tunisia',
+            lang: 'English',
+            joined: '',
+            history: [],
+            requests: [],
+            usedCodes: [],
+            referralCode: '',
+            referrals: [],
+            referralRewards: 0,
+            rp: 0,
+            useRpForCart: false,
+            isBanned: false,
+            lastDailyReward: 0,
+            licences: [],
+            balance: 0,
+            lastIP: '',
+            lastCountry: '',
+            lastLoginDate: null,
+            welcomeEmailSent: false,
+            loginCount: 0,
+            settings: { ipDetection: true, emailNotifications: true, twoFactorAuth: false }
+        };
+        userBalance = 0;
+
+        // 5. تسجيل الخروج من Firebase
+        await signOut(auth);
+        console.log('✅ Firebase signOut completed');
+
+        // 6. إغلاق جميع القوائم والمودالات
+        const modals = [
+            'adminPanel', 'userMenuFull', 'cartFull', 
+            'wishlistFull', 'profileFull', 'historyFull',
+            'notificationsModal', 'downloadsModal', 'paymentModal',
+            'licenceModal', 'topupModal', 'shareModal',
+            'supportModal', 'cookieSettingsModal'
+        ];
+        modals.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.classList.remove('open');
+                el.style.display = 'none';
+            }
+        });
+        document.body.style.overflow = '';
+        console.log('✅ All modals closed');
+
+        // 7. إظهار شاشة Login وإخفاء التطبيق
+        const authSection = document.getElementById('authSection');
+        const mainApp = document.getElementById('mainApp');
+        if (authSection) {
+            authSection.style.display = 'block';
+            authSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        if (mainApp) {
+            mainApp.style.display = 'none';
+            mainApp.style.visibility = 'hidden';
+            mainApp.style.opacity = '0';
+        }
+        console.log('✅ Login screen shown, main app hidden');
+
+        // 8. تحديث الواجهة
         updateUI();
         updateNotificationBadge();
-        loadUserData();
         updateFullUserMenu();
-    } catch (error) { showToast('❌ Logout error', 'error'); }
+        updateBalanceDisplay();
+        renderProducts(products, false);
+        renderUserLicences();
+        updateCartUI();
+        updateBottomCartBar();
+
+        // 9. إظهار إشعار الخروج
+        showToast('👋 Logged out successfully', 'info', 3000);
+        console.log('✅ Logout completed successfully');
+
+    } catch (error) {
+        console.error('❌ Logout error:', error);
+        showToast('❌ Logout failed: ' + error.message, 'error');
+    }
 };
 
 window.openForgotPassword = function() { document.getElementById('forgotPasswordModal').classList.add('open');
@@ -9998,34 +10146,42 @@ window.requireConnection = function(message = 'This action requires internet con
 };
 
 // ============================================================
-// FIX: INIT WITH LOGGING AND FORCED HIDE
+// CHECK IF USER IS ANONYMOUS
 // ============================================================
-
-// دالة مساعدة لإظهار رسائل في console مع timestamp
-function log(message) {
-    console.log(`[${new Date().toISOString()}] ${message}`);
+function isAnonymousUser() {
+    return auth && auth.currentUser && auth.currentUser.isAnonymous;
 }
 
-// استبدال initApp
+// استخدمها في أي مكان قبل تنفيذ أي عملية تتطلب مستخدم حقيقي
+function requireRealUser() {
+    if (isAnonymousUser()) {
+        showToast('⚠️ Please login with a real account.', 'warning');
+        signOut(auth);
+        return false;
+    }
+    return true;
+}
+// ============================================================
+// INIT APP - NO ANONYMOUS
+// ============================================================
 async function initApp() {
-    log('🚀 initApp started');
+    console.log('🚀 Initializing ZI Store...');
+    
+    // ✅ التأكد من عدم وجود مستخدم مجهول
+    if (auth && auth.currentUser && auth.currentUser.isAnonymous) {
+        console.warn('⚠️ Anonymous user detected on init, signing out...');
+        await signOut(auth);
+        return;
+    }
+
     try {
-        log('Loading branding...');
         loadBranding();
-        
-        log('Loading products...');
         await loadProductsFromFirestore();
         startProductsRealtimeListener();
-        
-        log('Loading user data...');
         await loadUserData();
-        
-        log('Rendering products...');
         renderProducts(products, false);
         renderFeaturedProducts();
         generateRecommendations(products);
-        
-        log('Updating UI...');
         updateUI();
         updateDropdownStats();
         updateFullUserMenu();
@@ -10035,8 +10191,6 @@ async function initApp() {
         renderUserLicences();
         renderProxyPackages();
         renderLimitedProducts();
-        
-        log('Loading additional data...');
         loadDownloads();
         loadNotifications();
         loadFeaturedSettings();
@@ -10046,70 +10200,44 @@ async function initApp() {
         applyMarqueeSettings();
         loadCoupons();
         fetchCryptoPrices();
-        
-        log('Checking cookies...');
         checkCookieConsent();
         initTopInfoBar();
         showTelegramBanner();
-        
-        log('Network monitor...');
         addOfflineStyles();
         initNetworkMonitor();
         
-        // Intervals
         window._productsInterval = setInterval(function() {
-            if (navigator.onLine) {
-                loadProductsFromFirestore();
-            }
+            if (navigator.onLine) loadProductsFromFirestore();
         }, 30000);
         window._cryptoInterval = setInterval(fetchCryptoPrices, 60000);
         
-        if (currentUser) {
-            log('Loading user balance...');
+        if (currentUser && !currentUser.isAnonymous) {
             loadUserBalance();
             startTopupRealtimeListener();
         }
         
-        log('Popups init...');
         initPopups();
-        
-        log('Update progress...');
         window.updateLoadingProgress(100, '✅ Ready!');
-        
-        log('Showing main app...');
-        setTimeout(() => {
-            window.showMainApp();
-            log('Main app shown');
-        }, 300);
-        
-        setTimeout(() => {
-            hideLoadingScreen();
-            log('Loading screen hidden');
-        }, 800);
-        
-        log('✅ ZI Store initialized successfully!');
+        setTimeout(window.showMainApp, 300);
+        setTimeout(hideLoadingScreen, 800);
+        console.log('✅ ZI Store initialized successfully!');
     } catch (error) {
         console.error('❌ Init error:', error);
         window.updateLoadingProgress(100, '⚠️ Loaded with errors');
-        setTimeout(() => {
-            window.showMainApp();
-            hideLoadingScreen();
-        }, 500);
+        setTimeout(window.showMainApp, 500);
+        setTimeout(hideLoadingScreen, 1000);
         showToast('⚠️ Error loading store. Please refresh.', 'error');
     }
 }
 
-
 // ============================================================
-// AUTH STATE LISTENER - COMPLETE WITH FIXES
+// AUTH STATE LISTENER - NO ANONYMOUS
 // ============================================================
 onAuthStateChanged(auth, async (user) => {
-    // ---- متغيرات DOM ----
     const authSection = document.getElementById('authSection');
     const mainApp = document.getElementById('mainApp');
     const loadingScreen = document.getElementById('loadingScreen');
 
-    // ---- دالة مساعدة لإخفاء شاشة التحميل ----
     function hideLoading() {
         if (loadingScreen) {
             loadingScreen.classList.add('hidden');
@@ -10120,7 +10248,6 @@ onAuthStateChanged(auth, async (user) => {
         }
     }
 
-    // ---- دالة مساعدة لإظهار التطبيق ----
     function showApp() {
         if (authSection) authSection.style.display = 'none';
         if (mainApp) {
@@ -10131,15 +10258,22 @@ onAuthStateChanged(auth, async (user) => {
         hideLoading();
     }
 
-    // ---- دالة مساعدة لإظهار الـ Login ----
     function showLogin() {
         if (authSection) authSection.style.display = 'block';
         if (mainApp) mainApp.style.display = 'none';
         hideLoading();
     }
 
-    // ---- حالة تسجيل الدخول ----
+    // ✅ فقط المستخدم المصادق الحقيقي (ليس مجهول)
     if (user) {
+        // 🔥 منع المستخدم المجهول
+        if (user.isAnonymous) {
+            console.warn('⚠️ Anonymous user detected, signing out...');
+            await signOut(auth);
+            showLogin();
+            return;
+        }
+
         currentUser = user;
         console.log('🔐 User authenticated:', user.email);
 
@@ -10178,22 +10312,21 @@ onAuthStateChanged(auth, async (user) => {
             setTimeout(window.ensureAdminPanel, 2000);
             setTimeout(checkCookieConsent, 1000);
 
-            // ✅ إظهار التطبيق (وليس Login)
             showApp();
             showToast(`👋 Welcome ${user.displayName || user.email || 'User'}!`, 'success', 3000);
 
         } catch (error) {
             console.error('❌ Error during user initialization:', error);
             showToast('⚠️ Error loading user data. Please refresh.', 'error');
-            showApp(); // حتى لو حدث خطأ، نظهر التطبيق
+            showApp();
         }
-    } 
-    // ---- حالة الخروج أو عدم وجود مستخدم ----
-    else {
+    } else {
+        // ❌ لا يوجد مستخدم
         currentUser = null;
         isAdminCached = false;
         console.log('🔓 No user authenticated');
 
+        // إلغاء المستمعين
         if (unsubscribeAdmin) { unsubscribeAdmin(); unsubscribeAdmin = null; }
         if (unsubscribeUser) { unsubscribeUser(); unsubscribeUser = null; }
         if (topupSubscription) { topupSubscription.unsubscribe(); topupSubscription = null; }
@@ -10210,10 +10343,11 @@ onAuthStateChanged(auth, async (user) => {
         loadMarqueeSettings();
         setTimeout(checkCookieConsent, 1000);
 
-        // ✅ إظهار Login (وليس التطبيق)
+        // ✅ إظهار Login
         showLogin();
     }
 });
+
 // ============================================================
 // FORCED HIDE LOADING SCREEN AFTER 5 SECONDS (SAFETY NET)
 // ============================================================
