@@ -10488,5 +10488,13 @@ window.setQuantityOptions = setQuantityOptions;
 window.toggleBadge = toggleBadge;
 window.updateBadgesInput = updateBadgesInput;
 window.setBadges = setBadges;
+  // تصدير auth و currentUser إلى window
+window.auth = auth;
+window.currentUser = currentUser;
+
+// تحديث currentUser عند تغير حالة المصادقة
+onAuthStateChanged(auth, (user) => {
+    window.currentUser = user;
+});          
 
 console.log('✅ All functions exported to window – COMPLETE');
