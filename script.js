@@ -4886,7 +4886,8 @@ window.copyReferralCode2 = function() {
 // ============================================================
 
 window.openAdminPanel = function() {
-    if (!currentUser || !isAdminCached) {
+    const user = auth.currentUser; // أو window.auth?.currentUser
+    if (!user || !isAdminCached) {
         showToast('⛔ Unauthorized. Admin only.', 'error');
         return;
     }
