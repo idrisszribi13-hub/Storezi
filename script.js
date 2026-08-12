@@ -10043,198 +10043,450 @@ if (document.readyState === 'loading') {
 } else {
     initApp();
 }
-// ============================================================
-(function exportAllToWindow() {
-    // قائمة بأسماء جميع الدوال التي يجب تصديرها إلى window
-    const functionNames = [
-        // دوال عامة
-        'showToast', 'hideToast', 'showButtonLoading', 'hideButtonLoading',
-        'hideLoadingScreen', 'showLoadingScreen', 'showMainApp',
-        'updateLoadingProgress', 'startLoadingSimulation',
-        'removeDuplicateDate', 'styleHeaderTopup', 'updateServerTime',
-        'fetchUserInfo', 'getCountryFlag', 'initTopInfoBar',
-        'checkIsAdmin', 'refreshAdminStatus', 'ensureAdminPanel',
-        'getAdminSettings', 'updateAdminSettings',
-        'loadFromLocalStorage', 'getUserId', 'startUserRealtimeListener',
-        'loadUserData', 'saveUserData', 'generateReferralCode',
-        'updateDropdownStats', 'updateRpDisplay', 'updateUI', 'updateFullUserMenu',
-        'showLogin', 'showRegister', 'toggleReferral',
-        'loginUser', 'registerUser', 'loginWithGoogle', 'mergeGuestData',
-        'logoutUser', 'openForgotPassword', 'closeForgotPasswordModal',
-        'sendForgotPassword',
-        'openUserMenuFull', 'closeUserMenuFull',
-        'openCartFull', 'closeCartFull',
-        'openWishlistFull', 'closeWishlistFull',
-        'openProfileFull', 'closeProfileFull',
-        'openHistoryFull', 'closeHistoryFull',
-        'openDownloads', 'closeDownloads',
-        'openNotifications', 'closeNotifications',
-        'openAuthModal',
-        'openTransactionsModal', 'closeTransactionsModal',
-        'loadTransactionHistory', 'renderTransactions',
-        'renderProfileFull',
-        'togglePasswordVisibility', 'saveProfileChangesInline',
-        'sendResetLinkInline', 'changePasswordInline',
-        'loadProductsFromFirestore', 'startProductsRealtimeListener',
-        'getCurrencySymbol', 'renderBadges', 'renderProducts',
-        'updateStatsFromProducts', 'generateRecommendations',
-        'selectCurrency', 'selectProductType',
-        'addQuantityOption', 'removeQuantityOption',
-        'setQuantityOptions', 'toggleBadge', 'updateBadgesInput', 'setBadges',
-        'renderFallbackProductsAdmin', 'editFallbackProduct',
-        'openAddFallbackProductModal', 'closeFallbackProductModal',
-        'saveFallbackProduct', 'deleteFallbackProduct',
-        'renderFeaturedProducts', 'displayFeaturedSlice',
-        'startFeaturedRotation', 'stopFeaturedRotation',
-        'loadFeaturedSettings',
-        'updateProductCardButton', 'addToCart', 'clearCart',
-        'removeFromCart', 'updateCartQuantity',
-        'updateBottomCartBar', 'updateCartUI', 'renderCartFull',
-        'toggleRpSwitch', 'toggleRpInCart', 'applyCartPromo',
-        'toggleWishlist', 'removeFromWishlist', 'updateWishlistUI',
-        'createFloatingHearts', 'renderWishlistFull',
-        'openDetails', 'addToCartFromDetails', 'closeProductDetails',
-        'closePreviewModal', 'selectQuantityOption', 'selectVipPlan',
-        'addVipPlanToCart',
-        'openShareModal', 'closeShareModal',
-        'shareToWhatsApp', 'shareToTelegram', 'shareToFacebook', 'copyShareLink',
-        'filterProducts', 'performLiveSearch', 'highlightText',
-        'clearSearch', 'closeSearchResults',
-        'renderPaymentProducts', 'fetchCryptoPrices',
-        'getLTCPrice', 'getUSDTPrice', 'updatePriceUI', 'updatePayableTotal',
-        'selectPayment', 'continuePayment',
-        'processBalancePayment', 'sendAdminNotification',
-        'placeOrder', 'placeOrderTelegram',
-        'sendTelegramNotification', 'bindTelegram',
-        'startBindingListener', 'testTelegramNotification',
-        'unlinkTelegram', 'checkTelegramStatus',
-        'renderProxyPackages', 'addProxyToCart',
-        'loadDownloads', 'renderDownloads', 'renderAdminDownloads',
-        'createDownload', 'deleteDownload', 'editDownload',
-        'openCreateDownloadModal', 'closeCreateDownloadModal',
-        'loadNotifications', 'renderUserNotificationsFallback',
-        'renderUserNotifications', 'renderAdminNotifications',
-        'updateNotificationBadge', 'markAllNotificationsRead',
-        'clearAllNotifications', 'createNotification',
-        'deleteNotification', 'openCreateNotificationModal',
-        'closeCreateNotificationModal',
-        'openRequestsModal', 'closeRequestsModal',
-        'openNewRequestModal', 'closeNewRequestModal', 'submitRequest',
-        'openReferralModal', 'closeReferralModal', 'updateReferralUI',
-        'copyReferralCode2',
-        'openAdminPanel', 'closeAdminPanel', 'switchAdminTab',
-        'renderAdminProducts', 'startAdminRealtimeListener',
-        'loadAdminOrders', 'renderAdminOrders', 'updateAdminStats',
-        'updateOrderStatus', 'deleteOrderImmediately',
-        'searchAdminOrders', 'clearAdminSearch', 'refreshAdminOrders',
-        'loadAdminUsers', 'renderAdminUsers',
-        'searchAdminUsers', 'clearAdminUserSearch', 'refreshAdminUsers',
-        'toggleUserBan', 'deleteUserAccount', 'viewUserDetails',
-        'closeUserDetailsModal',
-        'loadLicences', 'renderLicences',
-        'openCreateLicenceModal', 'closeCreateLicenceModal',
-        'createLicenceManually', 'updateLicenceInSupabase',
-        'approveLicence', 'revokeLicence', 'deleteLicence',
-        'editLicence', 'saveLicenceEdit',
-        'searchLicences', 'clearLicenceSearch', 'refreshLicences',
-        'renderUserLicences', 'toggleLicencesList',
-        'openLicenceModal', 'closeLicenceModal', 'closeLicenseModal',
-        'activatedLicence', 'activateLicence',
-        'loadRatings', 'hasUserPurchasedProduct', 'submitRating',
-        'renderStarHTML', 'setRating', 'renderRatingSection',
-        'updateProductRatingDisplay',
-        'goToSlide', 'nextSlide', 'prevSlide',
-        'pauseSlider', 'resumeSlider',
-        'saveSliderData', 'saveSliderInterval', 'saveSlideEdit',
-        'deleteSlide', 'editSlide',
-        'openAddSlideModal', 'closeAddSlideModal',
-        'updateSlideProductSelect', 'toggleSlideLinkFields',
-        'loadSliderSettings', 'renderSlider', 'startSliderRotation',
-        'resetSliderTimer', 'renderSliderSettingsUI',
-        'saveMarqueeSettings', 'applyMarqueeSettings',
-        'renderMarqueeSettingsUI', 'loadMarqueeSettings',
-        'loadDashboardStats', 'refreshDashboardStats',
-        'loadAdvancedStats', 'refreshAdvancedStats',
-        'loadAuditLogs', 'loadActivityLogs', 'exportActivityLogs',
-        'loadFraudLogs',
-        'clearOrderHistory', 'renderHistoryFull',
-        'loadUserBalance', 'updateBalanceDisplay',
-        'startTopupRealtimeListener', 'playNotificationSound',
-        'openTopupStatus', 'closeTopupStatus', 'loadUserTopups',
-        'openTopupModal', 'closeTopupModal',
-        'selectTopupCurrency', 'updateTopupAmounts', 'selectTopupAmount',
-        'processTopup', 'submitTopupWithTxHash',
-        'approveTopup', 'rejectTopup', 'loadAdminTopups',
-        'sendTelegramTopupNotification',
-        'copyToClipboard', 'fallbackCopy',
-        'checkoutWithBalance',
-        'toggleSupportMenu', 'openSupportModal', 'closeSupportModal',
-        'openWhatsAppSupport', 'openTelegramSupport',
-        'openEmailSupport', 'openPhoneSupport',
-        'acceptCookies', 'rejectCookies',
-        'openCookieSettings', 'closeCookieSettings', 'saveCookieSettings',
-        'enableAnalytics', 'disableAnalytics', 'checkCookieConsent',
-        'closeCookieBanner',
-        'showTelegramBanner', 'closeTelegramBanner', 'showTelegramBannerAgain',
-        'addBannerAdminControls', 'adminToggleBanner', 'resetBannerForAll',
-        'uploadToCloudinary', 'fixDirection',
-        'copyLicenceCode', 'fallbackCopyText',
-        'generateInvoice', 'exportOrders',
-        'refreshAdminPayments', 'adminApprovePayment', 'adminRejectPayment',
-        'adminDeletePayment',
-        'trackUserBehavior', 'updateUserPreferences',
-        'getRecommendations', 'getDefaultRecommendations',
-        'detectFraud', 'logFraudDetection',
-        'renderLimitedProducts',
-        'initPopups', 'showExitPopup', 'showOfferPopup',
-        'closePopup', 'applyPopupCoupon', 'subscribeAndApply',
-        'loadCoupons', 'updateActiveCoupons',
-        'openCreateCouponModal', 'closeCreateCouponModal',
-        'saveCoupon', 'deleteCoupon', 'editCoupon', 'renderAdminCoupons',
-        'sendEmail', 'sendWelcomeEmail', 'sendOrderConfirmationEmail',
-        'sendOrderStatusEmail', 'sendTopupConfirmationEmail',
-        'sendAdminNotificationEmail',
-        'loadEmailLogs', 'renderEmailLogs', 'sendTestEmail',
-        'previewEmail', 'resendEmail',
-        'loadAdminSettingsUI', 'saveAdminSettings', 'getMyTelegramChatId',
-        'loadBranding', 'saveBranding', 'applyBranding',
-        'loadBrandingSettings', 'saveBrandingSettings', 'resetBranding',
-        'generatePDFInvoice',
-        'getVisitorInfo', 'getDeviceInfo', 'logActivity',
-        'sendUserNotification', 'generateLicenceForUser', 'sendLicenceEmail',
-        'showOfflineToast', 'showOnlineToast',
-        'initNetworkMonitor', 'pauseOnlineOperations', 'resumeOnlineOperations',
-        'addOfflineStyles',
-        'loadUserSettings', 'saveUserSettings',
-        'toggleSetting', 'handleSettingChange', 'renderSettingsUI',
-        'checkout', 'handleTopup',
-        'closePaymentModal', 'goToStep1',
-        'copyWalletAddress', 'fallbackCopy',
-        'copyBinanceId',
-        'verifyTransaction', 'handleTxPaste', 'submitManualPayment',
-        'checkConnection', 'requireConnection',
-        'initApp'
-    ];
 
-    // تصدير كل دالة موجودة في النطاق الحالي
-    functionNames.forEach(name => {
-        try {
-            // الوصول إلى الدالة من نطاق الوحدة باستخدام eval
-            const func = eval(name);
-            if (typeof func === 'function') {
-                window[name] = func;
-                console.log(`✅ Exported: ${name}`);
-            } else {
-                console.warn(`⚠️ ${name} is not a function or not defined`);
-            }
-        } catch (e) {
-            console.warn(`⚠️ Could not export ${name}: ${e.message}`);
-        }
-    });
-})();
-//
 // ============================================================
-// EXPORT ALL FUNCTIONS TO WINDOW - COMPLETE
+// EXPORT ALL FUNCTIONS TO WINDOW – COMPLETE LIST
 // ============================================================
-console.log('✅ All functions exported to window - COMPLETE');
-console.log('✅ ZI Store script loaded successfully - COMPLETE');
+
+// دوال عامة
+window.showToast = showToast;
+window.hideToast = hideToast;
+window.showOfflineToast = showOfflineToast;
+window.showOnlineToast = showOnlineToast;
+window.initNetworkMonitor = initNetworkMonitor;
+window.checkConnection = checkConnection;
+window.requireConnection = requireConnection;
+
+// دوال التحميل والتهيئة
+window.initApp = initApp;
+window.showMainApp = showMainApp;
+window.hideLoadingScreen = hideLoadingScreen;
+window.showLoadingScreen = showLoadingScreen;
+window.updateLoadingProgress = updateLoadingProgress;
+window.startLoadingSimulation = startLoadingSimulation;
+window.forceHideLoading = forceHideLoading;
+
+// دوال واجهة المستخدم الأساسية
+window.toggleTheme = toggleTheme;                    // من HTML
+window.openUserMenuFull = openUserMenuFull;
+window.closeUserMenuFull = closeUserMenuFull;
+window.openCartFull = openCartFull;
+window.closeCartFull = closeCartFull;
+window.openWishlistFull = openWishlistFull;
+window.closeWishlistFull = closeWishlistFull;
+window.openProfileFull = openProfileFull;
+window.closeProfileFull = closeProfileFull;
+window.openHistoryFull = openHistoryFull;
+window.closeHistoryFull = closeHistoryFull;
+window.openNotifications = openNotifications;
+window.closeNotifications = closeNotifications;
+window.openDownloads = openDownloads;
+window.closeDownloads = closeDownloads;
+window.openLicenceModal = openLicenceModal;
+window.closeLicenceModal = closeLicenceModal;        // أنت طلبتها
+window.closeLicenseModal = closeLicenseModal;        // مرادف
+window.activatedLicence = activatedLicence;
+window.activateLicence = activateLicence;
+window.openTopupModal = openTopupModal;
+window.closeTopupModal = closeTopupModal;
+window.openTopupStatus = openTopupStatus;
+window.closeTopupStatus = closeTopupStatus;
+window.openShareModal = openShareModal;
+window.closeShareModal = closeShareModal;
+window.openAuthModal = openAuthModal;
+window.openSupportModal = openSupportModal;
+window.closeSupportModal = closeSupportModal;
+window.toggleSupportMenu = toggleSupportMenu;
+window.openTelegramSupport = openTelegramSupport;
+window.openWhatsAppSupport = openWhatsAppSupport;
+window.openEmailSupport = openEmailSupport;
+window.openPhoneSupport = openPhoneSupport;
+
+// دوال المصادقة
+window.showLogin = showLogin;
+window.showRegister = showRegister;
+window.toggleReferral = toggleReferral;
+window.loginUser = loginUser;
+window.registerUser = registerUser;
+window.loginWithGoogle = loginWithGoogle;
+window.logoutUser = logoutUser;
+window.openForgotPassword = openForgotPassword;
+window.closeForgotPasswordModal = closeForgotPasswordModal;
+window.sendForgotPassword = sendForgotPassword;
+
+// دوال الإدارة (Admin)
+window.openAdminPanel = openAdminPanel;
+window.closeAdminPanel = closeAdminPanel;
+window.switchAdminTab = switchAdminTab;
+window.ensureAdminPanel = ensureAdminPanel;
+window.checkIsAdmin = checkIsAdmin;
+window.refreshAdminStatus = refreshAdminStatus;
+window.getAdminSettings = getAdminSettings;
+window.updateAdminSettings = updateAdminSettings;
+window.loadAdminSettingsUI = loadAdminSettingsUI;
+window.saveAdminSettings = saveAdminSettings;
+window.getMyTelegramChatId = getMyTelegramChatId;
+window.renderAdminProducts = renderAdminProducts;
+window.startAdminRealtimeListener = startAdminRealtimeListener;
+window.loadAdminOrders = loadAdminOrders;
+window.renderAdminOrders = renderAdminOrders;
+window.updateAdminStats = updateAdminStats;
+window.updateOrderStatus = updateOrderStatus;
+window.deleteOrderImmediately = deleteOrderImmediately;
+window.searchAdminOrders = searchAdminOrders;
+window.clearAdminSearch = clearAdminSearch;
+window.refreshAdminOrders = refreshAdminOrders;
+window.loadAdminUsers = loadAdminUsers;
+window.renderAdminUsers = renderAdminUsers;
+window.searchAdminUsers = searchAdminUsers;
+window.clearAdminUserSearch = clearAdminUserSearch;
+window.refreshAdminUsers = refreshAdminUsers;
+window.toggleUserBan = toggleUserBan;
+window.deleteUserAccount = deleteUserAccount;
+window.viewUserDetails = viewUserDetails;
+window.closeUserDetailsModal = closeUserDetailsModal;
+window.loadLicences = loadLicences;
+window.renderLicences = renderLicences;
+window.openCreateLicenceModal = openCreateLicenceModal;
+window.closeCreateLicenceModal = closeCreateLicenceModal;
+window.createLicenceManually = createLicenceManually;
+window.updateLicenceInSupabase = updateLicenceInSupabase;
+window.approveLicence = approveLicence;
+window.revokeLicence = revokeLicence;
+window.deleteLicence = deleteLicence;
+window.editLicence = editLicence;
+window.saveLicenceEdit = saveLicenceEdit;
+window.searchLicences = searchLicences;
+window.clearLicenceSearch = clearLicenceSearch;
+window.refreshLicences = refreshLicences;
+window.renderUserLicences = renderUserLicences;
+window.toggleLicencesList = toggleLicencesList;
+window.loadAdminTopups = loadAdminTopups;
+window.approveTopup = approveTopup;
+window.rejectTopup = rejectTopup;
+window.refreshAdminPayments = refreshAdminPayments;
+window.adminApprovePayment = adminApprovePayment;
+window.adminRejectPayment = adminRejectPayment;
+window.adminDeletePayment = adminDeletePayment;
+window.loadDashboardStats = loadDashboardStats;
+window.refreshDashboardStats = refreshDashboardStats;
+window.loadAdvancedStats = loadAdvancedStats;
+window.refreshAdvancedStats = refreshAdvancedStats;
+window.loadAuditLogs = loadAuditLogs;
+window.loadActivityLogs = loadActivityLogs;
+window.exportActivityLogs = exportActivityLogs;
+window.loadFraudLogs = loadFraudLogs;
+
+// دوال المستخدم والبيانات
+window.loadUserData = loadUserData;
+window.saveUserData = saveUserData;
+window.loadFromLocalStorage = loadFromLocalStorage;
+window.getUserId = getUserId;
+window.startUserRealtimeListener = startUserRealtimeListener;
+window.generateReferralCode = generateReferralCode;
+window.loadUserBalance = loadUserBalance;
+window.updateBalanceDisplay = updateBalanceDisplay;
+window.startTopupRealtimeListener = startTopupRealtimeListener;
+window.playNotificationSound = playNotificationSound;
+window.loadUserTopups = loadUserTopups;
+window.loadUserSettings = loadUserSettings;
+window.saveUserSettings = saveUserSettings;
+window.renderSettingsUI = renderSettingsUI;
+window.toggleSetting = toggleSetting;
+window.handleSettingChange = handleSettingChange;
+window.loadTransactions = loadTransactionHistory;
+window.renderTransactions = renderTransactions;
+window.openTransactionsModal = openTransactionsModal;
+window.closeTransactionsModal = closeTransactionsModal;
+
+// دوال المنتجات والمتجر
+window.loadProductsFromFirestore = loadProductsFromFirestore;
+window.startProductsRealtimeListener = startProductsRealtimeListener;
+window.getCurrencySymbol = getCurrencySymbol;
+window.renderBadges = renderBadges;
+window.renderProducts = renderProducts;
+window.updateStatsFromProducts = updateStatsFromProducts;
+window.generateRecommendations = generateRecommendations;
+window.renderFeaturedProducts = renderFeaturedProducts;
+window.displayFeaturedSlice = displayFeaturedSlice;
+window.startFeaturedRotation = startFeaturedRotation;
+window.stopFeaturedRotation = stopFeaturedRotation;
+window.loadFeaturedSettings = loadFeaturedSettings;
+window.updateProductCardButton = updateProductCardButton;
+window.addToCart = addToCart;
+window.clearCart = clearCart;
+window.removeFromCart = removeFromCart;
+window.updateCartQuantity = updateCartQuantity;
+window.renderCartFull = renderCartFull;
+window.updateCartUI = updateCartUI;
+window.updateBottomCartBar = updateBottomCartBar;
+window.toggleRpSwitch = toggleRpSwitch;
+window.toggleRpInCart = toggleRpInCart;
+window.applyCartPromo = applyCartPromo;
+window.filterProducts = filterProducts;
+window.openDetails = openDetails;
+window.closeProductDetails = closeProductDetails;
+window.closePreviewModal = closePreviewModal;
+window.addToCartFromDetails = addToCartFromDetails;
+window.selectQuantityOption = selectQuantityOption;
+window.selectVipPlan = selectVipPlan;
+window.addVipPlanToCart = addVipPlanToCart;
+window.toggleWishlist = toggleWishlist;
+window.removeFromWishlist = removeFromWishlist;
+window.updateWishlistUI = updateWishlistUI;
+window.createFloatingHearts = createFloatingHearts;
+window.renderWishlistFull = renderWishlistFull;
+window.performLiveSearch = performLiveSearch;
+window.highlightText = highlightText;
+window.clearSearch = clearSearch;
+window.closeSearchResults = closeSearchResults;
+window.renderProxyPackages = renderProxyPackages;
+window.addProxyToCart = addProxyToCart;
+window.renderLimitedProducts = renderLimitedProducts;
+window.renderPaymentProducts = renderPaymentProducts;
+window.checkout = checkout;
+window.openPaymentModal = openPaymentModal;
+window.closePaymentModal = closePaymentModal;
+window.goToStep1 = goToStep1;
+window.selectPayment = selectPayment;
+window.continuePayment = continuePayment;
+window.placeOrder = placeOrder;
+window.placeOrderTelegram = placeOrderTelegram;
+window.processBalancePayment = processBalancePayment;
+window.checkoutWithBalance = processBalancePayment;  // مرادف
+
+// دوال الدفع والتوب أب
+window.fetchCryptoPrices = fetchCryptoPrices;
+window.getLTCPrice = getLTCPrice;
+window.getUSDTPrice = getUSDTPrice;
+window.updatePriceUI = updatePriceUI;
+window.updatePayableTotal = updatePayableTotal;
+window.selectTopupCurrency = selectTopupCurrency;
+window.selectTopupAmount = selectTopupAmount;
+window.processTopup = processTopup;
+window.submitTopupWithTxHash = submitTopupWithTxHash;
+window.handleTopup = handleTopup;
+window.copyWalletAddress = copyWalletAddress;
+window.copyBinanceId = copyBinanceId;
+window.verifyTransaction = verifyTransaction;
+window.handleTxPaste = handleTxPaste;
+window.submitManualPayment = submitManualPayment;
+
+// دوال المشاركة والنسخ
+window.openShareModal = openShareModal;
+window.closeShareModal = closeShareModal;
+window.shareToWhatsApp = shareToWhatsApp;
+window.shareToTelegram = shareToTelegram;
+window.shareToFacebook = shareToFacebook;
+window.copyShareLink = copyShareLink;
+window.copyLicenceCode = copyLicenceCode;
+window.copyToClipboard = copyToClipboard;
+window.fallbackCopy = fallbackCopy;
+
+// دوال تليجرام والإشعارات
+window.bindTelegram = bindTelegram;
+window.startBindingListener = startBindingListener;
+window.testTelegramNotification = testTelegramNotification;
+window.unlinkTelegram = unlinkTelegram;
+window.checkTelegramStatus = checkTelegramStatus;
+window.sendTelegramNotification = sendTelegramNotification;
+window.sendAdminNotification = sendAdminNotification;
+window.sendUserNotification = sendUserNotification;
+window.sendTelegramTopupNotification = sendTelegramTopupNotification;
+window.sendEmail = sendEmail;
+window.sendWelcomeEmail = sendWelcomeEmail;
+window.sendOrderConfirmationEmail = sendOrderConfirmationEmail;
+window.sendOrderStatusEmail = sendOrderStatusEmail;
+window.sendTopupConfirmationEmail = sendTopupConfirmationEmail;
+window.sendAdminNotificationEmail = sendAdminNotificationEmail;
+window.loadEmailLogs = loadEmailLogs;
+window.renderEmailLogs = renderEmailLogs;
+window.sendTestEmail = sendTestEmail;
+window.previewEmail = previewEmail;
+window.resendEmail = resendEmail;
+
+// دوال التنبيهات والطلبات والإحالات
+window.loadNotifications = loadNotifications;
+window.renderUserNotifications = renderUserNotifications;
+window.renderAdminNotifications = renderAdminNotifications;
+window.updateNotificationBadge = updateNotificationBadge;
+window.markAllNotificationsRead = markAllNotificationsRead;
+window.clearAllNotifications = clearAllNotifications;
+window.createNotification = createNotification;
+window.deleteNotification = deleteNotification;
+window.openCreateNotificationModal = openCreateNotificationModal;
+window.closeCreateNotificationModal = closeCreateNotificationModal;
+window.renderUserNotificationsFallback = renderUserNotificationsFallback;
+window.openRequestsModal = openRequestsModal;
+window.closeRequestsModal = closeRequestsModal;
+window.openNewRequestModal = openNewRequestModal;
+window.closeNewRequestModal = closeNewRequestModal;
+window.submitRequest = submitRequest;
+window.openReferralModal = openReferralModal;
+window.closeReferralModal = closeReferralModal;
+window.updateReferralUI = updateReferralUI;
+window.copyReferralCode2 = copyReferralCode2;
+
+// دوال التنزيلات
+window.loadDownloads = loadDownloads;
+window.renderDownloads = renderDownloads;
+window.renderAdminDownloads = renderAdminDownloads;
+window.createDownload = createDownload;
+window.deleteDownload = deleteDownload;
+window.editDownload = editDownload;
+window.openCreateDownloadModal = openCreateDownloadModal;
+window.closeCreateDownloadModal = closeCreateDownloadModal;
+
+// دوال الكوبونات
+window.loadCoupons = loadCoupons;
+window.updateActiveCoupons = updateActiveCoupons;
+window.openCreateCouponModal = openCreateCouponModal;
+window.closeCreateCouponModal = closeCreateCouponModal;
+window.saveCoupon = saveCoupon;
+window.deleteCoupon = deleteCoupon;
+window.editCoupon = editCoupon;
+window.renderAdminCoupons = renderAdminCoupons;
+window.applyPopupCoupon = applyPopupCoupon;
+
+// دوال السلايدر والماركي
+window.goToSlide = goToSlide;
+window.nextSlide = nextSlide;
+window.prevSlide = prevSlide;
+window.pauseSlider = pauseSlider;
+window.resumeSlider = resumeSlider;
+window.saveSliderData = saveSliderData;
+window.saveSliderInterval = saveSliderInterval;
+window.saveSlideEdit = saveSlideEdit;
+window.deleteSlide = deleteSlide;
+window.editSlide = editSlide;
+window.openAddSlideModal = openAddSlideModal;
+window.closeAddSlideModal = closeAddSlideModal;
+window.updateSlideProductSelect = updateSlideProductSelect;
+window.toggleSlideLinkFields = toggleSlideLinkFields;
+window.loadSliderSettings = loadSliderSettings;
+window.renderSlider = renderSlider;
+window.startSliderRotation = startSliderRotation;
+window.resetSliderTimer = resetSliderTimer;
+window.renderSliderSettingsUI = renderSliderSettingsUI;
+window.saveMarqueeSettings = saveMarqueeSettings;
+window.applyMarqueeSettings = applyMarqueeSettings;
+window.renderMarqueeSettingsUI = renderMarqueeSettingsUI;
+window.loadMarqueeSettings = loadMarqueeSettings;
+window.renderProfileFull = renderProfileFull;
+window.saveProfileChangesInline = saveProfileChangesInline;
+window.togglePasswordVisibility = togglePasswordVisibility;
+window.sendResetLinkInline = sendResetLinkInline;
+window.changePasswordInline = changePasswordInline;
+
+// دوال التقييمات
+window.loadRatings = loadRatings;
+window.hasUserPurchasedProduct = hasUserPurchasedProduct;
+window.submitRating = submitRating;
+window.renderStarHTML = renderStarHTML;
+window.setRating = setRating;
+window.renderRatingSection = renderRatingSection;
+window.updateProductRatingDisplay = updateProductRatingDisplay;
+
+// دوال البوب أب
+window.initPopups = initPopups;
+window.showExitPopup = showExitPopup;
+window.showOfferPopup = showOfferPopup;
+window.closePopup = closePopup;
+window.subscribeAndApply = subscribeAndApply;
+
+// دوال المنتجات الاحتياطية (Fallback)
+window.renderFallbackProductsAdmin = renderFallbackProductsAdmin;
+window.editFallbackProduct = editFallbackProduct;
+window.openAddFallbackProductModal = openAddFallbackProductModal;
+window.closeFallbackProductModal = closeFallbackProductModal;
+window.saveFallbackProduct = saveFallbackProduct;
+window.deleteFallbackProduct = deleteFallbackProduct;
+
+// دوال التتبع وكشف الاحتيال
+window.trackUserBehavior = trackUserBehavior;
+window.updateUserPreferences = updateUserPreferences;
+window.getRecommendations = getRecommendations;
+window.getDefaultRecommendations = getDefaultRecommendations;
+window.detectFraud = detectFraud;
+window.logFraudDetection = logFraudDetection;
+
+// دوال توليد الفواتير والتصدير
+window.generateInvoice = generateInvoice;
+window.exportOrders = exportOrders;
+
+// دوال العلامة التجارية والثيم
+window.loadBranding = loadBranding;
+window.saveBranding = saveBranding;
+window.applyBranding = applyBranding;
+window.loadBrandingSettings = loadBrandingSettings;
+window.saveBrandingSettings = saveBrandingSettings;
+window.resetBranding = resetBranding;
+
+// دوال معلومات الزائر والجهاز
+window.getVisitorInfo = getVisitorInfo;
+window.getDeviceInfo = getDeviceInfo;
+window.logActivity = logActivity;
+
+// دوال خاصة بالتراخيص
+window.generateLicenceForUser = generateLicenceForUser;
+window.sendLicenceEmail = sendLicenceEmail;
+
+// دوال الشبكة (أوفلاين)
+window.showOfflineToast = showOfflineToast;
+window.showOnlineToast = showOnlineToast;
+window.initNetworkMonitor = initNetworkMonitor;
+window.pauseOnlineOperations = pauseOnlineOperations;
+window.resumeOnlineOperations = resumeOnlineOperations;
+window.addOfflineStyles = addOfflineStyles;
+
+// دوال الإعدادات العامة
+window.loadUserSettings = loadUserSettings;
+window.saveUserSettings = saveUserSettings;
+window.toggleSetting = toggleSetting;
+window.handleSettingChange = handleSettingChange;
+window.renderSettingsUI = renderSettingsUI;
+
+// دوال متنوعة
+window.removeDuplicateDate = removeDuplicateDate;
+window.styleHeaderTopup = styleHeaderTopup;
+window.updateServerTime = updateServerTime;
+window.fetchUserInfo = fetchUserInfo;
+window.getCountryFlag = getCountryFlag;
+window.initTopInfoBar = initTopInfoBar;
+window.updateDropdownStats = updateDropdownStats;
+window.updateRpDisplay = updateRpDisplay;
+window.updateUI = updateUI;
+window.updateFullUserMenu = updateFullUserMenu;
+window.showTelegramBanner = showTelegramBanner;
+window.closeTelegramBanner = closeTelegramBanner;
+window.showTelegramBannerAgain = showTelegramBannerAgain;
+window.addBannerAdminControls = addBannerAdminControls;
+window.adminToggleBanner = adminToggleBanner;
+window.resetBannerForAll = resetBannerForAll;
+window.uploadToCloudinary = uploadToCloudinary;
+window.fixDirection = fixDirection;
+window.fallbackCopyText = fallbackCopyText;
+window.checkCookieConsent = checkCookieConsent;
+window.acceptCookies = acceptCookies;
+window.rejectCookies = rejectCookies;
+window.openCookieSettings = openCookieSettings;
+window.closeCookieSettings = closeCookieSettings;
+window.saveCookieSettings = saveCookieSettings;
+window.enableAnalytics = enableAnalytics;
+window.disableAnalytics = disableAnalytics;
+window.closeCookieBanner = closeCookieBanner;
+window.toggleChatbot = toggleChatbot;
+window.sendChatMessage = sendChatMessage;
+window.clearOrderHistory = clearOrderHistory;
+window.renderHistoryFull = renderHistoryFull;
+window.toggleLicencesList = toggleLicencesList;
+window.selectCurrency = selectCurrency;
+window.selectProductType = selectProductType;
+window.addQuantityOption = addQuantityOption;
+window.removeQuantityOption = removeQuantityOption;
+window.setQuantityOptions = setQuantityOptions;
+window.toggleBadge = toggleBadge;
+window.updateBadgesInput = updateBadgesInput;
+window.setBadges = setBadges;
+
+console.log('✅ All functions exported to window – COMPLETE');
