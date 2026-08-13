@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GameGuardian Script Builder - AES-256 Protected</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <title>GameGuardian Field-Name Script Builder with RC4</title>
     <style>
         :root {
             --bg-color: #0b0f19;
@@ -117,8 +116,9 @@
 <body>
 
 <div class="main-layout">
+    <!-- Control Panel -->
     <div class="control-panel">
-        <h1>🛠️ Field-Name Script Builder (AES-256)</h1>
+        <h1>🛠️ Field-Name Script Builder (RC4 Protected)</h1>
         
         <div class="form-group">
             <label>Script Title:</label>
@@ -127,52 +127,48 @@
 
         <div class="form-group checkbox-group">
             <input type="checkbox" id="includeSpeedhack" checked onchange="updateLivePreview()">
-            <label for="includeSpeedhack">Include Speed Hack</label>
+            <label for="includeSpeedhack" style="margin-bottom:0;">Include Speed Hack (with slider)</label>
         </div>
 
         <hr style="border-color: var(--border); margin: 20px 0;">
 
         <h2>📋 Cheat List (Field-Name Method)</h2>
         <div id="cheatsContainer"></div>
+
         <button class="btn btn-secondary" onclick="addCheat()">➕ Add New Cheat</button>
 
         <hr style="border-color: var(--border); margin: 20px 0;">
 
-        <h2>🔒 AES-256 Protection</h2>
+        <!-- RC4 Protection -->
+        <h2>🔒 RC4 Script Protection</h2>
         <div class="checkbox-group">
-            <input type="checkbox" id="enableAES" onchange="updateLivePreview()">
-            <label for="enableAES">Encrypt output with AES-256</label>
+            <input type="checkbox" id="enableRC4" onchange="updateLivePreview()">
+            <label for="enableRC4" style="margin-bottom:0;">Encrypt output with RC4</label>
         </div>
         <div class="form-group">
-            <label>Base Key (hidden in loader):</label>
-            <input type="text" id="baseKey" value="MySecretBaseKey2024" onchange="updateLivePreview()">
-        </div>
-        <div class="form-group">
-            <label>Package Name (anti-piracy check):</label>
-            <input type="text" id="packageName" value="com.example.game" onchange="updateLivePreview()">
-        </div>
-        <div class="form-group">
-            <label>Number of chunks (1-10):</label>
-            <input type="number" id="chunkCount" value="3" min="1" max="10" onchange="updateLivePreview()">
+            <label>Encryption Key (any text):</label>
+            <input type="text" id="rc4Key" value="MySecretKey123" onchange="updateLivePreview()">
+            <button class="btn btn-secondary" onclick="generateRandomKey()">🎲 Generate Random Key</button>
         </div>
 
         <br>
         <button class="btn" onclick="generateAndDownload()">🚀 Build & Download Script</button>
     </div>
 
+    <!-- Output Panel -->
     <div class="output-panel-container">
-        <div class="terminal-header">[OUTPUT PANEL - LIVE PREVIEW]</div>
+        <div class="terminal-header">[OUTPUT PANEL - LIVE PREVIEW & LOGS]</div>
         <div id="terminalOutput" class="terminal">
-            AES Engine | Generator Ready...
+            RC4 Engine | Generator Ready...
             Waiting for configuration...
         </div>
-        <button class="btn btn-secondary" style="margin-top: 10px;" onclick="updateLivePreview()">🔄 Refresh Preview</button>
+        <button class="btn btn-secondary" style="margin-top: 10px;" onclick="updateLivePreview()">🔄 Refresh Live Preview</button>
     </div>
 </div>
 
 <script>
     window.onload = function() {
-        addCheat(); // add one default cheat box
+        addCheat();
     };
 
     function addCheat() {
@@ -223,7 +219,7 @@
         updateLivePreview();
     }
 
-    // ---------- Build the plain Lua script (unchanged) ----------
+    // ---------- Build the plain Lua script ----------
     function buildPlainLua() {
         const title = document.getElementById('scriptTitle').value;
         const includeSpeed = document.getElementById('includeSpeedhack').checked;
@@ -557,365 +553,97 @@ function main()
         return lua;
     }
 
-    // ---------- AES Encryption in Browser ----------
-    function aesEncryptChunk(plainText, keyHex) {
-        const key = CryptoJS.enc.Hex.parse(keyHex);
-        const iv = CryptoJS.lib.WordArray.random(16);
-        const encrypted = CryptoJS.AES.encrypt(plainText, key, {
-            iv: iv,
-            mode: CryptoJS.mode.CBC,
-            padding: CryptoJS.pad.Pkcs7
-        });
-        return iv.toString(CryptoJS.enc.Hex) + encrypted.ciphertext.toString(CryptoJS.enc.Hex);
-    }
-
-    function deriveKeyJS(baseKey, chunkIndex) {
+    // ---------- RC4 Implementation (JavaScript) ----------
+    function rc4Encrypt(plainText, key) {
+        // Convert key string to bytes
         let keyBytes = [];
-        let baseBytes = [];
-        for (let i = 0; i < baseKey.length; i++) {
-            baseBytes.push(baseKey.charCodeAt(i) & 0xFF);
+        for (let i = 0; i < key.length; i++) {
+            keyBytes.push(key.charCodeAt(i) & 0xFF);
         }
-        for (let i = 0; i < 32; i++) {
-            let b = baseBytes[i % baseBytes.length] ^ ((chunkIndex * 7 + i * 13) & 0xFF);
-            keyBytes.push(b);
+        let s = [];
+        for (let i = 0; i < 256; i++) s[i] = i;
+        let j = 0;
+        for (let i = 0; i < 256; i++) {
+            j = (j + s[i] + keyBytes[i % keyBytes.length]) % 256;
+            [s[i], s[j]] = [s[j], s[i]];
         }
-        return keyBytes.map(b => b.toString(16).padStart(2, '0')).join('');
+        let i = 0;
+        j = 0;
+        let cipher = [];
+        for (let k = 0; k < plainText.length; k++) {
+            i = (i + 1) % 256;
+            j = (j + s[i]) % 256;
+            [s[i], s[j]] = [s[j], s[i]];
+            let t = (s[i] + s[j]) % 256;
+            let byte = plainText.charCodeAt(k) & 0xFF;
+            cipher.push(byte ^ s[t]);
+        }
+        // Convert to hex string
+        return cipher.map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
-    function buildEncryptedChunks(plain, baseKey, chunkCount) {
-        let chunks = [];
-        let chunkSize = Math.ceil(plain.length / chunkCount);
-        for (let i = 0; i < chunkCount; i++) {
-            let part = plain.substr(i * chunkSize, chunkSize);
-            if (part === '') continue;
-            let keyHex = deriveKeyJS(baseKey, i + 1);
-            let encHex = aesEncryptChunk(part, keyHex);
-            chunks.push(encHex);
+    function buildRC4Loader(hexPayload, keyString) {
+        // Hide key by splitting into numbers and XORing with constant
+        let keyBytes = [];
+        for (let i = 0; i < keyString.length; i++) {
+            keyBytes.push(keyString.charCodeAt(i) & 0xFF);
         }
-        return chunks;
-    }
-
-    // ---------- Build Obfuscated Loader ----------
-    function buildObfuscatedLoader(chunks, baseKey, packageName) {
-        // Hide base key
-        let hiddenBase = [];
-        for (let i = 0; i < baseKey.length; i++) {
-            hiddenBase.push(baseKey.charCodeAt(i) ^ 0x3C);
-        }
-
-        let chunksLua = '';
-        chunks.forEach((chunk, idx) => {
-            chunksLua += `  [${idx+1}] = "${chunk}",\n`;
-        });
-
-        // Return the full loader with AES decryption embedded
-        return `-- Obfuscated Loader (AES-256-CBC)
-local _pkg = gg.getTargetInfo()
-if not _pkg or not _pkg.packageName then gg.alert("Error: No game selected") os.exit() end
-if _pkg.packageName ~= "${packageName}" then gg.alert("Wrong game package") os.exit() end
-
--- Reconstruct base key
-local _hb = { ${hiddenBase.join(',')} }
-local _base = ""
-for _i=1, #_hb do
-    _base = _base .. string.char(_hb[_i] ~ 0x3C)
+        // XOR each byte with 0xAA, then store as decimal numbers
+        let hiddenKey = keyBytes.map(b => (b ^ 0xAA).toString(10)).join(',');
+        
+        return `-- RC4 Protected Script Loader
+local hiddenKey = {${hiddenKey}}
+local key = ""
+for i = 1, #hiddenKey do
+    key = key .. string.char(hiddenKey[i] ~ 0xAA)
 end
 
--- Key derivation (must match JS function)
-local function _dk(_bi, _ci)
-    local _k = ""
-    for _i=0, 31 do
-        local _bb = _bi:byte(_i % #_bi + 1)
-        _bb = _bb ~ ((_ci * 7 + _i * 13) & 0xFF)
-        _k = _k .. string.char(_bb)
+local payload = "${hexPayload}"
+local function rc4(key, data)
+    local s = {}
+    for i = 0, 255 do s[i] = i end
+    local j = 0
+    for i = 0, 255 do
+        j = (j + s[i] + key:byte(i % #key + 1)) % 256
+        s[i], s[j] = s[j], s[i]
     end
-    return _k
+    local i, j = 0, 0
+    local out = {}
+    for k = 1, #data, 2 do
+        i = (i + 1) % 256
+        j = (j + s[i]) % 256
+        s[i], s[j] = s[j], s[i]
+        local t = (s[i] + s[j]) % 256
+        local byte = tonumber(data:sub(k, k+1), 16)
+        out[#out+1] = string.char(byte ~ s[t])
+    end
+    return table.concat(out)
 end
-
--- ============================================================
--- AES-256-CBC Decryption (pure Lua, PKCS7 padding)
--- ============================================================
-local function _aes_decrypt(key, data_hex)
-    local function _hex_to_bytes(hex)
-        local bytes = {}
-        for i = 1, #hex, 2 do
-            bytes[#bytes+1] = tonumber(hex:sub(i, i+1), 16)
-        end
-        return bytes
-    end
-
-    local _unpack = table.unpack or unpack
-    local function _bytes_to_string(bytes)
-        return string.char(_unpack(bytes))
-    end
-
-    local function _xor_bytes(a, b)
-        local res = {}
-        for i = 1, #a do
-            res[i] = a[i] ~ b[i]
-        end
-        return res
-    end
-
-    -- Bitwise helpers (use bit or bit32 if available)
-    local _band, _bxor, _rshift, _lshift
-    if bit then
-        _band, _bxor, _rshift, _lshift = bit.band, bit.bxor, bit.rshift, bit.lshift
-    elseif bit32 then
-        _band, _bxor, _rshift, _lshift = bit32.band, bit32.bxor, bit32.rshift, bit32.lshift
-    else
-        function _band(a, b)
-            local res = 0
-            local bitval = 1
-            while a > 0 and b > 0 do
-                if a % 2 == 1 and b % 2 == 1 then res = res + bitval end
-                bitval = bitval * 2
-                a = math.floor(a / 2)
-                b = math.floor(b / 2)
-            end
-            return res
-        end
-        function _bxor(a, b)
-            local res = 0
-            local bitval = 1
-            while a > 0 or b > 0 do
-                local abit = a % 2
-                local bbit = b % 2
-                if abit ~= bbit then res = res + bitval end
-                bitval = bitval * 2
-                a = math.floor(a / 2)
-                b = math.floor(b / 2)
-            end
-            return res
-        end
-        function _rshift(a, n)
-            return math.floor(a / (2^n))
-        end
-        function _lshift(a, n)
-            return a * (2^n)
-        end
-    end
-
-    -- AES S-box
-    local _sbox = {
-        0x63,0x7c,0x77,0x7b,0xf2,0x6b,0x6f,0xc5,0x30,0x01,0x67,0x2b,0xfe,0xd7,0xab,0x76,
-        0xca,0x82,0xc9,0x7d,0xfa,0x59,0x47,0xf0,0xad,0xd4,0xa2,0xaf,0x9c,0xa4,0x72,0xc0,
-        0xb7,0xfd,0x93,0x26,0x36,0x3f,0xf7,0xcc,0x34,0xa5,0xe5,0xf1,0x71,0xd8,0x31,0x15,
-        0x04,0xc7,0x23,0xc3,0x18,0x96,0x05,0x9a,0x07,0x12,0x80,0xe2,0xeb,0x27,0xb2,0x75,
-        0x09,0x83,0x2c,0x1a,0x1b,0x6e,0x5a,0xa0,0x52,0x3b,0xd6,0xb3,0x29,0xe3,0x2f,0x84,
-        0x53,0xd1,0x00,0xed,0x20,0xfc,0xb1,0x5b,0x6a,0xcb,0xbe,0x39,0x4a,0x4c,0x58,0xcf,
-        0xd0,0xef,0xaa,0xfb,0x43,0x4d,0x33,0x85,0x45,0xf9,0x02,0x7f,0x50,0x3c,0x9f,0xa8,
-        0x51,0xa3,0x40,0x8f,0x92,0x9d,0x38,0xf5,0xbc,0xb6,0xda,0x21,0x10,0xff,0xf3,0xd2,
-        0xcd,0x0c,0x13,0xec,0x5f,0x97,0x44,0x17,0xc4,0xa7,0x7e,0x3d,0x64,0x5d,0x19,0x73,
-        0x60,0x81,0x4f,0xdc,0x22,0x2a,0x90,0x88,0x46,0xee,0xb8,0x14,0xde,0x5e,0x0b,0xdb,
-        0xe0,0x32,0x3a,0x0a,0x49,0x06,0x24,0x5c,0xc2,0xd3,0xac,0x62,0x91,0x95,0xe4,0x79,
-        0xe7,0xc8,0x37,0x6d,0x8d,0xd5,0x4e,0xa9,0x6c,0x56,0xf4,0xea,0x65,0x7a,0xae,0x08,
-        0xba,0x78,0x25,0x2e,0x1c,0xa6,0xb4,0xc6,0xe8,0xdd,0x74,0x1f,0x4b,0xbd,0x8b,0x8a,
-        0x70,0x3e,0xb5,0x66,0x48,0x03,0xf6,0x0e,0x61,0x35,0x57,0xb9,0x86,0xc1,0x1d,0x9e,
-        0xe1,0xf8,0x98,0x11,0x69,0xd9,0x8e,0x94,0x9b,0x1e,0x87,0xe9,0xce,0x55,0x28,0xdf,
-        0x8c,0xa1,0x89,0x0d,0xbf,0xe6,0x42,0x68,0x41,0x99,0x2d,0x0f,0xb0,0x54,0xbb,0x16
-    }
-
-    -- Key expansion
-    local function _key_expansion(key)
-        local Nb, Nk, Nr = 4, 8, 14
-        local w = {}
-        for i = 0, Nk - 1 do
-            w[i] = {
-                key:byte(i*4+1),
-                key:byte(i*4+2),
-                key:byte(i*4+3),
-                key:byte(i*4+4)
-            }
-        end
-        local function _rot_word(word)
-            return {word[2], word[3], word[4], word[1]}
-        end
-        local function _sub_word(word)
-            return {_sbox[word[1]+1], _sbox[word[2]+1], _sbox[word[3]+1], _sbox[word[4]+1]}
-        end
-        local Rcon = {0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x1B,0x36}
-        for i = Nk, (Nb * (Nr + 1)) - 1 do
-            local temp = {w[i-1][1], w[i-1][2], w[i-1][3], w[i-1][4]}
-            if i % Nk == 0 then
-                temp = _sub_word(_rot_word(temp))
-                temp[1] = _bxor(temp[1], Rcon[math.floor(i / Nk)])
-            elseif Nk > 6 and i % Nk == 4 then
-                temp = _sub_word(temp)
-            end
-            for j = 1, 4 do
-                w[i][j] = _bxor(w[i - Nk][j], temp[j])
-            end
-        end
-        return w
-    end
-
-    -- State operations
-    local function _add_round_key(state, w, round)
-        for i = 1, 4 do
-            for j = 1, 4 do
-                state[i][j] = _bxor(state[i][j], w[round*4 + (i-1)][j])
-            end
-        end
-    end
-
-    local function _inv_shift_rows(state)
-        local temp = state[1][2]
-        state[1][2] = state[4][2]
-        state[4][2] = state[3][2]
-        state[3][2] = state[2][2]
-        state[2][2] = temp
-        temp = state[1][3]
-        state[1][3] = state[3][3]
-        state[3][3] = temp
-        temp = state[2][3]
-        state[2][3] = state[4][3]
-        state[4][3] = temp
-        temp = state[1][4]
-        state[1][4] = state[2][4]
-        state[2][4] = state[3][4]
-        state[3][4] = state[4][4]
-        state[4][4] = temp
-    end
-
-    local _inv_sbox = {}
-    for i = 0, 255 do _inv_sbox[_sbox[i+1]] = i end
-
-    local function _inv_sub_bytes(state)
-        for i = 1, 4 do
-            for j = 1, 4 do
-                state[i][j] = _inv_sbox[state[i][j]]
-            end
-        end
-    end
-
-    local function _xtime(a)
-        if a < 0x80 then return a * 2 else return _bxor(a * 2, 0x11b) end
-    end
-
-    local function _multiply(a, b)
-        local res = 0
-        while b > 0 do
-            if _band(b, 1) ~= 0 then res = _bxor(res, a) end
-            a = _xtime(a)
-            b = _rshift(b, 1)
-        end
-        return res
-    end
-
-    local function _inv_mix_columns(state)
-        for i = 1, 4 do
-            local a0, a1, a2, a3 = state[i][1], state[i][2], state[i][3], state[i][4]
-            state[i][1] = _bxor(_multiply(a0, 14), _multiply(a1, 11), _multiply(a2, 13), _multiply(a3, 9))
-            state[i][2] = _bxor(_multiply(a0, 9), _multiply(a1, 14), _multiply(a2, 11), _multiply(a3, 13))
-            state[i][3] = _bxor(_multiply(a0, 13), _multiply(a1, 9), _multiply(a2, 14), _multiply(a3, 11))
-            state[i][4] = _bxor(_multiply(a0, 11), _multiply(a1, 13), _multiply(a2, 9), _multiply(a3, 14))
-        end
-    end
-
-    local function _inv_cipher(state, w)
-        _add_round_key(state, w, 14)
-        for round = 13, 1, -1 do
-            _inv_shift_rows(state)
-            _inv_sub_bytes(state)
-            _add_round_key(state, w, round)
-            _inv_mix_columns(state)
-        end
-        _inv_shift_rows(state)
-        _inv_sub_bytes(state)
-        _add_round_key(state, w, 0)
-        return state
-    end
-
-    local function _decrypt_block(block, w)
-        local state = {}
-        for i = 1, 4 do
-            state[i] = {block[(i-1)*4+1], block[(i-1)*4+2], block[(i-1)*4+3], block[(i-1)*4+4]}
-        end
-        state = _inv_cipher(state, w)
-        local out = {}
-        for i = 1, 4 do
-            out[(i-1)*4+1] = state[i][1]
-            out[(i-1)*4+2] = state[i][2]
-            out[(i-1)*4+3] = state[i][3]
-            out[(i-1)*4+4] = state[i][4]
-        end
-        return out
-    end
-
-    -- Main decryption
-    local bytes = _hex_to_bytes(data_hex)
-    if #bytes < 16 then return "" end
-
-    local iv = {}
-    for i = 1, 16 do iv[i] = bytes[i] end
-
-    local ciphertext = {}
-    for i = 17, #bytes do ciphertext[#ciphertext+1] = bytes[i] end
-
-    local w = _key_expansion(key)
-    local plaintext_bytes = {}
-    local prev = iv
-
-    for i = 1, #ciphertext, 16 do
-        local block = {}
-        for j = 1, 16 do block[j] = ciphertext[i+j-1] end
-        local decrypted = _decrypt_block(block, w)
-        local plain_block = _xor_bytes(decrypted, prev)
-        for j = 1, 16 do plaintext_bytes[#plaintext_bytes+1] = plain_block[j] end
-        prev = block
-    end
-
-    -- Remove PKCS7 padding
-    local last = plaintext_bytes[#plaintext_bytes]
-    if last >= 1 and last <= 16 then
-        local valid = true
-        for i = 1, last do
-            if plaintext_bytes[#plaintext_bytes - i + 1] ~= last then
-                valid = false
-                break
-            end
-        end
-        if valid then
-            for i = 1, last do table.remove(plaintext_bytes) end
-        end
-    end
-
-    return _bytes_to_string(plaintext_bytes)
-end
-
--- ============================================================
--- Encrypted chunks
--- ============================================================
-local _chunks = {
-${chunksLua}
-}
-
--- Decrypt and assemble
-local _full = ""
-for _ci = 1, #_chunks do
-    local _key = _dk(_base, _ci)
-    local _dec = _aes_decrypt(_key, _chunks[_ci])
-    _full = _full .. _dec
-end
-
--- Execute recovered script
-local _loader = loadstring or load
-_loader(_full)()
+local code = rc4(key, payload)
+local f = loadstring or load
+f(code)()
 `;
     }
 
     function buildFinalLua() {
         const plain = buildPlainLua();
-        const enableAES = document.getElementById('enableAES').checked;
-        if (!enableAES) return plain;
+        const enableRC4 = document.getElementById('enableRC4').checked;
+        if (!enableRC4) {
+            return plain;
+        }
+        const key = document.getElementById('rc4Key').value || "DefaultKey";
+        const hexPayload = rc4Encrypt(plain, key);
+        return buildRC4Loader(hexPayload, key);
+    }
 
-        const baseKey = document.getElementById('baseKey').value || "MySecretBaseKey2024";
-        const packageName = document.getElementById('packageName').value || "com.example.game";
-        const chunkCount = parseInt(document.getElementById('chunkCount').value) || 1;
-
-        const chunks = buildEncryptedChunks(plain, baseKey, chunkCount);
-        return buildObfuscatedLoader(chunks, baseKey, packageName);
+    function generateRandomKey() {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+';
+        let key = '';
+        for (let i = 0; i < 16; i++) {
+            key += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        document.getElementById('rc4Key').value = key;
+        updateLivePreview();
     }
 
     function updateLivePreview() {
@@ -926,17 +654,23 @@ _loader(_full)()
 
     function generateAndDownload() {
         const terminal = document.getElementById('terminalOutput');
-        terminal.innerText = "[*] Initializing AES engine...\n";
-        setTimeout(() => { terminal.innerText += "[*] Splitting payload and encrypting chunks...\n"; }, 400);
+        terminal.innerText = "[*] Initializing RC4 engine...\n[*] Parsing cheat definitions...\n[*] Encrypting payload with RC4...\n[*] Building loader stub...\n";
+        
         setTimeout(() => {
-            terminal.innerText += "[*] Building obfuscated loader...\n";
+            terminal.innerText += "[*] Verifying integrity...\n";
+        }, 400);
+
+        setTimeout(() => {
+            terminal.innerText += "[*] Finalizing script...\n";
             const code = buildFinalLua();
+            
             setTimeout(() => {
-                terminal.innerText += "[+] Success! Encrypted script generated.\n";
+                terminal.innerText += "[+] Success! Encrypted script generated.\n[+] Download started automatically.";
+                
                 const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
-                link.download = 'AES_Protected_Script.lua';
+                link.download = 'RC4_Protected_Script.lua';
                 link.click();
             }, 600);
         }, 800);
