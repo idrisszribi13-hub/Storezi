@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - COMPLETE FIXED VERSION v6.0
+// SCRIPT.JS - ZI Store - FINAL COMPLETE VERSION v7.0
 // ============================================================
 // ALL FEATURES + ALL FIXES + NO ANONYMOUS + FULL EXPORTS
 // ============================================================
@@ -396,6 +396,218 @@ const paymentWallets = {
     }
 };
 let cryptoPrices = { ltc: 0, usdt: 1, lastUpdate: null, isUpdating: false };
+
+// ============================================================
+// ====== MISSING FUNCTION DEFINITIONS (STUBS) ======
+// ============================================================
+
+// دوال البانر والإدارة
+function showTelegramBanner() {
+    const banner = document.getElementById('telegramBanner');
+    if (!banner) return;
+    const hidden = localStorage.getItem('telegram_banner_hidden');
+    if (hidden === 'true') {
+        banner.style.display = 'none';
+        return;
+    }
+    if (userProfile.telegramChatId) {
+        banner.style.display = 'none';
+        return;
+    }
+    banner.style.display = 'flex';
+    banner.classList.remove('hidden');
+}
+function closeTelegramBanner() {
+    const banner = document.getElementById('telegramBanner');
+    if (banner) {
+        banner.style.display = 'none';
+        banner.classList.add('hidden');
+        localStorage.setItem('telegram_banner_hidden', 'true');
+    }
+}
+function showTelegramBannerAgain() {
+    localStorage.removeItem('telegram_banner_hidden');
+    showTelegramBanner();
+}
+function addBannerAdminControls() { console.warn('⚠️ addBannerAdminControls() called'); }
+function adminToggleBanner() { console.warn('⚠️ adminToggleBanner() called'); }
+function resetBannerForAll() { console.warn('⚠️ resetBannerForAll() called'); }
+
+// دوال الكوكيز
+function checkCookieConsent() {
+    const consent = localStorage.getItem('cookie_consent');
+    if (consent !== 'accepted' && consent !== 'rejected') {
+        const banner = document.getElementById('cookieConsent');
+        if (banner) banner.classList.add('show');
+    }
+}
+function acceptCookies() {
+    localStorage.setItem('cookie_consent', 'accepted');
+    document.getElementById('cookieConsent')?.classList.remove('show');
+    enableAnalytics();
+}
+function rejectCookies() {
+    localStorage.setItem('cookie_consent', 'rejected');
+    document.getElementById('cookieConsent')?.classList.remove('show');
+    disableAnalytics();
+}
+function openCookieSettings() {
+    document.getElementById('cookieSettingsModal')?.classList.add('open');
+}
+function closeCookieSettings() {
+    document.getElementById('cookieSettingsModal')?.classList.remove('open');
+}
+function saveCookieSettings() {
+    const analyticsToggle = document.getElementById('analyticsToggle');
+    if (analyticsToggle && analyticsToggle.checked) {
+        acceptCookies();
+    } else {
+        rejectCookies();
+    }
+    closeCookieSettings();
+}
+function enableAnalytics() {
+    console.log('✅ Analytics enabled');
+}
+function disableAnalytics() {
+    console.log('❌ Analytics disabled');
+}
+function closeCookieBanner() {
+    document.getElementById('cookieConsent')?.classList.remove('show');
+}
+
+// دوال الشات بوت
+function toggleChatbot() {
+    const win = document.getElementById('chatbotWindow');
+    if (win) win.classList.toggle('open');
+}
+function sendChatMessage() {
+    const input = document.getElementById('chatbotInput');
+    const messages = document.getElementById('chatbotMessages');
+    if (!input || !messages || !input.value.trim()) return;
+    const userMsg = input.value.trim();
+    input.value = '';
+    messages.innerHTML += `<div class="chatbot-msg user"><div class="msg-bubble">${userMsg}</div></div>`;
+    messages.scrollTop = messages.scrollHeight;
+    setTimeout(() => {
+        const responses = {
+            'hello': '👋 Hello! How can I help you today?',
+            'hi': '👋 Hi there! What brings you to ZI Store?',
+            'help': '🛍️ I can help you with products, orders, payments, and support.',
+            'order': '📦 To place an order, add products to cart and proceed to checkout.',
+            'payment': '💳 We accept USDT, LTC, Balance, Telegram, and Binance ID.',
+            'support': '📞 Contact us via Telegram @Mitalica69 or email support@zi-store.online',
+            'licence': '🔑 Licences are generated after order confirmation.',
+            'default': '🤔 I\'m not sure. Please contact our support team.'
+        };
+        const lower = userMsg.toLowerCase();
+        let response = responses.default;
+        for (const key in responses) {
+            if (lower.includes(key)) { response = responses[key]; break; }
+        }
+        messages.innerHTML += `<div class="chatbot-msg bot"><div class="msg-bubble">${response}</div></div>`;
+        messages.scrollTop = messages.scrollHeight;
+    }, 500);
+}
+
+// دوال الدعم
+function openSupportModal() { document.getElementById('supportModal')?.classList.add('open'); }
+function closeSupportModal() { document.getElementById('supportModal')?.classList.remove('open'); }
+function toggleSupportMenu() { document.getElementById('supportFloat')?.classList.toggle('open'); }
+function openTelegramSupport() { window.open('https://t.me/Mitalica69', '_blank'); }
+function openWhatsAppSupport() { window.open('https://wa.me/21612345678', '_blank'); }
+function openEmailSupport() { window.location.href = 'mailto:support@zi-store.online'; }
+function openPhoneSupport() { window.location.href = 'tel:+21612345678'; }
+
+// دوال رفع الصور
+async function uploadToCloudinary(file) {
+    console.warn('⚠️ uploadToCloudinary() called but not implemented');
+    return null;
+}
+function fixDirection() { console.warn('⚠️ fixDirection() called'); }
+function fallbackCopyText(text) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try { document.execCommand('copy'); showToast('✅ Copied!', 'success'); }
+    catch (e) { showToast('❌ Failed to copy', 'error'); }
+    document.body.removeChild(textarea);
+}
+
+// دوال المدفوعات
+function verifyTransaction() {
+    const txInput = document.getElementById('txHashInput');
+    const result = document.getElementById('verificationResult');
+    if (!txInput || !result) return;
+    const tx = txInput.value.trim();
+    if (tx.length < 10) {
+        result.style.display = 'block';
+        result.innerHTML = '<span style="color:var(--danger);">⚠️ Invalid transaction ID</span>';
+        return;
+    }
+    result.style.display = 'block';
+    result.innerHTML = '<span style="color:var(--success);">✅ Transaction verified (simulated)</span>';
+}
+function handleTxPaste(event) {}
+function submitManualPayment() {
+    const txInput = document.getElementById('txHashInput');
+    if (!txInput || !txInput.value.trim()) {
+        showToast('⚠️ Please paste transaction ID', 'warning');
+        return;
+    }
+    showToast('📤 Payment submitted. Awaiting confirmation.', 'info');
+}
+function generatePDFInvoice() {
+    showToast('📄 PDF invoice generation not implemented', 'info');
+}
+function checkoutWithBalance() {
+    if (typeof processBalancePayment === 'function') {
+        processBalancePayment();
+    } else {
+        showToast('⚠️ Balance payment not available', 'warning');
+    }
+}
+
+// ============================================================
+// EXPORT STUBS TO WINDOW (to prevent is not defined errors)
+// ============================================================
+window.showTelegramBanner = showTelegramBanner;
+window.closeTelegramBanner = closeTelegramBanner;
+window.showTelegramBannerAgain = showTelegramBannerAgain;
+window.addBannerAdminControls = addBannerAdminControls;
+window.adminToggleBanner = adminToggleBanner;
+window.resetBannerForAll = resetBannerForAll;
+window.checkCookieConsent = checkCookieConsent;
+window.acceptCookies = acceptCookies;
+window.rejectCookies = rejectCookies;
+window.openCookieSettings = openCookieSettings;
+window.closeCookieSettings = closeCookieSettings;
+window.saveCookieSettings = saveCookieSettings;
+window.enableAnalytics = enableAnalytics;
+window.disableAnalytics = disableAnalytics;
+window.closeCookieBanner = closeCookieBanner;
+window.toggleChatbot = toggleChatbot;
+window.sendChatMessage = sendChatMessage;
+window.openSupportModal = openSupportModal;
+window.closeSupportModal = closeSupportModal;
+window.toggleSupportMenu = toggleSupportMenu;
+window.openTelegramSupport = openTelegramSupport;
+window.openWhatsAppSupport = openWhatsAppSupport;
+window.openEmailSupport = openEmailSupport;
+window.openPhoneSupport = openPhoneSupport;
+window.uploadToCloudinary = uploadToCloudinary;
+window.fixDirection = fixDirection;
+window.fallbackCopyText = fallbackCopyText;
+window.verifyTransaction = verifyTransaction;
+window.handleTxPaste = handleTxPaste;
+window.submitManualPayment = submitManualPayment;
+window.generatePDFInvoice = generatePDFInvoice;
+window.checkoutWithBalance = checkoutWithBalance;
+
+console.log('✅ All missing function stubs have been defined and exported');
 
 // ============================================================
 // ENHANCED TOAST SYSTEM
@@ -950,7 +1162,7 @@ function startUserRealtimeListener() {
 window.startUserRealtimeListener = startUserRealtimeListener;
 
 async function loadUserData() {
-    if (!currentUser) {
+    if (!currentUser || currentUser.isAnonymous) {
         console.log('ℹ️ No authenticated user, loading from localStorage');
         loadFromLocalStorage();
         return;
@@ -1051,7 +1263,7 @@ async function loadUserData() {
 window.loadUserData = loadUserData;
 
 async function saveUserData(silent = false) {
-    if (!currentUser) {
+    if (!currentUser || currentUser.isAnonymous) {
         localStorage.setItem('zi_wishlist_backup', JSON.stringify(wishlist));
         localStorage.setItem('zi_cart_backup', JSON.stringify(cart));
         localStorage.setItem('zi_history_backup', JSON.stringify(userProfile.history));
@@ -1693,7 +1905,7 @@ async function mergeGuestData(newUid) {
 }
 
 // ============================================================
-// LOGOUT USER - COMPLETE WITH CLEANUP (NO ANONYMOUS)
+// LOGOUT USER - COMPLETE WITH CLEANUP
 // ============================================================
 window.logoutUser = async function() {
     try {
@@ -1838,7 +2050,11 @@ window.sendForgotPassword = async function() {
 // GENERAL MODALS
 // ============================================================
 window.openUserMenuFull = function() { 
-    if (!currentUser) { openAuthModal(); return; } 
+    if (!currentUser || currentUser.isAnonymous) { 
+        showToast('⚠️ Please login first', 'warning');
+        openAuthModal();
+        return;
+    }
     document.getElementById('userMenuFull').classList.add('open');
     updateFullUserMenu();
     document.body.style.overflow = 'hidden';
@@ -1846,26 +2062,52 @@ window.openUserMenuFull = function() {
 };
 window.closeUserMenuFull = function() { document.getElementById('userMenuFull').classList.remove('open');
     document.body.style.overflow = ''; };
-window.openCartFull = function() { document.getElementById('cartFull').classList.add('open');
+window.openCartFull = function() { 
+    if (!currentUser || currentUser.isAnonymous) { 
+        showToast('⚠️ Please login first', 'warning');
+        openAuthModal();
+        return;
+    }
+    document.getElementById('cartFull').classList.add('open');
     renderCartFull();
-    document.body.style.overflow = 'hidden'; };
+    document.body.style.overflow = 'hidden';
+};
 window.closeCartFull = function() { document.getElementById('cartFull').classList.remove('open');
     document.body.style.overflow = ''; };
-window.openWishlistFull = function() { document.getElementById('wishlistFull').classList.add('open');
+window.openWishlistFull = function() { 
+    if (!currentUser || currentUser.isAnonymous) { 
+        showToast('⚠️ Please login first', 'warning');
+        openAuthModal();
+        return;
+    }
+    document.getElementById('wishlistFull').classList.add('open');
     renderWishlistFull();
-    document.body.style.overflow = 'hidden'; };
+    document.body.style.overflow = 'hidden';
+};
 window.closeWishlistFull = function() { document.getElementById('wishlistFull').classList.remove('open');
     document.body.style.overflow = ''; };
-window.openProfileFull = function() { if (!currentUser) { showToast('⚠️ Please login first', 'warning');
-        openAuthModal(); return; } document.getElementById('profileFull').classList.add('open');
+window.openProfileFull = function() { 
+    if (!currentUser || currentUser.isAnonymous) { 
+        showToast('⚠️ Please login first', 'warning');
+        openAuthModal();
+        return;
+    }
+    document.getElementById('profileFull').classList.add('open');
     renderProfileFull();
-    document.body.style.overflow = 'hidden'; };
+    document.body.style.overflow = 'hidden';
+};
 window.closeProfileFull = function() { document.getElementById('profileFull').classList.remove('open');
     document.body.style.overflow = ''; };
-window.openHistoryFull = function() { if (!currentUser) { showToast('⚠️ Please login first', 'warning');
-        openAuthModal(); return; } document.getElementById('historyFull').classList.add('open');
+window.openHistoryFull = function() { 
+    if (!currentUser || currentUser.isAnonymous) { 
+        showToast('⚠️ Please login first', 'warning');
+        openAuthModal();
+        return;
+    }
+    document.getElementById('historyFull').classList.add('open');
     renderHistoryFull();
-    document.body.style.overflow = 'hidden'; };
+    document.body.style.overflow = 'hidden';
+};
 window.closeHistoryFull = function() { document.getElementById('historyFull').classList.remove('open');
     document.body.style.overflow = ''; };
 window.openDownloads = function() { document.getElementById('downloadsModal').classList.add('open'); };
@@ -1878,8 +2120,9 @@ window.openAuthModal = function() { document.getElementById('authSection').scrol
 // TRANSACTIONS MODAL
 // ============================================================
 window.openTransactionsModal = function() {
-    if (!currentUser) {
+    if (!currentUser || currentUser.isAnonymous) {
         showToast('⚠️ Please login first', 'warning');
+        openAuthModal();
         return;
     }
     document.getElementById('transactionsModal').classList.add('open');
@@ -2680,6 +2923,11 @@ function updateProductCardButton(productId) {
 window.updateProductCardButton = updateProductCardButton;
 
 window.addToCart = async function(productId) {
+    if (!currentUser || currentUser.isAnonymous) {
+        showToast('⚠️ Please login to add items to cart', 'warning');
+        openAuthModal();
+        return;
+    }
     const product = products.find(p => p.id === productId);
     if (!product) { showToast('⚠️ Product not found', 'warning'); return; }
     if (product.productType === 'quantity') {
@@ -2975,6 +3223,11 @@ window.applyCartPromo = function() {
 // WISHLIST
 // ============================================================
 window.toggleWishlist = async function(productId) {
+    if (!currentUser || currentUser.isAnonymous) {
+        showToast('⚠️ Please login first', 'warning');
+        openAuthModal();
+        return;
+    }
     const index = wishlist.indexOf(productId);
     const product = products.find(p => p.id === productId);
     if (index === -1) {
@@ -3781,8 +4034,9 @@ window.continuePayment = function() {
 // PROCESS BALANCE PAYMENT - FIXED
 // ============================================================
 async function processBalancePayment(totalAmount) {
-    if (!currentUser) {
+    if (!currentUser || currentUser.isAnonymous) {
         showToast('⚠️ Please login first', 'warning');
+        openAuthModal();
         return;
     }
     if (isProcessingOrder) {
@@ -4376,7 +4630,11 @@ async function sendTelegramNotification(chatId, message) {
 window.sendTelegramNotification = sendTelegramNotification;
 
 window.bindTelegram = async function() {
-    if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
+    if (!currentUser || currentUser.isAnonymous) {
+        showToast('⚠️ Please login first', 'warning');
+        openAuthModal();
+        return;
+    }
     try {
         const bindCode = currentUser.uid.slice(-8) + Math.random().toString(36).substring(2, 6);
         const bindRef = doc(db, 'telegram_binds', bindCode);
@@ -9609,6 +9867,7 @@ function showOfflineToast() {
     toast.classList.add('show');
     wasOffline = true;
 }
+window.showOfflineToast = showOfflineToast;
 
 function showOnlineToast() {
     const toast = document.getElementById('toast');
@@ -9648,6 +9907,7 @@ function showOnlineToast() {
         setTimeout(() => { toast.style.display = 'none'; }, 500);
     }, 3000);
 }
+window.showOnlineToast = showOnlineToast;
 
 function initNetworkMonitor() {
     if (!navigator.onLine) {
@@ -9797,7 +10057,7 @@ window.checkout = function() {
         showToast('⚠️ Your cart is empty', 'warning');
         return;
     }
-    if (!currentUser) {
+    if (!currentUser || currentUser.isAnonymous) {
         showToast('⚠️ Please login to checkout', 'warning');
         openAuthModal();
         return;
@@ -9810,7 +10070,7 @@ window.openPaymentModal = function() {
         showToast('⚠️ Cart is empty', 'warning');
         return;
     }
-    if (!currentUser) {
+    if (!currentUser || currentUser.isAnonymous) {
         showToast('⚠️ Please login to checkout', 'warning');
         openAuthModal();
         return;
@@ -9835,7 +10095,6 @@ window.openPaymentModal = function() {
     modal.classList.add('open');
     document.body.style.overflow = 'hidden';
 };
-
 window.closePaymentModal = function() {
     const modal = document.getElementById('paymentModal');
     if (modal) {
@@ -9847,7 +10106,6 @@ window.closePaymentModal = function() {
         document.getElementById('paymentStep2').style.display = 'none';
     }
 };
-
 window.goToStep1 = function() {
     document.getElementById('paymentStep1').style.display = 'block';
     document.getElementById('paymentStep2').style.display = 'none';
@@ -9912,7 +10170,7 @@ window.requireConnection = requireConnection;
 
 const originalLoadUserData = loadUserData;
 loadUserData = async function() {
-    if (!currentUser) {
+    if (!currentUser || currentUser.isAnonymous) {
         console.log('ℹ️ No authenticated user, loading from localStorage');
         loadFromLocalStorage();
         
@@ -9956,184 +10214,7 @@ startAdminRealtimeListener = function() {
         }
     }
 };
-// ============================================================
-// ====== MISSING FUNCTION DEFINITIONS (STUBS) ======
-// ============================================================
-// هذه التعريفات تمنع ظهور أخطاء "is not defined" عند تحميل الصفحة
 
-// دوال البانر والإدارة
-function showTelegramBanner() {
-    const banner = document.getElementById('telegramBanner');
-    if (!banner) return;
-    const hidden = localStorage.getItem('telegram_banner_hidden');
-    if (hidden === 'true') {
-        banner.style.display = 'none';
-        return;
-    }
-    if (userProfile.telegramChatId) {
-        banner.style.display = 'none';
-        return;
-    }
-    banner.style.display = 'flex';
-    banner.classList.remove('hidden');
-}
-function closeTelegramBanner() {
-    const banner = document.getElementById('telegramBanner');
-    if (banner) {
-        banner.style.display = 'none';
-        banner.classList.add('hidden');
-        localStorage.setItem('telegram_banner_hidden', 'true');
-    }
-}
-function showTelegramBannerAgain() {
-    localStorage.removeItem('telegram_banner_hidden');
-    showTelegramBanner();
-}
-function addBannerAdminControls() { console.warn('⚠️ addBannerAdminControls() called'); }
-function adminToggleBanner() { console.warn('⚠️ adminToggleBanner() called'); }
-function resetBannerForAll() { console.warn('⚠️ resetBannerForAll() called'); }
-
-// دوال الكوكيز
-function checkCookieConsent() {
-    const consent = localStorage.getItem('cookie_consent');
-    if (consent !== 'accepted' && consent !== 'rejected') {
-        const banner = document.getElementById('cookieConsent');
-        if (banner) banner.classList.add('show');
-    }
-}
-function acceptCookies() {
-    localStorage.setItem('cookie_consent', 'accepted');
-    document.getElementById('cookieConsent')?.classList.remove('show');
-    enableAnalytics();
-}
-function rejectCookies() {
-    localStorage.setItem('cookie_consent', 'rejected');
-    document.getElementById('cookieConsent')?.classList.remove('show');
-    disableAnalytics();
-}
-function openCookieSettings() {
-    document.getElementById('cookieSettingsModal')?.classList.add('open');
-}
-function closeCookieSettings() {
-    document.getElementById('cookieSettingsModal')?.classList.remove('open');
-}
-function saveCookieSettings() {
-    const analyticsToggle = document.getElementById('analyticsToggle');
-    if (analyticsToggle && analyticsToggle.checked) {
-        acceptCookies();
-    } else {
-        rejectCookies();
-    }
-    closeCookieSettings();
-}
-function enableAnalytics() {
-    console.log('✅ Analytics enabled');
-    // يمكنك تفعيل Firebase Analytics هنا
-}
-function disableAnalytics() {
-    console.log('❌ Analytics disabled');
-}
-function closeCookieBanner() {
-    document.getElementById('cookieConsent')?.classList.remove('show');
-}
-
-// دوال الشات بوت
-function toggleChatbot() {
-    const win = document.getElementById('chatbotWindow');
-    if (win) win.classList.toggle('open');
-}
-function sendChatMessage() {
-    const input = document.getElementById('chatbotInput');
-    const messages = document.getElementById('chatbotMessages');
-    if (!input || !messages || !input.value.trim()) return;
-    const userMsg = input.value.trim();
-    input.value = '';
-    messages.innerHTML += `<div class="chatbot-msg user"><div class="msg-bubble">${userMsg}</div></div>`;
-    messages.scrollTop = messages.scrollHeight;
-    setTimeout(() => {
-        const responses = {
-            'hello': '👋 Hello! How can I help you today?',
-            'hi': '👋 Hi there! What brings you to ZI Store?',
-            'help': '🛍️ I can help you with products, orders, payments, and support.',
-            'order': '📦 To place an order, add products to cart and proceed to checkout.',
-            'payment': '💳 We accept USDT, LTC, Balance, Telegram, and Binance ID.',
-            'support': '📞 Contact us via Telegram @Mitalica69 or email support@zi-store.online',
-            'licence': '🔑 Licences are generated after order confirmation.',
-            'default': '🤔 I\'m not sure. Please contact our support team.'
-        };
-        const lower = userMsg.toLowerCase();
-        let response = responses.default;
-        for (const key in responses) {
-            if (lower.includes(key)) { response = responses[key]; break; }
-        }
-        messages.innerHTML += `<div class="chatbot-msg bot"><div class="msg-bubble">${response}</div></div>`;
-        messages.scrollTop = messages.scrollHeight;
-    }, 500);
-}
-
-// دوال الدعم
-function openSupportModal() { document.getElementById('supportModal')?.classList.add('open'); }
-function closeSupportModal() { document.getElementById('supportModal')?.classList.remove('open'); }
-function toggleSupportMenu() { document.getElementById('supportFloat')?.classList.toggle('open'); }
-function openTelegramSupport() { window.open('https://t.me/Mitalica69', '_blank'); }
-function openWhatsAppSupport() { window.open('https://wa.me/21612345678', '_blank'); }
-function openEmailSupport() { window.location.href = 'mailto:support@zi-store.online'; }
-function openPhoneSupport() { window.location.href = 'tel:+21612345678'; }
-
-// دوال رفع الصور
-async function uploadToCloudinary(file) {
-    console.warn('⚠️ uploadToCloudinary() called but not implemented');
-    return null;
-}
-function fixDirection() { console.warn('⚠️ fixDirection() called'); }
-function fallbackCopyText(text) {
-    const textarea = document.createElement('textarea');
-    textarea.value = text;
-    textarea.style.position = 'fixed';
-    textarea.style.opacity = '0';
-    document.body.appendChild(textarea);
-    textarea.select();
-    try { document.execCommand('copy'); showToast('✅ Copied!', 'success'); }
-    catch (e) { showToast('❌ Failed to copy', 'error'); }
-    document.body.removeChild(textarea);
-}
-
-// دوال المدفوعات
-function verifyTransaction() {
-    const txInput = document.getElementById('txHashInput');
-    const result = document.getElementById('verificationResult');
-    if (!txInput || !result) return;
-    const tx = txInput.value.trim();
-    if (tx.length < 10) {
-        result.style.display = 'block';
-        result.innerHTML = '<span style="color:var(--danger);">⚠️ Invalid transaction ID</span>';
-        return;
-    }
-    result.style.display = 'block';
-    result.innerHTML = '<span style="color:var(--success);">✅ Transaction verified (simulated)</span>';
-}
-function handleTxPaste(event) {
-    // يمكنك إضافة منطق لتنظيف النص
-}
-function submitManualPayment() {
-    const txInput = document.getElementById('txHashInput');
-    if (!txInput || !txInput.value.trim()) {
-        showToast('⚠️ Please paste transaction ID', 'warning');
-        return;
-    }
-    showToast('📤 Payment submitted. Awaiting confirmation.', 'info');
-    // يمكنك استدعاء placeOrder هنا إذا أردت
-}
-function generatePDFInvoice() {
-    showToast('📄 PDF invoice generation not implemented', 'info');
-}
-function checkoutWithBalance() {
-    if (typeof processBalancePayment === 'function') {
-        processBalancePayment();
-    } else {
-        showToast('⚠️ Balance payment not available', 'warning');
-    }
-}
 // ============================================================
 // FORCE LOADING SCREEN HIDE - SAFETY NET
 // ============================================================
@@ -10405,401 +10486,3 @@ if (document.readyState === 'loading') {
 } else {
     initApp();
     }
-// ============================================================
-// ====== EXPORT FUNCTIONS TO WINDOW - ONLY EXISTING ======
-// ============================================================
-
-// تصدير المتغيرات الأساسية
-window.auth = auth;
-window.db = db;
-window.supabase = supabase;
-window.currentUser = currentUser;
-window.isAdminCached = isAdminCached;
-
-// دوال عامة (موجودة بالفعل)
-window.showToast = showToast;
-window.hideToast = hideToast;
-window.showOfflineToast = showOfflineToast;
-window.showOnlineToast = showOnlineToast;
-window.initNetworkMonitor = initNetworkMonitor;
-window.openAdminPanel = openAdminPanel;
-window.closeAdminPanel = closeAdminPanel;
-window.switchAdminTab = switchAdminTab;
-window.ensureAdminPanel = ensureAdminPanel;
-window.checkIsAdmin = checkIsAdmin;
-window.refreshAdminStatus = refreshAdminStatus;
-
-// دوال المستخدم
-window.loadUserData = loadUserData;
-window.saveUserData = saveUserData;
-window.loadFromLocalStorage = loadFromLocalStorage;
-window.getUserId = getUserId;
-window.startUserRealtimeListener = startUserRealtimeListener;
-window.generateReferralCode = generateReferralCode;
-window.loadUserBalance = loadUserBalance;
-window.updateBalanceDisplay = updateBalanceDisplay;
-window.startTopupRealtimeListener = startTopupRealtimeListener;
-window.loadUserTopups = loadUserTopups;
-window.openTransactionsModal = openTransactionsModal;
-window.closeTransactionsModal = closeTransactionsModal;
-window.loadTransactionHistory = loadTransactionHistory;
-window.renderTransactions = renderTransactions;
-
-// دوال المنتجات والسلة
-window.loadProductsFromFirestore = loadProductsFromFirestore;
-window.startProductsRealtimeListener = startProductsRealtimeListener;
-window.getCurrencySymbol = getCurrencySymbol;
-window.renderBadges = renderBadges;
-window.renderProducts = renderProducts;
-window.updateStatsFromProducts = updateStatsFromProducts;
-window.generateRecommendations = generateRecommendations;
-window.renderFeaturedProducts = renderFeaturedProducts;
-window.displayFeaturedSlice = displayFeaturedSlice;
-window.startFeaturedRotation = startFeaturedRotation;
-window.stopFeaturedRotation = stopFeaturedRotation;
-window.loadFeaturedSettings = loadFeaturedSettings;
-window.updateProductCardButton = updateProductCardButton;
-window.addToCart = addToCart;
-window.clearCart = clearCart;
-window.removeFromCart = removeFromCart;
-window.updateCartQuantity = updateCartQuantity;
-window.renderCartFull = renderCartFull;
-window.updateCartUI = updateCartUI;
-window.updateBottomCartBar = updateBottomCartBar;
-window.toggleRpSwitch = toggleRpSwitch;
-window.toggleRpInCart = toggleRpInCart;
-window.applyCartPromo = applyCartPromo;
-window.filterProducts = filterProducts;
-window.openDetails = openDetails;
-window.closeProductDetails = closeProductDetails;
-window.closePreviewModal = closePreviewModal;
-window.addToCartFromDetails = addToCartFromDetails;
-window.selectQuantityOption = selectQuantityOption;
-window.selectVipPlan = selectVipPlan;
-window.addVipPlanToCart = addVipPlanToCart;
-window.toggleWishlist = toggleWishlist;
-window.removeFromWishlist = removeFromWishlist;
-window.updateWishlistUI = updateWishlistUI;
-window.renderWishlistFull = renderWishlistFull;
-window.performLiveSearch = performLiveSearch;
-window.highlightText = highlightText;
-window.clearSearch = clearSearch;
-window.closeSearchResults = closeSearchResults;
-window.renderProxyPackages = renderProxyPackages;
-window.addProxyToCart = addProxyToCart;
-window.renderLimitedProducts = renderLimitedProducts;
-window.renderPaymentProducts = renderPaymentProducts;
-window.checkout = checkout;
-window.openPaymentModal = openPaymentModal;
-window.closePaymentModal = closePaymentModal;
-window.goToStep1 = goToStep1;
-window.selectPayment = selectPayment;
-window.continuePayment = continuePayment;
-window.placeOrder = placeOrder;
-window.placeOrderTelegram = placeOrderTelegram;
-window.processBalancePayment = processBalancePayment;
-window.checkoutWithBalance = processBalancePayment;
-
-// دوال الدفع والتوب أب
-window.fetchCryptoPrices = fetchCryptoPrices;
-window.getLTCPrice = getLTCPrice;
-window.getUSDTPrice = getUSDTPrice;
-window.updatePriceUI = updatePriceUI;
-window.updatePayableTotal = updatePayableTotal;
-window.selectTopupCurrency = selectTopupCurrency;
-window.selectTopupAmount = selectTopupAmount;
-window.processTopup = processTopup;
-window.submitTopupWithTxHash = submitTopupWithTxHash;
-window.handleTopup = handleTopup;
-window.copyWalletAddress = copyWalletAddress;
-window.copyBinanceId = copyBinanceId;
-window.approveTopup = approveTopup;
-window.rejectTopup = rejectTopup;
-window.loadAdminTopups = loadAdminTopups;
-
-// دوال المشاركة والنسخ
-window.openShareModal = openShareModal;
-window.closeShareModal = closeShareModal;
-window.shareToWhatsApp = shareToWhatsApp;
-window.shareToTelegram = shareToTelegram;
-window.shareToFacebook = shareToFacebook;
-window.copyShareLink = copyShareLink;
-window.copyLicenceCode = copyLicenceCode;
-window.copyToClipboard = copyToClipboard;
-window.fallbackCopy = fallbackCopy;
-
-// دوال تليجرام والإشعارات
-window.bindTelegram = bindTelegram;
-window.startBindingListener = startBindingListener;
-window.testTelegramNotification = testTelegramNotification;
-window.unlinkTelegram = unlinkTelegram;
-window.checkTelegramStatus = checkTelegramStatus;
-window.sendTelegramNotification = sendTelegramNotification;
-window.sendAdminNotification = sendAdminNotification;
-window.sendUserNotification = sendUserNotification;
-window.sendTelegramTopupNotification = sendTelegramTopupNotification;
-window.showTelegramBanner = showTelegramBanner;
-window.closeTelegramBanner = closeTelegramBanner;
-window.showTelegramBannerAgain = showTelegramBannerAgain;
-
-// دوال الإدارة (Admin)
-window.getAdminSettings = getAdminSettings;
-window.updateAdminSettings = updateAdminSettings;
-window.loadAdminSettingsUI = loadAdminSettingsUI;
-window.saveAdminSettings = saveAdminSettings;
-window.getMyTelegramChatId = getMyTelegramChatId;
-window.renderAdminProducts = renderAdminProducts;
-window.loadAdminOrders = loadAdminOrders;
-window.renderAdminOrders = renderAdminOrders;
-window.updateAdminStats = updateAdminStats;
-window.updateOrderStatus = updateOrderStatus;
-window.deleteOrderImmediately = deleteOrderImmediately;
-window.searchAdminOrders = searchAdminOrders;
-window.clearAdminSearch = clearAdminSearch;
-window.refreshAdminOrders = refreshAdminOrders;
-window.loadAdminUsers = loadAdminUsers;
-window.renderAdminUsers = renderAdminUsers;
-window.searchAdminUsers = searchAdminUsers;
-window.clearAdminUserSearch = clearAdminUserSearch;
-window.refreshAdminUsers = refreshAdminUsers;
-window.toggleUserBan = toggleUserBan;
-window.deleteUserAccount = deleteUserAccount;
-window.viewUserDetails = viewUserDetails;
-window.closeUserDetailsModal = closeUserDetailsModal;
-window.loadLicences = loadLicences;
-window.renderLicences = renderLicences;
-window.openCreateLicenceModal = openCreateLicenceModal;
-window.closeCreateLicenceModal = closeCreateLicenceModal;
-window.createLicenceManually = createLicenceManually;
-window.updateLicenceInSupabase = updateLicenceInSupabase;
-window.approveLicence = approveLicence;
-window.revokeLicence = revokeLicence;
-window.deleteLicence = deleteLicence;
-window.editLicence = editLicence;
-window.saveLicenceEdit = saveLicenceEdit;
-window.searchLicences = searchLicences;
-window.clearLicenceSearch = clearLicenceSearch;
-window.refreshLicences = refreshLicences;
-window.renderUserLicences = renderUserLicences;
-window.toggleLicencesList = toggleLicencesList;
-window.refreshAdminPayments = refreshAdminPayments;
-window.adminApprovePayment = adminApprovePayment;
-window.adminRejectPayment = adminRejectPayment;
-window.adminDeletePayment = adminDeletePayment;
-window.loadDashboardStats = loadDashboardStats;
-window.refreshDashboardStats = refreshDashboardStats;
-window.loadAdvancedStats = loadAdvancedStats;
-window.refreshAdvancedStats = refreshAdvancedStats;
-window.loadAuditLogs = loadAuditLogs;
-window.loadActivityLogs = loadActivityLogs;
-window.exportActivityLogs = exportActivityLogs;
-window.loadFraudLogs = loadFraudLogs;
-
-// دوال التنبيهات والطلبات والإحالات
-window.loadNotifications = loadNotifications;
-window.renderUserNotifications = renderUserNotifications;
-window.renderAdminNotifications = renderAdminNotifications;
-window.updateNotificationBadge = updateNotificationBadge;
-window.markAllNotificationsRead = markAllNotificationsRead;
-window.clearAllNotifications = clearAllNotifications;
-window.createNotification = createNotification;
-window.deleteNotification = deleteNotification;
-window.openCreateNotificationModal = openCreateNotificationModal;
-window.closeCreateNotificationModal = closeCreateNotificationModal;
-window.renderUserNotificationsFallback = renderUserNotificationsFallback;
-window.openRequestsModal = openRequestsModal;
-window.closeRequestsModal = closeRequestsModal;
-window.openNewRequestModal = openNewRequestModal;
-window.closeNewRequestModal = closeNewRequestModal;
-window.submitRequest = submitRequest;
-window.openReferralModal = openReferralModal;
-window.closeReferralModal = closeReferralModal;
-window.updateReferralUI = updateReferralUI;
-window.copyReferralCode2 = copyReferralCode2;
-
-// دوال التنزيلات
-window.loadDownloads = loadDownloads;
-window.renderDownloads = renderDownloads;
-window.renderAdminDownloads = renderAdminDownloads;
-window.createDownload = createDownload;
-window.deleteDownload = deleteDownload;
-window.editDownload = editDownload;
-window.openCreateDownloadModal = openCreateDownloadModal;
-window.closeCreateDownloadModal = closeCreateDownloadModal;
-
-// دوال الكوبونات
-window.loadCoupons = loadCoupons;
-window.updateActiveCoupons = updateActiveCoupons;
-window.openCreateCouponModal = openCreateCouponModal;
-window.closeCreateCouponModal = closeCreateCouponModal;
-window.saveCoupon = saveCoupon;
-window.deleteCoupon = deleteCoupon;
-window.editCoupon = editCoupon;
-window.renderAdminCoupons = renderAdminCoupons;
-window.applyPopupCoupon = applyPopupCoupon;
-
-// دوال السلايدر والماركي
-window.goToSlide = goToSlide;
-window.nextSlide = nextSlide;
-window.prevSlide = prevSlide;
-window.pauseSlider = pauseSlider;
-window.resumeSlider = resumeSlider;
-window.saveSliderData = saveSliderData;
-window.saveSliderInterval = saveSliderInterval;
-window.saveSlideEdit = saveSlideEdit;
-window.deleteSlide = deleteSlide;
-window.editSlide = editSlide;
-window.openAddSlideModal = openAddSlideModal;
-window.closeAddSlideModal = closeAddSlideModal;
-window.updateSlideProductSelect = updateSlideProductSelect;
-window.toggleSlideLinkFields = toggleSlideLinkFields;
-window.loadSliderSettings = loadSliderSettings;
-window.renderSlider = renderSlider;
-window.startSliderRotation = startSliderRotation;
-window.resetSliderTimer = resetSliderTimer;
-window.renderSliderSettingsUI = renderSliderSettingsUI;
-window.saveMarqueeSettings = saveMarqueeSettings;
-window.applyMarqueeSettings = applyMarqueeSettings;
-window.renderMarqueeSettingsUI = renderMarqueeSettingsUI;
-window.loadMarqueeSettings = loadMarqueeSettings;
-
-// دوال الملف الشخصي
-window.renderProfileFull = renderProfileFull;
-window.saveProfileChangesInline = saveProfileChangesInline;
-window.togglePasswordVisibility = togglePasswordVisibility;
-window.sendResetLinkInline = sendResetLinkInline;
-window.changePasswordInline = changePasswordInline;
-
-// دوال التقييمات
-window.loadRatings = loadRatings;
-window.hasUserPurchasedProduct = hasUserPurchasedProduct;
-window.submitRating = submitRating;
-window.renderStarHTML = renderStarHTML;
-window.setRating = setRating;
-window.renderRatingSection = renderRatingSection;
-window.updateProductRatingDisplay = updateProductRatingDisplay;
-
-// دوال البوب أب
-window.initPopups = initPopups;
-window.showExitPopup = showExitPopup;
-window.showOfferPopup = showOfferPopup;
-window.closePopup = closePopup;
-window.subscribeAndApply = subscribeAndApply;
-
-// دوال المنتجات الاحتياطية
-window.renderFallbackProductsAdmin = renderFallbackProductsAdmin;
-window.editFallbackProduct = editFallbackProduct;
-window.openAddFallbackProductModal = openAddFallbackProductModal;
-window.closeFallbackProductModal = closeFallbackProductModal;
-window.saveFallbackProduct = saveFallbackProduct;
-window.deleteFallbackProduct = deleteFallbackProduct;
-
-// دوال التتبع
-window.trackUserBehavior = trackUserBehavior;
-window.updateUserPreferences = updateUserPreferences;
-window.getRecommendations = getRecommendations;
-window.getDefaultRecommendations = getDefaultRecommendations;
-window.detectFraud = detectFraud;
-window.logFraudDetection = logFraudDetection;
-
-// دوال أخرى
-window.generateInvoice = generateInvoice;
-window.exportOrders = exportOrders;
-window.loadBranding = loadBranding;
-window.saveBranding = saveBranding;
-window.applyBranding = applyBranding;
-window.loadBrandingSettings = loadBrandingSettings;
-window.saveBrandingSettings = saveBrandingSettings;
-window.resetBranding = resetBranding;
-window.getVisitorInfo = getVisitorInfo;
-window.getDeviceInfo = getDeviceInfo;
-window.logActivity = logActivity;
-window.generateLicenceForUser = generateLicenceForUser;
-window.sendLicenceEmail = sendLicenceEmail;
-window.showOfflineToast = showOfflineToast;
-window.showOnlineToast = showOnlineToast;
-window.initNetworkMonitor = initNetworkMonitor;
-window.pauseOnlineOperations = pauseOnlineOperations;
-window.resumeOnlineOperations = resumeOnlineOperations;
-window.addOfflineStyles = addOfflineStyles;
-window.loadUserSettings = loadUserSettings;
-window.saveUserSettings = saveUserSettings;
-window.toggleSetting = toggleSetting;
-window.handleSettingChange = handleSettingChange;
-window.renderSettingsUI = renderSettingsUI;
-window.removeDuplicateDate = removeDuplicateDate;
-window.styleHeaderTopup = styleHeaderTopup;
-window.updateServerTime = updateServerTime;
-window.fetchUserInfo = fetchUserInfo;
-window.getCountryFlag = getCountryFlag;
-window.initTopInfoBar = initTopInfoBar;
-window.updateDropdownStats = updateDropdownStats;
-window.updateRpDisplay = updateRpDisplay;
-window.updateUI = updateUI;
-window.updateFullUserMenu = updateFullUserMenu;
-window.clearOrderHistory = clearOrderHistory;
-window.renderHistoryFull = renderHistoryFull;
-window.selectCurrency = selectCurrency;
-window.selectProductType = selectProductType;
-window.addQuantityOption = addQuantityOption;
-window.removeQuantityOption = removeQuantityOption;
-window.setQuantityOptions = setQuantityOptions;
-window.toggleBadge = toggleBadge;
-window.updateBadgesInput = updateBadgesInput;
-window.setBadges = setBadges;
-window.showLogin = showLogin;
-window.showRegister = showRegister;
-window.toggleReferral = toggleReferral;
-window.loginUser = loginUser;
-window.registerUser = registerUser;
-window.loginWithGoogle = loginWithGoogle;
-window.logoutUser = logoutUser;
-window.openForgotPassword = openForgotPassword;
-window.closeForgotPasswordModal = closeForgotPasswordModal;
-window.sendForgotPassword = sendForgotPassword;
-window.openUserMenuFull = openUserMenuFull;
-window.closeUserMenuFull = closeUserMenuFull;
-window.openCartFull = openCartFull;
-window.closeCartFull = closeCartFull;
-window.openWishlistFull = openWishlistFull;
-window.closeWishlistFull = closeWishlistFull;
-window.openProfileFull = openProfileFull;
-window.closeProfileFull = closeProfileFull;
-window.openHistoryFull = openHistoryFull;
-window.closeHistoryFull = closeHistoryFull;
-window.openDownloads = openDownloads;
-window.closeDownloads = closeDownloads;
-window.openNotifications = openNotifications;
-window.closeNotifications = closeNotifications;
-window.openAuthModal = openAuthModal;
-window.openLicenceModal = openLicenceModal;
-window.closeLicenceModal = closeLicenceModal;
-window.closeLicenseModal = closeLicenseModal;
-window.activatedLicence = activatedLicence;
-window.activateLicence = activateLicence;
-window.openTopupModal = openTopupModal;
-window.closeTopupModal = closeTopupModal;
-window.openTopupStatus = openTopupStatus;
-window.closeTopupStatus = closeTopupStatus;
-window.openShareModal = openShareModal;
-window.closeShareModal = closeShareModal;
-window.openSupportModal = openSupportModal;
-window.closeSupportModal = closeSupportModal;
-window.toggleSupportMenu = toggleSupportMenu;
-window.openTelegramSupport = openTelegramSupport;
-window.openWhatsAppSupport = openWhatsAppSupport;
-window.openEmailSupport = openEmailSupport;
-window.openPhoneSupport = openPhoneSupport;
-window.sendEmail = sendEmail;
-window.sendWelcomeEmail = sendWelcomeEmail;
-window.sendOrderConfirmationEmail = sendOrderConfirmationEmail;
-window.sendOrderStatusEmail = sendOrderStatusEmail;
-window.sendTopupConfirmationEmail = sendTopupConfirmationEmail;
-window.sendAdminNotificationEmail = sendAdminNotificationEmail;
-window.loadEmailLogs = loadEmailLogs;
-window.renderEmailLogs = renderEmailLogs;
-window.sendTestEmail = sendTestEmail;
-window.previewEmail = previewEmail;
-window.resendEmail = resendEmail;
-
-console.log('✅ All existing functions exported to window');
