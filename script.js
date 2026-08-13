@@ -1,7 +1,7 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - COMPLETE WORKING VERSION v5.0
+// SCRIPT.JS - ZI Store - COMPLETE FIXED VERSION v6.0
 // ============================================================
-// ALL FEATURES + ALL FIXES - NO SHORTCUTS
+// ALL FEATURES + ALL FIXES + NO ANONYMOUS + FULL EXPORTS
 // ============================================================
 
 // ============================================================
@@ -465,6 +465,7 @@ function showToast(message, type = 'success', duration = 4000, large = false) {
         setTimeout(() => { toast.style.display = 'none'; }, 500);
     }, duration);
 }
+window.showToast = showToast;
 
 window.hideToast = function() {
     const toast = document.getElementById('toast');
@@ -484,6 +485,7 @@ function showButtonLoading(button, loadingText = 'Processing...') {
     button.innerHTML = `<span class="spinner-btn"></span> ${loadingText}`;
     button.classList.add('btn-loading');
 }
+window.showButtonLoading = showButtonLoading;
 
 function hideButtonLoading(button, successText = null) {
     if (!button) return;
@@ -501,6 +503,7 @@ function hideButtonLoading(button, successText = null) {
         button.style.background = '';
     }
 }
+window.hideButtonLoading = hideButtonLoading;
 
 // ============================================================
 // HELPER FUNCTIONS
@@ -515,6 +518,7 @@ function hideLoadingScreen() {
         console.log('✅ Loading screen hidden');
     }
 }
+window.hideLoadingScreen = hideLoadingScreen;
 
 function showLoadingScreen() {
     const screen = document.getElementById('loadingScreen');
@@ -523,6 +527,7 @@ function showLoadingScreen() {
         screen.style.display = 'flex';
     }
 }
+window.showLoadingScreen = showLoadingScreen;
 
 window.showMainApp = function() {
     const mainApp = document.getElementById('mainApp');
@@ -549,6 +554,7 @@ function removeDuplicateDate() {
         }
     }
 }
+window.removeDuplicateDate = removeDuplicateDate;
 
 function styleHeaderTopup() {
     const headerActions = document.getElementById('headerActions');
@@ -567,6 +573,7 @@ function styleHeaderTopup() {
         topupBtn.style.marginLeft = '2px';
     }
 }
+window.styleHeaderTopup = styleHeaderTopup;
 
 // ============================================================
 // TOP INFO BAR - Server Time, IP, Country
@@ -592,6 +599,7 @@ function updateServerTime() {
         el.innerHTML = `<i class="far fa-calendar-alt" style="margin-right:3px;color:var(--vip-color);"></i> ${dateTimeStr}`;
     }
 }
+window.updateServerTime = updateServerTime;
 
 async function fetchUserInfo() {
     try {
@@ -627,6 +635,7 @@ async function fetchUserInfo() {
         return null;
     }
 }
+window.fetchUserInfo = fetchUserInfo;
 
 function getCountryFlag(countryCode) {
     if (!countryCode) return '🌍';
@@ -653,6 +662,7 @@ function getCountryFlag(countryCode) {
     };
     return flags[countryCode] || '🌍';
 }
+window.getCountryFlag = getCountryFlag;
 
 async function initTopInfoBar() {
     if (serverTimeInterval) clearInterval(serverTimeInterval);
@@ -662,6 +672,7 @@ async function initTopInfoBar() {
     setInterval(fetchUserInfo, 300000);
     setTimeout(removeDuplicateDate, 100);
 }
+window.initTopInfoBar = initTopInfoBar;
 
 // ============================================================
 // ADMIN CHECK FUNCTIONS
@@ -689,15 +700,18 @@ async function checkIsAdmin() {
     })();
     return adminCheckPromise;
 }
+window.checkIsAdmin = checkIsAdmin;
 
 async function refreshAdminStatus() {
     adminCheckPromise = null;
     isAdminCached = await checkIsAdmin();
     return isAdminCached;
 }
+window.refreshAdminStatus = refreshAdminStatus;
 
 window.ensureAdminPanel = function() {
-    if (!currentUser) {
+    const user = auth.currentUser;
+    if (!user) {
         console.warn('⚠️ No user logged in');
         return false;
     }
@@ -767,6 +781,7 @@ async function getAdminSettings() {
         };
     }
 }
+window.getAdminSettings = getAdminSettings;
 
 async function updateAdminSettings(settings) {
     if (!currentUser || !isAdminCached) {
@@ -788,6 +803,7 @@ async function updateAdminSettings(settings) {
         return false;
     }
 }
+window.updateAdminSettings = updateAdminSettings;
 
 // ============================================================
 // USER FUNCTIONS (Firestore + LocalStorage)
@@ -848,6 +864,7 @@ function loadFromLocalStorage() {
         console.error('Error loading from localStorage:', e);
     }
 }
+window.loadFromLocalStorage = loadFromLocalStorage;
 
 async function getUserId() {
     if (userId) return userId;
@@ -857,6 +874,7 @@ async function getUserId() {
     localStorage.setItem('zi_userId', userId);
     return userId;
 }
+window.getUserId = getUserId;
 
 let isLoadingUser = false;
 let lastUserLoadTime = 0;
@@ -929,6 +947,7 @@ function startUserRealtimeListener() {
         if (error.code === 'permission-denied') loadFromLocalStorage();
     });
 }
+window.startUserRealtimeListener = startUserRealtimeListener;
 
 async function loadUserData() {
     if (!currentUser) {
@@ -1029,6 +1048,7 @@ async function loadUserData() {
     }
     isLoadingUser = false;
 }
+window.loadUserData = loadUserData;
 
 async function saveUserData(silent = false) {
     if (!currentUser) {
@@ -1107,12 +1127,14 @@ async function saveUserData(silent = false) {
         return false;
     }
 }
+window.saveUserData = saveUserData;
 
 function generateReferralCode(name, email) {
     const prefix = name ? name.substring(0, 3).toUpperCase() : 'USR';
     const random = Math.random().toString(36).substring(2, 6).toUpperCase();
     return `${prefix}${random}`;
 }
+window.generateReferralCode = generateReferralCode;
 
 // ============================================================
 // UI UPDATES
@@ -1132,11 +1154,13 @@ function updateDropdownStats() {
     } else { if (userAvatar) userAvatar.textContent = 'U'; }
     updateRpDisplay();
 }
+window.updateDropdownStats = updateDropdownStats;
 
 function updateRpDisplay() {
     const el = document.getElementById('rpDisplay');
     if (el) { el.innerHTML = `${userProfile.rp || 0} <span>RP</span>`; }
 }
+window.updateRpDisplay = updateRpDisplay;
 
 function updateUI() {
     const dot = document.getElementById('userDot');
@@ -1151,6 +1175,7 @@ function updateUI() {
     updateFullUserMenu();
     updateBalanceDisplay();
 }
+window.updateUI = updateUI;
 
 function updateFullUserMenu() {
     const avatar = document.getElementById('fullAvatar');
@@ -1207,6 +1232,7 @@ function updateFullUserMenu() {
         if (licencesBadge) licencesBadge.style.display = 'none';
     }
 }
+window.updateFullUserMenu = updateFullUserMenu;
 
 // ============================================================
 // AUTH FUNCTIONS
@@ -1222,14 +1248,11 @@ window.toggleReferral = function() { document.getElementById('referralField').cl
 // ============================================================
 async function checkIPChange(user, currentIP, currentCountry) {
     if (!user) return;
-    
-    // ===== التحقق من إعداد المستخدم =====
     const settings = userProfile.settings || { ipDetection: true };
     if (!settings.ipDetection) {
         console.log('ℹ️ IP Detection is disabled by user');
         return;
     }
-    
     try {
         const userRef = doc(db, 'users', user.uid);
         const userSnap = await getDoc(userRef);
@@ -1322,6 +1345,7 @@ window.loginUser = async function() {
     try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         currentUser = userCredential.user;
+        window.currentUser = currentUser;
         successEl.textContent = '✅ Login successful!';
         showToast('👋 Welcome back!', 'success');
         hideButtonLoading(btn, 'Welcome!');
@@ -1417,6 +1441,7 @@ window.registerUser = async function() {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(userCredential.user, { displayName: name });
         currentUser = userCredential.user;
+        window.currentUser = currentUser;
         const newReferralCode = generateReferralCode(name, email);
         const userRef = doc(db, 'users', currentUser.uid);
         await setDoc(userRef, {
@@ -1530,6 +1555,7 @@ window.loginWithGoogle = function() {
                 updatedAt: serverTimestamp()
             }, { merge: true });
             currentUser = user;
+            window.currentUser = currentUser;
             showToast('👋 Welcome via Google!', 'success');
             await refreshAdminStatus();
             await mergeGuestData(user.uid);
@@ -1672,8 +1698,6 @@ async function mergeGuestData(newUid) {
 window.logoutUser = async function() {
     try {
         console.log('🚪 Logging out user...');
-        
-        // 1. إلغاء جميع المستمعين
         if (unsubscribeAdmin) { unsubscribeAdmin(); unsubscribeAdmin = null; }
         if (unsubscribeUser) { unsubscribeUser(); unsubscribeUser = null; }
         if (topupSubscription) { topupSubscription.unsubscribe(); topupSubscription = null; }
@@ -1681,7 +1705,6 @@ window.logoutUser = async function() {
         if (unsubscribeDownloads) { unsubscribeDownloads(); unsubscribeDownloads = null; }
         if (unsubscribeNotifications) { unsubscribeNotifications(); unsubscribeNotifications = null; }
 
-        // 2. مسح جميع بيانات localStorage
         const keysToRemove = [
             'zi_userId', 'zi_wishlist_backup', 'zi_cart_backup',
             'zi_history_backup', 'zi_requests_backup', 'zi_usedcodes_backup',
@@ -1694,8 +1717,8 @@ window.logoutUser = async function() {
         keysToRemove.forEach(key => localStorage.removeItem(key));
         console.log('✅ LocalStorage cleaned');
 
-        // 3. إعادة تعيين المتغيرات العامة
         currentUser = null;
+        window.currentUser = null;
         isAdminCached = false;
         activeDiscount = 0;
         activeDiscountCode = '';
@@ -1714,7 +1737,6 @@ window.logoutUser = async function() {
         selectedTopupCurrency = 'USDT';
         userBalance = 0;
 
-        // 4. إعادة تعيين userProfile بالكامل
         userProfile = {
             name: '',
             email: '',
@@ -1745,11 +1767,9 @@ window.logoutUser = async function() {
             settings: { ipDetection: true, emailNotifications: true, twoFactorAuth: false }
         };
 
-        // 5. تسجيل الخروج من Firebase
         await signOut(auth);
         console.log('✅ Firebase signOut completed');
 
-        // 6. إغلاق جميع المودالات والقوائم
         const modals = ['adminPanel', 'userMenuFull', 'cartFull', 'wishlistFull',
             'profileFull', 'historyFull', 'notificationsModal', 'downloadsModal',
             'paymentModal', 'licenceModal', 'topupModal', 'shareModal',
@@ -1764,7 +1784,6 @@ window.logoutUser = async function() {
         document.body.style.overflow = '';
         closeUserMenuFull();
 
-        // 7. إظهار Login وإخفاء التطبيق
         const authSection = document.getElementById('authSection');
         const mainApp = document.getElementById('mainApp');
         if (authSection) {
@@ -1777,7 +1796,6 @@ window.logoutUser = async function() {
             mainApp.style.opacity = '0';
         }
 
-        // 8. تحديث الواجهة
         updateUI();
         updateNotificationBadge();
         updateFullUserMenu();
@@ -1789,7 +1807,6 @@ window.logoutUser = async function() {
 
         showToast('👋 Logged out successfully', 'info', 3000);
         console.log('✅ Logout completed successfully');
-
     } catch (error) {
         console.error('❌ Logout error:', error);
         showToast('❌ Logout failed: ' + error.message, 'error');
@@ -1825,7 +1842,6 @@ window.openUserMenuFull = function() {
     document.getElementById('userMenuFull').classList.add('open');
     updateFullUserMenu();
     document.body.style.overflow = 'hidden';
-    // تحميل الإعدادات
     renderSettingsUI();
 };
 window.closeUserMenuFull = function() { document.getElementById('userMenuFull').classList.remove('open');
@@ -1870,7 +1886,6 @@ window.openTransactionsModal = function() {
     document.body.style.overflow = 'hidden';
     loadTransactionHistory();
 };
-
 window.closeTransactionsModal = function() {
     document.getElementById('transactionsModal').classList.remove('open');
     document.body.style.overflow = '';
@@ -1899,6 +1914,7 @@ async function loadTransactionHistory() {
         container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load transactions: ${error.message}<br><button onclick="loadTransactionHistory()" style="margin-top:8px;padding:6px 16px;background:var(--primary);border:none;border-radius:var(--radius-sm);color:#fff;cursor:pointer;">Retry</button></div>`;
     }
 }
+window.loadTransactionHistory = loadTransactionHistory;
 
 function renderTransactions(transactions) {
     const container = document.getElementById('transactionHistoryList');
@@ -1918,6 +1934,7 @@ function renderTransactions(transactions) {
         return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--glass-bg);border-radius:8px;border:1px solid var(--glass-border);margin-bottom:6px;"><div><div style="font-weight:600;font-size:14px;">${typeLabel} ${statusBadge}</div><div style="font-size:11px;color:var(--text-secondary);opacity:0.5;">${t.description || ''}</div><div style="font-size:10px;color:var(--text-secondary);opacity:0.3;">${date}</div></div><div style="font-weight:700;font-size:16px;color:${color};">${sign}$${Math.abs(t.amount || 0).toFixed(2)}</div></div>`;
     }).join('');
 }
+window.renderTransactions = renderTransactions;
 
 // ============================================================
 // RENDER PROFILE FULL
@@ -2008,6 +2025,7 @@ function renderProfileFull() {
     </div>`;
     setTimeout(showTelegramBanner, 300);
 }
+window.renderProfileFull = renderProfileFull;
 
 // ============================================================
 // PASSWORD TOGGLE
@@ -2107,6 +2125,7 @@ async function loadProductsFromFirestore() {
         return fallbackProducts;
     }
 }
+window.loadProductsFromFirestore = loadProductsFromFirestore;
 
 function startProductsRealtimeListener() {
     if (unsubscribeProducts) {
@@ -2159,17 +2178,20 @@ function startProductsRealtimeListener() {
         renderLimitedProducts();
     }
 }
+window.startProductsRealtimeListener = startProductsRealtimeListener;
 
 function getCurrencySymbol(currency) {
     const symbols = { 'USD': '$', 'TND': 'د.ت', 'OTHER': '💱' };
     return symbols[currency] || '$';
 }
+window.getCurrencySymbol = getCurrencySymbol;
 
 function renderBadges(badges) {
     if (!badges || badges.length === 0) return '';
     const badgeMap = { 'new': 'mb-new', 'hot': 'mb-hot', 'exclusive': 'mb-exclusive', 'important': 'mb-important', 'limited': 'mb-limited', 'best': 'mb-best' };
     return `<div class="product-badges">${badges.map(b => `<span class="mini-badge ${badgeMap[b] || ''}">${b}</span>`).join('')}</div>`;
 }
+window.renderBadges = renderBadges;
 
 function renderProducts(productsList, isLoading = false) {
     const container = document.getElementById('productList');
@@ -2254,6 +2276,7 @@ function renderProducts(productsList, isLoading = false) {
         `;
     }).join('');
 }
+window.renderProducts = renderProducts;
 
 function updateStatsFromProducts(productsList) {
     const total = productsList.length;
@@ -2268,6 +2291,7 @@ function updateStatsFromProducts(productsList) {
     if (vipEl) vipEl.textContent = vip;
     if (wishlistEl) wishlistEl.textContent = wishlist.length;
 }
+window.updateStatsFromProducts = updateStatsFromProducts;
 
 function generateRecommendations(productsList) {
     const grid = document.getElementById('recommendationsGrid');
@@ -2296,6 +2320,7 @@ function generateRecommendations(productsList) {
         </div>
     `).join('');
 }
+window.generateRecommendations = generateRecommendations;
 
 // ============================================================
 // CURRENCY, PRODUCT TYPE, QUANTITY, BADGE FUNCTIONS
@@ -2371,8 +2396,7 @@ function getQuantityOptions() {
     });
     return options;
 }
-
-function setQuantityOptions(options) {
+window.setQuantityOptions = function(options) {
     const list = document.getElementById('quantityOptionsList');
     list.innerHTML = '';
     if (!options || options.length === 0) {
@@ -2394,7 +2418,7 @@ function setQuantityOptions(options) {
         list.appendChild(div);
     });
     updateQuantityOptionsUI();
-}
+};
 
 window.toggleBadge = function(badge) {
     const option = document.querySelector(`.badge-option[data-badge="${badge}"]`);
@@ -2410,6 +2434,7 @@ function updateBadgesInput() {
     });
     document.getElementById('productBadges').value = selected.join(',');
 }
+window.updateBadgesInput = updateBadgesInput;
 
 function setBadges(badges) {
     document.querySelectorAll('.badge-option').forEach(el => {
@@ -2422,6 +2447,7 @@ function setBadges(badges) {
     });
     updateBadgesInput();
 }
+window.setBadges = setBadges;
 
 // ============================================================
 // ADMIN FALLBACK PRODUCTS
@@ -2464,6 +2490,7 @@ function renderFallbackProductsAdmin() {
     addBtn.onclick = () => openAddFallbackProductModal();
     container.appendChild(addBtn);
 }
+window.renderFallbackProductsAdmin = renderFallbackProductsAdmin;
 
 window.editFallbackProduct = function(index) {
     const product = fallbackProducts[index];
@@ -2577,6 +2604,7 @@ function renderFeaturedProducts() {
     featuredCurrentIndex = 0;
     displayFeaturedSlice();
 }
+window.renderFeaturedProducts = renderFeaturedProducts;
 
 function displayFeaturedSlice() {
     const grid = document.getElementById('featuredGrid');
@@ -2600,13 +2628,16 @@ function displayFeaturedSlice() {
         </div>
     `}).join('');
 }
+window.displayFeaturedSlice = displayFeaturedSlice;
 
 function startFeaturedRotation() { if (featuredRotationInterval) { clearInterval(featuredRotationInterval);
         featuredRotationInterval = null; } if (!featuredSettings.enabled || featuredProducts.length <= 4) return;
     featuredRotationInterval = setInterval(() => { featuredCurrentIndex = (featuredCurrentIndex + 4) % featuredProducts.length;
         displayFeaturedSlice(); }, featuredSettings.rotationInterval); }
+window.startFeaturedRotation = startFeaturedRotation;
 function stopFeaturedRotation() { if (featuredRotationInterval) { clearInterval(featuredRotationInterval);
         featuredRotationInterval = null; } }
+window.stopFeaturedRotation = stopFeaturedRotation;
 
 async function loadFeaturedSettings() {
     try {
@@ -2621,6 +2652,7 @@ async function loadFeaturedSettings() {
         if (error.code === 'permission-denied') { renderFeaturedProducts(); }
     }
 }
+window.loadFeaturedSettings = loadFeaturedSettings;
 
 // ============================================================
 // CART MANAGEMENT
@@ -2645,6 +2677,7 @@ function updateProductCardButton(productId) {
         }
     });
 }
+window.updateProductCardButton = updateProductCardButton;
 
 window.addToCart = async function(productId) {
     const product = products.find(p => p.id === productId);
@@ -2734,6 +2767,7 @@ function updateBottomCartBar() {
     if (countEl) countEl.textContent = totalItems;
     if (totalEl) totalEl.textContent = '$' + finalTotal.toFixed(2);
 }
+window.updateBottomCartBar = updateBottomCartBar;
 
 function updateCartUI() {
     const count = document.getElementById('cartBadge');
@@ -2744,6 +2778,7 @@ function updateCartUI() {
     updateFullUserMenu();
     renderProxyPackages();
 }
+window.updateCartUI = updateCartUI;
 
 // ============================================================
 // RENDER CART FULL - WITH RP TOGGLE
@@ -2888,6 +2923,7 @@ function renderCartFull() {
     `;
     container.innerHTML = html;
 }
+window.renderCartFull = renderCartFull;
 
 // RP Toggle Switch Function
 window.toggleRpSwitch = async function() {
@@ -2976,6 +3012,7 @@ function updateWishlistUI() {
         ).join(''); }
     updateFullUserMenu();
 }
+window.updateWishlistUI = updateWishlistUI;
 
 function createFloatingHearts() {
     let container = document.getElementById('floatingHearts');
@@ -3005,6 +3042,7 @@ function createFloatingHearts() {
         }, 2000);
     }
 }
+window.createFloatingHearts = createFloatingHearts;
 
 function renderWishlistFull() {
     const container = document.getElementById('wishlistFullContent');
@@ -3049,6 +3087,7 @@ function renderWishlistFull() {
         </div>
     `;
 }
+window.renderWishlistFull = renderWishlistFull;
 
 // ============================================================
 // PRODUCT PREVIEW
@@ -3260,6 +3299,17 @@ window.openDetails = function(id) {
         renderRatingSection(id);
     }, 150);
 };
+window.closeProductDetails = function() {
+    const modal = document.getElementById('productDetailsFull');
+    if (modal) {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+    window._currentProduct = null;
+    window._selectedQuantity = null;
+    window._selectedQuantityPrice = null;
+};
+window.closePreviewModal = window.closeProductDetails;
 
 window.addToCartFromDetails = function() {
     if (window._currentProduct) {
@@ -3313,18 +3363,6 @@ window.addToCartFromDetails = function() {
         showToast('⚠️ Product not found', 'warning');
     }
 };
-
-window.closeProductDetails = function() {
-    const modal = document.getElementById('productDetailsFull');
-    if (modal) {
-        modal.classList.remove('open');
-        document.body.style.overflow = '';
-    }
-    window._currentProduct = null;
-    window._selectedQuantity = null;
-    window._selectedQuantityPrice = null;
-};
-window.closePreviewModal = window.closeProductDetails;
 
 window.selectQuantityOption = function(element, productId) {
     const parent = element.closest('.preview-quantity-options') || element.closest('#productQuantityOptions');
@@ -3490,8 +3528,10 @@ function performLiveSearch(query) {
     }).join('');
     searchResults.classList.add('active');
 }
+window.performLiveSearch = performLiveSearch;
 
 function highlightText(text, query) { if (!query) return text; const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi'); return text.replace(regex, '<span style="color: var(--primary); font-weight: 700;">$1</span>'); }
+window.highlightText = highlightText;
 document.addEventListener('click', function(e) { const wrapper = document.querySelector('.search-wrapper'); if (wrapper && !wrapper.contains(e.target)) { searchResults.classList.remove('active'); } });
 window.clearSearch = function() { searchInput.value = '';
     searchClear.classList.remove('visible');
@@ -3501,6 +3541,7 @@ window.clearSearch = function() { searchInput.value = '';
 function closeSearchResults() { searchResults.classList.remove('active');
     searchInput.value = '';
     searchClear.classList.remove('visible'); }
+window.closeSearchResults = closeSearchResults;
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeSearchResults();
         closeUserMenuFull();
         closeCartFull();
@@ -3574,10 +3615,12 @@ async function fetchCryptoPrices() {
         cryptoPrices.usdt = 1; }
     cryptoPrices.isUpdating = false;
 }
+window.fetchCryptoPrices = fetchCryptoPrices;
 
 function getLTCPrice() { return cryptoPrices.ltc || 42; }
-
+window.getLTCPrice = getLTCPrice;
 function getUSDTPrice() { return cryptoPrices.usdt || 1; }
+window.getUSDTPrice = getUSDTPrice;
 
 function updatePriceUI() {
     const exchangeRate = document.getElementById('exchangeRate');
@@ -3600,6 +3643,7 @@ function updatePriceUI() {
         }
     }
 }
+window.updatePriceUI = updatePriceUI;
 
 function updatePayableTotal() {
     let total = 0;
@@ -3614,6 +3658,7 @@ function updatePayableTotal() {
     const el = document.getElementById('payableTotal');
     if (el) el.textContent = '$' + finalTotal.toFixed(2);
 }
+window.updatePayableTotal = updatePayableTotal;
 
 window.selectPayment = function(method) {
     selectedPayment = method;
@@ -3733,7 +3778,7 @@ window.continuePayment = function() {
 };
 
 // ============================================================
-// PROCESS BALANCE PAYMENT
+// PROCESS BALANCE PAYMENT - FIXED
 // ============================================================
 async function processBalancePayment(totalAmount) {
     if (!currentUser) {
@@ -3756,6 +3801,7 @@ async function processBalancePayment(totalAmount) {
         userBalance = userBalance - totalAmount;
         userProfile.balance = userBalance;
         updateBalanceDisplay();
+
         const orderId = 'order_' + Date.now();
         const orderItem = {
             id: orderId,
@@ -3767,6 +3813,35 @@ async function processBalancePayment(totalAmount) {
         };
         userProfile.history.push(orderItem);
         await updateDoc(userRef, { history: arrayUnion(orderItem) });
+
+        // ===== إنشاء التراخيص =====
+        let allLicencesCreated = true;
+        for (const item of orderItem.items) {
+            try {
+                console.log('🔑 Generating licence for:', item.name);
+                const licence = await generateLicenceForUser(currentUser.uid, currentUser.email, item, orderId);
+                if (!licence) {
+                    allLicencesCreated = false;
+                    console.error('❌ Failed to generate licence for', item.name);
+                } else {
+                    console.log('✅ Licence generated:', licence.code);
+                }
+            } catch (err) {
+                allLicencesCreated = false;
+                console.error('❌ Error generating licence:', err);
+            }
+        }
+
+        // إعادة تحميل التراخيص من Firestore للتأكد
+        const updatedUserSnap = await getDoc(userRef);
+        if (updatedUserSnap.exists()) {
+            const data = updatedUserSnap.data();
+            userProfile.licences = data.licences || [];
+            renderUserLicences();
+            updateFullUserMenu();
+        }
+
+        // ===== تسجيل المعاملة =====
         try {
             await supabase.from('transactions').insert({
                 user_id: currentUser.uid,
@@ -3782,8 +3857,9 @@ async function processBalancePayment(totalAmount) {
         } catch (txError) {
             console.error('Failed to create transaction record:', txError);
         }
+
+        // ===== إرسال الإشعارات =====
         const visitorInfo = await getVisitorInfo();
-        const deviceInfo = getDeviceInfo();
         await sendOrderConfirmationEmail(currentUser.email, {
             orderId: orderId,
             userName: currentUser.displayName || currentUser.email,
@@ -3793,6 +3869,7 @@ async function processBalancePayment(totalAmount) {
             status: 'confirmed',
             txHash: null
         });
+
         const adminMessage = `
 👤 *User:* ${currentUser.displayName || currentUser.email || 'User'}
 📧 *Email:* ${currentUser.email || 'N/A'}
@@ -3802,9 +3879,15 @@ async function processBalancePayment(totalAmount) {
 📅 *Date:* ${new Date().toLocaleString()}
 🌐 *Location:* ${visitorInfo.country}, ${visitorInfo.city}
 🔔 *Status:* Confirmed (Balance Payment)
+${allLicencesCreated ? '✅ All licences created successfully' : '⚠️ Some licences failed to create'}
         `;
         await sendAdminNotification('✅ Order Paid with Balance', adminMessage);
+
+        // ===== رسالة تليجرام للمستخدم =====
         if (userProfile.telegramChatId) {
+            let licenceStatus = allLicencesCreated 
+                ? '🔑 Your licences have been generated and are available in your profile.'
+                : '⚠️ There was an issue generating some licences. Please contact support.';
             const userTelegramMessage = `
 <b>🛒 ORDER PAID WITH BALANCE!</b>
 
@@ -3816,14 +3899,28 @@ async function processBalancePayment(totalAmount) {
 📅 <b>Date:</b> ${new Date().toLocaleString()}
 
 ✅ Your order has been confirmed and completed.
-🔑 Your licences are now available in your profile.
+${licenceStatus}
             `;
             await sendTelegramNotification(userProfile.telegramChatId, userTelegramMessage);
         }
-        for (const item of orderItem.items) {
-            await generateLicenceForUser(currentUser.uid, currentUser.email, item, orderId);
-        }
-        await logActivity('purchase', { orderId, total: totalAmount, items: orderItem.items.length });
+
+        // ===== إشعار Firebase =====
+        await addDoc(collection(db, 'notifications'), {
+            title: '✅ Order Paid with Balance',
+            message: `Order #${orderId.slice(-6)} - $${totalAmount.toFixed(2)}`,
+            userId: currentUser.uid,
+            readBy: [],
+            createdAt: serverTimestamp()
+        });
+
+        // ===== تنظيف السلة =====
+        cart = [];
+        await saveUserData();
+        updateCartUI();
+        updateBottomCartBar();
+        renderProducts(products);
+
+        // ===== عرض الإشعار للمستخدم =====
         showToast({
             title: '✅ Payment Successful!',
             orderId: orderId.slice(-6),
@@ -3836,23 +3933,12 @@ async function processBalancePayment(totalAmount) {
             method: 'Balance',
             date: new Date().toLocaleString()
         }, 'success', 8000, true);
-        cart = [];
-        await saveUserData();
-        updateCartUI();
-        updateBottomCartBar();
-        renderProducts(products);
-        showToast(`✅ Payment successful! $${totalAmount.toFixed(2)} deducted from balance.`, 'success');
-        await addDoc(collection(db, 'notifications'), {
-            title: '✅ Order Paid with Balance',
-            message: `Order #${orderId.slice(-6)} - $${totalAmount.toFixed(2)}`,
-            userId: currentUser.uid,
-            readBy: [],
-            createdAt: serverTimestamp()
-        });
+
         document.getElementById('paymentModal').classList.remove('open');
         hideButtonLoading(btn, 'Done!');
         loadUserData();
         updateFullUserMenu();
+
     } catch (error) {
         console.error('Balance payment error:', error);
         hideButtonLoading(btn);
@@ -3861,6 +3947,8 @@ async function processBalancePayment(totalAmount) {
         isProcessingOrder = false;
     }
 }
+window.processBalancePayment = processBalancePayment;
+window.checkoutWithBalance = processBalancePayment;
 
 // ============================================================
 // SEND ADMIN NOTIFICATION
@@ -4285,6 +4373,7 @@ async function sendTelegramNotification(chatId, message) {
         return false;
     }
 }
+window.sendTelegramNotification = sendTelegramNotification;
 
 window.bindTelegram = async function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
@@ -4299,6 +4388,7 @@ window.bindTelegram = async function() {
     } catch (error) { console.error('Telegram bind error:', error);
         showToast('❌ Connection error', 'error'); }
 };
+window.bindTelegram = bindTelegram;
 
 function startBindingListener(bindCode) {
     const bindRef = doc(db, 'telegram_binds', bindCode);
@@ -4319,6 +4409,7 @@ function startBindingListener(bindCode) {
         }
     });
 }
+window.startBindingListener = startBindingListener;
 
 window.testTelegramNotification = async function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
@@ -4348,6 +4439,7 @@ window.testTelegramNotification = async function() {
         showToast('❌ Error: ' + error.message, 'error');
     }
 };
+window.testTelegramNotification = testTelegramNotification;
 
 window.unlinkTelegram = async function() {
     if (!currentUser || !userProfile.telegramChatId) return;
@@ -4364,6 +4456,7 @@ window.unlinkTelegram = async function() {
         showToast('✅ Telegram unlinked!', 'success');
     } catch (error) { showToast('❌ Error unlinking: ' + error.message, 'error'); }
 };
+window.unlinkTelegram = unlinkTelegram;
 
 window.checkTelegramStatus = async function() {
     if (!currentUser) { showToast('⚠️ Please login first', 'warning'); return; }
@@ -4378,17 +4471,22 @@ window.checkTelegramStatus = async function() {
         userProfile.telegram = username;
         if (chatId) {
             const maskedId = chatId.slice(0, 4) + '***' + chatId.slice(-4);
-            showToast(`✅ Telegram is linked!\n📱 Chat ID: ${maskedId}\n👤 Username: ${username || 'Not set'}`,
-            'success');
+            showToast(`✅ Telegram is linked!\n📱 Chat ID: ${maskedId}\n👤 Username: ${username || 'Not set'}`, 'success');
             renderProfileFull();
             updateFullUserMenu();
         } else {
-            showToast('❌ Telegram is NOT linked.\n\nPlease click "Link Bot" to connect your account.',
-            'warning');
+            showToast('❌ Telegram is NOT linked.\n\nPlease click "Link Bot" to connect your account.', 'warning');
+            if (typeof window.showTelegramBanner === 'function') {
+                window.showTelegramBanner();
+            } else {
+                console.warn('showTelegramBanner not available');
+            }
         }
         await saveUserData();
-    } catch (error) { console.error('❌ Error checking Telegram status:', error);
-        showToast('❌ Failed to check Telegram status: ' + error.message, 'error'); }
+    } catch (error) {
+        console.error('❌ Error checking Telegram status:', error);
+        showToast('❌ Failed to check Telegram status: ' + error.message, 'error');
+    }
 };
 
 // ============================================================
@@ -4412,6 +4510,7 @@ function renderProxyPackages() {
         `;
     }).join('');
 }
+window.renderProxyPackages = renderProxyPackages;
 
 window.addProxyToCart = function(packageId) {
     const pkg = proxyPackages.find(p => p.id === packageId);
@@ -4447,6 +4546,7 @@ function loadDownloads() {
         renderAdminDownloads();
     }, (error) => { console.error('Downloads listener error:', error); });
 }
+window.loadDownloads = loadDownloads;
 
 function renderDownloads() {
     const container = document.getElementById('downloadsList');
@@ -4460,6 +4560,7 @@ function renderDownloads() {
         return `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);margin-bottom:8px;"><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);">${d.title}</div><div style="font-size:11px;color:var(--text-secondary);opacity:0.4;">${d.type||'File'} • ${date}</div></div><a href="${d.downloadUrl||'#'}" target="_blank" style="padding:6px 16px;border:none;border-radius:8px;background:var(--free-color);color:#0a0a1a;font-weight:600;cursor:pointer;font-size:12px;text-decoration:none;transition:0.3s;"><i class="fas fa-download"></i></a></div>`;
     }).join('');
 }
+window.renderDownloads = renderDownloads;
 
 function renderAdminDownloads() {
     const container = document.getElementById('adminDownloadsList');
@@ -4471,6 +4572,7 @@ function renderAdminDownloads() {
         `<div class="admin-item"><div class="item-info"><div class="item-title">${d.title}</div><div class="item-meta">${d.type||'File'} • ${d.downloadUrl||'No link'}</div></div><div class="item-actions"><button class="btn-edit" onclick="editDownload('${d.id}')"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="deleteDownload('${d.id}')"><i class="fas fa-trash"></i></button></div></div>`
         ).join('');
 }
+window.renderAdminDownloads = renderAdminDownloads;
 
 window.createDownload = async function(e) {
     e.preventDefault();
@@ -4557,6 +4659,7 @@ function loadNotifications() {
     } catch (error) { console.error('Error setting up notifications:', error);
         renderUserNotificationsFallback(); }
 }
+window.loadNotifications = loadNotifications;
 
 function renderUserNotificationsFallback() {
     const container = document.getElementById('notificationsList');
@@ -4564,6 +4667,7 @@ function renderUserNotificationsFallback() {
     container.innerHTML =
         `<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);"><i class="fas fa-bell" style="font-size:48px;opacity:0.15;display:block;margin-bottom:12px;"></i><div style="font-size:18px;font-weight:600;">No notifications</div><div style="font-size:13px;opacity:0.4;margin-top:4px;">Notifications will appear here</div></div>`;
 }
+window.renderUserNotificationsFallback = renderUserNotificationsFallback;
 
 function renderUserNotifications() {
     const container = document.getElementById('notificationsList');
@@ -4587,6 +4691,7 @@ function renderUserNotifications() {
     });
     container.innerHTML = html;
 }
+window.renderUserNotifications = renderUserNotifications;
 
 function renderAdminNotifications() {
     const container = document.getElementById('adminNotificationsList');
@@ -4603,6 +4708,7 @@ function renderAdminNotifications() {
         ).join('');
     }).catch((error) => { console.error('Error loading admin notifications:', error); });
 }
+window.renderAdminNotifications = renderAdminNotifications;
 
 function updateNotificationBadge() {
     const badge = document.getElementById('notifBadge');
@@ -4612,6 +4718,7 @@ function updateNotificationBadge() {
     }
     updateFullUserMenu();
 }
+window.updateNotificationBadge = updateNotificationBadge;
 
 window.markAllNotificationsRead = async function() {
     if (!currentUser) return;
@@ -4719,7 +4826,6 @@ window.openRequestsModal = function() {
     list.innerHTML = html;
     document.getElementById('requestsModal').classList.add('open');
 };
-
 window.closeRequestsModal = function() { document.getElementById('requestsModal').classList.remove('open'); };
 window.openNewRequestModal = function() { if (!currentUser) { showToast('⚠️ Please login first', 'warning');
         openAuthModal(); return; } document.getElementById('newRequestModal').classList.add('open');
@@ -4755,7 +4861,6 @@ window.openReferralModal = function() {
     updateReferralUI();
     document.getElementById('referralModal').classList.add('open');
 };
-
 window.closeReferralModal = function() {
     document.getElementById('referralModal').classList.remove('open');
 };
@@ -4864,6 +4969,7 @@ function updateReferralUI() {
         </div>
     `;
 }
+window.updateReferralUI = updateReferralUI;
 
 window.copyReferralCode2 = function() {
     const codeDisplay = document.getElementById('referralCodeDisplay2');
@@ -4886,7 +4992,7 @@ window.copyReferralCode2 = function() {
 // ============================================================
 
 window.openAdminPanel = function() {
-    const user = auth.currentUser; // أو window.auth?.currentUser
+    const user = auth.currentUser;
     if (!user || !isAdminCached) {
         showToast('⛔ Unauthorized. Admin only.', 'error');
         return;
@@ -4905,7 +5011,6 @@ window.openAdminPanel = function() {
     panel.classList.add('open');
     document.body.style.overflow = 'hidden';
     
-    // تحميل البيانات بأمان
     try {
         if (typeof switchAdminTab === 'function') {
             switchAdminTab('dashboard');
@@ -4922,7 +5027,6 @@ window.openAdminPanel = function() {
         safeLoad(loadAdminUsers, 'users');
         safeLoad(loadCoupons, 'coupons');
         
-        // التحقق من العناصر
         const intervalInput = document.getElementById('sliderIntervalInput');
         if (intervalInput) intervalInput.value = sliderIntervalTime || 3;
         const marqueeEnabled = document.getElementById('marqueeEnabled');
@@ -5008,7 +5112,6 @@ window.switchAdminTab = function(tab) {
     const titleEl = document.getElementById('adminPageTitle');
     if (titleEl) titleEl.textContent = titles[tab] || tab;
 
-    // تحميل البيانات حسب التبويب
     try {
         if (tab === 'products' && typeof renderAdminProducts === 'function') {
             renderAdminProducts(products);
@@ -5100,6 +5203,7 @@ function renderAdminProducts(productsList) {
         `;
     }).join('');
 }
+window.renderAdminProducts = renderAdminProducts;
 
 // ============================================================
 // ADMIN ORDERS
@@ -5151,6 +5255,7 @@ function startAdminRealtimeListener() {
         }
     });
 }
+window.startAdminRealtimeListener = startAdminRealtimeListener;
 
 function loadAdminOrders() {
     if (!currentUser || !isAdminCached) {
@@ -5202,6 +5307,7 @@ function loadAdminOrders() {
         }
     });
 }
+window.loadAdminOrders = loadAdminOrders;
 
 function renderAdminOrders(orders) {
     const tbody = document.getElementById('adminOrdersBody');
@@ -5238,6 +5344,7 @@ function renderAdminOrders(orders) {
     });
     tbody.innerHTML = html;
 }
+window.renderAdminOrders = renderAdminOrders;
 
 function updateAdminStats(orders) {
     const total = orders.length;
@@ -5255,6 +5362,7 @@ function updateAdminStats(orders) {
     if (confirmedEl) confirmedEl.textContent = confirmed;
     if (rejectedEl) rejectedEl.textContent = rejected;
 }
+window.updateAdminStats = updateAdminStats;
 
 // ============================================================
 // UPDATE ORDER STATUS
@@ -5428,6 +5536,7 @@ async function loadAdminUsers() {
         }
     }
 }
+window.loadAdminUsers = loadAdminUsers;
 
 function renderAdminUsers(usersList) {
     const container = document.getElementById('adminUsersContainer');
@@ -5456,6 +5565,7 @@ function renderAdminUsers(usersList) {
         return `<div class="admin-user-card ${isBanned?'banned':''}"><div class="user-avatar">${photo ? `<img src="${photo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />` : initials}</div><div class="user-name">${user.name||'Unknown'}</div><div class="user-email">${user.email||'No email'}</div><div class="user-meta">📍 ${location}</div><div class="user-meta">📅 ${dateStr} • 🎯 ${rp} RP • 💰 $${balance.toFixed(2)}</div><div class="user-meta">📦 ${orderCount} orders</div>${isBanned?`<span class="user-badge banned">🚫 Banned</span>`:''}${isAdmin?`<span class="user-badge admin">👑 Admin</span>`:''}<div class="user-actions"><button class="btn-view" onclick="viewUserDetails('${user.uid}')"><i class="fas fa-eye"></i> View</button>${!isAdmin ? (isBanned ? `<button class="btn-unban" onclick="toggleUserBan('${user.uid}',false)"><i class="fas fa-user-check"></i> Unban</button>` : `<button class="btn-ban" onclick="toggleUserBan('${user.uid}',true)"><i class="fas fa-ban"></i> Ban</button>`) : ''}${!isAdmin ? `<button class="btn-delete" onclick="deleteUserAccount('${user.uid}')"><i class="fas fa-trash"></i></button>` : ''}</div></div>`;
     }).join('')}</div>`;
 }
+window.renderAdminUsers = renderAdminUsers;
 window.searchAdminUsers = function() { renderAdminUsers(allUsers); };
 window.clearAdminUserSearch = function() { document.getElementById('adminUserSearchInput').value = '';
     renderAdminUsers(allUsers); };
@@ -5573,6 +5683,7 @@ async function loadLicences() {
             `<div style="text-align:center;padding:30px;color:var(--danger);">⚠️ Failed to load licences: ${error.message}</div>`;
     }
 }
+window.loadLicences = loadLicences;
 
 function renderLicences(licences) {
     const container = document.getElementById('adminLicencesList');
@@ -5616,16 +5727,19 @@ function renderLicences(licences) {
         `;
     }).join('');
 }
+window.renderLicences = renderLicences;
 
 function openCreateLicenceModal() {
     const modal = document.getElementById('createLicenceModal');
     if (modal) modal.classList.add('open');
 }
+window.openCreateLicenceModal = openCreateLicenceModal;
 
 function closeCreateLicenceModal() {
     const modal = document.getElementById('createLicenceModal');
     if (modal) modal.classList.remove('open');
 }
+window.closeCreateLicenceModal = closeCreateLicenceModal;
 
 async function createLicenceManually() {
     const productName = document.getElementById('newLicenceProduct')?.value.trim();
@@ -5667,6 +5781,7 @@ async function createLicenceManually() {
         }
     } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
 }
+window.createLicenceManually = createLicenceManually;
 
 async function updateLicenceInSupabase(licenceId, data) {
     const { error } = await supabase.from('licenses').update({ ...data, updated_at: new Date().toISOString() }).eq(
@@ -5674,6 +5789,7 @@ async function updateLicenceInSupabase(licenceId, data) {
     if (error) throw error;
     return true;
 }
+window.updateLicenceInSupabase = updateLicenceInSupabase;
 
 async function approveLicence(licenceId, code, scriptName) {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
@@ -5693,6 +5809,7 @@ async function approveLicence(licenceId, code, scriptName) {
         loadLicences();
     } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
 }
+window.approveLicence = approveLicence;
 
 async function revokeLicence(licenceId) {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
@@ -5727,6 +5844,7 @@ async function revokeLicence(licenceId) {
         loadLicences();
     } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
 }
+window.revokeLicence = revokeLicence;
 
 async function deleteLicence(licenceId) {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
@@ -5754,6 +5872,7 @@ async function deleteLicence(licenceId) {
         loadLicences();
     } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
 }
+window.deleteLicence = deleteLicence;
 
 async function editLicence(licenceId) {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
@@ -5776,6 +5895,7 @@ async function editLicence(licenceId) {
         document.getElementById('editLicenceModal').classList.add('open');
     } catch (error) { showToast('❌ Failed to load licence details', 'error'); }
 }
+window.editLicence = editLicence;
 
 async function saveLicenceEdit() {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
@@ -5803,6 +5923,7 @@ async function saveLicenceEdit() {
         document.getElementById('editLicenceModal').classList.remove('open');
     } catch (error) { showToast('❌ Error: ' + error.message, 'error'); }
 }
+window.saveLicenceEdit = saveLicenceEdit;
 
 function searchLicences() {
     const query = document.getElementById('adminLicenceSearch').value.trim().toLowerCase();
@@ -5815,12 +5936,15 @@ function searchLicences() {
     });
     renderLicences(filtered);
 }
+window.searchLicences = searchLicences;
 
 function clearLicenceSearch() { document.getElementById('adminLicenceSearch').value = '';
     renderLicences(allLicences); }
+window.clearLicenceSearch = clearLicenceSearch;
 
 function refreshLicences() { loadLicences();
     showToast('🔄 Refreshed', 'info'); }
+window.refreshLicences = refreshLicences;
 
 function renderUserLicences() {
     const container = document.getElementById('userLicencesList');
@@ -5850,11 +5974,13 @@ function renderUserLicences() {
         `;
     }).join('');
 }
+window.renderUserLicences = renderUserLicences;
 
 function toggleLicencesList() {
     const list = document.getElementById('userLicencesList');
     if (list) list.style.display = list.style.display === 'none' ? 'block' : 'none';
 }
+window.toggleLicencesList = toggleLicencesList;
 
 // ============================================================
 // LICENCE MODAL FUNCTIONS - FIXED
@@ -6012,6 +6138,7 @@ async function loadRatings(productId) {
         return { avg, count };
     } catch (error) { console.error('Error loading ratings:', error); container.innerHTML = `<div style="text-align:center;padding:10px;color:var(--danger);">Failed to load reviews</div>`; return { avg: 0, count: 0 }; }
 }
+window.loadRatings = loadRatings;
 
 function hasUserPurchasedProduct(productId) {
     if (!currentUser) return false;
@@ -6021,6 +6148,7 @@ function hasUserPurchasedProduct(productId) {
         return order.items.some(item => item.id === productId);
     });
 }
+window.hasUserPurchasedProduct = hasUserPurchasedProduct;
 
 async function submitRating(productId) {
     if (!currentUser) { showToast('⚠️ Please login to rate', 'warning'); return; }
@@ -6042,8 +6170,10 @@ async function submitRating(productId) {
         updateProductRatingDisplay(productId);
     } catch (error) { console.error('Error submitting rating:', error); showToast('❌ Error: ' + error.message, 'error'); }
 }
+window.submitRating = submitRating;
 
 function renderStarHTML(rating) { let html = ''; for (let i = 1; i <= 5; i++) { html += `<span class="star ${i <= rating ? 'active' : ''}" data-value="${i}" onclick="setRating(${i})">★</span>`; } return html; }
+window.renderStarHTML = renderStarHTML;
 window.setRating = function(value) { currentRating = value; const container = document.getElementById('ratingStarsContainer'); if (container) { container.innerHTML = renderStarHTML(value); } };
 
 function renderRatingSection(productId) {
@@ -6077,6 +6207,7 @@ function renderRatingSection(productId) {
     `;
     loadRatings(productId);
 }
+window.renderRatingSection = renderRatingSection;
 
 async function updateProductRatingDisplay(productId) {
     const ratingsRef = collection(db, 'ratings');
@@ -6086,6 +6217,7 @@ async function updateProductRatingDisplay(productId) {
     snapshot.forEach(doc => { total += doc.data().rating || 0; count++; });
     const avg = count > 0 ? total / count : 0;
 }
+window.updateProductRatingDisplay = updateProductRatingDisplay;
 
 // ============================================================
 // SLIDER FUNCTIONS
@@ -6307,6 +6439,7 @@ function updateSlideProductSelect() {
     select.innerHTML = products.map(p =>
         `<option value="${p.id}">${p.name} (${getCurrencySymbol(p.currency || 'USD')}${p.price})</option>`).join('');
 }
+window.updateSlideProductSelect = updateSlideProductSelect;
 
 function toggleSlideLinkFields() {
     const type = document.getElementById('slideLinkType')?.value || 'product';
@@ -6317,6 +6450,7 @@ function toggleSlideLinkFields() {
     if (downloadGroup) downloadGroup.style.display = type === 'download' ? 'block' : 'none';
     if (customGroup) customGroup.style.display = type === 'url' ? 'block' : 'none';
 }
+window.toggleSlideLinkFields = toggleSlideLinkFields;
 
 async function loadSliderSettings() {
     try {
@@ -6345,6 +6479,7 @@ async function loadSliderSettings() {
         }
     }
 }
+window.loadSliderSettings = loadSliderSettings;
 
 function renderSlider() {
     const wrapper = document.getElementById('sliderWrapper');
@@ -6388,6 +6523,7 @@ function renderSlider() {
         return `<span class="dot ${isActive}" onclick="goToSlide(${index})"></span>`;
     }).join('');
 }
+window.renderSlider = renderSlider;
 
 function startSliderRotation() {
     if (sliderTimer) clearInterval(sliderTimer);
@@ -6396,11 +6532,13 @@ function startSliderRotation() {
         if (!isSliderPaused) { window.nextSlide(); }
     }, sliderIntervalTime * 1000);
 }
+window.startSliderRotation = startSliderRotation;
 
 function resetSliderTimer() {
     if (sliderTimer) { clearInterval(sliderTimer);
         startSliderRotation(); }
 }
+window.resetSliderTimer = resetSliderTimer;
 
 function renderSliderSettingsUI() {
     const container = document.getElementById('sliderSlidesList');
@@ -6416,6 +6554,7 @@ function renderSliderSettingsUI() {
         return `<div class="admin-item"><div class="item-info"><div class="item-title"><img src="${slide.imageUrl || 'https://picsum.photos/seed/default/60/60'}" style="width:40px;height:40px;border-radius:var(--radius-sm);object-fit:cover;margin-right:8px;" />${slide.title || 'Slide ' + (index+1)}<span style="font-size:11px;opacity:0.4;font-weight:400;">${slide.linkType === 'product' ? '📦 Product: ' + productName : slide.linkType === 'download' ? '📥 Download' : '🔗 Custom Link'}</span></div><div class="item-meta">${slide.subtitle || ''}</div></div><div class="item-actions"><button class="btn-edit" onclick="editSlide(${index})"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="deleteSlide(${index})"><i class="fas fa-trash"></i></button></div></div>`;
     }).join('');
 }
+window.renderSliderSettingsUI = renderSliderSettingsUI;
 
 // ============================================================
 // MARQUEE FUNCTIONS
@@ -6460,6 +6599,7 @@ function renderMarqueeSettingsUI() {
     if (textArea) textArea.value = marqueeSettings.text ||
         '🚀 Welcome to ZI Store | ⚡ Instant Delivery | 🔒 Secure Payment | 💬 24/7 Support';
 }
+window.renderMarqueeSettingsUI = renderMarqueeSettingsUI;
 
 async function loadMarqueeSettings() {
     try {
@@ -6486,6 +6626,7 @@ async function loadMarqueeSettings() {
         }
     }
 }
+window.loadMarqueeSettings = loadMarqueeSettings;
 
 // ============================================================
 // DASHBOARD STATS, ADVANCED STATS, AUDIT LOGS
@@ -6506,6 +6647,7 @@ async function loadDashboardStats() {
         if (error.code === 'permission-denied') { console.warn('⚠️ Missing permissions to read stats.'); }
     }
 }
+window.loadDashboardStats = loadDashboardStats;
 window.refreshDashboardStats = function() { loadDashboardStats();
     showToast('🔄 Stats refreshed', 'success'); };
 async function loadAdvancedStats() {
@@ -6566,6 +6708,7 @@ async function loadAdvancedStats() {
             `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load statistics: ${error.message}</div>`;
     }
 }
+window.loadAdvancedStats = loadAdvancedStats;
 window.refreshAdvancedStats = function() { loadAdvancedStats();
     showToast('🔄 Advanced stats refreshed', 'success'); };
 async function loadAuditLogs() {
@@ -6700,6 +6843,7 @@ window.loadActivityLogs = async function() {
         `;
     }
 };
+window.loadActivityLogs = loadActivityLogs;
 
 window.exportActivityLogs = async function() {
     if (!currentUser || !isAdminCached) {
@@ -6802,6 +6946,7 @@ window.loadFraudLogs = async function() {
         container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Failed to load fraud logs: ${error.message}</div>`;
     }
 };
+window.loadFraudLogs = loadFraudLogs;
 
 // ============================================================
 // ORDER HISTORY (User-specific)
@@ -6826,6 +6971,7 @@ window.clearOrderHistory = async function() {
         showToast('❌ Failed to clear order history', 'error');
     }
 };
+window.clearOrderHistory = clearOrderHistory;
 
 window.renderHistoryFull = function() {
     const container = document.getElementById('historyFullContent');
@@ -6874,6 +7020,7 @@ window.renderHistoryFull = function() {
 
     container.innerHTML = html;
 };
+window.renderHistoryFull = renderHistoryFull;
 
 // ============================================================
 // TOPUP SYSTEM - BALANCE FUNCTIONS
@@ -6897,6 +7044,7 @@ async function loadUserBalance() {
         console.error('Error loading balance:', error);
     }
 }
+window.loadUserBalance = loadUserBalance;
 
 function updateBalanceDisplay() {
     const display = document.getElementById('balanceDisplay');
@@ -6912,6 +7060,7 @@ function updateBalanceDisplay() {
         balancePaymentSub.textContent = `$${userBalance.toFixed(2)} available`;
     }
 }
+window.updateBalanceDisplay = updateBalanceDisplay;
 
 // ============================================================
 // TOPUP SYSTEM - REALTIME LISTENER
@@ -6961,6 +7110,7 @@ function startTopupRealtimeListener() {
         )
         .subscribe();
 }
+window.startTopupRealtimeListener = startTopupRealtimeListener;
 
 function playNotificationSound() {
     try {
@@ -6986,6 +7136,7 @@ function playNotificationSound() {
         console.log('⚠️ Sound notification not available');
     }
 }
+window.playNotificationSound = playNotificationSound;
 
 // ============================================================
 // TOPUP SYSTEM - CHECK STATUS
@@ -7018,6 +7169,7 @@ window.openTopupStatus = async function() {
 
     await loadUserTopups();
 };
+window.openTopupStatus = openTopupStatus;
 
 window.closeTopupStatus = function() {
     const modal = document.getElementById('topupStatusModal');
@@ -7026,6 +7178,7 @@ window.closeTopupStatus = function() {
         document.body.style.overflow = '';
     }
 };
+window.closeTopupStatus = closeTopupStatus;
 
 async function loadUserTopups() {
     if (!currentUser) return;
@@ -7145,6 +7298,7 @@ async function loadUserTopups() {
         `;
     }
 }
+window.loadUserTopups = loadUserTopups;
 
 // ============================================================
 // TOPUP SYSTEM - MODAL FUNCTIONS
@@ -7166,7 +7320,6 @@ window.openTopupModal = function() {
     selectedTopupAmount = 0;
     selectTopupCurrency('USDT');
 };
-
 window.closeTopupModal = function() {
     document.getElementById('topupModal').classList.remove('open');
     document.body.style.overflow = '';
@@ -7212,6 +7365,7 @@ window.selectTopupCurrency = function(currency) {
 
     updateTopupAmounts(currency);
 };
+window.selectTopupCurrency = selectTopupCurrency;
 
 function updateTopupAmounts(currency) {
     const container = document.getElementById('topupAmountsContainer');
@@ -7258,6 +7412,7 @@ function updateTopupAmounts(currency) {
         </div>
     `;
 }
+window.updateTopupAmounts = updateTopupAmounts;
 
 // ============================================================
 // selectTopupAmount
@@ -7328,6 +7483,7 @@ window.selectTopupAmount = function(amount) {
     document.getElementById('topupSelectedAmount').textContent = displayText;
     document.getElementById('topupLtcAmount').textContent = ltcDisplay;
 };
+window.selectTopupAmount = selectTopupAmount;
 
 // ============================================================
 // TOPUP SYSTEM - PROCESS TOPUP
@@ -7472,6 +7628,7 @@ window.processTopup = async function() {
         if (btn) hideButtonLoading(btn);
     }
 };
+window.processTopup = processTopup;
 
 // ============================================================
 // TOPUP SYSTEM - SUBMIT WITH TX HASH
@@ -7568,6 +7725,7 @@ You will receive a notification once approved.
         showToast('❌ Error: ' + error.message, 'error');
     }
 };
+window.submitTopupWithTxHash = submitTopupWithTxHash;
 
 // ============================================================
 // TOPUP SYSTEM - ADMIN FUNCTIONS
@@ -7634,6 +7792,7 @@ window.approveTopup = async function(topupId) {
         showToast('❌ Error: ' + error.message, 'error');
     }
 };
+window.approveTopup = approveTopup;
 
 window.rejectTopup = async function(topupId) {
     if (!currentUser || !isAdminCached) {
@@ -7679,6 +7838,7 @@ window.rejectTopup = async function(topupId) {
         showToast('❌ Error: ' + error.message, 'error');
     }
 };
+window.rejectTopup = rejectTopup;
 
 async function loadAdminTopups() {
     if (!currentUser || !isAdminCached) return;
@@ -7754,6 +7914,7 @@ async function loadAdminTopups() {
             `<div style="text-align:center;padding:30px;color:var(--danger);">Failed to load topups</div>`;
     }
 }
+window.loadAdminTopups = loadAdminTopups;
 
 // ============================================================
 // TOPUP SYSTEM - TELEGRAM NOTIFICATION
@@ -7798,6 +7959,7 @@ ${txHash ? `🔗 *TXID:* \`${txHash}\`` : ''}
         console.error('❌ Error sending Telegram notification:', error);
     }
 }
+window.sendTelegramTopupNotification = sendTelegramTopupNotification;
 
 // ============================================================
 // COPY LICENCE & EXPORT
@@ -7819,6 +7981,7 @@ function fallbackCopy(text) {
     }
     document.body.removeChild(textarea);
 }
+window.fallbackCopy = fallbackCopy;
 
 // نسخ رمز الترخيص
 window.copyLicenceCode = function(code) {
@@ -8026,19 +8189,18 @@ function refreshAdminPayments() {
             `<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--danger);">${error.message}</td></tr>`;
     });
 }
+window.refreshAdminPayments = refreshAdminPayments;
 
 window.adminApprovePayment = function(orderId, userId) {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     updateOrderStatus(orderId, userId, 'confirmed');
     setTimeout(refreshAdminPayments, 500);
 };
-
 window.adminRejectPayment = function(orderId, userId) {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     updateOrderStatus(orderId, userId, 'rejected');
     setTimeout(refreshAdminPayments, 500);
 };
-
 window.adminDeletePayment = function(orderId, userId) {
     if (!currentUser || !isAdminCached) { showToast('⛔ Unauthorized', 'error'); return; }
     if (!confirm(`Delete payment ${orderId}?`)) return;
@@ -8060,6 +8222,7 @@ function trackUserBehavior(productId, action) {
     if (userHistory.length > 50) userHistory = userHistory.slice(-50);
     updateUserPreferences();
 }
+window.trackUserBehavior = trackUserBehavior;
 
 function updateUserPreferences() {
     userPreferences = {
@@ -8087,6 +8250,7 @@ function updateUserPreferences() {
         }
     });
 }
+window.updateUserPreferences = updateUserPreferences;
 
 function getRecommendations(limit = 6) {
     if (!currentUser || userHistory.length === 0) {
@@ -8133,12 +8297,14 @@ function getRecommendations(limit = 6) {
 
     return unique.slice(0, limit);
 }
+window.getRecommendations = getRecommendations;
 
 function getDefaultRecommendations(limit) {
     return products.filter(p => p.price > 0)
         .sort((a, b) => b.price - a.price)
         .slice(0, limit);
 }
+window.getDefaultRecommendations = getDefaultRecommendations;
 
 // ============================================================
 // FRAUD DETECTION SYSTEM
@@ -8210,6 +8376,7 @@ async function detectFraud(orderData) {
         severity: warnings.length > 3 ? 'high' : (warnings.length > 1 ? 'medium' : 'low')
     };
 }
+window.detectFraud = detectFraud;
 
 async function logFraudDetection(data) {
     try {
@@ -8229,6 +8396,7 @@ async function logFraudDetection(data) {
         console.error('Error logging fraud:', error);
     }
 }
+window.logFraudDetection = logFraudDetection;
 
 // ============================================================
 // LIMITED QUANTITY PRODUCTS
@@ -8278,6 +8446,7 @@ function renderLimitedProducts() {
         `;
     }).join('');
 }
+window.renderLimitedProducts = renderLimitedProducts;
 
 // ============================================================
 // SMART POPUPS
@@ -8297,6 +8466,7 @@ function initPopups() {
         }
     }, 30000);
 }
+window.initPopups = initPopups;
 
 function showExitPopup() {
     if (popupShown) return;
@@ -8307,6 +8477,7 @@ function showExitPopup() {
         document.body.style.overflow = 'hidden';
     }
 }
+window.showExitPopup = showExitPopup;
 
 function showOfferPopup() {
     if (popupShown) return;
@@ -8317,6 +8488,7 @@ function showOfferPopup() {
         document.body.style.overflow = 'hidden';
     }
 }
+window.showOfferPopup = showOfferPopup;
 
 window.closePopup = function(popupId) {
     const popup = document.getElementById(popupId);
@@ -8365,6 +8537,7 @@ async function loadCoupons() {
         return [];
     }
 }
+window.loadCoupons = loadCoupons;
 
 function updateActiveCoupons() {
     const now = new Date();
@@ -8375,6 +8548,7 @@ function updateActiveCoupons() {
         return true;
     });
 }
+window.updateActiveCoupons = updateActiveCoupons;
 
 window.openCreateCouponModal = function() {
     if (!currentUser || !isAdminCached) {
@@ -8385,7 +8559,6 @@ window.openCreateCouponModal = function() {
     document.getElementById('couponForm').reset();
     document.getElementById('couponIdField').value = '';
 };
-
 window.closeCreateCouponModal = function() {
     document.getElementById('createCouponModal').classList.remove('open');
 };
@@ -8442,6 +8615,7 @@ window.saveCoupon = async function() {
         showToast('❌ Error: ' + error.message, 'error');
     }
 };
+window.saveCoupon = saveCoupon;
 
 window.deleteCoupon = async function(couponId) {
     if (!currentUser || !isAdminCached) {
@@ -8457,6 +8631,7 @@ window.deleteCoupon = async function(couponId) {
         showToast('❌ Error: ' + error.message, 'error');
     }
 };
+window.deleteCoupon = deleteCoupon;
 
 window.editCoupon = function(couponId) {
     const coupon = coupons.find(c => c.id === couponId);
@@ -8476,6 +8651,7 @@ window.editCoupon = function(couponId) {
 
     document.getElementById('createCouponModal').classList.add('open');
 };
+window.editCoupon = editCoupon;
 
 function renderAdminCoupons() {
     const container = document.getElementById('adminCouponsList');
@@ -8515,6 +8691,7 @@ function renderAdminCoupons() {
         `;
     }).join('');
 }
+window.renderAdminCoupons = renderAdminCoupons;
 
 // ============================================================
 // EMAIL SYSTEM - Complete Integration
@@ -8551,11 +8728,13 @@ async function sendEmail(to, subject, htmlContent, textContent = '') {
         return { success: false, error: error.message };
     }
 }
+window.sendEmail = sendEmail;
 
 async function sendWelcomeEmail(userEmail, userName) {
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Welcome to ZI Store</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:#f0f2f8;padding:20px;margin:0}.container{max-width:600px;margin:0 auto;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.08)}.header{background:linear-gradient(135deg,#6c5ce7 0%,#a29bfe 100%);padding:40px 30px 30px;text-align:center}.logo{font-size:32px;font-weight:900;color:#fff;letter-spacing:-0.5px}.logo span{color:#f2a900}.logo-sub{font-size:14px;color:rgba(255,255,255,0.7);margin-top:4px;font-weight:400}.content{padding:40px 35px}.welcome-title{font-size:26px;font-weight:800;color:#1a1a2e;text-align:center}.welcome-title .emoji{font-size:32px;display:block;margin-bottom:4px}.welcome-text{font-size:15px;color:#4a4a6a;line-height:1.8;text-align:center;margin:12px 0 20px}.features-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}.feature-box{background:#f8f8ff;padding:16px 18px;border-radius:12px;border-left:4px solid #6c5ce7}.feature-box .icon{font-size:20px;display:block;margin-bottom:4px}.feature-box .title{font-weight:700;color:#1a1a2e;font-size:14px}.feature-box .desc{font-size:12px;color:#4a4a6a;opacity:0.7}.coupon-box{background:linear-gradient(135deg,#f2a900,#fbbf24);border-radius:12px;padding:16px 20px;text-align:center;margin:16px 0}.coupon-box .code{font-size:20px;font-weight:900;color:#1a1a2e;font-family:monospace;letter-spacing:2px}.coupon-box .label{font-size:13px;color:rgba(26,26,46,0.7)}.btn-primary{display:inline-block;background:#6c5ce7;color:#fff;padding:14px 40px;border-radius:30px;text-decoration:none;font-weight:700;font-size:16px;transition:all .3s}.btn-primary:hover{background:#5a4bd1;transform:translateY(-2px);box-shadow:0 8px 25px rgba(108,92,231,0.3)}.text-center{text-align:center}.divider{border:none;border-top:2px solid #f0f2f8;margin:20px 0}.footer{padding:20px 35px;text-align:center;background:#f8f8ff}.footer-text{font-size:12px;color:#888}.footer-links a{color:#6c5ce7;text-decoration:none;margin:0 6px;font-size:12px}.footer-links a:hover{text-decoration:underline}@media(max-width:480px){.header{padding:30px 20px}.content{padding:25px 18px}.features-grid{grid-template-columns:1fr}.logo{font-size:26px}.welcome-title{font-size:22px}.btn-primary{padding:12px 28px;font-size:14px}}</style></head><body><div class="container"><div class="header"><div class="logo">ZI <span>Store</span></div><div class="logo-sub">Premium Scripts & Digital Products</div></div><div class="content"><div class="welcome-title"><span class="emoji">🎉</span>Welcome to ZI Store!</div><p class="welcome-text">Hello <strong>${userName || 'there'}</strong>! We're thrilled to have you on board. 🚀<br>Here's everything you need to get started:</p><div class="features-grid"><div class="feature-box"><span class="icon">🛍️</span><div class="title">Premium Products</div><div class="desc">Access exclusive scripts and tools</div></div><div class="feature-box"><span class="icon">💳</span><div class="title">Secure Payments</div><div class="desc">Multiple payment methods</div></div><div class="feature-box"><span class="icon">⚡</span><div class="title">Instant Delivery</div><div class="desc">Get your products immediately</div></div><div class="feature-box"><span class="icon">🎁</span><div class="title">Exclusive Discounts</div><div class="desc">Special offers for members</div></div></div><div class="coupon-box"><div class="label">🎫 Use this coupon for 15% off your first order</div><div class="code">WELCOME15</div></div><div class="text-center"><a href="https://zi-store.online" class="btn-primary">🛒 Start Shopping Now</a></div><hr class="divider"><div style="text-align:center;font-size:13px;color:#888;line-height:1.6;"><p>Need help? <a href="mailto:support@zi-store.online" style="color:#6c5ce7;">Contact Support</a></p></div></div><div class="footer"><div class="footer-links"><a href="https://zi-store.online">Store</a><a href="mailto:support@zi-store.online">Support</a><a href="https://zi-store.online/privacy.html">Privacy</a><a href="https://zi-store.online/refund.html">Refund Policy</a></div><div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div></div></div></body></html>`;
     return await sendEmail(userEmail, '🎉 Welcome to ZI Store!', html);
 }
+window.sendWelcomeEmail = sendWelcomeEmail;
 
 async function sendOrderConfirmationEmail(userEmail, orderData) {
     const orderId = orderData.orderId || orderData.id || '------';
@@ -8563,6 +8742,7 @@ async function sendOrderConfirmationEmail(userEmail, orderData) {
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Order Confirmation #${orderIdDisplay}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:#f0f2f8;padding:20px;margin:0}.container{max-width:600px;margin:0 auto;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.08)}.header{background:linear-gradient(135deg,#6c5ce7 0%,#a29bfe 100%);padding:30px 30px 20px;text-align:center}.logo{font-size:28px;font-weight:900;color:#fff}.logo span{color:#f2a900}.order-status{display:inline-block;padding:4px 16px;border-radius:30px;background:#fbbf24;color:#1a1a2e;font-weight:700;font-size:13px;margin-top:6px}.content{padding:35px 30px}.greeting{font-size:18px;font-weight:700;color:#1a1a2e}.greeting span{color:#6c5ce7}.order-summary{background:#f8f8ff;border-radius:12px;padding:16px 18px;margin:16px 0}.summary-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #eee}.summary-row:last-child{border-bottom:none}.summary-label{color:#888;font-weight:500;font-size:13px}.summary-value{font-weight:600;color:#1a1a2e;font-size:13px}.items-table{width:100%;border-collapse:collapse;margin:16px 0}.items-table th{text-align:left;padding:10px 0;border-bottom:2px solid #eee;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px}.items-table td{padding:10px 0;border-bottom:1px solid #f0f2f8}.items-table .item-name{font-weight:600;color:#1a1a2e}.items-table .item-meta{font-size:12px;color:#888}.items-table .item-price{text-align:right;font-weight:600}.total-box{background:linear-gradient(135deg,#f8f8ff,#f0f2f8);border-radius:12px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;margin-top:16px}.total-label{font-size:16px;font-weight:700;color:#1a1a2e}.total-amount{font-size:24px;font-weight:900;color:#6c5ce7}.btn-primary{display:inline-block;background:#6c5ce7;color:#fff;padding:12px 32px;border-radius:30px;text-decoration:none;font-weight:700;font-size:14px;transition:all .3s}.btn-primary:hover{background:#5a4bd1;transform:translateY(-2px);box-shadow:0 8px 25px rgba(108,92,231,0.3)}.text-center{text-align:center}.divider{border:none;border-top:2px solid #f0f2f8;margin:16px 0}.footer{padding:16px 30px;text-align:center;background:#f8f8ff}.footer-text{font-size:11px;color:#888}.footer-links a{color:#6c5ce7;text-decoration:none;margin:0 4px;font-size:11px}@media(max-width:480px){.header{padding:20px}.content{padding:20px 15px}.total-amount{font-size:20px}.items-table td,.items-table th{font-size:12px}}</style></head><body><div class="container"><div class="header"><div class="logo">ZI <span>Store</span></div><div><span class="order-status">${orderData.status || 'PENDING'}</span></div></div><div class="content"><div class="greeting">Hello <span>${orderData.userName || 'Customer'}</span> 👋</div><p style="color:#4a4a6a;font-size:14px;margin:6px 0 12px;">Thank you for your order! Here are the details:</p><div class="order-summary"><div class="summary-row"><span class="summary-label">📋 Order ID</span><span class="summary-value">#${orderIdDisplay}</span></div><div class="summary-row"><span class="summary-label">📅 Date</span><span class="summary-value">${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span></div><div class="summary-row"><span class="summary-label">💳 Payment Method</span><span class="summary-value">${orderData.method || 'N/A'}</span></div>${orderData.txHash ? `<div class="summary-row"><span class="summary-label">🔗 Transaction ID</span><span class="summary-value" style="font-family:monospace;font-size:11px;word-break:break-all;">${orderData.txHash}</span></div>` : ''}</div><h3 style="color:#1a1a2e;margin:12px 0 8px;font-size:16px;">🛍️ Items</h3><table class="items-table"><thead><tr><th>Product</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Price</th><th style="text-align:right;">Total</th></tr></thead><tbody>${(orderData.items || []).map(item => `<tr><td><div class="item-name">${item.name}</div>${item.selectedQuantity ? `<div class="item-meta">📦 ${item.selectedQuantity}</div>` : ''}${item.isVip ? `<div class="item-meta">👑 ${item.vipPlanLabel || 'VIP'}</div>` : ''}</td><td style="text-align:center;">${item.quantity || 1}</td><td style="text-align:right;">$${(item.price || 0).toFixed(2)}</td><td style="text-align:right;font-weight:600;">$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td></tr>`).join('')}</tbody></table><div class="total-box"><span class="total-label">Total Amount</span><span class="total-amount">$${(orderData.total || 0).toFixed(2)}</span></div><hr class="divider"><div class="text-center"><a href="https://zi-store.online" class="btn-primary">📦 View My Orders</a></div><p style="text-align:center;font-size:12px;color:#888;margin-top:10px;">You will receive another email once your order is confirmed.</p></div><div class="footer"><div class="footer-links"><a href="https://zi-store.online">Store</a><a href="mailto:support@zi-store.online">Support</a><a href="https://zi-store.online/refund.html">Refund Policy</a></div><div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div></div></div></body></html>`;
     return await sendEmail(userEmail, `📦 Order Confirmation #${orderIdDisplay}`, html);
 }
+window.sendOrderConfirmationEmail = sendOrderConfirmationEmail;
 
 async function sendOrderStatusEmail(userEmail, orderId, newStatus) {
     const statusConfig = {
@@ -8574,17 +8754,20 @@ async function sendOrderStatusEmail(userEmail, orderId, newStatus) {
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Order Status Update #${orderIdDisplay}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:#f0f2f8;padding:20px;margin:0}.container{max-width:600px;margin:0 auto;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.08)}.header{background:linear-gradient(135deg,${config.color},${config.color}dd);padding:30px 30px 20px;text-align:center}.logo{font-size:28px;font-weight:900;color:#fff}.logo span{color:#f2a900}.status-icon{font-size:48px;text-align:center;margin:8px 0}.status-title{font-size:24px;font-weight:800;color:#fff}.status-badge{display:inline-block;padding:4px 20px;border-radius:30px;background:rgba(255,255,255,0.2);color:#fff;font-weight:700;font-size:14px;margin-top:4px}.content{padding:35px 30px}.greeting{font-size:16px;color:#1a1a2e}.greeting strong{color:#6c5ce7}.message-box{background:#f8f8ff;border-radius:12px;padding:16px 20px;margin:12px 0 16px;border-left:4px solid ${config.color}}.message-box p{font-size:15px;color:#4a4a6a;line-height:1.6}.order-info{background:#f8f8ff;border-radius:12px;padding:12px 16px;margin:12px 0}.info-row{display:flex;justify-content:space-between;padding:4px 0;font-size:13px}.info-label{color:#888;font-weight:500}.info-value{font-weight:600;color:#1a1a2e}.btn-primary{display:inline-block;background:${config.color};color:${config.textColor};padding:12px 32px;border-radius:30px;text-decoration:none;font-weight:700;font-size:14px;transition:all .3s}.btn-primary:hover{opacity:0.85;transform:translateY(-2px)}.text-center{text-align:center}.divider{border:none;border-top:2px solid #f0f2f8;margin:16px 0}.footer{padding:16px 30px;text-align:center;background:#f8f8ff}.footer-text{font-size:11px;color:#888}.footer-links a{color:#6c5ce7;text-decoration:none;margin:0 4px;font-size:11px}@media(max-width:480px){.header{padding:20px}.content{padding:20px 15px}.status-icon{font-size:36px}.status-title{font-size:20px}.btn-primary{padding:10px 24px;font-size:13px}}</style></head><body><div class="container"><div class="header"><div class="logo">ZI <span>Store</span></div><div class="status-icon">${config.emoji}</div><div class="status-title">${config.title}</div><div><span class="status-badge">${newStatus.toUpperCase()}</span></div></div><div class="content"><div class="greeting">Hello <strong>Customer</strong>,</div><div class="message-box"><p>${config.message}</p></div><div class="order-info"><div class="info-row"><span class="info-label">📋 Order ID</span><span class="info-value">#${orderIdDisplay}</span></div><div class="info-row"><span class="info-label">📅 Date</span><span class="info-value">${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span></div><div class="info-row"><span class="info-label">📦 Status</span><span class="info-value" style="color:${config.color};">${newStatus.toUpperCase()}</span></div></div><hr class="divider"><div class="text-center"><a href="https://zi-store.online" class="btn-primary">${config.button}</a></div></div><div class="footer"><div class="footer-links"><a href="https://zi-store.online">Store</a><a href="mailto:support@zi-store.online">Support</a></div><div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div></div></div></body></html>`;
     return await sendEmail(userEmail, `${config.emoji} Order Status Update #${orderIdDisplay}`, html);
 }
+window.sendOrderStatusEmail = sendOrderStatusEmail;
 
 async function sendTopupConfirmationEmail(userEmail, amount, txHash = null) {
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Topup Confirmation</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:#f0f2f8;padding:20px;margin:0}.container{max-width:600px;margin:0 auto;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.08)}.header{background:linear-gradient(135deg,#f2a900,#fbbf24);padding:30px 30px 20px;text-align:center}.logo{font-size:28px;font-weight:900;color:#1a1a2e}.logo span{color:#6c5ce7}.amount-display{background:rgba(255,255,255,0.2);border-radius:16px;padding:16px 20px;margin-top:10px;display:inline-block}.amount-display .amount{font-size:36px;font-weight:900;color:#1a1a2e}.amount-display .label{font-size:14px;color:rgba(26,26,46,0.7)}.content{padding:35px 30px}.greeting{font-size:16px;color:#1a1a2e}.greeting strong{color:#6c5ce7}.details-box{background:#f8f8ff;border-radius:12px;padding:14px 18px;margin:12px 0}.detail-row{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;border-bottom:1px solid #eee}.detail-row:last-child{border-bottom:none}.detail-label{color:#888;font-weight:500}.detail-value{font-weight:600;color:#1a1a2e}.btn-primary{display:inline-block;background:#6c5ce7;color:#fff;padding:12px 32px;border-radius:30px;text-decoration:none;font-weight:700;font-size:14px;transition:all .3s}.btn-primary:hover{background:#5a4bd1;transform:translateY(-2px);box-shadow:0 8px 25px rgba(108,92,231,0.3)}.text-center{text-align:center}.divider{border:none;border-top:2px solid #f0f2f8;margin:16px 0}.footer{padding:16px 30px;text-align:center;background:#f8f8ff}.footer-text{font-size:11px;color:#888}.footer-links a{color:#6c5ce7;text-decoration:none;margin:0 4px;font-size:11px}@media(max-width:480px){.header{padding:20px}.content{padding:20px 15px}.amount-display .amount{font-size:28px}.btn-primary{padding:10px 24px;font-size:13px}}</style></head><body><div class="container"><div class="header"><div class="logo">ZI <span>Store</span></div><div class="amount-display"><div class="label">💰 Amount Added</div><div class="amount">+$${amount.toFixed(2)}</div></div></div><div class="content"><div class="greeting">Hello <strong>Customer</strong>,</div><p style="color:#4a4a6a;font-size:14px;margin:4px 0 12px;">Your balance has been updated successfully!</p><div class="details-box"><div class="detail-row"><span class="detail-label">📅 Date</span><span class="detail-value">${new Date().toLocaleString()}</span></div>${txHash ? `<div class="detail-row"><span class="detail-label">🔗 Transaction ID</span><span class="detail-value" style="font-family:monospace;font-size:11px;word-break:break-all;">${txHash}</span></div>` : ''}</div><hr class="divider"><div class="text-center"><a href="https://zi-store.online" class="btn-primary">🛒 Start Shopping</a></div></div><div class="footer"><div class="footer-links"><a href="https://zi-store.online">Store</a><a href="mailto:support@zi-store.online">Support</a></div><div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div></div></div></body></html>`;
     return await sendEmail(userEmail, `💰 Balance Added - $${amount.toFixed(2)}`, html);
 }
+window.sendTopupConfirmationEmail = sendTopupConfirmationEmail;
 
 async function sendAdminNotificationEmail(subject, message) {
     const adminEmail = 'idriss.zribi13@gmail.com';
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Admin Notification</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:#f0f2f8;padding:20px;margin:0}.container{max-width:600px;margin:0 auto;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.08)}.header{background:linear-gradient(135deg,#ff6b6b,#ee5a24);padding:30px 30px 20px;text-align:center}.logo{font-size:28px;font-weight:900;color:#fff}.logo span{color:#f2a900}.content{padding:35px 30px}.message-box{background:#f8f8ff;border-radius:12px;padding:16px 20px;margin:12px 0;border-left:4px solid #ff6b6b}.message-box p{font-size:14px;color:#4a4a6a;line-height:1.8;white-space:pre-wrap}.footer{padding:16px 30px;text-align:center;background:#f8f8ff}.footer-text{font-size:11px;color:#888}@media(max-width:480px){.header{padding:20px}.content{padding:20px 15px}}</style></head><body><div class="container"><div class="header"><div class="logo">ZI <span>Store</span></div><div style="color:rgba(255,255,255,0.8);font-size:14px;">Admin Notification</div></div><div class="content"><h2 style="color:#1a1a2e;font-size:20px;">${subject}</h2><div class="message-box"><p>${message}</p></div><p style="text-align:center;font-size:12px;color:#888;margin-top:12px;">📅 ${new Date().toLocaleString()}</p></div><div class="footer"><div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div></div></div></body></html>`;
     return await sendEmail(adminEmail, `🔔 Admin: ${subject}`, html);
 }
+window.sendAdminNotificationEmail = sendAdminNotificationEmail;
 
 // ============================================================
 // EMAIL MANAGEMENT - Admin Functions
@@ -8620,6 +8803,7 @@ async function loadEmailLogs() {
         `;
     }
 }
+window.loadEmailLogs = loadEmailLogs;
 
 function renderEmailLogs(logs) {
     const container = document.getElementById('emailLogsContainer');
@@ -8670,8 +8854,8 @@ function renderEmailLogs(logs) {
         `;
     }).join('');
 }
+window.renderEmailLogs = renderEmailLogs;
 
-window.loadEmailLogs = loadEmailLogs;
 window.sendTestEmail = async function() {
     try {
         const testEmail = prompt('Enter email address to send test email:', 'test@example.com');
@@ -8706,6 +8890,7 @@ window.previewEmail = function(logId) {
         showToast('⚠️ Please allow popups', 'warning');
     }
 };
+window.previewEmail = previewEmail;
 
 window.resendEmail = async function(logId) {
     const log = emailLogs.find(l => l.id === logId);
@@ -8730,6 +8915,7 @@ window.resendEmail = async function(logId) {
         showToast('❌ Error: ' + error.message, 'error');
     }
 };
+window.resendEmail = resendEmail;
 
 // ============================================================
 // ADMIN SETTINGS UI
@@ -8806,6 +8992,7 @@ async function loadAdminSettingsUI() {
             `<div style="color:var(--danger);">Failed to load settings: ${error.message}</div>`;
     }
 }
+window.loadAdminSettingsUI = loadAdminSettingsUI;
 
 window.saveAdminSettings = async function() {
     if (!currentUser || !isAdminCached) {
@@ -8845,6 +9032,7 @@ window.saveAdminSettings = async function() {
         statusEl.style.color = 'var(--danger)';
     }
 };
+window.saveAdminSettings = saveAdminSettings;
 
 window.getMyTelegramChatId = function() {
     if (!currentUser) {
@@ -8864,6 +9052,7 @@ window.getMyTelegramChatId = function() {
         showToast(`✅ Chat ID set: ${userProfile.telegramChatId}`, 'success');
     }
 };
+window.getMyTelegramChatId = getMyTelegramChatId;
 
 // ============================================================
 // BRANDING SYSTEM
@@ -8915,6 +9104,7 @@ function loadBranding() {
     }
     applyBranding();
 }
+window.loadBranding = loadBranding;
 
 function saveBranding(branding) {
     try {
@@ -8925,6 +9115,7 @@ function saveBranding(branding) {
         console.warn('Failed to save branding:', e);
     }
 }
+window.saveBranding = saveBranding;
 
 function applyBranding() {
     const root = document.documentElement;
@@ -8934,12 +9125,6 @@ function applyBranding() {
     root.style.setProperty('--danger', BRANDING.colors.danger);
     root.style.setProperty('--warning', BRANDING.colors.warning);
     
-    // ✅ لا نغير الـ Logo حتى لا يتعارض مع الصورة
-    // const logoEl = document.querySelector('.logo');
-    // if (logoEl) {
-    //     logoEl.innerHTML = `<i class="fas ${BRANDING.logo.icon}"></i> ${BRANDING.logo.text}`;
-    // }
-    
     document.title = `${BRANDING.site.name} - ${BRANDING.logo.tagline}`;
     
     const footer = document.querySelector('.site-footer .footer-copyright');
@@ -8947,6 +9132,7 @@ function applyBranding() {
         footer.innerHTML = `&copy; ${BRANDING.site.year} <strong>${BRANDING.site.name}</strong> — All rights reserved.`;
     }
 }
+window.applyBranding = applyBranding;
 
 window.loadBrandingSettings = function() {
     document.getElementById('brandPrimary').value = BRANDING.colors.primary;
@@ -8962,6 +9148,7 @@ window.loadBrandingSettings = function() {
     document.getElementById('brandEmail').value = BRANDING.contact.email;
     document.getElementById('brandPhone').value = BRANDING.contact.phone;
 };
+window.loadBrandingSettings = loadBrandingSettings;
 
 window.saveBrandingSettings = function() {
     const newBranding = {
@@ -9003,6 +9190,7 @@ window.saveBrandingSettings = function() {
     showToast('✅ Branding saved successfully!', 'success');
     loadBrandingSettings();
 };
+window.saveBrandingSettings = saveBrandingSettings;
 
 window.resetBranding = function() {
     if (!confirm('Reset branding to default?')) return;
@@ -9044,6 +9232,7 @@ async function getVisitorInfo() {
         };
     }
 }
+window.getVisitorInfo = getVisitorInfo;
 
 function getDeviceInfo() {
     const ua = navigator.userAgent;
@@ -9066,6 +9255,7 @@ function getDeviceInfo() {
 
     return { device, os, browser };
 }
+window.getDeviceInfo = getDeviceInfo;
 
 // ============================================================
 // LOG ACTIVITY
@@ -9092,6 +9282,7 @@ async function logActivity(type, data = {}) {
         console.error('Error logging activity:', error);
     }
 }
+window.logActivity = logActivity;
 
 // ============================================================
 // SEND USER NOTIFICATION
@@ -9112,16 +9303,19 @@ async function sendUserNotification(userId, title, message) {
         return false;
     }
 }
+window.sendUserNotification = sendUserNotification;
 
 // ============================================================
-// GENERATE LICENCE FOR USER
+// GENERATE LICENCE FOR USER - FIXED
 // ============================================================
 async function generateLicenceForUser(userId, userEmail, item, orderId) {
     try {
         if (!userId || !item || !item.name) {
             console.warn('⚠️ Cannot generate licence: missing data');
-            return;
+            return null;
         }
+        console.log(`📤 Generating licence for ${item.name} (user: ${userId})`);
+        
         const response = await fetch(`${SUPABASE_URL}/functions/v1/create-licence`, {
             method: 'POST',
             headers: {
@@ -9137,29 +9331,38 @@ async function generateLicenceForUser(userId, userEmail, item, orderId) {
                 manual: false
             })
         });
+        
         const result = await response.json();
+        console.log('📥 create-licence response:', result);
+        
         if (result.success && result.licence) {
             console.log(`✅ Licence generated for ${item.name}: ${result.licence.code}`);
+            
             const userRef = doc(db, 'users', userId);
             const userSnap = await getDoc(userRef);
             if (userSnap.exists()) {
                 const userData = userSnap.data();
                 const userLicences = userData.licences || [];
-                userLicences.push({
-                    code: result.licence.code,
-                    scriptId: item.id,
-                    scriptName: item.name,
-                    expiryDate: result.licence.expiryDate,
-                    activatedAt: new Date().toISOString(),
-                    status: 'active'
-                });
-                await updateDoc(userRef, { licences: userLicences, updatedAt: serverTimestamp() });
-                if (currentUser && currentUser.uid === userId) {
-                    userProfile.licences = userLicences;
-                    renderUserLicences();
-                    updateFullUserMenu();
+                if (!userLicences.find(l => l.code === result.licence.code)) {
+                    userLicences.push({
+                        code: result.licence.code,
+                        scriptId: item.id,
+                        scriptName: item.name,
+                        expiryDate: result.licence.expiryDate,
+                        activatedAt: new Date().toISOString(),
+                        status: 'active'
+                    });
+                    await updateDoc(userRef, { licences: userLicences, updatedAt: serverTimestamp() });
+                    console.log('✅ Licence saved to Firestore for user');
+                    
+                    if (currentUser && currentUser.uid === userId) {
+                        userProfile.licences = userLicences;
+                        renderUserLicences();
+                        updateFullUserMenu();
+                    }
                 }
             }
+            
             if (userEmail) {
                 await sendLicenceEmail(userEmail, {
                     code: result.licence.code,
@@ -9167,6 +9370,7 @@ async function generateLicenceForUser(userId, userEmail, item, orderId) {
                     expiryDate: result.licence.expiryDate
                 });
             }
+            
             return result.licence;
         } else {
             console.warn('⚠️ Failed to generate licence:', result.error);
@@ -9177,17 +9381,18 @@ async function generateLicenceForUser(userId, userEmail, item, orderId) {
         return null;
     }
 }
+window.generateLicenceForUser = generateLicenceForUser;
 
 async function sendLicenceEmail(userEmail, licenceData) {
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Your Licence Code</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:#f0f2f8;padding:20px;margin:0}.container{max-width:600px;margin:0 auto;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.08)}.header{background:linear-gradient(135deg,#6c5ce7,#a29bfe);padding:30px 30px 20px;text-align:center}.logo{font-size:28px;font-weight:900;color:#fff}.logo span{color:#f2a900}.content{padding:35px 30px}.code-box{background:#f8f8ff;border-radius:12px;padding:20px;text-align:center;border:2px dashed #6c5ce7;margin:16px 0}.code-box .code{font-size:28px;font-weight:900;color:#6c5ce7;font-family:monospace;letter-spacing:4px}.code-box .label{font-size:12px;color:#888}.btn-primary{display:inline-block;background:#6c5ce7;color:#fff;padding:12px 32px;border-radius:30px;text-decoration:none;font-weight:700;font-size:14px;transition:all .3s}.btn-primary:hover{background:#5a4bd1;transform:translateY(-2px);box-shadow:0 8px 25px rgba(108,92,231,0.3)}.text-center{text-align:center}.footer{padding:16px 30px;text-align:center;background:#f8f8ff}.footer-text{font-size:11px;color:#888}@media(max-width:480px){.header{padding:20px}.content{padding:20px 15px}.code-box .code{font-size:22px}}</style></head><body><div class="container"><div class="header"><div class="logo">ZI <span>Store</span></div></div><div class="content"><h2 style="color:#1a1a2e;font-size:20px;">🔑 Your Licence Code</h2><p style="color:#4a4a6a;font-size:14px;margin:6px 0 12px;">Thank you for your purchase! Here is your licence code for <strong>${licenceData.scriptName}</strong>:</p><div class="code-box"><div class="label">LICENCE CODE</div><div class="code">${licenceData.code}</div></div><div style="background:#f8f8ff;border-radius:8px;padding:12px 16px;margin:12px 0;font-size:13px;color:#4a4a6a;"><strong>Expires:</strong> ${new Date(licenceData.expiryDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div><p style="text-align:center;font-size:12px;color:#888;margin-top:8px;">You can also find this licence in your account dashboard.</p><hr style="border:none;border-top:1px solid #f0f2f8;margin:16px 0;"><div class="text-center"><a href="https://zi-store.online" class="btn-primary">📦 Visit Store</a></div></div><div class="footer"><div class="footer-text">&copy; 2026 ZI Store — All rights reserved.</div></div></div></body></html>`;
     return await sendEmail(userEmail, `🔑 Your Licence for ${licenceData.scriptName}`, html);
 }
+window.sendLicenceEmail = sendLicenceEmail;
 
 // ============================================================
 // USER SETTINGS - TOGGLE SWITCHES
 // ============================================================
 
-// 1. تحميل إعدادات المستخدم من localStorage أو Firestore
 async function loadUserSettings() {
     const defaultSettings = {
         ipDetection: true,
@@ -9224,8 +9429,8 @@ async function loadUserSettings() {
     
     return defaultSettings;
 }
+window.loadUserSettings = loadUserSettings;
 
-// 2. حفظ إعدادات المستخدم
 async function saveUserSettings(settings) {
     try {
         localStorage.setItem('zi_user_settings', JSON.stringify(settings));
@@ -9246,8 +9451,8 @@ async function saveUserSettings(settings) {
         }
     }
 }
+window.saveUserSettings = saveUserSettings;
 
-// 3. تبديل الإعداد (Toggle Switch)
 async function toggleSetting(element, settingName) {
     if (element._isToggling) return;
     element._isToggling = true;
@@ -9292,8 +9497,8 @@ async function toggleSetting(element, settingName) {
     
     element._isToggling = false;
 }
+window.toggleSetting = toggleSetting;
 
-// 4. معالجة تغيير الإعداد
 function handleSettingChange(settingName, newState) {
     switch (settingName) {
         case 'ipDetection':
@@ -9314,7 +9519,6 @@ function handleSettingChange(settingName, newState) {
             if (newState) {
                 console.log('✅ Email Notifications enabled');
                 showToast('📧 Email notifications enabled', 'success');
-                // محاولة إرسال إشعار تجريبي
                 if (currentUser) {
                     try {
                         sendEmail(
@@ -9342,8 +9546,8 @@ function handleSettingChange(settingName, newState) {
             break;
     }
 }
+window.handleSettingChange = handleSettingChange;
 
-// 5. تحديث واجهة الإعدادات عند فتح القائمة
 async function renderSettingsUI() {
     const settings = await loadUserSettings();
     
@@ -9360,33 +9564,27 @@ async function renderSettingsUI() {
         }
     });
 }
+window.renderSettingsUI = renderSettingsUI;
 
 // ============================================================
 // NETWORK STATUS DETECTION - CONNECTION MONITOR
 // ============================================================
-
-// 1. متغيرات لتتبع حالة الاتصال
 let isOnline = navigator.onLine;
 let wasOffline = false;
 
-// 2. عرض إشعار عند فقدان الاتصال
 function showOfflineToast() {
     const toast = document.getElementById('toast');
     const messageEl = document.getElementById('toastMessage');
     const iconEl = toast?.querySelector('.toast-icon');
-    
     if (!toast || !messageEl) return;
     
     toast.classList.remove('show');
     clearTimeout(window.toastTimeout);
-    
     toast.className = 'toast';
     toast.classList.add('error', 'large');
-    
     if (iconEl) {
         iconEl.innerHTML = '<i class="fas fa-wifi" style="color: #ff6b6b; font-size: 24px;"></i>';
     }
-    
     messageEl.innerHTML = `
         <div style="text-align: center;">
             <div style="font-size: 18px; font-weight: 800; color: var(--danger);">
@@ -9400,7 +9598,6 @@ function showOfflineToast() {
             </div>
         </div>
     `;
-    
     toast.style.display = 'flex';
     toast.style.flexDirection = 'column';
     toast.style.alignItems = 'center';
@@ -9408,30 +9605,24 @@ function showOfflineToast() {
     toast.style.padding = '20px 24px';
     toast.style.borderColor = 'var(--danger)';
     toast.style.background = 'rgba(255, 107, 107, 0.08)';
-    
     void toast.offsetWidth;
     toast.classList.add('show');
     wasOffline = true;
 }
 
-// 3. عرض إشعار عند عودة الاتصال
 function showOnlineToast() {
     const toast = document.getElementById('toast');
     const messageEl = document.getElementById('toastMessage');
     const iconEl = toast?.querySelector('.toast-icon');
-    
     if (!toast || !messageEl) return;
     
     toast.classList.remove('show');
     clearTimeout(window.toastTimeout);
-    
     toast.className = 'toast';
     toast.classList.add('success', 'large');
-    
     if (iconEl) {
         iconEl.innerHTML = '<i class="fas fa-wifi" style="color: #00d4aa; font-size: 24px;"></i>';
     }
-    
     messageEl.innerHTML = `
         <div style="text-align: center;">
             <div style="font-size: 18px; font-weight: 800; color: var(--success);">
@@ -9442,7 +9633,6 @@ function showOnlineToast() {
             </div>
         </div>
     `;
-    
     toast.style.display = 'flex';
     toast.style.flexDirection = 'column';
     toast.style.alignItems = 'center';
@@ -9450,25 +9640,21 @@ function showOnlineToast() {
     toast.style.padding = '20px 24px';
     toast.style.borderColor = 'var(--success)';
     toast.style.background = 'rgba(0, 212, 170, 0.08)';
-    
     void toast.offsetWidth;
     toast.classList.add('show');
     wasOffline = false;
-    
     setTimeout(() => {
         toast.classList.remove('show');
         setTimeout(() => { toast.style.display = 'none'; }, 500);
     }, 3000);
 }
 
-// 4. مراقبة حالة الاتصال
 function initNetworkMonitor() {
     if (!navigator.onLine) {
         showOfflineToast();
         wasOffline = true;
         document.body.classList.add('offline-mode');
     }
-    
     window.addEventListener('offline', function() {
         console.warn('⚠️ Internet connection lost');
         showOfflineToast();
@@ -9476,20 +9662,15 @@ function initNetworkMonitor() {
         document.body.classList.add('offline-mode');
         pauseOnlineOperations();
     });
-    
     window.addEventListener('online', function() {
         console.log('✅ Internet connection restored');
         isOnline = true;
         document.body.classList.remove('offline-mode');
-        
         if (wasOffline) {
             showOnlineToast();
         }
-        
         resumeOnlineOperations();
     });
-    
-    // فحص دوري كل 10 ثوانٍ
     setInterval(function() {
         if (navigator.onLine && !isOnline) {
             isOnline = true;
@@ -9506,8 +9687,8 @@ function initNetworkMonitor() {
         }
     }, 10000);
 }
+window.initNetworkMonitor = initNetworkMonitor;
 
-// 5. إيقاف العمليات
 function pauseOnlineOperations() {
     if (window._productsInterval) {
         clearInterval(window._productsInterval);
@@ -9523,8 +9704,8 @@ function pauseOnlineOperations() {
     }
     console.log('⏸️ Online operations paused');
 }
+window.pauseOnlineOperations = pauseOnlineOperations;
 
-// 6. استئناف العمليات
 function resumeOnlineOperations() {
     if (!window._productsInterval) {
         window._productsInterval = setInterval(function() {
@@ -9541,8 +9722,8 @@ function resumeOnlineOperations() {
     }
     console.log('▶️ Online operations resumed');
 }
+window.resumeOnlineOperations = resumeOnlineOperations;
 
-// 7. إضافة CSS للوضع غير المتصل
 function addOfflineStyles() {
     if (document.getElementById('offlineStyles')) return;
     
@@ -9606,6 +9787,7 @@ function addOfflineStyles() {
         document.body.appendChild(indicator);
     }
 }
+window.addOfflineStyles = addOfflineStyles;
 
 // ============================================================
 // CHECKOUT FUNCTIONS - FIXED
@@ -9641,7 +9823,6 @@ window.openPaymentModal = function() {
         return;
     }
     
-    // إعادة تعيين الحالة
     document.getElementById('paymentStep1').style.display = 'block';
     document.getElementById('paymentStep2').style.display = 'none';
     selectedPayment = null;
@@ -9714,6 +9895,7 @@ function checkConnection() {
     }
     return true;
 }
+window.checkConnection = checkConnection;
 
 function requireConnection(message = 'This action requires internet connection.') {
     if (!navigator.onLine) {
@@ -9722,12 +9904,12 @@ function requireConnection(message = 'This action requires internet connection.'
     }
     return true;
 }
+window.requireConnection = requireConnection;
 
 // ============================================================
 // IMPROVE UNAUTHENTICATED USER HANDLING
 // ============================================================
 
-// تعديل دالة loadUserData للتعامل مع المستخدم غير المسجل بشكل أفضل
 const originalLoadUserData = loadUserData;
 loadUserData = async function() {
     if (!currentUser) {
@@ -9745,7 +9927,6 @@ loadUserData = async function() {
     return originalLoadUserData.call(this);
 };
 
-// تعديل دالة loadNotifications للتعامل مع الأخطاء بشكل أفضل
 const originalLoadNotifications = loadNotifications;
 loadNotifications = function() {
     if (!currentUser) {
@@ -9759,7 +9940,6 @@ loadNotifications = function() {
     }
 };
 
-// تعديل دالة startAdminRealtimeListener للتعامل مع الأذونات
 const originalStartAdminListener = startAdminRealtimeListener;
 startAdminRealtimeListener = function() {
     if (!currentUser || !isAdminCached) {
@@ -9804,6 +9984,7 @@ function forceHideLoading() {
         mainApp.style.display = 'none';
     }
 }
+window.forceHideLoading = forceHideLoading;
 
 // تنفيذ الإخفاء فوراً
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
@@ -9840,7 +10021,7 @@ setTimeout(function() {
 async function initApp() {
     console.log('🚀 Initializing ZI Store...');
     
-    // 🔥 التحقق من وجود مستخدم مجهول عند بدء التشغيل
+    // التحقق من المستخدم المجهول عند بدء التشغيل
     if (auth && auth.currentUser && auth.currentUser.isAnonymous) {
         console.warn('🚫 Anonymous user detected on init - signing out...');
         await signOut(auth);
@@ -9919,6 +10100,7 @@ async function initApp() {
         showToast('⚠️ Error loading store. Please refresh.', 'error');
     }
 }
+window.initApp = initApp;
 
 // ============================================================
 // AUTH STATE LISTENER - NO ANONYMOUS ALLOWED
@@ -9957,7 +10139,7 @@ onAuthStateChanged(auth, async (user) => {
     }
 
     if (user) {
-        // 🔥 منع المستخدم المجهول تماماً
+        // منع المستخدم المجهول تماماً
         if (user.isAnonymous) {
             console.warn('🚫 Anonymous user detected - signing out and showing login');
             await signOut(auth);
@@ -9966,6 +10148,7 @@ onAuthStateChanged(auth, async (user) => {
         }
 
         currentUser = user;
+        window.currentUser = user;
         console.log('🔐 User authenticated:', user.email);
 
         try {
@@ -10013,6 +10196,7 @@ onAuthStateChanged(auth, async (user) => {
         }
     } else {
         currentUser = null;
+        window.currentUser = null;
         isAdminCached = false;
         console.log('🔓 No user authenticated - showing login');
 
@@ -10043,142 +10227,32 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initApp);
 } else {
     initApp();
-}
-
+    }
 // ============================================================
-// EXPORT ALL FUNCTIONS TO WINDOW – COMPLETE LIST
+// ====== EXPORT FUNCTIONS TO WINDOW - ONLY EXISTING ======
 // ============================================================
 
-// دوال عامة
+// تصدير المتغيرات الأساسية
+window.auth = auth;
+window.db = db;
+window.supabase = supabase;
+window.currentUser = currentUser;
+window.isAdminCached = isAdminCached;
+
+// دوال عامة (موجودة بالفعل)
 window.showToast = showToast;
 window.hideToast = hideToast;
 window.showOfflineToast = showOfflineToast;
 window.showOnlineToast = showOnlineToast;
 window.initNetworkMonitor = initNetworkMonitor;
-window.checkConnection = checkConnection;
-window.requireConnection = requireConnection;
-
-// دوال التحميل والتهيئة
-window.initApp = initApp;
-window.showMainApp = showMainApp;
-window.hideLoadingScreen = hideLoadingScreen;
-window.showLoadingScreen = showLoadingScreen;
-window.updateLoadingProgress = updateLoadingProgress;
-window.startLoadingSimulation = startLoadingSimulation;
-window.forceHideLoading = forceHideLoading;
-
-// دوال واجهة المستخدم الأساسية
-window.toggleTheme = toggleTheme;                    // من HTML
-window.openUserMenuFull = openUserMenuFull;
-window.closeUserMenuFull = closeUserMenuFull;
-window.openCartFull = openCartFull;
-window.closeCartFull = closeCartFull;
-window.openWishlistFull = openWishlistFull;
-window.closeWishlistFull = closeWishlistFull;
-window.openProfileFull = openProfileFull;
-window.closeProfileFull = closeProfileFull;
-window.openHistoryFull = openHistoryFull;
-window.closeHistoryFull = closeHistoryFull;
-window.openNotifications = openNotifications;
-window.closeNotifications = closeNotifications;
-window.openDownloads = openDownloads;
-window.closeDownloads = closeDownloads;
-window.openLicenceModal = openLicenceModal;
-window.closeLicenceModal = closeLicenceModal;        // أنت طلبتها
-window.closeLicenseModal = closeLicenseModal;        // مرادف
-window.activatedLicence = activatedLicence;
-window.activateLicence = activateLicence;
-window.openTopupModal = openTopupModal;
-window.closeTopupModal = closeTopupModal;
-window.openTopupStatus = openTopupStatus;
-window.closeTopupStatus = closeTopupStatus;
-window.openShareModal = openShareModal;
-window.closeShareModal = closeShareModal;
-window.openAuthModal = openAuthModal;
-window.openSupportModal = openSupportModal;
-window.closeSupportModal = closeSupportModal;
-window.toggleSupportMenu = toggleSupportMenu;
-window.openTelegramSupport = openTelegramSupport;
-window.openWhatsAppSupport = openWhatsAppSupport;
-window.openEmailSupport = openEmailSupport;
-window.openPhoneSupport = openPhoneSupport;
-
-// دوال المصادقة
-window.showLogin = showLogin;
-window.showRegister = showRegister;
-window.toggleReferral = toggleReferral;
-window.loginUser = loginUser;
-window.registerUser = registerUser;
-window.loginWithGoogle = loginWithGoogle;
-window.logoutUser = logoutUser;
-window.openForgotPassword = openForgotPassword;
-window.closeForgotPasswordModal = closeForgotPasswordModal;
-window.sendForgotPassword = sendForgotPassword;
-
-// دوال الإدارة (Admin)
 window.openAdminPanel = openAdminPanel;
 window.closeAdminPanel = closeAdminPanel;
 window.switchAdminTab = switchAdminTab;
 window.ensureAdminPanel = ensureAdminPanel;
 window.checkIsAdmin = checkIsAdmin;
 window.refreshAdminStatus = refreshAdminStatus;
-window.getAdminSettings = getAdminSettings;
-window.updateAdminSettings = updateAdminSettings;
-window.loadAdminSettingsUI = loadAdminSettingsUI;
-window.saveAdminSettings = saveAdminSettings;
-window.getMyTelegramChatId = getMyTelegramChatId;
-window.renderAdminProducts = renderAdminProducts;
-window.startAdminRealtimeListener = startAdminRealtimeListener;
-window.loadAdminOrders = loadAdminOrders;
-window.renderAdminOrders = renderAdminOrders;
-window.updateAdminStats = updateAdminStats;
-window.updateOrderStatus = updateOrderStatus;
-window.deleteOrderImmediately = deleteOrderImmediately;
-window.searchAdminOrders = searchAdminOrders;
-window.clearAdminSearch = clearAdminSearch;
-window.refreshAdminOrders = refreshAdminOrders;
-window.loadAdminUsers = loadAdminUsers;
-window.renderAdminUsers = renderAdminUsers;
-window.searchAdminUsers = searchAdminUsers;
-window.clearAdminUserSearch = clearAdminUserSearch;
-window.refreshAdminUsers = refreshAdminUsers;
-window.toggleUserBan = toggleUserBan;
-window.deleteUserAccount = deleteUserAccount;
-window.viewUserDetails = viewUserDetails;
-window.closeUserDetailsModal = closeUserDetailsModal;
-window.loadLicences = loadLicences;
-window.renderLicences = renderLicences;
-window.openCreateLicenceModal = openCreateLicenceModal;
-window.closeCreateLicenceModal = closeCreateLicenceModal;
-window.createLicenceManually = createLicenceManually;
-window.updateLicenceInSupabase = updateLicenceInSupabase;
-window.approveLicence = approveLicence;
-window.revokeLicence = revokeLicence;
-window.deleteLicence = deleteLicence;
-window.editLicence = editLicence;
-window.saveLicenceEdit = saveLicenceEdit;
-window.searchLicences = searchLicences;
-window.clearLicenceSearch = clearLicenceSearch;
-window.refreshLicences = refreshLicences;
-window.renderUserLicences = renderUserLicences;
-window.toggleLicencesList = toggleLicencesList;
-window.loadAdminTopups = loadAdminTopups;
-window.approveTopup = approveTopup;
-window.rejectTopup = rejectTopup;
-window.refreshAdminPayments = refreshAdminPayments;
-window.adminApprovePayment = adminApprovePayment;
-window.adminRejectPayment = adminRejectPayment;
-window.adminDeletePayment = adminDeletePayment;
-window.loadDashboardStats = loadDashboardStats;
-window.refreshDashboardStats = refreshDashboardStats;
-window.loadAdvancedStats = loadAdvancedStats;
-window.refreshAdvancedStats = refreshAdvancedStats;
-window.loadAuditLogs = loadAuditLogs;
-window.loadActivityLogs = loadActivityLogs;
-window.exportActivityLogs = exportActivityLogs;
-window.loadFraudLogs = loadFraudLogs;
 
-// دوال المستخدم والبيانات
+// دوال المستخدم
 window.loadUserData = loadUserData;
 window.saveUserData = saveUserData;
 window.loadFromLocalStorage = loadFromLocalStorage;
@@ -10188,19 +10262,13 @@ window.generateReferralCode = generateReferralCode;
 window.loadUserBalance = loadUserBalance;
 window.updateBalanceDisplay = updateBalanceDisplay;
 window.startTopupRealtimeListener = startTopupRealtimeListener;
-window.playNotificationSound = playNotificationSound;
 window.loadUserTopups = loadUserTopups;
-window.loadUserSettings = loadUserSettings;
-window.saveUserSettings = saveUserSettings;
-window.renderSettingsUI = renderSettingsUI;
-window.toggleSetting = toggleSetting;
-window.handleSettingChange = handleSettingChange;
-window.loadTransactions = loadTransactionHistory;
-window.renderTransactions = renderTransactions;
 window.openTransactionsModal = openTransactionsModal;
 window.closeTransactionsModal = closeTransactionsModal;
+window.loadTransactionHistory = loadTransactionHistory;
+window.renderTransactions = renderTransactions;
 
-// دوال المنتجات والمتجر
+// دوال المنتجات والسلة
 window.loadProductsFromFirestore = loadProductsFromFirestore;
 window.startProductsRealtimeListener = startProductsRealtimeListener;
 window.getCurrencySymbol = getCurrencySymbol;
@@ -10235,7 +10303,6 @@ window.addVipPlanToCart = addVipPlanToCart;
 window.toggleWishlist = toggleWishlist;
 window.removeFromWishlist = removeFromWishlist;
 window.updateWishlistUI = updateWishlistUI;
-window.createFloatingHearts = createFloatingHearts;
 window.renderWishlistFull = renderWishlistFull;
 window.performLiveSearch = performLiveSearch;
 window.highlightText = highlightText;
@@ -10254,7 +10321,7 @@ window.continuePayment = continuePayment;
 window.placeOrder = placeOrder;
 window.placeOrderTelegram = placeOrderTelegram;
 window.processBalancePayment = processBalancePayment;
-window.checkoutWithBalance = processBalancePayment;  // مرادف
+window.checkoutWithBalance = processBalancePayment;
 
 // دوال الدفع والتوب أب
 window.fetchCryptoPrices = fetchCryptoPrices;
@@ -10269,9 +10336,9 @@ window.submitTopupWithTxHash = submitTopupWithTxHash;
 window.handleTopup = handleTopup;
 window.copyWalletAddress = copyWalletAddress;
 window.copyBinanceId = copyBinanceId;
-window.verifyTransaction = verifyTransaction;
-window.handleTxPaste = handleTxPaste;
-window.submitManualPayment = submitManualPayment;
+window.approveTopup = approveTopup;
+window.rejectTopup = rejectTopup;
+window.loadAdminTopups = loadAdminTopups;
 
 // دوال المشاركة والنسخ
 window.openShareModal = openShareModal;
@@ -10294,17 +10361,62 @@ window.sendTelegramNotification = sendTelegramNotification;
 window.sendAdminNotification = sendAdminNotification;
 window.sendUserNotification = sendUserNotification;
 window.sendTelegramTopupNotification = sendTelegramTopupNotification;
-window.sendEmail = sendEmail;
-window.sendWelcomeEmail = sendWelcomeEmail;
-window.sendOrderConfirmationEmail = sendOrderConfirmationEmail;
-window.sendOrderStatusEmail = sendOrderStatusEmail;
-window.sendTopupConfirmationEmail = sendTopupConfirmationEmail;
-window.sendAdminNotificationEmail = sendAdminNotificationEmail;
-window.loadEmailLogs = loadEmailLogs;
-window.renderEmailLogs = renderEmailLogs;
-window.sendTestEmail = sendTestEmail;
-window.previewEmail = previewEmail;
-window.resendEmail = resendEmail;
+window.showTelegramBanner = showTelegramBanner;
+window.closeTelegramBanner = closeTelegramBanner;
+window.showTelegramBannerAgain = showTelegramBannerAgain;
+
+// دوال الإدارة (Admin)
+window.getAdminSettings = getAdminSettings;
+window.updateAdminSettings = updateAdminSettings;
+window.loadAdminSettingsUI = loadAdminSettingsUI;
+window.saveAdminSettings = saveAdminSettings;
+window.getMyTelegramChatId = getMyTelegramChatId;
+window.renderAdminProducts = renderAdminProducts;
+window.loadAdminOrders = loadAdminOrders;
+window.renderAdminOrders = renderAdminOrders;
+window.updateAdminStats = updateAdminStats;
+window.updateOrderStatus = updateOrderStatus;
+window.deleteOrderImmediately = deleteOrderImmediately;
+window.searchAdminOrders = searchAdminOrders;
+window.clearAdminSearch = clearAdminSearch;
+window.refreshAdminOrders = refreshAdminOrders;
+window.loadAdminUsers = loadAdminUsers;
+window.renderAdminUsers = renderAdminUsers;
+window.searchAdminUsers = searchAdminUsers;
+window.clearAdminUserSearch = clearAdminUserSearch;
+window.refreshAdminUsers = refreshAdminUsers;
+window.toggleUserBan = toggleUserBan;
+window.deleteUserAccount = deleteUserAccount;
+window.viewUserDetails = viewUserDetails;
+window.closeUserDetailsModal = closeUserDetailsModal;
+window.loadLicences = loadLicences;
+window.renderLicences = renderLicences;
+window.openCreateLicenceModal = openCreateLicenceModal;
+window.closeCreateLicenceModal = closeCreateLicenceModal;
+window.createLicenceManually = createLicenceManually;
+window.updateLicenceInSupabase = updateLicenceInSupabase;
+window.approveLicence = approveLicence;
+window.revokeLicence = revokeLicence;
+window.deleteLicence = deleteLicence;
+window.editLicence = editLicence;
+window.saveLicenceEdit = saveLicenceEdit;
+window.searchLicences = searchLicences;
+window.clearLicenceSearch = clearLicenceSearch;
+window.refreshLicences = refreshLicences;
+window.renderUserLicences = renderUserLicences;
+window.toggleLicencesList = toggleLicencesList;
+window.refreshAdminPayments = refreshAdminPayments;
+window.adminApprovePayment = adminApprovePayment;
+window.adminRejectPayment = adminRejectPayment;
+window.adminDeletePayment = adminDeletePayment;
+window.loadDashboardStats = loadDashboardStats;
+window.refreshDashboardStats = refreshDashboardStats;
+window.loadAdvancedStats = loadAdvancedStats;
+window.refreshAdvancedStats = refreshAdvancedStats;
+window.loadAuditLogs = loadAuditLogs;
+window.loadActivityLogs = loadActivityLogs;
+window.exportActivityLogs = exportActivityLogs;
+window.loadFraudLogs = loadFraudLogs;
 
 // دوال التنبيهات والطلبات والإحالات
 window.loadNotifications = loadNotifications;
@@ -10373,6 +10485,8 @@ window.saveMarqueeSettings = saveMarqueeSettings;
 window.applyMarqueeSettings = applyMarqueeSettings;
 window.renderMarqueeSettingsUI = renderMarqueeSettingsUI;
 window.loadMarqueeSettings = loadMarqueeSettings;
+
+// دوال الملف الشخصي
 window.renderProfileFull = renderProfileFull;
 window.saveProfileChangesInline = saveProfileChangesInline;
 window.togglePasswordVisibility = togglePasswordVisibility;
@@ -10395,7 +10509,7 @@ window.showOfferPopup = showOfferPopup;
 window.closePopup = closePopup;
 window.subscribeAndApply = subscribeAndApply;
 
-// دوال المنتجات الاحتياطية (Fallback)
+// دوال المنتجات الاحتياطية
 window.renderFallbackProductsAdmin = renderFallbackProductsAdmin;
 window.editFallbackProduct = editFallbackProduct;
 window.openAddFallbackProductModal = openAddFallbackProductModal;
@@ -10403,7 +10517,7 @@ window.closeFallbackProductModal = closeFallbackProductModal;
 window.saveFallbackProduct = saveFallbackProduct;
 window.deleteFallbackProduct = deleteFallbackProduct;
 
-// دوال التتبع وكشف الاحتيال
+// دوال التتبع
 window.trackUserBehavior = trackUserBehavior;
 window.updateUserPreferences = updateUserPreferences;
 window.getRecommendations = getRecommendations;
@@ -10411,43 +10525,31 @@ window.getDefaultRecommendations = getDefaultRecommendations;
 window.detectFraud = detectFraud;
 window.logFraudDetection = logFraudDetection;
 
-// دوال توليد الفواتير والتصدير
+// دوال أخرى
 window.generateInvoice = generateInvoice;
 window.exportOrders = exportOrders;
-
-// دوال العلامة التجارية والثيم
 window.loadBranding = loadBranding;
 window.saveBranding = saveBranding;
 window.applyBranding = applyBranding;
 window.loadBrandingSettings = loadBrandingSettings;
 window.saveBrandingSettings = saveBrandingSettings;
 window.resetBranding = resetBranding;
-
-// دوال معلومات الزائر والجهاز
 window.getVisitorInfo = getVisitorInfo;
 window.getDeviceInfo = getDeviceInfo;
 window.logActivity = logActivity;
-
-// دوال خاصة بالتراخيص
 window.generateLicenceForUser = generateLicenceForUser;
 window.sendLicenceEmail = sendLicenceEmail;
-
-// دوال الشبكة (أوفلاين)
 window.showOfflineToast = showOfflineToast;
 window.showOnlineToast = showOnlineToast;
 window.initNetworkMonitor = initNetworkMonitor;
 window.pauseOnlineOperations = pauseOnlineOperations;
 window.resumeOnlineOperations = resumeOnlineOperations;
 window.addOfflineStyles = addOfflineStyles;
-
-// دوال الإعدادات العامة
 window.loadUserSettings = loadUserSettings;
 window.saveUserSettings = saveUserSettings;
 window.toggleSetting = toggleSetting;
 window.handleSettingChange = handleSettingChange;
 window.renderSettingsUI = renderSettingsUI;
-
-// دوال متنوعة
 window.removeDuplicateDate = removeDuplicateDate;
 window.styleHeaderTopup = styleHeaderTopup;
 window.updateServerTime = updateServerTime;
@@ -10458,29 +10560,8 @@ window.updateDropdownStats = updateDropdownStats;
 window.updateRpDisplay = updateRpDisplay;
 window.updateUI = updateUI;
 window.updateFullUserMenu = updateFullUserMenu;
-window.showTelegramBanner = showTelegramBanner;
-window.closeTelegramBanner = closeTelegramBanner;
-window.showTelegramBannerAgain = showTelegramBannerAgain;
-window.addBannerAdminControls = addBannerAdminControls;
-window.adminToggleBanner = adminToggleBanner;
-window.resetBannerForAll = resetBannerForAll;
-window.uploadToCloudinary = uploadToCloudinary;
-window.fixDirection = fixDirection;
-window.fallbackCopyText = fallbackCopyText;
-window.checkCookieConsent = checkCookieConsent;
-window.acceptCookies = acceptCookies;
-window.rejectCookies = rejectCookies;
-window.openCookieSettings = openCookieSettings;
-window.closeCookieSettings = closeCookieSettings;
-window.saveCookieSettings = saveCookieSettings;
-window.enableAnalytics = enableAnalytics;
-window.disableAnalytics = disableAnalytics;
-window.closeCookieBanner = closeCookieBanner;
-window.toggleChatbot = toggleChatbot;
-window.sendChatMessage = sendChatMessage;
 window.clearOrderHistory = clearOrderHistory;
 window.renderHistoryFull = renderHistoryFull;
-window.toggleLicencesList = toggleLicencesList;
 window.selectCurrency = selectCurrency;
 window.selectProductType = selectProductType;
 window.addQuantityOption = addQuantityOption;
@@ -10489,13 +10570,59 @@ window.setQuantityOptions = setQuantityOptions;
 window.toggleBadge = toggleBadge;
 window.updateBadgesInput = updateBadgesInput;
 window.setBadges = setBadges;
-  // تصدير auth و currentUser إلى window
-window.auth = auth;
-window.currentUser = currentUser;
+window.showLogin = showLogin;
+window.showRegister = showRegister;
+window.toggleReferral = toggleReferral;
+window.loginUser = loginUser;
+window.registerUser = registerUser;
+window.loginWithGoogle = loginWithGoogle;
+window.logoutUser = logoutUser;
+window.openForgotPassword = openForgotPassword;
+window.closeForgotPasswordModal = closeForgotPasswordModal;
+window.sendForgotPassword = sendForgotPassword;
+window.openUserMenuFull = openUserMenuFull;
+window.closeUserMenuFull = closeUserMenuFull;
+window.openCartFull = openCartFull;
+window.closeCartFull = closeCartFull;
+window.openWishlistFull = openWishlistFull;
+window.closeWishlistFull = closeWishlistFull;
+window.openProfileFull = openProfileFull;
+window.closeProfileFull = closeProfileFull;
+window.openHistoryFull = openHistoryFull;
+window.closeHistoryFull = closeHistoryFull;
+window.openDownloads = openDownloads;
+window.closeDownloads = closeDownloads;
+window.openNotifications = openNotifications;
+window.closeNotifications = closeNotifications;
+window.openAuthModal = openAuthModal;
+window.openLicenceModal = openLicenceModal;
+window.closeLicenceModal = closeLicenceModal;
+window.closeLicenseModal = closeLicenseModal;
+window.activatedLicence = activatedLicence;
+window.activateLicence = activateLicence;
+window.openTopupModal = openTopupModal;
+window.closeTopupModal = closeTopupModal;
+window.openTopupStatus = openTopupStatus;
+window.closeTopupStatus = closeTopupStatus;
+window.openShareModal = openShareModal;
+window.closeShareModal = closeShareModal;
+window.openSupportModal = openSupportModal;
+window.closeSupportModal = closeSupportModal;
+window.toggleSupportMenu = toggleSupportMenu;
+window.openTelegramSupport = openTelegramSupport;
+window.openWhatsAppSupport = openWhatsAppSupport;
+window.openEmailSupport = openEmailSupport;
+window.openPhoneSupport = openPhoneSupport;
+window.sendEmail = sendEmail;
+window.sendWelcomeEmail = sendWelcomeEmail;
+window.sendOrderConfirmationEmail = sendOrderConfirmationEmail;
+window.sendOrderStatusEmail = sendOrderStatusEmail;
+window.sendTopupConfirmationEmail = sendTopupConfirmationEmail;
+window.sendAdminNotificationEmail = sendAdminNotificationEmail;
+window.loadEmailLogs = loadEmailLogs;
+window.renderEmailLogs = renderEmailLogs;
+window.sendTestEmail = sendTestEmail;
+window.previewEmail = previewEmail;
+window.resendEmail = resendEmail;
 
-// تحديث currentUser عند تغير حالة المصادقة
-onAuthStateChanged(auth, (user) => {
-    window.currentUser = user;
-});          
-
-console.log('✅ All functions exported to window – COMPLETE');
+console.log('✅ All existing functions exported to window');
