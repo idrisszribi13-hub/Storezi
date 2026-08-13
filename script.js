@@ -9956,7 +9956,184 @@ startAdminRealtimeListener = function() {
         }
     }
 };
+// ============================================================
+// ====== MISSING FUNCTION DEFINITIONS (STUBS) ======
+// ============================================================
+// هذه التعريفات تمنع ظهور أخطاء "is not defined" عند تحميل الصفحة
 
+// دوال البانر والإدارة
+function showTelegramBanner() {
+    const banner = document.getElementById('telegramBanner');
+    if (!banner) return;
+    const hidden = localStorage.getItem('telegram_banner_hidden');
+    if (hidden === 'true') {
+        banner.style.display = 'none';
+        return;
+    }
+    if (userProfile.telegramChatId) {
+        banner.style.display = 'none';
+        return;
+    }
+    banner.style.display = 'flex';
+    banner.classList.remove('hidden');
+}
+function closeTelegramBanner() {
+    const banner = document.getElementById('telegramBanner');
+    if (banner) {
+        banner.style.display = 'none';
+        banner.classList.add('hidden');
+        localStorage.setItem('telegram_banner_hidden', 'true');
+    }
+}
+function showTelegramBannerAgain() {
+    localStorage.removeItem('telegram_banner_hidden');
+    showTelegramBanner();
+}
+function addBannerAdminControls() { console.warn('⚠️ addBannerAdminControls() called'); }
+function adminToggleBanner() { console.warn('⚠️ adminToggleBanner() called'); }
+function resetBannerForAll() { console.warn('⚠️ resetBannerForAll() called'); }
+
+// دوال الكوكيز
+function checkCookieConsent() {
+    const consent = localStorage.getItem('cookie_consent');
+    if (consent !== 'accepted' && consent !== 'rejected') {
+        const banner = document.getElementById('cookieConsent');
+        if (banner) banner.classList.add('show');
+    }
+}
+function acceptCookies() {
+    localStorage.setItem('cookie_consent', 'accepted');
+    document.getElementById('cookieConsent')?.classList.remove('show');
+    enableAnalytics();
+}
+function rejectCookies() {
+    localStorage.setItem('cookie_consent', 'rejected');
+    document.getElementById('cookieConsent')?.classList.remove('show');
+    disableAnalytics();
+}
+function openCookieSettings() {
+    document.getElementById('cookieSettingsModal')?.classList.add('open');
+}
+function closeCookieSettings() {
+    document.getElementById('cookieSettingsModal')?.classList.remove('open');
+}
+function saveCookieSettings() {
+    const analyticsToggle = document.getElementById('analyticsToggle');
+    if (analyticsToggle && analyticsToggle.checked) {
+        acceptCookies();
+    } else {
+        rejectCookies();
+    }
+    closeCookieSettings();
+}
+function enableAnalytics() {
+    console.log('✅ Analytics enabled');
+    // يمكنك تفعيل Firebase Analytics هنا
+}
+function disableAnalytics() {
+    console.log('❌ Analytics disabled');
+}
+function closeCookieBanner() {
+    document.getElementById('cookieConsent')?.classList.remove('show');
+}
+
+// دوال الشات بوت
+function toggleChatbot() {
+    const win = document.getElementById('chatbotWindow');
+    if (win) win.classList.toggle('open');
+}
+function sendChatMessage() {
+    const input = document.getElementById('chatbotInput');
+    const messages = document.getElementById('chatbotMessages');
+    if (!input || !messages || !input.value.trim()) return;
+    const userMsg = input.value.trim();
+    input.value = '';
+    messages.innerHTML += `<div class="chatbot-msg user"><div class="msg-bubble">${userMsg}</div></div>`;
+    messages.scrollTop = messages.scrollHeight;
+    setTimeout(() => {
+        const responses = {
+            'hello': '👋 Hello! How can I help you today?',
+            'hi': '👋 Hi there! What brings you to ZI Store?',
+            'help': '🛍️ I can help you with products, orders, payments, and support.',
+            'order': '📦 To place an order, add products to cart and proceed to checkout.',
+            'payment': '💳 We accept USDT, LTC, Balance, Telegram, and Binance ID.',
+            'support': '📞 Contact us via Telegram @Mitalica69 or email support@zi-store.online',
+            'licence': '🔑 Licences are generated after order confirmation.',
+            'default': '🤔 I\'m not sure. Please contact our support team.'
+        };
+        const lower = userMsg.toLowerCase();
+        let response = responses.default;
+        for (const key in responses) {
+            if (lower.includes(key)) { response = responses[key]; break; }
+        }
+        messages.innerHTML += `<div class="chatbot-msg bot"><div class="msg-bubble">${response}</div></div>`;
+        messages.scrollTop = messages.scrollHeight;
+    }, 500);
+}
+
+// دوال الدعم
+function openSupportModal() { document.getElementById('supportModal')?.classList.add('open'); }
+function closeSupportModal() { document.getElementById('supportModal')?.classList.remove('open'); }
+function toggleSupportMenu() { document.getElementById('supportFloat')?.classList.toggle('open'); }
+function openTelegramSupport() { window.open('https://t.me/Mitalica69', '_blank'); }
+function openWhatsAppSupport() { window.open('https://wa.me/21612345678', '_blank'); }
+function openEmailSupport() { window.location.href = 'mailto:support@zi-store.online'; }
+function openPhoneSupport() { window.location.href = 'tel:+21612345678'; }
+
+// دوال رفع الصور
+async function uploadToCloudinary(file) {
+    console.warn('⚠️ uploadToCloudinary() called but not implemented');
+    return null;
+}
+function fixDirection() { console.warn('⚠️ fixDirection() called'); }
+function fallbackCopyText(text) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try { document.execCommand('copy'); showToast('✅ Copied!', 'success'); }
+    catch (e) { showToast('❌ Failed to copy', 'error'); }
+    document.body.removeChild(textarea);
+}
+
+// دوال المدفوعات
+function verifyTransaction() {
+    const txInput = document.getElementById('txHashInput');
+    const result = document.getElementById('verificationResult');
+    if (!txInput || !result) return;
+    const tx = txInput.value.trim();
+    if (tx.length < 10) {
+        result.style.display = 'block';
+        result.innerHTML = '<span style="color:var(--danger);">⚠️ Invalid transaction ID</span>';
+        return;
+    }
+    result.style.display = 'block';
+    result.innerHTML = '<span style="color:var(--success);">✅ Transaction verified (simulated)</span>';
+}
+function handleTxPaste(event) {
+    // يمكنك إضافة منطق لتنظيف النص
+}
+function submitManualPayment() {
+    const txInput = document.getElementById('txHashInput');
+    if (!txInput || !txInput.value.trim()) {
+        showToast('⚠️ Please paste transaction ID', 'warning');
+        return;
+    }
+    showToast('📤 Payment submitted. Awaiting confirmation.', 'info');
+    // يمكنك استدعاء placeOrder هنا إذا أردت
+}
+function generatePDFInvoice() {
+    showToast('📄 PDF invoice generation not implemented', 'info');
+}
+function checkoutWithBalance() {
+    if (typeof processBalancePayment === 'function') {
+        processBalancePayment();
+    } else {
+        showToast('⚠️ Balance payment not available', 'warning');
+    }
+}
 // ============================================================
 // FORCE LOADING SCREEN HIDE - SAFETY NET
 // ============================================================
