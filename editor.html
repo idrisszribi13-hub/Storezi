@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منشئ سكريبتات GameGuardian - طريقة الحقل</title>
+    <title>GameGuardian Field-Name Script Builder</title>
     <style>
         :root {
             --bg-color: #0b0f19;
@@ -117,44 +117,60 @@
 <body>
 
 <div class="main-layout">
+    <!-- Control Panel -->
     <div class="control-panel">
-        <h1>🛠️ منشئ سكريبتات بطريقة الحقل (Field)</h1>
+        <h1>🛠️ Field-Name Script Builder</h1>
         
         <div class="form-group">
-            <label>عنوان السكريبت العام:</label>
-            <input type="text" id="scriptTitle" value="قائمة الهاكات - طريقة الحقل" oninput="updateLivePreview()">
+            <label>Script Title:</label>
+            <input type="text" id="scriptTitle" value="Professional Hack Menu" oninput="updateLivePreview()">
         </div>
 
         <div class="form-group checkbox-group">
             <input type="checkbox" id="includeSpeedhack" checked onchange="updateLivePreview()">
-            <label for="includeSpeedhack" style="margin-bottom:0;">تضمين خاصية السرعة (Speedhack + Slider)</label>
+            <label for="includeSpeedhack" style="margin-bottom:0;">Include Speed Hack (with slider)</label>
         </div>
 
         <hr style="border-color: var(--border); margin: 20px 0;">
 
-        <h2>📋 قائمة الخصائص (Field Cheats)</h2>
+        <h2>📋 Cheat List (Field-Name Method)</h2>
         <div id="cheatsContainer">
-            <!-- يتم إضافة الخصائص هنا -->
+            <!-- Cheats will be added here -->
         </div>
 
-        <button class="btn btn-secondary" onclick="addCheat()">➕ إضافة خاصية جديدة</button>
-        <br><br>
-        <button class="btn" onclick="generateAndDownload()">🚀 بدء الإنشاء والتحميل (Build Script)</button>
+        <button class="btn btn-secondary" onclick="addCheat()">➕ Add New Cheat</button>
+
+        <hr style="border-color: var(--border); margin: 20px 0;">
+
+        <!-- Obfuscation Options -->
+        <h2>🔒 Script Protection</h2>
+        <div class="checkbox-group">
+            <input type="checkbox" id="enableObfuscation" onchange="updateLivePreview()">
+            <label for="enableObfuscation" style="margin-bottom:0;">Enable Obfuscation (hide code from casual viewing)</label>
+        </div>
+        <div class="form-group">
+            <label>Obfuscation Key (0-255):</label>
+            <input type="number" id="obfuscationKey" value="42" min="0" max="255" onchange="updateLivePreview()">
+        </div>
+
+        <br>
+        <button class="btn" onclick="generateAndDownload()">🚀 Build & Download Script</button>
     </div>
 
+    <!-- Output Panel -->
     <div class="output-panel-container">
         <div class="terminal-header">[OUTPUT PANEL - LIVE PREVIEW & LOGS]</div>
         <div id="terminalOutput" class="terminal">
-            Dumper: FieldName Engine | Generator: Ready...
+            FieldName Engine | Generator Ready...
             Waiting for configuration...
         </div>
-        <button class="btn btn-secondary" style="margin-top: 10px;" onclick="updateLivePreview()">🔄 تحديث المعاينة الحية</button>
+        <button class="btn btn-secondary" style="margin-top: 10px;" onclick="updateLivePreview()">🔄 Refresh Live Preview</button>
     </div>
 </div>
 
 <script>
     window.onload = function() {
-        addCheat(); // إضافة خاصية افتراضية
+        addCheat(); // Add one default cheat
     };
 
     function addCheat() {
@@ -164,22 +180,22 @@
         const div = document.createElement('div');
         div.className = 'cheat-box';
         div.innerHTML = `
-            <button class="btn btn-danger" onclick="this.parentElement.remove(); updateLivePreview();">حذف</button>
-            <h3>خاصية #${index}</h3>
+            <button class="btn btn-danger" onclick="this.parentElement.remove(); updateLivePreview();">Delete</button>
+            <h3>Cheat #${index}</h3>
             <div class="form-group" style="margin-bottom:8px;">
-                <label>اسم الخاصية (يظهر في القائمة):</label>
-                <input type="text" class="c-name" value="طاقة غير محدودة" oninput="updateLivePreview()">
+                <label>Cheat Name (displayed in menu):</label>
+                <input type="text" class="c-name" value="Unlimited Health" oninput="updateLivePreview()">
             </div>
             <div class="form-group" style="margin-bottom:8px;">
-                <label>اسم الكلاس (Class Name):</label>
+                <label>Class Name:</label>
                 <input type="text" class="c-class" value="PlayerController" oninput="updateLivePreview()">
             </div>
             <div class="form-group" style="margin-bottom:8px;">
-                <label>اسم الحقل (Field Name):</label>
+                <label>Field Name:</label>
                 <input type="text" class="c-field" value="health" oninput="updateLivePreview()">
             </div>
             <div class="form-group" style="margin-bottom:8px;">
-                <label>نوع البيانات:</label>
+                <label>Data Type:</label>
                 <select class="c-datatype" onchange="updateLivePreview()">
                     <option value="1">1 = Byte / Bool</option>
                     <option value="2">2 = Word</option>
@@ -189,28 +205,29 @@
                 </select>
             </div>
             <div class="form-group" style="margin-bottom:8px;">
-                <label>القيمة الافتراضية:</label>
+                <label>Default Value:</label>
                 <input type="text" class="c-val" value="999" oninput="updateLivePreview()">
             </div>
             <div class="checkbox-group">
                 <input type="checkbox" class="c-freeze" checked onchange="updateLivePreview()">
-                <label style="margin-bottom:0;">تجميد القيمة (Freeze)</label>
+                <label style="margin-bottom:0;">Freeze Value</label>
             </div>
             <div class="checkbox-group">
                 <input type="checkbox" class="c-refine" checked onchange="updateLivePreview()">
-                <label style="margin-bottom:0;">تنقية القيمة الحالية (Refine by current value)</label>
+                <label style="margin-bottom:0;">Refine by current value</label>
             </div>
         `;
         container.appendChild(div);
         updateLivePreview();
     }
 
-    function buildLuaCode() {
+    // ---------- Build the plain Lua script ----------
+    function buildPlainLua() {
         const title = document.getElementById('scriptTitle').value;
         const includeSpeed = document.getElementById('includeSpeedhack').checked;
         const cheatBoxes = document.querySelectorAll('.cheat-box');
 
-        // بداية الكود
+        // Head of script
         let lua = `-- ==========================================
 -- ${title}
 -- Auto-Generated by FieldName Script Builder
@@ -218,7 +235,7 @@
 
 local v = gg.getTargetInfo()
 if not v or not v.packageName then
-    gg.alert("❌ خطأ: يرجى تحديد اللعبة في GameGuardian أولاً!")
+    gg.alert("Error: Open the game first and select the process in GameGuardian!")
     os.exit()
 end
 
@@ -227,7 +244,7 @@ local gameName = v.label or "Unknown Game"
 local packageName = v.packageName
 
 -- =============================================
--- دالة البحث بالحقل (Field Name) - مطابقة لسكربت TrainMiner
+-- Search by Field Name (same logic as TrainMiner)
 -- =============================================
 function searchByFieldName(className, fieldName, valueType)
     local x, f, t = className, fieldName, valueType
@@ -344,21 +361,21 @@ function searchByFieldName(className, fieldName, valueType)
 end
 
 -- =============================================
--- دالة تعديل الحقل (مع تنقية وتجميد)
+-- Modify Field (with refine and freeze)
 -- =============================================
 function modifyField(fieldConfig)
     gg.setVisible(false)
     local found = searchByFieldName(fieldConfig.className, fieldConfig.fieldName, fieldConfig.type)
     if not found then
-        gg.alert("لم يتم العثور على الحقل: " .. fieldConfig.fieldName)
+        gg.alert("Field not found: " .. fieldConfig.fieldName)
         gg.setVisible(true)
         return
     end
 
-    -- تنقية اختيارية حسب القيمة الحالية
+    -- Optional refine by current value
     if fieldConfig.refine then
         local refine = gg.prompt(
-            {"أدخل القيمة الحالية (اتركه فارغًا لتخطي التنقية):"},
+            {"Enter CURRENT value (leave empty to skip refine):"},
             {""},
             {"number"}
         )
@@ -373,7 +390,7 @@ function modifyField(fieldConfig)
             if num then
                 gg.refineNumber(tostring(num), fieldConfig.type)
                 if gg.getResultsCount() == 0 then
-                    gg.alert("لا توجد نتائج تطابق القيمة " .. curVal)
+                    gg.alert("No results match value " .. curVal)
                     gg.clearResults()
                     gg.setVisible(true)
                     return
@@ -384,15 +401,15 @@ function modifyField(fieldConfig)
 
     local results = gg.getResults(gg.getResultsCount())
     if #results == 0 then
-        gg.alert("لا توجد عناوين")
+        gg.alert("No addresses found")
         gg.clearResults()
         gg.setVisible(true)
         return
     end
 
-    -- طلب القيمة الجديدة والتجميد
+    -- Prompt for new value and freeze
     local newPrompt = gg.prompt(
-        {"القيمة الجديدة:", "تجميد؟ (0 = لا، 1 = نعم)"},
+        {"New value:", "Freeze? (0 = No, 1 = Yes)"},
         {tostring(fieldConfig.default), fieldConfig.freezeDefault and "1" or "0"},
         {"number", "checkbox"}
     )
@@ -412,19 +429,19 @@ function modifyField(fieldConfig)
     end
     gg.addListItems(results)
     gg.setValues(results)
-    gg.toast("تم تعديل " .. fieldConfig.name .. " (" .. #results .. " عنوان)")
+    gg.toast("Modified " .. fieldConfig.name .. " (" .. #results .. " addresses)")
     gg.setVisible(true)
 end
 
 -- =============================================
--- تعريف الخصائص (من إدخال المستخدم)
+-- Field Definitions (from user input)
 -- =============================================
 local fields = {
 `;
 
-        // توليد جدول الخصائص
+        // Build the fields table
         cheatBoxes.forEach((box) => {
-            const name = box.querySelector('.c-name').value || "خاصية";
+            const name = box.querySelector('.c-name').value || "Cheat";
             const className = box.querySelector('.c-class').value || "ClassName";
             const fieldName = box.querySelector('.c-field').value || "fieldName";
             const dataType = box.querySelector('.c-datatype').value || "4";
@@ -432,7 +449,7 @@ local fields = {
             const freeze = box.querySelector('.c-freeze').checked;
             const refine = box.querySelector('.c-refine').checked;
 
-            // تحويل القيمة الافتراضية إلى رقم إذا أمكن
+            // Convert default value to number if possible, else keep as string
             const defaultNum = isNaN(Number(defaultValue)) ? `"${defaultValue}"` : defaultValue;
 
             lua += `    {name = "${name}", className = "${className}", fieldName = "${fieldName}", type = ${dataType}, default = ${defaultNum}, freezeDefault = ${freeze}, refine = ${refine}},\n`;
@@ -440,11 +457,11 @@ local fields = {
 
         lua += `}\n\n`;
 
-        // إضافة دالة السرعة إذا كانت مفعلة
+        // Add speed hack if enabled
         if (includeSpeed) {
             lua += `
 -- =============================================
--- قائمة التحكم بالسرعة (Speedhack)
+-- Speed Hack Menu
 -- =============================================
 function speedhackSliderMenu()
     gg.setVisible(false) local tryx2 = 1 local REG = 1 local t1, t2, t3, SPEED = {}, {}, {}, {} local O1, O2 = 20, 28 local TRY = 1
@@ -452,7 +469,7 @@ function speedhackSliderMenu()
     if REG == 1 then gg.setRanges(gg.REGION_ANONYMOUS) elseif REG == 2 then gg.setRanges(gg.REGION_C_ALLOC) elseif REG == 3 then gg.setRanges(gg.REGION_C_DATA) elseif REG == 4 then gg.setRanges(gg.REGION_OTHER) end
     gg.clearResults() gg.searchNumber("3F7FFFFEh", 4)
     if gg.getResultsCount() == 0 and REG < 4 then REG = REG + 1 goto XREGION return end 
-    if gg.getResultsCount() == 0 and REG == 4 then gg.alert("❌ لم يتم العثور على سرعة اللعبة") gg.setVisible(true) return end 
+    if gg.getResultsCount() == 0 and REG == 4 then gg.alert("Speed value not found") gg.setVisible(true) return end 
     local res = gg.getResults(gg.getResultsCount()) gg.clearResults() 
     ::TRYAGAIN_SPEED::
     for i, val in ipairs(res) do t1[i] = {} t2[i] = {} t1[i].address = val.address + O1 t1[i].flags = 32 t2[i].address = val.address + O2 t2[i].flags = 32 end
@@ -466,7 +483,7 @@ function speedhackSliderMenu()
     if x == 0 and TRY == 2 then O1 = 24 O2 = 32 TRY = TRY + 1 goto TRYAGAIN_SPEED return end   
     if x == 0 and TRY == 3 and REG < 4 then REG = REG + 1 goto XREGION return end 
     if x == 0 and TRY == 3 and REG == 4 and tryx2 == 1 then tryx2 = 2 goto XREGION return end 
-    if x == 0 and TRY == 3 and REG == 4 and tryx2 == 2 then gg.alert("❌ لم يتم العثور على مؤشر الوقت") gg.setVisible(true) return end 
+    if x == 0 and TRY == 3 and REG == 4 and tryx2 == 2 then gg.alert("Time pointer not found") gg.setVisible(true) return end 
     x = 0
     for z = 1, 35 do 
         for i, val in ipairs(t3) do val.address = val.address + 4 val.flags = 16 end 
@@ -474,36 +491,36 @@ function speedhackSliderMenu()
         for i, val in ipairs(t3) do if val.value == 1 then x = x + 1 SPEED[x] = {} SPEED[x].address = val.address SPEED[x].flags = 16 end end
     end 
     if x == 0 and REG < 4 then REG = REG + 1 goto XREGION return end 
-    if x == 0 and REG == 4 then gg.alert("❌ لم يتم العثور على قيمة السرعة") gg.setVisible(true) return end      
+    if x == 0 and REG == 4 then gg.alert("Speed value not found") gg.setVisible(true) return end      
     gg.loadResults(SPEED) gg.setVisible(true)  
     while true do
         local currentResCount = gg.getResultsCount()
-        if currentResCount == 0 then gg.alert("❌ فقدان عناوين السرعة") break end
-        local speedInput = gg.prompt({"⚡ تحكم في سرعة اللعبة (القيمة الافتراضية 1.0):"}, {"1.0"}, {"number"})
+        if currentResCount == 0 then gg.alert("Speed addresses lost") break end
+        local speedInput = gg.prompt({"Set game speed (default 1.0):"}, {"1.0"}, {"number"})
         if not speedInput then break end
         local targetSpeed = tonumber(speedInput[1])
         if targetSpeed then
             local speedValues = gg.getResults(currentResCount)
             for i, val in ipairs(speedValues) do val.value = targetSpeed val.flags = 16 end
-            gg.setValues(speedValues) gg.toast("🚀 تمت السرعة على: " .. targetSpeed)
+            gg.setValues(speedValues) gg.toast("Speed set to: " .. targetSpeed)
         end
-        local action = gg.choice({"🔄 تعديل السرعة", "🔙 العودة للقائمة"}, nil, "⚙️ السرعة الحالية: " .. targetSpeed)
+        local action = gg.choice({"Change speed", "Back to menu"}, nil, "Current speed: " .. targetSpeed)
         if action == 2 or action == nil then break end
     end
 end
 `;
         }
 
-        // الدالة الرئيسية
+        // Main menu
         lua += `
 -- =============================================
--- القائمة الرئيسية
+-- Main Menu
 -- =============================================
 function main()
     while true do
         local arch = is64 and "64-bit" or "32-bit"
         local title = "=== " .. gameName .. " | " .. arch .. " ===\\n" ..
-                      "اختر الخاصية المطلوبة:"
+                      "Select a cheat:"
 
         local choices = {}
         for _, f in ipairs(fields) do
@@ -512,14 +529,14 @@ function main()
 `;
 
         if (includeSpeed) {
-            lua += `        table.insert(choices, "⚡ تسريع اللعبة (Speed Hack)")\n`;
+            lua += `        table.insert(choices, "⚡ Speed Hack")\n`;
         }
 
-        lua += `        table.insert(choices, "❌ خروج")\n\n`;
+        lua += `        table.insert(choices, "❌ Exit")\n\n`;
         lua += `        local choice = gg.choice(choices, nil, title)\n`;
         lua += `        if choice == nil then os.exit() end\n\n`;
 
-        // ربط الاختيارات
+        // Link choices to functions
         let fieldCount = cheatBoxes.length;
         let currentIndex = 1;
         for (let i = 1; i <= fieldCount; i++) {
@@ -548,9 +565,47 @@ function main()
         return lua;
     }
 
+    // ---------- Obfuscation Functions ----------
+    function obfuscateLua(code, key) {
+        let out = '';
+        for (let i = 0; i < code.length; i++) {
+            let byte = code.charCodeAt(i);
+            byte = (byte + key) % 256;
+            out += byte.toString(16).padStart(2, '0');
+        }
+        return out;
+    }
+
+    function buildObfuscatedLoader(hexPayload, key) {
+        // Build a Lua loader that decodes the payload and runs it
+        return `-- Obfuscated Script Loader
+local payload = "${hexPayload}"
+local key = ${key}
+local bytes = {}
+for i = 1, #payload, 2 do
+    local byte = tonumber(payload:sub(i, i+1), 16)
+    bytes[#bytes+1] = string.char((byte - key) % 256)
+end
+local code = table.concat(bytes)
+local f = loadstring or load
+f(code)()
+`;
+    }
+
+    function buildFinalLua() {
+        const plain = buildPlainLua();
+        const enableObf = document.getElementById('enableObfuscation').checked;
+        if (!enableObf) {
+            return plain;
+        }
+        const key = parseInt(document.getElementById('obfuscationKey').value) || 0;
+        const hex = obfuscateLua(plain, key);
+        return buildObfuscatedLoader(hex, key);
+    }
+
     function updateLivePreview() {
         const terminal = document.getElementById('terminalOutput');
-        const code = buildLuaCode();
+        const code = buildFinalLua();
         terminal.innerText = code;
     }
 
@@ -564,7 +619,7 @@ function main()
 
         setTimeout(() => {
             terminal.innerText += "[*] Building interactive menu loop...\n";
-            const code = buildLuaCode();
+            const code = buildFinalLua();
             
             setTimeout(() => {
                 terminal.innerText += "[+] Task Completed Successfully!\n[+] Lua script generated and download started automatically.";
@@ -580,4 +635,4 @@ function main()
 </script>
 
 </body>
-</html>
+    </html>
