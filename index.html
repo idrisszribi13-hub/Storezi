@@ -4303,20 +4303,7 @@
                 panel.classList.remove('open');
                 document.body.style.overflow = '';
                 return;
-            }
-            panel.classList.add('open');
-            document.body.style.overflow = 'hidden';
-            switchAdminTab('dashboard');
-        };
 
-        // Close admin panel
-        window.closeAdminPanel = function() {
-            const panel = document.getElementById('adminPanel');
-            if (panel) {
-                panel.classList.remove('open');
-                document.body.style.overflow = '';
-            }
-        };
 
         // Chatbot functions
         window.toggleChatbot = function() {
