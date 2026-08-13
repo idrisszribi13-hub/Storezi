@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منشئ سكريبتات GameGuardian المتطور</title>
+    <title>منشئ سكريبتات GameGuardian - طريقة الحقل</title>
     <style>
         :root {
             --bg-color: #0b0f19;
@@ -63,7 +63,7 @@
             box-sizing: border-box;
             font-size: 13px;
         }
-        .section-box, .cheat-box {
+        .cheat-box {
             background: #1f2937;
             padding: 15px;
             border-radius: 8px;
@@ -71,7 +71,6 @@
             margin-bottom: 15px;
             position: relative;
         }
-        .cheat-box { background: #111827; }
         .btn {
             background: var(--accent);
             color: #fff;
@@ -91,7 +90,6 @@
         .checkbox-group { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
         .checkbox-group input { width: auto; }
         
-        /* تصميم شاشة الـ Terminal المشابهة للصورة */
         .terminal {
             background: var(--panel-bg);
             color: #38bdf8;
@@ -119,13 +117,12 @@
 <body>
 
 <div class="main-layout">
-    <!-- لوحة التحكم وإدخال البيانات -->
     <div class="control-panel">
-        <h1>🛠️ منشئ السكريبتات المتقدم</h1>
+        <h1>🛠️ منشئ سكريبتات بطريقة الحقل (Field)</h1>
         
         <div class="form-group">
             <label>عنوان السكريبت العام:</label>
-            <input type="text" id="scriptTitle" value="قائمة الهاكات الاحترافية" oninput="updateLivePreview()">
+            <input type="text" id="scriptTitle" value="قائمة الهاكات - طريقة الحقل" oninput="updateLivePreview()">
         </div>
 
         <div class="form-group checkbox-group">
@@ -135,21 +132,20 @@
 
         <hr style="border-color: var(--border); margin: 20px 0;">
 
-        <h2>📂 الأقسام والعناوين الرئيسية</h2>
-        <div id="sectionsContainer">
-            <!-- يتم إضافة الأقسام هنا -->
+        <h2>📋 قائمة الخصائص (Field Cheats)</h2>
+        <div id="cheatsContainer">
+            <!-- يتم إضافة الخصائص هنا -->
         </div>
 
-        <button class="btn btn-secondary" onclick="addSection()">➕ إضافة عنوان / قسم جديد للقائمة</button>
+        <button class="btn btn-secondary" onclick="addCheat()">➕ إضافة خاصية جديدة</button>
         <br><br>
         <button class="btn" onclick="generateAndDownload()">🚀 بدء الإنشاء والتحميل (Build Script)</button>
     </div>
 
-    <!-- لوحة العرض المباشر (Output Panel) -->
     <div class="output-panel-container">
         <div class="terminal-header">[OUTPUT PANEL - LIVE PREVIEW & LOGS]</div>
         <div id="terminalOutput" class="terminal">
-            Dumper: ApexEngine | Generator: Ready...
+            Dumper: FieldName Engine | Generator: Ready...
             Waiting for configuration...
         </div>
         <button class="btn btn-secondary" style="margin-top: 10px;" onclick="updateLivePreview()">🔄 تحديث المعاينة الحية</button>
@@ -158,54 +154,29 @@
 
 <script>
     window.onload = function() {
-        addSection(); // إضافة قسم افتراضي عند الفتح
+        addCheat(); // إضافة خاصية افتراضية
     };
 
-    function addSection() {
-        const container = document.getElementById('sectionsContainer');
-        const sIndex = container.children.length + 1;
+    function addCheat() {
+        const container = document.getElementById('cheatsContainer');
+        const index = container.children.length + 1;
         
-        const div = document.createElement('div');
-        div.className = 'section-box';
-        div.innerHTML = `
-            <button class="btn btn-danger" onclick="this.parentElement.remove(); updateLivePreview();">حذف القسم</button>
-            <h3>القسم الرئيسي #${sIndex}</h3>
-            <div class="form-group">
-                <label>اسم العنوان في القائمة:</label>
-                <input type="text" class="s-name" value="قسم اللاعب (Player Hacks)" oninput="updateLivePreview()">
-            </div>
-            <div class="cheats-list" style="margin-top: 10px;">
-                <!-- الميزات التابعة لهذا القسم -->
-            </div>
-            <button class="btn btn-secondary" style="font-size: 12px; padding: 6px;" onclick="addCheatToSection(this)">➕ إضافة ميزة داخل هذا القسم</button>
-        `;
-        container.appendChild(div);
-        addCheatToSection(div.querySelector('.cheats-list'));
-    }
-
-    function addCheatToSection(container) {
         const div = document.createElement('div');
         div.className = 'cheat-box';
         div.innerHTML = `
-            <button class="btn btn-danger" style="font-size:10px; padding:2px 6px;" onclick="this.parentElement.remove(); updateLivePreview();">حذف الميزة</button>
+            <button class="btn btn-danger" onclick="this.parentElement.remove(); updateLivePreview();">حذف</button>
+            <h3>خاصية #${index}</h3>
             <div class="form-group" style="margin-bottom:8px;">
-                <label>اسم الميزة:</label>
+                <label>اسم الخاصية (يظهر في القائمة):</label>
                 <input type="text" class="c-name" value="طاقة غير محدودة" oninput="updateLivePreview()">
             </div>
             <div class="form-group" style="margin-bottom:8px;">
-                <label>طريقة البحث:</label>
-                <select class="c-type" onchange="toggleFields(this); updateLivePreview()">
-                    <option value="offset">Offset (Class + Offset)</option>
-                    <option value="field">Field Name (Class + Name)</option>
-                </select>
+                <label>اسم الكلاس (Class Name):</label>
+                <input type="text" class="c-class" value="PlayerController" oninput="updateLivePreview()">
             </div>
             <div class="form-group" style="margin-bottom:8px;">
-                <label>اسم الكلاس (Class Name):</label>
-                <input type="text" class="c-class" value="UIStatsController" oninput="updateLivePreview()">
-            </div>
-            <div class="form-group field-offset-group" style="margin-bottom:8px;">
-                <label class="fo-label">الأوفست (Offset):</label>
-                <input type="text" class="c-offset" value="0x2C" oninput="updateLivePreview()">
+                <label>اسم الحقل (Field Name):</label>
+                <input type="text" class="c-field" value="health" oninput="updateLivePreview()">
             </div>
             <div class="form-group" style="margin-bottom:8px;">
                 <label>نوع البيانات:</label>
@@ -218,39 +189,31 @@
                 </select>
             </div>
             <div class="form-group" style="margin-bottom:8px;">
-                <label>القيمة المطلوبة:</label>
+                <label>القيمة الافتراضية:</label>
                 <input type="text" class="c-val" value="999" oninput="updateLivePreview()">
             </div>
             <div class="checkbox-group">
                 <input type="checkbox" class="c-freeze" checked onchange="updateLivePreview()">
                 <label style="margin-bottom:0;">تجميد القيمة (Freeze)</label>
             </div>
+            <div class="checkbox-group">
+                <input type="checkbox" class="c-refine" checked onchange="updateLivePreview()">
+                <label style="margin-bottom:0;">تنقية القيمة الحالية (Refine by current value)</label>
+            </div>
         `;
         container.appendChild(div);
         updateLivePreview();
     }
 
-    function toggleFields(selectElem) {
-        const parent = selectElem.closest('.cheat-box');
-        const label = parent.querySelector('.fo-label');
-        const input = parent.querySelector('.c-offset');
-        if(selectElem.value === 'field') {
-            label.innerText = "اسم الحقل (Field Name):";
-            input.value = "isSelected";
-        } else {
-            label.innerText = "الأوفست (Offset):";
-            input.value = "0x2C";
-        }
-    }
-
     function buildLuaCode() {
         const title = document.getElementById('scriptTitle').value;
         const includeSpeed = document.getElementById('includeSpeedhack').checked;
-        const sections = document.querySelectorAll('.section-box');
+        const cheatBoxes = document.querySelectorAll('.cheat-box');
 
+        // بداية الكود
         let lua = `-- ==========================================
 -- ${title}
--- Auto-Generated by Advanced GG Script Builder
+-- Auto-Generated by FieldName Script Builder
 -- ==========================================
 
 local v = gg.getTargetInfo()
@@ -263,159 +226,226 @@ local is64 = v.x64
 local gameName = v.label or "Unknown Game"
 local packageName = v.packageName
 
--- محرك البحث للـ Offset
-function searchByOffset(x, o, t, targetVal, freezeVal)
-    gg.clearResults()
-    gg.setRanges(gg.REGION_OTHER | gg.REGION_C_ALLOC | gg.REGION_ANONYMOUS) 
-    gg.searchNumber(":"..x, 1)
-    if gg.getResultsCount() == 0 then gg.alert("لم يتم العثور على الكلاس!") return end 
-    local apexu = gg.getResults(1)
-    gg.getResults(gg.getResultsCount())
-    gg.refineNumber(tonumber(apexu[1].value), 1)
-    apexu = gg.getResults(gg.getResultsCount())
-    gg.clearResults()
-    for i, val in ipairs(apexu) do apexu[i].address = apexu[i].address - 1 apexu[i].flags = 1 end
-    apexu = gg.getValues(apexu) 
-    local apexa = {} local apexaa = 1 
-    for i, val in pairs(apexu) do
-        if apexu[i].value == 0 then
-            apexa[apexaa] = {} apexa[apexaa].address = apexu[i].address apexa[apexaa].flags = 1 apexaa = apexaa + 1
-        end
-    end   
-    if #(apexa) == 0 then gg.clearResults() gg.alert("فشل البحث الأول") return end 
-    for i, val in ipairs(apexa) do apexa[i].address = apexa[i].address + #(x) + 1 apexa[i].flags = 1 end  
-    apexa = gg.getValues(apexa) local apexs = {} local apexbb = 1
-    for i, val in pairs(apexa) do
-        if apexa[i].value == 0 then apexs[apexbb] = {} apexs[apexbb].address = apexa[i].address apexs[apexbb].flags = 1 apexbb = apexbb + 1 end
-    end
-    if #(apexs) == 0 then gg.clearResults() gg.alert("فشل البحث الثاني") return end 
-    for i, val in ipairs(apexs) do apexs[i].address = apexs[i].address - #(x) apexs[i].flags = 1 end
-    gg.loadResults(apexs) gg.searchPointer(0)
-    if gg.getResultsCount() == 0 then gg.alert("لم يتم العثور على المؤشرات!") return end   
-    apexu = gg.getResults(gg.getResultsCount()) gg.clearResults() 
-    local apexo1, apexo2, apexvt
-    if is64 then apexo1 = 48 apexo2 = 56 apexvt = 32 else apexo1 = 24 apexo2 = 28 apexvt = 4 end
-    local ERROR = 0 
-    ::TRYAGAIN_CLASS:: 
-    local apexy = {} local apexz = {} 
-    for i, val in ipairs(apexu) do
-        apexy[i] = {} apexy[i].address = apexu[i].address + apexo1 apexy[i].flags = apexvt
-        apexz[i] = {} apexz[i].address = apexu[i].address + apexo2 apexz[i].flags = apexvt
-    end 
-    apexy = gg.getValues(apexy) apexz = gg.getValues(apexz) local apexp = {} local apexxx = 1
-    for i, val in ipairs(apexy) do
-        if apexy[i].value == apexz[i].value and #(tostring(apexy[i].value)) >= 8 then
-            apexp[apexxx] = apexy[i].value apexxxx = apexxx + 1
-        end
-    end
-    if #(apexp) == 0 and ERROR == 0 then
-        if is64 then apexo1 = 32 apexo2 = 40 else apexo1 = 16 apexo2 = 20 end 
-        ERROR = 2 goto TRYAGAIN_CLASS
-    end    
-    if #(apexp) == 0 and ERROR == 2 then gg.alert("فشل العثور على القيم النهائية!") return end
-    gg.setRanges(gg.REGION_ANONYMOUS) gg.clearResults() local apexxxx = 1
-    for i, val in ipairs(apexp) do
-        gg.toast("جاري البحث...") 
-        gg.searchNumber(tonumber(apexp[i]), apexvt)
-        if gg.getResultsCount() ~= 0 then
-            local foundRes = gg.getResults(gg.getResultsCount()) gg.clearResults()
-            for apexq = 1, #(foundRes) do foundRes[apexq].name = "APEX[GG]v2" end
-            gg.addListItems(foundRes) apexxxx = apexxxx + 1
-        end
-        gg.clearResults()
-    end 
-    if apexxxx == 1 then gg.alert("لم يتم العثور على نتائج!") return end
-    local apexload = {} local apexremove = {} apexxx = 1
-    apexu = gg.getListItems()
-    for i, val in ipairs(apexu) do
-        if apexu[i].name == "APEX[GG]v2" then 
-            apexload[apexxx] = {} apexload[apexxx].address = apexu[i].address + o apexload[apexxx].flags = t
-            apexremove[apexxx] = apexu[i] apexxx = apexxx + 1
-        end
-    end 
-    apexload = gg.getValues(apexload) 
-    for _, item in ipairs(apexload) do item.value = targetVal end
-    gg.setValues(apexload)
-    if freezeVal then
-        for _, item in ipairs(apexload) do item.freeze = true end
-        gg.addListItems(apexload)
-    else
-        gg.loadResults(apexload)
-    end
-    gg.toast("✅ تم تفعيل الميزة بنجاح")
-end
-
--- محرك البحث للـ Field Name
-function searchByField(x, f, t, targetVal, freezeVal)
+-- =============================================
+-- دالة البحث بالحقل (Field Name) - مطابقة لسكربت TrainMiner
+-- =============================================
+function searchByFieldName(className, fieldName, valueType)
+    local x, f, t = className, fieldName, valueType
     local fco1, fco2, fco3, fcx1
-    if is64 then fco1 = 24 fco2 = 8 fco3 = 16 fcx1 = 32 else fco1 = 12 fco2 = 4 fco3 = 8 fcx1 = 4 end 
-    local E = 0 gg.toast("جاري البحث...") gg.clearResults() 
-    gg.setRanges(gg.REGION_C_DATA | gg.REGION_C_ALLOC | gg.REGION_ANONYMOUS | gg.REGION_OTHER) 
-    local lengthf = #(f) gg.searchNumber(":"..tostring(f), 1)
-    if gg.getResultsCount() == 0 then gg.alert("لم يتم العثور على اسم الحقل!") return end 
-    local fbfc = gg.getResults(1) gg.refineNumber(fbfc[1].value, 1)
-    fbfc = gg.getResults(gg.getResultsCount()) local nfbx = {} 
-    for i, val in ipairs(fbfc) do nfbx[i] = {} nfbx[i].address = val.address + lengthf nfbx[i].flags = 1 end
-    gg.loadResults(nfbx) gg.refineNumber(0, 1)
-    if gg.getResultsCount() == 0 then gg.alert("فشل مطابقة الحقل") return end 
-    fbfc = gg.getResults(gg.getResultsCount()) nfbx = {} 
-    for i, val in ipairs(fbfc) do nfbx[i] = {} nfbx[i].address = val.address - (lengthf + 1) nfbx[i].flags = 1 end
-    gg.loadResults(nfbx) gg.refineNumber(0, 1)
-    if gg.getResultsCount() == 0 then gg.alert("فشل مطابقة الحقل") return end 
-    fbfc = gg.getResults(gg.getResultsCount()) nfbx = {} 
-    for i, val in ipairs(fbfc) do nfbx[i] = {} nfbx[i].address = val.address + 1 nfbx[i].flags = 1 end
-    gg.loadResults(nfbx) gg.searchPointer(0) 
-    if gg.getResultsCount() == 0 then gg.alert("لم يتم العثور على المؤشرات!") return end 
-    local fpfc = gg.getResults(gg.getResultsCount()) gg.clearResults() local fofc = {}
-    for i, val in ipairs(fpfc) do fofc[i] = {} fofc[i].address = val.address + fco1 fofc[i].flags = 4 end
-    gg.loadResults(fofc) gg.toast("جاري الفحص...") gg.refineNumber("4~5000", 4) 
-    if gg.getResultsCount() == 0 then gg.alert("لم يتم العثور على الأوفست المناسب!") return end 
-    fofc = gg.getResults(gg.getResultsCount()) gg.clearResults() local fcfc = {}
-    for i, val in ipairs(fofc) do fcfc[i] = {} fcfc[i].address = val.address - fco2 fcfc[i].flags = fcx1 end
-    fcfc = gg.getValues(fcfc) local hcfc = {} local o = 0 local FCFC = 0
-    for i, val in ipairs(fcfc) do    
-        hcfc[i] = {} hcfc[i].flags = fcx1 local HCFC
-        if is64 then 
-            HCFC = tostring(string.format("%X", tostring(fcfc[i].value)))   
-            if #(tostring(HCFC)) >= 12 then HCFC = tostring(string.sub(HCFC, 3, -1)) end
-            HCFC = tonumber("0x"..HCFC) + fco3 
-        else HCFC = (fcfc[i].value) + fco3 end
-        hcfc[i].address = HCFC
-    end 
-    hcfc = gg.getValues(hcfc) local cnfc = {}
-    for i, val in ipairs(hcfc) do
-        for c = 1, 50 do cnfc[c] = {} cnfc[c].address = val.value + c - 1 cnfc[c].flags = 1 end
-        cnfc = gg.getValues(cnfc) local csfc = {} 
+    if is64 then fco1=24 fco2=8 fco3=16 fcx1=32
+    else fco1=12 fco2=4 fco3=8 fcx1=4 end
+
+    gg.clearResults()
+    gg.setRanges(gg.REGION_C_DATA | gg.REGION_C_ALLOC | gg.REGION_ANONYMOUS | gg.REGION_OTHER)
+    local len = #f
+    gg.searchNumber(":" .. f, 1)
+    if gg.getResultsCount() == 0 then return false end
+
+    local fbfc = gg.getResults(1)
+    gg.refineNumber(fbfc[1].value, 1)
+    fbfc = gg.getResults(gg.getResultsCount())
+
+    local nfbx = {}
+    for i, v in ipairs(fbfc) do
+        nfbx[i] = {address = v.address + len, flags = 1}
+    end
+    gg.loadResults(nfbx)
+    gg.refineNumber(0, 1)
+    if gg.getResultsCount() == 0 then return false end
+
+    fbfc = gg.getResults(gg.getResultsCount())
+    nfbx = {}
+    for i, v in ipairs(fbfc) do
+        nfbx[i] = {address = v.address - (len + 1), flags = 1}
+    end
+    gg.loadResults(nfbx)
+    gg.refineNumber(0, 1)
+    if gg.getResultsCount() == 0 then return false end
+
+    fbfc = gg.getResults(gg.getResultsCount())
+    nfbx = {}
+    for i, v in ipairs(fbfc) do
+        nfbx[i] = {address = v.address + 1, flags = 1}
+    end
+    gg.loadResults(nfbx)
+    gg.searchPointer(0)
+    if gg.getResultsCount() == 0 then return false end
+
+    local fpfc = gg.getResults(gg.getResultsCount())
+    gg.clearResults()
+    local fofc = {}
+    for i, v in ipairs(fpfc) do
+        fofc[i] = {address = v.address + fco1, flags = 4}
+    end
+    gg.loadResults(fofc)
+    gg.refineNumber("4~5000", 4)
+    if gg.getResultsCount() == 0 then return false end
+
+    fofc = gg.getResults(gg.getResultsCount())
+    gg.clearResults()
+    local fcfc = {}
+    for i, v in ipairs(fofc) do
+        fcfc[i] = {address = v.address - fco2, flags = fcx1}
+    end
+    fcfc = gg.getValues(fcfc)
+    local hcfc = {}
+    for i, v in ipairs(fcfc) do
+        hcfc[i] = {flags = fcx1}
+        if is64 then
+            local HCFC = string.format("%X", tostring(v.value))
+            if #HCFC >= 12 then HCFC = string.sub(HCFC, 3, -1) end
+            hcfc[i].address = tonumber("0x" .. HCFC) + fco3
+        else
+            hcfc[i].address = v.value + fco3
+        end
+    end
+    hcfc = gg.getValues(hcfc)
+
+    local foundOffset, matchedI = nil, nil
+    for i, v in ipairs(hcfc) do
+        local cnfc = {}
         for c = 1, 50 do
-            if cnfc[c].value ~= 0 and cnfc[c].value > 32 and cnfc[c].value < 127 then csfc[c] = string.char(cnfc[c].value)
-            else csfc = table.concat(csfc)
-                if tostring(csfc) == tostring(x) then o = tonumber(fofc[i].value) FCFC = fcfc[i].value E = 1 break 
-                else break end
+            cnfc[c] = {address = v.value + c - 1, flags = 1}
+        end
+        cnfc = gg.getValues(cnfc)
+        local csfc = {}
+        for c = 1, 50 do
+            if cnfc[c].value > 32 and cnfc[c].value < 127 then
+                csfc[c] = string.char(cnfc[c].value)
+            else
+                csfc = table.concat(csfc)
+                if csfc == x then
+                    foundOffset = tonumber(fofc[i].value)
+                    matchedI = i
+                    break
+                else
+                    break
+                end
             end
         end
-        if E == 1 then break end 
-    end 
-    if E == 1 then 
-        gg.toast("جاري التطبيق...") gg.clearResults() gg.setRanges(gg.REGION_ANONYMOUS) gg.searchNumber(FCFC, fcx1)
-        if gg.getResultsCount() == 0 then gg.alert("فشل العثور على الذاكرة!") return end 
-        fcfc = gg.getResults(gg.getResultsCount()) local finalRes = {} 
-        for i, val in ipairs(fcfc) do finalRes[i] = {} finalRes[i].address = val.address + o finalRes[i].flags = t end
-        finalRes = gg.getValues(finalRes)
-        for _, item in ipairs(finalRes) do item.value = targetVal end
-        gg.setValues(finalRes)
-        if freezeVal then
-            for _, item in ipairs(finalRes) do item.freeze = true end
-            gg.addListItems(finalRes)
-        else
-            gg.loadResults(finalRes)
+        if foundOffset then break end
+    end
+
+    if foundOffset and matchedI then
+        gg.clearResults()
+        gg.setRanges(gg.REGION_ANONYMOUS)
+        gg.searchNumber(fcfc[matchedI].value, fcx1)
+        if gg.getResultsCount() == 0 then return false end
+        local base = gg.getResults(gg.getResultsCount())
+        local addrs = {}
+        for _, addr in ipairs(base) do
+            addrs[#addrs + 1] = {address = addr.address + foundOffset, flags = t}
         end
-        gg.toast("✅ تم التفعيل بنجاح")
-    else gg.alert("❌ لم يتم العثور على الكلاس المطلوب") end
+        gg.loadResults(addrs)
+        return true
+    else
+        return false
+    end
 end
+
+-- =============================================
+-- دالة تعديل الحقل (مع تنقية وتجميد)
+-- =============================================
+function modifyField(fieldConfig)
+    gg.setVisible(false)
+    local found = searchByFieldName(fieldConfig.className, fieldConfig.fieldName, fieldConfig.type)
+    if not found then
+        gg.alert("لم يتم العثور على الحقل: " .. fieldConfig.fieldName)
+        gg.setVisible(true)
+        return
+    end
+
+    -- تنقية اختيارية حسب القيمة الحالية
+    if fieldConfig.refine then
+        local refine = gg.prompt(
+            {"أدخل القيمة الحالية (اتركه فارغًا لتخطي التنقية):"},
+            {""},
+            {"number"}
+        )
+        if refine == nil then
+            gg.clearResults()
+            gg.setVisible(true)
+            return
+        end
+        local curVal = refine[1]
+        if curVal ~= "" then
+            local num = tonumber(curVal)
+            if num then
+                gg.refineNumber(tostring(num), fieldConfig.type)
+                if gg.getResultsCount() == 0 then
+                    gg.alert("لا توجد نتائج تطابق القيمة " .. curVal)
+                    gg.clearResults()
+                    gg.setVisible(true)
+                    return
+                end
+            end
+        end
+    end
+
+    local results = gg.getResults(gg.getResultsCount())
+    if #results == 0 then
+        gg.alert("لا توجد عناوين")
+        gg.clearResults()
+        gg.setVisible(true)
+        return
+    end
+
+    -- طلب القيمة الجديدة والتجميد
+    local newPrompt = gg.prompt(
+        {"القيمة الجديدة:", "تجميد؟ (0 = لا، 1 = نعم)"},
+        {tostring(fieldConfig.default), fieldConfig.freezeDefault and "1" or "0"},
+        {"number", "checkbox"}
+    )
+    if newPrompt == nil then
+        gg.clearResults()
+        gg.setVisible(true)
+        return
+    end
+
+    local newVal = tonumber(newPrompt[1])
+    local freeze = tonumber(newPrompt[2]) == 1
+
+    for _, item in ipairs(results) do
+        item.value = newVal
+        item.freeze = freeze
+        item.name = fieldConfig.name
+    end
+    gg.addListItems(results)
+    gg.setValues(results)
+    gg.toast("تم تعديل " .. fieldConfig.name .. " (" .. #results .. " عنوان)")
+    gg.setVisible(true)
+end
+
+-- =============================================
+-- تعريف الخصائص (من إدخال المستخدم)
+-- =============================================
+local fields = {
 `;
 
+        // توليد جدول الخصائص
+        cheatBoxes.forEach((box) => {
+            const name = box.querySelector('.c-name').value || "خاصية";
+            const className = box.querySelector('.c-class').value || "ClassName";
+            const fieldName = box.querySelector('.c-field').value || "fieldName";
+            const dataType = box.querySelector('.c-datatype').value || "4";
+            const defaultValue = box.querySelector('.c-val').value || "0";
+            const freeze = box.querySelector('.c-freeze').checked;
+            const refine = box.querySelector('.c-refine').checked;
+
+            // تحويل القيمة الافتراضية إلى رقم إذا أمكن
+            const defaultNum = isNaN(Number(defaultValue)) ? `"${defaultValue}"` : defaultValue;
+
+            lua += `    {name = "${name}", className = "${className}", fieldName = "${fieldName}", type = ${dataType}, default = ${defaultNum}, freezeDefault = ${freeze}, refine = ${refine}},\n`;
+        });
+
+        lua += `}\n\n`;
+
+        // إضافة دالة السرعة إذا كانت مفعلة
         if (includeSpeed) {
             lua += `
+-- =============================================
+-- قائمة التحكم بالسرعة (Speedhack)
+-- =============================================
 function speedhackSliderMenu()
     gg.setVisible(false) local tryx2 = 1 local REG = 1 local t1, t2, t3, SPEED = {}, {}, {}, {} local O1, O2 = 20, 28 local TRY = 1
     ::XREGION:: 
@@ -464,91 +494,50 @@ end
 `;
         }
 
-        // بناء دالة القائمة الرئيسية والأقسام المجمعة
+        // الدالة الرئيسية
         lua += `
+-- =============================================
+-- القائمة الرئيسية
+-- =============================================
 function main()
     while true do
-        local menuTitle = "═══════════════════════════════\\n" ..
-                          "🎮 اللعبة: " .. gameName .. "\\n" ..
-                          "📦 الحزمة: " .. packageName .. "\\n" ..
-                          "⚙️ المعالج: " .. (is64 and "64-bit" or "32-bit") .. "\\n" ..
-                          "═══════════════════════════════\\n" ..
-                          "اختر القسم أو الوظيفة المطلوبة:"
+        local arch = is64 and "64-bit" or "32-bit"
+        local title = "=== " .. gameName .. " | " .. arch .. " ===\\n" ..
+                      "اختر الخاصية المطلوبة:"
 
-        local choices = {
+        local choices = {}
+        for _, f in ipairs(fields) do
+            table.insert(choices, f.name)
+        end
 `;
 
-        let totalItems = [];
-        sections.forEach(sec => {
-            const secName = sec.querySelector('.s-name').value;
-            choices.push(`"📂 [ " .. "${secName}" .. " ]"`);
-            
-            const cheats = sec.querySelectorAll('.cheat-box');
-            cheats.forEach(c => {
-                const cName = c.querySelector('.c-name').value;
-                const cType = c.querySelector('.c-type').value;
-                const cClass = c.querySelector('.c-class').value;
-                const cOffset = c.querySelector('.c-offset').value;
-                const cDataType = c.querySelector('.c-datatype').value;
-                const cVal = c.querySelector('.c-val').value;
-                const cFreeze = c.querySelector('.c-freeze').checked;
-
-                totalItems.push({
-                    type: cType,
-                    className: cClass,
-                    offsetOrField: cOffset,
-                    dataType: cDataType,
-                    val: cVal,
-                    freeze: cFreeze
-                });
-                choices.push(`"   🔹 " .. "${cName}"`);
-            });
-        });
-
         if (includeSpeed) {
-            choices.push(`"⚡ تسريع اللعبة (Speed Hack)"`);
+            lua += `        table.insert(choices, "⚡ تسريع اللعبة (Speed Hack)")\n`;
         }
-        choices.push(`"❌ خروج"`);
 
-        lua += choices.join(",\n") + `\n        }\n\n`;
-        lua += `        local choice = gg.choice(choices, nil, menuTitle)\n`;
+        lua += `        table.insert(choices, "❌ خروج")\n\n`;
+        lua += `        local choice = gg.choice(choices, nil, title)\n`;
         lua += `        if choice == nil then os.exit() end\n\n`;
 
-        // ربط الخيارات بمؤشرات التنفيذ الدقيقة
+        // ربط الاختيارات
+        let fieldCount = cheatBoxes.length;
         let currentIndex = 1;
-        sections.forEach(sec => {
-            // اختيار القسم نفسه (يمكن جعله يعرض تنبيهاً أو يتخطى)
-            lua += `        if choice == ${currentIndex} then\n`;
-            lua += `            gg.alert("قم باختيار الميزة الفرعية داخل هذا القسم.")\n`;
+        for (let i = 1; i <= fieldCount; i++) {
+            lua += `        if choice == ${i} then\n`;
+            lua += `            modifyField(fields[${i}])\n`;
             lua += `        \n`;
-            currentIndex++;
-
-            const cheats = sec.querySelectorAll('.cheat-box');
-            cheats.forEach(c => {
-                const cType = c.querySelector('.c-type').value;
-                const cOffset = c.querySelector('.c-offset').value;
-                const cClass = c.querySelector('.c-class').value;
-                const cDataType = c.querySelector('.c-datatype').value;
-                const cVal = c.querySelector('.c-val').value;
-                const cFreeze = c.querySelector('.c-freeze').checked;
-
-                lua += `        elseif choice == ${currentIndex} then\n`;
-                if (cType === 'offset') {
-                    lua += `            searchByOffset("${cClass}", ${cOffset}, ${cDataType}, ${cVal}, ${cFreeze})\n`;
-                } else {
-                    lua += `            searchByField("${cClass}", "${cOffset}", ${cDataType}, ${cVal}, ${cFreeze})\n`;
-                }
-                currentIndex++;
-            });
-        });
-
-        if (includeSpeed) {
-            lua += `        elseif choice == ${currentIndex} then\n`;
-            lua += `            speedhackSliderMenu()\n`;
-            currentIndex++;
         }
 
-        lua += `        elseif choice == ${currentIndex} then\n`;
+        if (includeSpeed) {
+            lua += `        elseif choice == ${fieldCount + 1} then\n`;
+            lua += `            speedhackSliderMenu()\n`;
+            lua += `        \n`;
+            lua += `        elseif choice == ${fieldCount + 2} then\n`;
+        } else {
+            lua += `        elseif choice == ${fieldCount + 1} then\n`;
+        }
+
+        lua += `            gg.clearList()\n`;
         lua += `            gg.setVisible(true)\n`;
         lua += `            os.exit()\n`;
         lua += `        end\n`;
@@ -567,10 +556,10 @@ function main()
 
     function generateAndDownload() {
         const terminal = document.getElementById('terminalOutput');
-        terminal.innerText = "[*] Initializing generator engine...\n[*] Parsing sections and categories...\n[*] Injecting core GameGuardian search signatures...\n[*] Compiling Lua bytecode structure...\n";
+        terminal.innerText = "[*] Initializing field-name engine...\n[*] Parsing cheat definitions...\n[*] Injecting searchByFieldName signature...\n[*] Compiling Lua bytecode structure...\n";
         
         setTimeout(() => {
-            terminal.innerText += "[*] Verifying memory boundaries and pointer offsets...\n";
+            terminal.innerText += "[*] Verifying memory boundaries and offsets...\n";
         }, 400);
 
         setTimeout(() => {
@@ -580,11 +569,10 @@ function main()
             setTimeout(() => {
                 terminal.innerText += "[+] Task Completed Successfully!\n[+] Lua script generated and download started automatically.";
                 
-                // تحميل الملف
                 const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
-                link.download = 'Advanced_GameGuardian_Script.lua';
+                link.download = 'FieldName_GameGuardian_Script.lua';
                 link.click();
             }, 600);
         }, 800);
