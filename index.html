@@ -4236,73 +4236,7 @@
             }
         });
 
-        // Admin tab switching
-        window.switchAdminTab = function(tab) {
-            document.querySelectorAll('#adminPanel .admin-tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('#adminPanel .admin-nav-btn').forEach(el => el.classList.remove('active'));
-
-            const tabMap = {
-                'dashboard': 'tabDashboard',
-                'orders': 'tabOrders',
-                'products': 'tabProducts',
-                'users': 'tabUsers',
-                'downloads': 'tabDownloads',
-                'notifications': 'tabNotifications',
-                'stats': 'tabStats',
-                'logs': 'tabLogs',
-                'activity': 'tabActivity',
-                'fraud': 'tabFraud',
-                'slider': 'tabSlider',
-                'licences': 'tabLicences',
-                'marquee': 'tabMarquee',
-                'payments': 'tabPayments',
-                'topups': 'tabTopups',
-                'fallback': 'tabFallback',
-                'settings': 'tabSettings',
-                'coupons': 'tabCoupons',
-                'emails': 'tabEmails',
-                'branding': 'tabBranding'
-            };
-            const tabId = tabMap[tab] || 'tabDashboard';
-            const content = document.getElementById(tabId);
-            if (content) content.classList.add('active');
-
-            const btn = document.querySelector('#adminPanel .admin-nav-btn[data-tab="' + tab + '"]');
-            if (btn) btn.classList.add('active');
-
-            const titles = {
-                'dashboard': '📊 Dashboard',
-                'orders': '📦 Orders',
-                'products': '🛍️ Products',
-                'users': '👥 Users',
-                'downloads': '📁 Downloads',
-                'notifications': '🔔 Notifications',
-                'stats': '📈 Stats',
-                'logs': '📜 Logs',
-                'activity': '📊 Activity',
-                'fraud': '🛡️ Fraud',
-                'slider': '🎨 Slider',
-                'licences': '🔑 Licences',
-                'marquee': '🎬 Marquee',
-                'payments': '💳 Payments',
-                'topups': '💰 Topups',
-                'fallback': '📦 Fallback',
-                'settings': '⚙️ Settings',
-                'coupons': '🎫 Coupons',
-                'emails': '📧 Emails',
-                'branding': '🎨 Branding'
-            };
-            const titleEl = document.getElementById('adminPageTitle');
-            if (titleEl) titleEl.textContent = titles[tab] || tab;
-        };
-
-        // Open admin panel
-        window.openAdminPanel = function() {
-            const panel = document.getElementById('adminPanel');
-            if (panel.classList.contains('open')) {
-                panel.classList.remove('open');
-                document.body.style.overflow = '';
-                return;
+        
 
 
         // Chatbot functions
