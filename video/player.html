@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zi Store - مشغل القنوات الرياضية</title>
+    <title>Zi Store - مشغل القنوات الرياضية مع دعم الروابط الخارجية</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
     <style>
@@ -60,6 +60,8 @@
             position: sticky;
             top: 0;
             z-index: 50;
+            flex-wrap: wrap;
+            gap: 8px;
         }
         .zs-header-brand {
             display: flex;
@@ -340,7 +342,128 @@
             font-size: 13px;
         }
 
-        /* ============ PLAYER (same as before with minor adjustments) ============ */
+        /* ============ External Link Buttons ============ */
+        .zs-external-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .zs-external-btn {
+            padding: 8px 14px;
+            border-radius: 20px;
+            border: 1px dashed rgba(255,255,255,0.25);
+            background: rgba(255,255,255,0.04);
+            color: #ccc;
+            cursor: pointer;
+            font-size: 12px;
+            font-family: var(--zs-font);
+            transition: all var(--zs-transition);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .zs-external-btn:hover {
+            background: rgba(228,168,61,0.1);
+            border-color: var(--zs-accent);
+            color: #fff;
+        }
+
+        /* ============ MODAL ============ */
+        .zs-modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .zs-modal-overlay.zs-open {
+            display: flex;
+        }
+        .zs-modal {
+            background: var(--zs-surface);
+            border-radius: var(--zs-radius);
+            border: 1px solid var(--zs-border);
+            padding: 24px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+            animation: zs-modal-in 0.3s ease;
+        }
+        @keyframes zs-modal-in {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .zs-modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .zs-modal-field {
+            margin-bottom: 14px;
+        }
+        .zs-modal-field label {
+            display: block;
+            font-size: 13px;
+            color: var(--zs-text-secondary);
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+        .zs-modal-field input {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--zs-border);
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            font-family: var(--zs-font);
+            transition: all var(--zs-transition);
+        }
+        .zs-modal-field input:focus {
+            border-color: var(--zs-accent);
+            box-shadow: 0 0 0 3px rgba(228,168,61,0.15);
+        }
+        .zs-modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        .zs-modal-btn {
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: var(--zs-font);
+            transition: all var(--zs-transition);
+        }
+        .zs-modal-btn.zs-cancel {
+            background: rgba(255,255,255,0.1);
+            color: #ccc;
+        }
+        .zs-modal-btn.zs-cancel:hover {
+            background: rgba(255,255,255,0.15);
+        }
+        .zs-modal-btn.zs-submit {
+            background: var(--zs-accent);
+            color: #0a0a0f;
+        }
+        .zs-modal-btn.zs-submit:hover {
+            background: var(--zs-accent2);
+        }
+
+        /* ============ PLAYER (same as before) ============ */
         .zs-player-wrapper {
             position: relative;
             width: 100%;
@@ -821,6 +944,7 @@
             .zs-start-play-btn { width: 70px; height: 70px; font-size: 32px; }
             .zs-start-brand { font-size: 14px; }
             .zs-channels-section { max-height: 50vh; }
+            .zs-modal { padding: 18px; }
         }
     </style>
 </head>
@@ -832,7 +956,7 @@
                 <div class="zs-brand-icon">Z</div>
                 <span>Zi Store</span>
             </div>
-            <div class="zs-header-tagline">📺 بث مباشر للمباريات والقنوات</div>
+            <div class="zs-header-tagline">📺 بث مباشر مع دعم الروابط الخارجية</div>
         </header>
 
         <!-- Main Content -->
@@ -875,7 +999,7 @@
                         <div class="zs-start-overlay" id="zsStartOverlay">
                             <button class="zs-start-play-btn" id="zsStartPlayBtn">▶</button>
                             <div class="zs-start-brand">
-                                Zi Store <span>اختر قناة للبدء</span>
+                                Zi Store <span>اختر قناة أو أضف رابط خارجي</span>
                             </div>
                         </div>
                     </div>
@@ -933,6 +1057,11 @@
                         <button class="zs-category-tab" data-category="رياضة">رياضة</button>
                         <button class="zs-category-tab" data-category="أخبار">أخبار</button>
                         <button class="zs-category-tab" data-category="متنوعة">متنوعة</button>
+                        <button class="zs-category-tab" data-category="خارجية">روابط خارجية</button>
+                    </div>
+                    <div class="zs-external-buttons">
+                        <button class="zs-external-btn" id="zsBtnAddLink">➕ إضافة رابط مباشر</button>
+                        <button class="zs-external-btn" id="zsBtnLoadM3U">📂 تحميل M3U</button>
                     </div>
                 </div>
                 <div class="zs-channels-list" id="zsChannelsList">
@@ -942,127 +1071,53 @@
         </main>
     </div>
 
+    <!-- Modal for adding external link -->
+    <div class="zs-modal-overlay" id="zsModalOverlay">
+        <div class="zs-modal">
+            <div class="zs-modal-title" id="zsModalTitle">➕ إضافة رابط خارجي</div>
+            <div class="zs-modal-field">
+                <label for="zsExternalName">اسم القناة (اختياري)</label>
+                <input type="text" id="zsExternalName" placeholder="مثال: قناة المباراة">
+            </div>
+            <div class="zs-modal-field">
+                <label for="zsExternalUrl">رابط البث (m3u8 / mpd / mp4)</label>
+                <input type="url" id="zsExternalUrl" placeholder="https://example.com/stream.m3u8" required>
+            </div>
+            <div class="zs-modal-actions">
+                <button class="zs-modal-btn zs-cancel" id="zsBtnCancelModal">إلغاء</button>
+                <button class="zs-modal-btn zs-submit" id="zsBtnSubmitModal">تشغيل</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         (function() {
             // ==================== CHANNELS DATABASE ====================
             // يمكنك تعديل هذه القائمة وإضافة قنواتك الخاصة بروابط IPTV
-            const channels = [
-                {
-                    id: 1,
-                    name: "beIN Sports 1 HD",
-                    category: "رياضة",
-                    logo: "B1",
-                    url: "https://iptv-org.github.io/iptv/categories/sports.m3u", // رابط تجريبي
-                    live: true
-                },
-                {
-                    id: 2,
-                    name: "beIN Sports 2 HD",
-                    category: "رياضة",
-                    logo: "B2",
-                    url: "https://iptv-org.github.io/iptv/categories/sports.m3u",
-                    live: true
-                },
-                {
-                    id: 3,
-                    name: "Al Jazeera Arabic",
-                    category: "أخبار",
-                    logo: "AJ",
-                    url: "https://live-hls-web-aje.getaj.net/AJE/01.m3u8",
-                    live: true
-                },
-                {
-                    id: 4,
-                    name: "Al Jazeera English",
-                    category: "أخبار",
-                    logo: "JE",
-                    url: "https://live-hls-web-aje.getaj.net/AJE/02.m3u8",
-                    live: true
-                },
-                {
-                    id: 5,
-                    name: "France 24 Arabic",
-                    category: "أخبار",
-                    logo: "F24",
-                    url: "https://static.france24.com/live/F24_AR_LO_HLS/live_web.m3u8",
-                    live: true
-                },
-                {
-                    id: 6,
-                    name: "Sky News",
-                    category: "أخبار",
-                    logo: "SKY",
-                    url: "https://skynews2-plutolive-vo.akamaized.net/cdhlsskynewsapp/Sky_News_24x7@342312/live.m3u8",
-                    live: true
-                },
-                {
-                    id: 7,
-                    name: "RT News",
-                    category: "أخبار",
-                    logo: "RT",
-                    url: "https://rt-glb.rttv.com/live/rtnews/playlist.m3u8",
-                    live: true
-                },
-                {
-                    id: 8,
-                    name: "DW English",
-                    category: "أخبار",
-                    logo: "DW",
-                    url: "https://dwamdstream102.akamaized.net/hls/live/2015525/dwstream102/index.m3u8",
-                    live: true
-                },
-                {
-                    id: 9,
-                    name: "NASA TV",
-                    category: "متنوعة",
-                    logo: "NASA",
-                    url: "https://iptv-org.github.io/channels/jo/7StarsTV#SD",
-                    live: true
-                },
-                {
-                    id: 10,
-                    name: "Red Bull TV",
-                    category: "رياضة",
-                    logo: "RB",
-                    url: "https://rbtvdiglinear-i.akamaihd.net/hls/live/236582/RBTV/playlist.m3u8",
-                    live: true
-                },
-                {
-                    id: 11,
-                    name: "MotoAmerica TV",
-                    category: "رياضة",
-                    logo: "MA",
-                    url: "https://d3kjps5s09z6r1.cloudfront.net/hls/live/2024744/motoamerica/master.m3u8",
-                    live: true
-                },
-                {
-                    id: 12,
-                    name: "Outdoor Channel",
-                    category: "رياضة",
-                    logo: "OUT",
-                    url: "https://outdoorchannel-i.akamaihd.net/hls/live/218582/outdoorchannel/master.m3u8",
-                    live: true
-                },
-                {
-                    id: 13,
-                    name: "SportsGrid",
-                    category: "رياضة",
-                    logo: "SG",
-                    url: "https://sportsgrid-i.akamaihd.net/hls/live/596693/sportsgrid/master.m3u8",
-                    live: true
-                },
-                {
-                    id: 14,
-                    name: "Stadium",
-                    category: "رياضة",
-                    logo: "ST",
-                    url: "https://dai.google.com/linear/hls/event/5t1JhYJ9QfKmFyNp4hmV4Q/master.m3u8",
-                    live: true
-                }
+            const defaultChannels = [
+                { id: 1, name: "beIN Sports 1 HD", category: "رياضة", logo: "B1", url: "https://iptv-org.github.io/iptv/categories/sports.m3u", live: true },
+                { id: 2, name: "beIN Sports 2 HD", category: "رياضة", logo: "B2", url: "https://iptv-org.github.io/iptv/categories/sports.m3u", live: true },
+                { id: 3, name: "Al Jazeera Arabic", category: "أخبار", logo: "AJ", url: "https://live-hls-web-aje.getaj.net/AJE/01.m3u8", live: true },
+                { id: 4, name: "Al Jazeera English", category: "أخبار", logo: "JE", url: "https://live-hls-web-aje.getaj.net/AJE/02.m3u8", live: true },
+                { id: 5, name: "France 24 Arabic", category: "أخبار", logo: "F24", url: "https://static.france24.com/live/F24_AR_LO_HLS/live_web.m3u8", live: true },
+                { id: 6, name: "Sky News", category: "أخبار", logo: "SKY", url: "https://skynews2-plutolive-vo.akamaized.net/cdhlsskynewsapp/Sky_News_24x7@342312/live.m3u8", live: true },
+                { id: 7, name: "RT News", category: "أخبار", logo: "RT", url: "https://rt-glb.rttv.com/live/rtnews/playlist.m3u8", live: true },
+                { id: 8, name: "DW English", category: "أخبار", logo: "DW", url: "https://dwamdstream102.akamaized.net/hls/live/2015525/dwstream102/index.m3u8", live: true },
+                { id: 9, name: "NASA TV", category: "متنوعة", logo: "NASA", url: "https://ntv1.akamaized.net/hls/live/2014075/NASA-NTV1-HLS/master.m3u8", live: true },
+                { id: 10, name: "Red Bull TV", category: "رياضة", logo: "RB", url: "https://rbtvdiglinear-i.akamaihd.net/hls/live/236582/RBTV/playlist.m3u8", live: true },
+                { id: 11, name: "MotoAmerica TV", category: "رياضة", logo: "MA", url: "https://d3kjps5s09z6r1.cloudfront.net/hls/live/2024744/motoamerica/master.m3u8", live: true },
+                { id: 12, name: "Outdoor Channel", category: "رياضة", logo: "OUT", url: "https://outdoorchannel-i.akamaihd.net/hls/live/218582/outdoorchannel/master.m3u8", live: true },
+                { id: 13, name: "SportsGrid", category: "رياضة", logo: "SG", url: "https://sportsgrid-i.akamaihd.net/hls/live/596693/sportsgrid/master.m3u8", live: true },
+                { id: 14, name: "Stadium", category: "رياضة", logo: "ST", url: "https://dai.google.com/linear/hls/event/5t1JhYJ9QfKmFyNp4hmV4Q/master.m3u8", live: true }
             ];
+
+            // قائمة القنوات القابلة للتعديل
+            let channels = [...defaultChannels];
+            let externalIdCounter = 1000;
 
             // ==================== DOM ELEMENTS ====================
             const wrapper = document.getElementById('zsPlayerWrapper');
+            const videoContainer = document.getElementById('zsVideoContainer');
             const video = document.getElementById('zsVideo');
             const liveBadge = document.getElementById('zsLiveBadge');
             const loadingEl = document.getElementById('zsLoading');
@@ -1095,6 +1150,14 @@
             const channelsList = document.getElementById('zsChannelsList');
             const searchInput = document.getElementById('zsSearchInput');
             const categoryTabs = document.getElementById('zsCategoryTabs');
+            const btnAddLink = document.getElementById('zsBtnAddLink');
+            const btnLoadM3U = document.getElementById('zsBtnLoadM3U');
+            const modalOverlay = document.getElementById('zsModalOverlay');
+            const modalTitle = document.getElementById('zsModalTitle');
+            const externalNameInput = document.getElementById('zsExternalName');
+            const externalUrlInput = document.getElementById('zsExternalUrl');
+            const btnCancelModal = document.getElementById('zsBtnCancelModal');
+            const btnSubmitModal = document.getElementById('zsBtnSubmitModal');
 
             // ==================== STATE ====================
             let currentStreamUrl = '';
@@ -1393,7 +1456,7 @@
                 destroyExistingPlayer();
                 hideError();
                 showLoading();
-                startOverlay.classList.add('zs-hidden'); // hide big play button once stream starts loading
+                startOverlay.classList.add('zs-hidden');
 
                 const lowerUrl = url.toLowerCase().trim();
                 if (lowerUrl.endsWith('.m3u8') || lowerUrl.includes('.m3u8')) {
@@ -1559,7 +1622,6 @@
                     </div>
                 `).join('');
 
-                // Add event listeners
                 channelsList.querySelectorAll('.zs-channel-card').forEach(card => {
                     card.addEventListener('click', () => {
                         const id = parseInt(card.dataset.id);
@@ -1573,8 +1635,72 @@
                 if (!channel || !channel.url) return;
                 currentChannelId = channel.id;
                 currentStreamUrl = channel.url;
-                renderChannels(); // update active state
+                renderChannels();
                 loadStream(channel.url);
+            }
+
+            // ==================== EXTERNAL LINK & M3U ====================
+            function openModal() {
+                modalOverlay.classList.add('zs-open');
+                externalUrlInput.value = '';
+                externalNameInput.value = '';
+                externalUrlInput.focus();
+            }
+
+            function closeModal() {
+                modalOverlay.classList.remove('zs-open');
+            }
+
+            function addExternalChannel(name, url) {
+                const id = externalIdCounter++;
+                const channel = {
+                    id: id,
+                    name: name || 'رابط خارجي ' + id,
+                    category: 'خارجية',
+                    logo: '🔗',
+                    url: url,
+                    live: true
+                };
+                channels.push(channel);
+                renderChannels();
+                changeChannel(channel);
+            }
+
+            async function loadM3U(url) {
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error('فشل تحميل الملف');
+                    const text = await response.text();
+                    const lines = text.split('\n');
+                    const parsedChannels = [];
+                    let currentName = '';
+                    for (const line of lines) {
+                        const trimmed = line.trim();
+                        if (trimmed.startsWith('#EXTINF')) {
+                            const nameMatch = trimmed.match(/,(.*)$/);
+                            if (nameMatch) currentName = nameMatch[1].trim();
+                        } else if (trimmed && !trimmed.startsWith('#')) {
+                            parsedChannels.push({
+                                id: externalIdCounter++,
+                                name: currentName || 'قناة M3U',
+                                category: 'خارجية',
+                                logo: '📄',
+                                url: trimmed,
+                                live: true
+                            });
+                            currentName = '';
+                        }
+                    }
+                    if (parsedChannels.length === 0) {
+                        alert('لم يتم العثور على قنوات في الملف.');
+                        return;
+                    }
+                    channels = channels.concat(parsedChannels);
+                    renderChannels();
+                    if (parsedChannels[0]) changeChannel(parsedChannels[0]);
+                } catch (e) {
+                    alert('تعذر تحميل ملف M3U: ' + e.message);
+                }
             }
 
             // ==================== EVENT LISTENERS ====================
@@ -1583,7 +1709,7 @@
                 if (currentStreamUrl && currentStreamUrl.trim() !== '') {
                     loadStream(currentStreamUrl);
                 } else {
-                    alert('الرجاء اختيار قناة من القائمة أولاً.');
+                    alert('الرجاء اختيار قناة أو إضافة رابط خارجي.');
                 }
             });
 
@@ -1675,13 +1801,13 @@
             });
 
             wrapper.addEventListener('click', (e) => {
-                if (e.target === wrapper || e.target === document.getElementById('zsVideoContainer') || e.target === video) {
+                if (e.target === wrapper || e.target === videoContainer || e.target === video) {
                     togglePlay();
                 }
             });
             video.addEventListener('click', (e) => { e.stopPropagation(); togglePlay(); });
             wrapper.addEventListener('dblclick', (e) => {
-                if (e.target === video || e.target === document.getElementById('zsVideoContainer') || e.target === wrapper) {
+                if (e.target === video || e.target === videoContainer || e.target === wrapper) {
                     toggleFullscreen();
                 }
             });
@@ -1689,7 +1815,7 @@
             wrapper.addEventListener('mousemove', showControls);
             wrapper.addEventListener('mouseenter', showControls);
             wrapper.addEventListener('mouseleave', () => { if (!video.paused) hideControls(); closeAllDropdowns(); });
-            wrapper.addEventListener('touchstart', (e) => { if (e.target === video || e.target === document.getElementById('zsVideoContainer') || e.target === wrapper) showControls(); }, { passive: true });
+            wrapper.addEventListener('touchstart', (e) => { if (e.target === video || e.target === videoContainer || e.target === wrapper) showControls(); }, { passive: true });
 
             document.addEventListener('keydown', (e) => {
                 const activeEl = document.activeElement;
@@ -1707,7 +1833,7 @@
                     case 'arrowdown': e.preventDefault(); setVolume(Math.max(0, (video.volume * 100) - 5)); break;
                     case 'arrowleft': if (!isLive && video.duration && isFinite(video.duration)) { e.preventDefault(); video.currentTime = Math.max(0, video.currentTime - 10); updateProgress(); updateTimeDisplay(); showControls(); } break;
                     case 'arrowright': if (!isLive && video.duration && isFinite(video.duration)) { e.preventDefault(); video.currentTime = Math.min(video.duration, video.currentTime + 10); updateProgress(); updateTimeDisplay(); showControls(); } break;
-                    case 'escape': closeAllDropdowns(); if (document.fullscreenElement) toggleFullscreen(); break;
+                    case 'escape': closeAllDropdowns(); if (document.fullscreenElement) toggleFullscreen(); if (modalOverlay.classList.contains('zs-open')) closeModal(); break;
                 }
             });
 
@@ -1754,6 +1880,32 @@
                 renderChannels();
             });
 
+            // External link buttons
+            btnAddLink.addEventListener('click', openModal);
+            btnCancelModal.addEventListener('click', closeModal);
+            btnSubmitModal.addEventListener('click', () => {
+                const url = externalUrlInput.value.trim();
+                if (!url) {
+                    alert('يرجى إدخال رابط البث.');
+                    return;
+                }
+                const name = externalNameInput.value.trim();
+                addExternalChannel(name, url);
+                closeModal();
+            });
+
+            btnLoadM3U.addEventListener('click', () => {
+                const url = prompt('أدخل رابط ملف M3U:');
+                if (url && url.trim()) {
+                    loadM3U(url.trim());
+                }
+            });
+
+            // Close modal on overlay click
+            modalOverlay.addEventListener('click', (e) => {
+                if (e.target === modalOverlay) closeModal();
+            });
+
             // ==================== INITIALIZATION ====================
             function init() {
                 try {
@@ -1784,6 +1936,8 @@
             // Expose API
             window.ZiStorePlayer = {
                 channels: channels,
+                addExternalChannel: addExternalChannel,
+                loadM3U: loadM3U,
                 changeChannel: changeChannel,
                 load: loadStream,
                 play: () => { video.play().catch(() => {}); updatePlayButton(); },
@@ -1804,7 +1958,7 @@
             };
 
             init();
-            console.log('🏆 Zi Store Player ✓ جاهز مع قائمة القنوات');
+            console.log('🏆 Zi Store Player ✓ جاهز مع دعم الروابط الخارجية');
         })();
     </script>
 </body>
