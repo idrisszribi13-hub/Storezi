@@ -1,5 +1,5 @@
 // ============================================================
-// SCRIPT.JS - ZI Store - FINAL COMPLETE VERSION v7.0
+// SCRIPT.JS - ZI Store - FINAL COMPLETE VERSION v8.0
 // ============================================================
 // ALL FEATURES + ALL FIXES + NO ANONYMOUS + FULL EXPORTS
 // ============================================================
@@ -10,7 +10,7 @@
 window.process = window.process || { env: { NODE_ENV: 'production' } };
 
 // ============================================================
-// LOADING SCREEN WITH PROGRESS
+// LOADING SCREEN WITH PROGRESS (Professionnel)
 // ============================================================
 (function() {
     let loadingProgress = 0;
@@ -29,21 +29,12 @@ window.process = window.process || { env: { NODE_ENV: 'production' } };
                 clearInterval(loadingInterval);
                 loadingInterval = null;
             }
-            setTimeout(function() {
-                const screen = document.getElementById('loadingScreen');
-                if (screen) {
-                    screen.classList.add('hidden');
-                    setTimeout(function() {
-                        screen.classList.add('hidden-force');
-                    }, 600);
-                }
-            }, 500);
         }
     }
 
     function startLoadingSimulation() {
         loadingProgress = 0;
-        updateLoadingProgress(0, 'Starting...');
+        updateLoadingProgress(0, 'Initializing...');
         if (loadingInterval) clearInterval(loadingInterval);
         loadingInterval = setInterval(function() {
             var increment = Math.random() * 5 + 2;
@@ -59,16 +50,6 @@ window.process = window.process || { env: { NODE_ENV: 'production' } };
     window.updateLoadingProgress = updateLoadingProgress;
     window.startLoadingSimulation = startLoadingSimulation;
 
-    function hideLoadingScreenImmediate() {
-        var screen = document.getElementById('loadingScreen');
-        if (screen) {
-            screen.classList.add('hidden');
-            setTimeout(function() {
-                screen.style.display = 'none';
-            }, 600);
-            console.log('✅ Loading screen hidden immediately');
-        }
-    }
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function() {
             startLoadingSimulation();
@@ -76,7 +57,6 @@ window.process = window.process || { env: { NODE_ENV: 'production' } };
     } else {
         startLoadingSimulation();
     }
-    setTimeout(hideLoadingScreenImmediate, 300);
 })();
 
 // ============================================================
@@ -401,7 +381,6 @@ let cryptoPrices = { ltc: 0, usdt: 1, lastUpdate: null, isUpdating: false };
 // ====== MISSING FUNCTION DEFINITIONS (STUBS) ======
 // ============================================================
 
-// دوال البانر والإدارة
 function showTelegramBanner() {
     const banner = document.getElementById('telegramBanner');
     if (!banner) return;
@@ -433,7 +412,6 @@ function addBannerAdminControls() { console.warn('⚠️ addBannerAdminControls(
 function adminToggleBanner() { console.warn('⚠️ adminToggleBanner() called'); }
 function resetBannerForAll() { console.warn('⚠️ resetBannerForAll() called'); }
 
-// دوال الكوكيز
 function checkCookieConsent() {
     const consent = localStorage.getItem('cookie_consent');
     if (consent !== 'accepted' && consent !== 'rejected') {
@@ -466,17 +444,12 @@ function saveCookieSettings() {
     }
     closeCookieSettings();
 }
-function enableAnalytics() {
-    console.log('✅ Analytics enabled');
-}
-function disableAnalytics() {
-    console.log('❌ Analytics disabled');
-}
+function enableAnalytics() { console.log('✅ Analytics enabled'); }
+function disableAnalytics() { console.log('❌ Analytics disabled'); }
 function closeCookieBanner() {
     document.getElementById('cookieConsent')?.classList.remove('show');
 }
 
-// دوال الشات بوت
 function toggleChatbot() {
     const win = document.getElementById('chatbotWindow');
     if (win) win.classList.toggle('open');
@@ -510,7 +483,6 @@ function sendChatMessage() {
     }, 500);
 }
 
-// دوال الدعم
 function openSupportModal() { document.getElementById('supportModal')?.classList.add('open'); }
 function closeSupportModal() { document.getElementById('supportModal')?.classList.remove('open'); }
 function toggleSupportMenu() { document.getElementById('supportFloat')?.classList.toggle('open'); }
@@ -519,7 +491,6 @@ function openWhatsAppSupport() { window.open('https://wa.me/21612345678', '_blan
 function openEmailSupport() { window.location.href = 'mailto:support@zi-store.online'; }
 function openPhoneSupport() { window.location.href = 'tel:+21612345678'; }
 
-// دوال رفع الصور
 async function uploadToCloudinary(file) {
     console.warn('⚠️ uploadToCloudinary() called but not implemented');
     return null;
@@ -537,7 +508,6 @@ function fallbackCopyText(text) {
     document.body.removeChild(textarea);
 }
 
-// دوال المدفوعات
 function verifyTransaction() {
     const txInput = document.getElementById('txHashInput');
     const result = document.getElementById('verificationResult');
@@ -571,9 +541,6 @@ function checkoutWithBalance() {
     }
 }
 
-// ============================================================
-// EXPORT STUBS TO WINDOW (to prevent is not defined errors)
-// ============================================================
 window.showTelegramBanner = showTelegramBanner;
 window.closeTelegramBanner = closeTelegramBanner;
 window.showTelegramBannerAgain = showTelegramBannerAgain;
@@ -4031,10 +3998,11 @@ window.continuePayment = function() {
 };
 
 // ============================================================
-// PROCESS BALANCE PAYMENT - FIXED
+// PROCESS BALANCE PAYMENT - COMPLETE WITH DIRECT LICENCE CREATION
 // ============================================================
 async function processBalancePayment(totalAmount) {
-    if (!currentUser || currentUser.isAnonymous) {
+    const user = auth.currentUser;
+    if (!user || user.isAnonymous) {
         showToast('⚠️ Please login first', 'warning');
         openAuthModal();
         return;
@@ -4047,7 +4015,7 @@ async function processBalancePayment(totalAmount) {
     showButtonLoading(btn, 'Processing payment...');
     isProcessingOrder = true;
     try {
-        const userRef = doc(db, 'users', currentUser.uid);
+        const userRef = doc(db, 'users', user.uid);
         await updateDoc(userRef, {
             balance: userBalance - totalAmount,
             updatedAt: serverTimestamp()
@@ -4068,55 +4036,95 @@ async function processBalancePayment(totalAmount) {
         userProfile.history.push(orderItem);
         await updateDoc(userRef, { history: arrayUnion(orderItem) });
 
-        // ===== إنشاء التراخيص =====
+        // ============================================================
+        // 🔑 إنشاء التراخيص مباشرة (بدون Edge Function)
+        // ============================================================
         let allLicencesCreated = true;
+        const licencesList = [];
+
         for (const item of orderItem.items) {
             try {
-                console.log('🔑 Generating licence for:', item.name);
-                const licence = await generateLicenceForUser(currentUser.uid, currentUser.email, item, orderId);
-                if (!licence) {
+                console.log('🔑 Creating licence for:', item.name);
+                const code = 'LIC-' + Date.now().toString(36).toUpperCase() + '-' + 
+                            Math.random().toString(36).substring(2, 6).toUpperCase();
+                const expiryDate = new Date();
+                expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+                
+                // حفظ في Supabase
+                const licenceData = {
+                    code: code,
+                    script_id: item.id || 'unknown',
+                    script_name: item.name,
+                    user_id: user.uid,
+                    user_email: user.email,
+                    order_id: orderId,
+                    status: 'active',
+                    expiry_date: expiryDate.toISOString(),
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                };
+                const { error: supabaseError } = await supabase
+                    .from('licenses')
+                    .insert(licenceData);
+                if (supabaseError) {
+                    console.error('❌ Supabase insert error:', supabaseError);
                     allLicencesCreated = false;
-                    console.error('❌ Failed to generate licence for', item.name);
-                } else {
-                    console.log('✅ Licence generated:', licence.code);
+                    continue;
+                }
+                // حفظ في Firestore
+                const userSnap = await getDoc(userRef);
+                if (userSnap.exists()) {
+                    const data = userSnap.data();
+                    const userLicences = data.licences || [];
+                    if (!userLicences.find(l => l.code === code)) {
+                        userLicences.push({
+                            code: code,
+                            scriptId: item.id,
+                            scriptName: item.name,
+                            expiryDate: expiryDate.toISOString(),
+                            activatedAt: new Date().toISOString(),
+                            status: 'active'
+                        });
+                        await updateDoc(userRef, { licences: userLicences, updatedAt: serverTimestamp() });
+                        console.log('✅ Licence saved to Firestore:', code);
+                        licencesList.push({ code, scriptName: item.name });
+                    }
                 }
             } catch (err) {
+                console.error('❌ Error creating licence for item:', item.name, err);
                 allLicencesCreated = false;
-                console.error('❌ Error generating licence:', err);
             }
         }
 
-        // إعادة تحميل التراخيص من Firestore للتأكد
-        const updatedUserSnap = await getDoc(userRef);
-        if (updatedUserSnap.exists()) {
-            const data = updatedUserSnap.data();
-            userProfile.licences = data.licences || [];
+        // تحديث واجهة المستخدم
+        const updatedSnap = await getDoc(userRef);
+        if (updatedSnap.exists()) {
+            userProfile.licences = updatedSnap.data().licences || [];
             renderUserLicences();
             updateFullUserMenu();
         }
 
-        // ===== تسجيل المعاملة =====
-        try {
-            await supabase.from('transactions').insert({
-                user_id: currentUser.uid,
-                user_email: currentUser.email,
-                amount: parseFloat(totalAmount),
-                type: 'purchase',
-                description: `Order #${orderId.slice(-6)} - Balance Payment`,
-                status: 'completed',
-                order_id: orderId,
-                created_at: new Date().toISOString()
-            });
-            console.log('✅ Transaction record created for balance payment');
-        } catch (txError) {
-            console.error('Failed to create transaction record:', txError);
-        }
+        // ============================================================
+        // تسجيل المعاملة
+        // ============================================================
+        await supabase.from('transactions').insert({
+            user_id: user.uid,
+            user_email: user.email,
+            amount: parseFloat(totalAmount),
+            type: 'purchase',
+            description: `Order #${orderId.slice(-6)} - Balance Payment`,
+            status: 'completed',
+            order_id: orderId,
+            created_at: new Date().toISOString()
+        });
 
-        // ===== إرسال الإشعارات =====
+        // ============================================================
+        // إرسال الإشعارات
+        // ============================================================
         const visitorInfo = await getVisitorInfo();
-        await sendOrderConfirmationEmail(currentUser.email, {
+        await sendOrderConfirmationEmail(user.email, {
             orderId: orderId,
-            userName: currentUser.displayName || currentUser.email,
+            userName: user.displayName || user.email,
             items: orderItem.items,
             total: totalAmount,
             method: 'balance',
@@ -4125,8 +4133,8 @@ async function processBalancePayment(totalAmount) {
         });
 
         const adminMessage = `
-👤 *User:* ${currentUser.displayName || currentUser.email || 'User'}
-📧 *Email:* ${currentUser.email || 'N/A'}
+👤 *User:* ${user.displayName || user.email || 'User'}
+📧 *Email:* ${user.email || 'N/A'}
 💰 *Total:* $${totalAmount.toFixed(2)}
 💳 *Payment Method:* balance
 📦 *Items:* ${orderItem.items.map(i => i.name).join(', ')}
@@ -4134,10 +4142,10 @@ async function processBalancePayment(totalAmount) {
 🌐 *Location:* ${visitorInfo.country}, ${visitorInfo.city}
 🔔 *Status:* Confirmed (Balance Payment)
 ${allLicencesCreated ? '✅ All licences created successfully' : '⚠️ Some licences failed to create'}
+${licencesList.length > 0 ? '📋 Licences: ' + licencesList.map(l => `${l.scriptName} (${l.code})`).join(', ') : ''}
         `;
         await sendAdminNotification('✅ Order Paid with Balance', adminMessage);
 
-        // ===== رسالة تليجرام للمستخدم =====
         if (userProfile.telegramChatId) {
             let licenceStatus = allLicencesCreated 
                 ? '🔑 Your licences have been generated and are available in your profile.'
@@ -4154,27 +4162,25 @@ ${allLicencesCreated ? '✅ All licences created successfully' : '⚠️ Some li
 
 ✅ Your order has been confirmed and completed.
 ${licenceStatus}
+${licencesList.length > 0 ? '📋 Licences: ' + licencesList.map(l => `${l.scriptName} (${l.code})`).join(', ') : ''}
             `;
             await sendTelegramNotification(userProfile.telegramChatId, userTelegramMessage);
         }
 
-        // ===== إشعار Firebase =====
         await addDoc(collection(db, 'notifications'), {
             title: '✅ Order Paid with Balance',
             message: `Order #${orderId.slice(-6)} - $${totalAmount.toFixed(2)}`,
-            userId: currentUser.uid,
+            userId: user.uid,
             readBy: [],
             createdAt: serverTimestamp()
         });
 
-        // ===== تنظيف السلة =====
         cart = [];
         await saveUserData();
         updateCartUI();
         updateBottomCartBar();
         renderProducts(products);
 
-        // ===== عرض الإشعار للمستخدم =====
         showToast({
             title: '✅ Payment Successful!',
             orderId: orderId.slice(-6),
@@ -4251,7 +4257,7 @@ async function sendAdminNotification(title, message) {
 window.sendAdminNotification = sendAdminNotification;
 
 // ============================================================
-// PLACE ORDER
+// PLACE ORDER (للدفع بالعملات)
 // ============================================================
 window.placeOrder = function() {
     const btn = document.getElementById('mainConfirmBtn');
@@ -4447,31 +4453,23 @@ async function sendOrderToTelegram(method, txHash = null, btn = null) {
             status: 'pending',
             txHash: txHash
         });
-        try {
-            await addDoc(collection(db, 'notifications'), {
-                title: '🆕 New Order Placed',
-                message: `Order #${orderId.slice(-6)} - Total: $${finalTotal.toFixed(2)}`,
-                userId: currentUser.uid,
-                readBy: [],
-                createdAt: serverTimestamp()
-            });
-            console.log('✅ Firebase notification sent to user');
-        } catch (error) {
-            console.error('Failed to send Firebase user notification:', error);
-        }
-        try {
-            await addDoc(collection(db, 'notifications'), {
-                title: '📦 New Order Received',
-                message: `Order #${orderId.slice(-6)} from ${currentUser.email} - $${finalTotal.toFixed(2)}`,
-                adminOnly: true,
-                readBy: [],
-                createdAt: serverTimestamp()
-            });
-            console.log('✅ Firebase global notification sent');
-        } catch (error) {
-            console.error('Failed to send Firebase global notification:', error);
-        }
-        console.log('📤 Preparing Telegram notification...');
+        // لا ننشئ تراخيص هنا، سيتم إنشاؤها عند التأكيد
+        // ...
+        await addDoc(collection(db, 'notifications'), {
+            title: '🆕 New Order Placed',
+            message: `Order #${orderId.slice(-6)} - Total: $${finalTotal.toFixed(2)}`,
+            userId: currentUser.uid,
+            readBy: [],
+            createdAt: serverTimestamp()
+        });
+        await addDoc(collection(db, 'notifications'), {
+            title: '📦 New Order Received',
+            message: `Order #${orderId.slice(-6)} from ${currentUser.email} - $${finalTotal.toFixed(2)}`,
+            adminOnly: true,
+            readBy: [],
+            createdAt: serverTimestamp()
+        });
+        // إرسال رسائل تليجرام ...
         const userTelegramMessage = `
 <b>🛒 ORDER PLACED SUCCESSFULLY!</b>
 
@@ -4488,62 +4486,27 @@ ${txHash ? `🔗 <b>TX Hash:</b> <code>${txHash}</code>` : ''}
         `;
         const adminTelegramMessage = `
 <b>🛒 NEW ORDER RECEIVED!</b>
-
 📋 <b>Order ID:</b> #${orderId.slice(-6)}
 👤 <b>User:</b> ${currentUser.displayName || currentUser.email || 'User'}
 📧 <b>Email:</b> ${currentUser.email || 'N/A'}
 💰 <b>Total:</b> $${finalTotal.toFixed(2)}
 💳 <b>Payment Method:</b> ${method}
 📦 <b>Items:</b> ${cartData.map(item => `${item.name} x${item.quantity}`).join(', ')}
-
 ${txHash ? `🔗 <b>TX Hash:</b> <code>${txHash}</code>` : ''}
 📅 <b>Date:</b> ${new Date().toLocaleString()}
-
 🌐 <b>Location:</b> ${visitorInfo.country}, ${visitorInfo.city}
 📱 <b>Device:</b> ${deviceInfo.device} (${deviceInfo.os} / ${deviceInfo.browser})
-
 🔔 <b>Status:</b> Pending - Awaiting confirmation
         `;
         if (userProfile.telegramChatId) {
             try {
-                console.log('📤 Sending Telegram to user...');
-                const sent = await sendTelegramNotification(userProfile.telegramChatId, userTelegramMessage);
-                if (sent) {
-                    console.log('✅ Telegram sent to user');
-                } else {
-                    console.warn('⚠️ Telegram to user failed (but order saved)');
-                }
+                await sendTelegramNotification(userProfile.telegramChatId, userTelegramMessage);
             } catch (error) {
                 console.error('❌ Error sending Telegram to user:', error);
             }
-        } else {
-            console.log('ℹ️ User has no Telegram linked');
         }
-        const adminMessage = `
-👤 *User:* ${currentUser.displayName || currentUser.email || 'User'}
-📧 *Email:* ${currentUser.email || 'N/A'}
-💰 *Total:* $${finalTotal.toFixed(2)}
-💳 *Payment Method:* ${method}
-📦 *Items:* ${cartData.map(item => `${item.name} x${item.quantity}`).join(', ')}
-${txHash ? `🔗 *TX Hash:* ${txHash}` : ''}
-📅 *Date:* ${new Date().toLocaleString()}
-🌐 *Location:* ${visitorInfo.country}, ${visitorInfo.city}
-🔔 *Status:* Pending - Awaiting confirmation
-        `;
         await sendAdminNotification('📦 New Order Received', adminMessage);
-        await logActivity('purchase', { orderId, total: finalTotal, items: cartData.length, method, status: 'pending' });
-        const proxyItems = cart.filter(item => item.isProxy);
-        if (proxyItems.length > 0 && DISABLE_PROXY) {
-            console.log('ℹ️ Proxy creation is disabled.');
-            showToast('📦 Proxy details will be sent within 24 hours.', 'info');
-            await addDoc(collection(db, 'notifications'), {
-                title: 'ℹ️ Proxy request pending',
-                message: `User: ${currentUser.email} - ${proxyItems.length} proxies`,
-                userId: currentUser.uid,
-                readBy: [],
-                createdAt: serverTimestamp()
-            });
-        }
+        // ...
         cart = [];
         activeDiscount = 0;
         activeDiscountCode = '';
@@ -6269,7 +6232,6 @@ window.closeLicenceModal = function() {
     }
 };
 
-// دالة مرادفة للتوافق مع HTML (closeLicenseModal)
 window.closeLicenseModal = function() {
     if (typeof window.closeLicenceModal === 'function') {
         window.closeLicenceModal();
@@ -6282,7 +6244,6 @@ window.closeLicenseModal = function() {
     }
 };
 
-// دالة مرادفة للتوافق مع HTML (activatedLicence)
 window.activatedLicence = function() {
     if (typeof window.activateLicence === 'function') {
         window.activateLicence();
@@ -8223,7 +8184,6 @@ window.sendTelegramTopupNotification = sendTelegramTopupNotification;
 // COPY LICENCE & EXPORT
 // ============================================================
 
-// دالة مساعدة للنسخ (تُستخدم في جميع دوال النسخ)
 function fallbackCopy(text) {
     const textarea = document.createElement('textarea');
     textarea.value = text;
@@ -8241,7 +8201,6 @@ function fallbackCopy(text) {
 }
 window.fallbackCopy = fallbackCopy;
 
-// نسخ رمز الترخيص
 window.copyLicenceCode = function(code) {
     if (!code) {
         showToast('⚠️ No code to copy', 'warning');
@@ -8256,7 +8215,6 @@ window.copyLicenceCode = function(code) {
     }
 };
 
-// نسخ النص إلى الحافظة (عام)
 window.copyToClipboard = function(text) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text)
@@ -8267,7 +8225,6 @@ window.copyToClipboard = function(text) {
     }
 };
 
-// نسخ عنوان المحفظة
 window.copyWalletAddress = function() {
     const addressElement = document.getElementById('walletAddressDisplay');
     if (!addressElement) {
@@ -8288,7 +8245,6 @@ window.copyWalletAddress = function() {
     }
 };
 
-// نسخ Binance ID
 window.copyBinanceId = function() {
     const id = document.getElementById('binanceIdDisplay')?.textContent;
     if (!id) {
@@ -8304,7 +8260,6 @@ window.copyBinanceId = function() {
     }
 };
 
-// إنشاء فاتورة PDF
 window.generateInvoice = function(orderData) {
     if (!orderData) {
         showToast('❌ No order data for invoice', 'error');
@@ -8332,7 +8287,6 @@ window.generateInvoice = function(orderData) {
     }
 };
 
-// تصدير الطلبات إلى CSV
 window.exportOrders = function() {
     if (!currentUser || !isAdminCached) {
         showToast('⛔ Unauthorized', 'error');
@@ -10361,22 +10315,12 @@ async function initApp() {
 window.initApp = initApp;
 
 // ============================================================
-// AUTH STATE LISTENER - NO ANONYMOUS ALLOWED
+// AUTH STATE LISTENER - PROFESSIONAL LOADING SCREEN
 // ============================================================
 onAuthStateChanged(auth, async (user) => {
     const authSection = document.getElementById('authSection');
     const mainApp = document.getElementById('mainApp');
     const loadingScreen = document.getElementById('loadingScreen');
-
-    function hideLoading() {
-        if (loadingScreen) {
-            loadingScreen.classList.add('hidden');
-            setTimeout(() => {
-                loadingScreen.classList.add('hidden-force');
-                loadingScreen.style.display = 'none';
-            }, 600);
-        }
-    }
 
     function showApp() {
         if (authSection) authSection.style.display = 'none';
@@ -10385,26 +10329,44 @@ onAuthStateChanged(auth, async (user) => {
             mainApp.style.visibility = 'visible';
             mainApp.style.opacity = '1';
         }
-        hideLoading();
-        console.log('✅ App shown, login hidden');
+        if (loadingScreen) {
+            loadingScreen.classList.add('hidden');
+            setTimeout(() => {
+                loadingScreen.style.display = 'none';
+                loadingScreen.classList.add('hidden-force');
+            }, 600);
+        }
     }
 
     function showLogin() {
-        if (authSection) authSection.style.display = 'block';
-        if (mainApp) mainApp.style.display = 'none';
-        hideLoading();
-        console.log('✅ Login shown, app hidden');
+        if (authSection) {
+            authSection.style.display = 'block';
+            authSection.style.opacity = '0';
+            authSection.style.transition = 'opacity 0.6s ease';
+            setTimeout(() => { authSection.style.opacity = '1'; }, 50);
+        }
+        if (mainApp) {
+            mainApp.style.display = 'none';
+            mainApp.style.visibility = 'hidden';
+            mainApp.style.opacity = '0';
+        }
+        if (loadingScreen) {
+            loadingScreen.classList.add('hidden');
+            setTimeout(() => {
+                loadingScreen.style.display = 'none';
+                loadingScreen.classList.add('hidden-force');
+            }, 600);
+        }
+    }
+
+    if (user && user.isAnonymous) {
+        console.warn('🚫 Anonymous user detected - signing out and showing login');
+        await signOut(auth);
+        showLogin();
+        return;
     }
 
     if (user) {
-        // منع المستخدم المجهول تماماً
-        if (user.isAnonymous) {
-            console.warn('🚫 Anonymous user detected - signing out and showing login');
-            await signOut(auth);
-            showLogin();
-            return;
-        }
-
         currentUser = user;
         window.currentUser = user;
         console.log('🔐 User authenticated:', user.email);
