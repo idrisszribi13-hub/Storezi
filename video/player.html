@@ -22,13 +22,10 @@
             --zs-radius-sm: 8px;
             --zs-transition: 0.28s cubic-bezier(0.4, 0, 0.2, 1);
             --zs-font: 'Segoe UI', 'Tahoma', 'Geneva', 'Verdana', sans-serif;
+            --zs-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px var(--zs-border), 0 0 80px rgba(228, 168, 61, 0.06);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             background: #05050a;
@@ -68,27 +65,31 @@
             align-items: center;
             gap: 10px;
             font-weight: 700;
-            font-size: 18px;
+            font-size: 20px;
             letter-spacing: 0.5px;
         }
-        .zs-header-brand .zs-brand-icon {
-            width: 36px;
-            height: 36px;
+        .zs-brand-icon {
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             background: linear-gradient(135deg, var(--zs-accent), #c77d1a);
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 900;
-            font-size: 18px;
+            font-size: 22px;
             color: #0a0a0f;
+            box-shadow: 0 4px 14px rgba(228,168,61,0.3);
         }
         .zs-header-tagline {
-            font-size: 13px;
+            font-size: 14px;
             color: var(--zs-text-secondary);
-            background: rgba(255, 255, 255, 0.07);
-            padding: 4px 14px;
+            background: rgba(255,255,255,0.07);
+            padding: 4px 16px;
             border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .zs-main {
@@ -100,6 +101,7 @@
             align-items: flex-start;
         }
 
+        /* Player Section - larger */
         .zs-player-section {
             flex: 1 1 100%;
             max-width: 100%;
@@ -107,8 +109,8 @@
         }
         @media (min-width: 900px) {
             .zs-player-section {
-                flex: 1 1 calc(100% - 340px);
-                max-width: calc(100% - 340px);
+                flex: 1 1 calc(100% - 320px); /* increased player width */
+                max-width: calc(100% - 320px);
             }
         }
 
@@ -125,7 +127,7 @@
         }
         @media (min-width: 900px) {
             .zs-channels-section {
-                flex: 0 0 320px;
+                flex: 0 0 300px; /* slightly narrower */
                 min-height: auto;
                 max-height: calc(100vh - 140px);
                 position: sticky;
@@ -139,7 +141,7 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
-            background: rgba(255, 255, 255, 0.02);
+            background: rgba(255,255,255,0.02);
         }
         .zs-channels-title {
             font-size: 16px;
@@ -149,31 +151,27 @@
             gap: 8px;
             letter-spacing: 0.5px;
         }
-        .zs-channels-title span {
-            color: var(--zs-accent);
+        .zs-channels-title .zs-title-icon {
+            font-size: 20px;
         }
-        .zs-search-box {
-            position: relative;
-        }
+        .zs-search-box { position: relative; }
         .zs-search-box input {
             width: 100%;
             padding: 10px 36px 10px 14px;
             border-radius: 22px;
             border: 1px solid var(--zs-border);
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255,255,255,0.05);
             color: #fff;
             font-size: 13px;
             outline: none;
             transition: all var(--zs-transition);
             font-family: var(--zs-font);
         }
-        .zs-search-box input::placeholder {
-            color: #888;
-        }
+        .zs-search-box input::placeholder { color: #888; }
         .zs-search-box input:focus {
             border-color: var(--zs-accent);
-            background: rgba(255, 255, 255, 0.08);
-            box-shadow: 0 0 0 3px rgba(228, 168, 61, 0.15);
+            background: rgba(255,255,255,0.08);
+            box-shadow: 0 0 0 3px rgba(228,168,61,0.15);
         }
         .zs-search-icon {
             position: absolute;
@@ -202,9 +200,7 @@
             transition: all var(--zs-transition);
             white-space: nowrap;
         }
-        .zs-category-tab:hover {
-            background: rgba(255, 255, 255, 0.08);
-        }
+        .zs-category-tab:hover { background: rgba(255,255,255,0.08); }
         .zs-category-tab.zs-active {
             background: var(--zs-accent);
             color: #0a0a0f;
@@ -222,16 +218,9 @@
             scrollbar-width: thin;
             scrollbar-color: #333 transparent;
         }
-        .zs-channels-list::-webkit-scrollbar {
-            width: 6px;
-        }
-        .zs-channels-list::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .zs-channels-list::-webkit-scrollbar-thumb {
-            background: #333;
-            border-radius: 3px;
-        }
+        .zs-channels-list::-webkit-scrollbar { width: 6px; }
+        .zs-channels-list::-webkit-scrollbar-track { background: transparent; }
+        .zs-channels-list::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
 
         .zs-channel-card {
             display: flex;
@@ -239,21 +228,21 @@
             gap: 12px;
             padding: 10px 14px;
             border-radius: var(--zs-radius-sm);
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(255,255,255,0.03);
             border: 1px solid transparent;
             cursor: pointer;
             transition: all var(--zs-transition);
             position: relative;
         }
         .zs-channel-card:hover {
-            background: rgba(255, 255, 255, 0.07);
-            border-color: rgba(255, 255, 255, 0.1);
+            background: rgba(255,255,255,0.07);
+            border-color: rgba(255,255,255,0.1);
             transform: translateY(-1px);
         }
         .zs-channel-card.zs-active {
-            background: rgba(228, 168, 61, 0.12);
+            background: rgba(228,168,61,0.12);
             border-color: var(--zs-accent);
-            box-shadow: 0 4px 16px rgba(228, 168, 61, 0.15);
+            box-shadow: 0 4px 16px rgba(228,168,61,0.15);
         }
         .zs-channel-card.zs-active::after {
             content: '';
@@ -278,17 +267,14 @@
             font-size: 16px;
             color: #fff;
             flex-shrink: 0;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255,255,255,0.1);
         }
         .zs-channel-card.zs-active .zs-channel-logo {
             background: linear-gradient(135deg, var(--zs-accent), #c77d1a);
             color: #0a0a0f;
             border-color: var(--zs-accent);
         }
-        .zs-channel-info {
-            flex: 1;
-            min-width: 0;
-        }
+        .zs-channel-info { flex: 1; min-width: 0; }
         .zs-channel-name {
             font-weight: 600;
             font-size: 14px;
@@ -381,9 +367,7 @@
             justify-content: center;
             padding: 20px;
         }
-        .zs-modal-overlay.zs-open {
-            display: flex;
-        }
+        .zs-modal-overlay.zs-open { display: flex; }
         .zs-modal {
             background: var(--zs-surface);
             border-radius: var(--zs-radius);
@@ -406,9 +390,7 @@
             align-items: center;
             gap: 8px;
         }
-        .zs-modal-field {
-            margin-bottom: 14px;
-        }
+        .zs-modal-field { margin-bottom: 14px; }
         .zs-modal-field label {
             display: block;
             font-size: 13px;
@@ -452,25 +434,21 @@
             background: rgba(255,255,255,0.1);
             color: #ccc;
         }
-        .zs-modal-btn.zs-cancel:hover {
-            background: rgba(255,255,255,0.15);
-        }
+        .zs-modal-btn.zs-cancel:hover { background: rgba(255,255,255,0.15); }
         .zs-modal-btn.zs-submit {
             background: var(--zs-accent);
             color: #0a0a0f;
         }
-        .zs-modal-btn.zs-submit:hover {
-            background: var(--zs-accent2);
-        }
+        .zs-modal-btn.zs-submit:hover { background: var(--zs-accent2); }
 
-        /* ============ PLAYER (same as before) ============ */
+        /* ============ PLAYER (Enhanced) ============ */
         .zs-player-wrapper {
             position: relative;
             width: 100%;
             background: var(--zs-bg);
             border-radius: var(--zs-radius);
             overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px var(--zs-border), 0 0 80px rgba(228, 168, 61, 0.06);
+            box-shadow: var(--zs-shadow);
             aspect-ratio: 16 / 9;
             cursor: pointer;
             direction: rtl;
@@ -505,6 +483,7 @@
             background: #000;
         }
 
+        /* Start overlay */
         .zs-start-overlay {
             position: absolute;
             inset: 0;
@@ -534,33 +513,46 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            box-shadow: 0 8px 30px rgba(228, 168, 61, 0.5);
+            box-shadow: 0 8px 30px rgba(228,168,61,0.5);
             transition: transform 0.2s, box-shadow 0.2s;
             border: none;
             outline: none;
             font-family: var(--zs-font);
             line-height: 1;
             margin-bottom: 18px;
+            position: relative;
         }
         .zs-start-play-btn:hover {
             transform: scale(1.07);
-            box-shadow: 0 12px 36px rgba(228, 168, 61, 0.7);
+            box-shadow: 0 12px 36px rgba(228,168,61,0.7);
         }
-        .zs-start-play-btn:active {
-            transform: scale(0.95);
+        .zs-start-play-btn:active { transform: scale(0.95); }
+        .zs-start-play-btn::after {
+            content: '';
+            position: absolute;
+            inset: -10px;
+            border-radius: 50%;
+            border: 2px solid var(--zs-accent);
+            opacity: 0;
+            animation: zs-ring 1.5s infinite;
         }
+        @keyframes zs-ring {
+            0% { transform: scale(0.8); opacity: 0.7; }
+            100% { transform: scale(1.3); opacity: 0; }
+        }
+
         .zs-start-brand {
             font-size: 18px;
             font-weight: 700;
             color: #fff;
             letter-spacing: 1px;
-            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+            text-shadow: 0 2px 8px rgba(0,0,0,0.6);
             display: flex;
             align-items: center;
             gap: 8px;
         }
         .zs-start-brand span {
-            background: rgba(255, 255, 255, 0.12);
+            background: rgba(255,255,255,0.12);
             padding: 4px 14px;
             border-radius: 20px;
             font-size: 14px;
@@ -579,7 +571,7 @@
             gap: 9px;
             opacity: 0.78;
             transition: opacity 0.5s;
-            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 0, 0, 0.5);
+            text-shadow: 0 2px 8px rgba(0,0,0,0.8), 0 0 20px rgba(0,0,0,0.5);
         }
         .zs-watermark-icon {
             width: 34px;
@@ -593,7 +585,7 @@
             font-size: 16px;
             color: #0a0a0f;
             flex-shrink: 0;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.5);
         }
         .zs-watermark-text {
             font-size: 15px;
@@ -601,12 +593,12 @@
             color: #fff;
             letter-spacing: 0.6px;
             white-space: nowrap;
-            background: rgba(0, 0, 0, 0.35);
+            background: rgba(0,0,0,0.35);
             backdrop-filter: blur(6px);
             -webkit-backdrop-filter: blur(6px);
             padding: 5px 12px;
             border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255,255,255,0.15);
         }
 
         .zs-live-badge {
@@ -619,16 +611,14 @@
             display: none;
             align-items: center;
             gap: 7px;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0,0,0,0.7);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
             padding: 6px 14px;
             border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255,255,255,0.12);
         }
-        .zs-live-badge.zs-visible {
-            display: flex;
-        }
+        .zs-live-badge.zs-visible { display: flex; }
         .zs-live-dot {
             width: 10px;
             height: 10px;
@@ -651,23 +641,19 @@
             display: none;
             align-items: center;
             justify-content: center;
-            background: rgba(0, 0, 0, 0.45);
+            background: rgba(0,0,0,0.45);
             pointer-events: none;
         }
-        .zs-loading.zs-visible {
-            display: flex;
-        }
+        .zs-loading.zs-visible { display: flex; }
         .zs-spinner {
             width: 52px;
             height: 52px;
-            border: 4px solid rgba(255, 255, 255, 0.2);
+            border: 4px solid rgba(255,255,255,0.2);
             border-top-color: var(--zs-accent);
             border-radius: 50%;
             animation: zs-spin 0.8s linear infinite;
         }
-        @keyframes zs-spin {
-            to { transform: rotate(360deg); }
-        }
+        @keyframes zs-spin { to { transform: rotate(360deg); } }
 
         .zs-error-overlay {
             position: absolute;
@@ -677,28 +663,15 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(0,0,0,0.85);
             gap: 16px;
             text-align: center;
             padding: 20px;
         }
-        .zs-error-overlay.zs-visible {
-            display: flex;
-        }
-        .zs-error-icon {
-            font-size: 48px;
-            margin-bottom: 4px;
-        }
-        .zs-error-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: #fff;
-        }
-        .zs-error-msg {
-            font-size: 13px;
-            color: #b0b0b8;
-            max-width: 340px;
-        }
+        .zs-error-overlay.zs-visible { display: flex; }
+        .zs-error-icon { font-size: 48px; margin-bottom: 4px; }
+        .zs-error-title { font-size: 18px; font-weight: 700; color: #fff; }
+        .zs-error-msg { font-size: 13px; color: #b0b0b8; max-width: 340px; }
         .zs-error-retry {
             padding: 10px 28px;
             background: var(--zs-accent);
@@ -715,9 +688,10 @@
         .zs-error-retry:hover {
             background: var(--zs-accent2);
             transform: scale(1.04);
-            box-shadow: 0 6px 20px rgba(228, 168, 61, 0.35);
+            box-shadow: 0 6px 20px rgba(228,168,61,0.35);
         }
 
+        /* Controls */
         .zs-controls {
             position: absolute;
             bottom: 0;
@@ -732,7 +706,7 @@
             align-items: center;
             gap: 8px;
             transition: opacity var(--zs-transition), transform var(--zs-transition);
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            border-top: 1px solid rgba(255,255,255,0.06);
             flex-wrap: wrap;
         }
         .zs-controls.zs-hidden {
@@ -757,11 +731,18 @@
             flex-shrink: 0;
             position: relative;
             font-family: var(--zs-font);
+            padding: 0;
         }
-        .zs-btn:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+        .zs-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+        .zs-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
         .zs-btn:active { transform: scale(0.9); }
-        .zs-btn.zs-active { color: var(--zs-accent); background: rgba(228, 168, 61, 0.12); }
+        .zs-btn.zs-active { color: var(--zs-accent); background: rgba(228,168,61,0.12); }
         .zs-btn-play { font-size: 22px; }
+        .zs-btn-play svg { width: 24px; height: 24px; }
 
         .zs-volume-wrap { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
         .zs-volume-slider {
@@ -769,7 +750,7 @@
             height: 4px;
             -webkit-appearance: none;
             appearance: none;
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255,255,255,0.2);
             border-radius: 3px;
             outline: none;
             cursor: pointer;
@@ -782,7 +763,7 @@
             border-radius: 50%;
             background: #fff;
             cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
         .zs-volume-slider::-moz-range-thumb {
             width: 15px;
@@ -817,7 +798,7 @@
         .zs-progress-track {
             width: 100%;
             height: 5px;
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255,255,255,0.15);
             border-radius: 4px;
             position: relative;
             overflow: hidden;
@@ -829,7 +810,7 @@
             top: 0;
             left: 0;
             height: 100%;
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255,255,255,0.2);
             border-radius: 4px;
             transition: width 0.3s;
         }
@@ -850,7 +831,7 @@
             height: 16px;
             border-radius: 50%;
             background: #fff;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
             opacity: 0;
             transition: opacity var(--zs-transition);
             pointer-events: none;
@@ -870,9 +851,7 @@
             pointer-events: none;
         }
 
-        .zs-spacer {
-            flex: 0 0 0;
-        }
+        .zs-spacer { flex: 0 0 0; }
         @media (min-width: 700px) {
             .zs-spacer { flex: 1; min-width: 10px; }
         }
@@ -883,7 +862,7 @@
             bottom: 44px;
             right: 0;
             left: auto;
-            background: rgba(18, 18, 28, 0.96);
+            background: rgba(18,18,28,0.96);
             backdrop-filter: blur(18px);
             -webkit-backdrop-filter: blur(18px);
             border-radius: var(--zs-radius-sm);
@@ -895,7 +874,7 @@
             transform: translateY(8px);
             transition: all var(--zs-transition);
             z-index: 20;
-            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.6);
             list-style: none;
         }
         .zs-dropdown-menu.zs-open { opacity: 1; visibility: visible; transform: translateY(0); }
@@ -909,7 +888,7 @@
             font-family: var(--zs-font);
             letter-spacing: 0.3px;
         }
-        .zs-dropdown-menu li:hover { background: rgba(255, 255, 255, 0.07); color: #fff; }
+        .zs-dropdown-menu li:hover { background: rgba(255,255,255,0.07); color: #fff; }
         .zs-dropdown-menu li.zs-selected { color: var(--zs-accent); font-weight: 700; }
         .zs-dropdown-menu li.zs-selected::before { content: '✓ '; font-weight: 700; }
 
@@ -930,7 +909,9 @@
             .zs-player-wrapper { border-radius: 0; aspect-ratio: 16/9; }
             .zs-controls { padding: 6px 8px 8px; gap: 3px; }
             .zs-btn { width: 30px; height: 30px; font-size: 15px; }
+            .zs-btn svg { width: 16px; height: 16px; }
             .zs-btn-play { font-size: 18px; }
+            .zs-btn-play svg { width: 20px; height: 20px; }
             .zs-volume-slider { width: 40px; }
             .zs-time-display { font-size: 10px; min-width: 55px; }
             .zs-watermark { top: 10px; left: 10px; right: auto; gap: 5px; }
@@ -956,7 +937,9 @@
                 <div class="zs-brand-icon">Z</div>
                 <span>Zi Store</span>
             </div>
-            <div class="zs-header-tagline">📺 بث مباشر مع دعم الروابط الخارجية</div>
+            <div class="zs-header-tagline">
+                <span>📺</span> بث مباشر مع دعم الروابط الخارجية
+            </div>
         </header>
 
         <!-- Main Content -->
@@ -997,7 +980,12 @@
 
                         <!-- Start Overlay -->
                         <div class="zs-start-overlay" id="zsStartOverlay">
-                            <button class="zs-start-play-btn" id="zsStartPlayBtn">▶</button>
+                            <button class="zs-start-play-btn" id="zsStartPlayBtn">
+                                <!-- Play SVG -->
+                                <svg viewBox="0 0 24 24" width="40" height="40" fill="currentColor">
+                                    <path d="M8 5v14l11-7z"/>
+                                </svg>
+                            </button>
                             <div class="zs-start-brand">
                                 Zi Store <span>اختر قناة أو أضف رابط خارجي</span>
                             </div>
@@ -1006,9 +994,17 @@
 
                     <!-- Control Bar -->
                     <div class="zs-controls" id="zsControls">
-                        <button class="zs-btn zs-btn-play" id="zsBtnPlay" title="تشغيل / إيقاف">▶</button>
+                        <!-- Play/Pause Button -->
+                        <button class="zs-btn zs-btn-play" id="zsBtnPlay" title="تشغيل / إيقاف">
+                            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        </button>
                         <div class="zs-volume-wrap">
-                            <button class="zs-btn" id="zsBtnMute" title="كتم الصوت">🔊</button>
+                            <button class="zs-btn" id="zsBtnMute" title="كتم الصوت">
+                                <!-- Volume Icon -->
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                                </svg>
+                            </button>
                             <input type="range" class="zs-volume-slider" id="zsVolumeSlider" min="0" max="100" value="100" title="مستوى الصوت">
                         </div>
                         <span class="zs-time-display" id="zsTimeDisplay">--:-- / --:--</span>
@@ -1021,25 +1017,50 @@
                             </div>
                         </div>
                         <div class="zs-spacer"></div>
+                        <!-- Speed Dropdown -->
                         <div class="zs-dropdown" id="zsSpeedDropdown">
-                            <button class="zs-btn" id="zsBtnSpeed" title="سرعة التشغيل">⏱</button>
+                            <button class="zs-btn" id="zsBtnSpeed" title="سرعة التشغيل">
+                                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13v6.25l5.25 3.15-.75 1.23-6-3.5V7h1.5z"/></svg>
+                            </button>
                             <ul class="zs-dropdown-menu" id="zsSpeedMenu">
-                                <li data-speed="0.25">0.25x</li><li data-speed="0.5">0.5x</li><li data-speed="0.75">0.75x</li>
-                                <li data-speed="1" class="zs-selected">1x - عادي</li><li data-speed="1.25">1.25x</li>
-                                <li data-speed="1.5">1.5x</li><li data-speed="2">2x</li>
+                                <li data-speed="0.25">0.25x</li>
+                                <li data-speed="0.5">0.5x</li>
+                                <li data-speed="0.75">0.75x</li>
+                                <li data-speed="1" class="zs-selected">1x - عادي</li>
+                                <li data-speed="1.25">1.25x</li>
+                                <li data-speed="1.5">1.5x</li>
+                                <li data-speed="2">2x</li>
                             </ul>
                         </div>
+                        <!-- Quality Dropdown -->
                         <div class="zs-dropdown" id="zsQualityDropdown">
-                            <button class="zs-btn" id="zsBtnQuality" title="الجودة">🎛</button>
+                            <button class="zs-btn" id="zsBtnQuality" title="الجودة">
+                                <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z"/></svg>
+                            </button>
                             <ul class="zs-dropdown-menu" id="zsQualityMenu">
                                 <li data-quality="-1" class="zs-selected">تلقائي</li>
                             </ul>
                         </div>
-                        <button class="zs-btn" id="zsBtnScreenshot" title="التقاط صورة">📸</button>
-                        <button class="zs-btn" id="zsBtnPiP" title="صورة داخل صورة">🖼</button>
-                        <button class="zs-btn" id="zsBtnTheater" title="وضع المسرح">📐</button>
-                        <button class="zs-btn" id="zsBtnFullscreen" title="ملء الشاشة">⛶</button>
-                        <button class="zs-btn" id="zsBtnSettings" title="الإعدادات">⚙</button>
+                        <!-- Screenshot -->
+                        <button class="zs-btn" id="zsBtnScreenshot" title="التقاط صورة">
+                            <svg viewBox="0 0 24 24"><path d="M9.4 10.5l3.77-3.77L14 7.56V5h2V3h-2V1h-2v2H9V2H7v3h2v2.56L10.6 9.4 9.4 10.5zM21 19h-8.28l-1.59-1.59L12 16.5 13.5 18H21v2H3v-2h1.5l3-3L6 13.5 7.5 15l1.5-1.5L7.59 12 6 13.5 3 10.5V19c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-2zm0-10h-2V7h-2v2h-2v2h2v2h2v-2h2V9z"/></svg>
+                        </button>
+                        <!-- PiP -->
+                        <button class="zs-btn" id="zsBtnPiP" title="صورة داخل صورة">
+                            <svg viewBox="0 0 24 24"><path d="M19 7h-8v6h8V7zm2-4H3c-1.1 0-2 .9-2 2v14c0 1.1.9 1.98 2 1.98h18c1.1 0 2-.88 2-1.98V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14z"/></svg>
+                        </button>
+                        <!-- Theater -->
+                        <button class="zs-btn" id="zsBtnTheater" title="وضع المسرح">
+                            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 7h10v2H7zm0 4h10v2H7zm0 4h6v2H7z"/></svg>
+                        </button>
+                        <!-- Fullscreen -->
+                        <button class="zs-btn" id="zsBtnFullscreen" title="ملء الشاشة">
+                            <svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+                        </button>
+                        <!-- Settings -->
+                        <button class="zs-btn" id="zsBtnSettings" title="الإعدادات">
+                            <svg viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.08-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.58-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.08.65-.08.98s.03.66.08.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.58 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.13-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg>
+                        </button>
                     </div>
                 </div>
             </section>
@@ -1047,7 +1068,7 @@
             <!-- Channels Section -->
             <aside class="zs-channels-section">
                 <div class="zs-channels-header">
-                    <div class="zs-channels-title">📡 <span>قنوات البث</span></div>
+                    <div class="zs-channels-title"><span class="zs-title-icon">📡</span> <span>قنوات البث</span></div>
                     <div class="zs-search-box">
                         <input type="text" id="zsSearchInput" placeholder="ابحث عن قناة...">
                         <span class="zs-search-icon">🔍</span>
@@ -1093,7 +1114,6 @@
     <script>
         (function() {
             // ==================== CHANNELS DATABASE ====================
-            // يمكنك تعديل هذه القائمة وإضافة قنواتك الخاصة بروابط IPTV
             const defaultChannels = [
                 { id: 1, name: "beIN Sports 1 HD", category: "رياضة", logo: "B1", url: "https://iptv-org.github.io/iptv/categories/sports.m3u", live: true },
                 { id: 2, name: "beIN Sports 2 HD", category: "رياضة", logo: "B2", url: "https://iptv-org.github.io/iptv/categories/sports.m3u", live: true },
@@ -1111,7 +1131,6 @@
                 { id: 14, name: "Stadium", category: "رياضة", logo: "ST", url: "https://dai.google.com/linear/hls/event/5t1JhYJ9QfKmFyNp4hmV4Q/master.m3u8", live: true }
             ];
 
-            // قائمة القنوات القابلة للتعديل
             let channels = [...defaultChannels];
             let externalIdCounter = 1000;
 
@@ -1250,20 +1269,20 @@
 
             function updatePlayButton() {
                 if (video.paused || video.ended) {
-                    btnPlay.textContent = '▶';
+                    btnPlay.innerHTML = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
                     btnPlay.title = 'تشغيل';
                 } else {
-                    btnPlay.textContent = '⏸';
+                    btnPlay.innerHTML = '<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
                     btnPlay.title = 'إيقاف';
                 }
             }
 
             function updateMuteButton() {
                 if (video.muted || video.volume === 0) {
-                    btnMute.textContent = '🔇';
+                    btnMute.innerHTML = '<svg viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>';
                     volumeSlider.value = 0;
                 } else {
-                    btnMute.textContent = '🔊';
+                    btnMute.innerHTML = '<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>';
                     volumeSlider.value = Math.round(video.volume * 100);
                 }
             }
@@ -1901,7 +1920,6 @@
                 }
             });
 
-            // Close modal on overlay click
             modalOverlay.addEventListener('click', (e) => {
                 if (e.target === modalOverlay) closeModal();
             });
@@ -1933,7 +1951,6 @@
                 renderChannels();
             }
 
-            // Expose API
             window.ZiStorePlayer = {
                 channels: channels,
                 addExternalChannel: addExternalChannel,
@@ -1962,4 +1979,4 @@
         })();
     </script>
 </body>
-    </html>
+</html>
