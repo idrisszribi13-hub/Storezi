@@ -7937,7 +7937,7 @@ You will receive a notification once approved.
         showToast('❌ Error: ' + error.message, 'error');
     }
 };
-window.approveTopup = approveTopup;
+
 window.approveTopup = async function(topupId) {
     if (!currentUser || !isAdminCached) {
         showToast('⛔ Unauthorized', 'error');
@@ -10277,11 +10277,10 @@ async function initApp() {
         
         initPopups();
         window.updateLoadingProgress(100, '✅ Ready!');
-        
-        setTimeout(function() {
-            window.showMainApp();
-            console.log('✅ Main app shown from init');
-        }, 300);
+     setTimeout(function() {
+    window.showMainApp();
+    hideLoadingScreen();   // ✅ أضف هذا السطر
+}, 500);
         
       
         
