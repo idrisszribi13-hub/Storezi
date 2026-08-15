@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>المباريات المباشرة - API Football</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            direction: rtl;
+            background: #f4f4f4;
+            padding: 20px;
+        }
+        #matches {
+            margin-top: 20px;
+        }
+        .match {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <h1>⚽ المباريات المباشرة</h1>
+    <button onclick="getLiveMatches()">تحديث المباريات المباشرة</button>
+    <div id="matches">اضغط الزر لعرض المباريات...</div>
+
+    <script>
+        // ضع مفتاح API الخاص بك هنا
+        const API_KEY = '646350e2452baf86f14db65e620fb67f';
+
+        async function getLiveMatches() {
+            const url = 'https://v3.football.api-sports.io/fixtures?live=all';
+
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'x-apisports-key': API_KEY
+                    }
+                });
+
+                const data = await response.json();
+                const matchesDiv = document.getElementById('matches');
+
+                // التحقق من وجود أخطاء
+                if (data.errors && Object.keys(data.errors).length > 0) {
+                    matchesDiv.innerHTML = '<p>حدث خطأ: ' + JSON.stringify(data.errors) + '</p>';
+                    return;
+                }
+
+                const matches = data.response;
+                if (!matches || matches.length === 0) {
+                    matchesDiv.innerHTML = '<p>لا توجد مباريات مباشرة حالياً.</p>';
+                    return;
+                }
+
+                // بناء HTML لعرض المباريات
+                let html = '';
+                matches.forEach(item => {
+                    const fixture = item.fixture;
+                    const teams = item.teams;
+                    const goals = item.goals;
+                    html += `
+                        <div class="match">
+                            <strong>${teams.home.name} ${goals.home ?? 0} - ${goals.away ?? 0} ${teams.away.name}</strong>
+                            <br>
+                            <small>الحالة: ${fixture.status.long} | الدقيقة: ${fixture.status.elapsed ?? 'غير متاح'}</small>
+                            <br>
+                            <small>رقم المباراة: ${fixture.id}</small>
+                        </div>
+                    `;
+                });
+
+                matchesDiv.innerHTML = html;
+            } catch (error) {
+                document.getElementById('matches').innerHTML = '<p>فشل الاتصال بالخادم: ' + error.message + '</p>';
+            }
+        }
+    </script>
+</body>
+</html>
