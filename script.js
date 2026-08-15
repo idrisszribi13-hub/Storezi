@@ -7938,7 +7938,81 @@ You will receive a notification once approved.
     }
 };
 window.approveTopup = approveTopup;
+window.approveTopup = async function(topupId) {
+    if (!currentUser || !isAdminCached) {
+        showToast('⛔ Unauthorized', 'error');
+        return;
+    }
 
+    if (!confirm('Approve this topup and add balance to user?')) return;
+
+    try {
+        // جلب بيانات الشحن من Supabase (لنعرف user_id والمبلغ)
+        const { data: topupData, error: fetchError } = await supabase
+            .from('topups')
+            .select('*')
+            .eq('id', topupId)
+            .single();
+
+        if (fetchError) throw fetchError;
+
+        // استدعاء Edge Function للموافقة (تحديث topups فقط)
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/approve-topup`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify({
+                topupId: topupId,
+                approve: true,
+                adminEmail: currentUser.email
+            })
+        });
+
+        const result = await response.json();
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to approve topup');
+        }
+
+        // ✅ تحديث رصيد المستخدم في Firestore
+        if (topupData && topupData.user_id && topupData.amount_usd) {
+            const targetUserId = topupData.user_id;
+            const amount = parseFloat(topupData.amount_usd);
+
+            const targetUserRef = doc(db, 'users', targetUserId);
+            const targetUserSnap = await getDoc(targetUserRef);
+            const currentBal = targetUserSnap.exists() ? (targetUserSnap.data().balance || 0) : 0;
+
+            await updateDoc(targetUserRef, {
+                balance: currentBal + amount,
+                updatedAt: serverTimestamp()
+            });
+
+            console.log('✅ Firestore balance updated for', targetUserId);
+
+            // إذا كان المستخدم المستهدف هو الأدمن الحالي (نادر)، حدّث الرصيد المحلي
+            if (currentUser && currentUser.uid === targetUserId) {
+                userBalance += amount;
+                userProfile.balance = userBalance;
+                updateBalanceDisplay();
+            }
+        }
+
+        showToast('✅ Topup approved successfully!', 'success');
+        loadAdminTopups();
+        loadUserBalance();
+
+        // إرسال الإشعارات (كما كنت تفعل)
+        if (topupData) {
+            // ... أرسل الإشعارات إلى تيليجرام والإيميل ...
+        }
+
+    } catch (error) {
+        console.error('Approve error:', error);
+        showToast('❌ Error: ' + error.message, 'error');
+    }
+};
 window.rejectTopup = async function(topupId) {
     if (!currentUser || !isAdminCached) {
         showToast('⛔ Unauthorized', 'error');
@@ -7948,15 +8022,7 @@ window.rejectTopup = async function(topupId) {
     if (!confirm('Reject this topup?')) return;
 
     try {
-        const { data: topupData, error: fetchError } = await supabase
-            .from('topups')
-            .select('*')
-            .eq('id', topupId)
-            .single();
-
-        if (fetchError) throw fetchError;
-
-        const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/approve-topup', {
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/approve-topup`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -7970,7 +8036,6 @@ window.rejectTopup = async function(topupId) {
         });
 
         const result = await response.json();
-
         if (!result.success) {
             throw new Error(result.error || 'Failed to reject topup');
         }
@@ -7983,7 +8048,6 @@ window.rejectTopup = async function(topupId) {
         showToast('❌ Error: ' + error.message, 'error');
     }
 };
-window.rejectTopup = rejectTopup;
 
 async function loadAdminTopups() {
     if (!currentUser || !isAdminCached) return;
