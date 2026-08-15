@@ -177,6 +177,7 @@ let _selectedVipPlan = '1m';
 let allLicences = [];
 let isProcessingOrder = false;
 let isAdminCached = false;
+let authReady = false;
 let adminCheckPromise = null;
 let popupShown = false;
 let exitIntentEnabled = true;
@@ -4053,66 +4054,36 @@ async function processBalancePayment(totalAmount) {
         userProfile.history.push(orderItem);
         await updateDoc(userRef, { history: arrayUnion(orderItem) });
 
-        // ============================================================
-        // 🔑 إنشاء التراخيص مباشرة (بدون Edge Function)
+          // ============================================================
+        // 🔑 إنشاء التراخيص عبر Edge Function (create-licence)
         // ============================================================
         let allLicencesCreated = true;
         const licencesList = [];
 
         for (const item of orderItem.items) {
             try {
-                console.log('🔑 Creating licence for:', item.name);
-                const code = 'LIC-' + Date.now().toString(36).toUpperCase() + '-' + 
-                            Math.random().toString(36).substring(2, 6).toUpperCase();
-                const expiryDate = new Date();
-                expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+                console.log('🔑 Creating licence via Edge Function for:', item.name);
                 
-                // حفظ في Supabase
-                const licenceData = {
-                    code: code,
-                    script_id: item.id || 'unknown',
-                    script_name: item.name,
-                    user_id: user.uid,
-                    user_email: user.email,
-                    order_id: orderId,
-                    status: 'active',
-                    expiry_date: expiryDate.toISOString(),
-                    created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString()
-                };
-                const { error: supabaseError } = await supabase
-                    .from('licenses')
-                    .insert(licenceData);
-                if (supabaseError) {
-                    console.error('❌ Supabase insert error:', supabaseError);
+                // استخدام الدالة الموجودة generateLicenceForUser
+                const licence = await generateLicenceForUser(
+                    user.uid,
+                    user.email,
+                    item,
+                    orderId
+                );
+                
+                if (licence) {
+                    licencesList.push({ code: licence.code, scriptName: item.name });
+                    console.log('✅ Licence created:', licence.code);
+                } else {
+                    console.error('❌ Failed to create licence for:', item.name);
                     allLicencesCreated = false;
-                    continue;
-                }
-                // حفظ في Firestore
-                const userSnap = await getDoc(userRef);
-                if (userSnap.exists()) {
-                    const data = userSnap.data();
-                    const userLicences = data.licences || [];
-                    if (!userLicences.find(l => l.code === code)) {
-                        userLicences.push({
-                            code: code,
-                            scriptId: item.id,
-                            scriptName: item.name,
-                            expiryDate: expiryDate.toISOString(),
-                            activatedAt: new Date().toISOString(),
-                            status: 'active'
-                        });
-                        await updateDoc(userRef, { licences: userLicences, updatedAt: serverTimestamp() });
-                        console.log('✅ Licence saved to Firestore:', code);
-                        licencesList.push({ code, scriptName: item.name });
-                    }
                 }
             } catch (err) {
                 console.error('❌ Error creating licence for item:', item.name, err);
                 allLicencesCreated = false;
             }
         }
-
         // تحديث واجهة المستخدم
         const updatedSnap = await getDoc(userRef);
         if (updatedSnap.exists()) {
@@ -7889,16 +7860,26 @@ window.submitTopupWithTxHash = async function(topupId, amount) {
     statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting for verification...';
 
     try {
-        const { error } = await supabase
-            .from('topups')
-            .update({
-                tx_hash: txHash,
-                updated_at: new Date().toISOString()
+        // استخدام Edge Function بدلاً من التحديث المباشر
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/confirm-topup`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify({
+                topupId: topupId,
+                txHash: txHash,
+                amount: amount
             })
-            .eq('id', topupId);
+        });
 
-        if (error) throw error;
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+            throw new Error(result.error || 'Failed to submit topup');
+        }
 
+        // إرسال إشعار للأدمن (اختياري)
         const adminMessage = `
 👤 *User Email:* ${currentUser.email || 'N/A'}
 🆔 *User ID:* ${currentUser.uid}
@@ -7906,10 +7887,7 @@ window.submitTopupWithTxHash = async function(topupId, amount) {
 🔗 *TXID:* \`${txHash}\`
 📅 *Date:* ${new Date().toLocaleString()}
 🔔 *Status:* Pending - Awaiting verification
-
-⚠️ *Please verify this transaction before approving.*
         `;
-
         await sendAdminNotification('💰 New Topup Request - Pending Verification', adminMessage);
 
         if (userProfile.telegramChatId) {
@@ -7924,8 +7902,6 @@ window.submitTopupWithTxHash = async function(topupId, amount) {
 
 ⏳ Your request is being reviewed by our team.
 You will receive a notification once approved.
-
-🔗 *Visit Store:* https://zi-store.online
             `;
             await sendTelegramNotification(userProfile.telegramChatId, userMessage);
         }
@@ -7958,73 +7934,6 @@ You will receive a notification once approved.
     } catch (error) {
         console.error('Submit error:', error);
         statusEl.innerHTML = `<span style="color:var(--danger);">❌ ${error.message}</span>`;
-        showToast('❌ Error: ' + error.message, 'error');
-    }
-};
-window.submitTopupWithTxHash = submitTopupWithTxHash;
-
-// ============================================================
-// TOPUP SYSTEM - ADMIN FUNCTIONS
-// ============================================================
-window.approveTopup = async function(topupId) {
-    if (!currentUser || !isAdminCached) {
-        showToast('⛔ Unauthorized', 'error');
-        return;
-    }
-
-    if (!confirm('Approve this topup and add balance to user?')) return;
-
-    try {
-        const { data: topupData, error: fetchError } = await supabase
-            .from('topups')
-            .select('*')
-            .eq('id', topupId)
-            .single();
-
-        if (fetchError) throw fetchError;
-
-        const response = await fetch('https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/approve-topup', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-            },
-            body: JSON.stringify({
-                topupId: topupId,
-                approve: true,
-                adminEmail: currentUser.email
-            })
-        });
-
-        const result = await response.json();
-
-        if (!result.success) {
-            throw new Error(result.error || 'Failed to approve topup');
-        }
-
-        showToast(`✅ Topup approved successfully!`, 'success');
-        loadAdminTopups();
-        loadUserBalance();
-        
-        if (topupData) {
-            const adminMessage = `
-👤 *User:* ${topupData?.user_email || 'Unknown'}
-💵 *Amount:* $${topupData?.amount_usd || 0}
-🔗 *TXID:* \`${topupData?.tx_hash || 'N/A'}\`
-📅 *Date:* ${new Date().toLocaleString()}
-✅ *Status:* APPROVED
-            `;
-            await sendAdminNotification('✅ Topup Approved', adminMessage);
-            
-            await sendTelegramTopupNotification(
-                topupData.user_id,
-                topupData.amount_usd,
-                topupData.tx_hash
-            );
-        }
-
-    } catch (error) {
-        console.error('Approve error:', error);
         showToast('❌ Error: ' + error.message, 'error');
     }
 };
@@ -10191,6 +10100,9 @@ startAdminRealtimeListener = function() {
 // ============================================================
 
 function forceHideLoading() {
+    // لا نخفي شاشة التحميل إلا بعد اكتمال فحص تسجيل الدخول
+    if (!authReady) return;
+    
     const screen = document.getElementById('loadingScreen');
     const mainApp = document.getElementById('mainApp');
     const authSection = document.getElementById('authSection');
@@ -10198,14 +10110,12 @@ function forceHideLoading() {
     if (screen) {
         screen.classList.add('hidden');
         screen.style.display = 'none';
-        console.log('✅ Loading screen hidden (forced)');
     }
     
     if (mainApp) {
         mainApp.style.display = 'block';
         mainApp.style.visibility = 'visible';
         mainApp.style.opacity = '1';
-        console.log('✅ Main app shown (forced)');
     }
     
     if (authSection && !currentUser) {
@@ -10224,14 +10134,11 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
     });
 }
 
-// إخفاء إضافي بعد 3 ثواني
-setTimeout(function() {
-    forceHideLoading();
-    console.log('🔄 Second attempt to hide loading screen');
-}, 3000);
 
-// إخفاء نهائي بعد 10 ثواني
+
+// إخفاء نهائي بعد 10 ثواني (مع التحقق من authReady)
 setTimeout(function() {
+    if (!authReady) return; // لا تخفي قبل اكتمال الفحص
     const screen = document.getElementById('loadingScreen');
     if (screen && screen.style.display !== 'none') {
         screen.style.display = 'none';
@@ -10312,10 +10219,7 @@ async function initApp() {
             console.log('✅ Main app shown from init');
         }, 300);
         
-        setTimeout(function() {
-            hideLoadingScreen();
-            console.log('✅ Loading screen hidden from init');
-        }, 800);
+      
         
         console.log('✅ ZI Store initialized successfully!');
         
@@ -10335,6 +10239,7 @@ window.initApp = initApp;
 // AUTH STATE LISTENER - PROFESSIONAL LOADING SCREEN
 // ============================================================
 onAuthStateChanged(auth, async (user) => {
+    authReady = true; // ✅ تم الانتهاء من فحص الحالة
     const authSection = document.getElementById('authSection');
     const mainApp = document.getElementById('mainApp');
     const loadingScreen = document.getElementById('loadingScreen');
