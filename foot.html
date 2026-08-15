@@ -1,83 +1,383 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>المباريات المباشرة - API Football</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المباريات المباشرة - واجهة احترافية</title>
     <style>
+        /* ===== إعدادات عامة ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            direction: rtl;
-            background: #f4f4f4;
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        /* ===== رأس الصفحة ===== */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: #38bdf8;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .live-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background: #ef4444;
+            border-radius: 50%;
+            margin-left: 10px;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        .last-update {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        /* ===== شبكة المباريات ===== */
+        .matches-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        /* ===== بطاقة المباراة ===== */
+        .match-card {
+            background: #1e293b;
+            border-radius: 16px;
             padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid #334155;
+            transition: transform 0.2s, border-color 0.2s;
+            position: relative;
+            overflow: hidden;
         }
-        #matches {
-            margin-top: 20px;
+
+        .match-card:hover {
+            transform: translateY(-3px);
+            border-color: #38bdf8;
         }
-        .match {
-            background: white;
-            border-radius: 8px;
-            padding: 15px;
+
+        /* شريط علوي داخل البطاقة */
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        .league-name {
+            font-weight: 600;
+            color: #cbd5e1;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-live {
+            background: #dc2626;
+            color: white;
+            animation: pulse 1.5s infinite;
+        }
+
+        .status-ht {
+            background: #f59e0b;
+            color: #0f172a;
+        }
+
+        .status-ft {
+            background: #475569;
+            color: #e2e8f0;
+        }
+
+        .status-ns {
+            background: #2563eb;
+            color: white;
+        }
+
+        .status-other {
+            background: #64748b;
+            color: white;
+        }
+
+        /* جسم البطاقة: الفرق والنتيجة */
+        .match-body {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .team {
+            flex: 1;
+            text-align: center;
+        }
+
+        .team-logo {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: #0f172a;
+            padding: 8px;
             margin-bottom: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            object-fit: contain;
+            border: 2px solid #334155;
+        }
+
+        .team-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+
+        .score-section {
+            flex: 0 0 auto;
+            text-align: center;
+        }
+
+        .score {
+            font-size: 42px;
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 1;
+            letter-spacing: 2px;
+        }
+
+        .score-colon {
+            color: #38bdf8;
+            margin: 0 5px;
+        }
+
+        .match-minute {
+            margin-top: 8px;
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        /* تذييل البطاقة */
+        .card-footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #64748b;
+            border-top: 1px solid #334155;
+            padding-top: 15px;
+        }
+
+        /* ===== رسالة عدم وجود مباريات ===== */
+        .no-matches {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 50px;
+            background: #1e293b;
+            border-radius: 16px;
+            border: 1px dashed #475569;
+            color: #94a3b8;
+        }
+
+        /* ===== شاشة التحميل ===== */
+        .loading {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 50px;
+            color: #38bdf8;
+            font-size: 18px;
+        }
+
+        .spinner {
+            border: 4px solid #334155;
+            border-top: 4px solid #38bdf8;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
-    <h1>⚽ المباريات المباشرة</h1>
-    <button onclick="getLiveMatches()">تحديث المباريات المباشرة</button>
-    <div id="matches">اضغط الزر لعرض المباريات...</div>
+    <div class="container">
+        <div class="header">
+            <h1>
+                ⚽ المباريات المباشرة
+                <span class="live-indicator"></span>
+            </h1>
+            <div class="last-update" id="lastUpdate"></div>
+        </div>
+
+        <div class="matches-grid" id="matchesContainer">
+            <!-- سيتم ملء المحتوى هنا تلقائيًا -->
+            <div class="loading">
+                <div class="spinner"></div>
+                جاري تحميل المباريات...
+            </div>
+        </div>
+    </div>
 
     <script>
-        // ضع مفتاح API الخاص بك هنا
-        const API_KEY = '646350e2452baf86f14db65e620fb67f';
+        // ===================== الإعدادات =====================
+        const API_KEY = '646350e2452baf86f14db65e620fb67f'; // ⚠️ ضع مفتاحك هنا
+        const API_URL = 'https://v3.football.api-sports.io/fixtures?live=all';
+        const REFRESH_INTERVAL = 60000; // تحديث كل 60 ثانية
 
-        async function getLiveMatches() {
-            const url = 'https://v3.football.api-sports.io/fixtures?live=all';
+        // ===================== دوال مساعدة =====================
+        function getStatusInfo(shortStatus) {
+            const map = {
+                '1H': { text: 'مباشر - الشوط الأول', cls: 'status-live' },
+                'HT': { text: 'استراحة', cls: 'status-ht' },
+                '2H': { text: 'مباشر - الشوط الثاني', cls: 'status-live' },
+                'ET': { text: 'وقت إضافي', cls: 'status-live' },
+                'P': { text: 'ركلات الترجيح', cls: 'status-live' },
+                'FT': { text: 'انتهت', cls: 'status-ft' },
+                'AET': { text: 'انتهت بعد وقت إضافي', cls: 'status-ft' },
+                'PEN': { text: 'انتهت بركلات الترجيح', cls: 'status-ft' },
+                'NS': { text: 'لم تبدأ', cls: 'status-ns' },
+                'PST': { text: 'مؤجلة', cls: 'status-other' },
+                'CANC': { text: 'ملغاة', cls: 'status-other' },
+                'ABD': { text: 'متوقفة', cls: 'status-other' },
+                'AWD': { text: 'منحت', cls: 'status-other' },
+                'WO': { text: 'انسحاب', cls: 'status-other' },
+                'LIVE': { text: 'مباشر', cls: 'status-live' }
+            };
+            return map[shortStatus] || { text: shortStatus, cls: 'status-other' };
+        }
 
+        function getElapsedTime(fixture) {
+            if (fixture.status && fixture.status.elapsed !== null && fixture.status.elapsed !== undefined) {
+                return `الدقيقة ${fixture.status.elapsed}`;
+            }
+            return '';
+        }
+
+        // ===================== جلب المباريات =====================
+        async function fetchLiveMatches() {
+            const container = document.getElementById('matchesContainer');
             try {
-                const response = await fetch(url, {
+                const response = await fetch(API_URL, {
                     headers: {
                         'x-apisports-key': API_KEY
                     }
                 });
 
                 const data = await response.json();
-                const matchesDiv = document.getElementById('matches');
 
-                // التحقق من وجود أخطاء
+                // معالجة الأخطاء من الـ API
                 if (data.errors && Object.keys(data.errors).length > 0) {
-                    matchesDiv.innerHTML = '<p>حدث خطأ: ' + JSON.stringify(data.errors) + '</p>';
+                    container.innerHTML = `<div class="no-matches">حدث خطأ: ${JSON.stringify(data.errors)}</div>`;
                     return;
+                }
+
+                // فحص الوصول
+                if (data.response && data.response.requests) {
+                    // يمكنك تجاهل ذلك
                 }
 
                 const matches = data.response;
                 if (!matches || matches.length === 0) {
-                    matchesDiv.innerHTML = '<p>لا توجد مباريات مباشرة حالياً.</p>';
+                    container.innerHTML = `<div class="no-matches">لا توجد مباريات مباشرة حالياً.</div>`;
                     return;
                 }
 
-                // بناء HTML لعرض المباريات
+                // بناء HTML للمباريات
                 let html = '';
                 matches.forEach(item => {
                     const fixture = item.fixture;
                     const teams = item.teams;
                     const goals = item.goals;
+                    const league = item.league;
+                    const statusInfo = getStatusInfo(fixture.status.short);
+                    const elapsed = getElapsedTime(fixture);
+
                     html += `
-                        <div class="match">
-                            <strong>${teams.home.name} ${goals.home ?? 0} - ${goals.away ?? 0} ${teams.away.name}</strong>
-                            <br>
-                            <small>الحالة: ${fixture.status.long} | الدقيقة: ${fixture.status.elapsed ?? 'غير متاح'}</small>
-                            <br>
-                            <small>رقم المباراة: ${fixture.id}</small>
+                        <div class="match-card">
+                            <div class="card-header">
+                                <span class="league-name">${league.name} - ${league.round || ''}</span>
+                                <span class="status-badge ${statusInfo.cls}">${statusInfo.text}</span>
+                            </div>
+                            <div class="match-body">
+                                <div class="team">
+                                    <img class="team-logo" src="${teams.home.logo}" alt="${teams.home.name}" loading="lazy">
+                                    <div class="team-name">${teams.home.name}</div>
+                                </div>
+                                <div class="score-section">
+                                    <div class="score">
+                                        ${goals.home ?? 0}<span class="score-colon">:</span>${goals.away ?? 0}
+                                    </div>
+                                    <div class="match-minute">${elapsed}</div>
+                                </div>
+                                <div class="team">
+                                    <img class="team-logo" src="${teams.away.logo}" alt="${teams.away.name}" loading="lazy">
+                                    <div class="team-name">${teams.away.name}</div>
+                                </div>
+                            </div>
+                            <div class="card-footer">معرف المباراة: ${fixture.id}</div>
                         </div>
                     `;
                 });
 
-                matchesDiv.innerHTML = html;
+                container.innerHTML = html;
+
+                // تحديث وقت آخر تحديث
+                const now = new Date();
+                document.getElementById('lastUpdate').textContent = `آخر تحديث: ${now.toLocaleTimeString('ar')}`;
             } catch (error) {
-                document.getElementById('matches').innerHTML = '<p>فشل الاتصال بالخادم: ' + error.message + '</p>';
+                container.innerHTML = `<div class="no-matches">فشل الاتصال بالخادم: ${error.message}</div>`;
             }
         }
+
+        // ===================== تشغيل تلقائي =====================
+        // أول تحميل عند فتح الصفحة
+        fetchLiveMatches();
+
+        // تحديث تلقائي كل دقيقة
+        setInterval(fetchLiveMatches, REFRESH_INTERVAL);
     </script>
 </body>
 </html>
