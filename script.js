@@ -454,35 +454,52 @@ function toggleChatbot() {
     const win = document.getElementById('chatbotWindow');
     if (win) win.classList.toggle('open');
 }
-function sendChatMessage() {
+async function sendChatMessage() {
     const input = document.getElementById('chatbotInput');
     const messages = document.getElementById('chatbotMessages');
     if (!input || !messages || !input.value.trim()) return;
+
     const userMsg = input.value.trim();
     input.value = '';
+
+    // إضافة رسالة المستخدم
     messages.innerHTML += `<div class="chatbot-msg user"><div class="msg-bubble">${userMsg}</div></div>`;
     messages.scrollTop = messages.scrollHeight;
-    setTimeout(() => {
-        const responses = {
-            'hello': '👋 Hello! How can I help you today?',
-            'hi': '👋 Hi there! What brings you to ZI Store?',
-            'help': '🛍️ I can help you with products, orders, payments, and support.',
-            'order': '📦 To place an order, add products to cart and proceed to checkout.',
-            'payment': '💳 We accept USDT, LTC, Balance, Telegram, and Binance ID.',
-            'support': '📞 Contact us via Telegram @Mitalica69 or email support@zi-store.online',
-            'licence': '🔑 Licences are generated after order confirmation.',
-            'default': '🤔 I\'m not sure. Please contact our support team.'
-        };
-        const lower = userMsg.toLowerCase();
-        let response = responses.default;
-        for (const key in responses) {
-            if (lower.includes(key)) { response = responses[key]; break; }
-        }
-        messages.innerHTML += `<div class="chatbot-msg bot"><div class="msg-bubble">${response}</div></div>`;
-        messages.scrollTop = messages.scrollHeight;
-    }, 500);
-}
 
+    // إضافة مؤشر "جارٍ الكتابة"
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'chatbot-msg bot';
+    loadingDiv.innerHTML = '<div class="msg-bubble"><i class="fas fa-spinner fa-spin"></i> Thinking...</div>';
+    messages.appendChild(loadingDiv);
+    messages.scrollTop = messages.scrollHeight;
+
+    try {
+        // استدعاء Edge Function
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/chat-with-ai`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}` // عادة يكفي، لكن يمكن استخدام توكن المستخدم للأمان
+            },
+            body: JSON.stringify({ message: userMsg })
+        });
+
+        const data = await response.json();
+        loadingDiv.remove();
+
+        if (data.success && data.reply) {
+            messages.innerHTML += `<div class="chatbot-msg bot"><div class="msg-bubble">${data.reply}</div></div>`;
+        } else {
+            throw new Error(data.error || 'Failed to get reply');
+        }
+    } catch (error) {
+        loadingDiv.remove();
+        console.error('Chatbot error:', error);
+        messages.innerHTML += `<div class="chatbot-msg bot"><div class="msg-bubble">عذرًا، حدث خطأ. يرجى المحاولة لاحقًا.</div></div>`;
+    }
+
+    messages.scrollTop = messages.scrollHeight;
+}
 function openSupportModal() { document.getElementById('supportModal')?.classList.add('open'); }
 function closeSupportModal() { document.getElementById('supportModal')?.classList.remove('open'); }
 function toggleSupportMenu() { document.getElementById('supportFloat')?.classList.toggle('open'); }
