@@ -599,6 +599,26 @@
             background: #000;
         }
 
+        /* Embed styles */
+        .zs-embed-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 30;
+            background: rgba(0,0,0,0.7);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            font-size: 18px;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .zs-embed-close.zs-visible { display: flex; }
+
         /* Overlays */
         .zs-start-overlay {
             position: absolute;
@@ -1023,6 +1043,10 @@
                 <div class="zs-player-wrapper" id="zsPlayerWrapper">
                     <div class="zs-video-container" id="zsVideoContainer">
                         <video id="zsVideo" playsinline webkit-playsinline x-webkit-airplay="allow" disableRemotePlayback crossorigin="anonymous"></video>
+                        <!-- Embed iframe -->
+                        <iframe id="zsEmbedFrame" style="display:none; width:100%; height:100%; border:none; position:absolute; top:0; left:0; z-index:20;" allowfullscreen></iframe>
+                        <button class="zs-embed-close" id="zsEmbedClose" title="Close embed">✕</button>
+
                         <div class="zs-watermark">
                             <div class="zs-watermark-icon">Z</div>
                             <span class="zs-watermark-text">Zi Store</span>
@@ -1080,7 +1104,7 @@
                                 <li data-speed="2">2x</li>
                             </ul>
                         </div>
-                        <!-- ======== NOTE: id="zsQualityDropdown" added here ======== -->
+                        <!-- Quality dropdown with id -->
                         <div class="zs-dropdown" id="zsQualityDropdown">
                             <button class="zs-btn" id="zsBtnQuality" title="Quality">
                                 <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z"/></svg>
@@ -1142,8 +1166,8 @@
                 <input type="text" id="zsExternalName" placeholder="e.g., Match Channel">
             </div>
             <div class="zs-modal-field">
-                <label for="zsExternalUrl">Stream URL (m3u8 / mpd / mp4)</label>
-                <input type="url" id="zsExternalUrl" placeholder="https://example.com/stream.m3u8" required>
+                <label for="zsExternalUrl">Stream URL (m3u8 / mpd / mp4 / embed page)</label>
+                <input type="url" id="zsExternalUrl" placeholder="https://example.com/stream.m3u8 or https://site.com/embed/123" required>
             </div>
             <div class="zs-modal-actions">
                 <button class="zs-modal-btn zs-cancel" id="zsBtnCancelModal">Cancel</button>
@@ -1155,10 +1179,12 @@
     <script>
         (function() {
             // ==================== CONFIGURATION ====================
-            const SUPABASE_URL = 'https://kvsyzgavfxnwqmtsginv.supabase.co';
-            const SUPABASE_ANON_KEY = 'sb_publishable_1uSIqgNONAV53GjOoBoZUw_niAGJXO6';
+            // ⚠️ Replace with your actual Supabase credentials if using Supabase
+            const SUPABASE_URL = 'YOUR_SUPABASE_URL'; // e.g., https://abcdefgh.supabase.co
+            const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
             const SUPABASE_FUNCTION = 'fetch-m3u';
 
+            // The M3U URL to load automatically (you can change this)
             const AUTO_LOAD_M3U_URL = 'http://s4.360iptv.net:8000/get.php?username=523374330593&password=523374330593&type=m3u_plus&output=ts';
 
             // ==================== Theme Management ====================
@@ -1175,7 +1201,7 @@
                 btn.addEventListener('click', () => setTheme(btn.dataset.theme));
             });
 
-            // ==================== Default Channels ====================
+            // ==================== Default Channels (fallback) ====================
             const defaultChannels = [
                 { id: 1, name: "beIN Sports 1 HD", category: "رياضة", logo: "B1", url: "https://iptv-org.github.io/iptv/categories/sports.m3u", live: true },
                 { id: 2, name: "Al Jazeera Arabic", category: "أخبار", logo: "AJ", url: "https://live-hls-web-aje.getaj.net/AJE/01.m3u8", live: true },
@@ -1190,6 +1216,8 @@
             const wrapper = document.getElementById('zsPlayerWrapper');
             const video = document.getElementById('zsVideo');
             const videoContainer = document.getElementById('zsVideoContainer');
+            const embedFrame = document.getElementById('zsEmbedFrame');
+            const embedCloseBtn = document.getElementById('zsEmbedClose');
             const liveBadge = document.getElementById('zsLiveBadge');
             const loadingEl = document.getElementById('zsLoading');
             const flashEl = document.getElementById('zsFlash');
@@ -1248,8 +1276,9 @@
             let screenshotCanvas = null;
             let activeCategory = 'all';
             let searchQuery = '';
+            let isEmbedMode = false;
 
-            // ==================== Helper Functions ====================
+            // Helper functions (same as before)
             function formatTime(s) {
                 if (!isFinite(s) || s < 0) return '--:--';
                 const h = Math.floor(s / 3600);
@@ -1358,7 +1387,7 @@
                 localStorage.setItem('zs-speed', speed);
             }
             function triggerScreenshot() {
-                if (!video.videoWidth) return;
+                if (!video.videoWidth || isEmbedMode) return; // disable screenshot in embed mode
                 if (!screenshotCanvas) screenshotCanvas = document.createElement('canvas');
                 screenshotCanvas.width = video.videoWidth;
                 screenshotCanvas.height = video.videoHeight;
@@ -1386,12 +1415,14 @@
                 localStorage.setItem('zs-theater', wrapper.classList.contains('zs-theater') ? '1' : '0');
             }
             async function togglePiP() {
+                if (isEmbedMode) return; // PiP not supported in embed mode
                 try {
                     if (document.pictureInPictureElement) await document.exitPictureInPicture();
                     else if (document.pictureInPictureEnabled && video.readyState >= 1) await video.requestPictureInPicture();
                 } catch(e) {}
             }
             function togglePlay() {
+                if (isEmbedMode) return; // no play/pause for iframe
                 if (video.paused) video.play().catch(()=>{});
                 else video.pause();
                 updatePlayButton();
@@ -1403,6 +1434,7 @@
                 localStorage.setItem('zs-volume', val);
             }
             function toggleMute() {
+                if (isEmbedMode) return;
                 if (video.muted || video.volume === 0) {
                     video.muted = false;
                     video.volume = lastVolume / 100 || 1;
@@ -1429,6 +1461,52 @@
                 if (!video.paused) controlsHideTimeout = setTimeout(hideControls, 3500);
             }
 
+            // ==================== Embed Functions ====================
+            function isEmbedUrl(url) {
+                const lower = url.toLowerCase();
+                // If contains '/embed/' or 'embed' then treat as embed
+                if (lower.includes('/embed/') || lower.includes('embed')) return true;
+                // If not a media extension, likely a page -> embed
+                if (!lower.endsWith('.m3u8') && !lower.endsWith('.mpd') && !lower.endsWith('.mp4') &&
+                    !lower.endsWith('.webm') && !lower.endsWith('.ogg') && !lower.endsWith('.mov')) {
+                    return true;
+                }
+                return false;
+            }
+            function showEmbed(url) {
+                // Hide video and show iframe
+                video.style.display = 'none';
+                embedFrame.style.display = 'block';
+                embedFrame.src = url;
+                isEmbedMode = true;
+                hideLoading();
+                hideError();
+                startOverlay.classList.add('zs-hidden');
+                controls.style.display = 'none';
+                liveBadge.classList.remove('zs-visible');
+                embedCloseBtn.classList.add('zs-visible');
+            }
+            function hideEmbed() {
+                video.style.display = 'block';
+                embedFrame.style.display = 'none';
+                embedFrame.src = '';
+                isEmbedMode = false;
+                controls.style.display = 'flex';
+                embedCloseBtn.classList.remove('zs-visible');
+                // Reset video controls to visible if not hidden
+                showControls();
+            }
+            // Event listener for close button
+            embedCloseBtn.addEventListener('click', () => {
+                hideEmbed();
+                // Optionally reset to start overlay or keep video paused
+                if (currentStreamUrl && !isEmbedMode) {
+                    // Do nothing, user can choose another channel
+                } else {
+                    startOverlay.classList.remove('zs-hidden');
+                }
+            });
+
             // ==================== Stream Loading ====================
             function destroyExistingPlayer() {
                 if (hls) { hls.destroy(); hls = null; }
@@ -1446,8 +1524,18 @@
                 hideLoading();
                 setLiveMode(false);
                 buildQualityMenu();
+                // Ensure embed is hidden when switching to normal stream
+                hideEmbed();
             }
             function loadStream(url) {
+                // If embed URL detected, show iframe
+                if (isEmbedUrl(url)) {
+                    destroyExistingPlayer();
+                    showEmbed(url);
+                    return;
+                }
+                // Otherwise normal video loading
+                hideEmbed();
                 destroyExistingPlayer();
                 hideError();
                 showLoading();
@@ -1636,7 +1724,7 @@
                 loadStream(channel.url);
             }
 
-            // ==================== External Link & M3U (via Supabase) ====================
+            // ==================== External Link & M3U ====================
             function openModal() {
                 modalOverlay.classList.add('zs-open');
                 externalUrlInput.value = '';
@@ -1651,44 +1739,54 @@
                 renderChannels();
                 changeChannel(channel);
             }
-         async function loadM3U(url) {
-    try {
-        // استخدام البروكسي المحلي (نفس النطاق)
-        const proxyUrl = '/proxy.php?url=' + encodeURIComponent(url);
-        const response = await fetch(proxyUrl);
-        if (!response.ok) throw new Error('Failed to load M3U via proxy');
-        const text = await response.text();
-        const lines = text.split('\n');
-        const parsed = [];
-        let currentName = '';
-        for (const line of lines) {
-            const trimmed = line.trim();
-            if (trimmed.startsWith('#EXTINF')) {
-                const nameMatch = trimmed.match(/,(.*)$/);
-                if (nameMatch) currentName = nameMatch[1].trim();
-            } else if (trimmed && !trimmed.startsWith('#')) {
-                parsed.push({
-                    id: externalIdCounter++,
-                    name: currentName || 'Channel ' + (parsed.length + 1),
-                    category: 'خارجية',
-                    logo: '📄',
-                    url: trimmed,
-                    live: true
-                });
-                currentName = '';
+            async function loadM3U(url) {
+                try {
+                    // Use a CORS proxy; try multiple options if one fails
+                    let text = '';
+                    try {
+                        const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+                        const response = await fetch(proxyUrl);
+                        if (response.ok) text = await response.text();
+                        else throw new Error('allorigins failed');
+                    } catch (e) {
+                        // Fallback to another proxy
+                        const proxyUrl = 'https://corsproxy.io/?url=' + encodeURIComponent(url);
+                        const response = await fetch(proxyUrl);
+                        if (!response.ok) throw new Error('corsproxy failed');
+                        text = await response.text();
+                    }
+                    const lines = text.split('\n');
+                    const parsed = [];
+                    let currentName = '';
+                    for (const line of lines) {
+                        const trimmed = line.trim();
+                        if (trimmed.startsWith('#EXTINF')) {
+                            const nameMatch = trimmed.match(/,(.*)$/);
+                            if (nameMatch) currentName = nameMatch[1].trim();
+                        } else if (trimmed && (trimmed.startsWith('http://') || trimmed.startsWith('https://'))) {
+                            parsed.push({
+                                id: externalIdCounter++,
+                                name: currentName || 'Channel ' + (parsed.length + 1),
+                                category: 'خارجية',
+                                logo: '📄',
+                                url: trimmed,
+                                live: true
+                            });
+                            currentName = '';
+                        }
+                    }
+                    if (parsed.length === 0) {
+                        alert('No channels found in M3U file.');
+                        return;
+                    }
+                    channels = channels.concat(parsed);
+                    renderChannels();
+                    if (parsed[0]) changeChannel(parsed[0]);
+                } catch (e) {
+                    alert('Error loading M3U: ' + e.message);
+                }
             }
-        }
-        if (parsed.length === 0) {
-            alert('No channels found in M3U file.');
-            return;
-        }
-        channels = channels.concat(parsed);
-        renderChannels();
-        if (parsed[0]) changeChannel(parsed[0]);
-    } catch (e) {
-        alert('Error loading M3U: ' + e.message);
-    }
-}
+
             // ==================== Event Listeners ====================
             startPlayBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -1712,7 +1810,7 @@
             errorRetry.addEventListener('click', () => { hideError(); reconnectAttempts = 0; if (currentStreamUrl) loadStream(currentStreamUrl); });
 
             progressWrap.addEventListener('click', (e) => {
-                if (isLive || !video.duration || !isFinite(video.duration)) return;
+                if (isLive || isEmbedMode || !video.duration || !isFinite(video.duration)) return;
                 const rect = progressTrack.getBoundingClientRect();
                 const pct = (e.clientX - rect.left) / rect.width;
                 video.currentTime = pct * video.duration;
@@ -1722,7 +1820,7 @@
             });
             let isDragging = false;
             progressWrap.addEventListener('mousedown', (e) => {
-                if (isLive || !video.duration || !isFinite(video.duration)) return;
+                if (isLive || isEmbedMode || !video.duration || !isFinite(video.duration)) return;
                 isDragging = true;
                 const rect = progressTrack.getBoundingClientRect();
                 const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
@@ -1751,7 +1849,7 @@
             video.addEventListener('loadedmetadata', () => { hideLoading(); updateTimeDisplay(); updateProgress(); });
             video.addEventListener('error', () => {
                 hideLoading();
-                if (isHLS || isDASH) return;
+                if (isHLS || isDASH || isEmbedMode) return;
                 const err = video.error;
                 let msg = 'Video playback error';
                 if (err) {
@@ -1766,33 +1864,39 @@
             });
 
             wrapper.addEventListener('click', (e) => {
-                if (e.target === wrapper || e.target === videoContainer || e.target === video) togglePlay();
+                if (e.target === wrapper || e.target === videoContainer || e.target === video) {
+                    if (isEmbedMode) return; // don't toggle play in embed mode
+                    togglePlay();
+                }
             });
-            video.addEventListener('click', e => { e.stopPropagation(); togglePlay(); });
+            video.addEventListener('click', e => { e.stopPropagation(); if (!isEmbedMode) togglePlay(); });
             wrapper.addEventListener('dblclick', (e) => {
-                if (e.target === video || e.target === videoContainer || e.target === wrapper) toggleFullscreen();
+                if (e.target === video || e.target === videoContainer || e.target === wrapper) {
+                    if (isEmbedMode) return;
+                    toggleFullscreen();
+                }
             });
             wrapper.addEventListener('mousemove', showControls);
             wrapper.addEventListener('mouseenter', showControls);
-            wrapper.addEventListener('mouseleave', () => { if (!video.paused) hideControls(); closeAllDropdowns(); });
+            wrapper.addEventListener('mouseleave', () => { if (!video.paused && !isEmbedMode) hideControls(); closeAllDropdowns(); });
             wrapper.addEventListener('touchstart', (e) => { if (e.target === video || e.target === videoContainer || e.target === wrapper) showControls(); }, { passive: true });
 
             document.addEventListener('keydown', (e) => {
                 const activeEl = document.activeElement;
                 if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) return;
                 switch (e.key.toLowerCase()) {
-                    case ' ': case 'k': e.preventDefault(); togglePlay(); break;
-                    case 'f': e.preventDefault(); toggleFullscreen(); break;
-                    case 't': e.preventDefault(); toggleTheater(); break;
-                    case 'm': e.preventDefault(); toggleMute(); break;
-                    case 'i': e.preventDefault(); togglePiP(); break;
-                    case 's': if (!e.ctrlKey && !e.metaKey) { e.preventDefault(); triggerScreenshot(); } break;
-                    case 'r': if (!e.ctrlKey && !e.metaKey) { e.preventDefault(); reconnectAttempts = 0; if (currentStreamUrl) loadStream(currentStreamUrl); } break;
-                    case 'arrowup': e.preventDefault(); setVolume(Math.min(100, (video.volume * 100) + 5)); break;
-                    case 'arrowdown': e.preventDefault(); setVolume(Math.max(0, (video.volume * 100) - 5)); break;
-                    case 'arrowleft': if (!isLive && video.duration && isFinite(video.duration)) { e.preventDefault(); video.currentTime = Math.max(0, video.currentTime - 10); updateProgress(); updateTimeDisplay(); showControls(); } break;
-                    case 'arrowright': if (!isLive && video.duration && isFinite(video.duration)) { e.preventDefault(); video.currentTime = Math.min(video.duration, video.currentTime + 10); updateProgress(); updateTimeDisplay(); showControls(); } break;
-                    case 'escape': closeAllDropdowns(); if (document.fullscreenElement) toggleFullscreen(); if (modalOverlay.classList.contains('zs-open')) closeModal(); break;
+                    case ' ': case 'k': e.preventDefault(); if (!isEmbedMode) togglePlay(); break;
+                    case 'f': e.preventDefault(); if (!isEmbedMode) toggleFullscreen(); break;
+                    case 't': e.preventDefault(); if (!isEmbedMode) toggleTheater(); break;
+                    case 'm': e.preventDefault(); if (!isEmbedMode) toggleMute(); break;
+                    case 'i': e.preventDefault(); if (!isEmbedMode) togglePiP(); break;
+                    case 's': if (!e.ctrlKey && !e.metaKey && !isEmbedMode) { e.preventDefault(); triggerScreenshot(); } break;
+                    case 'r': if (!e.ctrlKey && !e.metaKey && !isEmbedMode) { e.preventDefault(); reconnectAttempts = 0; if (currentStreamUrl) loadStream(currentStreamUrl); } break;
+                    case 'arrowup': e.preventDefault(); if (!isEmbedMode) setVolume(Math.min(100, (video.volume * 100) + 5)); break;
+                    case 'arrowdown': e.preventDefault(); if (!isEmbedMode) setVolume(Math.max(0, (video.volume * 100) - 5)); break;
+                    case 'arrowleft': if (!isLive && !isEmbedMode && video.duration && isFinite(video.duration)) { e.preventDefault(); video.currentTime = Math.max(0, video.currentTime - 10); updateProgress(); updateTimeDisplay(); showControls(); } break;
+                    case 'arrowright': if (!isLive && !isEmbedMode && video.duration && isFinite(video.duration)) { e.preventDefault(); video.currentTime = Math.min(video.duration, video.currentTime + 10); updateProgress(); updateTimeDisplay(); showControls(); } break;
+                    case 'escape': closeAllDropdowns(); if (document.fullscreenElement) toggleFullscreen(); if (modalOverlay.classList.contains('zs-open')) closeModal(); if (isEmbedMode) hideEmbed(); break;
                 }
             });
 
@@ -1855,8 +1959,8 @@
                 startOverlay.classList.remove('zs-hidden');
                 renderChannels();
 
-                // Auto-load M3U playlist via Supabase function
-                loadM3U(AUTO_LOAD_M3U_URL);
+                // Auto-load M3U playlist (uncomment and set URL if you want automatic loading)
+                // loadM3U(AUTO_LOAD_M3U_URL);
             }
             init();
 
@@ -1867,8 +1971,8 @@
                 loadM3U,
                 changeChannel,
                 load: loadStream,
-                play: () => { video.play().catch(()=>{}); updatePlayButton(); },
-                pause: () => { video.pause(); updatePlayButton(); },
+                play: () => { if (!isEmbedMode) { video.play().catch(()=>{}); updatePlayButton(); } },
+                pause: () => { if (!isEmbedMode) { video.pause(); updatePlayButton(); } },
                 togglePlay,
                 setVolume,
                 toggleMute,
@@ -1880,11 +1984,11 @@
                 setSpeed,
                 getVideo: () => video,
                 isLive: () => isLive,
-                reload: () => { reconnectAttempts = 0; if (currentStreamUrl) loadStream(currentStreamUrl); },
+                reload: () => { if (!isEmbedMode) { reconnectAttempts = 0; if (currentStreamUrl) loadStream(currentStreamUrl); } },
                 destroy: destroyExistingPlayer,
             };
-            console.log('Zi Store Player ready');
+            console.log('Zi Store Player ready with embed support');
         })();
     </script>
 </body>
-</html>
+    </html>
