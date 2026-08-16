@@ -10,9 +10,9 @@
         :root {
             --bg: #0a0a0f;
             --surface: #12121a;
-            --surface-glass: rgba(18, 18, 26, 0.85);
+            --surface-glass: rgba(18, 18, 26, 0.9);
             --surface-hover: rgba(255,255,255,0.06);
-            --border: rgba(255,255,255,0.1);
+            --border: rgba(255,255,255,0.12);
             --text: #f5f5f5;
             --text-secondary: #b0b0b8;
             --accent: #e4a83d;
@@ -33,7 +33,7 @@
             --surface: #ffffff;
             --surface-glass: rgba(255,255,255,0.9);
             --surface-hover: rgba(0,0,0,0.04);
-            --border: rgba(0,0,0,0.08);
+            --border: rgba(0,0,0,0.1);
             --text: #1a1a2e;
             --text-secondary: #555;
             --accent: #0284c7;
@@ -50,7 +50,7 @@
             --surface: #2d1f14;
             --surface-glass: rgba(45,31,20,0.9);
             --surface-hover: rgba(255,255,255,0.08);
-            --border: rgba(255,215,0,0.3);
+            --border: rgba(255,215,0,0.35);
             --text: #ffd700;
             --text-secondary: #d4a574;
             --accent: #ff6b00;
@@ -112,16 +112,20 @@
         .zs-theme-btn:hover { color: var(--text); background: var(--surface-hover); }
         .zs-theme-btn.zs-active { background: var(--accent); color: #0a0a0f; box-shadow: 0 0 15px var(--accent-glow); }
 
-        /* التخطيط الرئيسي */
+        /* التخطيط */
         .zs-main { flex: 1; display: flex; flex-wrap: wrap; gap: 20px; padding: 20px; align-items: flex-start; }
         .zs-player-section { flex: 1 1 100%; max-width: 100%; min-width: 0; }
-        @media (min-width: 1000px) { .zs-player-section { flex: 1 1 calc(100% - 380px); max-width: calc(100% - 380px); } }
+        @media (min-width: 1000px) { 
+            .zs-player-section { flex: 1 1 calc(100% - 440px); max-width: calc(100% - 440px); }
+        }
         .zs-channels-section {
             flex: 1 1 100%; background: var(--surface-glass); backdrop-filter: blur(20px);
             border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden;
             display: flex; flex-direction: column; min-height: 400px; max-height: 70vh; box-shadow: var(--shadow);
         }
-        @media (min-width: 1000px) { .zs-channels-section { flex: 0 0 360px; min-height: auto; max-height: calc(100vh - 140px); position: sticky; top: 90px; } }
+        @media (min-width: 1000px) { 
+            .zs-channels-section { flex: 0 0 420px; min-height: auto; max-height: calc(100vh - 140px); position: sticky; top: 90px; }
+        }
         .zs-channels-header { padding: 16px 18px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px; background: var(--surface-glass); }
         .zs-channels-title { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: var(--accent); }
         .zs-search-box { position: relative; }
@@ -132,7 +136,6 @@
         }
         .zs-search-box input:focus { border-color: var(--accent); background: var(--surface-glass); box-shadow: 0 0 0 3px rgba(228,168,61,0.15); }
         .zs-search-icon { position: absolute; top: 50%; left: 14px; transform: translateY(-50%); color: var(--text-secondary); pointer-events: none; }
-
         .zs-category-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
         .zs-category-tab {
             padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border); background: transparent;
@@ -141,38 +144,50 @@
         }
         .zs-category-tab.zs-active { background: var(--accent); color: #0a0a0f; border-color: var(--accent); font-weight: 700; }
 
-        .zs-channels-list { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+        .zs-channels-list { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 12px; }
 
-        /* بطاقة القناة/المباراة */
+        /* بطاقة المباراة - كبيرة وواضحة */
         .zs-channel-card {
-            display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: var(--radius-sm);
-            background: var(--surface-hover); border: 1px solid var(--border); cursor: pointer;
-            transition: all var(--transition); position: relative; overflow: hidden;
+            display: flex; align-items: center; gap: 16px; padding: 20px 18px;
+            border-radius: var(--radius-sm); background: var(--surface-hover); border: 1px solid var(--border);
+            cursor: pointer; transition: all var(--transition); position: relative; overflow: hidden;
+            min-height: 120px;
         }
-        .zs-channel-card:hover { background: rgba(255,255,255,0.08); border-color: var(--accent); transform: translateY(-2px); }
-        .zs-channel-card.zs-active { background: linear-gradient(135deg, rgba(228,168,61,0.2), rgba(228,168,61,0.05)); border-color: var(--accent); }
-        .zs-channel-logos { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+        .zs-channel-card:hover { background: rgba(255,255,255,0.08); border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+        .zs-channel-card.zs-active { background: linear-gradient(135deg, rgba(228,168,61,0.25), rgba(228,168,61,0.08)); border-color: var(--accent); box-shadow: 0 4px 20px rgba(228,168,61,0.4); }
+
+        .zs-channel-logos { display: flex; gap: 10px; align-items: center; flex-shrink: 0; }
         .zs-team-logo {
-            width: 56px; height: 56px; border-radius: 50%; background: #1a1a2e; display: flex; align-items: center; justify-content: center;
-            font-weight: 700; font-size: 18px; color: #fff; overflow: hidden; border: 2px solid var(--border);
+            width: 72px; height: 72px; border-radius: 50%; background: #1a1a2e;
+            display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 22px; color: #fff;
+            overflow: hidden; border: 2px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
         .zs-team-logo img { width: 100%; height: 100%; object-fit: contain; }
-        .zs-channel-info { flex: 1; min-width: 0; }
-        .zs-channel-match { font-weight: 700; font-size: 16px; line-height: 1.4; }
-        .zs-channel-meta { font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+
+        .zs-channel-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+        .zs-channel-match { font-weight: 800; font-size: 20px; line-height: 1.3; color: var(--text); white-space: normal; }
+        .zs-score {
+            font-weight: 900; font-size: 24px; color: var(--accent);
+            background: rgba(228,168,61,0.1); padding: 4px 12px; border-radius: 12px; align-self: flex-start;
+        }
+        .zs-channel-meta { font-size: 14px; color: var(--text-secondary); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
         .zs-status-badge {
-            padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; white-space: nowrap;
+            padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 800; white-space: nowrap; letter-spacing: 0.5px;
         }
         .zs-status-live { background: var(--live); color: #fff; animation: pulse 1.5s infinite; }
         .zs-status-upcoming { background: var(--accent); color: #0a0a0f; }
         .zs-status-ended { background: #555; color: #ddd; }
-        @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 var(--live-glow); } 50% { box-shadow: 0 0 12px var(--live-glow); } }
+        @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 var(--live-glow); } 50% { box-shadow: 0 0 16px var(--live-glow); } }
 
-        /* مشغل الفيديو */
+        /* المشغل */
         .zs-player-wrapper { position: relative; width: 100%; background: var(--surface); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); aspect-ratio: 16/9; }
         .zs-video-container { width: 100%; height: 100%; background: #000; }
         video { width: 100%; height: 100%; object-fit: contain; display: block; }
-        /* عناصر التحكم والمؤثرات */
+        .zs-live-badge { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.7); color: #fff; padding: 6px 14px; border-radius: 20px; display: none; align-items: center; gap: 6px; }
+        .zs-live-badge.zs-visible { display: flex; }
+        .zs-start-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.7); z-index: 10; }
+        .zs-start-overlay.zs-hidden { display: none; }
+        .zs-start-play-btn { width: 80px; height: 80px; border-radius: 50%; background: var(--accent); color: #0a0a0f; font-size: 32px; border: none; cursor: pointer; }
         .zs-controls { position: absolute; bottom: 0; left: 0; right: 0; background: var(--surface-glass); backdrop-filter: blur(20px); padding: 8px 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
         .zs-btn { background: none; border: none; color: var(--text); cursor: pointer; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all var(--transition); }
         .zs-btn:hover { background: var(--surface-hover); }
@@ -181,23 +196,18 @@
         .zs-time-display { font-size: 12px; color: var(--text-secondary); }
         .zs-progress-wrap { flex: 1; min-width: 60px; height: 4px; background: var(--border); border-radius: 2px; cursor: pointer; }
         .zs-progress-filled { height: 100%; background: var(--accent); border-radius: 2px; width: 0%; }
-        .zs-live-badge { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.7); color: #fff; padding: 6px 14px; border-radius: 20px; display: none; align-items: center; gap: 6px; }
-        .zs-live-badge.zs-visible { display: flex; }
-        .zs-start-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.7); z-index: 10; }
-        .zs-start-overlay.zs-hidden { display: none; }
-        .zs-start-play-btn { width: 80px; height: 80px; border-radius: 50%; background: var(--accent); color: #0a0a0f; font-size: 32px; border: none; cursor: pointer; }
         .zs-loading, .zs-error-overlay { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.5); z-index: 11; }
         .zs-loading.zs-visible, .zs-error-overlay.zs-visible { display: flex; }
         .zs-spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* استجابة */
         @media (max-width: 600px) {
             .zs-header { padding: 10px; }
             .zs-main { padding: 10px; gap: 10px; }
-            .zs-channel-card { padding: 12px; }
-            .zs-team-logo { width: 44px; height: 44px; font-size: 14px; }
-            .zs-channel-match { font-size: 14px; }
+            .zs-channel-card { padding: 12px; min-height: 90px; }
+            .zs-team-logo { width: 50px; height: 50px; font-size: 16px; }
+            .zs-channel-match { font-size: 16px; }
+            .zs-score { font-size: 18px; }
         }
     </style>
 </head>
@@ -275,6 +285,37 @@
                 { id: 103, name: "beIN Sports 3 HD", category: "Sports", logo: "B3", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein303.m3u8", live: true },
             ];
 
+            // Static fallback matches (from JSON)
+            const staticMatches = [
+                {
+                    homeName: "Al Taawon",
+                    awayName: "Al Khaleej Saihat",
+                    leagueName: "Pro League",
+                    homeLogoUrl: "https://admin.golive-pro.online/uploads/76115ee5-a5a9-470d-92ff-fc6890bb2851.png",
+                    awayLogoUrl: "https://admin.golive-pro.online/uploads/13056aaa-bdbe-431d-9fa6-be8097c4186c.png",
+                    startTime: "2026-08-15T16:15:00.000Z",
+                    sources: [{ streamUrl: "https://live.aab1.top:443/odai/123321/302" }]
+                },
+                {
+                    homeName: "Alaves",
+                    awayName: "Getafe",
+                    leagueName: "La Liga",
+                    homeLogoUrl: "https://admin.golive-pro.online/uploads/05d73ed5-2b98-4918-b02f-08d5969ee97c.png",
+                    awayLogoUrl: "https://admin.golive-pro.online/uploads/df983992-cd8e-48ea-9c1d-5cea82df1e29.png",
+                    startTime: "2026-08-15T17:30:00.000Z",
+                    sources: [{ streamUrl: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein303.m3u8" }]
+                },
+                {
+                    homeName: "Al-Nassr",
+                    awayName: "Al-Fateh",
+                    leagueName: "Pro League",
+                    homeLogoUrl: "https://admin.golive-pro.online/uploads/c33cb6af-1f1a-4592-b56b-26aaf2a960e2.png",
+                    awayLogoUrl: "https://admin.golive-pro.online/uploads/8cb619e5-e578-4c7d-803c-3e9186800bb2.png",
+                    startTime: "2026-08-15T18:00:00.000Z",
+                    sources: [{ streamUrl: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/thman1.m3u8" }]
+                }
+            ];
+
             let channels = [...defaultChannels];
             let currentChannelId = null;
             let currentStreamUrl = '';
@@ -289,7 +330,6 @@
             const loadingEl = document.getElementById('zsLoading');
             const errorOverlay = document.getElementById('zsErrorOverlay');
             const startOverlay = document.getElementById('zsStartOverlay');
-            const controls = document.querySelector('.zs-controls');
             const btnPlay = document.getElementById('zsBtnPlay');
             const btnFullscreen = document.getElementById('zsBtnFullscreen');
             const volumeSlider = document.getElementById('zsVolumeSlider');
@@ -300,46 +340,30 @@
             const searchInput = document.getElementById('zsSearchInput');
             const categoryTabs = document.getElementById('zsCategoryTabs');
 
-            // Theme handling
+            // Theme
             function setTheme(theme) {
                 document.documentElement.setAttribute('data-theme', theme);
                 localStorage.setItem('zs-theme', theme);
-                document.querySelectorAll('.zs-theme-btn').forEach(btn => {
-                    btn.classList.toggle('zs-active', btn.dataset.theme === theme);
-                });
+                document.querySelectorAll('.zs-theme-btn').forEach(btn => btn.classList.toggle('zs-active', btn.dataset.theme === theme));
             }
-            const savedTheme = localStorage.getItem('zs-theme') || 'dark';
-            setTheme(savedTheme);
-            document.querySelectorAll('.zs-theme-btn').forEach(btn => {
-                btn.addEventListener('click', () => setTheme(btn.dataset.theme));
-            });
+            setTheme(localStorage.getItem('zs-theme') || 'dark');
+            document.querySelectorAll('.zs-theme-btn').forEach(btn => btn.addEventListener('click', () => setTheme(btn.dataset.theme)));
 
-            // Helper functions
+            // Helpers
             function showLoading() { loadingEl.classList.add('zs-visible'); }
             function hideLoading() { loadingEl.classList.remove('zs-visible'); }
             function showError() { errorOverlay.classList.add('zs-visible'); }
             function hideError() { errorOverlay.classList.remove('zs-visible'); }
             function setLiveMode(live) { liveBadge.classList.toggle('zs-visible', live); }
             function formatTime(s) { if (!isFinite(s) || s < 0) return '--:--'; const m = Math.floor(s/60); const sec = Math.floor(s%60); return `${m}:${sec.toString().padStart(2,'0')}`; }
-
-            function updateTimeDisplay() {
-                if (!video.duration) return;
-                timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
-            }
-            function updateProgress() {
-                if (!video.duration) return;
-                progressFilled.style.width = (video.currentTime / video.duration * 100) + '%';
-            }
+            function updateTimeDisplay() { if (video.duration) timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`; }
+            function updateProgress() { if (video.duration) progressFilled.style.width = (video.currentTime / video.duration * 100) + '%'; }
 
             // Stream loading
             function destroyPlayer() {
                 if (hls) { hls.destroy(); hls = null; }
-                video.pause();
-                video.removeAttribute('src');
-                video.load();
-                hideError();
-                hideLoading();
-                setLiveMode(false);
+                video.pause(); video.removeAttribute('src'); video.load();
+                hideError(); hideLoading(); setLiveMode(false);
             }
             function loadStream(url) {
                 destroyPlayer();
@@ -350,46 +374,34 @@
                         hls = new Hls();
                         hls.loadSource(url);
                         hls.attachMedia(video);
-                        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                            hideLoading();
-                            hideError();
-                            setLiveMode(true);
-                            video.play().catch(()=>{});
-                            updateTimeDisplay();
-                        });
-                        hls.on(Hls.Events.ERROR, (e, data) => {
-                            if (data.fatal) { showError(); hideLoading(); }
-                        });
+                        hls.on(Hls.Events.MANIFEST_PARSED, () => { hideLoading(); hideError(); setLiveMode(true); video.play().catch(()=>{}); updateTimeDisplay(); });
+                        hls.on(Hls.Events.ERROR, (e, data) => { if (data.fatal) { showError(); hideLoading(); } });
                     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                        video.src = url;
-                        video.play();
+                        video.src = url; video.play();
                     }
                 } else {
-                    video.src = url;
-                    video.play().catch(()=>{ showError(); hideLoading(); });
+                    video.src = url; video.play().catch(()=>{ showError(); hideLoading(); });
                 }
             }
 
             // Rendering
-            function getLogoHTML(url, fallback) {
-                if (url && url.startsWith('http')) {
-                    return `<img src="${url}" alt="${fallback}" style="width:100%;height:100%;object-fit:contain;">`;
-                }
-                return fallback || '?';
+            function getStatus(startTime) {
+                const now = new Date();
+                const start = new Date(startTime);
+                const end = new Date(start.getTime() + 3 * 60 * 60 * 1000);
+                if (now < start) return 'upcoming';
+                if (now >= start && now <= end) return 'live';
+                return 'ended';
             }
-            function getStatusBadge(ch) {
-                if (ch.live && ch.startTime) {
-                    const now = new Date();
-                    const start = new Date(ch.startTime);
-                    if (now >= start && now <= new Date(start.getTime() + 3*60*60*1000)) return '<span class="zs-status-badge zs-status-live">LIVE</span>';
-                    if (now < start) return '<span class="zs-status-badge zs-status-upcoming">UPCOMING</span>';
-                    return '<span class="zs-status-badge zs-status-ended">ENDED</span>';
-                }
-                return ch.live ? '<span class="zs-status-badge zs-status-live">LIVE</span>' : '';
+            function getStatusBadge(startTime) {
+                const status = getStatus(startTime);
+                if (status === 'live') return '<span class="zs-status-badge zs-status-live">LIVE</span>';
+                if (status === 'upcoming') return '<span class="zs-status-badge zs-status-upcoming">UPCOMING</span>';
+                return '<span class="zs-status-badge zs-status-ended">ENDED</span>';
             }
             function renderChannels() {
-                let filtered = channels.filter(ch => {
-                    const matchCategory = activeCategory === 'all' || (activeCategory === 'Live' && ch.live) || (activeCategory === 'Sports' && ch.category === 'Sports');
+                const filtered = channels.filter(ch => {
+                    const matchCategory = activeCategory === 'all' || (activeCategory === 'Live' && ch.live && ch.startTime && getStatus(ch.startTime) === 'live') || (activeCategory === 'Sports' && ch.category === 'Sports');
                     const matchSearch = ch.name.toLowerCase().includes(searchQuery.toLowerCase());
                     return matchCategory && matchSearch;
                 });
@@ -402,21 +414,22 @@
                 channelsList.innerHTML = filtered.map(ch => {
                     const homeLogo = ch.homeLogo || ch.logo;
                     const awayLogo = ch.awayLogo || '';
-                    const matchName = ch.name.includes(' vs ') ? ch.name : ch.name;
                     const homeName = ch.homeName || (ch.name.split(' vs ')[0] || '');
                     const awayName = ch.awayName || (ch.name.split(' vs ')[1] || '');
+                    const score = ch.homeScore !== undefined && ch.awayScore !== undefined ? `${ch.homeScore} - ${ch.awayScore}` : '';
                     return `
                         <div class="zs-channel-card ${ch.id === currentChannelId ? 'zs-active' : ''}" data-id="${ch.id}">
                             <div class="zs-channel-logos">
-                                <div class="zs-team-logo">${getLogoHTML(homeLogo, homeName.charAt(0))}</div>
-                                ${awayLogo ? `<div class="zs-team-logo">${getLogoHTML(awayLogo, awayName.charAt(0))}</div>` : ''}
+                                <div class="zs-team-logo"><img src="${homeLogo}" alt="${homeName}" onerror="this.style.display='none'; this.parentNode.textContent='${homeName.charAt(0)}'"></div>
+                                ${awayLogo ? `<div class="zs-team-logo"><img src="${awayLogo}" alt="${awayName}" onerror="this.style.display='none'; this.parentNode.textContent='${awayName.charAt(0)}'"></div>` : ''}
                             </div>
                             <div class="zs-channel-info">
-                                <div class="zs-channel-match">${homeName} vs ${awayName}</div>
+                                <div class="zs-channel-match">${homeName} <span style="color:var(--text-secondary)">vs</span> ${awayName}</div>
+                                ${score ? `<div class="zs-score">${score}</div>` : ''}
                                 <div class="zs-channel-meta">
                                     <span>${ch.category}</span>
                                     ${ch.startTime ? `<span>${new Date(ch.startTime).toLocaleString()}</span>` : ''}
-                                    ${getStatusBadge(ch)}
+                                    ${ch.startTime ? getStatusBadge(ch.startTime) : (ch.live ? '<span class="zs-status-badge zs-status-live">LIVE</span>' : '')}
                                 </div>
                             </div>
                         </div>
@@ -450,7 +463,6 @@
                             id: 3000 + idx,
                             name: `${m.homeName} vs ${m.awayName}`,
                             category: m.leagueName || 'Match',
-                            logo: m.homeLogoUrl,
                             homeLogo: m.homeLogoUrl,
                             awayLogo: m.awayLogoUrl,
                             homeName: m.homeName,
@@ -458,29 +470,45 @@
                             url: m.sources[0].streamUrl,
                             live: true,
                             startTime: m.startTime,
-                            isMatch: true
+                            isMatch: true,
+                            homeScore: m.homeScore,
+                            awayScore: m.awayScore
                         }));
                     channels = channels.filter(ch => !ch.isMatch).concat(matchChannels);
                     renderChannels();
                 } catch (e) {
-                    console.warn('Using stable channels only', e);
+                    console.warn('Using fallback matches', e);
+                    // Use static fallback
+                    const fallback = staticMatches.map((m, idx) => ({
+                        id: 4000 + idx,
+                        name: `${m.homeName} vs ${m.awayName}`,
+                        category: m.leagueName || 'Match',
+                        homeLogo: m.homeLogoUrl,
+                        awayLogo: m.awayLogoUrl,
+                        homeName: m.homeName,
+                        awayName: m.awayName,
+                        url: m.sources[0].streamUrl,
+                        live: true,
+                        startTime: m.startTime,
+                        isMatch: true
+                    }));
+                    channels = channels.filter(ch => !ch.isMatch).concat(fallback);
+                    renderChannels();
                 }
             }
 
             // Event listeners
             btnPlay.addEventListener('click', () => { if (video.paused) video.play(); else video.pause(); });
-            btnFullscreen.addEventListener('click', () => { wrapper.requestFullscreen?.(); });
-            volumeSlider.addEventListener('input', () => { video.volume = volumeSlider.value / 100; });
+            btnFullscreen.addEventListener('click', () => wrapper.requestFullscreen?.());
+            volumeSlider.addEventListener('input', () => video.volume = volumeSlider.value / 100);
             video.addEventListener('timeupdate', () => { updateTimeDisplay(); updateProgress(); });
-            video.addEventListener('play', () => { btnPlay.textContent = '⏸'; });
-            video.addEventListener('pause', () => { btnPlay.textContent = '▶'; });
+            video.addEventListener('play', () => btnPlay.textContent = '⏸');
+            video.addEventListener('pause', () => btnPlay.textContent = '▶');
             progressWrap.addEventListener('click', (e) => {
                 if (!video.duration) return;
                 const rect = progressWrap.getBoundingClientRect();
-                const pct = (e.clientX - rect.left) / rect.width;
-                video.currentTime = pct * video.duration;
+                video.currentTime = ((e.clientX - rect.left) / rect.width) * video.duration;
             });
-
             searchInput.addEventListener('input', () => { searchQuery = searchInput.value; renderChannels(); });
             categoryTabs.addEventListener('click', (e) => {
                 const tab = e.target.closest('.zs-category-tab');
@@ -490,6 +518,7 @@
                 tab.classList.add('zs-active');
                 renderChannels();
             });
+            document.getElementById('zsErrorRetry').addEventListener('click', () => { if (currentStreamUrl) loadStream(currentStreamUrl); });
 
             // Init
             function init() {
