@@ -145,16 +145,16 @@
 
         .zs-channels-list { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 12px; }
 
-        /* ===== التعديلات الجديدة: تصميم بطاقة المباراة ===== */
+        /* ===== بطاقة المباراة ===== */
         .zs-channel-card {
             display: flex; flex-direction: column; gap: 6px; padding: 12px 14px;
-            border-radius: 14px; background: var(--surface-glass); border: 1px solid var(--border);
+            border-radius: 14px; background: var(--surface);
+            border: 1px solid var(--border);
             cursor: pointer; transition: all var(--transition); position: relative; min-height: 120px;
         }
-        .zs-channel-card:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.2); transform: translateY(-2px); }
+        .zs-channel-card:hover { background: var(--surface-hover); border-color: rgba(255,255,255,0.2); transform: translateY(-2px); }
         .zs-channel-card.zs-active { border-color: var(--accent); box-shadow: 0 0 15px rgba(228,168,61,0.2); }
 
-        /* رأس البطاقة (حالة المباراة) */
         .zs-match-header {
             display: flex; justify-content: flex-end; align-items: center; gap: 10px;
             margin-bottom: 4px; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.05);
@@ -163,7 +163,6 @@
         .zs-check-icon { color: #4caf50; font-size: 14px; }
         .zs-live-dot { width: 8px; height: 8px; background: #e53935; border-radius: 50%; display: inline-block; animation: pulse 1.5s infinite; }
 
-        /* وسط البطاقة (الفريقين والوقت) */
         .zs-match-body {
             display: flex; justify-content: space-around; align-items: center;
         }
@@ -176,10 +175,16 @@
             display: flex; align-items: center; justify-content: center; overflow: hidden;
         }
         .zs-logo img { width: 100%; height: 100%; object-fit: contain; }
+
+        /* ------- إصلاح الأسماء الطويلة: تم إزالة القص والسماح بالالتفاف ------- */
         .zs-team-name {
             font-size: 14px; font-weight: 700; color: var(--text); text-align: center; 
-            max-width: 80px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            max-width: 120px; /* زيادة العرض قليلاً */
+            white-space: normal; /* السماح بالالتفاف لأسطر متعددة */
+            word-break: break-word; /* كسر الكلمات الطويلة جداً */
+            line-height: 1.2;
         }
+
         .zs-time-block {
             display: flex; flex-direction: column; align-items: center; gap: 2px;
             background: rgba(0,0,0,0.3); padding: 8px 16px; border-radius: 12px; min-width: 60px;
@@ -187,39 +192,76 @@
         .zs-time { font-size: 18px; font-weight: 800; color: var(--text); }
         .zs-vs { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
 
-        /* أسفل البطاقة (اسم البطولة) */
         .zs-match-footer {
             display: flex; justify-content: center; align-items: center; gap: 6px;
             margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.05);
-            color: var(--text-secondary); font-size: 14px; font-weight: 500;
+            color: var(--text-secondary); font-size: 15px; font-weight: 600;
         }
-        .zs-trophy-icon { font-size: 14px; }
-        /* ================================================= */
+        .zs-trophy-icon { font-size: 15px; }
 
-        /* المشغل */
-        .zs-player-wrapper { position: relative; width: 100%; background: var(--surface); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); aspect-ratio: 16/9; }
-        .zs-video-container { width: 100%; height: 100%; background: #000; position: relative; }
+        /* ===== مشغل فيديو احترافي للغاية ===== */
+        .zs-player-wrapper { position: relative; width: 100%; background: #000; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); aspect-ratio: 16/9; }
+        .zs-video-container { width: 100%; height: 100%; background: #000; position: relative; transition: transform 0.3s ease; }
         video { width: 100%; height: 100%; object-fit: contain; display: block; }
+        
+        /* تدوير الشاشة (Rotate) */
+        .zs-video-container.rotated { transform: rotate(90deg); aspect-ratio: 9/16; }
+
         .zs-live-badge { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.7); color: #fff; padding: 8px 18px; border-radius: 24px; display: none; align-items: center; gap: 8px; font-weight: 700; }
         .zs-live-badge.zs-visible { display: flex; }
         .zs-start-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.7); z-index: 10; }
         .zs-start-overlay.zs-hidden { display: none; }
-        .zs-start-play-btn { width: 90px; height: 90px; border-radius: 50%; background: var(--accent); color: #0a0a0f; font-size: 36px; border: none; cursor: pointer; margin-bottom: 20px; }
-        .zs-controls { position: absolute; bottom: 0; left: 0; right: 0; background: var(--surface-glass); backdrop-filter: blur(20px); padding: 8px 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .zs-btn { background: none; border: none; color: var(--text); cursor: pointer; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all var(--transition); font-size: 20px; }
-        .zs-btn:hover { background: var(--surface-hover); }
-        .zs-btn svg { width: 22px; height: 22px; fill: currentColor; }
-        .zs-volume-slider { width: 80px; height: 4px; accent-color: var(--accent); }
-        .zs-time-display { font-size: 14px; color: var(--text-secondary); }
-        .zs-progress-wrap { flex: 1; min-width: 60px; height: 5px; background: var(--border); border-radius: 3px; cursor: pointer; }
-        .zs-progress-filled { height: 100%; background: var(--accent); border-radius: 3px; width: 0%; }
+        .zs-start-play-btn { width: 90px; height: 90px; border-radius: 50%; background: var(--accent); color: #0a0a0f; font-size: 36px; border: none; cursor: pointer; margin-bottom: 20px; transition: 0.3s; }
+        .zs-start-play-btn:hover { transform: scale(1.1); box-shadow: 0 0 30px var(--accent-glow); }
+        
+        /* شريط التحكم - خلفية متدرجة */
+        .zs-controls {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 60%, transparent 100%);
+            padding: 12px 16px 16px 16px;
+            display: flex; flex-direction: column; gap: 6px;
+        }
+        .zs-controls-row {
+            display: flex; align-items: center; gap: 12px; width: 100%;
+        }
+        .zs-btn {
+            background: none; border: none; color: #fff; cursor: pointer;
+            width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+            transition: all var(--transition); border-radius: 50%;
+        }
+        .zs-btn:hover { background: rgba(255,255,255,0.15); }
+        .zs-btn svg { width: 20px; height: 20px; fill: currentColor; }
+        
+        .zs-volume-wrapper { display: flex; align-items: center; gap: 6px; }
+        .zs-volume-slider {
+            width: 60px; height: 4px; -webkit-appearance: none; appearance: none;
+            background: rgba(255,255,255,0.3); border-radius: 4px; outline: none;
+        }
+        .zs-volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none; width: 12px; height: 12px;
+            border-radius: 50%; background: #fff; cursor: pointer;
+        }
+        .zs-time-display { font-size: 13px; color: #ddd; min-width: 45px; }
+        
+        /* شريط التقدم Progress Bar */
+        .zs-progress-wrap {
+            flex: 1; height: 5px; background: rgba(255,255,255,0.2);
+            border-radius: 3px; cursor: pointer; position: relative;
+            transition: height 0.2s;
+        }
+        .zs-progress-wrap:hover { height: 8px; }
+        .zs-progress-filled {
+            height: 100%; background: var(--accent); border-radius: 3px; width: 0%;
+            position: relative; transition: width 0.1s linear;
+        }
+
         .zs-loading, .zs-error-overlay { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.5); z-index: 11; }
         .zs-loading.zs-visible, .zs-error-overlay.zs-visible { display: flex; }
         .zs-spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 var(--live-glow); } 50% { box-shadow: 0 0 20px var(--live-glow); } }
 
-        /* العلامة المائية ZI STORE */
+        /* علامة ZI STORE */
         .zs-watermark {
             position: absolute; top: 20px; left: 20px; z-index: 5;
             display: flex; align-items: center; gap: 10px;
@@ -233,14 +275,12 @@
             display: flex; align-items: center; justify-content: center;
             font-weight: 900; font-size: 18px; color: #0a0a0f;
         }
-        .zs-watermark-text {
-            font-weight: 800; font-size: 18px; color: #fff; letter-spacing: 1px;
-        }
+        .zs-watermark-text { font-weight: 800; font-size: 18px; color: #fff; letter-spacing: 1px; }
 
         @media (max-width: 600px) {
             .zs-header { padding: 10px; flex-direction: column; gap: 8px; }
             .zs-main { padding: 10px; gap: 10px; }
-            .zs-team-name { max-width: 60px; font-size: 12px; }
+            .zs-team-name { max-width: 80px; font-size: 12px; }
             .zs-logo { width: 44px; height: 44px; }
             .zs-time-block { padding: 4px 12px; }
             .zs-time { font-size: 14px; }
@@ -267,7 +307,7 @@
         <main class="zs-main">
             <section class="zs-player-section">
                 <div class="zs-player-wrapper" id="zsPlayerWrapper">
-                    <div class="zs-video-container">
+                    <div class="zs-video-container" id="zsVideoContainer">
                         <video id="zsVideo" playsinline></video>
                         <div class="zs-watermark">
                             <div class="zs-watermark-icon">Z</div>
@@ -284,12 +324,32 @@
                             <div>Choose a channel to start</div>
                         </div>
                     </div>
-                    <div class="zs-controls">
-                        <button class="zs-btn" id="zsBtnPlay">▶</button>
-                        <input type="range" class="zs-volume-slider" id="zsVolumeSlider" min="0" max="100" value="100">
-                        <span class="zs-time-display" id="zsTimeDisplay">--:--</span>
-                        <div class="zs-progress-wrap" id="zsProgressWrap"><div class="zs-progress-filled" id="zsProgressFilled"></div></div>
-                        <button class="zs-btn" id="zsBtnFullscreen">⛶</button>
+                    
+                    <!-- تحكمات مشغل فيديو محترفة -->
+                    <div class="zs-controls" id="zsControls">
+                        <div class="zs-controls-row">
+                            <button class="zs-btn" id="zsBtnPlay">
+                                <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            </button>
+                            <div class="zs-volume-wrapper">
+                                <button class="zs-btn" id="zsBtnMute">
+                                    <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                                </button>
+                                <input type="range" class="zs-volume-slider" id="zsVolumeSlider" min="0" max="100" value="100">
+                            </div>
+                            <span class="zs-time-display" id="zsTimeDisplay">--:--</span>
+                            <button class="zs-btn" id="zsBtnRotate">
+                                <svg viewBox="0 0 24 24"><path d="M15.55 5.55L11 1v3.07C7.06 4.56 4 7.92 4 12s3.06 7.44 7 7.93v-2.02c-2.84-.48-5-2.94-5-5.91s2.16-5.43 5-5.91V10l4.55-4.45zM19.93 11c-.17-1.39-.72-2.73-1.62-3.89l-1.42 1.42c.54.75.88 1.6 1.02 2.47h2.02zM13 17.93v2.02c1.39-.17 2.73-.72 3.89-1.62l-1.42-1.42c-.75.54-1.59.89-2.47 1.02zm3.89-2.42l1.42 1.41c.9-1.16 1.45-2.5 1.62-3.89h-2.02c-.14.87-.48 1.72-1.02 2.48z"/></svg>
+                            </button>
+                            <button class="zs-btn" id="zsBtnFullscreen">
+                                <svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+                            </button>
+                        </div>
+                        <div class="zs-controls-row">
+                            <div class="zs-progress-wrap" id="zsProgressWrap">
+                                <div class="zs-progress-filled" id="zsProgressFilled"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -362,9 +422,11 @@
             let hls = null;
             let activeCategory = 'all';
             let searchQuery = '';
+            let isMuted = false;
 
             // DOM elements
             const video = document.getElementById('zsVideo');
+            const videoContainer = document.getElementById('zsVideoContainer');
             const wrapper = document.getElementById('zsPlayerWrapper');
             const liveBadge = document.getElementById('zsLiveBadge');
             const loadingEl = document.getElementById('zsLoading');
@@ -372,6 +434,8 @@
             const startOverlay = document.getElementById('zsStartOverlay');
             const btnPlay = document.getElementById('zsBtnPlay');
             const btnFullscreen = document.getElementById('zsBtnFullscreen');
+            const btnRotate = document.getElementById('zsBtnRotate');
+            const btnMute = document.getElementById('zsBtnMute');
             const volumeSlider = document.getElementById('zsVolumeSlider');
             const timeDisplay = document.getElementById('zsTimeDisplay');
             const progressWrap = document.getElementById('zsProgressWrap');
@@ -404,6 +468,7 @@
                 if (hls) { hls.destroy(); hls = null; }
                 video.pause(); video.removeAttribute('src'); video.load();
                 hideError(); hideLoading(); setLiveMode(false);
+                btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
             }
             function loadStream(url) {
                 destroyPlayer();
@@ -428,13 +493,11 @@
             function getStatus(startTime) {
                 const now = new Date();
                 const start = new Date(startTime);
-                const end = new Date(start.getTime() + 3 * 60 * 60 * 1000); // 3h match duration
+                const end = new Date(start.getTime() + 3 * 60 * 60 * 1000);
                 if (now < start) return 'upcoming';
                 if (now >= start && now <= end) return 'live';
                 return 'ended';
             }
-
-            // الدالة الرئيسية لعرض البطاقات بالشكل الجديد
             function renderChannels() {
                 const filtered = channels.filter(ch => {
                     const matchCategory = activeCategory === 'all' || (activeCategory === 'Live' && ch.live && ch.startTime && getStatus(ch.startTime) === 'live') || (activeCategory === 'Sports' && ch.category === 'Sports');
@@ -447,9 +510,7 @@
                     return;
                 }
 
-                // إنشاء هيكل البطاقة الجديد
                 channelsList.innerHTML = filtered.map(ch => {
-                    // استخراج بيانات المباراة أو القناة
                     const homeName = ch.homeName || ch.name.split(' vs ')[0] || 'Home';
                     const awayName = ch.awayName || ch.name.split(' vs ')[1] || 'Away';
                     const leagueName = ch.leagueName || ch.category || 'Match';
@@ -458,9 +519,8 @@
                     const awayLogo = ch.awayLogo || '';
                     
                     const startTime = ch.startTime ? new Date(ch.startTime) : null;
-                    const timeStr = startTime ? startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                    const timeStr = startTime ? startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) : '--:--';
 
-                    // تحديد حالة المباراة (انتهت ✅ - مباشر 🔴 - قادمة ⏰)
                     let statusHTML = '';
                     let statusIcon = '';
                     if (ch.startTime) {
@@ -514,7 +574,6 @@
                     `;
                 }).join('');
 
-                // إضافة أحداث النقر
                 channelsList.querySelectorAll('.zs-channel-card').forEach(card => {
                     card.addEventListener('click', () => {
                         const id = parseInt(card.dataset.id);
@@ -577,18 +636,65 @@
                 }
             }
 
-            // Event listeners
-            btnPlay.addEventListener('click', () => { if (video.paused) video.play(); else video.pause(); });
-            btnFullscreen.addEventListener('click', () => wrapper.requestFullscreen?.());
-            volumeSlider.addEventListener('input', () => video.volume = volumeSlider.value / 100);
+            // Player Controls
+            btnPlay.addEventListener('click', () => { 
+                if (video.paused) { 
+                    video.play(); 
+                } else { 
+                    video.pause(); 
+                } 
+            });
+            
+            video.addEventListener('play', () => {
+                btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
+            });
+            video.addEventListener('pause', () => {
+                btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
+            });
+            
+            // Volume
+            volumeSlider.addEventListener('input', () => {
+                video.volume = volumeSlider.value / 100;
+                if(video.volume === 0) isMuted = true;
+                else isMuted = false;
+            });
+            btnMute.addEventListener('click', () => {
+                if(isMuted) {
+                    video.volume = 1;
+                    volumeSlider.value = 100;
+                    isMuted = false;
+                } else {
+                    video.volume = 0;
+                    volumeSlider.value = 0;
+                    isMuted = true;
+                }
+            });
+
+            // Progress
             video.addEventListener('timeupdate', () => { updateTimeDisplay(); updateProgress(); });
-            video.addEventListener('play', () => btnPlay.textContent = '⏸');
-            video.addEventListener('pause', () => btnPlay.textContent = '▶');
             progressWrap.addEventListener('click', (e) => {
                 if (!video.duration) return;
                 const rect = progressWrap.getBoundingClientRect();
                 video.currentTime = ((e.clientX - rect.left) / rect.width) * video.duration;
             });
+
+            // Fullscreen Exit & Enter logic
+            btnFullscreen.addEventListener('click', () => {
+                if (!document.fullscreenElement) {
+                    wrapper.requestFullscreen().catch(err => {
+                        console.log(`Error attempting to enable full-screen mode: ${err.message}`);
+                    });
+                } else {
+                    document.exitFullscreen();
+                }
+            });
+
+            // Rotate Video
+            btnRotate.addEventListener('click', () => {
+                videoContainer.classList.toggle('rotated');
+            });
+
+            // Search & Tabs
             searchInput.addEventListener('input', () => { searchQuery = searchInput.value; renderChannels(); });
             categoryTabs.addEventListener('click', (e) => {
                 const tab = e.target.closest('.zs-category-tab');
@@ -604,10 +710,10 @@
             function init() {
                 renderChannels();
                 loadMatchesFromAPI();
-                setInterval(loadMatchesFromAPI, 300000); // 5 دقائق تحديث تلقائي
+                setInterval(loadMatchesFromAPI, 300000);
             }
             init();
         })();
     </script>
 </body>
-                    </html>
+</html>
