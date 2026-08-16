@@ -134,7 +134,20 @@ isSupported().then(supported => {
 }).catch(() => {
     console.log('ℹ️ Analytics skipped');
 });
+// ============================================================
+// استيراد نظام الإعلانات
+// ============================================================
+import * as AdsModule from './adsModule.js';
 
+// تصدير دوال الإعلانات إلى window
+Object.keys(AdsModule).forEach(key => {
+  if (typeof AdsModule[key] === 'function') {
+    window[key] = AdsModule[key];
+  }
+});
+
+// تخزين قائمة الإعلانات للاستخدام السريع
+window._adsList = [];
 // ============================================================
 // GLOBAL VARIABLES & CONSTANTS
 // ============================================================
@@ -10216,7 +10229,7 @@ setTimeout(function() {
 }, 10000);
 
 // ============================================================
-// INIT - COMPLETE WITH FORCED HIDE
+// INIT - COMPLETE WITH FORCED HIDE & ADS INTEGRATION
 // ============================================================
 async function initApp() {
     console.log('🚀 Initializing ZI Store...');
@@ -10234,10 +10247,17 @@ async function initApp() {
     }
     
     try {
+        // ==========================================
+        // 1. تحميل البيانات الأساسية
+        // ==========================================
         loadBranding();
         await loadProductsFromFirestore();
         startProductsRealtimeListener();
         await loadUserData();
+        
+        // ==========================================
+        // 2. تحديث الواجهة
+        // ==========================================
         renderProducts(products, false);
         renderFeaturedProducts();
         generateRecommendations(products);
@@ -10250,6 +10270,10 @@ async function initApp() {
         renderUserLicences();
         renderProxyPackages();
         renderLimitedProducts();
+        
+        // ==========================================
+        // 3. تحميل الإعدادات والميزات الأخرى
+        // ==========================================
         loadDownloads();
         loadNotifications();
         loadFeaturedSettings();
@@ -10265,24 +10289,43 @@ async function initApp() {
         addOfflineStyles();
         initNetworkMonitor();
         
+        // ==========================================
+        // 4. المؤقتات الدورية
+        // ==========================================
         window._productsInterval = setInterval(function() {
             if (navigator.onLine) loadProductsFromFirestore();
         }, 30000);
         window._cryptoInterval = setInterval(fetchCryptoPrices, 60000);
         
+        // ==========================================
+        // 5. تحميل بيانات المستخدم الإضافية (الرصيد، الإعلانات)
+        // ==========================================
         if (currentUser && !currentUser.isAnonymous) {
             loadUserBalance();
             startTopupRealtimeListener();
+            
+            // تحميل الإعلانات وعرضها (إذا كان المستخدم مسجلاً)
+            try {
+                window._adsList = await AdsModule.fetchAvailableAds();
+                await AdsModule.renderAds();
+                const earnSection = document.getElementById('earnSection');
+                if (earnSection) earnSection.style.display = 'block';
+            } catch (adError) {
+                console.warn('⚠️ Failed to load ads:', adError);
+            }
         }
         
+        // ==========================================
+        // 6. إنهاء التهيئة وعرض التطبيق
+        // ==========================================
         initPopups();
         window.updateLoadingProgress(100, '✅ Ready!');
-     setTimeout(function() {
-    window.showMainApp();
-    hideLoadingScreen();   // ✅ أضف هذا السطر
-}, 500);
         
-      
+        // إخفاء شاشة التحميل وعرض التطبيق الرئيسي
+        setTimeout(function() {
+            window.showMainApp();
+            hideLoadingScreen();
+        }, 500);
         
         console.log('✅ ZI Store initialized successfully!');
         
@@ -10296,8 +10339,9 @@ async function initApp() {
         showToast('⚠️ Error loading store. Please refresh.', 'error');
     }
 }
-window.initApp = initApp;
 
+// تصدير الدالة إلى النطاق العام
+window.initApp = initApp;
 // ============================================================
 // AUTH STATE LISTENER - PROFESSIONAL LOADING SCREEN
 // ============================================================
