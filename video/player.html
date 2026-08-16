@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zi Store - IPTV Player</title>
+    <title>Zi Store - Live Matches & IPTV Player</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
     <style>
@@ -162,19 +162,9 @@
             opacity: 0.5;
             animation: logo-ring 2s infinite;
         }
-        @keyframes logo-pulse {
-            0%,100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-        @keyframes logo-rotate {
-            0% { background: linear-gradient(135deg, var(--accent), var(--accent2)); }
-            50% { background: linear-gradient(135deg, var(--accent2), var(--accent)); }
-            100% { background: linear-gradient(135deg, var(--accent), var(--accent2)); }
-        }
-        @keyframes logo-ring {
-            0% { transform: scale(1); opacity: 0.5; }
-            100% { transform: scale(1.3); opacity: 0; }
-        }
+        @keyframes logo-pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        @keyframes logo-rotate { 0% { background: linear-gradient(135deg, var(--accent), var(--accent2)); } 50% { background: linear-gradient(135deg, var(--accent2), var(--accent)); } 100% { background: linear-gradient(135deg, var(--accent), var(--accent2)); } }
+        @keyframes logo-ring { 0% { transform: scale(1); opacity: 0.5; } 100% { transform: scale(1.3); opacity: 0; } }
 
         .zs-header-tagline {
             font-size: 14px;
@@ -213,11 +203,7 @@
             gap: 5px;
         }
         .zs-theme-btn:hover { color: var(--text); background: var(--surface-hover); }
-        .zs-theme-btn.zs-active {
-            background: var(--accent);
-            color: #0a0a0f;
-            box-shadow: 0 0 15px var(--accent-glow);
-        }
+        .zs-theme-btn.zs-active { background: var(--accent); color: #0a0a0f; box-shadow: 0 0 15px var(--accent-glow); }
 
         /* ============ Main Layout ============ */
         .zs-main {
@@ -273,15 +259,7 @@
             gap: 12px;
             background: var(--surface-glass);
         }
-        .zs-channels-title {
-            font-size: 18px;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            letter-spacing: 0.5px;
-            color: var(--accent);
-        }
+        .zs-channels-title { font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 8px; letter-spacing: 0.5px; color: var(--accent); }
         .zs-search-box { position: relative; }
         .zs-search-box input {
             width: 100%;
@@ -296,26 +274,10 @@
             font-family: var(--font);
         }
         .zs-search-box input::placeholder { color: var(--text-secondary); }
-        .zs-search-box input:focus {
-            border-color: var(--accent);
-            background: var(--surface-glass);
-            box-shadow: 0 0 0 3px rgba(228,168,61,0.15);
-        }
-        .zs-search-icon {
-            position: absolute;
-            top: 50%;
-            left: 14px;
-            transform: translateY(-50%);
-            color: var(--text-secondary);
-            font-size: 14px;
-            pointer-events: none;
-        }
+        .zs-search-box input:focus { border-color: var(--accent); background: var(--surface-glass); box-shadow: 0 0 0 3px rgba(228,168,61,0.15); }
+        .zs-search-icon { position: absolute; top: 50%; left: 14px; transform: translateY(-50%); color: var(--text-secondary); font-size: 14px; pointer-events: none; }
 
-        .zs-category-tabs {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
+        .zs-category-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
         .zs-category-tab {
             padding: 6px 14px;
             border-radius: 18px;
@@ -329,13 +291,7 @@
             white-space: nowrap;
         }
         .zs-category-tab:hover { background: var(--surface-hover); color: var(--text); }
-        .zs-category-tab.zs-active {
-            background: var(--accent);
-            color: #0a0a0f;
-            border-color: var(--accent);
-            font-weight: 700;
-            box-shadow: 0 0 12px var(--accent-glow);
-        }
+        .zs-category-tab.zs-active { background: var(--accent); color: #0a0a0f; border-color: var(--accent); font-weight: 700; box-shadow: 0 0 12px var(--accent-glow); }
 
         .zs-channels-list {
             flex: 1;
@@ -364,31 +320,11 @@
             position: relative;
             overflow: hidden;
         }
-        .zs-channel-card:hover {
-            background: rgba(255,255,255,0.08);
-            border-color: var(--accent);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
-        .zs-channel-card.zs-active {
-            background: linear-gradient(135deg, rgba(228,168,61,0.2), rgba(228,168,61,0.05));
-            border-color: var(--accent);
-            box-shadow: 0 4px 16px rgba(228,168,61,0.3);
-        }
-        .zs-channel-card.zs-active::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--accent), transparent);
-            animation: shimmer 2s infinite;
-        }
-        @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
-        }
+        .zs-channel-card:hover { background: rgba(255,255,255,0.08); border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .zs-channel-card.zs-active { background: linear-gradient(135deg, rgba(228,168,61,0.2), rgba(228,168,61,0.05)); border-color: var(--accent); box-shadow: 0 4px 16px rgba(228,168,61,0.3); }
+        .zs-channel-card.zs-active::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--accent), transparent); animation: shimmer 2s infinite; }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
         .zs-channel-logo {
             width: 46px;
             height: 46px;
@@ -403,62 +339,27 @@
             flex-shrink: 0;
             border: 1px solid var(--border);
             transition: all var(--transition);
-        }
-        .zs-channel-card.zs-active .zs-channel-logo {
-            background: linear-gradient(135deg, var(--accent), var(--accent2));
-            color: #0a0a0f;
-            border-color: var(--accent);
-        }
-        .zs-channel-info { flex: 1; min-width: 0; }
-        .zs-channel-name {
-            font-weight: 600;
-            font-size: 14px;
-            white-space: nowrap;
             overflow: hidden;
-            text-overflow: ellipsis;
         }
+        .zs-channel-logo img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: contain;
+        }
+        .zs-channel-card.zs-active .zs-channel-logo { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #0a0a0f; border-color: var(--accent); }
+
+        .zs-channel-info { flex: 1; min-width: 0; }
+        .zs-channel-name { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .zs-channel-cat { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
-        .zs-channel-status {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #555;
-            flex-shrink: 0;
-        }
-        .zs-channel-card.zs-active .zs-channel-status {
-            background: var(--accent);
-            box-shadow: 0 0 8px var(--accent);
-        }
-        .zs-channel-live {
-            font-size: 10px;
-            color: var(--live);
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            flex-shrink: 0;
-        }
-        .zs-channel-live::before {
-            content: '';
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: var(--live);
-            animation: live-pulse 1.4s infinite;
-        }
-        @keyframes live-pulse {
-            0%,100% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 0 var(--live-glow); }
-            50% { transform: scale(1.5); opacity: 0.7; box-shadow: 0 0 10px var(--live-glow); }
-        }
-        .zs-fav-btn {
-            background: none;
-            border: none;
-            color: #888;
-            cursor: pointer;
-            font-size: 16px;
-            padding: 4px;
-            transition: color 0.2s;
-        }
+
+        .zs-channel-status { width: 8px; height: 8px; border-radius: 50%; background: #555; flex-shrink: 0; }
+        .zs-channel-card.zs-active .zs-channel-status { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+        .zs-channel-live { font-size: 10px; color: var(--live); font-weight: 700; display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+        .zs-channel-live::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--live); animation: live-pulse 1.4s infinite; }
+        @keyframes live-pulse { 0%,100% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 0 var(--live-glow); } 50% { transform: scale(1.5); opacity: 0.7; box-shadow: 0 0 10px var(--live-glow); } }
+
+        .zs-fav-btn { background: none; border: none; color: #888; cursor: pointer; font-size: 16px; padding: 4px; transition: color 0.2s; }
         .zs-fav-btn.zs-fav { color: #f59e0b; }
 
         .zs-no-results { text-align: center; padding: 30px 10px; color: var(--text-secondary); }
@@ -479,11 +380,7 @@
             align-items: center;
             gap: 6px;
         }
-        .zs-external-btn:hover {
-            background: rgba(228,168,61,0.1);
-            border-color: var(--accent);
-            color: var(--accent);
-        }
+        .zs-external-btn:hover { background: rgba(228,168,61,0.1); border-color: var(--accent); color: var(--accent); }
 
         /* ============ Modal ============ */
         .zs-modal-overlay {
@@ -510,61 +407,17 @@
             box-shadow: var(--shadow);
             animation: modal-in 0.3s ease;
         }
-        @keyframes modal-in {
-            from { opacity: 0; transform: scale(0.9) translateY(20px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
-        }
-        .zs-modal-title {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 18px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--accent);
-        }
+        @keyframes modal-in { from { opacity: 0; transform: scale(0.9) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        .zs-modal-title { font-size: 18px; font-weight: 700; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; color: var(--accent); }
         .zs-modal-field { margin-bottom: 14px; }
-        .zs-modal-field label {
-            display: block;
-            font-size: 13px;
-            color: var(--text-secondary);
-            margin-bottom: 6px;
-            font-weight: 600;
-        }
-        .zs-modal-field input {
-            width: 100%;
-            padding: 10px 14px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: var(--surface-hover);
-            color: var(--text);
-            font-size: 14px;
-            outline: none;
-            font-family: var(--font);
-            transition: all var(--transition);
-        }
-        .zs-modal-field input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(228,168,61,0.15);
-        }
+        .zs-modal-field label { display: block; font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; font-weight: 600; }
+        .zs-modal-field input { width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-hover); color: var(--text); font-size: 14px; outline: none; font-family: var(--font); transition: all var(--transition); }
+        .zs-modal-field input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(228,168,61,0.15); }
         .zs-modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
-        .zs-modal-btn {
-            padding: 10px 20px;
-            border-radius: 20px;
-            border: none;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            font-family: var(--font);
-            transition: all var(--transition);
-        }
+        .zs-modal-btn { padding: 10px 20px; border-radius: 20px; border: none; cursor: pointer; font-size: 14px; font-weight: 600; font-family: var(--font); transition: all var(--transition); }
         .zs-modal-btn.zs-cancel { background: var(--surface-hover); color: var(--text-secondary); }
         .zs-modal-btn.zs-cancel:hover { background: rgba(255,255,255,0.1); }
-        .zs-modal-btn.zs-submit {
-            background: var(--accent);
-            color: #0a0a0f;
-            box-shadow: 0 4px 12px var(--accent-glow);
-        }
+        .zs-modal-btn.zs-submit { background: var(--accent); color: #0a0a0f; box-shadow: 0 4px 12px var(--accent-glow); }
         .zs-modal-btn.zs-submit:hover { background: var(--accent2); }
 
         /* ============ Player ============ */
@@ -584,22 +437,10 @@
         .zs-player-wrapper.zs-theater { border-radius: 0; }
         .zs-player-wrapper.zs-fullscreen { border-radius: 0; aspect-ratio: unset; }
 
-        .zs-video-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            overflow: hidden;
-        }
-        .zs-video-container video {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            display: block;
-            background: #000;
-        }
+        .zs-video-container { position: relative; width: 100%; height: 100%; background: #000; overflow: hidden; }
+        .zs-video-container video { width: 100%; height: 100%; object-fit: contain; display: block; background: #000; }
 
-        /* Embed styles */
+        /* Embed close button */
         .zs-embed-close {
             position: absolute;
             top: 10px;
@@ -633,11 +474,7 @@
             -webkit-backdrop-filter: blur(8px);
             transition: opacity 0.4s, visibility 0.4s;
         }
-        .zs-start-overlay.zs-hidden {
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-        }
+        .zs-start-overlay.zs-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
         .zs-start-play-btn {
             width: 100px;
             height: 100px;
@@ -659,147 +496,32 @@
             position: relative;
             animation: play-glow 2s infinite;
         }
-        .zs-start-play-btn:hover {
-            transform: scale(1.08);
-            box-shadow: 0 12px 40px var(--accent-glow);
-        }
+        .zs-start-play-btn:hover { transform: scale(1.08); box-shadow: 0 12px 40px var(--accent-glow); }
         .zs-start-play-btn:active { transform: scale(0.95); }
-        @keyframes play-glow {
-            0%,100% { box-shadow: 0 0 20px var(--accent-glow); }
-            50% { box-shadow: 0 0 40px var(--accent-glow); }
-        }
-        .zs-start-brand {
-            font-size: 20px;
-            font-weight: 800;
-            color: #fff;
-            letter-spacing: 1px;
-            text-shadow: 0 2px 8px rgba(0,0,0,0.6);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .zs-start-brand span {
-            background: var(--surface-glass);
-            padding: 5px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-            color: var(--text);
-            border: 1px solid var(--border);
-        }
+        @keyframes play-glow { 0%,100% { box-shadow: 0 0 20px var(--accent-glow); } 50% { box-shadow: 0 0 40px var(--accent-glow); } }
+        .zs-start-brand { font-size: 20px; font-weight: 800; color: #fff; letter-spacing: 1px; text-shadow: 0 2px 8px rgba(0,0,0,0.6); display: flex; align-items: center; gap: 10px; }
+        .zs-start-brand span { background: var(--surface-glass); padding: 5px 16px; border-radius: 20px; font-size: 14px; color: var(--text); border: 1px solid var(--border); }
 
-        .zs-watermark {
-            position: absolute;
-            top: 22px;
-            left: 22px;
-            z-index: 10;
-            pointer-events: none;
-            display: flex;
-            align-items: center;
-            gap: 9px;
-            opacity: 0.8;
-            text-shadow: 0 2px 8px rgba(0,0,0,0.8);
-        }
-        .zs-watermark-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent), var(--accent2));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 900;
-            font-size: 18px;
-            color: #0a0a0f;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.5);
-            animation: logo-pulse 3s infinite;
-        }
-        .zs-watermark-text {
-            font-size: 16px;
-            font-weight: 700;
-            color: #fff;
-            letter-spacing: 0.6px;
-            background: rgba(0,0,0,0.4);
-            backdrop-filter: blur(6px);
-            padding: 6px 14px;
-            border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
+        .zs-watermark { position: absolute; top: 22px; left: 22px; z-index: 10; pointer-events: none; display: flex; align-items: center; gap: 9px; opacity: 0.8; text-shadow: 0 2px 8px rgba(0,0,0,0.8); }
+        .zs-watermark-icon { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 18px; color: #0a0a0f; box-shadow: 0 2px 12px rgba(0,0,0,0.5); animation: logo-pulse 3s infinite; }
+        .zs-watermark-text { font-size: 16px; font-weight: 700; color: #fff; letter-spacing: 0.6px; background: rgba(0,0,0,0.4); backdrop-filter: blur(6px); padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); }
 
-        .zs-live-badge {
-            position: absolute;
-            top: 22px;
-            right: 22px;
-            z-index: 10;
-            pointer-events: none;
-            display: none;
-            align-items: center;
-            gap: 7px;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(8px);
-            padding: 6px 14px;
-            border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.15);
-        }
+        .zs-live-badge { position: absolute; top: 22px; right: 22px; z-index: 10; pointer-events: none; display: none; align-items: center; gap: 7px; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.15); }
         .zs-live-badge.zs-visible { display: flex; }
-        .zs-live-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: var(--live);
-            animation: live-pulse 1.4s infinite;
-        }
+        .zs-live-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--live); animation: live-pulse 1.4s infinite; }
         .zs-live-text { font-size: 13px; font-weight: 700; color: #fff; letter-spacing: 1px; }
 
-        .zs-loading {
-            position: absolute;
-            inset: 0;
-            z-index: 8;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            background: rgba(0,0,0,0.4);
-            pointer-events: none;
-        }
+        .zs-loading { position: absolute; inset: 0; z-index: 8; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.4); pointer-events: none; }
         .zs-loading.zs-visible { display: flex; }
-        .zs-spinner {
-            width: 52px;
-            height: 52px;
-            border: 4px solid rgba(255,255,255,0.2);
-            border-top-color: var(--accent);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
+        .zs-spinner { width: 52px; height: 52px; border: 4px solid rgba(255,255,255,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        .zs-error-overlay {
-            position: absolute;
-            inset: 0;
-            z-index: 12;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: rgba(0,0,0,0.85);
-            gap: 16px;
-            text-align: center;
-            padding: 20px;
-        }
+        .zs-error-overlay { position: absolute; inset: 0; z-index: 12; display: none; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.85); gap: 16px; text-align: center; padding: 20px; }
         .zs-error-overlay.zs-visible { display: flex; }
         .zs-error-icon { font-size: 48px; }
         .zs-error-title { font-size: 18px; font-weight: 700; }
         .zs-error-msg { font-size: 13px; color: var(--text-secondary); max-width: 340px; }
-        .zs-error-retry {
-            padding: 10px 28px;
-            background: var(--accent);
-            color: #0a0a0f;
-            border: none;
-            border-radius: 22px;
-            cursor: pointer;
-            font-weight: 700;
-            font-size: 14px;
-            font-family: var(--font);
-            transition: all var(--transition);
-        }
+        .zs-error-retry { padding: 10px 28px; background: var(--accent); color: #0a0a0f; border: none; border-radius: 22px; cursor: pointer; font-weight: 700; font-size: 14px; font-family: var(--font); transition: all var(--transition); }
         .zs-error-retry:hover { background: var(--accent2); transform: scale(1.05); }
 
         /* Controls */
@@ -821,11 +543,7 @@
             flex-wrap: wrap;
             direction: ltr;
         }
-        .zs-controls.zs-hidden {
-            opacity: 0;
-            transform: translateY(10px);
-            pointer-events: none;
-        }
+        .zs-controls.zs-hidden { opacity: 0; transform: translateY(10px); pointer-events: none; }
 
         .zs-btn {
             background: none;
@@ -861,97 +579,19 @@
             outline: none;
             cursor: pointer;
         }
-        .zs-volume-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 15px;
-            height: 15px;
-            border-radius: 50%;
-            background: var(--accent);
-            cursor: pointer;
-        }
-        .zs-volume-slider::-moz-range-thumb {
-            width: 15px;
-            height: 15px;
-            border-radius: 50%;
-            background: var(--accent);
-            cursor: pointer;
-            border: none;
-        }
+        .zs-volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 15px; height: 15px; border-radius: 50%; background: var(--accent); cursor: pointer; }
+        .zs-volume-slider::-moz-range-thumb { width: 15px; height: 15px; border-radius: 50%; background: var(--accent); cursor: pointer; border: none; }
 
-        .zs-time-display {
-            font-size: 12px;
-            color: var(--text-secondary);
-            white-space: nowrap;
-            flex-shrink: 0;
-            min-width: 80px;
-            text-align: center;
-            font-variant-numeric: tabular-nums;
-            font-family: 'SF Mono', 'Consolas', monospace;
-        }
+        .zs-time-display { font-size: 12px; color: var(--text-secondary); white-space: nowrap; flex-shrink: 0; min-width: 80px; text-align: center; font-variant-numeric: tabular-nums; font-family: 'SF Mono', 'Consolas', monospace; }
 
-        .zs-progress-wrap {
-            flex: 1;
-            min-width: 60px;
-            height: 18px;
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            position: relative;
-        }
-        .zs-progress-track {
-            width: 100%;
-            height: 5px;
-            background: var(--border);
-            border-radius: 4px;
-            position: relative;
-            overflow: hidden;
-            transition: height var(--transition);
-        }
+        .zs-progress-wrap { flex: 1; min-width: 60px; height: 18px; display: flex; align-items: center; cursor: pointer; position: relative; }
+        .zs-progress-track { width: 100%; height: 5px; background: var(--border); border-radius: 4px; position: relative; overflow: hidden; transition: height var(--transition); }
         .zs-progress-wrap:hover .zs-progress-track { height: 7px; }
-        .zs-progress-buffered {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            background: rgba(255,255,255,0.2);
-            border-radius: 4px;
-        }
-        .zs-progress-filled {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            background: var(--accent);
-            border-radius: 4px;
-            transition: width 0.1s linear;
-        }
-        .zs-progress-thumb {
-            position: absolute;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: var(--accent);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-            opacity: 0;
-            transition: opacity var(--transition);
-            pointer-events: none;
-            z-index: 2;
-        }
+        .zs-progress-buffered { position: absolute; top: 0; left: 0; height: 100%; background: rgba(255,255,255,0.2); border-radius: 4px; }
+        .zs-progress-filled { position: absolute; top: 0; left: 0; height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.1s linear; }
+        .zs-progress-thumb { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 16px; height: 16px; border-radius: 50%; background: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,0.4); opacity: 0; transition: opacity var(--transition); pointer-events: none; z-index: 2; }
         .zs-progress-wrap:hover .zs-progress-thumb { opacity: 1; }
-        .zs-progress-live {
-            position: absolute;
-            inset: 0;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--text-secondary);
-            letter-spacing: 1px;
-            pointer-events: none;
-        }
+        .zs-progress-live { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--text-secondary); letter-spacing: 1px; pointer-events: none; }
 
         .zs-spacer { flex: 0 0 0; }
         @media (min-width: 700px) { .zs-spacer { flex: 1; } }
@@ -976,28 +616,12 @@
             list-style: none;
         }
         .zs-dropdown-menu.zs-open { opacity: 1; visibility: visible; transform: translateY(0); }
-        .zs-dropdown-menu li {
-            padding: 9px 18px;
-            font-size: 13px;
-            color: var(--text);
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.15s;
-            font-family: var(--font);
-        }
+        .zs-dropdown-menu li { padding: 9px 18px; font-size: 13px; color: var(--text); cursor: pointer; white-space: nowrap; transition: all 0.15s; font-family: var(--font); }
         .zs-dropdown-menu li:hover { background: var(--surface-hover); color: var(--accent); }
         .zs-dropdown-menu li.zs-selected { color: var(--accent); font-weight: 700; }
         .zs-dropdown-menu li.zs-selected::before { content: '✓ '; }
 
-        .zs-flash {
-            position: absolute;
-            inset: 0;
-            z-index: 9;
-            background: #fff;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.08s;
-        }
+        .zs-flash { position: absolute; inset: 0; z-index: 9; background: #fff; opacity: 0; pointer-events: none; transition: opacity 0.08s; }
         .zs-flash.zs-active { opacity: 0.7; }
 
         /* Responsive */
@@ -1030,7 +654,7 @@
                 <div class="zs-brand-icon">Z</div>
                 <span>Zi Store</span>
             </div>
-            <div class="zs-header-tagline">📺 Live streaming with external links</div>
+            <div class="zs-header-tagline">📺 Live matches & streaming</div>
             <div class="zs-theme-switch" id="themeSwitch">
                 <button class="zs-theme-btn zs-active" data-theme="dark">🌙 Dark</button>
                 <button class="zs-theme-btn" data-theme="light">☀️ Light</button>
@@ -1043,18 +667,11 @@
                 <div class="zs-player-wrapper" id="zsPlayerWrapper">
                     <div class="zs-video-container" id="zsVideoContainer">
                         <video id="zsVideo" playsinline webkit-playsinline x-webkit-airplay="allow" disableRemotePlayback crossorigin="anonymous"></video>
-                        <!-- Embed iframe -->
                         <iframe id="zsEmbedFrame" style="display:none; width:100%; height:100%; border:none; position:absolute; top:0; left:0; z-index:20;" allowfullscreen></iframe>
                         <button class="zs-embed-close" id="zsEmbedClose" title="Close embed">✕</button>
 
-                        <div class="zs-watermark">
-                            <div class="zs-watermark-icon">Z</div>
-                            <span class="zs-watermark-text">Zi Store</span>
-                        </div>
-                        <div class="zs-live-badge" id="zsLiveBadge">
-                            <span class="zs-live-dot"></span>
-                            <span class="zs-live-text">LIVE</span>
-                        </div>
+                        <div class="zs-watermark"><div class="zs-watermark-icon">Z</div><span class="zs-watermark-text">Zi Store</span></div>
+                        <div class="zs-live-badge" id="zsLiveBadge"><span class="zs-live-dot"></span><span class="zs-live-text">LIVE</span></div>
                         <div class="zs-loading" id="zsLoading"><div class="zs-spinner"></div></div>
                         <div class="zs-flash" id="zsFlash"></div>
                         <div class="zs-error-overlay" id="zsErrorOverlay">
@@ -1067,9 +684,10 @@
                             <button class="zs-start-play-btn" id="zsStartPlayBtn">
                                 <svg viewBox="0 0 24 24" width="40" height="40" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
                             </button>
-                            <div class="zs-start-brand">Zi Store <span>Choose a channel or add an external link</span></div>
+                            <div class="zs-start-brand">Zi Store <span>Choose a match or add a link</span></div>
                         </div>
                     </div>
+
                     <div class="zs-controls" id="zsControls">
                         <button class="zs-btn" id="zsBtnPlay" title="Play/Pause">
                             <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
@@ -1095,16 +713,10 @@
                                 <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13v6.25l5.25 3.15-.75 1.23-6-3.5V7h1.5z"/></svg>
                             </button>
                             <ul class="zs-dropdown-menu" id="zsSpeedMenu">
-                                <li data-speed="0.25">0.25x</li>
-                                <li data-speed="0.5">0.5x</li>
-                                <li data-speed="0.75">0.75x</li>
-                                <li data-speed="1" class="zs-selected">1x - Normal</li>
-                                <li data-speed="1.25">1.25x</li>
-                                <li data-speed="1.5">1.5x</li>
-                                <li data-speed="2">2x</li>
+                                <li data-speed="0.25">0.25x</li><li data-speed="0.5">0.5x</li><li data-speed="0.75">0.75x</li>
+                                <li data-speed="1" class="zs-selected">1x - Normal</li><li data-speed="1.25">1.25x</li><li data-speed="1.5">1.5x</li><li data-speed="2">2x</li>
                             </ul>
                         </div>
-                        <!-- Quality dropdown with id -->
                         <div class="zs-dropdown" id="zsQualityDropdown">
                             <button class="zs-btn" id="zsBtnQuality" title="Quality">
                                 <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z"/></svg>
@@ -1134,17 +746,17 @@
 
             <aside class="zs-channels-section">
                 <div class="zs-channels-header">
-                    <div class="zs-channels-title">📡 <span>Channels</span></div>
+                    <div class="zs-channels-title">📡 <span>Matches & Channels</span></div>
                     <div class="zs-search-box">
-                        <input type="text" id="zsSearchInput" placeholder="Search channels...">
+                        <input type="text" id="zsSearchInput" placeholder="Search...">
                         <span class="zs-search-icon">🔍</span>
                     </div>
                     <div class="zs-category-tabs" id="zsCategoryTabs">
                         <button class="zs-category-tab zs-active" data-category="all">All</button>
-                        <button class="zs-category-tab" data-category="رياضة">Sports</button>
-                        <button class="zs-category-tab" data-category="أخبار">News</button>
-                        <button class="zs-category-tab" data-category="متنوعة">Variety</button>
-                        <button class="zs-category-tab" data-category="خارجية">External Links</button>
+                        <button class="zs-category-tab" data-category="Live">🔴 Live</button>
+                        <button class="zs-category-tab" data-category="Pro League">Pro League</button>
+                        <button class="zs-category-tab" data-category="La Liga">La Liga</button>
+                        <button class="zs-category-tab" data-category="Friendlies Clubs">Friendlies</button>
                         <button class="zs-category-tab" data-category="favorites">⭐ Favorites</button>
                     </div>
                     <div class="zs-external-buttons">
@@ -1167,7 +779,7 @@
             </div>
             <div class="zs-modal-field">
                 <label for="zsExternalUrl">Stream URL (m3u8 / mpd / mp4 / embed page)</label>
-                <input type="url" id="zsExternalUrl" placeholder="https://example.com/stream.m3u8 or https://site.com/embed/123" required>
+                <input type="url" id="zsExternalUrl" placeholder="https://example.com/stream.m3u8" required>
             </div>
             <div class="zs-modal-actions">
                 <button class="zs-modal-btn zs-cancel" id="zsBtnCancelModal">Cancel</button>
@@ -1179,13 +791,12 @@
     <script>
         (function() {
             // ==================== CONFIGURATION ====================
-            // ⚠️ Replace with your actual Supabase credentials if using Supabase
-            const SUPABASE_URL = 'YOUR_SUPABASE_URL'; // e.g., https://abcdefgh.supabase.co
-            const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
-            const SUPABASE_FUNCTION = 'fetch-m3u';
+            const SUPABASE_URL = ''; // optional
+            const SUPABASE_ANON_KEY = ''; // optional
+            const SUPABASE_FUNCTION = 'fetch-m3u'; // optional
 
-            // The M3U URL to load automatically (you can change this)
-            const AUTO_LOAD_M3U_URL = 'http://s4.360iptv.net:8000/get.php?username=523374330593&password=523374330593&type=m3u_plus&output=ts';
+            // Live matches API
+            const MATCHES_API_URL = 'https://admin.golive-pro.online/api/public/events?tz=-4';
 
             // ==================== Theme Management ====================
             function setTheme(theme) {
@@ -1203,9 +814,9 @@
 
             // ==================== Default Channels (fallback) ====================
             const defaultChannels = [
-                { id: 1, name: "beIN Sports 1 HD", category: "رياضة", logo: "B1", url: "https://iptv-org.github.io/iptv/categories/sports.m3u", live: true },
-                { id: 2, name: "Al Jazeera Arabic", category: "أخبار", logo: "AJ", url: "https://live-hls-web-aje.getaj.net/AJE/01.m3u8", live: true },
-                { id: 3, name: "Sky News", category: "أخبار", logo: "SKY", url: "https://skynews2-plutolive-vo.akamaized.net/cdhlsskynewsapp/Sky_News_24x7@342312/live.m3u8", live: true },
+                { id: 1, name: "beIN Sports 1 HD", category: "Sports", logo: "B1", url: "https://iptv-org.github.io/iptv/categories/sports.m3u", live: true },
+                { id: 2, name: "Al Jazeera Arabic", category: "News", logo: "AJ", url: "https://live-hls-web-aje.getaj.net/AJE/01.m3u8", live: true },
+                { id: 3, name: "Sky News", category: "News", logo: "SKY", url: "https://skynews2-plutolive-vo.akamaized.net/cdhlsskynewsapp/Sky_News_24x7@342312/live.m3u8", live: true },
             ];
 
             let channels = [...defaultChannels];
@@ -1277,8 +888,9 @@
             let activeCategory = 'all';
             let searchQuery = '';
             let isEmbedMode = false;
+            let matchChannels = [];
 
-            // Helper functions (same as before)
+            // Helper functions
             function formatTime(s) {
                 if (!isFinite(s) || s < 0) return '--:--';
                 const h = Math.floor(s / 3600);
@@ -1315,7 +927,7 @@
                 timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
             }
             function updateProgress() {
-                if (isLive || !video.duration || !isFinite(video.duration)) {
+                if (isLive || isEmbedMode || !video.duration || !isFinite(video.duration)) {
                     progressFilled.style.width = '0%';
                     progressBuffered.style.width = '0%';
                     progressThumb.style.left = '0%';
@@ -1367,9 +979,7 @@
                     qualityMenu.appendChild(li);
                 });
                 const qd = document.getElementById('zsQualityDropdown');
-                if (qd) {
-                    qd.style.display = qualityLevels.length ? 'block' : 'none';
-                }
+                if (qd) qd.style.display = qualityLevels.length ? 'block' : 'none';
             }
             function setQuality(index) {
                 currentQuality = index;
@@ -1387,7 +997,7 @@
                 localStorage.setItem('zs-speed', speed);
             }
             function triggerScreenshot() {
-                if (!video.videoWidth || isEmbedMode) return; // disable screenshot in embed mode
+                if (isEmbedMode || !video.videoWidth) return;
                 if (!screenshotCanvas) screenshotCanvas = document.createElement('canvas');
                 screenshotCanvas.width = video.videoWidth;
                 screenshotCanvas.height = video.videoHeight;
@@ -1415,14 +1025,14 @@
                 localStorage.setItem('zs-theater', wrapper.classList.contains('zs-theater') ? '1' : '0');
             }
             async function togglePiP() {
-                if (isEmbedMode) return; // PiP not supported in embed mode
+                if (isEmbedMode) return;
                 try {
                     if (document.pictureInPictureElement) await document.exitPictureInPicture();
                     else if (document.pictureInPictureEnabled && video.readyState >= 1) await video.requestPictureInPicture();
                 } catch(e) {}
             }
             function togglePlay() {
-                if (isEmbedMode) return; // no play/pause for iframe
+                if (isEmbedMode) return;
                 if (video.paused) video.play().catch(()=>{});
                 else video.pause();
                 updatePlayButton();
@@ -1464,17 +1074,12 @@
             // ==================== Embed Functions ====================
             function isEmbedUrl(url) {
                 const lower = url.toLowerCase();
-                // If contains '/embed/' or 'embed' then treat as embed
                 if (lower.includes('/embed/') || lower.includes('embed')) return true;
-                // If not a media extension, likely a page -> embed
                 if (!lower.endsWith('.m3u8') && !lower.endsWith('.mpd') && !lower.endsWith('.mp4') &&
-                    !lower.endsWith('.webm') && !lower.endsWith('.ogg') && !lower.endsWith('.mov')) {
-                    return true;
-                }
+                    !lower.endsWith('.webm') && !lower.endsWith('.ogg') && !lower.endsWith('.mov')) return true;
                 return false;
             }
             function showEmbed(url) {
-                // Hide video and show iframe
                 video.style.display = 'none';
                 embedFrame.style.display = 'block';
                 embedFrame.src = url;
@@ -1493,18 +1098,11 @@
                 isEmbedMode = false;
                 controls.style.display = 'flex';
                 embedCloseBtn.classList.remove('zs-visible');
-                // Reset video controls to visible if not hidden
                 showControls();
             }
-            // Event listener for close button
             embedCloseBtn.addEventListener('click', () => {
                 hideEmbed();
-                // Optionally reset to start overlay or keep video paused
-                if (currentStreamUrl && !isEmbedMode) {
-                    // Do nothing, user can choose another channel
-                } else {
-                    startOverlay.classList.remove('zs-hidden');
-                }
+                if (!currentStreamUrl) startOverlay.classList.remove('zs-hidden');
             });
 
             // ==================== Stream Loading ====================
@@ -1524,17 +1122,14 @@
                 hideLoading();
                 setLiveMode(false);
                 buildQualityMenu();
-                // Ensure embed is hidden when switching to normal stream
                 hideEmbed();
             }
             function loadStream(url) {
-                // If embed URL detected, show iframe
                 if (isEmbedUrl(url)) {
                     destroyExistingPlayer();
                     showEmbed(url);
                     return;
                 }
-                // Otherwise normal video loading
                 hideEmbed();
                 destroyExistingPlayer();
                 hideError();
@@ -1676,9 +1271,36 @@
                 localStorage.setItem('zs-favorites', JSON.stringify(favorites));
                 renderChannels();
             }
+            function getChannelLogoHTML(ch) {
+                if (ch.logo && ch.logo.startsWith('http')) {
+                    return `<img src="${ch.logo}" alt="${ch.name}" style="width:46px;height:46px;border-radius:50%;object-fit:contain;">`;
+                }
+                return ch.logo || '📺';
+            }
+            function formatMatchTime(isoString) {
+                if (!isoString) return '';
+                const date = new Date(isoString);
+                const now = new Date();
+                const diffMs = date - now;
+                const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+                const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                if (diffHours > 24) {
+                    return date.toLocaleDateString('en-GB') + ' ' + date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+                } else if (diffHours > 0) {
+                    return `in ${diffHours}h ${diffMinutes}m`;
+                } else if (diffMinutes > 0) {
+                    return `in ${diffMinutes}m`;
+                } else if (diffMs > -120 * 60 * 1000) {
+                    return '🔴 LIVE NOW';
+                } else {
+                    return 'Ended';
+                }
+            }
             function renderChannels() {
                 let filtered = channels.filter(ch => {
-                    const matchCategory = (activeCategory === 'all') || (activeCategory === 'favorites' && isFavorite(ch.id)) || (activeCategory !== 'favorites' && ch.category === activeCategory);
+                    const matchCategory = (activeCategory === 'all') ||
+                        (activeCategory === 'favorites' && isFavorite(ch.id)) ||
+                        (activeCategory !== 'favorites' && ch.category === activeCategory);
                     const matchSearch = ch.name.toLowerCase().includes(searchQuery.toLowerCase());
                     return matchCategory && matchSearch;
                 });
@@ -1690,10 +1312,10 @@
 
                 channelsList.innerHTML = filtered.map(ch => `
                     <div class="zs-channel-card ${ch.id === currentChannelId ? 'zs-active' : ''}" data-id="${ch.id}">
-                        <div class="zs-channel-logo">${ch.logo}</div>
+                        <div class="zs-channel-logo">${getChannelLogoHTML(ch)}</div>
                         <div class="zs-channel-info">
                             <div class="zs-channel-name">${ch.name}</div>
-                            <div class="zs-channel-cat">${ch.category}</div>
+                            <div class="zs-channel-cat">${ch.category}${ch.startTime ? ' • ' + formatMatchTime(ch.startTime) : ''}</div>
                         </div>
                         <button class="zs-fav-btn ${isFavorite(ch.id) ? 'zs-fav' : ''}" data-id="${ch.id}" title="Toggle favorite">★</button>
                         ${ch.live ? '<div class="zs-channel-live">LIVE</div>' : '<div class="zs-channel-status"></div>'}
@@ -1734,25 +1356,23 @@
             function closeModal() { modalOverlay.classList.remove('zs-open'); }
             function addExternalChannel(name, url) {
                 const id = externalIdCounter++;
-                const channel = { id, name: name || 'External ' + id, category: 'خارجية', logo: '🔗', url, live: true };
+                const channel = { id, name: name || 'External ' + id, category: 'External', logo: '🔗', url, live: true };
                 channels.push(channel);
                 renderChannels();
                 changeChannel(channel);
             }
             async function loadM3U(url) {
                 try {
-                    // Use a CORS proxy; try multiple options if one fails
+                    // Try direct fetch first, then CORS proxy
                     let text = '';
                     try {
+                        const response = await fetch(url);
+                        if (response.ok) text = await response.text();
+                        else throw new Error('Direct fetch failed');
+                    } catch (e) {
                         const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
                         const response = await fetch(proxyUrl);
-                        if (response.ok) text = await response.text();
-                        else throw new Error('allorigins failed');
-                    } catch (e) {
-                        // Fallback to another proxy
-                        const proxyUrl = 'https://corsproxy.io/?url=' + encodeURIComponent(url);
-                        const response = await fetch(proxyUrl);
-                        if (!response.ok) throw new Error('corsproxy failed');
+                        if (!response.ok) throw new Error('AllOrigins failed');
                         text = await response.text();
                     }
                     const lines = text.split('\n');
@@ -1767,7 +1387,7 @@
                             parsed.push({
                                 id: externalIdCounter++,
                                 name: currentName || 'Channel ' + (parsed.length + 1),
-                                category: 'خارجية',
+                                category: 'M3U',
                                 logo: '📄',
                                 url: trimmed,
                                 live: true
@@ -1784,6 +1404,56 @@
                     if (parsed[0]) changeChannel(parsed[0]);
                 } catch (e) {
                     alert('Error loading M3U: ' + e.message);
+                }
+            }
+
+            // ==================== Live Matches Integration ====================
+            async function loadMatchesFromJSON() {
+                try {
+                    let data;
+                    // Try direct fetch
+                    try {
+                        const response = await fetch(MATCHES_API_URL);
+                        if (response.ok) {
+                            data = await response.json();
+                        } else {
+                            throw new Error('Direct fetch failed');
+                        }
+                    } catch (e) {
+                        // Fallback to CORS proxy
+                        const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(MATCHES_API_URL);
+                        const response = await fetch(proxyUrl);
+                        if (!response.ok) throw new Error('CORS proxy failed');
+                        data = await response.json();
+                    }
+
+                    if (!Array.isArray(data)) throw new Error('Invalid data format');
+
+                    const newMatchChannels = data
+                        .filter(m => m.sources && m.sources.length > 0 && m.sources[0].streamUrl)
+                        .map((m, index) => ({
+                            id: 2000 + index,
+                            name: `${m.homeName || 'Unknown'} vs ${m.awayName || 'Unknown'}`,
+                            category: m.leagueName || 'Match',
+                            logo: m.homeLogoUrl || '🏟️',
+                            url: m.sources[0].streamUrl,
+                            live: true,
+                            startTime: m.startTime || null,
+                            homeLogo: m.homeLogoUrl,
+                            awayLogo: m.awayLogoUrl,
+                            isMatch: true
+                        }));
+
+                    channels = channels.filter(ch => !ch.isMatch);
+                    channels = channels.concat(newMatchChannels);
+                    matchChannels = newMatchChannels;
+                    renderChannels();
+
+                    if (newMatchChannels.length > 0 && !currentChannelId) {
+                        changeChannel(newMatchChannels[0]);
+                    }
+                } catch (error) {
+                    console.error('Error loading matches:', error);
                 }
             }
 
@@ -1865,7 +1535,7 @@
 
             wrapper.addEventListener('click', (e) => {
                 if (e.target === wrapper || e.target === videoContainer || e.target === video) {
-                    if (isEmbedMode) return; // don't toggle play in embed mode
+                    if (isEmbedMode) return;
                     togglePlay();
                 }
             });
@@ -1959,8 +1629,10 @@
                 startOverlay.classList.remove('zs-hidden');
                 renderChannels();
 
-                // Auto-load M3U playlist (uncomment and set URL if you want automatic loading)
-                // loadM3U(AUTO_LOAD_M3U_URL);
+                // Load live matches automatically
+                loadMatchesFromJSON();
+                // Refresh matches every 5 minutes
+                setInterval(loadMatchesFromJSON, 300000);
             }
             init();
 
@@ -1987,8 +1659,8 @@
                 reload: () => { if (!isEmbedMode) { reconnectAttempts = 0; if (currentStreamUrl) loadStream(currentStreamUrl); } },
                 destroy: destroyExistingPlayer,
             };
-            console.log('Zi Store Player ready with embed support');
+            console.log('Zi Store Player ready with live matches');
         })();
     </script>
 </body>
-    </html>
+                                    </html>
