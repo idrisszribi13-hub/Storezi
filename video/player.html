@@ -1653,9 +1653,10 @@
             }
           async function loadM3U(url) {
     try {
+        // نستخدم وسيط CORS عام (يمكن تغييره إذا كان بطيئاً)
         const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
         const response = await fetch(proxyUrl);
-        if (!response.ok) throw new Error('Failed to load via proxy');
+        if (!response.ok) throw new Error('Failed to load M3U via proxy');
         const text = await response.text();
         const lines = text.split('\n');
         const parsed = [];
