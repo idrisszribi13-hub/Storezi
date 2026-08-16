@@ -581,13 +581,8 @@
             transition: all var(--transition);
             border: 1px solid var(--border);
         }
-        .zs-player-wrapper.zs-theater {
-            border-radius: 0;
-        }
-        .zs-player-wrapper.zs-fullscreen {
-            border-radius: 0;
-            aspect-ratio: unset;
-        }
+        .zs-player-wrapper.zs-theater { border-radius: 0; }
+        .zs-player-wrapper.zs-fullscreen { border-radius: 0; aspect-ratio: unset; }
 
         .zs-video-container {
             position: relative;
@@ -1158,7 +1153,13 @@
 
     <script>
         (function() {
-            // ==================== Configuration ====================
+            // ==================== CONFIGURATION ====================
+            // ⚠️ Replace these with your actual Supabase credentials
+            const SUPABASE_URL = 'https://kvsyzgavfxnwqmtsginv.supabase.co'; // e.g., https://abcdefgh.supabase.co
+            const SUPABASE_ANON_KEY = 'sb_publishable_1uSIqgNONAV53GjOoBoZUw_niAGJXO6';
+            const SUPABASE_FUNCTION = 'fetch-m3u'; // Name of your deployed function
+
+            // The M3U URL to load automatically
             const AUTO_LOAD_M3U_URL = 'http://s4.360iptv.net:8000/get.php?username=523374330593&password=523374330593&type=m3u_plus&output=ts';
 
             // ==================== Theme Management ====================
@@ -1175,7 +1176,7 @@
                 btn.addEventListener('click', () => setTheme(btn.dataset.theme));
             });
 
-            // ==================== Channels Database (default fallback) ====================
+            // ==================== Default Channels (fallback) ====================
             const defaultChannels = [
                 { id: 1, name: "beIN Sports 1 HD", category: "رياضة", logo: "B1", url: "https://iptv-org.github.io/iptv/categories/sports.m3u", live: true },
                 { id: 2, name: "Al Jazeera Arabic", category: "أخبار", logo: "AJ", url: "https://live-hls-web-aje.getaj.net/AJE/01.m3u8", live: true },
@@ -1249,7 +1250,7 @@
             let activeCategory = 'all';
             let searchQuery = '';
 
-            // Helper functions
+            // Helper functions (formatTime, showLoading, etc.)
             function formatTime(s) {
                 if (!isFinite(s) || s < 0) return '--:--';
                 const h = Math.floor(s / 3600);
@@ -1633,7 +1634,7 @@
                 loadStream(channel.url);
             }
 
-            // ==================== External Link & M3U ====================
+            // ==================== External Link & M3U (via Supabase) ====================
             function openModal() {
                 modalOverlay.classList.add('zs-open');
                 externalUrlInput.value = '';
@@ -1650,8 +1651,18 @@
             }
             async function loadM3U(url) {
                 try {
-                    const response = await fetch(url);
-                    if (!response.ok) throw new Error('Failed to load M3U');
+                    // Call Supabase function to fetch the M3U playlist (bypasses CORS)
+                    const functionUrl = `${SUPABASE_URL}/functions/v1/${SUPABASE_FUNCTION}?url=${encodeURIComponent(url)}`;
+                    const response = await fetch(functionUrl, {
+                        headers: {
+                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    if (!response.ok) {
+                        throw new Error(`Supabase function error: ${response.status} ${response.statusText}`);
+                    }
                     const text = await response.text();
                     const lines = text.split('\n');
                     const parsed = [];
@@ -1831,7 +1842,6 @@
 
             // ==================== Initialization ====================
             function init() {
-                // Restore settings
                 try {
                     const savedVol = localStorage.getItem('zs-volume');
                     if (savedVol !== null) {
@@ -1852,7 +1862,7 @@
                 startOverlay.classList.remove('zs-hidden');
                 renderChannels();
 
-                // Auto-load M3U playlist
+                // Auto-load M3U playlist via Supabase function
                 loadM3U(AUTO_LOAD_M3U_URL);
             }
             init();
