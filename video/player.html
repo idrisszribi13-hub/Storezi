@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zi Store - Live Sports & Matches</title>
+    <title>Zi Store - Live Sports</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
     <style>
@@ -28,7 +28,24 @@
             --header-bg: rgba(10,10,18,0.85);
         }
 
-        /* الثيم الأسطوري (الظاهر في صورك) */
+        /* [إصلاح] الثيم الفاتح */
+        [data-theme="light"] {
+            --bg: #f2f4f8;
+            --surface: #ffffff;
+            --surface-glass: rgba(255,255,255,0.95);
+            --surface-hover: rgba(0,0,0,0.04);
+            --border: rgba(0,0,0,0.1);
+            --text: #1a1a2e;
+            --text-secondary: #555555;
+            --accent: #0284c7;
+            --accent2: #0369a1;
+            --accent-glow: rgba(2,132,199,0.4);
+            --live: #dc2626;
+            --live-glow: rgba(220,38,38,0.6);
+            --shadow: 0 10px 30px rgba(0,0,0,0.08), 0 0 0 1px var(--border);
+            --header-bg: rgba(255,255,255,0.9);
+        }
+
         [data-theme="legendary"] {
             --bg: #1a0f0a;
             --surface: #2d1f14;
@@ -58,11 +75,9 @@
         }
 
         .zs-bg-effects { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
-        .zs-bg-effects span { position: absolute; border-radius: 50%; background: var(--accent); opacity: 0.05; animation: float 15s infinite ease-in-out; }
 
         .zs-app { position: relative; z-index: 1; display: flex; flex-direction: column; min-height: 100vh; }
 
-        /* الهيدر */
         .zs-header {
             display: flex; align-items: center; justify-content: space-between; gap: 12px;
             padding: 14px 24px; background: var(--header-bg); backdrop-filter: blur(20px);
@@ -102,7 +117,9 @@
         }
 
         .zs-channels-header { padding: 16px 18px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px; background: var(--surface-glass); }
-        .zs-channels-title { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: var(--accent); }
+        /* [تعديل] حذف كلمة Matches & Channels */
+        .zs-channels-title { font-size: 24px; font-weight: 800; color: var(--accent); text-align: center; }
+        
         .zs-search-box { position: relative; }
         .zs-search-box input {
             width: 100%; padding: 10px 36px 10px 14px; border-radius: 25px; border: 1px solid var(--border);
@@ -121,24 +138,33 @@
 
         /* ===== التصميم الجديد للبطاقات ===== */
         .zs-channel-card {
-            display: flex; flex-direction: column; gap: 8px; padding: 16px 14px;
+            display: flex; flex-direction: column; gap: 4px; padding: 14px 14px;
             border-radius: 14px; background: var(--surface);
             border: 1px solid var(--border);
-            cursor: pointer; transition: all var(--transition); position: relative; min-height: 140px;
+            cursor: pointer; transition: all var(--transition); position: relative; 
         }
         .zs-channel-card:hover { background: var(--surface-hover); border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
         .zs-channel-card.zs-active { border-color: var(--accent); box-shadow: 0 0 20px var(--accent-glow); }
+
+        /* [جديد] اسم البطولة والكأس داخل البطاقة على شكل شريط علوي */
+        .zs-match-league {
+            display: flex; justify-content: center; align-items: center; gap: 6px;
+            background: var(--surface-hover); border-radius: 30px;
+            padding: 4px 14px; font-size: 13px; font-weight: 700; color: var(--text-secondary);
+            align-self: center; margin-bottom: 6px; border: 1px solid rgba(255,255,255,0.05);
+            white-space: nowrap;
+        }
+        .zs-trophy-icon { font-size: 14px; }
 
         .zs-match-body {
             display: flex; justify-content: space-around; align-items: stretch; gap: 10px;
         }
         .zs-team {
-            display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1;
-            justify-content: flex-start; /* جعل الشعارات في المنتصف أعلى قليلاً */
-            padding-top: 6px;
+            display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1;
+            justify-content: flex-start; padding-top: 4px;
         }
         .zs-logo {
-            width: 60px; height: 60px; border-radius: 50%; margin-bottom: 4px;
+            width: 58px; height: 58px; border-radius: 50%; 
             background: rgba(0,0,0,0.2); border: 2px solid var(--border);
             display: flex; align-items: center; justify-content: center; overflow: hidden;
             transition: border-color 0.3s;
@@ -146,16 +172,14 @@
         .zs-logo img { width: 100%; height: 100%; object-fit: contain; }
         .zs-team-name {
             font-size: 13px; font-weight: 700; color: var(--text); text-align: center; 
-            max-width: 100px; word-break: break-word; line-height: 1.2;
+            max-width: 90px; word-break: break-word; line-height: 1.2;
         }
 
         .zs-center-info {
             display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-width: 80px;
         }
-        
-        /* [جديد] وضع حالة المباراة فوق الوقت */
         .zs-status-center {
-            font-size: 13px; font-weight: 800; text-align: center; width: 100%;
+            font-size: 12px; font-weight: 800; text-align: center; width: 100%;
             padding: 4px 10px; border-radius: 20px; min-height: 20px;
             background: rgba(0,0,0,0.2); backdrop-filter: blur(2px);
         }
@@ -170,19 +194,19 @@
         .zs-time { font-size: 16px; font-weight: 800; color: var(--text); }
         .zs-vs { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
 
-        /* [جديد] اسم البطولة والكأس واضح تماماً */
-        .zs-match-footer {
-            display: flex; justify-content: center; align-items: center; gap: 8px;
-            margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);
-            color: var(--text-secondary); font-size: 16px; font-weight: 600; letter-spacing: 0.5px;
-        }
-        .zs-trophy-icon { font-size: 18px; }
-
         /* مشغل الفيديو المحترف */
         .zs-player-wrapper { position: relative; width: 100%; background: #000; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); aspect-ratio: 16/9; }
         .zs-video-container { width: 100%; height: 100%; background: #000; position: relative; transition: transform 0.3s ease; }
         video { width: 100%; height: 100%; object-fit: contain; display: block; }
         .zs-video-container.rotated { transform: rotate(90deg); aspect-ratio: 9/16; }
+        
+        /* [جديد] علامة مائية صغيرة في الزاوية اليسرى فوق الفيديو */
+        .zs-video-watermark {
+            position: absolute; top: 15px; left: 15px; z-index: 6;
+            pointer-events: none; opacity: 0.4; color: #fff; font-weight: 700; font-size: 14px;
+            background: rgba(0,0,0,0.3); padding: 4px 10px; border-radius: 12px;
+            backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.1);
+        }
         
         .zs-live-badge { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.7); color: #fff; padding: 8px 18px; border-radius: 24px; display: none; align-items: center; gap: 8px; font-weight: 700; }
         .zs-live-badge.zs-visible { display: flex; }
@@ -211,16 +235,14 @@
         .zs-loading, .zs-error-overlay { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.5); z-index: 11; }
         .zs-loading.zs-visible, .zs-error-overlay.zs-visible { display: flex; }
         .zs-spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
 
         @media (max-width: 600px) {
             .zs-header { padding: 12px; flex-direction: column; gap: 10px; }
             .zs-main { padding: 10px; gap: 10px; }
-            .zs-team-name { max-width: 70px; font-size: 12px; }
-            .zs-logo { width: 50px; height: 50px; }
-            .zs-time-block { padding: 4px 10px; }
-            .zs-time { font-size: 14px; }
-            .zs-status-center { font-size: 11px; }
+            .zs-team-name { max-width: 70px; font-size: 11px; }
+            .zs-logo { width: 48px; height: 48px; }
+            .zs-time { font-size: 13px; }
+            .zs-match-league { font-size: 11px; padding: 2px 10px; }
         }
     </style>
 </head>
@@ -244,6 +266,10 @@
                 <div class="zs-player-wrapper" id="zsPlayerWrapper">
                     <div class="zs-video-container" id="zsVideoContainer">
                         <video id="zsVideo" playsinline></video>
+                        
+                        <!-- [جديد] علامة مائية صغيرة -->
+                        <div class="zs-video-watermark">ZI</div>
+
                         <div class="zs-live-badge" id="zsLiveBadge"><span>🔴</span> LIVE</div>
                         <div class="zs-loading" id="zsLoading"><div class="zs-spinner"></div></div>
                         <div class="zs-error-overlay" id="zsErrorOverlay">
@@ -273,7 +299,8 @@
 
             <aside class="zs-channels-section">
                 <div class="zs-channels-header">
-                    <div class="zs-channels-title">📡 Matches & Channels</div>
+                    <!-- [تعديل] تم حذف كلمة Matches & Channels وإبقاء الأيقونة فقط -->
+                    <div class="zs-channels-title">📡</div>
                     <div class="zs-search-box"><input type="text" id="zsSearchInput" placeholder="Search..."></div>
                     <div class="zs-category-tabs" id="zsCategoryTabs">
                         <button class="zs-category-tab zs-active" data-category="all">All</button>
@@ -327,13 +354,18 @@
             const searchInput = document.getElementById('zsSearchInput');
             const categoryTabs = document.getElementById('zsCategoryTabs');
 
-            // Theme
+            // [إصلاح] Theme Logic
             function setTheme(theme) {
                 document.documentElement.setAttribute('data-theme', theme);
                 localStorage.setItem('zs-theme', theme);
-                document.querySelectorAll('.zs-theme-btn').forEach(btn => btn.classList.toggle('zs-active', btn.dataset.theme === theme));
+                document.querySelectorAll('.zs-theme-btn').forEach(btn => {
+                    btn.classList.toggle('zs-active', btn.dataset.theme === theme);
+                });
             }
-            setTheme(localStorage.getItem('zs-theme') || 'legendary');
+            // تطبيق الثيم المحفوظ أو الافتراضي
+            const savedTheme = localStorage.getItem('zs-theme') || 'legendary';
+            setTheme(savedTheme);
+
             document.querySelectorAll('.zs-theme-btn').forEach(btn => btn.addEventListener('click', () => setTheme(btn.dataset.theme)));
 
             function showLoading() { loadingEl.classList.add('zs-visible'); }
@@ -396,10 +428,10 @@
                     return;
                 }
 
+                // [تعديل] وضع اسم البطولة والكأس داخل كل بطاقة ليصبح متناسقاً
                 channelsList.innerHTML = filtered.map(ch => {
                     const homeName = ch.homeName || ch.name.split(' vs ')[0] || 'Home';
                     const awayName = ch.awayName || ch.name.split(' vs ')[1] || 'Away';
-                    // [جديد] ضمان ظهور اسم البطولة
                     const leagueName = ch.leagueName || ch.category || 'Match';
                     
                     const homeLogo = ch.homeLogo || ch.logo;
@@ -420,6 +452,12 @@
 
                     return `
                         <div class="zs-channel-card ${ch.id === currentChannelId ? 'zs-active' : ''}" data-id="${ch.id}">
+                            <!-- [جديد] شريط البطولة والكأس فوق البطاقة -->
+                            <div class="zs-match-league">
+                                <span>${leagueName}</span>
+                                <span class="zs-trophy-icon">🏆</span>
+                            </div>
+                            
                             <div class="zs-match-body">
                                 <div class="zs-team">
                                     <div class="zs-logo">
@@ -428,7 +466,6 @@
                                     <span class="zs-team-name">${homeName}</span>
                                 </div>
                                 <div class="zs-center-info">
-                                    <!-- [جديد] حالة المباراة فوق الوقت -->
                                     <div class="zs-status-center ${statusClass}">${statusHTML}</div>
                                     <div class="zs-time-block">
                                         <span class="zs-time">${timeStr}</span>
@@ -441,11 +478,6 @@
                                     </div>
                                     <span class="zs-team-name">${awayName}</span>
                                 </div>
-                            </div>
-                            <!-- [جديد] إصلاح اسم البطولة والكأس -->
-                            <div class="zs-match-footer">
-                                <span>${leagueName}</span>
-                                <span class="zs-trophy-icon">🏆</span>
                             </div>
                         </div>
                     `;
@@ -533,4 +565,4 @@
         })();
     </script>
 </body>
-        </html>
+                                                   </html>
