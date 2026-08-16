@@ -1080,7 +1080,8 @@
                                 <li data-speed="2">2x</li>
                             </ul>
                         </div>
-                        <div class="zs-dropdown">
+                        <!-- ======== NOTE: id="zsQualityDropdown" added here ======== -->
+                        <div class="zs-dropdown" id="zsQualityDropdown">
                             <button class="zs-btn" id="zsBtnQuality" title="Quality">
                                 <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z"/></svg>
                             </button>
@@ -1154,12 +1155,10 @@
     <script>
         (function() {
             // ==================== CONFIGURATION ====================
-            // ⚠️ Replace these with your actual Supabase credentials
-            const SUPABASE_URL = 'https://kvsyzgavfxnwqmtsginv.supabase.co'; // e.g., https://abcdefgh.supabase.co
+            const SUPABASE_URL = 'https://kvsyzgavfxnwqmtsginv.supabase.co';
             const SUPABASE_ANON_KEY = 'sb_publishable_1uSIqgNONAV53GjOoBoZUw_niAGJXO6';
-            const SUPABASE_FUNCTION = 'fetch-m3u'; // Name of your deployed function
+            const SUPABASE_FUNCTION = 'fetch-m3u';
 
-            // The M3U URL to load automatically
             const AUTO_LOAD_M3U_URL = 'http://s4.360iptv.net:8000/get.php?username=523374330593&password=523374330593&type=m3u_plus&output=ts';
 
             // ==================== Theme Management ====================
@@ -1176,7 +1175,7 @@
                 btn.addEventListener('click', () => setTheme(btn.dataset.theme));
             });
 
-            // ==================== Default Channels (fallback) ====================
+            // ==================== Default Channels ====================
             const defaultChannels = [
                 { id: 1, name: "beIN Sports 1 HD", category: "رياضة", logo: "B1", url: "https://iptv-org.github.io/iptv/categories/sports.m3u", live: true },
                 { id: 2, name: "Al Jazeera Arabic", category: "أخبار", logo: "AJ", url: "https://live-hls-web-aje.getaj.net/AJE/01.m3u8", live: true },
@@ -1250,7 +1249,7 @@
             let activeCategory = 'all';
             let searchQuery = '';
 
-            // Helper functions (formatTime, showLoading, etc.)
+            // ==================== Helper Functions ====================
             function formatTime(s) {
                 if (!isFinite(s) || s < 0) return '--:--';
                 const h = Math.floor(s / 3600);
@@ -1338,7 +1337,10 @@
                     li.addEventListener('click', () => setQuality(i));
                     qualityMenu.appendChild(li);
                 });
-                document.getElementById('zsQualityDropdown').style.display = qualityLevels.length ? 'block' : 'none';
+                const qd = document.getElementById('zsQualityDropdown');
+                if (qd) {
+                    qd.style.display = qualityLevels.length ? 'block' : 'none';
+                }
             }
             function setQuality(index) {
                 currentQuality = index;
@@ -1651,7 +1653,6 @@
             }
             async function loadM3U(url) {
                 try {
-                    // Call Supabase function to fetch the M3U playlist (bypasses CORS)
                     const functionUrl = `${SUPABASE_URL}/functions/v1/${SUPABASE_FUNCTION}?url=${encodeURIComponent(url)}`;
                     const response = await fetch(functionUrl, {
                         headers: {
@@ -1894,4 +1895,4 @@
         })();
     </script>
 </body>
-    </html>
+</html>
