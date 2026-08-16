@@ -1651,52 +1651,43 @@
                 renderChannels();
                 changeChannel(channel);
             }
-            async function loadM3U(url) {
-                try {
-                    const functionUrl = `${SUPABASE_URL}/functions/v1/${SUPABASE_FUNCTION}?url=${encodeURIComponent(url)}`;
-                    const response = await fetch(functionUrl, {
-                        headers: {
-                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                            'apikey': SUPABASE_ANON_KEY,
-                            'Content-Type': 'application/json'
-                        }
-                    });
-                    if (!response.ok) {
-                        throw new Error(`Supabase function error: ${response.status} ${response.statusText}`);
-                    }
-                    const text = await response.text();
-                    const lines = text.split('\n');
-                    const parsed = [];
-                    let currentName = '';
-                    for (const line of lines) {
-                        const trimmed = line.trim();
-                        if (trimmed.startsWith('#EXTINF')) {
-                            const nameMatch = trimmed.match(/,(.*)$/);
-                            if (nameMatch) currentName = nameMatch[1].trim();
-                        } else if (trimmed && !trimmed.startsWith('#')) {
-                            parsed.push({
-                                id: externalIdCounter++,
-                                name: currentName || 'Channel ' + (parsed.length + 1),
-                                category: 'خارجية',
-                                logo: '📄',
-                                url: trimmed,
-                                live: true
-                            });
-                            currentName = '';
-                        }
-                    }
-                    if (parsed.length === 0) {
-                        alert('No channels found in M3U file.');
-                        return;
-                    }
-                    channels = channels.concat(parsed);
-                    renderChannels();
-                    if (parsed[0]) changeChannel(parsed[0]);
-                } catch (e) {
-                    alert('Error loading M3U: ' + e.message);
-                }
+          async function loadM3U(url) {
+    try {
+        const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+        const response = await fetch(proxyUrl);
+        if (!response.ok) throw new Error('Failed to load via proxy');
+        const text = await response.text();
+        const lines = text.split('\n');
+        const parsed = [];
+        let currentName = '';
+        for (const line of lines) {
+            const trimmed = line.trim();
+            if (trimmed.startsWith('#EXTINF')) {
+                const nameMatch = trimmed.match(/,(.*)$/);
+                if (nameMatch) currentName = nameMatch[1].trim();
+            } else if (trimmed && !trimmed.startsWith('#')) {
+                parsed.push({
+                    id: externalIdCounter++,
+                    name: currentName || 'Channel ' + (parsed.length + 1),
+                    category: 'خارجية',
+                    logo: '📄',
+                    url: trimmed,
+                    live: true
+                });
+                currentName = '';
             }
-
+        }
+        if (parsed.length === 0) {
+            alert('No channels found in M3U file.');
+            return;
+        }
+        channels = channels.concat(parsed);
+        renderChannels();
+        if (parsed[0]) changeChannel(parsed[0]);
+    } catch (e) {
+        alert('Error loading M3U: ' + e.message);
+    }
+}
             // ==================== Event Listeners ====================
             startPlayBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
