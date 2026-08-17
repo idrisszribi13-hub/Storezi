@@ -7,54 +7,83 @@
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
     <style>
-        :root { --bg: #0a0a0f; --surface: #12121a; --surface-glass: rgba(18, 18, 26, 0.95); --surface-hover: rgba(255,255,255,0.06); --border: rgba(255,255,255,0.12); --text: #f5f5f5; --text-secondary: #b0b0b8; --accent: #e4a83d; --accent2: #c8842c; --accent-glow: rgba(228,168,61,0.5); --live: #e53935; --live-glow: rgba(229,57,53,0.8); --shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 0 1px var(--border); --radius: 16px; --radius-sm: 12px; --transition: 0.3s cubic-bezier(0.4,0,0.2,1); --font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; --header-bg: rgba(10,10,18,0.85); }
-        [data-theme="light"] { --bg: #f2f4f8; --surface: #ffffff; --surface-glass: rgba(255,255,255,0.95); --surface-hover: rgba(0,0,0,0.04); --border: rgba(0,0,0,0.1); --text: #1a1a2e; --text-secondary: #555555; --accent: #0284c7; --accent2: #0369a1; --accent-glow: rgba(2,132,199,0.4); --live: #dc2626; --live-glow: rgba(220,38,38,0.6); --shadow: 0 10px 30px rgba(0,0,0,0.08), 0 0 0 1px var(--border); --header-bg: rgba(255,255,255,0.9); }
+        :root {
+            --bg: #0a0a0f;
+            --surface: #12121a;
+            --surface-glass: rgba(18, 18, 26, 0.85);
+            --surface-hover: rgba(255,255,255,0.06);
+            --border: rgba(255,255,255,0.12);
+            --text: #f5f5f5;
+            --text-secondary: #b0b0b8;
+            --accent: #e4a83d;
+            --accent2: #c8842c;
+            --accent-glow: rgba(228,168,61,0.5);
+            --live: #e53935;
+            --live-glow: rgba(229,57,53,0.8);
+            --shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 0 1px var(--border);
+            --radius: 16px;
+            --radius-sm: 12px;
+            --transition: 0.3s cubic-bezier(0.4,0,0.2,1);
+            --font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --header-bg: rgba(10,10,18,0.85);
+        }
+
+        [data-theme="light"] { --bg: #f2f4f8; --surface: #ffffff; --surface-glass: rgba(255,255,255,0.9); --surface-hover: rgba(0,0,0,0.04); --border: rgba(0,0,0,0.1); --text: #1a1a2e; --text-secondary: #555555; --accent: #0284c7; --accent2: #0369a1; --accent-glow: rgba(2,132,199,0.4); --live: #dc2626; --live-glow: rgba(220,38,38,0.6); --shadow: 0 10px 30px rgba(0,0,0,0.08), 0 0 0 1px var(--border); --header-bg: rgba(255,255,255,0.9); }
         [data-theme="legendary"] { --bg: #1a0f0a; --surface: #2d1f14; --surface-glass: rgba(45,31,20,0.9); --surface-hover: rgba(255,255,255,0.08); --border: rgba(255,215,0,0.35); --text: #ffd700; --text-secondary: #d4a574; --accent: #ff6b00; --accent2: #e05a00; --accent-glow: rgba(255,107,0,0.6); --live: #ff0000; --live-glow: rgba(255,0,0,0.8); --shadow: 0 25px 60px rgba(255,215,0,0.2), 0 0 0 1px var(--border); --header-bg: rgba(26,15,10,0.9); }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: var(--bg); font-family: var(--font); min-height: 100vh; color: var(--text); transition: background 0.4s, color 0.4s; overflow-x: hidden; }
+
         .zs-bg-effects { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        .zs-bg-effects span { position: absolute; border-radius: 50%; background: var(--accent); opacity: 0.05; animation: float 15s infinite ease-in-out; }
         .zs-app { position: relative; z-index: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
         .zs-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 24px; background: var(--header-bg); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; flex-wrap: wrap; }
         .zs-header-brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 22px; }
-        .zs-brand-icon { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 22px; color: #0a0a0f; box-shadow: 0 0 20px var(--accent-glow); animation: logo-pulse 3s infinite ease-in-out, logo-rotate 8s linear infinite; }
-        @keyframes logo-pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
-        @keyframes logo-rotate { 0% { background: linear-gradient(135deg, var(--accent), var(--accent2)); } 50% { background: linear-gradient(135deg, var(--accent2), var(--accent)); } 100% { background: linear-gradient(135deg, var(--accent), var(--accent2)); } }
-        .zs-theme-switch { display: flex; gap: 6px; background: var(--surface-glass); border-radius: 30px; padding: 4px; border: 1px solid var(--border); }
-        .zs-theme-btn { padding: 8px 14px; border-radius: 25px; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; font-size: 13px; font-weight: 600; font-family: var(--font); transition: all var(--transition); display: flex; align-items: center; gap: 5px; }
-        .zs-theme-btn:hover { color: var(--text); background: var(--surface-hover); }
-        .zs-theme-btn.zs-active { background: var(--accent); color: #0a0a0f; box-shadow: 0 0 15px var(--accent-glow); }
+        .zs-brand-icon { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 22px; color: #0a0a0f; box-shadow: 0 0 20px var(--accent-glow); animation: logo-pulse 3s infinite ease-in-out; }
+
+        .zs-theme-switch { display: flex; background: var(--surface-glass); padding: 4px; border-radius: 25px; border: 1px solid var(--border); backdrop-filter: blur(10px); gap: 4px; }
+        .zs-theme-btn { padding: 8px 16px; border-radius: 20px; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; font-size: 12px; font-weight: 600; font-family: var(--font); transition: all var(--transition); display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+        .zs-theme-btn:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+        .zs-theme-btn.zs-active { background: var(--accent); color: #0a0a0f; box-shadow: 0 0 15px var(--accent-glow); font-weight: 700; }
+
         .zs-main { flex: 1; display: flex; flex-wrap: wrap; gap: 20px; padding: 20px; align-items: flex-start; }
         .zs-player-section { flex: 1 1 100%; max-width: 100%; min-width: 0; }
         @media (min-width: 1000px) { .zs-player-section { flex: 1 1 calc(100% - 480px); max-width: calc(100% - 480px); } }
+
         .zs-channels-section { flex: 1 1 100%; background: var(--surface-glass); backdrop-filter: blur(20px); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; display: flex; flex-direction: column; min-height: 400px; max-height: 70vh; box-shadow: var(--shadow); }
         @media (min-width: 1000px) { .zs-channels-section { flex: 0 0 460px; min-height: auto; max-height: calc(100vh - 140px); position: sticky; top: 90px; } }
+
         .zs-channels-header { padding: 16px 18px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px; background: var(--surface-glass); }
         .zs-channels-title { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: var(--accent); }
         .zs-search-box { position: relative; }
         .zs-search-box input { width: 100%; padding: 10px 36px 10px 14px; border-radius: 25px; border: 1px solid var(--border); background: var(--surface-hover); color: var(--text); font-size: 14px; outline: none; transition: all var(--transition); font-family: var(--font); }
-        .zs-search-box input:focus { border-color: var(--accent); background: var(--surface-glass); box-shadow: 0 0 0 3px rgba(228,168,61,0.15); }
-        .zs-category-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+
+        .zs-category-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
         .zs-category-tab { padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); cursor: pointer; font-size: 13px; font-family: var(--font); transition: all var(--transition); white-space: nowrap; }
         .zs-category-tab.zs-active { background: var(--accent); color: #0a0a0f; border-color: var(--accent); font-weight: 700; }
+
         .zs-channels-list { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 12px; }
-        .zs-channel-card { display: flex; flex-direction: column; gap: 4px; padding: 14px 14px; border-radius: 14px; background: var(--surface); border: 1px solid var(--border); cursor: pointer; transition: all var(--transition); position: relative; min-height: 140px; }
+
+        .zs-channel-card { display: flex; flex-direction: column; gap: 8px; padding: 14px 14px; border-radius: 14px; background: var(--surface); border: 1px solid var(--border); cursor: pointer; transition: all var(--transition); position: relative; }
         .zs-channel-card:hover { background: var(--surface-hover); border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
         .zs-channel-card.zs-active { border-color: var(--accent); box-shadow: 0 0 20px var(--accent-glow); }
+        
+        .zs-match-league { display: flex; justify-content: center; align-items: center; gap: 6px; background: var(--surface-hover); border-radius: 30px; padding: 4px 14px; font-size: 13px; font-weight: 700; color: var(--text-secondary); align-self: center; margin-bottom: 6px; border: 1px solid rgba(255,255,255,0.05); white-space: nowrap; }
+        .zs-trophy-icon { font-size: 14px; }
         .zs-match-body { display: flex; justify-content: space-around; align-items: stretch; gap: 10px; }
-        .zs-team { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; justify-content: flex-start; padding-top: 6px; }
-        .zs-logo { width: 60px; height: 60px; border-radius: 50%; margin-bottom: 4px; background: rgba(0,0,0,0.2); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; overflow: hidden; transition: border-color 0.3s; }
+        .zs-team { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; justify-content: flex-start; padding-top: 4px; }
+        .zs-logo { width: 58px; height: 58px; border-radius: 50%; background: rgba(0,0,0,0.2); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; overflow: hidden; transition: border-color 0.3s; }
         .zs-logo img { width: 100%; height: 100%; object-fit: contain; }
-        .zs-team-name { font-size: 13px; font-weight: 700; color: var(--text); text-align: center; max-width: 100px; word-break: break-word; line-height: 1.2; }
+        .zs-team-name { font-size: 13px; font-weight: 700; color: var(--text); text-align: center; max-width: 90px; word-break: break-word; line-height: 1.2; }
         .zs-center-info { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-width: 80px; }
-        .zs-status-center { font-size: 13px; font-weight: 800; text-align: center; width: 100%; padding: 4px 10px; border-radius: 20px; min-height: 20px; background: rgba(0,0,0,0.2); backdrop-filter: blur(2px); }
+        .zs-status-center { font-size: 12px; font-weight: 800; text-align: center; width: 100%; padding: 4px 10px; border-radius: 20px; min-height: 20px; background: rgba(0,0,0,0.2); backdrop-filter: blur(2px); }
         .zs-status-center.ended { color: #9e9e9e; }
         .zs-status-center.live { color: var(--live); text-shadow: 0 0 10px var(--live-glow); }
         .zs-status-center.upcoming { color: var(--accent); }
         .zs-time-block { display: flex; flex-direction: column; align-items: center; gap: 2px; background: rgba(0,0,0,0.3); padding: 6px 14px; border-radius: 12px; }
         .zs-time { font-size: 16px; font-weight: 800; color: var(--text); }
         .zs-vs { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
-        .zs-match-footer { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); color: var(--text-secondary); font-size: 16px; font-weight: 600; letter-spacing: 0.5px; }
-        .zs-trophy-icon { font-size: 18px; }
 
         /* ===== قسم الأفلام ===== */
         .zs-movies-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; padding: 5px 0; width: 100%; }
@@ -98,6 +127,7 @@
         .zs-loading.zs-visible, .zs-error-overlay.zs-visible { display: flex; }
         .zs-spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
+
         .zs-watermark { position: absolute; top: 20px; left: 20px; z-index: 5; display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.5); backdrop-filter: blur(6px); padding: 8px 16px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.2); pointer-events: none; }
         .zs-watermark-icon { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 18px; color: #0a0a0f; }
         .zs-watermark-text { font-weight: 800; font-size: 18px; color: #fff; letter-spacing: 1px; }
@@ -146,15 +176,15 @@
                             <div style="text-align:center;line-height:1.8;">
                                 ⚠️ تعذر تشغيل الفيديو.<br>
                                 <span style="font-size:14px;color:#bbb;">
-                                    موقعك يعمل بـ HTTPS، لكن مصدر الفيديو غير آمن (HTTP).<br>
-                                    <b>الحل:</b> في متصفح الكمبيوتر/الهاتف، اذهب للإعدادات، ابحث عن "السماح بالمحتوى غير الآمن" وقم بتفعيله لهذا الموقع. (أو استخدم متصفح فايرفوكس).
+                                    الموقع يستخدم HTTPS، ومصدر الفيديو HTTP.<br>
+                                    <b>الحل:</b> استخدم متصفح Firefox أو فعّل "السماح بالمحتوى غير الآمن" في إعدادات كروم.
                                 </span>
                             </div>
                             <button id="zsErrorRetry" class="zs-btn" style="margin-top:15px;background:var(--accent);color:#000;border-radius:5px;padding:8px 20px;width:auto;height:auto;">حاول مرة أخرى</button>
                         </div>
                         <div class="zs-start-overlay" id="zsStartOverlay">
                             <button class="zs-start-play-btn" id="zsStartPlayBtn">▶</button>
-                            <div>Choose a channel to start</div>
+                            <div style="color:var(--text-secondary);">اختر مباراة أو فيلماً للبدء</div>
                         </div>
                     </div>
                     <div class="zs-controls" id="zsControls">
@@ -177,11 +207,13 @@
                 <div class="zs-channels-header">
                     <div class="zs-channels-title">📡 Matches & Channels</div>
                     <div class="zs-search-box"><input type="text" id="zsSearchInput" placeholder="Search..."></div>
+                    <!-- [جديد] أضفنا زر BeIN Sports -->
                     <div class="zs-category-tabs" id="zsCategoryTabs">
                         <button class="zs-category-tab zs-active" data-category="all">All</button>
                         <button class="zs-category-tab" data-category="Live">🔴 Live</button>
                         <button class="zs-category-tab" data-category="Sports">Sports</button>
                         <button class="zs-category-tab" data-category="Movies">🎬 Movies</button>
+                        <button class="zs-category-tab" data-category="Ostora">📡 BeIN Sports</button>
                     </div>
                 </div>
                 <div class="zs-channels-list" id="zsChannelsList"></div>
@@ -196,6 +228,7 @@
             const MATCHES_API_URL = WORKER_URL + '?url=' + encodeURIComponent('https://admin.golive-pro.online/api/public/events?tz=-4');
             const MOVIES_BASE_URL = 'https://admin.golive-pro.online/api/content/movies?categoryId=9ec354e5-4707-4161-9dab-b51f899b29d8&limit=20&page=';
 
+            // الروابط الافتراضية للمباريات
             const defaultChannels = [
                 { id: 101, name: "beIN Sports 1 HD", category: "Sports", logo: "B1", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein101.m3u8", live: true },
                 { id: 102, name: "beIN Sports 2 HD", category: "Sports", logo: "B2", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein202.m3u8", live: true },
@@ -236,6 +269,7 @@
             const channelsList = document.getElementById('zsChannelsList');
             const searchInput = document.getElementById('zsSearchInput');
             const categoryTabs = document.getElementById('zsCategoryTabs');
+            const themeSwitch = document.getElementById('themeSwitch');
 
             // Theme
             function setTheme(theme) {
@@ -244,7 +278,10 @@
                 document.querySelectorAll('.zs-theme-btn').forEach(btn => btn.classList.toggle('zs-active', btn.dataset.theme === theme));
             }
             setTheme(localStorage.getItem('zs-theme') || 'legendary');
-            document.querySelectorAll('.zs-theme-btn').forEach(btn => btn.addEventListener('click', () => setTheme(btn.dataset.theme)));
+            themeSwitch.addEventListener('click', (e) => {
+                const btn = e.target.closest('.zs-theme-btn');
+                if (btn) setTheme(btn.dataset.theme);
+            });
 
             function showLoading() { loadingEl.classList.add('zs-visible'); }
             function hideLoading() { loadingEl.classList.remove('zs-visible'); }
@@ -262,13 +299,11 @@
                 btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
             }
 
-            // ------------------ تشغيل الفيديو (حل مباشر ونهائي) ------------------
             function loadStream(url) {
                 destroyPlayer();
                 showLoading();
                 startOverlay.classList.add('zs-hidden');
                 
-                // 1. معالجة روابط المباريات (m3u8) - تعمل 100%
                 if (url.includes('.m3u8')) {
                     if (Hls.isSupported()) {
                         hls = new Hls();
@@ -285,30 +320,17 @@
                     return;
                 }
 
-                // 2. معالجة روابط الأفلام - التشغيل المباشر فقط (لأن الـ Worker لا يتحمل ملفات MKV الضخمة)
-                // إذا أصر المتصفح على حظره، سيظهر للمستخدم رسالة واضحة تخبره بالحل.
                 if (url.includes('.mkv') || url.includes('.mp4')) {
                     video.src = url;
                     video.play().then(() => {
                         hideLoading(); hideError();
                     }).catch((e) => {
-                        console.warn("Failed to play movie directly.", e);
-                        hideLoading(); 
-                        showError();
-                        // تحديث نص الخطأ ليكون مفيداً جداً للمستخدم
-                        const errorDiv = document.querySelector('#zsErrorOverlay div');
-                        errorDiv.innerHTML = `
-                            ⚠️ تعذر تشغيل الفيديو.<br>
-                            <span style="font-size:14px;color:#bbb;">
-                                موقعك يعمل بـ HTTPS، لكن مصدر الفيديو غير آمن (HTTP).<br>
-                                <b>الحل:</b> في متصفح الكمبيوتر/الهاتف، اذهب للإعدادات، ابحث عن "السماح بالمحتوى غير الآمن" وقم بتفعيله لهذا الموقع. (أو استخدم متصفح فايرفوكس).
-                            </span>
-                        `;
+                        console.warn(e);
+                        hideLoading(); showError();
                     });
                 }
             }
 
-            // ------------------ دوال المباريات ------------------
             function getStatus(startTime) {
                 const now = new Date();
                 const start = new Date(startTime);
@@ -319,27 +341,35 @@
             }
 
             function renderMatches() {
+                // [تعديل التصفية] إضافة فئة Ostora
                 const filtered = channels.filter(ch => {
-                    const matchCategory = activeCategory === 'all' || (activeCategory === 'Live' && ch.live && ch.startTime && getStatus(ch.startTime) === 'live') || (activeCategory === 'Sports' && ch.category === 'Sports');
+                    const matchCategory = activeCategory === 'all' || 
+                        (activeCategory === 'Live' && ch.live && ch.startTime && getStatus(ch.startTime) === 'live') || 
+                        (activeCategory === 'Sports' && ch.category === 'Sports') ||
+                        (activeCategory === 'Ostora' && ch.category === 'Ostora'); // فئة قنوات BeIN
+                        
                     const matchSearch = ch.name.toLowerCase().includes(searchQuery.toLowerCase());
                     return matchCategory && matchSearch;
                 });
 
                 if (filtered.length === 0) {
-                    channelsList.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No matches found</div>';
+                    channelsList.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">لا توجد مباريات أو قنوات</div>';
                     return;
                 }
 
                 channelsList.innerHTML = filtered.map(ch => {
-                    const homeName = ch.homeName || ch.name.split(' vs ')[0] || 'Home';
-                    const awayName = ch.awayName || ch.name.split(' vs ')[1] || 'Away';
+                    // تنسيق مختلف للبطاقة إذا كانت قناة من Ostora
+                    const isOstora = ch.category === 'Ostora';
+                    const homeName = ch.homeName || ch.name || 'Home';
+                    const awayName = isOstora ? '' : (ch.awayName || 'Away');
                     const leagueName = ch.leagueName || ch.category || 'Match';
                     const homeLogo = ch.homeLogo || ch.logo;
                     const awayLogo = ch.awayLogo || '';
                     const startTime = ch.startTime ? new Date(ch.startTime) : null;
                     const timeStr = startTime ? startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) : '--:--';
 
-                    let statusHTML = '', statusClass = '';
+                    let statusHTML = '';
+                    let statusClass = '';
                     if (ch.startTime) {
                         const status = getStatus(ch.startTime);
                         if (status === 'live') { statusHTML = '🔴 مباشر'; statusClass = 'live'; }
@@ -350,21 +380,31 @@
 
                     return `
                         <div class="zs-channel-card ${ch.id === currentChannelId ? 'zs-active' : ''}" data-id="${ch.id}">
+                            <div class="zs-match-league"><span>${leagueName}</span><span class="zs-trophy-icon">🏆</span></div>
                             <div class="zs-match-body">
                                 <div class="zs-team">
-                                    <div class="zs-logo"><img src="${homeLogo}" alt="${homeName}" onerror="this.style.display='none'; this.parentNode.textContent='${homeName.charAt(0)}'"></div>
+                                    <div class="zs-logo">
+                                        <img src="${homeLogo}" alt="${homeName}" onerror="this.style.display='none'; this.parentNode.textContent='${homeName.charAt(0)}'">
+                                    </div>
                                     <span class="zs-team-name">${homeName}</span>
                                 </div>
+                                ${!isOstora ? `
                                 <div class="zs-center-info">
                                     <div class="zs-status-center ${statusClass}">${statusHTML}</div>
                                     <div class="zs-time-block"><span class="zs-time">${timeStr}</span><span class="zs-vs">VS</span></div>
                                 </div>
                                 <div class="zs-team">
-                                    <div class="zs-logo"><img src="${awayLogo}" alt="${awayName}" onerror="this.style.display='none'; this.parentNode.textContent='${awayName.charAt(0)}'"></div>
+                                    <div class="zs-logo">
+                                        <img src="${awayLogo}" alt="${awayName}" onerror="this.style.display='none'; this.parentNode.textContent='${awayName.charAt(0)}'">
+                                    </div>
                                     <span class="zs-team-name">${awayName}</span>
                                 </div>
+                                ` : `
+                                <div class="zs-center-info">
+                                    <div class="zs-status-center ${statusClass}">${statusHTML}</div>
+                                </div>
+                                `}
                             </div>
-                            <div class="zs-match-footer"><span>${leagueName}</span><span class="zs-trophy-icon">🏆</span></div>
                         </div>
                     `;
                 }).join('');
@@ -400,9 +440,51 @@
                             leagueName: m.leagueName, url: m.sources[0].streamUrl, live: true, startTime: m.startTime, isMatch: true
                         }));
                     channels = channels.filter(ch => !ch.isMatch).concat(matchChannels);
-                    if(activeCategory !== 'Movies') renderContent();
+                    if(activeCategory !== 'Movies' && activeCategory !== 'Ostora') renderContent();
                 } catch (e) { 
                     console.warn('Matches API failed, keeping fallback channels.');
+                }
+            }
+
+            // ------------------ [جديد] دوال جلب قنوات BeIN Sports المتعددة ------------------
+            async function loadOstoraChannels() {
+                try {
+                    // استخدام Worker لإصلاح مشكلة CORS
+                    const url = WORKER_URL + '?url=' + encodeURIComponent('https://ostoraapptv.com/yacine_tree.json?t=' + Date.now());
+                    const response = await fetch(url);
+                    const data = await response.json();
+
+                    if (data.categories && data.categories.length > 0) {
+                        // العثور على الفئة الرئيسية (تحتوي على جميع قنوات البث)
+                        const mainCategory = data.categories.find(c => c.name.includes("سيرفر") || c.name.includes("البث") || c.name.includes("الرئيسي"));
+                        let ostoraChannels = [];
+
+                        if (mainCategory && mainCategory.children) {
+                            mainCategory.children.forEach(child => {
+                                if (child.channels) {
+                                    child.channels.forEach(ch => {
+                                        ostoraChannels.push({
+                                            id: 5000 + ostoraChannels.length,
+                                            name: ch.name,
+                                            homeName: ch.name,
+                                            category: "Ostora", // تصنيف خاص لهذه القنوات
+                                            logo: ch.logo || "",
+                                            url: ch.url,
+                                            live: true,
+                                            isMatch: false,
+                                            isOstora: true
+                                        });
+                                    });
+                                }
+                            });
+                        }
+
+                        // إضافة هذه القنوات للقائمة الرئيسية
+                        channels = channels.filter(ch => !ch.isOstora).concat(ostoraChannels);
+                        if (activeCategory === 'Ostora') renderContent();
+                    }
+                } catch (e) {
+                    console.warn('فشل تحميل قنوات Ostora:', e);
                 }
             }
 
@@ -473,7 +555,7 @@
                     if (isLoadingMovies) {
                         channelsList.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">جاري تحميل المزيد من الأفلام... ⏳</div>';
                     } else {
-                        channelsList.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No movies found</div>';
+                        channelsList.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">لا توجد أفلام</div>';
                     }
                     return;
                 }
@@ -545,7 +627,6 @@
 
             document.getElementById('zsErrorRetry').addEventListener('click', () => { if (currentStreamUrl) loadStream(currentStreamUrl); });
 
-            // Player Controls
             btnPlay.addEventListener('click', () => { if (video.paused) video.play(); else video.pause(); });
             video.addEventListener('play', () => { btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`; });
             video.addEventListener('pause', () => { btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`; });
@@ -563,15 +644,16 @@
             });
             btnRotate.addEventListener('click', () => { videoContainer.classList.toggle('rotated'); });
 
-            // Initialization
+            // ------------------ التهيئة (Init) ------------------
             function init() {
                 renderContent(); 
                 loadMoviesFromAPI();
                 loadMatchesFromAPI(); 
+                loadOstoraChannels(); // [جديد] تحميل قنوات Ostora
                 setInterval(loadMatchesFromAPI, 300000); 
             }
             init();
         })();
     </script>
 </body>
-                            </html>
+    </html>
