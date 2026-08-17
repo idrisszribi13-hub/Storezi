@@ -224,15 +224,21 @@
                 { id: 102, name: "beIN Sports 2 HD", category: "Sports Channel", logo: "B2", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein202.m3u8", live: true },
             ];
 
+            // أفلام الطوارئ (لضمان عدم اختفاء القسم إذا فشل الـ Worker)
+            const fallbackMovies = [
+                { id: "fb1", title: "Zombies of the Third Reich", posterUrl: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/hjrgOWoruk9ea0tXaN8l2gtmkeH.jpg", year: 2025, rating: 3.75, genre: "رعب", url: "http://new.dramalaly.com:8080/movie/hikayetv_vod_app/Bxddo93COihsCKzmDz7oqC5y/361152.mkv" },
+                { id: "fb2", title: "Vade Retro", posterUrl: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/1D2Hn8HD9tpU9j901vNRmn4Oz3J.jpg", year: 2025, rating: 5.5, genre: "كوميديا", url: "http://new.dramalaly.com:8080/movie/hikayetv_vod_app/Bxddo93COihsCKzmDz7oqC5y/361151.mkv" }
+            ];
+
             let channels = [...defaultChannels];
-            let movies = [];
+            let movies = [...fallbackMovies]; // ابدأ بالأفلام الافتراضية لتأمين الاستقرار
             let currentChannelId = null;
             let currentStreamUrl = '';
             let hls = null;
             let activeCategory = 'all';
             let searchQuery = '';
             let isMuted = false;
-            let isLoadingMovies = false; // مؤشر حالة التحميل
+            let isLoadingMovies = false; 
 
             const video = document.getElementById('zsVideo');
             const videoContainer = document.getElementById('zsVideoContainer');
@@ -284,7 +290,6 @@
                 showLoading();
                 startOverlay.classList.add('zs-hidden');
                 
-                // تمرير الرابط عبر الـ Worker لحل مشكلة CORS
                 let finalUrl = url;
                 if (url.includes('new.dramalaly.com') || url.includes('.mkv') || url.includes('.m3u8')) {
                     finalUrl = WORKER_URL + '?url=' + encodeURIComponent(url);
@@ -304,7 +309,6 @@
                         video.src = finalUrl; video.play();
                     }
                 } else {
-                    // تشغيل الأفلام (.mkv)
                     video.src = finalUrl;
                     video.play().then(() => {
                         hideLoading(); hideError();
@@ -312,7 +316,7 @@
                 }
             }
 
-            // ------------------ دوال المباريات ------------------
+            // ------------------ دوال المباريات (محمية بالكامل) ------------------
             function getStatus(startTime) {
                 const now = new Date();
                 const start = new Date(startTime);
@@ -405,32 +409,36 @@
                         }));
                     channels = channels.filter(ch => !ch.isMatch).concat(matchChannels);
                     if(activeCategory !== 'Movies') renderContent();
-                } catch (e) { console.warn('Matches API failed'); }
+                } catch (e) { 
+                    console.warn('Matches API failed, keeping fallback channels.');
+                    // في حالة الفشل، تظل defaultChannels موجودة، فلا يختفي شيء
+                }
             }
 
-            // ------------------ دوال الأفلام (جلب متسلسل آمن) ------------------
-            async function loadAllMoviesFromAPI() {
-                if (isLoadingMovies) return; // منع تكرار التحميل
+            // ------------------ دوال الأفلام (تحميل ذكي) ------------------
+            async function loadMoviesFromAPI() {
+                if (isLoadingMovies) return;
                 isLoadingMovies = true;
-                
-                // إذا كان المستخدم في قسم الأفلام، نعرض مؤشر التحميل
-                if (activeCategory === 'Movies') {
-                    channelsList.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">جاري تحميل الأفلام... ⏳</div>';
-                }
 
                 try {
-                    // 1. جلب الصفحة الأولى لمعرفة عدد الصفحات الإجمالي
-                    const firstPageUrl = WORKER_URL + '?url=' + encodeURIComponent(MOVIES_BASE_URL + '1');
-                    const firstResponse = await fetch(firstPageUrl);
-                    if (!firstResponse.ok) throw new Error('Worker error');
-                    const firstData = await firstResponse.json();
+                    // 1. جلب الصفحة الأولى فوراً لضمان ظهور أفلام سريعة
+                    const firstUrl = WORKER_URL + '?url=' + encodeURIComponent(MOVIES_BASE_URL + '1');
+                    const firstResp = await fetch(firstUrl);
+                    if (!firstResp.ok) throw new Error('Worker error');
+                    const firstData = await firstResp.json();
                     
-                    if (!firstData.data || !firstData.meta) throw new Error('Invalid movies data');
-                    
-                    let allMovies = [...firstData.data];
-                    const totalPages = firstData.meta.totalPages; // مثلاً 45
+                    if (firstData.data && Array.isArray(firstData.data)) {
+                        // تحديث الأفلام بالبيانات الحقيقية للصفحة الأولى
+                        movies = firstData.data.map(m => ({
+                            id: m.id, title: m.title, posterUrl: m.posterUrl, year: m.year, rating: m.rating, 
+                            genre: m.genre, genreAr: m.genreAr || m.genre,
+                            url: m.sources && m.sources.length > 0 ? m.sources[0].streamUrl : null
+                        }));
+                        if(activeCategory === 'Movies') renderContent();
+                    }
 
-                    // 2. جلب الصفحات المتبقية بشكل تسلسلي (Sequential) للحفاظ على استقرار الـ Worker
+                    // 2. جلب باقي الصفحات ببطء في الخلفية (حتى لا يتوقف الموقع)
+                    const totalPages = firstData.meta.totalPages || 0;
                     if (totalPages > 1) {
                         for (let i = 2; i <= totalPages; i++) {
                             try {
@@ -438,34 +446,27 @@
                                 const res = await fetch(url);
                                 const data = await res.json();
                                 if (data.data && Array.isArray(data.data)) {
-                                    allMovies = allMovies.concat(data.data);
+                                    const newMovies = data.data.map(m => ({
+                                        id: m.id, title: m.title, posterUrl: m.posterUrl, year: m.year, rating: m.rating,
+                                        genre: m.genre, genreAr: m.genreAr || m.genre,
+                                        url: m.sources && m.sources.length > 0 ? m.sources[0].streamUrl : null
+                                    }));
+                                    movies = movies.concat(newMovies);
+                                    if(activeCategory === 'Movies') renderContent();
                                 }
-                            } catch (pageError) {
-                                console.warn(`فشل تحميل الصفحة رقم ${i}:`, pageError);
-                                // نكمل باقي الصفحات حتى لو فشلت صفحة واحدة
+                            } catch (e) {
+                                console.warn(`فشل تحميل الصفحة ${i}، ولكن الموقع يعمل بأمان.`);
                             }
+                            // انتظر ثانية واحدة بين كل طلب لتخفيف الضغط عن الـ Worker
+                            await new Promise(r => setTimeout(r, 1000));
                         }
                     }
 
-                    // تحويل البيانات إلى هيكل الموقع
-                    movies = allMovies.map(m => ({
-                        id: m.id,
-                        title: m.title,
-                        posterUrl: m.posterUrl,
-                        year: m.year,
-                        rating: m.rating,
-                        genre: m.genre, 
-                        genreAr: m.genreAr || m.genre,
-                        url: m.sources && m.sources.length > 0 ? m.sources[0].streamUrl : null
-                    }));
-
                 } catch (e) {
-                    console.error('فشل جلب الأفلام:', e);
-                    // في حال الفشل الكلي، نترك المصفوفة فارغة
-                    movies = [];
+                    console.error('فشل جلب الأفلام الأساسي، تم تفعيل أفلام الطوارئ');
+                    // إذا فشل الـ Worker بالكامل، تبقى مصفوفة `fallbackMovies` موجودة
                 } finally {
                     isLoadingMovies = false;
-                    if (activeCategory === 'Movies') renderContent();
                 }
             }
 
@@ -476,9 +477,8 @@
                 });
 
                 if (filtered.length === 0) {
-                    // إذا كان التحميل ما زال جارياً (سيتم تحديثه تلقائياً)
                     if (isLoadingMovies) {
-                        channelsList.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">جاري تحميل الأفلام... ⏳</div>';
+                        channelsList.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">جاري تحميل المزيد من الأفلام... ⏳</div>';
                     } else {
                         channelsList.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No movies found</div>';
                     }
@@ -573,8 +573,8 @@
             // Initialization
             function init() {
                 renderContent(); 
-                loadMoviesFromAPI(); // تحميل الأفلام بشكل تسلسلي آمن
-                loadMatchesFromAPI(); 
+                loadMatchesFromAPI(); // تحديث المباريات دون إتلاف القائمة إذا فشلت
+                loadMoviesFromAPI(); // تحميل الأفلام بطريقة ذكية وآمنة
                 setInterval(loadMatchesFromAPI, 300000); 
             }
             init();
