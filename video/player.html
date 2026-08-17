@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zi Store - Live Sports</title>
+    <title>Zi Store - Live Sports & Movies</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
     <style>
@@ -28,198 +28,86 @@
             --header-bg: rgba(10,10,18,0.85);
         }
 
-        /* [إصلاح] الثيم الفاتح */
-        [data-theme="light"] {
-            --bg: #f2f4f8;
-            --surface: #ffffff;
-            --surface-glass: rgba(255,255,255,0.95);
-            --surface-hover: rgba(0,0,0,0.04);
-            --border: rgba(0,0,0,0.1);
-            --text: #1a1a2e;
-            --text-secondary: #555555;
-            --accent: #0284c7;
-            --accent2: #0369a1;
-            --accent-glow: rgba(2,132,199,0.4);
-            --live: #dc2626;
-            --live-glow: rgba(220,38,38,0.6);
-            --shadow: 0 10px 30px rgba(0,0,0,0.08), 0 0 0 1px var(--border);
-            --header-bg: rgba(255,255,255,0.9);
-        }
-
-        [data-theme="legendary"] {
-            --bg: #1a0f0a;
-            --surface: #2d1f14;
-            --surface-glass: rgba(45,31,20,0.9);
-            --surface-hover: rgba(255,255,255,0.08);
-            --border: rgba(255,215,0,0.35);
-            --text: #ffd700;
-            --text-secondary: #d4a574;
-            --accent: #ff6b00;
-            --accent2: #e05a00;
-            --accent-glow: rgba(255,107,0,0.6);
-            --live: #ff0000;
-            --live-glow: rgba(255,0,0,0.8);
-            --shadow: 0 25px 60px rgba(255,215,0,0.2), 0 0 0 1px var(--border);
-            --header-bg: rgba(26,15,10,0.9);
-        }
+        [data-theme="light"] { --bg: #f2f4f8; --surface: #ffffff; --surface-glass: rgba(255,255,255,0.95); --surface-hover: rgba(0,0,0,0.04); --border: rgba(0,0,0,0.1); --text: #1a1a2e; --text-secondary: #555555; --accent: #0284c7; --accent2: #0369a1; --accent-glow: rgba(2,132,199,0.4); --live: #dc2626; --live-glow: rgba(220,38,38,0.6); --shadow: 0 10px 30px rgba(0,0,0,0.08), 0 0 0 1px var(--border); --header-bg: rgba(255,255,255,0.9); }
+        [data-theme="legendary"] { --bg: #1a0f0a; --surface: #2d1f14; --surface-glass: rgba(45,31,20,0.9); --surface-hover: rgba(255,255,255,0.08); --border: rgba(255,215,0,0.35); --text: #ffd700; --text-secondary: #d4a574; --accent: #ff6b00; --accent2: #e05a00; --accent-glow: rgba(255,107,0,0.6); --live: #ff0000; --live-glow: rgba(255,0,0,0.8); --shadow: 0 25px 60px rgba(255,215,0,0.2), 0 0 0 1px var(--border); --header-bg: rgba(26,15,10,0.9); }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            background: var(--bg);
-            font-family: var(--font);
-            min-height: 100vh;
-            color: var(--text);
-            transition: background 0.4s, color 0.4s;
-            overflow-x: hidden;
-        }
+        body { background: var(--bg); font-family: var(--font); min-height: 100vh; color: var(--text); transition: background 0.4s, color 0.4s; overflow-x: hidden; }
 
         .zs-bg-effects { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
-
         .zs-app { position: relative; z-index: 1; display: flex; flex-direction: column; min-height: 100vh; }
 
-        .zs-header {
-            display: flex; align-items: center; justify-content: space-between; gap: 12px;
-            padding: 14px 24px; background: var(--header-bg); backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; flex-wrap: wrap;
-        }
+        .zs-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 24px; background: var(--header-bg); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; flex-wrap: wrap; }
         .zs-header-brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 22px; }
-        .zs-brand-icon {
-            width: 44px; height: 44px; border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent), var(--accent2));
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 900; font-size: 22px; color: #0a0a0f;
-            box-shadow: 0 0 20px var(--accent-glow);
-            animation: logo-pulse 3s infinite ease-in-out;
-        }
+        .zs-brand-icon { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 22px; color: #0a0a0f; box-shadow: 0 0 20px var(--accent-glow); animation: logo-pulse 3s infinite ease-in-out; }
+        @keyframes logo-pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
         .zs-theme-switch { display: flex; gap: 6px; background: var(--surface-glass); border-radius: 30px; padding: 4px; border: 1px solid var(--border); }
-        .zs-theme-btn {
-            padding: 8px 14px; border-radius: 25px; border: none; background: transparent; color: var(--text-secondary);
-            cursor: pointer; font-size: 13px; font-weight: 600; font-family: var(--font);
-            transition: all var(--transition);
-        }
+        .zs-theme-btn { padding: 8px 14px; border-radius: 25px; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; font-size: 13px; font-weight: 600; font-family: var(--font); transition: all var(--transition); }
         .zs-theme-btn:hover { color: var(--text); background: var(--surface-hover); }
         .zs-theme-btn.zs-active { background: var(--accent); color: #0a0a0f; box-shadow: 0 0 15px var(--accent-glow); }
 
         .zs-main { flex: 1; display: flex; flex-wrap: wrap; gap: 20px; padding: 20px; align-items: flex-start; }
         .zs-player-section { flex: 1 1 100%; max-width: 100%; min-width: 0; }
-        @media (min-width: 1000px) { 
-            .zs-player-section { flex: 1 1 calc(100% - 480px); max-width: calc(100% - 480px); }
-        }
+        @media (min-width: 1000px) { .zs-player-section { flex: 1 1 calc(100% - 480px); max-width: calc(100% - 480px); } }
 
-        .zs-channels-section {
-            flex: 1 1 100%; background: var(--surface-glass); backdrop-filter: blur(20px);
-            border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden;
-            display: flex; flex-direction: column; min-height: 400px; max-height: 70vh; box-shadow: var(--shadow);
-        }
-        @media (min-width: 1000px) { 
-            .zs-channels-section { flex: 0 0 460px; min-height: auto; max-height: calc(100vh - 140px); position: sticky; top: 90px; }
-        }
+        .zs-channels-section { flex: 1 1 100%; background: var(--surface-glass); backdrop-filter: blur(20px); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; display: flex; flex-direction: column; min-height: 400px; max-height: 70vh; box-shadow: var(--shadow); }
+        @media (min-width: 1000px) { .zs-channels-section { flex: 0 0 460px; min-height: auto; max-height: calc(100vh - 140px); position: sticky; top: 90px; } }
 
         .zs-channels-header { padding: 16px 18px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px; background: var(--surface-glass); }
-        /* [تعديل] حذف كلمة Matches & Channels */
         .zs-channels-title { font-size: 24px; font-weight: 800; color: var(--accent); text-align: center; }
-        
         .zs-search-box { position: relative; }
-        .zs-search-box input {
-            width: 100%; padding: 10px 36px 10px 14px; border-radius: 25px; border: 1px solid var(--border);
-            background: var(--surface-hover); color: var(--text); font-size: 14px; outline: none;
-            transition: all var(--transition);
-        }
+        .zs-search-box input { width: 100%; padding: 10px 36px 10px 14px; border-radius: 25px; border: 1px solid var(--border); background: var(--surface-hover); color: var(--text); font-size: 14px; outline: none; transition: all var(--transition); }
+
         .zs-category-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
-        .zs-category-tab {
-            padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border); background: transparent;
-            color: var(--text-secondary); cursor: pointer; font-size: 13px; font-family: var(--font);
-            transition: all var(--transition);
-        }
+        .zs-category-tab { padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); cursor: pointer; font-size: 13px; font-family: var(--font); transition: all var(--transition); white-space: nowrap; }
         .zs-category-tab.zs-active { background: var(--accent); color: #0a0a0f; border-color: var(--accent); font-weight: 700; }
 
         .zs-channels-list { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 12px; }
-
-        /* ===== التصميم الجديد للبطاقات ===== */
-        .zs-channel-card {
-            display: flex; flex-direction: column; gap: 4px; padding: 14px 14px;
-            border-radius: 14px; background: var(--surface);
-            border: 1px solid var(--border);
-            cursor: pointer; transition: all var(--transition); position: relative; 
-        }
+        .zs-channel-card { display: flex; flex-direction: column; gap: 4px; padding: 14px 14px; border-radius: 14px; background: var(--surface); border: 1px solid var(--border); cursor: pointer; transition: all var(--transition); position: relative; }
         .zs-channel-card:hover { background: var(--surface-hover); border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
         .zs-channel-card.zs-active { border-color: var(--accent); box-shadow: 0 0 20px var(--accent-glow); }
-
-        /* [جديد] اسم البطولة والكأس داخل البطاقة على شكل شريط علوي */
-        .zs-match-league {
-            display: flex; justify-content: center; align-items: center; gap: 6px;
-            background: var(--surface-hover); border-radius: 30px;
-            padding: 4px 14px; font-size: 13px; font-weight: 700; color: var(--text-secondary);
-            align-self: center; margin-bottom: 6px; border: 1px solid rgba(255,255,255,0.05);
-            white-space: nowrap;
-        }
+        .zs-match-league { display: flex; justify-content: center; align-items: center; gap: 6px; background: var(--surface-hover); border-radius: 30px; padding: 4px 14px; font-size: 13px; font-weight: 700; color: var(--text-secondary); align-self: center; margin-bottom: 6px; border: 1px solid rgba(255,255,255,0.05); white-space: nowrap; }
         .zs-trophy-icon { font-size: 14px; }
-
-        .zs-match-body {
-            display: flex; justify-content: space-around; align-items: stretch; gap: 10px;
-        }
-        .zs-team {
-            display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1;
-            justify-content: flex-start; padding-top: 4px;
-        }
-        .zs-logo {
-            width: 58px; height: 58px; border-radius: 50%; 
-            background: rgba(0,0,0,0.2); border: 2px solid var(--border);
-            display: flex; align-items: center; justify-content: center; overflow: hidden;
-            transition: border-color 0.3s;
-        }
+        .zs-match-body { display: flex; justify-content: space-around; align-items: stretch; gap: 10px; }
+        .zs-team { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; justify-content: flex-start; padding-top: 4px; }
+        .zs-logo { width: 58px; height: 58px; border-radius: 50%; background: rgba(0,0,0,0.2); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; overflow: hidden; transition: border-color 0.3s; }
         .zs-logo img { width: 100%; height: 100%; object-fit: contain; }
-        .zs-team-name {
-            font-size: 13px; font-weight: 700; color: var(--text); text-align: center; 
-            max-width: 90px; word-break: break-word; line-height: 1.2;
-        }
-
-        .zs-center-info {
-            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-width: 80px;
-        }
-        .zs-status-center {
-            font-size: 12px; font-weight: 800; text-align: center; width: 100%;
-            padding: 4px 10px; border-radius: 20px; min-height: 20px;
-            background: rgba(0,0,0,0.2); backdrop-filter: blur(2px);
-        }
+        .zs-team-name { font-size: 13px; font-weight: 700; color: var(--text); text-align: center; max-width: 90px; word-break: break-word; line-height: 1.2; }
+        .zs-center-info { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-width: 80px; }
+        .zs-status-center { font-size: 12px; font-weight: 800; text-align: center; width: 100%; padding: 4px 10px; border-radius: 20px; min-height: 20px; background: rgba(0,0,0,0.2); backdrop-filter: blur(2px); }
         .zs-status-center.ended { color: #9e9e9e; }
         .zs-status-center.live { color: var(--live); text-shadow: 0 0 10px var(--live-glow); }
         .zs-status-center.upcoming { color: var(--accent); }
-
-        .zs-time-block {
-            display: flex; flex-direction: column; align-items: center; gap: 2px;
-            background: rgba(0,0,0,0.3); padding: 6px 14px; border-radius: 12px;
-        }
+        .zs-time-block { display: flex; flex-direction: column; align-items: center; gap: 2px; background: rgba(0,0,0,0.3); padding: 6px 14px; border-radius: 12px; }
         .zs-time { font-size: 16px; font-weight: 800; color: var(--text); }
         .zs-vs { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
 
-        /* مشغل الفيديو المحترف */
+        /* ===== الأفلام ===== */
+        .zs-movies-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; padding: 5px 0; width: 100%; }
+        .zs-movie-card { background: var(--surface); border-radius: var(--radius-sm); border: 1px solid var(--border); overflow: hidden; cursor: pointer; transition: all var(--transition); display: flex; flex-direction: column; }
+        .zs-movie-card:hover { transform: translateY(-4px); border-color: var(--accent); box-shadow: 0 6px 20px rgba(0,0,0,0.5); }
+        .zs-movie-card.zs-active { border: 2px solid var(--accent); }
+        .zs-movie-poster-wrap { position: relative; width: 100%; aspect-ratio: 2/3; background: rgba(0,0,0,0.5); overflow: hidden; }
+        .zs-movie-poster { width: 100%; height: 100%; object-fit: cover; transition: 0.3s; }
+        .zs-movie-card:hover .zs-movie-poster { transform: scale(1.05); }
+        .zs-movie-rating { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7); padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 700; color: var(--accent); backdrop-filter: blur(4px); }
+        .zs-movie-info { padding: 10px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+        .zs-movie-title { font-size: 13px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .zs-movie-meta { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-secondary); }
+
+        /* ===== المشغل ===== */
         .zs-player-wrapper { position: relative; width: 100%; background: #000; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); aspect-ratio: 16/9; }
         .zs-video-container { width: 100%; height: 100%; background: #000; position: relative; transition: transform 0.3s ease; }
         video { width: 100%; height: 100%; object-fit: contain; display: block; }
         .zs-video-container.rotated { transform: rotate(90deg); aspect-ratio: 9/16; }
-        
-        /* [جديد] علامة مائية صغيرة في الزاوية اليسرى فوق الفيديو */
-        .zs-video-watermark {
-            position: absolute; top: 15px; left: 15px; z-index: 6;
-            pointer-events: none; opacity: 0.4; color: #fff; font-weight: 700; font-size: 14px;
-            background: rgba(0,0,0,0.3); padding: 4px 10px; border-radius: 12px;
-            backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.1);
-        }
-        
+        .zs-video-watermark { position: absolute; top: 15px; left: 15px; z-index: 6; pointer-events: none; opacity: 0.4; color: #fff; font-weight: 700; font-size: 14px; background: rgba(0,0,0,0.3); padding: 4px 10px; border-radius: 12px; backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.1); }
         .zs-live-badge { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.7); color: #fff; padding: 8px 18px; border-radius: 24px; display: none; align-items: center; gap: 8px; font-weight: 700; }
         .zs-live-badge.zs-visible { display: flex; }
         .zs-start-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.7); z-index: 10; }
         .zs-start-overlay.zs-hidden { display: none; }
         .zs-start-play-btn { width: 90px; height: 90px; border-radius: 50%; background: var(--accent); color: #0a0a0f; font-size: 36px; border: none; cursor: pointer; margin-bottom: 20px; transition: 0.3s; }
         .zs-start-play-btn:hover { transform: scale(1.1); box-shadow: 0 0 30px var(--accent-glow); }
-        
-        .zs-controls {
-            position: absolute; bottom: 0; left: 0; right: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 60%, transparent 100%);
-            padding: 12px 16px 16px 16px; display: flex; flex-direction: column; gap: 6px;
-        }
+        .zs-controls { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 60%, transparent 100%); padding: 12px 16px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
         .zs-controls-row { display: flex; align-items: center; gap: 12px; width: 100%; }
         .zs-btn { background: none; border: none; color: #fff; cursor: pointer; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; transition: all var(--transition); border-radius: 50%; }
         .zs-btn:hover { background: rgba(255,255,255,0.15); }
@@ -231,18 +119,17 @@
         .zs-progress-wrap { flex: 1; height: 5px; background: rgba(255,255,255,0.2); border-radius: 3px; cursor: pointer; position: relative; transition: height 0.2s; }
         .zs-progress-wrap:hover { height: 8px; }
         .zs-progress-filled { height: 100%; background: var(--accent); border-radius: 3px; width: 0%; transition: width 0.1s linear; }
-        
         .zs-loading, .zs-error-overlay { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.5); z-index: 11; }
         .zs-loading.zs-visible, .zs-error-overlay.zs-visible { display: flex; }
         .zs-spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         @media (max-width: 600px) {
             .zs-header { padding: 12px; flex-direction: column; gap: 10px; }
             .zs-main { padding: 10px; gap: 10px; }
-            .zs-team-name { max-width: 70px; font-size: 11px; }
-            .zs-logo { width: 48px; height: 48px; }
-            .zs-time { font-size: 13px; }
-            .zs-match-league { font-size: 11px; padding: 2px 10px; }
+            .zs-movies-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
+            .zs-movie-title { font-size: 11px; }
+            .zs-movie-rating { font-size: 10px; }
         }
     </style>
 </head>
@@ -266,10 +153,7 @@
                 <div class="zs-player-wrapper" id="zsPlayerWrapper">
                     <div class="zs-video-container" id="zsVideoContainer">
                         <video id="zsVideo" playsinline></video>
-                        
-                        <!-- [جديد] علامة مائية صغيرة -->
                         <div class="zs-video-watermark">ZI</div>
-
                         <div class="zs-live-badge" id="zsLiveBadge"><span>🔴</span> LIVE</div>
                         <div class="zs-loading" id="zsLoading"><div class="zs-spinner"></div></div>
                         <div class="zs-error-overlay" id="zsErrorOverlay">
@@ -278,7 +162,7 @@
                         </div>
                         <div class="zs-start-overlay" id="zsStartOverlay">
                             <button class="zs-start-play-btn" id="zsStartPlayBtn">▶</button>
-                            <div style="color:var(--text-secondary);">Choose a channel to start</div>
+                            <div style="color:var(--text-secondary);">Choose a channel or movie</div>
                         </div>
                     </div>
                     <div class="zs-controls" id="zsControls">
@@ -299,13 +183,13 @@
 
             <aside class="zs-channels-section">
                 <div class="zs-channels-header">
-                    <!-- [تعديل] تم حذف كلمة Matches & Channels وإبقاء الأيقونة فقط -->
                     <div class="zs-channels-title">📡</div>
                     <div class="zs-search-box"><input type="text" id="zsSearchInput" placeholder="Search..."></div>
                     <div class="zs-category-tabs" id="zsCategoryTabs">
                         <button class="zs-category-tab zs-active" data-category="all">All</button>
                         <button class="zs-category-tab" data-category="Live">🔴 Live</button>
                         <button class="zs-category-tab" data-category="Sports">Sports</button>
+                        <button class="zs-category-tab" data-category="Movies">🎬 Movies</button>
                     </div>
                 </div>
                 <div class="zs-channels-list" id="zsChannelsList"></div>
@@ -315,25 +199,25 @@
 
     <script>
         (function() {
+            // ------------------ إعدادات Worker ------------------
             const WORKER_URL = 'https://dry-truth-a84e.idriss-zribi13.workers.dev/';
             const MATCHES_API_URL = WORKER_URL + '?url=' + encodeURIComponent('https://admin.golive-pro.online/api/public/events?tz=-4');
+            // [جديد] رابط الأفلام عبر الـ Worker
+            const MOVIES_API_URL = WORKER_URL + '?url=' + encodeURIComponent('https://admin.golive-pro.online/api/content/movies?page=1&limit=20&categoryId=9ec354e5-4707-4161-9dab-b51f899b29d8');
+
             const defaultChannels = [
                 { id: 101, name: "beIN Sports 1 HD", category: "Sports Channel", logo: "B1", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein101.m3u8", live: true },
                 { id: 102, name: "beIN Sports 2 HD", category: "Sports Channel", logo: "B2", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein202.m3u8", live: true },
             ];
-            const staticMatches = [
-                { homeName: "Al Taawon", awayName: "Al Khaleej", leagueName: "Pro League", homeLogoUrl: "https://admin.golive-pro.online/uploads/76115ee5-a5a9-470d-92ff-fc6890bb2851.png", awayLogoUrl: "https://admin.golive-pro.online/uploads/13056aaa-bdbe-431d-9fa6-be8097c4186c.png", startTime: "2026-08-15T16:15:00.000Z", sources: [{ streamUrl: "https://live.aab1.top:443/odai/123321/302" }] },
-                { homeName: "Alaves", awayName: "Getafe", leagueName: "La Liga", homeLogoUrl: "https://admin.golive-pro.online/uploads/05d73ed5-2b98-4918-b02f-08d5969ee97c.png", awayLogoUrl: "https://admin.golive-pro.online/uploads/df983992-cd8e-48ea-9c1d-5cea82df1e29.png", startTime: "2026-08-15T17:30:00.000Z", sources: [{ streamUrl: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein303.m3u8" }] }
-            ];
 
             let channels = [...defaultChannels];
+            let movies = []; // سيتم ملؤها بواسطة الـ API
             let currentChannelId = null;
             let currentStreamUrl = '';
             let hls = null;
             let activeCategory = 'all';
             let searchQuery = '';
             let isMuted = false;
-            let adInterval = null;
 
             const video = document.getElementById('zsVideo');
             const videoContainer = document.getElementById('zsVideoContainer');
@@ -354,18 +238,13 @@
             const searchInput = document.getElementById('zsSearchInput');
             const categoryTabs = document.getElementById('zsCategoryTabs');
 
-            // [إصلاح] Theme Logic
+            // Theme
             function setTheme(theme) {
                 document.documentElement.setAttribute('data-theme', theme);
                 localStorage.setItem('zs-theme', theme);
-                document.querySelectorAll('.zs-theme-btn').forEach(btn => {
-                    btn.classList.toggle('zs-active', btn.dataset.theme === theme);
-                });
+                document.querySelectorAll('.zs-theme-btn').forEach(btn => btn.classList.toggle('zs-active', btn.dataset.theme === theme));
             }
-            // تطبيق الثيم المحفوظ أو الافتراضي
-            const savedTheme = localStorage.getItem('zs-theme') || 'legendary';
-            setTheme(savedTheme);
-
+            setTheme(localStorage.getItem('zs-theme') || 'legendary');
             document.querySelectorAll('.zs-theme-btn').forEach(btn => btn.addEventListener('click', () => setTheme(btn.dataset.theme)));
 
             function showLoading() { loadingEl.classList.add('zs-visible'); }
@@ -378,17 +257,19 @@
             function updateProgress() { if (video.duration) progressFilled.style.width = (video.currentTime / video.duration * 100) + '%'; }
 
             function destroyPlayer() {
-                if (adInterval) { clearInterval(adInterval); adInterval = null; }
                 if (hls) { hls.destroy(); hls = null; }
                 video.pause(); video.removeAttribute('src'); video.load();
                 hideError(); hideLoading(); setLiveMode(false);
                 btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
             }
 
+            // تشغيل الفيديو (يدعم m3u8 و mkv)
             function loadStream(url) {
                 destroyPlayer();
                 showLoading();
                 startOverlay.classList.add('zs-hidden');
+                
+                // إذا كان الرابط هو m3u8
                 if (url.includes('.m3u8')) {
                     if (Hls.isSupported()) {
                         hls = new Hls();
@@ -403,10 +284,15 @@
                         video.src = url; video.play();
                     }
                 } else {
-                    video.src = url; video.play().catch(()=>{ showError(); hideLoading(); });
+                    // للأفلام (mkv أو mp4)
+                    video.src = url;
+                    video.play().then(() => {
+                        hideLoading(); hideError();
+                    }).catch(()=>{ showError(); hideLoading(); });
                 }
             }
 
+            // ------------------ دوال المباريات ------------------
             function getStatus(startTime) {
                 const now = new Date();
                 const start = new Date(startTime);
@@ -416,7 +302,7 @@
                 return 'ended';
             }
 
-            function renderChannels() {
+            function renderMatches() {
                 const filtered = channels.filter(ch => {
                     const matchCategory = activeCategory === 'all' || (activeCategory === 'Live' && ch.live && ch.startTime && getStatus(ch.startTime) === 'live') || (activeCategory === 'Sports' && ch.category === 'Sports');
                     const matchSearch = ch.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -424,24 +310,20 @@
                 });
 
                 if (filtered.length === 0) {
-                    channelsList.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No channels found</div>';
+                    channelsList.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No matches found</div>';
                     return;
                 }
 
-                // [تعديل] وضع اسم البطولة والكأس داخل كل بطاقة ليصبح متناسقاً
                 channelsList.innerHTML = filtered.map(ch => {
                     const homeName = ch.homeName || ch.name.split(' vs ')[0] || 'Home';
                     const awayName = ch.awayName || ch.name.split(' vs ')[1] || 'Away';
                     const leagueName = ch.leagueName || ch.category || 'Match';
-                    
                     const homeLogo = ch.homeLogo || ch.logo;
                     const awayLogo = ch.awayLogo || '';
-                    
                     const startTime = ch.startTime ? new Date(ch.startTime) : null;
                     const timeStr = startTime ? startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) : '--:--';
 
-                    let statusHTML = '';
-                    let statusClass = '';
+                    let statusHTML = '', statusClass = '';
                     if (ch.startTime) {
                         const status = getStatus(ch.startTime);
                         if (status === 'live') { statusHTML = '🔴 مباشر'; statusClass = 'live'; }
@@ -452,37 +334,28 @@
 
                     return `
                         <div class="zs-channel-card ${ch.id === currentChannelId ? 'zs-active' : ''}" data-id="${ch.id}">
-                            <!-- [جديد] شريط البطولة والكأس فوق البطاقة -->
-                            <div class="zs-match-league">
-                                <span>${leagueName}</span>
-                                <span class="zs-trophy-icon">🏆</span>
-                            </div>
-                            
+                            <div class="zs-match-league"><span>${leagueName}</span><span class="zs-trophy-icon">🏆</span></div>
                             <div class="zs-match-body">
                                 <div class="zs-team">
-                                    <div class="zs-logo">
-                                        <img src="${homeLogo}" alt="${homeName}" onerror="this.style.display='none'; this.parentNode.textContent='${homeName.charAt(0)}'">
-                                    </div>
+                                    <div class="zs-logo"><img src="${homeLogo}" alt="${homeName}" onerror="this.style.display='none'; this.parentNode.textContent='${homeName.charAt(0)}'"></div>
                                     <span class="zs-team-name">${homeName}</span>
                                 </div>
                                 <div class="zs-center-info">
                                     <div class="zs-status-center ${statusClass}">${statusHTML}</div>
-                                    <div class="zs-time-block">
-                                        <span class="zs-time">${timeStr}</span>
-                                        <span class="zs-vs">VS</span>
-                                    </div>
+                                    <div class="zs-time-block"><span class="zs-time">${timeStr}</span><span class="zs-vs">VS</span></div>
                                 </div>
                                 <div class="zs-team">
-                                    <div class="zs-logo">
-                                        <img src="${awayLogo}" alt="${awayName}" onerror="this.style.display='none'; this.parentNode.textContent='${awayName.charAt(0)}'">
-                                    </div>
+                                    <div class="zs-logo"><img src="${awayLogo}" alt="${awayName}" onerror="this.style.display='none'; this.parentNode.textContent='${awayName.charAt(0)}'"></div>
                                     <span class="zs-team-name">${awayName}</span>
                                 </div>
                             </div>
                         </div>
                     `;
                 }).join('');
+                attachMatchClickEvents();
+            }
 
+            function attachMatchClickEvents() {
                 channelsList.querySelectorAll('.zs-channel-card').forEach(card => {
                     card.addEventListener('click', () => {
                         const id = parseInt(card.dataset.id);
@@ -490,7 +363,7 @@
                         if (channel) {
                             currentChannelId = id;
                             currentStreamUrl = channel.url;
-                            renderChannels();
+                            renderContent(); // تحديث الـ UI
                             loadStream(channel.url);
                         }
                     });
@@ -511,58 +384,144 @@
                             leagueName: m.leagueName, url: m.sources[0].streamUrl, live: true, startTime: m.startTime, isMatch: true
                         }));
                     channels = channels.filter(ch => !ch.isMatch).concat(matchChannels);
-                    renderChannels();
+                    if(activeCategory !== 'Movies') renderContent();
                 } catch (e) {
-                    console.warn('Using fallback matches', e);
-                    const fallback = staticMatches.map((m, idx) => ({
-                        id: 4000 + idx, name: `${m.homeName} vs ${m.awayName}`, category: m.leagueName || 'Match',
-                        homeLogo: m.homeLogoUrl, awayLogo: m.awayLogoUrl, homeName: m.homeName, awayName: m.awayName,
-                        leagueName: m.leagueName, url: m.sources[0].streamUrl, live: true, startTime: m.startTime, isMatch: true
-                    }));
-                    channels = channels.filter(ch => !ch.isMatch).concat(fallback);
-                    renderChannels();
+                    console.warn('Matches API failed');
                 }
             }
 
-            // Player Controls
-            btnPlay.addEventListener('click', () => { if (video.paused) video.play(); else video.pause(); });
-            video.addEventListener('play', () => { btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`; });
-            video.addEventListener('pause', () => { btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`; });
-            
-            volumeSlider.addEventListener('input', () => { video.volume = volumeSlider.value / 100; });
-            btnMute.addEventListener('click', () => { isMuted = !isMuted; video.volume = isMuted ? 0 : 1; volumeSlider.value = isMuted ? 0 : 100; });
+            // ------------------ دوال الأفلام الجديدة عبر الـ Worker ------------------
+            async function loadMoviesFromAPI() {
+                try {
+                    const response = await fetch(MOVIES_API_URL);
+                    if (!response.ok) throw new Error('Worker error');
+                    const data = await response.json();
+                    
+                    // تحويل بيانات الـ JSON المستلمة إلى هيكل مفهوم في الموقع
+                    if (data && data.data && Array.isArray(data.data)) {
+                        movies = data.data.map(m => ({
+                            id: m.id,
+                            title: m.title,
+                            posterUrl: m.posterUrl,
+                            year: m.year,
+                            rating: m.rating,
+                            genre: m.genre,
+                            url: m.sources && m.sources.length > 0 ? m.sources[0].streamUrl : null
+                        }));
+                    }
+                    
+                    if(activeCategory === 'Movies') renderContent();
+                } catch (e) {
+                    console.warn('Movies API failed:', e);
+                }
+            }
 
-            video.addEventListener('timeupdate', () => { updateTimeDisplay(); updateProgress(); });
-            progressWrap.addEventListener('click', (e) => {
-                if (!video.duration) return;
-                const rect = progressWrap.getBoundingClientRect();
-                video.currentTime = ((e.clientX - rect.left) / rect.width) * video.duration;
-            });
+            function renderMovies() {
+                const filtered = movies.filter(m => {
+                    const searchMatch = m.title.toLowerCase().includes(searchQuery.toLowerCase());
+                    return searchMatch;
+                });
 
-            btnFullscreen.addEventListener('click', () => {
-                if (!document.fullscreenElement) { wrapper.requestFullscreen().catch(err => console.log(err)); } 
-                else { document.exitFullscreen(); }
-            });
-            btnRotate.addEventListener('click', () => { videoContainer.classList.toggle('rotated'); });
+                if (filtered.length === 0) {
+                    channelsList.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No movies found</div>';
+                    return;
+                }
 
-            searchInput.addEventListener('input', () => { searchQuery = searchInput.value; renderChannels(); });
+                channelsList.style.display = 'block';
+                channelsList.innerHTML = `
+                    <div class="zs-movies-grid">
+                        ${filtered.map(m => `
+                            <div class="zs-movie-card ${m.id === currentChannelId ? 'zs-active' : ''}" data-id="${m.id}">
+                                <div class="zs-movie-poster-wrap">
+                                    <img class="zs-movie-poster" src="${m.posterUrl}" alt="${m.title}" onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
+                                    <div class="zs-movie-rating">★ ${m.rating || 'N/A'}</div>
+                                </div>
+                                <div class="zs-movie-info">
+                                    <div class="zs-movie-title" title="${m.title}">${m.title}</div>
+                                    <div class="zs-movie-meta">
+                                        <span>${m.year || ''}</span>
+                                        <span>${m.genre || 'Movie'}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                attachMovieClickEvents();
+            }
+
+            function attachMovieClickEvents() {
+                channelsList.querySelectorAll('.zs-movie-card').forEach(card => {
+                    card.addEventListener('click', () => {
+                        const id = card.dataset.id;
+                        const movie = movies.find(m => m.id === id);
+                        if (movie && movie.url) {
+                            currentChannelId = id;
+                            currentStreamUrl = movie.url;
+                            renderContent(); // تحديث الحالة النشطة
+                            loadStream(movie.url);
+                        }
+                    });
+                });
+            }
+
+            // ------------------ التحكم العام ------------------
+            function renderContent() {
+                if (activeCategory === 'Movies') {
+                    channelsList.style.display = 'block'; // شبكة
+                    renderMovies();
+                } else {
+                    channelsList.style.display = 'flex'; // أعمدة
+                    renderMatches();
+                }
+            }
+
             categoryTabs.addEventListener('click', (e) => {
                 const tab = e.target.closest('.zs-category-tab');
                 if (!tab) return;
                 activeCategory = tab.dataset.category;
                 categoryTabs.querySelectorAll('.zs-category-tab').forEach(t => t.classList.remove('zs-active'));
                 tab.classList.add('zs-active');
-                renderChannels();
+                searchQuery = ''; 
+                searchInput.value = '';
+                renderContent();
             });
+
+            searchInput.addEventListener('input', () => {
+                searchQuery = searchInput.value;
+                renderContent();
+            });
+
             document.getElementById('zsErrorRetry').addEventListener('click', () => { if (currentStreamUrl) loadStream(currentStreamUrl); });
 
+            // Player Controls
+            btnPlay.addEventListener('click', () => { if (video.paused) video.play(); else video.pause(); });
+            video.addEventListener('play', () => { btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`; });
+            video.addEventListener('pause', () => { btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`; });
+            volumeSlider.addEventListener('input', () => { video.volume = volumeSlider.value / 100; });
+            btnMute.addEventListener('click', () => { isMuted = !isMuted; video.volume = isMuted ? 0 : 1; volumeSlider.value = isMuted ? 0 : 100; });
+            video.addEventListener('timeupdate', () => { updateTimeDisplay(); updateProgress(); });
+            progressWrap.addEventListener('click', (e) => {
+                if (!video.duration) return;
+                const rect = progressWrap.getBoundingClientRect();
+                video.currentTime = ((e.clientX - rect.left) / rect.width) * video.duration;
+            });
+            btnFullscreen.addEventListener('click', () => {
+                if (!document.fullscreenElement) { wrapper.requestFullscreen().catch(err => console.log(err)); } 
+                else { document.exitFullscreen(); }
+            });
+            btnRotate.addEventListener('click', () => { videoContainer.classList.toggle('rotated'); });
+
+            // Initialization
             function init() {
-                renderChannels();
-                loadMatchesFromAPI();
-                setInterval(loadMatchesFromAPI, 300000);
+                renderContent(); // عرض المباريات أولاً
+                loadMoviesFromAPI(); // تحميل الأفلام في الخلفية
+                loadMatchesFromAPI(); // تحديث المباريات
+                setInterval(loadMatchesFromAPI, 300000); 
+                setInterval(loadMoviesFromAPI, 300000); // تحديث الأفلام أيضاً
             }
             init();
         })();
     </script>
 </body>
-                                                   </html>
+                            </html>
