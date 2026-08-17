@@ -82,7 +82,7 @@
         .zs-time { font-size: 16px; font-weight: 800; color: var(--text); }
         .zs-vs { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
 
-        /* ===== قسم الأفلام المطور ===== */
+        /* ===== قسم الأفلام ===== */
         .zs-movies-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; padding: 5px 0; width: 100%; }
         .zs-movie-card { background: var(--surface); border-radius: 10px; border: 1px solid var(--border); overflow: hidden; cursor: pointer; transition: all var(--transition); display: flex; flex-direction: column; position: relative; }
         .zs-movie-card:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
@@ -215,23 +215,23 @@
             // ------------------ إعدادات ------------------
             const WORKER_URL = 'https://dry-truth-a84e.idriss-zribi13.workers.dev/';
             const MATCHES_API_URL = WORKER_URL + '?url=' + encodeURIComponent('https://admin.golive-pro.online/api/public/events?tz=-4');
-            
-            // قاعدة الأفلام
             const MOVIES_BASE_URL = 'https://admin.golive-pro.online/api/content/movies?categoryId=9ec354e5-4707-4161-9dab-b51f899b29d8&limit=20&page=';
 
+            // القنوات الافتراضية (بدون صور خارجية لتجنب خطأ 404)
             const defaultChannels = [
-                { id: 101, name: "beIN Sports 1 HD", category: "Sports Channel", logo: "B1", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein101.m3u8", live: true },
-                { id: 102, name: "beIN Sports 2 HD", category: "Sports Channel", logo: "B2", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein202.m3u8", live: true },
+                { id: 101, name: "beIN Sports 1 HD", category: "Sports Channel", logo: "", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein101.m3u8", live: true },
+                { id: 102, name: "beIN Sports 2 HD", category: "Sports Channel", logo: "", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein202.m3u8", live: true },
+                { id: 103, name: "beIN Sports 3 HD", category: "Sports Channel", logo: "", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein303.m3u8", live: true },
             ];
 
-            // أفلام الطوارئ (لضمان عدم اختفاء القسم إذا فشل الـ Worker)
+            // أفلام الطوارئ
             const fallbackMovies = [
                 { id: "fb1", title: "Zombies of the Third Reich", posterUrl: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/hjrgOWoruk9ea0tXaN8l2gtmkeH.jpg", year: 2025, rating: 3.75, genre: "رعب", url: "http://new.dramalaly.com:8080/movie/hikayetv_vod_app/Bxddo93COihsCKzmDz7oqC5y/361152.mkv" },
                 { id: "fb2", title: "Vade Retro", posterUrl: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/1D2Hn8HD9tpU9j901vNRmn4Oz3J.jpg", year: 2025, rating: 5.5, genre: "كوميديا", url: "http://new.dramalaly.com:8080/movie/hikayetv_vod_app/Bxddo93COihsCKzmDz7oqC5y/361151.mkv" }
             ];
 
             let channels = [...defaultChannels];
-            let movies = [...fallbackMovies]; // ابدأ بالأفلام الافتراضية لتأمين الاستقرار
+            let movies = [...fallbackMovies];
             let currentChannelId = null;
             let currentStreamUrl = '';
             let hls = null;
@@ -284,14 +284,16 @@
                 btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
             }
 
-            // ------------------ تشغيل الفيديو (حل CORS) ------------------
+            // ------------------ تشغيل الفيديو (تجنب Worker لـ m3u8 لمنع 500) ------------------
             function loadStream(url) {
                 destroyPlayer();
                 showLoading();
                 startOverlay.classList.add('zs-hidden');
                 
                 let finalUrl = url;
-                if (url.includes('new.dramalaly.com') || url.includes('.mkv') || url.includes('.m3u8')) {
+                // إذا كان الرابط m3u8، قم بتشغيله مباشرة لأن الـ Worker لا يتعامل مع ملفات ts
+                // أما إذا كان mkv (فيلم)، مرره عبر الـ Worker لحل مشكلة CORS
+                if (url.includes('.mkv')) {
                     finalUrl = WORKER_URL + '?url=' + encodeURIComponent(url);
                 }
 
@@ -309,6 +311,7 @@
                         video.src = finalUrl; video.play();
                     }
                 } else {
+                    // تشغيل الأفلام (.mkv) الممررة عبر الـ Worker
                     video.src = finalUrl;
                     video.play().then(() => {
                         hideLoading(); hideError();
@@ -316,7 +319,7 @@
                 }
             }
 
-            // ------------------ دوال المباريات (محمية بالكامل) ------------------
+            // ------------------ دوال المباريات ------------------
             function getStatus(startTime) {
                 const now = new Date();
                 const start = new Date(startTime);
@@ -361,7 +364,9 @@
                             <div class="zs-match-league"><span>${leagueName}</span><span class="zs-trophy-icon">🏆</span></div>
                             <div class="zs-match-body">
                                 <div class="zs-team">
-                                    <div class="zs-logo"><img src="${homeLogo}" alt="${homeName}" onerror="this.style.display='none'; this.parentNode.textContent='${homeName.charAt(0)}'"></div>
+                                    <div class="zs-logo">
+                                        <img src="${homeLogo}" alt="${homeName}" onerror="this.style.display='none'; this.parentNode.textContent='${homeName.charAt(0)}'">
+                                    </div>
                                     <span class="zs-team-name">${homeName}</span>
                                 </div>
                                 <div class="zs-center-info">
@@ -369,7 +374,9 @@
                                     <div class="zs-time-block"><span class="zs-time">${timeStr}</span><span class="zs-vs">VS</span></div>
                                 </div>
                                 <div class="zs-team">
-                                    <div class="zs-logo"><img src="${awayLogo}" alt="${awayName}" onerror="this.style.display='none'; this.parentNode.textContent='${awayName.charAt(0)}'"></div>
+                                    <div class="zs-logo">
+                                        <img src="${awayLogo}" alt="${awayName}" onerror="this.style.display='none'; this.parentNode.textContent='${awayName.charAt(0)}'">
+                                    </div>
                                     <span class="zs-team-name">${awayName}</span>
                                 </div>
                             </div>
@@ -411,33 +418,37 @@
                     if(activeCategory !== 'Movies') renderContent();
                 } catch (e) { 
                     console.warn('Matches API failed, keeping fallback channels.');
-                    // في حالة الفشل، تظل defaultChannels موجودة، فلا يختفي شيء
                 }
             }
 
-            // ------------------ دوال الأفلام (تحميل ذكي) ------------------
+            // ------------------ دوال الأفلام ------------------
             async function loadMoviesFromAPI() {
                 if (isLoadingMovies) return;
                 isLoadingMovies = true;
 
                 try {
-                    // 1. جلب الصفحة الأولى فوراً لضمان ظهور أفلام سريعة
+                    // جلب الصفحة الأولى
                     const firstUrl = WORKER_URL + '?url=' + encodeURIComponent(MOVIES_BASE_URL + '1');
                     const firstResp = await fetch(firstUrl);
                     if (!firstResp.ok) throw new Error('Worker error');
                     const firstData = await firstResp.json();
                     
                     if (firstData.data && Array.isArray(firstData.data)) {
-                        // تحديث الأفلام بالبيانات الحقيقية للصفحة الأولى
+                        // إصلاح مشكلة Mixed Content: تحويل http إلى https في روابط الصور
                         movies = firstData.data.map(m => ({
-                            id: m.id, title: m.title, posterUrl: m.posterUrl, year: m.year, rating: m.rating, 
-                            genre: m.genre, genreAr: m.genreAr || m.genre,
+                            id: m.id, 
+                            title: m.title, 
+                            posterUrl: (m.posterUrl || '').replace('http:', 'https:'), // إصلاح الأمان
+                            year: m.year, 
+                            rating: m.rating, 
+                            genre: m.genre, 
+                            genreAr: m.genreAr || m.genre,
                             url: m.sources && m.sources.length > 0 ? m.sources[0].streamUrl : null
                         }));
                         if(activeCategory === 'Movies') renderContent();
                     }
 
-                    // 2. جلب باقي الصفحات ببطء في الخلفية (حتى لا يتوقف الموقع)
+                    // جلب باقي الصفحات بهدوء
                     const totalPages = firstData.meta.totalPages || 0;
                     if (totalPages > 1) {
                         for (let i = 2; i <= totalPages; i++) {
@@ -447,7 +458,9 @@
                                 const data = await res.json();
                                 if (data.data && Array.isArray(data.data)) {
                                     const newMovies = data.data.map(m => ({
-                                        id: m.id, title: m.title, posterUrl: m.posterUrl, year: m.year, rating: m.rating,
+                                        id: m.id, title: m.title, 
+                                        posterUrl: (m.posterUrl || '').replace('http:', 'https:'),
+                                        year: m.year, rating: m.rating,
                                         genre: m.genre, genreAr: m.genreAr || m.genre,
                                         url: m.sources && m.sources.length > 0 ? m.sources[0].streamUrl : null
                                     }));
@@ -455,16 +468,14 @@
                                     if(activeCategory === 'Movies') renderContent();
                                 }
                             } catch (e) {
-                                console.warn(`فشل تحميل الصفحة ${i}، ولكن الموقع يعمل بأمان.`);
+                                console.warn(`فشل تحميل الصفحة ${i}`);
                             }
-                            // انتظر ثانية واحدة بين كل طلب لتخفيف الضغط عن الـ Worker
                             await new Promise(r => setTimeout(r, 1000));
                         }
                     }
 
                 } catch (e) {
                     console.error('فشل جلب الأفلام الأساسي، تم تفعيل أفلام الطوارئ');
-                    // إذا فشل الـ Worker بالكامل، تبقى مصفوفة `fallbackMovies` موجودة
                 } finally {
                     isLoadingMovies = false;
                 }
@@ -573,8 +584,8 @@
             // Initialization
             function init() {
                 renderContent(); 
-                loadMatchesFromAPI(); // تحديث المباريات دون إتلاف القائمة إذا فشلت
-                loadMoviesFromAPI(); // تحميل الأفلام بطريقة ذكية وآمنة
+                loadMoviesFromAPI();
+                loadMatchesFromAPI(); 
                 setInterval(loadMatchesFromAPI, 300000); 
             }
             init();
