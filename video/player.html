@@ -82,17 +82,36 @@
         .zs-time { font-size: 16px; font-weight: 800; color: var(--text); }
         .zs-vs { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
 
-        /* ===== الأفلام ===== */
+        /* ===== قسم الأفلام المطور ===== */
         .zs-movies-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; padding: 5px 0; width: 100%; }
-        .zs-movie-card { background: var(--surface); border-radius: var(--radius-sm); border: 1px solid var(--border); overflow: hidden; cursor: pointer; transition: all var(--transition); display: flex; flex-direction: column; }
-        .zs-movie-card:hover { transform: translateY(-4px); border-color: var(--accent); box-shadow: 0 6px 20px rgba(0,0,0,0.5); }
+        .zs-movie-card { background: var(--surface); border-radius: 10px; border: 1px solid var(--border); overflow: hidden; cursor: pointer; transition: all var(--transition); display: flex; flex-direction: column; position: relative; }
+        .zs-movie-card:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
         .zs-movie-card.zs-active { border: 2px solid var(--accent); }
+        
         .zs-movie-poster-wrap { position: relative; width: 100%; aspect-ratio: 2/3; background: rgba(0,0,0,0.5); overflow: hidden; }
-        .zs-movie-poster { width: 100%; height: 100%; object-fit: cover; transition: 0.3s; }
-        .zs-movie-card:hover .zs-movie-poster { transform: scale(1.05); }
-        .zs-movie-rating { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7); padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 700; color: var(--accent); backdrop-filter: blur(4px); }
-        .zs-movie-info { padding: 10px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
-        .zs-movie-title { font-size: 13px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .zs-movie-poster { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+        .zs-movie-card:hover .zs-movie-poster { transform: scale(1.08); }
+        
+        /* شارة النوع أعلى البوستر (مطابقة للصورة) */
+        .zs-movie-genre-badge {
+            position: absolute; top: 8px; left: 8px; z-index: 2;
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px);
+            color: #fff; padding: 2px 10px; border-radius: 4px;
+            font-size: 11px; font-weight: 700; border: 1px solid rgba(255,255,255,0.2);
+        }
+        .zs-movie-rating {
+            position: absolute; top: 8px; right: 8px; z-index: 2;
+            background: rgba(0,0,0,0.7); padding: 2px 8px; border-radius: 4px;
+            font-size: 12px; font-weight: 700; color: var(--accent);
+        }
+        .zs-movie-info { padding: 10px; display: flex; flex-direction: column; gap: 4px; flex: 1; background: var(--surface); }
+        /* العنوان بسلوك متحرك عند التمرير */
+        .zs-movie-title {
+            font-size: 13px; font-weight: 700; color: var(--text);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            transition: color 0.3s;
+        }
+        .zs-movie-card:hover .zs-movie-title { color: var(--accent); }
         .zs-movie-meta { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-secondary); }
 
         /* ===== المشغل ===== */
@@ -129,7 +148,7 @@
             .zs-main { padding: 10px; gap: 10px; }
             .zs-movies-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
             .zs-movie-title { font-size: 11px; }
-            .zs-movie-rating { font-size: 10px; }
+            .zs-movie-rating, .zs-movie-genre-badge { font-size: 10px; top: 5px; }
         }
     </style>
 </head>
@@ -152,7 +171,7 @@
             <section class="zs-player-section">
                 <div class="zs-player-wrapper" id="zsPlayerWrapper">
                     <div class="zs-video-container" id="zsVideoContainer">
-                        <video id="zsVideo" playsinline></video>
+                        <video id="zsVideo" playsinline crossorigin="anonymous"></video>
                         <div class="zs-video-watermark">ZI</div>
                         <div class="zs-live-badge" id="zsLiveBadge"><span>🔴</span> LIVE</div>
                         <div class="zs-loading" id="zsLoading"><div class="zs-spinner"></div></div>
@@ -199,11 +218,12 @@
 
     <script>
         (function() {
-            // ------------------ إعدادات Worker ------------------
+            // ------------------ إعدادات ------------------
             const WORKER_URL = 'https://dry-truth-a84e.idriss-zribi13.workers.dev/';
             const MATCHES_API_URL = WORKER_URL + '?url=' + encodeURIComponent('https://admin.golive-pro.online/api/public/events?tz=-4');
-            // [جديد] رابط الأفلام عبر الـ Worker
-            const MOVIES_API_URL = WORKER_URL + '?url=' + encodeURIComponent('https://admin.golive-pro.online/api/content/movies?page=1&limit=20&categoryId=9ec354e5-4707-4161-9dab-b51f899b29d8');
+            
+            // قاعدة الأفلام (سنقوم ببرمجتها لجلب جميع الصفحات)
+            const MOVIES_BASE_URL = 'https://admin.golive-pro.online/api/content/movies?categoryId=9ec354e5-4707-4161-9dab-b51f899b29d8&limit=20&page=';
 
             const defaultChannels = [
                 { id: 101, name: "beIN Sports 1 HD", category: "Sports Channel", logo: "B1", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein101.m3u8", live: true },
@@ -211,7 +231,7 @@
             ];
 
             let channels = [...defaultChannels];
-            let movies = []; // سيتم ملؤها بواسطة الـ API
+            let movies = [];
             let currentChannelId = null;
             let currentStreamUrl = '';
             let hls = null;
@@ -263,17 +283,23 @@
                 btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
             }
 
-            // تشغيل الفيديو (يدعم m3u8 و mkv)
+            // ------------------ تشغيل الفيديو (مع حل CORS) ------------------
             function loadStream(url) {
                 destroyPlayer();
                 showLoading();
                 startOverlay.classList.add('zs-hidden');
                 
-                // إذا كان الرابط هو m3u8
-                if (url.includes('.m3u8')) {
+                // [حل CORS]: إذا كان الرابط من نوع m3u8 أو فيلم .mkv من خادم خارجي، سنمرره عبر الـ Worker
+                // هذا سيجنب المتصفح خطأ CORS حيث سيطلب المتصفح الملف من نطاق الـ Worker بدلاً من الخادم الأصلي.
+                let finalUrl = url;
+                if (url.includes('new.dramalaly.com') || url.includes('.mkv') || url.includes('.m3u8')) {
+                    finalUrl = WORKER_URL + '?url=' + encodeURIComponent(url);
+                }
+
+                if (finalUrl.includes('.m3u8')) {
                     if (Hls.isSupported()) {
                         hls = new Hls();
-                        hls.loadSource(url);
+                        hls.loadSource(finalUrl);
                         hls.attachMedia(video);
                         hls.on(Hls.Events.MANIFEST_PARSED, () => { 
                             hideLoading(); hideError(); setLiveMode(true); 
@@ -281,11 +307,11 @@
                         });
                         hls.on(Hls.Events.ERROR, (e, data) => { if (data.fatal) { showError(); hideLoading(); } });
                     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                        video.src = url; video.play();
+                        video.src = finalUrl; video.play();
                     }
                 } else {
-                    // للأفلام (mkv أو mp4)
-                    video.src = url;
+                    // تشغيل الأفلام (.mkv)
+                    video.src = finalUrl;
                     video.play().then(() => {
                         hideLoading(); hideError();
                     }).catch(()=>{ showError(); hideLoading(); });
@@ -363,7 +389,7 @@
                         if (channel) {
                             currentChannelId = id;
                             currentStreamUrl = channel.url;
-                            renderContent(); // تحديث الـ UI
+                            renderContent(); 
                             loadStream(channel.url);
                         }
                     });
@@ -385,34 +411,59 @@
                         }));
                     channels = channels.filter(ch => !ch.isMatch).concat(matchChannels);
                     if(activeCategory !== 'Movies') renderContent();
-                } catch (e) {
-                    console.warn('Matches API failed');
-                }
+                } catch (e) { console.warn('Matches API failed'); }
             }
 
-            // ------------------ دوال الأفلام الجديدة عبر الـ Worker ------------------
-            async function loadMoviesFromAPI() {
+            // ------------------ دوال الأفلام (جلب جميع الصفحات) ------------------
+            async function loadAllMoviesFromAPI() {
                 try {
-                    const response = await fetch(MOVIES_API_URL);
-                    if (!response.ok) throw new Error('Worker error');
-                    const data = await response.json();
+                    // 1. نطلب الصفحة الأولى فقط لاستخراج meta.totalPages
+                    const firstPageUrl = WORKER_URL + '?url=' + encodeURIComponent(MOVIES_BASE_URL + '1');
+                    const firstResponse = await fetch(firstPageUrl);
+                    if (!firstResponse.ok) throw new Error('Worker error');
+                    const firstData = await firstResponse.json();
                     
-                    // تحويل بيانات الـ JSON المستلمة إلى هيكل مفهوم في الموقع
-                    if (data && data.data && Array.isArray(data.data)) {
-                        movies = data.data.map(m => ({
-                            id: m.id,
-                            title: m.title,
-                            posterUrl: m.posterUrl,
-                            year: m.year,
-                            rating: m.rating,
-                            genre: m.genre,
-                            url: m.sources && m.sources.length > 0 ? m.sources[0].streamUrl : null
-                        }));
+                    if (!firstData.data || !firstData.meta) throw new Error('Invalid movies data');
+                    
+                    const totalPages = firstData.meta.totalPages; // مثلاً 45
+                    let allMovies = [...firstData.data];
+
+                    // 2. جلب الصفحات المتبقية
+                    if (totalPages > 1) {
+                        const pageRequests = [];
+                        for (let i = 2; i <= totalPages; i++) {
+                            const url = WORKER_URL + '?url=' + encodeURIComponent(MOVIES_BASE_URL + i);
+                            pageRequests.push(fetch(url).then(res => res.json()));
+                        }
+                        // ننتظر انتهاء جميع الطلبات
+                        const restResponses = await Promise.all(pageRequests);
+                        
+                        restResponses.forEach(resp => {
+                            if (resp.data && Array.isArray(resp.data)) {
+                                allMovies = allMovies.concat(resp.data);
+                            }
+                        });
                     }
-                    
+
+                    // تحويل البيانات إلى هيكل الموقع
+                    movies = allMovies.map(m => ({
+                        id: m.id,
+                        title: m.title,
+                        posterUrl: m.posterUrl,
+                        year: m.year,
+                        rating: m.rating,
+                        genre: m.genre, 
+                        // [مطابقة الصورة] نستخدم اسم النوع بالعربي إذا وجد
+                        genreAr: m.genreAr || m.genre,
+                        url: m.sources && m.sources.length > 0 ? m.sources[0].streamUrl : null
+                    }));
+
                     if(activeCategory === 'Movies') renderContent();
+
                 } catch (e) {
                     console.warn('Movies API failed:', e);
+                    movies = []; // تفريغ القائمة في حال الفشل
+                    if(activeCategory === 'Movies') renderContent();
                 }
             }
 
@@ -434,13 +485,16 @@
                             <div class="zs-movie-card ${m.id === currentChannelId ? 'zs-active' : ''}" data-id="${m.id}">
                                 <div class="zs-movie-poster-wrap">
                                     <img class="zs-movie-poster" src="${m.posterUrl}" alt="${m.title}" onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
+                                    
+                                    <!-- [مطابقة الصورة] شارة النوع أعلى البوستر -->
+                                    <div class="zs-movie-genre-badge">${m.genreAr || m.genre || 'فيلم'}</div>
+                                    
                                     <div class="zs-movie-rating">★ ${m.rating || 'N/A'}</div>
                                 </div>
                                 <div class="zs-movie-info">
                                     <div class="zs-movie-title" title="${m.title}">${m.title}</div>
                                     <div class="zs-movie-meta">
                                         <span>${m.year || ''}</span>
-                                        <span>${m.genre || 'Movie'}</span>
                                     </div>
                                 </div>
                             </div>
@@ -458,7 +512,7 @@
                         if (movie && movie.url) {
                             currentChannelId = id;
                             currentStreamUrl = movie.url;
-                            renderContent(); // تحديث الحالة النشطة
+                            renderContent(); 
                             loadStream(movie.url);
                         }
                     });
@@ -468,10 +522,10 @@
             // ------------------ التحكم العام ------------------
             function renderContent() {
                 if (activeCategory === 'Movies') {
-                    channelsList.style.display = 'block'; // شبكة
+                    channelsList.style.display = 'block'; 
                     renderMovies();
                 } else {
-                    channelsList.style.display = 'flex'; // أعمدة
+                    channelsList.style.display = 'flex'; 
                     renderMatches();
                 }
             }
@@ -514,14 +568,13 @@
 
             // Initialization
             function init() {
-                renderContent(); // عرض المباريات أولاً
-                loadMoviesFromAPI(); // تحميل الأفلام في الخلفية
-                loadMatchesFromAPI(); // تحديث المباريات
+                renderContent(); 
+                loadMoviesFromAPI(); // تحميل جميع الأفلام مع جميع الصفحات
+                loadMatchesFromAPI(); 
                 setInterval(loadMatchesFromAPI, 300000); 
-                setInterval(loadMoviesFromAPI, 300000); // تحديث الأفلام أيضاً
             }
             init();
         })();
     </script>
 </body>
-                            </html>
+    </html>
