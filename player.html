@@ -45,6 +45,7 @@
 
         .zs-app { display: flex; flex-direction: column; min-height: 100vh; }
 
+        /* ===== الهيدر ===== */
         .zs-header {
             display: flex; align-items: center; justify-content: space-between;
             padding: 16px 24px; background: var(--header-bg); backdrop-filter: blur(20px);
@@ -64,8 +65,33 @@
         .zs-theme-btn:hover { color: var(--text); background: var(--surface-hover); }
         .zs-theme-btn.zs-active { background: var(--accent); color: #0a0a0f; box-shadow: 0 0 15px var(--accent-glow); }
 
+        /* [جديد] زر البحث في الهيدر */
+        .zs-header-actions { display: flex; align-items: center; gap: 12px; }
+        .zs-search-btn {
+            background: var(--surface-glass); border: 1px solid var(--border); border-radius: 30px;
+            width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+            color: var(--text-secondary); cursor: pointer; transition: var(--transition); font-size: 18px;
+        }
+        .zs-search-btn:hover { background: var(--surface-hover); color: var(--accent); transform: scale(1.05); }
+
+        /* [جديد] شريط البحث المتقدم */
+        .zs-search-bar-container {
+            display: none; width: 100%; padding: 12px 20px;
+            background: var(--surface-glass); border-bottom: 1px solid var(--border);
+            position: sticky; top: 73px; z-index: 49; backdrop-filter: blur(20px);
+            animation: fadeSlideDown 0.3s ease forwards;
+        }
+        .zs-search-bar-container.visible { display: block; }
+        @keyframes fadeSlideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .zs-search-bar-container input {
+            width: 100%; padding: 10px 16px; border-radius: 25px; border: 1px solid var(--border);
+            background: var(--surface-hover); color: var(--text); font-size: 14px; outline: none; transition: var(--transition);
+        }
+        .zs-search-bar-container input:focus { border-color: var(--accent); background: var(--surface); }
+
         .zs-main { flex: 1; padding: 20px; display: flex; flex-direction: column; align-items: center; max-width: 1200px; margin: 0 auto; width: 100%; }
 
+        /* ===== المشغل ===== */
         .zs-player-section { 
             display: none; width: 100%; max-width: 100%; margin-bottom: 20px;
             animation: fadeSlideIn 0.4s ease forwards;
@@ -99,6 +125,7 @@
         .zs-spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
+        /* ===== شريط التمرير (Banner) ===== */
         .zs-banner-container { width: 100%; display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 15px; padding: 10px 0 20px 0; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
         .zs-banner-slide {
             flex: 0 0 auto; width: 90%; max-width: 500px; min-height: 100px;
@@ -113,6 +140,7 @@
         .zs-banner-btn { z-index: 2; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 8px 20px; border-radius: 30px; font-weight: 700; font-size: 13px; cursor: pointer; backdrop-filter: blur(10px); transition: var(--transition); white-space: nowrap; }
         .zs-banner-btn:hover { background: #fff; color: #000; transform: scale(1.05); }
 
+        /* ===== واجهة الفئات الرئيسية (Category Home) ===== */
         .categories-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; width: 100%; margin-bottom: 24px; }
         .category-card { background: var(--surface); border-radius: 24px; padding: 24px 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; border: 1px solid var(--border); cursor: pointer; transition: all var(--transition); position: relative; }
         .category-card:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
@@ -124,11 +152,14 @@
         .cat-reels .icon-wrap { background: linear-gradient(135deg, #ff5722, #ff6f00); color: #fff; }
         .category-card .cat-title { font-weight: 700; font-size: 14px; color: var(--text); text-align: center; line-height: 1.3; }
 
-        .zs-list-header { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 0 20px 0; }
+        /* ===== رؤوس الصفحات الفرعية (Headings) ===== */
+        .zs-list-header { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 0 20px 0; justify-content: space-between; }
+        .zs-list-header-left { display: flex; align-items: center; gap: 12px; }
         .zs-back-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 30px; padding: 8px 16px; color: var(--text); font-weight: 600; font-size: 14px; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 8px; }
         .zs-back-btn:hover { background: var(--surface-hover); transform: translateX(-3px); }
         .zs-list-title { font-size: 20px; font-weight: 800; }
-
+        
+        /* ===== قوائم المباريات ===== */
         .zs-section-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-radius: 12px; margin-bottom: 10px; background: var(--surface-glass); border: 1px solid var(--border); }
         .zs-section-header.live-section { background: rgba(229,57,53,0.15); border-color: rgba(229,57,53,0.3); color: #e53935; }
         .zs-section-header.upcoming-section { background: rgba(33,150,243,0.15); border-color: rgba(33,150,243,0.3); color: #2196f3; }
@@ -160,6 +191,7 @@
         .zs-vs { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
         .zs-live-time-block { background: #e53935; padding: 6px 14px; border-radius: 12px; color: #fff; font-weight: 700; display: flex; align-items: center; gap: 6px; font-size: 15px; }
 
+        /* ===== قوائم الأفلام والمسلسلات ===== */
         .zs-movies-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; width: 100%; padding: 10px 0; }
         .zs-movie-card { background: var(--surface); border-radius: 16px; border: 1px solid var(--border); overflow: hidden; cursor: pointer; transition: var(--transition); }
         .zs-movie-card:hover { transform: translateY(-4px) scale(1.03); border-color: var(--accent); }
@@ -197,12 +229,21 @@
                 <div class="zs-brand-icon">Z</div>
                 <span>Zi Store</span>
             </div>
-            <div class="zs-theme-switch" id="themeSwitch">
-                <button class="zs-theme-btn zs-active" data-theme="dark">🌙 Dark</button>
-                <button class="zs-theme-btn" data-theme="light">☀️ Light</button>
-                <button class="zs-theme-btn" data-theme="legendary">👑 Legendary</button>
+            <div class="zs-header-actions">
+                <!-- زر البحث -->
+                <button class="zs-search-btn" id="toggleSearchBtn">🔍</button>
+                <div class="zs-theme-switch" id="themeSwitch">
+                    <button class="zs-theme-btn zs-active" data-theme="dark">🌙 Dark</button>
+                    <button class="zs-theme-btn" data-theme="light">☀️ Light</button>
+                    <button class="zs-theme-btn" data-theme="legendary">👑 Legendary</button>
+                </div>
             </div>
         </header>
+
+        <!-- شريط البحث المتقدم -->
+        <div class="zs-search-bar-container" id="searchBarContainer">
+            <input type="text" id="zsSearchInput" placeholder="Search in current section...">
+        </div>
 
         <main class="zs-main">
             <!-- ===== المشغل (مخفي افتراضياً) ===== -->
@@ -218,7 +259,7 @@
                         <div class="zs-error-overlay" id="zsErrorOverlay">
                             <div style="text-align:center;line-height:1.8;">
                                 ⚠️ Unable to play stream.<br>
-                                <span style="font-size:14px;color:#bbb;">If you're on mobile, try opening this site in <b>Firefox browser</b> (it bypasses the block).<br>Or, allow "Insecure Content" in Chrome desktop settings.</span>
+                                <span style="font-size:14px;color:#bbb;">If you're on mobile, try opening this site in <b>Firefox browser</b>.<br>Or, allow "Insecure Content" in Chrome desktop settings.</span>
                             </div>
                             <button id="zsErrorRetry" class="zs-btn" style="margin-top:15px;background:var(--accent);color:#000;border-radius:5px;padding:8px 20px;width:auto;height:auto;">Retry</button>
                         </div>
@@ -289,8 +330,10 @@
             <!-- ===== واجهة المباريات (مخفي افتراضياً) ===== -->
             <div class="flex-view hidden-view" id="matchesView">
                 <div class="zs-list-header">
-                    <button class="zs-back-btn" onclick="goToHome()">← Back</button>
-                    <div class="zs-list-title">⚽ Today's Matches</div>
+                    <div class="zs-list-header-left">
+                        <button class="zs-back-btn" onclick="goToHome()">← Back</button>
+                        <div class="zs-list-title">⚽ Today's Matches</div>
+                    </div>
                 </div>
                 <div id="matchesListContainer"></div>
             </div>
@@ -298,35 +341,43 @@
             <!-- ===== واجهة الأفلام (مخفي افتراضياً) ===== -->
             <div class="flex-view hidden-view" id="moviesView">
                 <div class="zs-list-header">
-                    <button class="zs-back-btn" onclick="goToHome()">← Back</button>
-                    <div class="zs-list-title">🎬 Movies</div>
+                    <div class="zs-list-header-left">
+                        <button class="zs-back-btn" onclick="goToHome()">← Back</button>
+                        <div class="zs-list-title">🎬 Movies</div>
+                    </div>
                 </div>
                 <div id="moviesListContainer"></div>
             </div>
 
-            <!-- ===== [جديد] واجهة فئات المسلسلات (Series Categories) ===== -->
+            <!-- ===== واجهة فئات المسلسلات (Series Categories) ===== -->
             <div class="flex-view hidden-view" id="seriesCategoriesView">
                 <div class="zs-list-header">
-                    <button class="zs-back-btn" onclick="goToHome()">← Back</button>
-                    <div class="zs-list-title">📺 Categories</div>
+                    <div class="zs-list-header-left">
+                        <button class="zs-back-btn" onclick="goToHome()">← Back</button>
+                        <div class="zs-list-title">📺 Categories</div>
+                    </div>
                 </div>
                 <div id="seriesCategoriesContainer"></div>
             </div>
 
-            <!-- ===== [جديد] واجهة قائمة المسلسلات (Series List) ===== -->
+            <!-- ===== واجهة قائمة المسلسلات (Series List) ===== -->
             <div class="flex-view hidden-view" id="seriesListView">
                 <div class="zs-list-header">
-                    <button class="zs-back-btn" onclick="goToSeriesCategories()">← Back</button>
-                    <div class="zs-list-title" id="seriesListTitle">📺 Series</div>
+                    <div class="zs-list-header-left">
+                        <button class="zs-back-btn" onclick="goToSeriesCategories()">← Back</button>
+                        <div class="zs-list-title" id="seriesListTitle">📺 Series</div>
+                    </div>
                 </div>
                 <div id="seriesListContainer"></div>
             </div>
             
-            <!-- ===== واجهة المسلسلات والريلز القديمة (وهمية - ستحل محلها الأنظمة الجديدة) ===== -->
+            <!-- ===== واجهة المسلسلات والريلز القديمة (وهمية) ===== -->
             <div class="flex-view hidden-view" id="reelsView">
                 <div class="zs-list-header">
-                    <button class="zs-back-btn" onclick="goToHome()">← Back</button>
-                    <div class="zs-list-title">🎞️ Reels Series</div>
+                    <div class="zs-list-header-left">
+                        <button class="zs-back-btn" onclick="goToHome()">← Back</button>
+                        <div class="zs-list-title">🎞️ Reels Series</div>
+                    </div>
                 </div>
                 <div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
                     <div style="font-size:50px;margin-bottom:20px;">⏳</div>
@@ -345,22 +396,18 @@
     <script>
         // ==================== البيانات الأساسية ====================
         const WORKER_URL = 'https://dry-truth-a84e.idriss-zribi13.workers.dev/';
-        // [إصلاح] تم العودة إلى tz=-4 لأن tz=1 يسبب بيانات قديمة أو مشاكل في الووركر
         const MATCHES_API_URL = WORKER_URL + '?url=' + encodeURIComponent('https://admin.golive-pro.online/api/public/events?tz=-4');
         const MOVIES_BASE_URL = 'https://admin.golive-pro.online/api/content/movies?categoryId=9ec354e5-4707-4161-9dab-b51f899b29d8&limit=20&page=';
-
-        // [جديد] روابط المسلسلات
         const SERIES_CATEGORIES_URL = 'https://admin.golive-pro.online/api/content/series-categories';
         const SERIES_BASE_URL = 'https://admin.golive-pro.online/api/content/series?limit=20&page=';
 
-        // [إصلاح] إذا فشل السيرفر، يظهر هذه المباريات الاحتياطية (وليس قنوات البث المباشر)
         const fallbackMatches = [
             { id: 1, homeName: "Real Madrid", awayName: "Barcelona", leagueName: "La Liga", homeLogo: "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg", awayLogo: "https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg", url: "https://app.site2026.top/mobile/v9YsphvJOvxK2N1ibcDorQ/1786986686/1786986425/1/bein101.m3u8", startTime: new Date().toISOString() },
             { id: 2, homeName: "Manchester Utd", awayName: "Liverpool", leagueName: "Premier League", homeLogo: "https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg", awayLogo: "https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC_crest.svg", url: "https://app.site2026.top/mobile/v9YsphvJOvxK2N1ibcDorQ/1786986686/1786986425/1/bein202.m3u8", startTime: new Date(Date.now() + 7200000).toISOString() },
             { id: 3, homeName: "Al-Nassr", awayName: "Al-Hilal", leagueName: "Saudi League", homeLogo: "https://upload.wikimedia.org/wikipedia/en/7/75/Al-Nassr_FC_logo.svg", awayLogo: "https://upload.wikimedia.org/wikipedia/en/4/49/Al_Hilal_Saudi_FC_Logo.svg", url: "https://app.site2026.top/mobile/v9YsphvJOvxK2N1ibcDorQ/1786986686/1786986425/1/bein303.m3u8", startTime: new Date(Date.now() - 600000).toISOString() }
         ];
 
-        let channels = []; // تبدأ فارغة، وسيتم ملؤها من الـ API أو الاحتياطية
+        let channels = []; 
         let movies = [];
         let series = [];
         let seriesCategories = [];
@@ -369,7 +416,7 @@
         let currentView = 'home'; 
         let currentId = null;
 
-        // ==================== عناصر DOM ====================
+        // عناصر DOM
         const video = document.getElementById('zsVideo');
         const videoContainer = document.getElementById('zsVideoContainer');
         const wrapper = document.getElementById('zsPlayerWrapper');
@@ -400,6 +447,11 @@
         const seriesListContainer = document.getElementById('seriesListContainer');
         const seriesListTitle = document.getElementById('seriesListTitle');
 
+        // عناصر البحث
+        const toggleSearchBtn = document.getElementById('toggleSearchBtn');
+        const searchBarContainer = document.getElementById('searchBarContainer');
+        const searchInput = document.getElementById('zsSearchInput');
+
         // ==================== الثيمات ====================
         function setTheme(theme) {
             document.documentElement.setAttribute('data-theme', theme);
@@ -429,7 +481,6 @@
             btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
         }
 
-        // ==================== تشغيل الفيديو (للمباريات والأفلام والمسلسلات) ====================
         function loadStream(url) {
             destroyPlayer();
             showLoading();
@@ -461,7 +512,7 @@
             }
         }
 
-        // ==================== التحكم في المشغل ====================
+        // ==================== التحكم في المشغل والبحث ====================
         btnPlay.addEventListener('click', () => { if (video.paused) video.play(); else video.pause(); });
         video.addEventListener('play', () => { btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`; });
         video.addEventListener('pause', () => { btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`; });
@@ -480,7 +531,24 @@
         document.getElementById('zsErrorRetry').addEventListener('click', () => { if (currentStreamUrl) loadStream(currentStreamUrl); });
         closePlayerBtn.addEventListener('click', () => { playerSection.classList.remove('visible'); currentView = 'home'; renderContent(); });
 
-        // ==================== [إصلاح] دوال المباريات (مطابقة للكود الأصلي) ====================
+        // [جديد] أزرار البحث
+        toggleSearchBtn.addEventListener('click', () => {
+            const isVisible = searchBarContainer.classList.contains('visible');
+            if (isVisible) {
+                searchBarContainer.classList.remove('visible');
+            } else {
+                searchBarContainer.classList.add('visible');
+                searchInput.focus();
+            }
+        });
+        searchInput.addEventListener('input', () => {
+            // البحث يعتمد على القسم الحالي (currentView)
+            // سيتم تنفيذ التصفية داخل دالة renderContent / renderMatches
+            // نعيد الرسم ليعتمد على البحث
+            renderContent();
+        });
+
+        // ==================== دوال المباريات ====================
         function getStatus(startTime) {
             const now = new Date();
             const start = new Date(startTime);
@@ -497,15 +565,25 @@
         }
 
         function renderMatches() {
-            // إذا كانت المصفوفة فارغة (في انتظار التحميل)
+            // الحصول على نص البحث
+            const searchQuery = searchInput.value.toLowerCase();
+
             if (channels.length === 0) {
                 matchesContainer.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">Loading matches...</div>';
                 return;
             }
 
-            const liveMatches = channels.filter(ch => ch.startTime && getStatus(ch.startTime) === 'live');
-            const upcomingMatches = channels.filter(ch => ch.startTime && getStatus(ch.startTime) === 'upcoming');
-            const endedMatches = channels.filter(ch => ch.startTime && getStatus(ch.startTime) === 'ended');
+            // تصفية البيانات حسب البحث
+            const filteredChannels = channels.filter(ch => 
+                ch.name.toLowerCase().includes(searchQuery) || 
+                (ch.leagueName && ch.leagueName.toLowerCase().includes(searchQuery)) ||
+                (ch.homeName && ch.homeName.toLowerCase().includes(searchQuery)) ||
+                (ch.awayName && ch.awayName.toLowerCase().includes(searchQuery))
+            );
+
+            const liveMatches = filteredChannels.filter(ch => ch.startTime && getStatus(ch.startTime) === 'live');
+            const upcomingMatches = filteredChannels.filter(ch => ch.startTime && getStatus(ch.startTime) === 'upcoming');
+            const endedMatches = filteredChannels.filter(ch => ch.startTime && getStatus(ch.startTime) === 'ended');
 
             const buildCard = (ch) => {
                 const homeName = ch.homeName || ch.name.split(' vs ')[0] || 'Home';
@@ -584,7 +662,6 @@
             });
         }
 
-        // [إصلاح نهائي] تم تعديل المنطق ليكون مشابهاً لكودك الأصلي
         async function loadMatchesFromAPI() {
             try {
                 const response = await fetch(MATCHES_API_URL);
@@ -598,15 +675,12 @@
                         homeLogo: m.homeLogoUrl, awayLogo: m.awayLogoUrl, homeName: m.homeName, awayName: m.awayName,
                         leagueName: m.leagueName, url: m.sources[0].streamUrl, startTime: m.startTime, isMatch: true
                     }));
-                // استبدال القائمة بالبيانات الحقيقية
                 if (matchChannels.length > 0) {
                     channels = matchChannels;
                 }
-                // تحديث العرض إذا كنا في صفحة المباريات
                 if(currentView === 'matches') renderMatches();
             } catch (e) { 
                 console.warn('Matches API failed, using fallback matches.');
-                // إذا فشل الـ API، نستخدم المباريات الاحتياطية
                 if (channels.length === 0) {
                     channels = fallbackMatches;
                 }
@@ -676,7 +750,9 @@
         }
 
         function renderMovies() {
-            const filtered = movies.filter(m => m.title.toLowerCase().includes(''));
+            const searchQuery = searchInput.value.toLowerCase();
+            const filtered = movies.filter(m => m.title.toLowerCase().includes(searchQuery));
+            
             if (filtered.length === 0) {
                 moviesContainer.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No movies found</div>';
                 return;
@@ -712,7 +788,7 @@
             });
         }
 
-        // ==================== [جديد] دوال المسلسلات (Series) ====================
+        // ==================== دوال المسلسلات (Series) ====================
         async function loadSeriesCategoriesFromAPI() {
             try {
                 const url = WORKER_URL + '?url=' + encodeURIComponent(SERIES_CATEGORIES_URL);
@@ -809,7 +885,9 @@
         }
 
         function renderSeries() {
-            const filtered = series.filter(s => s.title.toLowerCase().includes(''));
+            const searchQuery = searchInput.value.toLowerCase();
+            const filtered = series.filter(s => s.title.toLowerCase().includes(searchQuery));
+
             if (filtered.length === 0) {
                 seriesListContainer.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No series found</div>';
                 return;
@@ -845,10 +923,13 @@
             });
         }
 
-        // ==================== التحكم في الأقسام ====================
+        // ==================== التحكم في الأقسام والتنقل ====================
         function goToHome() {
             currentView = 'home';
             playerSection.classList.remove('visible');
+            // إذا كان شريط البحث مفتوحاً، نغلقه عند العودة للمنزل
+            searchBarContainer.classList.remove('visible');
+            searchInput.value = '';
             renderContent();
         }
 
@@ -867,6 +948,7 @@
         }
 
         function renderContent() {
+            // إخفاء جميع الأقسام أولاً لضمان عدم تداخلها
             homeView.classList.add('hidden-view');
             matchesView.classList.add('hidden-view');
             moviesView.classList.add('hidden-view');
@@ -880,7 +962,6 @@
             } else if (currentView === 'matches') {
                 matchesView.classList.remove('hidden-view');
                 if (channels.length === 0) {
-                    // إذا كانت المباريات لم تُحمل بعد، نعرض مؤشر تحميل ونطلبها
                     matchesContainer.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">Loading matches...</div>';
                     loadMatchesFromAPI();
                 } else {
@@ -903,6 +984,10 @@
         document.querySelectorAll('.category-card').forEach(card => {
             card.addEventListener('click', () => {
                 const target = card.dataset.target;
+                // إغلاق المشغل عند تغيير القسم
+                playerSection.classList.remove('visible');
+                
+                // التبديل
                 if (target === 'matches') { currentView = 'matches'; }
                 else if (target === 'movies') { currentView = 'movies'; }
                 else if (target === 'series') { currentView = 'series'; }
@@ -914,7 +999,6 @@
         // ==================== التهيئة ====================
         function init() {
             renderContent();
-            // جلب البيانات في الخلفية
             loadMatchesFromAPI();
             loadMoviesFromAPI();
             loadSeriesCategoriesFromAPI();
@@ -923,4 +1007,4 @@
         init();
     </script>
 </body>
-    </html>
+                            </html>
