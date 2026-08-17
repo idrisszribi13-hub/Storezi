@@ -28,7 +28,6 @@
             --header-bg: rgba(10,10,18,0.85);
         }
 
-        /* الثيم الافتراضي (المفضل لديك) */
         [data-theme="legendary"] {
             --bg: #1a0f0a;
             --surface: #2d1f14;
@@ -45,8 +44,6 @@
             --shadow: 0 25px 60px rgba(255,215,0,0.2), 0 0 0 1px var(--border);
             --header-bg: rgba(26,15,10,0.9);
         }
-
-        /* ثيمات إضافية (Light/Dark) يمكن إضافتها هنا */
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: var(--bg); font-family: var(--font); min-height: 100vh; color: var(--text); transition: background 0.4s, color 0.4s; overflow-x: hidden; }
@@ -195,17 +192,23 @@
             const MATCHES_API_URL = WORKER_URL + '?url=' + encodeURIComponent('https://admin.golive-pro.online/api/public/events?tz=-4');
             const MOVIES_API_URL = WORKER_URL + '?url=' + encodeURIComponent('https://admin.golive-pro.online/api/content/movies?categoryId=9ec354e5-4707-4161-9dab-b51f899b29d8&limit=20&page=');
 
-            // ⚠️  قم بتغيير الرابط هنا إلى رابط الـ Worker الجديد الخاص بالأفلام الذي أنشأته
+            // ⚠️  تأكد من وضع رابط الـ Worker الخاص بالأفلام هنا
             const MOVIE_PROXY_URL = 'https://movie-proxy.idriss-zribi13.workers.dev/';
 
-            // القنوات والمباريات الأولية
+            // ------------------ البيانات الاحتياطية (لضمان عدم اختفاء الموقع) ------------------
             const defaultChannels = [
                 { id: 101, name: "beIN Sports 1 HD", category: "Sports Channel", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein101.m3u8", live: true },
                 { id: 102, name: "beIN Sports 2 HD", category: "Sports Channel", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein202.m3u8", live: true },
+                { id: 103, name: "beIN Sports 3 HD", category: "Sports Channel", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein303.m3u8", live: true },
             ];
 
-            let channels = [...defaultChannels];
-            let movies = [];
+            const fallbackMovies = [
+                { id: "fb1", title: "Zombies of the Third Reich", posterUrl: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/hjrgOWoruk9ea0tXaN8l2gtmkeH.jpg", year: 2025, rating: 3.75, genre: "رعب", url: "http://new.dramalaly.com:8080/movie/hikayetv_vod_app/Bxddo93COihsCKzmDz7oqC5y/361152.mkv" },
+                { id: "fb2", title: "Vade Retro", posterUrl: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/1D2Hn8HD9tpU9j901vNRmn4Oz3J.jpg", year: 2025, rating: 5.5, genre: "كوميديا", url: "http://new.dramalaly.com:8080/movie/hikayetv_vod_app/Bxddo93COihsCKzmDz7oqC5y/361151.mkv" }
+            ];
+
+            let channels = [...defaultChannels]; // نبدأ بها مباشرة لكي لا يختفي المحتوى أبداً
+            let movies = [...fallbackMovies];    // نبدأ بها مباشرة لكي لا يختفي المحتوى أبداً
             let currentChannelId = null;
             let currentStreamUrl = '';
             let hls = null;
@@ -230,28 +233,26 @@
             const btnFullscreen = document.getElementById('zsBtnFullscreen');
             const btnRotate = document.getElementById('zsBtnRotate');
             const videoContainer = document.getElementById('zsVideoContainer');
+            const wrapper = document.querySelector('.zs-player-wrapper');
 
-            // دوال المساعدة
             function showLoading() { loadingEl.classList.add('zs-visible'); }
             function hideLoading() { loadingEl.classList.remove('zs-visible'); }
             function showError() { errorOverlay.classList.add('zs-visible'); }
             function hideError() { errorOverlay.classList.remove('zs-visible'); }
             function setLiveMode(live) { liveBadge.classList.toggle('zs-visible', live); }
 
-            // دوال تشغيل الفيديو
             function destroyPlayer() {
                 if (hls) { hls.destroy(); hls = null; }
                 video.pause(); video.removeAttribute('src'); video.load();
                 hideError(); hideLoading();
             }
 
-            // [متوافق مع movie-proxy] تشغيل الفيديو
             function loadStream(url) {
                 destroyPlayer();
                 showLoading();
                 startOverlay.classList.add('zs-hidden');
 
-                // 1. معالجة المباريات (روابط m3u8) - تعمل مباشرة
+                // 1. معالجة المباريات (m3u8)
                 if (url.includes('.m3u8')) {
                     if (Hls.isSupported()) {
                         hls = new Hls();
@@ -268,7 +269,7 @@
                     return;
                 }
 
-                // 2. معالجة الأفلام (روابط mkv/mp4) عبر Movie Proxy (لتفادي Mixed Content)
+                // 2. معالجة الأفلام (عبر Proxy لتفادي Mixed Content)
                 if (url.includes('.mkv') || url.includes('.mp4')) {
                     video.src = MOVIE_PROXY_URL + '?url=' + encodeURIComponent(url);
                     video.play().then(() => {
@@ -279,7 +280,7 @@
                 }
             }
 
-            // دوال المباريات
+            // ------------------ دوال المباريات ------------------
             function getStatus(startTime) {
                 const now = new Date();
                 const start = new Date(startTime);
@@ -354,13 +355,14 @@
                         channels = channels.filter(ch => !ch.isMatch).concat(matchChannels);
                         if(activeCategory !== 'Movies') renderContent();
                     }
-                } catch (e) { console.warn('Matches API failed'); }
+                } catch (e) { 
+                    console.warn('فشل تحميل المباريات، تم استخدام القنوات الافتراضية.');
+                }
             }
 
-            // دوال الأفلام
+            // ------------------ دوال الأفلام ------------------
             async function loadMoviesFromAPI() {
                 try {
-                    // جلب الصفحة 1
                     const resp = await fetch(WORKER_URL + '?url=' + encodeURIComponent(MOVIES_API_URL + '1'));
                     const data = await resp.json();
                     
@@ -372,7 +374,9 @@
                         }));
                         if(activeCategory === 'Movies') renderContent();
                     }
-                } catch (e) { console.warn('Movies API failed'); }
+                } catch (e) { 
+                    console.warn('فشل تحميل الأفلام، تم استخدام الأفلام الافتراضية.');
+                }
             }
 
             function renderMovies() {
@@ -413,7 +417,7 @@
                 });
             }
 
-            // التحكم العام
+            // ------------------ التحكم العام ------------------
             function renderContent() {
                 if (activeCategory === 'Movies') {
                     channelsList.style.display = 'block'; 
@@ -439,7 +443,7 @@
                 renderContent();
             });
 
-            // أدوات التحكم في المشغل
+            // ------------------ أدوات التحكم في المشغل ------------------
             btnPlay.addEventListener('click', () => { if (video.paused) video.play(); else video.pause(); });
             video.addEventListener('play', () => { btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`; });
             video.addEventListener('pause', () => { btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`; });
@@ -468,11 +472,11 @@
 
             document.getElementById('zsErrorRetry').addEventListener('click', () => { if (currentStreamUrl) loadStream(currentStreamUrl); });
 
-            // التشغيل الأساسي
+            // ------------------ التشغيل الأساسي ------------------
             function init() {
-                renderContent();
-                loadMatchesFromAPI();
-                loadMoviesFromAPI();
+                renderContent(); // هذه الدالة ستعرض القنوات الافتراضية والأفلام الافتراضية فوراً
+                loadMatchesFromAPI(); // سنحاول تحديث المباريات في الخلفية
+                loadMoviesFromAPI();  // سنحاول تحديث الأفلام في الخلفية
                 setInterval(loadMatchesFromAPI, 300000);
             }
             init();
