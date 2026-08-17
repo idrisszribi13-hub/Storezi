@@ -92,7 +92,6 @@
         .zs-movie-poster { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
         .zs-movie-card:hover .zs-movie-poster { transform: scale(1.08); }
         
-        /* شارة النوع أعلى البوستر (مطابقة للصورة) */
         .zs-movie-genre-badge {
             position: absolute; top: 8px; left: 8px; z-index: 2;
             background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px);
@@ -105,12 +104,7 @@
             font-size: 12px; font-weight: 700; color: var(--accent);
         }
         .zs-movie-info { padding: 10px; display: flex; flex-direction: column; gap: 4px; flex: 1; background: var(--surface); }
-        /* العنوان بسلوك متحرك عند التمرير */
-        .zs-movie-title {
-            font-size: 13px; font-weight: 700; color: var(--text);
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            transition: color 0.3s;
-        }
+        .zs-movie-title { font-size: 13px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 0.3s; }
         .zs-movie-card:hover .zs-movie-title { color: var(--accent); }
         .zs-movie-meta { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-secondary); }
 
@@ -222,7 +216,7 @@
             const WORKER_URL = 'https://dry-truth-a84e.idriss-zribi13.workers.dev/';
             const MATCHES_API_URL = WORKER_URL + '?url=' + encodeURIComponent('https://admin.golive-pro.online/api/public/events?tz=-4');
             
-            // قاعدة الأفلام (سنقوم ببرمجتها لجلب جميع الصفحات)
+            // قاعدة الأفلام
             const MOVIES_BASE_URL = 'https://admin.golive-pro.online/api/content/movies?categoryId=9ec354e5-4707-4161-9dab-b51f899b29d8&limit=20&page=';
 
             const defaultChannels = [
@@ -238,6 +232,7 @@
             let activeCategory = 'all';
             let searchQuery = '';
             let isMuted = false;
+            let isLoadingMovies = false; // مؤشر حالة التحميل
 
             const video = document.getElementById('zsVideo');
             const videoContainer = document.getElementById('zsVideoContainer');
@@ -283,14 +278,13 @@
                 btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
             }
 
-            // ------------------ تشغيل الفيديو (مع حل CORS) ------------------
+            // ------------------ تشغيل الفيديو (حل CORS) ------------------
             function loadStream(url) {
                 destroyPlayer();
                 showLoading();
                 startOverlay.classList.add('zs-hidden');
                 
-                // [حل CORS]: إذا كان الرابط من نوع m3u8 أو فيلم .mkv من خادم خارجي، سنمرره عبر الـ Worker
-                // هذا سيجنب المتصفح خطأ CORS حيث سيطلب المتصفح الملف من نطاق الـ Worker بدلاً من الخادم الأصلي.
+                // تمرير الرابط عبر الـ Worker لحل مشكلة CORS
                 let finalUrl = url;
                 if (url.includes('new.dramalaly.com') || url.includes('.mkv') || url.includes('.m3u8')) {
                     finalUrl = WORKER_URL + '?url=' + encodeURIComponent(url);
@@ -414,10 +408,18 @@
                 } catch (e) { console.warn('Matches API failed'); }
             }
 
-            // ------------------ دوال الأفلام (جلب جميع الصفحات) ------------------
+            // ------------------ دوال الأفلام (جلب متسلسل آمن) ------------------
             async function loadAllMoviesFromAPI() {
+                if (isLoadingMovies) return; // منع تكرار التحميل
+                isLoadingMovies = true;
+                
+                // إذا كان المستخدم في قسم الأفلام، نعرض مؤشر التحميل
+                if (activeCategory === 'Movies') {
+                    channelsList.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">جاري تحميل الأفلام... ⏳</div>';
+                }
+
                 try {
-                    // 1. نطلب الصفحة الأولى فقط لاستخراج meta.totalPages
+                    // 1. جلب الصفحة الأولى لمعرفة عدد الصفحات الإجمالي
                     const firstPageUrl = WORKER_URL + '?url=' + encodeURIComponent(MOVIES_BASE_URL + '1');
                     const firstResponse = await fetch(firstPageUrl);
                     if (!firstResponse.ok) throw new Error('Worker error');
@@ -425,24 +427,24 @@
                     
                     if (!firstData.data || !firstData.meta) throw new Error('Invalid movies data');
                     
-                    const totalPages = firstData.meta.totalPages; // مثلاً 45
                     let allMovies = [...firstData.data];
+                    const totalPages = firstData.meta.totalPages; // مثلاً 45
 
-                    // 2. جلب الصفحات المتبقية
+                    // 2. جلب الصفحات المتبقية بشكل تسلسلي (Sequential) للحفاظ على استقرار الـ Worker
                     if (totalPages > 1) {
-                        const pageRequests = [];
                         for (let i = 2; i <= totalPages; i++) {
-                            const url = WORKER_URL + '?url=' + encodeURIComponent(MOVIES_BASE_URL + i);
-                            pageRequests.push(fetch(url).then(res => res.json()));
-                        }
-                        // ننتظر انتهاء جميع الطلبات
-                        const restResponses = await Promise.all(pageRequests);
-                        
-                        restResponses.forEach(resp => {
-                            if (resp.data && Array.isArray(resp.data)) {
-                                allMovies = allMovies.concat(resp.data);
+                            try {
+                                const url = WORKER_URL + '?url=' + encodeURIComponent(MOVIES_BASE_URL + i);
+                                const res = await fetch(url);
+                                const data = await res.json();
+                                if (data.data && Array.isArray(data.data)) {
+                                    allMovies = allMovies.concat(data.data);
+                                }
+                            } catch (pageError) {
+                                console.warn(`فشل تحميل الصفحة رقم ${i}:`, pageError);
+                                // نكمل باقي الصفحات حتى لو فشلت صفحة واحدة
                             }
-                        });
+                        }
                     }
 
                     // تحويل البيانات إلى هيكل الموقع
@@ -453,17 +455,17 @@
                         year: m.year,
                         rating: m.rating,
                         genre: m.genre, 
-                        // [مطابقة الصورة] نستخدم اسم النوع بالعربي إذا وجد
                         genreAr: m.genreAr || m.genre,
                         url: m.sources && m.sources.length > 0 ? m.sources[0].streamUrl : null
                     }));
 
-                    if(activeCategory === 'Movies') renderContent();
-
                 } catch (e) {
-                    console.warn('Movies API failed:', e);
-                    movies = []; // تفريغ القائمة في حال الفشل
-                    if(activeCategory === 'Movies') renderContent();
+                    console.error('فشل جلب الأفلام:', e);
+                    // في حال الفشل الكلي، نترك المصفوفة فارغة
+                    movies = [];
+                } finally {
+                    isLoadingMovies = false;
+                    if (activeCategory === 'Movies') renderContent();
                 }
             }
 
@@ -474,7 +476,12 @@
                 });
 
                 if (filtered.length === 0) {
-                    channelsList.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No movies found</div>';
+                    // إذا كان التحميل ما زال جارياً (سيتم تحديثه تلقائياً)
+                    if (isLoadingMovies) {
+                        channelsList.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">جاري تحميل الأفلام... ⏳</div>';
+                    } else {
+                        channelsList.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No movies found</div>';
+                    }
                     return;
                 }
 
@@ -485,10 +492,7 @@
                             <div class="zs-movie-card ${m.id === currentChannelId ? 'zs-active' : ''}" data-id="${m.id}">
                                 <div class="zs-movie-poster-wrap">
                                     <img class="zs-movie-poster" src="${m.posterUrl}" alt="${m.title}" onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
-                                    
-                                    <!-- [مطابقة الصورة] شارة النوع أعلى البوستر -->
                                     <div class="zs-movie-genre-badge">${m.genreAr || m.genre || 'فيلم'}</div>
-                                    
                                     <div class="zs-movie-rating">★ ${m.rating || 'N/A'}</div>
                                 </div>
                                 <div class="zs-movie-info">
@@ -569,7 +573,7 @@
             // Initialization
             function init() {
                 renderContent(); 
-                loadMoviesFromAPI(); // تحميل جميع الأفلام مع جميع الصفحات
+                loadMoviesFromAPI(); // تحميل الأفلام بشكل تسلسلي آمن
                 loadMatchesFromAPI(); 
                 setInterval(loadMatchesFromAPI, 300000); 
             }
