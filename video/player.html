@@ -329,14 +329,13 @@
     </div>
 
     <script>
-        // ==================== البيانات الأساسية ====================
+        // ==================== المحرك القديم (البيانات الأساسية) ====================
         const WORKER_URL = 'https://dry-truth-a84e.idriss-zribi13.workers.dev/';
-        // [إصلاح] تم إرجاع الرابط إلى tz=-4 كما كان في كودك الأصلي الذي يعمل
+        // [إرجاع إلى tz=-4 كما كان يعمل سابقاً]
         const MATCHES_API_URL = WORKER_URL + '?url=' + encodeURIComponent('https://admin.golive-pro.online/api/public/events?tz=-4');
-        
         const MOVIES_BASE_URL = 'https://admin.golive-pro.online/api/content/movies?categoryId=9ec354e5-4707-4161-9dab-b51f899b29d8&limit=20&page=';
 
-        // مباريات افتراضية (تظهر دائماً حتى لو فشل السيرفر)
+        // مباريات افتراضية لتجنب الشاشة الفارغة
         const fallbackMatches = [
             { id: 1, homeName: "Real Madrid", awayName: "Barcelona", leagueName: "La Liga", homeLogo: "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg", awayLogo: "https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg", url: "https://app.site2026.top/mobile/v9YsphvJOvxK2N1ibcDorQ/1786986686/1786986425/1/bein101.m3u8", startTime: new Date().toISOString() },
             { id: 2, homeName: "Manchester Utd", awayName: "Liverpool", leagueName: "Premier League", homeLogo: "https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg", awayLogo: "https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC_crest.svg", url: "https://app.site2026.top/mobile/v9YsphvJOvxK2N1ibcDorQ/1786986686/1786986425/1/bein202.m3u8", startTime: new Date(Date.now() + 7200000).toISOString() },
@@ -457,7 +456,7 @@
         document.getElementById('zsErrorRetry').addEventListener('click', () => { if (currentStreamUrl) loadStream(currentStreamUrl); });
         closePlayerBtn.addEventListener('click', () => { playerSection.classList.remove('visible'); currentView = 'home'; renderContent(); });
 
-        // ==================== دوال المباريات ====================
+        // ==================== دوال المباريات (تصميم جديد، محرك قديم) ====================
         function getStatus(startTime) {
             const now = new Date();
             const start = new Date(startTime);
@@ -577,7 +576,7 @@
             }
         }
 
-        // ==================== [كود الأفلام الأصلي الذي كان يعمل] ====================
+        // ==================== دوال الأفلام (المحرك القديم) ====================
         async function loadMoviesFromAPI() {
             let isLoadingMovies = false; 
             if (isLoadingMovies) return;
@@ -725,4 +724,4 @@
         init();
     </script>
 </body>
-    </html>
+                        </html>
