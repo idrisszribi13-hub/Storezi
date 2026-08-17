@@ -35,14 +35,21 @@
         body { background: var(--bg); font-family: var(--font); min-height: 100vh; color: var(--text); transition: background 0.4s, color 0.4s; overflow-x: hidden; }
 
         .zs-bg-effects { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        .zs-bg-effects span { position: absolute; border-radius: 50%; background: var(--accent); opacity: 0.05; animation: float 15s infinite ease-in-out; }
+        .zs-bg-effects span:nth-child(1) { width: 300px; height: 300px; top: -100px; left: -100px; }
+        .zs-bg-effects span:nth-child(2) { width: 200px; height: 200px; bottom: -50px; right: -50px; animation-delay: 3s; }
+        .zs-bg-effects span:nth-child(3) { width: 150px; height: 150px; top: 50%; left: 50%; animation-delay: 6s; }
+        @keyframes float { 0%,100% { transform: translate(0,0); } 33% { transform: translate(30px,-30px); } 66% { transform: translate(-20px,20px); } }
+
         .zs-app { position: relative; z-index: 1; display: flex; flex-direction: column; min-height: 100vh; }
 
         .zs-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 24px; background: var(--header-bg); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; flex-wrap: wrap; }
         .zs-header-brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 22px; }
-        .zs-brand-icon { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 22px; color: #0a0a0f; box-shadow: 0 0 20px var(--accent-glow); animation: logo-pulse 3s infinite ease-in-out; }
+        .zs-brand-icon { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 22px; color: #0a0a0f; box-shadow: 0 0 20px var(--accent-glow); animation: logo-pulse 3s infinite ease-in-out, logo-rotate 8s linear infinite; }
         @keyframes logo-pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        @keyframes logo-rotate { 0% { background: linear-gradient(135deg, var(--accent), var(--accent2)); } 50% { background: linear-gradient(135deg, var(--accent2), var(--accent)); } 100% { background: linear-gradient(135deg, var(--accent), var(--accent2)); } }
         .zs-theme-switch { display: flex; gap: 6px; background: var(--surface-glass); border-radius: 30px; padding: 4px; border: 1px solid var(--border); }
-        .zs-theme-btn { padding: 8px 14px; border-radius: 25px; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; font-size: 13px; font-weight: 600; font-family: var(--font); transition: all var(--transition); }
+        .zs-theme-btn { padding: 8px 14px; border-radius: 25px; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; font-size: 13px; font-weight: 600; font-family: var(--font); transition: all var(--transition); display: flex; align-items: center; gap: 5px; }
         .zs-theme-btn:hover { color: var(--text); background: var(--surface-hover); }
         .zs-theme-btn.zs-active { background: var(--accent); color: #0a0a0f; box-shadow: 0 0 15px var(--accent-glow); }
 
@@ -54,27 +61,28 @@
         @media (min-width: 1000px) { .zs-channels-section { flex: 0 0 460px; min-height: auto; max-height: calc(100vh - 140px); position: sticky; top: 90px; } }
 
         .zs-channels-header { padding: 16px 18px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px; background: var(--surface-glass); }
-        .zs-channels-title { font-size: 24px; font-weight: 800; color: var(--accent); text-align: center; }
+        .zs-channels-title { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: var(--accent); }
         .zs-search-box { position: relative; }
-        .zs-search-box input { width: 100%; padding: 10px 36px 10px 14px; border-radius: 25px; border: 1px solid var(--border); background: var(--surface-hover); color: var(--text); font-size: 14px; outline: none; transition: all var(--transition); }
-
+        .zs-search-box input { width: 100%; padding: 10px 36px 10px 14px; border-radius: 25px; border: 1px solid var(--border); background: var(--surface-hover); color: var(--text); font-size: 14px; outline: none; transition: all var(--transition); font-family: var(--font); }
+        .zs-search-box input:focus { border-color: var(--accent); background: var(--surface-glass); box-shadow: 0 0 0 3px rgba(228,168,61,0.15); }
         .zs-category-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
         .zs-category-tab { padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); cursor: pointer; font-size: 13px; font-family: var(--font); transition: all var(--transition); white-space: nowrap; }
         .zs-category-tab.zs-active { background: var(--accent); color: #0a0a0f; border-color: var(--accent); font-weight: 700; }
 
         .zs-channels-list { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 12px; }
-        .zs-channel-card { display: flex; flex-direction: column; gap: 4px; padding: 14px 14px; border-radius: 14px; background: var(--surface); border: 1px solid var(--border); cursor: pointer; transition: all var(--transition); position: relative; }
+
+        .zs-channel-card { display: flex; flex-direction: column; gap: 4px; padding: 14px 14px; border-radius: 14px; background: var(--surface); border: 1px solid var(--border); cursor: pointer; transition: all var(--transition); position: relative; min-height: 140px; }
         .zs-channel-card:hover { background: var(--surface-hover); border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
         .zs-channel-card.zs-active { border-color: var(--accent); box-shadow: 0 0 20px var(--accent-glow); }
-        .zs-match-league { display: flex; justify-content: center; align-items: center; gap: 6px; background: var(--surface-hover); border-radius: 30px; padding: 4px 14px; font-size: 13px; font-weight: 700; color: var(--text-secondary); align-self: center; margin-bottom: 6px; border: 1px solid rgba(255,255,255,0.05); white-space: nowrap; }
-        .zs-trophy-icon { font-size: 14px; }
+
         .zs-match-body { display: flex; justify-content: space-around; align-items: stretch; gap: 10px; }
-        .zs-team { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; justify-content: flex-start; padding-top: 4px; }
-        .zs-logo { width: 58px; height: 58px; border-radius: 50%; background: rgba(0,0,0,0.2); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; overflow: hidden; transition: border-color 0.3s; }
+        .zs-team { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; justify-content: flex-start; padding-top: 6px; }
+        .zs-logo { width: 60px; height: 60px; border-radius: 50%; margin-bottom: 4px; background: rgba(0,0,0,0.2); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; overflow: hidden; transition: border-color 0.3s; }
         .zs-logo img { width: 100%; height: 100%; object-fit: contain; }
-        .zs-team-name { font-size: 13px; font-weight: 700; color: var(--text); text-align: center; max-width: 90px; word-break: break-word; line-height: 1.2; }
+        .zs-team-name { font-size: 13px; font-weight: 700; color: var(--text); text-align: center; max-width: 100px; word-break: break-word; line-height: 1.2; }
+
         .zs-center-info { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-width: 80px; }
-        .zs-status-center { font-size: 12px; font-weight: 800; text-align: center; width: 100%; padding: 4px 10px; border-radius: 20px; min-height: 20px; background: rgba(0,0,0,0.2); backdrop-filter: blur(2px); }
+        .zs-status-center { font-size: 13px; font-weight: 800; text-align: center; width: 100%; padding: 4px 10px; border-radius: 20px; min-height: 20px; background: rgba(0,0,0,0.2); backdrop-filter: blur(2px); }
         .zs-status-center.ended { color: #9e9e9e; }
         .zs-status-center.live { color: var(--live); text-shadow: 0 0 10px var(--live-glow); }
         .zs-status-center.upcoming { color: var(--accent); }
@@ -82,27 +90,19 @@
         .zs-time { font-size: 16px; font-weight: 800; color: var(--text); }
         .zs-vs { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
 
+        .zs-match-footer { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); color: var(--text-secondary); font-size: 16px; font-weight: 600; letter-spacing: 0.5px; }
+        .zs-trophy-icon { font-size: 18px; }
+
         /* ===== قسم الأفلام ===== */
         .zs-movies-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; padding: 5px 0; width: 100%; }
         .zs-movie-card { background: var(--surface); border-radius: 10px; border: 1px solid var(--border); overflow: hidden; cursor: pointer; transition: all var(--transition); display: flex; flex-direction: column; position: relative; }
         .zs-movie-card:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
         .zs-movie-card.zs-active { border: 2px solid var(--accent); }
-        
         .zs-movie-poster-wrap { position: relative; width: 100%; aspect-ratio: 2/3; background: rgba(0,0,0,0.5); overflow: hidden; }
         .zs-movie-poster { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
         .zs-movie-card:hover .zs-movie-poster { transform: scale(1.08); }
-        
-        .zs-movie-genre-badge {
-            position: absolute; top: 8px; left: 8px; z-index: 2;
-            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px);
-            color: #fff; padding: 2px 10px; border-radius: 4px;
-            font-size: 11px; font-weight: 700; border: 1px solid rgba(255,255,255,0.2);
-        }
-        .zs-movie-rating {
-            position: absolute; top: 8px; right: 8px; z-index: 2;
-            background: rgba(0,0,0,0.7); padding: 2px 8px; border-radius: 4px;
-            font-size: 12px; font-weight: 700; color: var(--accent);
-        }
+        .zs-movie-genre-badge { position: absolute; top: 8px; left: 8px; z-index: 2; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px); color: #fff; padding: 2px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; border: 1px solid rgba(255,255,255,0.2); }
+        .zs-movie-rating { position: absolute; top: 8px; right: 8px; z-index: 2; background: rgba(0,0,0,0.7); padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 700; color: var(--accent); }
         .zs-movie-info { padding: 10px; display: flex; flex-direction: column; gap: 4px; flex: 1; background: var(--surface); }
         .zs-movie-title { font-size: 13px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 0.3s; }
         .zs-movie-card:hover .zs-movie-title { color: var(--accent); }
@@ -113,13 +113,14 @@
         .zs-video-container { width: 100%; height: 100%; background: #000; position: relative; transition: transform 0.3s ease; }
         video { width: 100%; height: 100%; object-fit: contain; display: block; }
         .zs-video-container.rotated { transform: rotate(90deg); aspect-ratio: 9/16; }
-        .zs-video-watermark { position: absolute; top: 15px; left: 15px; z-index: 6; pointer-events: none; opacity: 0.4; color: #fff; font-weight: 700; font-size: 14px; background: rgba(0,0,0,0.3); padding: 4px 10px; border-radius: 12px; backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.1); }
+
         .zs-live-badge { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.7); color: #fff; padding: 8px 18px; border-radius: 24px; display: none; align-items: center; gap: 8px; font-weight: 700; }
         .zs-live-badge.zs-visible { display: flex; }
         .zs-start-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.7); z-index: 10; }
         .zs-start-overlay.zs-hidden { display: none; }
         .zs-start-play-btn { width: 90px; height: 90px; border-radius: 50%; background: var(--accent); color: #0a0a0f; font-size: 36px; border: none; cursor: pointer; margin-bottom: 20px; transition: 0.3s; }
         .zs-start-play-btn:hover { transform: scale(1.1); box-shadow: 0 0 30px var(--accent-glow); }
+        
         .zs-controls { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 60%, transparent 100%); padding: 12px 16px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
         .zs-controls-row { display: flex; align-items: center; gap: 12px; width: 100%; }
         .zs-btn { background: none; border: none; color: #fff; cursor: pointer; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; transition: all var(--transition); border-radius: 50%; }
@@ -137,17 +138,26 @@
         .zs-spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
+        .zs-watermark { position: absolute; top: 20px; left: 20px; z-index: 5; display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.5); backdrop-filter: blur(6px); padding: 8px 16px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.2); pointer-events: none; }
+        .zs-watermark-icon { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 18px; color: #0a0a0f; }
+        .zs-watermark-text { font-weight: 800; font-size: 18px; color: #fff; letter-spacing: 1px; }
+
         @media (max-width: 600px) {
             .zs-header { padding: 12px; flex-direction: column; gap: 10px; }
             .zs-main { padding: 10px; gap: 10px; }
             .zs-movies-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
             .zs-movie-title { font-size: 11px; }
             .zs-movie-rating, .zs-movie-genre-badge { font-size: 10px; top: 5px; }
+            .zs-team-name { max-width: 70px; font-size: 12px; }
+            .zs-logo { width: 50px; height: 50px; }
+            .zs-time-block { padding: 4px 10px; }
+            .zs-time { font-size: 14px; }
+            .zs-status-center { font-size: 11px; }
         }
     </style>
 </head>
 <body>
-    <div class="zs-bg-effects"></div>
+    <div class="zs-bg-effects"><span></span><span></span><span></span></div>
     <div class="zs-app">
         <header class="zs-header">
             <div class="zs-header-brand">
@@ -166,7 +176,10 @@
                 <div class="zs-player-wrapper" id="zsPlayerWrapper">
                     <div class="zs-video-container" id="zsVideoContainer">
                         <video id="zsVideo" playsinline crossorigin="anonymous"></video>
-                        <div class="zs-video-watermark">ZI</div>
+                        <div class="zs-watermark">
+                            <div class="zs-watermark-icon">Z</div>
+                            <span class="zs-watermark-text">ZI STORE</span>
+                        </div>
                         <div class="zs-live-badge" id="zsLiveBadge"><span>🔴</span> LIVE</div>
                         <div class="zs-loading" id="zsLoading"><div class="zs-spinner"></div></div>
                         <div class="zs-error-overlay" id="zsErrorOverlay">
@@ -175,7 +188,7 @@
                         </div>
                         <div class="zs-start-overlay" id="zsStartOverlay">
                             <button class="zs-start-play-btn" id="zsStartPlayBtn">▶</button>
-                            <div style="color:var(--text-secondary);">Choose a channel or movie</div>
+                            <div>Choose a channel to start</div>
                         </div>
                     </div>
                     <div class="zs-controls" id="zsControls">
@@ -196,7 +209,7 @@
 
             <aside class="zs-channels-section">
                 <div class="zs-channels-header">
-                    <div class="zs-channels-title">📡</div>
+                    <div class="zs-channels-title">📡 Matches & Channels</div>
                     <div class="zs-search-box"><input type="text" id="zsSearchInput" placeholder="Search..."></div>
                     <div class="zs-category-tabs" id="zsCategoryTabs">
                         <button class="zs-category-tab zs-active" data-category="all">All</button>
@@ -217,13 +230,13 @@
             const MATCHES_API_URL = WORKER_URL + '?url=' + encodeURIComponent('https://admin.golive-pro.online/api/public/events?tz=-4');
             const MOVIES_BASE_URL = 'https://admin.golive-pro.online/api/content/movies?categoryId=9ec354e5-4707-4161-9dab-b51f899b29d8&limit=20&page=';
 
-            // ⚠️ تأكد أن الرابط هنا يبدأ بـ https://
+            // ⚠️ تأكد أن الرابط هنا يبدأ بـ https:// و هو الرابط الصحيح للـ worker الخاص بالأفلام
             const MOVIE_PROXY_URL = 'https://movie-proxy.idriss-zribi13.workers.dev/';
 
             const defaultChannels = [
-                { id: 101, name: "beIN Sports 1 HD", category: "Sports Channel", logo: "", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein101.m3u8", live: true },
-                { id: 102, name: "beIN Sports 2 HD", category: "Sports Channel", logo: "", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein202.m3u8", live: true },
-                { id: 103, name: "beIN Sports 3 HD", category: "Sports Channel", logo: "", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein303.m3u8", live: true },
+                { id: 101, name: "beIN Sports 1 HD", category: "Sports", logo: "B1", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein101.m3u8", live: true },
+                { id: 102, name: "beIN Sports 2 HD", category: "Sports", logo: "B2", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein202.m3u8", live: true },
+                { id: 103, name: "beIN Sports 3 HD", category: "Sports", logo: "B3", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein303.m3u8", live: true },
             ];
 
             // أفلام الطوارئ
@@ -286,7 +299,7 @@
                 btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
             }
 
-            // ------------------ تشغيل الفيديو (تم التعديل) ------------------
+            // ------------------ تشغيل الفيديو (مع التعديل المطلوب للأفلام فقط) ------------------
             function loadStream(url) {
                 destroyPlayer();
                 showLoading();
@@ -309,24 +322,15 @@
                     return;
                 }
 
-                // 2. معالجة روابط الأفلام (MKV / MP4) - محاولة مباشرة أولاً
+                // 2. معالجة روابط الأفلام (MKV / MP4) - [التعديل الوحيد] تشغيل عبر Movie Proxy
                 if (url.includes('.mkv') || url.includes('.mp4')) {
-                    // أولاً: حاول التشغيل المباشر (يعمل عندما يسمح المتصفح)
-                    video.src = url;
+                    // تشغيل الفيلم عبر الـ Proxy الآمن لحل مشكلة Mixed Content
+                    video.src = MOVIE_PROXY_URL + '?url=' + encodeURIComponent(url);
                     video.play().then(() => {
                         hideLoading(); hideError();
-                    }).catch((e) => {
-                        console.warn("Direct play failed (Mixed Content likely). Trying Proxy...", e);
-                        
-                        // ثانياً: إذا فشل المباشر، حاول عبر الـ Proxy كحل أخير
-                        video.src = MOVIE_PROXY_URL + '?url=' + encodeURIComponent(url);
-                        video.play().then(() => {
-                            hideLoading(); hideError();
-                        }).catch(() => {
-                            hideLoading(); showError();
-                            // تغيير نص الخطأ ليكون مفيداً للمستخدم
-                            document.querySelector('#zsErrorOverlay div').innerHTML = "⚠️ Mixed Content Blocked.<br>Please allow insecure content in your browser settings, or use HTTP.";
-                        });
+                    }).catch(() => {
+                        hideLoading(); showError();
+                        document.querySelector('#zsErrorOverlay div').innerHTML = "⚠️ Error playing movie via Proxy.";
                     });
                 }
             }
@@ -373,12 +377,9 @@
 
                     return `
                         <div class="zs-channel-card ${ch.id === currentChannelId ? 'zs-active' : ''}" data-id="${ch.id}">
-                            <div class="zs-match-league"><span>${leagueName}</span><span class="zs-trophy-icon">🏆</span></div>
                             <div class="zs-match-body">
                                 <div class="zs-team">
-                                    <div class="zs-logo">
-                                        <img src="${homeLogo}" alt="${homeName}" onerror="this.style.display='none'; this.parentNode.textContent='${homeName.charAt(0)}'">
-                                    </div>
+                                    <div class="zs-logo"><img src="${homeLogo}" alt="${homeName}" onerror="this.style.display='none'; this.parentNode.textContent='${homeName.charAt(0)}'"></div>
                                     <span class="zs-team-name">${homeName}</span>
                                 </div>
                                 <div class="zs-center-info">
@@ -386,12 +387,11 @@
                                     <div class="zs-time-block"><span class="zs-time">${timeStr}</span><span class="zs-vs">VS</span></div>
                                 </div>
                                 <div class="zs-team">
-                                    <div class="zs-logo">
-                                        <img src="${awayLogo}" alt="${awayName}" onerror="this.style.display='none'; this.parentNode.textContent='${awayName.charAt(0)}'">
-                                    </div>
+                                    <div class="zs-logo"><img src="${awayLogo}" alt="${awayName}" onerror="this.style.display='none'; this.parentNode.textContent='${awayName.charAt(0)}'"></div>
                                     <span class="zs-team-name">${awayName}</span>
                                 </div>
                             </div>
+                            <div class="zs-match-footer"><span>${leagueName}</span><span class="zs-trophy-icon">🏆</span></div>
                         </div>
                     `;
                 }).join('');
