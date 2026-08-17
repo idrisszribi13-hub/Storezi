@@ -331,8 +331,8 @@
     <script>
         // ==================== المحرك القديم (البيانات الأساسية) ====================
         const WORKER_URL = 'https://dry-truth-a84e.idriss-zribi13.workers.dev/';
-        // [إرجاع إلى tz=-4 كما كان يعمل سابقاً]
-        const MATCHES_API_URL = WORKER_URL + '?url=' + encodeURIComponent('https://admin.golive-pro.online/api/public/events?tz=-4');
+        // [تم التعديل] تغيير tz من -4 إلى 1 لجلب البيانات الحديثة
+        const MATCHES_API_URL = WORKER_URL + '?url=' + encodeURIComponent('https://admin.golive-pro.online/api/public/events?tz=1');
         const MOVIES_BASE_URL = 'https://admin.golive-pro.online/api/content/movies?categoryId=9ec354e5-4707-4161-9dab-b51f899b29d8&limit=20&page=';
 
         // مباريات افتراضية لتجنب الشاشة الفارغة
@@ -456,7 +456,7 @@
         document.getElementById('zsErrorRetry').addEventListener('click', () => { if (currentStreamUrl) loadStream(currentStreamUrl); });
         closePlayerBtn.addEventListener('click', () => { playerSection.classList.remove('visible'); currentView = 'home'; renderContent(); });
 
-        // ==================== دوال المباريات (تصميم جديد، محرك قديم) ====================
+        // ==================== دوال المباريات ====================
         function getStatus(startTime) {
             const now = new Date();
             const start = new Date(startTime);
@@ -724,4 +724,4 @@
         init();
     </script>
 </body>
-                        </html>
+    </html>
