@@ -196,7 +196,6 @@
         </header>
 
         <main class="zs-main">
-            <!-- ===== المشغل (مخفي افتراضياً) ===== -->
             <section class="zs-player-section" id="zsPlayerSection">
                 <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
                     <button class="zs-back-btn" id="closePlayerBtn">← Back</button>
@@ -232,7 +231,6 @@
                 </div>
             </section>
 
-            <!-- ===== شريط التمرير (Banner) ===== -->
             <div class="zs-banner-container" id="bannerContainer">
                 <div class="zs-banner-slide">
                     <div class="zs-banner-text">
@@ -257,7 +255,6 @@
                 </div>
             </div>
 
-            <!-- ===== واجهة الفئات (Category Home) ===== -->
             <div class="categories-grid" id="homeView">
                 <div class="category-card cat-matches" data-target="matches">
                     <div class="icon-wrap">⚽</div>
@@ -277,7 +274,6 @@
                 </div>
             </div>
 
-            <!-- ===== واجهة المباريات (مخفي افتراضياً) ===== -->
             <div class="flex-view hidden-view" id="matchesView">
                 <div class="zs-list-header">
                     <button class="zs-back-btn" onclick="goToHome()">← Back</button>
@@ -286,7 +282,6 @@
                 <div id="matchesListContainer"></div>
             </div>
 
-            <!-- ===== واجهة الأفلام (مخفي افتراضياً) ===== -->
             <div class="flex-view hidden-view" id="moviesView">
                 <div class="zs-list-header">
                     <button class="zs-back-btn" onclick="goToHome()">← Back</button>
@@ -295,7 +290,6 @@
                 <div id="moviesListContainer"></div>
             </div>
             
-            <!-- ===== واجهة المسلسلات (وهمية) ===== -->
             <div class="flex-view hidden-view" id="seriesView">
                 <div class="zs-list-header">
                     <button class="zs-back-btn" onclick="goToHome()">← Back</button>
@@ -308,7 +302,6 @@
                 </div>
             </div>
 
-            <!-- ===== واجهة ريلز (وهمية) ===== -->
             <div class="flex-view hidden-view" id="reelsView">
                 <div class="zs-list-header">
                     <button class="zs-back-btn" onclick="goToHome()">← Back</button>
@@ -329,13 +322,14 @@
     </div>
 
     <script>
-        // ==================== المحرك القديم (البيانات الأساسية) ====================
+        // ==================== البيانات الأساسية ====================
         const WORKER_URL = 'https://dry-truth-a84e.idriss-zribi13.workers.dev/';
-        // [تم التعديل] تغيير tz من -4 إلى 1 لجلب البيانات الحديثة
-        const MATCHES_API_URL = WORKER_URL + '?url=' + encodeURIComponent('https://admin.golive-pro.online/api/public/events?tz=1');
+        
+        // [إصلاح عاجل] تم إرجاع الرابط إلى tz=-4 لأن tz=1 يسبب خطأ 500 في الـ Worker
+        const MATCHES_API_URL = WORKER_URL + '?url=' + encodeURIComponent('https://admin.golive-pro.online/api/public/events?tz=-4');
+        
         const MOVIES_BASE_URL = 'https://admin.golive-pro.online/api/content/movies?categoryId=9ec354e5-4707-4161-9dab-b51f899b29d8&limit=20&page=';
 
-        // مباريات افتراضية لتجنب الشاشة الفارغة
         const fallbackMatches = [
             { id: 1, homeName: "Real Madrid", awayName: "Barcelona", leagueName: "La Liga", homeLogo: "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg", awayLogo: "https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg", url: "https://app.site2026.top/mobile/v9YsphvJOvxK2N1ibcDorQ/1786986686/1786986425/1/bein101.m3u8", startTime: new Date().toISOString() },
             { id: 2, homeName: "Manchester Utd", awayName: "Liverpool", leagueName: "Premier League", homeLogo: "https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg", awayLogo: "https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC_crest.svg", url: "https://app.site2026.top/mobile/v9YsphvJOvxK2N1ibcDorQ/1786986686/1786986425/1/bein202.m3u8", startTime: new Date(Date.now() + 7200000).toISOString() },
@@ -376,7 +370,6 @@
         const matchesContainer = document.getElementById('matchesListContainer');
         const moviesContainer = document.getElementById('moviesListContainer');
 
-        // ==================== الثيمات ====================
         function setTheme(theme) {
             document.documentElement.setAttribute('data-theme', theme);
             localStorage.setItem('zs-theme', theme);
@@ -388,7 +381,6 @@
             if (btn) setTheme(btn.dataset.theme);
         });
 
-        // ==================== وظائف أساسية ====================
         function showLoading() { loadingEl.classList.add('zs-visible'); }
         function hideLoading() { loadingEl.classList.remove('zs-visible'); }
         function showError() { errorOverlay.classList.add('zs-visible'); }
@@ -405,7 +397,6 @@
             btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
         }
 
-        // ==================== تشغيل الفيديو ====================
         function loadStream(url) {
             destroyPlayer();
             showLoading();
@@ -437,7 +428,6 @@
             }
         }
 
-        // ==================== التحكم في المشغل ====================
         btnPlay.addEventListener('click', () => { if (video.paused) video.play(); else video.pause(); });
         video.addEventListener('play', () => { btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`; });
         video.addEventListener('pause', () => { btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`; });
@@ -456,7 +446,6 @@
         document.getElementById('zsErrorRetry').addEventListener('click', () => { if (currentStreamUrl) loadStream(currentStreamUrl); });
         closePlayerBtn.addEventListener('click', () => { playerSection.classList.remove('visible'); currentView = 'home'; renderContent(); });
 
-        // ==================== دوال المباريات ====================
         function getStatus(startTime) {
             const now = new Date();
             const start = new Date(startTime);
@@ -554,6 +543,7 @@
             });
         }
 
+        // [إصلاح نهائي] تم إرجاع الكود الأصلي للعمل مع tz=-4
         async function loadMatchesFromAPI() {
             try {
                 const response = await fetch(MATCHES_API_URL);
@@ -674,7 +664,6 @@
             });
         }
 
-        // ==================== التحكم في الأقسام ====================
         function goToHome() {
             currentView = 'home';
             playerSection.classList.remove('visible');
@@ -714,7 +703,6 @@
             });
         });
 
-        // ==================== التهيئة ====================
         function init() {
             renderContent();
             loadMatchesFromAPI();
@@ -724,4 +712,4 @@
         init();
     </script>
 </body>
-    </html>
+                        </html>
