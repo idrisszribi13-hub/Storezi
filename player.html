@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zi Store - Flutter UI</title>
+    <title>Zi Store - App UI</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         :root {
@@ -45,7 +45,6 @@
 
         .zs-app { display: flex; flex-direction: column; min-height: 100vh; }
 
-        /* ===== الهيدر ===== */
         .zs-header {
             display: flex; align-items: center; justify-content: space-between;
             padding: 16px 24px; background: var(--header-bg); backdrop-filter: blur(20px);
@@ -65,8 +64,9 @@
         .zs-theme-btn:hover { color: var(--text); background: var(--surface-hover); }
         .zs-theme-btn.zs-active { background: var(--accent); color: #0a0a0f; box-shadow: 0 0 15px var(--accent-glow); }
 
-        /* [جديد] زر البحث في الهيدر */
         .zs-header-actions { display: flex; align-items: center; gap: 12px; }
+
+        /* زر البحث */
         .zs-search-btn {
             background: var(--surface-glass); border: 1px solid var(--border); border-radius: 30px;
             width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
@@ -74,7 +74,7 @@
         }
         .zs-search-btn:hover { background: var(--surface-hover); color: var(--accent); transform: scale(1.05); }
 
-        /* [جديد] شريط البحث المتقدم */
+        /* شريط البحث المتقدم */
         .zs-search-bar-container {
             display: none; width: 100%; padding: 12px 20px;
             background: var(--surface-glass); border-bottom: 1px solid var(--border);
@@ -89,9 +89,10 @@
         }
         .zs-search-bar-container input:focus { border-color: var(--accent); background: var(--surface); }
 
+        /* قسم التحميل الرئيسي */
         .zs-main { flex: 1; padding: 20px; display: flex; flex-direction: column; align-items: center; max-width: 1200px; margin: 0 auto; width: 100%; }
 
-        /* ===== المشغل ===== */
+        /* المشغل */
         .zs-player-section { 
             display: none; width: 100%; max-width: 100%; margin-bottom: 20px;
             animation: fadeSlideIn 0.4s ease forwards;
@@ -125,7 +126,7 @@
         .zs-spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ===== شريط التمرير (Banner) ===== */
+        /* شريط التمرير (Banner) */
         .zs-banner-container { width: 100%; display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 15px; padding: 10px 0 20px 0; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
         .zs-banner-slide {
             flex: 0 0 auto; width: 90%; max-width: 500px; min-height: 100px;
@@ -140,7 +141,7 @@
         .zs-banner-btn { z-index: 2; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 8px 20px; border-radius: 30px; font-weight: 700; font-size: 13px; cursor: pointer; backdrop-filter: blur(10px); transition: var(--transition); white-space: nowrap; }
         .zs-banner-btn:hover { background: #fff; color: #000; transform: scale(1.05); }
 
-        /* ===== واجهة الفئات الرئيسية (Category Home) ===== */
+        /* الفئات الرئيسية */
         .categories-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; width: 100%; margin-bottom: 24px; }
         .category-card { background: var(--surface); border-radius: 24px; padding: 24px 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; border: 1px solid var(--border); cursor: pointer; transition: all var(--transition); position: relative; }
         .category-card:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
@@ -152,14 +153,14 @@
         .cat-reels .icon-wrap { background: linear-gradient(135deg, #ff5722, #ff6f00); color: #fff; }
         .category-card .cat-title { font-weight: 700; font-size: 14px; color: var(--text); text-align: center; line-height: 1.3; }
 
-        /* ===== رؤوس الصفحات الفرعية (Headings) ===== */
+        /* رؤوس الصفحات الفرعية */
         .zs-list-header { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 0 20px 0; justify-content: space-between; }
         .zs-list-header-left { display: flex; align-items: center; gap: 12px; }
         .zs-back-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 30px; padding: 8px 16px; color: var(--text); font-weight: 600; font-size: 14px; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 8px; }
         .zs-back-btn:hover { background: var(--surface-hover); transform: translateX(-3px); }
         .zs-list-title { font-size: 20px; font-weight: 800; }
         
-        /* ===== قوائم المباريات ===== */
+        /* قوائم المباريات */
         .zs-section-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-radius: 12px; margin-bottom: 10px; background: var(--surface-glass); border: 1px solid var(--border); }
         .zs-section-header.live-section { background: rgba(229,57,53,0.15); border-color: rgba(229,57,53,0.3); color: #e53935; }
         .zs-section-header.upcoming-section { background: rgba(33,150,243,0.15); border-color: rgba(33,150,243,0.3); color: #2196f3; }
@@ -191,7 +192,7 @@
         .zs-vs { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
         .zs-live-time-block { background: #e53935; padding: 6px 14px; border-radius: 12px; color: #fff; font-weight: 700; display: flex; align-items: center; gap: 6px; font-size: 15px; }
 
-        /* ===== قوائم الأفلام والمسلسلات ===== */
+        /* قوائم الأفلام والمسلسلات */
         .zs-movies-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; width: 100%; padding: 10px 0; }
         .zs-movie-card { background: var(--surface); border-radius: 16px; border: 1px solid var(--border); overflow: hidden; cursor: pointer; transition: var(--transition); }
         .zs-movie-card:hover { transform: translateY(-4px) scale(1.03); border-color: var(--accent); }
@@ -203,7 +204,7 @@
         .zs-movie-title { font-size: 13px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 0.3s; }
         .zs-movie-card:hover .zs-movie-title { color: var(--accent); }
 
-        /* ===== شبكة فئات المسلسلات ===== */
+        /* شبكة فئات المسلسلات */
         .zs-categories-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; width: 100%; padding: 10px 0; }
         .zs-category-series-card { background: var(--surface); border-radius: 16px; border: 1px solid var(--border); overflow: hidden; cursor: pointer; transition: var(--transition); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; min-height: 120px; text-align: center; }
         .zs-category-series-card:hover { transform: translateY(-4px) scale(1.03); border-color: var(--accent); }
@@ -224,7 +225,7 @@
 </head>
 <body>
     <div class="zs-app">
-        <header class="zs-header">
+        <header class="zs-header" id="mainHeader">
             <div class="zs-header-brand">
                 <div class="zs-brand-icon">Z</div>
                 <span>Zi Store</span>
@@ -242,15 +243,12 @@
 
         <!-- شريط البحث المتقدم -->
         <div class="zs-search-bar-container" id="searchBarContainer">
-            <input type="text" id="zsSearchInput" placeholder="Search in current section...">
+            <input type="text" id="zsSearchInput" placeholder="Search matches, movies or series...">
         </div>
 
         <main class="zs-main">
             <!-- ===== المشغل (مخفي افتراضياً) ===== -->
             <section class="zs-player-section" id="zsPlayerSection">
-                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                    <button class="zs-back-btn" id="closePlayerBtn">← Back</button>
-                </div>
                 <div class="zs-player-wrapper" id="zsPlayerWrapper">
                     <div class="zs-video-container" id="zsVideoContainer">
                         <video id="zsVideo" playsinline></video>
@@ -327,55 +325,55 @@
                 </div>
             </div>
 
-            <!-- ===== واجهة المباريات (مخفي افتراضياً) ===== -->
+            <!-- ===== واجهة المباريات ===== -->
             <div class="flex-view hidden-view" id="matchesView">
                 <div class="zs-list-header">
                     <div class="zs-list-header-left">
-                        <button class="zs-back-btn" onclick="goToHome()">← Back</button>
+                        <button class="zs-back-btn" id="backMatchesBtn">← Back</button>
                         <div class="zs-list-title">⚽ Today's Matches</div>
                     </div>
                 </div>
                 <div id="matchesListContainer"></div>
             </div>
 
-            <!-- ===== واجهة الأفلام (مخفي افتراضياً) ===== -->
+            <!-- ===== واجهة الأفلام ===== -->
             <div class="flex-view hidden-view" id="moviesView">
                 <div class="zs-list-header">
                     <div class="zs-list-header-left">
-                        <button class="zs-back-btn" onclick="goToHome()">← Back</button>
+                        <button class="zs-back-btn" id="backMoviesBtn">← Back</button>
                         <div class="zs-list-title">🎬 Movies</div>
                     </div>
                 </div>
                 <div id="moviesListContainer"></div>
             </div>
 
-            <!-- ===== واجهة فئات المسلسلات (Series Categories) ===== -->
+            <!-- ===== واجهة فئات المسلسلات ===== -->
             <div class="flex-view hidden-view" id="seriesCategoriesView">
                 <div class="zs-list-header">
                     <div class="zs-list-header-left">
-                        <button class="zs-back-btn" onclick="goToHome()">← Back</button>
+                        <button class="zs-back-btn" id="backSeriesBtn">← Back</button>
                         <div class="zs-list-title">📺 Categories</div>
                     </div>
                 </div>
                 <div id="seriesCategoriesContainer"></div>
             </div>
 
-            <!-- ===== واجهة قائمة المسلسلات (Series List) ===== -->
+            <!-- ===== واجهة قائمة المسلسلات ===== -->
             <div class="flex-view hidden-view" id="seriesListView">
                 <div class="zs-list-header">
                     <div class="zs-list-header-left">
-                        <button class="zs-back-btn" onclick="goToSeriesCategories()">← Back</button>
+                        <button class="zs-back-btn" id="backSeriesListBtn">← Back</button>
                         <div class="zs-list-title" id="seriesListTitle">📺 Series</div>
                     </div>
                 </div>
                 <div id="seriesListContainer"></div>
             </div>
             
-            <!-- ===== واجهة المسلسلات والريلز القديمة (وهمية) ===== -->
+            <!-- ===== واجهة الريلز ===== -->
             <div class="flex-view hidden-view" id="reelsView">
                 <div class="zs-list-header">
                     <div class="zs-list-header-left">
-                        <button class="zs-back-btn" onclick="goToHome()">← Back</button>
+                        <button class="zs-back-btn" id="backReelsBtn">← Back</button>
                         <div class="zs-list-title">🎞️ Reels Series</div>
                     </div>
                 </div>
@@ -394,617 +392,623 @@
     </div>
 
     <script>
-        // ==================== البيانات الأساسية ====================
-        const WORKER_URL = 'https://dry-truth-a84e.idriss-zribi13.workers.dev/';
-        const MATCHES_API_URL = WORKER_URL + '?url=' + encodeURIComponent('https://admin.golive-pro.online/api/public/events?tz=-4');
-        const MOVIES_BASE_URL = 'https://admin.golive-pro.online/api/content/movies?categoryId=9ec354e5-4707-4161-9dab-b51f899b29d8&limit=20&page=';
-        const SERIES_CATEGORIES_URL = 'https://admin.golive-pro.online/api/content/series-categories';
-        const SERIES_BASE_URL = 'https://admin.golive-pro.online/api/content/series?limit=20&page=';
+        (function() {
+            // ==================== البيانات الأساسية ====================
+            const WORKER_URL = 'https://dry-truth-a84e.idriss-zribi13.workers.dev/';
+            const MATCHES_API_URL = WORKER_URL + '?url=' + encodeURIComponent('https://admin.golive-pro.online/api/public/events?tz=-4');
+            const MOVIES_BASE_URL = 'https://admin.golive-pro.online/api/content/movies?categoryId=9ec354e5-4707-4161-9dab-b51f899b29d8&limit=20&page=';
+            const SERIES_CATEGORIES_URL = 'https://admin.golive-pro.online/api/content/series-categories';
+            const SERIES_BASE_URL = 'https://admin.golive-pro.online/api/content/series?limit=20&page=';
 
-        const fallbackMatches = [
-            { id: 1, homeName: "Real Madrid", awayName: "Barcelona", leagueName: "La Liga", homeLogo: "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg", awayLogo: "https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg", url: "https://app.site2026.top/mobile/v9YsphvJOvxK2N1ibcDorQ/1786986686/1786986425/1/bein101.m3u8", startTime: new Date().toISOString() },
-            { id: 2, homeName: "Manchester Utd", awayName: "Liverpool", leagueName: "Premier League", homeLogo: "https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg", awayLogo: "https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC_crest.svg", url: "https://app.site2026.top/mobile/v9YsphvJOvxK2N1ibcDorQ/1786986686/1786986425/1/bein202.m3u8", startTime: new Date(Date.now() + 7200000).toISOString() },
-            { id: 3, homeName: "Al-Nassr", awayName: "Al-Hilal", leagueName: "Saudi League", homeLogo: "https://upload.wikimedia.org/wikipedia/en/7/75/Al-Nassr_FC_logo.svg", awayLogo: "https://upload.wikimedia.org/wikipedia/en/4/49/Al_Hilal_Saudi_FC_Logo.svg", url: "https://app.site2026.top/mobile/v9YsphvJOvxK2N1ibcDorQ/1786986686/1786986425/1/bein303.m3u8", startTime: new Date(Date.now() - 600000).toISOString() }
-        ];
+            const fallbackMatches = [
+                { id: 1, homeName: "Real Madrid", awayName: "Barcelona", leagueName: "La Liga", homeLogo: "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg", awayLogo: "https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg", url: "https://app.site2026.top/mobile/v9YsphvJOvxK2N1ibcDorQ/1786986686/1786986425/1/bein101.m3u8", startTime: new Date().toISOString() },
+                { id: 2, homeName: "Manchester Utd", awayName: "Liverpool", leagueName: "Premier League", homeLogo: "https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg", awayLogo: "https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC_crest.svg", url: "https://app.site2026.top/mobile/v9YsphvJOvxK2N1ibcDorQ/1786986686/1786986425/1/bein202.m3u8", startTime: new Date(Date.now() + 7200000).toISOString() },
+                { id: 3, homeName: "Al-Nassr", awayName: "Al-Hilal", leagueName: "Saudi League", homeLogo: "https://upload.wikimedia.org/wikipedia/en/7/75/Al-Nassr_FC_logo.svg", awayLogo: "https://upload.wikimedia.org/wikipedia/en/4/49/Al_Hilal_Saudi_FC_Logo.svg", url: "https://app.site2026.top/mobile/v9YsphvJOvxK2N1ibcDorQ/1786986686/1786986425/1/bein303.m3u8", startTime: new Date(Date.now() - 600000).toISOString() }
+            ];
 
-        let channels = []; 
-        let movies = [];
-        let series = [];
-        let seriesCategories = [];
-        let currentStreamUrl = '';
-        let hls = null;
-        let currentView = 'home'; 
-        let currentId = null;
+            let channels = []; 
+            let movies = [];
+            let series = [];
+            let seriesCategories = [];
+            let currentStreamUrl = '';
+            let hls = null;
+            let currentView = 'home'; 
+            let currentId = null;
 
-        // عناصر DOM
-        const video = document.getElementById('zsVideo');
-        const videoContainer = document.getElementById('zsVideoContainer');
-        const wrapper = document.getElementById('zsPlayerWrapper');
-        const playerSection = document.getElementById('zsPlayerSection');
-        const liveBadge = document.getElementById('zsLiveBadge');
-        const loadingEl = document.getElementById('zsLoading');
-        const errorOverlay = document.getElementById('zsErrorOverlay');
-        const startOverlay = document.getElementById('zsStartOverlay');
-        const btnPlay = document.getElementById('zsBtnPlay');
-        const btnFullscreen = document.getElementById('zsBtnFullscreen');
-        const btnRotate = document.getElementById('zsBtnRotate');
-        const btnMute = document.getElementById('zsBtnMute');
-        const volumeSlider = document.getElementById('zsVolumeSlider');
-        const timeDisplay = document.getElementById('zsTimeDisplay');
-        const progressWrap = document.getElementById('zsProgressWrap');
-        const progressFilled = document.getElementById('zsProgressFilled');
-        const closePlayerBtn = document.getElementById('closePlayerBtn');
-
-        const homeView = document.getElementById('homeView');
-        const matchesView = document.getElementById('matchesView');
-        const moviesView = document.getElementById('moviesView');
-        const seriesCategoriesView = document.getElementById('seriesCategoriesView');
-        const seriesListView = document.getElementById('seriesListView');
-        const reelsView = document.getElementById('reelsView');
-        const matchesContainer = document.getElementById('matchesListContainer');
-        const moviesContainer = document.getElementById('moviesListContainer');
-        const seriesCategoriesContainer = document.getElementById('seriesCategoriesContainer');
-        const seriesListContainer = document.getElementById('seriesListContainer');
-        const seriesListTitle = document.getElementById('seriesListTitle');
-
-        // عناصر البحث
-        const toggleSearchBtn = document.getElementById('toggleSearchBtn');
-        const searchBarContainer = document.getElementById('searchBarContainer');
-        const searchInput = document.getElementById('zsSearchInput');
-
-        // ==================== الثيمات ====================
-        function setTheme(theme) {
-            document.documentElement.setAttribute('data-theme', theme);
-            localStorage.setItem('zs-theme', theme);
-            document.querySelectorAll('.zs-theme-btn').forEach(btn => btn.classList.toggle('zs-active', btn.dataset.theme === theme));
-        }
-        setTheme(localStorage.getItem('zs-theme') || 'legendary');
-        document.getElementById('themeSwitch').addEventListener('click', (e) => {
-            const btn = e.target.closest('.zs-theme-btn');
-            if (btn) setTheme(btn.dataset.theme);
-        });
-
-        // ==================== وظائف أساسية ====================
-        function showLoading() { loadingEl.classList.add('zs-visible'); }
-        function hideLoading() { loadingEl.classList.remove('zs-visible'); }
-        function showError() { errorOverlay.classList.add('zs-visible'); }
-        function hideError() { errorOverlay.classList.remove('zs-visible'); }
-        function setLiveMode(live) { liveBadge.classList.toggle('zs-visible', live); }
-        function formatTime(s) { if (!isFinite(s) || s < 0) return '--:--'; const m = Math.floor(s/60); const sec = Math.floor(s%60); return `${m}:${sec.toString().padStart(2,'0')}`; }
-        function updateTimeDisplay() { if (video.duration) timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`; }
-        function updateProgress() { if (video.duration) progressFilled.style.width = (video.currentTime / video.duration * 100) + '%'; }
-
-        function destroyPlayer() {
-            if (hls) { hls.destroy(); hls = null; }
-            video.pause(); video.removeAttribute('src'); video.load();
-            hideError(); hideLoading(); setLiveMode(false);
-            btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
-        }
-
-        function loadStream(url) {
-            destroyPlayer();
-            showLoading();
-            startOverlay.classList.add('zs-hidden');
+            // ==================== عناصر DOM ====================
+            const video = document.getElementById('zsVideo');
+            const videoContainer = document.getElementById('zsVideoContainer');
+            const wrapper = document.getElementById('zsPlayerWrapper');
+            const playerSection = document.getElementById('zsPlayerSection');
+            const liveBadge = document.getElementById('zsLiveBadge');
+            const loadingEl = document.getElementById('zsLoading');
+            const errorOverlay = document.getElementById('zsErrorOverlay');
+            const startOverlay = document.getElementById('zsStartOverlay');
+            const btnPlay = document.getElementById('zsBtnPlay');
+            const btnFullscreen = document.getElementById('zsBtnFullscreen');
+            const btnRotate = document.getElementById('zsBtnRotate');
+            const btnMute = document.getElementById('zsBtnMute');
+            const volumeSlider = document.getElementById('zsVolumeSlider');
+            const timeDisplay = document.getElementById('zsTimeDisplay');
+            const progressWrap = document.getElementById('zsProgressWrap');
+            const progressFilled = document.getElementById('zsProgressFilled');
             
-            if (url.includes('.m3u8')) {
-                if (Hls.isSupported()) {
-                    hls = new Hls();
-                    hls.loadSource(url);
-                    hls.attachMedia(video);
-                    hls.on(Hls.Events.MANIFEST_PARSED, () => { 
-                        hideLoading(); hideError(); setLiveMode(true); 
-                        video.play().catch(()=>{}); updateTimeDisplay(); 
+            // صفحات الأقسام
+            const homeView = document.getElementById('homeView');
+            const matchesView = document.getElementById('matchesView');
+            const moviesView = document.getElementById('moviesView');
+            const seriesCategoriesView = document.getElementById('seriesCategoriesView');
+            const seriesListView = document.getElementById('seriesListView');
+            const reelsView = document.getElementById('reelsView');
+            const matchesContainer = document.getElementById('matchesListContainer');
+            const moviesContainer = document.getElementById('moviesListContainer');
+            const seriesCategoriesContainer = document.getElementById('seriesCategoriesContainer');
+            const seriesListContainer = document.getElementById('seriesListContainer');
+            const seriesListTitle = document.getElementById('seriesListTitle');
+            
+            // أزرار الرجوع
+            const backMatchesBtn = document.getElementById('backMatchesBtn');
+            const backMoviesBtn = document.getElementById('backMoviesBtn');
+            const backSeriesBtn = document.getElementById('backSeriesBtn');
+            const backSeriesListBtn = document.getElementById('backSeriesListBtn');
+            const backReelsBtn = document.getElementById('backReelsBtn');
+
+            // عناصر البحث
+            const toggleSearchBtn = document.getElementById('toggleSearchBtn');
+            const searchBarContainer = document.getElementById('searchBarContainer');
+            const searchInput = document.getElementById('zsSearchInput');
+
+            // ==================== الثيمات ====================
+            function setTheme(theme) {
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('zs-theme', theme);
+                document.querySelectorAll('.zs-theme-btn').forEach(btn => btn.classList.toggle('zs-active', btn.dataset.theme === theme));
+            }
+            setTheme(localStorage.getItem('zs-theme') || 'legendary');
+            document.getElementById('themeSwitch').addEventListener('click', (e) => {
+                const btn = e.target.closest('.zs-theme-btn');
+                if (btn) setTheme(btn.dataset.theme);
+            });
+
+            // ==================== دوال أساسية ====================
+            function showLoading() { loadingEl.classList.add('zs-visible'); }
+            function hideLoading() { loadingEl.classList.remove('zs-visible'); }
+            function showError() { errorOverlay.classList.add('zs-visible'); }
+            function hideError() { errorOverlay.classList.remove('zs-visible'); }
+            function setLiveMode(live) { liveBadge.classList.toggle('zs-visible', live); }
+            function formatTime(s) { if (!isFinite(s) || s < 0) return '--:--'; const m = Math.floor(s/60); const sec = Math.floor(s%60); return `${m}:${sec.toString().padStart(2,'0')}`; }
+            function updateTimeDisplay() { if (video.duration) timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`; }
+            function updateProgress() { if (video.duration) progressFilled.style.width = (video.currentTime / video.duration * 100) + '%'; }
+
+            function destroyPlayer() {
+                if (hls) { hls.destroy(); hls = null; }
+                video.pause(); video.removeAttribute('src'); video.load();
+                hideError(); hideLoading(); setLiveMode(false);
+                btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
+            }
+
+            function loadStream(url) {
+                destroyPlayer();
+                showLoading();
+                startOverlay.classList.add('zs-hidden');
+                
+                if (url.includes('.m3u8')) {
+                    if (Hls.isSupported()) {
+                        hls = new Hls();
+                        hls.loadSource(url);
+                        hls.attachMedia(video);
+                        hls.on(Hls.Events.MANIFEST_PARSED, () => { 
+                            hideLoading(); hideError(); setLiveMode(true); 
+                            video.play().catch(()=>{}); updateTimeDisplay(); 
+                        });
+                        hls.on(Hls.Events.ERROR, (e, data) => { if (data.fatal) { showError(); hideLoading(); } });
+                    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                        video.src = url; video.play();
+                    }
+                    return;
+                }
+
+                if (url.includes('.mkv') || url.includes('.mp4')) {
+                    video.src = url;
+                    video.play().then(() => {
+                        hideLoading(); hideError();
+                    }).catch(() => {
+                        hideLoading(); showError();
                     });
-                    hls.on(Hls.Events.ERROR, (e, data) => { if (data.fatal) { showError(); hideLoading(); } });
-                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                    video.src = url; video.play();
                 }
-                return;
             }
 
-            if (url.includes('.mkv') || url.includes('.mp4')) {
-                video.src = url;
-                video.play().then(() => {
-                    hideLoading(); hideError();
-                }).catch(() => {
-                    hideLoading(); showError();
-                });
-            }
-        }
-
-        // ==================== التحكم في المشغل والبحث ====================
-        btnPlay.addEventListener('click', () => { if (video.paused) video.play(); else video.pause(); });
-        video.addEventListener('play', () => { btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`; });
-        video.addEventListener('pause', () => { btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`; });
-        volumeSlider.addEventListener('input', () => { video.volume = volumeSlider.value / 100; });
-        btnMute.addEventListener('click', () => { video.volume = video.volume === 0 ? 1 : 0; volumeSlider.value = video.volume * 100; });
-        video.addEventListener('timeupdate', () => { updateTimeDisplay(); updateProgress(); });
-        progressWrap.addEventListener('click', (e) => {
-            if (!video.duration) return;
-            const rect = progressWrap.getBoundingClientRect();
-            video.currentTime = ((e.clientX - rect.left) / rect.width) * video.duration;
-        });
-        btnFullscreen.addEventListener('click', () => {
-            if (!document.fullscreenElement) { wrapper.requestFullscreen(); } else { document.exitFullscreen(); }
-        });
-        btnRotate.addEventListener('click', () => { videoContainer.classList.toggle('rotated'); });
-        document.getElementById('zsErrorRetry').addEventListener('click', () => { if (currentStreamUrl) loadStream(currentStreamUrl); });
-        closePlayerBtn.addEventListener('click', () => { playerSection.classList.remove('visible'); currentView = 'home'; renderContent(); });
-
-        // [جديد] أزرار البحث
-        toggleSearchBtn.addEventListener('click', () => {
-            const isVisible = searchBarContainer.classList.contains('visible');
-            if (isVisible) {
-                searchBarContainer.classList.remove('visible');
-            } else {
-                searchBarContainer.classList.add('visible');
-                searchInput.focus();
-            }
-        });
-        searchInput.addEventListener('input', () => {
-            // البحث يعتمد على القسم الحالي (currentView)
-            // سيتم تنفيذ التصفية داخل دالة renderContent / renderMatches
-            // نعيد الرسم ليعتمد على البحث
-            renderContent();
-        });
-
-        // ==================== دوال المباريات ====================
-        function getStatus(startTime) {
-            const now = new Date();
-            const start = new Date(startTime);
-            const end = new Date(start.getTime() + 3 * 60 * 60 * 1000);
-            if (now < start) return 'upcoming';
-            if (now >= start && now <= end) return 'live';
-            return 'ended';
-        }
-
-        function getLiveMinute(startTime) {
-            const now = new Date();
-            const start = new Date(startTime);
-            return Math.floor((now - start) / 60000);
-        }
-
-        function renderMatches() {
-            // الحصول على نص البحث
-            const searchQuery = searchInput.value.toLowerCase();
-
-            if (channels.length === 0) {
-                matchesContainer.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">Loading matches...</div>';
-                return;
-            }
-
-            // تصفية البيانات حسب البحث
-            const filteredChannels = channels.filter(ch => 
-                ch.name.toLowerCase().includes(searchQuery) || 
-                (ch.leagueName && ch.leagueName.toLowerCase().includes(searchQuery)) ||
-                (ch.homeName && ch.homeName.toLowerCase().includes(searchQuery)) ||
-                (ch.awayName && ch.awayName.toLowerCase().includes(searchQuery))
-            );
-
-            const liveMatches = filteredChannels.filter(ch => ch.startTime && getStatus(ch.startTime) === 'live');
-            const upcomingMatches = filteredChannels.filter(ch => ch.startTime && getStatus(ch.startTime) === 'upcoming');
-            const endedMatches = filteredChannels.filter(ch => ch.startTime && getStatus(ch.startTime) === 'ended');
-
-            const buildCard = (ch) => {
-                const homeName = ch.homeName || ch.name.split(' vs ')[0] || 'Home';
-                const awayName = ch.awayName || ch.name.split(' vs ')[1] || 'Away';
-                const leagueName = ch.leagueName || ch.category || 'Match';
-                const homeLogo = ch.homeLogo || ch.logo;
-                const awayLogo = ch.awayLogo || '';
-                const startTime = ch.startTime ? new Date(ch.startTime) : null;
-                const timeStr = startTime ? startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) : '--:--';
-                const status = ch.startTime ? getStatus(ch.startTime) : null;
-                const isLive = status === 'live';
-
-                let statusHTML = '', statusClass = '', liveMinute = 0;
-                if (isLive) { statusHTML = '🔴 LIVE'; statusClass = 'live'; liveMinute = getLiveMinute(ch.startTime); } 
-                else if (status === 'ended') { statusHTML = '✅ ENDED'; statusClass = 'ended'; } 
-                else if (status === 'upcoming') { statusHTML = '⏰ UPCOMING'; statusClass = 'upcoming'; }
-
-                return `
-                    <div class="zs-channel-card ${currentId === ch.id ? 'zs-active' : ''} ${isLive ? 'is-live' : ''}" data-id="${ch.id}">
-                        <div class="zs-match-league"><span>${leagueName}</span><span>🏆</span></div>
-                        <div class="zs-match-body">
-                            <div class="zs-team">
-                                <div class="zs-logo"><img src="${homeLogo}" onerror="this.style.display='none'; this.parentNode.textContent='${homeName.charAt(0)}'"></div>
-                                <span class="zs-team-name">${homeName}</span>
-                            </div>
-                            <div class="zs-center-info">
-                                ${isLive ? `
-                                    <div class="zs-status-center ${statusClass}">${statusHTML}</div>
-                                    <div class="zs-live-time-block"><span>${liveMinute}'</span></div>
-                                ` : (status === 'upcoming' ? `
-                                    <div class="zs-status-center ${statusClass}">${statusHTML}</div>
-                                    <div class="zs-time-block"><span class="zs-time">${timeStr}</span><span class="zs-vs">VS</span></div>
-                                ` : status === 'ended' ? `
-                                    <div class="zs-status-center ${statusClass}">${statusHTML}</div>
-                                    <div class="zs-time-block"><span class="zs-time">${timeStr}</span><span class="zs-vs">VS</span></div>
-                                ` : `
-                                    <div class="zs-time-block"><span class="zs-time">${timeStr}</span><span class="zs-vs">VS</span></div>
-                                `)}
-                            </div>
-                            <div class="zs-team">
-                                <div class="zs-logo"><img src="${awayLogo}" onerror="this.style.display='none'; this.parentNode.textContent='${awayName.charAt(0)}'"></div>
-                                <span class="zs-team-name">${awayName}</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            };
-
-            let html = '';
-            if (liveMatches.length > 0) {
-                html += `<div class="zs-section-header live-section"><div class="zs-section-left"><span class="zs-status-dot live"></span> LIVE NOW</div><div class="zs-section-count live-count">${liveMatches.length}</div></div>${liveMatches.map(buildCard).join('')}`;
-            }
-            if (upcomingMatches.length > 0) {
-                html += `<div class="zs-section-header upcoming-section"><div class="zs-section-left"><span class="zs-status-dot upcoming"></span> UPCOMING TODAY</div><div class="zs-section-count upcoming-count">${upcomingMatches.length}</div></div>${upcomingMatches.map(buildCard).join('')}`;
-            }
-            if (endedMatches.length > 0) {
-                html += `<div class="zs-section-header"><div class="zs-section-left"><span>📌 ENDED</span></div><div class="zs-section-count">${endedMatches.length}</div></div>${endedMatches.map(buildCard).join('')}`;
-            }
-
-            if (!html) html = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No matches found</div>';
-            matchesContainer.innerHTML = html;
-
-            matchesContainer.querySelectorAll('.zs-channel-card').forEach(card => {
-                card.addEventListener('click', () => {
-                    const id = parseInt(card.dataset.id);
-                    const channel = channels.find(c => c.id === id);
-                    if (channel && channel.url) {
-                        currentId = id;
-                        currentStreamUrl = channel.url;
-                        playerSection.classList.add('visible');
-                        currentView = 'player';
-                        loadStream(channel.url);
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }
-                });
+            // ==================== التحكم في المشغل والبحث ====================
+            btnPlay.addEventListener('click', () => { if (video.paused) video.play(); else video.pause(); });
+            video.addEventListener('play', () => { btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`; });
+            video.addEventListener('pause', () => { btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`; });
+            volumeSlider.addEventListener('input', () => { video.volume = volumeSlider.value / 100; });
+            btnMute.addEventListener('click', () => { video.volume = video.volume === 0 ? 1 : 0; volumeSlider.value = video.volume * 100; });
+            video.addEventListener('timeupdate', () => { updateTimeDisplay(); updateProgress(); });
+            progressWrap.addEventListener('click', (e) => {
+                if (!video.duration) return;
+                const rect = progressWrap.getBoundingClientRect();
+                video.currentTime = ((e.clientX - rect.left) / rect.width) * video.duration;
             });
-        }
-
-        async function loadMatchesFromAPI() {
-            try {
-                const response = await fetch(MATCHES_API_URL);
-                if (!response.ok) throw new Error('Worker error');
-                const data = await response.json();
-                if (!Array.isArray(data)) throw new Error('Invalid data');
-                const matchChannels = data
-                    .filter(m => m.sources && m.sources.length > 0 && m.sources[0].streamUrl)
-                    .map((m, idx) => ({
-                        id: 3000 + idx, name: `${m.homeName} vs ${m.awayName}`, category: m.leagueName || 'Match',
-                        homeLogo: m.homeLogoUrl, awayLogo: m.awayLogoUrl, homeName: m.homeName, awayName: m.awayName,
-                        leagueName: m.leagueName, url: m.sources[0].streamUrl, startTime: m.startTime, isMatch: true
-                    }));
-                if (matchChannels.length > 0) {
-                    channels = matchChannels;
-                }
-                if(currentView === 'matches') renderMatches();
-            } catch (e) { 
-                console.warn('Matches API failed, using fallback matches.');
-                if (channels.length === 0) {
-                    channels = fallbackMatches;
-                }
-                if(currentView === 'matches') renderMatches();
-            }
-        }
-
-        // ==================== دوال الأفلام ====================
-        async function loadMoviesFromAPI() {
-            let isLoadingMovies = false; 
-            if (isLoadingMovies) return;
-            isLoadingMovies = true;
-
-            try {
-                const firstUrl = WORKER_URL + '?url=' + encodeURIComponent(MOVIES_BASE_URL + '1');
-                const firstResp = await fetch(firstUrl);
-                if (!firstResp.ok) throw new Error('Worker error');
-                const firstData = await firstResp.json();
-                
-                if (firstData.data && Array.isArray(firstData.data)) {
-                    let allMovies = firstData.data.map(m => ({
-                        id: m.id, title: m.title, 
-                        posterUrl: (m.posterUrl || '').replace('http:', 'https:'),
-                        year: m.year, rating: m.rating, genre: m.genre, genreAr: m.genreAr || m.genre,
-                        url: m.sources && m.sources.length > 0 ? m.sources[0].streamUrl : null
-                    }));
-                    
-                    movies = allMovies;
-                    if(currentView === 'movies') renderMovies();
-
-                    const totalPages = firstData.meta.totalPages || 0;
-                    
-                    if (totalPages > 1) {
-                        for (let i = 2; i <= totalPages; i++) {
-                            try {
-                                const url = WORKER_URL + '?url=' + encodeURIComponent(MOVIES_BASE_URL + i);
-                                const res = await fetch(url);
-                                const data = await res.json();
-                                if (data.data && Array.isArray(data.data)) {
-                                    const newMovies = data.data.map(m => ({
-                                        id: m.id, title: m.title, 
-                                        posterUrl: (m.posterUrl || '').replace('http:', 'https:'),
-                                        year: m.year, rating: m.rating,
-                                        genre: m.genre, genreAr: m.genreAr || m.genre,
-                                        url: m.sources && m.sources.length > 0 ? m.sources[0].streamUrl : null
-                                    }));
-                                    allMovies = allMovies.concat(newMovies);
-                                    movies = allMovies;
-                                    if(currentView === 'movies') renderMovies();
-                                }
-                            } catch (e) {
-                                console.warn(`فشل تحميل الصفحة ${i}`);
-                            }
-                            await new Promise(r => setTimeout(r, 1000));
-                        }
-                    }
-
-                } else {
-                    throw new Error('Invalid movies data');
-                }
-
-            } catch (e) {
-                console.error('فشل جلب الأفلام، الموقع سيعتمد على الصفحة الأولى فقط.');
-            } finally {
-                isLoadingMovies = false;
-            }
-        }
-
-        function renderMovies() {
-            const searchQuery = searchInput.value.toLowerCase();
-            const filtered = movies.filter(m => m.title.toLowerCase().includes(searchQuery));
-            
-            if (filtered.length === 0) {
-                moviesContainer.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No movies found</div>';
-                return;
-            }
-            moviesContainer.innerHTML = `
-                <div class="zs-movies-grid">
-                    ${filtered.map(m => `
-                        <div class="zs-movie-card" data-id="${m.id}">
-                            <div class="zs-movie-poster-wrap">
-                                <img class="zs-movie-poster" src="${m.posterUrl}" onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
-                                <div class="zs-movie-rating">★ ${m.rating || 'N/A'}</div>
-                            </div>
-                            <div class="zs-movie-info">
-                                <div class="zs-movie-title">${m.title}</div>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-            moviesContainer.querySelectorAll('.zs-movie-card').forEach(card => {
-                card.addEventListener('click', () => {
-                    const id = card.dataset.id;
-                    const movie = movies.find(m => m.id === id);
-                    if (movie && movie.url) {
-                        currentId = id;
-                        currentStreamUrl = movie.url;
-                        playerSection.classList.add('visible');
-                        currentView = 'player';
-                        loadStream(movie.url);
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }
-                });
+            btnFullscreen.addEventListener('click', () => {
+                if (!document.fullscreenElement) { wrapper.requestFullscreen(); } else { document.exitFullscreen(); }
             });
-        }
+            btnRotate.addEventListener('click', () => { videoContainer.classList.toggle('rotated'); });
+            document.getElementById('zsErrorRetry').addEventListener('click', () => { if (currentStreamUrl) loadStream(currentStreamUrl); });
 
-        // ==================== دوال المسلسلات (Series) ====================
-        async function loadSeriesCategoriesFromAPI() {
-            try {
-                const url = WORKER_URL + '?url=' + encodeURIComponent(SERIES_CATEGORIES_URL);
-                const resp = await fetch(url);
-                const data = await resp.json();
-                if (Array.isArray(data) && data.length > 0) {
-                    seriesCategories = data.map(c => ({
-                        id: c.id, name: c.nameAr || c.name, icon: c.icon || '📺',
-                        count: c.seriesCount || 0
-                    }));
-                    if(currentView === 'series') renderSeriesCategories();
-                }
-            } catch (e) { console.warn('Series categories API failed', e); }
-        }
-
-        function renderSeriesCategories() {
-            if (seriesCategories.length === 0) {
-                seriesCategoriesContainer.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">Loading categories...</div>';
-                return;
-            }
-            seriesCategoriesContainer.innerHTML = `
-                <div class="zs-categories-grid">
-                    ${seriesCategories.map(c => `
-                        <div class="zs-category-series-card" data-id="${c.id}">
-                            <div class="zs-category-series-icon">${c.icon}</div>
-                            <div class="zs-category-series-title">${c.name}</div>
-                            <div class="zs-category-series-count">${c.count} Series</div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-            seriesCategoriesContainer.querySelectorAll('.zs-category-series-card').forEach(card => {
-                card.addEventListener('click', () => {
-                    const categoryId = card.dataset.id;
-                    const categoryName = seriesCategories.find(c => c.id === categoryId)?.name || 'Series';
-                    goToSeriesList(categoryId, categoryName);
-                });
+            // تشغيل وإيقاف البحث
+            toggleSearchBtn.addEventListener('click', () => {
+                const isVisible = searchBarContainer.classList.contains('visible');
+                searchBarContainer.classList.toggle('visible');
+                if (!isVisible) searchInput.focus();
             });
-        }
-
-        async function loadSeriesFromAPI(categoryId) {
-            let isLoadingSeries = false;
-            if (isLoadingSeries) return;
-            isLoadingSeries = true;
-            series = [];
-
-            try {
-                const firstUrl = WORKER_URL + '?url=' + encodeURIComponent(SERIES_BASE_URL + '1&categoryId=' + categoryId);
-                const firstResp = await fetch(firstUrl);
-                if (!firstResp.ok) throw new Error('Worker error');
-                const firstData = await firstResp.json();
-                
-                if (firstData.data && Array.isArray(firstData.data)) {
-                    let allSeries = firstData.data.map(s => ({
-                        id: s.id, title: s.title, 
-                        posterUrl: (s.posterUrl || '').replace('http:', 'https:'),
-                        year: s.year, rating: s.rating,
-                        url: s.sources && s.sources.length > 0 ? s.sources[0].streamUrl : null
-                    }));
-                    
-                    series = allSeries;
-                    if(currentView === 'series-detail') renderSeries();
-
-                    const totalPages = firstData.meta.totalPages || 0;
-                    if (totalPages > 1) {
-                        for (let i = 2; i <= totalPages; i++) {
-                            try {
-                                const url = WORKER_URL + '?url=' + encodeURIComponent(SERIES_BASE_URL + i + '&categoryId=' + categoryId);
-                                const res = await fetch(url);
-                                const data = await res.json();
-                                if (data.data && Array.isArray(data.data)) {
-                                    const newSeries = data.data.map(s => ({
-                                        id: s.id, title: s.title, 
-                                        posterUrl: (s.posterUrl || '').replace('http:', 'https:'),
-                                        year: s.year, rating: s.rating,
-                                        url: s.sources && s.sources.length > 0 ? s.sources[0].streamUrl : null
-                                    }));
-                                    allSeries = allSeries.concat(newSeries);
-                                    series = allSeries;
-                                    if(currentView === 'series-detail') renderSeries();
-                                }
-                            } catch (e) {
-                                console.warn(`فشل تحميل صفحة مسلسلات ${i}`);
-                            }
-                            await new Promise(r => setTimeout(r, 1000));
-                        }
-                    }
-                }
-            } catch (e) {
-                console.error('Failed to load series', e);
-            } finally {
-                isLoadingSeries = false;
-            }
-        }
-
-        function renderSeries() {
-            const searchQuery = searchInput.value.toLowerCase();
-            const filtered = series.filter(s => s.title.toLowerCase().includes(searchQuery));
-
-            if (filtered.length === 0) {
-                seriesListContainer.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No series found</div>';
-                return;
-            }
-            seriesListContainer.innerHTML = `
-                <div class="zs-movies-grid">
-                    ${filtered.map(s => `
-                        <div class="zs-movie-card" data-id="${s.id}">
-                            <div class="zs-movie-poster-wrap">
-                                <img class="zs-movie-poster" src="${s.posterUrl}" onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
-                                <div class="zs-movie-rating">★ ${s.rating || 'N/A'}</div>
-                            </div>
-                            <div class="zs-movie-info">
-                                <div class="zs-movie-title">${s.title}</div>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-            seriesListContainer.querySelectorAll('.zs-movie-card').forEach(card => {
-                card.addEventListener('click', () => {
-                    const id = card.dataset.id;
-                    const item = series.find(s => s.id === id);
-                    if (item && item.url) {
-                        currentId = id;
-                        currentStreamUrl = item.url;
-                        playerSection.classList.add('visible');
-                        currentView = 'player';
-                        loadStream(item.url);
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }
-                });
-            });
-        }
-
-        // ==================== التحكم في الأقسام والتنقل ====================
-        function goToHome() {
-            currentView = 'home';
-            playerSection.classList.remove('visible');
-            // إذا كان شريط البحث مفتوحاً، نغلقه عند العودة للمنزل
-            searchBarContainer.classList.remove('visible');
-            searchInput.value = '';
-            renderContent();
-        }
-
-        function goToSeriesCategories() {
-            currentView = 'series';
-            playerSection.classList.remove('visible');
-            renderContent();
-        }
-
-        function goToSeriesList(categoryId, categoryName) {
-            currentView = 'series-detail';
-            seriesListTitle.textContent = '📺 ' + categoryName;
-            playerSection.classList.remove('visible');
-            renderContent();
-            loadSeriesFromAPI(categoryId);
-        }
-
-        function renderContent() {
-            // إخفاء جميع الأقسام أولاً لضمان عدم تداخلها
-            homeView.classList.add('hidden-view');
-            matchesView.classList.add('hidden-view');
-            moviesView.classList.add('hidden-view');
-            seriesCategoriesView.classList.add('hidden-view');
-            seriesListView.classList.add('hidden-view');
-            reelsView.classList.add('hidden-view');
-
-            if (currentView === 'home') {
-                homeView.classList.remove('hidden-view');
-                if(seriesCategories.length === 0) loadSeriesCategoriesFromAPI();
-            } else if (currentView === 'matches') {
-                matchesView.classList.remove('hidden-view');
-                if (channels.length === 0) {
-                    matchesContainer.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">Loading matches...</div>';
-                    loadMatchesFromAPI();
-                } else {
-                    renderMatches();
-                }
-            } else if (currentView === 'movies') {
-                moviesView.classList.remove('hidden-view');
-                renderMovies();
-            } else if (currentView === 'series') {
-                seriesCategoriesView.classList.remove('hidden-view');
-                renderSeriesCategories();
-            } else if (currentView === 'series-detail') {
-                seriesListView.classList.remove('hidden-view');
-                renderSeries();
-            } else if (currentView === 'reels') {
-                reelsView.classList.remove('hidden-view');
-            }
-        }
-
-        document.querySelectorAll('.category-card').forEach(card => {
-            card.addEventListener('click', () => {
-                const target = card.dataset.target;
-                // إغلاق المشغل عند تغيير القسم
-                playerSection.classList.remove('visible');
-                
-                // التبديل
-                if (target === 'matches') { currentView = 'matches'; }
-                else if (target === 'movies') { currentView = 'movies'; }
-                else if (target === 'series') { currentView = 'series'; }
-                else if (target === 'reels') { currentView = 'reels'; }
+            searchInput.addEventListener('input', () => {
+                // البحث يعتمد على القسم الحالي (currentView)
+                // سيتم تنفيذ التصفية داخل دالة renderMatches / renderMovies / renderSeries
+                // نعيد الرسم ليعتمد على البحث
                 renderContent();
             });
-        });
 
-        // ==================== التهيئة ====================
-        function init() {
-            renderContent();
-            loadMatchesFromAPI();
-            loadMoviesFromAPI();
-            loadSeriesCategoriesFromAPI();
-            setInterval(loadMatchesFromAPI, 300000);
-        }
-        init();
+            // ==================== دوال المباريات ====================
+            function getStatus(startTime) {
+                const now = new Date();
+                const start = new Date(startTime);
+                const end = new Date(start.getTime() + 3 * 60 * 60 * 1000);
+                if (now < start) return 'upcoming';
+                if (now >= start && now <= end) return 'live';
+                return 'ended';
+            }
+
+            function getLiveMinute(startTime) {
+                const now = new Date();
+                const start = new Date(startTime);
+                return Math.floor((now - start) / 60000);
+            }
+
+            function renderMatches() {
+                // الحصول على نص البحث وإزالة المسافات الزائدة
+                const searchQuery = searchInput.value.trim().toLowerCase();
+
+                if (channels.length === 0) {
+                    matchesContainer.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">Loading matches...</div>';
+                    return;
+                }
+
+                // تصفية البيانات حسب البحث
+                const filteredChannels = channels.filter(ch => 
+                    ch.name.toLowerCase().includes(searchQuery) || 
+                    (ch.leagueName && ch.leagueName.toLowerCase().includes(searchQuery)) ||
+                    (ch.homeName && ch.homeName.toLowerCase().includes(searchQuery)) ||
+                    (ch.awayName && ch.awayName.toLowerCase().includes(searchQuery))
+                );
+
+                const liveMatches = filteredChannels.filter(ch => ch.startTime && getStatus(ch.startTime) === 'live');
+                const upcomingMatches = filteredChannels.filter(ch => ch.startTime && getStatus(ch.startTime) === 'upcoming');
+                const endedMatches = filteredChannels.filter(ch => ch.startTime && getStatus(ch.startTime) === 'ended');
+
+                const buildCard = (ch) => {
+                    const homeName = ch.homeName || ch.name.split(' vs ')[0] || 'Home';
+                    const awayName = ch.awayName || ch.name.split(' vs ')[1] || 'Away';
+                    const leagueName = ch.leagueName || ch.category || 'Match';
+                    const homeLogo = ch.homeLogo || ch.logo;
+                    const awayLogo = ch.awayLogo || '';
+                    const startTime = ch.startTime ? new Date(ch.startTime) : null;
+                    const timeStr = startTime ? startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) : '--:--';
+                    const status = ch.startTime ? getStatus(ch.startTime) : null;
+                    const isLive = status === 'live';
+
+                    let statusHTML = '', statusClass = '', liveMinute = 0;
+                    if (isLive) { statusHTML = '🔴 LIVE'; statusClass = 'live'; liveMinute = getLiveMinute(ch.startTime); } 
+                    else if (status === 'ended') { statusHTML = '✅ ENDED'; statusClass = 'ended'; } 
+                    else if (status === 'upcoming') { statusHTML = '⏰ UPCOMING'; statusClass = 'upcoming'; }
+
+                    return `
+                        <div class="zs-channel-card ${currentId === ch.id ? 'zs-active' : ''} ${isLive ? 'is-live' : ''}" data-id="${ch.id}">
+                            <div class="zs-match-league"><span>${leagueName}</span><span>🏆</span></div>
+                            <div class="zs-match-body">
+                                <div class="zs-team">
+                                    <div class="zs-logo"><img src="${homeLogo}" onerror="this.style.display='none'; this.parentNode.textContent='${homeName.charAt(0)}'"></div>
+                                    <span class="zs-team-name">${homeName}</span>
+                                </div>
+                                <div class="zs-center-info">
+                                    ${isLive ? `
+                                        <div class="zs-status-center ${statusClass}">${statusHTML}</div>
+                                        <div class="zs-live-time-block"><span>${liveMinute}'</span></div>
+                                    ` : (status === 'upcoming' ? `
+                                        <div class="zs-status-center ${statusClass}">${statusHTML}</div>
+                                        <div class="zs-time-block"><span class="zs-time">${timeStr}</span><span class="zs-vs">VS</span></div>
+                                    ` : status === 'ended' ? `
+                                        <div class="zs-status-center ${statusClass}">${statusHTML}</div>
+                                        <div class="zs-time-block"><span class="zs-time">${timeStr}</span><span class="zs-vs">VS</span></div>
+                                    ` : `
+                                        <div class="zs-time-block"><span class="zs-time">${timeStr}</span><span class="zs-vs">VS</span></div>
+                                    `)}
+                                </div>
+                                <div class="zs-team">
+                                    <div class="zs-logo"><img src="${awayLogo}" onerror="this.style.display='none'; this.parentNode.textContent='${awayName.charAt(0)}'"></div>
+                                    <span class="zs-team-name">${awayName}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                };
+
+                let html = '';
+                if (liveMatches.length > 0) {
+                    html += `<div class="zs-section-header live-section"><div class="zs-section-left"><span class="zs-status-dot live"></span> LIVE NOW</div><div class="zs-section-count live-count">${liveMatches.length}</div></div>${liveMatches.map(buildCard).join('')}`;
+                }
+                if (upcomingMatches.length > 0) {
+                    html += `<div class="zs-section-header upcoming-section"><div class="zs-section-left"><span class="zs-status-dot upcoming"></span> UPCOMING TODAY</div><div class="zs-section-count upcoming-count">${upcomingMatches.length}</div></div>${upcomingMatches.map(buildCard).join('')}`;
+                }
+                if (endedMatches.length > 0) {
+                    html += `<div class="zs-section-header"><div class="zs-section-left"><span>📌 ENDED</span></div><div class="zs-section-count">${endedMatches.length}</div></div>${endedMatches.map(buildCard).join('')}`;
+                }
+
+                if (!html) html = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No matches found</div>';
+                matchesContainer.innerHTML = html;
+
+                matchesContainer.querySelectorAll('.zs-channel-card').forEach(card => {
+                    card.addEventListener('click', () => {
+                        const id = parseInt(card.dataset.id);
+                        const channel = channels.find(c => c.id === id);
+                        if (channel && channel.url) {
+                            currentId = id;
+                            currentStreamUrl = channel.url;
+                            playerSection.classList.add('visible');
+                            currentView = 'player';
+                            loadStream(channel.url);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }
+                    });
+                });
+            }
+
+            async function loadMatchesFromAPI() {
+                try {
+                    const response = await fetch(MATCHES_API_URL);
+                    if (!response.ok) throw new Error('Worker error');
+                    const data = await response.json();
+                    if (!Array.isArray(data)) throw new Error('Invalid data');
+                    const matchChannels = data
+                        .filter(m => m.sources && m.sources.length > 0 && m.sources[0].streamUrl)
+                        .map((m, idx) => ({
+                            id: 3000 + idx, name: `${m.homeName} vs ${m.awayName}`, category: m.leagueName || 'Match',
+                            homeLogo: m.homeLogoUrl, awayLogo: m.awayLogoUrl, homeName: m.homeName, awayName: m.awayName,
+                            leagueName: m.leagueName, url: m.sources[0].streamUrl, startTime: m.startTime, isMatch: true
+                        }));
+                    if (matchChannels.length > 0) {
+                        channels = matchChannels;
+                    }
+                    if(currentView === 'matches') renderMatches();
+                } catch (e) { 
+                    console.warn('Matches API failed, using fallback matches.');
+                    if (channels.length === 0) {
+                        channels = fallbackMatches;
+                    }
+                    if(currentView === 'matches') renderMatches();
+                }
+            }
+
+            // ==================== دوال الأفلام ====================
+            async function loadMoviesFromAPI() {
+                let isLoadingMovies = false; 
+                if (isLoadingMovies) return;
+                isLoadingMovies = true;
+
+                try {
+                    const firstUrl = WORKER_URL + '?url=' + encodeURIComponent(MOVIES_BASE_URL + '1');
+                    const firstResp = await fetch(firstUrl);
+                    if (!firstResp.ok) throw new Error('Worker error');
+                    const firstData = await firstResp.json();
+                    
+                    if (firstData.data && Array.isArray(firstData.data)) {
+                        let allMovies = firstData.data.map(m => ({
+                            id: m.id, title: m.title, 
+                            posterUrl: (m.posterUrl || '').replace('http:', 'https:'),
+                            year: m.year, rating: m.rating, genre: m.genre, genreAr: m.genreAr || m.genre,
+                            url: m.sources && m.sources.length > 0 ? m.sources[0].streamUrl : null
+                        }));
+                        
+                        movies = allMovies;
+                        if(currentView === 'movies') renderMovies();
+
+                        const totalPages = firstData.meta.totalPages || 0;
+                        
+                        if (totalPages > 1) {
+                            for (let i = 2; i <= totalPages; i++) {
+                                try {
+                                    const url = WORKER_URL + '?url=' + encodeURIComponent(MOVIES_BASE_URL + i);
+                                    const res = await fetch(url);
+                                    const data = await res.json();
+                                    if (data.data && Array.isArray(data.data)) {
+                                        const newMovies = data.data.map(m => ({
+                                            id: m.id, title: m.title, 
+                                            posterUrl: (m.posterUrl || '').replace('http:', 'https:'),
+                                            year: m.year, rating: m.rating,
+                                            genre: m.genre, genreAr: m.genreAr || m.genre,
+                                            url: m.sources && m.sources.length > 0 ? m.sources[0].streamUrl : null
+                                        }));
+                                        allMovies = allMovies.concat(newMovies);
+                                        movies = allMovies;
+                                        if(currentView === 'movies') renderMovies();
+                                    }
+                                } catch (e) {
+                                    console.warn(`فشل تحميل الصفحة ${i}`);
+                                }
+                                await new Promise(r => setTimeout(r, 1000));
+                            }
+                        }
+
+                    } else {
+                        throw new Error('Invalid movies data');
+                    }
+
+                } catch (e) {
+                    console.error('فشل جلب الأفلام، الموقع سيعتمد على الصفحة الأولى فقط.');
+                } finally {
+                    isLoadingMovies = false;
+                }
+            }
+
+            function renderMovies() {
+                const searchQuery = searchInput.value.trim().toLowerCase();
+                const filtered = movies.filter(m => m.title.toLowerCase().includes(searchQuery));
+                
+                if (filtered.length === 0) {
+                    moviesContainer.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No movies found</div>';
+                    return;
+                }
+                moviesContainer.innerHTML = `
+                    <div class="zs-movies-grid">
+                        ${filtered.map(m => `
+                            <div class="zs-movie-card" data-id="${m.id}">
+                                <div class="zs-movie-poster-wrap">
+                                    <img class="zs-movie-poster" src="${m.posterUrl}" onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
+                                    <div class="zs-movie-rating">★ ${m.rating || 'N/A'}</div>
+                                </div>
+                                <div class="zs-movie-info">
+                                    <div class="zs-movie-title">${m.title}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                moviesContainer.querySelectorAll('.zs-movie-card').forEach(card => {
+                    card.addEventListener('click', () => {
+                        const id = card.dataset.id;
+                        const movie = movies.find(m => m.id === id);
+                        if (movie && movie.url) {
+                            currentId = id;
+                            currentStreamUrl = movie.url;
+                            playerSection.classList.add('visible');
+                            currentView = 'player';
+                            loadStream(movie.url);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }
+                    });
+                });
+            }
+
+            // ==================== دوال المسلسلات ====================
+            async function loadSeriesCategoriesFromAPI() {
+                try {
+                    const url = WORKER_URL + '?url=' + encodeURIComponent(SERIES_CATEGORIES_URL);
+                    const resp = await fetch(url);
+                    const data = await resp.json();
+                    if (Array.isArray(data) && data.length > 0) {
+                        seriesCategories = data.map(c => ({
+                            id: c.id, name: c.nameAr || c.name, icon: c.icon || '📺',
+                            count: c.seriesCount || 0
+                        }));
+                        if(currentView === 'series') renderSeriesCategories();
+                    }
+                } catch (e) { console.warn('Series categories API failed', e); }
+            }
+
+            function renderSeriesCategories() {
+                if (seriesCategories.length === 0) {
+                    seriesCategoriesContainer.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">Loading categories...</div>';
+                    return;
+                }
+                seriesCategoriesContainer.innerHTML = `
+                    <div class="zs-categories-grid">
+                        ${seriesCategories.map(c => `
+                            <div class="zs-category-series-card" data-id="${c.id}">
+                                <div class="zs-category-series-icon">${c.icon}</div>
+                                <div class="zs-category-series-title">${c.name}</div>
+                                <div class="zs-category-series-count">${c.count} Series</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                seriesCategoriesContainer.querySelectorAll('.zs-category-series-card').forEach(card => {
+                    card.addEventListener('click', () => {
+                        const categoryId = card.dataset.id;
+                        const categoryName = seriesCategories.find(c => c.id === categoryId)?.name || 'Series';
+                        goToSeriesList(categoryId, categoryName);
+                    });
+                });
+            }
+
+            async function loadSeriesFromAPI(categoryId) {
+                let isLoadingSeries = false;
+                if (isLoadingSeries) return;
+                isLoadingSeries = true;
+                series = [];
+
+                try {
+                    const firstUrl = WORKER_URL + '?url=' + encodeURIComponent(SERIES_BASE_URL + '1&categoryId=' + categoryId);
+                    const firstResp = await fetch(firstUrl);
+                    if (!firstResp.ok) throw new Error('Worker error');
+                    const firstData = await firstResp.json();
+                    
+                    if (firstData.data && Array.isArray(firstData.data)) {
+                        let allSeries = firstData.data.map(s => ({
+                            id: s.id, title: s.title, 
+                            posterUrl: (s.posterUrl || '').replace('http:', 'https:'),
+                            year: s.year, rating: s.rating,
+                            url: s.sources && s.sources.length > 0 ? s.sources[0].streamUrl : null
+                        }));
+                        
+                        series = allSeries;
+                        if(currentView === 'series-detail') renderSeries();
+
+                        const totalPages = firstData.meta.totalPages || 0;
+                        if (totalPages > 1) {
+                            for (let i = 2; i <= totalPages; i++) {
+                                try {
+                                    const url = WORKER_URL + '?url=' + encodeURIComponent(SERIES_BASE_URL + i + '&categoryId=' + categoryId);
+                                    const res = await fetch(url);
+                                    const data = await res.json();
+                                    if (data.data && Array.isArray(data.data)) {
+                                        const newSeries = data.data.map(s => ({
+                                            id: s.id, title: s.title, 
+                                            posterUrl: (s.posterUrl || '').replace('http:', 'https:'),
+                                            year: s.year, rating: s.rating,
+                                            url: s.sources && s.sources.length > 0 ? s.sources[0].streamUrl : null
+                                        }));
+                                        allSeries = allSeries.concat(newSeries);
+                                        series = allSeries;
+                                        if(currentView === 'series-detail') renderSeries();
+                                    }
+                                } catch (e) {
+                                    console.warn(`فشل تحميل صفحة مسلسلات ${i}`);
+                                }
+                                await new Promise(r => setTimeout(r, 1000));
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error('Failed to load series', e);
+                } finally {
+                    isLoadingSeries = false;
+                }
+            }
+
+            function renderSeries() {
+                const searchQuery = searchInput.value.trim().toLowerCase();
+                const filtered = series.filter(s => s.title.toLowerCase().includes(searchQuery));
+
+                if (filtered.length === 0) {
+                    seriesListContainer.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No series found</div>';
+                    return;
+                }
+                seriesListContainer.innerHTML = `
+                    <div class="zs-movies-grid">
+                        ${filtered.map(s => `
+                            <div class="zs-movie-card" data-id="${s.id}">
+                                <div class="zs-movie-poster-wrap">
+                                    <img class="zs-movie-poster" src="${s.posterUrl}" onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
+                                    <div class="zs-movie-rating">★ ${s.rating || 'N/A'}</div>
+                                </div>
+                                <div class="zs-movie-info">
+                                    <div class="zs-movie-title">${s.title}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                seriesListContainer.querySelectorAll('.zs-movie-card').forEach(card => {
+                    card.addEventListener('click', () => {
+                        const id = card.dataset.id;
+                        const item = series.find(s => s.id === id);
+                        if (item && item.url) {
+                            currentId = id;
+                            currentStreamUrl = item.url;
+                            playerSection.classList.add('visible');
+                            currentView = 'player';
+                            loadStream(item.url);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }
+                    });
+                });
+            }
+
+            // ==================== إدارة التنقل بين الأقسام ====================
+            function closePlayerAndGoHome() {
+                playerSection.classList.remove('visible');
+                currentView = 'home';
+                renderContent();
+            }
+
+            function goToSeriesList(categoryId, categoryName) {
+                playerSection.classList.remove('visible');
+                currentView = 'series-detail';
+                seriesListTitle.textContent = '📺 ' + categoryName;
+                renderContent();
+                loadSeriesFromAPI(categoryId);
+            }
+
+            // ربط أزرار الرجوع
+            backMatchesBtn.addEventListener('click', closePlayerAndGoHome);
+            backMoviesBtn.addEventListener('click', closePlayerAndGoHome);
+            backSeriesBtn.addEventListener('click', closePlayerAndGoHome);
+            backSeriesListBtn.addEventListener('click', () => {
+                playerSection.classList.remove('visible');
+                currentView = 'series';
+                renderContent();
+            });
+            backReelsBtn.addEventListener('click', closePlayerAndGoHome);
+
+            function renderContent() {
+                // إخفاء جميع الأقسام أولاً لضمان عدم تداخلها
+                homeView.classList.add('hidden-view');
+                matchesView.classList.add('hidden-view');
+                moviesView.classList.add('hidden-view');
+                seriesCategoriesView.classList.add('hidden-view');
+                seriesListView.classList.add('hidden-view');
+                reelsView.classList.add('hidden-view');
+
+                if (currentView === 'home') {
+                    homeView.classList.remove('hidden-view');
+                    if(seriesCategories.length === 0) loadSeriesCategoriesFromAPI();
+                } else if (currentView === 'matches') {
+                    matchesView.classList.remove('hidden-view');
+                    if (channels.length === 0) {
+                        matchesContainer.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">Loading matches...</div>';
+                        loadMatchesFromAPI();
+                    } else {
+                        renderMatches();
+                    }
+                } else if (currentView === 'movies') {
+                    moviesView.classList.remove('hidden-view');
+                    renderMovies();
+                } else if (currentView === 'series') {
+                    seriesCategoriesView.classList.remove('hidden-view');
+                    renderSeriesCategories();
+                } else if (currentView === 'series-detail') {
+                    seriesListView.classList.remove('hidden-view');
+                    renderSeries();
+                } else if (currentView === 'reels') {
+                    reelsView.classList.remove('hidden-view');
+                }
+            }
+
+            document.querySelectorAll('.category-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const target = card.dataset.target;
+                    // إغلاق المشجل إذا كان مفتوحاً
+                    playerSection.classList.remove('visible');
+                    
+                    // التبديل إلى القسم المطلوب
+                    if (target === 'matches') { currentView = 'matches'; }
+                    else if (target === 'movies') { currentView = 'movies'; }
+                    else if (target === 'series') { currentView = 'series'; }
+                    else if (target === 'reels') { currentView = 'reels'; }
+                    renderContent();
+                });
+            });
+
+            // ==================== التهيئة الأساسية ====================
+            function init() {
+                renderContent();
+                loadMatchesFromAPI();
+                loadMoviesFromAPI();
+                loadSeriesCategoriesFromAPI();
+                setInterval(loadMatchesFromAPI, 300000);
+            }
+            init();
+        })();
     </script>
 </body>
-                            </html>
+    </html>
