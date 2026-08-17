@@ -28,22 +28,8 @@
             --header-bg: rgba(10,10,18,0.85);
         }
 
-        [data-theme="legendary"] {
-            --bg: #1a0f0a;
-            --surface: #2d1f14;
-            --surface-glass: rgba(45,31,20,0.9);
-            --surface-hover: rgba(255,255,255,0.08);
-            --border: rgba(255,215,0,0.35);
-            --text: #ffd700;
-            --text-secondary: #d4a574;
-            --accent: #ff6b00;
-            --accent2: #e05a00;
-            --accent-glow: rgba(255,107,0,0.6);
-            --live: #ff0000;
-            --live-glow: rgba(255,0,0,0.8);
-            --shadow: 0 25px 60px rgba(255,215,0,0.2), 0 0 0 1px var(--border);
-            --header-bg: rgba(26,15,10,0.9);
-        }
+        [data-theme="light"] { --bg: #f2f4f8; --surface: #ffffff; --surface-glass: rgba(255,255,255,0.95); --surface-hover: rgba(0,0,0,0.04); --border: rgba(0,0,0,0.1); --text: #1a1a2e; --text-secondary: #555555; --accent: #0284c7; --accent2: #0369a1; --accent-glow: rgba(2,132,199,0.4); --live: #dc2626; --live-glow: rgba(220,38,38,0.6); --shadow: 0 10px 30px rgba(0,0,0,0.08), 0 0 0 1px var(--border); --header-bg: rgba(255,255,255,0.9); }
+        [data-theme="legendary"] { --bg: #1a0f0a; --surface: #2d1f14; --surface-glass: rgba(45,31,20,0.9); --surface-hover: rgba(255,255,255,0.08); --border: rgba(255,215,0,0.35); --text: #ffd700; --text-secondary: #d4a574; --accent: #ff6b00; --accent2: #e05a00; --accent-glow: rgba(255,107,0,0.6); --live: #ff0000; --live-glow: rgba(255,0,0,0.8); --shadow: 0 25px 60px rgba(255,215,0,0.2), 0 0 0 1px var(--border); --header-bg: rgba(26,15,10,0.9); }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: var(--bg); font-family: var(--font); min-height: 100vh; color: var(--text); transition: background 0.4s, color 0.4s; overflow-x: hidden; }
@@ -54,7 +40,12 @@
         .zs-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 24px; background: var(--header-bg); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; flex-wrap: wrap; }
         .zs-header-brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 22px; }
         .zs-brand-icon { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 22px; color: #0a0a0f; box-shadow: 0 0 20px var(--accent-glow); animation: logo-pulse 3s infinite ease-in-out; }
-        
+        @keyframes logo-pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        .zs-theme-switch { display: flex; gap: 6px; background: var(--surface-glass); border-radius: 30px; padding: 4px; border: 1px solid var(--border); }
+        .zs-theme-btn { padding: 8px 14px; border-radius: 25px; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; font-size: 13px; font-weight: 600; font-family: var(--font); transition: all var(--transition); }
+        .zs-theme-btn:hover { color: var(--text); background: var(--surface-hover); }
+        .zs-theme-btn.zs-active { background: var(--accent); color: #0a0a0f; box-shadow: 0 0 15px var(--accent-glow); }
+
         .zs-main { flex: 1; display: flex; flex-wrap: wrap; gap: 20px; padding: 20px; align-items: flex-start; }
         .zs-player-section { flex: 1 1 100%; max-width: 100%; min-width: 0; }
         @media (min-width: 1000px) { .zs-player-section { flex: 1 1 calc(100% - 480px); max-width: calc(100% - 480px); } }
@@ -64,74 +55,95 @@
 
         .zs-channels-header { padding: 16px 18px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px; background: var(--surface-glass); }
         .zs-channels-title { font-size: 24px; font-weight: 800; color: var(--accent); text-align: center; }
-        .zs-search-box input { width: 100%; padding: 10px 36px 10px 14px; border-radius: 25px; border: 1px solid var(--border); background: var(--surface-hover); color: var(--text); font-size: 14px; outline: none; }
+        .zs-search-box { position: relative; }
+        .zs-search-box input { width: 100%; padding: 10px 36px 10px 14px; border-radius: 25px; border: 1px solid var(--border); background: var(--surface-hover); color: var(--text); font-size: 14px; outline: none; transition: all var(--transition); }
 
         .zs-category-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
         .zs-category-tab { padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); cursor: pointer; font-size: 13px; font-family: var(--font); transition: all var(--transition); white-space: nowrap; }
         .zs-category-tab.zs-active { background: var(--accent); color: #0a0a0f; border-color: var(--accent); font-weight: 700; }
 
         .zs-channels-list { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 12px; }
-
-        /* بطاقة المباراة */
-        .zs-channel-card { display: flex; flex-direction: column; gap: 4px; padding: 14px; border-radius: 14px; background: var(--surface); border: 1px solid var(--border); cursor: pointer; transition: all var(--transition); }
-        .zs-channel-card:hover { background: var(--surface-hover); border-color: var(--accent); transform: translateY(-3px); }
+        .zs-channel-card { display: flex; flex-direction: column; gap: 4px; padding: 14px 14px; border-radius: 14px; background: var(--surface); border: 1px solid var(--border); cursor: pointer; transition: all var(--transition); position: relative; }
+        .zs-channel-card:hover { background: var(--surface-hover); border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
         .zs-channel-card.zs-active { border-color: var(--accent); box-shadow: 0 0 20px var(--accent-glow); }
-        .zs-match-league { display: flex; justify-content: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px; }
-        .zs-match-body { display: flex; justify-content: space-around; gap: 10px; }
-        .zs-team { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; }
-        .zs-logo { width: 58px; height: 58px; border-radius: 50%; background: rgba(0,0,0,0.2); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; }
+        .zs-match-league { display: flex; justify-content: center; align-items: center; gap: 6px; background: var(--surface-hover); border-radius: 30px; padding: 4px 14px; font-size: 13px; font-weight: 700; color: var(--text-secondary); align-self: center; margin-bottom: 6px; border: 1px solid rgba(255,255,255,0.05); white-space: nowrap; }
+        .zs-trophy-icon { font-size: 14px; }
+        .zs-match-body { display: flex; justify-content: space-around; align-items: stretch; gap: 10px; }
+        .zs-team { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; justify-content: flex-start; padding-top: 4px; }
+        .zs-logo { width: 58px; height: 58px; border-radius: 50%; background: rgba(0,0,0,0.2); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; overflow: hidden; transition: border-color 0.3s; }
         .zs-logo img { width: 100%; height: 100%; object-fit: contain; }
-        .zs-team-name { font-size: 13px; font-weight: 700; color: var(--text); text-align: center; }
-        .zs-center-info { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 80px; }
-        .zs-status-center { font-size: 12px; font-weight: 800; padding: 4px 10px; border-radius: 20px; background: rgba(0,0,0,0.2); }
-        .zs-status-center.live { color: var(--live); text-shadow: 0 0 10px var(--live-glow); }
+        .zs-team-name { font-size: 13px; font-weight: 700; color: var(--text); text-align: center; max-width: 90px; word-break: break-word; line-height: 1.2; }
+        .zs-center-info { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-width: 80px; }
+        .zs-status-center { font-size: 12px; font-weight: 800; text-align: center; width: 100%; padding: 4px 10px; border-radius: 20px; min-height: 20px; background: rgba(0,0,0,0.2); backdrop-filter: blur(2px); }
         .zs-status-center.ended { color: #9e9e9e; }
-        .zs-time-block { background: rgba(0,0,0,0.3); padding: 6px 14px; border-radius: 12px; }
+        .zs-status-center.live { color: var(--live); text-shadow: 0 0 10px var(--live-glow); }
+        .zs-status-center.upcoming { color: var(--accent); }
+        .zs-time-block { display: flex; flex-direction: column; align-items: center; gap: 2px; background: rgba(0,0,0,0.3); padding: 6px 14px; border-radius: 12px; }
         .zs-time { font-size: 16px; font-weight: 800; color: var(--text); }
         .zs-vs { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
 
-        /* شبكة الأفلام */
+        /* ===== قسم الأفلام ===== */
         .zs-movies-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; padding: 5px 0; width: 100%; }
-        .zs-movie-card { background: var(--surface); border-radius: 10px; border: 1px solid var(--border); overflow: hidden; cursor: pointer; transition: all var(--transition); }
-        .zs-movie-card:hover { transform: translateY(-5px); border-color: var(--accent); }
+        .zs-movie-card { background: var(--surface); border-radius: 10px; border: 1px solid var(--border); overflow: hidden; cursor: pointer; transition: all var(--transition); display: flex; flex-direction: column; position: relative; }
+        .zs-movie-card:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
         .zs-movie-card.zs-active { border: 2px solid var(--accent); }
+        
         .zs-movie-poster-wrap { position: relative; width: 100%; aspect-ratio: 2/3; background: rgba(0,0,0,0.5); overflow: hidden; }
-        .zs-movie-poster { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s; }
+        .zs-movie-poster { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
         .zs-movie-card:hover .zs-movie-poster { transform: scale(1.08); }
-        .zs-movie-genre-badge { position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.7); color: #fff; padding: 2px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; }
-        .zs-movie-rating { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7); padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 700; color: var(--accent); }
-        .zs-movie-info { padding: 10px; display: flex; flex-direction: column; gap: 4px; }
-        .zs-movie-title { font-size: 13px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        .zs-movie-genre-badge {
+            position: absolute; top: 8px; left: 8px; z-index: 2;
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px);
+            color: #fff; padding: 2px 10px; border-radius: 4px;
+            font-size: 11px; font-weight: 700; border: 1px solid rgba(255,255,255,0.2);
+        }
+        .zs-movie-rating {
+            position: absolute; top: 8px; right: 8px; z-index: 2;
+            background: rgba(0,0,0,0.7); padding: 2px 8px; border-radius: 4px;
+            font-size: 12px; font-weight: 700; color: var(--accent);
+        }
+        .zs-movie-info { padding: 10px; display: flex; flex-direction: column; gap: 4px; flex: 1; background: var(--surface); }
+        .zs-movie-title { font-size: 13px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 0.3s; }
+        .zs-movie-card:hover .zs-movie-title { color: var(--accent); }
+        .zs-movie-meta { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-secondary); }
 
-        /* مشغل الفيديو */
-        .zs-player-wrapper { position: relative; width: 100%; background: #000; border-radius: var(--radius); box-shadow: var(--shadow); aspect-ratio: 16/9; }
-        .zs-video-container { width: 100%; height: 100%; background: #000; position: relative; transition: transform 0.3s; }
+        /* ===== المشغل ===== */
+        .zs-player-wrapper { position: relative; width: 100%; background: #000; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); aspect-ratio: 16/9; }
+        .zs-video-container { width: 100%; height: 100%; background: #000; position: relative; transition: transform 0.3s ease; }
         video { width: 100%; height: 100%; object-fit: contain; display: block; }
         .zs-video-container.rotated { transform: rotate(90deg); aspect-ratio: 9/16; }
-        .zs-video-watermark { position: absolute; top: 15px; left: 15px; opacity: 0.4; color: #fff; font-weight: 700; font-size: 14px; background: rgba(0,0,0,0.3); padding: 4px 10px; border-radius: 12px; }
-        .zs-live-badge { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.7); color: #fff; padding: 8px 18px; border-radius: 24px; display: none; }
+        .zs-video-watermark { position: absolute; top: 15px; left: 15px; z-index: 6; pointer-events: none; opacity: 0.4; color: #fff; font-weight: 700; font-size: 14px; background: rgba(0,0,0,0.3); padding: 4px 10px; border-radius: 12px; backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.1); }
+        .zs-live-badge { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.7); color: #fff; padding: 8px 18px; border-radius: 24px; display: none; align-items: center; gap: 8px; font-weight: 700; }
         .zs-live-badge.zs-visible { display: flex; }
         .zs-start-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.7); z-index: 10; }
         .zs-start-overlay.zs-hidden { display: none; }
-        .zs-start-play-btn { width: 90px; height: 90px; border-radius: 50%; background: var(--accent); color: #0a0a0f; font-size: 36px; border: none; cursor: pointer; transition: 0.3s; }
+        .zs-start-play-btn { width: 90px; height: 90px; border-radius: 50%; background: var(--accent); color: #0a0a0f; font-size: 36px; border: none; cursor: pointer; margin-bottom: 20px; transition: 0.3s; }
         .zs-start-play-btn:hover { transform: scale(1.1); box-shadow: 0 0 30px var(--accent-glow); }
-        .zs-controls { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); padding: 12px 16px; display: flex; flex-direction: column; gap: 6px; }
+        .zs-controls { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 60%, transparent 100%); padding: 12px 16px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
         .zs-controls-row { display: flex; align-items: center; gap: 12px; width: 100%; }
         .zs-btn { background: none; border: none; color: #fff; cursor: pointer; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; transition: all var(--transition); border-radius: 50%; }
         .zs-btn:hover { background: rgba(255,255,255,0.15); }
         .zs-btn svg { width: 20px; height: 20px; fill: currentColor; }
         .zs-volume-wrapper { display: flex; align-items: center; gap: 6px; }
-        .zs-volume-slider { width: 60px; height: 4px; appearance: none; background: rgba(255,255,255,0.3); border-radius: 4px; }
+        .zs-volume-slider { width: 60px; height: 4px; appearance: none; background: rgba(255,255,255,0.3); border-radius: 4px; outline: none; }
         .zs-volume-slider::-webkit-slider-thumb { appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #fff; cursor: pointer; }
         .zs-time-display { font-size: 13px; color: #ddd; min-width: 45px; }
-        .zs-progress-wrap { flex: 1; height: 5px; background: rgba(255,255,255,0.2); border-radius: 3px; cursor: pointer; transition: height 0.2s; }
+        .zs-progress-wrap { flex: 1; height: 5px; background: rgba(255,255,255,0.2); border-radius: 3px; cursor: pointer; position: relative; transition: height 0.2s; }
         .zs-progress-wrap:hover { height: 8px; }
         .zs-progress-filled { height: 100%; background: var(--accent); border-radius: 3px; width: 0%; transition: width 0.1s linear; }
-        
         .zs-loading, .zs-error-overlay { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.5); z-index: 11; }
         .zs-loading.zs-visible, .zs-error-overlay.zs-visible { display: flex; }
         .zs-spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 600px) {
+            .zs-header { padding: 12px; flex-direction: column; gap: 10px; }
+            .zs-main { padding: 10px; gap: 10px; }
+            .zs-movies-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
+            .zs-movie-title { font-size: 11px; }
+            .zs-movie-rating, .zs-movie-genre-badge { font-size: 10px; top: 5px; }
+        }
     </style>
 </head>
 <body>
@@ -142,33 +154,46 @@
                 <div class="zs-brand-icon">Z</div>
                 <span>Zi Store</span>
             </div>
+            <div class="zs-theme-switch" id="themeSwitch">
+                <button class="zs-theme-btn zs-active" data-theme="dark">🌙 Dark</button>
+                <button class="zs-theme-btn" data-theme="light">☀️ Light</button>
+                <button class="zs-theme-btn" data-theme="legendary">👑 Legendary</button>
+            </div>
         </header>
+
         <main class="zs-main">
             <section class="zs-player-section">
-                <div class="zs-player-wrapper">
-                    <div class="zs-video-container">
-                        <video id="zsVideo" playsinline></video>
+                <div class="zs-player-wrapper" id="zsPlayerWrapper">
+                    <div class="zs-video-container" id="zsVideoContainer">
+                        <video id="zsVideo" playsinline crossorigin="anonymous"></video>
                         <div class="zs-video-watermark">ZI</div>
-                        <div class="zs-live-badge"><span>🔴</span> LIVE</div>
-                        <div class="zs-loading"><div class="zs-spinner"></div></div>
-                        <div class="zs-error-overlay"><div>⚠️ خطأ في التشغيل</div><button id="zsErrorRetry" class="zs-btn" style="background:var(--accent);color:#000;border-radius:5px;padding:5px 15px;">إعادة المحاولة</button></div>
-                        <div class="zs-start-overlay">
-                            <button class="zs-start-play-btn">▶</button>
-                            <div style="color:var(--text-secondary);">اختر مباراة أو فيلماً للبدء</div>
+                        <div class="zs-live-badge" id="zsLiveBadge"><span>🔴</span> LIVE</div>
+                        <div class="zs-loading" id="zsLoading"><div class="zs-spinner"></div></div>
+                        <div class="zs-error-overlay" id="zsErrorOverlay">
+                            <div>⚠️ Unable to play stream</div>
+                            <button id="zsErrorRetry" class="zs-btn" style="background:var(--accent);color:#000;border-radius:5px;padding:5px 15px;width:auto;">Retry</button>
+                        </div>
+                        <div class="zs-start-overlay" id="zsStartOverlay">
+                            <button class="zs-start-play-btn" id="zsStartPlayBtn">▶</button>
+                            <div style="color:var(--text-secondary);">Choose a channel or movie</div>
                         </div>
                     </div>
-                    <div class="zs-controls">
+                    <div class="zs-controls" id="zsControls">
                         <div class="zs-controls-row">
                             <button class="zs-btn" id="zsBtnPlay"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
-                            <div class="zs-volume-wrapper"><button class="zs-btn" id="zsBtnMute"><svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg></button><input type="range" class="zs-volume-slider" id="zsVolumeSlider" min="0" max="100" value="100"></div>
-                            <span class="zs-time-display">--:--</span>
+                            <button class="zs-btn" id="zsBtnMute"><svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg></button>
+                            <div class="zs-volume-wrapper"><input type="range" class="zs-volume-slider" id="zsVolumeSlider" min="0" max="100" value="100"></div>
+                            <span class="zs-time-display" id="zsTimeDisplay">--:--</span>
                             <button class="zs-btn" id="zsBtnRotate"><svg viewBox="0 0 24 24"><path d="M15.55 5.55L11 1v3.07C7.06 4.56 4 7.92 4 12s3.06 7.44 7 7.93v-2.02c-2.84-.48-5-2.94-5-5.91s2.16-5.43 5-5.91V10l4.55-4.45z"/></svg></button>
                             <button class="zs-btn" id="zsBtnFullscreen"><svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg></button>
                         </div>
-                        <div class="zs-controls-row"><div class="zs-progress-wrap"><div class="zs-progress-filled"></div></div></div>
+                        <div class="zs-controls-row">
+                            <div class="zs-progress-wrap" id="zsProgressWrap"><div class="zs-progress-filled" id="zsProgressFilled"></div></div>
+                        </div>
                     </div>
                 </div>
             </section>
+
             <aside class="zs-channels-section">
                 <div class="zs-channels-header">
                     <div class="zs-channels-title">📡</div>
@@ -187,72 +212,84 @@
 
     <script>
         (function() {
-            // ------------------ الإعدادات ------------------
+            // ------------------ إعدادات ------------------
             const WORKER_URL = 'https://dry-truth-a84e.idriss-zribi13.workers.dev/';
             const MATCHES_API_URL = WORKER_URL + '?url=' + encodeURIComponent('https://admin.golive-pro.online/api/public/events?tz=-4');
-            const MOVIES_API_URL = WORKER_URL + '?url=' + encodeURIComponent('https://admin.golive-pro.online/api/content/movies?categoryId=9ec354e5-4707-4161-9dab-b51f899b29d8&limit=20&page=');
+            const MOVIES_BASE_URL = 'https://admin.golive-pro.online/api/content/movies?categoryId=9ec354e5-4707-4161-9dab-b51f899b29d8&limit=20&page=';
 
-            // ⚠️  ضع رابط الـ Worker الجديد الخاص بالأفلام هنا
-            const MOVIE_PROXY_URL = 'https://movie-proxy.idriss-zribi13.workers.dev/';
-
-            // ------------------ المباريات والأفلام الافتراضية (لضمان عدم اختفاء المحتوى أبداً) ------------------
-            // تم وضع بيانات مباريات افتراضية كاملة لتتجنب الأخطاء البرمجية
-            const fallbackMatches = [
-                { id: 1, homeName: "Real Madrid", awayName: "Barcelona", leagueName: "La Liga", homeLogo: "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg", awayLogo: "https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein101.m3u8", live: true, startTime: new Date() },
-                { id: 2, homeName: "Manchester Utd", awayName: "Liverpool", leagueName: "Premier League", homeLogo: "https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg", awayLogo: "https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC_crest.svg", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein202.m3u8", live: true, startTime: new Date() },
+            const defaultChannels = [
+                { id: 101, name: "beIN Sports 1 HD", category: "Sports Channel", logo: "", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein101.m3u8", live: true },
+                { id: 102, name: "beIN Sports 2 HD", category: "Sports Channel", logo: "", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein202.m3u8", live: true },
+                { id: 103, name: "beIN Sports 3 HD", category: "Sports Channel", logo: "", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein303.m3u8", live: true },
             ];
 
+            // أفلام الطوارئ (في حال فشل الـ API)
             const fallbackMovies = [
                 { id: "fb1", title: "Zombies of the Third Reich", posterUrl: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/hjrgOWoruk9ea0tXaN8l2gtmkeH.jpg", year: 2025, rating: 3.75, genre: "رعب", url: "http://new.dramalaly.com:8080/movie/hikayetv_vod_app/Bxddo93COihsCKzmDz7oqC5y/361152.mkv" },
                 { id: "fb2", title: "Vade Retro", posterUrl: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/1D2Hn8HD9tpU9j901vNRmn4Oz3J.jpg", year: 2025, rating: 5.5, genre: "كوميديا", url: "http://new.dramalaly.com:8080/movie/hikayetv_vod_app/Bxddo93COihsCKzmDz7oqC5y/361151.mkv" }
             ];
 
-            let channels = [...fallbackMatches]; // نبدأ بها ليعمل الموقع فوراً
-            let movies = [...fallbackMovies];    // نبدأ بها ليعمل الموقع فوراً
+            let channels = [...defaultChannels];
+            let movies = [...fallbackMovies];
             let currentChannelId = null;
             let currentStreamUrl = '';
             let hls = null;
             let activeCategory = 'all';
             let searchQuery = '';
             let isMuted = false;
+            let isLoadingMovies = false; 
 
             const video = document.getElementById('zsVideo');
-            const channelsList = document.getElementById('zsChannelsList');
-            const searchInput = document.getElementById('zsSearchInput');
-            const categoryTabs = document.getElementById('zsCategoryTabs');
+            const videoContainer = document.getElementById('zsVideoContainer');
+            const wrapper = document.getElementById('zsPlayerWrapper');
+            const liveBadge = document.getElementById('zsLiveBadge');
             const loadingEl = document.getElementById('zsLoading');
             const errorOverlay = document.getElementById('zsErrorOverlay');
             const startOverlay = document.getElementById('zsStartOverlay');
-            const liveBadge = document.getElementById('zsLiveBadge');
             const btnPlay = document.getElementById('zsBtnPlay');
+            const btnFullscreen = document.getElementById('zsBtnFullscreen');
+            const btnRotate = document.getElementById('zsBtnRotate');
             const btnMute = document.getElementById('zsBtnMute');
             const volumeSlider = document.getElementById('zsVolumeSlider');
             const timeDisplay = document.getElementById('zsTimeDisplay');
             const progressWrap = document.getElementById('zsProgressWrap');
             const progressFilled = document.getElementById('zsProgressFilled');
-            const btnFullscreen = document.getElementById('zsBtnFullscreen');
-            const btnRotate = document.getElementById('zsBtnRotate');
-            const videoContainer = document.getElementById('zsVideoContainer');
-            const wrapper = document.querySelector('.zs-player-wrapper');
+            const channelsList = document.getElementById('zsChannelsList');
+            const searchInput = document.getElementById('zsSearchInput');
+            const categoryTabs = document.getElementById('zsCategoryTabs');
+
+            // Theme
+            function setTheme(theme) {
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('zs-theme', theme);
+                document.querySelectorAll('.zs-theme-btn').forEach(btn => btn.classList.toggle('zs-active', btn.dataset.theme === theme));
+            }
+            setTheme(localStorage.getItem('zs-theme') || 'legendary');
+            document.querySelectorAll('.zs-theme-btn').forEach(btn => btn.addEventListener('click', () => setTheme(btn.dataset.theme)));
 
             function showLoading() { loadingEl.classList.add('zs-visible'); }
             function hideLoading() { loadingEl.classList.remove('zs-visible'); }
             function showError() { errorOverlay.classList.add('zs-visible'); }
             function hideError() { errorOverlay.classList.remove('zs-visible'); }
             function setLiveMode(live) { liveBadge.classList.toggle('zs-visible', live); }
+            function formatTime(s) { if (!isFinite(s) || s < 0) return '--:--'; const m = Math.floor(s/60); const sec = Math.floor(s%60); return `${m}:${sec.toString().padStart(2,'0')}`; }
+            function updateTimeDisplay() { if (video.duration) timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`; }
+            function updateProgress() { if (video.duration) progressFilled.style.width = (video.currentTime / video.duration * 100) + '%'; }
 
             function destroyPlayer() {
                 if (hls) { hls.destroy(); hls = null; }
                 video.pause(); video.removeAttribute('src'); video.load();
-                hideError(); hideLoading();
+                hideError(); hideLoading(); setLiveMode(false);
+                btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
             }
 
+            // ------------------ تشغيل الفيديو (روابط الأفلام أصبحت مباشرة) ------------------
             function loadStream(url) {
                 destroyPlayer();
                 showLoading();
                 startOverlay.classList.add('zs-hidden');
-
-                // 1. معالجة المباريات (m3u8)
+                
+                // 1. معالجة روابط المباريات (m3u8) - تبقى كما هي وتعمل 100%
                 if (url.includes('.m3u8')) {
                     if (Hls.isSupported()) {
                         hls = new Hls();
@@ -260,7 +297,7 @@
                         hls.attachMedia(video);
                         hls.on(Hls.Events.MANIFEST_PARSED, () => { 
                             hideLoading(); hideError(); setLiveMode(true); 
-                            video.play().catch(()=>{}); 
+                            video.play().catch(()=>{}); updateTimeDisplay(); 
                         });
                         hls.on(Hls.Events.ERROR, (e, data) => { if (data.fatal) { showError(); hideLoading(); } });
                     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
@@ -269,15 +306,18 @@
                     return;
                 }
 
-                // 2. معالجة الأفلام (عبر Proxy لتفادي Mixed Content)
-                if (url.includes('.mkv') || url.includes('.mp4')) {
-                    video.src = MOVIE_PROXY_URL + '?url=' + encodeURIComponent(url);
-                    video.play().then(() => {
-                        hideLoading(); hideError();
-                    }).catch(() => {
-                        hideLoading(); showError();
-                    });
-                }
+                // 2. معالجة روابط الأفلام (MKV / MP4) - تم التعديل لتعمل مباشرة لتفادي خطأ 500 في الـ Worker
+                // ملاحظة: المتصفح قد يحجبها إذا كان موقعك HTTPS والفيلم HTTP (Mixed Content).
+                video.src = url;
+                video.play().then(() => {
+                    hideLoading(); hideError();
+                }).catch((err) => {
+                    console.warn("Direct play blocked or failed, likely due to Mixed Content (HTTPS site playing HTTP video).", err);
+                    // إذا فشلت مباشرة، نعرض رسالة خطأ للمستخدم ونقترح الحل
+                    hideLoading();
+                    showError();
+                    document.querySelector('#zsErrorOverlay div').innerHTML = "⚠️ Mixed Content Block.<br>Tip: Change site to HTTP or allow insecure content in browser.";
+                });
             }
 
             // ------------------ دوال المباريات ------------------
@@ -291,26 +331,23 @@
             }
 
             function renderMatches() {
-                // تصفية المحتوى بناءً على البحث والفئة
                 const filtered = channels.filter(ch => {
-                    const matchCategory = activeCategory === 'all' || (activeCategory === 'Live' && ch.live) || (activeCategory === 'Sports');
-                    return matchCategory && ch.name.toLowerCase().includes(searchQuery.toLowerCase());
+                    const matchCategory = activeCategory === 'all' || (activeCategory === 'Live' && ch.live && ch.startTime && getStatus(ch.startTime) === 'live') || (activeCategory === 'Sports' && ch.category === 'Sports');
+                    const matchSearch = ch.name.toLowerCase().includes(searchQuery.toLowerCase());
+                    return matchCategory && matchSearch;
                 });
 
                 if (filtered.length === 0) {
-                    channelsList.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">لا توجد مباريات</div>';
+                    channelsList.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No matches found</div>';
                     return;
                 }
 
-                // تركيب البطاقات (تم إصلاح الأسماء لكي تعمل مع البيانات الافتراضية)
                 channelsList.innerHTML = filtered.map(ch => {
-                    const homeName = ch.homeName || ch.name.split(' vs ')[0] || 'فريق';
-                    const awayName = ch.awayName || ch.name.split(' vs ')[1] || 'فريق';
-                    const leagueName = ch.leagueName || ch.category || 'بطولة';
-                    
-                    const homeLogo = ch.homeLogo || '';
+                    const homeName = ch.homeName || ch.name.split(' vs ')[0] || 'Home';
+                    const awayName = ch.awayName || ch.name.split(' vs ')[1] || 'Away';
+                    const leagueName = ch.leagueName || ch.category || 'Match';
+                    const homeLogo = ch.homeLogo || ch.logo;
                     const awayLogo = ch.awayLogo || '';
-                    
                     const startTime = ch.startTime ? new Date(ch.startTime) : null;
                     const timeStr = startTime ? startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) : '--:--';
 
@@ -319,7 +356,7 @@
                         const status = getStatus(ch.startTime);
                         if (status === 'live') { statusHTML = '🔴 مباشر'; statusClass = 'live'; }
                         else if (status === 'ended') { statusHTML = '✅ انتهت'; statusClass = 'ended'; }
-                        else { statusHTML = '⏰ قادمة'; statusClass = ''; }
+                        else { statusHTML = '⏰ قادمة'; statusClass = 'upcoming'; }
                     } else if (ch.live) { statusHTML = '🔴 مباشر'; statusClass = 'live'; }
                     else { statusHTML = '● متوقف'; statusClass = ''; }
 
@@ -328,7 +365,9 @@
                             <div class="zs-match-league"><span>${leagueName}</span><span class="zs-trophy-icon">🏆</span></div>
                             <div class="zs-match-body">
                                 <div class="zs-team">
-                                    <div class="zs-logo"><img src="${homeLogo}" onerror="this.style.display='none'; this.parentNode.textContent='${homeName.charAt(0)}'"></div>
+                                    <div class="zs-logo">
+                                        <img src="${homeLogo}" alt="${homeName}" onerror="this.style.display='none'; this.parentNode.textContent='${homeName.charAt(0)}'">
+                                    </div>
                                     <span class="zs-team-name">${homeName}</span>
                                 </div>
                                 <div class="zs-center-info">
@@ -336,21 +375,28 @@
                                     <div class="zs-time-block"><span class="zs-time">${timeStr}</span><span class="zs-vs">VS</span></div>
                                 </div>
                                 <div class="zs-team">
-                                    <div class="zs-logo"><img src="${awayLogo}" onerror="this.style.display='none'; this.parentNode.textContent='${awayName.charAt(0)}'"></div>
+                                    <div class="zs-logo">
+                                        <img src="${awayLogo}" alt="${awayName}" onerror="this.style.display='none'; this.parentNode.textContent='${awayName.charAt(0)}'">
+                                    </div>
                                     <span class="zs-team-name">${awayName}</span>
                                 </div>
                             </div>
                         </div>
                     `;
                 }).join('');
+                attachMatchClickEvents();
+            }
 
+            function attachMatchClickEvents() {
                 channelsList.querySelectorAll('.zs-channel-card').forEach(card => {
                     card.addEventListener('click', () => {
                         const id = parseInt(card.dataset.id);
                         const channel = channels.find(c => c.id === id);
                         if (channel) {
-                            currentChannelId = id; currentStreamUrl = channel.url;
-                            renderContent(); loadStream(channel.url);
+                            currentChannelId = id;
+                            currentStreamUrl = channel.url;
+                            renderContent(); 
+                            loadStream(channel.url);
                         }
                     });
                 });
@@ -358,58 +404,93 @@
 
             async function loadMatchesFromAPI() {
                 try {
-                    const res = await fetch(MATCHES_API_URL);
-                    const data = await res.json();
-                    if (Array.isArray(data)) {
-                        // تحويل البيانات القادمة من الـ API
-                        const matchChannels = data.filter(m => m.sources && m.sources[0].streamUrl).map((m, idx) => ({
-                            id: 3000 + idx, 
-                            name: `${m.homeName} vs ${m.awayName}`,
-                            homeName: m.homeName, 
-                            awayName: m.awayName,
-                            leagueName: m.leagueName || m.category,
-                            homeLogo: m.homeLogoUrl, 
-                            awayLogo: m.awayLogoUrl,
-                            url: m.sources[0].streamUrl, 
-                            startTime: m.startTime, 
-                            isMatch: true,
-                            live: true,
-                            category: m.leagueName
+                    const response = await fetch(MATCHES_API_URL);
+                    if (!response.ok) throw new Error('Worker error');
+                    const data = await response.json();
+                    if (!Array.isArray(data)) throw new Error('Invalid data');
+                    const matchChannels = data
+                        .filter(m => m.sources && m.sources.length > 0 && m.sources[0].streamUrl)
+                        .map((m, idx) => ({
+                            id: 3000 + idx, name: `${m.homeName} vs ${m.awayName}`, category: m.leagueName || 'Match',
+                            homeLogo: m.homeLogoUrl, awayLogo: m.awayLogoUrl, homeName: m.homeName, awayName: m.awayName,
+                            leagueName: m.leagueName, url: m.sources[0].streamUrl, live: true, startTime: m.startTime, isMatch: true
                         }));
-                        // استبدال القائمة بالبيانات الحقيقية
-                        channels = matchChannels;
-                        if(activeCategory !== 'Movies') renderContent();
-                    }
+                    channels = channels.filter(ch => !ch.isMatch).concat(matchChannels);
+                    if(activeCategory !== 'Movies') renderContent();
                 } catch (e) { 
-                    // في حالة الفشل، تبقى fallbackMatches المعرفة في الأعلى
-                    console.warn('فشل تحميل المباريات، تم استخدام المباريات الافتراضية.');
+                    console.warn('Matches API failed, keeping fallback channels.');
                 }
             }
 
             // ------------------ دوال الأفلام ------------------
             async function loadMoviesFromAPI() {
+                if (isLoadingMovies) return;
+                isLoadingMovies = true;
+
                 try {
-                    const resp = await fetch(WORKER_URL + '?url=' + encodeURIComponent(MOVIES_API_URL + '1'));
-                    const data = await resp.json();
+                    const firstUrl = WORKER_URL + '?url=' + encodeURIComponent(MOVIES_BASE_URL + '1');
+                    const firstResp = await fetch(firstUrl);
+                    if (!firstResp.ok) throw new Error('Worker error');
+                    const firstData = await firstResp.json();
                     
-                    if (data.data && data.data.length > 0) {
-                        movies = data.data.map(m => ({
-                            id: m.id, title: m.title, posterUrl: m.posterUrl, year: m.year, rating: m.rating,
-                            genre: m.genre, genreAr: m.genreAr || m.genre,
+                    if (firstData.data && Array.isArray(firstData.data)) {
+                        movies = firstData.data.map(m => ({
+                            id: m.id, 
+                            title: m.title, 
+                            posterUrl: (m.posterUrl || '').replace('http:', 'https:'),
+                            year: m.year, 
+                            rating: m.rating, 
+                            genre: m.genre, 
+                            genreAr: m.genreAr || m.genre,
                             url: m.sources && m.sources.length > 0 ? m.sources[0].streamUrl : null
                         }));
                         if(activeCategory === 'Movies') renderContent();
                     }
-                } catch (e) { 
-                    console.warn('فشل تحميل الأفلام، تم استخدام الأفلام الافتراضية.');
+
+                    const totalPages = firstData.meta.totalPages || 0;
+                    if (totalPages > 1) {
+                        for (let i = 2; i <= totalPages; i++) {
+                            try {
+                                const url = WORKER_URL + '?url=' + encodeURIComponent(MOVIES_BASE_URL + i);
+                                const res = await fetch(url);
+                                const data = await res.json();
+                                if (data.data && Array.isArray(data.data)) {
+                                    const newMovies = data.data.map(m => ({
+                                        id: m.id, title: m.title, 
+                                        posterUrl: (m.posterUrl || '').replace('http:', 'https:'),
+                                        year: m.year, rating: m.rating,
+                                        genre: m.genre, genreAr: m.genreAr || m.genre,
+                                        url: m.sources && m.sources.length > 0 ? m.sources[0].streamUrl : null
+                                    }));
+                                    movies = movies.concat(newMovies);
+                                    if(activeCategory === 'Movies') renderContent();
+                                }
+                            } catch (e) {
+                                console.warn(`فشل تحميل الصفحة ${i}`);
+                            }
+                            await new Promise(r => setTimeout(r, 1000));
+                        }
+                    }
+
+                } catch (e) {
+                    console.error('فشل جلب الأفلام الأساسي، تم تفعيل أفلام الطوارئ');
+                } finally {
+                    isLoadingMovies = false;
                 }
             }
 
             function renderMovies() {
-                const filtered = movies.filter(m => m.title.toLowerCase().includes(searchQuery.toLowerCase()));
+                const filtered = movies.filter(m => {
+                    const searchMatch = m.title.toLowerCase().includes(searchQuery.toLowerCase());
+                    return searchMatch;
+                });
 
                 if (filtered.length === 0) {
-                    channelsList.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">لا توجد أفلام</div>';
+                    if (isLoadingMovies) {
+                        channelsList.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">جاري تحميل المزيد من الأفلام... ⏳</div>';
+                    } else {
+                        channelsList.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No movies found</div>';
+                    }
                     return;
                 }
 
@@ -419,25 +500,33 @@
                         ${filtered.map(m => `
                             <div class="zs-movie-card ${m.id === currentChannelId ? 'zs-active' : ''}" data-id="${m.id}">
                                 <div class="zs-movie-poster-wrap">
-                                    <img class="zs-movie-poster" src="${m.posterUrl}" onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
-                                    <div class="zs-movie-genre-badge">${m.genreAr || m.genre || 'Movie'}</div>
+                                    <img class="zs-movie-poster" src="${m.posterUrl}" alt="${m.title}" onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
+                                    <div class="zs-movie-genre-badge">${m.genreAr || m.genre || 'فيلم'}</div>
                                     <div class="zs-movie-rating">★ ${m.rating || 'N/A'}</div>
                                 </div>
                                 <div class="zs-movie-info">
-                                    <div class="zs-movie-title">${m.title}</div>
-                                    <div class="zs-movie-meta"><span>${m.year || ''}</span></div>
+                                    <div class="zs-movie-title" title="${m.title}">${m.title}</div>
+                                    <div class="zs-movie-meta">
+                                        <span>${m.year || ''}</span>
+                                    </div>
                                 </div>
                             </div>
                         `).join('')}
                     </div>
                 `;
+                attachMovieClickEvents();
+            }
+
+            function attachMovieClickEvents() {
                 channelsList.querySelectorAll('.zs-movie-card').forEach(card => {
                     card.addEventListener('click', () => {
                         const id = card.dataset.id;
                         const movie = movies.find(m => m.id === id);
                         if (movie && movie.url) {
-                            currentChannelId = id; currentStreamUrl = movie.url;
-                            renderContent(); loadStream(movie.url);
+                            currentChannelId = id;
+                            currentStreamUrl = movie.url;
+                            renderContent(); 
+                            loadStream(movie.url);
                         }
                     });
                 });
@@ -460,7 +549,8 @@
                 activeCategory = tab.dataset.category;
                 categoryTabs.querySelectorAll('.zs-category-tab').forEach(t => t.classList.remove('zs-active'));
                 tab.classList.add('zs-active');
-                searchQuery = ''; searchInput.value = '';
+                searchQuery = ''; 
+                searchInput.value = '';
                 renderContent();
             });
 
@@ -469,41 +559,32 @@
                 renderContent();
             });
 
-            // ------------------ أدوات التحكم في المشغل ------------------
+            document.getElementById('zsErrorRetry').addEventListener('click', () => { if (currentStreamUrl) loadStream(currentStreamUrl); });
+
+            // Player Controls
             btnPlay.addEventListener('click', () => { if (video.paused) video.play(); else video.pause(); });
             video.addEventListener('play', () => { btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`; });
             video.addEventListener('pause', () => { btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`; });
-            
             volumeSlider.addEventListener('input', () => { video.volume = volumeSlider.value / 100; });
             btnMute.addEventListener('click', () => { isMuted = !isMuted; video.volume = isMuted ? 0 : 1; volumeSlider.value = isMuted ? 0 : 100; });
-            
-            video.addEventListener('timeupdate', () => {
-                if (video.duration) {
-                    const m = Math.floor(video.currentTime/60); const s = Math.floor(video.currentTime%60);
-                    const dm = Math.floor(video.duration/60); const ds = Math.floor(video.duration%60);
-                    timeDisplay.textContent = `${m}:${s.toString().padStart(2,'0')} / ${dm}:${ds.toString().padStart(2,'0')}`;
-                    progressFilled.style.width = (video.currentTime / video.duration * 100) + '%';
-                }
-            });
+            video.addEventListener('timeupdate', () => { updateTimeDisplay(); updateProgress(); });
             progressWrap.addEventListener('click', (e) => {
                 if (!video.duration) return;
                 const rect = progressWrap.getBoundingClientRect();
                 video.currentTime = ((e.clientX - rect.left) / rect.width) * video.duration;
             });
-
             btnFullscreen.addEventListener('click', () => {
-                if (!document.fullscreenElement) { wrapper.requestFullscreen(); } else { document.exitFullscreen(); }
+                if (!document.fullscreenElement) { wrapper.requestFullscreen().catch(err => console.log(err)); } 
+                else { document.exitFullscreen(); }
             });
             btnRotate.addEventListener('click', () => { videoContainer.classList.toggle('rotated'); });
 
-            document.getElementById('zsErrorRetry').addEventListener('click', () => { if (currentStreamUrl) loadStream(currentStreamUrl); });
-
-            // ------------------ التشغيل الأساسي ------------------
+            // Initialization
             function init() {
-                renderContent(); // ستعرض فوراً المباريات والأفلام الافتراضية
-                loadMatchesFromAPI(); // تحاول تحميل المباريات الحقيقية من الخلف
-                loadMoviesFromAPI();  // تحاول تحميل الأفلام الحقيقية من الخلف
-                setInterval(loadMatchesFromAPI, 300000);
+                renderContent(); 
+                loadMoviesFromAPI();
+                loadMatchesFromAPI(); 
+                setInterval(loadMatchesFromAPI, 300000); 
             }
             init();
         })();
