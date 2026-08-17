@@ -192,14 +192,14 @@
             const MATCHES_API_URL = WORKER_URL + '?url=' + encodeURIComponent('https://admin.golive-pro.online/api/public/events?tz=-4');
             const MOVIES_API_URL = WORKER_URL + '?url=' + encodeURIComponent('https://admin.golive-pro.online/api/content/movies?categoryId=9ec354e5-4707-4161-9dab-b51f899b29d8&limit=20&page=');
 
-            // ⚠️  تأكد من وضع رابط الـ Worker الخاص بالأفلام هنا
+            // ⚠️  ضع رابط الـ Worker الجديد الخاص بالأفلام هنا
             const MOVIE_PROXY_URL = 'https://movie-proxy.idriss-zribi13.workers.dev/';
 
-            // ------------------ البيانات الاحتياطية (لضمان عدم اختفاء الموقع) ------------------
-            const defaultChannels = [
-                { id: 101, name: "beIN Sports 1 HD", category: "Sports Channel", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein101.m3u8", live: true },
-                { id: 102, name: "beIN Sports 2 HD", category: "Sports Channel", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein202.m3u8", live: true },
-                { id: 103, name: "beIN Sports 3 HD", category: "Sports Channel", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein303.m3u8", live: true },
+            // ------------------ المباريات والأفلام الافتراضية (لضمان عدم اختفاء المحتوى أبداً) ------------------
+            // تم وضع بيانات مباريات افتراضية كاملة لتتجنب الأخطاء البرمجية
+            const fallbackMatches = [
+                { id: 1, homeName: "Real Madrid", awayName: "Barcelona", leagueName: "La Liga", homeLogo: "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg", awayLogo: "https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein101.m3u8", live: true, startTime: new Date() },
+                { id: 2, homeName: "Manchester Utd", awayName: "Liverpool", leagueName: "Premier League", homeLogo: "https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg", awayLogo: "https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC_crest.svg", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein202.m3u8", live: true, startTime: new Date() },
             ];
 
             const fallbackMovies = [
@@ -207,8 +207,8 @@
                 { id: "fb2", title: "Vade Retro", posterUrl: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/1D2Hn8HD9tpU9j901vNRmn4Oz3J.jpg", year: 2025, rating: 5.5, genre: "كوميديا", url: "http://new.dramalaly.com:8080/movie/hikayetv_vod_app/Bxddo93COihsCKzmDz7oqC5y/361151.mkv" }
             ];
 
-            let channels = [...defaultChannels]; // نبدأ بها مباشرة لكي لا يختفي المحتوى أبداً
-            let movies = [...fallbackMovies];    // نبدأ بها مباشرة لكي لا يختفي المحتوى أبداً
+            let channels = [...fallbackMatches]; // نبدأ بها ليعمل الموقع فوراً
+            let movies = [...fallbackMovies];    // نبدأ بها ليعمل الموقع فوراً
             let currentChannelId = null;
             let currentStreamUrl = '';
             let hls = null;
@@ -291,9 +291,10 @@
             }
 
             function renderMatches() {
+                // تصفية المحتوى بناءً على البحث والفئة
                 const filtered = channels.filter(ch => {
-                    const categoryCheck = activeCategory === 'all' || (activeCategory === 'Live' && ch.live && ch.startTime && getStatus(ch.startTime) === 'live') || (activeCategory === 'Sports' && ch.category === 'Sports');
-                    return categoryCheck && ch.name.toLowerCase().includes(searchQuery.toLowerCase());
+                    const matchCategory = activeCategory === 'all' || (activeCategory === 'Live' && ch.live) || (activeCategory === 'Sports');
+                    return matchCategory && ch.name.toLowerCase().includes(searchQuery.toLowerCase());
                 });
 
                 if (filtered.length === 0) {
@@ -301,11 +302,17 @@
                     return;
                 }
 
+                // تركيب البطاقات (تم إصلاح الأسماء لكي تعمل مع البيانات الافتراضية)
                 channelsList.innerHTML = filtered.map(ch => {
-                    const homeName = ch.homeName || ch.name.split(' vs ')[0];
-                    const awayName = ch.awayName || ch.name.split(' vs ')[1];
-                    const leagueName = ch.leagueName || ch.category || 'Match';
-                    const timeStr = ch.startTime ? new Date(ch.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) : '--:--';
+                    const homeName = ch.homeName || ch.name.split(' vs ')[0] || 'فريق';
+                    const awayName = ch.awayName || ch.name.split(' vs ')[1] || 'فريق';
+                    const leagueName = ch.leagueName || ch.category || 'بطولة';
+                    
+                    const homeLogo = ch.homeLogo || '';
+                    const awayLogo = ch.awayLogo || '';
+                    
+                    const startTime = ch.startTime ? new Date(ch.startTime) : null;
+                    const timeStr = startTime ? startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) : '--:--';
 
                     let statusHTML = '', statusClass = '';
                     if (ch.startTime) {
@@ -314,17 +321,24 @@
                         else if (status === 'ended') { statusHTML = '✅ انتهت'; statusClass = 'ended'; }
                         else { statusHTML = '⏰ قادمة'; statusClass = ''; }
                     } else if (ch.live) { statusHTML = '🔴 مباشر'; statusClass = 'live'; }
+                    else { statusHTML = '● متوقف'; statusClass = ''; }
 
                     return `
                         <div class="zs-channel-card ${ch.id === currentChannelId ? 'zs-active' : ''}" data-id="${ch.id}">
                             <div class="zs-match-league"><span>${leagueName}</span><span class="zs-trophy-icon">🏆</span></div>
                             <div class="zs-match-body">
-                                <div class="zs-team"><div class="zs-logo"><img src="${ch.homeLogo || ch.logo || ''}" onerror="this.style.display='none'; this.parentNode.textContent='${homeName.charAt(0)}'"></div><span class="zs-team-name">${homeName}</span></div>
+                                <div class="zs-team">
+                                    <div class="zs-logo"><img src="${homeLogo}" onerror="this.style.display='none'; this.parentNode.textContent='${homeName.charAt(0)}'"></div>
+                                    <span class="zs-team-name">${homeName}</span>
+                                </div>
                                 <div class="zs-center-info">
                                     <div class="zs-status-center ${statusClass}">${statusHTML}</div>
                                     <div class="zs-time-block"><span class="zs-time">${timeStr}</span><span class="zs-vs">VS</span></div>
                                 </div>
-                                <div class="zs-team"><div class="zs-logo"><img src="${ch.awayLogo || ''}" onerror="this.style.display='none'; this.parentNode.textContent='${awayName.charAt(0)}'"></div><span class="zs-team-name">${awayName}</span></div>
+                                <div class="zs-team">
+                                    <div class="zs-logo"><img src="${awayLogo}" onerror="this.style.display='none'; this.parentNode.textContent='${awayName.charAt(0)}'"></div>
+                                    <span class="zs-team-name">${awayName}</span>
+                                </div>
                             </div>
                         </div>
                     `;
@@ -347,16 +361,28 @@
                     const res = await fetch(MATCHES_API_URL);
                     const data = await res.json();
                     if (Array.isArray(data)) {
+                        // تحويل البيانات القادمة من الـ API
                         const matchChannels = data.filter(m => m.sources && m.sources[0].streamUrl).map((m, idx) => ({
-                            id: 3000 + idx, name: `${m.homeName} vs ${m.awayName}`, category: m.leagueName,
-                            homeLogo: m.homeLogoUrl, awayLogo: m.awayLogoUrl, homeName: m.homeName, awayName: m.awayName,
-                            leagueName: m.leagueName, url: m.sources[0].streamUrl, startTime: m.startTime, isMatch: true
+                            id: 3000 + idx, 
+                            name: `${m.homeName} vs ${m.awayName}`,
+                            homeName: m.homeName, 
+                            awayName: m.awayName,
+                            leagueName: m.leagueName || m.category,
+                            homeLogo: m.homeLogoUrl, 
+                            awayLogo: m.awayLogoUrl,
+                            url: m.sources[0].streamUrl, 
+                            startTime: m.startTime, 
+                            isMatch: true,
+                            live: true,
+                            category: m.leagueName
                         }));
-                        channels = channels.filter(ch => !ch.isMatch).concat(matchChannels);
+                        // استبدال القائمة بالبيانات الحقيقية
+                        channels = matchChannels;
                         if(activeCategory !== 'Movies') renderContent();
                     }
                 } catch (e) { 
-                    console.warn('فشل تحميل المباريات، تم استخدام القنوات الافتراضية.');
+                    // في حالة الفشل، تبقى fallbackMatches المعرفة في الأعلى
+                    console.warn('فشل تحميل المباريات، تم استخدام المباريات الافتراضية.');
                 }
             }
 
@@ -474,9 +500,9 @@
 
             // ------------------ التشغيل الأساسي ------------------
             function init() {
-                renderContent(); // هذه الدالة ستعرض القنوات الافتراضية والأفلام الافتراضية فوراً
-                loadMatchesFromAPI(); // سنحاول تحديث المباريات في الخلفية
-                loadMoviesFromAPI();  // سنحاول تحديث الأفلام في الخلفية
+                renderContent(); // ستعرض فوراً المباريات والأفلام الافتراضية
+                loadMatchesFromAPI(); // تحاول تحميل المباريات الحقيقية من الخلف
+                loadMoviesFromAPI();  // تحاول تحميل الأفلام الحقيقية من الخلف
                 setInterval(loadMatchesFromAPI, 300000);
             }
             init();
