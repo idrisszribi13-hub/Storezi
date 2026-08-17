@@ -66,26 +66,13 @@
 
         .zs-header-actions { display: flex; align-items: center; gap: 12px; }
 
+        /* [جديد] زر البحث */
         .zs-search-btn {
             background: var(--surface-glass); border: 1px solid var(--border); border-radius: 30px;
             width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
             color: var(--text-secondary); cursor: pointer; transition: var(--transition); font-size: 18px;
         }
         .zs-search-btn:hover { background: var(--surface-hover); color: var(--accent); transform: scale(1.05); }
-
-        .zs-search-bar-container {
-            display: none; width: 100%; padding: 12px 20px;
-            background: var(--surface-glass); border-bottom: 1px solid var(--border);
-            position: sticky; top: 73px; z-index: 49; backdrop-filter: blur(20px);
-            animation: fadeSlideDown 0.3s ease forwards;
-        }
-        .zs-search-bar-container.visible { display: block; }
-        @keyframes fadeSlideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-        .zs-search-bar-container input {
-            width: 100%; padding: 10px 16px; border-radius: 25px; border: 1px solid var(--border);
-            background: var(--surface-hover); color: var(--text); font-size: 14px; outline: none; transition: var(--transition);
-        }
-        .zs-search-bar-container input:focus { border-color: var(--accent); background: var(--surface); }
 
         .zs-main { flex: 1; padding: 20px; display: flex; flex-direction: column; align-items: center; max-width: 1200px; margin: 0 auto; width: 100%; }
 
@@ -124,6 +111,7 @@
         .zs-spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
+        /* ===== الفئات الرئيسية ===== */
         .categories-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; width: 100%; margin-bottom: 24px; }
         .category-card { background: var(--surface); border-radius: 24px; padding: 24px 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; border: 1px solid var(--border); cursor: pointer; transition: all var(--transition); position: relative; }
         .category-card:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
@@ -135,6 +123,7 @@
         .cat-reels .icon-wrap { background: linear-gradient(135deg, #ff5722, #ff6f00); color: #fff; }
         .category-card .cat-title { font-weight: 700; font-size: 14px; color: var(--text); text-align: center; line-height: 1.3; }
 
+        /* ===== المباريات ===== */
         .zs-list-header { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 0 20px 0; justify-content: space-between; }
         .zs-list-header-left { display: flex; align-items: center; gap: 12px; }
         .zs-back-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 30px; padding: 8px 16px; color: var(--text); font-weight: 600; font-size: 14px; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 8px; }
@@ -172,6 +161,7 @@
         .zs-vs { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
         .zs-live-time-block { background: #e53935; padding: 6px 14px; border-radius: 12px; color: #fff; font-weight: 700; display: flex; align-items: center; gap: 6px; font-size: 15px; }
 
+        /* ===== الافلام و المسلسلات (شبكة) ===== */
         .zs-movies-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; width: 100%; padding: 10px 0; }
         .zs-movie-card { background: var(--surface); border-radius: 16px; border: 1px solid var(--border); overflow: hidden; cursor: pointer; transition: var(--transition); }
         .zs-movie-card:hover { transform: translateY(-4px) scale(1.03); border-color: var(--accent); }
@@ -183,7 +173,7 @@
         .zs-movie-title { font-size: 13px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 0.3s; }
         .zs-movie-card:hover .zs-movie-title { color: var(--accent); }
 
-        /* [جديد] أزرار الفئات الدائرية (Pill Buttons) */
+        /* ===== فئات الأفلام والمسلسلات (أزرار العمود) ===== */
         .zs-category-pill-container { width: 100%; padding: 5px 0; display: flex; flex-direction: column; }
         .zs-category-pill {
             display: flex; align-items: center; gap: 16px;
@@ -201,6 +191,53 @@
         .zs-category-pill-title { font-weight: 600; font-size: 15px; color: var(--text); flex: 1; }
         .zs-category-pill-count { color: var(--text-secondary); font-size: 12px; font-weight: 500; }
 
+        /* ===== [جديد] صفحة البحث المتقدم ===== */
+        .zs-search-view {
+            display: none; width: 100%; flex-direction: column;
+            animation: fadeSlideIn 0.3s ease forwards;
+        }
+        .zs-search-view.visible { display: flex; }
+        .zs-search-header {
+            display: flex; align-items: center; width: 100%; margin-bottom: 20px; gap: 12px;
+        }
+        .zs-search-header .zs-back-btn { margin: 0; }
+        .zs-search-input-wrap {
+            flex: 1; display: flex; align-items: center; background: var(--surface-glass);
+            border: 1px solid var(--border); border-radius: 30px; padding: 6px 16px; 
+            transition: var(--transition);
+        }
+        .zs-search-input-wrap:focus-within { border-color: var(--accent); }
+        .zs-search-input-wrap svg { width: 20px; height: 20px; fill: var(--text-secondary); margin-right: 10px; }
+        .zs-search-input-wrap input {
+            flex: 1; background: transparent; border: none; color: var(--text); font-size: 15px; outline: none;
+        }
+
+        .zs-search-filters {
+            display: flex; gap: 8px; width: 100%; margin-bottom: 12px; flex-wrap: wrap;
+        }
+        .zs-search-filter-btn {
+            padding: 6px 16px; border-radius: 30px; border: 1px solid var(--border); background: transparent;
+            color: var(--text-secondary); font-weight: 600; font-size: 13px; cursor: pointer; transition: var(--transition);
+        }
+        .zs-search-filter-btn:hover { background: var(--surface-hover); }
+        .zs-search-filter-btn.active { border-color: var(--accent); background: var(--accent); color: #0a0a0f; }
+
+        .zs-search-results-count { width: 100%; color: var(--text-secondary); font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+
+        .zs-search-list { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+        .zs-search-item {
+            display: flex; align-items: center; gap: 14px; padding: 12px 16px;
+            background: var(--surface); border-radius: 16px; border: 1px solid var(--border);
+            cursor: pointer; transition: all var(--transition);
+        }
+        .zs-search-item:hover { background: var(--surface-hover); transform: translateY(-2px); border-color: var(--accent); }
+        .zs-search-item .zs-thumb { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; flex-shrink: 0; background: rgba(0,0,0,0.3); }
+        .zs-search-item .zs-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+        .zs-search-item .zs-title { font-weight: 700; font-size: 15px; color: var(--text); line-height: 1.2; }
+        .zs-search-item .zs-desc { font-size: 13px; color: var(--text-secondary); }
+        .zs-search-item .zs-stars { display: flex; align-items: center; gap: 4px; color: var(--accent); font-weight: 600; font-size: 13px; }
+        .zs-search-item .zs-stars span { font-size: 14px; }
+
         .zs-footer { width: 100%; text-align: center; padding: 25px 10px; margin-top: auto; border-top: 1px solid var(--border); color: var(--text-secondary); font-size: 13px; font-weight: 500; }
         .zs-footer span { color: var(--accent); }
 
@@ -208,6 +245,9 @@
             .categories-grid { gap: 12px; }
             .zs-header { padding: 12px 16px; }
             .zs-main { padding: 16px; }
+            .zs-search-input-wrap { padding: 4px 12px; }
+            .zs-search-item .zs-thumb { width: 40px; height: 40px; }
+            .zs-search-item .zs-title { font-size: 14px; }
         }
     </style>
 </head>
@@ -228,12 +268,8 @@
             </div>
         </header>
 
-        <div class="zs-search-bar-container" id="searchBarContainer">
-            <input type="text" id="zsSearchInput" placeholder="Search matches, movies or series...">
-        </div>
-
         <main class="zs-main">
-            <!-- المشغل -->
+            <!-- ===== المشغل ===== -->
             <section class="zs-player-section" id="zsPlayerSection">
                 <div class="zs-player-wrapper" id="zsPlayerWrapper">
                     <div class="zs-video-container" id="zsVideoContainer">
@@ -266,7 +302,7 @@
                 </div>
             </section>
 
-            <!-- الشريط المتحرك (يظهر فقط في الرئيسية) -->
+            <!-- ===== الشريط المتحرك (فقط في الرئيسية) ===== -->
             <div class="zs-banner-container" id="bannerContainer">
                 <div class="zs-banner-slide">
                     <div class="zs-banner-text">
@@ -291,7 +327,7 @@
                 </div>
             </div>
 
-            <!-- قسم الفئات الرئيسية -->
+            <!-- ===== الفئات الرئيسية ===== -->
             <div class="categories-grid" id="homeView">
                 <div class="category-card cat-matches" data-target="matches">
                     <div class="icon-wrap">⚽</div>
@@ -309,6 +345,27 @@
                     <div class="icon-wrap">🎞️</div>
                     <div class="cat-title">Reels Series</div>
                 </div>
+            </div>
+
+            <!-- ===== صفحة البحث المتقدم ===== -->
+            <div class="zs-search-view" id="searchView">
+                <div class="zs-search-header">
+                    <button class="zs-back-btn" id="closeSearchBtn">←</button>
+                    <div class="zs-search-input-wrap">
+                        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                        <input type="text" id="zsSearchInputGlobal" placeholder="Search movies, series or matches..." autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="zs-search-filters" id="searchFilters">
+                    <button class="zs-search-filter-btn active" data-filter="all">All</button>
+                    <button class="zs-search-filter-btn" data-filter="movies">Movies</button>
+                    <button class="zs-search-filter-btn" data-filter="series">Series</button>
+                    <button class="zs-search-filter-btn" data-filter="matches">Matches</button>
+                </div>
+
+                <div class="zs-search-results-count" id="searchResultsCount">0 results</div>
+                <div class="zs-search-list" id="searchListContainer"></div>
             </div>
 
             <!-- ===== واجهة المباريات ===== -->
@@ -333,7 +390,7 @@
                 <div id="movieCategoriesContainer" class="zs-category-pill-container"></div>
             </div>
 
-            <!-- ===== واجهة تفاصيل الأفلام (عند اختيار فئة) ===== -->
+            <!-- ===== واجهة تفاصيل الأفلام ===== -->
             <div style="display:none; width:100%; flex-direction:column;" id="movieDetailView">
                 <div class="zs-list-header">
                     <div class="zs-list-header-left">
@@ -411,7 +468,7 @@
             let seriesCategories = [];
             let currentStreamUrl = '';
             let hls = null;
-            let currentView = 'home'; // home, matches, movie-categories, movie-detail, series-categories, series-detail, reels
+            let currentView = 'home'; 
             let currentId = null;
 
             // ==================== عناصر DOM ====================
@@ -456,9 +513,15 @@
             const backSeriesListBtn = document.getElementById('backSeriesListBtn');
             const backReelsBtn = document.getElementById('backReelsBtn');
 
+            // عناصر البحث الجديد
             const toggleSearchBtn = document.getElementById('toggleSearchBtn');
-            const searchBarContainer = document.getElementById('searchBarContainer');
-            const searchInput = document.getElementById('zsSearchInput');
+            const searchView = document.getElementById('searchView');
+            const closeSearchBtn = document.getElementById('closeSearchBtn');
+            const searchInputGlobal = document.getElementById('zsSearchInputGlobal');
+            const searchFilters = document.getElementById('searchFilters');
+            const searchResultsCount = document.getElementById('searchResultsCount');
+            const searchListContainer = document.getElementById('searchListContainer');
+            let activeSearchFilter = 'all';
 
             // ==================== الثيمات ====================
             function setTheme(theme) {
@@ -520,7 +583,7 @@
                 }
             }
 
-            // ==================== التحكم في المشغل والبحث ====================
+            // ==================== التحكم في المشغل ====================
             btnPlay.addEventListener('click', () => { if (video.paused) video.play(); else video.pause(); });
             video.addEventListener('play', () => { btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`; });
             video.addEventListener('pause', () => { btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`; });
@@ -537,15 +600,6 @@
             });
             btnRotate.addEventListener('click', () => { videoContainer.classList.toggle('rotated'); });
             document.getElementById('zsErrorRetry').addEventListener('click', () => { if (currentStreamUrl) loadStream(currentStreamUrl); });
-
-            toggleSearchBtn.addEventListener('click', () => {
-                const isVisible = searchBarContainer.classList.contains('visible');
-                searchBarContainer.classList.toggle('visible');
-                if (!isVisible) searchInput.focus();
-            });
-            searchInput.addEventListener('input', () => {
-                renderContent();
-            });
 
             // ==================== دوال المباريات ====================
             function getStatus(startTime) {
@@ -564,23 +618,14 @@
             }
 
             function renderMatches() {
-                const searchQuery = searchInput.value.trim().toLowerCase();
-
                 if (channels.length === 0) {
                     matchesContainer.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">Loading matches...</div>';
                     return;
                 }
 
-                const filteredChannels = channels.filter(ch => 
-                    ch.name.toLowerCase().includes(searchQuery) || 
-                    (ch.leagueName && ch.leagueName.toLowerCase().includes(searchQuery)) ||
-                    (ch.homeName && ch.homeName.toLowerCase().includes(searchQuery)) ||
-                    (ch.awayName && ch.awayName.toLowerCase().includes(searchQuery))
-                );
-
-                const liveMatches = filteredChannels.filter(ch => ch.startTime && getStatus(ch.startTime) === 'live');
-                const upcomingMatches = filteredChannels.filter(ch => ch.startTime && getStatus(ch.startTime) === 'upcoming');
-                const endedMatches = filteredChannels.filter(ch => ch.startTime && getStatus(ch.startTime) === 'ended');
+                const liveMatches = channels.filter(ch => ch.startTime && getStatus(ch.startTime) === 'live');
+                const upcomingMatches = channels.filter(ch => ch.startTime && getStatus(ch.startTime) === 'upcoming');
+                const endedMatches = channels.filter(ch => ch.startTime && getStatus(ch.startTime) === 'ended');
 
                 const buildCard = (ch) => {
                     const homeName = ch.homeName || ch.name.split(' vs ')[0] || 'Home';
@@ -685,7 +730,7 @@
                 }
             }
 
-            // ==================== [جديد] دوال فئات الأفلام ====================
+            // ==================== دوال فئات الأفلام ====================
             async function loadMovieCategoriesFromAPI() {
                 try {
                     const resp = await fetch(MOVIE_CATEGORIES_URL);
@@ -701,7 +746,7 @@
             }
 
             function renderMovieCategories() {
-                const searchQuery = searchInput.value.trim().toLowerCase();
+                const searchQuery = searchInputGlobal.value.trim().toLowerCase();
                 const filtered = movieCategories.filter(c => c.name.toLowerCase().includes(searchQuery));
 
                 if (filtered.length === 0) {
@@ -783,8 +828,7 @@
             }
 
             function renderMovies() {
-                const searchQuery = searchInput.value.trim().toLowerCase();
-                const filtered = movies.filter(m => m.title.toLowerCase().includes(searchQuery));
+                const filtered = movies.filter(m => m.title.toLowerCase().includes(''));
                 
                 if (filtered.length === 0) {
                     moviesContainer.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No movies found</div>';
@@ -838,7 +882,7 @@
             }
 
             function renderSeriesCategories() {
-                const searchQuery = searchInput.value.trim().toLowerCase();
+                const searchQuery = searchInputGlobal.value.trim().toLowerCase();
                 const filtered = seriesCategories.filter(c => c.name.toLowerCase().includes(searchQuery));
 
                 if (filtered.length === 0) {
@@ -920,8 +964,7 @@
             }
 
             function renderSeries() {
-                const searchQuery = searchInput.value.trim().toLowerCase();
-                const filtered = series.filter(s => s.title.toLowerCase().includes(searchQuery));
+                const filtered = series.filter(s => s.title.toLowerCase().includes(''));
 
                 if (filtered.length === 0) {
                     seriesListContainer.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No series found</div>';
@@ -958,7 +1001,137 @@
                 });
             }
 
-            // ==================== إدارة التنقل بين الأقسام (التطبيق) ====================
+            // ==================== [جديد] منطق البحث المتقدم ====================
+            function openSearchView() {
+                // Close player if open
+                playerSection.classList.remove('visible');
+                // Hide everything else
+                homeView.style.display = 'none';
+                matchesView.style.display = 'none';
+                movieCategoriesView.style.display = 'none';
+                movieDetailView.style.display = 'none';
+                seriesCategoriesView.style.display = 'none';
+                seriesDetailView.style.display = 'none';
+                reelsView.style.display = 'none';
+                bannerContainer.style.display = 'none';
+                
+                searchView.classList.add('visible');
+                searchInputGlobal.value = '';
+                renderSearchResults();
+                setTimeout(() => searchInputGlobal.focus(), 100);
+            }
+
+            function closeSearchView() {
+                searchView.classList.remove('visible');
+                currentView = 'home';
+                renderContent();
+            }
+
+            function renderSearchResults() {
+                const query = searchInputGlobal.value.trim().toLowerCase();
+                let results = [];
+                
+                if (query.length === 0) {
+                    searchResultsCount.textContent = '0 results';
+                    searchListContainer.innerHTML = '';
+                    return;
+                }
+
+                // جلب المباريات
+                const matchResults = channels.filter(ch => 
+                    ch.name.toLowerCase().includes(query) || 
+                    (ch.leagueName && ch.leagueName.toLowerCase().includes(query))
+                ).map(ch => ({
+                    type: 'match',
+                    id: ch.id,
+                    title: ch.name,
+                    thumb: ch.homeLogo || ch.logo || '',
+                    desc: ch.leagueName || 'Match',
+                    url: ch.url,
+                    rating: null
+                }));
+
+                // جلب الأفلام
+                const movieResults = movies.filter(m => m.title.toLowerCase().includes(query)).map(m => ({
+                    type: 'movie',
+                    id: m.id,
+                    title: m.title,
+                    thumb: m.posterUrl,
+                    desc: (m.genreAr || m.genre || 'Movie') + ' • ' + (m.year || ''),
+                    url: m.url,
+                    rating: m.rating
+                }));
+
+                // جلب المسلسلات
+                const seriesResults = series.filter(s => s.title.toLowerCase().includes(query)).map(s => ({
+                    type: 'series',
+                    id: s.id,
+                    title: s.title,
+                    thumb: s.posterUrl,
+                    desc: (s.year ? 'Series • ' + s.year : 'Series'),
+                    url: s.url,
+                    rating: s.rating
+                }));
+
+                let allResults = [...matchResults, ...movieResults, ...seriesResults];
+
+                // تطبيق الفلتر
+                if (activeSearchFilter === 'matches') allResults = allResults.filter(r => r.type === 'match');
+                else if (activeSearchFilter === 'movies') allResults = allResults.filter(r => r.type === 'movie');
+                else if (activeSearchFilter === 'series') allResults = allResults.filter(r => r.type === 'series');
+
+                // عرض العداد
+                searchResultsCount.textContent = allResults.length + ' results';
+
+                if (allResults.length === 0) {
+                    searchListContainer.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No results found</div>';
+                    return;
+                }
+
+                searchListContainer.innerHTML = allResults.map(item => `
+                    <div class="zs-search-item" data-id="${item.id}" data-type="${item.type}" data-url="${item.url || ''}">
+                        <img class="zs-thumb" src="${item.thumb}" onerror="this.style.display='none'; this.parentNode.innerHTML+='<div class=\'zs-thumb\' style=\'display:flex;align-items:center;justify-content:center;background:var(--surface-hover);font-weight:700;\'>${item.title.charAt(0)}</div>'">
+                        <div class="zs-info">
+                            <div class="zs-title">${item.title}</div>
+                            <div class="zs-desc">${item.desc}</div>
+                        </div>
+                        ${item.rating ? `<div class="zs-stars"><span>★</span> ${item.rating}</div>` : ''}
+                    </div>
+                `).join('');
+
+                searchListContainer.querySelectorAll('.zs-search-item').forEach(card => {
+                    card.addEventListener('click', () => {
+                        const id = card.dataset.id;
+                        const url = card.dataset.url;
+                        const type = card.dataset.type;
+                        if (url) {
+                            currentId = id;
+                            currentStreamUrl = url;
+                            // Close search and open player
+                            searchView.classList.remove('visible');
+                            playerSection.classList.add('visible');
+                            currentView = 'player';
+                            loadStream(url);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }
+                    });
+                });
+            }
+
+            // تشغيل البحث عند الكتابة
+            searchInputGlobal.addEventListener('input', renderSearchResults);
+
+            // أزرار فلاتر البحث
+            searchFilters.addEventListener('click', (e) => {
+                const btn = e.target.closest('.zs-search-filter-btn');
+                if (!btn) return;
+                searchFilters.querySelectorAll('.zs-search-filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                activeSearchFilter = btn.dataset.filter;
+                renderSearchResults();
+            });
+
+            // ==================== إدارة التنقل بين الأقسام ====================
             function closePlayerAndGoHome() {
                 playerSection.classList.remove('visible');
                 currentView = 'home';
@@ -981,7 +1154,7 @@
                 loadSeriesFromAPI(categoryId);
             }
 
-            // ربط أزرار الرجوع
+            // أزرار الرجوع العادية
             backMatchesBtn.addEventListener('click', closePlayerAndGoHome);
             backMovieCatBtn.addEventListener('click', closePlayerAndGoHome);
             backMoviesBtn.addEventListener('click', () => {
@@ -997,8 +1170,15 @@
             });
             backReelsBtn.addEventListener('click', closePlayerAndGoHome);
 
+            // زر بحث الهيدر وزر إغلاق البحث
+            toggleSearchBtn.addEventListener('click', openSearchView);
+            closeSearchBtn.addEventListener('click', closeSearchView);
+
             function renderContent() {
-                // 1. إخفاء جميع الأقسام بالقوة
+                // إخفاء البحث أولاً
+                searchView.classList.remove('visible');
+
+                // إخفاء الكل
                 homeView.style.display = 'none';
                 matchesView.style.display = 'none';
                 movieCategoriesView.style.display = 'none';
@@ -1007,14 +1187,9 @@
                 seriesDetailView.style.display = 'none';
                 reelsView.style.display = 'none';
 
-                // 2. إخفاء البانر إذا لم نكن في الصفحة الرئيسية
-                if (currentView !== 'home') {
-                    bannerContainer.style.display = 'none';
-                } else {
-                    bannerContainer.style.display = 'flex';
-                }
+                if (currentView !== 'home') bannerContainer.style.display = 'none';
+                else bannerContainer.style.display = 'flex';
 
-                // 3. إظهار القسم المطلوب فقط
                 if (currentView === 'home') {
                     homeView.style.display = 'grid';
                 } else if (currentView === 'matches') {
@@ -1048,10 +1223,8 @@
                 card.addEventListener('click', () => {
                     const target = card.dataset.target;
                     
-                    // إغلاق المشغل إذا كان مفتوحاً
                     playerSection.classList.remove('visible');
                     
-                    // التبديل إلى القسم المطلوب
                     if (target === 'matches') { currentView = 'matches'; }
                     else if (target === 'movies') { currentView = 'movie-categories'; }
                     else if (target === 'series') { currentView = 'series-categories'; }
@@ -1072,4 +1245,4 @@
         })();
     </script>
 </body>
-    </html>
+                        </html>
