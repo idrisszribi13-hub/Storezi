@@ -217,7 +217,7 @@
             const MATCHES_API_URL = WORKER_URL + '?url=' + encodeURIComponent('https://admin.golive-pro.online/api/public/events?tz=-4');
             const MOVIES_BASE_URL = 'https://admin.golive-pro.online/api/content/movies?categoryId=9ec354e5-4707-4161-9dab-b51f899b29d8&limit=20&page=';
 
-            // ⚠️ [جديد] ضع هنا رابط الموفاي بروكسي الخاص بك
+            // ⚠️ تأكد أن الرابط هنا يبدأ بـ https://
             const MOVIE_PROXY_URL = 'https://movie-proxy.idriss-zribi13.workers.dev/';
 
             const defaultChannels = [
@@ -226,7 +226,7 @@
                 { id: 103, name: "beIN Sports 3 HD", category: "Sports Channel", logo: "", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein303.m3u8", live: true },
             ];
 
-            // أفلام الطوارئ (في حال فشل الـ API)
+            // أفلام الطوارئ
             const fallbackMovies = [
                 { id: "fb1", title: "Zombies of the Third Reich", posterUrl: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/hjrgOWoruk9ea0tXaN8l2gtmkeH.jpg", year: 2025, rating: 3.75, genre: "رعب", url: "http://new.dramalaly.com:8080/movie/hikayetv_vod_app/Bxddo93COihsCKzmDz7oqC5y/361152.mkv" },
                 { id: "fb2", title: "Vade Retro", posterUrl: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/1D2Hn8HD9tpU9j901vNRmn4Oz3J.jpg", year: 2025, rating: 5.5, genre: "كوميديا", url: "http://new.dramalaly.com:8080/movie/hikayetv_vod_app/Bxddo93COihsCKzmDz7oqC5y/361151.mkv" }
@@ -286,13 +286,13 @@
                 btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
             }
 
-            // ------------------ تشغيل الفيديو ------------------
+            // ------------------ تشغيل الفيديو (تم التعديل) ------------------
             function loadStream(url) {
                 destroyPlayer();
                 showLoading();
                 startOverlay.classList.add('zs-hidden');
                 
-                // 1. معالجة روابط المباريات (m3u8) - كما هي وتعمل 100%
+                // 1. معالجة روابط المباريات (m3u8) - تعمل 100% كما هي
                 if (url.includes('.m3u8')) {
                     if (Hls.isSupported()) {
                         hls = new Hls();
@@ -309,13 +309,24 @@
                     return;
                 }
 
-                // 2. معالجة روابط الأفلام (MKV / MP4) - [تعديل] تمرير الرابط عبر الـ Proxy
+                // 2. معالجة روابط الأفلام (MKV / MP4) - محاولة مباشرة أولاً
                 if (url.includes('.mkv') || url.includes('.mp4')) {
-                    video.src = MOVIE_PROXY_URL + '?url=' + encodeURIComponent(url);
+                    // أولاً: حاول التشغيل المباشر (يعمل عندما يسمح المتصفح)
+                    video.src = url;
                     video.play().then(() => {
                         hideLoading(); hideError();
-                    }).catch(() => {
-                        hideLoading(); showError();
+                    }).catch((e) => {
+                        console.warn("Direct play failed (Mixed Content likely). Trying Proxy...", e);
+                        
+                        // ثانياً: إذا فشل المباشر، حاول عبر الـ Proxy كحل أخير
+                        video.src = MOVIE_PROXY_URL + '?url=' + encodeURIComponent(url);
+                        video.play().then(() => {
+                            hideLoading(); hideError();
+                        }).catch(() => {
+                            hideLoading(); showError();
+                            // تغيير نص الخطأ ليكون مفيداً للمستخدم
+                            document.querySelector('#zsErrorOverlay div').innerHTML = "⚠️ Mixed Content Blocked.<br>Please allow insecure content in your browser settings, or use HTTP.";
+                        });
                     });
                 }
             }
