@@ -345,6 +345,7 @@
     <script>
         // ==================== البيانات الأساسية ====================
         const WORKER_URL = 'https://dry-truth-a84e.idriss-zribi13.workers.dev/';
+        // [إصلاح] تم العودة إلى tz=-4 لأن tz=1 يسبب بيانات قديمة أو مشاكل في الووركر
         const MATCHES_API_URL = WORKER_URL + '?url=' + encodeURIComponent('https://admin.golive-pro.online/api/public/events?tz=-4');
         const MOVIES_BASE_URL = 'https://admin.golive-pro.online/api/content/movies?categoryId=9ec354e5-4707-4161-9dab-b51f899b29d8&limit=20&page=';
 
@@ -352,13 +353,14 @@
         const SERIES_CATEGORIES_URL = 'https://admin.golive-pro.online/api/content/series-categories';
         const SERIES_BASE_URL = 'https://admin.golive-pro.online/api/content/series?limit=20&page=';
 
+        // [إصلاح] إذا فشل السيرفر، يظهر هذه المباريات الاحتياطية (وليس قنوات البث المباشر)
         const fallbackMatches = [
             { id: 1, homeName: "Real Madrid", awayName: "Barcelona", leagueName: "La Liga", homeLogo: "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg", awayLogo: "https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg", url: "https://app.site2026.top/mobile/v9YsphvJOvxK2N1ibcDorQ/1786986686/1786986425/1/bein101.m3u8", startTime: new Date().toISOString() },
             { id: 2, homeName: "Manchester Utd", awayName: "Liverpool", leagueName: "Premier League", homeLogo: "https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg", awayLogo: "https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC_crest.svg", url: "https://app.site2026.top/mobile/v9YsphvJOvxK2N1ibcDorQ/1786986686/1786986425/1/bein202.m3u8", startTime: new Date(Date.now() + 7200000).toISOString() },
             { id: 3, homeName: "Al-Nassr", awayName: "Al-Hilal", leagueName: "Saudi League", homeLogo: "https://upload.wikimedia.org/wikipedia/en/7/75/Al-Nassr_FC_logo.svg", awayLogo: "https://upload.wikimedia.org/wikipedia/en/4/49/Al_Hilal_Saudi_FC_Logo.svg", url: "https://app.site2026.top/mobile/v9YsphvJOvxK2N1ibcDorQ/1786986686/1786986425/1/bein303.m3u8", startTime: new Date(Date.now() - 600000).toISOString() }
         ];
 
-        let channels = [...fallbackMatches]; 
+        let channels = []; // تبدأ فارغة، وسيتم ملؤها من الـ API أو الاحتياطية
         let movies = [];
         let series = [];
         let seriesCategories = [];
@@ -478,7 +480,7 @@
         document.getElementById('zsErrorRetry').addEventListener('click', () => { if (currentStreamUrl) loadStream(currentStreamUrl); });
         closePlayerBtn.addEventListener('click', () => { playerSection.classList.remove('visible'); currentView = 'home'; renderContent(); });
 
-        // ==================== دوال المباريات ====================
+        // ==================== [إصلاح] دوال المباريات (مطابقة للكود الأصلي) ====================
         function getStatus(startTime) {
             const now = new Date();
             const start = new Date(startTime);
@@ -495,6 +497,12 @@
         }
 
         function renderMatches() {
+            // إذا كانت المصفوفة فارغة (في انتظار التحميل)
+            if (channels.length === 0) {
+                matchesContainer.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">Loading matches...</div>';
+                return;
+            }
+
             const liveMatches = channels.filter(ch => ch.startTime && getStatus(ch.startTime) === 'live');
             const upcomingMatches = channels.filter(ch => ch.startTime && getStatus(ch.startTime) === 'upcoming');
             const endedMatches = channels.filter(ch => ch.startTime && getStatus(ch.startTime) === 'ended');
@@ -576,24 +584,32 @@
             });
         }
 
+        // [إصلاح نهائي] تم تعديل المنطق ليكون مشابهاً لكودك الأصلي
         async function loadMatchesFromAPI() {
             try {
                 const response = await fetch(MATCHES_API_URL);
                 if (!response.ok) throw new Error('Worker error');
                 const data = await response.json();
-                if (Array.isArray(data) && data.length > 0) {
-                    const matchChannels = data.filter(m => m.sources && m.sources[0].streamUrl).map((m, idx) => ({
+                if (!Array.isArray(data)) throw new Error('Invalid data');
+                const matchChannels = data
+                    .filter(m => m.sources && m.sources.length > 0 && m.sources[0].streamUrl)
+                    .map((m, idx) => ({
                         id: 3000 + idx, name: `${m.homeName} vs ${m.awayName}`, category: m.leagueName || 'Match',
                         homeLogo: m.homeLogoUrl, awayLogo: m.awayLogoUrl, homeName: m.homeName, awayName: m.awayName,
                         leagueName: m.leagueName, url: m.sources[0].streamUrl, startTime: m.startTime, isMatch: true
                     }));
-                    if (matchChannels.length > 0) {
-                        channels = matchChannels;
-                    }
-                    if(currentView === 'matches') renderMatches();
+                // استبدال القائمة بالبيانات الحقيقية
+                if (matchChannels.length > 0) {
+                    channels = matchChannels;
                 }
+                // تحديث العرض إذا كنا في صفحة المباريات
+                if(currentView === 'matches') renderMatches();
             } catch (e) { 
-                console.warn('Matches API failed. Using fallback matches.');
+                console.warn('Matches API failed, using fallback matches.');
+                // إذا فشل الـ API، نستخدم المباريات الاحتياطية
+                if (channels.length === 0) {
+                    channels = fallbackMatches;
+                }
                 if(currentView === 'matches') renderMatches();
             }
         }
@@ -860,11 +876,16 @@
 
             if (currentView === 'home') {
                 homeView.classList.remove('hidden-view');
-                // تحميل الفئات فقط إذا لم يتم تحميلها
                 if(seriesCategories.length === 0) loadSeriesCategoriesFromAPI();
             } else if (currentView === 'matches') {
                 matchesView.classList.remove('hidden-view');
-                renderMatches();
+                if (channels.length === 0) {
+                    // إذا كانت المباريات لم تُحمل بعد، نعرض مؤشر تحميل ونطلبها
+                    matchesContainer.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">Loading matches...</div>';
+                    loadMatchesFromAPI();
+                } else {
+                    renderMatches();
+                }
             } else if (currentView === 'movies') {
                 moviesView.classList.remove('hidden-view');
                 renderMovies();
@@ -893,8 +914,10 @@
         // ==================== التهيئة ====================
         function init() {
             renderContent();
+            // جلب البيانات في الخلفية
             loadMatchesFromAPI();
             loadMoviesFromAPI();
+            loadSeriesCategoriesFromAPI();
             setInterval(loadMatchesFromAPI, 300000);
         }
         init();
