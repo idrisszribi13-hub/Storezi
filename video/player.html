@@ -217,6 +217,9 @@
             const MATCHES_API_URL = WORKER_URL + '?url=' + encodeURIComponent('https://admin.golive-pro.online/api/public/events?tz=-4');
             const MOVIES_BASE_URL = 'https://admin.golive-pro.online/api/content/movies?categoryId=9ec354e5-4707-4161-9dab-b51f899b29d8&limit=20&page=';
 
+            // ⚠️ [جديد] ضع هنا رابط الموفاي بروكسي الخاص بك
+            const MOVIE_PROXY_URL = 'https://movie-proxy.idriss-zribi13.workers.dev/';
+
             const defaultChannels = [
                 { id: 101, name: "beIN Sports 1 HD", category: "Sports Channel", logo: "", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein101.m3u8", live: true },
                 { id: 102, name: "beIN Sports 2 HD", category: "Sports Channel", logo: "", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein202.m3u8", live: true },
@@ -283,13 +286,13 @@
                 btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
             }
 
-            // ------------------ تشغيل الفيديو (روابط الأفلام أصبحت مباشرة) ------------------
+            // ------------------ تشغيل الفيديو ------------------
             function loadStream(url) {
                 destroyPlayer();
                 showLoading();
                 startOverlay.classList.add('zs-hidden');
                 
-                // 1. معالجة روابط المباريات (m3u8) - تبقى كما هي وتعمل 100%
+                // 1. معالجة روابط المباريات (m3u8) - كما هي وتعمل 100%
                 if (url.includes('.m3u8')) {
                     if (Hls.isSupported()) {
                         hls = new Hls();
@@ -306,18 +309,15 @@
                     return;
                 }
 
-                // 2. معالجة روابط الأفلام (MKV / MP4) - تم التعديل لتعمل مباشرة لتفادي خطأ 500 في الـ Worker
-                // ملاحظة: المتصفح قد يحجبها إذا كان موقعك HTTPS والفيلم HTTP (Mixed Content).
-                video.src = url;
-                video.play().then(() => {
-                    hideLoading(); hideError();
-                }).catch((err) => {
-                    console.warn("Direct play blocked or failed, likely due to Mixed Content (HTTPS site playing HTTP video).", err);
-                    // إذا فشلت مباشرة، نعرض رسالة خطأ للمستخدم ونقترح الحل
-                    hideLoading();
-                    showError();
-                    document.querySelector('#zsErrorOverlay div').innerHTML = "⚠️ Mixed Content Block.<br>Tip: Change site to HTTP or allow insecure content in browser.";
-                });
+                // 2. معالجة روابط الأفلام (MKV / MP4) - [تعديل] تمرير الرابط عبر الـ Proxy
+                if (url.includes('.mkv') || url.includes('.mp4')) {
+                    video.src = MOVIE_PROXY_URL + '?url=' + encodeURIComponent(url);
+                    video.play().then(() => {
+                        hideLoading(); hideError();
+                    }).catch(() => {
+                        hideLoading(); showError();
+                    });
+                }
             }
 
             // ------------------ دوال المباريات ------------------
