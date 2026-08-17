@@ -217,14 +217,13 @@
             const MATCHES_API_URL = WORKER_URL + '?url=' + encodeURIComponent('https://admin.golive-pro.online/api/public/events?tz=-4');
             const MOVIES_BASE_URL = 'https://admin.golive-pro.online/api/content/movies?categoryId=9ec354e5-4707-4161-9dab-b51f899b29d8&limit=20&page=';
 
-            // القنوات الافتراضية (بدون صور خارجية لتجنب خطأ 404)
             const defaultChannels = [
                 { id: 101, name: "beIN Sports 1 HD", category: "Sports Channel", logo: "", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein101.m3u8", live: true },
                 { id: 102, name: "beIN Sports 2 HD", category: "Sports Channel", logo: "", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein202.m3u8", live: true },
                 { id: 103, name: "beIN Sports 3 HD", category: "Sports Channel", logo: "", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein303.m3u8", live: true },
             ];
 
-            // أفلام الطوارئ
+            // أفلام الطوارئ (في حال فشل الـ API)
             const fallbackMovies = [
                 { id: "fb1", title: "Zombies of the Third Reich", posterUrl: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/hjrgOWoruk9ea0tXaN8l2gtmkeH.jpg", year: 2025, rating: 3.75, genre: "رعب", url: "http://new.dramalaly.com:8080/movie/hikayetv_vod_app/Bxddo93COihsCKzmDz7oqC5y/361152.mkv" },
                 { id: "fb2", title: "Vade Retro", posterUrl: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/1D2Hn8HD9tpU9j901vNRmn4Oz3J.jpg", year: 2025, rating: 5.5, genre: "كوميديا", url: "http://new.dramalaly.com:8080/movie/hikayetv_vod_app/Bxddo93COihsCKzmDz7oqC5y/361151.mkv" }
@@ -284,23 +283,17 @@
                 btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
             }
 
-            // ------------------ تشغيل الفيديو (تجنب Worker لـ m3u8 لمنع 500) ------------------
+            // ------------------ تشغيل الفيديو (روابط الأفلام أصبحت مباشرة) ------------------
             function loadStream(url) {
                 destroyPlayer();
                 showLoading();
                 startOverlay.classList.add('zs-hidden');
                 
-                let finalUrl = url;
-                // إذا كان الرابط m3u8، قم بتشغيله مباشرة لأن الـ Worker لا يتعامل مع ملفات ts
-                // أما إذا كان mkv (فيلم)، مرره عبر الـ Worker لحل مشكلة CORS
-                if (url.includes('.mkv')) {
-                    finalUrl = WORKER_URL + '?url=' + encodeURIComponent(url);
-                }
-
-                if (finalUrl.includes('.m3u8')) {
+                // 1. معالجة روابط المباريات (m3u8) - تبقى كما هي وتعمل 100%
+                if (url.includes('.m3u8')) {
                     if (Hls.isSupported()) {
                         hls = new Hls();
-                        hls.loadSource(finalUrl);
+                        hls.loadSource(url);
                         hls.attachMedia(video);
                         hls.on(Hls.Events.MANIFEST_PARSED, () => { 
                             hideLoading(); hideError(); setLiveMode(true); 
@@ -308,15 +301,23 @@
                         });
                         hls.on(Hls.Events.ERROR, (e, data) => { if (data.fatal) { showError(); hideLoading(); } });
                     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                        video.src = finalUrl; video.play();
+                        video.src = url; video.play();
                     }
-                } else {
-                    // تشغيل الأفلام (.mkv) الممررة عبر الـ Worker
-                    video.src = finalUrl;
-                    video.play().then(() => {
-                        hideLoading(); hideError();
-                    }).catch(()=>{ showError(); hideLoading(); });
+                    return;
                 }
+
+                // 2. معالجة روابط الأفلام (MKV / MP4) - تم التعديل لتعمل مباشرة لتفادي خطأ 500 في الـ Worker
+                // ملاحظة: المتصفح قد يحجبها إذا كان موقعك HTTPS والفيلم HTTP (Mixed Content).
+                video.src = url;
+                video.play().then(() => {
+                    hideLoading(); hideError();
+                }).catch((err) => {
+                    console.warn("Direct play blocked or failed, likely due to Mixed Content (HTTPS site playing HTTP video).", err);
+                    // إذا فشلت مباشرة، نعرض رسالة خطأ للمستخدم ونقترح الحل
+                    hideLoading();
+                    showError();
+                    document.querySelector('#zsErrorOverlay div').innerHTML = "⚠️ Mixed Content Block.<br>Tip: Change site to HTTP or allow insecure content in browser.";
+                });
             }
 
             // ------------------ دوال المباريات ------------------
@@ -427,18 +428,16 @@
                 isLoadingMovies = true;
 
                 try {
-                    // جلب الصفحة الأولى
                     const firstUrl = WORKER_URL + '?url=' + encodeURIComponent(MOVIES_BASE_URL + '1');
                     const firstResp = await fetch(firstUrl);
                     if (!firstResp.ok) throw new Error('Worker error');
                     const firstData = await firstResp.json();
                     
                     if (firstData.data && Array.isArray(firstData.data)) {
-                        // إصلاح مشكلة Mixed Content: تحويل http إلى https في روابط الصور
                         movies = firstData.data.map(m => ({
                             id: m.id, 
                             title: m.title, 
-                            posterUrl: (m.posterUrl || '').replace('http:', 'https:'), // إصلاح الأمان
+                            posterUrl: (m.posterUrl || '').replace('http:', 'https:'),
                             year: m.year, 
                             rating: m.rating, 
                             genre: m.genre, 
@@ -448,7 +447,6 @@
                         if(activeCategory === 'Movies') renderContent();
                     }
 
-                    // جلب باقي الصفحات بهدوء
                     const totalPages = firstData.meta.totalPages || 0;
                     if (totalPages > 1) {
                         for (let i = 2; i <= totalPages; i++) {
