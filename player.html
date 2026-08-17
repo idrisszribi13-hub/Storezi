@@ -25,38 +25,17 @@
             --header-bg: rgba(13, 17, 23, 0.95);
         }
 
-        [data-theme="light"] {
-            --bg: #f6f8fa; --surface: #ffffff; --surface-glass: rgba(255,255,255,0.95);
-            --surface-hover: #f0f2f5; --border: rgba(0,0,0,0.08); --text: #161b22;
-            --text-secondary: #57606a; --accent: #0969da; --accent-glow: rgba(9,105,218,0.2);
-            --live: #cf222e; --live-glow: rgba(207,34,46,0.5);
-            --shadow: 0 10px 30px rgba(0,0,0,0.1); --header-bg: rgba(255,255,255,0.95);
-        }
-        [data-theme="legendary"] {
-            --bg: #120f0a; --surface: #2a241d; --surface-glass: rgba(42,36,29,0.95);
-            --surface-hover: #3d342a; --border: rgba(255,215,0,0.2); --text: #f5e6d3;
-            --text-secondary: #b8a491; --accent: #ff6b00; --accent-glow: rgba(255,107,0,0.4);
-            --live: #ff2e2e; --live-glow: rgba(255,46,46,0.6); --shadow: 0 15px 40px rgba(255,215,0,0.1);
-            --header-bg: rgba(18,15,10,0.95);
-        }
+        [data-theme="light"] { --bg: #f6f8fa; --surface: #ffffff; --surface-glass: rgba(255,255,255,0.95); --surface-hover: #f0f2f5; --border: rgba(0,0,0,0.08); --text: #161b22; --text-secondary: #57606a; --accent: #0969da; --accent-glow: rgba(9,105,218,0.2); --live: #cf222e; --live-glow: rgba(207,34,46,0.5); --shadow: 0 10px 30px rgba(0,0,0,0.1); --header-bg: rgba(255,255,255,0.95); }
+        [data-theme="legendary"] { --bg: #120f0a; --surface: #2a241d; --surface-glass: rgba(42,36,29,0.95); --surface-hover: #3d342a; --border: rgba(255,215,0,0.2); --text: #f5e6d3; --text-secondary: #b8a491; --accent: #ff6b00; --accent-glow: rgba(255,107,0,0.4); --live: #ff2e2e; --live-glow: rgba(255,46,46,0.6); --shadow: 0 15px 40px rgba(255,215,0,0.1); --header-bg: rgba(18,15,10,0.95); }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: var(--bg); font-family: var(--font); min-height: 100vh; color: var(--text); transition: background 0.4s; overflow-x: hidden; }
 
         .zs-app { display: flex; flex-direction: column; min-height: 100vh; }
 
-        .zs-header {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 16px 24px; background: var(--header-bg); backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50;
-        }
+        .zs-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; background: var(--header-bg); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
         .zs-header-brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 22px; letter-spacing: -0.5px; }
-        .zs-brand-icon {
-            width: 40px; height: 40px; border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent), #ff6b00);
-            display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 20px;
-            color: #0a0a0f; box-shadow: 0 0 20px var(--accent-glow); animation: logo-pulse 3s infinite;
-        }
+        .zs-brand-icon { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), #ff6b00); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 20px; color: #0a0a0f; box-shadow: 0 0 20px var(--accent-glow); animation: logo-pulse 3s infinite; }
         @keyframes logo-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
         
         .zs-theme-switch { display: flex; background: var(--surface-glass); padding: 4px; border-radius: 30px; border: 1px solid var(--border); gap: 4px; }
@@ -66,22 +45,13 @@
 
         .zs-header-actions { display: flex; align-items: center; gap: 12px; }
 
-        /* [جديد] زر البحث */
-        .zs-search-btn {
-            background: var(--surface-glass); border: 1px solid var(--border); border-radius: 30px;
-            width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
-            color: var(--text-secondary); cursor: pointer; transition: var(--transition); font-size: 18px;
-        }
+        .zs-search-btn { background: var(--surface-glass); border: 1px solid var(--border); border-radius: 30px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); cursor: pointer; transition: var(--transition); font-size: 18px; }
         .zs-search-btn:hover { background: var(--surface-hover); color: var(--accent); transform: scale(1.05); }
 
         .zs-main { flex: 1; padding: 20px; display: flex; flex-direction: column; align-items: center; max-width: 1200px; margin: 0 auto; width: 100%; }
-
         .zs-banner-container { width: 100%; display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 15px; padding: 10px 0 20px 0; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
 
-        .zs-player-section { 
-            display: none; width: 100%; max-width: 100%; margin-bottom: 20px;
-            animation: fadeSlideIn 0.4s ease forwards;
-        }
+        .zs-player-section { display: none; width: 100%; max-width: 100%; margin-bottom: 20px; animation: fadeSlideIn 0.4s ease forwards; }
         .zs-player-section.visible { display: block; }
         @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -95,7 +65,6 @@
         .zs-start-overlay.zs-hidden { display: none; }
         .zs-start-play-btn { width: 80px; height: 80px; border-radius: 50%; background: var(--accent); color: #0a0a0f; font-size: 32px; border: none; cursor: pointer; transition: var(--transition); }
         .zs-start-play-btn:hover { transform: scale(1.1); box-shadow: 0 0 30px var(--accent-glow); }
-        
         .zs-controls { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); padding: 12px; display: flex; flex-direction: column; gap: 6px; }
         .zs-controls-row { display: flex; align-items: center; gap: 12px; }
         .zs-btn { background: none; border: none; color: #fff; cursor: pointer; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; transition: var(--transition); border-radius: 50%; }
@@ -111,7 +80,6 @@
         .zs-spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ===== الفئات الرئيسية ===== */
         .categories-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; width: 100%; margin-bottom: 24px; }
         .category-card { background: var(--surface); border-radius: 24px; padding: 24px 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; border: 1px solid var(--border); cursor: pointer; transition: all var(--transition); position: relative; }
         .category-card:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
@@ -123,7 +91,6 @@
         .cat-reels .icon-wrap { background: linear-gradient(135deg, #ff5722, #ff6f00); color: #fff; }
         .category-card .cat-title { font-weight: 700; font-size: 14px; color: var(--text); text-align: center; line-height: 1.3; }
 
-        /* ===== المباريات ===== */
         .zs-list-header { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 0 20px 0; justify-content: space-between; }
         .zs-list-header-left { display: flex; align-items: center; gap: 12px; }
         .zs-back-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 30px; padding: 8px 16px; color: var(--text); font-weight: 600; font-size: 14px; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 8px; }
@@ -161,7 +128,6 @@
         .zs-vs { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
         .zs-live-time-block { background: #e53935; padding: 6px 14px; border-radius: 12px; color: #fff; font-weight: 700; display: flex; align-items: center; gap: 6px; font-size: 15px; }
 
-        /* ===== الافلام و المسلسلات (شبكة) ===== */
         .zs-movies-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; width: 100%; padding: 10px 0; }
         .zs-movie-card { background: var(--surface); border-radius: 16px; border: 1px solid var(--border); overflow: hidden; cursor: pointer; transition: var(--transition); }
         .zs-movie-card:hover { transform: translateY(-4px) scale(1.03); border-color: var(--accent); }
@@ -173,63 +139,31 @@
         .zs-movie-title { font-size: 13px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 0.3s; }
         .zs-movie-card:hover .zs-movie-title { color: var(--accent); }
 
-        /* ===== فئات الأفلام والمسلسلات (أزرار العمود) ===== */
         .zs-category-pill-container { width: 100%; padding: 5px 0; display: flex; flex-direction: column; }
-        .zs-category-pill {
-            display: flex; align-items: center; gap: 16px;
-            background: var(--surface); border-radius: 30px;
-            padding: 10px 20px; margin-bottom: 12px; border: 1px solid var(--border);
-            cursor: pointer; transition: all var(--transition);
-        }
+        .zs-category-pill { display: flex; align-items: center; gap: 16px; background: var(--surface); border-radius: 30px; padding: 10px 20px; margin-bottom: 12px; border: 1px solid var(--border); cursor: pointer; transition: all var(--transition); }
         .zs-category-pill:hover { background: var(--surface-hover); transform: translateX(4px); border-color: var(--accent); }
         .zs-category-pill:active { transform: scale(0.98); }
-        .zs-category-pill-icon {
-            width: 40px; height: 40px; border-radius: 50%; background: rgba(0,0,0,0.3);
-            display: flex; align-items: center; justify-content: center; font-size: 20px;
-            border: 1px solid var(--border); flex-shrink: 0;
-        }
+        .zs-category-pill-icon { width: 40px; height: 40px; border-radius: 50%; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 20px; border: 1px solid var(--border); flex-shrink: 0; }
         .zs-category-pill-title { font-weight: 600; font-size: 15px; color: var(--text); flex: 1; }
         .zs-category-pill-count { color: var(--text-secondary); font-size: 12px; font-weight: 500; }
 
-        /* ===== [جديد] صفحة البحث المتقدم ===== */
-        .zs-search-view {
-            display: none; width: 100%; flex-direction: column;
-            animation: fadeSlideIn 0.3s ease forwards;
-        }
+        .zs-search-view { display: none; width: 100%; flex-direction: column; animation: fadeSlideIn 0.3s ease forwards; }
         .zs-search-view.visible { display: flex; }
-        .zs-search-header {
-            display: flex; align-items: center; width: 100%; margin-bottom: 20px; gap: 12px;
-        }
+        .zs-search-header { display: flex; align-items: center; width: 100%; margin-bottom: 20px; gap: 12px; }
         .zs-search-header .zs-back-btn { margin: 0; }
-        .zs-search-input-wrap {
-            flex: 1; display: flex; align-items: center; background: var(--surface-glass);
-            border: 1px solid var(--border); border-radius: 30px; padding: 6px 16px; 
-            transition: var(--transition);
-        }
+        .zs-search-input-wrap { flex: 1; display: flex; align-items: center; background: var(--surface-glass); border: 1px solid var(--border); border-radius: 30px; padding: 6px 16px; transition: var(--transition); }
         .zs-search-input-wrap:focus-within { border-color: var(--accent); }
         .zs-search-input-wrap svg { width: 20px; height: 20px; fill: var(--text-secondary); margin-right: 10px; }
-        .zs-search-input-wrap input {
-            flex: 1; background: transparent; border: none; color: var(--text); font-size: 15px; outline: none;
-        }
+        .zs-search-input-wrap input { flex: 1; background: transparent; border: none; color: var(--text); font-size: 15px; outline: none; }
 
-        .zs-search-filters {
-            display: flex; gap: 8px; width: 100%; margin-bottom: 12px; flex-wrap: wrap;
-        }
-        .zs-search-filter-btn {
-            padding: 6px 16px; border-radius: 30px; border: 1px solid var(--border); background: transparent;
-            color: var(--text-secondary); font-weight: 600; font-size: 13px; cursor: pointer; transition: var(--transition);
-        }
+        .zs-search-filters { display: flex; gap: 8px; width: 100%; margin-bottom: 12px; flex-wrap: wrap; }
+        .zs-search-filter-btn { padding: 6px 16px; border-radius: 30px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); font-weight: 600; font-size: 13px; cursor: pointer; transition: var(--transition); }
         .zs-search-filter-btn:hover { background: var(--surface-hover); }
         .zs-search-filter-btn.active { border-color: var(--accent); background: var(--accent); color: #0a0a0f; }
 
         .zs-search-results-count { width: 100%; color: var(--text-secondary); font-size: 14px; font-weight: 600; margin-bottom: 12px; }
-
         .zs-search-list { display: flex; flex-direction: column; gap: 12px; width: 100%; }
-        .zs-search-item {
-            display: flex; align-items: center; gap: 14px; padding: 12px 16px;
-            background: var(--surface); border-radius: 16px; border: 1px solid var(--border);
-            cursor: pointer; transition: all var(--transition);
-        }
+        .zs-search-item { display: flex; align-items: center; gap: 14px; padding: 12px 16px; background: var(--surface); border-radius: 16px; border: 1px solid var(--border); cursor: pointer; transition: all var(--transition); }
         .zs-search-item:hover { background: var(--surface-hover); transform: translateY(-2px); border-color: var(--accent); }
         .zs-search-item .zs-thumb { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; flex-shrink: 0; background: rgba(0,0,0,0.3); }
         .zs-search-item .zs-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
@@ -450,10 +384,16 @@
             // ==================== البيانات الأساسية ====================
             const WORKER_URL = 'https://dry-truth-a84e.idriss-zribi13.workers.dev/';
             const MATCHES_API_URL = WORKER_URL + '?url=' + encodeURIComponent('https://admin.golive-pro.online/api/public/events?tz=-4');
-            const MOVIE_CATEGORIES_URL = WORKER_URL + '?url=' + encodeURIComponent('https://admin.golive-pro.online/api/content/movies-categories');
-            const MOVIES_BASE_URL = 'https://admin.golive-pro.online/api/content/movies?limit=20&page=';
+            
+            // [إصلاح عاجل] تم تصحيح الرابط من movies-categories إلى movie-categories
+            const MOVIE_CATEGORIES_URL = WORKER_URL + '?url=' + encodeURIComponent('https://admin.golive-pro.online/api/content/movie-categories');
+            
+            // [إصلاح] دالة الأفلام تتطلب معرف الفئة (categoryId)
+            const MOVIES_BASE_URL = 'https://admin.golive-pro.online/api/content/movies?limit=20&categoryId=';
+            
             const SERIES_CATEGORIES_URL = WORKER_URL + '?url=' + encodeURIComponent('https://admin.golive-pro.online/api/content/series-categories');
-            const SERIES_BASE_URL = 'https://admin.golive-pro.online/api/content/series?limit=20&page=';
+            // [إصلاح] دالة المسلسلات تتطلب معرف الفئة (categoryId)
+            const SERIES_BASE_URL = 'https://admin.golive-pro.online/api/content/series?limit=20&categoryId=';
 
             const fallbackMatches = [
                 { id: 1, homeName: "Real Madrid", awayName: "Barcelona", leagueName: "La Liga", homeLogo: "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg", awayLogo: "https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg", url: "https://app.site2026.top/mobile/v9YsphvJOvxK2N1ibcDorQ/1786986686/1786986425/1/bein101.m3u8", startTime: new Date().toISOString() },
@@ -513,7 +453,6 @@
             const backSeriesListBtn = document.getElementById('backSeriesListBtn');
             const backReelsBtn = document.getElementById('backReelsBtn');
 
-            // عناصر البحث الجديد
             const toggleSearchBtn = document.getElementById('toggleSearchBtn');
             const searchView = document.getElementById('searchView');
             const closeSearchBtn = document.getElementById('closeSearchBtn');
@@ -778,7 +717,7 @@
                 isLoadingMovies = true;
 
                 try {
-                    const firstUrl = WORKER_URL + '?url=' + encodeURIComponent(MOVIES_BASE_URL + '1&categoryId=' + categoryId);
+                    const firstUrl = WORKER_URL + '?url=' + encodeURIComponent(MOVIES_BASE_URL + categoryId + '&page=1');
                     const firstResp = await fetch(firstUrl);
                     if (!firstResp.ok) throw new Error('Worker error');
                     const firstData = await firstResp.json();
@@ -798,7 +737,7 @@
                         if (totalPages > 1) {
                             for (let i = 2; i <= totalPages; i++) {
                                 try {
-                                    const url = WORKER_URL + '?url=' + encodeURIComponent(MOVIES_BASE_URL + i + '&categoryId=' + categoryId);
+                                    const url = WORKER_URL + '?url=' + encodeURIComponent(MOVIES_BASE_URL + categoryId + '&page=' + i);
                                     const res = await fetch(url);
                                     const data = await res.json();
                                     if (data.data && Array.isArray(data.data)) {
@@ -915,7 +854,7 @@
                 series = [];
 
                 try {
-                    const firstUrl = WORKER_URL + '?url=' + encodeURIComponent(SERIES_BASE_URL + '1&categoryId=' + categoryId);
+                    const firstUrl = WORKER_URL + '?url=' + encodeURIComponent(SERIES_BASE_URL + categoryId + '&page=1');
                     const firstResp = await fetch(firstUrl);
                     if (!firstResp.ok) throw new Error('Worker error');
                     const firstData = await firstResp.json();
@@ -935,7 +874,7 @@
                         if (totalPages > 1) {
                             for (let i = 2; i <= totalPages; i++) {
                                 try {
-                                    const url = WORKER_URL + '?url=' + encodeURIComponent(SERIES_BASE_URL + i + '&categoryId=' + categoryId);
+                                    const url = WORKER_URL + '?url=' + encodeURIComponent(SERIES_BASE_URL + categoryId + '&page=' + i);
                                     const res = await fetch(url);
                                     const data = await res.json();
                                     if (data.data && Array.isArray(data.data)) {
@@ -1001,11 +940,9 @@
                 });
             }
 
-            // ==================== [جديد] منطق البحث المتقدم ====================
+            // ==================== منطق البحث المتقدم ====================
             function openSearchView() {
-                // Close player if open
                 playerSection.classList.remove('visible');
-                // Hide everything else
                 homeView.style.display = 'none';
                 matchesView.style.display = 'none';
                 movieCategoriesView.style.display = 'none';
@@ -1037,7 +974,6 @@
                     return;
                 }
 
-                // جلب المباريات
                 const matchResults = channels.filter(ch => 
                     ch.name.toLowerCase().includes(query) || 
                     (ch.leagueName && ch.leagueName.toLowerCase().includes(query))
@@ -1051,7 +987,6 @@
                     rating: null
                 }));
 
-                // جلب الأفلام
                 const movieResults = movies.filter(m => m.title.toLowerCase().includes(query)).map(m => ({
                     type: 'movie',
                     id: m.id,
@@ -1062,7 +997,6 @@
                     rating: m.rating
                 }));
 
-                // جلب المسلسلات
                 const seriesResults = series.filter(s => s.title.toLowerCase().includes(query)).map(s => ({
                     type: 'series',
                     id: s.id,
@@ -1075,12 +1009,10 @@
 
                 let allResults = [...matchResults, ...movieResults, ...seriesResults];
 
-                // تطبيق الفلتر
                 if (activeSearchFilter === 'matches') allResults = allResults.filter(r => r.type === 'match');
                 else if (activeSearchFilter === 'movies') allResults = allResults.filter(r => r.type === 'movie');
                 else if (activeSearchFilter === 'series') allResults = allResults.filter(r => r.type === 'series');
 
-                // عرض العداد
                 searchResultsCount.textContent = allResults.length + ' results';
 
                 if (allResults.length === 0) {
@@ -1107,7 +1039,6 @@
                         if (url) {
                             currentId = id;
                             currentStreamUrl = url;
-                            // Close search and open player
                             searchView.classList.remove('visible');
                             playerSection.classList.add('visible');
                             currentView = 'player';
@@ -1118,10 +1049,8 @@
                 });
             }
 
-            // تشغيل البحث عند الكتابة
             searchInputGlobal.addEventListener('input', renderSearchResults);
 
-            // أزرار فلاتر البحث
             searchFilters.addEventListener('click', (e) => {
                 const btn = e.target.closest('.zs-search-filter-btn');
                 if (!btn) return;
@@ -1154,7 +1083,6 @@
                 loadSeriesFromAPI(categoryId);
             }
 
-            // أزرار الرجوع العادية
             backMatchesBtn.addEventListener('click', closePlayerAndGoHome);
             backMovieCatBtn.addEventListener('click', closePlayerAndGoHome);
             backMoviesBtn.addEventListener('click', () => {
@@ -1170,15 +1098,12 @@
             });
             backReelsBtn.addEventListener('click', closePlayerAndGoHome);
 
-            // زر بحث الهيدر وزر إغلاق البحث
             toggleSearchBtn.addEventListener('click', openSearchView);
             closeSearchBtn.addEventListener('click', closeSearchView);
 
             function renderContent() {
-                // إخفاء البحث أولاً
                 searchView.classList.remove('visible');
 
-                // إخفاء الكل
                 homeView.style.display = 'none';
                 matchesView.style.display = 'none';
                 movieCategoriesView.style.display = 'none';
@@ -1245,4 +1170,4 @@
         })();
     </script>
 </body>
-                        </html>
+                    </html>
