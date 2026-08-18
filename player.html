@@ -96,10 +96,8 @@
         .cat-reels .icon-wrap { background: linear-gradient(135deg, #ff5722, #ff6f00); color: #fff; }
         .category-card .cat-title { font-weight: 700; font-size: 14px; color: var(--text); text-align: center; }
 
-        /* ===== كرة القدم ===== */
+        /* ===== قسم كرة القدم ===== */
         #footballSection { width: 100%; margin-bottom: 20px; }
-        
-        /* شريط اختيار التاريخ */
         .football-date-bar { display: flex; align-items: center; gap: 8px; width: 100%; padding-bottom: 12px; overflow-x: auto; }
         .football-date-bar button { background: var(--surface-glass); border: 1px solid var(--border); border-radius: 25px; padding: 6px 12px; color: var(--text-secondary); font-weight: 600; font-size: 12px; cursor: pointer; transition: var(--transition); white-space: nowrap; }
         .football-date-bar button:hover { background: var(--surface-hover); border-color: var(--accent); }
@@ -112,6 +110,8 @@
         
         .football-league-block { background: var(--surface-glass); border-radius: var(--radius); border: 1px solid var(--border); padding: 12px; margin-bottom: 12px; }
         .football-league-title { font-size: 14px; font-weight: 700; color: var(--text-secondary); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .football-league-title img { width: 18px; height: 18px; border-radius: 50%; object-fit: contain; }
+        
         .football-match-row { background: var(--surface); border-radius: 12px; padding: 10px 14px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--border); cursor: pointer; transition: all var(--transition); }
         .football-match-row:hover { background: var(--surface-hover); border-color: var(--accent); transform: scale(1.01); }
         .football-match-row:last-child { margin-bottom: 0; }
@@ -150,7 +150,6 @@
         .circle.loss { background: #dc3545; }
         .circle.draw { background: #6c757d; }
 
-        /* ===== رؤوس الصفحات ===== */
         .zs-list-header { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 0 20px 0; justify-content: space-between; }
         .zs-list-header-left { display: flex; align-items: center; gap: 12px; }
         .zs-back-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 30px; padding: 8px 14px; color: var(--text); font-weight: 600; font-size: 13px; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 8px; }
@@ -210,6 +209,64 @@
             .football-match-row .team-name { max-width: 60px; font-size: 12px; }
             .football-match-time { font-size: 13px; padding: 2px 8px; margin: 0 4px; }
         }
+
+        /* ===== [جديد] تصميم المباريات داخل "Today's Matches" ===== */
+        .zs-channel-card {
+            display: flex; flex-direction: column; gap: 6px; padding: 14px 14px;
+            border-radius: 14px; background: var(--surface);
+            border: 1px solid var(--border);
+            cursor: pointer; transition: all var(--transition); position: relative;
+            margin-bottom: 12px;
+        }
+        .zs-channel-card:hover { background: var(--surface-hover); border-color: var(--accent); transform: translateY(-2px); }
+        .zs-channel-card.is-live { border-color: rgba(229,57,53,0.4); }
+        .zs-channel-card.is-live:hover { border-color: #e53935; }
+        
+        .zs-match-status-row {
+            display: flex; justify-content: center; align-items: center; gap: 6px;
+            font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 2px;
+        }
+        .zs-match-status-row.is-live { color: var(--live); }
+        
+        .zs-match-body {
+            display: flex; justify-content: space-between; align-items: center; gap: 8px;
+        }
+        .zs-team {
+            display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1;
+        }
+        .zs-logo {
+            width: 56px; height: 56px; border-radius: 50%; 
+            background: rgba(0,0,0,0.2); border: 2px solid var(--border);
+            display: flex; align-items: center; justify-content: center; overflow: hidden;
+        }
+        .zs-logo img { width: 100%; height: 100%; object-fit: contain; }
+        .zs-team-name {
+            font-size: 13px; font-weight: 700; color: var(--text); text-align: center; 
+            max-width: 90px; word-break: break-word; line-height: 1.2;
+        }
+        
+        .zs-match-center {
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 70px;
+        }
+        .zs-time-box {
+            background: rgba(0,0,0,0.3); padding: 6px 14px; border-radius: 12px;
+        }
+        .zs-time-box.live-time { background: var(--live); color: #fff; }
+        .zs-time-text { font-size: 16px; font-weight: 800; color: var(--text); }
+        .zs-time-box.live-time .zs-time-text { color: #fff; }
+        .zs-vs-text { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+        
+        .zs-match-footer {
+            display: flex; justify-content: center; align-items: center; gap: 6px;
+            margin-top: 6px; padding-top: 8px; border-top: 1px solid var(--border);
+            font-size: 13px; font-weight: 600; color: var(--text-secondary);
+        }
+        .zs-match-footer .zs-trophy-icon { font-size: 15px; }
+
+        /* تعديل رؤوس الأقسام */
+        .zs-section-header.live-section { background: rgba(229,57,53,0.15); border-color: rgba(229,57,53,0.3); color: #e53935; }
+        .zs-section-header.upcoming-section { background: rgba(33,150,243,0.15); border-color: rgba(33,150,243,0.3); color: #2196f3; }
+        .zs-section-header.ended-section { background: var(--surface-glass); border-color: var(--border); color: var(--text-secondary); }
     </style>
 </head>
 <body>
@@ -608,7 +665,7 @@
             btnRotate.addEventListener('click', () => { videoContainer.classList.toggle('rotated'); });
             document.getElementById('zsErrorRetry').addEventListener('click', () => { if (currentStreamUrl) loadStream(currentStreamUrl); });
 
-            // ==================== [جديد] كرة القدم ====================
+            // ==================== كرة القدم ====================
             let footballMatchCache = {};
 
             function formatDateForAPI(date) {
@@ -633,7 +690,6 @@
                     const data = await response.json();
 
                     if (data.status && data.data && data.data.length > 0) {
-                        // تخزين في الكاش
                         data.data.forEach(match => { footballMatchCache[match.match_id] = match; });
                         renderFootballMatches(data.data, date);
                         footballSection.style.display = 'block';
@@ -671,7 +727,6 @@
                     leagueMatches.forEach(m => {
                         const homeTitle = m.home_team.title;
                         const awayTitle = m.away_team.title;
-                        // استخدام حجم 180 للحصول على دقة أفضل للصورة
                         const homeImg = m.home_team.image ? 'https://imgs.ysscores.com/teams/180/' + m.home_team.image : '';
                         const awayImg = m.away_team.image ? 'https://imgs.ysscores.com/teams/180/' + m.away_team.image : '';
                         html += `
@@ -692,7 +747,6 @@
                 }
                 footballMatchesContainer.innerHTML = html;
 
-                // إضافة أحداث النقر لفتح التفاصيل
                 document.querySelectorAll('.football-match-row').forEach(row => {
                     row.addEventListener('click', () => {
                         const matchId = row.dataset.matchId;
@@ -700,7 +754,6 @@
                         if (match) {
                             showMatchDetail(match);
                         } else {
-                            // في حال عدم وجود الكاش، حاول فتحه فارغاً أو نطلب من الـ API
                             console.warn("Match not found in cache", matchId);
                         }
                     });
@@ -711,7 +764,6 @@
             function updateDateBar() {
                 const buttons = dateBar.querySelectorAll('button[data-offset]');
                 const dateStr = formatDateForAPI(currentFootballDate);
-                const todayStr = formatDateForAPI(new Date());
                 buttons.forEach(btn => {
                     const offset = parseInt(btn.dataset.offset);
                     const btnDate = new Date();
@@ -747,9 +799,8 @@
                 }
             });
 
-            // ==================== [جديد] تفاصيل المباراة ====================
+            // ==================== تفاصيل المباراة ====================
             function showMatchDetail(match) {
-                // إخفاء جميع الأقسام
                 homeView.style.display = 'none';
                 matchesView.style.display = 'none';
                 movieCategoriesView.style.display = 'none';
@@ -773,7 +824,6 @@
                 const dateObj = new Date(match.match_timestamp * 1000);
                 const dateLabel = dateObj.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                 
-                // استخراج البث والقنوات
                 let channelsHtml = '<div class="match-info-row"><span class="match-info-label">Channels & Commentators</span><span class="match-info-value">-</span></div>';
                 if (match.channel_commm && match.channel_commm.length > 0) {
                     channelsHtml = match.channel_commm.map(ch => `
@@ -784,8 +834,6 @@
                     `).join('');
                 }
 
-                // بيانات وهمية لآخر 5 مباريات (لأن الـ API لا يحتوي عليها)
-                // تطابق الصورة
                 const formHome = [
                     { res: 'W', color: 'win' },
                     { res: 'L', color: 'loss' },
@@ -858,7 +906,7 @@
                 renderContent();
             });
 
-            // ==================== المباريات العادية ====================
+            // ==================== [تحديث] المباريات العادية (تطابق الصورة) ====================
             function getStatus(startTime) {
                 const now = new Date();
                 const start = new Date(startTime);
@@ -866,6 +914,12 @@
                 if (now < start) return 'upcoming';
                 if (now >= start && now <= end) return 'live';
                 return 'ended';
+            }
+
+            function getLiveMinute(startTime) {
+                const now = new Date();
+                const start = new Date(startTime);
+                return Math.floor((now - start) / 60000);
             }
 
             function renderMatches() {
@@ -878,7 +932,7 @@
                 const upcomingMatches = channels.filter(ch => ch.startTime && getStatus(ch.startTime) === 'upcoming');
                 const endedMatches = channels.filter(ch => ch.startTime && getStatus(ch.startTime) === 'ended');
 
-                const buildCard = (ch) => {
+                const buildCard = (ch, status) => {
                     const homeName = ch.homeName || ch.name.split(' vs ')[0] || 'Home';
                     const awayName = ch.awayName || ch.name.split(' vs ')[1] || 'Away';
                     const leagueName = ch.leagueName || ch.category || 'Match';
@@ -886,55 +940,68 @@
                     const awayLogo = ch.awayLogo || '';
                     const startTime = ch.startTime ? new Date(ch.startTime) : null;
                     const timeStr = startTime ? startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) : '--:--';
-                    const status = ch.startTime ? getStatus(ch.startTime) : null;
+                    
                     const isLive = status === 'live';
+                    const liveMinute = isLive ? getLiveMinute(ch.startTime) : 0;
 
-                    let statusHTML = '', statusClass = '', liveMinute = 0;
-                    if (isLive) { statusHTML = '🔴 LIVE'; statusClass = 'live'; liveMinute = Math.floor((new Date() - new Date(ch.startTime)) / 60000); } 
-                    else if (status === 'ended') { statusHTML = '✅ ENDED'; statusClass = 'ended'; } 
-                    else if (status === 'upcoming') { statusHTML = '⏰ UPCOMING'; statusClass = 'upcoming'; }
+                    // تنسيق الحالة الداخلي
+                    let statusText = '';
+                    let statusIcon = '';
+                    let statusClassRow = '';
+                    if (isLive) {
+                        statusText = 'LIVE';
+                        statusIcon = '🔴';
+                        statusClassRow = 'is-live';
+                    } else if (status === 'ended') {
+                        statusText = 'FINISHED';
+                        statusIcon = '✅';
+                    } else if (status === 'upcoming') {
+                        statusText = 'UPCOMING';
+                        statusIcon = '⏰';
+                    }
 
                     return `
                         <div class="zs-channel-card ${currentId === ch.id ? 'zs-active' : ''} ${isLive ? 'is-live' : ''}" data-id="${ch.id}">
-                            <div class="zs-match-league"><span>${leagueName}</span><span>🏆</span></div>
+                            <div class="zs-match-status-row ${statusClassRow}">
+                                ${statusIcon} ${statusText} ${isLive ? `<span style="margin-left:4px; font-size:12px;">${liveMinute}'</span>` : ''}
+                            </div>
                             <div class="zs-match-body">
                                 <div class="zs-team">
                                     <div class="zs-logo"><img src="${homeLogo}" onerror="this.style.display='none'; this.parentNode.textContent='${homeName.charAt(0)}'"></div>
                                     <span class="zs-team-name">${homeName}</span>
                                 </div>
-                                <div class="zs-center-info">
-                                    ${isLive ? `
-                                        <div class="zs-status-center ${statusClass}">${statusHTML}</div>
-                                        <div class="zs-live-time-block"><span>${liveMinute}'</span></div>
-                                    ` : (status === 'upcoming' ? `
-                                        <div class="zs-status-center ${statusClass}">${statusHTML}</div>
-                                        <div class="zs-time-block"><span class="zs-time">${timeStr}</span><span class="zs-vs">VS</span></div>
-                                    ` : status === 'ended' ? `
-                                        <div class="zs-status-center ${statusClass}">${statusHTML}</div>
-                                        <div class="zs-time-block"><span class="zs-time">${timeStr}</span><span class="zs-vs">VS</span></div>
-                                    ` : `
-                                        <div class="zs-time-block"><span class="zs-time">${timeStr}</span><span class="zs-vs">VS</span></div>
-                                    `)}
+                                <div class="zs-match-center">
+                                    <div class="zs-time-box ${isLive ? 'live-time' : ''}">
+                                        <span class="zs-time-text">${timeStr}</span>
+                                    </div>
+                                    <div class="zs-vs-text">VS</div>
                                 </div>
                                 <div class="zs-team">
                                     <div class="zs-logo"><img src="${awayLogo}" onerror="this.style.display='none'; this.parentNode.textContent='${awayName.charAt(0)}'"></div>
                                     <span class="zs-team-name">${awayName}</span>
                                 </div>
                             </div>
+                            <div class="zs-match-footer">
+                                <span class="zs-trophy-icon">🏆</span> ${leagueName}
+                            </div>
                         </div>
                     `;
                 };
 
                 let html = '';
+                // 1. LIVE NOW
                 if (liveMatches.length > 0) {
-                    html += `<div class="zs-section-header live-section"><div class="zs-section-left"><span class="zs-status-dot live"></span> LIVE NOW</div><div class="zs-section-count live-count">${liveMatches.length}</div></div>${liveMatches.map(buildCard).join('')}`;
+                    html += `<div class="zs-section-header live-section"><div class="zs-section-left"><span class="zs-status-dot live"></span> LIVE NOW</div><div class="zs-section-count live-count">${liveMatches.length}</div></div>${liveMatches.map(ch => buildCard(ch, 'live')).join('')}`;
                 }
+                // 2. UPCOMING TODAY
                 if (upcomingMatches.length > 0) {
-                    html += `<div class="zs-section-header upcoming-section"><div class="zs-section-left"><span class="zs-status-dot upcoming"></span> UPCOMING TODAY</div><div class="zs-section-count upcoming-count">${upcomingMatches.length}</div></div>${upcomingMatches.map(buildCard).join('')}`;
+                    html += `<div class="zs-section-header upcoming-section"><div class="zs-section-left"><span class="zs-status-dot upcoming"></span> UPCOMING TODAY</div><div class="zs-section-count upcoming-count">${upcomingMatches.length}</div></div>${upcomingMatches.map(ch => buildCard(ch, 'upcoming')).join('')}`;
                 }
+                // 3. FINISHED (كما في الصورة)
                 if (endedMatches.length > 0) {
-                    html += `<div class="zs-section-header"><div class="zs-section-left"><span>📌 ENDED</span></div><div class="zs-section-count">${endedMatches.length}</div></div>${endedMatches.map(buildCard).join('')}`;
+                    html += `<div class="zs-section-header ended-section"><div class="zs-section-left">✅ FINISHED</div><div class="zs-section-count">${endedMatches.length}</div></div>${endedMatches.map(ch => buildCard(ch, 'ended')).join('')}`;
                 }
+
                 matchesContainer.innerHTML = html || '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No matches found</div>';
                 matchesContainer.querySelectorAll('.zs-channel-card').forEach(card => {
                     card.addEventListener('click', () => {
@@ -1423,15 +1490,15 @@
             // ==================== التهيئة الأساسية ====================
             function init() {
                 renderContent();
-                refreshFootballDate(0); // تحميل مباريات اليوم الحالي مباشرة
+                refreshFootballDate(0);
                 loadMatchesFromAPI();
                 loadMovieCategoriesFromAPI();
                 loadSeriesCategoriesFromAPI();
                 setInterval(loadMatchesFromAPI, 300000);
-                setInterval(() => refreshFootballDate(0), 600000); // تحديث كرة القدم كل 10 دقائق
+                setInterval(() => refreshFootballDate(0), 600000);
             }
             init();
         })();
     </script>
 </body>
-    </html>
+                                                                      </html>
