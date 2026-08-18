@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ar" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚽ تجربة المباريات المباشرة - API-Sports</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0d1117;
+            color: #f0f6fc;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        h1 .live-dot {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background: #f85149;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .status-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .status-bar .tab {
+            padding: 6px 16px;
+            border-radius: 20px;
+            background: #161b22;
+            border: 1px solid #30363d;
+            font-size: 13px;
+            font-weight: 600;
+            color: #8b949e;
+            cursor: default;
+        }
+        .status-bar .tab.active {
+            background: #58a6ff;
+            color: #0d1117;
+            border-color: #58a6ff;
+        }
+        .status-bar .tab.live-tab {
+            color: #f85149;
+            border-color: #f85149;
+        }
+        .match-card {
+            background: #161b22;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            border: 1px solid #30363d;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: 0.2s;
+        }
+        .match-card:hover {
+            background: #1c2128;
+            border-color: #58a6ff;
+        }
+        .match-info {
+            flex: 1;
+        }
+        .match-league {
+            font-size: 12px;
+            color: #8b949e;
+            margin-bottom: 4px;
+        }
+        .match-teams {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .team {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+            font-weight: 600;
+        }
+        .team img {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            object-fit: contain;
+            background: rgba(255,255,255,0.05);
+        }
+        .match-score {
+            font-size: 18px;
+            font-weight: 800;
+            color: #f0f6fc;
+            min-width: 40px;
+            text-align: center;
+        }
+        .match-status {
+            font-size: 13px;
+            font-weight: 700;
+            color: #f85149;
+            min-width: 50px;
+            text-align: right;
+        }
+        .match-status.ft {
+            color: #8b949e;
+        }
+        .match-status.ht {
+            color: #d29922;
+        }
+        .match-status.ns {
+            color: #58a6ff;
+        }
+        .no-matches {
+            text-align: center;
+            padding: 40px 20px;
+            color: #8b949e;
+            font-size: 16px;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
+            color: #8b949e;
+        }
+        .loading .spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid #30363d;
+            border-top-color: #58a6ff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 10px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .error-msg {
+            background: #1c2128;
+            border: 1px solid #f85149;
+            color: #f85149;
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #484f58;
+            border-top: 1px solid #21262d;
+            padding-top: 20px;
+        }
+        @media (max-width: 600px) {
+            .match-card {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .match-teams {
+                width: 100%;
+                justify-content: space-between;
+            }
+            .match-score {
+                order: 3;
+                width: 100%;
+                text-align: center;
+            }
+            .match-status {
+                order: 4;
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>
+            <span class="live-dot"></span>
+            LIVE · المباريات المباشرة
+        </h1>
+
+        <div class="status-bar">
+            <span class="tab active">🔥 Live</span>
+            <span class="tab">Today</span>
+            <span class="tab">Finished</span>
+            <span class="tab">Upcoming</span>
+        </div>
+
+        <div id="matchesContainer">
+            <div class="loading">
+                <div class="spinner"></div>
+                <div>جاري تحميل المباريات...</div>
+            </div>
+        </div>
+
+        <div class="footer">
+            البيانات مقدمة من <strong>API-Sports</strong> · التحديث التلقائي كل 30 ثانية
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // 🔑 ضع مفتاح API الخاص بك هنا
+            const API_KEY = 'e227ff90ed4eacc3eacb07eca05ce78b';
+
+            const container = document.getElementById('matchesContainer');
+            let refreshInterval = null;
+
+            // دالة لجلب المباريات المباشرة
+            async function fetchLiveMatches() {
+                try {
+                    const response = await fetch('https://v3.football.api-sports.io/fixtures?live=all', {
+                        method: 'GET',
+                        headers: {
+                            'x-apisports-key': API_KEY,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
+                    }
+
+                    const data = await response.json();
+
+                    if (data.errors && Object.keys(data.errors).length > 0) {
+                        throw new Error(JSON.stringify(data.errors));
+                    }
+
+                    renderMatches(data.response || []);
+                } catch (error) {
+                    console.error('❌ خطأ في جلب المباريات:', error);
+                    container.innerHTML = `
+                        <div class="error-msg">
+                            ⚠️ حدث خطأ أثناء جلب المباريات: ${error.message}
+                            <br><br>
+                            <button onclick="location.reload()" style="background:#58a6ff;border:none;color:#0d1117;padding:8px 20px;border-radius:8px;font-weight:700;cursor:pointer;">🔄 إعادة المحاولة</button>
+                        </div>
+                    `;
+                }
+            }
+
+            // دالة لعرض المباريات
+            function renderMatches(matches) {
+                if (!matches || matches.length === 0) {
+                    container.innerHTML = `
+                        <div class="no-matches">
+                            🏟️ لا توجد مباريات مباشرة حالياً
+                            <br><span style="font-size:13px;color:#484f58;">سيتم التحديث تلقائياً عند بدء أي مباراة</span>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = '';
+                matches.forEach((match, index) => {
+                    const homeTeam = match.teams?.home?.name || '???';
+                    const awayTeam = match.teams?.away?.name || '???';
+                    const homeLogo = match.teams?.home?.logo || '';
+                    const awayLogo = match.teams?.away?.logo || '';
+                    const homeScore = match.goals?.home !== null && match.goals?.home !== undefined ? match.goals.home : '-';
+                    const awayScore = match.goals?.away !== null && match.goals?.away !== undefined ? match.goals.away : '-';
+                    const leagueName = match.league?.name || 'Unknown League';
+                    const leagueFlag = match.league?.flag || '';
+                    const status = match.fixture?.status?.short || 'NS';
+                    const elapsed = match.fixture?.status?.elapsed || '';
+
+                    // تحديد لون الحالة
+                    let statusClass = 'ns';
+                    let statusText = status;
+                    if (status === 'FT' || status === 'AET' || status === 'PEN') {
+                        statusClass = 'ft';
+                        statusText = 'FT';
+                    } else if (status === 'HT') {
+                        statusClass = 'ht';
+                        statusText = 'HT';
+                    } else if (status === '1H' || status === '2H' || status === 'ET') {
+                        statusClass = 'live';
+                        statusText = `${elapsed || 'LIVE'}'`;
+                    } else {
+                        statusClass = 'ns';
+                        statusText = status;
+                    }
+
+                    html += `
+                        <div class="match-card">
+                            <div class="match-info">
+                                <div class="match-league">
+                                    ${leagueFlag ? `<img src="${leagueFlag}" style="width:16px;height:12px;vertical-align:middle;margin-right:4px;">` : ''}
+                                    ${leagueName}
+                                </div>
+                                <div class="match-teams">
+                                    <div class="team">
+                                        ${homeLogo ? `<img src="${homeLogo}" onerror="this.style.display='none'">` : ''}
+                                        ${homeTeam}
+                                    </div>
+                                    <div class="match-score">${homeScore} - ${awayScore}</div>
+                                    <div class="team">
+                                        ${awayLogo ? `<img src="${awayLogo}" onerror="this.style.display='none'">` : ''}
+                                        ${awayTeam}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="match-status ${statusClass}">${statusText}</div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+            }
+
+            // بدء التحميل والتحديث التلقائي
+            function startLiveUpdates() {
+                // تحميل فوري
+                fetchLiveMatches();
+
+                // تحديث كل 30 ثانية
+                if (refreshInterval) clearInterval(refreshInterval);
+                refreshInterval = setInterval(fetchLiveMatches, 30000);
+            }
+
+            // بدء التشغيل
+            startLiveUpdates();
+
+            // تنظيف عند إغلاق الصفحة
+            window.addEventListener('beforeunload', function() {
+                if (refreshInterval) clearInterval(refreshInterval);
+            });
+
+        })();
+    </script>
+</body>
+</html>
