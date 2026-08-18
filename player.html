@@ -96,30 +96,32 @@
         .cat-reels .icon-wrap { background: linear-gradient(135deg, #ff5722, #ff6f00); color: #fff; }
         .category-card .cat-title { font-weight: 700; font-size: 14px; color: var(--text); text-align: center; }
 
+        /* ===== [جديد] شريط التاريخ المحسن ===== */
+        .zs-date-navigator {
+            display: flex; justify-content: center; align-items: center;
+            width: 100%; padding: 10px 0 15px 0; gap: 12px;
+        }
+        .zs-date-navigator .nav-btn {
+            background: var(--surface-glass); border: 1px solid var(--border); border-radius: 30px;
+            width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
+            color: var(--text); cursor: pointer; transition: var(--transition); font-size: 16px; font-weight: 700;
+        }
+        .zs-date-navigator .nav-btn:hover { background: var(--surface-hover); border-color: var(--accent); transform: scale(1.05); }
+        .zs-date-navigator .nav-btn.active { background: var(--accent); border-color: var(--accent); color: #0a0a0f; }
+        
+        .zs-date-navigator .date-display {
+            min-width: 140px; text-align: center; font-size: 14px; font-weight: 600; color: var(--text);
+        }
+        .zs-date-navigator .date-display .date-icon { margin-right: 6px; font-size: 18px; }
+
         /* ===== قسم كرة القدم ===== */
         #footballSection { width: 100%; margin-bottom: 20px; }
-        .football-date-bar { display: flex; align-items: center; gap: 8px; width: 100%; padding-bottom: 12px; overflow-x: auto; }
-        .football-date-bar button { background: var(--surface-glass); border: 1px solid var(--border); border-radius: 25px; padding: 6px 12px; color: var(--text-secondary); font-weight: 600; font-size: 12px; cursor: pointer; transition: var(--transition); white-space: nowrap; }
-        .football-date-bar button:hover { background: var(--surface-hover); border-color: var(--accent); }
-        .football-date-bar button.active { background: var(--accent); border-color: var(--accent); color: #0a0a0f; }
-        .football-date-bar .arrow { background: transparent; border: none; padding: 0 8px; font-size: 16px; color: var(--text); }
-
-        .football-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
+        .football-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
         .football-header h2 { font-size: 18px; font-weight: 800; color: var(--text); }
         .football-header span { font-size: 13px; color: var(--text-secondary); }
         
         .football-league-block { background: var(--surface-glass); border-radius: var(--radius); border: 1px solid var(--border); padding: 12px; margin-bottom: 12px; }
         .football-league-title { font-size: 14px; font-weight: 700; color: var(--text-secondary); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
-        .football-league-title img { width: 18px; height: 18px; border-radius: 50%; object-fit: contain; }
-        
-        .football-match-row { background: var(--surface); border-radius: 12px; padding: 10px 14px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--border); cursor: pointer; transition: all var(--transition); }
-        .football-match-row:hover { background: var(--surface-hover); border-color: var(--accent); transform: scale(1.01); }
-        .football-match-row:last-child { margin-bottom: 0; }
-        .football-team { display: flex; align-items: center; gap: 8px; flex: 1; }
-        .football-team .team-logo { width: 28px; height: 28px; border-radius: 50%; background: rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
-        .football-team .team-logo img { width: 100%; height: 100%; object-fit: contain; }
-        .football-team .team-name { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px; }
-        .football-match-time { font-size: 15px; font-weight: 800; color: var(--text-secondary); background: rgba(0,0,0,0.15); padding: 4px 12px; border-radius: 8px; margin: 0 8px; }
 
         /* ===== تفاصيل المباراة ===== */
         .match-detail-view { display: none; width: 100%; flex-direction: column; animation: fadeSlideIn 0.3s ease forwards; }
@@ -150,6 +152,7 @@
         .circle.loss { background: #dc3545; }
         .circle.draw { background: #6c757d; }
 
+        /* ===== رؤوس الصفحات ===== */
         .zs-list-header { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 0 20px 0; justify-content: space-between; }
         .zs-list-header-left { display: flex; align-items: center; gap: 12px; }
         .zs-back-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 30px; padding: 8px 14px; color: var(--text); font-weight: 600; font-size: 13px; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 8px; }
@@ -206,67 +209,48 @@
             .categories-grid { gap: 12px; }
             .zs-header { padding: 12px 16px; }
             .zs-main { padding: 16px; }
-            .football-match-row .team-name { max-width: 60px; font-size: 12px; }
-            .football-match-time { font-size: 13px; padding: 2px 8px; margin: 0 4px; }
+            .zs-date-navigator .date-display { min-width: 100px; font-size: 12px; }
         }
 
-        /* ===== [جديد] تصميم المباريات داخل "Today's Matches" ===== */
-        .zs-channel-card {
-            display: flex; flex-direction: column; gap: 6px; padding: 14px 14px;
-            border-radius: 14px; background: var(--surface);
-            border: 1px solid var(--border);
-            cursor: pointer; transition: all var(--transition); position: relative;
-            margin-bottom: 12px;
-        }
+        /* ===== [تحديث] تصميم المباريات داخل "Today's Matches" ===== */
+        .zs-channel-card { display: flex; flex-direction: column; gap: 6px; padding: 14px 14px; border-radius: 14px; background: var(--surface); border: 1px solid var(--border); cursor: pointer; transition: all var(--transition); position: relative; margin-bottom: 12px; }
         .zs-channel-card:hover { background: var(--surface-hover); border-color: var(--accent); transform: translateY(-2px); }
         .zs-channel-card.is-live { border-color: rgba(229,57,53,0.4); }
         .zs-channel-card.is-live:hover { border-color: #e53935; }
         
-        .zs-match-status-row {
-            display: flex; justify-content: center; align-items: center; gap: 6px;
-            font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 2px;
-        }
+        .zs-match-status-row { display: flex; justify-content: center; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 2px; }
         .zs-match-status-row.is-live { color: var(--live); }
         
-        .zs-match-body {
-            display: flex; justify-content: space-between; align-items: center; gap: 8px;
-        }
-        .zs-team {
-            display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1;
-        }
-        .zs-logo {
-            width: 56px; height: 56px; border-radius: 50%; 
-            background: rgba(0,0,0,0.2); border: 2px solid var(--border);
-            display: flex; align-items: center; justify-content: center; overflow: hidden;
-        }
+        .zs-match-body { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+        .zs-team { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; }
+        .zs-logo { width: 56px; height: 56px; border-radius: 50%; background: rgba(0,0,0,0.2); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .zs-logo img { width: 100%; height: 100%; object-fit: contain; }
-        .zs-team-name {
-            font-size: 13px; font-weight: 700; color: var(--text); text-align: center; 
-            max-width: 90px; word-break: break-word; line-height: 1.2;
-        }
+        .zs-team-name { font-size: 13px; font-weight: 700; color: var(--text); text-align: center; max-width: 90px; word-break: break-word; line-height: 1.2; }
         
-        .zs-match-center {
-            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 70px;
-        }
-        .zs-time-box {
-            background: rgba(0,0,0,0.3); padding: 6px 14px; border-radius: 12px;
-        }
+        .zs-match-center { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 70px; }
+        .zs-time-box { background: rgba(0,0,0,0.3); padding: 6px 14px; border-radius: 12px; }
         .zs-time-box.live-time { background: var(--live); color: #fff; }
         .zs-time-text { font-size: 16px; font-weight: 800; color: var(--text); }
         .zs-time-box.live-time .zs-time-text { color: #fff; }
         .zs-vs-text { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
         
-        .zs-match-footer {
-            display: flex; justify-content: center; align-items: center; gap: 6px;
-            margin-top: 6px; padding-top: 8px; border-top: 1px solid var(--border);
-            font-size: 13px; font-weight: 600; color: var(--text-secondary);
-        }
+        .zs-match-footer { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 6px; padding-top: 8px; border-top: 1px solid var(--border); font-size: 13px; font-weight: 600; color: var(--text-secondary); }
         .zs-match-footer .zs-trophy-icon { font-size: 15px; }
 
-        /* تعديل رؤوس الأقسام */
+        /* ===== [تحديث] رؤوس الأقسام الموحدة ===== */
+        .zs-section-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-radius: 12px; margin-bottom: 10px; background: var(--surface-glass); border: 1px solid var(--border); }
+        .zs-section-left { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 13px; text-transform: uppercase; }
         .zs-section-header.live-section { background: rgba(229,57,53,0.15); border-color: rgba(229,57,53,0.3); color: #e53935; }
         .zs-section-header.upcoming-section { background: rgba(33,150,243,0.15); border-color: rgba(33,150,243,0.3); color: #2196f3; }
-        .zs-section-header.ended-section { background: var(--surface-glass); border-color: var(--border); color: var(--text-secondary); }
+        .zs-section-header.ended-section { color: var(--text-secondary); }
+
+        .zs-status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+        .zs-status-dot.live { background: #e53935; animation: pulse-dot 1.5s infinite; }
+        .zs-status-dot.upcoming { background: #2196f3; }
+        @keyframes pulse-dot { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        .zs-section-count { background: rgba(0,0,0,0.3); padding: 2px 12px; border-radius: 50px; font-size: 13px; font-weight: 700; color: var(--text); }
+        .zs-section-count.live-count { background: rgba(229,57,53,0.3); }
+        .zs-section-count.upcoming-count { background: rgba(33,150,243,0.3); }
     </style>
 </head>
 <body>
@@ -344,13 +328,16 @@
 
             <!-- قسم كرة القدم -->
             <div id="footballSection">
-                <div class="football-date-bar" id="dateBar">
-                    <button class="arrow" id="datePrev">‹</button>
-                    <button class="active" data-offset="0">Today</button>
-                    <button data-offset="1">Tomorrow</button>
-                    <button data-offset="2">After Tomorrow</button>
-                    <button class="arrow" id="dateNext">›</button>
+                <!-- [جديد] شريط التنقل بالتاريخ -->
+                <div class="zs-date-navigator" id="dateNavigator">
+                    <button class="nav-btn" id="datePrev">‹</button>
+                    <div class="date-display">
+                        <span class="date-icon">📅</span>
+                        <span id="currentDateLabel">Today</span>
+                    </div>
+                    <button class="nav-btn" id="dateNext">›</button>
                 </div>
+                
                 <div class="football-header">
                     <h2>⚽ Football</h2>
                     <span id="footballCount">Loading...</span>
@@ -549,7 +536,10 @@
             const matchDetailView = document.getElementById('matchDetailView');
             const matchDetailContainer = document.getElementById('matchDetailContainer');
             const closeMatchDetailBtn = document.getElementById('closeMatchDetailBtn');
-            const dateBar = document.getElementById('dateBar');
+            const dateNavigator = document.getElementById('dateNavigator');
+            const datePrev = document.getElementById('datePrev');
+            const dateNext = document.getElementById('dateNext');
+            const currentDateLabel = document.getElementById('currentDateLabel');
             
             const matchesContainer = document.getElementById('matchesListContainer');
             const movieCategoriesContainer = document.getElementById('movieCategoriesContainer');
@@ -673,7 +663,7 @@
             }
 
             function formatDateLabel(date) {
-                return date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
             }
 
             async function loadFootballMatches(date) {
@@ -753,51 +743,32 @@
                         const match = footballMatchCache[matchId];
                         if (match) {
                             showMatchDetail(match);
-                        } else {
-                            console.warn("Match not found in cache", matchId);
                         }
                     });
                 });
             }
 
-            // ==================== شريط التاريخ ====================
-            function updateDateBar() {
-                const buttons = dateBar.querySelectorAll('button[data-offset]');
-                const dateStr = formatDateForAPI(currentFootballDate);
-                buttons.forEach(btn => {
-                    const offset = parseInt(btn.dataset.offset);
-                    const btnDate = new Date();
-                    btnDate.setDate(btnDate.getDate() + offset);
-                    if (formatDateForAPI(btnDate) === dateStr) {
-                        btn.classList.add('active');
-                    } else {
-                        btn.classList.remove('active');
-                    }
-                });
+            // ==================== شريط التاريخ الجديد ====================
+            function updateDateNavigator() {
+                const dateLabel = formatDateLabel(currentFootballDate);
+                if (formatDateForAPI(currentFootballDate) === formatDateForAPI(new Date())) {
+                    currentDateLabel.textContent = 'Today';
+                } else {
+                    currentDateLabel.textContent = dateLabel;
+                }
             }
 
             function refreshFootballDate(offset = 0) {
                 currentFootballDate = new Date();
                 currentFootballDate.setDate(currentFootballDate.getDate() + offset);
-                updateDateBar();
+                updateDateNavigator();
                 loadFootballMatches(currentFootballDate);
             }
 
-            dateBar.addEventListener('click', (e) => {
-                const target = e.target.closest('button');
-                if (!target) return;
-                if (target.id === 'datePrev') {
-                    const currentOffset = [...dateBar.querySelectorAll('button[data-offset]')].find(b => b.classList.contains('active'));
-                    const off = currentOffset ? parseInt(currentOffset.dataset.offset) : 0;
-                    refreshFootballDate(off - 1);
-                } else if (target.id === 'dateNext') {
-                    const currentOffset = [...dateBar.querySelectorAll('button[data-offset]')].find(b => b.classList.contains('active'));
-                    const off = currentOffset ? parseInt(currentOffset.dataset.offset) : 0;
-                    refreshFootballDate(off + 1);
-                } else if (target.dataset.offset !== undefined) {
-                    refreshFootballDate(parseInt(target.dataset.offset));
-                }
-            });
+            datePrev.addEventListener('click', () => refreshFootballDate(-1));
+            dateNext.addEventListener('click', () => refreshFootballDate(1));
+            // الضغط على أيقونة التقويم للعودة لليوم
+            dateNavigator.querySelector('.date-display').addEventListener('click', () => refreshFootballDate(0));
 
             // ==================== تفاصيل المباراة ====================
             function showMatchDetail(match) {
@@ -906,7 +877,7 @@
                 renderContent();
             });
 
-            // ==================== [تحديث] المباريات العادية (تطابق الصورة) ====================
+            // ==================== المباريات العادية (Today's Matches) ====================
             function getStatus(startTime) {
                 const now = new Date();
                 const start = new Date(startTime);
@@ -944,7 +915,6 @@
                     const isLive = status === 'live';
                     const liveMinute = isLive ? getLiveMinute(ch.startTime) : 0;
 
-                    // تنسيق الحالة الداخلي
                     let statusText = '';
                     let statusIcon = '';
                     let statusClassRow = '';
@@ -989,15 +959,12 @@
                 };
 
                 let html = '';
-                // 1. LIVE NOW
                 if (liveMatches.length > 0) {
                     html += `<div class="zs-section-header live-section"><div class="zs-section-left"><span class="zs-status-dot live"></span> LIVE NOW</div><div class="zs-section-count live-count">${liveMatches.length}</div></div>${liveMatches.map(ch => buildCard(ch, 'live')).join('')}`;
                 }
-                // 2. UPCOMING TODAY
                 if (upcomingMatches.length > 0) {
                     html += `<div class="zs-section-header upcoming-section"><div class="zs-section-left"><span class="zs-status-dot upcoming"></span> UPCOMING TODAY</div><div class="zs-section-count upcoming-count">${upcomingMatches.length}</div></div>${upcomingMatches.map(ch => buildCard(ch, 'upcoming')).join('')}`;
                 }
-                // 3. FINISHED (كما في الصورة)
                 if (endedMatches.length > 0) {
                     html += `<div class="zs-section-header ended-section"><div class="zs-section-left">✅ FINISHED</div><div class="zs-section-count">${endedMatches.length}</div></div>${endedMatches.map(ch => buildCard(ch, 'ended')).join('')}`;
                 }
@@ -1501,4 +1468,4 @@
         })();
     </script>
 </body>
-                                                                      </html>
+    </html>
