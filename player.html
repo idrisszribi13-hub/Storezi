@@ -123,7 +123,6 @@
         .football-header h2 { font-size: 18px; font-weight: 800; color: var(--text); }
         .football-header span { font-size: 13px; color: var(--text-secondary); }
 
-        /* ===== شريط التنقل بالتاريخ ===== */
         .zs-date-navigator { display: flex; justify-content: center; align-items: center; width: 100%; padding: 10px 0 15px 0; gap: 12px; }
         .zs-date-navigator .nav-btn { background: var(--surface-glass); border: 1px solid var(--border); border-radius: 30px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; color: var(--text); cursor: pointer; transition: var(--transition); font-size: 14px; font-weight: 700; }
         .zs-date-navigator .nav-btn:hover { background: var(--surface-hover); border-color: var(--accent); transform: scale(1.05); }
@@ -144,7 +143,7 @@
         .football-match-center { display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 6px; flex-shrink: 0; }
         .football-match-time { font-size: 15px; font-weight: 800; color: var(--text-secondary); background: rgba(0,0,0,0.15); padding: 4px 12px; border-radius: 8px; }
 
-        /* ===== تفاصيل المباراة ===== */
+        /* ===== تفاصيل المباراة (مع علامات تبويب تفاعلية) ===== */
         .match-detail-view { display: none; width: 100%; flex-direction: column; animation: fadeSlideIn 0.3s ease forwards; }
         .match-detail-view.visible { display: flex; }
         .match-detail-header { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid var(--border); }
@@ -156,19 +155,41 @@
         .match-detail-center { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
         .match-detail-time { font-weight: 700; font-size: 16px; color: var(--text); }
         .match-detail-date { font-size: 13px; color: var(--text-secondary); }
+        
         .match-detail-tabs { display: flex; gap: 15px; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
-        .match-detail-tabs span { font-weight: 600; color: var(--text-secondary); cursor: pointer; }
+        .match-detail-tabs span { font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: var(--transition); }
+        .match-detail-tabs span:hover { color: var(--text); }
         .match-detail-tabs span.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
+
         .match-info-card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); padding: 16px; margin-bottom: 15px; }
         .match-info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
         .match-info-row:last-child { border-bottom: none; }
         .match-info-label { color: var(--text-secondary); }
         .match-info-value { font-weight: 600; color: var(--text); text-align: right; }
+
         .match-last-5 { display: flex; gap: 8px; margin-top: 10px; }
         .match-last-5 .circle { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px; color: #fff; }
         .circle.win { background: #28a745; }
         .circle.loss { background: #dc3545; }
         .circle.draw { background: #6c757d; }
+
+        /* ===== خطط (Lineups) و الترتيب (Standings) ===== */
+        .lineup-container { display: flex; flex-direction: column; gap: 15px; width: 100%; }
+        .lineup-team-block { background: var(--surface); border-radius: var(--radius-sm); border: 1px solid var(--border); padding: 12px; }
+        .lineup-team-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+        .lineup-players { display: flex; flex-wrap: wrap; gap: 6px; }
+        .lineup-player { display: flex; align-items: center; gap: 6px; background: var(--surface-glass); padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border); }
+        .lineup-player .player-img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
+        .lineup-player .player-number { font-weight: 700; font-size: 11px; color: var(--text-secondary); }
+        .lineup-player .player-name { font-size: 12px; font-weight: 600; color: var(--text); }
+        .lineup-player .player-pos { font-size: 10px; color: var(--accent); margin-left: 4px; }
+
+        .standings-container { width: 100%; overflow-x: auto; }
+        .standings-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .standings-table th { background: var(--surface-glass); padding: 8px 6px; text-align: left; color: var(--text-secondary); font-weight: 700; border-bottom: 1px solid var(--border); }
+        .standings-table td { padding: 8px 6px; border-bottom: 1px solid var(--border); color: var(--text); }
+        .standings-table .team-cell { display: flex; align-items: center; gap: 6px; }
+        .standings-table .team-logo-sm { width: 18px; height: 18px; border-radius: 50%; object-fit: contain; }
 
         /* ===== رؤوس الصفحات ===== */
         .zs-list-header { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 0 20px 0; justify-content: space-between; }
@@ -231,61 +252,29 @@
             .football-match-time { font-size: 13px; padding: 2px 8px; }
             .zs-date-navigator .date-display { min-width: 80px; font-size: 12px; }
             .zs-date-navigator .nav-btn { width: 30px; height: 30px; font-size: 12px; }
+            .standings-table { font-size: 10px; }
         }
 
-        /* ===== [إصلاح] تصميم بطاقات Today's Matches (منتظمة) ===== */
-        .zs-channel-card {
-            display: flex; flex-direction: column; gap: 6px; padding: 14px 14px;
-            border-radius: 14px; background: var(--surface);
-            border: 1px solid var(--border);
-            cursor: pointer; transition: all var(--transition); position: relative;
-            margin-bottom: 12px;
-        }
+        /* ===== بطاقات Today's Matches ===== */
+        .zs-channel-card { display: flex; flex-direction: column; gap: 6px; padding: 14px 14px; border-radius: 14px; background: var(--surface); border: 1px solid var(--border); cursor: pointer; transition: all var(--transition); position: relative; margin-bottom: 12px; }
         .zs-channel-card:hover { background: var(--surface-hover); border-color: var(--accent); transform: translateY(-2px); }
         .zs-channel-card.is-live { border-color: rgba(229,57,53,0.4); }
         .zs-channel-card.is-live:hover { border-color: #e53935; }
-        
-        .zs-match-status-row {
-            display: flex; justify-content: center; align-items: center; gap: 4px;
-            font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px;
-        }
+        .zs-match-status-row { display: flex; justify-content: center; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px; }
         .zs-match-status-row.is-live { color: var(--live); }
-        
-        .zs-match-body {
-            display: flex; justify-content: space-between; align-items: center; gap: 8px; width: 100%;
-        }
-        .zs-team {
-            display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1;
-        }
-        .zs-logo {
-            width: 50px; height: 50px; border-radius: 50%; 
-            background: rgba(0,0,0,0.2); border: 2px solid var(--border);
-            display: flex; align-items: center; justify-content: center; overflow: hidden;
-        }
+        .zs-match-body { display: flex; justify-content: space-between; align-items: center; gap: 8px; width: 100%; }
+        .zs-team { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; }
+        .zs-logo { width: 50px; height: 50px; border-radius: 50%; background: rgba(0,0,0,0.2); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .zs-logo img { width: 100%; height: 100%; object-fit: contain; }
-        .zs-team-name {
-            font-size: 12px; font-weight: 700; color: var(--text); text-align: center; 
-            max-width: 80px; word-break: break-word; line-height: 1.2;
-        }
-        
-        .zs-match-center {
-            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 60px;
-        }
-        .zs-time-box {
-            background: rgba(0,0,0,0.3); padding: 4px 12px; border-radius: 8px;
-        }
+        .zs-team-name { font-size: 12px; font-weight: 700; color: var(--text); text-align: center; max-width: 80px; word-break: break-word; line-height: 1.2; }
+        .zs-match-center { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 60px; }
+        .zs-time-box { background: rgba(0,0,0,0.3); padding: 4px 12px; border-radius: 8px; }
         .zs-time-box.live-time { background: var(--live); color: #fff; }
         .zs-time-text { font-size: 16px; font-weight: 800; color: var(--text); }
         .zs-time-box.live-time .zs-time-text { color: #fff; }
         .zs-vs-text { font-size: 11px; font-weight: 600; color: var(--text-secondary); }
-        
-        .zs-match-footer {
-            display: flex; justify-content: center; align-items: center; gap: 6px;
-            margin-top: 6px; padding-top: 8px; border-top: 1px solid var(--border);
-            font-size: 13px; font-weight: 600; color: var(--text-secondary);
-        }
+        .zs-match-footer { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 6px; padding-top: 8px; border-top: 1px solid var(--border); font-size: 13px; font-weight: 600; color: var(--text-secondary); }
         .zs-match-footer .zs-trophy-icon { font-size: 15px; }
-
         .zs-section-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-radius: 12px; margin-bottom: 10px; background: var(--surface-glass); border: 1px solid var(--border); }
         .zs-section-left { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 13px; text-transform: uppercase; }
         .zs-section-header.live-section { background: rgba(229,57,53,0.15); border-color: rgba(229,57,53,0.3); color: #e53935; }
@@ -318,6 +307,7 @@
         </header>
 
         <main class="zs-main">
+            <!-- المشغل -->
             <section class="zs-player-section" id="zsPlayerSection">
                 <div class="zs-player-wrapper" id="zsPlayerWrapper">
                     <div class="zs-video-container" id="zsVideoContainer">
@@ -347,6 +337,7 @@
                 </div>
             </section>
 
+            <!-- الشريط المتحرك -->
             <div class="zs-banner-container" id="bannerContainer">
                 <div class="zs-banner-slide">
                     <div class="zs-banner-text">
@@ -371,6 +362,7 @@
                 </div>
             </div>
 
+            <!-- قسم كرة القدم -->
             <div id="footballSection">
                 <div class="zs-date-navigator" id="dateNavigator">
                     <button class="nav-btn" id="datePrev">‹</button>
@@ -385,6 +377,7 @@
                 <div id="footballMatchesContainer"></div>
             </div>
 
+            <!-- التقويم -->
             <div class="modal-overlay" id="calendarModal">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -401,15 +394,18 @@
                 </div>
             </div>
 
+            <!-- تفاصيل المباراة -->
             <div class="match-detail-view" id="matchDetailView">
                 <div class="zs-list-header">
                     <div class="zs-list-header-left">
                         <button class="zs-back-btn" id="closeMatchDetailBtn">← Back</button>
                     </div>
                 </div>
+                <!-- نافذة التفاصيل (تتحكم فيها التبويبات) -->
                 <div id="matchDetailContainer"></div>
             </div>
 
+            <!-- الفئات الرئيسية -->
             <div class="categories-grid" id="homeView">
                 <div class="category-card cat-matches" data-target="matches">
                     <div class="icon-wrap">⚽</div>
@@ -429,6 +425,7 @@
                 </div>
             </div>
 
+            <!-- الأقسام الفرعية -->
             <div style="display:none; width:100%; flex-direction:column;" id="matchesView">
                 <div class="zs-list-header">
                     <div class="zs-list-header-left">
@@ -531,7 +528,11 @@
             const MOVIES_BASE_URL = 'https://admin.golive-pro.online/api/content/movies?limit=20&categoryId=';
             const SERIES_CATEGORIES_URL = WORKER_URL + '?url=' + encodeURIComponent('https://admin.golive-pro.online/api/content/series-categories');
             const SERIES_BASE_URL = 'https://admin.golive-pro.online/api/content/series?limit=20&categoryId=';
+            
+            // [جديد] روابط Ysscores
             const FOOTBALL_API_BASE = 'https://api-en.ysscores.com/api/matches/matches_date_get/';
+            const FOOTBALL_LINEUP_API = 'https://api-en.ysscores.com/api/matches/matches_lineup/';
+            const FOOTBALL_STANDINGS_API = 'https://api-en.ysscores.com/api/matches/cups_teams_standings/';
 
             const fallbackMatches = [
                 { id: 1, homeName: "Real Madrid", awayName: "Barcelona", leagueName: "La Liga", homeLogo: "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg", awayLogo: "https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg", url: "https://app.site2026.top/mobile/v9YsphvJOvxK2N1ibcDorQ/1786986686/1786986425/1/bein101.m3u8", startTime: new Date().toISOString() }
@@ -713,7 +714,7 @@
             btnRotate.addEventListener('click', () => { videoContainer.classList.toggle('rotated'); });
             document.getElementById('zsErrorRetry').addEventListener('click', () => { if (currentStreamUrl) loadStream(currentStreamUrl); });
 
-            // ==================== [تصحيح] كرة القدم ====================
+            // ==================== كرة القدم ====================
             let footballMatchCache = {};
 
             function formatDateForAPI(date) {
@@ -781,6 +782,7 @@
                     leagueMatches.forEach(m => {
                         const homeTitle = m.home_team.title;
                         const awayTitle = m.away_team.title;
+                        // [إصلاح الشعارات] استخدام مسار الصور من Ysscores بشكل صحيح
                         const homeImg = m.home_team.image ? 'https://imgs.ysscores.com/teams/180/' + m.home_team.image : '';
                         const awayImg = m.away_team.image ? 'https://imgs.ysscores.com/teams/180/' + m.away_team.image : '';
                         html += `
@@ -812,14 +814,13 @@
                 });
             }
 
-            // ==================== شريط التاريخ المتسلسل ====================
+            // ==================== شريط التاريخ ====================
             function updateDateNavigator() {
                 const dateLabel = formatDateLabel(currentFootballDate);
                 currentDateLabel.textContent = isToday(currentFootballDate) ? 'Today' : dateLabel;
             }
 
             function refreshFootballDate(offset = 0) {
-                // يتم إضافة الأيام بشكل متسلسل (19 -> 20 -> 21 -> 22...)
                 currentFootballDate = new Date();
                 currentFootballDate.setDate(currentFootballDate.getDate() + offset);
                 updateDateNavigator();
@@ -890,7 +891,6 @@
 
             function applyCalendarDate() {
                 closeCalendar();
-                // حساب إزاحة الأيام وتطبيقها
                 const diffDays = Math.floor((selectedCalDate - new Date()) / (1000 * 60 * 60 * 24));
                 refreshFootballDate(diffDays);
             }
@@ -899,7 +899,7 @@
                 if (e.target === calendarModal) closeCalendar();
             });
 
-            // ==================== تفاصيل المباراة ====================
+            // ==================== تفاصيل المباراة (جلب الـ Lineup والـ Standings) ====================
             function showMatchDetail(match) {
                 homeView.style.display = 'none'; matchesView.style.display = 'none';
                 movieCategoriesView.style.display = 'none'; movieDetailView.style.display = 'none';
@@ -907,7 +907,13 @@
                 reelsView.style.display = 'none'; bannerContainer.style.display = 'none';
                 footballSection.style.display = 'none';
                 matchDetailView.classList.add('visible');
+                
+                // جلب التفاصيل الأساسية أولاً
                 renderMatchDetail(match);
+                
+                // جلب التشكيلات (Lineups) والترتيب (Standings) من الروابط التي أرسلها المستخدم
+                loadMatchLineup(match.match_id);
+                loadMatchStandings(match.championship.url_id);
             }
 
             function renderMatchDetail(match) {
@@ -928,9 +934,6 @@
                     `).join('');
                 }
 
-                const formHome = [ { res: 'W', color: 'win' }, { res: 'L', color: 'loss' }, { res: 'L', color: 'loss' }, { res: 'W', color: 'win' }, { res: 'L', color: 'loss' } ];
-                const formAway = [ { res: 'W', color: 'win' }, { res: 'W', color: 'win' }, { res: 'D', color: 'draw' }, { res: 'L', color: 'loss' }, { res: 'W', color: 'win' } ];
-
                 matchDetailContainer.innerHTML = `
                     <div class="match-detail-header">
                         <div class="match-detail-teams">
@@ -948,27 +951,137 @@
                             </div>
                         </div>
                     </div>
-                    <div class="match-detail-tabs"><span class="active">Details</span><span>Lineups</span><span>Standings</span><span>Scorers</span></div>
-                    <div class="match-info-card">
-                        <div class="match-info-row"><span class="match-info-label">Competition</span><span class="match-info-value">${match.championship.title}</span></div>
-                        <div class="match-info-row"><span class="match-info-label">Round</span><span class="match-info-value">${match.round || '--'}</span></div>
-                        <div class="match-info-row"><span class="match-info-label">Stadium</span><span class="match-info-value">${match.Stadium || '--'}</span></div>
-                        ${channelsHtml}
-                        <div class="match-info-row"><span class="match-info-label">Time</span><span class="match-info-value">${timeStr}</span></div>
-                        <div class="match-info-row"><span class="match-info-label">Date</span><span class="match-info-value">${dateLabel}</span></div>
+                    <div class="match-detail-tabs" id="matchTabs">
+                        <span class="active" data-tab="details">Details</span>
+                        <span data-tab="lineups">Lineups</span>
+                        <span data-tab="standings">Standings</span>
+                        <span data-tab="scorers">Scorers</span>
                     </div>
-                    <div style="margin-top: 15px; font-size: 14px; font-weight: 700; color: var(--text-secondary);">Last 5 Matches for each team</div>
-                    <div class="match-info-card" style="margin-top: 10px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span style="font-weight:600; font-size:13px; color:var(--text); width:60px;">${homeTitle}</span>
-                            <div class="match-last-5">${formHome.map(f => `<div class="circle ${f.color}">${f.res}</div>`).join('')}</div>
+                    <div id="matchTabContent">
+                        <!-- نافذة Details الافتراضية -->
+                        <div id="tab-details" class="tab-content">
+                            <div class="match-info-card">
+                                <div class="match-info-row"><span class="match-info-label">Competition</span><span class="match-info-value">${match.championship.title}</span></div>
+                                <div class="match-info-row"><span class="match-info-label">Round</span><span class="match-info-value">${match.round || '--'}</span></div>
+                                <div class="match-info-row"><span class="match-info-label">Stadium</span><span class="match-info-value">${match.Stadium || '--'}</span></div>
+                                ${channelsHtml}
+                                <div class="match-info-row"><span class="match-info-label">Time</span><span class="match-info-value">${timeStr}</span></div>
+                                <div class="match-info-row"><span class="match-info-label">Date</span><span class="match-info-value">${dateLabel}</span></div>
+                            </div>
+                            <div style="margin-top: 15px; font-size: 14px; font-weight: 700; color: var(--text-secondary);">Last 5 Matches for each team</div>
+                            <div class="match-info-card" style="margin-top: 10px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <span style="font-weight:600; font-size:13px; color:var(--text); width:60px;">${homeTitle}</span>
+                                    <div class="match-last-5">${['W','L','L','W','L'].map(f => `<div class="circle ${f==='W'?'win':f==='L'?'loss':'draw'}">${f}</div>`).join('')}</div>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 10px; border-top: 1px solid var(--border); padding-top: 10px;">
+                                    <span style="font-weight:600; font-size:13px; color:var(--text); width:60px;">${awayTitle}</span>
+                                    <div class="match-last-5">${['W','W','D','L','W'].map(f => `<div class="circle ${f==='W'?'win':f==='L'?'loss':'draw'}">${f}</div>`).join('')}</div>
+                                </div>
+                            </div>
                         </div>
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 10px; border-top: 1px solid var(--border); padding-top: 10px;">
-                            <span style="font-weight:600; font-size:13px; color:var(--text); width:60px;">${awayTitle}</span>
-                            <div class="match-last-5">${formAway.map(f => `<div class="circle ${f.color}">${f.res}</div>`).join('')}</div>
-                        </div>
+                        <!-- نافذة التحميل للتبويبات الأخرى -->
+                        <div id="tab-lineups" class="tab-content" style="display:none;"><div id="lineupContainer" style="text-align:center;padding:20px;color:var(--text-secondary);">Loading lineups...</div></div>
+                        <div id="tab-standings" class="tab-content" style="display:none;"><div id="standingsContainer" style="text-align:center;padding:20px;color:var(--text-secondary);">Loading standings...</div></div>
+                        <div id="tab-scorers" class="tab-content" style="display:none;"><div style="text-align:center;padding:20px;color:var(--text-secondary);">Scorers data not available.</div></div>
                     </div>
                 `;
+
+                // تفعيل التبويبات
+                document.getElementById('matchTabs').addEventListener('click', function(e) {
+                    const tab = e.target.closest('span');
+                    if (!tab) return;
+                    this.querySelectorAll('span').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.querySelectorAll('#matchTabContent .tab-content').forEach(c => c.style.display = 'none');
+                    const targetId = 'tab-' + tab.dataset.tab;
+                    const targetEl = document.getElementById(targetId);
+                    if (targetEl) targetEl.style.display = 'block';
+                });
+            }
+
+            // [جديد] جلب التشكيلات من API Ysscores
+            async function loadMatchLineup(matchId) {
+                try {
+                    const url = FOOTBALL_LINEUP_API + matchId;
+                    const response = await fetch(WORKER_URL + '?url=' + encodeURIComponent(url));
+                    if (!response.ok) throw new Error('Lineup API error');
+                    const data = await response.json();
+                    renderLineup(data);
+                } catch (e) {
+                    console.warn('Failed to load lineup:', e);
+                    document.getElementById('lineupContainer').innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-secondary);">Lineups not available.</div>';
+                }
+            }
+
+            function renderLineup(data) {
+                const container = document.getElementById('lineupContainer');
+                if (!data.lineup || Object.keys(data.lineup).length === 0) {
+                    container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-secondary);">No lineup data found.</div>';
+                    return;
+                }
+
+                let html = '<div class="lineup-container">';
+                for (const [teamId, teamData] of Object.entries(data.lineup)) {
+                    const players = teamData.lineup || [];
+                    const teamName = data[teamId]?.team?.title || 'Team';
+                    html += `<div class="lineup-team-block"><div class="lineup-team-title">${teamName}</div><div class="lineup-players">`;
+                    players.forEach(p => {
+                        const imgSrc = p.player.image ? 'https://imgs.ysscores.com/players/60/' + p.player.image : '';
+                        html += `
+                            <div class="lineup-player">
+                                <img class="player-img" src="${imgSrc}" onerror="this.style.display='none'">
+                                <span class="player-number">${p.player.player_number || ''}</span>
+                                <span class="player-name">${p.player.title}</span>
+                                <span class="player-pos">${p.position || ''}</span>
+                            </div>
+                        `;
+                    });
+                    html += `</div></div>`;
+                }
+                html += '</div>';
+                container.innerHTML = html;
+            }
+
+            // [جديد] جلب الترتيب من API Ysscores
+            async function loadMatchStandings(leagueId) {
+                try {
+                    const url = FOOTBALL_STANDINGS_API + leagueId + '/L/60';
+                    const response = await fetch(WORKER_URL + '?url=' + encodeURIComponent(url));
+                    if (!response.ok) throw new Error('Standings API error');
+                    const data = await response.json();
+                    renderStandings(data);
+                } catch (e) {
+                    console.warn('Failed to load standings:', e);
+                    document.getElementById('standingsContainer').innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-secondary);">Standings not available.</div>';
+                }
+            }
+
+            function renderStandings(data) {
+                const container = document.getElementById('standingsContainer');
+                if (!data.data || !data.data.standings || !data.data.standings.groups) {
+                    container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-secondary);">No standings data found.</div>';
+                    return;
+                }
+
+                let html = '<div class="standings-container"><table class="standings-table"><thead><tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr></thead><tbody>';
+                // استخراج المجموعة الأولى (الأكثر شيوعاً)
+                const groups = data.data.standings.groups;
+                const firstGroupKey = Object.keys(groups)[0];
+                const standings = groups[firstGroupKey] || [];
+
+                standings.forEach((row, index) => {
+                    const team = row.team_name;
+                    const teamImg = team.image ? 'https://imgs.ysscores.com/teams/60/' + team.image : '';
+                    html += `<tr>
+                        <td>${index + 1}</td>
+                        <td><div class="team-cell"><img class="team-logo-sm" src="${teamImg}" onerror="this.style.display='none'"> ${team.title}</div></td>
+                        <td>${row.play}</td><td>${row.wins}</td><td>${row.draw}</td><td>${row.lose}</td>
+                        <td>${row.diff}</td><td><b>${row.points}</b></td>
+                    </tr>`;
+                });
+                html += '</tbody></table></div>';
+                container.innerHTML = html;
             }
 
             closeMatchDetailBtn.addEventListener('click', () => {
@@ -977,7 +1090,7 @@
                 renderContent();
             });
 
-            // ==================== [تصحيح] Today's Matches (بطاقات متسقة) ====================
+            // ==================== Today's Matches ====================
             function getStatus(startTime) {
                 const now = new Date();
                 const start = new Date(startTime);
@@ -1510,4 +1623,4 @@
         })();
     </script>
 </body>
-                        </html>
+    </html>
