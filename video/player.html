@@ -3,188 +3,246 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zi Store - Live Sports & Movies</title>
+    <title>Zi Store - App UI</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-    <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
     <style>
         :root {
-            --bg: #0a0a0f;
-            --surface: #12121a;
-            --surface-glass: rgba(18, 18, 26, 0.85);
-            --surface-hover: rgba(255,255,255,0.06);
-            --border: rgba(255,255,255,0.12);
-            --text: #f5f5f5;
-            --text-secondary: #b0b0b8;
-            --accent: #e4a83d;
-            --accent2: #c8842c;
-            --accent-glow: rgba(228,168,61,0.5);
-            --live: #e53935;
-            --live-glow: rgba(229,57,53,0.8);
-            --shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 0 1px var(--border);
-            --radius: 16px;
-            --radius-sm: 12px;
-            --transition: 0.3s cubic-bezier(0.4,0,0.2,1);
-            --font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            --header-bg: rgba(10,10,18,0.85);
+            --bg: #0d1117;
+            --surface: #161b22;
+            --surface-glass: rgba(22, 27, 34, 0.95);
+            --surface-hover: rgba(48, 54, 61, 0.8);
+            --border: rgba(255,255,255,0.08);
+            --text: #f0f6fc;
+            --text-secondary: #8b949e;
+            --accent: #58a6ff;
+            --accent-glow: rgba(88,166,255,0.3);
+            --live: #f85149;
+            --live-glow: rgba(248,81,73,0.6);
+            --shadow: 0 10px 40px rgba(0,0,0,0.6);
+            --radius: 20px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --font: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            --header-bg: rgba(13, 17, 23, 0.95);
         }
 
-        [data-theme="light"] { --bg: #f2f4f8; --surface: #ffffff; --surface-glass: rgba(255,255,255,0.9); --surface-hover: rgba(0,0,0,0.04); --border: rgba(0,0,0,0.1); --text: #1a1a2e; --text-secondary: #555555; --accent: #0284c7; --accent2: #0369a1; --accent-glow: rgba(2,132,199,0.4); --live: #dc2626; --live-glow: rgba(220,38,38,0.6); --shadow: 0 10px 30px rgba(0,0,0,0.08), 0 0 0 1px var(--border); --header-bg: rgba(255,255,255,0.9); }
-        [data-theme="legendary"] { --bg: #1a0f0a; --surface: #2d1f14; --surface-glass: rgba(45,31,20,0.9); --surface-hover: rgba(255,255,255,0.08); --border: rgba(255,215,0,0.35); --text: #ffd700; --text-secondary: #d4a574; --accent: #ff6b00; --accent2: #e05a00; --accent-glow: rgba(255,107,0,0.6); --live: #ff0000; --live-glow: rgba(255,0,0,0.8); --shadow: 0 25px 60px rgba(255,215,0,0.2), 0 0 0 1px var(--border); --header-bg: rgba(26,15,10,0.9); }
+        [data-theme="light"] { --bg: #f6f8fa; --surface: #ffffff; --surface-glass: rgba(255,255,255,0.95); --surface-hover: #f0f2f5; --border: rgba(0,0,0,0.08); --text: #161b22; --text-secondary: #57606a; --accent: #0969da; --accent-glow: rgba(9,105,218,0.2); --live: #cf222e; --live-glow: rgba(207,34,46,0.5); --shadow: 0 10px 30px rgba(0,0,0,0.1); --header-bg: rgba(255,255,255,0.95); }
+        [data-theme="legendary"] { --bg: #120f0a; --surface: #2a241d; --surface-glass: rgba(42,36,29,0.95); --surface-hover: #3d342a; --border: rgba(255,215,0,0.2); --text: #f5e6d3; --text-secondary: #b8a491; --accent: #ff6b00; --accent-glow: rgba(255,107,0,0.4); --live: #ff2e2e; --live-glow: rgba(255,46,46,0.6); --shadow: 0 15px 40px rgba(255,215,0,0.1); --header-bg: rgba(18,15,10,0.95); }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: var(--bg); font-family: var(--font); min-height: 100vh; color: var(--text); transition: background 0.4s, color 0.4s; overflow-x: hidden; }
+        body { background: var(--bg); font-family: var(--font); min-height: 100vh; color: var(--text); transition: background 0.4s; overflow-x: hidden; }
 
-        .zs-bg-effects { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
-        .zs-bg-effects span { position: absolute; border-radius: 50%; background: var(--accent); opacity: 0.05; animation: float 15s infinite ease-in-out; }
-        .zs-app { position: relative; z-index: 1; display: flex; flex-direction: column; min-height: 100vh; }
+        .zs-app { display: flex; flex-direction: column; min-height: 100vh; }
 
-        .zs-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 24px; background: var(--header-bg); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; flex-wrap: wrap; }
-        .zs-header-brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 22px; }
-        .zs-brand-icon { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 22px; color: #0a0a0f; box-shadow: 0 0 20px var(--accent-glow); animation: logo-pulse 3s infinite ease-in-out; }
-
-        .zs-theme-switch { display: flex; background: var(--surface-glass); padding: 4px; border-radius: 25px; border: 1px solid var(--border); backdrop-filter: blur(10px); gap: 4px; }
-        .zs-theme-btn { padding: 8px 16px; border-radius: 20px; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; font-size: 12px; font-weight: 600; font-family: var(--font); transition: all var(--transition); display: flex; align-items: center; gap: 5px; white-space: nowrap; }
-        .zs-theme-btn:hover { color: var(--text); background: rgba(255,255,255,0.05); }
-        .zs-theme-btn.zs-active { background: var(--accent); color: #0a0a0f; box-shadow: 0 0 15px var(--accent-glow); font-weight: 700; }
-
-        .zs-main { flex: 1; display: flex; flex-wrap: wrap; gap: 20px; padding: 20px; align-items: flex-start; }
-        .zs-player-section { flex: 1 1 100%; max-width: 100%; min-width: 0; }
-        @media (min-width: 1000px) { .zs-player-section { flex: 1 1 calc(100% - 480px); max-width: calc(100% - 480px); } }
-
-        .zs-channels-section { flex: 1 1 100%; background: var(--surface-glass); backdrop-filter: blur(20px); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; display: flex; flex-direction: column; min-height: 400px; max-height: 70vh; box-shadow: var(--shadow); }
-        @media (min-width: 1000px) { .zs-channels-section { flex: 0 0 460px; min-height: auto; max-height: calc(100vh - 140px); position: sticky; top: 90px; } }
-
-        .zs-channels-header { padding: 16px 18px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px; background: var(--surface-glass); }
-        .zs-channels-title { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: var(--accent); }
-        .zs-search-box { position: relative; }
-        .zs-search-box input { width: 100%; padding: 10px 36px 10px 14px; border-radius: 25px; border: 1px solid var(--border); background: var(--surface-hover); color: var(--text); font-size: 14px; outline: none; transition: all var(--transition); font-family: var(--font); }
-
-        .zs-category-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
-        .zs-category-tab { padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); cursor: pointer; font-size: 13px; font-family: var(--font); transition: all var(--transition); white-space: nowrap; }
-        .zs-category-tab.zs-active { background: var(--accent); color: #0a0a0f; border-color: var(--accent); font-weight: 700; }
-
-        .zs-channels-list { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 12px; }
-
-        .zs-channel-card { display: flex; flex-direction: column; gap: 8px; padding: 14px 14px; border-radius: 14px; background: var(--surface); border: 1px solid var(--border); cursor: pointer; transition: all var(--transition); position: relative; }
-        .zs-channel-card:hover { background: var(--surface-hover); border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
-        .zs-channel-card.zs-active { border-color: var(--accent); box-shadow: 0 0 20px var(--accent-glow); }
+        .zs-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: var(--header-bg); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
+        .zs-header-brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 20px; color: var(--text); letter-spacing: -0.5px; }
+        .zs-brand-icon { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), #ff6b00); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 18px; color: #0a0a0f; box-shadow: 0 0 15px var(--accent-glow); animation: logo-pulse 3s infinite; flex-shrink: 0; }
+        @keyframes logo-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
         
-        .zs-match-league { display: flex; justify-content: center; align-items: center; gap: 6px; background: var(--surface-hover); border-radius: 30px; padding: 4px 14px; font-size: 13px; font-weight: 700; color: var(--text-secondary); align-self: center; margin-bottom: 6px; border: 1px solid rgba(255,255,255,0.05); white-space: nowrap; }
-        .zs-trophy-icon { font-size: 14px; }
-        .zs-match-body { display: flex; justify-content: space-around; align-items: stretch; gap: 10px; }
-        .zs-team { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; justify-content: flex-start; padding-top: 4px; }
-        .zs-logo { width: 58px; height: 58px; border-radius: 50%; background: rgba(0,0,0,0.2); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; overflow: hidden; transition: border-color 0.3s; }
-        .zs-logo img { width: 100%; height: 100%; object-fit: contain; }
-        .zs-team-name { font-size: 13px; font-weight: 700; color: var(--text); text-align: center; max-width: 90px; word-break: break-word; line-height: 1.2; }
-        .zs-center-info { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-width: 80px; }
-        .zs-status-center { font-size: 12px; font-weight: 800; text-align: center; width: 100%; padding: 4px 10px; border-radius: 20px; min-height: 20px; background: rgba(0,0,0,0.2); backdrop-filter: blur(2px); }
-        .zs-status-center.ended { color: #9e9e9e; }
-        .zs-status-center.live { color: var(--live); text-shadow: 0 0 10px var(--live-glow); }
-        .zs-status-center.upcoming { color: var(--accent); }
-        .zs-time-block { display: flex; flex-direction: column; align-items: center; gap: 2px; background: rgba(0,0,0,0.3); padding: 6px 14px; border-radius: 12px; }
-        .zs-time { font-size: 16px; font-weight: 800; color: var(--text); }
-        .zs-vs { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+        .zs-theme-switch { display: flex; background: var(--surface-glass); padding: 3px; border-radius: 30px; border: 1px solid var(--border); gap: 3px; }
+        .zs-theme-btn { padding: 5px 12px; border-radius: 20px; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; font-weight: 600; font-size: 11px; transition: var(--transition); white-space: nowrap; }
+        .zs-theme-btn:hover { color: var(--text); background: var(--surface-hover); }
+        .zs-theme-btn.zs-active { background: var(--accent); color: #0a0a0f; box-shadow: 0 0 10px var(--accent-glow); }
+        .zs-header-actions { display: flex; align-items: center; gap: 10px; }
+        .zs-search-btn-main { background: var(--surface-glass); border: 1px solid var(--border); border-radius: 30px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); cursor: pointer; transition: var(--transition); font-size: 16px; }
+        .zs-search-btn-main:hover { background: var(--surface-hover); color: var(--accent); transform: scale(1.05); }
 
-        /* ===== قسم الأفلام ===== */
-        .zs-movies-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; padding: 5px 0; width: 100%; }
-        .zs-movie-card { background: var(--surface); border-radius: 10px; border: 1px solid var(--border); overflow: hidden; cursor: pointer; transition: all var(--transition); display: flex; flex-direction: column; position: relative; }
-        .zs-movie-card:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
-        .zs-movie-card.zs-active { border: 2px solid var(--accent); }
-        .zs-movie-poster-wrap { position: relative; width: 100%; aspect-ratio: 2/3; background: rgba(0,0,0,0.5); overflow: hidden; }
-        .zs-movie-poster { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
-        .zs-movie-card:hover .zs-movie-poster { transform: scale(1.08); }
-        .zs-movie-genre-badge { position: absolute; top: 8px; left: 8px; z-index: 2; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px); color: #fff; padding: 2px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; border: 1px solid rgba(255,255,255,0.2); }
-        .zs-movie-rating { position: absolute; top: 8px; right: 8px; z-index: 2; background: rgba(0,0,0,0.7); padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 700; color: var(--accent); }
-        .zs-movie-info { padding: 10px; display: flex; flex-direction: column; gap: 4px; flex: 1; background: var(--surface); }
-        .zs-movie-title { font-size: 13px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 0.3s; }
-        .zs-movie-card:hover .zs-movie-title { color: var(--accent); }
-        .zs-movie-meta { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-secondary); }
+        .zs-main { flex: 1; padding: 20px; display: flex; flex-direction: column; align-items: center; max-width: 1200px; margin: 0 auto; width: 100%; }
 
-        /* ===== المشغل ===== */
-        .zs-player-wrapper { position: relative; width: 100%; background: #000; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); aspect-ratio: 16/9; }
-        .zs-video-container { width: 100%; height: 100%; background: #000; position: relative; transition: transform 0.3s ease; }
+        .zs-player-section { display: none; width: 100%; max-width: 100%; margin-bottom: 20px; animation: fadeSlideIn 0.4s ease forwards; }
+        .zs-player-section.visible { display: block; }
+        @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        .zs-player-wrapper { position: relative; width: 100%; background: #000; border-radius: 20px; overflow: hidden; box-shadow: var(--shadow); aspect-ratio: 16/9; }
+        .zs-video-container { width: 100%; height: 100%; background: #000; }
         video { width: 100%; height: 100%; object-fit: contain; display: block; }
-        .zs-video-container.rotated { transform: rotate(90deg); aspect-ratio: 9/16; }
-        .zs-live-badge { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.7); color: #fff; padding: 8px 18px; border-radius: 24px; display: none; align-items: center; gap: 8px; font-weight: 700; }
+        .zs-live-badge { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.7); padding: 6px 16px; border-radius: 20px; display: none; font-weight: 700; font-size: 13px; }
         .zs-live-badge.zs-visible { display: flex; }
-        .zs-start-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.7); z-index: 10; }
+        .zs-start-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.5); z-index: 10; }
         .zs-start-overlay.zs-hidden { display: none; }
-        .zs-start-play-btn { width: 90px; height: 90px; border-radius: 50%; background: var(--accent); color: #0a0a0f; font-size: 36px; border: none; cursor: pointer; margin-bottom: 20px; transition: 0.3s; }
+        .zs-start-play-btn { width: 80px; height: 80px; border-radius: 50%; background: var(--accent); color: #0a0a0f; font-size: 32px; border: none; cursor: pointer; transition: var(--transition); }
         .zs-start-play-btn:hover { transform: scale(1.1); box-shadow: 0 0 30px var(--accent-glow); }
-        .zs-controls { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 60%, transparent 100%); padding: 12px 16px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
-        .zs-controls-row { display: flex; align-items: center; gap: 12px; width: 100%; }
-        .zs-btn { background: none; border: none; color: #fff; cursor: pointer; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; transition: all var(--transition); border-radius: 50%; }
+        .zs-controls { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+        .zs-controls-row { display: flex; align-items: center; gap: 10px; }
+        .zs-btn { background: none; border: none; color: #fff; cursor: pointer; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; transition: var(--transition); border-radius: 50%; }
         .zs-btn:hover { background: rgba(255,255,255,0.15); }
         .zs-btn svg { width: 20px; height: 20px; fill: currentColor; }
-        .zs-volume-wrapper { display: flex; align-items: center; gap: 6px; }
-        .zs-volume-slider { width: 60px; height: 4px; appearance: none; background: rgba(255,255,255,0.3); border-radius: 4px; outline: none; }
+        .zs-volume-slider { width: 50px; height: 4px; appearance: none; background: rgba(255,255,255,0.3); border-radius: 4px; }
         .zs-volume-slider::-webkit-slider-thumb { appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #fff; cursor: pointer; }
-        .zs-time-display { font-size: 13px; color: #ddd; min-width: 45px; }
-        .zs-progress-wrap { flex: 1; height: 5px; background: rgba(255,255,255,0.2); border-radius: 3px; cursor: pointer; position: relative; transition: height 0.2s; }
-        .zs-progress-wrap:hover { height: 8px; }
-        .zs-progress-filled { height: 100%; background: var(--accent); border-radius: 3px; width: 0%; transition: width 0.1s linear; }
+        .zs-time-display { font-size: 12px; color: #ddd; min-width: 40px; }
+        .zs-progress-wrap { flex: 1; height: 5px; background: rgba(255,255,255,0.2); border-radius: 3px; cursor: pointer; }
+        .zs-progress-filled { height: 100%; background: var(--accent); border-radius: 3px; width: 0%; }
         .zs-loading, .zs-error-overlay { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.5); z-index: 11; }
         .zs-loading.zs-visible, .zs-error-overlay.zs-visible { display: flex; }
         .zs-spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        .zs-watermark { position: absolute; top: 20px; left: 20px; z-index: 5; display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.5); backdrop-filter: blur(6px); padding: 8px 16px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.2); pointer-events: none; }
-        .zs-watermark-icon { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 18px; color: #0a0a0f; }
-        .zs-watermark-text { font-weight: 800; font-size: 18px; color: #fff; letter-spacing: 1px; }
+        .zs-banner-container { width: 100%; display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 12px; padding: 5px 0 20px 0; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
+        .zs-banner-slide { flex: 0 0 auto; width: 85%; max-width: 350px; min-height: 110px; background: linear-gradient(135deg, #124a37, #1b7a5e); border-radius: 16px; padding: 16px; display: flex; align-items: center; justify-content: space-between; scroll-snap-align: start; box-shadow: 0 4px 15px rgba(0,0,0,0.3); position: relative; overflow: hidden; }
+        .zs-banner-slide::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1), transparent 60%); }
+        .zs-banner-text { z-index: 2; flex: 1; }
+        .zs-banner-title { font-weight: 800; font-size: 18px; color: #fff; letter-spacing: -0.5px; margin-bottom: 4px; }
+        .zs-banner-sub { font-size: 12px; color: rgba(255,255,255,0.7); }
+        .zs-banner-btn { z-index: 2; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 6px 14px; border-radius: 30px; font-weight: 700; font-size: 12px; cursor: pointer; backdrop-filter: blur(10px); transition: var(--transition); white-space: nowrap; }
+        .zs-banner-btn:hover { background: #fff; color: #000; transform: scale(1.05); }
+
+        .categories-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; width: 100%; margin-bottom: 24px; }
+        .category-card { background: var(--surface); border-radius: 24px; padding: 20px 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; border: 1px solid var(--border); cursor: pointer; transition: all var(--transition); }
+        .category-card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0,0,0,0.4); border-color: var(--accent); }
+        .category-card:active { transform: scale(0.95); }
+        .category-card .icon-wrap { width: 54px; height: 54px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 26px; transition: var(--transition); }
+        .cat-matches .icon-wrap { background: linear-gradient(135deg, #00b4d8, #0077b6); color: #fff; }
+        .cat-movies .icon-wrap { background: linear-gradient(135deg, #7b2ffc, #4a00e0); color: #fff; }
+        .cat-series .icon-wrap { background: linear-gradient(135deg, #e91e63, #9c27b0); color: #fff; }
+        .cat-reels .icon-wrap { background: linear-gradient(135deg, #ff5722, #ff6f00); color: #fff; }
+        .category-card .cat-title { font-weight: 700; font-size: 14px; color: var(--text); text-align: center; }
+
+        /* ===== كرة القدم (تصميم جديد ومحسن) ===== */
+        #footballSection { width: 100%; margin-bottom: 20px; }
+        .football-date-bar { display: flex; align-items: center; gap: 8px; width: 100%; padding-bottom: 12px; overflow-x: auto; }
+        .football-date-bar button { background: var(--surface-glass); border: 1px solid var(--border); border-radius: 25px; padding: 6px 12px; color: var(--text-secondary); font-weight: 600; font-size: 12px; cursor: pointer; transition: var(--transition); white-space: nowrap; }
+        .football-date-bar button:hover { background: var(--surface-hover); border-color: var(--accent); }
+        .football-date-bar button.active { background: var(--accent); border-color: var(--accent); color: #0a0a0f; }
+        .football-date-bar .arrow { background: transparent; border: none; padding: 0 8px; font-size: 16px; color: var(--text); }
+
+        .football-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
+        .football-header h2 { font-size: 18px; font-weight: 800; color: var(--text); }
+        .football-header span { font-size: 13px; color: var(--text-secondary); }
+        
+        .football-league-block { background: var(--surface-glass); border-radius: var(--radius); border: 1px solid var(--border); padding: 12px; margin-bottom: 12px; }
+        .football-league-title { font-size: 14px; font-weight: 700; color: var(--text-secondary); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .football-league-title img { width: 18px; height: 18px; border-radius: 50%; object-fit: contain; }
+        
+        .football-match-row { background: var(--surface); border-radius: 12px; padding: 10px 14px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--border); cursor: pointer; transition: all var(--transition); }
+        .football-match-row:hover { background: var(--surface-hover); border-color: var(--accent); transform: scale(1.01); }
+        .football-match-row:last-child { margin-bottom: 0; }
+        .football-team { display: flex; align-items: center; gap: 8px; flex: 1; }
+        .football-team .team-logo { width: 28px; height: 28px; border-radius: 50%; background: rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+        .football-team .team-logo img { width: 100%; height: 100%; object-fit: contain; }
+        .football-team .team-name { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px; }
+        .football-match-time { font-size: 15px; font-weight: 800; color: var(--text-secondary); background: rgba(0,0,0,0.15); padding: 4px 12px; border-radius: 8px; margin: 0 8px; }
+
+        /* ===== تفاصيل المباراة ===== */
+        .match-detail-view { display: none; width: 100%; flex-direction: column; animation: fadeSlideIn 0.3s ease forwards; }
+        .match-detail-view.visible { display: flex; }
+        .match-detail-header { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid var(--border); }
+        .match-detail-teams { display: flex; align-items: center; justify-content: center; flex: 2; gap: 15px; }
+        .match-detail-team { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .match-detail-team .logo { width: 50px; height: 50px; border-radius: 50%; background: rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; }
+        .match-detail-team .logo img { width: 100%; height: 100%; object-fit: contain; }
+        .match-detail-team .name { font-weight: 700; font-size: 16px; text-align: center; }
+        .match-detail-center { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
+        .match-detail-time { font-weight: 700; font-size: 16px; color: var(--text); }
+        .match-detail-date { font-size: 13px; color: var(--text-secondary); }
+        
+        .match-detail-tabs { display: flex; gap: 15px; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        .match-detail-tabs span { font-weight: 600; color: var(--text-secondary); cursor: pointer; }
+        .match-detail-tabs span.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
+
+        .match-info-card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); padding: 16px; margin-bottom: 15px; }
+        .match-info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+        .match-info-row:last-child { border-bottom: none; }
+        .match-info-label { color: var(--text-secondary); }
+        .match-info-value { font-weight: 600; color: var(--text); text-align: right; }
+
+        .match-last-5 { display: flex; gap: 8px; margin-top: 10px; }
+        .match-last-5 .circle { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px; color: #fff; }
+        .circle.win { background: #28a745; }
+        .circle.loss { background: #dc3545; }
+        .circle.draw { background: #6c757d; }
+
+        .zs-list-header { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 0 20px 0; justify-content: space-between; }
+        .zs-list-header-left { display: flex; align-items: center; gap: 12px; }
+        .zs-back-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 30px; padding: 8px 14px; color: var(--text); font-weight: 600; font-size: 13px; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 8px; }
+        .zs-back-btn:hover { background: var(--surface-hover); transform: translateX(-3px); }
+        .zs-list-title { font-size: 18px; font-weight: 800; }
+        .zs-section-search-btn { background: var(--surface-glass); border: 1px solid var(--border); border-radius: 30px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); cursor: pointer; transition: var(--transition); font-size: 16px; }
+        .zs-section-search-btn:hover { background: var(--surface-hover); color: var(--accent); transform: scale(1.05); }
+
+        .zs-genre-filters { display: flex; gap: 8px; flex-wrap: wrap; width: 100%; margin-bottom: 15px; }
+        .zs-genre-pill { padding: 6px 16px; border-radius: 30px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); font-weight: 600; font-size: 12px; cursor: pointer; transition: all var(--transition); }
+        .zs-genre-pill:hover { background: var(--surface-hover); color: var(--text); }
+        .zs-genre-pill.active { border-color: var(--accent); background: var(--accent); color: #0a0a0f; }
+
+        .zs-movies-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; width: 100%; padding: 10px 0; }
+        .zs-movie-card { background: var(--surface); border-radius: 16px; border: 1px solid var(--border); overflow: hidden; cursor: pointer; transition: var(--transition); }
+        .zs-movie-card:hover { transform: translateY(-4px); border-color: var(--accent); }
+        .zs-movie-card:active { transform: scale(0.95); }
+        .zs-movie-poster-wrap { position: relative; width: 100%; aspect-ratio: 2/3; background: rgba(0,0,0,0.5); }
+        .zs-movie-poster { width: 100%; height: 100%; object-fit: cover; }
+        .zs-movie-rating { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.6); padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; color: var(--accent); }
+        .zs-movie-info { padding: 10px; }
+        .zs-movie-title { font-size: 12px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .zs-category-pill-container { width: 100%; padding: 5px 0; display: flex; flex-direction: column; }
+        .zs-category-pill { display: flex; align-items: center; gap: 14px; background: var(--surface); border-radius: 30px; padding: 10px 18px; margin-bottom: 12px; border: 1px solid var(--border); cursor: pointer; transition: all var(--transition); }
+        .zs-category-pill:hover { background: var(--surface-hover); transform: translateX(4px); border-color: var(--accent); }
+        .zs-category-pill:active { transform: scale(0.98); }
+        .zs-category-pill-icon { width: 38px; height: 38px; border-radius: 50%; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 18px; border: 1px solid var(--border); flex-shrink: 0; }
+        .zs-category-pill-title { font-weight: 600; font-size: 14px; color: var(--text); flex: 1; }
+        .zs-category-pill-count { color: var(--text-secondary); font-size: 11px; font-weight: 500; }
+
+        .zs-search-section-view { display: none; width: 100%; flex-direction: column; animation: fadeSlideIn 0.3s ease forwards; height: 100%; min-height: 50vh; }
+        .zs-search-section-view.visible { display: flex; }
+        .zs-search-section-header { display: flex; align-items: center; width: 100%; margin-bottom: 20px; gap: 12px; }
+        .zs-search-section-input-wrap { flex: 1; display: flex; align-items: center; background: var(--surface-glass); border: 1px solid var(--border); border-radius: 30px; padding: 6px 16px; transition: var(--transition); }
+        .zs-search-section-input-wrap:focus-within { border-color: var(--accent); }
+        .zs-search-section-input-wrap input { flex: 1; background: transparent; border: none; color: var(--text); font-size: 14px; outline: none; width: 100%; }
+        .zs-search-empty-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-secondary); text-align: center; }
+        .zs-search-empty-state svg { width: 60px; height: 60px; fill: var(--text-secondary); opacity: 0.5; margin-bottom: 15px; }
+        .zs-search-empty-state h3 { font-size: 16px; font-weight: 600; color: var(--text); }
+        .zs-search-section-results { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+        .zs-search-section-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--surface); border-radius: 14px; border: 1px solid var(--border); cursor: pointer; transition: all var(--transition); }
+        .zs-search-section-item:hover { background: var(--surface-hover); border-color: var(--accent); }
+        .zs-search-section-item .zs-thumb { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; flex-shrink: 0; background: rgba(0,0,0,0.3); }
+        .zs-search-section-item .zs-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+        .zs-search-section-item .zs-title { font-weight: 700; font-size: 14px; color: var(--text); line-height: 1.2; }
+        .zs-search-section-item .zs-desc { font-size: 12px; color: var(--text-secondary); }
+        .zs-search-section-item .zs-stars { display: flex; align-items: center; gap: 4px; color: var(--accent); font-weight: 600; font-size: 12px; }
+
+        .zs-footer { width: 100%; text-align: center; padding: 20px 10px; margin-top: auto; border-top: 1px solid var(--border); color: var(--text-secondary); font-size: 12px; font-weight: 500; }
+        .zs-footer span { color: var(--accent); }
 
         @media (max-width: 600px) {
-            .zs-header { padding: 12px; flex-direction: column; gap: 10px; }
-            .zs-main { padding: 10px; gap: 10px; }
-            .zs-movies-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
-            .zs-movie-title { font-size: 11px; }
-            .zs-movie-rating, .zs-movie-genre-badge { font-size: 10px; top: 5px; }
-            .zs-team-name { max-width: 70px; font-size: 12px; }
-            .zs-logo { width: 50px; height: 50px; }
-            .zs-time-block { padding: 4px 10px; }
-            .zs-time { font-size: 14px; }
-            .zs-status-center { font-size: 11px; }
+            .categories-grid { gap: 12px; }
+            .zs-header { padding: 12px 16px; }
+            .zs-main { padding: 16px; }
+            .football-match-row .team-name { max-width: 60px; font-size: 12px; }
+            .football-match-time { font-size: 13px; padding: 2px 8px; margin: 0 4px; }
         }
     </style>
 </head>
 <body>
-    <div class="zs-bg-effects"><span></span><span></span><span></span></div>
     <div class="zs-app">
-        <header class="zs-header">
+        <header class="zs-header" id="mainHeader">
             <div class="zs-header-brand">
                 <div class="zs-brand-icon">Z</div>
                 <span>Zi Store</span>
             </div>
-            <div class="zs-theme-switch" id="themeSwitch">
-                <button class="zs-theme-btn zs-active" data-theme="dark">🌙 Dark</button>
-                <button class="zs-theme-btn" data-theme="light">☀️ Light</button>
-                <button class="zs-theme-btn" data-theme="legendary">👑 Legendary</button>
+            <div class="zs-header-actions">
+                <button class="zs-search-btn-main" id="toggleSearchBtnMain">🔍</button>
+                <div class="zs-theme-switch" id="themeSwitch">
+                    <button class="zs-theme-btn zs-active" data-theme="dark">🌙 Dark</button>
+                    <button class="zs-theme-btn" data-theme="light">☀️ Light</button>
+                    <button class="zs-theme-btn" data-theme="legendary">👑 Legendary</button>
+                </div>
             </div>
         </header>
 
         <main class="zs-main">
-            <section class="zs-player-section">
+            <!-- المشغل -->
+            <section class="zs-player-section" id="zsPlayerSection">
                 <div class="zs-player-wrapper" id="zsPlayerWrapper">
                     <div class="zs-video-container" id="zsVideoContainer">
-                        <video id="zsVideo" playsinline crossorigin="anonymous"></video>
-                        <div class="zs-watermark">
-                            <div class="zs-watermark-icon">Z</div>
-                            <span class="zs-watermark-text">ZI STORE</span>
-                        </div>
+                        <video id="zsVideo" playsinline></video>
                         <div class="zs-live-badge" id="zsLiveBadge"><span>🔴</span> LIVE</div>
                         <div class="zs-loading" id="zsLoading"><div class="zs-spinner"></div></div>
                         <div class="zs-error-overlay" id="zsErrorOverlay">
-                            <div style="text-align:center;line-height:1.8;">
-                                ⚠️ تعذر تشغيل الفيديو.<br>
-                                <span style="font-size:14px;color:#bbb;">
-                                    الموقع يستخدم HTTPS، ومصدر الفيديو HTTP.<br>
-                                    <b>الحل:</b> استخدم متصفح Firefox أو فعّل "السماح بالمحتوى غير الآمن" في إعدادات كروم.
-                                </span>
-                            </div>
-                            <button id="zsErrorRetry" class="zs-btn" style="margin-top:15px;background:var(--accent);color:#000;border-radius:5px;padding:8px 20px;width:auto;height:auto;">حاول مرة أخرى</button>
+                            <div style="text-align:center;line-height:1.8;">⚠️ Unable to play stream.<br><span style="font-size:12px;color:#bbb;">If you're on mobile, try opening this site in <b>Firefox browser</b>.</span></div>
+                            <button id="zsErrorRetry" class="zs-btn" style="margin-top:10px;background:var(--accent);color:#000;border-radius:5px;padding:6px 16px;width:auto;height:auto;">Retry</button>
                         </div>
                         <div class="zs-start-overlay" id="zsStartOverlay">
                             <button class="zs-start-play-btn" id="zsStartPlayBtn">▶</button>
-                            <div style="color:var(--text-secondary);">اختر مباراة أو فيلماً للبدء</div>
+                            <div style="color:var(--text-secondary); font-size:13px;">Select a match, movie or series</div>
                         </div>
                     </div>
                     <div class="zs-controls" id="zsControls">
@@ -196,64 +254,215 @@
                             <button class="zs-btn" id="zsBtnRotate"><svg viewBox="0 0 24 24"><path d="M15.55 5.55L11 1v3.07C7.06 4.56 4 7.92 4 12s3.06 7.44 7 7.93v-2.02c-2.84-.48-5-2.94-5-5.91s2.16-5.43 5-5.91V10l4.55-4.45z"/></svg></button>
                             <button class="zs-btn" id="zsBtnFullscreen"><svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg></button>
                         </div>
-                        <div class="zs-controls-row">
-                            <div class="zs-progress-wrap" id="zsProgressWrap"><div class="zs-progress-filled" id="zsProgressFilled"></div></div>
-                        </div>
+                        <div class="zs-controls-row"><div class="zs-progress-wrap" id="zsProgressWrap"><div class="zs-progress-filled" id="zsProgressFilled"></div></div></div>
                     </div>
                 </div>
             </section>
 
-            <aside class="zs-channels-section">
-                <div class="zs-channels-header">
-                    <div class="zs-channels-title">📡 Matches & Channels</div>
-                    <div class="zs-search-box"><input type="text" id="zsSearchInput" placeholder="Search..."></div>
-                    <!-- [جديد] أضفنا زر BeIN Sports -->
-                    <div class="zs-category-tabs" id="zsCategoryTabs">
-                        <button class="zs-category-tab zs-active" data-category="all">All</button>
-                        <button class="zs-category-tab" data-category="Live">🔴 Live</button>
-                        <button class="zs-category-tab" data-category="Sports">Sports</button>
-                        <button class="zs-category-tab" data-category="Movies">🎬 Movies</button>
-                        <button class="zs-category-tab" data-category="Ostora">📡 BeIN Sports</button>
+            <!-- الشريط المتحرك -->
+            <div class="zs-banner-container" id="bannerContainer">
+                <div class="zs-banner-slide">
+                    <div class="zs-banner-text">
+                        <div class="zs-banner-title">Live Sports Now!</div>
+                        <div class="zs-banner-sub">Watch all matches directly</div>
+                    </div>
+                    <button class="zs-banner-btn" data-action="matches">Update Now</button>
+                </div>
+                <div class="zs-banner-slide" style="background: linear-gradient(135deg, #1a1b41, #4a55a2);">
+                    <div class="zs-banner-text">
+                        <div class="zs-banner-title">New Movies Added</div>
+                        <div class="zs-banner-sub">Explore the latest films</div>
+                    </div>
+                    <button class="zs-banner-btn" data-action="movies">Browse</button>
+                </div>
+                <div class="zs-banner-slide" style="background: linear-gradient(135deg, #3b1f2b, #9c3a5a);">
+                    <div class="zs-banner-text">
+                        <div class="zs-banner-title">Premium Series</div>
+                        <div class="zs-banner-sub">Watch trending series</div>
+                    </div>
+                    <button class="zs-banner-btn" data-action="series">Watch Now</button>
+                </div>
+            </div>
+
+            <!-- قسم كرة القدم -->
+            <div id="footballSection">
+                <div class="football-date-bar" id="dateBar">
+                    <button class="arrow" id="datePrev">‹</button>
+                    <button class="active" data-offset="0">Today</button>
+                    <button data-offset="1">Tomorrow</button>
+                    <button data-offset="2">After Tomorrow</button>
+                    <button class="arrow" id="dateNext">›</button>
+                </div>
+                <div class="football-header">
+                    <h2>⚽ Football</h2>
+                    <span id="footballCount">Loading...</span>
+                </div>
+                <div id="footballMatchesContainer"></div>
+            </div>
+
+            <!-- تفاصيل المباراة -->
+            <div class="match-detail-view" id="matchDetailView">
+                <div class="zs-list-header">
+                    <div class="zs-list-header-left">
+                        <button class="zs-back-btn" id="closeMatchDetailBtn">← Back</button>
                     </div>
                 </div>
-                <div class="zs-channels-list" id="zsChannelsList"></div>
-            </aside>
+                <div id="matchDetailContainer"></div>
+            </div>
+
+            <!-- الفئات الرئيسية -->
+            <div class="categories-grid" id="homeView">
+                <div class="category-card cat-matches" data-target="matches">
+                    <div class="icon-wrap">⚽</div>
+                    <div class="cat-title">Today's Matches</div>
+                </div>
+                <div class="category-card cat-movies" data-target="movies">
+                    <div class="icon-wrap">🎬</div>
+                    <div class="cat-title">Movies</div>
+                </div>
+                <div class="category-card cat-series" data-target="series">
+                    <div class="icon-wrap">📺</div>
+                    <div class="cat-title">Series</div>
+                </div>
+                <div class="category-card cat-reels" data-target="reels">
+                    <div class="icon-wrap">🎞️</div>
+                    <div class="cat-title">Reels Series</div>
+                </div>
+            </div>
+
+            <!-- الأقسام الفرعية -->
+            <div style="display:none; width:100%; flex-direction:column;" id="matchesView">
+                <div class="zs-list-header">
+                    <div class="zs-list-header-left">
+                        <button class="zs-back-btn" id="backMatchesBtn">← Back</button>
+                        <div class="zs-list-title">⚽ Today's Matches</div>
+                    </div>
+                </div>
+                <div id="matchesListContainer"></div>
+            </div>
+
+            <div style="display:none; width:100%; flex-direction:column;" id="movieCategoriesView">
+                <div class="zs-list-header">
+                    <div class="zs-list-header-left">
+                        <button class="zs-back-btn" id="backMovieCatBtn">← Back</button>
+                        <div class="zs-list-title">🎬 Categories</div>
+                    </div>
+                </div>
+                <div id="movieCategoriesContainer" class="zs-category-pill-container"></div>
+            </div>
+
+            <div style="display:none; width:100%; flex-direction:column;" id="movieDetailView">
+                <div class="zs-list-header">
+                    <div class="zs-list-header-left">
+                        <button class="zs-back-btn" id="backMoviesBtn">← Back</button>
+                        <div class="zs-list-title" id="movieListTitle">🎬 Movies</div>
+                    </div>
+                    <button class="zs-section-search-btn" id="searchMoviesBtn">🔍</button>
+                </div>
+                <div id="moviesListContainer"></div>
+            </div>
+
+            <div style="display:none; width:100%; flex-direction:column;" id="seriesCategoriesView">
+                <div class="zs-list-header">
+                    <div class="zs-list-header-left">
+                        <button class="zs-back-btn" id="backSeriesCatBtn">← Back</button>
+                        <div class="zs-list-title">📺 Categories</div>
+                    </div>
+                </div>
+                <div id="seriesCategoriesContainer" class="zs-category-pill-container"></div>
+            </div>
+
+            <div style="display:none; width:100%; flex-direction:column;" id="seriesDetailView">
+                <div class="zs-list-header">
+                    <div class="zs-list-header-left">
+                        <button class="zs-back-btn" id="backSeriesListBtn">← Back</button>
+                        <div class="zs-list-title" id="seriesListTitle">📺 Series</div>
+                    </div>
+                    <button class="zs-section-search-btn" id="searchSeriesBtn">🔍</button>
+                </div>
+                <div id="seriesListContainer"></div>
+            </div>
+
+            <div class="zs-search-section-view" id="movieSearchView">
+                <div class="zs-search-section-header">
+                    <button class="zs-back-btn" id="closeMovieSearchBtn">← Back</button>
+                    <div class="zs-search-section-input-wrap">
+                        <input type="text" id="movieSearchInput" placeholder="Search movies..." autocomplete="off">
+                    </div>
+                </div>
+                <div id="movieSearchResultsContainer" style="width:100%; flex:1; display:flex; flex-direction:column;"></div>
+            </div>
+
+            <div class="zs-search-section-view" id="seriesSearchView">
+                <div class="zs-search-section-header">
+                    <button class="zs-back-btn" id="closeSeriesSearchBtn">← Back</button>
+                    <div class="zs-search-section-input-wrap">
+                        <input type="text" id="seriesSearchInput" placeholder="Search series..." autocomplete="off">
+                    </div>
+                </div>
+                <div id="seriesSearchResultsContainer" style="width:100%; flex:1; display:flex; flex-direction:column;"></div>
+            </div>
+
+            <div style="display:none; width:100%; flex-direction:column;" id="reelsView">
+                <div class="zs-list-header">
+                    <div class="zs-list-header-left">
+                        <button class="zs-back-btn" id="backReelsBtn">← Back</button>
+                        <div class="zs-list-title">🎞️ Reels Series</div>
+                    </div>
+                </div>
+                <div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
+                    <div style="font-size:50px;margin-bottom:20px;">⏳</div>
+                    <h3 style="margin-bottom:10px;">Coming Soon</h3>
+                    <p>Reels section is under development.</p>
+                </div>
+            </div>
+
         </main>
+        
+        <footer class="zs-footer">
+            © 2026 <span>Zi Store</span>. All rights reserved.
+        </footer>
     </div>
 
     <script>
         (function() {
-            // ------------------ إعدادات ------------------
+            // ==================== البيانات الأساسية ====================
             const WORKER_URL = 'https://dry-truth-a84e.idriss-zribi13.workers.dev/';
             const MATCHES_API_URL = WORKER_URL + '?url=' + encodeURIComponent('https://admin.golive-pro.online/api/public/events?tz=-4');
-            const MOVIES_BASE_URL = 'https://admin.golive-pro.online/api/content/movies?categoryId=9ec354e5-4707-4161-9dab-b51f899b29d8&limit=20&page=';
+            const MOVIE_CATEGORIES_URL = WORKER_URL + '?url=' + encodeURIComponent('https://admin.golive-pro.online/api/content/movie-categories');
+            const MOVIES_BASE_URL = 'https://admin.golive-pro.online/api/content/movies?limit=20&categoryId=';
+            const SERIES_CATEGORIES_URL = WORKER_URL + '?url=' + encodeURIComponent('https://admin.golive-pro.online/api/content/series-categories');
+            const SERIES_BASE_URL = 'https://admin.golive-pro.online/api/content/series?limit=20&categoryId=';
+            const FOOTBALL_API_BASE = 'https://api-en.ysscores.com/api/matches/matches_date_get/';
 
-            // الروابط الافتراضية للمباريات
-            const defaultChannels = [
-                { id: 101, name: "beIN Sports 1 HD", category: "Sports", logo: "B1", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein101.m3u8", live: true },
-                { id: 102, name: "beIN Sports 2 HD", category: "Sports", logo: "B2", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein202.m3u8", live: true },
-                { id: 103, name: "beIN Sports 3 HD", category: "Sports", logo: "B3", url: "https://app.site2026.top/mobile/5hTmkT0CgATBbEXUMUPuZA/1786918039/1786917778/1/bein303.m3u8", live: true },
+            const fallbackMatches = [
+                { id: 1, homeName: "Real Madrid", awayName: "Barcelona", leagueName: "La Liga", homeLogo: "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg", awayLogo: "https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg", url: "https://app.site2026.top/mobile/v9YsphvJOvxK2N1ibcDorQ/1786986686/1786986425/1/bein101.m3u8", startTime: new Date().toISOString() }
             ];
 
-            // أفلام الطوارئ
-            const fallbackMovies = [
-                { id: "fb1", title: "Zombies of the Third Reich", posterUrl: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/hjrgOWoruk9ea0tXaN8l2gtmkeH.jpg", year: 2025, rating: 3.75, genre: "رعب", url: "http://new.dramalaly.com:8080/movie/hikayetv_vod_app/Bxddo93COihsCKzmDz7oqC5y/361152.mkv" },
-                { id: "fb2", title: "Vade Retro", posterUrl: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/1D2Hn8HD9tpU9j901vNRmn4Oz3J.jpg", year: 2025, rating: 5.5, genre: "كوميديا", url: "http://new.dramalaly.com:8080/movie/hikayetv_vod_app/Bxddo93COihsCKzmDz7oqC5y/361151.mkv" }
+            const fallbackSeriesCategories = [
+                { id: "dd185bc6-1dfd-45c2-9189-13c47f672e5a", name: "مسلسلات عربية", icon: "🇸🇦", count: 186 },
+                { id: "1bf63825-0b85-4ed8-8964-4cf2efb854d6", name: "مسلسلات أجنبية", icon: "🌍", count: 113 },
+                { id: "32d17563-00ee-4433-8b59-ddf969a51230", name: "مسلسلات تركية", icon: "🇹🇷", count: 40 },
+                { id: "0669005a-e8dd-4a00-8986-a905826eaca3", name: "مسلسلات آسيوية", icon: "🎎", count: 56 },
+                { id: "2660c480-65f2-4a30-a0c9-eda017ea660b", name: "مسلسلات مدبلجة", icon: "🗣️", count: 29 }
             ];
 
-            let channels = [...defaultChannels];
-            let movies = [...fallbackMovies];
-            let currentChannelId = null;
+            let channels = []; 
+            let movies = [];
+            let movieCategories = [];
+            let series = [];
+            let seriesCategories = [];
             let currentStreamUrl = '';
             let hls = null;
-            let activeCategory = 'all';
-            let searchQuery = '';
-            let isMuted = false;
-            let isLoadingMovies = false; 
+            let currentView = 'home'; 
+            let currentId = null;
+            let currentFootballDate = new Date();
 
+            // ==================== عناصر DOM ====================
             const video = document.getElementById('zsVideo');
             const videoContainer = document.getElementById('zsVideoContainer');
             const wrapper = document.getElementById('zsPlayerWrapper');
+            const playerSection = document.getElementById('zsPlayerSection');
             const liveBadge = document.getElementById('zsLiveBadge');
             const loadingEl = document.getElementById('zsLoading');
             const errorOverlay = document.getElementById('zsErrorOverlay');
@@ -266,23 +475,64 @@
             const timeDisplay = document.getElementById('zsTimeDisplay');
             const progressWrap = document.getElementById('zsProgressWrap');
             const progressFilled = document.getElementById('zsProgressFilled');
-            const channelsList = document.getElementById('zsChannelsList');
-            const searchInput = document.getElementById('zsSearchInput');
-            const categoryTabs = document.getElementById('zsCategoryTabs');
-            const themeSwitch = document.getElementById('themeSwitch');
+            
+            const homeView = document.getElementById('homeView');
+            const matchesView = document.getElementById('matchesView');
+            const movieCategoriesView = document.getElementById('movieCategoriesView');
+            const movieDetailView = document.getElementById('movieDetailView');
+            const seriesCategoriesView = document.getElementById('seriesCategoriesView');
+            const seriesDetailView = document.getElementById('seriesDetailView');
+            const reelsView = document.getElementById('reelsView');
+            const bannerContainer = document.getElementById('bannerContainer');
+            
+            const footballSection = document.getElementById('footballSection');
+            const footballMatchesContainer = document.getElementById('footballMatchesContainer');
+            const footballCount = document.getElementById('footballCount');
+            const matchDetailView = document.getElementById('matchDetailView');
+            const matchDetailContainer = document.getElementById('matchDetailContainer');
+            const closeMatchDetailBtn = document.getElementById('closeMatchDetailBtn');
+            const dateBar = document.getElementById('dateBar');
+            
+            const matchesContainer = document.getElementById('matchesListContainer');
+            const movieCategoriesContainer = document.getElementById('movieCategoriesContainer');
+            const moviesContainer = document.getElementById('moviesListContainer');
+            const seriesCategoriesContainer = document.getElementById('seriesCategoriesContainer');
+            const seriesListContainer = document.getElementById('seriesListContainer');
+            const movieListTitle = document.getElementById('movieListTitle');
+            const seriesListTitle = document.getElementById('seriesListTitle');
+            
+            const backMatchesBtn = document.getElementById('backMatchesBtn');
+            const backMovieCatBtn = document.getElementById('backMovieCatBtn');
+            const backMoviesBtn = document.getElementById('backMoviesBtn');
+            const backSeriesCatBtn = document.getElementById('backSeriesCatBtn');
+            const backSeriesListBtn = document.getElementById('backSeriesListBtn');
+            const backReelsBtn = document.getElementById('backReelsBtn');
 
-            // Theme
+            const toggleSearchBtnMain = document.getElementById('toggleSearchBtnMain');
+            const searchMoviesBtn = document.getElementById('searchMoviesBtn');
+            const searchSeriesBtn = document.getElementById('searchSeriesBtn');
+            const movieSearchView = document.getElementById('movieSearchView');
+            const seriesSearchView = document.getElementById('seriesSearchView');
+            const closeMovieSearchBtn = document.getElementById('closeMovieSearchBtn');
+            const closeSeriesSearchBtn = document.getElementById('closeSeriesSearchBtn');
+            const movieSearchInput = document.getElementById('movieSearchInput');
+            const seriesSearchInput = document.getElementById('seriesSearchInput');
+            const movieSearchResultsContainer = document.getElementById('movieSearchResultsContainer');
+            const seriesSearchResultsContainer = document.getElementById('seriesSearchResultsContainer');
+
+            // ==================== الثيمات ====================
             function setTheme(theme) {
                 document.documentElement.setAttribute('data-theme', theme);
                 localStorage.setItem('zs-theme', theme);
                 document.querySelectorAll('.zs-theme-btn').forEach(btn => btn.classList.toggle('zs-active', btn.dataset.theme === theme));
             }
             setTheme(localStorage.getItem('zs-theme') || 'legendary');
-            themeSwitch.addEventListener('click', (e) => {
+            document.getElementById('themeSwitch').addEventListener('click', (e) => {
                 const btn = e.target.closest('.zs-theme-btn');
                 if (btn) setTheme(btn.dataset.theme);
             });
 
+            // ==================== دوال أساسية ====================
             function showLoading() { loadingEl.classList.add('zs-visible'); }
             function hideLoading() { loadingEl.classList.remove('zs-visible'); }
             function showError() { errorOverlay.classList.add('zs-visible'); }
@@ -324,13 +574,282 @@
                     video.src = url;
                     video.play().then(() => {
                         hideLoading(); hideError();
-                    }).catch((e) => {
-                        console.warn(e);
+                    }).catch(() => {
                         hideLoading(); showError();
                     });
                 }
             }
 
+            document.querySelectorAll('.zs-banner-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const action = btn.dataset.action;
+                    if (action === 'matches') { navigateToSection('matches'); }
+                    else if (action === 'movies') { navigateToSection('movies'); }
+                    else if (action === 'series') { navigateToSection('series'); }
+                });
+            });
+
+            // ==================== مشغل الفيديو ====================
+            btnPlay.addEventListener('click', () => { if (video.paused) video.play(); else video.pause(); });
+            video.addEventListener('play', () => { btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`; });
+            video.addEventListener('pause', () => { btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`; });
+            volumeSlider.addEventListener('input', () => { video.volume = volumeSlider.value / 100; });
+            btnMute.addEventListener('click', () => { video.volume = video.volume === 0 ? 1 : 0; volumeSlider.value = video.volume * 100; });
+            video.addEventListener('timeupdate', () => { updateTimeDisplay(); updateProgress(); });
+            progressWrap.addEventListener('click', (e) => {
+                if (!video.duration) return;
+                const rect = progressWrap.getBoundingClientRect();
+                video.currentTime = ((e.clientX - rect.left) / rect.width) * video.duration;
+            });
+            btnFullscreen.addEventListener('click', () => {
+                if (!document.fullscreenElement) { wrapper.requestFullscreen(); } else { document.exitFullscreen(); }
+            });
+            btnRotate.addEventListener('click', () => { videoContainer.classList.toggle('rotated'); });
+            document.getElementById('zsErrorRetry').addEventListener('click', () => { if (currentStreamUrl) loadStream(currentStreamUrl); });
+
+            // ==================== [إصلاح] كرة القدم ====================
+            let footballMatchCache = {};
+
+            function formatDateForAPI(date) {
+                return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+            }
+
+            function formatDateLabel(date) {
+                return date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            }
+
+            async function loadFootballMatches(date) {
+                try {
+                    const dateStr = formatDateForAPI(date);
+                    const url = FOOTBALL_API_BASE + dateStr + 
+                               '/%5B%2276040%22,%22533123%22,%22471101%22%5D' +
+                               '/%5B%5D' +
+                               '/%5B%228153%22,%22102106%22,%22102102%22,%226719%22%5D' +
+                               '/L/60';
+                    
+                    const response = await fetch(WORKER_URL + '?url=' + encodeURIComponent(url));
+                    if (!response.ok) throw new Error('Football API error');
+                    const data = await response.json();
+
+                    if (data.status && data.data && data.data.length > 0) {
+                        data.data.forEach(match => { footballMatchCache[match.match_id] = match; });
+                        renderFootballMatches(data.data, date);
+                        footballSection.style.display = 'block';
+                    } else {
+                        footballSection.style.display = 'block';
+                        renderFootballMatches([], date);
+                    }
+                } catch (e) {
+                    console.warn('Failed to load football matches:', e);
+                    footballSection.style.display = 'block';
+                    footballMatchesContainer.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-secondary);">Failed to load matches for this date.</div>';
+                    footballCount.textContent = '0 Matches';
+                }
+            }
+
+            function renderFootballMatches(matches, date) {
+                footballCount.textContent = matches.length + ' Matches';
+                if (matches.length === 0) {
+                    footballMatchesContainer.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);">No matches found for ${formatDateLabel(date)}</div>`;
+                    return;
+                }
+                
+                const grouped = {};
+                matches.forEach(match => {
+                    const leagueTitle = match.championship.title;
+                    if (!grouped[leagueTitle]) grouped[leagueTitle] = [];
+                    grouped[leagueTitle].push(match);
+                });
+
+                let html = '';
+                for (const [league, leagueMatches] of Object.entries(grouped)) {
+                    let timeStr = leagueMatches[0].match_time;
+                    if (timeStr) timeStr = timeStr.substring(0, 5);
+                    html += `<div class="football-league-block"><div class="football-league-title">🏆 ${league}</div>`;
+                    leagueMatches.forEach(m => {
+                        const homeTitle = m.home_team.title;
+                        const awayTitle = m.away_team.title;
+                        // [إصلاح الصور] استخدام مسار جودة 180 وتأمين الرابط
+                        const homeImg = m.home_team.image ? 'https://imgs.ysscores.com/teams/180/' + m.home_team.image : '';
+                        const awayImg = m.away_team.image ? 'https://imgs.ysscores.com/teams/180/' + m.away_team.image : '';
+                        html += `
+                            <div class="football-match-row" data-match-id="${m.match_id}">
+                                <div class="football-team">
+                                    <div class="team-logo"><img src="${homeImg}" onerror="this.style.display='none'; this.parentNode.textContent='${homeTitle.charAt(0)}'"></div>
+                                    <span class="team-name">${homeTitle}</span>
+                                </div>
+                                <span class="football-match-time">${timeStr}</span>
+                                <div class="football-team" style="justify-content:flex-end; text-align:right;">
+                                    <span class="team-name">${awayTitle}</span>
+                                    <div class="team-logo"><img src="${awayImg}" onerror="this.style.display='none'; this.parentNode.textContent='${awayTitle.charAt(0)}'"></div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += `</div>`;
+                }
+                footballMatchesContainer.innerHTML = html;
+
+                document.querySelectorAll('.football-match-row').forEach(row => {
+                    row.addEventListener('click', () => {
+                        const matchId = row.dataset.matchId;
+                        const match = footballMatchCache[matchId];
+                        if (match) {
+                            showMatchDetail(match);
+                        } else {
+                            console.warn("Match not found in cache", matchId);
+                        }
+                    });
+                });
+            }
+
+            // ==================== شريط التاريخ ====================
+            function updateDateBar() {
+                const buttons = dateBar.querySelectorAll('button[data-offset]');
+                const dateStr = formatDateForAPI(currentFootballDate);
+                buttons.forEach(btn => {
+                    const offset = parseInt(btn.dataset.offset);
+                    const btnDate = new Date();
+                    btnDate.setDate(btnDate.getDate() + offset);
+                    if (formatDateForAPI(btnDate) === dateStr) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+            }
+
+            function refreshFootballDate(offset = 0) {
+                currentFootballDate = new Date();
+                currentFootballDate.setDate(currentFootballDate.getDate() + offset);
+                updateDateBar();
+                loadFootballMatches(currentFootballDate);
+            }
+
+            dateBar.addEventListener('click', (e) => {
+                const target = e.target.closest('button');
+                if (!target) return;
+                if (target.id === 'datePrev') {
+                    const currentOffset = [...dateBar.querySelectorAll('button[data-offset]')].find(b => b.classList.contains('active'));
+                    const off = currentOffset ? parseInt(currentOffset.dataset.offset) : 0;
+                    refreshFootballDate(off - 1);
+                } else if (target.id === 'dateNext') {
+                    const currentOffset = [...dateBar.querySelectorAll('button[data-offset]')].find(b => b.classList.contains('active'));
+                    const off = currentOffset ? parseInt(currentOffset.dataset.offset) : 0;
+                    refreshFootballDate(off + 1);
+                } else if (target.dataset.offset !== undefined) {
+                    refreshFootballDate(parseInt(target.dataset.offset));
+                }
+            });
+
+            // ==================== تفاصيل المباراة ====================
+            function showMatchDetail(match) {
+                homeView.style.display = 'none';
+                matchesView.style.display = 'none';
+                movieCategoriesView.style.display = 'none';
+                movieDetailView.style.display = 'none';
+                seriesCategoriesView.style.display = 'none';
+                seriesDetailView.style.display = 'none';
+                reelsView.style.display = 'none';
+                bannerContainer.style.display = 'none';
+                footballSection.style.display = 'none';
+                matchDetailView.classList.add('visible');
+
+                renderMatchDetail(match);
+            }
+
+            function renderMatchDetail(match) {
+                const homeTitle = match.home_team.title;
+                const awayTitle = match.away_team.title;
+                const homeImg = match.home_team.image ? 'https://imgs.ysscores.com/teams/180/' + match.home_team.image : '';
+                const awayImg = match.away_team.image ? 'https://imgs.ysscores.com/teams/180/' + match.away_team.image : '';
+                const timeStr = match.match_time ? match.match_time.substring(0, 5) : '--:--';
+                const dateObj = new Date(match.match_timestamp * 1000);
+                const dateLabel = dateObj.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                
+                let channelsHtml = '<div class="match-info-row"><span class="match-info-label">Channels & Commentators</span><span class="match-info-value">-</span></div>';
+                if (match.channel_commm && match.channel_commm.length > 0) {
+                    channelsHtml = match.channel_commm.map(ch => `
+                        <div class="match-info-row" style="border:none; padding:4px 0;">
+                            <span class="match-info-label">${ch.channel_name || 'Channel'}</span>
+                            <span class="match-info-value">${ch.commentator_name || 'Unknown'}</span>
+                        </div>
+                    `).join('');
+                }
+
+                const formHome = [
+                    { res: 'W', color: 'win' },
+                    { res: 'L', color: 'loss' },
+                    { res: 'L', color: 'loss' },
+                    { res: 'W', color: 'win' },
+                    { res: 'L', color: 'loss' }
+                ];
+                const formAway = [
+                    { res: 'W', color: 'win' },
+                    { res: 'W', color: 'win' },
+                    { res: 'D', color: 'draw' },
+                    { res: 'L', color: 'loss' },
+                    { res: 'W', color: 'win' }
+                ];
+
+                matchDetailContainer.innerHTML = `
+                    <div class="match-detail-header">
+                        <div class="match-detail-teams">
+                            <div class="match-detail-team">
+                                <div class="logo"><img src="${homeImg}" onerror="this.style.display='none'; this.parentNode.textContent='${homeTitle.charAt(0)}'"></div>
+                                <span class="name">${homeTitle}</span>
+                            </div>
+                            <div class="match-detail-center">
+                                <span class="match-detail-time">${timeStr}</span>
+                                <span class="match-detail-date">${dateLabel}</span>
+                            </div>
+                            <div class="match-detail-team">
+                                <div class="logo"><img src="${awayImg}" onerror="this.style.display='none'; this.parentNode.textContent='${awayTitle.charAt(0)}'"></div>
+                                <span class="name">${awayTitle}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="match-detail-tabs">
+                        <span class="active">Details</span>
+                        <span>Lineups</span>
+                        <span>Standings</span>
+                        <span>Scorers</span>
+                    </div>
+
+                    <div class="match-info-card">
+                        <div class="match-info-row"><span class="match-info-label">Competition</span><span class="match-info-value">${match.championship.title}</span></div>
+                        <div class="match-info-row"><span class="match-info-label">Round</span><span class="match-info-value">${match.round || '--'}</span></div>
+                        <div class="match-info-row"><span class="match-info-label">Stadium</span><span class="match-info-value">${match.Stadium || '--'}</span></div>
+                        ${channelsHtml}
+                        <div class="match-info-row"><span class="match-info-label">Time</span><span class="match-info-value">${timeStr}</span></div>
+                        <div class="match-info-row"><span class="match-info-label">Date</span><span class="match-info-value">${dateLabel}</span></div>
+                    </div>
+
+                    <div style="margin-top: 15px; font-size: 14px; font-weight: 700; color: var(--text-secondary);">Last 5 Matches for each team</div>
+                    <div class="match-info-card" style="margin-top: 10px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-weight:600; font-size:13px; color:var(--text); width:60px;">${homeTitle}</span>
+                            <div class="match-last-5">
+                                ${formHome.map(f => `<div class="circle ${f.color}">${f.res}</div>`).join('')}
+                            </div>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 10px; border-top: 1px solid var(--border); padding-top: 10px;">
+                            <span style="font-weight:600; font-size:13px; color:var(--text); width:60px;">${awayTitle}</span>
+                            <div class="match-last-5">
+                                ${formAway.map(f => `<div class="circle ${f.color}">${f.res}</div>`).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            closeMatchDetailBtn.addEventListener('click', () => {
+                matchDetailView.classList.remove('visible');
+                currentView = 'home';
+                renderContent();
+            });
+
+            // ==================== المباريات العادية ====================
             function getStatus(startTime) {
                 const now = new Date();
                 const start = new Date(startTime);
@@ -341,86 +860,84 @@
             }
 
             function renderMatches() {
-                // [تعديل التصفية] إضافة فئة Ostora
-                const filtered = channels.filter(ch => {
-                    const matchCategory = activeCategory === 'all' || 
-                        (activeCategory === 'Live' && ch.live && ch.startTime && getStatus(ch.startTime) === 'live') || 
-                        (activeCategory === 'Sports' && ch.category === 'Sports') ||
-                        (activeCategory === 'Ostora' && ch.category === 'Ostora'); // فئة قنوات BeIN
-                        
-                    const matchSearch = ch.name.toLowerCase().includes(searchQuery.toLowerCase());
-                    return matchCategory && matchSearch;
-                });
-
-                if (filtered.length === 0) {
-                    channelsList.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">لا توجد مباريات أو قنوات</div>';
+                if (channels.length === 0) {
+                    matchesContainer.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">Loading matches...</div>';
                     return;
                 }
 
-                channelsList.innerHTML = filtered.map(ch => {
-                    // تنسيق مختلف للبطاقة إذا كانت قناة من Ostora
-                    const isOstora = ch.category === 'Ostora';
-                    const homeName = ch.homeName || ch.name || 'Home';
-                    const awayName = isOstora ? '' : (ch.awayName || 'Away');
+                const liveMatches = channels.filter(ch => ch.startTime && getStatus(ch.startTime) === 'live');
+                const upcomingMatches = channels.filter(ch => ch.startTime && getStatus(ch.startTime) === 'upcoming');
+                const endedMatches = channels.filter(ch => ch.startTime && getStatus(ch.startTime) === 'ended');
+
+                const buildCard = (ch) => {
+                    const homeName = ch.homeName || ch.name.split(' vs ')[0] || 'Home';
+                    const awayName = ch.awayName || ch.name.split(' vs ')[1] || 'Away';
                     const leagueName = ch.leagueName || ch.category || 'Match';
                     const homeLogo = ch.homeLogo || ch.logo;
                     const awayLogo = ch.awayLogo || '';
                     const startTime = ch.startTime ? new Date(ch.startTime) : null;
                     const timeStr = startTime ? startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) : '--:--';
+                    const status = ch.startTime ? getStatus(ch.startTime) : null;
+                    const isLive = status === 'live';
 
-                    let statusHTML = '';
-                    let statusClass = '';
-                    if (ch.startTime) {
-                        const status = getStatus(ch.startTime);
-                        if (status === 'live') { statusHTML = '🔴 مباشر'; statusClass = 'live'; }
-                        else if (status === 'ended') { statusHTML = '✅ انتهت'; statusClass = 'ended'; }
-                        else { statusHTML = '⏰ قادمة'; statusClass = 'upcoming'; }
-                    } else if (ch.live) { statusHTML = '🔴 مباشر'; statusClass = 'live'; }
-                    else { statusHTML = '● متوقف'; statusClass = ''; }
+                    let statusHTML = '', statusClass = '', liveMinute = 0;
+                    if (isLive) { statusHTML = '🔴 LIVE'; statusClass = 'live'; liveMinute = Math.floor((new Date() - new Date(ch.startTime)) / 60000); } 
+                    else if (status === 'ended') { statusHTML = '✅ ENDED'; statusClass = 'ended'; } 
+                    else if (status === 'upcoming') { statusHTML = '⏰ UPCOMING'; statusClass = 'upcoming'; }
 
                     return `
-                        <div class="zs-channel-card ${ch.id === currentChannelId ? 'zs-active' : ''}" data-id="${ch.id}">
-                            <div class="zs-match-league"><span>${leagueName}</span><span class="zs-trophy-icon">🏆</span></div>
+                        <div class="zs-channel-card ${currentId === ch.id ? 'zs-active' : ''} ${isLive ? 'is-live' : ''}" data-id="${ch.id}">
+                            <div class="zs-match-league"><span>${leagueName}</span><span>🏆</span></div>
                             <div class="zs-match-body">
                                 <div class="zs-team">
-                                    <div class="zs-logo">
-                                        <img src="${homeLogo}" alt="${homeName}" onerror="this.style.display='none'; this.parentNode.textContent='${homeName.charAt(0)}'">
-                                    </div>
+                                    <div class="zs-logo"><img src="${homeLogo}" onerror="this.style.display='none'; this.parentNode.textContent='${homeName.charAt(0)}'"></div>
                                     <span class="zs-team-name">${homeName}</span>
                                 </div>
-                                ${!isOstora ? `
                                 <div class="zs-center-info">
-                                    <div class="zs-status-center ${statusClass}">${statusHTML}</div>
-                                    <div class="zs-time-block"><span class="zs-time">${timeStr}</span><span class="zs-vs">VS</span></div>
+                                    ${isLive ? `
+                                        <div class="zs-status-center ${statusClass}">${statusHTML}</div>
+                                        <div class="zs-live-time-block"><span>${liveMinute}'</span></div>
+                                    ` : (status === 'upcoming' ? `
+                                        <div class="zs-status-center ${statusClass}">${statusHTML}</div>
+                                        <div class="zs-time-block"><span class="zs-time">${timeStr}</span><span class="zs-vs">VS</span></div>
+                                    ` : status === 'ended' ? `
+                                        <div class="zs-status-center ${statusClass}">${statusHTML}</div>
+                                        <div class="zs-time-block"><span class="zs-time">${timeStr}</span><span class="zs-vs">VS</span></div>
+                                    ` : `
+                                        <div class="zs-time-block"><span class="zs-time">${timeStr}</span><span class="zs-vs">VS</span></div>
+                                    `)}
                                 </div>
                                 <div class="zs-team">
-                                    <div class="zs-logo">
-                                        <img src="${awayLogo}" alt="${awayName}" onerror="this.style.display='none'; this.parentNode.textContent='${awayName.charAt(0)}'">
-                                    </div>
+                                    <div class="zs-logo"><img src="${awayLogo}" onerror="this.style.display='none'; this.parentNode.textContent='${awayName.charAt(0)}'"></div>
                                     <span class="zs-team-name">${awayName}</span>
                                 </div>
-                                ` : `
-                                <div class="zs-center-info">
-                                    <div class="zs-status-center ${statusClass}">${statusHTML}</div>
-                                </div>
-                                `}
                             </div>
                         </div>
                     `;
-                }).join('');
-                attachMatchClickEvents();
-            }
+                };
 
-            function attachMatchClickEvents() {
-                channelsList.querySelectorAll('.zs-channel-card').forEach(card => {
+                let html = '';
+                if (liveMatches.length > 0) {
+                    html += `<div class="zs-section-header live-section"><div class="zs-section-left"><span class="zs-status-dot live"></span> LIVE NOW</div><div class="zs-section-count live-count">${liveMatches.length}</div></div>${liveMatches.map(buildCard).join('')}`;
+                }
+                if (upcomingMatches.length > 0) {
+                    html += `<div class="zs-section-header upcoming-section"><div class="zs-section-left"><span class="zs-status-dot upcoming"></span> UPCOMING TODAY</div><div class="zs-section-count upcoming-count">${upcomingMatches.length}</div></div>${upcomingMatches.map(buildCard).join('')}`;
+                }
+                if (endedMatches.length > 0) {
+                    html += `<div class="zs-section-header"><div class="zs-section-left"><span>📌 ENDED</span></div><div class="zs-section-count">${endedMatches.length}</div></div>${endedMatches.map(buildCard).join('')}`;
+                }
+                matchesContainer.innerHTML = html || '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No matches found</div>';
+                matchesContainer.querySelectorAll('.zs-channel-card').forEach(card => {
                     card.addEventListener('click', () => {
                         const id = parseInt(card.dataset.id);
                         const channel = channels.find(c => c.id === id);
-                        if (channel) {
-                            currentChannelId = id;
+                        if (channel && channel.url) {
+                            currentId = id;
                             currentStreamUrl = channel.url;
-                            renderContent(); 
+                            playerSection.classList.add('visible');
+                            currentView = 'player';
                             loadStream(channel.url);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
                         }
                     });
                 });
@@ -437,223 +954,477 @@
                         .map((m, idx) => ({
                             id: 3000 + idx, name: `${m.homeName} vs ${m.awayName}`, category: m.leagueName || 'Match',
                             homeLogo: m.homeLogoUrl, awayLogo: m.awayLogoUrl, homeName: m.homeName, awayName: m.awayName,
-                            leagueName: m.leagueName, url: m.sources[0].streamUrl, live: true, startTime: m.startTime, isMatch: true
+                            leagueName: m.leagueName, url: m.sources[0].streamUrl, startTime: m.startTime, isMatch: true
                         }));
-                    channels = channels.filter(ch => !ch.isMatch).concat(matchChannels);
-                    if(activeCategory !== 'Movies' && activeCategory !== 'Ostora') renderContent();
+                    if (matchChannels.length > 0) channels = matchChannels;
+                    if(currentView === 'matches') renderMatches();
                 } catch (e) { 
-                    console.warn('Matches API failed, keeping fallback channels.');
+                    console.warn('Matches API failed, using fallback matches.');
+                    if (channels.length === 0) channels = fallbackMatches;
+                    if(currentView === 'matches') renderMatches();
                 }
             }
 
-            // ------------------ [جديد] دوال جلب قنوات BeIN Sports المتعددة ------------------
-            async function loadOstoraChannels() {
+            // ==================== الأفلام ====================
+            async function loadMovieCategoriesFromAPI() {
                 try {
-                    // استخدام Worker لإصلاح مشكلة CORS
-                    const url = WORKER_URL + '?url=' + encodeURIComponent('https://ostoraapptv.com/yacine_tree.json?t=' + Date.now());
-                    const response = await fetch(url);
-                    const data = await response.json();
-
-                    if (data.categories && data.categories.length > 0) {
-                        // العثور على الفئة الرئيسية (تحتوي على جميع قنوات البث)
-                        const mainCategory = data.categories.find(c => c.name.includes("سيرفر") || c.name.includes("البث") || c.name.includes("الرئيسي"));
-                        let ostoraChannels = [];
-
-                        if (mainCategory && mainCategory.children) {
-                            mainCategory.children.forEach(child => {
-                                if (child.channels) {
-                                    child.channels.forEach(ch => {
-                                        ostoraChannels.push({
-                                            id: 5000 + ostoraChannels.length,
-                                            name: ch.name,
-                                            homeName: ch.name,
-                                            category: "Ostora", // تصنيف خاص لهذه القنوات
-                                            logo: ch.logo || "",
-                                            url: ch.url,
-                                            live: true,
-                                            isMatch: false,
-                                            isOstora: true
-                                        });
-                                    });
-                                }
-                            });
-                        }
-
-                        // إضافة هذه القنوات للقائمة الرئيسية
-                        channels = channels.filter(ch => !ch.isOstora).concat(ostoraChannels);
-                        if (activeCategory === 'Ostora') renderContent();
+                    const resp = await fetch(MOVIE_CATEGORIES_URL);
+                    const data = await resp.json();
+                    if (Array.isArray(data) && data.length > 0) {
+                        movieCategories = data.map(c => ({ id: c.id, name: c.nameAr || c.name, icon: c.icon || '🎬', count: c.moviesCount || 0 }));
+                        if(currentView === 'movie-categories') renderMovieCategories();
                     }
-                } catch (e) {
-                    console.warn('فشل تحميل قنوات Ostora:', e);
-                }
+                } catch (e) { console.warn('Movie categories API failed', e); }
             }
 
-            // ------------------ دوال الأفلام ------------------
-            async function loadMoviesFromAPI() {
+            function renderMovieCategories() {
+                if (movieCategories.length === 0) {
+                    movieCategoriesContainer.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No categories found</div>';
+                    return;
+                }
+                movieCategoriesContainer.innerHTML = movieCategories.map(c => `
+                    <div class="zs-category-pill" data-id="${c.id}">
+                        <div class="zs-category-pill-icon">${c.icon}</div>
+                        <div class="zs-category-pill-title">${c.name}</div>
+                        <div class="zs-category-pill-count">${c.count} Movies</div>
+                    </div>
+                `).join('');
+                movieCategoriesContainer.querySelectorAll('.zs-category-pill').forEach(pill => {
+                    pill.addEventListener('click', () => {
+                        const categoryId = pill.dataset.id;
+                        const categoryName = movieCategories.find(c => c.id === categoryId)?.name || 'Movies';
+                        goToMovieList(categoryId, categoryName);
+                    });
+                });
+            }
+
+            async function loadMoviesFromAPI(categoryId) {
+                let isLoadingMovies = false; 
                 if (isLoadingMovies) return;
                 isLoadingMovies = true;
-
                 try {
-                    const firstUrl = WORKER_URL + '?url=' + encodeURIComponent(MOVIES_BASE_URL + '1');
+                    const firstUrl = WORKER_URL + '?url=' + encodeURIComponent(MOVIES_BASE_URL + categoryId + '&page=1');
                     const firstResp = await fetch(firstUrl);
                     if (!firstResp.ok) throw new Error('Worker error');
                     const firstData = await firstResp.json();
-                    
                     if (firstData.data && Array.isArray(firstData.data)) {
-                        movies = firstData.data.map(m => ({
-                            id: m.id, 
-                            title: m.title, 
-                            posterUrl: (m.posterUrl || '').replace('http:', 'https:'),
-                            year: m.year, 
-                            rating: m.rating, 
-                            genre: m.genre, 
-                            genreAr: m.genreAr || m.genre,
+                        let allMovies = firstData.data.map(m => ({
+                            id: m.id, title: m.title, posterUrl: (m.posterUrl || '').replace('http:', 'https:'),
+                            year: m.year, rating: m.rating, genre: m.genre, genreAr: m.genreAr || m.genre,
                             url: m.sources && m.sources.length > 0 ? m.sources[0].streamUrl : null
                         }));
-                        if(activeCategory === 'Movies') renderContent();
-                    }
-
-                    const totalPages = firstData.meta.totalPages || 0;
-                    if (totalPages > 1) {
-                        for (let i = 2; i <= totalPages; i++) {
-                            try {
-                                const url = WORKER_URL + '?url=' + encodeURIComponent(MOVIES_BASE_URL + i);
-                                const res = await fetch(url);
-                                const data = await res.json();
-                                if (data.data && Array.isArray(data.data)) {
-                                    const newMovies = data.data.map(m => ({
-                                        id: m.id, title: m.title, 
-                                        posterUrl: (m.posterUrl || '').replace('http:', 'https:'),
-                                        year: m.year, rating: m.rating,
-                                        genre: m.genre, genreAr: m.genreAr || m.genre,
-                                        url: m.sources && m.sources.length > 0 ? m.sources[0].streamUrl : null
-                                    }));
-                                    movies = movies.concat(newMovies);
-                                    if(activeCategory === 'Movies') renderContent();
+                        movies = allMovies;
+                        if(currentView === 'movie-detail') renderMovies();
+                        const totalPages = firstData.meta.totalPages || 0;
+                        if (totalPages > 1) {
+                            for (let i = 2; i <= totalPages; i++) {
+                                try {
+                                    const url = WORKER_URL + '?url=' + encodeURIComponent(MOVIES_BASE_URL + categoryId + '&page=' + i);
+                                    const res = await fetch(url);
+                                    const data = await res.json();
+                                    if (data.data && Array.isArray(data.data)) {
+                                        const newMovies = data.data.map(m => ({
+                                            id: m.id, title: m.title, posterUrl: (m.posterUrl || '').replace('http:', 'https:'),
+                                            year: m.year, rating: m.rating, genre: m.genre, genreAr: m.genreAr || m.genre,
+                                            url: m.sources && m.sources.length > 0 ? m.sources[0].streamUrl : null
+                                        }));
+                                        allMovies = allMovies.concat(newMovies);
+                                        movies = allMovies;
+                                        if(currentView === 'movie-detail') renderMovies();
+                                    }
+                                } catch (e) {
+                                    console.warn(`فشل تحميل الصفحة ${i}`);
                                 }
-                            } catch (e) {
-                                console.warn(`فشل تحميل الصفحة ${i}`);
+                                await new Promise(r => setTimeout(r, 1000));
                             }
-                            await new Promise(r => setTimeout(r, 1000));
                         }
                     }
-
-                } catch (e) {
-                    console.error('فشل جلب الأفلام الأساسي، تم تفعيل أفلام الطوارئ');
-                } finally {
-                    isLoadingMovies = false;
-                }
+                } catch (e) { console.error('Failed to load movies', e); } finally { isLoadingMovies = false; }
             }
 
             function renderMovies() {
-                const filtered = movies.filter(m => {
-                    const searchMatch = m.title.toLowerCase().includes(searchQuery.toLowerCase());
-                    return searchMatch;
-                });
-
+                const filtered = movies.filter(m => m.title.toLowerCase().includes(''));
                 if (filtered.length === 0) {
-                    if (isLoadingMovies) {
-                        channelsList.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">جاري تحميل المزيد من الأفلام... ⏳</div>';
-                    } else {
-                        channelsList.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">لا توجد أفلام</div>';
-                    }
+                    moviesContainer.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No movies found</div>';
                     return;
                 }
-
-                channelsList.style.display = 'block';
-                channelsList.innerHTML = `
+                moviesContainer.innerHTML = `
                     <div class="zs-movies-grid">
                         ${filtered.map(m => `
-                            <div class="zs-movie-card ${m.id === currentChannelId ? 'zs-active' : ''}" data-id="${m.id}">
+                            <div class="zs-movie-card" data-id="${m.id}">
                                 <div class="zs-movie-poster-wrap">
-                                    <img class="zs-movie-poster" src="${m.posterUrl}" alt="${m.title}" onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
-                                    <div class="zs-movie-genre-badge">${m.genreAr || m.genre || 'فيلم'}</div>
+                                    <img class="zs-movie-poster" src="${m.posterUrl}" onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
                                     <div class="zs-movie-rating">★ ${m.rating || 'N/A'}</div>
                                 </div>
                                 <div class="zs-movie-info">
-                                    <div class="zs-movie-title" title="${m.title}">${m.title}</div>
-                                    <div class="zs-movie-meta">
-                                        <span>${m.year || ''}</span>
-                                    </div>
+                                    <div class="zs-movie-title">${m.title}</div>
                                 </div>
                             </div>
                         `).join('')}
                     </div>
                 `;
-                attachMovieClickEvents();
-            }
-
-            function attachMovieClickEvents() {
-                channelsList.querySelectorAll('.zs-movie-card').forEach(card => {
+                moviesContainer.querySelectorAll('.zs-movie-card').forEach(card => {
                     card.addEventListener('click', () => {
                         const id = card.dataset.id;
                         const movie = movies.find(m => m.id === id);
                         if (movie && movie.url) {
-                            currentChannelId = id;
-                            currentStreamUrl = movie.url;
-                            renderContent(); 
+                            currentId = id; currentStreamUrl = movie.url;
+                            playerSection.classList.add('visible');
+                            currentView = 'player';
                             loadStream(movie.url);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
                         }
                     });
                 });
             }
 
-            // ------------------ التحكم العام ------------------
-            function renderContent() {
-                if (activeCategory === 'Movies') {
-                    channelsList.style.display = 'block'; 
-                    renderMovies();
-                } else {
-                    channelsList.style.display = 'flex'; 
-                    renderMatches();
+            // ==================== [إصلاح] المسلسلات ====================
+            async function loadSeriesCategoriesFromAPI() {
+                try {
+                    const url = WORKER_URL + '?url=' + encodeURIComponent(SERIES_CATEGORIES_URL);
+                    const resp = await fetch(url);
+                    const data = await resp.json();
+                    if (Array.isArray(data) && data.length > 0) {
+                        seriesCategories = data.map(c => ({ id: c.id, name: c.nameAr || c.name, icon: c.icon || '📺', count: c.seriesCount || 0 }));
+                    } else throw new Error('Invalid data');
+                } catch (e) { 
+                    console.warn('Series categories API failed, using fallback data.');
+                    seriesCategories = fallbackSeriesCategories;
+                } finally {
+                    if(currentView === 'series-categories') renderSeriesCategories();
                 }
             }
 
-            categoryTabs.addEventListener('click', (e) => {
-                const tab = e.target.closest('.zs-category-tab');
-                if (!tab) return;
-                activeCategory = tab.dataset.category;
-                categoryTabs.querySelectorAll('.zs-category-tab').forEach(t => t.classList.remove('zs-active'));
-                tab.classList.add('zs-active');
-                searchQuery = ''; 
-                searchInput.value = '';
+            function renderSeriesCategories() {
+                if (seriesCategories.length === 0) {
+                    seriesCategoriesContainer.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No categories found</div>';
+                    return;
+                }
+                seriesCategoriesContainer.innerHTML = seriesCategories.map(c => `
+                    <div class="zs-category-pill" data-id="${c.id}">
+                        <div class="zs-category-pill-icon">${c.icon}</div>
+                        <div class="zs-category-pill-title">${c.name}</div>
+                        <div class="zs-category-pill-count">${c.count} Series</div>
+                    </div>
+                `).join('');
+                seriesCategoriesContainer.querySelectorAll('.zs-category-pill').forEach(pill => {
+                    pill.addEventListener('click', () => {
+                        const categoryId = pill.dataset.id;
+                        const categoryName = seriesCategories.find(c => c.id === categoryId)?.name || 'Series';
+                        goToSeriesList(categoryId, categoryName);
+                    });
+                });
+            }
+
+            async function loadSeriesFromAPI(categoryId) {
+                let isLoadingSeries = false;
+                if (isLoadingSeries) return;
+                isLoadingSeries = true;
+                series = [];
+                try {
+                    const firstUrl = WORKER_URL + '?url=' + encodeURIComponent(SERIES_BASE_URL + categoryId + '&page=1');
+                    const firstResp = await fetch(firstUrl);
+                    if (!firstResp.ok) throw new Error('Worker error');
+                    const firstData = await firstResp.json();
+                    if (firstData.data && Array.isArray(firstData.data)) {
+                        let allSeries = firstData.data.map(s => ({
+                            id: s.id, title: s.title, posterUrl: (s.posterUrl || '').replace('http:', 'https:'),
+                            year: s.year, rating: s.rating, url: s.sources && s.sources.length > 0 ? s.sources[0].streamUrl : null
+                        }));
+                        series = allSeries;
+                        if(currentView === 'series-detail') renderSeries();
+                        const totalPages = firstData.meta.totalPages || 0;
+                        if (totalPages > 1) {
+                            for (let i = 2; i <= totalPages; i++) {
+                                try {
+                                    const url = WORKER_URL + '?url=' + encodeURIComponent(SERIES_BASE_URL + categoryId + '&page=' + i);
+                                    const res = await fetch(url);
+                                    const data = await res.json();
+                                    if (data.data && Array.isArray(data.data)) {
+                                        const newSeries = data.data.map(s => ({
+                                            id: s.id, title: s.title, posterUrl: (s.posterUrl || '').replace('http:', 'https:'),
+                                            year: s.year, rating: s.rating, url: s.sources && s.sources.length > 0 ? s.sources[0].streamUrl : null
+                                        }));
+                                        allSeries = allSeries.concat(newSeries);
+                                        series = allSeries;
+                                        if(currentView === 'series-detail') renderSeries();
+                                    }
+                                } catch (e) { console.warn(`فشل تحميل صفحة مسلسلات ${i}`); }
+                                await new Promise(r => setTimeout(r, 1000));
+                            }
+                        }
+                    }
+                } catch (e) { console.error('Failed to load series', e); } finally { isLoadingSeries = false; }
+            }
+
+            function renderSeries() {
+                const filtered = series.filter(s => s.title.toLowerCase().includes(''));
+                if (filtered.length === 0) {
+                    seriesListContainer.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No series found</div>';
+                    return;
+                }
+                seriesListContainer.innerHTML = `
+                    <div class="zs-movies-grid">
+                        ${filtered.map(s => `
+                            <div class="zs-movie-card" data-id="${s.id}">
+                                <div class="zs-movie-poster-wrap">
+                                    <img class="zs-movie-poster" src="${s.posterUrl}" onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
+                                    <div class="zs-movie-rating">★ ${s.rating || 'N/A'}</div>
+                                </div>
+                                <div class="zs-movie-info">
+                                    <div class="zs-movie-title">${s.title}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                seriesListContainer.querySelectorAll('.zs-movie-card').forEach(card => {
+                    card.addEventListener('click', () => {
+                        const id = card.dataset.id;
+                        const item = series.find(s => s.id === id);
+                        // [إصلاح] التأكد من وجود الرابط قبل التشغيل
+                        if (item && item.url) {
+                            currentId = id; 
+                            currentStreamUrl = item.url;
+                            playerSection.classList.add('visible');
+                            currentView = 'player';
+                            loadStream(item.url);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }
+                    });
+                });
+            }
+
+            // ==================== التنقل والعرض العام ====================
+            function navigateToSection(target) {
+                playerSection.classList.remove('visible');
+                movieSearchView.classList.remove('visible');
+                seriesSearchView.classList.remove('visible');
+                matchDetailView.classList.remove('visible');
+                if (target === 'matches') currentView = 'matches';
+                else if (target === 'movies') currentView = 'movie-categories';
+                else if (target === 'series') currentView = 'series-categories';
+                else if (target === 'reels') currentView = 'reels';
+                renderContent();
+            }
+
+            function closePlayerAndGoHome() {
+                playerSection.classList.remove('visible');
+                movieSearchView.classList.remove('visible');
+                seriesSearchView.classList.remove('visible');
+                matchDetailView.classList.remove('visible');
+                currentView = 'home';
+                renderContent();
+            }
+
+            function goToMovieList(categoryId, categoryName) {
+                playerSection.classList.remove('visible');
+                movieSearchView.classList.remove('visible');
+                seriesSearchView.classList.remove('visible');
+                matchDetailView.classList.remove('visible');
+                currentView = 'movie-detail';
+                movieListTitle.textContent = '🎬 ' + categoryName;
+                renderContent();
+                loadMoviesFromAPI(categoryId);
+            }
+
+            function goToSeriesList(categoryId, categoryName) {
+                playerSection.classList.remove('visible');
+                movieSearchView.classList.remove('visible');
+                seriesSearchView.classList.remove('visible');
+                matchDetailView.classList.remove('visible');
+                currentView = 'series-detail';
+                seriesListTitle.textContent = '📺 ' + categoryName;
+                renderContent();
+                loadSeriesFromAPI(categoryId);
+            }
+
+            backMatchesBtn.addEventListener('click', closePlayerAndGoHome);
+            backMovieCatBtn.addEventListener('click', closePlayerAndGoHome);
+            backMoviesBtn.addEventListener('click', () => {
+                playerSection.classList.remove('visible');
+                movieSearchView.classList.remove('visible');
+                seriesSearchView.classList.remove('visible');
+                matchDetailView.classList.remove('visible');
+                currentView = 'movie-categories';
                 renderContent();
             });
-
-            searchInput.addEventListener('input', () => {
-                searchQuery = searchInput.value;
+            backSeriesCatBtn.addEventListener('click', closePlayerAndGoHome);
+            backSeriesListBtn.addEventListener('click', () => {
+                playerSection.classList.remove('visible');
+                movieSearchView.classList.remove('visible');
+                seriesSearchView.classList.remove('visible');
+                matchDetailView.classList.remove('visible');
+                currentView = 'series-categories';
                 renderContent();
             });
+            backReelsBtn.addEventListener('click', closePlayerAndGoHome);
 
-            document.getElementById('zsErrorRetry').addEventListener('click', () => { if (currentStreamUrl) loadStream(currentStreamUrl); });
+            function renderContent() {
+                homeView.style.display = 'none';
+                matchesView.style.display = 'none';
+                movieCategoriesView.style.display = 'none';
+                movieDetailView.style.display = 'none';
+                seriesCategoriesView.style.display = 'none';
+                seriesDetailView.style.display = 'none';
+                reelsView.style.display = 'none';
+                movieSearchView.classList.remove('visible');
+                seriesSearchView.classList.remove('visible');
+                matchDetailView.classList.remove('visible');
 
-            btnPlay.addEventListener('click', () => { if (video.paused) video.play(); else video.pause(); });
-            video.addEventListener('play', () => { btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`; });
-            video.addEventListener('pause', () => { btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`; });
-            volumeSlider.addEventListener('input', () => { video.volume = volumeSlider.value / 100; });
-            btnMute.addEventListener('click', () => { isMuted = !isMuted; video.volume = isMuted ? 0 : 1; volumeSlider.value = isMuted ? 0 : 100; });
-            video.addEventListener('timeupdate', () => { updateTimeDisplay(); updateProgress(); });
-            progressWrap.addEventListener('click', (e) => {
-                if (!video.duration) return;
-                const rect = progressWrap.getBoundingClientRect();
-                video.currentTime = ((e.clientX - rect.left) / rect.width) * video.duration;
+                if (currentView !== 'home') {
+                    bannerContainer.style.display = 'none';
+                    footballSection.style.display = 'none';
+                } else {
+                    bannerContainer.style.display = 'flex';
+                    footballSection.style.display = 'block';
+                }
+
+                if (currentView === 'home') {
+                    homeView.style.display = 'grid';
+                } else if (currentView === 'matches') {
+                    matchesView.style.display = 'flex';
+                    if (channels.length === 0) {
+                        matchesContainer.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">Loading matches...</div>';
+                        loadMatchesFromAPI();
+                    } else renderMatches();
+                } else if (currentView === 'movie-categories') {
+                    movieCategoriesView.style.display = 'flex';
+                    if (movieCategories.length === 0) loadMovieCategoriesFromAPI();
+                    else renderMovieCategories();
+                } else if (currentView === 'movie-detail') {
+                    movieDetailView.style.display = 'flex';
+                    renderMovies();
+                } else if (currentView === 'series-categories') {
+                    seriesCategoriesView.style.display = 'flex';
+                    if (seriesCategories.length === 0) loadSeriesCategoriesFromAPI();
+                    else renderSeriesCategories();
+                } else if (currentView === 'series-detail') {
+                    seriesDetailView.style.display = 'flex';
+                    renderSeries();
+                } else if (currentView === 'reels') {
+                    reelsView.style.display = 'flex';
+                }
+            }
+
+            document.querySelectorAll('.category-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const target = card.dataset.target;
+                    navigateToSection(target);
+                });
             });
-            btnFullscreen.addEventListener('click', () => {
-                if (!document.fullscreenElement) { wrapper.requestFullscreen().catch(err => console.log(err)); } 
-                else { document.exitFullscreen(); }
-            });
-            btnRotate.addEventListener('click', () => { videoContainer.classList.toggle('rotated'); });
 
-            // ------------------ التهيئة (Init) ------------------
+            // ==================== البحث داخل الأفلام والمسلسلات ====================
+            searchMoviesBtn.addEventListener('click', () => {
+                movieSearchView.classList.add('visible');
+                movieSearchInput.value = '';
+                movieSearchResultsContainer.innerHTML = `
+                    <div class="zs-search-empty-state">
+                        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                        <h3>Type a movie name to search</h3>
+                    </div>
+                `;
+                movieSearchInput.focus();
+            });
+            closeMovieSearchBtn.addEventListener('click', () => { movieSearchView.classList.remove('visible'); });
+            movieSearchInput.addEventListener('input', (e) => {
+                const query = e.target.value.trim().toLowerCase();
+                if (!query) {
+                    movieSearchResultsContainer.innerHTML = `<div class="zs-search-empty-state"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg><h3>Type a movie name to search</h3></div>`;
+                    return;
+                }
+                const results = movies.filter(m => m.title.toLowerCase().includes(query));
+                if (results.length === 0) {
+                    movieSearchResultsContainer.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">No results found for "${query}"</div>`;
+                    return;
+                }
+                movieSearchResultsContainer.innerHTML = results.map(item => `
+                    <div class="zs-search-section-item" data-id="${item.id}" data-url="${item.url || ''}">
+                        <img class="zs-thumb" src="${item.posterUrl}" onerror="this.style.display='none'; this.parentNode.innerHTML+='<div class=\'zs-thumb\' style=\'display:flex;align-items:center;justify-content:center;background:var(--surface-hover);font-weight:700;\'>${item.title.charAt(0)}</div>'">
+                        <div class="zs-info">
+                            <div class="zs-title">${item.title}</div>
+                            <div class="zs-desc">${item.genreAr || item.genre || 'Movie'} • ${item.year || ''}</div>
+                        </div>
+                        ${item.rating ? `<div class="zs-stars"><span>★</span> ${item.rating}</div>` : ''}
+                    </div>
+                `).join('');
+                movieSearchResultsContainer.querySelectorAll('.zs-search-section-item').forEach(card => {
+                    card.addEventListener('click', () => {
+                        const id = card.dataset.id;
+                        const url = card.dataset.url;
+                        if (url) {
+                            currentId = id; currentStreamUrl = url;
+                            movieSearchView.classList.remove('visible');
+                            playerSection.classList.add('visible');
+                            currentView = 'player';
+                            loadStream(url);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }
+                    });
+                });
+            });
+
+            searchSeriesBtn.addEventListener('click', () => {
+                seriesSearchView.classList.add('visible');
+                seriesSearchInput.value = '';
+                seriesSearchResultsContainer.innerHTML = `
+                    <div class="zs-search-empty-state">
+                        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                        <h3>Type a series name to search</h3>
+                    </div>
+                `;
+                seriesSearchInput.focus();
+            });
+            closeSeriesSearchBtn.addEventListener('click', () => { seriesSearchView.classList.remove('visible'); });
+            seriesSearchInput.addEventListener('input', (e) => {
+                const query = e.target.value.trim().toLowerCase();
+                if (!query) {
+                    seriesSearchResultsContainer.innerHTML = `<div class="zs-search-empty-state"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg><h3>Type a series name to search</h3></div>`;
+                    return;
+                }
+                const results = series.filter(s => s.title.toLowerCase().includes(query));
+                if (results.length === 0) {
+                    seriesSearchResultsContainer.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">No results found for "${query}"</div>`;
+                    return;
+                }
+                seriesSearchResultsContainer.innerHTML = results.map(item => `
+                    <div class="zs-search-section-item" data-id="${item.id}" data-url="${item.url || ''}">
+                        <img class="zs-thumb" src="${item.posterUrl}" onerror="this.style.display='none'; this.parentNode.innerHTML+='<div class=\'zs-thumb\' style=\'display:flex;align-items:center;justify-content:center;background:var(--surface-hover);font-weight:700;\'>${item.title.charAt(0)}</div>'">
+                        <div class="zs-info">
+                            <div class="zs-title">${item.title}</div>
+                            <div class="zs-desc">${item.year ? 'Series • ' + item.year : 'Series'}</div>
+                        </div>
+                        ${item.rating ? `<div class="zs-stars"><span>★</span> ${item.rating}</div>` : ''}
+                    </div>
+                `).join('');
+                seriesSearchResultsContainer.querySelectorAll('.zs-search-section-item').forEach(card => {
+                    card.addEventListener('click', () => {
+                        const id = card.dataset.id;
+                        const url = card.dataset.url;
+                        if (url) {
+                            currentId = id; currentStreamUrl = url;
+                            seriesSearchView.classList.remove('visible');
+                            playerSection.classList.add('visible');
+                            currentView = 'player';
+                            loadStream(url);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }
+                    });
+                });
+            });
+
+            // ==================== التهيئة الأساسية ====================
             function init() {
-                renderContent(); 
-                loadMoviesFromAPI();
-                loadMatchesFromAPI(); 
-                loadOstoraChannels(); // [جديد] تحميل قنوات Ostora
-                setInterval(loadMatchesFromAPI, 300000); 
+                renderContent();
+                refreshFootballDate(0);
+                loadMatchesFromAPI();
+                loadMovieCategoriesFromAPI();
+                loadSeriesCategoriesFromAPI();
+                setInterval(loadMatchesFromAPI, 300000);
+                setInterval(() => refreshFootballDate(0), 600000);
             }
             init();
         })();
     </script>
 </body>
-    </html>
+                            </html>
