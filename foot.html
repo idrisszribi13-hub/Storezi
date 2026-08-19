@@ -3,11 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🧪 تجربة API-Sports Widgets</title>
-
-    <!-- ===== 1. استيراد سكريبت الـ Widgets ===== -->
+    <title>🧪 تجربة Widgets - متقدمة</title>
     <script type="module" src="https://widgets.api-sports.io/3.1.0/widgets.js"></script>
-
     <style>
         * {
             margin: 0;
@@ -28,9 +25,6 @@
         h1 {
             font-size: 28px;
             margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
         }
         .sub-title {
             color: #8b949e;
@@ -50,63 +44,40 @@
             font-size: 18px;
             font-weight: 700;
             margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .section h2 .badge {
-            font-size: 12px;
-            background: #58a6ff;
-            color: #0d1117;
-            padding: 2px 10px;
-            border-radius: 20px;
-            font-weight: 600;
         }
         .grid-2 {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
         }
-        .note {
-            background: #1c2333;
-            border-left: 4px solid #f0883e;
-            padding: 12px 16px;
-            border-radius: 8px;
-            font-size: 13px;
-            color: #c9d1d9;
-            margin-top: 20px;
-        }
-        .note strong {
-            color: #f0883e;
-        }
-        .footer {
-            text-align: center;
-            margin-top: 40px;
-            font-size: 13px;
-            color: #484f58;
-            border-top: 1px solid #21262d;
-            padding-top: 20px;
+        .badge {
+            font-size: 12px;
+            background: #58a6ff;
+            color: #0d1117;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-left: 10px;
         }
         @media (max-width: 700px) {
             .grid-2 {
                 grid-template-columns: 1fr;
             }
         }
+        api-sports-widget {
+            display: block;
+            width: 100%;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>
-            <span style="background:#f85149;width:14px;height:14px;display:inline-block;border-radius:50%;animation:pulse 1.5s infinite;"></span>
-            🧪 تجربة Widgets
-        </h1>
+        <h1>🧪 تجربة Widgets - متقدمة</h1>
         <div class="sub-title">
-            API-Sports Widgets v3.1 · المفتاح: <code style="background:#21262d;padding:2px 8px;border-radius:4px;">e227ff90ed4eacc3eacb07eca05ce78b</code>
+            API-Sports Widgets · مفتاح: <code>e227ff90ed4eacc3eacb07eca05ce78b</code>
         </div>
 
-        <!-- ========================================= -->
-        <!-- 2. وسم التهيئة (Config) - يجب أن يكون موجوداً -->
-        <!-- ========================================= -->
+        <!-- ===== التهيئة ===== -->
         <api-sports-widget
             data-type="config"
             data-key="e227ff90ed4eacc3eacb07eca05ce78b"
@@ -114,18 +85,19 @@
             data-lang="en"
             data-theme="dark"
             data-show-logos="true"
+            data-favorite="true"
             data-target-game="modal"
+            data-game-tab="statistics"
             data-target-standings="modal"
             data-target-team="modal"
         ></api-sports-widget>
 
-        <!-- ========================================= -->
-        <!-- 3. المباريات المباشرة (LIVE)              -->
-        <!-- ========================================= -->
+        <!-- ===== 1. المباريات المباشرة (الدوري الإنجليزي فقط) ===== -->
         <div class="section">
-            <h2>🔴 المباريات المباشرة <span class="badge">Live</span></h2>
+            <h2>🔴 الدوري الإنجليزي - المباريات المباشرة <span class="badge">Live</span></h2>
             <api-sports-widget
                 data-type="games"
+                data-league="39"
                 data-tab="live"
                 data-refresh="30"
                 data-show-toolbar="true"
@@ -133,67 +105,48 @@
             ></api-sports-widget>
         </div>
 
-        <!-- ========================================= -->
-        <!-- 4. مباريات اليوم (Today)                  -->
-        <!-- ========================================= -->
+        <!-- ===== 2. قائمة الدوريات ===== -->
         <div class="section">
-            <h2>📅 مباريات اليوم <span class="badge" style="background:#d29922;">Today</span></h2>
+            <h2>🌍 جميع الدوريات <span class="badge" style="background:#d29922;">Leagues</span></h2>
             <api-sports-widget
-                data-type="games"
-                data-date="2026-08-19"
-                data-refresh="60"
-                data-show-toolbar="true"
-                data-games-style="2"
+                data-type="leagues"
+                data-target-league="modal"
+            ></api-sports-widget>
+            <p style="color:#8b949e;font-size:13px;margin-top:10px;">👆 اضغط على أي دوري لفتح مبارياته</p>
+        </div>
+
+        <!-- ===== 3. مقارنة فريقين (H2H) ===== -->
+        <div class="grid-2">
+            <div class="section">
+                <h2>⚔️ مانشستر سيتي vs مانشستر يونايتد <span class="badge" style="background:#1f6feb;">H2H</span></h2>
+                <api-sports-widget
+                    data-type="h2h"
+                    data-h2h="33-34"
+                    data-target-game="modal"
+                ></api-sports-widget>
+            </div>
+            <div class="section">
+                <h2>⚔️ ريال مدريد vs برشلونة <span class="badge" style="background:#1f6feb;">H2H</span></h2>
+                <api-sports-widget
+                    data-type="h2h"
+                    data-h2h="8633-8634"
+                    data-target-game="modal"
+                ></api-sports-widget>
+            </div>
+        </div>
+
+        <!-- ===== 4. ملف فريق (ريال مدريد) ===== -->
+        <div class="section">
+            <h2>🏟️ ملف ريال مدريد <span class="badge" style="background:#da3633;">Team</span></h2>
+            <api-sports-widget
+                data-type="team"
+                data-team-id="8633"
+                data-team-statistics="true"
+                data-team-squad="true"
+                data-team-tab="squads"
             ></api-sports-widget>
         </div>
 
-        <!-- ========================================= -->
-        <!-- 5. ترتيب الدوري (Standings)               -->
-        <!-- ========================================= -->
-        <div class="grid-2">
-            <div class="section">
-                <h2>🏆 الدوري الإنجليزي <span class="badge" style="background:#1f6feb;">Standings</span></h2>
-                <api-sports-widget
-                    data-type="standings"
-                    data-league="39"
-                    data-season="2026"
-                ></api-sports-widget>
-            </div>
-            <div class="section">
-                <h2>🏆 الدوري الإسباني <span class="badge" style="background:#1f6feb;">Standings</span></h2>
-                <api-sports-widget
-                    data-type="standings"
-                    data-league="140"
-                    data-season="2026"
-                ></api-sports-widget>
-            </div>
-        </div>
-
-        <!-- ========================================= -->
-        <!-- 6. نافذة تفاصيل المباراة (تظهر عند النقر)  -->
-        <!-- ========================================= -->
-        <div class="note">
-            <strong>💡 ملاحظة:</strong> عند النقر على أي مباراة في الأعلى، ستظهر نافذة منبثقة (مودال) تعرض <strong>الأحداث، الإحصائيات، التشكيلات، والتفاصيل الكاملة</strong> للمباراة مباشرةً من API-Sports.
-            <br><br>
-            <strong>🔒 الأمان:</strong> مفتاح API ظاهر في الكود. لتأمينه، اذهب إلى <a href="https://dashboard.api-sports.io" target="_blank" style="color:#58a6ff;">لوحة التحكم</a> وافعل خيار <strong>"Allowed Domains"</strong> وأضف نطاق موقعك.
-        </div>
-
-        <div class="footer">
-            ⚡ يتم التحديث تلقائياً · البيانات مقدمة من <strong>API-Sports</strong>
-        </div>
     </div>
-
-    <style>
-        @keyframes pulse {
-            0% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.4; transform: scale(0.8); }
-            100% { opacity: 1; transform: scale(1); }
-        }
-        /* تحسين بسيط لتوسيط المحتوى داخل الـ Widgets */
-        api-sports-widget {
-            display: block;
-            width: 100%;
-        }
-    </style>
 </body>
-    </html>
+</html>
