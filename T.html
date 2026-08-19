@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مباريات Camel Live - تحديث تلقائي</title>
+    <title>مباريات Camel Live - متكاملة</title>
     <style>
         * {
             margin: 0;
@@ -17,7 +17,7 @@
             padding: 20px;
         }
         .container {
-            max-width: 1200px;
+            max-width: 1300px;
             margin: 0 auto;
         }
         .header {
@@ -51,6 +51,39 @@
             0% { opacity: 1; transform: scale(1); }
             50% { opacity: 0.4; transform: scale(0.8); }
             100% { opacity: 1; transform: scale(1); }
+        }
+        .tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 8px;
+        }
+        .tabs button {
+            background: transparent;
+            border: none;
+            color: #8b949e;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .tabs button:hover {
+            color: #f0f6fc;
+            background: #1c2128;
+        }
+        .tabs button.active {
+            color: #58a6ff;
+            background: rgba(88, 166, 255, 0.1);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
         }
         .section {
             margin-bottom: 30px;
@@ -195,6 +228,47 @@
             border-radius: 12px;
             border: 1px solid #f85149;
         }
+        .league-selector {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .league-selector button {
+            background: #161b22;
+            border: 1px solid #30363d;
+            color: #8b949e;
+            padding: 6px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-weight: 600;
+        }
+        .league-selector button:hover {
+            border-color: #58a6ff;
+            color: #f0f6fc;
+        }
+        .league-selector button.active {
+            background: #1f6feb;
+            border-color: #1f6feb;
+            color: #fff;
+        }
+        .news-item {
+            background: #161b22;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            border-left: 3px solid #1f6feb;
+        }
+        .news-item .title {
+            font-weight: 600;
+            font-size: 16px;
+        }
+        .news-item .desc {
+            color: #8b949e;
+            font-size: 14px;
+            margin-top: 4px;
+        }
         @media (max-width: 600px) {
             .match-item {
                 flex-direction: column;
@@ -215,18 +289,43 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📅 مباريات اليوم (Camel Live)</h1>
+            <h1>⚽ Camel Live - متكامل</h1>
             <div class="update-info">
                 <span class="live-dot"></span>
-                يتم التحديث تلقائياً كل <strong>30 ثانية</strong>
+                تحديث تلقائي كل <strong>30 ثانية</strong>
                 <span id="lastUpdate" style="margin-left: 10px; color: #8b949e;"></span>
             </div>
         </div>
 
-        <div id="app">
-            <div class="loading">
-                <div class="spinner"></div>
-                <div>جاري تحميل المباريات من Camel Live...</div>
+        <div class="tabs">
+            <button class="active" data-tab="tab-home">🏠 الرئيسية</button>
+            <button data-tab="tab-league">🏆 بطولات</button>
+            <button data-tab="tab-news">📰 أخبار</button>
+        </div>
+
+        <!-- تبويب الرئيسية -->
+        <div id="tab-home" class="tab-content active">
+            <div id="home-content">
+                <div class="loading"><div class="spinner"></div><div>جاري تحميل المباريات...</div></div>
+            </div>
+        </div>
+
+        <!-- تبويب البطولات -->
+        <div id="tab-league" class="tab-content">
+            <div class="league-selector" id="leagueSelector">
+                <button class="active" data-competition="vl7oqdehlyr510j">La Liga</button>
+                <button data-competition="z8yomo4h7wq0j6l">UCL</button>
+                <button data-competition="gpxwrxlhgpryk0j">Friendlies</button>
+            </div>
+            <div id="league-content">
+                <div class="loading"><div class="spinner"></div><div>جاري تحميل المباريات...</div></div>
+            </div>
+        </div>
+
+        <!-- تبويب الأخبار -->
+        <div id="tab-news" class="tab-content">
+            <div id="news-content">
+                <div class="loading"><div class="spinner"></div><div>جاري تحميل الأخبار...</div></div>
             </div>
         </div>
     </div>
@@ -235,27 +334,28 @@
         (function() {
             "use strict";
 
-            // ==================== الإعدادات ====================
             const WORKER_URL = 'https://dry-truth-a84e.idriss-zribi13.workers.dev/';
-            // رابط Camel Live API مع تاريخ اليوم
-            function getApiUrl() {
-                const today = new Date();
-                const year = today.getFullYear();
-                const month = String(today.getMonth() + 1).padStart(2, '0');
-                const day = String(today.getDate()).padStart(2, '0');
-                const dateStr = `${year}${month}${day}`;
-                return `https://api.cameltv.live/camel-service/ee/sports_live/home_match?day=${dateStr}`;
+            const API_BASE = 'https://api.cameltv.live/camel-service/ee/sports_live';
+
+            // ========== دوال مساعدة ==========
+            function getTodayStr() {
+                const d = new Date();
+                return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
             }
 
-            // ==================== دوال العرض ====================
+            async function fetchWithWorker(url) {
+                const full = WORKER_URL + '?url=' + encodeURIComponent(url);
+                const resp = await fetch(full);
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                return await resp.json();
+            }
+
             function getScore(scores) {
-                if (!scores || scores.length === 0) return '0 - 0';
-                // نأخذ أول قيمتين (الشوط الأول / النتيجة الحالية)
+                if (!scores || scores.length < 2) return '0 - 0';
                 return `${scores[0] || 0} - ${scores[1] || 0}`;
             }
 
             function getStatus(statusId) {
-                // حسب ملاحظتي من البيانات: 1 = لم تبدأ, 2 = حية, 3,4,8 = منتهية
                 if (statusId === 2) return 'LIVE';
                 if (statusId === 1) return 'Upcoming';
                 return 'FT';
@@ -263,149 +363,190 @@
 
             function getStatusClass(statusId) {
                 if (statusId === 2) return 'live';
-                if (statusId === 3 || statusId === 4 || statusId === 8) return 'finished';
+                if ([3,4,8].includes(statusId)) return 'finished';
                 return '';
             }
 
-            function renderGroup(group, title, badgeClass = '') {
-                if (!group || group.length === 0) return '';
-                let html = `<div class="section">
-                            <div class="section-title">${title} <span class="badge ${badgeClass}">${group.length}</span></div>`;
-                group.forEach(item => {
-                    const comp = item.competition || {};
-                    const matches = item.match || [];
-                    html += `<div class="competition-block">
-                                <div class="competition-name">
-                                    ${comp.logo ? `<img src="${comp.logo}" onerror="this.style.display='none'">` : ''}
-                                    ${comp.name || 'دوري غير معروف'}
-                                </div>`;
-                    matches.forEach(m => {
-                        const home = m.home_team || {};
-                        const away = m.away_team || {};
-                        const score = getScore(m.home_scores);
-                        const status = getStatus(m.status_id);
-                        const statusClass = getStatusClass(m.status_id);
-                        const hasStream = m.coverage?.has_stream === 1;
-                        html += `<div class="match-item ${statusClass}">
-                                    <div class="match-teams">
-                                        <div class="team">
-                                            ${home.logo ? `<img src="${home.logo}" onerror="this.style.display='none'">` : ''}
-                                            ${home.name || 'Home'}
-                                        </div>
-                                        <span class="vs">vs</span>
-                                        <div class="team">
-                                            ${away.logo ? `<img src="${away.logo}" onerror="this.style.display='none'">` : ''}
-                                            ${away.name || 'Away'}
-                                        </div>
+            function renderMatches(matches, competition) {
+                if (!matches || matches.length === 0) return '<p style="text-align:center;color:#8b949e;padding:20px;">لا توجد مباريات</p>';
+                let html = `<div class="competition-block">
+                            <div class="competition-name">
+                                ${competition.logo ? `<img src="${competition.logo}" onerror="this.style.display='none'">` : ''}
+                                ${competition.name || 'دوري'}
+                            </div>`;
+                matches.forEach(m => {
+                    const home = m.home_team || {};
+                    const away = m.away_team || {};
+                    const score = getScore(m.home_scores);
+                    const status = getStatus(m.status_id);
+                    const statusClass = getStatusClass(m.status_id);
+                    const hasStream = m.coverage?.has_stream === 1;
+                    html += `<div class="match-item ${statusClass}">
+                                <div class="match-teams">
+                                    <div class="team">
+                                        ${home.logo ? `<img src="${home.logo}" onerror="this.style.display='none'">` : ''}
+                                        ${home.name || 'Home'}
                                     </div>
-                                    <div class="match-score">
-                                        ${score}
-                                        ${status === 'LIVE' ? `<span class="live-badge">● LIVE</span>` : ''}
+                                    <span class="vs">vs</span>
+                                    <div class="team">
+                                        ${away.logo ? `<img src="${away.logo}" onerror="this.style.display='none'">` : ''}
+                                        ${away.name || 'Away'}
                                     </div>
-                                    <div class="match-status">
-                                        <div>${status}</div>
-                                        ${hasStream ? `<span class="has-stream">🔴 بث مباشر</span>` : ''}
-                                    </div>
-                                </div>`;
-                    });
-                    html += `</div>`;
+                                </div>
+                                <div class="match-score">
+                                    ${score}
+                                    ${status === 'LIVE' ? `<span class="live-badge">● LIVE</span>` : ''}
+                                </div>
+                                <div class="match-status">
+                                    <div>${status}</div>
+                                    ${hasStream ? `<span class="has-stream">🔴 بث مباشر</span>` : ''}
+                                </div>
+                            </div>`;
                 });
                 html += `</div>`;
                 return html;
             }
 
-            function renderError(message) {
-                document.getElementById('app').innerHTML = `
-                    <div class="error-msg">
-                        ⚠️ فشل تحميل المباريات: ${message}
-                        <br><br>
-                        <button onclick="fetchMatches()" style="background:#1f6feb;border:none;color:#fff;padding:8px 20px;border-radius:6px;cursor:pointer;font-weight:600;">إعادة المحاولة</button>
-                    </div>
-                `;
-            }
-
-            function renderLoading() {
-                document.getElementById('app').innerHTML = `
-                    <div class="loading">
-                        <div class="spinner"></div>
-                        <div>جاري تحميل المباريات...</div>
-                    </div>
-                `;
-            }
-
-            // ==================== دالة جلب البيانات ====================
-            async function fetchMatches() {
-                const app = document.getElementById('app');
-                const lastUpdateSpan = document.getElementById('lastUpdate');
-
-                // إظهار حالة التحميل إذا كانت المرة الأولى
-                if (!app.querySelector('.match-item') && !app.querySelector('.error-msg')) {
-                    renderLoading();
-                }
-
+            // ========== جلب المباريات اليومية (الصفحة الرئيسية) ==========
+            async function fetchDailyMatches() {
+                const container = document.getElementById('home-content');
                 try {
-                    const apiUrl = getApiUrl();
-                    // استخدام الـ Worker لتجاوز CORS
-                    const fullUrl = WORKER_URL + '?url=' + encodeURIComponent(apiUrl);
-
-                    const response = await fetch(fullUrl);
-                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-                    const data = await response.json();
-                    console.log('✅ تم جلب البيانات بنجاح:', data);
-
-                    // التحقق من صحة البيانات
-                    if (data.status !== 200 || !data.data) {
-                        throw new Error('استجابة غير صالحة من الخادم');
-                    }
-
-                    const mainData = data.data;
-                    const living = mainData.living_group || [];
-                    const hot = mainData.hot_group || [];
-                    const other = mainData.other_group || [];
-
-                    // بناء HTML
+                    const url = `${API_BASE}/home_match?day=${getTodayStr()}`;
+                    const data = await fetchWithWorker(url);
+                    if (data.status !== 200 || !data.data) throw new Error('استجابة غير صالحة');
+                    const main = data.data;
                     let html = '';
-                    html += renderGroup(living, '🔴 المباريات الحية (Living)', '');
-                    html += renderGroup(hot, '⭐ المباريات الساخنة (Hot)', 'blue');
-                    html += renderGroup(other, '📋 مباريات أخرى (Other)', 'gray');
-
-                    if (!html) {
-                        html = '<p style="text-align:center; color:#8b949e; padding:40px;">لا توجد مباريات اليوم</p>';
+                    // living_group
+                    if (main.living_group && main.living_group.length) {
+                        main.living_group.forEach(g => {
+                            html += renderMatches(g.match, g.competition);
+                        });
                     }
-
-                    app.innerHTML = html;
-
-                    // تحديث وقت آخر تحديث
-                    const now = new Date();
-                    lastUpdateSpan.textContent = `آخر تحديث: ${now.toLocaleTimeString('ar-EG')}`;
-
-                } catch (error) {
-                    console.error('❌ خطأ في الجلب:', error);
-                    renderError(error.message);
+                    // hot_group
+                    if (main.hot_group && main.hot_group.length) {
+                        main.hot_group.forEach(g => {
+                            html += renderMatches(g.match, g.competition);
+                        });
+                    }
+                    // other_group
+                    if (main.other_group && main.other_group.length) {
+                        main.other_group.forEach(g => {
+                            html += renderMatches(g.match, g.competition);
+                        });
+                    }
+                    if (!html) html = '<p style="text-align:center;color:#8b949e;padding:30px;">لا توجد مباريات اليوم</p>';
+                    container.innerHTML = html;
+                } catch (e) {
+                    container.innerHTML = `<div class="error-msg">⚠️ فشل تحميل المباريات: ${e.message}</div>`;
                 }
             }
 
-            // ==================== التحديث التلقائي ====================
+            // ========== جلب مباريات بطولة معينة ==========
+            async function fetchLeagueMatches(competitionId) {
+                const container = document.getElementById('league-content');
+                try {
+                    // أولاً نأخذ معلومات البطولة
+                    const compUrl = `${API_BASE}/get_competition_by_name?name=${competitionId}`;
+                    // لكن competitionId هنا هو id وليس اسم، لذا نستخدم طريقة مختلفة: نستخدم معرف البطولة مباشرة
+                    // نحتاج إلى استدعاء API المباريات باستخدام competitionId
+                    const now = Math.floor(Date.now() / 1000);
+                    const start = now - 30*24*3600; // 30 يوم
+                    const end = now + 30*24*3600;
+                    const matchUrl = `${API_BASE}/football/season/match?autoload=false&competitionId=${competitionId}&keyWord=loadSeasonMatch&page=1&size=20&matchTimeStart=${start}&matchTimeEnd=${end}`;
+                    const data = await fetchWithWorker(matchUrl);
+                    if (data.status !== 200 || !data.data) throw new Error('لا توجد بيانات');
+                    const results = data.data.results || [];
+                    // جلب معلومات البطولة للعرض
+                    const compInfoUrl = `${API_BASE}/get_competition_by_name?name=${competitionId}`;
+                    let competition = { name: competitionId, logo: '' };
+                    try {
+                        const compData = await fetchWithWorker(compInfoUrl);
+                        if (compData.status === 200 && compData.data) {
+                            competition = compData.data;
+                        }
+                    } catch(e) {}
+
+                    let html = '';
+                    if (results.length === 0) {
+                        html = '<p style="text-align:center;color:#8b949e;padding:20px;">لا توجد مباريات لهذه البطولة</p>';
+                    } else {
+                        html = renderMatches(results, competition);
+                    }
+                    container.innerHTML = html;
+                } catch (e) {
+                    container.innerHTML = `<div class="error-msg">⚠️ فشل تحميل مباريات البطولة: ${e.message}</div>`;
+                }
+            }
+
+            // ========== جلب الأخبار ==========
+            async function fetchNews() {
+                const container = document.getElementById('news-content');
+                try {
+                    const url = `${API_BASE}/news_kind/list`;
+                    const data = await fetchWithWorker(url);
+                    if (data.status !== 200 || !data.data) throw new Error('لا توجد أخبار');
+                    // نأخذ أول 5 أنواع أخبار
+                    const kinds = data.data.slice(0,5);
+                    let html = '';
+                    kinds.forEach(k => {
+                        html += `<div class="news-item">
+                                    <div class="title">${k.arName || k.innerName}</div>
+                                    <div class="desc">${k.enName || ''}</div>
+                                </div>`;
+                    });
+                    if (!html) html = '<p style="text-align:center;color:#8b949e;padding:20px;">لا توجد أخبار</p>';
+                    container.innerHTML = html;
+                } catch (e) {
+                    container.innerHTML = `<div class="error-msg">⚠️ فشل تحميل الأخبار: ${e.message}</div>`;
+                }
+            }
+
+            // ========== التحديث التلقائي ==========
             let intervalId = null;
 
             function startAutoRefresh() {
-                // جلب فوري عند التحميل
-                fetchMatches();
+                // تحميل كل شيء أول مرة
+                fetchDailyMatches();
+                fetchLeagueMatches('vl7oqdehlyr510j'); // الافتراضي
+                fetchNews();
 
-                // ثم كل 30 ثانية
                 if (intervalId) clearInterval(intervalId);
-                intervalId = setInterval(fetchMatches, 30000);
+                intervalId = setInterval(() => {
+                    const activeTab = document.querySelector('.tab-content.active');
+                    if (activeTab.id === 'tab-home') {
+                        fetchDailyMatches();
+                    } else if (activeTab.id === 'tab-league') {
+                        const activeBtn = document.querySelector('#leagueSelector .active');
+                        if (activeBtn) fetchLeagueMatches(activeBtn.dataset.competition);
+                    } else if (activeTab.id === 'tab-news') {
+                        fetchNews();
+                    }
+                    document.getElementById('lastUpdate').textContent = `آخر تحديث: ${new Date().toLocaleTimeString('ar-EG')}`;
+                }, 30000);
             }
 
-            // ==================== بدء التشغيل ====================
+            // ========== أحداث التبويبات ==========
+            document.querySelectorAll('.tabs button').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+                    document.getElementById(this.dataset.tab).classList.add('active');
+                });
+            });
+
+            // ========== أحداث اختيار البطولة ==========
+            document.querySelectorAll('#leagueSelector button').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('#leagueSelector button').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    fetchLeagueMatches(this.dataset.competition);
+                });
+            });
+
+            // ========== بدء التشغيل ==========
             document.addEventListener('DOMContentLoaded', startAutoRefresh);
-
-            // إتاحة دالة fetchMatches عالمياً للزر
-            window.fetchMatches = fetchMatches;
-
         })();
     </script>
-
 </body>
-</html>
+    </html>
