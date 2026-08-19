@@ -424,17 +424,13 @@
             padding: 16px;
             background: linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, transparent 40%, transparent 60%, rgba(0, 0, 0, 0.5) 100%);
         }
-        #camelOverlay .camel-top,
-        #camelOverlay .camel-middle,
-        #camelOverlay .camel-bottom {
-            pointer-events: none;
-        }
         #camelOverlay .camel-top {
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 10px;
             flex-wrap: wrap;
+            pointer-events: none;
         }
         #camelOverlay .camel-team {
             display: flex;
@@ -509,7 +505,7 @@
             align-items: center;
             gap: 6px;
         }
-        #camelOverlay .camel-middle .possession span.label {
+        #camelOverlay .camel-middle .possession .label {
             font-size: 11px;
             color: #aaa;
             font-weight: 600;
@@ -718,7 +714,133 @@
             gap: 10px;
         }
 
-        /* ===== WIDGET OVERRIDE ===== */
+        /* ===== قائمة المباريات الجديدة (Golive) ===== */
+        .golive-section .section-title {
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .golive-section .section-title .count {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+        .golive-section .sub-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin: 16px 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .golive-section .sub-title .badge {
+            background: var(--live);
+            color: #fff;
+            font-size: 12px;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-weight: 700;
+        }
+        .golive-section .sub-title .badge.finished {
+            background: var(--text-secondary);
+        }
+        .golive-section .sub-title .badge.scheduled {
+            background: var(--accent);
+            color: #0a0a0f;
+        }
+        .golive-match-card {
+            background: var(--surface);
+            border-radius: var(--radius-sm);
+            padding: 14px 18px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .golive-match-card:hover {
+            border-color: var(--accent);
+            transform: translateX(4px);
+        }
+        .golive-match-card .match-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 200px;
+        }
+        .golive-match-card .match-info .teams {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 15px;
+            flex-wrap: wrap;
+        }
+        .golive-match-card .match-info .teams img {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            object-fit: contain;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .golive-match-card .match-info .teams .vs {
+            color: var(--text-secondary);
+            font-weight: 400;
+            font-size: 13px;
+        }
+        .golive-match-card .match-info .league {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+            width: 100%;
+        }
+        .golive-match-card .match-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .golive-match-card .match-meta .time {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: var(--bg);
+            padding: 2px 12px;
+            border-radius: 12px;
+        }
+        .golive-match-card .match-meta .time.live {
+            color: var(--live);
+            background: rgba(248, 81, 73, 0.15);
+        }
+        .golive-match-card .match-meta .status-badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 12px;
+            border-radius: 12px;
+        }
+        .golive-match-card .match-meta .status-badge.live {
+            background: var(--live);
+            color: #fff;
+        }
+        .golive-match-card .match-meta .status-badge.finished {
+            background: var(--text-secondary);
+            color: #fff;
+        }
+        .golive-match-card .match-meta .status-badge.scheduled {
+            background: var(--accent);
+            color: #0a0a0f;
+        }
+
+        /* ===== WIDGET OVERRIDE (للتبويبات الأخرى) ===== */
         api-sports-widget {
             display: block;
             width: 100%;
@@ -1597,6 +1719,18 @@
                 font-size: 10px;
                 padding: 4px 10px;
             }
+            .golive-match-card {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .golive-match-card .match-info {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
+            .golive-match-card .match-meta {
+                justify-content: space-between;
+            }
         }
 
         /* ===== UTILITY ===== */
@@ -1707,9 +1841,8 @@
                             <div style="color:var(--text-secondary); font-size:13px;">Select a match, movie or series</div>
                         </div>
 
-                        <!-- ===== تراكب Camel Live (فوق الفيديو) ===== -->
+                        <!-- ===== تراكب Camel Live ===== -->
                         <div id="camelOverlay">
-                            <!-- القسم العلوي: الفرق والنتيجة -->
                             <div class="camel-top">
                                 <div class="camel-team">
                                     <img id="camelHomeLogo" src="" alt="Home">
@@ -1724,8 +1857,6 @@
                                     <img id="camelAwayLogo" src="" alt="Away">
                                 </div>
                             </div>
-
-                            <!-- القسم الأوسط: الوقت والاستحواذ -->
                             <div class="camel-middle">
                                 <span class="time" id="camelTime">2nd Half 54:36</span>
                                 <span class="divider"></span>
@@ -1738,8 +1869,6 @@
                                     <span class="text" id="camelPossessionText">60% - 40%</span>
                                 </div>
                             </div>
-
-                            <!-- القسم السفلي: الأزرار -->
                             <div class="camel-bottom">
                                 <button class="camel-btn" data-tab="overview">📋 Match Status</button>
                                 <button class="camel-btn" data-tab="stats">📊 Stats</button>
@@ -1779,7 +1908,7 @@
                 </div>
             </div>
 
-            <!-- ===== HOME TAB ===== -->
+            <!-- ===== HOME TAB (مع قائمة المباريات الجديدة) ===== -->
             <div class="zs-tab-content active" id="tab-home">
                 <div class="categories-grid" id="homeView">
                     <div class="category-card cat-matches" data-target="home"><div class="icon-wrap">⚽</div><div class="cat-title">Live Matches</div></div>
@@ -1787,22 +1916,16 @@
                     <div class="category-card cat-series" data-target="series"><div class="icon-wrap">📺</div><div class="cat-title">Series</div></div>
                     <div class="category-card cat-reels" data-target="reels"><div class="icon-wrap">🎞️</div><div class="cat-title">Reels Series</div></div>
                 </div>
-                <div style="margin-top:10px;">
-                    <div class="football-header">
-                        <h2>📋 All Matches (Live / Finished / Scheduled)</h2>
-                        <span style="font-size:12px;color:var(--text-secondary);">تحديث تلقائي</span>
+
+                <!-- ===== قسم المباريات الجديد (Golive) ===== -->
+                <div class="golive-section" style="width:100%;margin-top:10px;">
+                    <div class="section-title">
+                        📅 Today's Matches
+                        <span class="count" id="goliveMatchesCount"></span>
                     </div>
-                    <api-sports-widget
-                        data-type="games"
-                        data-tab="all"
-                        data-refresh="30"
-                        data-show-toolbar="true"
-                        data-games-style="2"
-                        data-target-game="modal"
-                        data-target-team="modal"
-                        data-target-player="modal"
-                        data-target-standings="modal"
-                    ></api-sports-widget>
+                    <div id="goliveMatchesContainer">
+                        <div class="loading"><div class="spinner"></div><div>جاري تحميل المباريات...</div></div>
+                    </div>
                 </div>
             </div>
 
@@ -1909,6 +2032,7 @@
             // ==================== CONFIG ====================
             const API_SPORTS_KEY = 'e227ff90ed4eacc3eacb07eca05ce78b';
             const WORKER_URL = 'https://dry-truth-a84e.idriss-zribi13.workers.dev/';
+            const GOLIVE_API = 'https://admin.golive-pro.online/api/public/events?tz=1';
             const MOVIE_CATEGORIES_URL = WORKER_URL + '?url=' + encodeURIComponent(
                 'https://admin.golive-pro.online/api/content/movie-categories');
             const MOVIES_BASE_URL = 'https://admin.golive-pro.online/api/content/movies?limit=20&categoryId=';
@@ -1948,7 +2072,7 @@
             let currentView = 'home';
             let currentId = null;
             let seriesEpisodesCache = {};
-            let currentFixtureData = null; // لتخزين بيانات المباراة الحالية للتراكب
+            let currentFixtureData = null;
 
             // ==================== DOM REFS ====================
             const video = document.getElementById('zsVideo');
@@ -2016,6 +2140,9 @@
             const standingsContainer = document.getElementById('standingsContainer');
             const transfersContainer = document.getElementById('transfersContainer');
 
+            const goliveContainer = document.getElementById('goliveMatchesContainer');
+            const goliveCount = document.getElementById('goliveMatchesCount');
+
             // ==================== THEME ====================
             function setTheme(theme) {
                 document.documentElement.setAttribute('data-theme', theme);
@@ -2031,23 +2158,26 @@
 
             // ==================== PLAYER ====================
             function showLoading() { loadingEl.classList.add('zs-visible'); }
-
             function hideLoading() { loadingEl.classList.remove('zs-visible'); }
-
             function showError() { errorOverlay.classList.add('zs-visible'); }
-
             function hideError() { errorOverlay.classList.remove('zs-visible'); }
-
             function setLiveMode(live) { liveBadge.classList.toggle('zs-visible', live); }
 
-            function formatTime(s) { if (!isFinite(s) || s < 0) return '--:--'; const m = Math.floor(s / 60); const sec =
-                    Math.floor(s % 60); return `${m}:${sec.toString().padStart(2,'0')}`; }
+            function formatTime(s) {
+                if (!isFinite(s) || s < 0) return '--:--';
+                const m = Math.floor(s / 60);
+                const sec = Math.floor(s % 60);
+                return m + ':' + sec.toString().padStart(2, '0');
+            }
 
-            function updateTimeDisplay() { if (video.duration) timeDisplay.textContent =
-                    `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`; }
+            function updateTimeDisplay() {
+                if (video.duration) timeDisplay.textContent = formatTime(video.currentTime) + ' / ' + formatTime(video
+                    .duration);
+            }
 
-            function updateProgress() { if (video.duration) progressFilled.style.width = (video.currentTime / video
-                .duration * 100) + '%'; }
+            function updateProgress() {
+                if (video.duration) progressFilled.style.width = (video.currentTime / video.duration * 100) + '%';
+            }
 
             function destroyPlayer() {
                 if (hls) { hls.destroy();
@@ -2058,13 +2188,13 @@
                 hideError();
                 hideLoading();
                 setLiveMode(false);
-                btnPlay.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
+                btnPlay.innerHTML = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
                 playerSection.classList.remove('visible');
                 camelOverlay.style.display = 'none';
                 currentFixtureData = null;
             }
 
-            function loadStream(url) {
+            function loadStream(url, title) {
                 if (window.location.protocol === 'https:' && url && url.startsWith('http://')) {
                     url = url.replace('http://', 'https://');
                 }
@@ -2072,18 +2202,27 @@
                 showLoading();
                 startOverlay.classList.add('zs-hidden');
                 playerSection.classList.add('visible');
+
+                if (title) {
+                    document.getElementById('matchDetailTitleAiScore').textContent = title;
+                }
+
                 if (url.includes('.m3u8')) {
                     if (Hls.isSupported()) {
                         hls = new Hls();
                         hls.loadSource(url);
                         hls.attachMedia(video);
-                        hls.on(Hls.Events.MANIFEST_PARSED, () => { hideLoading();
+                        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                            hideLoading();
                             hideError();
                             setLiveMode(true);
                             video.play().catch(() => {});
-                            updateTimeDisplay(); });
-                        hls.on(Hls.Events.ERROR, (e, data) => { if (data.fatal) { showError();
-                                hideLoading(); } });
+                            updateTimeDisplay();
+                        });
+                        hls.on(Hls.Events.ERROR, (e, data) => {
+                            if (data.fatal) { showError();
+                                hideLoading(); }
+                        });
                     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                         video.src = url;
                         video.play();
@@ -2101,9 +2240,9 @@
             btnPlay.addEventListener('click', () => { if (video.paused) video.play();
                 else video.pause(); });
             video.addEventListener('play', () => { btnPlay.innerHTML =
-                    `<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`; });
+                    '<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>'; });
             video.addEventListener('pause', () => { btnPlay.innerHTML =
-                `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`; });
+                '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>'; });
             volumeSlider.addEventListener('input', () => { video.volume = volumeSlider.value / 100; });
             btnMute.addEventListener('click', () => { video.volume = video.volume === 0 ? 1 : 0;
                 volumeSlider.value = video.volume * 100; });
@@ -2138,28 +2277,22 @@
                 const awayScore = fixture.goals?.away ?? '-';
                 const elapsed = fixture.fixture?.status?.elapsed || 0;
                 const statusShort = fixture.fixture?.status?.short || 'LIVE';
-                const statusLong = fixture.fixture?.status?.long || '';
 
-                // تحديث العناصر
                 document.getElementById('camelHomeName').textContent = homeName;
                 document.getElementById('camelAwayName').textContent = awayName;
                 document.getElementById('camelHomeLogo').src = homeLogo;
                 document.getElementById('camelAwayLogo').src = awayLogo;
-                document.getElementById('camelScore').textContent = `${homeScore} - ${awayScore}`;
+                document.getElementById('camelScore').textContent = homeScore + ' - ' + awayScore;
 
-                // تنسيق الوقت
                 let timeText = '';
-                if (statusShort === '1H') timeText = `1st Half ${elapsed}'`;
-                else if (statusShort === '2H') timeText = `2nd Half ${elapsed}'`;
+                if (statusShort === '1H') timeText = '1st Half ' + elapsed + "'";
+                else if (statusShort === '2H') timeText = '2nd Half ' + elapsed + "'";
                 else if (statusShort === 'HT') timeText = 'Half Time';
                 else if (statusShort === 'FT') timeText = 'Full Time';
-                else if (statusShort === 'PST') timeText = 'Postponed';
-                else if (statusShort === 'NS') timeText = 'Not Started';
                 else timeText = statusShort || 'LIVE';
                 document.getElementById('camelTime').textContent = timeText;
                 document.getElementById('camelStatus').textContent = statusShort;
 
-                // استخراج الاستحواذ من الإحصائيات إن وجدت
                 let homePoss = 50,
                     awayPoss = 50;
                 if (stats && stats.length > 0) {
@@ -2173,9 +2306,8 @@
                         const possAway = awayStats.statistics.find(s => s.type === 'Ball Possession');
                         if (possAway) awayPoss = parseFloat(possAway.value) || 50;
                     }
-                    // إذا كان المجموع لا يساوي 100، نعدله
-                    if (homePoss + awayPoss !== 100) {
-                        const total = homePoss + awayPoss;
+                    const total = homePoss + awayPoss;
+                    if (total > 0) {
                         homePoss = Math.round((homePoss / total) * 100);
                         awayPoss = 100 - homePoss;
                     }
@@ -2183,9 +2315,132 @@
 
                 document.getElementById('camelPossessionHome').style.width = homePoss + '%';
                 document.getElementById('camelPossessionAway').style.width = awayPoss + '%';
-                document.getElementById('camelPossessionText').textContent = `${homePoss}% - ${awayPoss}%`;
+                document.getElementById('camelPossessionText').textContent = homePoss + '% - ' + awayPoss + '%';
 
                 camelOverlay.style.display = 'flex';
+            }
+
+            // ==================== جلب مباريات Golive ====================
+            async function fetchGoliveMatches() {
+                try {
+                    const url = WORKER_URL + '?url=' + encodeURIComponent(GOLIVE_API);
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error('فشل الاتصال بالخادم');
+                    const data = await response.json();
+
+                    if (!data || !Array.isArray(data) || data.length === 0) {
+                        goliveContainer.innerHTML =
+                            '<div style="text-align:center;padding:30px;color:var(--text-secondary);">لا توجد مباريات حالياً</div>';
+                        goliveCount.textContent = '(0)';
+                        return;
+                    }
+
+                    const now = new Date();
+                    const matches = data.map(m => {
+                        const start = new Date(m.startTime);
+                        const hasStream = m.sources && m.sources.length > 0 && m.sources[0].streamUrl;
+                        const diffMinutes = (now - start) / 60000;
+                        let status = 'scheduled';
+                        if (hasStream && diffMinutes > 0 && diffMinutes < 120) status = 'live';
+                        else if (diffMinutes > 120) status = 'finished';
+                        return { ...m, status, hasStream };
+                    });
+
+                    const order = { live: 0, finished: 1, scheduled: 2 };
+                    matches.sort((a, b) => order[a.status] - order[b.status]);
+
+                    renderGoliveMatches(matches);
+                    goliveCount.textContent = '(' + matches.length + ')';
+
+                } catch (error) {
+                    console.error('❌ فشل تحميل المباريات من Golive:', error);
+                    goliveContainer.innerHTML = '<div class="error-msg">⚠️ فشل تحميل المباريات: ' + error
+                    .message + '</div>';
+                }
+            }
+
+            function renderGoliveMatches(matches) {
+                const live = matches.filter(m => m.status === 'live');
+                const finished = matches.filter(m => m.status === 'finished');
+                const scheduled = matches.filter(m => m.status === 'scheduled');
+
+                let html = '';
+
+                if (live.length > 0) {
+                    html += '<div class="sub-title">🔴 Live Now <span class="badge">' + live.length + '</span></div>';
+                    live.forEach(m => html += createGoliveCard(m, 'live'));
+                }
+
+                if (finished.length > 0) {
+                    html += '<div class="sub-title">✅ Finished <span class="badge finished">' + finished.length +
+                        '</span></div>';
+                    finished.forEach(m => html += createGoliveCard(m, 'finished'));
+                }
+
+                if (scheduled.length > 0) {
+                    html += '<div class="sub-title">📅 Upcoming <span class="badge scheduled">' + scheduled.length +
+                        '</span></div>';
+                    scheduled.forEach(m => html += createGoliveCard(m, 'scheduled'));
+                }
+
+                goliveContainer.innerHTML = html;
+
+                document.querySelectorAll('.golive-match-card').forEach(card => {
+                    card.addEventListener('click', function() {
+                        const url = this.dataset.url;
+                        const home = this.dataset.home;
+                        const away = this.dataset.away;
+                        if (url) {
+                            const title = home + ' vs ' + away;
+                            currentStreamUrl = url;
+                            loadStream(url, title);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        } else {
+                            alert('لا يوجد رابط بث لهذه المباراة');
+                        }
+                    });
+                });
+            }
+
+            function createGoliveCard(match, status) {
+                const homeName = match.homeName || 'Home';
+                const awayName = match.awayName || 'Away';
+                const homeLogo = match.homeLogoUrl || '';
+                const awayLogo = match.awayLogoUrl || '';
+                const leagueName = match.leagueName || 'Unknown League';
+                const startTime = match.startTime ? new Date(match.startTime).toLocaleTimeString('ar-EG', { hour: '2-digit',
+                    minute: '2-digit' }) : '';
+                const streamUrl = match.sources && match.sources.length > 0 ? match.sources[0].streamUrl : '';
+
+                let statusLabel = 'LIVE',
+                    statusClass = 'live',
+                    timeLabel = startTime;
+                if (status === 'finished') {
+                    statusLabel = 'FT';
+                    statusClass = 'finished';
+                    timeLabel = '90+';
+                } else if (status === 'scheduled') {
+                    statusLabel = '📅';
+                    statusClass = 'scheduled';
+                }
+
+                return '<div class="golive-match-card" data-url="' + streamUrl + '" data-home="' + homeName +
+                    '" data-away="' + awayName + '">' +
+                    '<div class="match-info">' +
+                    '<div class="teams">' +
+                    (homeLogo ? '<img src="' + homeLogo + '" onerror="this.style.display=\'none\'">' : '') +
+                    '<span>' + homeName + '</span>' +
+                    '<span class="vs">vs</span>' +
+                    (awayLogo ? '<img src="' + awayLogo + '" onerror="this.style.display=\'none\'">' : '') +
+                    '<span>' + awayName + '</span>' +
+                    '</div>' +
+                    '<div class="league">' + leagueName + '</div>' +
+                    '</div>' +
+                    '<div class="match-meta">' +
+                    '<span class="time ' + (status === 'live' ? 'live' : '') + '">' + timeLabel + '</span>' +
+                    '<span class="status-badge ' + statusClass + '">' + statusLabel + '</span>' +
+                    '</div>' +
+                    '</div>';
             }
 
             // ==================== BANNER ====================
@@ -2216,13 +2471,13 @@
                         '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No categories found</div>';
                     return;
                 }
-                movieCategoriesContainer.innerHTML = movieCategories.map(c => `
-                        <div class="zs-category-pill" data-id="${c.id}">
-                            <div class="zs-category-pill-icon">${c.icon}</div>
-                            <div class="zs-category-pill-title">${c.name}</div>
-                            <div class="zs-category-pill-count">${c.count} Movies</div>
-                        </div>
-                    `).join('');
+                movieCategoriesContainer.innerHTML = movieCategories.map(c =>
+                    '<div class="zs-category-pill" data-id="' + c.id + '">' +
+                    '<div class="zs-category-pill-icon">' + c.icon + '</div>' +
+                    '<div class="zs-category-pill-title">' + c.name + '</div>' +
+                    '<div class="zs-category-pill-count">' + c.count + ' Movies</div>' +
+                    '</div>'
+                ).join('');
                 movieCategoriesContainer.querySelectorAll('.zs-category-pill').forEach(pill => {
                     pill.addEventListener('click', () => {
                         const categoryId = pill.dataset.id;
@@ -2281,7 +2536,7 @@
                                         movies = allMovies;
                                         if (currentView === 'movie-detail') renderMovies();
                                     }
-                                } catch (e) { console.warn(`Failed to load page ${i}`); }
+                                } catch (e) { console.warn('Failed to load page ' + i); }
                                 await new Promise(r => setTimeout(r, 1000));
                             }
                         }
@@ -2296,21 +2551,20 @@
                         '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No movies found</div>';
                     return;
                 }
-                moviesContainer.innerHTML = `
-                        <div class="zs-movies-grid">
-                            ${filtered.map(m => `
-                                <div class="zs-movie-card" data-id="${m.id}">
-                                    <div class="zs-movie-poster-wrap">
-                                        <img class="zs-movie-poster" src="${m.posterUrl}" onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
-                                        <div class="zs-movie-rating">★ ${m.rating || 'N/A'}</div>
-                                    </div>
-                                    <div class="zs-movie-info">
-                                        <div class="zs-movie-title">${m.title}</div>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    `;
+                moviesContainer.innerHTML = '<div class="zs-movies-grid">' +
+                    filtered.map(m =>
+                        '<div class="zs-movie-card" data-id="' + m.id + '">' +
+                        '<div class="zs-movie-poster-wrap">' +
+                        '<img class="zs-movie-poster" src="' + m.posterUrl +
+                        '" onerror="this.src=\'https://via.placeholder.com/300x450?text=No+Image\'">' +
+                        '<div class="zs-movie-rating">★ ' + (m.rating || 'N/A') + '</div>' +
+                        '</div>' +
+                        '<div class="zs-movie-info">' +
+                        '<div class="zs-movie-title">' + m.title + '</div>' +
+                        '</div>' +
+                        '</div>'
+                    ).join('') +
+                    '</div>';
                 moviesContainer.querySelectorAll('.zs-movie-card').forEach(card => {
                     card.addEventListener('click', () => {
                         const id = card.dataset.id;
@@ -2318,10 +2572,9 @@
                         if (movie && movie.url) {
                             currentId = id;
                             currentStreamUrl = movie.url;
-                            loadStream(movie.url);
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                            // إخفاء التراكب لأنها ليست مباراة
+                            loadStream(movie.url, movie.title);
                             camelOverlay.style.display = 'none';
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
                         }
                     });
                 });
@@ -2351,13 +2604,13 @@
                         '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No categories found</div>';
                     return;
                 }
-                seriesCategoriesContainer.innerHTML = seriesCategories.map(c => `
-                        <div class="zs-category-pill" data-id="${c.id}">
-                            <div class="zs-category-pill-icon">${c.icon}</div>
-                            <div class="zs-category-pill-title">${c.name}</div>
-                            <div class="zs-category-pill-count">${c.count} Series</div>
-                        </div>
-                    `).join('');
+                seriesCategoriesContainer.innerHTML = seriesCategories.map(c =>
+                    '<div class="zs-category-pill" data-id="' + c.id + '">' +
+                    '<div class="zs-category-pill-icon">' + c.icon + '</div>' +
+                    '<div class="zs-category-pill-title">' + c.name + '</div>' +
+                    '<div class="zs-category-pill-count">' + c.count + ' Series</div>' +
+                    '</div>'
+                ).join('');
                 seriesCategoriesContainer.querySelectorAll('.zs-category-pill').forEach(pill => {
                     pill.addEventListener('click', () => {
                         const categoryId = pill.dataset.id;
@@ -2461,7 +2714,7 @@
                                             renderSeries();
                                         }
                                     }
-                                } catch (e) { console.warn(`Failed to load series page ${i}`); }
+                                } catch (e) { console.warn('Failed to load series page ' + i); }
                                 await new Promise(r => setTimeout(r, 1000));
                             }
                         }
@@ -2476,8 +2729,8 @@
                 seriesGenres.forEach(genre => {
                     const label = genre === 'all' ? 'All' : genre;
                     const active = genre === currentSeriesGenre ? 'active' : '';
-                    html +=
-                        `<button class="zs-genre-pill ${active}" data-genre="${genre}">${label}</button>`;
+                    html += '<button class="zs-genre-pill ' + active + '" data-genre="' + genre + '">' +
+                        label + '</button>';
                 });
                 container.innerHTML = html;
                 container.querySelectorAll('.zs-genre-pill').forEach(btn => {
@@ -2499,22 +2752,22 @@
                         '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No series found</div>';
                     return;
                 }
-                seriesListContainer.innerHTML = `
-                        <div class="zs-movies-grid">
-                            ${filtered.map(s => `
-                                <div class="zs-movie-card" data-id="${s.id}">
-                                    <div class="zs-movie-poster-wrap">
-                                        <img class="zs-movie-poster" src="${s.posterUrl}" onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
-                                        <div class="zs-movie-rating">★ ${s.rating || 'N/A'}</div>
-                                        ${s.genre ? `<div style="position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,0.7);padding:2px 8px;border-radius:4px;font-size:10px;color:var(--text-secondary);">${s.genre}</div>` : ''}
-                                    </div>
-                                    <div class="zs-movie-info">
-                                        <div class="zs-movie-title">${s.title}</div>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    `;
+                seriesListContainer.innerHTML = '<div class="zs-movies-grid">' +
+                    filtered.map(s =>
+                        '<div class="zs-movie-card" data-id="' + s.id + '">' +
+                        '<div class="zs-movie-poster-wrap">' +
+                        '<img class="zs-movie-poster" src="' + s.posterUrl +
+                        '" onerror="this.src=\'https://via.placeholder.com/300x450?text=No+Image\'">' +
+                        '<div class="zs-movie-rating">★ ' + (s.rating || 'N/A') + '</div>' +
+                        (s.genre ? '<div style="position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,0.7);padding:2px 8px;border-radius:4px;font-size:10px;color:var(--text-secondary);">' +
+                            s.genre + '</div>' : '') +
+                        '</div>' +
+                        '<div class="zs-movie-info">' +
+                        '<div class="zs-movie-title">' + s.title + '</div>' +
+                        '</div>' +
+                        '</div>'
+                    ).join('') +
+                    '</div>';
                 seriesListContainer.querySelectorAll('.zs-movie-card').forEach(card => {
                     card.addEventListener('click', () => {
                         const id = card.dataset.id;
@@ -2563,22 +2816,23 @@
                 const seasonKeys = Object.keys(seasons).sort((a, b) => a - b);
                 const defaultSeason = seasonKeys[0] || 1;
 
-                let html = `
-                        <div class="zs-series-header">
-                            <img class="zs-series-poster" src="${series.posterUrl}" onerror="this.style.display='none'">
-                            <div class="zs-series-info">
-                                <div class="zs-series-title">${series.title}</div>
-                                <div class="zs-series-meta">${series.year || ''} ${series.rating ? '⭐ ' + series.rating : ''} ${series.genre ? '• ' + series.genre : ''}</div>
-                                <div class="zs-series-desc">${series.description || ''}</div>
-                            </div>
-                        </div>
-                        <div class="zs-season-tabs" id="seasonTabs">
-                            ${seasonKeys.map(s => `<button class="zs-season-tab ${s == defaultSeason ? 'active' : ''}" data-season="${s}">Season ${s}</button>`).join('')}
-                        </div>
-                        <div id="episodesContainer">
-                            ${renderEpisodes(seasons[defaultSeason] || [])}
-                        </div>
-                    `;
+                let html = '<div class="zs-series-header">' +
+                    '<img class="zs-series-poster" src="' + series.posterUrl +
+                    '" onerror="this.style.display=\'none\'">' +
+                    '<div class="zs-series-info">' +
+                    '<div class="zs-series-title">' + series.title + '</div>' +
+                    '<div class="zs-series-meta">' + (series.year || '') + (series.rating ? ' ⭐ ' + series
+                    .rating : '') + (series.genre ? ' • ' + series.genre : '') + '</div>' +
+                    '<div class="zs-series-desc">' + (series.description || '') + '</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="zs-season-tabs" id="seasonTabs">' +
+                    seasonKeys.map(s => '<button class="zs-season-tab ' + (s == defaultSeason ? 'active' :
+                        '') + '" data-season="' + s + '">Season ' + s + '</button>').join('') +
+                    '</div>' +
+                    '<div id="episodesContainer">' +
+                    renderEpisodes(seasons[defaultSeason] || []) +
+                    '</div>';
                 seriesDetailContainer.innerHTML = html;
 
                 document.getElementById('seasonTabs').addEventListener('click', function(e) {
@@ -2599,19 +2853,18 @@
                 const sorted = episodes.sort((a, b) => (a.episodeNumber || 0) - (b.episodeNumber || 0));
                 let html = '<div class="zs-episodes-grid">';
                 sorted.forEach(ep => {
-                    const title = ep.title || `Episode ${ep.episodeNumber}`;
-                    const duration = ep.duration ? `${ep.duration} min` : '';
+                    const title = ep.title || 'Episode ' + ep.episodeNumber;
+                    const duration = ep.duration ? ep.duration + ' min' : '';
                     let streamUrl = null;
                     if (ep.sources && ep.sources.length > 0) {
                         streamUrl = ep.sources[0].streamUrl;
                     }
-                    html += `
-                            <div class="zs-episode-card" data-url="${streamUrl || ''}" data-id="${ep.id}">
-                                <div class="zs-episode-number">${ep.episodeNumber || ''}</div>
-                                <div class="zs-episode-title">${title}</div>
-                                ${duration ? `<div class="zs-episode-duration">${duration}</div>` : ''}
-                            </div>
-                        `;
+                    html += '<div class="zs-episode-card" data-url="' + (streamUrl || '') + '" data-id="' +
+                        ep.id + '">' +
+                        '<div class="zs-episode-number">' + (ep.episodeNumber || '') + '</div>' +
+                        '<div class="zs-episode-title">' + title + '</div>' +
+                        (duration ? '<div class="zs-episode-duration">' + duration + '</div>' : '') +
+                        '</div>';
                 });
                 html += '</div>';
                 setTimeout(() => {
@@ -2620,9 +2873,9 @@
                             const url = this.dataset.url;
                             if (url) {
                                 currentStreamUrl = url;
-                                loadStream(url);
-                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                                loadStream(url, 'Episode');
                                 camelOverlay.style.display = 'none';
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
                             } else {
                                 alert('No stream available for this episode.');
                             }
@@ -2693,6 +2946,7 @@
                     else renderMovieCategories();
                     if (seriesCategories.length === 0) loadSeriesCategoriesFromAPI();
                     else renderSeriesCategories();
+                    fetchGoliveMatches();
                 } else if (tabId === 'standings') {
                     fetchStandings();
                 } else if (tabId === 'odds') {
@@ -2725,8 +2979,8 @@
                     for (const league of IMPORTANT_LEAGUES) {
                         try {
                             const response = await fetch(
-                                `https://v3.football.api-sports.io/standings?league=${league.id}&season=${league.season}`,
-                                {
+                                'https://v3.football.api-sports.io/standings?league=' + league.id +
+                                '&season=' + league.season, {
                                     headers: {
                                         'x-apisports-key': API_SPORTS_KEY,
                                         'Content-Type': 'application/json'
@@ -2737,49 +2991,31 @@
                             if (data.response && data.response.length > 0) {
                                 const standingsData = data.response[0];
                                 const standings = standingsData.league?.standings?.[0] || [];
-                                html += `
-                                        <div class="league-block">
-                                            <div class="league-title">${league.country} : ${league.name}</div>
-                                            <table>
-                                                <thead>
-                                                    <tr>
-                                                        <th>#</th>
-                                                        <th>Team</th>
-                                                        <th>P</th>
-                                                        <th>W</th>
-                                                        <th>D</th>
-                                                        <th>L</th>
-                                                        <th>GD</th>
-                                                        <th>Pts</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    ${standings.slice(0, 8).map((team, idx) => `
-                                                        <tr>
-                                                            <td>${idx + 1}</td>
-                                                            <td><div class="team-cell"><img src="${team.team?.logo || ''}" onerror="this.style.display='none'"> ${team.team?.name || ''}</div></td>
-                                                            <td>${team.all?.played || 0}</td>
-                                                            <td>${team.all?.win || 0}</td>
-                                                            <td>${team.all?.draw || 0}</td>
-                                                            <td>${team.all?.lose || 0}</td>
-                                                            <td>${team.goalsDiff || 0}</td>
-                                                            <td class="points">${team.points || 0}</td>
-                                                        </tr>
-                                                    `).join('')}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    `;
+                                html += '<div class="league-block">' +
+                                    '<div class="league-title">' + league.country + ' : ' + league.name +
+                                    '</div>' +
+                                    '<table><thead><tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr></thead><tbody>';
+                                standings.slice(0, 8).forEach((team, idx) => {
+                                    html += '<tr><td>' + (idx + 1) + '</td><td><div class="team-cell"><img src="' +
+                                        (team.team?.logo || '') +
+                                        '" onerror="this.style.display=\'none\'"> ' + (team.team
+                                        ?.name || '') + '</div></td><td>' + (team.all?.played ||
+                                        0) + '</td><td>' + (team.all?.win || 0) +
+                                        '</td><td>' + (team.all?.draw || 0) +
+                                        '</td><td>' + (team.all?.lose || 0) +
+                                        '</td><td>' + (team.goalsDiff || 0) +
+                                        '</td><td class="points">' + (team.points || 0) +
+                                        '</td></tr>';
+                                });
+                                html += '</tbody></table></div>';
                             }
-                        } catch (e) {
-                            console.warn(`فشل تحميل ترتيب ${league.name}:`, e);
-                        }
+                        } catch (e) { console.warn('Failed to load standings for ' + league.name, e); }
                     }
                     html += '</div>';
                     standingsContainer.innerHTML = html;
                 } catch (error) {
                     standingsContainer.innerHTML =
-                        `<div class="error-msg" style="padding:30px;text-align:center;color:var(--live);">⚠️ فشل تحميل الترتيب: ${error.message}</div>`;
+                        '<div class="error-msg">⚠️ فشل تحميل الترتيب: ' + error.message + '</div>';
                 }
             }
 
@@ -2793,16 +3029,16 @@
                             'Content-Type': 'application/json'
                         }
                     });
-                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
                     const data = await response.json();
                     if (data.errors && Object.keys(data.errors).length > 0) {
                         throw new Error(JSON.stringify(data.errors));
                     }
                     renderLiveOdds(data.response || []);
                 } catch (error) {
-                    console.error('❌ خطأ في جلب الأسعار:', error);
+                    console.error('❌ Odds error:', error);
                     oddsContainer.innerHTML =
-                        `<div class="error-msg" style="padding:30px;text-align:center;color:var(--live);">⚠️ فشل تحميل الأسعار: ${error.message}</div>`;
+                        '<div class="error-msg">⚠️ فشل تحميل الأسعار: ' + error.message + '</div>';
                 }
             }
 
@@ -2812,7 +3048,6 @@
                         '<div style="text-align:center;padding:30px;color:var(--text-secondary);">💰 لا توجد أسعار حية حالياً</div>';
                     return;
                 }
-
                 let html = '';
                 odds.slice(0, 15).forEach(item => {
                     const home = item.teams?.home?.name || 'Home';
@@ -2826,55 +3061,46 @@
                     let oddsHtml = '';
                     if (item.odds && item.odds.length > 0) {
                         const bookmakers = item.odds.slice(0, 3);
-                        oddsHtml = `
-                                <table class="odds-table-aiscore">
-                                    <thead>
-                                        <tr>
-                                            <th>Bookmaker</th>
-                                            <th>1</th>
-                                            <th>X</th>
-                                            <th>2</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${bookmakers.map(bm => {
-                                            const homeOdd = bm.values?.find(v => v.value === 'Home')?.odd || '-';
-                                            const drawOdd = bm.values?.find(v => v.value === 'Draw')?.odd || '-';
-                                            const awayOdd = bm.values?.find(v => v.value === 'Away')?.odd || '-';
-                                            return `
-                                                <tr>
-                                                    <td class="bookmaker">${bm.name || 'Unknown'}</td>
-                                                    <td class="odd-value">${homeOdd}</td>
-                                                    <td class="odd-value">${drawOdd}</td>
-                                                    <td class="odd-value">${awayOdd}</td>
-                                                </tr>
-                                            `;
-                                        }).join('')}
-                                    </tbody>
-                                </table>
-                            `;
+                        oddsHtml =
+                            '<table class="odds-table-aiscore"><thead><tr><th>Bookmaker</th><th>1</th><th>X</th><th>2</th></tr></thead><tbody>';
+                        bookmakers.forEach(bm => {
+                            let homeOdd = '-',
+                                drawOdd = '-',
+                                awayOdd = '-';
+                            if (bm.values) {
+                                bm.values.forEach(v => {
+                                    if (v.value === 'Home' || v.value === '1') homeOdd = v
+                                    .odd;
+                                    if (v.value === 'Draw' || v.value === 'X') drawOdd = v
+                                    .odd;
+                                    if (v.value === 'Away' || v.value === '2') awayOdd = v
+                                    .odd;
+                                });
+                            }
+                            oddsHtml += '<tr><td class="bookmaker">' + (bm.name || 'Unknown') +
+                                '</td><td class="odd-value">' + homeOdd +
+                                '</td><td class="odd-value">' + drawOdd +
+                                '</td><td class="odd-value">' + awayOdd + '</td></tr>';
+                        });
+                        oddsHtml += '</tbody></table>';
                     } else {
                         oddsHtml = '<div style="color:var(--text-secondary);font-size:13px;">لا توجد أسعار متاحة</div>';
                     }
 
-                    html += `
-                            <div class="match-card" style="border-color:var(--accent);margin-bottom:16px;">
-                                <div class="match-info">
-                                    <div class="match-league">${leagueName} · ${status} ${elapsed ? `'${elapsed}` : ''}</div>
-                                    <div class="match-teams">
-                                        <div class="team">${home}</div>
-                                        <div class="match-score" style="font-size:22px;color:var(--live);">${homeScore} - ${awayScore}</div>
-                                        <div class="team">${away}</div>
-                                    </div>
-                                </div>
-                                <div style="width:100%;margin-top:8px;">
-                                    ${oddsHtml}
-                                </div>
-                                <div class="match-status live">${elapsed ? `${elapsed}'` : 'LIVE'}</div>
-                            </div>
-                        `;
+                    html += '<div class="match-card">' +
+                        '<div class="match-info">' +
+                        '<div class="match-league">' + leagueName + ' · ' + status + (elapsed ? " '" +
+                        elapsed : '') + '</div>' +
+                        '<div class="match-teams">' +
+                        '<div class="team">' + home + '</div>' +
+                        '<div class="match-score" style="font-size:22px;color:var(--live);">' +
+                        homeScore + ' - ' + awayScore + '</div>' +
+                        '<div class="team">' + away + '</div>' +
+                        '</div>' +
+                        '</div>' +
+                        '<div style="width:100%;margin-top:8px;">' + oddsHtml + '</div>' +
+                        '</div>';
                 });
-
                 oddsContainer.innerHTML = html;
                 setTimeout(fetchLiveOdds, 30000);
             }
@@ -2882,24 +3108,36 @@
             // ==================== TRANSFERS ====================
             async function fetchTransfers() {
                 transfersContainer.innerHTML =
-                '<div class="loading"><div class="spinner"></div><div>جاري تحميل الانتقالات...</div></div>';
+                    '<div class="loading"><div class="spinner"></div><div>جاري تحميل الانتقالات...</div></div>';
                 try {
-                    const response = await fetch('https://v3.football.api-sports.io/transfers', {
+                    const teamId = 529;
+                    let response = await fetch('https://v3.football.api-sports.io/transfers?team=' + teamId, {
                         headers: {
                             'x-apisports-key': API_SPORTS_KEY,
                             'Content-Type': 'application/json'
                         }
                     });
-                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                    const data = await response.json();
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
+                    let data = await response.json();
                     if (data.errors && Object.keys(data.errors).length > 0) {
-                        throw new Error(JSON.stringify(data.errors));
+                        const teamId2 = 541;
+                        response = await fetch('https://v3.football.api-sports.io/transfers?team=' + teamId2, {
+                            headers: {
+                                'x-apisports-key': API_SPORTS_KEY,
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        data = await response.json();
+                        if (data.errors && Object.keys(data.errors).length > 0) {
+                            throw new Error(JSON.stringify(data.errors));
+                        }
                     }
                     renderTransfers(data.response || []);
                 } catch (error) {
-                    console.error('❌ خطأ في جلب الانتقالات:', error);
+                    console.error('❌ Transfers error:', error);
                     transfersContainer.innerHTML =
-                        `<div class="error-msg" style="padding:30px;text-align:center;color:var(--live);">⚠️ فشل تحميل الانتقالات: ${error.message}</div>`;
+                        '<div class="error-msg">⚠️ فشل تحميل الانتقالات: ' + error.message +
+                        '<br><span style="font-size:12px;">تأكد من اتصال الإنترنت وحاول مجدداً</span></div>';
                 }
             }
 
@@ -2909,36 +3147,35 @@
                         '<div style="text-align:center;padding:30px;color:var(--text-secondary);">🔄 لا توجد انتقالات حالياً</div>';
                     return;
                 }
-
                 let html = '';
-                transfers.slice(0, 50).forEach(item => {
+                transfers.slice(0, 30).forEach(item => {
                     const player = item.player?.name || 'Unknown';
                     const transfersList = item.transfers || [];
-                    transfersList.slice(0, 3).forEach(t => {
+                    transfersList.slice(0, 2).forEach(t => {
                         const from = t.teams?.out?.name || '?';
                         const to = t.teams?.in?.name || '?';
                         const fromLogo = t.teams?.out?.logo || '';
                         const toLogo = t.teams?.in?.logo || '';
                         const date = t.date || '';
                         const type = t.type || 'Transfer';
-                        html += `
-                                <div class="zs-transfer-item">
-                                    <div class="zs-transfer-team">
-                                        ${fromLogo ? `<img src="${fromLogo}" onerror="this.style.display='none'">` : ''}
-                                        ${from}
-                                    </div>
-                                    <span class="zs-transfer-arrow">→</span>
-                                    <div class="zs-transfer-team">
-                                        ${toLogo ? `<img src="${toLogo}" onerror="this.style.display='none'">` : ''}
-                                        ${to}
-                                    </div>
-                                    <div class="zs-transfer-player">${player}</div>
-                                    <span class="zs-transfer-value" style="font-size:12px;color:var(--text-secondary);">${type} · ${date}</span>
-                                </div>
-                            `;
+                        html += '<div class="zs-transfer-item">' +
+                            '<div class="zs-transfer-team">' +
+                            (fromLogo ? '<img src="' + fromLogo +
+                                '" onerror="this.style.display=\'none\'">' : '') +
+                            from +
+                            '</div>' +
+                            '<span class="zs-transfer-arrow">→</span>' +
+                            '<div class="zs-transfer-team">' +
+                            (toLogo ? '<img src="' + toLogo +
+                                '" onerror="this.style.display=\'none\'">' : '') +
+                            to +
+                            '</div>' +
+                            '<div class="zs-transfer-player">' + player + '</div>' +
+                            '<span style="font-size:12px;color:var(--text-secondary);">' + type +
+                            ' · ' + date + '</span>' +
+                            '</div>';
                     });
                 });
-
                 transfersContainer.innerHTML = html;
             }
 
@@ -2954,11 +3191,11 @@
                 matchDetailAiScore.classList.add('visible');
                 matchDetailContentAiScore.innerHTML =
                     '<div class="loading"><div class="spinner"></div><div>جاري تحميل التفاصيل...</div></div>';
-                matchDetailTitleAiScore.textContent = `Match Details`;
+                matchDetailTitleAiScore.textContent = 'Match Details';
 
                 try {
                     const fixtureResp = await fetch(
-                        `https://v3.football.api-sports.io/fixtures?id=${fixtureId}`, {
+                        'https://v3.football.api-sports.io/fixtures?id=' + fixtureId, {
                             headers: {
                                 'x-apisports-key': API_SPORTS_KEY,
                                 'Content-Type': 'application/json'
@@ -2971,7 +3208,8 @@
                     let stats = [];
                     try {
                         const statsResp = await fetch(
-                            `https://v3.football.api-sports.io/fixtures/statistics?fixture=${fixtureId}`, {
+                            'https://v3.football.api-sports.io/fixtures/statistics?fixture=' + fixtureId,
+                            {
                                 headers: {
                                     'x-apisports-key': API_SPORTS_KEY,
                                     'Content-Type': 'application/json'
@@ -2979,12 +3217,12 @@
                             });
                         const statsData = await statsResp.json();
                         stats = statsData.response || [];
-                    } catch (e) { /* تجاهل */ }
+                    } catch (e) {}
 
                     let events = [];
                     try {
                         const eventsResp = await fetch(
-                            `https://v3.football.api-sports.io/fixtures/events?fixture=${fixtureId}`, {
+                            'https://v3.football.api-sports.io/fixtures/events?fixture=' + fixtureId, {
                                 headers: {
                                     'x-apisports-key': API_SPORTS_KEY,
                                     'Content-Type': 'application/json'
@@ -2992,12 +3230,12 @@
                             });
                         const eventsData = await eventsResp.json();
                         events = eventsData.response || [];
-                    } catch (e) { /* تجاهل */ }
+                    } catch (e) {}
 
                     let odds = [];
                     try {
                         const oddsResp = await fetch(
-                            `https://v3.football.api-sports.io/odds?fixture=${fixtureId}`, {
+                            'https://v3.football.api-sports.io/odds?fixture=' + fixtureId, {
                                 headers: {
                                     'x-apisports-key': API_SPORTS_KEY,
                                     'Content-Type': 'application/json'
@@ -3005,13 +3243,13 @@
                             });
                         const oddsData = await oddsResp.json();
                         odds = oddsData.response || [];
-                    } catch (e) { /* تجاهل */ }
+                    } catch (e) {}
 
                     let h2h = [];
                     try {
                         const h2hResp = await fetch(
-                            `https://v3.football.api-sports.io/fixtures/headtohead?h2h=${fixture.teams.home.id}-${fixture.teams.away.id}`,
-                            {
+                            'https://v3.football.api-sports.io/fixtures/headtohead?h2h=' + fixture.teams
+                            .home.id + '-' + fixture.teams.away.id, {
                                 headers: {
                                     'x-apisports-key': API_SPORTS_KEY,
                                     'Content-Type': 'application/json'
@@ -3019,16 +3257,14 @@
                             });
                         const h2hData = await h2hResp.json();
                         h2h = h2hData.response || [];
-                    } catch (e) { /* تجاهل */ }
+                    } catch (e) {}
 
-                    // تحديث التراكب ببيانات المباراة والإحصائيات
                     updateCamelOverlay(fixture, stats);
-
                     renderMatchDetailAiScore(fixture, stats, events, odds, h2h);
 
                 } catch (error) {
                     matchDetailContentAiScore.innerHTML =
-                        `<div class="error-msg" style="padding:30px;text-align:center;color:var(--live);">⚠️ فشل تحميل التفاصيل: ${error.message}</div>`;
+                        '<div class="error-msg">⚠️ فشل تحميل التفاصيل: ' + error.message + '</div>';
                     camelOverlay.style.display = 'none';
                 }
             }
@@ -3077,82 +3313,72 @@
                         const total = (parseFloat(homeVal) + parseFloat(awayVal)) || 1;
                         const homePct = Math.round((parseFloat(homeVal) / total) * 100) || 50;
                         const awayPct = 100 - homePct;
-                        statsHtml += `
-                                <div class="stat-item">
-                                    <div class="stat-value-home">${homeVal}</div>
-                                    <div style="display:flex;flex-direction:column;align-items:center;width:60px;">
-                                        <div class="stat-bar">
-                                            <div class="fill-home" style="width:${homePct}%;"></div>
-                                            <div class="fill-away" style="width:${awayPct}%;"></div>
-                                        </div>
-                                    </div>
-                                    <div class="stat-value-away">${awayVal}</div>
-                                    <div class="stat-label">${key}</div>
-                                </div>
-                            `;
+                        statsHtml += '<div class="stat-item">' +
+                            '<div class="stat-value-home">' + homeVal + '</div>' +
+                            '<div style="display:flex;flex-direction:column;align-items:center;width:60px;">' +
+                            '<div class="stat-bar"><div class="fill-home" style="width:' + homePct +
+                            '%;"></div><div class="fill-away" style="width:' + awayPct +
+                            '%;"></div></div>' +
+                            '</div>' +
+                            '<div class="stat-value-away">' + awayVal + '</div>' +
+                            '<div class="stat-label">' + key + '</div>' +
+                            '</div>';
                     });
-                    statsHtml = `<div class="stats-grid-aiscore">${statsHtml}</div>`;
+                    statsHtml = '<div class="stats-grid-aiscore">' + statsHtml + '</div>';
                 } else {
-                    statsHtml = '<div style="text-align:center;padding:20px;color:var(--text-secondary);">لا توجد إحصائيات متاحة</div>';
+                    statsHtml =
+                        '<div style="text-align:center;padding:20px;color:var(--text-secondary);">لا توجد إحصائيات متاحة</div>';
                 }
 
-                const lineupsHtml = `
-                        <div style="text-align:center;padding:20px;color:var(--text-secondary);">
-                            <api-sports-widget
-                                data-type="game"
-                                data-game-id="${fixture.fixture.id}"
-                                data-game-tab="lineups"
-                                data-target-team="modal"
-                                data-target-player="modal"
-                            ></api-sports-widget>
-                        </div>
-                    `;
+                const lineupsHtml =
+                    '<div style="text-align:center;padding:20px;color:var(--text-secondary);">' +
+                    '<api-sports-widget data-type="game" data-game-id="' + fixture.fixture.id +
+                    '" data-game-tab="lineups" data-target-team="modal" data-target-player="modal"></api-sports-widget>' +
+                    '</div>';
 
                 let eventsHtml = '';
                 if (events && events.length > 0) {
                     const sortedEvents = events.sort((a, b) => (a.time?.elapsed || 0) - (b.time?.elapsed || 0));
+                    let evItems = '';
                     sortedEvents.forEach(e => {
-                        const time = e.time?.elapsed ? `${e.time.elapsed}'` : '';
+                        const time = e.time?.elapsed ? e.time.elapsed + "'" : '';
                         const player = e.player?.name || '';
-                        const assist = e.assist?.name ? ` (${e.assist.name})` : '';
+                        const assist = e.assist?.name ? ' (' + e.assist.name + ')' : '';
                         const team = e.team?.name || '';
                         let icon = '⚽';
                         if (e.type === 'Card') icon = e.detail?.includes('Yellow') ? '🟨' : '🟥';
                         else if (e.type === 'subst') icon = '🔄';
                         else if (e.type === 'Var') icon = '📺';
-                        eventsHtml += `
-                                <div class="event-row">
-                                    <span class="time">${time}</span>
-                                    <span class="icon">${icon}</span>
-                                    <span class="desc">${player} ${assist}</span>
-                                    <span class="team">${team}</span>
-                                </div>
-                            `;
+                        evItems += '<div class="event-row"><span class="time">' + time +
+                            '</span><span class="icon">' + icon +
+                            '</span><span class="desc">' + player + assist +
+                            '</span><span class="team">' + team + '</span></div>';
                     });
-                    eventsHtml = `<div class="events-aiscore">${eventsHtml}</div>`;
+                    eventsHtml = '<div class="events-aiscore">' + evItems + '</div>';
                 } else {
-                    eventsHtml = '<div style="text-align:center;padding:20px;color:var(--text-secondary);">لا توجد أحداث مسجلة</div>';
+                    eventsHtml =
+                        '<div style="text-align:center;padding:20px;color:var(--text-secondary);">لا توجد أحداث مسجلة</div>';
                 }
 
                 let h2hHtml = '';
                 if (h2h && h2h.length > 0) {
+                    let hItems = '';
                     h2h.slice(0, 10).forEach(m => {
                         const homeName = m.teams?.home?.name || '?';
                         const awayName = m.teams?.away?.name || '?';
                         const homeScoreH = m.goals?.home ?? '-';
                         const awayScoreH = m.goals?.away ?? '-';
-                        const date = m.fixture?.date ? new Date(m.fixture.date).toLocaleDateString() : '';
-                        h2hHtml += `
-                                <div class="h2h-row">
-                                    <span class="teams">${homeName} vs ${awayName}</span>
-                                    <span class="result">${homeScoreH} - ${awayScoreH}</span>
-                                    <span style="font-size:12px;color:var(--text-secondary);">${date}</span>
-                                </div>
-                            `;
+                        const date = m.fixture?.date ? new Date(m.fixture.date).toLocaleDateString() :
+                            '';
+                        hItems += '<div class="h2h-row"><span class="teams">' + homeName + ' vs ' +
+                            awayName + '</span><span class="result">' + homeScoreH + ' - ' +
+                            awayScoreH + '</span><span style="font-size:12px;color:var(--text-secondary);">' +
+                            date + '</span></div>';
                     });
-                    h2hHtml = `<div class="h2h-aiscore">${h2hHtml}</div>`;
+                    h2hHtml = '<div class="h2h-aiscore">' + hItems + '</div>';
                 } else {
-                    h2hHtml = '<div style="text-align:center;padding:20px;color:var(--text-secondary);">لا توجد مواجهات سابقة</div>';
+                    h2hHtml =
+                        '<div style="text-align:center;padding:20px;color:var(--text-secondary);">لا توجد مواجهات سابقة</div>';
                 }
 
                 let oddsHtml = '';
@@ -3160,90 +3386,130 @@
                     const bookmaker = odds[0]?.bookmakers?.[0];
                     if (bookmaker && bookmaker.bets) {
                         const importantBets = bookmaker.bets.filter(b => [59, 36, 69, 33].includes(b.id));
-                        oddsHtml = `
-                                <table class="odds-table-aiscore">
-                                    <thead>
-                                        <tr>
-                                            <th>Bet</th>
-                                            <th>1</th>
-                                            <th>X</th>
-                                            <th>2</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${importantBets.map(bet => {
-                                            const values = bet.values || [];
-                                            const homeVal = values.find(v => v.value === 'Home' || v.value === 'Over')?.odd || '-';
-                                            const drawVal = values.find(v => v.value === 'Draw')?.odd || '-';
-                                            const awayVal = values.find(v => v.value === 'Away' || v.value === 'Under')?.odd || '-';
-                                            return `
-                                                <tr>
-                                                    <td class="bookmaker">${bet.name}</td>
-                                                    <td class="odd-value">${homeVal}</td>
-                                                    <td class="odd-value">${drawVal}</td>
-                                                    <td class="odd-value">${awayVal}</td>
-                                                </tr>
-                                            `;
-                                        }).join('')}
-                                    </tbody>
-                                </table>
-                            `;
+                        let oItems = '';
+                        importantBets.forEach(bet => {
+                            const values = bet.values || [];
+                            let homeVal = '-',
+                                drawVal = '-',
+                                awayVal = '-';
+                            values.forEach(v => {
+                                if (v.value === 'Home' || v.value === 'Over') homeVal = v
+                                .odd;
+                                if (v.value === 'Draw') drawVal = v.odd;
+                                if (v.value === 'Away' || v.value === 'Under') awayVal = v
+                                .odd;
+                            });
+                            oItems += '<tr><td class="bookmaker">' + bet.name +
+                                '</td><td class="odd-value">' + homeVal +
+                                '</td><td class="odd-value">' + drawVal +
+                                '</td><td class="odd-value">' + awayVal + '</td></tr>';
+                        });
+                        oddsHtml =
+                            '<table class="odds-table-aiscore"><thead><tr><th>Bet</th><th>1</th><th>X</th><th>2</th></tr></thead><tbody>' +
+                            oItems + '</tbody></table>';
                     } else {
-                        oddsHtml = '<div style="text-align:center;padding:20px;color:var(--text-secondary);">لا توجد أسعار متاحة</div>';
+                        oddsHtml =
+                            '<div style="text-align:center;padding:20px;color:var(--text-secondary);">لا توجد أسعار متاحة</div>';
                     }
                 } else {
-                    oddsHtml = '<div style="text-align:center;padding:20px;color:var(--text-secondary);">لا توجد أسعار متاحة</div>';
+                    oddsHtml =
+                        '<div style="text-align:center;padding:20px;color:var(--text-secondary);">لا توجد أسعار متاحة</div>';
                 }
 
-                const overviewHtml = `
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                            <div><strong>Venue:</strong> ${venue}</div>
-                            <div><strong>Referee:</strong> ${referee}</div>
-                            <div><strong>Status:</strong> ${status}</div>
-                            <div><strong>Elapsed:</strong> ${elapsed}'</div>
-                        </div>
-                    `;
+                // تحميل ترتيب الدوري
+                let standingsHtml =
+                    '<div style="text-align:center;padding:20px;color:var(--text-secondary);">جاري تحميل الترتيب...</div>';
+                if (fixture.league?.id) {
+                    try {
+                        const sResp = await fetch(
+                            'https://v3.football.api-sports.io/standings?league=' + fixture.league.id +
+                            '&season=' + (fixture.league.season || 2026), {
+                                headers: {
+                                    'x-apisports-key': API_SPORTS_KEY,
+                                    'Content-Type': 'application/json'
+                                }
+                            });
+                        const sData = await sResp.json();
+                        if (sData.response && sData.response.length > 0) {
+                            const sLeague = sData.response[0];
+                            const sStandings = sLeague.league?.standings?.[0] || [];
+                            let sHtml =
+                                '<div class="standings-grid-detail"><div class="league-block"><div class="league-title">' +
+                                fixture.league.name +
+                                '</div><table><thead><tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr></thead><tbody>';
+                            sStandings.slice(0, 8).forEach((team, idx) => {
+                                sHtml += '<tr><td>' + (idx + 1) + '</td><td><div class="team-cell"><img src="' +
+                                    (team.team?.logo || '') +
+                                    '" onerror="this.style.display=\'none\'"> ' + (team.team
+                                    ?.name || '') + '</div></td><td>' + (team.all?.played ||
+                                    0) + '</td><td>' + (team.all?.win || 0) +
+                                    '</td><td>' + (team.all?.draw || 0) +
+                                    '</td><td>' + (team.all?.lose || 0) +
+                                    '</td><td>' + (team.goalsDiff || 0) +
+                                    '</td><td class="points">' + (team.points || 0) +
+                                    '</td></tr>';
+                            });
+                            sHtml += '</tbody></table></div></div>';
+                            standingsHtml = sHtml;
+                        }
+                    } catch (e) {
+                        standingsHtml =
+                            '<div style="text-align:center;padding:20px;color:var(--text-secondary);">لا يمكن تحميل الترتيب</div>';
+                    }
+                }
 
-                matchDetailContentAiScore.innerHTML = `
-                        <div class="match-header-aiscore">
-                            <div class="league-name">${league}</div>
-                            <div class="match-teams-score">
-                                <div class="team-block">
-                                    ${homeLogo ? `<img src="${homeLogo}" onerror="this.style.display='none'">` : ''}
-                                    <span class="name">${home}</span>
-                                </div>
-                                <div class="score-block">
-                                    <div class="score">${homeScore} - ${awayScore}</div>
-                                    <div class="status">${status === '1H' || status === '2H' || status === 'ET' ? `${elapsed}'` : status}</div>
-                                    <div class="ht-score">HT ${fixture.score?.halftime?.home ?? '-'} - ${fixture.score?.halftime?.away ?? '-'}</div>
-                                </div>
-                                <div class="team-block">
-                                    ${awayLogo ? `<img src="${awayLogo}" onerror="this.style.display='none'">` : ''}
-                                    <span class="name">${away}</span>
-                                </div>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="fill" style="width:${percent}%;"></div>
-                                <div class="time-label">${elapsed}'</div>
-                            </div>
-                        </div>
+                const overviewHtml =
+                    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' +
+                    '<div><strong>Venue:</strong> ' + venue + '</div>' +
+                    '<div><strong>Referee:</strong> ' + referee + '</div>' +
+                    '<div><strong>Status:</strong> ' + status + '</div>' +
+                    '<div><strong>Elapsed:</strong> ' + elapsed + "'" + '</div>' +
+                    '</div>';
 
-                        <div class="match-tabs-aiscore" id="matchTabsAiScore">
-                            <button class="active" data-tab="overview">Overview</button>
-                            <button data-tab="stats">Stats</button>
-                            <button data-tab="lineups">Lineups</button>
-                            <button data-tab="h2h">H2H</button>
-                            <button data-tab="odds">Odds</button>
-                            <button data-tab="knockout">Knockout</button>
-                        </div>
+                matchDetailContentAiScore.innerHTML =
+                    '<div class="match-header-aiscore">' +
+                    '<div class="league-name">' + league + '</div>' +
+                    '<div class="match-teams-score">' +
+                    '<div class="team-block">' +
+                    (homeLogo ? '<img src="' + homeLogo + '" onerror="this.style.display=\'none\'">' :
+                        '') +
+                    '<span class="name">' + home + '</span>' +
+                    '</div>' +
+                    '<div class="score-block">' +
+                    '<div class="score">' + homeScore + ' - ' + awayScore + '</div>' +
+                    '<div class="status">' + (status === '1H' || status === '2H' || status === 'ET' ?
+                        elapsed + "'" : status) + '</div>' +
+                    '<div class="ht-score">HT ' + (fixture.score?.halftime?.home ?? '-') + ' - ' + (
+                        fixture.score?.halftime?.away ?? '-') + '</div>' +
+                    '</div>' +
+                    '<div class="team-block">' +
+                    (awayLogo ? '<img src="' + awayLogo + '" onerror="this.style.display=\'none\'">' :
+                        '') +
+                    '<span class="name">' + away + '</span>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="progress-bar"><div class="fill" style="width:' + percent +
+                    '%;"></div><div class="time-label">' + elapsed + "'" + '</div></div>' +
+                    '</div>' +
 
-                        <div id="tab-overview" class="match-tab-content-aiscore active">${overviewHtml}</div>
-                        <div id="tab-stats" class="match-tab-content-aiscore">${statsHtml}</div>
-                        <div id="tab-lineups" class="match-tab-content-aiscore">${lineupsHtml}</div>
-                        <div id="tab-h2h" class="match-tab-content-aiscore">${h2hHtml}</div>
-                        <div id="tab-odds" class="match-tab-content-aiscore">${oddsHtml}</div>
-                        <div id="tab-knockout" class="match-tab-content-aiscore">${eventsHtml}</div>
-                    `;
+                    '<div class="match-tabs-aiscore" id="matchTabsAiScore">' +
+                    '<button class="active" data-tab="overview">Overview</button>' +
+                    '<button data-tab="stats">Stats</button>' +
+                    '<button data-tab="lineups">Lineups</button>' +
+                    '<button data-tab="h2h">H2H</button>' +
+                    '<button data-tab="odds">Odds</button>' +
+                    '<button data-tab="standings">Standings</button>' +
+                    '<button data-tab="knockout">Knockout</button>' +
+                    '</div>' +
+
+                    '<div id="tab-overview" class="match-tab-content-aiscore active">' + overviewHtml +
+                    '</div>' +
+                    '<div id="tab-stats" class="match-tab-content-aiscore">' + statsHtml + '</div>' +
+                    '<div id="tab-lineups" class="match-tab-content-aiscore">' + lineupsHtml + '</div>' +
+                    '<div id="tab-h2h" class="match-tab-content-aiscore">' + h2hHtml + '</div>' +
+                    '<div id="tab-odds" class="match-tab-content-aiscore">' + oddsHtml + '</div>' +
+                    '<div id="tab-standings" class="match-tab-content-aiscore">' + standingsHtml + '</div>' +
+                    '<div id="tab-knockout" class="match-tab-content-aiscore">' + eventsHtml + '</div>';
 
                 document.querySelectorAll('#matchTabsAiScore button').forEach(btn => {
                     btn.addEventListener('click', function() {
@@ -3251,14 +3517,13 @@
                             .remove('active'));
                         this.classList.add('active');
                         const tab = this.dataset.tab;
-                        document.querySelectorAll('.match-tab-content-aiscore').forEach(el => el.classList
-                            .remove('active'));
-                        const target = document.getElementById(`tab-${tab}`);
+                        document.querySelectorAll('.match-tab-content-aiscore').forEach(el => el
+                            .classList.remove('active'));
+                        const target = document.getElementById('tab-' + tab);
                         if (target) target.classList.add('active');
                     });
                 });
 
-                // ===== ربط أزرار Camel Overlay بتبويبات التفاصيل =====
                 document.querySelectorAll('.camel-btn').forEach(btn => {
                     btn.removeEventListener('click', camelBtnHandler);
                     btn.addEventListener('click', camelBtnHandler);
@@ -3268,7 +3533,6 @@
             function camelBtnHandler(e) {
                 e.stopPropagation();
                 const tab = this.dataset.tab;
-                // البحث عن الزر المطابق في تبويبات التفاصيل
                 const detailTabs = document.querySelectorAll('#matchTabsAiScore button');
                 let found = false;
                 detailTabs.forEach(b => {
@@ -3293,7 +3557,7 @@
                 movieSearchView.classList.add('visible');
                 movieSearchInput.value = '';
                 movieSearchResultsContainer.innerHTML =
-                    `<div class="zs-search-empty-state"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg><h3>Type a movie name to search</h3></div>`;
+                    '<div class="zs-search-empty-state"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg><h3>Type a movie name to search</h3></div>';
                 movieSearchInput.focus();
             });
             closeMovieSearchBtn.addEventListener('click', () => { movieSearchView.classList.remove('visible'); });
@@ -3301,31 +3565,36 @@
                 const query = e.target.value.trim().toLowerCase();
                 if (!query) {
                     movieSearchResultsContainer.innerHTML =
-                        `<div class="zs-search-empty-state"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg><h3>Type a movie name to search</h3></div>`;
+                        '<div class="zs-search-empty-state"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg><h3>Type a movie name to search</h3></div>';
                     return;
                 }
                 const results = movies.filter(m => m.title.toLowerCase().includes(query));
                 if (results.length === 0) {
                     movieSearchResultsContainer.innerHTML =
-                        `<div style="text-align:center;padding:30px;color:var(--text-secondary);">No results found for "${query}"</div>`;
+                        '<div style="text-align:center;padding:30px;color:var(--text-secondary);">No results found for "' +
+                        query + '"</div>';
                     return;
                 }
-                movieSearchResultsContainer.innerHTML = results.map(item => `
-                        <div class="zs-search-section-item" data-id="${item.id}" data-url="${item.url || ''}">
-                            <img class="zs-thumb" src="${item.posterUrl}" onerror="this.style.display='none'; this.parentNode.innerHTML+='<div class=\'zs-thumb\' style=\'display:flex;align-items:center;justify-content:center;background:var(--surface-hover);font-weight:700;\'>${item.title.charAt(0)}</div>'">
-                            <div class="zs-info"><div class="zs-title">${item.title}</div><div class="zs-desc">${item.genreAr || item.genre || 'Movie'} • ${item.year || ''}</div></div>
-                            ${item.rating ? `<div class="zs-stars"><span>★</span> ${item.rating}</div>` : ''}
-                        </div>
-                    `).join('');
+                movieSearchResultsContainer.innerHTML = results.map(item =>
+                    '<div class="zs-search-section-item" data-id="' + item.id + '" data-url="' + (item
+                        .url || '') + '">' +
+                    '<img class="zs-thumb" src="' + item.posterUrl +
+                    '" onerror="this.style.display=\'none\'; this.parentNode.innerHTML+=\'<div class=\\\'zs-thumb\\\' style=\\\'display:flex;align-items:center;justify-content:center;background:var(--surface-hover);font-weight:700;\\\'>' +
+                    item.title.charAt(0) + '</div>\'">' +
+                    '<div class="zs-info"><div class="zs-title">' + item.title +
+                    '</div><div class="zs-desc">' + (item.genreAr || item.genre || 'Movie') + (item
+                    .year ? ' • ' + item.year : '') + '</div></div>' +
+                    (item.rating ? '<div class="zs-stars"><span>★</span> ' + item.rating + '</div>' :
+                        '') +
+                    '</div>'
+                ).join('');
                 movieSearchResultsContainer.querySelectorAll('.zs-search-section-item').forEach(card => {
                     card.addEventListener('click', () => {
-                        const id = card.dataset.id;
                         const url = card.dataset.url;
                         if (url) {
-                            currentId = id;
                             currentStreamUrl = url;
                             movieSearchView.classList.remove('visible');
-                            loadStream(url);
+                            loadStream(url, 'Movie');
                             camelOverlay.style.display = 'none';
                             window.scrollTo({ top: 0, behavior: 'smooth' });
                         }
@@ -3337,7 +3606,7 @@
                 seriesSearchView.classList.add('visible');
                 seriesSearchInput.value = '';
                 seriesSearchResultsContainer.innerHTML =
-                    `<div class="zs-search-empty-state"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg><h3>Type a series name to search</h3></div>`;
+                    '<div class="zs-search-empty-state"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg><h3>Type a series name to search</h3></div>';
                 seriesSearchInput.focus();
             });
             closeSeriesSearchBtn.addEventListener('click', () => { seriesSearchView.classList.remove('visible'); });
@@ -3345,31 +3614,36 @@
                 const query = e.target.value.trim().toLowerCase();
                 if (!query) {
                     seriesSearchResultsContainer.innerHTML =
-                        `<div class="zs-search-empty-state"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg><h3>Type a series name to search</h3></div>`;
+                        '<div class="zs-search-empty-state"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg><h3>Type a series name to search</h3></div>';
                     return;
                 }
                 const results = series.filter(s => s.title.toLowerCase().includes(query));
                 if (results.length === 0) {
                     seriesSearchResultsContainer.innerHTML =
-                        `<div style="text-align:center;padding:30px;color:var(--text-secondary);">No results found for "${query}"</div>`;
+                        '<div style="text-align:center;padding:30px;color:var(--text-secondary);">No results found for "' +
+                        query + '"</div>';
                     return;
                 }
-                seriesSearchResultsContainer.innerHTML = results.map(item => `
-                        <div class="zs-search-section-item" data-id="${item.id}" data-url="${item.url || ''}">
-                            <img class="zs-thumb" src="${item.posterUrl}" onerror="this.style.display='none'; this.parentNode.innerHTML+='<div class=\'zs-thumb\' style=\'display:flex;align-items:center;justify-content:center;background:var(--surface-hover);font-weight:700;\'>${item.title.charAt(0)}</div>'">
-                            <div class="zs-info"><div class="zs-title">${item.title}</div><div class="zs-desc">${item.genre || 'Series'} ${item.year ? '• ' + item.year : ''}</div></div>
-                            ${item.rating ? `<div class="zs-stars"><span>★</span> ${item.rating}</div>` : ''}
-                        </div>
-                    `).join('');
+                seriesSearchResultsContainer.innerHTML = results.map(item =>
+                    '<div class="zs-search-section-item" data-id="' + item.id + '" data-url="' + (item
+                        .url || '') + '">' +
+                    '<img class="zs-thumb" src="' + item.posterUrl +
+                    '" onerror="this.style.display=\'none\'; this.parentNode.innerHTML+=\'<div class=\\\'zs-thumb\\\' style=\\\'display:flex;align-items:center;justify-content:center;background:var(--surface-hover);font-weight:700;\\\'>' +
+                    item.title.charAt(0) + '</div>\'">' +
+                    '<div class="zs-info"><div class="zs-title">' + item.title +
+                    '</div><div class="zs-desc">' + (item.genre || 'Series') + (item.year ? ' • ' +
+                        item.year : '') + '</div></div>' +
+                    (item.rating ? '<div class="zs-stars"><span>★</span> ' + item.rating + '</div>' :
+                        '') +
+                    '</div>'
+                ).join('');
                 seriesSearchResultsContainer.querySelectorAll('.zs-search-section-item').forEach(card => {
                     card.addEventListener('click', () => {
-                        const id = card.dataset.id;
                         const url = card.dataset.url;
                         if (url) {
-                            currentId = id;
                             currentStreamUrl = url;
                             seriesSearchView.classList.remove('visible');
-                            loadStream(url);
+                            loadStream(url, 'Series');
                             camelOverlay.style.display = 'none';
                             window.scrollTo({ top: 0, behavior: 'smooth' });
                         }
@@ -3441,5 +3715,6 @@
 
         })();
     </script>
+
 </body>
     </html>
