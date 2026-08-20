@@ -412,7 +412,7 @@
             }
         }
 
-        /* ===== CAMEL OVERLAY (تراكب الفيديو) ===== */
+        /* ===== CAMEL OVERLAY ===== */
         #camelOverlay {
             position: absolute;
             top: 0;
@@ -636,7 +636,7 @@
             transform: scale(1.05);
         }
 
-        /* ===== CATEGORIES GRID (HOME) ===== */
+        /* ===== CATEGORIES GRID ===== */
         .categories-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -717,7 +717,7 @@
             gap: 10px;
         }
 
-        /* ===== STREAM SECTION (البث المباشر) ===== */
+        /* ===== STREAM SECTION ===== */
         .stream-section {
             width: 100%;
             margin-bottom: 20px;
@@ -813,7 +813,7 @@
             text-align: center;
         }
 
-        /* ===== WIDGET OVERRIDE ===== */
+        /* ===== WIDGET ===== */
         api-sports-widget {
             display: block;
             width: 100%;
@@ -835,7 +835,7 @@
             color: var(--accent);
         }
 
-        /* ===== MATCH DETAIL (AiScore) ===== */
+        /* ===== MATCH DETAIL ===== */
         .match-detail-aiscore {
             display: none;
             width: 100%;
@@ -1174,8 +1174,8 @@
         /* ===== MOVIES / SERIES ===== */
         .zs-movies-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 16px;
             width: 100%;
             padding: 10px 0;
         }
@@ -1220,13 +1220,47 @@
             padding: 10px;
         }
         .zs-movie-title {
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 700;
             color: var(--text);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
+
+        /* أزرار التشغيل الخارجي */
+        .movie-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .btn-external-play {
+            background: var(--accent);
+            border: none;
+            color: #0a0a0f;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            width: 100%;
+            justify-content: center;
+        }
+        .btn-external-play:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+        .btn-external-play:active {
+            transform: scale(0.95);
+        }
+
+        /* ===== CATEGORY PILL ===== */
         .zs-category-pill-container {
             width: 100%;
             padding: 5px 0;
@@ -1276,6 +1310,8 @@
             font-size: 11px;
             font-weight: 500;
         }
+
+        /* ===== SEARCH ===== */
         .zs-search-section-view {
             display: none;
             width: 100%;
@@ -1497,6 +1533,7 @@
             color: var(--text-secondary);
             margin-top: 2px;
         }
+
         .zs-genre-filters {
             display: flex;
             gap: 8px;
@@ -1768,7 +1805,6 @@
             color: var(--live);
         }
 
-        /* ===== ADDITIONAL MATCH META ===== */
         .match-meta-info {
             display: flex;
             flex-wrap: wrap;
@@ -1792,7 +1828,6 @@
             font-size: 14px;
         }
 
-        /* ===== STANDINGS DETAIL ===== */
         .standings-grid-detail .league-block {
             background: var(--surface);
             border-radius: var(--radius-sm);
@@ -2109,8 +2144,8 @@
             "use strict";
 
             // ==================== WORKER URLs ====================
-            const WORKER_URL = 'https://dry-truth-a84e.idriss-zribi13.workers.dev/'; // للـ API والمباريات
-            const MOVIE_WORKER_URL = 'https://movie-proxy.idriss-zribi13.workers.dev/'; // وكيل الفيديو (تم تحديثه)
+            const WORKER_URL = 'https://dry-truth-a84e.idriss-zribi13.workers.dev/';
+            const MOVIE_WORKER_URL = 'https://movie-proxy.idriss-zribi13.workers.dev/';
 
             // ==================== CONFIG ====================
             const API_SPORTS_KEY = 'e227ff90ed4eacc3eacb07eca05ce78b';
@@ -2274,103 +2309,63 @@
                 currentFixtureData = null;
             }
 
-       // ===== loadStream المعدلة مع تجربة عدة طرق =====
-async function loadStream(url, title) {
-    if (!url) {
-        showError();
-        return;
-    }
+            // ===== loadStream مع محاولة التشغيل الداخلي =====
+            function loadStream(url, title) {
+                if (!url) {
+                    showError();
+                    return;
+                }
 
-    // قائمة المحاولات
-    const attempts = [];
+                let finalUrl = url;
+                // تحويل HTTP إلى HTTPS عبر الوكيل للمشغل الداخلي
+                if (window.location.protocol === 'https:' && url.startsWith('http://')) {
+                    finalUrl = MOVIE_WORKER_URL + '?url=' + encodeURIComponent(url);
+                }
 
-    // المحاولة 1: HTTPS مباشر (إذا كان الخادم يدعم)
-    if (window.location.protocol === 'https:' && url.startsWith('http://')) {
-        const httpsUrl = url.replace('http://', 'https://');
-        attempts.push(httpsUrl);
-    }
+                currentStreamUrl = finalUrl;
+                destroyPlayer();
+                showLoading();
+                startOverlay.classList.add('zs-hidden');
+                playerSection.classList.add('visible');
 
-    // المحاولة 2: وكيل الأفلام الخاص بنا
-    if (url.startsWith('http://')) {
-        attempts.push(MOVIE_WORKER_URL + '?url=' + encodeURIComponent(url));
-    }
+                if (title) {
+                    matchDetailTitleAiScore.textContent = title;
+                }
 
-    // المحاولة 3: وكيل بديل (اختياري)
-    // attempts.push('https://corsproxy.io/?url=' + encodeURIComponent(url));
-
-    for (let finalUrl of attempts) {
-        try {
-            const success = await tryLoadWithPromise(finalUrl, title);
-            if (success) {
-                return; // نجح التشغيل
-            }
-        } catch (e) {
-            console.warn('فشل المحاولة:', finalUrl, e);
-        }
-    }
-
-    // إذا فشلت كل المحاولات
-    showError();
-    const errorMsg = errorOverlay.querySelector('div');
-    if (errorMsg) {
-        errorMsg.innerHTML = '⚠️ لا يمكن تشغيل الفيديو. الرابط قد يكون معطلاً أو محظوراً. حاول مرة أخرى لاحقاً.';
-    }
-}
-
-function tryLoadWithPromise(finalUrl, title) {
-    return new Promise((resolve, reject) => {
-        currentStreamUrl = finalUrl;
-        destroyPlayer();
-        showLoading();
-        startOverlay.classList.add('zs-hidden');
-        playerSection.classList.add('visible');
-
-        if (title) {
-            matchDetailTitleAiScore.textContent = title;
-        }
-
-        // HLS
-        if (finalUrl.includes('.m3u8')) {
-            if (Hls.isSupported()) {
-                hls = new Hls();
-                hls.loadSource(finalUrl);
-                hls.attachMedia(video);
-                hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                    hideLoading();
-                    hideError();
-                    setLiveMode(true);
-                    video.play().catch(() => {});
-                    updateTimeDisplay();
-                    resolve(true);
-                });
-                hls.on(Hls.Events.ERROR, (e, data) => {
-                    if (data.fatal) {
-                        reject(new Error('HLS error'));
+                // دعم HLS
+                if (finalUrl.includes('.m3u8')) {
+                    if (Hls.isSupported()) {
+                        hls = new Hls();
+                        hls.loadSource(finalUrl);
+                        hls.attachMedia(video);
+                        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                            hideLoading();
+                            hideError();
+                            setLiveMode(true);
+                            video.play().catch(() => {});
+                            updateTimeDisplay();
+                        });
+                        hls.on(Hls.Events.ERROR, (e, data) => {
+                            if (data.fatal) {
+                                showError();
+                                hideLoading();
+                            }
+                        });
+                    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                        video.src = finalUrl;
+                        video.play();
                     }
-                });
-            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                video.src = finalUrl;
-                video.play();
-                resolve(true);
-            } else {
-                reject(new Error('HLS not supported'));
-            }
-            return;
-        }
+                    return;
+                }
 
-        // MP4, MKV, etc.
-        video.src = finalUrl;
-        video.play()
-            .then(() => {
-                hideLoading();
-                hideError();
-                resolve(true);
-            })
-            .catch((err) => {
-                reject(err);
-            });
-    });
-}
+                // للملفات العادية
+                video.src = finalUrl;
+                video.play()
+                    .then(() => { hideLoading();
+                        hideError(); })
+                    .catch(() => { hideLoading();
+                        showError(); });
+            }
 
             // دوال التحكم في الفيديو
             btnPlay.addEventListener('click', () => { if (video.paused) video.play();
@@ -2647,14 +2642,15 @@ function tryLoadWithPromise(finalUrl, title) {
                 } finally { isLoadingMovies = false; }
             }
 
+            // ===== renderMovies المعدلة مع زر خارجي =====
             function renderMovies() {
                 if (movies.length === 0) {
                     moviesContainer.innerHTML =
                         '<div style="text-align:center;padding:30px;color:var(--text-secondary)">لا توجد أفلام</div>';
                     return;
                 }
-                moviesContainer.innerHTML = `<div class="zs-movies-grid">${movies.map(m =>
-                    `<div class="zs-movie-card" data-id="${m.id}">
+                moviesContainer.innerHTML = `<div class="zs-movies-grid">${movies.map(m => `
+                    <div class="zs-movie-card" data-id="${m.id}">
                         <div class="zs-movie-poster-wrap">
                             <img class="zs-movie-poster" src="${m.posterUrl}" onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
                             <div class="zs-movie-rating">★ ${m.rating || 'N/A'}</div>
@@ -2662,12 +2658,34 @@ function tryLoadWithPromise(finalUrl, title) {
                         <div class="zs-movie-info">
                             <div class="zs-movie-title">${m.title}</div>
                             <div style="font-size:10px;color:var(--text-secondary);">${m.genreAr || m.genre || ''}</div>
+                            ${m.url ? `
+                                <div class="movie-actions">
+                                    <button class="btn-external-play" data-url="${m.url}">▶️ فتح في مشغل خارجي</button>
+                                </div>
+                            ` : ''}
                         </div>
-                    </div>`
-                ).join('')}</div>`;
+                    </div>
+                `).join('')}</div>`;
+
+                // مستمع لزر "فتح في مشغل خارجي"
+                document.querySelectorAll('.btn-external-play').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const url = this.dataset.url;
+                        if (url) {
+                            // فتح الرابط في نافذة جديدة (قد يفتح في التطبيق الافتراضي)
+                            window.open(url, '_blank');
+                        } else {
+                            alert('لا يوجد رابط للفيديو');
+                        }
+                    });
+                });
+
+                // النقر على البطاقة لتشغيل في المشغل الداخلي
                 moviesContainer.querySelectorAll('.zs-movie-card').forEach(card => {
-                    card.addEventListener('click', () => {
-                        const id = card.dataset.id;
+                    card.addEventListener('click', function(e) {
+                        if (e.target.closest('.btn-external-play')) return;
+                        const id = this.dataset.id;
                         const movie = movies.find(m => m.id === id);
                         if (movie && movie.url) {
                             currentId = id;
@@ -2679,15 +2697,6 @@ function tryLoadWithPromise(finalUrl, title) {
                         }
                     });
                 });
-            }
-
-            function goToMovieList(categoryId, categoryName) {
-                currentView = 'movie-detail';
-                movieListTitle.textContent = '🎬 ' + categoryName;
-                movieCategoriesView.style.display = 'none';
-                movieDetailView.style.display = 'flex';
-                renderMovies();
-                loadMoviesFromAPI(categoryId);
             }
 
             // ==================== SERIES ====================
@@ -2864,6 +2873,7 @@ function tryLoadWithPromise(finalUrl, title) {
                 });
             }
 
+            // ===== renderSeries المعدلة مع زر خارجي =====
             function renderSeries() {
                 const filtered = series.filter(s => {
                     if (currentSeriesGenre === 'all') return true;
@@ -2874,8 +2884,8 @@ function tryLoadWithPromise(finalUrl, title) {
                         '<div style="text-align:center;padding:30px;color:var(--text-secondary)">لا توجد مسلسلات</div>';
                     return;
                 }
-                seriesListContainer.innerHTML = `<div class="zs-movies-grid">${filtered.map(s =>
-                    `<div class="zs-movie-card" data-id="${s.id}">
+                seriesListContainer.innerHTML = `<div class="zs-movies-grid">${filtered.map(s => `
+                    <div class="zs-movie-card" data-id="${s.id}">
                         <div class="zs-movie-poster-wrap">
                             <img class="zs-movie-poster" src="${s.posterUrl}" onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
                             <div class="zs-movie-rating">★ ${s.rating || 'N/A'}</div>
@@ -2884,12 +2894,31 @@ function tryLoadWithPromise(finalUrl, title) {
                         <div class="zs-movie-info">
                             <div class="zs-movie-title">${s.title}</div>
                             <div style="font-size:10px;color:var(--text-secondary);">${s.genreAr || s.genre || ''}</div>
+                            ${s.url ? `
+                                <div class="movie-actions">
+                                    <button class="btn-external-play" data-url="${s.url}">▶️ فتح في مشغل خارجي</button>
+                                </div>
+                            ` : ''}
                         </div>
-                    </div>`
-                ).join('')}</div>`;
+                    </div>
+                `).join('')}</div>`;
+
+                document.querySelectorAll('.btn-external-play').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const url = this.dataset.url;
+                        if (url) {
+                            window.open(url, '_blank');
+                        } else {
+                            alert('لا يوجد رابط للمسلسل');
+                        }
+                    });
+                });
+
                 seriesListContainer.querySelectorAll('.zs-movie-card').forEach(card => {
-                    card.addEventListener('click', () => {
-                        const id = card.dataset.id;
+                    card.addEventListener('click', function(e) {
+                        if (e.target.closest('.btn-external-play')) return;
+                        const id = this.dataset.id;
                         const seriesItem = series.find(s => s.id === id);
                         if (seriesItem) {
                             showSeriesDetail(id);
@@ -2975,6 +3004,7 @@ function tryLoadWithPromise(finalUrl, title) {
                 });
             }
 
+            // ===== renderEpisodes المعدلة مع زر خارجي =====
             function renderEpisodes(episodes) {
                 if (!episodes || episodes.length === 0) {
                     return '<div style="text-align:center;padding:20px;color:var(--text-secondary);">لا توجد حلقات في هذا الموسم</div>';
@@ -2992,12 +3022,31 @@ function tryLoadWithPromise(finalUrl, title) {
                                 <div class="zs-episode-number">${ep.episodeNumber || ''}</div>
                                 <div class="zs-episode-title">${title}</div>
                                 ${duration ? `<div class="zs-episode-duration">${duration}</div>` : ''}
+                                ${streamUrl ? `
+                                    <div class="movie-actions" style="margin-top:6px;">
+                                        <button class="btn-external-play" data-url="${streamUrl}">▶️ فتح في مشغل خارجي</button>
+                                    </div>
+                                ` : ''}
                             </div>`;
                 });
                 html += '</div>';
+
+                // إضافة مستمعات الأحداث بعد إدراج الـ HTML
                 setTimeout(() => {
+                    document.querySelectorAll('#episodesContainer .btn-external-play').forEach(btn => {
+                        btn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const url = this.dataset.url;
+                            if (url) {
+                                window.open(url, '_blank');
+                            } else {
+                                alert('لا يوجد رابط للحلقة');
+                            }
+                        });
+                    });
                     document.querySelectorAll('.zs-episode-card').forEach(card => {
-                        card.addEventListener('click', function() {
+                        card.addEventListener('click', function(e) {
+                            if (e.target.closest('.btn-external-play')) return;
                             const url = this.dataset.url;
                             if (url) {
                                 loadStream(url, 'الحلقة');
@@ -3071,8 +3120,6 @@ function tryLoadWithPromise(finalUrl, title) {
                     currentView = 'series-categories';
                     if (seriesCategories.length === 0) loadSeriesCategoriesFromAPI();
                     else renderSeriesCategories();
-                } else if (tabId === 'livescore') {
-                    // Livescore tab shows the widget directly
                 }
 
                 movieSearchView.classList.remove('visible');
@@ -3393,7 +3440,6 @@ function tryLoadWithPromise(finalUrl, title) {
                 const totalTime = 90;
                 const percent = Math.min((elapsed / totalTime) * 100, 100);
 
-                // ---- Match Header ----
                 let statusText = status;
                 if (status === '1H' || status === '2H' || status === 'ET') statusText = elapsed + "'";
                 else if (status === 'HT') statusText = 'Half Time';
@@ -3433,7 +3479,6 @@ function tryLoadWithPromise(finalUrl, title) {
                         </div>
                     `;
 
-                // ---- Overview Tab ----
                 let overviewHtml = `
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px 0;">
                             <div><strong>🏟️ Venue:</strong> ${venue}</div>
@@ -3447,7 +3492,6 @@ function tryLoadWithPromise(finalUrl, title) {
                         </div>
                     `;
 
-                // ---- Stats Tab ----
                 let statsHtml = '';
                 if (stats && stats.length > 0) {
                     const homeStats = stats.find(s => s.team?.name === home) || stats[0];
@@ -3492,7 +3536,6 @@ function tryLoadWithPromise(finalUrl, title) {
                     statsHtml = '<div class="empty-state">لا توجد إحصائيات متاحة</div>';
                 }
 
-                // ---- Lineups Tab ----
                 let lineupsHtml = '';
                 if (lineups && lineups.length > 0) {
                     const homeLineup = lineups.find(l => l.team?.name === home) || lineups[0];
@@ -3518,7 +3561,6 @@ function tryLoadWithPromise(finalUrl, title) {
                     lineupsHtml = '<div class="empty-state">لا توجد تشكيلات متاحة</div>';
                 }
 
-                // ---- Events Tab ----
                 let eventsHtml = '';
                 if (events && events.length > 0) {
                     const sortedEvents = events.sort((a, b) => (a.time?.elapsed || 0) - (b.time?.elapsed || 0));
@@ -3540,7 +3582,6 @@ function tryLoadWithPromise(finalUrl, title) {
                     eventsHtml = '<div class="empty-state">لا توجد أحداث مسجلة</div>';
                 }
 
-                // ---- H2H Tab ----
                 let h2hHtml = '';
                 if (h2h && h2h.length > 0) {
                     let hItems = '';
@@ -3559,7 +3600,6 @@ function tryLoadWithPromise(finalUrl, title) {
                     h2hHtml = '<div class="empty-state">لا توجد مواجهات سابقة</div>';
                 }
 
-                // ---- Odds Tab ----
                 let oddsHtml = '';
                 if (odds && odds.length > 0) {
                     const bookmaker = odds[0]?.bookmakers?.[0];
@@ -3590,7 +3630,6 @@ function tryLoadWithPromise(finalUrl, title) {
                     oddsHtml = '<div class="empty-state">لا توجد أسعار متاحة</div>';
                 }
 
-                // ---- Standings Tab ----
                 let standingsHtml = '<div class="empty-state">جاري تحميل الترتيب...</div>';
                 if (fixture.league?.id) {
                     try {
@@ -3627,7 +3666,6 @@ function tryLoadWithPromise(finalUrl, title) {
                     standingsHtml = '<div class="empty-state">لا توجد بيانات ترتيب</div>';
                 }
 
-                // ---- Build Full HTML ----
                 matchDetailContentAiScore.innerHTML = headerHtml +
                     `<div class="match-tabs-aiscore" id="matchTabsAiScore">
                             <button class="active" data-tab="overview">📋 Overview</button>
@@ -3714,11 +3752,20 @@ function tryLoadWithPromise(finalUrl, title) {
                             <img class="zs-thumb" src="${item.posterUrl}" onerror="this.style.display='none'">
                             <div class="zs-info"><div class="zs-title">${item.title}</div><div class="zs-desc">${item.genreAr || item.genre || 'فيلم'} ${item.year ? '• ' + item.year : ''}</div></div>
                             ${item.rating ? `<div class="zs-stars"><span>★</span> ${item.rating}</div>` : ''}
+                            ${item.url ? `<div class="movie-actions"><button class="btn-external-play" data-url="${item.url}">▶️ فتح في مشغل خارجي</button></div>` : ''}
                         </div>`
                 ).join('');
+                document.querySelectorAll('#movieSearchResultsContainer .btn-external-play').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const url = this.dataset.url;
+                        if (url) window.open(url, '_blank');
+                    });
+                });
                 movieSearchResultsContainer.querySelectorAll('.zs-search-section-item').forEach(card => {
-                    card.addEventListener('click', () => {
-                        const url = card.dataset.url;
+                    card.addEventListener('click', function(e) {
+                        if (e.target.closest('.btn-external-play')) return;
+                        const url = this.dataset.url;
                         if (url) {
                             movieSearchView.classList.remove('visible');
                             loadStream(url, 'فيلم');
@@ -3757,11 +3804,20 @@ function tryLoadWithPromise(finalUrl, title) {
                             <img class="zs-thumb" src="${item.posterUrl}" onerror="this.style.display='none'">
                             <div class="zs-info"><div class="zs-title">${item.title}</div><div class="zs-desc">${item.genre || 'مسلسل'} ${item.year ? '• ' + item.year : ''}</div></div>
                             ${item.rating ? `<div class="zs-stars"><span>★</span> ${item.rating}</div>` : ''}
+                            ${item.url ? `<div class="movie-actions"><button class="btn-external-play" data-url="${item.url}">▶️ فتح في مشغل خارجي</button></div>` : ''}
                         </div>`
                 ).join('');
+                document.querySelectorAll('#seriesSearchResultsContainer .btn-external-play').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const url = this.dataset.url;
+                        if (url) window.open(url, '_blank');
+                    });
+                });
                 seriesSearchResultsContainer.querySelectorAll('.zs-search-section-item').forEach(card => {
-                    card.addEventListener('click', () => {
-                        const url = card.dataset.url;
+                    card.addEventListener('click', function(e) {
+                        if (e.target.closest('.btn-external-play')) return;
+                        const url = this.dataset.url;
                         if (url) {
                             seriesSearchView.classList.remove('visible');
                             loadStream(url, 'مسلسل');
@@ -3852,4 +3908,4 @@ function tryLoadWithPromise(finalUrl, title) {
         })();
     </script>
 </body>
-    </html>
+</html>
