@@ -1085,6 +1085,10 @@
             box-shadow: var(--shadow);
         }
 
+        .news-card.featured {
+            border-color: var(--accent-blue);
+        }
+
         .news-card img {
             width: 100%;
             height: 140px;
@@ -1638,6 +1642,7 @@
             // ============================================================
             const WORKER_URL = 'https://dry-truth-a84e.idriss-zribi13.workers.dev/';
             const BASE_API = 'https://api-en.ysscores.com/api/';
+            const NEWS_API = 'https://news-en.ysscores.com/api/';
             const IMG_BASE = 'https://imgs.ysscores.com/';
             const IMG_TEAMS = IMG_BASE + 'teams/64/';
             const IMG_CHAMPIONSHIP = IMG_BASE + 'championship/cups/';
@@ -1654,6 +1659,8 @@
             // ============================================================
             let currentDate = new Date();
             let currentTab = 'matches';
+            let newsCurrentPage = 1;
+            let newsTotalPages = 1;
 
             // ============================================================
             // DOM REFS
@@ -1693,8 +1700,20 @@
                 return path;
             }
 
+            function getDefaultPlayerImage() {
+                return 'https://ui-avatars.com/api/?name=Player&background=4c8bf5&color=fff&size=60';
+            }
+
             function fetchAPI(endpoint) {
                 const url = WORKER_URL + '?url=' + encodeURIComponent(BASE_API + endpoint);
+                return fetch(url).then(res => {
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    return res.json();
+                });
+            }
+
+            function fetchNewsAPI(endpoint) {
+                const url = WORKER_URL + '?url=' + encodeURIComponent(NEWS_API + endpoint);
                 return fetch(url).then(res => {
                     if (!res.ok) throw new Error('HTTP ' + res.status);
                     return res.json();
@@ -1766,7 +1785,8 @@
                         const awayLogo = getImageUrl(away.image, 'team');
                         const statusText = getStatusText(m.status);
                         const statusClass = getStatusClass(m.status);
-                        const score = (m.status === 0) ? 'VS' : `${m.home_scores ?? 0} - ${m.away_scores ?? 0}`;
+                        const score = (m.status === 0) ? 'VS' :
+                            `${m.home_scores ?? 0} - ${m.away_scores ?? 0}`;
                         const time = m.match_time ? m.match_time.slice(0, 5) : '';
                         html += `
                             <div class="match-item" data-match-id="${m.match_id}">
@@ -1813,7 +1833,8 @@
 
                     let standingData = null;
                     try {
-                        const sData = await fetchAPI(`matches/league_standing_stage/${match.championship_id}`);
+                        const sData = await fetchAPI(
+                        `matches/league_standing_stage/${match.championship_id}`);
                         if (sData.status) standingData = sData.data;
                     } catch (e) {}
 
@@ -1849,7 +1870,8 @@
                 const awayLogo = getImageUrl(away.image, 'team');
                 const champ = match.championship || {};
                 const statusText = getStatusText(match.status);
-                const score = (match.status === 0) ? 'VS' : `${match.home_scores ?? 0} - ${match.away_scores ?? 0}`;
+                const score = (match.status === 0) ? 'VS' :
+                    `${match.home_scores ?? 0} - ${match.away_scores ?? 0}`;
                 const round = match.round || '';
                 const stadium = match.Stadium || 'N/A';
                 const channel = (match.channel_commm && match.channel_commm.length > 0) ? match.channel_commm[0]
@@ -1927,7 +1949,7 @@
                 // Standings
                 html += `<div class="detail-tab-content" id="dtab-standings">${renderStandings(standingData, champ)}</div>`;
 
-                // Lineups (Flutter-style formation)
+                // Lineups
                 html += `<div class="detail-tab-content" id="dtab-lineups">${renderLineups(lineupData, home, away)}</div>`;
 
                 // Events
@@ -1995,7 +2017,7 @@
             }
 
             // ============================================================
-            // LINEUPS (Formation-style)
+            // LINEUPS (Formation-style with player images)
             // ============================================================
             function renderLineups(data, home, away) {
                 if (!data || !data.lineup) {
@@ -2027,7 +2049,11 @@
 
                 // Home
                 html += `<div class="lineup-team">
-                    <div class="title"><img src="${getImageUrl(home.image, 'team')}" onerror="this.style.display='none'"> ${home.title || 'Home'} ${data.home_formation ? '• ' + data.home_formation : ''}</div>
+                    <div class="title">
+                        <img src="${getImageUrl(home.image, 'team')}" onerror="this.style.display='none'">
+                        ${home.title || 'Home'}
+                        ${data.home_formation ? '• ' + data.home_formation : ''}
+                    </div>
                     <div class="formation-pitch">`;
 
                 const homeRows = [
@@ -2073,7 +2099,11 @@
 
                 // Away
                 html += `<div class="lineup-team">
-                    <div class="title"><img src="${getImageUrl(away.image, 'team')}" onerror="this.style.display='none'"> ${away.title || 'Away'} ${data.away_formation ? '• ' + data.away_formation : ''}</div>
+                    <div class="title">
+                        <img src="${getImageUrl(away.image, 'team')}" onerror="this.style.display='none'">
+                        ${away.title || 'Away'}
+                        ${data.away_formation ? '• ' + data.away_formation : ''}
+                    </div>
                     <div class="formation-pitch">`;
 
                 const awayRows = [
@@ -2334,37 +2364,86 @@
             }
 
             // ============================================================
-            // LOAD NEWS
+            // LOAD NEWS (Improved with pagination)
             // ============================================================
-            async function loadNews() {
+            async function loadNews(page = 1) {
+                newsContainer.innerHTML =
+                    `<div class="loading-state"><div class="spinner"></div><div>Loading news...</div></div>`;
+
                 try {
-                    const data = await fetchAPI('News/all_news_page/%5B%5D');
+                    // First, get featured news from all_news_page
+                    let featuredData = null;
+                    try {
+                        const featuredResp = await fetchNewsAPI('News/all_news_page/%5B%5D');
+                        if (featuredResp.status) {
+                            featuredData = featuredResp.data;
+                        }
+                    } catch (e) {
+                        console.log('Featured news not available, using latest_news only');
+                    }
+
+                    // Get paginated news from latest_news
+                    const endpoint = `News/latest_news/%5B%5D?page=${page}`;
+                    const data = await fetchNewsAPI(endpoint);
+
                     if (!data.status) throw new Error('Failed to load news');
-                    renderNews(data.data);
+
+                    newsCurrentPage = data.data.current_page || page;
+                    newsTotalPages = data.data.last_page || 1;
+
+                    // Combine featured + latest news
+                    let allNews = [];
+
+                    // Add featured news first (main + important)
+                    if (featuredData) {
+                        if (featuredData.main) {
+                            allNews.push({ ...featuredData.main, is_featured: true, type: 'main' });
+                        }
+                        if (featuredData.important && featuredData.important.length > 0) {
+                            featuredData.important.forEach(item => {
+                                allNews.push({ ...item, is_featured: true, type: 'important' });
+                            });
+                        }
+                    }
+
+                    // Add latest news (excluding duplicates by id)
+                    const existingIds = new Set(allNews.map(item => item.id));
+                    if (data.data.data && data.data.data.length > 0) {
+                        data.data.data.forEach(item => {
+                            if (!existingIds.has(item.id)) {
+                                allNews.push({ ...item, is_featured: false });
+                            }
+                        });
+                    }
+
+                    renderNews(allNews, data.data);
+
                 } catch (error) {
                     newsContainer.innerHTML = `<div class="error-state">⚠️ ${error.message}</div>`;
                 }
             }
 
-            function renderNews(newsData) {
-                const main = newsData.main;
-                const important = newsData.important || [];
-                const last = newsData.last_news || [];
-                const allNews = [main, ...important, ...last].filter(Boolean);
-                if (allNews.length === 0) {
+            function renderNews(newsItems, paginationData) {
+                if (!newsItems || newsItems.length === 0) {
                     newsContainer.innerHTML = '<div class="empty-state">No news available</div>';
                     return;
                 }
 
                 let html = '<div class="news-grid">';
-                allNews.slice(0, 6).forEach(item => {
+
+                // Show featured news first with a badge
+                const displayItems = newsItems.slice(0, 12);
+                displayItems.forEach(item => {
                     const img = getImageUrl(item.image, 'news');
                     const time = item.created_at?.date ? new Date(item.created_at.date).toLocaleString('en-US') :
                         '';
+                    const isFeatured = item.is_featured || false;
+
                     html += `
-                        <div class="news-card">
+                        <div class="news-card ${isFeatured ? 'featured' : ''}">
                             ${img ? `<img src="${img}" onerror="this.style.display='none'">` : ''}
                             <div class="news-body">
+                                ${isFeatured ? `<span style="font-size:10px;color:var(--accent-blue);font-weight:700;text-transform:uppercase;">★ Featured</span>` : ''}
                                 <div class="title">${item.title || ''}</div>
                                 <div class="desc">${item.news_desc || ''}</div>
                                 <div class="time">${time}</div>
@@ -2373,6 +2452,28 @@
                     `;
                 });
                 html += '</div>';
+
+                // Add pagination controls
+                if (paginationData && paginationData.last_page > 1) {
+                    html += `
+                        <div style="display:flex;justify-content:center;gap:10px;margin-top:16px;flex-wrap:wrap;">
+                            <button onclick="window.loadNewsPage(${paginationData.current_page - 1})"
+                                    style="background:none;border:1px solid var(--border-color);color:var(--text-secondary);padding:6px 16px;border-radius:30px;cursor:pointer;font-weight:600;transition:var(--transition);"
+                                    ${paginationData.current_page <= 1 ? 'disabled style="opacity:0.3;cursor:not-allowed;"' : ''}>
+                                ← Previous
+                            </button>
+                            <span style="color:var(--text-secondary);font-size:13px;display:flex;align-items:center;">
+                                Page ${paginationData.current_page} of ${paginationData.last_page}
+                            </span>
+                            <button onclick="window.loadNewsPage(${paginationData.current_page + 1})"
+                                    style="background:none;border:1px solid var(--border-color);color:var(--text-secondary);padding:6px 16px;border-radius:30px;cursor:pointer;font-weight:600;transition:var(--transition);"
+                                    ${paginationData.current_page >= paginationData.last_page ? 'disabled style="opacity:0.3;cursor:not-allowed;"' : ''}>
+                                Next →
+                            </button>
+                        </div>
+                    `;
+                }
+
                 newsContainer.innerHTML = html;
             }
 
@@ -2403,7 +2504,7 @@
                     const player = item.player_name || {};
                     const teamOut = item.team_out || {};
                     const teamIn = item.team_in || {};
-                    const playerImg = getImageUrl(player.image, 'player');
+                    const playerImg = getImageUrl(player.image, 'player') || getDefaultPlayerImage();
                     const outImg = getImageUrl(teamOut.image, 'team');
                     const inImg = getImageUrl(teamIn.image, 'team');
                     const value = item.value ? (parseInt(item.value) / 1000000).toFixed(1) + 'M' : 'Free';
@@ -2544,7 +2645,7 @@
                     const target = document.getElementById('tab-' + tab);
                     if (target) target.classList.add('active');
 
-                    if (tab === 'news') loadNews();
+                    if (tab === 'news') loadNews(1);
                     else if (tab === 'transfers') loadTransfers();
                     else if (tab === 'standings') loadStandings();
                     else if (tab === 'matches') loadMatches(currentDate);
@@ -2560,10 +2661,16 @@
             });
 
             // ============================================================
-            // GLOBAL
+            // GLOBAL FUNCTIONS
             // ============================================================
             window.loadStandingsFromGlobal = function() {
                 loadStandings();
+            };
+
+            window.loadNewsPage = function(page) {
+                if (page >= 1 && page <= newsTotalPages) {
+                    loadNews(page);
+                }
             };
 
             // ============================================================
@@ -2571,7 +2678,7 @@
             // ============================================================
             function init() {
                 updateDate();
-                loadNews();
+                loadNews(1);
                 loadTransfers();
                 loadStandings();
             }
