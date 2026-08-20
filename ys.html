@@ -704,6 +704,11 @@
         .player-detail-box .player-header .info .team {
             font-size: 14px;
             color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        .player-detail-box .player-header .info .team:hover {
+            color: var(--accent-blue);
         }
 
         .player-detail-box .player-header .info .pos {
@@ -867,6 +872,9 @@
         .team-detail-box .team-header .info .country {
             font-size: 14px;
             color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .team-detail-box .team-header .info .stadium {
@@ -1118,6 +1126,7 @@
             align-items: center;
             gap: 8px;
             color: var(--text-primary);
+            flex-wrap: wrap;
         }
 
         .lineup-team .title img {
@@ -1125,6 +1134,15 @@
             height: 20px;
             border-radius: 50%;
             object-fit: contain;
+        }
+
+        .lineup-team .title .formation-badge {
+            font-size: 11px;
+            color: var(--accent-blue);
+            background: rgba(76, 139, 245, 0.15);
+            padding: 1px 10px;
+            border-radius: 20px;
+            font-weight: 600;
         }
 
         .lineup-team .formation-pitch {
@@ -2230,9 +2248,10 @@
             const NEWS_API = 'https://news-en.ysscores.com/api/';
             const IMG_BASE = 'https://imgs.ysscores.com/';
             const IMG_TEAMS = IMG_BASE + 'teams/64/';
-            const IMG_CHAMPIONSHIP = IMG_BASE + 'championship/cups/';
             const IMG_PLAYERS = IMG_BASE + 'players/';
             const IMG_NEWS = IMG_BASE + 'news/';
+            const IMG_COUNTRIES = IMG_BASE + 'countries/';
+            const IMG_CHAMPIONSHIP = IMG_BASE + 'championship/cups/';
 
             const LEAGUE_IDS = [
                 '938652', '941825', '937599', '938769',
@@ -2285,9 +2304,10 @@
                 if (!path) return '';
                 if (path.startsWith('http')) return path;
                 if (type === 'team') return IMG_TEAMS + path;
-                if (type === 'championship') return IMG_CHAMPIONSHIP + path;
                 if (type === 'player') return IMG_PLAYERS + path;
                 if (type === 'news') return IMG_NEWS + path;
+                if (type === 'country') return IMG_COUNTRIES + path;
+                if (type === 'championship') return IMG_CHAMPIONSHIP + path;
                 return path;
             }
 
@@ -2444,7 +2464,7 @@
                     let standingData = null;
                     try {
                         const sData = await fetchAPI(
-                        `matches/league_standing_stage/${match.championship_id}`);
+                            `matches/league_standing_stage/${match.championship_id}`);
                         if (sData.status) standingData = sData.data;
                     } catch (e) {}
 
@@ -2561,7 +2581,7 @@
                 // Standings
                 html += `<div class="detail-tab-content" id="dtab-standings">${renderStandings(standingData, champ)}</div>`;
 
-                // Lineups (مع صور اللاعبين)
+                // Lineups (مع صور اللاعبين وعرض التشكيلة)
                 html += `<div class="detail-tab-content" id="dtab-lineups">${renderLineups(lineupData, home, away)}</div>`;
 
                 // Events
@@ -2595,7 +2615,7 @@
                 document.querySelectorAll('#detailTabs button').forEach(btn => {
                     btn.addEventListener('click', function() {
                         document.querySelectorAll('#detailTabs button').forEach(b => b.classList.remove(
-                        'active'));
+                            'active'));
                         this.classList.add('active');
                         const tab = this.dataset.dtab;
                         document.querySelectorAll('.detail-tab-content').forEach(el => el.classList.remove(
@@ -2690,7 +2710,7 @@
                     <div class="title">
                         <img src="${getImageUrl(home.image, 'team')}" onerror="this.style.display='none'">
                         <span class="team-click" data-team-id="${homeId}" style="cursor:pointer;">${home.title || 'Home'}</span>
-                        ${data.home_formation ? '• ' + data.home_formation : ''}
+                        ${data.home_formation ? `<span class="formation-badge">${data.home_formation}</span>` : ''}
                     </div>
                     <div class="formation-pitch">`;
 
@@ -2743,7 +2763,7 @@
                     <div class="title">
                         <img src="${getImageUrl(away.image, 'team')}" onerror="this.style.display='none'">
                         <span class="team-click" data-team-id="${awayId}" style="cursor:pointer;">${away.title || 'Away'}</span>
-                        ${data.away_formation ? '• ' + data.away_formation : ''}
+                        ${data.away_formation ? `<span class="formation-badge">${data.away_formation}</span>` : ''}
                     </div>
                     <div class="formation-pitch">`;
 
@@ -3255,10 +3275,11 @@
                 const team = player.team_name || {};
                 const teamLogo = getImageUrl(team.image, 'team');
                 const country = player.country || {};
-                const countryFlag = country.image ? getImageUrl(country.image) : '';
+                const countryFlag = country.image ? getImageUrl(country.image, 'country') : '';
                 const age = player.birth_day ? new Date().getFullYear() - new Date(player.birth_day).getFullYear() :
                     'N/A';
                 const foot = player.foot === 'R' ? 'Right' : (player.foot === 'L' ? 'Left' : 'N/A');
+                const teamId = team.row_id || team.id || null;
 
                 // Player statistics
                 let statsHtml = '';
@@ -3291,9 +3312,9 @@
                         <img src="${imgUrl}" onerror="this.src='${getDefaultPlayerImage()}'">
                         <div class="info">
                             <div class="name">${player.title || 'Player'}</div>
-                            <div class="team">${team.title || 'Club'}</div>
+                            <div class="team team-click" data-team-id="${teamId}" style="cursor:pointer;">${team.title || 'Club'}</div>
                             <div class="pos">${player.position || ''} • ${player.height || 'N/A'}cm • ${age} years • ${foot}</div>
-                            ${countryFlag ? `<div style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:4px;"><img src="${countryFlag}" style="width:20px;height:14px;object-fit:cover;border-radius:2px;"> ${country.title || ''}</div>` : ''}
+                            ${countryFlag ? `<div style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:4px;"><img src="${countryFlag}" style="width:20px;height:14px;object-fit:cover;border-radius:2px;" onerror="this.style.display='none'"> ${country.title || ''}</div>` : ''}
                         </div>
                     </div>
                     ${statsHtml}
@@ -3331,6 +3352,18 @@
                 }
 
                 playerDetailContent.innerHTML = html;
+
+                // Click on team name
+                document.querySelectorAll('.team-click[data-team-id]').forEach(el => {
+                    el.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const teamId = this.dataset.teamId;
+                        if (teamId && teamId !== 'null') {
+                            playerDetailOverlay.classList.remove('visible');
+                            setTimeout(() => showTeamDetail(teamId), 100);
+                        }
+                    });
+                });
             }
 
             // ============================================================
@@ -3343,204 +3376,213 @@
                     `<div class="loading-state"><div class="spinner"></div><div>Loading team info...</div></div>`;
 
                 try {
-                    const [teamData, matchesData, standingsData, newsData] = await Promise.all([
-                        fetchAPI(`info/team_info/${teamId}/L/60`),
-                        fetchAPI(`matches/team_matches/${teamId}/L/60`),
-                        fetchAPI(`matches/cups_teams_standings/${teamId}/L/60`).catch(() => null),
-                        fetchNewsAPI(`News/news_team/${teamId}?page=1`).catch(() => null)
-                    ]);
-
+                    const teamData = await fetchAPI(`info/team_info/${teamId}/L/60`);
                     if (!teamData.status) throw new Error('Failed to load team info');
-                    renderTeamDetail(teamData.data, matchesData.data, standingsData?.data, newsData?.data);
+                    const team = teamData.data;
+
+                    // Get standings from championships
+                    let standingsHtml = '<div class="empty-state">No standings data</div>';
+                    if (team.championships && team.championships.length > 0) {
+                        // Try each championship to find standings
+                        for (const champ of team.championships) {
+                            try {
+                                const sData = await fetchAPI(
+                                    `matches/cups_teams_standings/${champ.url_id}/L/60`);
+                                if (sData.status && sData.data?.standings) {
+                                    const groups = sData.data.standings.groups || {};
+                                    const firstGroup = Object.values(groups)[0] || [];
+                                    if (firstGroup.length > 0) {
+                                        let sHtml =
+                                            `<table class="team-standings-table">
+                                            <thead><tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GD</th><th>Pts</th></tr></thead><tbody>`;
+                                        firstGroup.slice(0, 16).forEach((t, idx) => {
+                                            const teamObj = t.team_name || {};
+                                            const logo = getImageUrl(teamObj.image, 'team');
+                                            const tid = teamObj.row_id || null;
+                                            sHtml += `<tr>
+                                                <td>${idx+1}</td>
+                                                <td><div class="team-cell"><img src="${logo}" onerror="this.style.display='none'"> <span class="team-click" data-team-id="${tid}" style="cursor:pointer;">${teamObj.title || '?'}</span></div></td>
+                                                <td>${t.play || 0}</td>
+                                                <td>${t.wins || 0}</td>
+                                                <td>${t.draw || 0}</td>
+                                                <td>${t.lose || 0}</td>
+                                                <td>${t.for || 0}</td>
+                                                <td>${t.diff || 0}</td>
+                                                <td class="points">${t.points || 0}</td>
+                                            </tr>`;
+                                        });
+                                        sHtml += '</tbody></table>';
+                                        standingsHtml = sHtml;
+                                        break;
+                                    }
+                                }
+                            } catch (e) { continue; }
+                        }
+                    }
+
+                    // Get matches
+                    let matchesHtml = '<div class="empty-state">No matches available</div>';
+                    try {
+                        const mData = await fetchAPI(`matches/team_matches/${teamId}/L/60`);
+                        if (mData.status && mData.data) {
+                            const matches = mData.data;
+                            let mHtml = '<div class="team-matches-list">';
+                            // Upcoming
+                            if (matches.coming?.data?.length > 0) {
+                                mHtml +=
+                                    `<div style="font-weight:600;font-size:13px;color:var(--accent-blue);margin:6px 0;">⬆️ Upcoming</div>`;
+                                matches.coming.data.slice(0, 8).forEach(m => {
+                                    const home = m.home_team || {};
+                                    const away = m.away_team || {};
+                                    const homeLogo = getImageUrl(home.image, 'team');
+                                    const awayLogo = getImageUrl(away.image, 'team');
+                                    const statusText = getStatusText(m.status);
+                                    const statusClass = getStatusClass(m.status);
+                                    const score = (m.status === 0) ? 'VS' :
+                                        `${m.home_scores ?? 0} - ${m.away_scores ?? 0}`;
+                                    mHtml += `
+                                        <div class="team-match-item" data-match-id="${m.match_id}">
+                                            <div class="teams">
+                                                <img src="${homeLogo}" onerror="this.style.display='none'">
+                                                ${home.title || 'Home'} vs ${away.title || 'Away'}
+                                                <img src="${awayLogo}" onerror="this.style.display='none'">
+                                            </div>
+                                            <div class="score">${score}</div>
+                                            <span class="status ${statusClass}">${statusText}</span>
+                                            <span class="date">${m.match_date || ''}</span>
+                                        </div>
+                                    `;
+                                });
+                            }
+                            // Finished
+                            if (matches.end?.data?.length > 0) {
+                                mHtml +=
+                                    `<div style="font-weight:600;font-size:13px;color:var(--text-secondary);margin:6px 0;">✅ Finished</div>`;
+                                matches.end.data.slice(0, 8).forEach(m => {
+                                    const home = m.home_team || {};
+                                    const away = m.away_team || {};
+                                    const homeLogo = getImageUrl(home.image, 'team');
+                                    const awayLogo = getImageUrl(away.image, 'team');
+                                    const statusText = getStatusText(m.status);
+                                    const statusClass = getStatusClass(m.status);
+                                    const score = `${m.home_scores ?? 0} - ${m.away_scores ?? 0}`;
+                                    mHtml += `
+                                        <div class="team-match-item" data-match-id="${m.match_id}">
+                                            <div class="teams">
+                                                <img src="${homeLogo}" onerror="this.style.display='none'">
+                                                ${home.title || 'Home'} vs ${away.title || 'Away'}
+                                                <img src="${awayLogo}" onerror="this.style.display='none'">
+                                            </div>
+                                            <div class="score">${score}</div>
+                                            <span class="status ${statusClass}">${statusText}</span>
+                                            <span class="date">${m.match_date || ''}</span>
+                                        </div>
+                                    `;
+                                });
+                            }
+                            mHtml += '</div>';
+                            matchesHtml = mHtml;
+                        }
+                    } catch (e) {}
+
+                    // Get team news
+                    let newsHtml = '<div class="empty-state">No news available</div>';
+                    try {
+                        const nData = await fetchNewsAPI(`News/news_team/${teamId}?page=1`);
+                        if (nData.status && nData.data && nData.data.length > 0) {
+                            let nHtml = '<div class="team-news-list">';
+                            nData.data.slice(0, 8).forEach(item => {
+                                const time = item.created_at?.date ? new Date(item.created_at.date)
+                                    .toLocaleString('en-US') : '';
+                                nHtml += `
+                                    <div class="team-news-item" data-news-id="${item.id}">
+                                        <div class="title">${item.title || ''}</div>
+                                        <div class="time">${time}</div>
+                                    </div>
+                                `;
+                            });
+                            nHtml += '</div>';
+                            newsHtml = nHtml;
+                        }
+                    } catch (e) {}
+
+                    // Build team detail
+                    const imgUrl = team.image ? getImageUrl(team.image, 'team') : getDefaultTeamImage();
+                    const country = team.country || {};
+                    const countryFlag = country.image ? getImageUrl(country.image, 'country') : '';
+
+                    let html = `
+                        <div class="team-header">
+                            <img src="${imgUrl}" onerror="this.src='${getDefaultTeamImage()}'">
+                            <div class="info">
+                                <div class="name">${team.title || 'Team'}</div>
+                                <div class="country">${countryFlag ? `<img src="${countryFlag}" style="width:20px;height:14px;object-fit:cover;border-radius:2px;vertical-align:middle;" onerror="this.style.display='none'">` : ''} ${country.title || ''}</div>
+                                <div class="stadium">🏟️ ${team.stadium_name || 'N/A'}</div>
+                            </div>
+                        </div>
+                        <div class="team-tabs" id="teamTabs">
+                            <button class="active" data-ttab="matches">📋 Matches</button>
+                            <button data-ttab="standings">📊 Standings</button>
+                            <button data-ttab="news">📰 News</button>
+                        </div>
+                        <div class="team-tab-content active" id="ttab-matches">${matchesHtml}</div>
+                        <div class="team-tab-content" id="ttab-standings">${standingsHtml}</div>
+                        <div class="team-tab-content" id="ttab-news">${newsHtml}</div>
+                    `;
+
+                    teamDetailContent.innerHTML = html;
+
+                    // Team tabs
+                    document.querySelectorAll('#teamTabs button').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            document.querySelectorAll('#teamTabs button').forEach(b => b.classList
+                                .remove('active'));
+                            this.classList.add('active');
+                            const tab = this.dataset.ttab;
+                            document.querySelectorAll('.team-tab-content').forEach(el => el.classList
+                                .remove('active'));
+                            const target = document.getElementById('ttab-' + tab);
+                            if (target) target.classList.add('active');
+                        });
+                    });
+
+                    // Click on match
+                    document.querySelectorAll('.team-match-item[data-match-id]').forEach(el => {
+                        el.addEventListener('click', function() {
+                            const matchId = this.dataset.matchId;
+                            if (matchId) {
+                                teamDetailOverlay.classList.remove('visible');
+                                showMatchDetail(matchId);
+                            }
+                        });
+                    });
+
+                    // Click on team
+                    document.querySelectorAll('.team-click[data-team-id]').forEach(el => {
+                        el.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const teamId = this.dataset.teamId;
+                            if (teamId && teamId !== 'null') {
+                                teamDetailOverlay.classList.remove('visible');
+                                setTimeout(() => showTeamDetail(teamId), 100);
+                            }
+                        });
+                    });
+
+                    // Click on news
+                    document.querySelectorAll('.team-news-item[data-news-id]').forEach(el => {
+                        el.addEventListener('click', function() {
+                            const newsId = this.dataset.newsId;
+                            if (newsId) {
+                                teamDetailOverlay.classList.remove('visible');
+                                showNewsDetail(newsId);
+                            }
+                        });
+                    });
+
                 } catch (error) {
                     teamDetailContent.innerHTML = `<div class="error-state">⚠️ ${error.message}</div>`;
                 }
-            }
-
-            function renderTeamDetail(team, matches, standings, news) {
-                const imgUrl = team.image ? getImageUrl(team.image, 'team') : getDefaultTeamImage();
-                const country = team.country || {};
-                const countryFlag = country.image ? getImageUrl(country.image) : '';
-
-                let html = `
-                    <div class="team-header">
-                        <img src="${imgUrl}" onerror="this.src='${getDefaultTeamImage()}'">
-                        <div class="info">
-                            <div class="name">${team.title || 'Team'}</div>
-                            <div class="country">${countryFlag ? `<img src="${countryFlag}" style="width:20px;height:14px;object-fit:cover;border-radius:2px;vertical-align:middle;">` : ''} ${country.title || ''}</div>
-                            <div class="stadium">🏟️ ${team.stadium_name || 'N/A'}</div>
-                        </div>
-                    </div>
-                    <div class="team-tabs" id="teamTabs">
-                        <button class="active" data-ttab="matches">📋 Matches</button>
-                        <button data-ttab="standings">📊 Standings</button>
-                        <button data-ttab="news">📰 News</button>
-                    </div>
-                `;
-
-                // Matches tab
-                html += `<div class="team-tab-content active" id="ttab-matches">`;
-                if (matches && (matches.coming?.data?.length > 0 || matches.end?.data?.length > 0)) {
-                    html += `<div class="team-matches-list">`;
-                    // Upcoming matches
-                    if (matches.coming?.data?.length > 0) {
-                        html += `<div style="font-weight:600;font-size:13px;color:var(--accent-blue);margin:6px 0;">⬆️ Upcoming</div>`;
-                        matches.coming.data.slice(0, 8).forEach(m => {
-                            const home = m.home_team || {};
-                            const away = m.away_team || {};
-                            const homeLogo = getImageUrl(home.image, 'team');
-                            const awayLogo = getImageUrl(away.image, 'team');
-                            const statusText = getStatusText(m.status);
-                            const statusClass = getStatusClass(m.status);
-                            const score = (m.status === 0) ? 'VS' :
-                                `${m.home_scores ?? 0} - ${m.away_scores ?? 0}`;
-                            html += `
-                                <div class="team-match-item" data-match-id="${m.match_id}">
-                                    <div class="teams">
-                                        <img src="${homeLogo}" onerror="this.style.display='none'">
-                                        ${home.title || 'Home'} vs ${away.title || 'Away'}
-                                        <img src="${awayLogo}" onerror="this.style.display='none'">
-                                    </div>
-                                    <div class="score">${score}</div>
-                                    <span class="status ${statusClass}">${statusText}</span>
-                                    <span class="date">${m.match_date || ''}</span>
-                                </div>
-                            `;
-                        });
-                    }
-                    // Finished matches
-                    if (matches.end?.data?.length > 0) {
-                        html += `<div style="font-weight:600;font-size:13px;color:var(--text-secondary);margin:6px 0;">✅ Finished</div>`;
-                        matches.end.data.slice(0, 8).forEach(m => {
-                            const home = m.home_team || {};
-                            const away = m.away_team || {};
-                            const homeLogo = getImageUrl(home.image, 'team');
-                            const awayLogo = getImageUrl(away.image, 'team');
-                            const statusText = getStatusText(m.status);
-                            const statusClass = getStatusClass(m.status);
-                            const score = `${m.home_scores ?? 0} - ${m.away_scores ?? 0}`;
-                            html += `
-                                <div class="team-match-item" data-match-id="${m.match_id}">
-                                    <div class="teams">
-                                        <img src="${homeLogo}" onerror="this.style.display='none'">
-                                        ${home.title || 'Home'} vs ${away.title || 'Away'}
-                                        <img src="${awayLogo}" onerror="this.style.display='none'">
-                                    </div>
-                                    <div class="score">${score}</div>
-                                    <span class="status ${statusClass}">${statusText}</span>
-                                    <span class="date">${m.match_date || ''}</span>
-                                </div>
-                            `;
-                        });
-                    }
-                    html += `</div>`;
-                } else {
-                    html += `<div class="empty-state">No matches available</div>`;
-                }
-                html += `</div>`;
-
-                // Standings tab
-                html += `<div class="team-tab-content" id="ttab-standings">`;
-                if (standings && standings.standings) {
-                    const groups = standings.standings.groups || {};
-                    const firstGroup = Object.values(groups)[0] || [];
-                    if (firstGroup.length > 0) {
-                        html += `<table class="team-standings-table">
-                            <thead><tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GD</th><th>Pts</th></tr></thead><tbody>`;
-                        firstGroup.slice(0, 16).forEach((t, idx) => {
-                            const team = t.team_name || {};
-                            const logo = getImageUrl(team.image, 'team');
-                            const teamId = team.row_id || null;
-                            html += `<tr>
-                                <td>${idx+1}</td>
-                                <td><div class="team-cell"><img src="${logo}" onerror="this.style.display='none'"> <span class="team-click" data-team-id="${teamId}" style="cursor:pointer;">${team.title || '?'}</span></div></td>
-                                <td>${t.play || 0}</td>
-                                <td>${t.wins || 0}</td>
-                                <td>${t.draw || 0}</td>
-                                <td>${t.lose || 0}</td>
-                                <td>${t.for || 0}</td>
-                                <td>${t.diff || 0}</td>
-                                <td class="points">${t.points || 0}</td>
-                            </tr>`;
-                        });
-                        html += `</tbody></table>`;
-                    } else {
-                        html += `<div class="empty-state">No standings data</div>`;
-                    }
-                } else {
-                    html += `<div class="empty-state">No standings data</div>`;
-                }
-                html += `</div>`;
-
-                // News tab
-                html += `<div class="team-tab-content" id="ttab-news">`;
-                if (news && news.data && news.data.length > 0) {
-                    html += `<div class="team-news-list">`;
-                    news.data.slice(0, 10).forEach(item => {
-                        const time = item.created_at?.date ? new Date(item.created_at.date)
-                            .toLocaleString('en-US') : '';
-                        html += `
-                            <div class="team-news-item" data-news-id="${item.id}">
-                                <div class="title">${item.title || ''}</div>
-                                <div class="time">${time}</div>
-                            </div>
-                        `;
-                    });
-                    html += `</div>`;
-                } else {
-                    html += `<div class="empty-state">No news available</div>`;
-                }
-                html += `</div>`;
-
-                teamDetailContent.innerHTML = html;
-
-                // Team tabs
-                document.querySelectorAll('#teamTabs button').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        document.querySelectorAll('#teamTabs button').forEach(b => b.classList.remove(
-                            'active'));
-                        this.classList.add('active');
-                        const tab = this.dataset.ttab;
-                        document.querySelectorAll('.team-tab-content').forEach(el => el.classList.remove(
-                            'active'));
-                        const target = document.getElementById('ttab-' + tab);
-                        if (target) target.classList.add('active');
-                    });
-                });
-
-                // Click on match
-                document.querySelectorAll('.team-match-item[data-match-id]').forEach(el => {
-                    el.addEventListener('click', function() {
-                        const matchId = this.dataset.matchId;
-                        if (matchId) {
-                            teamDetailOverlay.classList.remove('visible');
-                            showMatchDetail(matchId);
-                        }
-                    });
-                });
-
-                // Click on team
-                document.querySelectorAll('.team-click[data-team-id]').forEach(el => {
-                    el.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        const teamId = this.dataset.teamId;
-                        if (teamId && teamId !== 'null') {
-                            teamDetailOverlay.classList.remove('visible');
-                            setTimeout(() => showTeamDetail(teamId), 100);
-                        }
-                    });
-                });
-
-                // Click on news
-                document.querySelectorAll('.team-news-item[data-news-id]').forEach(el => {
-                    el.addEventListener('click', function() {
-                        const newsId = this.dataset.newsId;
-                        if (newsId) {
-                            teamDetailOverlay.classList.remove('visible');
-                            showNewsDetail(newsId);
-                        }
-                    });
-                });
             }
 
             // ============================================================
