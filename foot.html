@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="ltr">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1767,6 +1767,83 @@
         .match-card .match-status.live {
             color: var(--live);
         }
+
+        /* ===== ADDITIONAL MATCH META ===== */
+        .match-meta-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 10px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            justify-content: center;
+        }
+        .match-meta-info .label {
+            color: var(--text-secondary);
+        }
+        .match-meta-info .value {
+            color: var(--text);
+            font-weight: 600;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* ===== STANDINGS DETAIL ===== */
+        .standings-grid-detail .league-block {
+            background: var(--surface);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            padding: 12px;
+        }
+        .standings-grid-detail .league-block .league-title {
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .standings-grid-detail .league-block .league-title img {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+        }
+        .standings-grid-detail .league-block table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .standings-grid-detail .league-block th {
+            text-align: left;
+            padding: 4px 6px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            border-bottom: 1px solid var(--border);
+        }
+        .standings-grid-detail .league-block td {
+            padding: 4px 6px;
+            border-bottom: 1px solid var(--border);
+        }
+        .standings-grid-detail .league-block .team-cell {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .standings-grid-detail .league-block .team-cell img {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            object-fit: contain;
+        }
+        .standings-grid-detail .league-block .points {
+            font-weight: 700;
+            color: var(--accent);
+        }
     </style>
 </head>
 <body>
@@ -2031,9 +2108,12 @@
         (function() {
             "use strict";
 
+            // ==================== WORKER URLs ====================
+            const WORKER_URL = 'https://dry-truth-a84e.idriss-zribi13.workers.dev/'; // للـ API والمباريات
+            const MOVIE_WORKER_URL = 'https://movie-proxy.idriss-zribi13.workers.dev/'; // وكيل الفيديو
+
             // ==================== CONFIG ====================
             const API_SPORTS_KEY = 'e227ff90ed4eacc3eacb07eca05ce78b';
-            const WORKER_URL = 'https://dry-truth-a84e.idriss-zribi13.workers.dev/';
             const GOLIVE_API = 'https://admin.golive-pro.online/api/public/events?tz=1';
             const MOVIE_CATEGORIES_URL = WORKER_URL + '?url=' + encodeURIComponent(
                 'https://admin.golive-pro.online/api/content/movie-categories');
@@ -2194,10 +2274,20 @@
                 currentFixtureData = null;
             }
 
+            // ===== تعديل loadStream لاستخدام وكيل الفيديو =====
             function loadStream(url, title) {
-                if (window.location.protocol === 'https:' && url && url.startsWith('http://')) {
-                    url = url.replace('http://', 'https://');
+                if (!url) {
+                    showError();
+                    return;
                 }
+
+                // إذا كان الرابط HTTP والموقع HTTPS، استخدم وكيل الفيديو
+                let finalUrl = url;
+                if (window.location.protocol === 'https:' && url.startsWith('http://')) {
+                    finalUrl = MOVIE_WORKER_URL + '?url=' + encodeURIComponent(url);
+                }
+
+                currentStreamUrl = finalUrl;
                 destroyPlayer();
                 showLoading();
                 startOverlay.classList.add('zs-hidden');
@@ -2207,10 +2297,11 @@
                     matchDetailTitleAiScore.textContent = title;
                 }
 
-                if (url.includes('.m3u8')) {
+                // دعم HLS (.m3u8)
+                if (finalUrl.includes('.m3u8')) {
                     if (Hls.isSupported()) {
                         hls = new Hls();
-                        hls.loadSource(url);
+                        hls.loadSource(finalUrl);
                         hls.attachMedia(video);
                         hls.on(Hls.Events.MANIFEST_PARSED, () => {
                             hideLoading();
@@ -2220,26 +2311,28 @@
                             updateTimeDisplay();
                         });
                         hls.on(Hls.Events.ERROR, (e, data) => {
-                            if (data.fatal) { showError();
-                                hideLoading(); }
+                            if (data.fatal) {
+                                showError();
+                                hideLoading();
+                            }
                         });
                     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                        video.src = url;
+                        video.src = finalUrl;
                         video.play();
                     }
                     return;
                 }
-                if (url.includes('.mkv') || url.includes('.mp4')) {
-                    video.src = url;
-                    video.play().then(() => { hideLoading();
-                        hideError(); }).catch(() => { hideLoading();
+
+                // للملفات العادية (mp4, mkv, ...)
+                video.src = finalUrl;
+                video.play()
+                    .then(() => { hideLoading();
+                        hideError(); })
+                    .catch(() => { hideLoading();
                         showError(); });
-                } else {
-                    hideLoading();
-                    showError();
-                }
             }
 
+            // بقية دوال التحكم في الفيديو كما هي
             btnPlay.addEventListener('click', () => { if (video.paused) video.play();
                 else video.pause(); });
             video.addEventListener('play', () => { btnPlay.innerHTML =
@@ -2395,7 +2488,7 @@
                         const url = this.dataset.url;
                         if (url) {
                             const title = this.dataset.home + ' vs ' + this.dataset.away;
-                            currentStreamUrl = url;
+                            // استخدام loadStream الجديد الذي يتعامل مع HTTP عبر الوكيل
                             loadStream(url, title);
                             window.scrollTo({ top: 0, behavior: 'smooth' });
                         } else {
@@ -2539,7 +2632,7 @@
                         const movie = movies.find(m => m.id === id);
                         if (movie && movie.url) {
                             currentId = id;
-                            currentStreamUrl = movie.url;
+                            // استخدم loadStream الجديد
                             loadStream(movie.url, movie.title);
                             camelOverlay.style.display = 'none';
                             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2869,7 +2962,6 @@
                         card.addEventListener('click', function() {
                             const url = this.dataset.url;
                             if (url) {
-                                currentStreamUrl = url;
                                 loadStream(url, 'الحلقة');
                                 camelOverlay.style.display = 'none';
                                 window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2888,24 +2980,6 @@
             });
 
             // ==================== NAVIGATION ====================
-            function goToMovieList(categoryId, categoryName) {
-                currentView = 'movie-detail';
-                movieListTitle.textContent = '🎬 ' + categoryName;
-                movieCategoriesView.style.display = 'none';
-                movieDetailView.style.display = 'flex';
-                renderMovies();
-                loadMoviesFromAPI(categoryId);
-            }
-
-            function goToSeriesList(categoryId, categoryName) {
-                currentView = 'series-detail';
-                seriesListTitle.textContent = '📺 ' + categoryName;
-                seriesCategoriesView.style.display = 'none';
-                seriesDetailView.style.display = 'flex';
-                seriesDetailViewPage.classList.remove('visible');
-                loadSeriesFromAPI(categoryId);
-            }
-
             function navigateToSection(target) {
                 if (target === 'home') { switchTab('home'); } else if (target === 'livescore') { switchTab(
                         'livescore'); } else if (target === 'odds') { switchTab('odds'); } else if (target ===
