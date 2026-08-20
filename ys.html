@@ -1077,6 +1077,7 @@
             border: 1px solid var(--border-color);
             overflow: hidden;
             transition: var(--transition);
+            cursor: pointer;
         }
 
         .news-card:hover {
@@ -1093,6 +1094,7 @@
             width: 100%;
             height: 140px;
             object-fit: cover;
+            background: var(--bg-secondary);
         }
 
         .news-card .news-body {
@@ -1124,6 +1126,92 @@
             font-size: 10px;
             color: var(--text-muted);
             margin-top: 4px;
+        }
+
+        /* ============================================================
+               NEWS DETAIL (Modal)
+               ============================================================ */
+        .news-detail-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .news-detail-overlay.visible {
+            display: flex;
+        }
+
+        .news-detail-box {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 24px 28px;
+            border: 1px solid var(--border-color);
+            max-width: 720px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.35s ease;
+            box-shadow: var(--shadow);
+        }
+
+        .news-detail-box .close-btn {
+            float: right;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .news-detail-box .close-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .news-detail-box .detail-title {
+            font-size: 22px;
+            font-weight: 800;
+            margin: 8px 0 12px;
+            color: var(--text-primary);
+            line-height: 1.3;
+        }
+
+        .news-detail-box .detail-image {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: var(--radius-sm);
+            margin: 8px 0 16px;
+            background: var(--bg-secondary);
+        }
+
+        .news-detail-box .detail-meta {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .news-detail-box .detail-content {
+            font-size: 15px;
+            line-height: 1.8;
+            color: var(--text-primary);
+        }
+
+        .news-detail-box .detail-content p {
+            margin-bottom: 12px;
         }
 
         /* ============================================================
@@ -1441,6 +1529,14 @@
             .transfer-item .teams {
                 justify-content: center;
             }
+
+            .news-detail-box {
+                padding: 16px;
+            }
+
+            .news-detail-box .detail-title {
+                font-size: 18px;
+            }
         }
 
         @media (max-width: 480px) {
@@ -1516,6 +1612,14 @@
 
             .news-card img {
                 height: 100px;
+            }
+
+            .news-detail-box .detail-title {
+                font-size: 16px;
+            }
+
+            .news-detail-box .detail-content {
+                font-size: 13px;
             }
         }
     </style>
@@ -1607,7 +1711,7 @@
         </div>
 
         <!-- ============================================================
-        DETAIL VIEW (Overlay)
+        DETAIL VIEW (Match Overlay)
         ============================================================ -->
         <div class="detail-view" id="detailView">
             <button class="back-btn" id="detailBackBtn">← Back</button>
@@ -1615,6 +1719,21 @@
                 <div class="loading-state">
                     <div class="spinner"></div>
                     <div>Loading details...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================
+        NEWS DETAIL (Modal)
+        ============================================================ -->
+        <div class="news-detail-overlay" id="newsDetailOverlay">
+            <div class="news-detail-box">
+                <button class="close-btn" id="newsDetailClose">✕</button>
+                <div id="newsDetailContent">
+                    <div class="loading-state">
+                        <div class="spinner"></div>
+                        <div>Loading...</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1674,6 +1793,8 @@
             const detailContent = document.getElementById('detailContent');
             const datePickerOverlay = document.getElementById('datePickerOverlay');
             const datePickerInput = document.getElementById('datePickerInput');
+            const newsDetailOverlay = document.getElementById('newsDetailOverlay');
+            const newsDetailContent = document.getElementById('newsDetailContent');
 
             // ============================================================
             // UTILITY FUNCTIONS
@@ -2364,7 +2485,7 @@
             }
 
             // ============================================================
-            // LOAD NEWS (Improved with pagination)
+            // LOAD NEWS (Improved with pagination + images)
             // ============================================================
             async function loadNews(page = 1) {
                 newsContainer.innerHTML =
@@ -2434,14 +2555,19 @@
                 // Show featured news first with a badge
                 const displayItems = newsItems.slice(0, 12);
                 displayItems.forEach(item => {
-                    const img = getImageUrl(item.image, 'news');
+                    // Fix: Use the correct image URL format
+                    let imgUrl = '';
+                    if (item.image) {
+                        // Try to use the full URL with the correct path
+                        imgUrl = `https://news-en.ysscores.com/news/820/${item.image}`;
+                    }
                     const time = item.created_at?.date ? new Date(item.created_at.date).toLocaleString('en-US') :
                         '';
                     const isFeatured = item.is_featured || false;
 
                     html += `
-                        <div class="news-card ${isFeatured ? 'featured' : ''}">
-                            ${img ? `<img src="${img}" onerror="this.style.display='none'">` : ''}
+                        <div class="news-card ${isFeatured ? 'featured' : ''}" data-news-id="${item.id}">
+                            ${imgUrl ? `<img src="${imgUrl}" onerror="this.style.display='none'" alt="${item.title}">` : `<div style="height:140px;background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;color:var(--text-secondary);font-size:12px;">📰 No Image</div>`}
                             <div class="news-body">
                                 ${isFeatured ? `<span style="font-size:10px;color:var(--accent-blue);font-weight:700;text-transform:uppercase;">★ Featured</span>` : ''}
                                 <div class="title">${item.title || ''}</div>
@@ -2475,7 +2601,64 @@
                 }
 
                 newsContainer.innerHTML = html;
+
+                // Add click event to news cards
+                document.querySelectorAll('.news-card').forEach(card => {
+                    card.addEventListener('click', function() {
+                        const newsId = this.dataset.newsId;
+                        if (newsId) showNewsDetail(newsId);
+                    });
+                });
             }
+
+            // ============================================================
+            // NEWS DETAIL
+            // ============================================================
+            async function showNewsDetail(newsId) {
+                newsDetailOverlay.classList.add('visible');
+                newsDetailContent.innerHTML =
+                    `<div class="loading-state"><div class="spinner"></div><div>Loading news details...</div></div>`;
+
+                try {
+                    const data = await fetchNewsAPI(`News/news_detail/${newsId}`);
+                    if (!data.status) throw new Error('Failed to load news detail');
+                    renderNewsDetail(data.data);
+                } catch (error) {
+                    newsDetailContent.innerHTML = `<div class="error-state">⚠️ ${error.message}</div>`;
+                }
+            }
+
+            function renderNewsDetail(newsItem) {
+                const imgUrl = newsItem.image ? `https://news-en.ysscores.com/news/820/${newsItem.image}` : '';
+                const time = newsItem.created_at?.date ? new Date(newsItem.created_at.date).toLocaleString('en-US') : '';
+
+                let html = `
+                    <div class="detail-title">${newsItem.title || ''}</div>
+                    ${imgUrl ? `<img src="${imgUrl}" onerror="this.style.display='none'" class="detail-image" alt="${newsItem.title}">` : ''}
+                    <div class="detail-meta">
+                        <span>📅 ${time}</span>
+                        ${newsItem.replies_count !== undefined ? `<span>💬 ${newsItem.replies_count} comments</span>` : ''}
+                    </div>
+                    <div class="detail-content">
+                        ${newsItem.full_news || newsItem.news_desc || ''}
+                    </div>
+                `;
+
+                newsDetailContent.innerHTML = html;
+            }
+
+            // ============================================================
+            // NEWS DETAIL CONTROLS
+            // ============================================================
+            document.getElementById('newsDetailClose').addEventListener('click', function() {
+                newsDetailOverlay.classList.remove('visible');
+            });
+
+            newsDetailOverlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    newsDetailOverlay.classList.remove('visible');
+                }
+            });
 
             // ============================================================
             // LOAD TRANSFERS
