@@ -714,7 +714,7 @@
 
         .player-detail-box .player-stats {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
             gap: 8px;
             background: var(--bg-secondary);
             padding: 12px;
@@ -790,6 +790,264 @@
             font-size: 10px;
             min-width: 80px;
             text-align: right;
+        }
+
+        /* ============================================================
+               TEAM DETAIL (Modal)
+               ============================================================ */
+        .team-detail-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .team-detail-overlay.visible {
+            display: flex;
+        }
+
+        .team-detail-box {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 24px 28px;
+            border: 1px solid var(--border-color);
+            max-width: 720px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.35s ease;
+            box-shadow: var(--shadow);
+        }
+
+        .team-detail-box .close-btn {
+            float: right;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .team-detail-box .close-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .team-detail-box .team-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .team-detail-box .team-header img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: contain;
+            background: var(--bg-secondary);
+        }
+
+        .team-detail-box .team-header .info .name {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .team-detail-box .team-header .info .country {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .team-detail-box .team-header .info .stadium {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .team-detail-box .team-tabs {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 6px;
+            margin-bottom: 10px;
+        }
+
+        .team-detail-box .team-tabs button {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            padding: 4px 14px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .team-detail-box .team-tabs button:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .team-detail-box .team-tabs button.active {
+            background: var(--accent-blue);
+            color: #fff;
+        }
+
+        .team-detail-box .team-tab-content {
+            display: none;
+            animation: fadeSlideUp 0.25s ease;
+        }
+
+        .team-detail-box .team-tab-content.active {
+            display: block;
+        }
+
+        .team-detail-box .team-standings-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .team-detail-box .team-standings-table th {
+            text-align: right;
+            padding: 4px 4px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .team-detail-box .team-standings-table td {
+            padding: 3px 4px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .team-detail-box .team-standings-table .team-cell {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .team-detail-box .team-standings-table .team-cell img {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            object-fit: contain;
+        }
+
+        .team-detail-box .team-standings-table .points {
+            font-weight: 700;
+            color: var(--accent-blue);
+        }
+
+        .team-detail-box .team-matches-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .team-detail-box .team-match-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 10px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            font-size: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .team-detail-box .team-match-item:hover {
+            border-color: var(--accent-blue);
+        }
+
+        .team-detail-box .team-match-item .teams {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .team-detail-box .team-match-item .teams img {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            object-fit: contain;
+        }
+
+        .team-detail-box .team-match-item .score {
+            font-weight: 700;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .team-detail-box .team-match-item .status {
+            font-size: 10px;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .team-detail-box .team-match-item .status.live {
+            background: var(--accent-red);
+            color: #fff;
+        }
+
+        .team-detail-box .team-match-item .status.finished {
+            background: var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .team-detail-box .team-match-item .status.upcoming {
+            background: var(--accent-blue);
+            color: #fff;
+        }
+
+        .team-detail-box .team-match-item .date {
+            color: var(--text-secondary);
+            font-size: 10px;
+        }
+
+        .team-detail-box .team-news-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .team-detail-box .team-news-item {
+            padding: 6px 10px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            font-size: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .team-detail-box .team-news-item:hover {
+            border-color: var(--accent-blue);
+        }
+
+        .team-detail-box .team-news-item .title {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .team-detail-box .team-news-item .time {
+            font-size: 10px;
+            color: var(--text-secondary);
         }
 
         /* ============================================================
@@ -1932,6 +2190,21 @@
         </div>
 
         <!-- ============================================================
+        TEAM DETAIL (Modal)
+        ============================================================ -->
+        <div class="team-detail-overlay" id="teamDetailOverlay">
+            <div class="team-detail-box">
+                <button class="close-btn" id="teamDetailClose">✕</button>
+                <div id="teamDetailContent">
+                    <div class="loading-state">
+                        <div class="spinner"></div>
+                        <div>Loading team info...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================
         DATE PICKER (Modal)
         ============================================================ -->
         <div class="date-picker-overlay" id="datePickerOverlay">
@@ -1990,6 +2263,8 @@
             const newsDetailContent = document.getElementById('newsDetailContent');
             const playerDetailOverlay = document.getElementById('playerDetailOverlay');
             const playerDetailContent = document.getElementById('playerDetailContent');
+            const teamDetailOverlay = document.getElementById('teamDetailOverlay');
+            const teamDetailContent = document.getElementById('teamDetailContent');
 
             // ============================================================
             // UTILITY FUNCTIONS
@@ -2018,6 +2293,10 @@
 
             function getDefaultPlayerImage() {
                 return 'https://ui-avatars.com/api/?name=Player&background=4c8bf5&color=fff&size=60';
+            }
+
+            function getDefaultTeamImage() {
+                return 'https://ui-avatars.com/api/?name=Team&background=4c8bf5&color=fff&size=60';
             }
 
             function fetchAPI(endpoint) {
@@ -2104,14 +2383,17 @@
                         const score = (m.status === 0) ? 'VS' :
                             `${m.home_scores ?? 0} - ${m.away_scores ?? 0}`;
                         const time = m.match_time ? m.match_time.slice(0, 5) : '';
+                        const homeId = home.row_id || home.id || null;
+                        const awayId = away.row_id || away.id || null;
+
                         html += `
-                            <div class="match-item" data-match-id="${m.match_id}">
+                            <div class="match-item" data-match-id="${m.match_id}" data-home-id="${homeId}" data-away-id="${awayId}">
                                 <div class="teams">
                                     <img src="${homeLogo}" onerror="this.style.display='none'">
-                                    <span class="team-name">${home.title || 'Home'}</span>
+                                    <span class="team-name team-click" data-team-id="${homeId}">${home.title || 'Home'}</span>
                                     <span class="vs">vs</span>
                                     <img src="${awayLogo}" onerror="this.style.display='none'">
-                                    <span class="team-name">${away.title || 'Away'}</span>
+                                    <span class="team-name team-click" data-team-id="${awayId}">${away.title || 'Away'}</span>
                                 </div>
                                 <div class="match-info">
                                     <span class="score">${score}</span>
@@ -2126,10 +2408,22 @@
                 html += '</div>';
                 matchesContainer.innerHTML = html;
 
+                // Click on match -> detail
                 document.querySelectorAll('.match-item').forEach(el => {
                     el.addEventListener('click', function() {
                         const id = this.dataset.matchId;
                         if (id) showMatchDetail(id);
+                    });
+                });
+
+                // Click on team name -> team detail
+                document.querySelectorAll('.team-click[data-team-id]').forEach(el => {
+                    el.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const teamId = this.dataset.teamId;
+                        if (teamId && teamId !== 'null') {
+                            showTeamDetail(teamId);
+                        }
                     });
                 });
             }
@@ -2201,6 +2495,8 @@
                 const awayCoach = match.away_coach ? match.away_coach.title : '';
                 const homeFormation = match.home_formation || '';
                 const awayFormation = match.away_formation || '';
+                const homeId = home.row_id || home.id || null;
+                const awayId = away.row_id || away.id || null;
 
                 let html = `
                     <div class="detail-header">
@@ -2208,14 +2504,14 @@
                         <div class="teams">
                             <div class="team">
                                 <img src="${homeLogo}" onerror="this.style.display='none'">
-                                <span class="name">${home.title || 'Home'}</span>
+                                <span class="name team-click" data-team-id="${homeId}" style="cursor:pointer;">${home.title || 'Home'}</span>
                             </div>
                             <div class="score-box">
                                 <div class="score">${score}</div>
                                 <div class="status">${statusText}</div>
                             </div>
                             <div class="team">
-                                <span class="name">${away.title || 'Away'}</span>
+                                <span class="name team-click" data-team-id="${awayId}" style="cursor:pointer;">${away.title || 'Away'}</span>
                                 <img src="${awayLogo}" onerror="this.style.display='none'">
                             </div>
                         </div>
@@ -2285,6 +2581,17 @@
 
                 detailContent.innerHTML = html;
 
+                // Click on team name in detail
+                document.querySelectorAll('.team-click[data-team-id]').forEach(el => {
+                    el.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const teamId = this.dataset.teamId;
+                        if (teamId && teamId !== 'null') {
+                            showTeamDetail(teamId);
+                        }
+                    });
+                });
+
                 document.querySelectorAll('#detailTabs button').forEach(btn => {
                     btn.addEventListener('click', function() {
                         document.querySelectorAll('#detailTabs button').forEach(b => b.classList.remove(
@@ -2316,9 +2623,10 @@
                 teams.slice(0, 14).forEach((t, idx) => {
                     const team = t.team_name || {};
                     const logo = getImageUrl(team.image, 'team');
+                    const teamId = team.row_id || null;
                     html += `<tr>
                         <td>${idx+1}</td>
-                        <td><div class="team-cell"><img src="${logo}" onerror="this.style.display='none'"> ${team.title || '?'}</div></td>
+                        <td><div class="team-cell"><img src="${logo}" onerror="this.style.display='none'"> <span class="team-click" data-team-id="${teamId}" style="cursor:pointer;">${team.title || '?'}</span></div></td>
                         <td>${t.play || 0}</td>
                         <td>${t.wins || 0}</td>
                         <td>${t.draw || 0}</td>
@@ -2329,6 +2637,20 @@
                     </tr>`;
                 });
                 html += '</tbody></table>';
+
+                // Click on team in standings
+                setTimeout(() => {
+                    document.querySelectorAll('.team-click[data-team-id]').forEach(el => {
+                        el.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const teamId = this.dataset.teamId;
+                            if (teamId && teamId !== 'null') {
+                                showTeamDetail(teamId);
+                            }
+                        });
+                    });
+                }, 50);
+
                 return html;
             }
 
@@ -2367,7 +2689,7 @@
                 html += `<div class="lineup-team">
                     <div class="title">
                         <img src="${getImageUrl(home.image, 'team')}" onerror="this.style.display='none'">
-                        ${home.title || 'Home'}
+                        <span class="team-click" data-team-id="${homeId}" style="cursor:pointer;">${home.title || 'Home'}</span>
                         ${data.home_formation ? '• ' + data.home_formation : ''}
                     </div>
                     <div class="formation-pitch">`;
@@ -2387,7 +2709,8 @@
                     row.players.forEach(p => {
                         const player = p.player || {};
                         const playerImg = getImageUrl(player.image, 'player') || getDefaultPlayerImage();
-                        html += `<div class="player-badge" data-player-id="${player.row_id || player.id}">
+                        const playerId = player.row_id || player.id || null;
+                        html += `<div class="player-badge" data-player-id="${playerId}">
                             <img src="${playerImg}" onerror="this.style.display='none'">
                             <span class="player-number">${player.player_number || ''}</span>
                             <span class="player-name">${player.short_title || player.title || ''}</span>
@@ -2419,7 +2742,7 @@
                 html += `<div class="lineup-team">
                     <div class="title">
                         <img src="${getImageUrl(away.image, 'team')}" onerror="this.style.display='none'">
-                        ${away.title || 'Away'}
+                        <span class="team-click" data-team-id="${awayId}" style="cursor:pointer;">${away.title || 'Away'}</span>
                         ${data.away_formation ? '• ' + data.away_formation : ''}
                     </div>
                     <div class="formation-pitch">`;
@@ -2439,7 +2762,8 @@
                     row.players.forEach(p => {
                         const player = p.player || {};
                         const playerImg = getImageUrl(player.image, 'player') || getDefaultPlayerImage();
-                        html += `<div class="player-badge" data-player-id="${player.row_id || player.id}">
+                        const playerId = player.row_id || player.id || null;
+                        html += `<div class="player-badge" data-player-id="${playerId}">
                             <img src="${playerImg}" onerror="this.style.display='none'">
                             <span class="player-number">${player.player_number || ''}</span>
                             <span class="player-name">${player.short_title || player.title || ''}</span>
@@ -2468,13 +2792,24 @@
                 html += `</div></div>`;
                 html += '</div>';
 
-                // Add click event to player badges
+                // Add click events
                 setTimeout(() => {
                     document.querySelectorAll('.player-badge[data-player-id]').forEach(badge => {
                         badge.addEventListener('click', function(e) {
                             e.stopPropagation();
                             const playerId = this.dataset.playerId;
-                            if (playerId) showPlayerDetail(playerId);
+                            if (playerId && playerId !== 'null') {
+                                showPlayerDetail(playerId);
+                            }
+                        });
+                    });
+                    document.querySelectorAll('.team-click[data-team-id]').forEach(el => {
+                        el.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const teamId = this.dataset.teamId;
+                            if (teamId && teamId !== 'null') {
+                                showTeamDetail(teamId);
+                            }
                         });
                     });
                 }, 50);
@@ -2509,6 +2844,7 @@
                     const type = e.type,
                         status = e.status_name || '';
                     const playerId = e.player_name?.id || null;
+                    const teamName = isHome ? home.title || '' : (isAway ? away.title || '' : '');
 
                     if (type === 1) {
                         icon = '⚽';
@@ -2532,17 +2868,17 @@
                     } else { icon = '📌';
                         desc = playerName || status || 'Event'; }
 
-                    const eventHtml = `<div class="event-item ${teamClass}" data-player-id="${playerId || ''}">
+                    const eventHtml = `<div class="event-item ${teamClass}" data-player-id="${playerId || ''}" data-team-id="${teamId || ''}">
                         <span class="time">${time}'</span>
                         <span class="icon">${icon}</span>
                         <span class="desc">${desc}</span>
-                        <span class="team">${isHome ? home.title || '' : (isAway ? away.title || '' : '')}</span>
+                        <span class="team">${teamName}</span>
                     </div>`;
                     html += eventHtml;
                 });
                 html += '</div>';
 
-                // Add click event to event items with player ID
+                // Add click events
                 setTimeout(() => {
                     document.querySelectorAll('.event-item[data-player-id]').forEach(item => {
                         const playerId = item.dataset.playerId;
@@ -2551,6 +2887,16 @@
                             item.addEventListener('click', function(e) {
                                 e.stopPropagation();
                                 showPlayerDetail(playerId);
+                            });
+                        }
+                    });
+                    document.querySelectorAll('.event-item[data-team-id]').forEach(item => {
+                        const teamId = item.dataset.teamId;
+                        if (teamId && teamId !== '') {
+                            item.style.cursor = 'pointer';
+                            item.addEventListener('click', function(e) {
+                                e.stopPropagation();
+                                showTeamDetail(teamId);
                             });
                         }
                     });
@@ -2701,7 +3047,7 @@
                 return `
                     <div class="h2h-box">
                         <div>
-                            <div class="team-icon"><img src="${homeLogo}" onerror="this.style.display='none'"> ${homeName}</div>
+                            <div class="team-icon"><img src="${homeLogo}" onerror="this.style.display='none'"> <span class="team-click" data-team-id="${homeId}" style="cursor:pointer;">${homeName}</span></div>
                             <div class="stat win-home">${homeWins}</div>
                             <div class="label">Wins</div>
                         </div>
@@ -2710,7 +3056,7 @@
                             <div class="label">Draws</div>
                         </div>
                         <div>
-                            <div class="team-icon"><img src="${awayLogo}" onerror="this.style.display='none'"> ${awayName}</div>
+                            <div class="team-icon"><span class="team-click" data-team-id="${awayId}" style="cursor:pointer;">${awayName}</span> <img src="${awayLogo}" onerror="this.style.display='none'"></div>
                             <div class="stat win-away">${awayWins}</div>
                             <div class="label">Wins</div>
                         </div>
@@ -2740,25 +3086,21 @@
             }
 
             // ============================================================
-            // LOAD NEWS (Improved with pagination + images)
+            // LOAD NEWS
             // ============================================================
             async function loadNews(page = 1) {
                 newsContainer.innerHTML =
                     `<div class="loading-state"><div class="spinner"></div><div>Loading news...</div></div>`;
 
                 try {
-                    // First, get featured news from all_news_page
                     let featuredData = null;
                     try {
                         const featuredResp = await fetchNewsAPI('News/all_news_page/%5B%5D');
                         if (featuredResp.status) {
                             featuredData = featuredResp.data;
                         }
-                    } catch (e) {
-                        console.log('Featured news not available, using latest_news only');
-                    }
+                    } catch (e) {}
 
-                    // Get paginated news from latest_news
                     const endpoint = `News/latest_news/%5B%5D?page=${page}`;
                     const data = await fetchNewsAPI(endpoint);
 
@@ -2767,10 +3109,8 @@
                     newsCurrentPage = data.data.current_page || page;
                     newsTotalPages = data.data.last_page || 1;
 
-                    // Combine featured + latest news
                     let allNews = [];
 
-                    // Add featured news first (main + important)
                     if (featuredData) {
                         if (featuredData.main) {
                             allNews.push({ ...featuredData.main, is_featured: true, type: 'main' });
@@ -2782,7 +3122,6 @@
                         }
                     }
 
-                    // Add latest news (excluding duplicates by id)
                     const existingIds = new Set(allNews.map(item => item.id));
                     if (data.data.data && data.data.data.length > 0) {
                         data.data.data.forEach(item => {
@@ -2806,16 +3145,9 @@
                 }
 
                 let html = '<div class="news-grid">';
-
-                // Show featured news first with a badge
                 const displayItems = newsItems.slice(0, 12);
                 displayItems.forEach(item => {
-                    // Fix: Use the correct image URL format
-                    let imgUrl = '';
-                    if (item.image) {
-                        // Try to use the full URL with the correct path
-                        imgUrl = `https://news-en.ysscores.com/news/820/${item.image}`;
-                    }
+                    const imgUrl = item.image ? getImageUrl(item.image, 'news') : '';
                     const time = item.created_at?.date ? new Date(item.created_at.date).toLocaleString('en-US') :
                         '';
                     const isFeatured = item.is_featured || false;
@@ -2834,7 +3166,6 @@
                 });
                 html += '</div>';
 
-                // Add pagination controls
                 if (paginationData && paginationData.last_page > 1) {
                     html += `
                         <div style="display:flex;justify-content:center;gap:10px;margin-top:16px;flex-wrap:wrap;">
@@ -2857,7 +3188,6 @@
 
                 newsContainer.innerHTML = html;
 
-                // Add click event to news cards
                 document.querySelectorAll('.news-card').forEach(card => {
                     card.addEventListener('click', function() {
                         const newsId = this.dataset.newsId;
@@ -2884,7 +3214,7 @@
             }
 
             function renderNewsDetail(newsItem) {
-                const imgUrl = newsItem.image ? `https://news-en.ysscores.com/news/820/${newsItem.image}` : '';
+                const imgUrl = newsItem.image ? getImageUrl(newsItem.image, 'news') : '';
                 const time = newsItem.created_at?.date ? new Date(newsItem.created_at.date).toLocaleString('en-US') : '';
 
                 let html = `
@@ -2901,19 +3231,6 @@
 
                 newsDetailContent.innerHTML = html;
             }
-
-            // ============================================================
-            // NEWS DETAIL CONTROLS
-            // ============================================================
-            document.getElementById('newsDetailClose').addEventListener('click', function() {
-                newsDetailOverlay.classList.remove('visible');
-            });
-
-            newsDetailOverlay.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    newsDetailOverlay.classList.remove('visible');
-                }
-            });
 
             // ============================================================
             // PLAYER DETAIL
@@ -2938,6 +3255,36 @@
                 const team = player.team_name || {};
                 const teamLogo = getImageUrl(team.image, 'team');
                 const country = player.country || {};
+                const countryFlag = country.image ? getImageUrl(country.image) : '';
+                const age = player.birth_day ? new Date().getFullYear() - new Date(player.birth_day).getFullYear() :
+                    'N/A';
+                const foot = player.foot === 'R' ? 'Right' : (player.foot === 'L' ? 'Left' : 'N/A');
+
+                // Player statistics
+                let statsHtml = '';
+                if (player.player_statistics && player.player_statistics.length > 0) {
+                    const stats = player.player_statistics[0] || {};
+                    statsHtml = `
+                        <div class="player-stats">
+                            <div class="stat-item">
+                                <div class="value">${stats.appearances || 0}</div>
+                                <div class="label">Appearances</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="value">${stats.goals || 0}</div>
+                                <div class="label">Goals</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="value">${stats.assist || 0}</div>
+                                <div class="label">Assists</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="value">${stats.yellow_card || 0}</div>
+                                <div class="label">Yellow</div>
+                            </div>
+                        </div>
+                    `;
+                }
 
                 let html = `
                     <div class="player-header">
@@ -2945,30 +3292,18 @@
                         <div class="info">
                             <div class="name">${player.title || 'Player'}</div>
                             <div class="team">${team.title || 'Club'}</div>
-                            <div class="pos">${player.position || ''} • ${player.height || ''}cm</div>
+                            <div class="pos">${player.position || ''} • ${player.height || 'N/A'}cm • ${age} years • ${foot}</div>
+                            ${countryFlag ? `<div style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:4px;"><img src="${countryFlag}" style="width:20px;height:14px;object-fit:cover;border-radius:2px;"> ${country.title || ''}</div>` : ''}
                         </div>
                     </div>
-                    <div class="player-stats">
-                        <div class="stat-item">
-                            <div class="value">${player.appearances || 0}</div>
-                            <div class="label">Appearances</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="value">${player.goals || 0}</div>
-                            <div class="label">Goals</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="value">${player.assist || 0}</div>
-                            <div class="label">Assists</div>
-                        </div>
-                    </div>
+                    ${statsHtml}
                 `;
 
                 // Transfers
                 if (player.transfers && player.transfers.length > 0) {
                     html += `<div class="player-transfers">
                         <div class="title">📋 Transfers</div>`;
-                    player.transfers.slice(0, 8).forEach(t => {
+                    player.transfers.slice(0, 10).forEach(t => {
                         const teamIn = t.team_in || {};
                         const teamOut = t.team_out || {};
                         const inLogo = getImageUrl(teamIn.image, 'team');
@@ -2999,6 +3334,242 @@
             }
 
             // ============================================================
+            // TEAM DETAIL
+            // ============================================================
+            async function showTeamDetail(teamId) {
+                if (!teamId) return;
+                teamDetailOverlay.classList.add('visible');
+                teamDetailContent.innerHTML =
+                    `<div class="loading-state"><div class="spinner"></div><div>Loading team info...</div></div>`;
+
+                try {
+                    const [teamData, matchesData, standingsData, newsData] = await Promise.all([
+                        fetchAPI(`info/team_info/${teamId}/L/60`),
+                        fetchAPI(`matches/team_matches/${teamId}/L/60`),
+                        fetchAPI(`matches/cups_teams_standings/${teamId}/L/60`).catch(() => null),
+                        fetchNewsAPI(`News/news_team/${teamId}?page=1`).catch(() => null)
+                    ]);
+
+                    if (!teamData.status) throw new Error('Failed to load team info');
+                    renderTeamDetail(teamData.data, matchesData.data, standingsData?.data, newsData?.data);
+                } catch (error) {
+                    teamDetailContent.innerHTML = `<div class="error-state">⚠️ ${error.message}</div>`;
+                }
+            }
+
+            function renderTeamDetail(team, matches, standings, news) {
+                const imgUrl = team.image ? getImageUrl(team.image, 'team') : getDefaultTeamImage();
+                const country = team.country || {};
+                const countryFlag = country.image ? getImageUrl(country.image) : '';
+
+                let html = `
+                    <div class="team-header">
+                        <img src="${imgUrl}" onerror="this.src='${getDefaultTeamImage()}'">
+                        <div class="info">
+                            <div class="name">${team.title || 'Team'}</div>
+                            <div class="country">${countryFlag ? `<img src="${countryFlag}" style="width:20px;height:14px;object-fit:cover;border-radius:2px;vertical-align:middle;">` : ''} ${country.title || ''}</div>
+                            <div class="stadium">🏟️ ${team.stadium_name || 'N/A'}</div>
+                        </div>
+                    </div>
+                    <div class="team-tabs" id="teamTabs">
+                        <button class="active" data-ttab="matches">📋 Matches</button>
+                        <button data-ttab="standings">📊 Standings</button>
+                        <button data-ttab="news">📰 News</button>
+                    </div>
+                `;
+
+                // Matches tab
+                html += `<div class="team-tab-content active" id="ttab-matches">`;
+                if (matches && (matches.coming?.data?.length > 0 || matches.end?.data?.length > 0)) {
+                    html += `<div class="team-matches-list">`;
+                    // Upcoming matches
+                    if (matches.coming?.data?.length > 0) {
+                        html += `<div style="font-weight:600;font-size:13px;color:var(--accent-blue);margin:6px 0;">⬆️ Upcoming</div>`;
+                        matches.coming.data.slice(0, 8).forEach(m => {
+                            const home = m.home_team || {};
+                            const away = m.away_team || {};
+                            const homeLogo = getImageUrl(home.image, 'team');
+                            const awayLogo = getImageUrl(away.image, 'team');
+                            const statusText = getStatusText(m.status);
+                            const statusClass = getStatusClass(m.status);
+                            const score = (m.status === 0) ? 'VS' :
+                                `${m.home_scores ?? 0} - ${m.away_scores ?? 0}`;
+                            html += `
+                                <div class="team-match-item" data-match-id="${m.match_id}">
+                                    <div class="teams">
+                                        <img src="${homeLogo}" onerror="this.style.display='none'">
+                                        ${home.title || 'Home'} vs ${away.title || 'Away'}
+                                        <img src="${awayLogo}" onerror="this.style.display='none'">
+                                    </div>
+                                    <div class="score">${score}</div>
+                                    <span class="status ${statusClass}">${statusText}</span>
+                                    <span class="date">${m.match_date || ''}</span>
+                                </div>
+                            `;
+                        });
+                    }
+                    // Finished matches
+                    if (matches.end?.data?.length > 0) {
+                        html += `<div style="font-weight:600;font-size:13px;color:var(--text-secondary);margin:6px 0;">✅ Finished</div>`;
+                        matches.end.data.slice(0, 8).forEach(m => {
+                            const home = m.home_team || {};
+                            const away = m.away_team || {};
+                            const homeLogo = getImageUrl(home.image, 'team');
+                            const awayLogo = getImageUrl(away.image, 'team');
+                            const statusText = getStatusText(m.status);
+                            const statusClass = getStatusClass(m.status);
+                            const score = `${m.home_scores ?? 0} - ${m.away_scores ?? 0}`;
+                            html += `
+                                <div class="team-match-item" data-match-id="${m.match_id}">
+                                    <div class="teams">
+                                        <img src="${homeLogo}" onerror="this.style.display='none'">
+                                        ${home.title || 'Home'} vs ${away.title || 'Away'}
+                                        <img src="${awayLogo}" onerror="this.style.display='none'">
+                                    </div>
+                                    <div class="score">${score}</div>
+                                    <span class="status ${statusClass}">${statusText}</span>
+                                    <span class="date">${m.match_date || ''}</span>
+                                </div>
+                            `;
+                        });
+                    }
+                    html += `</div>`;
+                } else {
+                    html += `<div class="empty-state">No matches available</div>`;
+                }
+                html += `</div>`;
+
+                // Standings tab
+                html += `<div class="team-tab-content" id="ttab-standings">`;
+                if (standings && standings.standings) {
+                    const groups = standings.standings.groups || {};
+                    const firstGroup = Object.values(groups)[0] || [];
+                    if (firstGroup.length > 0) {
+                        html += `<table class="team-standings-table">
+                            <thead><tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GD</th><th>Pts</th></tr></thead><tbody>`;
+                        firstGroup.slice(0, 16).forEach((t, idx) => {
+                            const team = t.team_name || {};
+                            const logo = getImageUrl(team.image, 'team');
+                            const teamId = team.row_id || null;
+                            html += `<tr>
+                                <td>${idx+1}</td>
+                                <td><div class="team-cell"><img src="${logo}" onerror="this.style.display='none'"> <span class="team-click" data-team-id="${teamId}" style="cursor:pointer;">${team.title || '?'}</span></div></td>
+                                <td>${t.play || 0}</td>
+                                <td>${t.wins || 0}</td>
+                                <td>${t.draw || 0}</td>
+                                <td>${t.lose || 0}</td>
+                                <td>${t.for || 0}</td>
+                                <td>${t.diff || 0}</td>
+                                <td class="points">${t.points || 0}</td>
+                            </tr>`;
+                        });
+                        html += `</tbody></table>`;
+                    } else {
+                        html += `<div class="empty-state">No standings data</div>`;
+                    }
+                } else {
+                    html += `<div class="empty-state">No standings data</div>`;
+                }
+                html += `</div>`;
+
+                // News tab
+                html += `<div class="team-tab-content" id="ttab-news">`;
+                if (news && news.data && news.data.length > 0) {
+                    html += `<div class="team-news-list">`;
+                    news.data.slice(0, 10).forEach(item => {
+                        const time = item.created_at?.date ? new Date(item.created_at.date)
+                            .toLocaleString('en-US') : '';
+                        html += `
+                            <div class="team-news-item" data-news-id="${item.id}">
+                                <div class="title">${item.title || ''}</div>
+                                <div class="time">${time}</div>
+                            </div>
+                        `;
+                    });
+                    html += `</div>`;
+                } else {
+                    html += `<div class="empty-state">No news available</div>`;
+                }
+                html += `</div>`;
+
+                teamDetailContent.innerHTML = html;
+
+                // Team tabs
+                document.querySelectorAll('#teamTabs button').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        document.querySelectorAll('#teamTabs button').forEach(b => b.classList.remove(
+                            'active'));
+                        this.classList.add('active');
+                        const tab = this.dataset.ttab;
+                        document.querySelectorAll('.team-tab-content').forEach(el => el.classList.remove(
+                            'active'));
+                        const target = document.getElementById('ttab-' + tab);
+                        if (target) target.classList.add('active');
+                    });
+                });
+
+                // Click on match
+                document.querySelectorAll('.team-match-item[data-match-id]').forEach(el => {
+                    el.addEventListener('click', function() {
+                        const matchId = this.dataset.matchId;
+                        if (matchId) {
+                            teamDetailOverlay.classList.remove('visible');
+                            showMatchDetail(matchId);
+                        }
+                    });
+                });
+
+                // Click on team
+                document.querySelectorAll('.team-click[data-team-id]').forEach(el => {
+                    el.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const teamId = this.dataset.teamId;
+                        if (teamId && teamId !== 'null') {
+                            teamDetailOverlay.classList.remove('visible');
+                            setTimeout(() => showTeamDetail(teamId), 100);
+                        }
+                    });
+                });
+
+                // Click on news
+                document.querySelectorAll('.team-news-item[data-news-id]').forEach(el => {
+                    el.addEventListener('click', function() {
+                        const newsId = this.dataset.newsId;
+                        if (newsId) {
+                            teamDetailOverlay.classList.remove('visible');
+                            showNewsDetail(newsId);
+                        }
+                    });
+                });
+            }
+
+            // ============================================================
+            // TEAM DETAIL CONTROLS
+            // ============================================================
+            document.getElementById('teamDetailClose').addEventListener('click', function() {
+                teamDetailOverlay.classList.remove('visible');
+            });
+
+            teamDetailOverlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    teamDetailOverlay.classList.remove('visible');
+                }
+            });
+
+            // ============================================================
+            // NEWS DETAIL CONTROLS
+            // ============================================================
+            document.getElementById('newsDetailClose').addEventListener('click', function() {
+                newsDetailOverlay.classList.remove('visible');
+            });
+
+            newsDetailOverlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    newsDetailOverlay.classList.remove('visible');
+                }
+            });
+
+            // ============================================================
             // PLAYER DETAIL CONTROLS
             // ============================================================
             document.getElementById('playerDetailClose').addEventListener('click', function() {
@@ -3012,7 +3583,7 @@
             });
 
             // ============================================================
-            // TRANSFERS (with player click)
+            // TRANSFERS
             // ============================================================
             async function loadTransfers() {
                 try {
@@ -3044,9 +3615,11 @@
                     const value = item.value ? (parseInt(item.value) / 1000000).toFixed(1) + 'M' : 'Free';
                     const date = item.date_from || '';
                     const playerId = player.row_id || player.id || null;
+                    const outId = teamOut.row_id || teamOut.id || null;
+                    const inId = teamIn.row_id || teamIn.id || null;
 
                     html += `
-                        <div class="transfer-item" data-player-id="${playerId}">
+                        <div class="transfer-item" data-player-id="${playerId}" data-out-id="${outId}" data-in-id="${inId}">
                             <div class="player">
                                 <img src="${playerImg}" onerror="this.style.display='none'">
                                 <div>
@@ -3055,9 +3628,9 @@
                                 </div>
                             </div>
                             <div class="teams">
-                                <img src="${outImg}" onerror="this.style.display='none'"> ${teamOut.title || '?'}
+                                <img src="${outImg}" onerror="this.style.display='none'"> <span class="team-click" data-team-id="${outId}" style="cursor:pointer;">${teamOut.title || '?'}</span>
                                 <span style="color:var(--text-secondary);">→</span>
-                                <img src="${inImg}" onerror="this.style.display='none'"> ${teamIn.title || '?'}
+                                <img src="${inImg}" onerror="this.style.display='none'"> <span class="team-click" data-team-id="${inId}" style="cursor:pointer;">${teamIn.title || '?'}</span>
                             </div>
                             <div class="value">${value}</div>
                             <div class="date">${date}</div>
@@ -3067,7 +3640,7 @@
                 html += '</div>';
                 transfersContainer.innerHTML = html;
 
-                // Add click event to transfer items
+                // Add click events
                 document.querySelectorAll('.transfer-item[data-player-id]').forEach(item => {
                     const playerId = item.dataset.playerId;
                     if (playerId && playerId !== 'null') {
@@ -3077,6 +3650,15 @@
                             showPlayerDetail(playerId);
                         });
                     }
+                });
+                document.querySelectorAll('.team-click[data-team-id]').forEach(el => {
+                    el.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const teamId = this.dataset.teamId;
+                        if (teamId && teamId !== 'null') {
+                            showTeamDetail(teamId);
+                        }
+                    });
                 });
             }
 
@@ -3223,6 +3805,7 @@
 
             window.showPlayerDetail = showPlayerDetail;
             window.showMatchDetail = showMatchDetail;
+            window.showTeamDetail = showTeamDetail;
 
             // ============================================================
             // INIT
