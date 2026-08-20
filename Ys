@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="ar" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YSScores تجربة</title>
+    <style>
+        /* ===== إعدادات عامة ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0d1117;
+            color: #f0f6fc;
+            padding: 20px;
+            direction: rtl;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* ===== العناوين ===== */
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #58a6ff;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 15px;
+        }
+
+        /* ===== قائمة المباريات ===== */
+        .matches-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+        .match-card {
+            background: #161b22;
+            border-radius: 12px;
+            padding: 16px 20px;
+            border: 1px solid #30363d;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .match-card:hover {
+            border-color: #58a6ff;
+            transform: translateX(-5px);
+        }
+        .match-card .teams {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            flex-wrap: wrap;
+        }
+        .match-card .teams img {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            object-fit: contain;
+            background: rgba(255,255,255,0.05);
+        }
+        .match-card .teams .vs {
+            color: #8b949e;
+            font-size: 13px;
+        }
+        .match-card .match-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            font-size: 14px;
+            color: #8b949e;
+        }
+        .match-card .match-meta .score {
+            font-weight: 700;
+            color: #f0f6fc;
+            font-size: 18px;
+        }
+        .match-card .match-meta .status {
+            background: #1f6feb;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+        }
+        .match-card .match-meta .status.live {
+            background: #f85149;
+        }
+        .match-card .match-meta .status.finished {
+            background: #30363d;
+        }
+        .loading-matches {
+            text-align: center;
+            padding: 30px;
+            color: #8b949e;
+        }
+
+        /* ===== تفاصيل المباراة ===== */
+        .match-detail {
+            display: none;
+            background: #161b22;
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid #30363d;
+            margin-top: 30px;
+            animation: fadeIn 0.3s ease;
+        }
+        .match-detail.visible {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        .detail-header .back-btn {
+            background: none;
+            border: 1px solid #30363d;
+            color: #8b949e;
+            padding: 6px 16px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+        .detail-header .back-btn:hover {
+            color: #f0f6fc;
+            border-color: #58a6ff;
+        }
+        .detail-header .league-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #58a6ff;
+        }
+
+        .detail-teams {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .detail-teams .team {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .detail-teams .team img {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: contain;
+        }
+        .detail-teams .team .name {
+            font-weight: 700;
+            font-size: 20px;
+        }
+        .detail-teams .score-box {
+            text-align: center;
+        }
+        .detail-teams .score-box .score {
+            font-size: 32px;
+            font-weight: 900;
+            color: #f0f6fc;
+        }
+        .detail-teams .score-box .time {
+            font-size: 14px;
+            color: #8b949e;
+        }
+
+        .detail-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px 30px;
+            background: #0d1117;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+        .detail-info .label {
+            color: #8b949e;
+        }
+        .detail-info .value {
+            font-weight: 600;
+        }
+
+        /* ===== التبويبات ===== */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 10px;
+            margin: 20px 0 16px 0;
+        }
+        .tabs button {
+            background: none;
+            border: none;
+            color: #8b949e;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 6px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .tabs button:hover {
+            color: #f0f6fc;
+            background: #21262d;
+        }
+        .tabs button.active {
+            color: #58a6ff;
+            background: rgba(88, 166, 255, 0.1);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 10px 0;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        /* ===== الترتيب ===== */
+        .standings-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .standings-table th {
+            text-align: right;
+            padding: 8px 6px;
+            color: #8b949e;
+            font-weight: 600;
+            border-bottom: 2px solid #30363d;
+        }
+        .standings-table td {
+            padding: 6px 6px;
+            border-bottom: 1px solid #21262d;
+        }
+        .standings-table .team-cell {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .standings-table .team-cell img {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            object-fit: contain;
+        }
+        .standings-table .points {
+            font-weight: 700;
+            color: #58a6ff;
+        }
+
+        /* ===== آخر 5 مباريات ===== */
+        .last-matches {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .last-match-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #0d1117;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            flex-wrap: wrap;
+        }
+        .last-match-item .win {
+            color: #3fb950;
+        }
+        .last-match-item .lose {
+            color: #f85149;
+        }
+        .last-match-item .equal {
+            color: #d29922;
+        }
+
+        /* ===== تحميل ===== */
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: #8b949e;
+        }
+        .spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid #30363d;
+            border-top-color: #58a6ff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ===== استجابة ===== */
+        @media (max-width: 600px) {
+            .match-card {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+            .detail-teams {
+                gap: 15px;
+            }
+            .detail-teams .team .name {
+                font-size: 16px;
+            }
+            .detail-info {
+                grid-template-columns: 1fr;
+            }
+            .standings-table {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚽ تجربة YSScores</h1>
+
+        <!-- ===== قائمة المباريات ===== -->
+        <div id="matchesList">
+            <div class="loading-matches">
+                <div class="spinner"></div>
+                <div style="margin-top:10px;">جاري تحميل المباريات...</div>
+            </div>
+        </div>
+
+        <!-- ===== تفاصيل المباراة ===== -->
+        <div class="match-detail" id="matchDetail">
+            <div class="detail-header">
+                <button class="back-btn" id="backBtn">← رجوع</button>
+                <span class="league-title" id="detailLeague">الدوري</span>
+            </div>
+            <div id="detailContent">
+                <div class="loading"><div class="spinner"></div><div>جاري التحميل...</div></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            "use strict";
+
+            // ==================== الإعدادات ====================
+            const WORKER_URL = 'https://dry-truth-a84e.idriss-zribi13.workers.dev/';
+            const BASE_URL = 'https://api-en.ysscores.com/api/matches/';
+
+            // ==================== دوال مساعدة ====================
+            function fetchAPI(endpoint) {
+                const full = WORKER_URL + '?url=' + encodeURIComponent(BASE_URL + endpoint);
+                return fetch(full).then(res => {
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    return res.json();
+                });
+            }
+
+            function getImageUrl(path) {
+                if (!path) return '';
+                // بعض الصور تأتي بدون مسار كامل، نضيف الرابط الأساسي
+                if (path.startsWith('http')) return path;
+                return 'https://api-en.ysscores.com/images/teams/' + path;
+            }
+
+            function getStatusText(status) {
+                if (status === 0) return 'لم تبدأ';
+                if (status === 1) return 'حية';
+                if (status === 2) return 'انتهت';
+                return 'غير معروف';
+            }
+
+            function getStatusClass(status) {
+                if (status === 1) return 'live';
+                if (status === 2) return 'finished';
+                return '';
+            }
+
+            function getResult(home, away) {
+                if (home === away) return 'equal';
+                if (home > away) return 'win';
+                return 'lose';
+            }
+
+            // ==================== عرض قائمة المباريات ====================
+            async function loadMatches() {
+                const container = document.getElementById('matchesList');
+                container.innerHTML = '<div class="loading-matches"><div class="spinner"></div><div>جاري تحميل المباريات...</div></div>';
+
+                try {
+                    // اليوم الحالي بصيغة YYYY-MM-DD
+                    const today = new Date().toISOString().split('T')[0];
+                    // نحدد معرفات البطولات التي نريدها (مثال: الدوري الإسباني 938652، دوري روشن 941825، إلخ)
+                    // يمكننا طلب الكل بإرسال قائمة فارغة أو استخدام معرفات محددة.
+                    // هنا نطلب مباريات اليوم من عدة بطولات: 938652 (LaLiga), 941825 (Saudi Pro League)
+                    const compIds = ['938652', '941825']; // يمكن إضافة المزيد
+                    const endpoint = `matches_date_get/${today}/[${compIds.map(id => `"${id}"`).join(',')}]/[]/[]/L/60`;
+                    const data = await fetchAPI(endpoint);
+
+                    if (!data.status || data.data.length === 0) {
+                        container.innerHTML = '<div class="loading-matches">لا توجد مباريات اليوم</div>';
+                        return;
+                    }
+
+                    renderMatches(data.data, container);
+
+                } catch (error) {
+                    console.error('خطأ في تحميل المباريات:', error);
+                    container.innerHTML = `<div class="loading-matches" style="color:#f85149;">⚠️ فشل التحميل: ${error.message}</div>`;
+                }
+            }
+
+            function renderMatches(matches, container) {
+                let html = '';
+                matches.forEach(m => {
+                    const home = m.home_team || {};
+                    const away = m.away_team || {};
+                    const homeLogo = getImageUrl(home.image);
+                    const awayLogo = getImageUrl(away.image);
+                    const statusText = getStatusText(m.status);
+                    const statusClass = getStatusClass(m.status);
+                    const score = (m.status === 0) ? 'vs' : `${m.home_scores || 0} - ${m.away_scores || 0}`;
+
+                    html += `
+                        <div class="match-card" data-match-id="${m.match_id}">
+                            <div class="teams">
+                                <img src="${homeLogo}" onerror="this.style.display='none'">
+                                <span>${home.title || 'Home'}</span>
+                                <span class="vs">vs</span>
+                                <img src="${awayLogo}" onerror="this.style.display='none'">
+                                <span>${away.title || 'Away'}</span>
+                            </div>
+                            <div class="match-meta">
+                                <span class="score">${score}</span>
+                                <span class="status ${statusClass}">${statusText}</span>
+                                <span style="font-size:13px;">${m.match_time || ''}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+
+                // ربط حدث النقر لكل بطاقة
+                document.querySelectorAll('.match-card').forEach(card => {
+                    card.addEventListener('click', function() {
+                        const matchId = this.dataset.matchId;
+                        if (matchId) loadMatchDetail(matchId);
+                    });
+                });
+            }
+
+            // ==================== تحميل تفاصيل المباراة ====================
+            async function loadMatchDetail(matchId) {
+                const detailContainer = document.getElementById('matchDetail');
+                const content = document.getElementById('detailContent');
+                detailContainer.classList.add('visible');
+                content.innerHTML = '<div class="loading"><div class="spinner"></div><div>جاري تحميل التفاصيل...</div></div>';
+
+                try {
+                    // 1. معلومات المباراة
+                    const infoData = await fetchAPI(`match_info/${matchId}/L/60`);
+                    if (!infoData.status) throw new Error('فشل جلب معلومات المباراة');
+
+                    // 2. ترتيب الدوري
+                    const championshipId = infoData.data.championship_id;
+                    const standingData = await fetchAPI(`league_standing_stage/${championshipId}`);
+                    if (!standingData.status) throw new Error('فشل جلب الترتيب');
+
+                    renderMatchDetail(infoData.data, standingData.data, content);
+
+                } catch (error) {
+                    content.innerHTML = `<div style="color:#f85149;text-align:center;padding:20px;">⚠️ ${error.message}</div>`;
+                }
+            }
+
+            function renderMatchDetail(match, standing, container) {
+                const home = match.home_team || {};
+                const away = match.away_team || {};
+                const homeLogo = getImageUrl(home.image);
+                const awayLogo = getImageUrl(away.image);
+                const champ = match.championship || {};
+
+                // معلومات أساسية
+                const competition = champ.title || 'غير معروف';
+                const round = match.round || '';
+                const stadium = match.Stadium || 'غير معروف';
+                const channel = (match.channel_commm && match.channel_commm.length > 0) ? match.channel_commm[0]
+                    .channel_name : 'غير معروف';
+                const commentator = (match.channel_commm && match.channel_commm.length > 0) ? match.channel_commm[0]
+                    .commentator_name : 'غير معروف';
+                const referee = match.referees ? match.referees.title : 'غير معروف';
+                const matchTime = match.match_time || '';
+                const matchDate = match.match_date || '';
+                const statusText = getStatusText(match.status);
+
+                // النتيجة
+                const homeScore = match.home_scores ?? '-';
+                const awayScore = match.away_scores ?? '-';
+
+                // ==== عرض الهيدر ====
+                let html = `
+                    <div class="detail-teams">
+                        <div class="team">
+                            <img src="${homeLogo}" onerror="this.style.display='none'">
+                            <span class="name">${home.title || 'Home'}</span>
+                        </div>
+                        <div class="score-box">
+                            <div class="score">${homeScore} - ${awayScore}</div>
+                            <div class="time">${statusText} ${match.match_time ? '• ' + match.match_time : ''}</div>
+                        </div>
+                        <div class="team">
+                            <span class="name">${away.title || 'Away'}</span>
+                            <img src="${awayLogo}" onerror="this.style.display='none'">
+                        </div>
+                    </div>
+
+                    <div class="detail-info">
+                        <div><span class="label">🏆 البطولة:</span> <span class="value">${competition}</span></div>
+                        <div><span class="label">📅 الجولة:</span> <span class="value">${round}</span></div>
+                        <div><span class="label">🏟️ الملعب:</span> <span class="value">${stadium}</span></div>
+                        <div><span class="label">📺 القناة:</span> <span class="value">${channel}</span></div>
+                        <div><span class="label">🎙️ المعلق:</span> <span class="value">${commentator}</span></div>
+                        <div><span class="label">👨‍⚖️ الحكم:</span> <span class="value">${referee}</span></div>
+                        <div><span class="label">🕐 الوقت:</span> <span class="value">${matchTime}</span></div>
+                        <div><span class="label">📆 التاريخ:</span> <span class="value">${matchDate}</span></div>
+                    </div>
+                `;
+
+                // ==== التبويبات ====
+                html += `
+                    <div class="tabs" id="detailTabs">
+                        <button class="active" data-tab="standings">📊 الترتيب</button>
+                        <button data-tab="last5">📋 آخر 5 مباريات</button>
+                        <button data-tab="h2h">⚔️ المواجهات المباشرة</button>
+                    </div>
+                    <div class="tab-content active" id="tab-standings">
+                        ${renderStandings(standing)}
+                    </div>
+                    <div class="tab-content" id="tab-last5">
+                        ${renderLastMatches(match)}
+                    </div>
+                    <div class="tab-content" id="tab-h2h">
+                        ${renderH2H(match)}
+                    </div>
+                `;
+
+                container.innerHTML = html;
+
+                // تفعيل التبويبات
+                document.querySelectorAll('#detailTabs button').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        document.querySelectorAll('#detailTabs button').forEach(b => b.classList.remove(
+                        'active'));
+                        this.classList.add('active');
+                        const tab = this.dataset.tab;
+                        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove(
+                        'active'));
+                        const target = document.getElementById('tab-' + tab);
+                        if (target) target.classList.add('active');
+                    });
+                });
+
+                // تحديث عنوان الدوري
+                document.getElementById('detailLeague').textContent = competition;
+            }
+
+            // ==================== عرض الترتيب ====================
+            function renderStandings(standingData) {
+                if (!standingData || !standingData.league || !standingData.league.stage0) {
+                    return '<div class="loading-matches">لا توجد بيانات ترتيب</div>';
+                }
+
+                const teams = standingData.league.stage0;
+                if (teams.length === 0) return '<div class="loading-matches">لا توجد فرق في هذا الدوري</div>';
+
+                let html = `
+                    <table class="standings-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>الفريق</th>
+                                <th>لعب</th>
+                                <th>فوز</th>
+                                <th>تعادل</th>
+                                <th>خسارة</th>
+                                <th>الأهداف</th>
+                                <th>±</th>
+                                <th>نقاط</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                teams.forEach((team, idx) => {
+                    const t = team.team_name || {};
+                    const logo = getImageUrl(t.image);
+                    const rank = idx + 1;
+                    html += `
+                        <tr>
+                            <td>${rank}</td>
+                            <td>
+                                <div class="team-cell">
+                                    <img src="${logo}" onerror="this.style.display='none'">
+                                    ${t.title || 'غير معروف'}
+                                </div>
+                            </td>
+                            <td>${team.play || 0}</td>
+                            <td>${team.wins || 0}</td>
+                            <td>${team.draw || 0}</td>
+                            <td>${team.lose || 0}</td>
+                            <td>${team.for || 0} - ${team.against || 0}</td>
+                            <td>${team.diff || 0}</td>
+                            <td class="points">${team.points || 0}</td>
+                        </tr>
+                    `;
+                });
+
+                html += '</tbody></table>';
+                return html;
+            }
+
+            // ==================== آخر 5 مباريات ====================
+            function renderLastMatches(match) {
+                if (!match.played_result) return '<div class="loading-matches">لا توجد بيانات عن آخر المباريات</div>';
+
+                const homeResults = match.played_result.home || {};
+                const awayResults = match.played_result.away || {};
+                const all = { ...homeResults, ...awayResults };
+
+                // نأخذ أول 5 مباريات (قد لا تكون مرتبة زمنياً)
+                const keys = Object.keys(all).slice(0, 5);
+                if (keys.length === 0) return '<div class="loading-matches">لا توجد مباريات سابقة</div>';
+
+                let html = '<div class="last-matches">';
+                keys.forEach(key => {
+                    const m = all[key];
+                    if (!m) return;
+                    const homeName = m.home?.title || 'Home';
+                    const awayName = m.away?.title || 'Away';
+                    const score = `${m.home_scores || 0} - ${m.away_scores || 0}`;
+                    const result = m.win_type || 'equal';
+                    const resultClass = result === 'win' ? 'win' : (result === 'lose' ? 'lose' : 'equal');
+                    const resultText = result === 'win' ? 'فوز' : (result === 'lose' ? 'خسارة' : 'تعادل');
+                    html += `
+                        <div class="last-match-item">
+                            <span>${homeName} vs ${awayName}</span>
+                            <span>${score}</span>
+                            <span class="${resultClass}">${resultText}</span>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                return html;
+            }
+
+            // ==================== المواجهات المباشرة ====================
+            function renderH2H(match) {
+                if (!match.teamWins) return '<div class="loading-matches">لا توجد بيانات عن المواجهات المباشرة</div>';
+
+                const homeId = match.home_team?.row_id;
+                const awayId = match.away_team?.row_id;
+                if (!homeId || !awayId) return '<div class="loading-matches">لا توجد بيانات كافية</div>';
+
+                const homeWins = match.teamWins[homeId] || 0;
+                const awayWins = match.teamWins[awayId] || 0;
+                const draws = match.teamWins['equal'] || 0;
+
+                return `
+                    <div style="display:flex;justify-content:center;gap:30px;padding:20px;flex-wrap:wrap;">
+                        <div style="text-align:center;">
+                            <div style="font-size:24px;font-weight:700;color:#58a6ff;">${homeWins}</div>
+                            <div>فوز ${match.home_team?.title || 'Home'}</div>
+                        </div>
+                        <div style="text-align:center;">
+                            <div style="font-size:24px;font-weight:700;color:#d29922;">${draws}</div>
+                            <div>تعادل</div>
+                        </div>
+                        <div style="text-align:center;">
+                            <div style="font-size:24px;font-weight:700;color:#f85149;">${awayWins}</div>
+                            <div>فوز ${match.away_team?.title || 'Away'}</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // ==================== زر الرجوع ====================
+            document.getElementById('backBtn').addEventListener('click', function() {
+                document.getElementById('matchDetail').classList.remove('visible');
+                // إعادة تحميل المباريات للتحديث
+                loadMatches();
+            });
+
+            // ==================== بدء التطبيق ====================
+            loadMatches();
+
+            // تحديث تلقائي كل 60 ثانية (اختياري)
+            // setInterval(loadMatches, 60000);
+
+        })();
+    </script>
+
+</body>
+</html>
