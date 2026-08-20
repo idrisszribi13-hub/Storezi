@@ -1,238 +1,500 @@
 <!DOCTYPE html>
-<html lang="ar" dir="ltr">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YSScores - Zi Store</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>YSScores - Live Sports</title>
     <style>
-        /* ===== RESET & ROOT ===== */
-        * {
+        /* ============================================================
+               ROOT VARIABLES (Flutter-style dark theme)
+               ============================================================ */
+        :root {
+            --bg-primary: #0a0e17;
+            --bg-secondary: #111927;
+            --bg-card: #162033;
+            --bg-elevated: #1c2a42;
+            --border-color: #1e2d45;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b9bb5;
+            --text-muted: #5a6a84;
+            --accent-blue: #4c8bf5;
+            --accent-blue-hover: #6aa3ff;
+            --accent-green: #3fb950;
+            --accent-red: #f85149;
+            --accent-yellow: #d29922;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --font: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+        }
+
+        /* ============================================================
+               RESET & BASE
+               ============================================================ */
+        *,
+        *::before,
+        *::after {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        :root {
-            --bg: #0a0e17;
-            --surface: #141c2b;
-            --surface-card: #1a2438;
-            --border: #2a3a55;
-            --text: #f0f6fc;
-            --text-secondary: #8b9bb5;
-            --accent: #4c8bf5;
-            --accent-hover: #6aa3ff;
-            --live: #f85149;
-            --green: #3fb950;
-            --yellow: #d29922;
-            --radius: 12px;
-            --shadow: 0 8px 24px rgba(0,0,0,0.6);
-            --font: 'Segoe UI', Tahoma, sans-serif;
-            --transition: 0.2s ease;
+
+        html {
+            scroll-behavior: smooth;
         }
+
         body {
             font-family: var(--font);
-            background: var(--bg);
-            color: var(--text);
+            background: var(--bg-primary);
+            color: var(--text-primary);
             min-height: 100vh;
-            padding: 0;
-            margin: 0;
-            direction: rtl;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 12px 16px;
-        }
-        /* ===== SCROLLBAR ===== */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: var(--surface); }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
-        /* ===== HEADER ===== */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-blue);
+        }
+
+        /* ============================================================
+               APP CONTAINER
+               ============================================================ */
+        .app {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 12px 16px 40px;
+            min-height: 100vh;
+        }
+
+        /* ============================================================
+               HEADER (Flutter-style AppBar)
+               ============================================================ */
         .app-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             flex-wrap: wrap;
             gap: 10px;
-            padding: 10px 0 14px 0;
-            border-bottom: 1px solid var(--border);
+            padding: 10px 0 14px;
+            border-bottom: 1px solid var(--border-color);
             margin-bottom: 16px;
         }
+
         .app-header .brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
             font-size: 22px;
             font-weight: 800;
-            color: var(--accent);
+            letter-spacing: -0.5px;
+            color: var(--text-primary);
         }
-        .app-header .brand span { color: var(--text); }
+
+        .app-header .brand .logo {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--accent-blue), #6c5ce7);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 900;
+            color: #fff;
+        }
+
+        .app-header .brand span {
+            background: linear-gradient(135deg, var(--accent-blue), #6c5ce7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
         .app-header .date-nav {
             display: flex;
             align-items: center;
-            gap: 6px;
-            background: var(--surface-card);
-            padding: 4px 12px;
+            gap: 4px;
+            background: var(--bg-card);
+            padding: 4px 10px;
             border-radius: 30px;
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(8px);
         }
+
         .app-header .date-nav button {
             background: none;
             border: none;
             color: var(--text-secondary);
-            font-size: 18px;
+            font-size: 16px;
             cursor: pointer;
             padding: 4px 8px;
-            transition: var(--transition);
             border-radius: 6px;
+            transition: var(--transition);
         }
-        .app-header .date-nav button:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+
+        .app-header .date-nav button:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
         .app-header .date-nav .date-display {
             font-weight: 600;
-            font-size: 14px;
-            color: var(--text);
+            font-size: 13px;
+            color: var(--text-primary);
             min-width: 100px;
             text-align: center;
             cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: var(--transition);
         }
-        .app-header .date-nav .date-display:hover { color: var(--accent); }
 
-        /* ===== TABS NAV ===== */
-        .tabs-nav {
-            display: flex;
-            gap: 4px;
-            flex-wrap: wrap;
-            background: var(--surface-card);
-            border-radius: var(--radius);
-            padding: 4px;
-            margin-bottom: 16px;
-            border: 1px solid var(--border);
+        .app-header .date-nav .date-display:hover {
+            background: rgba(76, 139, 245, 0.15);
+            color: var(--accent-blue);
         }
-        .tabs-nav button {
+
+        .app-header .date-nav .today-btn {
+            background: var(--accent-blue);
+            color: #fff;
+            border: none;
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .app-header .date-nav .today-btn:hover {
+            background: var(--accent-blue-hover);
+            transform: scale(1.02);
+        }
+
+        /* ============================================================
+               TAB BAR (Flutter-style BottomNavigationBar)
+               ============================================================ */
+        .tab-bar {
+            display: flex;
+            gap: 3px;
+            flex-wrap: wrap;
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 4px;
+            margin-bottom: 18px;
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(8px);
+        }
+
+        .tab-bar button {
+            flex: 1 0 auto;
             background: none;
             border: none;
             color: var(--text-secondary);
-            padding: 7px 18px;
+            padding: 8px 16px;
             border-radius: 30px;
             font-weight: 600;
             font-size: 13px;
             cursor: pointer;
             transition: var(--transition);
-            flex: 1 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            min-width: 80px;
         }
-        .tabs-nav button:hover { color: var(--text); background: rgba(255,255,255,0.05); }
-        .tabs-nav button.active { background: var(--accent); color: #fff; box-shadow: 0 0 20px rgba(76,139,245,0.25); }
 
-        /* ===== TAB CONTENT ===== */
-        .tab-content { display: none; animation: fadeIn 0.3s ease; }
-        .tab-content.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .tab-bar button:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.04);
+        }
 
-        /* ===== MATCHES ===== */
-        .matches-list { display: flex; flex-direction: column; gap: 14px; }
+        .tab-bar button.active {
+            background: var(--accent-blue);
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(76, 139, 245, 0.3);
+        }
+
+        .tab-bar button .tab-icon {
+            font-size: 16px;
+        }
+
+        /* ============================================================
+               TAB CONTENT
+               ============================================================ */
+        .tab-content {
+            display: none;
+            animation: fadeSlideUp 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ============================================================
+               LOADING / ERROR
+               ============================================================ */
+        .loading-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+
+        .loading-state .spinner {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 12px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .error-state {
+            text-align: center;
+            padding: 24px 16px;
+            color: var(--accent-red);
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--accent-red);
+            font-size: 14px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px 16px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* ============================================================
+               MATCHES LIST (Flutter-style ListView)
+               ============================================================ */
+        .matches-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
         .league-group {
-            background: var(--surface-card);
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
             overflow: hidden;
+            transition: var(--transition);
         }
+
+        .league-group:hover {
+            border-color: var(--accent-blue);
+        }
+
         .league-group .league-header {
             display: flex;
             align-items: center;
             gap: 10px;
             padding: 10px 14px;
-            background: var(--surface);
-            border-bottom: 1px solid var(--border);
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
             cursor: pointer;
+            transition: var(--transition);
         }
+
+        .league-group .league-header:hover {
+            background: rgba(76, 139, 245, 0.05);
+        }
+
         .league-group .league-header img {
-            width: 26px;
-            height: 26px;
+            width: 24px;
+            height: 24px;
             border-radius: 6px;
             object-fit: contain;
         }
+
         .league-group .league-header .name {
             font-weight: 700;
-            font-size: 15px;
+            font-size: 14px;
             flex: 1;
+            color: var(--text-primary);
         }
+
         .league-group .league-header .count {
             color: var(--text-secondary);
-            font-size: 12px;
-            background: var(--border);
+            font-size: 11px;
+            background: var(--border-color);
             padding: 0 10px;
             border-radius: 20px;
+            font-weight: 600;
         }
+
         .match-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 8px 14px;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid var(--border-color);
             cursor: pointer;
             transition: var(--transition);
             gap: 8px;
             flex-wrap: wrap;
         }
-        .match-item:last-child { border-bottom: none; }
-        .match-item:hover { background: rgba(76,139,245,0.06); }
+
+        .match-item:last-child {
+            border-bottom: none;
+        }
+
+        .match-item:hover {
+            background: rgba(76, 139, 245, 0.06);
+            transform: translateX(4px);
+        }
+
         .match-item .teams {
             display: flex;
             align-items: center;
             gap: 8px;
             flex: 1;
         }
+
         .match-item .teams img {
             width: 22px;
             height: 22px;
             border-radius: 50%;
             object-fit: contain;
-            background: rgba(255,255,255,0.05);
+            background: rgba(255, 255, 255, 0.05);
         }
+
         .match-item .teams .team-name {
             font-weight: 600;
             font-size: 13px;
             white-space: nowrap;
         }
+
         .match-item .teams .vs {
             color: var(--text-secondary);
             font-size: 11px;
+            font-weight: 400;
         }
+
         .match-item .match-info {
             display: flex;
             align-items: center;
             gap: 10px;
             font-size: 12px;
         }
+
         .match-item .match-info .score {
             font-weight: 700;
             font-size: 15px;
             min-width: 40px;
             text-align: center;
+            color: var(--text-primary);
         }
+
         .match-item .match-info .status {
             font-size: 10px;
-            padding: 2px 8px;
+            padding: 2px 10px;
             border-radius: 20px;
             font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
         }
-        .match-item .match-info .status.live { background: var(--live); color: #fff; }
-        .match-item .match-info .status.finished { background: var(--border); color: var(--text-secondary); }
-        .match-item .match-info .status.upcoming { background: var(--accent); color: #fff; }
-        .match-item .match-info .time { color: var(--text-secondary); font-size: 12px; }
 
-        /* ===== DETAIL VIEW ===== */
+        .match-item .match-info .status.live {
+            background: var(--accent-red);
+            color: #fff;
+            animation: pulse-live 1.5s infinite;
+        }
+
+        @keyframes pulse-live {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.6;
+            }
+        }
+
+        .match-item .match-info .status.finished {
+            background: var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .match-item .match-info .status.upcoming {
+            background: var(--accent-blue);
+            color: #fff;
+        }
+
+        .match-item .match-info .time {
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        /* ============================================================
+               DETAIL VIEW (Flutter-style Modal Sheet)
+               ============================================================ */
         .detail-view {
             display: none;
-            background: var(--surface-card);
-            border-radius: var(--radius);
-            padding: 16px 18px;
-            border: 1px solid var(--border);
-            margin-top: 10px;
-            animation: fadeIn 0.3s ease;
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 18px 20px 24px;
+            border: 1px solid var(--border-color);
+            margin-top: 12px;
+            animation: slideUp 0.35s ease;
+            box-shadow: var(--shadow);
         }
-        .detail-view.visible { display: block; }
+
+        .detail-view.visible {
+            display: block;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         .detail-view .back-btn {
             background: none;
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-color);
             color: var(--text-secondary);
             padding: 5px 14px;
             border-radius: 30px;
@@ -241,66 +503,100 @@
             font-size: 12px;
             transition: var(--transition);
             margin-bottom: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
-        .detail-view .back-btn:hover { color: var(--text); border-color: var(--accent); }
 
-        .detail-header {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            margin-bottom: 12px;
+        .detail-view .back-btn:hover {
+            color: var(--text-primary);
+            border-color: var(--accent-blue);
+            background: rgba(76, 139, 245, 0.08);
         }
+
+        /* --- Detail Header --- */
         .detail-header .league {
             font-size: 13px;
             color: var(--text-secondary);
+            margin-bottom: 2px;
         }
+
         .detail-header .teams {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 20px;
             flex-wrap: wrap;
+            margin: 8px 0 10px;
         }
+
         .detail-header .teams .team {
             display: flex;
             align-items: center;
             gap: 8px;
         }
+
         .detail-header .teams .team img {
             width: 36px;
             height: 36px;
             border-radius: 50%;
             object-fit: contain;
         }
+
         .detail-header .teams .team .name {
             font-weight: 700;
             font-size: 16px;
+            color: var(--text-primary);
         }
-        .detail-header .teams .score-box { text-align: center; }
-        .detail-header .teams .score-box .score { font-size: 24px; font-weight: 900; }
-        .detail-header .teams .score-box .status { font-size: 12px; color: var(--text-secondary); }
 
+        .detail-header .teams .score-box {
+            text-align: center;
+        }
+
+        .detail-header .teams .score-box .score {
+            font-size: 26px;
+            font-weight: 900;
+            color: var(--text-primary);
+            letter-spacing: 1px;
+        }
+
+        .detail-header .teams .score-box .status {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* --- Detail Meta --- */
         .detail-meta {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 6px 16px;
-            background: var(--surface);
+            gap: 4px 16px;
+            background: var(--bg-secondary);
             padding: 10px 14px;
-            border-radius: var(--radius);
-            margin: 10px 0;
-            font-size: 13px;
+            border-radius: var(--radius-sm);
+            margin: 8px 0 12px;
+            font-size: 12px;
+            border: 1px solid var(--border-color);
         }
-        .detail-meta .label { color: var(--text-secondary); }
-        .detail-meta .value { font-weight: 600; }
 
+        .detail-meta .label {
+            color: var(--text-secondary);
+        }
+
+        .detail-meta .value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* --- Detail Tabs --- */
         .detail-tabs {
             display: flex;
             gap: 4px;
             flex-wrap: wrap;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid var(--border-color);
             padding-bottom: 6px;
             margin-bottom: 10px;
         }
+
         .detail-tabs button {
             background: none;
             border: none;
@@ -312,148 +608,612 @@
             cursor: pointer;
             transition: var(--transition);
         }
-        .detail-tabs button:hover { color: var(--text); }
-        .detail-tabs button.active { background: var(--accent); color: #fff; }
-        .detail-tab-content { display: none; }
-        .detail-tab-content.active { display: block; }
-        .detail-tab-content .empty { text-align: center; padding: 20px; color: var(--text-secondary); }
 
-        /* ===== STANDINGS TABLE ===== */
+        .detail-tabs button:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .detail-tabs button.active {
+            background: var(--accent-blue);
+            color: #fff;
+            box-shadow: 0 2px 12px rgba(76, 139, 245, 0.25);
+        }
+
+        .detail-tab-content {
+            display: none;
+            animation: fadeSlideUp 0.25s ease;
+        }
+
+        .detail-tab-content.active {
+            display: block;
+        }
+
+        /* ============================================================
+               STANDINGS TABLE
+               ============================================================ */
         .standings-table {
             width: 100%;
             border-collapse: collapse;
             font-size: 12px;
         }
+
         .standings-table th {
             text-align: right;
             padding: 6px 4px;
             color: var(--text-secondary);
             font-weight: 600;
-            border-bottom: 2px solid var(--border);
+            border-bottom: 2px solid var(--border-color);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        .standings-table td { padding: 4px 4px; border-bottom: 1px solid var(--border); }
-        .standings-table .team-cell { display: flex; align-items: center; gap: 6px; }
-        .standings-table .team-cell img { width: 18px; height: 18px; border-radius: 50%; object-fit: contain; }
-        .standings-table .points { font-weight: 700; color: var(--accent); }
 
-        /* ===== LINEUPS ===== */
-        .lineup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-        .lineup-team { background: var(--surface); border-radius: var(--radius); padding: 10px; border: 1px solid var(--border); }
-        .lineup-team .title { font-weight: 700; font-size: 14px; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
-        .lineup-team .title img { width: 20px; height: 20px; border-radius: 50%; object-fit: contain; }
-        .lineup-team .player { display: flex; align-items: center; gap: 6px; padding: 3px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
-        .lineup-team .player .number { font-weight: 700; color: var(--accent); min-width: 22px; }
-        .lineup-team .player .name { flex: 1; }
-        .lineup-team .player .pos { font-size: 10px; color: var(--text-secondary); min-width: 18px; }
-        .lineup-team .formation { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+        .standings-table td {
+            padding: 4px 4px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
 
-        /* ===== EVENTS ===== */
-        .events-list { display: flex; flex-direction: column; gap: 4px; max-height: 400px; overflow-y: auto; }
+        .standings-table .team-cell {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .standings-table .team-cell img {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            object-fit: contain;
+        }
+
+        .standings-table .points {
+            font-weight: 700;
+            color: var(--accent-blue);
+        }
+
+        /* ============================================================
+               LINEUPS (Formation style)
+               ============================================================ */
+        .lineup-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .lineup-team {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-sm);
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .lineup-team .title {
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-primary);
+        }
+
+        .lineup-team .title img {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            object-fit: contain;
+        }
+
+        .lineup-team .formation-pitch {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            padding: 6px 4px;
+            border: 1px solid var(--border-color);
+            min-height: 120px;
+        }
+
+        .position-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 3px;
+            padding: 2px 4px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .position-row .pos-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            min-width: 28px;
+            background: var(--bg-primary);
+            padding: 1px 6px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .position-row .players-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 8px;
+            flex: 1;
+        }
+
+        .player-badge {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            font-size: 11px;
+            background: var(--bg-card);
+            padding: 1px 6px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        .player-badge .player-number {
+            font-weight: 700;
+            color: var(--accent-blue);
+            font-size: 10px;
+            min-width: 14px;
+        }
+
+        .player-badge .player-name {
+            color: var(--text-primary);
+            font-size: 11px;
+        }
+
+        .lineup-team .coach-info {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 6px;
+            padding: 4px 8px;
+            background: var(--bg-primary);
+            border-radius: 4px;
+        }
+
+        .lineup-team .injuries {
+            font-size: 11px;
+            color: var(--accent-yellow);
+            margin-top: 4px;
+            padding: 4px 8px;
+            background: rgba(210, 153, 34, 0.08);
+            border-radius: 4px;
+            border-right: 3px solid var(--accent-yellow);
+        }
+
+        /* ============================================================
+               EVENTS
+               ============================================================ */
+        .events-list {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
         .event-item {
             display: flex;
             align-items: center;
             gap: 10px;
             padding: 4px 8px;
-            background: var(--surface);
+            background: var(--bg-secondary);
             border-radius: 6px;
             font-size: 12px;
             border-right: 3px solid transparent;
+            transition: var(--transition);
         }
-        .event-item .time { font-weight: 700; color: var(--accent); min-width: 35px; }
-        .event-item .icon { font-size: 16px; }
-        .event-item .desc { flex: 1; }
-        .event-item .team { font-weight: 600; color: var(--text-secondary); }
-        .event-item .team-home { border-right-color: var(--accent); }
-        .event-item .team-away { border-right-color: var(--live); }
 
-        /* ===== STATISTICS ===== */
-        .stats-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 6px 14px; align-items: center; }
-        .stats-grid .stat-item { display: contents; }
-        .stats-grid .stat-label { color: var(--text-secondary); font-size: 12px; text-align: center; grid-column: 1 / -1; padding-top: 4px; }
-        .stats-grid .stat-value-home { text-align: left; font-weight: 700; }
-        .stats-grid .stat-value-away { text-align: right; font-weight: 700; }
-        .stats-grid .stat-bar { width: 50px; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; position: relative; }
-        .stats-grid .stat-bar .fill-home { height: 100%; background: var(--accent); border-radius: 2px; }
-        .stats-grid .stat-bar .fill-away { height: 100%; background: var(--live); border-radius: 2px; position: absolute; right: 0; top: 0; }
+        .event-item:hover {
+            background: var(--bg-card);
+        }
 
-        /* ===== VIDEOS ===== */
-        .videos-list { display: flex; flex-direction: column; gap: 8px; }
-        .video-item {
-            background: var(--surface);
+        .event-item .time {
+            font-weight: 700;
+            color: var(--accent-blue);
+            min-width: 32px;
+        }
+
+        .event-item .icon {
+            font-size: 15px;
+        }
+
+        .event-item .desc {
+            flex: 1;
+        }
+
+        .event-item .team {
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 11px;
+        }
+
+        .event-item.team-home {
+            border-right-color: var(--accent-blue);
+        }
+
+        .event-item.team-away {
+            border-right-color: var(--accent-red);
+        }
+
+        /* ============================================================
+               STATISTICS
+               ============================================================ */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 4px 12px;
+            align-items: center;
+        }
+
+        .stats-grid .stat-item {
+            display: contents;
+        }
+
+        .stats-grid .stat-label {
+            color: var(--text-secondary);
+            font-size: 11px;
+            text-align: center;
+            grid-column: 1 / -1;
+            padding-top: 4px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .stats-grid .stat-value-home {
+            text-align: left;
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .stats-grid .stat-value-away {
+            text-align: right;
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .stats-grid .stat-bar {
+            width: 50px;
+            height: 4px;
+            background: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .stats-grid .stat-bar .fill-home {
+            height: 100%;
+            background: var(--accent-blue);
+            border-radius: 4px;
+        }
+
+        .stats-grid .stat-bar .fill-away {
+            height: 100%;
+            background: var(--accent-red);
+            border-radius: 4px;
+            position: absolute;
+            right: 0;
+            top: 0;
+        }
+
+        /* ============================================================
+               LAST 5 MATCHES (Win/Loss/ Draw pills)
+               ============================================================ */
+        .last5-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .last5-team {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-sm);
             padding: 8px 12px;
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-color);
+        }
+
+        .last5-team .team-title {
+            font-weight: 700;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+        }
+
+        .last5-team .team-title img {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            object-fit: contain;
+        }
+
+        .last5-results {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .last5-result {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            background: var(--bg-card);
+            padding: 2px 10px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .last5-result .win {
+            color: var(--accent-green);
+            font-weight: 700;
+        }
+
+        .last5-result .lose {
+            color: var(--accent-red);
+            font-weight: 700;
+        }
+
+        .last5-result .equal {
+            color: var(--accent-yellow);
+            font-weight: 700;
+        }
+
+        .last5-result .score-text {
+            color: var(--text-secondary);
+            font-size: 10px;
+        }
+
+        /* ============================================================
+               H2H
+               ============================================================ */
+        .h2h-box {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            padding: 16px;
+            flex-wrap: wrap;
+            text-align: center;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+        }
+
+        .h2h-box .stat {
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        .h2h-box .stat.win-home {
+            color: var(--accent-blue);
+        }
+
+        .h2h-box .stat.draw {
+            color: var(--accent-yellow);
+        }
+
+        .h2h-box .stat.win-away {
+            color: var(--accent-red);
+        }
+
+        .h2h-box .label {
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .h2h-box .team-icon {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .h2h-box .team-icon img {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            object-fit: contain;
+        }
+
+        /* ============================================================
+               VIDEOS
+               ============================================================ */
+        .videos-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .video-item {
+            background: var(--bg-secondary);
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
             display: flex;
             align-items: center;
             gap: 10px;
+            transition: var(--transition);
         }
-        .video-item a { color: var(--accent); text-decoration: none; font-weight: 600; font-size: 13px; }
-        .video-item a:hover { text-decoration: underline; }
 
-        /* ===== H2H ===== */
-        .h2h-box { display: flex; justify-content: center; gap: 30px; padding: 14px; flex-wrap: wrap; text-align: center; }
-        .h2h-box .stat { font-size: 22px; font-weight: 700; }
-        .h2h-box .label { color: var(--text-secondary); font-size: 13px; }
+        .video-item:hover {
+            border-color: var(--accent-blue);
+        }
 
-        /* ===== LAST MATCHES ===== */
-        .last-matches-list { display: flex; flex-direction: column; gap: 4px; }
-        .last-match-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: var(--surface);
-            padding: 4px 10px;
-            border-radius: 6px;
+        .video-item a {
+            color: var(--accent-blue);
+            text-decoration: none;
+            font-weight: 600;
             font-size: 12px;
-            flex-wrap: wrap;
+            word-break: break-all;
         }
-        .last-match-item .win { color: var(--green); }
-        .last-match-item .lose { color: var(--live); }
-        .last-match-item .equal { color: var(--yellow); }
 
-        /* ===== NEWS ===== */
-        .news-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .video-item a:hover {
+            text-decoration: underline;
+        }
+
+        /* ============================================================
+               NEWS (Flutter-style Cards)
+               ============================================================ */
+        .news-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
         .news-card {
-            background: var(--surface-card);
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
             overflow: hidden;
             transition: var(--transition);
         }
-        .news-card:hover { border-color: var(--accent); }
-        .news-card img { width: 100%; height: 140px; object-fit: cover; }
-        .news-card .news-body { padding: 10px 14px; }
-        .news-card .news-body .title { font-weight: 700; font-size: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .news-card .news-body .desc { font-size: 12px; color: var(--text-secondary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .news-card .news-body .time { font-size: 11px; color: var(--text-secondary); margin-top: 4px; }
 
-        /* ===== TRANSFERS ===== */
-        .transfer-list { display: flex; flex-direction: column; gap: 10px; }
+        .news-card:hover {
+            border-color: var(--accent-blue);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow);
+        }
+
+        .news-card img {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+        }
+
+        .news-card .news-body {
+            padding: 10px 14px 14px;
+        }
+
+        .news-card .news-body .title {
+            font-weight: 700;
+            font-size: 14px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            color: var(--text-primary);
+            line-height: 1.4;
+            margin-bottom: 2px;
+        }
+
+        .news-card .news-body .desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .news-card .news-body .time {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* ============================================================
+               TRANSFERS (Flutter-style ListTile)
+               ============================================================ */
+        .transfer-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
         .transfer-item {
-            background: var(--surface-card);
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
+            background: var(--bg-card);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
             padding: 10px 14px;
             display: flex;
             align-items: center;
             gap: 12px;
             flex-wrap: wrap;
+            transition: var(--transition);
         }
-        .transfer-item .player { display: flex; align-items: center; gap: 8px; flex: 1; }
-        .transfer-item .player img { width: 32px; height: 32px; border-radius: 50%; object-fit: contain; }
-        .transfer-item .player .name { font-weight: 700; font-size: 14px; }
-        .transfer-item .player .pos { font-size: 11px; color: var(--text-secondary); }
-        .transfer-item .teams { display: flex; align-items: center; gap: 6px; font-size: 13px; }
-        .transfer-item .teams img { width: 20px; height: 20px; border-radius: 50%; object-fit: contain; }
-        .transfer-item .value { font-weight: 700; color: var(--accent); font-size: 13px; }
-        .transfer-item .date { font-size: 11px; color: var(--text-secondary); }
 
-        /* ===== LEAGUES ===== */
-        .leagues-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+        .transfer-item:hover {
+            border-color: var(--accent-blue);
+            background: var(--bg-elevated);
+        }
+
+        .transfer-item .player {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .transfer-item .player img {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            object-fit: contain;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .transfer-item .player .name {
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+
+        .transfer-item .player .pos {
+            font-size: 10px;
+            color: var(--text-secondary);
+        }
+
+        .transfer-item .teams {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: var(--text-primary);
+        }
+
+        .transfer-item .teams img {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            object-fit: contain;
+        }
+
+        .transfer-item .value {
+            font-weight: 700;
+            color: var(--accent-blue);
+            font-size: 13px;
+        }
+
+        .transfer-item .date {
+            font-size: 10px;
+            color: var(--text-secondary);
+        }
+
+        /* ============================================================
+               LEAGUES GRID (Standings tab)
+               ============================================================ */
+        .leagues-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            gap: 10px;
+        }
+
         .league-card {
-            background: var(--surface-card);
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
+            background: var(--bg-card);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
             padding: 10px 12px;
             cursor: pointer;
             transition: var(--transition);
@@ -461,35 +1221,57 @@
             align-items: center;
             gap: 8px;
         }
-        .league-card:hover { border-color: var(--accent); transform: translateY(-2px); }
-        .league-card img { width: 28px; height: 28px; border-radius: 6px; object-fit: contain; }
-        .league-card .name { font-weight: 600; font-size: 13px; }
 
-        /* ===== LOADING ===== */
-        .loading { text-align: center; padding: 30px 20px; color: var(--text-secondary); }
-        .spinner { display: inline-block; width: 28px; height: 28px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 10px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .error-msg { text-align: center; padding: 20px; color: var(--live); background: var(--surface-card); border-radius: var(--radius); border: 1px solid var(--live); }
+        .league-card:hover {
+            border-color: var(--accent-blue);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+        }
 
-        /* ===== DATE PICKER OVERLAY ===== */
+        .league-card img {
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
+            object-fit: contain;
+        }
+
+        .league-card .name {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+
+        /* ============================================================
+               DATE PICKER OVERLAY (Flutter-style Modal)
+               ============================================================ */
         .date-picker-overlay {
             display: none;
             position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.7);
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(6px);
             z-index: 1000;
             justify-content: center;
             align-items: center;
         }
-        .date-picker-overlay.visible { display: flex; }
-        .date-picker-box {
-            background: var(--surface-card);
-            border-radius: var(--radius);
-            padding: 20px;
-            border: 1px solid var(--border);
-            max-width: 360px;
-            width: 90%;
+
+        .date-picker-overlay.visible {
+            display: flex;
         }
+
+        .date-picker-box {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 24px 20px;
+            border: 1px solid var(--border-color);
+            max-width: 360px;
+            width: 92%;
+            box-shadow: var(--shadow);
+        }
+
         .date-picker-box .close-btn {
             float: left;
             background: none;
@@ -497,112 +1279,365 @@
             color: var(--text-secondary);
             font-size: 20px;
             cursor: pointer;
+            transition: var(--transition);
         }
-        .date-picker-box .close-btn:hover { color: var(--text); }
+
+        .date-picker-box .close-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .date-picker-box .picker-title {
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
         .date-picker-box input[type="date"] {
             width: 100%;
-            padding: 10px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            color: var(--text);
-            font-size: 16px;
-            margin-top: 10px;
+            padding: 10px 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 15px;
+            margin-top: 4px;
             direction: ltr;
         }
-        .date-picker-box input[type="date"]:focus { border-color: var(--accent); outline: none; }
 
-        /* ===== RESPONSIVE ===== */
-        @media (max-width: 700px) {
-            .container { padding: 8px 10px; }
-            .app-header { flex-direction: column; align-items: stretch; }
-            .app-header .date-nav { justify-content: center; }
-            .tabs-nav button { padding: 5px 12px; font-size: 12px; }
-            .match-item { flex-direction: column; align-items: stretch; gap: 4px; }
-            .match-item .teams { justify-content: center; }
-            .match-item .match-info { justify-content: center; }
-            .detail-header .teams { gap: 12px; }
-            .detail-header .teams .team .name { font-size: 14px; }
-            .detail-meta { grid-template-columns: 1fr; }
-            .lineup-grid { grid-template-columns: 1fr; }
-            .news-grid { grid-template-columns: 1fr; }
-            .leagues-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
-            .stats-grid { grid-template-columns: 1fr auto 1fr; gap: 4px 10px; }
-            .stats-grid .stat-bar { width: 35px; }
+        .date-picker-box input[type="date"]:focus {
+            border-color: var(--accent-blue);
+            outline: none;
         }
-        @media (max-width: 450px) {
-            .tabs-nav button { font-size: 11px; padding: 4px 8px; }
-            .match-item .teams .team-name { font-size: 12px; }
-            .match-item .match-info .score { font-size: 13px; }
+
+        .date-picker-box .confirm-btn {
+            margin-top: 12px;
+            width: 100%;
+            padding: 10px;
+            background: var(--accent-blue);
+            border: none;
+            border-radius: var(--radius-sm);
+            color: #fff;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .date-picker-box .confirm-btn:hover {
+            background: var(--accent-blue-hover);
+        }
+
+        /* ============================================================
+               RESPONSIVE BREAKPOINTS
+               ============================================================ */
+        @media (max-width: 768px) {
+            .app {
+                padding: 8px 10px 30px;
+            }
+
+            .app-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+
+            .app-header .date-nav {
+                justify-content: center;
+            }
+
+            .tab-bar button {
+                font-size: 11px;
+                padding: 6px 10px;
+                min-width: 60px;
+            }
+
+            .tab-bar button .tab-icon {
+                font-size: 14px;
+            }
+
+            .match-item {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 4px;
+                padding: 8px 10px;
+            }
+
+            .match-item .teams {
+                justify-content: center;
+            }
+
+            .match-item .match-info {
+                justify-content: center;
+            }
+
+            .detail-header .teams {
+                gap: 12px;
+            }
+
+            .detail-header .teams .team .name {
+                font-size: 14px;
+            }
+
+            .detail-header .teams .team img {
+                width: 28px;
+                height: 28px;
+            }
+
+            .detail-header .teams .score-box .score {
+                font-size: 20px;
+            }
+
+            .detail-meta {
+                grid-template-columns: 1fr;
+                font-size: 11px;
+            }
+
+            .lineup-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .news-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .leagues-grid {
+                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr auto 1fr;
+                gap: 3px 8px;
+            }
+
+            .stats-grid .stat-bar {
+                width: 35px;
+            }
+
+            .h2h-box {
+                gap: 20px;
+                padding: 12px;
+            }
+
+            .h2h-box .stat {
+                font-size: 20px;
+            }
+
+            .transfer-item {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 6px;
+                padding: 10px;
+            }
+
+            .transfer-item .player {
+                min-width: 0;
+            }
+
+            .transfer-item .teams {
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .app-header .brand {
+                font-size: 18px;
+            }
+
+            .app-header .date-nav .date-display {
+                font-size: 11px;
+                min-width: 70px;
+            }
+
+            .tab-bar button {
+                font-size: 10px;
+                padding: 4px 8px;
+                min-width: 50px;
+            }
+
+            .tab-bar button .tab-icon {
+                font-size: 12px;
+            }
+
+            .match-item .teams .team-name {
+                font-size: 11px;
+            }
+
+            .match-item .match-info .score {
+                font-size: 13px;
+                min-width: 30px;
+            }
+
+            .detail-header .teams .team .name {
+                font-size: 12px;
+            }
+
+            .detail-header .teams .team img {
+                width: 24px;
+                height: 24px;
+            }
+
+            .detail-header .teams .score-box .score {
+                font-size: 17px;
+            }
+
+            .player-badge {
+                font-size: 10px;
+                padding: 1px 4px;
+            }
+
+            .player-badge .player-number {
+                font-size: 9px;
+                min-width: 12px;
+            }
+
+            .position-row .pos-label {
+                font-size: 9px;
+                min-width: 22px;
+            }
+
+            .stats-grid .stat-value-home,
+            .stats-grid .stat-value-away {
+                font-size: 12px;
+            }
+
+            .last5-result {
+                font-size: 10px;
+                padding: 1px 6px;
+            }
+
+            .news-card .news-body .title {
+                font-size: 12px;
+            }
+
+            .news-card img {
+                height: 100px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container" id="app">
-        <!-- ===== HEADER ===== -->
+
+    <div class="app" id="app">
+
+        <!-- ============================================================
+        HEADER
+        ============================================================ -->
         <header class="app-header">
-            <div class="brand">YSScores <span>Live</span></div>
+            <div class="brand">
+                <div class="logo">⚡</div>
+                YS<span>Scores</span>
+            </div>
             <div class="date-nav">
-                <button id="prevDay">‹</button>
+                <button id="prevDay" aria-label="Previous day">‹</button>
                 <span class="date-display" id="dateDisplay"></span>
-                <button id="nextDay">›</button>
-                <button id="todayBtn">اليوم</button>
+                <button id="nextDay" aria-label="Next day">›</button>
+                <button class="today-btn" id="todayBtn">Today</button>
             </div>
         </header>
 
-        <!-- ===== TABS ===== -->
-        <nav class="tabs-nav" id="tabsNav">
-            <button class="active" data-tab="matches">🏟️ المباريات</button>
-            <button data-tab="news">📰 الأخبار</button>
-            <button data-tab="transfers">🔄 الانتقالات</button>
-            <button data-tab="standings">🏆 الترتيب</button>
+        <!-- ============================================================
+        TAB BAR
+        ============================================================ -->
+        <nav class="tab-bar" id="tabBar">
+            <button class="active" data-tab="matches">
+                <span class="tab-icon">⚽</span> Matches
+            </button>
+            <button data-tab="news">
+                <span class="tab-icon">📰</span> News
+            </button>
+            <button data-tab="transfers">
+                <span class="tab-icon">🔄</span> Transfers
+            </button>
+            <button data-tab="standings">
+                <span class="tab-icon">🏆</span> Standings
+            </button>
         </nav>
 
-        <!-- ===== MATCHES TAB ===== -->
+        <!-- ============================================================
+        TAB: MATCHES
+        ============================================================ -->
         <div class="tab-content active" id="tab-matches">
-            <div id="matchesContainer"><div class="loading"><div class="spinner"></div><div>جاري تحميل المباريات...</div></div></div>
+            <div id="matchesContainer">
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <div>Loading matches...</div>
+                </div>
+            </div>
         </div>
 
-        <!-- ===== NEWS TAB ===== -->
+        <!-- ============================================================
+        TAB: NEWS
+        ============================================================ -->
         <div class="tab-content" id="tab-news">
-            <div id="newsContainer"><div class="loading"><div class="spinner"></div><div>جاري تحميل الأخبار...</div></div></div>
+            <div id="newsContainer">
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <div>Loading news...</div>
+                </div>
+            </div>
         </div>
 
-        <!-- ===== TRANSFERS TAB ===== -->
+        <!-- ============================================================
+        TAB: TRANSFERS
+        ============================================================ -->
         <div class="tab-content" id="tab-transfers">
-            <div id="transfersContainer"><div class="loading"><div class="spinner"></div><div>جاري تحميل الانتقالات...</div></div></div>
+            <div id="transfersContainer">
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <div>Loading transfers...</div>
+                </div>
+            </div>
         </div>
 
-        <!-- ===== STANDINGS TAB ===== -->
+        <!-- ============================================================
+        TAB: STANDINGS
+        ============================================================ -->
         <div class="tab-content" id="tab-standings">
-            <div id="standingsContainer"><div class="loading"><div class="spinner"></div><div>جاري تحميل البطولات...</div></div></div>
+            <div id="standingsContainer">
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <div>Loading leagues...</div>
+                </div>
+            </div>
         </div>
 
-        <!-- ===== DETAIL VIEW ===== -->
+        <!-- ============================================================
+        DETAIL VIEW (Overlay)
+        ============================================================ -->
         <div class="detail-view" id="detailView">
-            <button class="back-btn" id="detailBackBtn">← رجوع</button>
-            <div id="detailContent"><div class="loading"><div class="spinner"></div><div>جاري التحميل...</div></div></div>
+            <button class="back-btn" id="detailBackBtn">← Back</button>
+            <div id="detailContent">
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <div>Loading details...</div>
+                </div>
+            </div>
         </div>
 
-        <!-- ===== DATE PICKER OVERLAY ===== -->
+        <!-- ============================================================
+        DATE PICKER (Modal)
+        ============================================================ -->
         <div class="date-picker-overlay" id="datePickerOverlay">
             <div class="date-picker-box">
                 <button class="close-btn" id="datePickerClose">✕</button>
-                <div style="font-weight:700; margin-bottom:6px;">اختر التاريخ</div>
-                <input type="date" id="datePickerInput">
-                <button id="datePickerConfirm" style="margin-top:10px; width:100%; padding:8px; background:var(--accent); border:none; border-radius:var(--radius); color:#fff; font-weight:700; cursor:pointer;">تحديد</button>
+                <div class="picker-title">📅 Select Date</div>
+                <input type="date" id="datePickerInput" />
+                <button class="confirm-btn" id="datePickerConfirm">Confirm</button>
             </div>
         </div>
+
     </div>
 
     <script>
         (function() {
             "use strict";
 
-            // ==================== CONFIG ====================
+            // ============================================================
+            // CONFIG
+            // ============================================================
             const WORKER_URL = 'https://dry-truth-a84e.idriss-zribi13.workers.dev/';
             const BASE_API = 'https://api-en.ysscores.com/api/';
-            // ===== الروابط الصحيحة للصور من imgs.ysscores.com =====
             const IMG_BASE = 'https://imgs.ysscores.com/';
             const IMG_TEAMS = IMG_BASE + 'teams/64/';
             const IMG_CHAMPIONSHIP = IMG_BASE + 'championship/cups/';
@@ -610,22 +1645,19 @@
             const IMG_NEWS = IMG_BASE + 'news/';
 
             const LEAGUE_IDS = [
-                '938652', // LaLiga
-                '941825', // Saudi Pro League
-                '937599', // Premier League
-                '938769', // Bundesliga
-                '936357', // Serie A
-                '937873', // Ligue 1
-                '937348', // UCL Qualification
-                '938426'  // King's Cup
+                '938652', '941825', '937599', '938769',
+                '936357', '937873', '937348', '938426'
             ];
 
-            // ==================== STATE ====================
+            // ============================================================
+            // STATE
+            // ============================================================
             let currentDate = new Date();
             let currentTab = 'matches';
-            let detailMatchId = null;
 
-            // ==================== DOM REFS ====================
+            // ============================================================
+            // DOM REFS
+            // ============================================================
             const dateDisplay = document.getElementById('dateDisplay');
             const matchesContainer = document.getElementById('matchesContainer');
             const newsContainer = document.getElementById('newsContainer');
@@ -636,7 +1668,9 @@
             const datePickerOverlay = document.getElementById('datePickerOverlay');
             const datePickerInput = document.getElementById('datePickerInput');
 
-            // ==================== UTILITY ====================
+            // ============================================================
+            // UTILITY FUNCTIONS
+            // ============================================================
             function formatDate(d) {
                 const y = d.getFullYear();
                 const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -646,11 +1680,10 @@
 
             function formatDateDisplay(d) {
                 const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                return d.toLocaleDateString('ar-EG', options);
+                return d.toLocaleDateString('en-US', options);
             }
 
-            // دالة الحصول على الصور بالروابط الصحيحة
-            function getImageUrl(path, type = 'team') {
+            function getImageUrl(path, type) {
                 if (!path) return '';
                 if (path.startsWith('http')) return path;
                 if (type === 'team') return IMG_TEAMS + path;
@@ -669,12 +1702,10 @@
             }
 
             function getStatusText(status) {
-                if (status === 0) return 'لم تبدأ';
-                if (status === 1) return 'حية';
-                if (status === 2) return 'انتهت';
-                if (status === 3) return 'مؤجلة';
-                if (status === 4) return 'انتهت';
-                return 'غير معروف';
+                if (status === 0) return 'Upcoming';
+                if (status === 1) return 'Live';
+                if (status === 2 || status === 4) return 'Finished';
+                return 'Unknown';
             }
 
             function getStatusClass(status) {
@@ -683,7 +1714,9 @@
                 return 'upcoming';
             }
 
-            // ==================== LOAD MATCHES ====================
+            // ============================================================
+            // LOAD MATCHES
+            // ============================================================
             async function loadMatches(date) {
                 const dateStr = formatDate(date);
                 const ids = LEAGUE_IDS.map(id => `"${id}"`).join(',');
@@ -692,12 +1725,13 @@
                 try {
                     const data = await fetchAPI(endpoint);
                     if (!data.status || data.data.length === 0) {
-                        matchesContainer.innerHTML = '<div class="loading">لا توجد مباريات في هذا اليوم</div>';
+                        matchesContainer.innerHTML =
+                            `<div class="empty-state">No matches available for this date</div>`;
                         return;
                     }
                     renderMatches(data.data);
                 } catch (error) {
-                    matchesContainer.innerHTML = `<div class="error-msg">⚠️ فشل التحميل: ${error.message}</div>`;
+                    matchesContainer.innerHTML = `<div class="error-state">⚠️ ${error.message}</div>`;
                 }
             }
 
@@ -709,7 +1743,7 @@
                     if (!groups[compId]) {
                         groups[compId] = {
                             id: compId,
-                            title: comp.title || 'دوري غير معروف',
+                            title: comp.title || 'Unknown League',
                             image: comp.image || '',
                             matches: []
                         };
@@ -733,7 +1767,7 @@
                         const statusText = getStatusText(m.status);
                         const statusClass = getStatusClass(m.status);
                         const score = (m.status === 0) ? 'VS' : `${m.home_scores ?? 0} - ${m.away_scores ?? 0}`;
-                        const time = m.match_time ? m.match_time.slice(0,5) : '';
+                        const time = m.match_time ? m.match_time.slice(0, 5) : '';
                         html += `
                             <div class="match-item" data-match-id="${m.match_id}">
                                 <div class="teams">
@@ -764,39 +1798,37 @@
                 });
             }
 
-            // ==================== MATCH DETAIL ====================
+            // ============================================================
+            // MATCH DETAIL
+            // ============================================================
             async function showMatchDetail(matchId) {
                 detailView.classList.add('visible');
-                detailContent.innerHTML = '<div class="loading"><div class="spinner"></div><div>جاري تحميل التفاصيل...</div></div>';
+                detailContent.innerHTML =
+                    `<div class="loading-state"><div class="spinner"></div><div>Loading details...</div></div>`;
 
                 try {
-                    // 1. Match info
                     const infoData = await fetchAPI(`matches/match_info/${matchId}/L/60`);
-                    if (!infoData.status) throw new Error('فشل جلب معلومات المباراة');
+                    if (!infoData.status) throw new Error('Failed to load match info');
                     const match = infoData.data;
 
-                    // 2. Standings
                     let standingData = null;
                     try {
                         const sData = await fetchAPI(`matches/league_standing_stage/${match.championship_id}`);
                         if (sData.status) standingData = sData.data;
                     } catch (e) {}
 
-                    // 3. Lineups
                     let lineupData = null;
                     try {
                         const lData = await fetchAPI(`matches/matches_lineup/${matchId}`);
                         if (lData.status) lineupData = lData.data;
                     } catch (e) {}
 
-                    // 4. Events
                     let eventsData = null;
                     try {
                         const eData = await fetchAPI(`matches/matches_event/${matchId}`);
                         if (eData.status) eventsData = eData.data;
                     } catch (e) {}
 
-                    // 5. Statistics
                     let statsData = null;
                     try {
                         const stData = await fetchAPI(`matches/statics_match/${matchId}`);
@@ -806,7 +1838,7 @@
                     renderMatchDetail(match, standingData, lineupData, eventsData, statsData);
 
                 } catch (error) {
-                    detailContent.innerHTML = `<div class="error-msg">⚠️ ${error.message}</div>`;
+                    detailContent.innerHTML = `<div class="error-state">⚠️ ${error.message}</div>`;
                 }
             }
 
@@ -819,12 +1851,12 @@
                 const statusText = getStatusText(match.status);
                 const score = (match.status === 0) ? 'VS' : `${match.home_scores ?? 0} - ${match.away_scores ?? 0}`;
                 const round = match.round || '';
-                const stadium = match.Stadium || 'غير معروف';
+                const stadium = match.Stadium || 'N/A';
                 const channel = (match.channel_commm && match.channel_commm.length > 0) ? match.channel_commm[0]
-                    .channel_name : 'غير معروف';
+                    .channel_name : 'N/A';
                 const commentator = (match.channel_commm && match.channel_commm.length > 0) ? match.channel_commm[0]
-                    .commentator_name : 'غير معروف';
-                const referee = match.referees ? match.referees.title : 'غير معروف';
+                    .commentator_name : 'N/A';
+                const referee = match.referees ? match.referees.title : 'N/A';
                 const matchTime = match.match_time || '';
                 const matchDate = match.match_date || '';
                 const homeCoach = match.home_coach ? match.home_coach.title : '';
@@ -834,7 +1866,7 @@
 
                 let html = `
                     <div class="detail-header">
-                        <div class="league">${champ.title || 'بطولة'} ${round ? '• ' + round : ''}</div>
+                        <div class="league">${champ.title || 'League'} ${round ? '• ' + round : ''}</div>
                         <div class="teams">
                             <div class="team">
                                 <img src="${homeLogo}" onerror="this.style.display='none'">
@@ -851,88 +1883,70 @@
                         </div>
                     </div>
                     <div class="detail-meta">
-                        <div><span class="label">🏟️ الملعب:</span> <span class="value">${stadium}</span></div>
-                        <div><span class="label">📺 القناة:</span> <span class="value">${channel}</span></div>
-                        <div><span class="label">🎙️ المعلق:</span> <span class="value">${commentator}</span></div>
-                        <div><span class="label">👨‍⚖️ الحكم:</span> <span class="value">${referee}</span></div>
-                        <div><span class="label">🕐 الوقت:</span> <span class="value">${matchTime}</span></div>
-                        <div><span class="label">📆 التاريخ:</span> <span class="value">${matchDate}</span></div>
-                        ${homeCoach ? `<div><span class="label">🧑‍🏫 مدرب ${home.title}:</span> <span class="value">${homeCoach}</span></div>` : ''}
-                        ${awayCoach ? `<div><span class="label">🧑‍🏫 مدرب ${away.title}:</span> <span class="value">${awayCoach}</span></div>` : ''}
-                        ${homeFormation ? `<div><span class="label">📐 تشكيلة ${home.title}:</span> <span class="value">${homeFormation}</span></div>` : ''}
-                        ${awayFormation ? `<div><span class="label">📐 تشكيلة ${away.title}:</span> <span class="value">${awayFormation}</span></div>` : ''}
+                        <div><span class="label">🏟️ Stadium:</span> <span class="value">${stadium}</span></div>
+                        <div><span class="label">📺 Channel:</span> <span class="value">${channel}</span></div>
+                        <div><span class="label">🎙️ Commentator:</span> <span class="value">${commentator}</span></div>
+                        <div><span class="label">👨‍⚖️ Referee:</span> <span class="value">${referee}</span></div>
+                        <div><span class="label">🕐 Time:</span> <span class="value">${matchTime}</span></div>
+                        <div><span class="label">📆 Date:</span> <span class="value">${matchDate}</span></div>
+                        ${homeCoach ? `<div><span class="label">🧑‍🏫 Coach ${home.title}:</span> <span class="value">${homeCoach}</span></div>` : ''}
+                        ${awayCoach ? `<div><span class="label">🧑‍🏫 Coach ${away.title}:</span> <span class="value">${awayCoach}</span></div>` : ''}
+                        ${homeFormation ? `<div><span class="label">📐 Formation ${home.title}:</span> <span class="value">${homeFormation}</span></div>` : ''}
+                        ${awayFormation ? `<div><span class="label">📐 Formation ${away.title}:</span> <span class="value">${awayFormation}</span></div>` : ''}
                     </div>
                 `;
 
                 // Tabs
                 html += `
                     <div class="detail-tabs" id="detailTabs">
-                        <button class="active" data-dtab="overview">📋 نظرة عامة</button>
-                        <button data-dtab="standings">📊 الترتيب</button>
-                        <button data-dtab="lineups">👥 التشكيلات</button>
-                        <button data-dtab="events">⚡ الأحداث</button>
-                        <button data-dtab="stats">📈 الإحصائيات</button>
-                        <button data-dtab="last5">📋 آخر 5</button>
-                        <button data-dtab="h2h">⚔️ المواجهات</button>
-                        <button data-dtab="videos">🎥 الفيديو</button>
+                        <button class="active" data-dtab="overview">📋 Overview</button>
+                        <button data-dtab="standings">📊 Standings</button>
+                        <button data-dtab="lineups">👥 Lineups</button>
+                        <button data-dtab="events">⚡ Events</button>
+                        <button data-dtab="stats">📈 Stats</button>
+                        <button data-dtab="last5">📋 Last 5</button>
+                        <button data-dtab="h2h">⚔️ H2H</button>
+                        <button data-dtab="videos">🎥 Videos</button>
                     </div>
                 `;
 
                 // Overview
-                html += `<div class="detail-tab-content active" id="dtab-overview">`;
-                html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:6px 0;font-size:13px;">`;
-                html += `<div><span class="label">🏆 البطولة:</span> ${champ.title || 'غير معروف'}</div>`;
-                html += `<div><span class="label">📋 الجولة:</span> ${round || 'غير معروف'}</div>`;
-                html += `<div><span class="label">🏟️ الملعب:</span> ${stadium}</div>`;
-                html += `<div><span class="label">📺 القناة:</span> ${channel}</div>`;
-                html += `<div><span class="label">🎙️ المعلق:</span> ${commentator}</div>`;
-                html += `<div><span class="label">👨‍⚖️ الحكم:</span> ${referee}</div>`;
-                html += `<div><span class="label">🕐 الوقت:</span> ${matchTime}</div>`;
-                html += `<div><span class="label">📆 التاريخ:</span> ${matchDate}</div>`;
-                if (homeCoach) html += `<div><span class="label">🧑‍🏫 مدرب ${home.title}:</span> ${homeCoach}</div>`;
-                if (awayCoach) html += `<div><span class="label">🧑‍🏫 مدرب ${away.title}:</span> ${awayCoach}</div>`;
-                if (homeFormation) html += `<div><span class="label">📐 تشكيلة ${home.title}:</span> ${homeFormation}</div>`;
-                if (awayFormation) html += `<div><span class="label">📐 تشكيلة ${away.title}:</span> ${awayFormation}</div>`;
-                html += `</div></div>`;
+                html += `<div class="detail-tab-content active" id="dtab-overview">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px 0;font-size:12px;">
+                        <div><span class="label">🏆 League:</span> ${champ.title || 'N/A'}</div>
+                        <div><span class="label">📋 Round:</span> ${round || 'N/A'}</div>
+                        <div><span class="label">🏟️ Stadium:</span> ${stadium}</div>
+                        <div><span class="label">📺 Channel:</span> ${channel}</div>
+                        <div><span class="label">🎙️ Commentator:</span> ${commentator}</div>
+                        <div><span class="label">👨‍⚖️ Referee:</span> ${referee}</div>
+                        <div><span class="label">🕐 Time:</span> ${matchTime}</div>
+                        <div><span class="label">📆 Date:</span> ${matchDate}</div>
+                    </div>
+                </div>`;
 
                 // Standings
-                html += `<div class="detail-tab-content" id="dtab-standings">`;
-                html += renderStandings(standingData, champ);
-                html += `</div>`;
+                html += `<div class="detail-tab-content" id="dtab-standings">${renderStandings(standingData, champ)}</div>`;
 
-                // Lineups
-                html += `<div class="detail-tab-content" id="dtab-lineups">`;
-                html += renderLineups(lineupData, home, away);
-                html += `</div>`;
+                // Lineups (Flutter-style formation)
+                html += `<div class="detail-tab-content" id="dtab-lineups">${renderLineups(lineupData, home, away)}</div>`;
 
                 // Events
-                html += `<div class="detail-tab-content" id="dtab-events">`;
-                html += renderEvents(eventsData, home, away);
-                html += `</div>`;
+                html += `<div class="detail-tab-content" id="dtab-events">${renderEvents(eventsData, home, away)}</div>`;
 
                 // Stats
-                html += `<div class="detail-tab-content" id="dtab-stats">`;
-                html += renderStats(statsData, home, away);
-                html += `</div>`;
+                html += `<div class="detail-tab-content" id="dtab-stats">${renderStats(statsData, home, away)}</div>`;
 
                 // Last 5
-                html += `<div class="detail-tab-content" id="dtab-last5">`;
-                html += renderLastMatches(match);
-                html += `</div>`;
+                html += `<div class="detail-tab-content" id="dtab-last5">${renderLast5(match, home, away)}</div>`;
 
                 // H2H
-                html += `<div class="detail-tab-content" id="dtab-h2h">`;
-                html += renderH2H(match);
-                html += `</div>`;
+                html += `<div class="detail-tab-content" id="dtab-h2h">${renderH2H(match, home, away)}</div>`;
 
                 // Videos
-                html += `<div class="detail-tab-content" id="dtab-videos">`;
-                html += renderVideos(match);
-                html += `</div>`;
+                html += `<div class="detail-tab-content" id="dtab-videos">${renderVideos(match)}</div>`;
 
                 detailContent.innerHTML = html;
 
-                // Tabs activation
                 document.querySelectorAll('#detailTabs button').forEach(btn => {
                     btn.addEventListener('click', function() {
                         document.querySelectorAll('#detailTabs button').forEach(b => b.classList.remove(
@@ -947,17 +1961,19 @@
                 });
             }
 
-            // ===== STANDINGS =====
+            // ============================================================
+            // STANDINGS
+            // ============================================================
             function renderStandings(data, champ) {
                 if (!data || !data.league || !data.league.stage0) {
-                    return '<div class="empty">لا توجد بيانات ترتيب</div>';
+                    return '<div class="empty-state">No standings data available</div>';
                 }
                 const teams = data.league.stage0;
-                if (teams.length === 0) return '<div class="empty">لا توجد فرق</div>';
+                if (teams.length === 0) return '<div class="empty-state">No teams found</div>';
 
                 let html = `<table class="standings-table">
                     <thead><tr>
-                        <th>#</th><th>الفريق</th><th>لعب</th><th>فوز</th><th>تعادل</th><th>خسارة</th><th>الأهداف</th><th>±</th><th>نقاط</th>
+                        <th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GD</th><th>Pts</th>
                     </tr></thead><tbody>`;
                 teams.slice(0, 14).forEach((t, idx) => {
                     const team = t.team_name || {};
@@ -969,7 +1985,7 @@
                         <td>${t.wins || 0}</td>
                         <td>${t.draw || 0}</td>
                         <td>${t.lose || 0}</td>
-                        <td>${t.for || 0} - ${t.against || 0}</td>
+                        <td>${t.for || 0}</td>
                         <td>${t.diff || 0}</td>
                         <td class="points">${t.points || 0}</td>
                     </tr>`;
@@ -978,10 +1994,12 @@
                 return html;
             }
 
-            // ===== LINEUPS =====
+            // ============================================================
+            // LINEUPS (Formation-style)
+            // ============================================================
             function renderLineups(data, home, away) {
                 if (!data || !data.lineup) {
-                    return '<div class="empty">لا توجد تشكيلات</div>';
+                    return '<div class="empty-state">No lineups available</div>';
                 }
 
                 const homeId = home.row_id || home.id;
@@ -989,52 +2007,126 @@
                 const homeLineup = data.lineup[homeId] || data.lineup[String(homeId)];
                 const awayLineup = data.lineup[awayId] || data.lineup[String(awayId)];
 
+                function getStartingPlayers(lineupData) {
+                    if (!lineupData || !lineupData.lineup) return [];
+                    return lineupData.lineup.filter(p => p.type === 'lineup' || p.type === 'start');
+                }
+
+                const homePlayers = getStartingPlayers(homeLineup);
+                const awayPlayers = getStartingPlayers(awayLineup);
+
+                function sortByPosition(players) {
+                    const order = { 'G': 0, 'D': 1, 'M': 2, 'F': 3 };
+                    return players.sort((a, b) => (order[a.position] || 99) - (order[b.position] || 99));
+                }
+
+                const homeSorted = sortByPosition(homePlayers);
+                const awaySorted = sortByPosition(awayPlayers);
+
                 let html = '<div class="lineup-grid">';
 
                 // Home
                 html += `<div class="lineup-team">
-                    <div class="title"><img src="${getImageUrl(home.image, 'team')}" onerror="this.style.display='none'"> ${home.title || 'Home'}</div>
-                    ${data.home_formation ? `<div class="formation">تشكيلة: ${data.home_formation}</div>` : ''}
-                    ${homeLineup && homeLineup.lineup ? homeLineup.lineup.map(p => {
+                    <div class="title"><img src="${getImageUrl(home.image, 'team')}" onerror="this.style.display='none'"> ${home.title || 'Home'} ${data.home_formation ? '• ' + data.home_formation : ''}</div>
+                    <div class="formation-pitch">`;
+
+                const homeRows = [
+                    { label: 'GK', players: homeSorted.filter(p => p.position === 'G') },
+                    { label: 'DEF', players: homeSorted.filter(p => p.position === 'D') },
+                    { label: 'MID', players: homeSorted.filter(p => p.position === 'M') },
+                    { label: 'FWD', players: homeSorted.filter(p => p.position === 'F') }
+                ];
+
+                homeRows.forEach(row => {
+                    if (row.players.length === 0) return;
+                    html += `<div class="position-row">
+                        <span class="pos-label">${row.label}</span>
+                        <div class="players-row">`;
+                    row.players.forEach(p => {
                         const player = p.player || {};
-                        return `<div class="player"><span class="number">${player.player_number || ''}</span><span class="name">${player.title || ''}</span><span class="pos">${p.position || ''}</span></div>`;
-                    }).join('') : '<div class="empty">لا توجد تشكيلة</div>'}
-                </div>`;
+                        html += `<div class="player-badge">
+                            <span class="player-number">${player.player_number || ''}</span>
+                            <span class="player-name">${player.short_title || player.title || ''}</span>
+                        </div>`;
+                    });
+                    html += `</div></div>`;
+                });
+
+                if (data.home_coach) {
+                    html += `<div class="coach-info">🧑‍🏫 Coach: ${data.home_coach.title || ''}</div>`;
+                }
+
+                if (data.lineup_injureds && data.lineup_injureds[homeId]) {
+                    const injuries = data.lineup_injureds[homeId] || [];
+                    if (injuries.length > 0) {
+                        html += `<div class="injuries">⚠️ Injured: `;
+                        injuries.forEach((item, idx) => {
+                            const p = item.player || {};
+                            html += `${p.title || ''} (${item.type_name || 'Injured'})`;
+                            if (idx < injuries.length - 1) html += ', ';
+                        });
+                        html += `</div>`;
+                    }
+                }
+
+                html += `</div></div>`;
 
                 // Away
                 html += `<div class="lineup-team">
-                    <div class="title"><img src="${getImageUrl(away.image, 'team')}" onerror="this.style.display='none'"> ${away.title || 'Away'}</div>
-                    ${data.away_formation ? `<div class="formation">تشكيلة: ${data.away_formation}</div>` : ''}
-                    ${awayLineup && awayLineup.lineup ? awayLineup.lineup.map(p => {
+                    <div class="title"><img src="${getImageUrl(away.image, 'team')}" onerror="this.style.display='none'"> ${away.title || 'Away'} ${data.away_formation ? '• ' + data.away_formation : ''}</div>
+                    <div class="formation-pitch">`;
+
+                const awayRows = [
+                    { label: 'GK', players: awaySorted.filter(p => p.position === 'G') },
+                    { label: 'DEF', players: awaySorted.filter(p => p.position === 'D') },
+                    { label: 'MID', players: awaySorted.filter(p => p.position === 'M') },
+                    { label: 'FWD', players: awaySorted.filter(p => p.position === 'F') }
+                ];
+
+                awayRows.forEach(row => {
+                    if (row.players.length === 0) return;
+                    html += `<div class="position-row">
+                        <span class="pos-label">${row.label}</span>
+                        <div class="players-row">`;
+                    row.players.forEach(p => {
                         const player = p.player || {};
-                        return `<div class="player"><span class="number">${player.player_number || ''}</span><span class="name">${player.title || ''}</span><span class="pos">${p.position || ''}</span></div>`;
-                    }).join('') : '<div class="empty">لا توجد تشكيلة</div>'}
-                </div>`;
-
-                html += '</div>';
-
-                // Injuries
-                let injuriesHtml = '';
-                if (data.lineup_injureds) {
-                    Object.values(data.lineup_injureds).forEach(list => {
-                        list.forEach(item => {
-                            const p = item.player || {};
-                            injuriesHtml +=
-                                `<span style="font-size:12px; color:var(--yellow);">⚠️ ${p.title || ''} (${item.type_name || 'مصاب'})</span> `;
-                        });
+                        html += `<div class="player-badge">
+                            <span class="player-number">${player.player_number || ''}</span>
+                            <span class="player-name">${player.short_title || player.title || ''}</span>
+                        </div>`;
                     });
-                }
-                if (injuriesHtml) html += `<div style="margin-top:8px; padding:6px 10px; background:var(--surface); border-radius:6px;">${injuriesHtml}</div>`;
+                    html += `</div></div>`;
+                });
 
+                if (data.away_coach) {
+                    html += `<div class="coach-info">🧑‍🏫 Coach: ${data.away_coach.title || ''}</div>`;
+                }
+
+                if (data.lineup_injureds && data.lineup_injureds[awayId]) {
+                    const injuries = data.lineup_injureds[awayId] || [];
+                    if (injuries.length > 0) {
+                        html += `<div class="injuries">⚠️ Injured: `;
+                        injuries.forEach((item, idx) => {
+                            const p = item.player || {};
+                            html += `${p.title || ''} (${item.type_name || 'Injured'})`;
+                            if (idx < injuries.length - 1) html += ', ';
+                        });
+                        html += `</div>`;
+                    }
+                }
+
+                html += `</div></div>`;
+                html += '</div>';
                 return html;
             }
 
-            // ===== EVENTS =====
+            // ============================================================
+            // EVENTS
+            // ============================================================
             function renderEvents(data, home, away) {
                 if (!data || !data.events || data.events.length === 0) {
-                    return '<div class="empty">لا توجد أحداث</div>';
+                    return '<div class="empty-state">No events available</div>';
                 }
-
                 const events = data.events;
                 const homeId = home.row_id || home.id;
                 const awayId = away.row_id || away.id;
@@ -1050,45 +2142,29 @@
                     const isHome = teamId === homeId;
                     const isAway = teamId === awayId;
                     const teamClass = isHome ? 'team-home' : (isAway ? 'team-away' : '');
-                    let icon = '⚽';
-                    let desc = '';
-                    const type = e.type;
-                    const status = e.status_name || '';
-
-                    if (type === 1) {
-                        icon = '⚽';
-                        desc = `${playerName} ${status ? '• ' + status : ''}`;
-                        if (assistName) desc += ` (مساعدة: ${assistName})`;
-                    } else if (type === 2) {
-                        icon = '🟨';
-                        desc = `${playerName} • بطاقة صفراء`;
-                    } else if (type === 3) {
-                        icon = '🟥';
-                        desc = `${playerName} • بطاقة حمراء`;
-                    } else if (type === 8) {
-                        if (status && status.includes('substitution')) {
-                            icon = '🔄';
-                            desc = `${playerName} • تبديل`;
-                            if (assistName) desc += ` (دخل: ${assistName})`;
-                        } else if (status && status.includes('Injury')) {
-                            icon = '🩹';
-                            desc = `${playerName} • إصابة`;
-                        } else {
-                            icon = '🔄';
-                            desc = `${playerName} • تغيير`;
-                        }
+                    let icon = '⚽',
+                        desc = '';
+                    const type = e.type,
+                        status = e.status_name || '';
+                    if (type === 1) { icon = '⚽';
+                        desc = `${playerName} ${status ? '• ' + status : ''}`; if (assistName) desc +=
+                            ` (assist: ${assistName})`; } else if (type === 2) { icon = '🟨';
+                        desc = `${playerName} • Yellow card`; } else if (type === 3) { icon = '🟥';
+                        desc = `${playerName} • Red card`; } else if (type === 8) {
+                        if (status && status.includes('substitution')) { icon = '🔄';
+                            desc = `${playerName} • Substitution`; if (assistName) desc += ` (in: ${assistName})`; } else if (
+                            status && status.includes('Injury')) { icon = '🩹';
+                            desc = `${playerName} • Injury`; } else { icon = '🔄';
+                            desc = `${playerName} • Change`; }
                     } else if (type === 100) {
                         if (status === 1) { icon = '🟢';
-                            desc = 'بداية المباراة'; } else if (status === 2) { icon = '⏱️';
-                            desc = 'نهاية الشوط الأول'; } else if (status === 3) { icon = '⏱️';
-                            desc = 'بداية الشوط الثاني'; } else if (status === 4) { icon = '🔴';
-                            desc = 'نهاية المباراة'; } else { icon = '⏱️';
-                            desc = status || 'حدث'; }
-                    } else {
-                        icon = '📌';
-                        desc = playerName || status || 'حدث';
-                    }
-
+                            desc = 'Kick-off'; } else if (status === 2) { icon = '⏱️';
+                            desc = 'Half-time'; } else if (status === 3) { icon = '⏱️';
+                            desc = 'Second half start'; } else if (status === 4) { icon = '🔴';
+                            desc = 'Full-time'; } else { icon = '⏱️';
+                            desc = status || 'Event'; }
+                    } else { icon = '📌';
+                        desc = playerName || status || 'Event'; }
                     html += `<div class="event-item ${teamClass}">
                         <span class="time">${time}'</span>
                         <span class="icon">${icon}</span>
@@ -1100,48 +2176,38 @@
                 return html;
             }
 
-            // ===== STATISTICS =====
+            // ============================================================
+            // STATISTICS
+            // ============================================================
             function renderStats(data, home, away) {
-                if (!data || !data.statics) {
-                    return '<div class="empty">لا توجد إحصائيات</div>';
-                }
-
+                if (!data || !data.statics) return '<div class="empty-state">No statistics available</div>';
                 const homeId = home.row_id || home.id;
                 const awayId = away.row_id || away.id;
                 const homeStats = data.statics[homeId] || data.statics[String(homeId)] || {};
                 const awayStats = data.statics[awayId] || data.statics[String(awayId)] || {};
-
                 const keys = [
-                    { key: 'ball_possession', label: 'الاستحواذ', unit: '%' },
-                    { key: 'total_shots', label: 'إجمالي التسديدات' },
-                    { key: 'shots_on_goal', label: 'تسديدات على المرمى' },
-                    { key: 'shots_off_goal', label: 'تسديدات خارج المرمى' },
-                    { key: 'blocked_shots', label: 'تسديدات محجوبة' },
-                    { key: 'shots_insidebox', label: 'تسديدات داخل الصندوق' },
-                    { key: 'shots_outsidebox', label: 'تسديدات خارج الصندوق' },
-                    { key: 'fouls', label: 'أخطاء' },
-                    { key: 'corner_kicks', label: 'ركنيات' },
-                    { key: 'offsides', label: 'تسلل' },
-                    { key: 'goalkeeper_saves', label: 'تصديات الحارس' },
-                    { key: 'total_passes', label: 'تمريرات' },
-                    { key: 'passes_percentage', label: 'دقة التمريرات', unit: '%' },
-                    { key: 'throwin', label: 'رمية تماس' },
-                    { key: 'cross_ball', label: 'كرات عرضية' },
-                    { key: 'goalkick', label: 'ضربة مرمى' },
-                    { key: 'freekick', label: 'ضربة حرة' },
-                    { key: 'goal_attempt', label: 'محاولات هدف' }
+                    { key: 'ball_possession', label: 'Possession', unit: '%' },
+                    { key: 'total_shots', label: 'Total Shots' },
+                    { key: 'shots_on_goal', label: 'Shots on Goal' },
+                    { key: 'shots_off_goal', label: 'Shots off Goal' },
+                    { key: 'blocked_shots', label: 'Blocked Shots' },
+                    { key: 'shots_insidebox', label: 'Shots Inside Box' },
+                    { key: 'shots_outsidebox', label: 'Shots Outside Box' },
+                    { key: 'fouls', label: 'Fouls' },
+                    { key: 'corner_kicks', label: 'Corners' },
+                    { key: 'offsides', label: 'Offsides' },
+                    { key: 'goalkeeper_saves', label: 'Saves' },
+                    { key: 'total_passes', label: 'Passes' },
+                    { key: 'passes_percentage', label: 'Pass Accuracy', unit: '%' }
                 ];
-
                 let html = '<div class="stats-grid">';
                 keys.forEach(k => {
                     const homeVal = homeStats[k.key] !== undefined ? homeStats[k.key] : '-';
                     const awayVal = awayStats[k.key] !== undefined ? awayStats[k.key] : '-';
                     if (homeVal === '-' && awayVal === '-') return;
-
                     const total = (parseFloat(homeVal) + parseFloat(awayVal)) || 1;
                     const homePct = Math.round((parseFloat(homeVal) / total) * 100) || 50;
                     const awayPct = 100 - homePct;
-
                     const unit = k.unit || '';
                     html += `
                         <div class="stat-item">
@@ -1161,84 +2227,122 @@
                 return html;
             }
 
-            // ===== LAST 5 =====
-            function renderLastMatches(match) {
-                if (!match.played_result) return '<div class="empty">لا توجد مباريات سابقة</div>';
-                const all = { ...match.played_result.home, ...match.played_result.away };
-                const keys = Object.keys(all);
-                if (keys.length === 0) return '<div class="empty">لا توجد مباريات سابقة</div>';
+            // ============================================================
+            // LAST 5
+            // ============================================================
+            function renderLast5(match, home, away) {
+                if (!match.played_result) return '<div class="empty-state">No recent matches</div>';
+                const homeResults = match.played_result.home || {};
+                const awayResults = match.played_result.away || {};
+                const homeKeys = Object.keys(homeResults);
+                const awayKeys = Object.keys(awayResults);
 
-                let html = '<div class="last-matches-list">';
-                keys.slice(0, 5).forEach(key => {
-                    const m = all[key];
+                let html = '<div class="last5-container">';
+
+                html += `<div class="last5-team">
+                    <div class="team-title"><img src="${getImageUrl(home.image, 'team')}" onerror="this.style.display='none'"> ${home.title || 'Home'}</div>
+                    <div class="last5-results">`;
+                if (homeKeys.length === 0) html +=
+                    '<span style="font-size:11px;color:var(--text-secondary);">No matches</span>';
+                homeKeys.slice(0, 5).forEach(key => {
+                    const m = homeResults[key];
                     if (!m) return;
-                    const homeName = m.home?.title || 'Home';
-                    const awayName = m.away?.title || 'Away';
-                    const score = `${m.home_scores || 0} - ${m.away_scores || 0}`;
                     const result = m.win_type || 'equal';
                     const cls = result === 'win' ? 'win' : (result === 'lose' ? 'lose' : 'equal');
-                    const txt = result === 'win' ? 'فوز' : (result === 'lose' ? 'خسارة' : 'تعادل');
-                    html += `<div class="last-match-item">
-                        <span>${homeName} vs ${awayName}</span>
-                        <span>${score}</span>
-                        <span class="${cls}">${txt}</span>
-                    </div>`;
+                    const label = result === 'win' ? 'W' : (result === 'lose' ? 'L' : 'D');
+                    const scoreText = `${m.home_scores || 0} - ${m.away_scores || 0}`;
+                    html += `<div class="last5-result"><span class="${cls}">${label}</span> <span class="score-text">${scoreText}</span></div>`;
                 });
+                html += `</div></div>`;
+
+                html += `<div class="last5-team">
+                    <div class="team-title"><img src="${getImageUrl(away.image, 'team')}" onerror="this.style.display='none'"> ${away.title || 'Away'}</div>
+                    <div class="last5-results">`;
+                if (awayKeys.length === 0) html +=
+                    '<span style="font-size:11px;color:var(--text-secondary);">No matches</span>';
+                awayKeys.slice(0, 5).forEach(key => {
+                    const m = awayResults[key];
+                    if (!m) return;
+                    const result = m.win_type || 'equal';
+                    const cls = result === 'win' ? 'win' : (result === 'lose' ? 'lose' : 'equal');
+                    const label = result === 'win' ? 'W' : (result === 'lose' ? 'L' : 'D');
+                    const scoreText = `${m.home_scores || 0} - ${m.away_scores || 0}`;
+                    html += `<div class="last5-result"><span class="${cls}">${label}</span> <span class="score-text">${scoreText}</span></div>`;
+                });
+                html += `</div></div>`;
+
                 html += '</div>';
                 return html;
             }
 
-            // ===== H2H =====
-            function renderH2H(match) {
-                if (!match.teamWins) return '<div class="empty">لا توجد بيانات</div>';
-                const homeId = match.home_team?.row_id || match.home_team_info?.row_id;
-                const awayId = match.away_team?.row_id || match.away_team_info?.row_id;
-                if (!homeId || !awayId) return '<div class="empty">لا توجد بيانات</div>';
+            // ============================================================
+            // H2H
+            // ============================================================
+            function renderH2H(match, home, away) {
+                if (!match.teamWins) return '<div class="empty-state">No H2H data available</div>';
+                const homeId = home.row_id || home.id;
+                const awayId = away.row_id || away.id;
+                if (!homeId || !awayId) return '<div class="empty-state">No H2H data</div>';
 
                 const homeWins = match.teamWins[homeId] || 0;
                 const awayWins = match.teamWins[awayId] || 0;
                 const draws = match.teamWins['equal'] || 0;
-                const homeName = match.home_team?.title || match.home_team_info?.title || 'Home';
-                const awayName = match.away_team?.title || match.away_team_info?.title || 'Away';
+                const homeName = home.title || 'Home';
+                const awayName = away.title || 'Away';
+                const homeLogo = getImageUrl(home.image, 'team');
+                const awayLogo = getImageUrl(away.image, 'team');
 
-                return `<div class="h2h-box">
-                    <div><div class="stat">${homeWins}</div><div class="label">فوز ${homeName}</div></div>
-                    <div><div class="stat">${draws}</div><div class="label">تعادل</div></div>
-                    <div><div class="stat">${awayWins}</div><div class="label">فوز ${awayName}</div></div>
-                </div>`;
+                return `
+                    <div class="h2h-box">
+                        <div>
+                            <div class="team-icon"><img src="${homeLogo}" onerror="this.style.display='none'"> ${homeName}</div>
+                            <div class="stat win-home">${homeWins}</div>
+                            <div class="label">Wins</div>
+                        </div>
+                        <div>
+                            <div class="stat draw">${draws}</div>
+                            <div class="label">Draws</div>
+                        </div>
+                        <div>
+                            <div class="team-icon"><img src="${awayLogo}" onerror="this.style.display='none'"> ${awayName}</div>
+                            <div class="stat win-away">${awayWins}</div>
+                            <div class="label">Wins</div>
+                        </div>
+                    </div>
+                `;
             }
 
-            // ===== VIDEOS =====
+            // ============================================================
+            // VIDEOS
+            // ============================================================
             function renderVideos(match) {
                 if (!match.video_links || match.video_links.length === 0) {
-                    return '<div class="empty">لا توجد فيديوهات</div>';
+                    return '<div class="empty-state">No videos available</div>';
                 }
-
                 let html = '<div class="videos-list">';
                 match.video_links.forEach(v => {
                     const link = v.video_link || '';
                     const type = v.type || '';
-                    let label = 'فيديو';
-                    if (type === 11) label = '🎥 مباراة كاملة';
-                    else if (type === 14) label = '📽️ أبرز اللقطات';
-                    else if (type === 12) label = '🎬 أهداف';
-                    html += `<div class="video-item">
-                        <span>${label}:</span>
-                        <a href="${link}" target="_blank">${link}</a>
-                    </div>`;
+                    let label = 'Video';
+                    if (type === 11) label = '🎥 Full Match';
+                    else if (type === 14) label = '📽️ Highlights';
+                    else if (type === 12) label = '🎬 Goals';
+                    html += `<div class="video-item"><span>${label}:</span> <a href="${link}" target="_blank">${link}</a></div>`;
                 });
                 html += '</div>';
                 return html;
             }
 
-            // ==================== LOAD NEWS ====================
+            // ============================================================
+            // LOAD NEWS
+            // ============================================================
             async function loadNews() {
                 try {
                     const data = await fetchAPI('News/all_news_page/%5B%5D');
-                    if (!data.status) throw new Error('فشل جلب الأخبار');
+                    if (!data.status) throw new Error('Failed to load news');
                     renderNews(data.data);
                 } catch (error) {
-                    newsContainer.innerHTML = `<div class="error-msg">⚠️ ${error.message}</div>`;
+                    newsContainer.innerHTML = `<div class="error-state">⚠️ ${error.message}</div>`;
                 }
             }
 
@@ -1247,16 +2351,15 @@
                 const important = newsData.important || [];
                 const last = newsData.last_news || [];
                 const allNews = [main, ...important, ...last].filter(Boolean);
-
                 if (allNews.length === 0) {
-                    newsContainer.innerHTML = '<div class="loading">لا توجد أخبار</div>';
+                    newsContainer.innerHTML = '<div class="empty-state">No news available</div>';
                     return;
                 }
 
                 let html = '<div class="news-grid">';
                 allNews.slice(0, 6).forEach(item => {
                     const img = getImageUrl(item.image, 'news');
-                    const time = item.created_at?.date ? new Date(item.created_at.date).toLocaleString('ar-EG') :
+                    const time = item.created_at?.date ? new Date(item.created_at.date).toLocaleString('en-US') :
                         '';
                     html += `
                         <div class="news-card">
@@ -1273,14 +2376,16 @@
                 newsContainer.innerHTML = html;
             }
 
-            // ==================== LOAD TRANSFERS ====================
+            // ============================================================
+            // LOAD TRANSFERS
+            // ============================================================
             async function loadTransfers() {
                 try {
                     const data = await fetchAPI('info/transfer_info_page/0?page=1');
-                    if (!data.status) throw new Error('فشل جلب الانتقالات');
+                    if (!data.status) throw new Error('Failed to load transfers');
                     renderTransfers(data.data);
                 } catch (error) {
-                    transfersContainer.innerHTML = `<div class="error-msg">⚠️ ${error.message}</div>`;
+                    transfersContainer.innerHTML = `<div class="error-state">⚠️ ${error.message}</div>`;
                 }
             }
 
@@ -1288,9 +2393,8 @@
                 const important = transferData.important || [];
                 const all = transferData.all || [];
                 const list = [...important, ...all].slice(0, 15);
-
                 if (list.length === 0) {
-                    transfersContainer.innerHTML = '<div class="loading">لا توجد انتقالات</div>';
+                    transfersContainer.innerHTML = '<div class="empty-state">No transfers available</div>';
                     return;
                 }
 
@@ -1302,23 +2406,21 @@
                     const playerImg = getImageUrl(player.image, 'player');
                     const outImg = getImageUrl(teamOut.image, 'team');
                     const inImg = getImageUrl(teamIn.image, 'team');
-                    const value = item.value ? (parseInt(item.value) / 1000000).toFixed(1) + 'M' : 'مجاناً';
+                    const value = item.value ? (parseInt(item.value) / 1000000).toFixed(1) + 'M' : 'Free';
                     const date = item.date_from || '';
                     html += `
                         <div class="transfer-item">
                             <div class="player">
                                 <img src="${playerImg}" onerror="this.style.display='none'">
                                 <div>
-                                    <div class="name">${player.title || 'لاعب'}</div>
+                                    <div class="name">${player.title || 'Player'}</div>
                                     <div class="pos">${player.position || ''}</div>
                                 </div>
                             </div>
                             <div class="teams">
-                                <img src="${outImg}" onerror="this.style.display='none'">
-                                <span>${teamOut.title || '?'}</span>
+                                <img src="${outImg}" onerror="this.style.display='none'"> ${teamOut.title || '?'}
                                 <span style="color:var(--text-secondary);">→</span>
-                                <img src="${inImg}" onerror="this.style.display='none'">
-                                <span>${teamIn.title || '?'}</span>
+                                <img src="${inImg}" onerror="this.style.display='none'"> ${teamIn.title || '?'}
                             </div>
                             <div class="value">${value}</div>
                             <div class="date">${date}</div>
@@ -1329,30 +2431,31 @@
                 transfersContainer.innerHTML = html;
             }
 
-            // ==================== LOAD STANDINGS (LEAGUES) ====================
+            // ============================================================
+            // LOAD STANDINGS (Leagues)
+            // ============================================================
             async function loadStandings() {
                 try {
                     const data = await fetchAPI('info/championship_ranking/L/60');
-                    if (!data.status) throw new Error('فشل جلب البطولات');
+                    if (!data.status) throw new Error('Failed to load leagues');
                     renderLeagues(data.data);
                 } catch (error) {
-                    standingsContainer.innerHTML = `<div class="error-msg">⚠️ ${error.message}</div>`;
+                    standingsContainer.innerHTML = `<div class="error-state">⚠️ ${error.message}</div>`;
                 }
             }
 
             function renderLeagues(leagues) {
                 if (!leagues || leagues.length === 0) {
-                    standingsContainer.innerHTML = '<div class="loading">لا توجد بطولات</div>';
+                    standingsContainer.innerHTML = '<div class="empty-state">No leagues available</div>';
                     return;
                 }
-
                 let html = '<div class="leagues-grid">';
                 leagues.slice(0, 30).forEach(league => {
                     const img = getImageUrl(league.image, 'championship');
                     html += `
                         <div class="league-card" data-league-id="${league.url_id}">
                             <img src="${img}" onerror="this.style.display='none'">
-                            <span class="name">${league.title || 'بطولة'}</span>
+                            <span class="name">${league.title || 'League'}</span>
                         </div>
                     `;
                 });
@@ -1370,23 +2473,25 @@
             async function showLeagueStandings(leagueId) {
                 try {
                     const data = await fetchAPI(`matches/league_standing_stage/${leagueId}`);
-                    if (!data.status) throw new Error('فشل جلب الترتيب');
+                    if (!data.status) throw new Error('Failed to load standings');
                     const standingData = data.data;
-                    const leagueName = standingData.league?.stage0?.[0]?.team_name?.full_title || 'الدوري';
+                    const leagueName = standingData.league?.stage0?.[0]?.team_name?.full_title || 'League';
                     let html = `
-                        <div style="margin-bottom:10px;">
-                            <button class="back-btn" onclick="window.loadStandingsFromGlobal()">← رجوع</button>
-                            <span style="font-weight:700; font-size:16px;">${leagueName}</span>
+                        <div style="margin-bottom:8px;">
+                            <button class="back-btn" onclick="window.loadStandingsFromGlobal()">← Back</button>
+                            <span style="font-weight:700; font-size:15px; margin-right:8px;">${leagueName}</span>
                         </div>
                     `;
                     html += renderStandings(standingData, { title: leagueName });
                     standingsContainer.innerHTML = html;
                 } catch (error) {
-                    standingsContainer.innerHTML = `<div class="error-msg">⚠️ ${error.message}</div>`;
+                    standingsContainer.innerHTML = `<div class="error-state">⚠️ ${error.message}</div>`;
                 }
             }
 
-            // ==================== DATE NAVIGATION ====================
+            // ============================================================
+            // DATE NAVIGATION
+            // ============================================================
             function updateDate() {
                 dateDisplay.textContent = formatDateDisplay(currentDate);
                 loadMatches(currentDate);
@@ -1407,16 +2512,15 @@
 
             dateDisplay.addEventListener('click', () => {
                 const d = currentDate;
-                const year = d.getFullYear();
-                const month = String(d.getMonth() + 1).padStart(2, '0');
-                const day = String(d.getDate()).padStart(2, '0');
-                datePickerInput.value = `${year}-${month}-${day}`;
+                datePickerInput.value =
+                    `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
                 datePickerOverlay.classList.add('visible');
             });
 
             document.getElementById('datePickerClose').addEventListener('click', () => {
                 datePickerOverlay.classList.remove('visible');
             });
+
             document.getElementById('datePickerConfirm').addEventListener('click', () => {
                 const val = datePickerInput.value;
                 if (val) {
@@ -1427,10 +2531,12 @@
                 }
             });
 
-            // ==================== TAB SWITCHING ====================
-            document.querySelectorAll('#tabsNav button').forEach(btn => {
+            // ============================================================
+            // TAB SWITCHING
+            // ============================================================
+            document.querySelectorAll('#tabBar button').forEach(btn => {
                 btn.addEventListener('click', function() {
-                    document.querySelectorAll('#tabsNav button').forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('#tabBar button').forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
                     const tab = this.dataset.tab;
                     currentTab = tab;
@@ -1445,18 +2551,24 @@
                 });
             });
 
-            // ==================== BACK BUTTON ====================
+            // ============================================================
+            // BACK BUTTON
+            // ============================================================
             document.getElementById('detailBackBtn').addEventListener('click', function() {
                 detailView.classList.remove('visible');
                 loadMatches(currentDate);
             });
 
-            // ==================== GLOBAL FUNCTIONS ====================
+            // ============================================================
+            // GLOBAL
+            // ============================================================
             window.loadStandingsFromGlobal = function() {
                 loadStandings();
             };
 
-            // ==================== INIT ====================
+            // ============================================================
+            // INIT
+            // ============================================================
             function init() {
                 updateDate();
                 loadNews();
@@ -1470,4 +2582,4 @@
     </script>
 
 </body>
-                                                                                        </html>
+    </html>
