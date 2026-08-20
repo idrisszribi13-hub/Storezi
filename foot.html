@@ -2274,63 +2274,103 @@
                 currentFixtureData = null;
             }
 
-            // ===== loadStream المعدلة =====
-            function loadStream(url, title) {
-                if (!url) {
-                    showError();
-                    return;
-                }
+       // ===== loadStream المعدلة مع تجربة عدة طرق =====
+async function loadStream(url, title) {
+    if (!url) {
+        showError();
+        return;
+    }
 
-                // إذا كان الرابط HTTP والموقع HTTPS، استخدم وكيل الفيديو
-                let finalUrl = url;
-                if (window.location.protocol === 'https:' && url.startsWith('http://')) {
-                    finalUrl = MOVIE_WORKER_URL + '?url=' + encodeURIComponent(url);
-                }
+    // قائمة المحاولات
+    const attempts = [];
 
-                currentStreamUrl = finalUrl;
-                destroyPlayer();
-                showLoading();
-                startOverlay.classList.add('zs-hidden');
-                playerSection.classList.add('visible');
+    // المحاولة 1: HTTPS مباشر (إذا كان الخادم يدعم)
+    if (window.location.protocol === 'https:' && url.startsWith('http://')) {
+        const httpsUrl = url.replace('http://', 'https://');
+        attempts.push(httpsUrl);
+    }
 
-                if (title) {
-                    matchDetailTitleAiScore.textContent = title;
-                }
+    // المحاولة 2: وكيل الأفلام الخاص بنا
+    if (url.startsWith('http://')) {
+        attempts.push(MOVIE_WORKER_URL + '?url=' + encodeURIComponent(url));
+    }
 
-                // دعم HLS (.m3u8)
-                if (finalUrl.includes('.m3u8')) {
-                    if (Hls.isSupported()) {
-                        hls = new Hls();
-                        hls.loadSource(finalUrl);
-                        hls.attachMedia(video);
-                        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                            hideLoading();
-                            hideError();
-                            setLiveMode(true);
-                            video.play().catch(() => {});
-                            updateTimeDisplay();
-                        });
-                        hls.on(Hls.Events.ERROR, (e, data) => {
-                            if (data.fatal) {
-                                showError();
-                                hideLoading();
-                            }
-                        });
-                    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                        video.src = finalUrl;
-                        video.play();
-                    }
-                    return;
-                }
+    // المحاولة 3: وكيل بديل (اختياري)
+    // attempts.push('https://corsproxy.io/?url=' + encodeURIComponent(url));
 
-                // للملفات العادية (mp4, mkv, ...)
-                video.src = finalUrl;
-                video.play()
-                    .then(() => { hideLoading();
-                        hideError(); })
-                    .catch(() => { hideLoading();
-                        showError(); });
+    for (let finalUrl of attempts) {
+        try {
+            const success = await tryLoadWithPromise(finalUrl, title);
+            if (success) {
+                return; // نجح التشغيل
             }
+        } catch (e) {
+            console.warn('فشل المحاولة:', finalUrl, e);
+        }
+    }
+
+    // إذا فشلت كل المحاولات
+    showError();
+    const errorMsg = errorOverlay.querySelector('div');
+    if (errorMsg) {
+        errorMsg.innerHTML = '⚠️ لا يمكن تشغيل الفيديو. الرابط قد يكون معطلاً أو محظوراً. حاول مرة أخرى لاحقاً.';
+    }
+}
+
+function tryLoadWithPromise(finalUrl, title) {
+    return new Promise((resolve, reject) => {
+        currentStreamUrl = finalUrl;
+        destroyPlayer();
+        showLoading();
+        startOverlay.classList.add('zs-hidden');
+        playerSection.classList.add('visible');
+
+        if (title) {
+            matchDetailTitleAiScore.textContent = title;
+        }
+
+        // HLS
+        if (finalUrl.includes('.m3u8')) {
+            if (Hls.isSupported()) {
+                hls = new Hls();
+                hls.loadSource(finalUrl);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                    hideLoading();
+                    hideError();
+                    setLiveMode(true);
+                    video.play().catch(() => {});
+                    updateTimeDisplay();
+                    resolve(true);
+                });
+                hls.on(Hls.Events.ERROR, (e, data) => {
+                    if (data.fatal) {
+                        reject(new Error('HLS error'));
+                    }
+                });
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = finalUrl;
+                video.play();
+                resolve(true);
+            } else {
+                reject(new Error('HLS not supported'));
+            }
+            return;
+        }
+
+        // MP4, MKV, etc.
+        video.src = finalUrl;
+        video.play()
+            .then(() => {
+                hideLoading();
+                hideError();
+                resolve(true);
+            })
+            .catch((err) => {
+                reject(err);
+            });
+    });
+}
 
             // دوال التحكم في الفيديو
             btnPlay.addEventListener('click', () => { if (video.paused) video.play();
