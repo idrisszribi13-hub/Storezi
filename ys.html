@@ -674,7 +674,7 @@
         }
 
         /* ============================================================
-               LINEUPS (Formation style)
+               LINEUPS (Formation style with player images)
                ============================================================ */
         .lineup-grid {
             display: grid;
@@ -744,12 +744,19 @@
         .player-badge {
             display: flex;
             align-items: center;
-            gap: 2px;
+            gap: 4px;
             font-size: 11px;
             background: var(--bg-card);
-            padding: 1px 6px;
+            padding: 2px 8px 2px 4px;
             border-radius: 4px;
             border: 1px solid var(--border-color);
+        }
+
+        .player-badge img {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            object-fit: contain;
         }
 
         .player-badge .player-number {
@@ -2070,7 +2077,7 @@
                 // Standings
                 html += `<div class="detail-tab-content" id="dtab-standings">${renderStandings(standingData, champ)}</div>`;
 
-                // Lineups
+                // Lineups (مع صور اللاعبين)
                 html += `<div class="detail-tab-content" id="dtab-lineups">${renderLineups(lineupData, home, away)}</div>`;
 
                 // Events
@@ -2191,7 +2198,9 @@
                         <div class="players-row">`;
                     row.players.forEach(p => {
                         const player = p.player || {};
+                        const playerImg = getImageUrl(player.image, 'player') || getDefaultPlayerImage();
                         html += `<div class="player-badge">
+                            <img src="${playerImg}" onerror="this.style.display='none'">
                             <span class="player-number">${player.player_number || ''}</span>
                             <span class="player-name">${player.short_title || player.title || ''}</span>
                         </div>`;
@@ -2241,7 +2250,9 @@
                         <div class="players-row">`;
                     row.players.forEach(p => {
                         const player = p.player || {};
+                        const playerImg = getImageUrl(player.image, 'player') || getDefaultPlayerImage();
                         html += `<div class="player-badge">
+                            <img src="${playerImg}" onerror="this.style.display='none'">
                             <span class="player-number">${player.player_number || ''}</span>
                             <span class="player-name">${player.short_title || player.title || ''}</span>
                         </div>`;
