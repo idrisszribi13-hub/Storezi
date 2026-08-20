@@ -2110,7 +2110,7 @@
 
             // ==================== WORKER URLs ====================
             const WORKER_URL = 'https://dry-truth-a84e.idriss-zribi13.workers.dev/'; // للـ API والمباريات
-            const MOVIE_WORKER_URL = 'https://movie-proxy.idriss-zribi13.workers.dev/'; // وكيل الفيديو
+            const MOVIE_WORKER_URL = 'https://movie-proxy.idriss-zribi13.workers.dev/'; // وكيل الفيديو (تم تحديثه)
 
             // ==================== CONFIG ====================
             const API_SPORTS_KEY = 'e227ff90ed4eacc3eacb07eca05ce78b';
@@ -2274,7 +2274,7 @@
                 currentFixtureData = null;
             }
 
-            // ===== تعديل loadStream لاستخدام وكيل الفيديو =====
+            // ===== loadStream المعدلة =====
             function loadStream(url, title) {
                 if (!url) {
                     showError();
@@ -2332,7 +2332,7 @@
                         showError(); });
             }
 
-            // بقية دوال التحكم في الفيديو كما هي
+            // دوال التحكم في الفيديو
             btnPlay.addEventListener('click', () => { if (video.paused) video.play();
                 else video.pause(); });
             video.addEventListener('play', () => { btnPlay.innerHTML =
@@ -2488,7 +2488,6 @@
                         const url = this.dataset.url;
                         if (url) {
                             const title = this.dataset.home + ' vs ' + this.dataset.away;
-                            // استخدام loadStream الجديد الذي يتعامل مع HTTP عبر الوكيل
                             loadStream(url, title);
                             window.scrollTo({ top: 0, behavior: 'smooth' });
                         } else {
@@ -2632,7 +2631,6 @@
                         const movie = movies.find(m => m.id === id);
                         if (movie && movie.url) {
                             currentId = id;
-                            // استخدم loadStream الجديد
                             loadStream(movie.url, movie.title);
                             camelOverlay.style.display = 'none';
                             window.scrollTo({ top: 0, behavior: 'smooth' });
