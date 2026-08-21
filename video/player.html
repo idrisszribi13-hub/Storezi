@@ -468,7 +468,7 @@
         #camelOverlay .camel-score-box .score {
             font-weight: 900;
             font-size: 28px;
-            color: #fff;
+            color: var(--live);
             text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
             letter-spacing: 1px;
         }
@@ -811,6 +811,7 @@
             font-size: 16px;
             min-width: 45px;
             text-align: center;
+            color: var(--live) !important;
         }
 
         /* ===== WIDGET ===== */
@@ -918,13 +919,26 @@
             color: var(--text-secondary);
         }
 
+        /* ===== STICKY MATCH TABS ===== */
         .match-tabs-aiscore {
+            position: sticky;
+            top: 70px;
+            z-index: 40;
+            background: var(--bg);
+            padding: 12px 5px;
+            border-bottom: 1px solid var(--border);
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
             margin-bottom: 16px;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 8px;
+        }
+        @media (max-width: 600px) {
+            .match-tabs-aiscore {
+                top: 120px;
+                padding: 8px 3px;
+            }
         }
         .match-tabs-aiscore button {
             background: none;
@@ -933,9 +947,10 @@
             font-weight: 600;
             font-size: 14px;
             cursor: pointer;
-            padding: 4px 12px;
+            padding: 6px 14px;
             border-radius: 20px;
             transition: all 0.2s;
+            white-space: nowrap;
         }
         .match-tabs-aiscore button:hover {
             color: var(--text);
@@ -944,7 +959,41 @@
         .match-tabs-aiscore button.active {
             color: var(--accent);
             background: rgba(88, 166, 255, 0.1);
+            border: 1px solid var(--accent);
         }
+
+        /* ===== LIVE SCORE ===== */
+        .live-score {
+            color: var(--live) !important;
+            text-shadow: 0 0 15px var(--live-glow);
+        }
+
+        /* ===== GOAL LABEL ===== */
+        .goal-label {
+            background: var(--live);
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 800;
+            margin-left: 6px;
+            display: inline-block;
+            animation: goal-pulse 1s infinite;
+            box-shadow: 0 0 10px var(--live-glow);
+            vertical-align: middle;
+        }
+        @keyframes goal-pulse {
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+        }
+
         .match-tab-content-aiscore {
             display: none;
             padding: 10px 0;
@@ -2514,7 +2563,7 @@
                                         <div class="league">${leagueName}</div>
                                     </div>
                                     <div class="stream-meta">
-                                        ${scoreDisplay ? `<span class="score">${scoreDisplay}</span>` : ''}
+                                        ${scoreDisplay ? `<span class="score" style="color:var(--live) !important; font-weight:700;">${scoreDisplay}</span>` : ''}
                                         <span class="stream-icon">▶</span>
                                     </div>
                                 </div>`;
@@ -3451,6 +3500,9 @@
                     minute: '2-digit'
                 }) : 'N/A';
 
+                // Check if match is live
+                const isLive = ['1H', '2H', 'ET', 'HT', 'BT'].includes(status);
+
                 const totalTime = 90;
                 const percent = Math.min((elapsed / totalTime) * 100, 100);
 
@@ -3470,7 +3522,7 @@
                                     <span class="name">${home}</span>
                                 </div>
                                 <div class="score-block">
-                                    <div class="score">${homeScore} - ${awayScore}</div>
+                                    <div class="score ${isLive ? 'live-score' : ''}">${homeScore} - ${awayScore}</div>
                                     <div class="status">${statusText}</div>
                                     <div class="ht-score">HT ${fixture.score?.halftime?.home ?? '-'} - ${fixture.score?.halftime?.away ?? '-'}</div>
                                 </div>
@@ -3585,10 +3637,19 @@
                         const assist = e.assist?.name ? ' (' + e.assist.name + ')' : '';
                         const team = e.team?.name || '';
                         let icon = '⚽';
-                        if (e.type === 'Card') icon = e.detail?.includes('Yellow') ? '🟨' : '🟥';
-                        else if (e.type === 'subst') icon = '🔄';
-                        else if (e.type === 'Var') icon = '📺';
-                        evItems += `<div class="event-row"><span class="time">${time}</span><span class="icon">${icon}</span><span class="desc">${player} ${assist}</span><span class="team">${team}</span></div>`;
+                        let goalLabel = '';
+                        if (e.type === 'Goal') {
+                            goalLabel = '<span class="goal-label">GOAL</span>';
+                        } else if (e.type === 'Penalty') {
+                            goalLabel = '<span class="goal-label">PEN</span>';
+                        } else if (e.type === 'Card') {
+                            icon = e.detail?.includes('Yellow') ? '🟨' : '🟥';
+                        } else if (e.type === 'subst') {
+                            icon = '🔄';
+                        } else if (e.type === 'Var') {
+                            icon = '📺';
+                        }
+                        evItems += `<div class="event-row"><span class="time">${time}</span><span class="icon">${icon}</span><span class="desc">${player} ${assist} ${goalLabel}</span><span class="team">${team}</span></div>`;
                     });
                     eventsHtml = evItems ? `<div class="events-aiscore">${evItems}</div>` :
                         '<div class="empty-state">No events recorded</div>';
