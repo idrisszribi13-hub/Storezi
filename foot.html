@@ -2916,7 +2916,6 @@
             });
 
             // ==================== SUPABASE PROXY HELPER ====================
-            // استخدام Supabase Proxy لحل CORS لـ YSScores API (الأخبار واللاعبين)
             async function fetchViaProxy(targetUrl) {
                 const proxyUrl = SUPABASE_PROXY_URL + '?url=' + encodeURIComponent(targetUrl);
                 const response = await fetch(proxyUrl);
@@ -2925,7 +2924,6 @@
             }
 
             // ==================== YS SCORES API HELPER (للترتيب والتحويلات) ====================
-            // لا تزال تستخدم الـ Worker القديم لأن Supabase Proxy قد لا يعمل معها
             async function fetchYS(endpoint, base = YS_BASE) {
                 const url = WORKER_URL + '?url=' + encodeURIComponent(base + endpoint);
                 const resp = await fetch(url);
@@ -2933,14 +2931,14 @@
                 return resp.json();
             }
 
-            // ==================== IMAGE HELPER ====================
+            // ==================== IMAGE HELPER (مع إصلاح صور الأخبار) ====================
             function getImageUrl(path, type, size = '64') {
                 if (!path) return '';
                 if (path.startsWith('http')) return path;
                 const maps = {
                     'team': 'teams/' + size + '/',
                     'player': 'players/' + size + '/',
-                    'news': 'news/',
+                    'news': 'news/150/', // نستخدم حجم 150 بكسل للأخبار
                     'country': 'countries/',
                     'championship': 'championship/cups/'
                 };
@@ -3269,7 +3267,7 @@
                 });
             }
 
-            // ==================== NEWS DETAIL (باستخدام Supabase Proxy) ====================
+            // ==================== NEWS DETAIL ====================
             async function showNewsDetail(newsId) {
                 newsDetailOverlay.classList.add('visible');
                 newsDetailContent.innerHTML =
@@ -3293,7 +3291,7 @@
                 }
             }
 
-            // ==================== PLAYER DETAIL (باستخدام Supabase Proxy) ====================
+            // ==================== PLAYER DETAIL ====================
             async function showPlayerDetail(playerId) {
                 if (!playerId) return;
                 playerDetailOverlay.classList.add('visible');
