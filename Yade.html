@@ -48,7 +48,6 @@
             border: 1px solid #1e2a3a;
             position: relative;
             overflow: hidden;
-            transition: background 0.2s;
         }
         .event-card::before {
             content: '';
@@ -141,22 +140,20 @@
             padding: 10px 14px;
             margin-bottom: 16px;
             display: flex;
-            gap: 10px;
-            align-items: center;
-            flex-wrap: wrap;
+            flex-direction: column;
+            gap: 8px;
         }
         .key-input input, .key-input textarea {
-            flex: 1;
+            width: 100%;
             background: #0b0e14;
             border: 1px solid #2a3a50;
             border-radius: 6px;
             padding: 6px 12px;
             color: #fff;
             font-size: 13px;
-            min-width: 100px;
             font-family: monospace;
         }
-        .key-input textarea { height: 60px; }
+        .key-input textarea { height: 80px; }
         .key-input input:focus, .key-input textarea:focus { outline: none; border-color: #4fc3f7; }
         button {
             background: #4fc3f7;
@@ -179,7 +176,19 @@
             border-right: 4px solid #f5c842;
         }
         .note.success { border-right-color: #4caf50; }
-        pre { background: #141a24; padding: 15px; border-radius: 8px; overflow: auto; font-size: 12px; max-height: 400px; }
+        .note.error { border-right-color: #ff3b30; }
+        pre {
+            background: #141a24;
+            padding: 15px;
+            border-radius: 8px;
+            overflow: auto;
+            font-size: 12px;
+            max-height: 400px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            display: none;
+        }
+        .flex-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
         @media (max-width: 600px) {
             .event-main { gap: 8px; }
             .event-time { font-size: 12px; min-width: 60px; }
@@ -195,10 +204,10 @@
         <span class="badge"><i class="fas fa-circle"></i> <span id="liveCount">0</span> مباراة</span>
     </div>
 
-    <div class="key-input" style="flex-direction:column; align-items:stretch;">
+    <div class="key-input">
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
             <div style="flex:1; min-width:150px;">
-                <label style="color:#8e9aaf;font-size:12px;">🔑 المفتاح</label>
+                <label style="color:#8e9aaf;font-size:12px;">🔑 المفتاح الأساسي</label>
                 <input type="text" id="baseKey" value="c!xZj+N9&G@Ev@vw">
             </div>
             <div style="flex:1; min-width:150px;">
@@ -207,10 +216,10 @@
             </div>
         </div>
         <div>
-            <label style="color:#8e9aaf;font-size:12px;">📦 البيانات المشفّرة</label>
+            <label style="color:#8e9aaf;font-size:12px;">📦 البيانات المشفّرة (Base64 من /api/events)</label>
             <textarea id="encryptedData">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</textarea>
         </div>
-        <div style="display:flex; gap:10px; margin-top:8px;">
+        <div class="flex-row">
             <button onclick="decryptAndDisplay()"><i class="fas fa-unlock"></i> فك التشفير وعرض المباريات</button>
             <button class="danger" onclick="clearAll()"><i class="fas fa-undo-alt"></i> مسح</button>
         </div>
@@ -218,7 +227,7 @@
 
     <div id="noteArea"></div>
     <div id="eventsList"></div>
-    <pre id="output" style="display:none;"></pre>
+    <pre id="output"></pre>
 </div>
 
 <script>
@@ -280,15 +289,16 @@
         const encrypted = document.getElementById('encryptedData').value.trim();
         const output = document.getElementById('output');
         const list = document.getElementById('eventsList');
+        const note = document.getElementById('noteArea');
 
-        if (!encrypted) { alert('يرجى إدخال البيانات المشفّرة.'); return; }
-        if (!timestamp) { alert('يرجى إدخال الطابع الزمني (رأس t).'); return; }
+        if (!encrypted) { note.innerHTML = `<div class="note error">⚠️ يرجى إدخال البيانات المشفّرة.</div>`; return; }
+        if (!timestamp) { note.innerHTML = `<div class="note error">⚠️ يرجى إدخال الطابع الزمني (رأس t).</div>`; return; }
 
         const fullKey = baseKey + timestamp;
         const result = xorDecrypt(encrypted, fullKey);
 
         if (!result) {
-            document.getElementById('noteArea').innerHTML = `<div class="note" style="border-right-color:#ff3b30;">❌ فشل فك التشفير. تأكد من المفتاح والطابع الزمني.</div>`;
+            note.innerHTML = `<div class="note error">❌ فشل فك التشفير. تأكد من المفتاح والطابع الزمني.</div>`;
             return;
         }
 
@@ -297,12 +307,11 @@
             output.textContent = JSON.stringify(json, null, 2);
             output.style.display = 'block';
 
-            // استخراج المباريات من JSON
+            // استخراج المباريات
             let events = [];
             if (json.events) events = json.events;
             else if (Array.isArray(json)) events = json;
             else {
-                // محاولة البحث عن مصفوفة في أي مكان
                 for (const key of Object.keys(json)) {
                     if (Array.isArray(json[key]) && json[key].length > 0) {
                         events = json[key];
@@ -312,7 +321,7 @@
             }
             renderEvents(events);
         } catch (e) {
-            document.getElementById('noteArea').innerHTML = `<div class="note" style="border-right-color:#ff3b30;">⚠️ النص مفكوك لكن ليس بصيغة JSON صالحة. عرض النص الخام:</div>`;
+            note.innerHTML = `<div class="note error">⚠️ النص مفكوك لكن ليس بصيغة JSON صالحة. عرض النص الخام:</div>`;
             output.textContent = result;
             output.style.display = 'block';
             list.innerHTML = '';
