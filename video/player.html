@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zi Store - Sports Hub</title>
-    <script type="module" src="https://widgets.api-sports.io/3.1.0/widgets.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script type="module" src="https://widgets.api-sports.io/3.1.0/widgets.js">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest">
+    </script>
     <style>
         /* ===== ROOT ===== */
         :root {
@@ -114,8 +116,13 @@
             flex-shrink: 0;
         }
         @keyframes logo-pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+            0%,
+            100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
         }
         .zs-nav-buttons {
             display: flex;
@@ -226,8 +233,14 @@
             display: block;
         }
         @keyframes fadeSlideIn {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         .zs-player-wrapper {
             position: relative;
@@ -394,7 +407,9 @@
             animation: spin 0.8s linear infinite;
         }
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         /* ===== CAMEL OVERLAY ===== */
@@ -796,6 +811,13 @@
             font-size: 16px;
             min-width: 45px;
             text-align: center;
+        }
+
+        /* ===== WIDGET ===== */
+        api-sports-widget {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
         }
 
         /* ===== FOOTER ===== */
@@ -1641,81 +1663,6 @@
             min-width: 80px;
         }
 
-        /* ===== FLASHSCORE STYLES ===== */
-        .live-match-row {
-            background: var(--surface);
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border);
-            padding: 10px;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.3s;
-        }
-        .live-match-row.is-live {
-            border-color: var(--live);
-            background: linear-gradient(90deg, rgba(248,81,73,0.1), var(--surface));
-        }
-        .live-match-row.is-live .team-name {
-            color: var(--live);
-            font-weight: 700;
-        }
-        .live-match-row .score {
-            font-size: 1.3rem;
-            font-weight: 900;
-            color: var(--text);
-            margin: 0 10px;
-        }
-        .live-match-row.is-live .score {
-            color: var(--live);
-        }
-        .live-dot {
-            color: var(--live);
-            margin-left: 5px;
-            animation: pulse-live 1s infinite;
-        }
-        @keyframes pulse-live {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        #goalPopup {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.95);
-            border: 2px solid var(--live);
-            border-radius: 12px;
-            padding: 15px 30px;
-            z-index: 1000;
-            display: none;
-            align-items: center;
-            gap: 15px;
-            color: #fff;
-            box-shadow: 0 10px 30px var(--live-glow);
-            animation: goalSlideIn 0.5s ease;
-        }
-        #goalPopup .goal-text {
-            font-size: 1.5rem;
-            font-weight: 900;
-            color: var(--live);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-        @keyframes goalSlideIn {
-            from { top: -100px; opacity: 0; }
-            to { top: 20px; opacity: 1; }
-        }
-        /* Smooth transition for tabs */
-        .zs-tab-content {
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        .zs-tab-content.active {
-            opacity: 1;
-        }
-
         /* ===== RESPONSIVE ===== */
         @media (max-width: 600px) {
             .zs-header {
@@ -2076,20 +2023,41 @@
                     </div>
                 </div>
 
-                <!-- FlashScore Custom Live Section -->
-                <div class="stream-section">
-                    <div class="section-title">🔴 Live Matches (FlashScore)</div>
-                    <div id="flashscore-container">
-                        <div class="loading"><div class="spinner"></div><div>Loading live scores...</div></div>
+                <!-- API Sports Widget -->
+                <div style="margin-top:10px;width:100%;">
+                    <div class="football-header">
+                        <h2>📋 All Matches (Widget)</h2>
+                        <span style="font-size:12px;color:var(--text-secondary);">Widget</span>
                     </div>
+                    <api-sports-widget
+                        data-type="games"
+                        data-tab="all"
+                        data-refresh="30"
+                        data-show-toolbar="true"
+                        data-games-style="2"
+                        data-target-game="modal"
+                        data-target-team="modal"
+                        data-target-player="modal"
+                        data-target-standings="modal"
+                    ></api-sports-widget>
                 </div>
             </div>
 
             <!-- ===== LIVESCORE TAB ===== -->
             <div class="zs-tab-content" id="tab-livescore">
-                <div class="zs-section-title">📊 Live Scores</div>
-                <div id="flashscore-livescore-container">
-                    <div class="loading"><div class="spinner"></div><div>Loading live scores...</div></div>
+                <div class="zs-section-title">📊 Livescore</div>
+                <div style="margin-top:10px;width:100%;">
+                    <api-sports-widget
+                        data-type="games"
+                        data-tab="all"
+                        data-refresh="30"
+                        data-show-toolbar="true"
+                        data-games-style="2"
+                        data-target-game="modal"
+                        data-target-team="modal"
+                        data-target-player="modal"
+                        data-target-standings="modal"
+                    ></api-sports-widget>
                 </div>
             </div>
 
@@ -2161,7 +2129,23 @@
 
         </main>
 
-        <!-- ===== API-SPORTS WIDGETS CONFIG (REMOVED TO AVOID DUPLICATION) ===== -->
+        <!-- ===== API-SPORTS WIDGETS CONFIG ===== -->
+        <api-sports-widget
+            data-type="config"
+            data-key="e227ff90ed4eacc3eacb07eca05ce78b"
+            data-sport="football"
+            data-lang="en"
+            data-theme="dark"
+            data-show-logos="true"
+            data-favorite="true"
+            data-game-tab="statistics"
+            data-target-game="modal"
+            data-target-team="modal"
+            data-target-player="modal"
+            data-target-standings="modal"
+            data-target-league="modal"
+        ></api-sports-widget>
+
         <footer class="zs-footer">© 2026 <span>Zi Store</span>. All rights reserved.</footer>
     </div>
 
@@ -2216,7 +2200,6 @@
             let currentId = null;
             let seriesEpisodesCache = {};
             let currentFixtureData = null;
-            let previousScores = {}; // NEW: لتتبع الأهداف
 
             // ==================== DOM REFS ====================
             const video = document.getElementById('zsVideo');
@@ -2322,7 +2305,8 @@
             }
 
             function destroyPlayer() {
-                if (hls) { hls.destroy(); hls = null; }
+                if (hls) { hls.destroy();
+                    hls = null; }
                 video.pause();
                 video.removeAttribute('src');
                 video.load();
@@ -2384,12 +2368,15 @@
 
                 video.src = finalUrl;
                 video.play()
-                    .then(() => { hideLoading(); hideError(); })
-                    .catch(() => { hideLoading(); showError(); });
+                    .then(() => { hideLoading();
+                        hideError(); })
+                    .catch(() => { hideLoading();
+                        showError(); });
             }
 
             // Player controls
-            btnPlay.addEventListener('click', () => { if (video.paused) video.play(); else video.pause(); });
+            btnPlay.addEventListener('click', () => { if (video.paused) video.play();
+                else video.pause(); });
             video.addEventListener('play', () => { btnPlay.innerHTML =
                     '<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>'; });
             video.addEventListener('pause', () => { btnPlay.innerHTML =
@@ -2397,14 +2384,16 @@
             volumeSlider.addEventListener('input', () => { video.volume = volumeSlider.value / 100; });
             btnMute.addEventListener('click', () => { video.volume = video.volume === 0 ? 1 : 0;
                 volumeSlider.value = video.volume * 100; });
-            video.addEventListener('timeupdate', () => { updateTimeDisplay(); updateProgress(); });
+            video.addEventListener('timeupdate', () => { updateTimeDisplay();
+                updateProgress(); });
             progressWrap.addEventListener('click', (e) => {
                 if (!video.duration) return;
                 const rect = progressWrap.getBoundingClientRect();
                 video.currentTime = ((e.clientX - rect.left) / rect.width) * video.duration;
             });
             btnFullscreen.addEventListener('click', () => {
-                if (!document.fullscreenElement) { wrapper.requestFullscreen(); } else { document.exitFullscreen(); }
+                if (!document.fullscreenElement) { wrapper.requestFullscreen(); } else { document
+                        .exitFullscreen(); }
             });
             btnRotate.addEventListener('click', () => { videoContainer.classList.toggle('rotated'); });
             document.getElementById('zsErrorRetry').addEventListener('click', () => { if (currentStreamUrl) loadStream(
@@ -2548,113 +2537,6 @@
                         }
                     });
                 });
-            }
-
-            // ==================== FLASHSCORE LIVE FUNCTIONS ====================
-            async function fetchLiveScores(target = 'flashscore-container') {
-                const container = document.getElementById(target);
-                if (!container) return;
-                container.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading live scores...</div></div>';
-
-                try {
-                    const response = await fetch('https://v3.football.api-sports.io/fixtures?live=all', {
-                        headers: {
-                            'x-apisports-key': API_SPORTS_KEY,
-                            'Content-Type': 'application/json'
-                        }
-                    });
-                    const data = await response.json();
-                    if (data.response && data.response.length > 0) {
-                        renderFlashscoreMatches(data.response, container);
-                    } else {
-                        container.innerHTML = '<div class="empty-state">لا توجد مباريات حية الآن</div>';
-                    }
-                } catch (error) {
-                    console.error('Error fetching live scores:', error);
-                    container.innerHTML = `<div class="error-msg">⚠️ Failed to load live scores: ${error.message}</div>`;
-                }
-            }
-
-            function renderFlashscoreMatches(matches, container) {
-                if (!container) container = document.getElementById('flashscore-container');
-                container.innerHTML = matches.map(match => {
-                    const isLive = match.fixture.status.short === '1H' || match.fixture.status.short === '2H' || match.fixture.status.short === 'ET';
-                    const statusClass = isLive ? 'is-live' : '';
-                    const score = `${match.goals.home} - ${match.goals.away}`;
-                    
-                    return `
-                        <div class="live-match-row ${statusClass}">
-                            <div style="display:flex;align-items:center;gap:8px;">
-                                <img src="${match.teams.home.logo}" width="24" height="24" onerror="this.style.display='none'">
-                                <span class="team-name">${match.teams.home.name}</span>
-                            </div>
-                            <div style="display:flex;align-items:center;">
-                                <span class="score">${score}</span>
-                                ${isLive ? `<span class="live-dot">●</span>` : ''}
-                            </div>
-                            <div style="display:flex;align-items:center;gap:8px;">
-                                <span class="team-name">${match.teams.away.name}</span>
-                                <img src="${match.teams.away.logo}" width="24" height="24" onerror="this.style.display='none'">
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            }
-
-            // دالة لمراقبة الأهداف وإظهار الإشعار
-            function checkForGoals(matches) {
-                matches.forEach(match => {
-                    const matchId = match.fixture.id;
-                    const currentScore = `${match.goals.home}-${match.goals.away}`;
-                    const prevScore = previousScores[matchId];
-                    
-                    if (prevScore && prevScore !== currentScore) {
-                        // هناك هدف جديد!
-                        const homeTeam = match.teams.home.name;
-                        const awayTeam = match.teams.away.name;
-                        const newScore = currentScore.replace('-', ' - ');
-                        showGoalPopup(`⚽ GOAL! ${homeTeam} ${newScore} ${awayTeam}`);
-                    }
-                    
-                    previousScores[matchId] = currentScore;
-                });
-            }
-
-            // إظهار النافذة المنبثقة
-            function showGoalPopup(message) {
-                let popup = document.getElementById('goalPopup');
-                if (!popup) {
-                    popup = document.createElement('div');
-                    popup.id = 'goalPopup';
-                    document.body.appendChild(popup);
-                }
-                popup.innerHTML = `<span class="goal-text">${message}</span>`;
-                popup.style.display = 'flex';
-                
-                // إخفاء بعد 3 ثوان
-                setTimeout(() => { popup.style.display = 'none'; }, 3000);
-            }
-
-            // تشغيل التحديث الدوري
-            function startLiveUpdates() {
-                fetchLiveScores('flashscore-container');
-                fetchLiveScores('flashscore-livescore-container');
-                setInterval(async () => {
-                    try {
-                        const response = await fetch('https://v3.football.api-sports.io/fixtures?live=all', {
-                            headers: {
-                                'x-apisports-key': API_SPORTS_KEY,
-                                'Content-Type': 'application/json'
-                            }
-                        });
-                        const data = await response.json();
-                        if (data.response && data.response.length > 0) {
-                            checkForGoals(data.response);
-                            renderFlashscoreMatches(data.response, document.getElementById('flashscore-container'));
-                            renderFlashscoreMatches(data.response, document.getElementById('flashscore-livescore-container'));
-                        }
-                    } catch (e) { console.error('Live update error:', e); }
-                }, 30000); // كل 30 ثانية
             }
 
             // ==================== MOVIES ====================
@@ -3211,17 +3093,9 @@
             function switchTab(tabId) {
                 matchDetailAiScore.classList.remove('visible');
                 seriesDetailViewPage.classList.remove('visible');
-                document.querySelectorAll('.zs-tab-content').forEach(el => {
-                    el.classList.remove('active');
-                    el.style.opacity = '0';
-                });
+                document.querySelectorAll('.zs-tab-content').forEach(el => el.classList.remove('active'));
                 const target = document.getElementById('tab-' + tabId);
-                if (target) {
-                    setTimeout(() => {
-                        target.classList.add('active');
-                        target.style.opacity = '1';
-                    }, 10);
-                }
+                if (target) target.classList.add('active');
 
                 document.querySelectorAll('.zs-nav-btn').forEach(btn => {
                     btn.classList.toggle('active', btn.dataset.tab === tabId);
@@ -4052,7 +3926,6 @@
                 loadMovieCategoriesFromAPI();
                 loadSeriesCategoriesFromAPI();
                 fetchGoliveMatches();
-                startLiveUpdates(); // NEW: تشغيل تحديثات FlashScore
                 setTimeout(() => {
                     fetchLiveOdds();
                     fetchTransfers();
