@@ -3,406 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yacine TV - البث المباشر</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <title>فك تشفير Yacine TV</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', Tahoma, sans-serif;
-            background: #0b0e14;
-            color: #fff;
-            padding: 15px;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-        }
-        .container { max-width: 800px; width: 100%; }
-        .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 14px 16px 10px;
-            border-bottom: 2px solid #1e2a3a;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        .header h1 {
-            font-size: 20px;
-            font-weight: 700;
-            color: #ff3b30;
-        }
-        .header h1 i { margin-left: 8px; }
-        .badge {
-            background: #1e2a3a;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            color: #8e9aaf;
-        }
-        .badge i { color: #4caf50; font-size: 10px; }
-        .event-card {
-            background: #141a24;
-            border-radius: 12px;
-            padding: 14px 18px;
-            margin-bottom: 12px;
-            border: 1px solid #1e2a3a;
-            position: relative;
-            overflow: hidden;
-        }
-        .event-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 4px;
-            height: 100%;
-            background: #ff3b30;
-        }
-        .event-main {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        .event-time {
-            font-size: 14px;
-            font-weight: 600;
-            color: #8e9aaf;
-            background: #0b0e14;
-            padding: 2px 10px;
-            border-radius: 6px;
-            border: 1px solid #1e2a3a;
-            min-width: 70px;
-            text-align: center;
-        }
-        .event-teams {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-        .event-teams .team {
-            font-size: 15px;
-            font-weight: 600;
-            color: #f0f4fa;
-        }
-        .event-teams .team.away { color: #b0c4de; font-weight: 500; }
-        .event-teams .vs { color: #5a6a7e; font-weight: 700; font-size: 12px; }
-        .live-badge {
-            background: #ff3b30;
-            color: #fff;
-            font-size: 9px;
-            font-weight: 700;
-            padding: 1px 8px;
-            border-radius: 10px;
-            text-transform: uppercase;
-            margin-right: 4px;
-        }
-        .event-meta {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-top: 8px;
-            padding-top: 8px;
-            border-top: 1px solid #1e2a3a;
-        }
-        .event-meta .league {
-            font-size: 12px;
-            color: #8e9aaf;
-            background: #0b0e14;
-            padding: 2px 10px;
-            border-radius: 12px;
-            border: 1px solid #1e2a3a;
-        }
-        .event-meta .commentator {
-            font-size: 12px;
-            color: #b0c4de;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .event-meta .commentator i { color: #f5c842; font-size: 11px; }
-        .event-meta .channel {
-            font-size: 12px;
-            font-weight: 600;
-            color: #4fc3f7;
-            background: #0b1a2a;
-            padding: 2px 12px;
-            border-radius: 12px;
-            border: 1px solid #1a3a5a;
-        }
-        .status-msg {
-            text-align: center;
-            padding: 40px 15px;
-            color: #8e9aaf;
-        }
-        .status-msg i { font-size: 28px; display: block; margin-bottom: 12px; color: #4fc3f7; }
-        .status-msg .sub { font-size: 12px; color: #5a6a7e; margin-top: 4px; }
-        .key-input {
-            background: #141a24;
-            border: 1px solid #1e2a3a;
-            border-radius: 8px;
-            padding: 12px 16px;
-            margin-bottom: 16px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .key-input input {
-            flex: 1;
-            background: #0b0e14;
-            border: 1px solid #2a3a50;
-            border-radius: 6px;
-            padding: 8px 12px;
-            color: #fff;
-            font-size: 14px;
-            min-width: 150px;
-        }
-        .key-input button {
-            background: #ff3b30;
-            border: none;
-            border-radius: 6px;
-            padding: 8px 18px;
-            color: #fff;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        .key-input button:hover { background: #e0352b; }
-        .note {
-            background: #1e2a3a;
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-size: 13px;
-            color: #b0c4de;
-            margin-bottom: 16px;
-            border-right: 4px solid #f5c842;
-        }
-        @media (max-width: 600px) {
-            .event-main { gap: 8px; }
-            .event-time { font-size: 12px; min-width: 60px; }
-            .event-teams .team { font-size: 13px; }
-            .event-meta .league, .event-meta .channel { font-size: 11px; padding: 2px 8px; }
-        }
+        body { background: #0b0e14; color: #fff; font-family: monospace; padding: 20px; }
+        textarea { width: 100%; height: 150px; background: #141a24; color: #fff; border: 1px solid #1e2a3a; border-radius: 8px; padding: 10px; }
+        button { background: #ff3b30; border: none; border-radius: 6px; padding: 10px 24px; color: #fff; font-weight: 600; cursor: pointer; }
+        pre { background: #141a24; padding: 15px; border-radius: 8px; overflow: auto; white-space: pre-wrap; word-break: break-all; }
+        .row { display: flex; gap: 10px; margin: 10px 0; flex-wrap: wrap; }
+        .input-group { flex: 1; min-width: 200px; }
+        .input-group label { display: block; color: #8e9aaf; font-size: 13px; margin-bottom: 4px; }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="header">
-        <h1><i class="fas fa-broadcast-tower"></i> LIVE EVENT</h1>
-        <div class="badge"><i class="fas fa-circle"></i> <span id="liveCount">0</span> مباراة</div>
+    <h1>🔓 فك تشفير Yacine TV</h1>
+
+    <div class="row">
+        <div class="input-group">
+            <label>🔑 المفتاح الأساسي</label>
+            <input type="text" id="baseKey" value="c!xZj+N9&G@Ev@vw" style="width:100%;padding:8px;background:#141a24;color:#fff;border:1px solid #1e2a3a;border-radius:6px;">
+        </div>
+        <div class="input-group">
+            <label>⏱️ الطابع الزمني (من رأس t)</label>
+            <input type="text" id="timestamp" value="1787328155" style="width:100%;padding:8px;background:#141a24;color:#fff;border:1px solid #1e2a3a;border-radius:6px;">
+        </div>
     </div>
 
-    <!-- مفتاح مخصص -->
-    <div class="key-input">
-        <input type="text" id="customKey" placeholder="أدخل المفتاح السري (إن وجد)" value="YacineTV2026">
-        <button onclick="fetchEvents()"><i class="fas fa-sync-alt"></i> تحديث</button>
+    <div class="row">
+        <div class="input-group" style="flex:2;">
+            <label>📦 البيانات المشفّرة (Base64)</label>
+            <textarea id="encryptedData">GAMcOx5KbANdZSEhVHoNVVBTZ1FGXlVoR1sQSFpgWwdsWEIYNDwGJVRNARsaVldtTU5HUTxHDTYGCXQJCmUhIRUvGhhfThoNSBBYR0drCkVaYEhKPkkfdyF0FHZBRFQBDVQHVA0FVgJBDVo4C0UgXFRlemcAOhRFAAVdDgUDDFECVlcYTDkIHWwVBCE1KRpiTFVHTQAHBAJfAlRQAEUeYl4TfQ5EcWI4WmIXE1xYWhUJSRtVVloNRAp4UAlsFQQuLjETMgUDWENRVl8QAxUVGEFRFXhQGmIbVSktZ0xwC1sTVkhHXVdBQxUOGAMRPkgRbAsRdXMmEnNAWlICDwYeBg1SARkBQkw+Rxl7CUR3dSZAdRAUBRVFGxFRTERDWw4DQiFISS9XSCIyZ0xiKgIBBwtUUV1dThdHF1gUP1d3bFFDLictAnpWQgFHQAwTUFhUXFMRTg00DhFuTFQraC0CNAZNHhhcUl5dShlRVQ5EDDIPRitKCCQvKFklFwRIWllQHkJLWBhDEwwbNQRfK1dSaDU1Gi8XE0IYS15HV0oYAwVME0hrXwR/CwkwKSETbRcTQhlIWVQbGVlYGRFECD8LX25aQyk0IARgEB5JUlwME1BYVFxTEU4NNA4GPVBcInplFS8YA1BeVgxvEBlYWVcPSBsxVww5UEgjLzJYLBkUUENRWF0cUUVSUl59WjIeXz5KHGhvNRohD1lWWFdQX1cXVFhZTFIMNRhOYVhWNzNqEiUCFlhbSwhaVgRUWFlNWBt0GUQtWkM1HGdRHANHAQRda0YCCQRUGwFOHCM2Xn4JFSJiaVQmAxtdFQIVb0cJBwRXAU4cI0pYOkBKIn0ZVCIXFFpQSlhGXF0NF0ERTVBzSkUhFFQiMCAXNFYUVFlMUkESX15PUQcaWDgLSCVeVCg1KxJtBR5LUgIXUF1XQ1ZdDRokeEpEIFpKLiMuS2cBHl9TV0AdXlZUVkAKThZ0AlkrXxsbYhlUZyoCAQcLUm9HCQcEV0xDFz4TdzsJFnQlZ1piBhoTDQkbEUFXWhUOU1xUeBlfL0tSJjA1VHoNVVBHSGhaVhsNFQZSEE9pWhl8AARrYjUbYkxGHRVLWV4QAwdKSU8DGSoaCXRCBCMvMhgsGRZVaFReXVkbDRVcF1UIKVAEYV1JMC4pGSESWUhWW15dV1hHRxoXV1d4RgkpTW8jYn9UFTdaAAYJAAoKAAUEGVIDVHgfWypYUiIfKAUnVE0T75Xutuu9F++TuqWh3LKYlpf+7mCd0Znyr53vl+656pbvnhS6paDwspyWkf/NmcdWmfyvlu+L7rnrvxfvnrqroduzoWwVBDElNwUpGRluVFdTVhADA0oYQU8ZLEgRNRtDKiEsGmJMVUhWW15dV1hHR0AVYR83C0IiF0UoLWdaYhAWUlJaWFxZGw0VBEENWjMEWDpYQTUhKFR6</textarea>
+        </div>
     </div>
 
-    <div id="eventsList"></div>
-    <div id="statusMessage" class="status-msg" style="display:none;">
-        <i class="fas fa-info-circle"></i>
-        <div id="statusText">جاري التحميل...</div>
-        <div class="sub" id="statusSub"></div>
-    </div>
+    <button onclick="decrypt()"><i class="fas fa-unlock"></i> فك التشفير</button>
+    <button onclick="fetchAndDecrypt()" style="background:#4fc3f7;color:#0b0e14;margin-right:10px;">🌐 جلب البيانات وتفكيكها</button>
 
-    <div id="noteArea"></div>
-</div>
+    <h3>📄 النتيجة:</h3>
+    <pre id="output">⏳ انتظر...</pre>
 
-<script>
-// ==================================================================
-// 1. دوال فك التشفير (محاولة متعددة)
-// ==================================================================
-
-// XOR بسيط مع مفتاح
-function xorDecrypt(binaryString, key) {
-    const keyBytes = new TextEncoder().encode(key);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i) ^ keyBytes[i % keyBytes.length];
-    }
-    return new TextDecoder('utf-8').decode(bytes);
-}
-
-// محاولة فك باستخدام قائمة مفاتيح + المفتاح المخصص
-function tryDecrypt(encodedBase64, customKey) {
-    let binaryString;
-    try {
-        binaryString = atob(encodedBase64);
-    } catch (_) { return null; }
-
-    // قائمة المفاتيح المدمجة + المفتاح المخصص
-    const keys = [
-        customKey,
-        'YacineTV2026', 'YacineTV', 'yacinelive', 'BeinSports', 'Yacine',
-        'YacineLive', 'ycntivi', 'ver3.ycntivi.off', 'YacineTV2025',
-        'liveEvent', 'Yacine_TV', 'Yacine2026'
-    ].filter(k => k && k.length > 0);
-
-    for (const key of keys) {
-        try {
-            const decryptedText = xorDecrypt(binaryString, key);
-            const json = JSON.parse(decryptedText);
-            return json; // نجح
-        } catch (_) { /* جرب التالي */ }
-    }
-    return null;
-}
-
-// ==================================================================
-// 2. بيانات وهمية (Mock) للعرض عندما يفشل فك التشفير
-// ==================================================================
-function getMockEvents() {
-    return {
-        events: [
-            { time: '08:00 PM', homeTeam: 'Arsenal', awayTeam: 'كوفنتري سيتي', league: 'الدوري الإنجليزي الممتاز', commentator: 'حفيظ دراجي', channel: 'beIN SPORTS 1' },
-            { time: '08:00 PM', homeTeam: 'Real Betis', awayTeam: 'ريال سويسداد', league: 'الدوري الإسباني', commentator: 'محمد بركات', channel: 'beIN SPORTS 2' },
-            { time: '08:00 PM', homeTeam: 'الدوري القطري', awayTeam: 'جيرونا', league: 'الدوري الإسباني الدرجة الثانية', commentator: 'أحمد عبده', channel: 'beIN SPORTS 5' },
-            { time: '07:30 PM', homeTeam: 'أرضوم سبور', awayTeam: 'غلطة سراي', league: 'الدوري التركي', commentator: 'عبدالله الغامدي', channel: 'beIN SPORTS 3' }
-        ]
-    };
-}
-
-// ==================================================================
-// 3. عرض البيانات في الواجهة
-// ==================================================================
-function renderEvents(events, isMock = false) {
-    const list = document.getElementById('eventsList');
-    const count = document.getElementById('liveCount');
-    const statusMsg = document.getElementById('statusMessage');
-    const noteArea = document.getElementById('noteArea');
-
-    if (!events || events.length === 0) {
-        list.innerHTML = '';
-        statusMsg.style.display = 'block';
-        document.getElementById('statusText').textContent = 'لا توجد مباريات حالياً';
-        document.getElementById('statusSub').textContent = 'ترقّب المزيد قريباً';
-        count.textContent = '0';
-        return;
-    }
-
-    statusMsg.style.display = 'none';
-    count.textContent = events.length;
-
-    let html = '';
-    events.forEach((ev, idx) => {
-        const isLive = idx === 0; // أول مباراة تحصل على علامة LIVE
-        html += `
-            <div class="event-card">
-                <div class="event-main">
-                    <div class="event-time">${ev.time || '--:--'}</div>
-                    <div class="event-teams">
-                        <span class="team">${ev.homeTeam || '??'}</span>
-                        <span class="vs">vs</span>
-                        <span class="team away">${ev.awayTeam || '??'}</span>
-                        ${isLive ? '<span class="live-badge">LIVE</span>' : ''}
-                    </div>
-                </div>
-                <div class="event-meta">
-                    <span class="league">${ev.league || ''}</span>
-                    <span class="commentator"><i class="fas fa-microphone"></i> ${ev.commentator || ''}</span>
-                    <span class="channel">${ev.channel || ''}</span>
-                </div>
-            </div>
-        `;
-    });
-    list.innerHTML = html;
-
-    // إذا كانت البيانات وهمية، نعرض إشعاراً
-    if (isMock) {
-        noteArea.innerHTML = `
-            <div class="note">
-                <i class="fas fa-lock" style="margin-left:8px;"></i>
-                تعذّر فك تشفير البيانات الحقيقية. يتم عرض نموذج توضيحي.
-                يمكنك إدخال المفتاح الصحيح في الحقل أعلاه ثم الضغط على "تحديث".
-            </div>
-        `;
-    } else {
-        noteArea.innerHTML = '';
-    }
-}
-
-// ==================================================================
-// 4. جلب البيانات من API ومحاولة فك التشفير
-// ==================================================================
-async function fetchEvents() {
-    const list = document.getElementById('eventsList');
-    const statusMsg = document.getElementById('statusMessage');
-    const statusText = document.getElementById('statusText');
-    const statusSub = document.getElementById('statusSub');
-    const noteArea = document.getElementById('noteArea');
-    noteArea.innerHTML = '';
-
-    // عرض حالة التحميل
-    statusMsg.style.display = 'block';
-    statusText.textContent = 'جاري التحميل...';
-    statusSub.textContent = 'يرجى الانتظار';
-    document.querySelector('#statusMsg i').className = 'fas fa-spinner fa-pulse';
-
-    try {
-        const response = await fetch('https://def.yacinelive.com/api/events', {
-            method: 'GET',
-            headers: { 'Accept': 'text/plain, application/json' }
-        });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-        const raw = await response.text();
-        console.log('📦 الاستجابة الخام (بداية):', raw.substring(0, 100));
-
-        // أولاً: حاول تفسيرها كـ JSON مباشرة
-        try {
-            const direct = JSON.parse(raw);
-            if (direct && (direct.events || Array.isArray(direct))) {
-                const events = direct.events || direct;
-                if (Array.isArray(events) && events.length) {
-                    renderEvents(events, false);
-                    return;
+    <script>
+        // خوارزمية XOR المستخدمة في التطبيق
+        function xorDecrypt(encodedBase64, key) {
+            try {
+                // 1. فك Base64
+                const binary = atob(encodedBase64);
+                const keyBytes = new TextEncoder().encode(key);
+                const bytes = new Uint8Array(binary.length);
+                for (let i = 0; i < binary.length; i++) {
+                    bytes[i] = binary.charCodeAt(i) ^ keyBytes[i % keyBytes.length];
                 }
-            }
-        } catch (_) {}
-
-        // ثانياً: حاول فك التشفير
-        const customKey = document.getElementById('customKey').value.trim();
-        const decrypted = tryDecrypt(raw, customKey);
-        if (decrypted) {
-            if (decrypted.events && Array.isArray(decrypted.events)) {
-                renderEvents(decrypted.events, false);
-                return;
-            }
-            if (Array.isArray(decrypted)) {
-                renderEvents(decrypted, false);
-                return;
+                return new TextDecoder('utf-8').decode(bytes);
+            } catch (e) {
+                return null;
             }
         }
 
-        // إذا لم ينجح أي شيء، استخدم البيانات الوهمية
-        console.warn('⚠️ فشل فك التشفير، نعرض بيانات وهمية');
-        const mock = getMockEvents();
-        renderEvents(mock.events, true);
+        function decrypt() {
+            const baseKey = document.getElementById('baseKey').value.trim();
+            const timestamp = document.getElementById('timestamp').value.trim();
+            const encrypted = document.getElementById('encryptedData').value.trim();
+            const output = document.getElementById('output');
 
-        statusMsg.style.display = 'block';
-        statusText.textContent = '⚠️ بيانات توضيحية';
-        statusSub.textContent = 'المفتاح الحقيقي غير صحيح أو الخوارزمية مختلفة';
+            if (!encrypted) {
+                output.textContent = '⚠️ يرجى إدخال البيانات المشفّرة.';
+                return;
+            }
 
-    } catch (err) {
-        console.error('❌ خطأ:', err);
-        const mock = getMockEvents();
-        renderEvents(mock.events, true);
-        statusMsg.style.display = 'block';
-        statusText.textContent = '⚠️ فشل الاتصال';
-        statusSub.textContent = err.message || 'تحقق من اتصالك بالإنترنت';
-    }
-}
+            const fullKey = baseKey + timestamp;
+            output.textContent = '⏳ جاري فك التشفير...';
 
-// ==================================================================
-// 5. تحميل تلقائي عند فتح الصفحة
-// ==================================================================
-window.onload = function() {
-    fetchEvents();
-    // تجديد كل دقيقتين (اختياري)
-    // setInterval(fetchEvents, 120000);
-};
-</script>
+            try {
+                const result = xorDecrypt(encrypted, fullKey);
+                if (result) {
+                    // محاولة تنسيق JSON
+                    try {
+                        const json = JSON.parse(result);
+                        output.textContent = JSON.stringify(json, null, 2);
+                    } catch (_) {
+                        output.textContent = result;
+                    }
+                } else {
+                    output.textContent = '❌ فشل فك التشفير. تأكد من المفتاح والطابع الزمني.';
+                }
+            } catch (e) {
+                output.textContent = '❌ خطأ: ' + e.message;
+            }
+        }
+
+        async function fetchAndDecrypt() {
+            const output = document.getElementById('output');
+            output.textContent = '⏳ جلب البيانات...';
+
+            try {
+                // جلب التهيئة من الخادم
+                const response = await fetch('https://def.yacinelive.com/api/config?code=');
+                const timestamp = response.headers.get('t') || '';
+                document.getElementById('timestamp').value = timestamp;
+
+                const encrypted = await response.text();
+                document.getElementById('encryptedData').value = encrypted;
+
+                // فك التشفير تلقائياً
+                const baseKey = document.getElementById('baseKey').value.trim();
+                const fullKey = baseKey + timestamp;
+                const result = xorDecrypt(encrypted, fullKey);
+
+                if (result) {
+                    try {
+                        const json = JSON.parse(result);
+                        output.textContent = JSON.stringify(json, null, 2);
+                    } catch (_) {
+                        output.textContent = result;
+                    }
+                } else {
+                    output.textContent = '❌ فشل فك التشفير بالمفتاح الحالي.';
+                }
+            } catch (e) {
+                output.textContent = '❌ خطأ في الجلب: ' + e.message;
+            }
+        }
+
+        // تشغيل تلقائي عند تحميل الصفحة
+        window.onload = fetchAndDecrypt;
+    </script>
 </body>
 </html>
