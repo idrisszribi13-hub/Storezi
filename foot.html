@@ -1609,70 +1609,121 @@
             color: var(--text-secondary);
         }
 
-        /* ===== TRANSFERS ===== */
-        .transfer-card {
+        /* ===== TRANSFERS (Enhanced) ===== */
+        .transfer-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            width: 100%;
+            padding: 8px 0;
+        }
+        @media(max-width:768px) {
+            .transfer-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .transfer-card-enhanced {
             background: var(--surface);
             border-radius: var(--radius-sm);
             border: 1px solid var(--border);
-            padding: 10px 12px;
-            margin-bottom: 4px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-            transition: var(--transition);
+            padding: 14px 16px;
+            transition: all var(--transition);
             cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
-        .transfer-card:hover {
+        .transfer-card-enhanced:hover {
             border-color: var(--accent);
-            background: var(--surface-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
         }
-        .transfer-card .transfer-player {
+
+        .transfer-card-enhanced .player-row {
             display: flex;
             align-items: center;
-            gap: 8px;
-            flex: 1;
-            min-width: 120px;
+            gap: 12px;
         }
-        .transfer-card .transfer-player img {
-            width: 32px;
-            height: 32px;
+        .transfer-card-enhanced .player-row img {
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
-            object-fit: cover;
+            object-fit: contain;
             background: var(--surface-hover);
-            border: 1px solid var(--border);
+            border: 2px solid var(--border);
         }
-        .transfer-card .transfer-player .name {
+        .transfer-card-enhanced .player-row .info {
+            flex: 1;
+        }
+        .transfer-card-enhanced .player-row .info .name {
             font-weight: 700;
-            font-size: 13px;
+            font-size: 15px;
             color: var(--text);
         }
-        .transfer-card .transfer-player .detail {
-            font-size: 10px;
+        .transfer-card-enhanced .player-row .info .position {
+            font-size: 12px;
             color: var(--text-secondary);
         }
-        .transfer-card .transfer-clubs {
+
+        .transfer-card-enhanced .clubs-row {
             display: flex;
             align-items: center;
-            gap: 6px;
-            font-size: 12px;
+            justify-content: center;
+            gap: 8px;
+            background: var(--surface-hover);
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
             font-weight: 600;
-            color: var(--text-secondary);
+            color: var(--text);
         }
-        .transfer-card .transfer-clubs .arrow {
-            color: var(--accent);
-            font-weight: 700;
-        }
-        .transfer-card .transfer-clubs img {
-            width: 20px;
-            height: 20px;
+        .transfer-card-enhanced .clubs-row img {
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             object-fit: contain;
         }
-        .transfer-card .transfer-date {
-            font-size: 10px;
+        .transfer-card-enhanced .clubs-row .arrow {
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .transfer-card-enhanced .meta-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 6px;
+            font-size: 12px;
             color: var(--text-secondary);
-            white-space: nowrap;
+        }
+        .transfer-card-enhanced .meta-row .type {
+            background: var(--accent);
+            color: #0a0a0f;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 10px;
+            text-transform: uppercase;
+        }
+        .transfer-card-enhanced .meta-row .type.free {
+            background: var(--live);
+            color: #fff;
+        }
+        .transfer-card-enhanced .meta-row .type.loan {
+            background: #d29922;
+            color: #0a0a0f;
+        }
+        .transfer-card-enhanced .meta-row .value {
+            font-weight: 700;
+            color: var(--accent);
+            font-size: 14px;
+        }
+        .transfer-card-enhanced .meta-row .date {
+            color: var(--text-secondary);
+            font-size: 11px;
         }
 
         /* ===== NEWS ===== */
@@ -2082,10 +2133,6 @@
             font-size: 10px;
             font-weight: 500;
         }
-
-        .accent-yellow {
-            --accent-yellow: #d29922;
-        }
     </style>
 </head>
 <body>
@@ -2261,7 +2308,7 @@
                 <div id="standingsContainer"><div class="loading"><div class="spinner"></div><div>Loading leagues...</div></div></div>
             </div>
 
-            <!-- ===== TRANSFERS ===== -->
+            <!-- ===== TRANSFERS (Enhanced with YSScores) ===== -->
             <div class="zs-tab-content" id="tab-transfers">
                 <div class="zs-section-title">🔄 Transfer Market</div>
                 <div id="transfersContainer"><div class="loading"><div class="spinner"></div><div>Loading transfers...</div></div></div>
@@ -2923,7 +2970,7 @@
                 return response.json();
             }
 
-            // ==================== YS SCORES API HELPER (للترتيب والتحويلات) ====================
+            // ==================== YS SCORES API HELPER ====================
             async function fetchYS(endpoint, base = YS_BASE) {
                 const url = WORKER_URL + '?url=' + encodeURIComponent(base + endpoint);
                 const resp = await fetch(url);
@@ -2931,14 +2978,14 @@
                 return resp.json();
             }
 
-            // ==================== IMAGE HELPER (مع إصلاح صور الأخبار) ====================
+            // ==================== IMAGE HELPER ====================
             function getImageUrl(path, type, size = '64') {
                 if (!path) return '';
                 if (path.startsWith('http')) return path;
                 const maps = {
                     'team': 'teams/' + size + '/',
                     'player': 'players/' + size + '/',
-                    'news': 'news/150/', // نستخدم حجم 150 بكسل للأخبار
+                    'news': 'news/150/',
                     'country': 'countries/',
                     'championship': 'championship/cups/'
                 };
@@ -2949,6 +2996,15 @@
                 if (!countryCode) return '🌍';
                 const code = countryCode.toUpperCase();
                 return code.split('').map(c => String.fromCodePoint(0x1F1E6 - 65 + c.charCodeAt(0))).join('');
+            }
+
+            function getTransferType(type) {
+                const types = {
+                    0: 'انتقال دائم',
+                    1: 'إعارة',
+                    4: 'انتقال مجاني',
+                };
+                return types[type] || 'نوع آخر';
             }
 
             // ==================== STANDINGS ====================
@@ -3067,23 +3123,27 @@
                 return html;
             }
 
-            // ==================== TRANSFERS ====================
+            // ==================== TRANSFERS (Enhanced via Supabase Proxy) ====================
             async function loadTransfers() {
                 transfersContainer.innerHTML =
-                '<div class="loading"><div class="spinner"></div><div>Loading transfers...</div></div>';
+                    '<div class="loading"><div class="spinner"></div><div>Loading transfers...</div></div>';
                 try {
+                    const url = YS_BASE + 'info/transfer_info_page/0?page=1';
+                    const data = await fetchViaProxy(url);
+
+                    if (!data.status) throw new Error('Failed to load transfers');
+                    const transferData = data.data;
+
+                    // Combine important and all transfers
                     let allTransfers = [];
-                    for (let p = 1; p <= 3; p++) {
-                        try {
-                            const data = await fetchYS(`info/transfer_info_page/0?page=${p}`);
-                            if (data.status && data.data) {
-                                const items = data.data.important || [];
-                                const all = data.data.all || [];
-                                allTransfers = allTransfers.concat(items, all);
-                            }
-                        } catch (e) { continue; }
+                    if (transferData.important && transferData.important.length > 0) {
+                        allTransfers = allTransfers.concat(transferData.important);
+                    }
+                    if (transferData.all && transferData.all.length > 0) {
+                        allTransfers = allTransfers.concat(transferData.all);
                     }
 
+                    // Remove duplicates by player id
                     const seen = new Set();
                     const unique = allTransfers.filter(item => {
                         const id = item.player_name?.row_id || item.player_name?.id;
@@ -3092,62 +3152,76 @@
                         return true;
                     });
 
+                    // Sort by date (newest first)
                     unique.sort((a, b) => {
                         const dateA = a.date_from || '';
                         const dateB = b.date_from || '';
                         return dateB.localeCompare(dateA);
                     });
 
-                    const transfers = unique.slice(0, 30);
-                    if (transfers.length === 0) {
+                    if (unique.length === 0) {
                         transfersContainer.innerHTML = '<div class="empty-state">No transfers available</div>';
                         return;
                     }
-                    renderTransfers(transfers);
+
+                    renderTransfersEnhanced(unique);
 
                 } catch (error) {
                     transfersContainer.innerHTML = `<div class="error-msg">⚠️ ${error.message}</div>`;
                 }
             }
 
-            function renderTransfers(transfers) {
-                let html = '';
-                transfers.forEach(item => {
+            function renderTransfersEnhanced(transfers) {
+                let html = '<div class="transfer-grid">';
+                transfers.slice(0, 30).forEach(item => {
                     const player = item.player_name || {};
                     const teamOut = item.team_out || {};
                     const teamIn = item.team_in || {};
-                    const playerImg = getImageUrl(player.image, 'player', '64');
-                    const outImg = getImageUrl(teamOut.image, 'team', '64');
-                    const inImg = getImageUrl(teamIn.image, 'team', '64');
-                    const value = item.value ? (parseInt(item.value) / 1000000).toFixed(1) + 'M' : 'Free';
-                    const date = item.date_from || '';
                     const playerId = player.row_id || player.id || null;
                     const outId = teamOut.row_id || teamOut.id || null;
                     const inId = teamIn.row_id || teamIn.id || null;
 
+                    const playerImg = getImageUrl(player.image, 'player', '64');
+                    const outImg = getImageUrl(teamOut.image, 'team', '64');
+                    const inImg = getImageUrl(teamIn.image, 'team', '64');
+
+                    const value = item.value ? (parseInt(item.value) / 1000000).toFixed(1) + 'M' : 'Free';
+                    const dateFrom = item.date_from || '';
+                    const dateTo = item.date_to || '';
+                    const type = getTransferType(item.type);
+                    let typeClass = '';
+                    if (type === 'انتقال مجاني') typeClass = 'free';
+                    else if (type === 'إعارة') typeClass = 'loan';
+
                     html += `
-                        <div class="transfer-card" data-player-id="${playerId}" data-out-id="${outId}" data-in-id="${inId}">
-                            <div class="transfer-player">
-                                <img src="${playerImg || 'https://ui-avatars.com/api/?name='+encodeURIComponent(player.title||'P')+'&background=4c8bf5&color=fff&size=32'}" onerror="this.style.display='none'">
-                                <div>
+                        <div class="transfer-card-enhanced" data-player-id="${playerId}" data-out-id="${outId}" data-in-id="${inId}">
+                            <div class="player-row">
+                                <img src="${playerImg || 'https://ui-avatars.com/api/?name='+encodeURIComponent(player.title||'P')+'&background=4c8bf5&color=fff&size=48'}" onerror="this.style.display='none'">
+                                <div class="info">
                                     <div class="name">${player.title || 'Unknown'}</div>
-                                    <div class="detail">${player.position || ''}</div>
+                                    <div class="position">${player.position || ''}</div>
                                 </div>
                             </div>
-                            <div class="transfer-clubs">
+                            <div class="clubs-row">
                                 <img src="${outImg}" onerror="this.style.display='none'">
                                 <span>${teamOut.title || '?'}</span>
                                 <span class="arrow">→</span>
                                 <img src="${inImg}" onerror="this.style.display='none'">
                                 <span>${teamIn.title || '?'}</span>
                             </div>
-                            <div class="transfer-date">${value} · ${date}</div>
+                            <div class="meta-row">
+                                <span class="type ${typeClass}">${type}</span>
+                                <span class="value">${value}</span>
+                                <span class="date">${dateFrom} ${dateTo ? '→ '+dateTo : ''}</span>
+                            </div>
                         </div>
                     `;
                 });
+                html += '</div>';
                 transfersContainer.innerHTML = html;
 
-                document.querySelectorAll('.transfer-card[data-player-id]').forEach(card => {
+                // Click events for player detail
+                document.querySelectorAll('.transfer-card-enhanced[data-player-id]').forEach(card => {
                     const playerId = card.dataset.playerId;
                     if (playerId && playerId !== 'null') {
                         card.addEventListener('click', function(e) {
@@ -3156,14 +3230,30 @@
                         });
                     }
                 });
+
+                // Click events for team detail (on club names)
+                document.querySelectorAll('.clubs-row').forEach(row => {
+                    row.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const card = this.closest('.transfer-card-enhanced');
+                        if (!card) return;
+                        const outId = card.dataset.outId;
+                        const inId = card.dataset.inId;
+                        // Show team detail for the clicked club
+                        if (outId && outId !== 'null') {
+                            showTeamDetail(outId);
+                        } else if (inId && inId !== 'null') {
+                            showTeamDetail(inId);
+                        }
+                    });
+                });
             }
 
-            // ==================== NEWS (باستخدام Supabase Proxy) ====================
+            // ==================== NEWS ====================
             async function loadNews(page = 1) {
                 newsContainer.innerHTML =
                     '<div class="loading"><div class="spinner"></div><div>Loading news...</div></div>';
                 try {
-                    // جلب الأخبار الرئيسية
                     let featuredData = null;
                     try {
                         const featuredUrl = YS_NEWS + 'News/all_news_page/%5B%5D';
@@ -3173,7 +3263,6 @@
                         }
                     } catch (e) { console.warn('Featured news error:', e); }
 
-                    // جلب آخر الأخبار
                     const newsUrl = YS_NEWS + `News/latest_news/%5B%5D?page=${page}`;
                     const data = await fetchViaProxy(newsUrl);
 
@@ -3306,7 +3395,6 @@
                         'https://ui-avatars.com/api/?name=' + encodeURIComponent(player.title || 'P') +
                         '&background=4c8bf5&color=fff&size=80';
                     const team = player.team_name || {};
-                    const teamLogo = getImageUrl(team.image, 'team');
                     const teamId = team.row_id || null;
                     const age = player.birth_day ? new Date().getFullYear() - new Date(player.birth_day).getFullYear() :
                         'N/A';
@@ -3334,9 +3422,10 @@
                             const teamIn = t.team_in || {};
                             const teamOut = t.team_out || {};
                             const value = t.value ? (parseInt(t.value) / 1000000).toFixed(1) + 'M' : 'Free';
+                            const type = getTransferType(t.type);
                             transfersHtml += `
                                 <div class="transfer-row">
-                                    <span class="type">${t.trans || 'Transfer'}</span>
+                                    <span class="type">${type}</span>
                                     <span>${teamOut.title || '?'} → ${teamIn.title || '?'}</span>
                                     <span class="value">${value}</span>
                                     <span>${t.date_from || ''}</span>
