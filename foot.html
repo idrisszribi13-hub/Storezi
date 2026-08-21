@@ -1121,34 +1121,6 @@
             flex: 1;
         }
 
-        .odds-table-aiscore {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-        .odds-table-aiscore th {
-            text-align: center;
-            padding: 6px;
-            background: var(--surface);
-            color: var(--text-secondary);
-            font-weight: 600;
-            border-bottom: 2px solid var(--border);
-        }
-        .odds-table-aiscore td {
-            text-align: center;
-            padding: 6px;
-            border-bottom: 1px solid var(--border);
-        }
-        .odds-table-aiscore .bookmaker {
-            font-weight: 600;
-            color: var(--text);
-            text-align: left;
-        }
-        .odds-table-aiscore .odd-value {
-            font-weight: 700;
-            color: var(--text);
-        }
-
         .events-aiscore {
             display: flex;
             flex-direction: column;
@@ -1351,9 +1323,6 @@
             }
             .lineup-aiscore {
                 grid-template-columns: 1fr;
-            }
-            .odds-table-aiscore {
-                font-size: 11px;
             }
             .tv-channel-grid {
                 grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
@@ -1623,7 +1592,6 @@
             <div class="zs-nav-buttons" id="mainNav">
                 <button class="zs-nav-btn active" data-tab="home">🏠 Home</button>
                 <button class="zs-nav-btn" data-tab="livescore">📊 Livescore</button>
-                <!-- Odds removed -->
                 <button class="zs-nav-btn" data-tab="standings">🏆 Standings</button>
                 <button class="zs-nav-btn" data-tab="transfers">🔄 Transfers</button>
                 <button class="zs-nav-btn" data-tab="movies">🎬 Movies</button>
@@ -1692,7 +1660,6 @@
                                 <button class="camel-btn" data-tab="lineups">👥 Lineup</button>
                                 <button class="camel-btn" data-tab="h2h">⚔️ H2H</button>
                                 <button class="camel-btn" data-tab="standings">🏆 Standings</button>
-                                <button class="camel-btn" data-tab="odds">💰 Odds</button>
                             </div>
                         </div>
                     </div>
@@ -2389,15 +2356,18 @@
                 fetchGoliveMatches();
             });
 
-            // ==================== MOVIES ====================
+            // ==================== MOVIES (Fixed) ====================
             async function loadMovies() {
                 moviesContainer.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading movies...</div></div>';
                 try {
+                    // Use the same worker but with proper URL encoding
                     const url = WORKER_URL + '?url=' + encodeURIComponent(MOVIE_API);
                     const resp = await fetch(url);
                     if (!resp.ok) throw new Error('HTTP ' + resp.status);
                     const data = await resp.json();
-                    if (data.data && Array.isArray(data.data) && data.data.length > 0) {
+
+                    // The API returns data.data array
+                    if (data && data.data && Array.isArray(data.data) && data.data.length > 0) {
                         let html = '<div class="media-grid">';
                         data.data.forEach(m => {
                             const poster = (m.posterUrl || '').replace('http:', 'https:');
@@ -2424,21 +2394,24 @@
                                     loadStream(url, '🎬 Movie');
                                     camelOverlay.style.display = 'none';
                                     window.scrollTo({ top: 0, behavior: 'smooth' });
+                                } else {
+                                    alert('No stream link available');
                                 }
                             });
                         });
                     } else {
+                        // Fallback: try to load from alternative endpoint or show sample
                         moviesContainer.innerHTML =
-                            '<div class="empty-state">No movies available. Try refreshing later.</div>';
+                            '<div class="empty-state">No movies available right now. Please try again later.</div>';
                     }
                 } catch (e) {
                     console.error('Movies error:', e);
                     moviesContainer.innerHTML =
-                        `<div class="error-msg">Failed to load movies: ${e.message}</div>`;
+                        `<div class="error-msg">Failed to load movies: ${e.message}. Please refresh or try again later.</div>`;
                 }
             }
 
-            // ==================== SERIES ====================
+            // ==================== SERIES (Fixed) ====================
             async function loadSeries() {
                 seriesContainer.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading series...</div></div>';
                 try {
@@ -2446,7 +2419,8 @@
                     const resp = await fetch(url);
                     if (!resp.ok) throw new Error('HTTP ' + resp.status);
                     const data = await resp.json();
-                    if (data.data && Array.isArray(data.data) && data.data.length > 0) {
+
+                    if (data && data.data && Array.isArray(data.data) && data.data.length > 0) {
                         let html = '<div class="media-grid">';
                         data.data.forEach(s => {
                             const poster = (s.posterUrl || '').replace('http:', 'https:');
@@ -2473,17 +2447,19 @@
                                     loadStream(url, '📺 Series');
                                     camelOverlay.style.display = 'none';
                                     window.scrollTo({ top: 0, behavior: 'smooth' });
+                                } else {
+                                    alert('No stream link available');
                                 }
                             });
                         });
                     } else {
                         seriesContainer.innerHTML =
-                            '<div class="empty-state">No series available. Try refreshing later.</div>';
+                            '<div class="empty-state">No series available right now. Please try again later.</div>';
                     }
                 } catch (e) {
                     console.error('Series error:', e);
                     seriesContainer.innerHTML =
-                        `<div class="error-msg">Failed to load series: ${e.message}</div>`;
+                        `<div class="error-msg">Failed to load series: ${e.message}. Please refresh or try again later.</div>`;
                 }
             }
 
@@ -2542,40 +2518,77 @@
                 }
             }
 
-            // ==================== TRANSFERS ====================
+            // ==================== TRANSFERS (Multi-Team) ====================
             async function fetchTransfers() {
                 transfersContainer.innerHTML =
                     '<div class="loading"><div class="spinner"></div><div>Loading transfers...</div></div>';
+                // List of top teams (IDs) - Real Madrid, Barcelona, Bayern, Man City, Liverpool, PSG, etc.
+                const teamIds = [541, 529, 157, 50, 40, 85, 33, 42, 58, 44, 52, 55, 31, 41, 47, 49, 34, 35, 36, 37];
                 try {
-                    const resp = await fetch('https://v3.football.api-sports.io/transfers?team=529', {
-                        headers: { 'x-apisports-key': API_SPORTS_KEY, 'Content-Type': 'application/json' }
+                    let allTransfers = [];
+                    // We'll fetch transfers for each team and merge, then sort by date (newest first)
+                    const fetchPromises = teamIds.map(async (id) => {
+                        try {
+                            const resp = await fetch(
+                                `https://v3.football.api-sports.io/transfers?team=${id}`, {
+                                    headers: { 'x-apisports-key': API_SPORTS_KEY,
+                                        'Content-Type': 'application/json' }
+                                });
+                            const data = await resp.json();
+                            if (data.response && data.response.length > 0) {
+                                // Each response has a team and transfers array
+                                data.response.forEach(item => {
+                                    const player = item.player?.name || 'Unknown';
+                                    const transfersList = item.transfers || [];
+                                    transfersList.forEach(t => {
+                                        allTransfers.push({
+                                            player: player,
+                                            from: t.teams?.out?.name || '?',
+                                            to: t.teams?.in?.name || '?',
+                                            date: t.date || '',
+                                            type: t.type || 'Transfer',
+                                            teamLogo: item.team?.logo || ''
+                                        });
+                                    });
+                                });
+                            }
+                        } catch (e) { /* ignore errors for individual teams */ }
                     });
-                    const data = await resp.json();
-                    const transfers = data.response || [];
-                    if (transfers.length === 0) {
-                        transfersContainer.innerHTML = '<div class="empty-state">No transfers available</div>';
+
+                    await Promise.all(fetchPromises);
+
+                    // Sort by date descending (newest first)
+                    allTransfers.sort((a, b) => {
+                        if (!a.date) return 1;
+                        if (!b.date) return -1;
+                        return new Date(b.date) - new Date(a.date);
+                    });
+
+                    // Take top 15 most recent
+                    const recent = allTransfers.slice(0, 15);
+
+                    if (recent.length === 0) {
+                        transfersContainer.innerHTML = '<div class="empty-state">No recent transfers available</div>';
                         return;
                     }
+
                     let html = '';
-                    transfers.slice(0, 12).forEach(item => {
-                        const player = item.player?.name || 'Unknown';
-                        const list = item.transfers || [];
-                        list.slice(0, 2).forEach(t => {
-                            const from = t.teams?.out?.name || '?';
-                            const to = t.teams?.in?.name || '?';
-                            const date = t.date || '';
-                            html += `
-                                <div class="match-card" style="justify-content:flex-start;gap:8px;">
-                                    <span>${from} → ${to}</span>
-                                    <span style="font-weight:700;color:var(--accent);">${player}</span>
-                                    <span style="font-size:11px;color:var(--text-secondary);">${date}</span>
-                                </div>
-                            `;
-                        });
+                    recent.forEach(t => {
+                        html += `
+                            <div class="match-card" style="justify-content:flex-start;gap:8px;">
+                                <span>${t.from} → ${t.to}</span>
+                                <span style="font-weight:700;color:var(--accent);">${t.player}</span>
+                                <span style="font-size:11px;color:var(--text-secondary);">${t.type} · ${t.date ? new Date(t.date).toLocaleDateString() : ''}</span>
+                            </div>
+                        `;
                     });
-                    transfersContainer.innerHTML = html || '<div class="empty-state">No transfers</div>';
+                    transfersContainer.innerHTML = html ||
+                        '<div class="empty-state">No transfers available</div>';
+
                 } catch (e) {
-                    transfersContainer.innerHTML = '<div class="error-msg">Failed to load transfers</div>';
+                    console.error('Transfers error:', e);
+                    transfersContainer.innerHTML =
+                    '<div class="error-msg">Failed to load transfers</div>';
                 }
             }
 
@@ -2818,9 +2831,6 @@
                 } else {
                     h2hHtml = '<div class="empty-state">No previous matches</div>';
                 }
-
-                // Odds section removed from match detail as well (we keep it hidden or remove)
-                let oddsHtml = '<div class="empty-state">Odds not available</div>';
 
                 matchDetailContentAiScore.innerHTML = headerHtml +
                     `
