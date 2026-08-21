@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>آخر الأخبار الرياضية</title>
+    <title>آخر الأخبار الرياضية - YSScores</title>
+    <!-- Bootstrap 5 RTL -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -42,17 +44,21 @@
         .news-title:hover {
             color: #0d6efd;
         }
-        .news-excerpt {
+        .news-desc {
             color: #6c757d;
             font-size: 0.95rem;
             line-height: 1.6;
         }
-        .meta-info {
-            display: flex;
-            gap: 15px;
+        .news-date {
             font-size: 0.85rem;
             color: #6c757d;
             margin-top: 10px;
+        }
+        .main-card .news-image {
+            height: 350px;
+        }
+        .main-card .news-title {
+            font-size: 1.75rem;
         }
         .loader {
             text-align: center;
@@ -64,6 +70,14 @@
             padding: 30px;
             color: #dc3545;
             display: none;
+        }
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 30px 0 15px;
+            color: #212529;
+            border-right: 4px solid #0d6efd;
+            padding-right: 10px;
         }
     </style>
 </head>
@@ -82,43 +96,63 @@
             <p>تعذر جلب البيانات من المصدر. يرجى التحقق من الاتصال أو المحاولة لاحقًا.</p>
         </div>
 
-        <div id="newsContainer" class="row"></div>
+        <!-- الحاوية الرئيسية -->
+        <div id="newsContainer"></div>
     </div>
 
     <script>
-        function stripHtml(html) {
-            const tmp = document.createElement('div');
-            tmp.innerHTML = html;
-            return tmp.textContent || tmp.innerText || '';
+        const API_URL = 'https://news-en.ysscores.com/api/News/all_news_page/%5B%5D';
+        const PROXY_URL = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(API_URL);
+        const IMAGE_BASE = 'https://imgs.ysscores.com/news/150/';
+
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            // التاريخ بصيغة "2026-08-21 18:32:18.000000"
+            return dateString.replace(' ', ' | ').slice(0, 16);
         }
 
-        function truncateText(text, maxLength = 150) {
-            if (text.length <= maxLength) return text;
-            return text.substring(0, maxLength) + '...';
-        }
-
-        function renderNews(newsArray) {
-            const container = document.getElementById('newsContainer');
-            container.innerHTML = '';
-            newsArray.forEach(item => {
-                const col = document.createElement('div');
-                col.className = 'col-md-6 col-lg-4';
-                col.innerHTML = `
+        function createNewsCard(item, isMain = false) {
+            const imageUrl = IMAGE_BASE + item.image;
+            const date = formatDate(item.created_at?.date || '');
+            const cardClass = isMain ? 'col-12 main-card' : 'col-md-6 col-lg-4';
+            return `
+                <div class="${cardClass}">
                     <div class="news-card h-100">
-                        <img src="${item.image}" class="news-image" alt="${item.title}" onerror="this.style.display='none'">
+                        <img src="${imageUrl}" class="news-image" alt="${item.title}" onerror="this.style.display='none'">
                         <div class="card-body d-flex flex-column">
                             <a href="#" class="news-title" title="${item.title}">${item.title}</a>
-                            <p class="news-excerpt flex-grow-1">${truncateText(stripHtml(item.content))}</p>
-                            <div class="meta-info">
-                                <span>🕒 ${item.published_at}</span>
-                                <span>❤️ ${item.likes_count}</span>
-                                <span>💬 ${item.comments_count}</span>
-                            </div>
+                            <p class="news-desc flex-grow-1">${item.news_desc || ''}</p>
+                            <div class="news-date">🕒 ${date}</div>
                         </div>
                     </div>
-                `;
-                container.appendChild(col);
-            });
+                </div>
+            `;
+        }
+
+        function renderNews(data) {
+            const container = document.getElementById('newsContainer');
+            container.innerHTML = '';
+
+            // الخبر الرئيسي
+            if (data.main) {
+                container.innerHTML += `<h2 class="section-title">الخبر الرئيسي</h2><div class="row">${createNewsCard(data.main, true)}</div>`;
+            }
+
+            // الأخبار الهامة
+            if (data.important && data.important.length > 0) {
+                let html = `<h2 class="section-title">أخبار هامة</h2><div class="row">`;
+                data.important.forEach(item => html += createNewsCard(item));
+                html += `</div>`;
+                container.innerHTML += html;
+            }
+
+            // آخر الأخبار
+            if (data.last_news && data.last_news.length > 0) {
+                let html = `<h2 class="section-title">آخر الأخبار</h2><div class="row">`;
+                data.last_news.forEach(item => html += createNewsCard(item));
+                html += `</div>`;
+                container.innerHTML += html;
+            }
         }
 
         async function fetchFromAPI(url) {
@@ -135,19 +169,14 @@
             errorMsg.style.display = 'none';
             container.innerHTML = '';
 
-            const directURL = 'https://kooralive.fans/api/v1/news?page=1';
-            const proxyURL = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(directURL);
-
             try {
-                // محاولة الجلب المباشر أولاً
                 let data;
                 try {
-                    data = await fetchFromAPI(directURL);
+                    data = await fetchFromAPI(API_URL);
                     console.log('تم الجلب المباشر بنجاح');
                 } catch (directError) {
                     console.warn('فشل الجلب المباشر:', directError);
-                    // محاولة عبر وسيط CORS
-                    data = await fetchFromAPI(proxyURL);
+                    data = await fetchFromAPI(PROXY_URL);
                     console.log('تم الجلب عبر وسيط CORS');
                 }
                 renderNews(data.data);
