@@ -12,7 +12,6 @@
             background: #0b0e14;
             color: #fff;
             padding: 15px;
-            min-height: 100vh;
             display: flex;
             justify-content: center;
         }
@@ -48,6 +47,7 @@
             border: 1px solid #1e2a3a;
             position: relative;
             overflow: hidden;
+            transition: background 0.2s;
         }
         .event-card::before {
             content: '';
@@ -133,6 +133,17 @@
             border-radius: 12px;
             border: 1px solid #1a3a5a;
         }
+        .note {
+            background: #1e2a3a;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #b0c4de;
+            margin-bottom: 16px;
+            border-right: 4px solid #f5c842;
+        }
+        .note.success { border-right-color: #4caf50; }
+        .note.error { border-right-color: #ff3b30; }
         .key-input {
             background: #141a24;
             border: 1px solid #1e2a3a;
@@ -154,7 +165,6 @@
             font-family: monospace;
         }
         .key-input textarea { height: 80px; }
-        .key-input input:focus, .key-input textarea:focus { outline: none; border-color: #4fc3f7; }
         button {
             background: #4fc3f7;
             border: none;
@@ -166,28 +176,6 @@
             font-size: 14px;
         }
         button.danger { background: #ff3b30; color: #fff; }
-        .note {
-            background: #1e2a3a;
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-size: 13px;
-            color: #b0c4de;
-            margin-bottom: 16px;
-            border-right: 4px solid #f5c842;
-        }
-        .note.success { border-right-color: #4caf50; }
-        .note.error { border-right-color: #ff3b30; }
-        pre {
-            background: #141a24;
-            padding: 15px;
-            border-radius: 8px;
-            overflow: auto;
-            font-size: 12px;
-            max-height: 400px;
-            white-space: pre-wrap;
-            word-break: break-all;
-            display: none;
-        }
         .flex-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
         @media (max-width: 600px) {
             .event-main { gap: 8px; }
@@ -227,10 +215,10 @@
 
     <div id="noteArea"></div>
     <div id="eventsList"></div>
-    <pre id="output"></pre>
 </div>
 
 <script>
+    // خوارزمية فك التشفير (XOR)
     function xorDecrypt(encodedBase64, key) {
         try {
             const binary = atob(encodedBase64);
@@ -245,10 +233,34 @@
         }
     }
 
+    // استخراج المباريات من JSON
+    function extractEvents(json) {
+        // إذا كان json مصفوفة مباشرة
+        if (Array.isArray(json)) return json;
+
+        // إذا كان يحتوي على حقل "events"
+        if (json.events && Array.isArray(json.events)) return json.events;
+
+        // محاولة العثور على أول مصفوفة في الكائن
+        for (const key of Object.keys(json)) {
+            if (Array.isArray(json[key]) && json[key].length > 0) {
+                return json[key];
+            }
+        }
+        return [];
+    }
+
+    // تحويل الطابع الزمني إلى وقت readable
+    function formatTime(timestamp) {
+        const date = new Date(timestamp * 1000);
+        return date.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', hour12: true });
+    }
+
+    // عرض المباريات كبطاقات
     function renderEvents(events) {
         const list = document.getElementById('eventsList');
         const count = document.getElementById('liveCount');
-        const noteArea = document.getElementById('noteArea');
+        const note = document.getElementById('noteArea');
 
         if (!events || events.length === 0) {
             list.innerHTML = '<div style="text-align:center;padding:40px;color:#8e9aaf;">لا توجد مباريات</div>';
@@ -258,38 +270,52 @@
 
         count.textContent = events.length;
         let html = '';
+
         events.forEach((ev, idx) => {
-            const isLive = idx === 0;
+            // استخراج أسماء الفرق من مفاتيح "logos/..."
+            const logosKeys = Object.keys(ev).filter(k => k.startsWith('logos/'));
+            const team1Name = logosKeys.length >= 1 ? ev[logosKeys[0]] : '??';
+            const team2Name = logosKeys.length >= 2 ? ev[logosKeys[1]] : '??';
+
+            // استخراج باقي البيانات
+            const league = ev.champions || 'دوري غير معروف';
+            const channel = ev.channel || 'قناة غير معروفة';
+            const commentator = ev.commentary || 'غير محدد';
+            const startTime = ev.start_time ? formatTime(ev.start_time) : '--:--';
+
+            const isLive = idx === 0; // أول مباراة تحصل على علامة LIVE
+
             html += `
                 <div class="event-card">
                     <div class="event-main">
-                        <div class="event-time">${ev.time || '--:--'}</div>
+                        <div class="event-time">${startTime}</div>
                         <div class="event-teams">
-                            <span class="team">${ev.homeTeam || '??'}</span>
+                            <span class="team">${team1Name}</span>
                             <span class="vs">vs</span>
-                            <span class="team away">${ev.awayTeam || '??'}</span>
+                            <span class="team away">${team2Name}</span>
                             ${isLive ? '<span class="live-badge">LIVE</span>' : ''}
                         </div>
                     </div>
                     <div class="event-meta">
-                        <span class="league">${ev.league || ''}</span>
-                        <span class="commentator"><i class="fas fa-microphone"></i> ${ev.commentator || ''}</span>
-                        <span class="channel">${ev.channel || ''}</span>
+                        <span class="league">${league}</span>
+                        <span class="commentator"><i class="fas fa-microphone"></i> ${commentator}</span>
+                        <span class="channel">${channel}</span>
                     </div>
                 </div>
             `;
         });
+
         list.innerHTML = html;
-        noteArea.innerHTML = `<div class="note success"><i class="fas fa-check-circle" style="margin-left:8px;"></i> ✅ تم عرض ${events.length} مباراة من البيانات الحقيقية!</div>`;
+        note.innerHTML = `<div class="note success"><i class="fas fa-check-circle" style="margin-left:8px;"></i> ✅ تم عرض ${events.length} مباراة من البيانات الحقيقية!</div>`;
     }
 
+    // فك التشفير وعرض النتائج
     function decryptAndDisplay() {
         const baseKey = document.getElementById('baseKey').value.trim();
         const timestamp = document.getElementById('timestamp').value.trim();
         const encrypted = document.getElementById('encryptedData').value.trim();
-        const output = document.getElementById('output');
-        const list = document.getElementById('eventsList');
         const note = document.getElementById('noteArea');
+        const list = document.getElementById('eventsList');
 
         if (!encrypted) { note.innerHTML = `<div class="note error">⚠️ يرجى إدخال البيانات المشفّرة.</div>`; return; }
         if (!timestamp) { note.innerHTML = `<div class="note error">⚠️ يرجى إدخال الطابع الزمني (رأس t).</div>`; return; }
@@ -304,32 +330,22 @@
 
         try {
             const json = JSON.parse(result);
-            output.textContent = JSON.stringify(json, null, 2);
-            output.style.display = 'block';
+            // عرض JSON الخام في وحدة التحكم للتصحيح
+            console.log('JSON مفكوك:', json);
 
-            // استخراج المباريات
-            let events = [];
-            if (json.events) events = json.events;
-            else if (Array.isArray(json)) events = json;
-            else {
-                for (const key of Object.keys(json)) {
-                    if (Array.isArray(json[key]) && json[key].length > 0) {
-                        events = json[key];
-                        break;
-                    }
-                }
-            }
+            const events = extractEvents(json);
             renderEvents(events);
         } catch (e) {
             note.innerHTML = `<div class="note error">⚠️ النص مفكوك لكن ليس بصيغة JSON صالحة. عرض النص الخام:</div>`;
-            output.textContent = result;
-            output.style.display = 'block';
+            const pre = document.createElement('pre');
+            pre.textContent = result;
+            pre.style.cssText = 'background:#141a24;padding:15px;border-radius:8px;overflow:auto;white-space:pre-wrap;word-break:break-all;';
             list.innerHTML = '';
+            list.appendChild(pre);
         }
     }
 
     function clearAll() {
-        document.getElementById('output').style.display = 'none';
         document.getElementById('eventsList').innerHTML = '';
         document.getElementById('noteArea').innerHTML = '';
         document.getElementById('liveCount').textContent = '0';
