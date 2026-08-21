@@ -80,7 +80,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 10px 16px;
+            padding: 8px 14px;
             background: var(--header-bg);
             backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--border);
@@ -88,54 +88,44 @@
             top: 0;
             z-index: 50;
             flex-wrap: wrap;
-            gap: 6px;
+            gap: 4px;
         }
         .zs-header-brand {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             font-weight: 800;
-            font-size: 18px;
+            font-size: 16px;
             color: var(--text);
             letter-spacing: -0.5px;
         }
         .zs-brand-icon {
-            width: 34px;
-            height: 34px;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
             background: linear-gradient(135deg, var(--accent), #ff6b00);
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 900;
-            font-size: 16px;
+            font-size: 14px;
             color: #0a0a0f;
-            box-shadow: 0 0 15px var(--accent-glow);
+            box-shadow: 0 0 12px var(--accent-glow);
             flex-shrink: 0;
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0%,
-            100% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.05);
-            }
         }
         .zs-nav-buttons {
             display: flex;
-            gap: 4px;
+            gap: 3px;
             flex-wrap: wrap;
         }
         .zs-nav-btn {
             background: var(--surface-glass);
             border: 1px solid var(--border);
             border-radius: 30px;
-            padding: 5px 12px;
+            padding: 4px 10px;
             color: var(--text-secondary);
             font-weight: 600;
-            font-size: 11px;
+            font-size: 10px;
             cursor: pointer;
             transition: var(--transition);
             white-space: nowrap;
@@ -144,37 +134,36 @@
             background: var(--surface-hover);
             color: var(--text);
             border-color: var(--accent);
-            transform: translateY(-2px);
         }
         .zs-nav-btn.active {
             background: var(--accent);
             color: #0a0a0f;
             border-color: var(--accent);
-            box-shadow: 0 0 20px var(--accent-glow);
+            box-shadow: 0 0 12px var(--accent-glow);
         }
         .zs-header-actions {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             flex-wrap: wrap;
         }
         .zs-theme-switch {
             display: flex;
             background: var(--surface-glass);
-            padding: 3px;
+            padding: 2px;
             border-radius: 30px;
             border: 1px solid var(--border);
             gap: 2px;
         }
         .zs-theme-btn {
-            padding: 4px 10px;
+            padding: 3px 8px;
             border-radius: 20px;
             border: none;
             background: transparent;
             color: var(--text-secondary);
             cursor: pointer;
             font-weight: 600;
-            font-size: 10px;
+            font-size: 9px;
             transition: var(--transition);
             white-space: nowrap;
         }
@@ -185,21 +174,21 @@
         .zs-theme-btn.zs-active {
             background: var(--accent);
             color: #0a0a0f;
-            box-shadow: 0 0 10px var(--accent-glow);
+            box-shadow: 0 0 8px var(--accent-glow);
         }
         .zs-search-btn-main {
             background: var(--surface-glass);
             border: 1px solid var(--border);
             border-radius: 30px;
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: var(--text-secondary);
             cursor: pointer;
             transition: var(--transition);
-            font-size: 14px;
+            font-size: 12px;
         }
         .zs-search-btn-main:hover {
             background: var(--surface-hover);
@@ -210,7 +199,7 @@
         /* ===== MAIN ===== */
         .zs-main {
             flex: 1;
-            padding: 16px;
+            padding: 12px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -224,7 +213,7 @@
             display: none;
             width: 100%;
             max-width: 100%;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
             animation: fadeSlideIn 0.4s ease forwards;
         }
         .zs-player-section.visible {
@@ -244,7 +233,7 @@
             position: relative;
             width: 100%;
             background: #000;
-            border-radius: 20px;
+            border-radius: 16px;
             overflow: hidden;
             box-shadow: var(--shadow);
             aspect-ratio: 16/9;
@@ -264,24 +253,49 @@
             object-fit: contain;
             display: block;
         }
+
+        /* ===== LIVE BADGE ===== */
         .zs-live-badge {
             position: absolute;
-            top: 16px;
-            left: 16px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 4px 14px;
-            border-radius: 20px;
+            top: 12px;
+            left: 12px;
             display: none;
-            font-weight: 700;
-            font-size: 12px;
+            align-items: center;
+            gap: 6px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 4px 12px 4px 8px;
+            border-radius: 20px;
             z-index: 15;
-            color: var(--live);
             border: 1px solid var(--live);
             backdrop-filter: blur(4px);
+            font-weight: 700;
+            font-size: 11px;
+            color: var(--live);
         }
         .zs-live-badge.zs-visible {
             display: flex;
         }
+        .zs-live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--live);
+            animation: blink-dot 1.2s infinite;
+            flex-shrink: 0;
+        }
+        @keyframes blink-dot {
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.2;
+                transform: scale(0.7);
+            }
+        }
+
+        /* ===== START OVERLAY ===== */
         .zs-start-overlay {
             position: absolute;
             inset: 0;
@@ -296,12 +310,12 @@
             display: none;
         }
         .zs-start-play-btn {
-            width: 70px;
-            height: 70px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             background: var(--accent);
             color: #0a0a0f;
-            font-size: 28px;
+            font-size: 24px;
             border: none;
             cursor: pointer;
             transition: var(--transition);
@@ -310,22 +324,29 @@
             transform: scale(1.1);
             box-shadow: 0 0 30px var(--accent-glow);
         }
+        .zs-start-overlay .hint {
+            color: var(--text-secondary);
+            font-size: 11px;
+            margin-top: 6px;
+        }
+
+        /* ===== CONTROLS ===== */
         .zs-controls {
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
             background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
-            padding: 10px;
+            padding: 8px 10px;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 3px;
             z-index: 15;
         }
         .zs-controls-row {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             flex-wrap: wrap;
         }
         .zs-btn {
@@ -333,8 +354,8 @@
             border: none;
             color: #fff;
             cursor: pointer;
-            width: 28px;
-            height: 28px;
+            width: 26px;
+            height: 26px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -345,33 +366,33 @@
             background: rgba(255, 255, 255, 0.15);
         }
         .zs-btn svg {
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
             fill: currentColor;
         }
         .zs-volume-slider {
-            width: 50px;
-            height: 4px;
+            width: 40px;
+            height: 3px;
             appearance: none;
             background: rgba(255, 255, 255, 0.3);
-            border-radius: 4px;
+            border-radius: 3px;
         }
         .zs-volume-slider::-webkit-slider-thumb {
             appearance: none;
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             background: #fff;
             cursor: pointer;
         }
         .zs-time-display {
-            font-size: 11px;
+            font-size: 10px;
             color: #ddd;
-            min-width: 36px;
+            min-width: 32px;
         }
         .zs-progress-wrap {
             flex: 1;
-            height: 4px;
+            height: 3px;
             background: rgba(255, 255, 255, 0.2);
             border-radius: 3px;
             cursor: pointer;
@@ -397,9 +418,9 @@
             display: flex;
         }
         .zs-spinner {
-            width: 36px;
-            height: 36px;
-            border: 4px solid rgba(255, 255, 255, 0.2);
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
             border-top-color: var(--accent);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
@@ -410,7 +431,7 @@
             }
         }
 
-        /* ===== CAMEL OVERLAY ===== */
+        /* ===== CAMEL OVERLAY (small & refined) ===== */
         #camelOverlay {
             position: absolute;
             top: 0;
@@ -422,148 +443,149 @@
             display: none;
             flex-direction: column;
             justify-content: space-between;
-            padding: 12px;
-            background: linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, transparent 40%, transparent 60%, rgba(0, 0, 0, 0.5) 100%);
+            padding: 8px 10px 50px 10px;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0%, transparent 35%, transparent 65%, rgba(0, 0, 0, 0.5) 100%);
         }
         #camelOverlay .camel-top {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 8px;
+            gap: 4px;
             flex-wrap: wrap;
             pointer-events: none;
         }
         #camelOverlay .camel-team {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
         }
         #camelOverlay .camel-team img {
-            width: 28px;
-            height: 28px;
+            width: 22px;
+            height: 22px;
             object-fit: contain;
             filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.08);
             border-radius: 50%;
-            padding: 2px;
+            padding: 1px;
         }
         #camelOverlay .camel-team span {
             font-weight: 700;
-            font-size: 14px;
+            font-size: 12px;
             color: #fff;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
         }
         #camelOverlay .camel-score-box {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             background: rgba(0, 0, 0, 0.4);
-            padding: 4px 12px;
-            border-radius: 30px;
+            padding: 2px 10px;
+            border-radius: 20px;
             backdrop-filter: blur(4px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.06);
         }
         #camelOverlay .camel-score-box .score {
             font-weight: 900;
-            font-size: 22px;
+            font-size: 18px;
             color: var(--live);
             text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
         }
         #camelOverlay .camel-score-box .status {
-            font-size: 10px;
+            font-size: 9px;
             color: #aaa;
-            background: rgba(255, 255, 255, 0.15);
-            padding: 2px 6px;
-            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1px 6px;
+            border-radius: 10px;
             font-weight: 600;
         }
         #camelOverlay .camel-middle {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 14px;
+            gap: 10px;
             margin: 0 auto;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(8px);
-            border-radius: 30px;
-            padding: 4px 14px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(6px);
+            border-radius: 20px;
+            padding: 3px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
             pointer-events: auto;
         }
         #camelOverlay .camel-middle .time {
             color: #fff;
             font-weight: 700;
-            font-size: 12px;
+            font-size: 11px;
         }
         #camelOverlay .camel-middle .divider {
             width: 1px;
-            height: 16px;
-            background: rgba(255, 255, 255, 0.2);
+            height: 14px;
+            background: rgba(255, 255, 255, 0.15);
         }
         #camelOverlay .camel-middle .possession {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
         }
         #camelOverlay .camel-middle .possession .label {
-            font-size: 10px;
+            font-size: 9px;
             color: #aaa;
             font-weight: 600;
         }
         #camelOverlay .camel-middle .possession .bar {
-            width: 50px;
-            height: 4px;
+            width: 40px;
+            height: 3px;
             background: rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
+            border-radius: 3px;
             overflow: hidden;
             display: flex;
         }
         #camelOverlay .camel-middle .possession .bar .home {
             height: 100%;
             background: #4caf50;
-            border-radius: 4px 0 0 4px;
+            border-radius: 3px 0 0 3px;
             transition: width 0.5s;
         }
         #camelOverlay .camel-middle .possession .bar .away {
             height: 100%;
             background: #f44336;
-            border-radius: 0 4px 4px 0;
+            border-radius: 0 3px 3px 0;
             transition: width 0.5s;
         }
         #camelOverlay .camel-middle .possession .text {
-            font-size: 11px;
+            font-size: 10px;
             color: #fff;
             font-weight: 600;
-            min-width: 48px;
+            min-width: 40px;
         }
         #camelOverlay .camel-bottom {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            gap: 4px;
             flex-wrap: wrap;
             pointer-events: auto;
         }
         #camelOverlay .camel-btn {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            color: #fff;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 10px;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.8);
+            padding: 2px 10px;
+            border-radius: 16px;
+            font-size: 9px;
             font-weight: 600;
             cursor: pointer;
             backdrop-filter: blur(4px);
             transition: 0.3s;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
         }
         #camelOverlay .camel-btn:hover {
-            background: rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.2);
             border-color: var(--accent);
             transform: scale(1.05);
+            color: #fff;
         }
 
         /* ===== BANNER ===== */
@@ -572,24 +594,24 @@
             display: flex;
             flex-wrap: nowrap;
             overflow-x: auto;
-            gap: 10px;
-            padding: 4px 0 16px 0;
+            gap: 8px;
+            padding: 4px 0 12px 0;
             scroll-snap-type: x mandatory;
             -webkit-overflow-scrolling: touch;
         }
         .zs-banner-slide {
             flex: 0 0 auto;
-            width: 82%;
-            max-width: 320px;
-            min-height: 90px;
+            width: 80%;
+            max-width: 280px;
+            min-height: 75px;
             background: linear-gradient(135deg, #124a37, #1b7a5e);
-            border-radius: 16px;
-            padding: 14px;
+            border-radius: 14px;
+            padding: 12px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             scroll-snap-align: start;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             position: relative;
             overflow: hidden;
         }
@@ -597,7 +619,7 @@
             content: '';
             position: absolute;
             inset: 0;
-            background: radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1), transparent 60%);
+            background: radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.08), transparent 60%);
         }
         .zs-banner-text {
             z-index: 2;
@@ -605,24 +627,24 @@
         }
         .zs-banner-title {
             font-weight: 800;
-            font-size: 16px;
+            font-size: 14px;
             color: #fff;
             letter-spacing: -0.5px;
             margin-bottom: 2px;
         }
         .zs-banner-sub {
-            font-size: 11px;
+            font-size: 10px;
             color: rgba(255, 255, 255, 0.7);
         }
         .zs-banner-btn {
             z-index: 2;
             background: rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             color: #fff;
-            padding: 4px 12px;
+            padding: 3px 10px;
             border-radius: 30px;
             font-weight: 700;
-            font-size: 11px;
+            font-size: 10px;
             cursor: pointer;
             backdrop-filter: blur(10px);
             transition: var(--transition);
@@ -646,43 +668,43 @@
         }
 
         .zs-section-title {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 800;
-            margin: 8px 0 12px;
+            margin: 6px 0 10px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             background: var(--surface);
-            padding: 8px 16px;
+            padding: 6px 14px;
             border-radius: var(--radius-sm);
-            border-left: 4px solid var(--accent);
+            border-left: 3px solid var(--accent);
         }
 
         /* ===== MATCH SECTIONS ===== */
         .match-section {
             width: 100%;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
         .match-section .section-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             padding: 0 4px;
         }
         .match-section .section-header h3 {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
         }
         .match-section .section-header .badge {
             background: var(--live);
             color: #fff;
-            font-size: 11px;
-            padding: 2px 10px;
-            border-radius: 12px;
+            font-size: 10px;
+            padding: 1px 8px;
+            border-radius: 10px;
             font-weight: 700;
         }
         .match-section .section-header .badge.upcoming {
@@ -695,8 +717,8 @@
         .match-card {
             background: var(--surface);
             border-radius: var(--radius-sm);
-            padding: 12px 14px;
-            margin-bottom: 6px;
+            padding: 10px 12px;
+            margin-bottom: 4px;
             border: 1px solid var(--border);
             cursor: pointer;
             transition: all var(--transition);
@@ -704,31 +726,31 @@
             align-items: center;
             justify-content: space-between;
             flex-wrap: wrap;
-            gap: 6px;
+            gap: 4px;
         }
         .match-card:hover {
             border-color: var(--accent);
-            transform: translateX(4px);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transform: translateX(3px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
         .match-card .match-info {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             flex: 1;
-            min-width: 160px;
+            min-width: 140px;
         }
         .match-card .match-info .teams {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
             font-weight: 600;
-            font-size: 13px;
+            font-size: 12px;
             flex-wrap: wrap;
         }
         .match-card .match-info .teams img {
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
             object-fit: contain;
             background: rgba(255, 255, 255, 0.05);
@@ -736,35 +758,35 @@
         .match-card .match-info .teams .vs {
             color: var(--text-secondary);
             font-weight: 400;
-            font-size: 11px;
+            font-size: 10px;
         }
         .match-card .match-info .league {
-            font-size: 11px;
+            font-size: 10px;
             color: var(--text-secondary);
         }
         .match-card .match-meta {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             flex-wrap: wrap;
         }
         .match-card .match-meta .score {
             font-weight: 700;
-            font-size: 16px;
-            min-width: 40px;
+            font-size: 14px;
+            min-width: 34px;
             text-align: center;
             color: var(--live) !important;
         }
         .match-card .match-meta .time {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-secondary);
             font-weight: 600;
         }
         .match-card .match-meta .status-badge {
-            font-size: 10px;
+            font-size: 9px;
             font-weight: 700;
-            padding: 2px 8px;
-            border-radius: 12px;
+            padding: 1px 6px;
+            border-radius: 10px;
             background: var(--live);
             color: #fff;
         }
@@ -776,39 +798,39 @@
         }
         .match-card .match-meta .stream-icon {
             color: var(--live);
-            font-size: 14px;
+            font-size: 12px;
         }
 
         /* ===== TV ===== */
         .tv-channel-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
             width: 100%;
-            padding: 8px 0;
+            padding: 6px 0;
         }
         .tv-channel-card {
             background: var(--surface);
             border-radius: var(--radius-sm);
             border: 1px solid var(--border);
-            padding: 14px 10px;
+            padding: 12px 8px;
             text-align: center;
             cursor: pointer;
             transition: all var(--transition);
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
         }
         .tv-channel-card:hover {
             border-color: var(--accent);
-            transform: translateY(-4px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
         }
         .tv-channel-card .channel-icon {
-            font-size: 28px;
-            width: 48px;
-            height: 48px;
+            font-size: 24px;
+            width: 42px;
+            height: 42px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -818,15 +840,15 @@
         }
         .tv-channel-card .channel-name {
             font-weight: 700;
-            font-size: 13px;
+            font-size: 12px;
             color: var(--text);
         }
         .tv-channel-card .channel-label {
-            font-size: 10px;
+            font-size: 9px;
             color: var(--text-secondary);
         }
         .tv-channel-card .channel-status {
-            font-size: 10px;
+            font-size: 9px;
             color: var(--live);
             font-weight: 600;
         }
@@ -835,18 +857,18 @@
         api-sports-widget {
             display: block;
             width: 100%;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         /* ===== FOOTER ===== */
         .zs-footer {
             width: 100%;
             text-align: center;
-            padding: 16px 10px;
+            padding: 12px 10px;
             margin-top: auto;
             border-top: 1px solid var(--border);
             color: var(--text-secondary);
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 500;
         }
         .zs-footer span {
@@ -858,31 +880,32 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
-            padding: 30px 16px;
+            gap: 8px;
+            padding: 24px 12px;
             color: var(--text-secondary);
         }
         .loading .spinner {
-            width: 32px;
-            height: 32px;
-            border: 4px solid var(--border);
+            width: 28px;
+            height: 28px;
+            border: 3px solid var(--border);
             border-top-color: var(--accent);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
         .error-msg {
-            padding: 24px;
+            padding: 20px;
             text-align: center;
             color: var(--live);
             background: var(--surface);
             border-radius: var(--radius-sm);
             border: 1px solid var(--border);
+            font-size: 13px;
         }
         .empty-state {
             text-align: center;
-            padding: 24px;
+            padding: 20px;
             color: var(--text-secondary);
-            font-size: 13px;
+            font-size: 12px;
         }
 
         /* ===== MATCH DETAIL ===== */
@@ -898,12 +921,12 @@
         .match-header-aiscore {
             background: var(--surface);
             border-radius: var(--radius);
-            padding: 14px;
-            margin-bottom: 14px;
+            padding: 12px;
+            margin-bottom: 12px;
             border: 1px solid var(--border);
         }
         .match-header-aiscore .league-name {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-secondary);
             margin-bottom: 4px;
         }
@@ -911,29 +934,29 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 8px;
+            gap: 6px;
             flex-wrap: wrap;
         }
         .match-header-aiscore .team-block {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
         .match-header-aiscore .team-block img {
-            width: 28px;
-            height: 28px;
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
             object-fit: contain;
         }
         .match-header-aiscore .team-block .name {
             font-weight: 700;
-            font-size: 14px;
+            font-size: 13px;
         }
         .match-header-aiscore .score-block {
             text-align: center;
         }
         .match-header-aiscore .score-block .score {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 900;
             color: var(--text);
         }
@@ -941,16 +964,16 @@
             color: var(--live) !important;
         }
         .match-header-aiscore .score-block .status {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--live);
             font-weight: 700;
         }
         .match-header-aiscore .score-block .ht-score {
-            font-size: 11px;
+            font-size: 10px;
             color: var(--text-secondary);
         }
         .match-header-aiscore .progress-bar {
-            margin-top: 10px;
+            margin-top: 8px;
             height: 3px;
             background: var(--border);
             border-radius: 2px;
@@ -966,16 +989,16 @@
         .match-header-aiscore .progress-bar .time-label {
             position: absolute;
             right: 0;
-            top: -14px;
-            font-size: 11px;
+            top: -12px;
+            font-size: 10px;
             color: var(--text-secondary);
         }
         .match-meta-info {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 8px;
-            font-size: 12px;
+            gap: 6px;
+            margin-top: 6px;
+            font-size: 11px;
             color: var(--text-secondary);
             justify-content: center;
         }
@@ -989,22 +1012,22 @@
 
         .match-tabs-aiscore {
             position: sticky;
-            top: 70px;
+            top: 60px;
             z-index: 40;
             background: var(--bg);
-            padding: 10px 4px;
+            padding: 8px 4px;
             border-bottom: 1px solid var(--border);
-            border-radius: 0 0 12px 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
             display: flex;
-            gap: 4px;
+            gap: 3px;
             flex-wrap: wrap;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
         @media(max-width:600px) {
             .match-tabs-aiscore {
-                top: 110px;
-                padding: 6px 2px;
+                top: 100px;
+                padding: 4px 2px;
             }
         }
         .match-tabs-aiscore button {
@@ -1012,9 +1035,9 @@
             border: none;
             color: var(--text-secondary);
             font-weight: 600;
-            font-size: 12px;
+            font-size: 11px;
             cursor: pointer;
-            padding: 4px 12px;
+            padding: 3px 10px;
             border-radius: 20px;
             transition: all 0.2s;
             white-space: nowrap;
@@ -1031,7 +1054,7 @@
 
         .match-tab-content-aiscore {
             display: none;
-            padding: 6px 0;
+            padding: 4px 0;
             width: 100%;
         }
         .match-tab-content-aiscore.active {
@@ -1041,7 +1064,7 @@
         .stats-grid-aiscore {
             display: grid;
             grid-template-columns: 1fr auto 1fr;
-            gap: 6px 14px;
+            gap: 4px 10px;
             align-items: center;
             width: 100%;
         }
@@ -1050,10 +1073,10 @@
         }
         .stats-grid-aiscore .stat-label {
             color: var(--text-secondary);
-            font-size: 12px;
+            font-size: 11px;
             text-align: center;
             grid-column: 1/-1;
-            margin-top: 6px;
+            margin-top: 4px;
             font-weight: 600;
         }
         .stats-grid-aiscore .stat-value-home {
@@ -1067,8 +1090,8 @@
             color: var(--text);
         }
         .stats-grid-aiscore .stat-bar {
-            width: 50px;
-            height: 4px;
+            width: 40px;
+            height: 3px;
             background: var(--border);
             border-radius: 2px;
             overflow: hidden;
@@ -1091,31 +1114,31 @@
         .lineup-aiscore {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 16px;
+            gap: 12px;
         }
         .lineup-aiscore .team-lineup {
             background: var(--surface);
             border-radius: var(--radius-sm);
-            padding: 10px;
+            padding: 8px;
             border: 1px solid var(--border);
         }
         .lineup-aiscore .team-lineup .title {
             font-weight: 700;
-            font-size: 14px;
-            margin-bottom: 6px;
+            font-size: 13px;
+            margin-bottom: 4px;
         }
         .lineup-aiscore .team-lineup .player {
             display: flex;
             align-items: center;
-            gap: 6px;
-            padding: 3px 0;
+            gap: 4px;
+            padding: 2px 0;
             border-bottom: 1px solid var(--border);
-            font-size: 12px;
+            font-size: 11px;
         }
         .lineup-aiscore .team-lineup .player .number {
             font-weight: 700;
             color: var(--accent);
-            min-width: 20px;
+            min-width: 18px;
         }
         .lineup-aiscore .team-lineup .player .name {
             flex: 1;
@@ -1124,23 +1147,23 @@
         .events-aiscore {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 3px;
         }
         .events-aiscore .event-row {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 4px 0;
+            gap: 8px;
+            padding: 3px 0;
             border-bottom: 1px solid var(--border);
-            font-size: 13px;
+            font-size: 12px;
         }
         .events-aiscore .event-row .time {
             font-weight: 700;
             color: var(--accent);
-            min-width: 34px;
+            min-width: 30px;
         }
         .events-aiscore .event-row .icon {
-            font-size: 16px;
+            font-size: 14px;
         }
         .events-aiscore .event-row .desc {
             flex: 1;
@@ -1153,14 +1176,14 @@
         .goal-label {
             background: var(--live);
             color: #fff;
-            padding: 1px 6px;
-            border-radius: 4px;
-            font-size: 9px;
+            padding: 0px 5px;
+            border-radius: 3px;
+            font-size: 8px;
             font-weight: 800;
-            margin-left: 4px;
+            margin-left: 3px;
             display: inline-block;
             animation: goal-pulse 1s infinite;
-            box-shadow: 0 0 10px var(--live-glow);
+            box-shadow: 0 0 8px var(--live-glow);
             vertical-align: middle;
         }
         @keyframes goal-pulse {
@@ -1170,7 +1193,7 @@
                 opacity: 1;
             }
             50% {
-                transform: scale(1.1);
+                transform: scale(1.08);
                 opacity: 0.8;
             }
         }
@@ -1178,16 +1201,16 @@
         .h2h-aiscore {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 4px;
         }
         .h2h-aiscore .h2h-row {
             display: flex;
             justify-content: space-between;
-            padding: 4px 0;
+            padding: 3px 0;
             border-bottom: 1px solid var(--border);
-            font-size: 13px;
+            font-size: 12px;
             flex-wrap: wrap;
-            gap: 4px;
+            gap: 3px;
         }
         .h2h-aiscore .h2h-row .teams {
             font-weight: 600;
@@ -1196,7 +1219,7 @@
             font-weight: 700;
         }
         .h2h-aiscore .h2h-row .date {
-            font-size: 11px;
+            font-size: 10px;
             color: var(--text-secondary);
         }
 
@@ -1204,46 +1227,46 @@
             background: var(--surface);
             border-radius: var(--radius-sm);
             border: 1px solid var(--border);
-            padding: 10px;
+            padding: 8px;
         }
         .standings-grid-detail .league-block .league-title {
             font-weight: 700;
-            font-size: 14px;
-            margin-bottom: 8px;
+            font-size: 13px;
+            margin-bottom: 6px;
             color: var(--accent);
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
         }
         .standings-grid-detail .league-block .league-title img {
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             object-fit: contain;
         }
         .standings-grid-detail .league-block table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 12px;
+            font-size: 11px;
         }
         .standings-grid-detail .league-block th {
             text-align: left;
-            padding: 3px 4px;
+            padding: 2px 3px;
             color: var(--text-secondary);
             font-weight: 600;
             border-bottom: 1px solid var(--border);
         }
         .standings-grid-detail .league-block td {
-            padding: 3px 4px;
+            padding: 2px 3px;
             border-bottom: 1px solid var(--border);
         }
         .standings-grid-detail .league-block .team-cell {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
         }
         .standings-grid-detail .league-block .team-cell img {
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
             object-fit: contain;
         }
@@ -1257,15 +1280,15 @@
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 30px;
-            padding: 6px 12px;
+            padding: 4px 10px;
             color: var(--text);
             font-weight: 600;
-            font-size: 12px;
+            font-size: 11px;
             cursor: pointer;
             transition: var(--transition);
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
         }
         .zs-back-btn:hover {
             background: var(--surface-hover);
@@ -1275,18 +1298,18 @@
             width: 100%;
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 6px 0 14px 0;
+            gap: 8px;
+            padding: 4px 0 10px 0;
             justify-content: space-between;
             flex-wrap: wrap;
         }
         .zs-list-header-left {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
         .zs-list-title {
-            font-size: 17px;
+            font-size: 16px;
             font-weight: 800;
         }
 
@@ -1295,8 +1318,8 @@
             .zs-header {
                 flex-direction: column;
                 align-items: stretch;
-                gap: 6px;
-                padding: 8px 12px;
+                gap: 4px;
+                padding: 6px 10px;
             }
             .zs-nav-buttons {
                 justify-content: center;
@@ -1305,7 +1328,7 @@
                 justify-content: center;
             }
             .zs-main {
-                padding: 12px;
+                padding: 10px;
             }
             .match-header-aiscore .match-teams-score {
                 flex-direction: column;
@@ -1316,33 +1339,33 @@
             }
             .stats-grid-aiscore {
                 grid-template-columns: 1fr auto 1fr;
-                gap: 4px;
+                gap: 3px;
             }
             .stats-grid-aiscore .stat-bar {
-                width: 36px;
+                width: 30px;
             }
             .lineup-aiscore {
                 grid-template-columns: 1fr;
             }
             .tv-channel-grid {
-                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+                grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
             }
             #camelOverlay .camel-team span {
-                font-size: 11px;
+                font-size: 10px;
             }
             #camelOverlay .camel-score-box .score {
-                font-size: 18px;
+                font-size: 15px;
             }
             #camelOverlay .camel-team img {
-                width: 20px;
-                height: 20px;
+                width: 18px;
+                height: 18px;
             }
             #camelOverlay .camel-middle .possession .bar {
-                width: 36px;
+                width: 30px;
             }
             #camelOverlay .camel-btn {
-                font-size: 9px;
-                padding: 3px 8px;
+                font-size: 8px;
+                padding: 2px 7px;
             }
             .match-card {
                 flex-direction: column;
@@ -1361,16 +1384,16 @@
         /* ===== TV SEARCH ===== */
         .tv-search-container {
             width: 100%;
-            margin-bottom: 14px;
+            margin-bottom: 10px;
         }
         .tv-search-container .zs-search-section-input-wrap {
-            max-width: 400px;
+            max-width: 350px;
             display: flex;
             align-items: center;
             background: var(--surface-glass);
             border: 1px solid var(--border);
             border-radius: 30px;
-            padding: 4px 14px;
+            padding: 3px 12px;
             transition: var(--transition);
         }
         .tv-search-container .zs-search-section-input-wrap:focus-within {
@@ -1381,37 +1404,37 @@
             background: transparent;
             border: none;
             color: var(--text);
-            font-size: 13px;
+            font-size: 12px;
             outline: none;
             width: 100%;
-            padding: 6px 0;
+            padding: 4px 0;
         }
         .tv-section-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             width: 100%;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 6px;
         }
         .tv-section-header h2 {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 800;
         }
         .tv-refresh-btn {
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 30px;
-            padding: 4px 14px;
+            padding: 3px 12px;
             color: var(--text);
             font-weight: 600;
-            font-size: 12px;
+            font-size: 11px;
             cursor: pointer;
             transition: var(--transition);
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
         }
         .tv-refresh-btn:hover {
             background: var(--surface-hover);
@@ -1424,7 +1447,7 @@
             width: 100%;
             flex-direction: column;
             animation: fadeSlideIn 0.3s ease forwards;
-            min-height: 40vh;
+            min-height: 35vh;
         }
         .zs-search-section-view.visible {
             display: flex;
@@ -1433,8 +1456,8 @@
             display: flex;
             align-items: center;
             width: 100%;
-            margin-bottom: 14px;
-            gap: 10px;
+            margin-bottom: 10px;
+            gap: 8px;
         }
         .zs-search-section-input-wrap {
             flex: 1;
@@ -1443,7 +1466,7 @@
             background: var(--surface-glass);
             border: 1px solid var(--border);
             border-radius: 30px;
-            padding: 4px 14px;
+            padding: 3px 12px;
             transition: var(--transition);
         }
         .zs-search-section-input-wrap:focus-within {
@@ -1454,24 +1477,24 @@
             background: transparent;
             border: none;
             color: var(--text);
-            font-size: 13px;
+            font-size: 12px;
             outline: none;
             width: 100%;
-            padding: 6px 0;
+            padding: 4px 0;
         }
         .zs-search-section-results {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
             width: 100%;
         }
         .zs-search-section-item {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 8px 12px;
+            gap: 8px;
+            padding: 6px 10px;
             background: var(--surface);
-            border-radius: 14px;
+            border-radius: 12px;
             border: 1px solid var(--border);
             cursor: pointer;
             transition: all var(--transition);
@@ -1481,9 +1504,9 @@
             border-color: var(--accent);
         }
         .zs-search-section-item .zs-thumb {
-            width: 38px;
-            height: 38px;
-            border-radius: 8px;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
             object-fit: cover;
             flex-shrink: 0;
             background: rgba(0, 0, 0, 0.3);
@@ -1496,21 +1519,21 @@
         }
         .zs-search-section-item .zs-title {
             font-weight: 700;
-            font-size: 13px;
+            font-size: 12px;
             color: var(--text);
             line-height: 1.2;
         }
         .zs-search-section-item .zs-desc {
-            font-size: 11px;
+            font-size: 10px;
             color: var(--text-secondary);
         }
         .zs-search-section-item .zs-stars {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
             color: var(--accent);
             font-weight: 600;
-            font-size: 11px;
+            font-size: 10px;
         }
         .zs-search-empty-state {
             flex: 1;
@@ -1520,17 +1543,17 @@
             justify-content: center;
             color: var(--text-secondary);
             text-align: center;
-            padding: 30px 0;
+            padding: 24px 0;
         }
         .zs-search-empty-state svg {
-            width: 50px;
-            height: 50px;
+            width: 40px;
+            height: 40px;
             fill: var(--text-secondary);
             opacity: 0.5;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
         .zs-search-empty-state h3 {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             color: var(--text);
         }
@@ -1538,10 +1561,10 @@
         /* ===== MEDIA GRID (Movies & Series) ===== */
         .media-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 10px;
             width: 100%;
-            padding: 8px 0;
+            padding: 6px 0;
         }
         .media-card {
             background: var(--surface);
@@ -1552,9 +1575,9 @@
             transition: all var(--transition);
         }
         .media-card:hover {
-            transform: translateY(-6px);
+            transform: translateY(-4px);
             border-color: var(--accent);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
         }
         .media-card .media-poster {
             width: 100%;
@@ -1563,20 +1586,136 @@
             background: rgba(0, 0, 0, 0.3);
         }
         .media-card .media-info {
-            padding: 8px 10px;
+            padding: 6px 8px;
             text-align: center;
         }
         .media-card .media-title {
             font-weight: 700;
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
         .media-card .media-sub {
+            font-size: 9px;
+            color: var(--text-secondary);
+        }
+
+        /* ===== TRANSFERS ===== */
+        .transfer-card {
+            background: var(--surface);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            padding: 10px 12px;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            transition: var(--transition);
+        }
+        .transfer-card:hover {
+            border-color: var(--accent);
+            background: var(--surface-hover);
+        }
+        .transfer-card .transfer-player {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 120px;
+        }
+        .transfer-card .transfer-player img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: var(--surface-hover);
+            border: 1px solid var(--border);
+        }
+        .transfer-card .transfer-player .name {
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--text);
+        }
+        .transfer-card .transfer-player .detail {
             font-size: 10px;
             color: var(--text-secondary);
+        }
+        .transfer-card .transfer-clubs {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        .transfer-card .transfer-clubs .arrow {
+            color: var(--accent);
+            font-weight: 700;
+        }
+        .transfer-card .transfer-clubs img {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            object-fit: contain;
+        }
+        .transfer-card .transfer-date {
+            font-size: 10px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+        .transfer-card .transfer-flag {
+            font-size: 18px;
+        }
+
+        /* ===== CATEGORY PILLS ===== */
+        .zs-category-pill-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 4px 0;
+        }
+        .zs-category-pill {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--surface);
+            border-radius: 30px;
+            padding: 8px 14px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        .zs-category-pill:hover {
+            background: var(--surface-hover);
+            transform: translateX(3px);
+            border-color: var(--accent);
+        }
+        .zs-category-pill-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            border: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .zs-category-pill-title {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text);
+            flex: 1;
+        }
+        .zs-category-pill-count {
+            color: var(--text-secondary);
+            font-size: 10px;
+            font-weight: 500;
         }
     </style>
 </head>
@@ -1601,9 +1740,9 @@
             <div class="zs-header-actions">
                 <button class="zs-search-btn-main" id="toggleSearchBtnMain">🔍</button>
                 <div class="zs-theme-switch" id="themeSwitch">
-                    <button class="zs-theme-btn zs-active" data-theme="dark">🌙 Dark</button>
-                    <button class="zs-theme-btn" data-theme="light">☀️ Light</button>
-                    <button class="zs-theme-btn" data-theme="legendary">👑 Legendary</button>
+                    <button class="zs-theme-btn zs-active" data-theme="dark">🌙</button>
+                    <button class="zs-theme-btn" data-theme="light">☀️</button>
+                    <button class="zs-theme-btn" data-theme="legendary">👑</button>
                 </div>
             </div>
         </header>
@@ -1615,18 +1754,24 @@
                 <div class="zs-player-wrapper" id="zsPlayerWrapper">
                     <div class="zs-video-container" id="zsVideoContainer">
                         <video id="zsVideo" playsinline></video>
-                        <div class="zs-live-badge" id="zsLiveBadge"><span>🔴</span> LIVE</div>
+
+                        <!-- Live Badge with blinking dot -->
+                        <div class="zs-live-badge" id="zsLiveBadge">
+                            <span class="zs-live-dot"></span>
+                            <span>LIVE</span>
+                        </div>
+
                         <div class="zs-loading" id="zsLoading"><div class="zs-spinner"></div></div>
                         <div class="zs-error-overlay" id="zsErrorOverlay">
-                            <div style="text-align:center;line-height:1.8;">⚠️ Unable to play stream.<br /><span style="font-size:11px;color:#bbb;">If you're on mobile, try Firefox.</span></div>
-                            <button id="zsErrorRetry" class="zs-btn" style="margin-top:8px;background:var(--accent);color:#000;border-radius:5px;padding:4px 14px;width:auto;height:auto;">Retry</button>
+                            <div style="text-align:center;line-height:1.6;font-size:13px;">⚠️ Unable to play stream.<br /><span style="font-size:10px;color:#bbb;">Try opening in Firefox.</span></div>
+                            <button id="zsErrorRetry" class="zs-btn" style="margin-top:6px;background:var(--accent);color:#000;border-radius:4px;padding:3px 12px;width:auto;height:auto;font-size:12px;">Retry</button>
                         </div>
                         <div class="zs-start-overlay" id="zsStartOverlay">
                             <button class="zs-start-play-btn" id="zsStartPlayBtn">▶</button>
-                            <div style="color:var(--text-secondary);font-size:12px;margin-top:6px;">Select a match, movie, series or TV channel</div>
+                            <div class="hint">Select a match, movie, series or TV channel</div>
                         </div>
 
-                        <!-- Camel Overlay -->
+                        <!-- Camel Overlay - refined & small -->
                         <div id="camelOverlay">
                             <div class="camel-top">
                                 <div class="camel-team">
@@ -1643,15 +1788,15 @@
                                 </div>
                             </div>
                             <div class="camel-middle">
-                                <span class="time" id="camelTime">2nd Half 54:36</span>
+                                <span class="time" id="camelTime">1st Half 2'</span>
                                 <span class="divider"></span>
                                 <div class="possession">
                                     <span class="label">Possession</span>
                                     <div class="bar">
-                                        <div class="home" id="camelPossessionHome" style="width:60%;"></div>
-                                        <div class="away" id="camelPossessionAway" style="width:40%;"></div>
+                                        <div class="home" id="camelPossessionHome" style="width:50%;"></div>
+                                        <div class="away" id="camelPossessionAway" style="width:50%;"></div>
                                     </div>
-                                    <span class="text" id="camelPossessionText">60% - 40%</span>
+                                    <span class="text" id="camelPossessionText">50% - 50%</span>
                                 </div>
                             </div>
                             <div class="camel-bottom">
@@ -1682,21 +1827,21 @@
             <div class="zs-banner-container" id="bannerContainer">
                 <div class="zs-banner-slide">
                     <div class="zs-banner-text"><div class="zs-banner-title">⚽ Live Matches</div><div class="zs-banner-sub">Watch all matches directly</div></div>
-                    <button class="zs-banner-btn" data-action="home">View Matches</button>
+                    <button class="zs-banner-btn" data-action="home">View</button>
                 </div>
                 <div class="zs-banner-slide" style="background:linear-gradient(135deg,#1a1b41,#4a55a2);">
                     <div class="zs-banner-text"><div class="zs-banner-title">📡 TV Channels</div><div class="zs-banner-sub">Watch live TV streams</div></div>
-                    <button class="zs-banner-btn" data-action="tv">Go to TV</button>
+                    <button class="zs-banner-btn" data-action="tv">TV</button>
                 </div>
                 <div class="zs-banner-slide" style="background:linear-gradient(135deg,#3b1f2b,#9c3a5a);">
                     <div class="zs-banner-text"><div class="zs-banner-title">📺 Premium Series</div><div class="zs-banner-sub">Watch trending series</div></div>
-                    <button class="zs-banner-btn" data-action="series">Watch Now</button>
+                    <button class="zs-banner-btn" data-action="series">Series</button>
                 </div>
             </div>
 
             <!-- ===== HOME TAB ===== -->
             <div class="zs-tab-content active" id="tab-home">
-                <div class="zs-section-title">⚽ Today's Matches <span id="streamCount" style="font-size:14px;color:var(--text-secondary);font-weight:600;"></span></div>
+                <div class="zs-section-title">⚽ Today's Matches <span id="streamCount" style="font-size:13px;color:var(--text-secondary);font-weight:600;"></span></div>
 
                 <!-- Live -->
                 <div class="match-section" id="liveMatchesSection">
@@ -1717,7 +1862,7 @@
                 </div>
 
                 <!-- Widget -->
-                <div style="margin-top:8px;width:100%;">
+                <div style="margin-top:6px;width:100%;">
                     <api-sports-widget
                         data-type="games"
                         data-tab="all"
@@ -1735,7 +1880,7 @@
             <!-- ===== LIVESCORE ===== -->
             <div class="zs-tab-content" id="tab-livescore">
                 <div class="zs-section-title">📊 Livescore</div>
-                <div style="margin-top:8px;width:100%;">
+                <div style="margin-top:6px;width:100%;">
                     <api-sports-widget
                         data-type="games"
                         data-tab="all"
@@ -1842,6 +1987,10 @@
             const API_SPORTS_KEY = 'e227ff90ed4eacc3eacb07eca05ce78b';
             const MOVIE_API = 'https://admin.golive-pro.online/api/content/movies?limit=30';
             const SERIES_API = 'https://admin.golive-pro.online/api/content/series?limit=30';
+            const MOVIE_CATEGORIES_URL = WORKER_URL + '?url=' + encodeURIComponent(
+                'https://admin.golive-pro.online/api/content/movie-categories');
+            const SERIES_CATEGORIES_URL = WORKER_URL + '?url=' + encodeURIComponent(
+                'https://admin.golive-pro.online/api/content/series-categories');
 
             // ==================== STATE ====================
             let allMatches = [];
@@ -1849,6 +1998,10 @@
             let hls = null;
             let currentStreamUrl = '';
             let currentFixtureData = null;
+            let movieCategories = [];
+            let seriesCategories = [];
+            let currentMovieCategoryId = null;
+            let currentSeriesCategoryId = null;
 
             // ==================== DOM REFS ====================
             const video = document.getElementById('zsVideo');
@@ -1912,13 +2065,9 @@
 
             // ==================== PLAYER ====================
             function showLoading() { loadingEl.classList.add('zs-visible'); }
-
             function hideLoading() { loadingEl.classList.remove('zs-visible'); }
-
             function showError() { errorOverlay.classList.add('zs-visible'); }
-
             function hideError() { errorOverlay.classList.remove('zs-visible'); }
-
             function setLiveMode(live) { liveBadge.classList.toggle('zs-visible', live); }
 
             function formatTime(s) {
@@ -2113,7 +2262,7 @@
                 } catch (error) {
                     console.error('❌ Failed to load matches:', error);
                     const errHtml =
-                        `<div class="error-msg">⚠️ Failed to load matches: ${error.message}<br><button onclick="fetchGoliveMatches()" style="background:var(--accent);border:none;color:#fff;padding:6px 18px;border-radius:6px;cursor:pointer;margin-top:8px;">Retry</button></div>`;
+                        `<div class="error-msg">⚠️ Failed to load matches: ${error.message}<br><button onclick="fetchGoliveMatches()" style="background:var(--accent);border:none;color:#fff;padding:5px 16px;border-radius:5px;cursor:pointer;margin-top:6px;">Retry</button></div>`;
                     liveContainer.innerHTML = errHtml;
                     upcomingContainer.innerHTML = errHtml;
                     finishedContainer.innerHTML = errHtml;
@@ -2129,7 +2278,7 @@
 
                 matches.forEach(m => {
                     const start = new Date(m.startTime);
-                    const end = new Date(start.getTime() + 2 * 60 * 60 * 1000); // assume 2h match
+                    const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
 
                     if (now >= start && now <= end) {
                         live.push({ ...m, isLive: true });
@@ -2337,7 +2486,6 @@
                 });
             }
 
-            // TV search
             tvSearchInput.addEventListener('input', (e) => {
                 const query = e.target.value.trim().toLowerCase();
                 if (!query) {
@@ -2356,18 +2504,46 @@
                 fetchGoliveMatches();
             });
 
-            // ==================== MOVIES (Fixed) ====================
+            // ==================== MOVIES (working code) ====================
             async function loadMovies() {
                 moviesContainer.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading movies...</div></div>';
                 try {
-                    // Use the same worker but with proper URL encoding
-                    const url = WORKER_URL + '?url=' + encodeURIComponent(MOVIE_API);
-                    const resp = await fetch(url);
+                    // First load categories
+                    const catResp = await fetch(MOVIE_CATEGORIES_URL);
+                    const catData = await catResp.json();
+                    if (Array.isArray(catData) && catData.length > 0) {
+                        movieCategories = catData;
+                        // Load first category
+                        const firstCat = movieCategories[0];
+                        currentMovieCategoryId = firstCat.id;
+                        await loadMoviesFromCategory(firstCat.id);
+                    } else {
+                        // Fallback: try to load directly without category
+                        await loadMoviesFromCategory('all');
+                    }
+                } catch (e) {
+                    console.warn('Movie categories failed, trying direct load:', e);
+                    try {
+                        await loadMoviesFromCategory('all');
+                    } catch (e2) {
+                        moviesContainer.innerHTML =
+                            `<div class="error-msg">Failed to load movies: ${e2.message}</div>`;
+                    }
+                }
+            }
+
+            async function loadMoviesFromCategory(categoryId) {
+                try {
+                    let url = MOVIE_API;
+                    if (categoryId && categoryId !== 'all') {
+                        url = MOVIE_API + '&categoryId=' + categoryId;
+                    }
+                    const fullUrl = WORKER_URL + '?url=' + encodeURIComponent(url);
+                    const resp = await fetch(fullUrl);
                     if (!resp.ok) throw new Error('HTTP ' + resp.status);
                     const data = await resp.json();
 
-                    // The API returns data.data array
-                    if (data && data.data && Array.isArray(data.data) && data.data.length > 0) {
+                    if (data.data && Array.isArray(data.data) && data.data.length > 0) {
                         let html = '<div class="media-grid">';
                         data.data.forEach(m => {
                             const poster = (m.posterUrl || '').replace('http:', 'https:');
@@ -2400,27 +2576,53 @@
                             });
                         });
                     } else {
-                        // Fallback: try to load from alternative endpoint or show sample
                         moviesContainer.innerHTML =
-                            '<div class="empty-state">No movies available right now. Please try again later.</div>';
+                            '<div class="empty-state">No movies available. Please try again later.</div>';
                     }
                 } catch (e) {
                     console.error('Movies error:', e);
                     moviesContainer.innerHTML =
-                        `<div class="error-msg">Failed to load movies: ${e.message}. Please refresh or try again later.</div>`;
+                        `<div class="error-msg">Failed to load movies: ${e.message}</div>`;
                 }
             }
 
-            // ==================== SERIES (Fixed) ====================
+            // ==================== SERIES (working code) ====================
             async function loadSeries() {
                 seriesContainer.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading series...</div></div>';
                 try {
-                    const url = WORKER_URL + '?url=' + encodeURIComponent(SERIES_API);
-                    const resp = await fetch(url);
+                    const catResp = await fetch(SERIES_CATEGORIES_URL);
+                    const catData = await catResp.json();
+                    if (Array.isArray(catData) && catData.length > 0) {
+                        seriesCategories = catData;
+                        const firstCat = seriesCategories[0];
+                        currentSeriesCategoryId = firstCat.id;
+                        await loadSeriesFromCategory(firstCat.id);
+                    } else {
+                        await loadSeriesFromCategory('all');
+                    }
+                } catch (e) {
+                    console.warn('Series categories failed, trying direct load:', e);
+                    try {
+                        await loadSeriesFromCategory('all');
+                    } catch (e2) {
+                        seriesContainer.innerHTML =
+                            `<div class="error-msg">Failed to load series: ${e2.message}</div>`;
+                    }
+                }
+            }
+
+            async function loadSeriesFromCategory(categoryId) {
+                try {
+                    let url = SERIES_API;
+                    if (categoryId && categoryId !== 'all') {
+                        url = SERIES_API + '&categoryId=' + categoryId;
+                    }
+                    const fullUrl = WORKER_URL + '?url=' + encodeURIComponent(url);
+                    const resp = await fetch(fullUrl);
                     if (!resp.ok) throw new Error('HTTP ' + resp.status);
                     const data = await resp.json();
 
-                    if (data && data.data && Array.isArray(data.data) && data.data.length > 0) {
+                    if (data.data && Array.isArray(data.data) && data.data.length > 0) {
                         let html = '<div class="media-grid">';
                         data.data.forEach(s => {
                             const poster = (s.posterUrl || '').replace('http:', 'https:');
@@ -2454,12 +2656,12 @@
                         });
                     } else {
                         seriesContainer.innerHTML =
-                            '<div class="empty-state">No series available right now. Please try again later.</div>';
+                            '<div class="empty-state">No series available. Please try again later.</div>';
                     }
                 } catch (e) {
                     console.error('Series error:', e);
                     seriesContainer.innerHTML =
-                        `<div class="error-msg">Failed to load series: ${e.message}. Please refresh or try again later.</div>`;
+                        `<div class="error-msg">Failed to load series: ${e.message}</div>`;
                 }
             }
 
@@ -2475,7 +2677,7 @@
                     { id: 61, name: 'Ligue 1', country: 'France', season: 2026 },
                 ];
                 try {
-                    let html = '<div class="standings-grid-detail" style="display:grid;gap:16px;grid-template-columns:1fr;">';
+                    let html = '<div class="standings-grid-detail" style="display:grid;gap:12px;grid-template-columns:1fr;">';
                     for (const league of leagues) {
                         try {
                             const resp = await fetch(
@@ -2518,15 +2720,14 @@
                 }
             }
 
-            // ==================== TRANSFERS (Multi-Team) ====================
+            // ==================== TRANSFERS (with player photo & flag) ====================
             async function fetchTransfers() {
                 transfersContainer.innerHTML =
                     '<div class="loading"><div class="spinner"></div><div>Loading transfers...</div></div>';
-                // List of top teams (IDs) - Real Madrid, Barcelona, Bayern, Man City, Liverpool, PSG, etc.
+                // Top teams from major leagues
                 const teamIds = [541, 529, 157, 50, 40, 85, 33, 42, 58, 44, 52, 55, 31, 41, 47, 49, 34, 35, 36, 37];
                 try {
                     let allTransfers = [];
-                    // We'll fetch transfers for each team and merge, then sort by date (newest first)
                     const fetchPromises = teamIds.map(async (id) => {
                         try {
                             const resp = await fetch(
@@ -2536,36 +2737,43 @@
                                 });
                             const data = await resp.json();
                             if (data.response && data.response.length > 0) {
-                                // Each response has a team and transfers array
                                 data.response.forEach(item => {
-                                    const player = item.player?.name || 'Unknown';
+                                    const player = item.player || {};
                                     const transfersList = item.transfers || [];
                                     transfersList.forEach(t => {
+                                        // Get nationality flag
+                                        const nationality = player.nationality || '';
+                                        const flagEmoji = nationality ? getFlagEmoji(
+                                            nationality) : '🌍';
                                         allTransfers.push({
-                                            player: player,
+                                            playerName: player.name || 'Unknown',
+                                            playerPhoto: player.photo || '',
+                                            playerPosition: player.position || '',
+                                            nationality: nationality,
+                                            flag: flagEmoji,
                                             from: t.teams?.out?.name || '?',
+                                            fromLogo: t.teams?.out?.logo || '',
                                             to: t.teams?.in?.name || '?',
+                                            toLogo: t.teams?.in?.logo || '',
                                             date: t.date || '',
-                                            type: t.type || 'Transfer',
-                                            teamLogo: item.team?.logo || ''
+                                            type: t.type || 'Transfer'
                                         });
                                     });
                                 });
                             }
-                        } catch (e) { /* ignore errors for individual teams */ }
+                        } catch (e) { /* ignore */ }
                     });
 
                     await Promise.all(fetchPromises);
 
-                    // Sort by date descending (newest first)
+                    // Sort by date descending
                     allTransfers.sort((a, b) => {
                         if (!a.date) return 1;
                         if (!b.date) return -1;
                         return new Date(b.date) - new Date(a.date);
                     });
 
-                    // Take top 15 most recent
-                    const recent = allTransfers.slice(0, 15);
+                    const recent = allTransfers.slice(0, 20);
 
                     if (recent.length === 0) {
                         transfersContainer.innerHTML = '<div class="empty-state">No recent transfers available</div>';
@@ -2574,22 +2782,90 @@
 
                     let html = '';
                     recent.forEach(t => {
+                        const playerPhoto = t.playerPhoto || '';
+                        const flag = t.flag || '🌍';
+                        const fromLogo = t.fromLogo || '';
+                        const toLogo = t.toLogo || '';
+                        const dateStr = t.date ? new Date(t.date).toLocaleDateString() : '';
                         html += `
-                            <div class="match-card" style="justify-content:flex-start;gap:8px;">
-                                <span>${t.from} → ${t.to}</span>
-                                <span style="font-weight:700;color:var(--accent);">${t.player}</span>
-                                <span style="font-size:11px;color:var(--text-secondary);">${t.type} · ${t.date ? new Date(t.date).toLocaleDateString() : ''}</span>
+                            <div class="transfer-card">
+                                <div class="transfer-player">
+                                    ${playerPhoto ? `<img src="${playerPhoto}" onerror="this.style.display='none'">` : `<div style="width:32px;height:32px;border-radius:50%;background:var(--surface-hover);display:flex;align-items:center;justify-content:center;font-size:16px;">${flag}</div>`}
+                                    <div>
+                                        <div class="name">${t.playerName}</div>
+                                        <div class="detail">${t.playerPosition || ''} ${flag}</div>
+                                    </div>
+                                </div>
+                                <div class="transfer-clubs">
+                                    ${fromLogo ? `<img src="${fromLogo}" onerror="this.style.display='none'">` : ''}
+                                    <span>${t.from}</span>
+                                    <span class="arrow">→</span>
+                                    ${toLogo ? `<img src="${toLogo}" onerror="this.style.display='none'">` : ''}
+                                    <span>${t.to}</span>
+                                </div>
+                                <div class="transfer-date">${t.type} · ${dateStr}</div>
                             </div>
                         `;
                     });
-                    transfersContainer.innerHTML = html ||
-                        '<div class="empty-state">No transfers available</div>';
+                    transfersContainer.innerHTML = html;
 
                 } catch (e) {
                     console.error('Transfers error:', e);
                     transfersContainer.innerHTML =
                     '<div class="error-msg">Failed to load transfers</div>';
                 }
+            }
+
+            // Helper: get flag emoji from country name
+            function getFlagEmoji(country) {
+                const flags = {
+                    'England': '🇬🇧',
+                    'Spain': '🇪🇸',
+                    'Germany': '🇩🇪',
+                    'Italy': '🇮🇹',
+                    'France': '🇫🇷',
+                    'Brazil': '🇧🇷',
+                    'Argentina': '🇦🇷',
+                    'Portugal': '🇵🇹',
+                    'Netherlands': '🇳🇱',
+                    'Belgium': '🇧🇪',
+                    'Croatia': '🇭🇷',
+                    'Serbia': '🇷🇸',
+                    'Switzerland': '🇨🇭',
+                    'Sweden': '🇸🇪',
+                    'Denmark': '🇩🇰',
+                    'Norway': '🇳🇴',
+                    'Poland': '🇵🇱',
+                    'Ukraine': '🇺🇦',
+                    'Russia': '🇷🇺',
+                    'Turkey': '🇹🇷',
+                    'Greece': '🇬🇷',
+                    'Egypt': '🇪🇬',
+                    'Morocco': '🇲🇦',
+                    'Algeria': '🇩🇿',
+                    'Tunisia': '🇹🇳',
+                    'Senegal': '🇸🇳',
+                    'Nigeria': '🇳🇬',
+                    'Ghana': '🇬🇭',
+                    'Cameroon': '🇨🇲',
+                    'Colombia': '🇨🇴',
+                    'Uruguay': '🇺🇾',
+                    'Chile': '🇨🇱',
+                    'Mexico': '🇲🇽',
+                    'USA': '🇺🇸',
+                    'Canada': '🇨🇦',
+                    'Australia': '🇦🇺',
+                    'Japan': '🇯🇵',
+                    'South Korea': '🇰🇷',
+                    'Saudi Arabia': '🇸🇦',
+                    'Qatar': '🇶🇦',
+                    'UAE': '🇦🇪',
+                };
+                // Try exact match or partial match
+                for (const [key, emoji] of Object.entries(flags)) {
+                    if (country.includes(key) || key.includes(country)) return emoji;
+                }
+                return '🌍';
             }
 
             // ==================== MATCH DETAIL ====================
@@ -2714,7 +2990,7 @@
 
                 let overviewHtml =
                     `
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px 0;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:6px 0;">
                         <div><strong>🏟️ Venue:</strong> ${venue}</div>
                         <div><strong>👨‍⚖️ Referee:</strong> ${referee}</div>
                         <div><strong>📅 Date:</strong> ${date}</div>
@@ -2757,7 +3033,7 @@
                         items += `
                             <div class="stat-item">
                                 <div class="stat-value-home">${hv}</div>
-                                <div style="display:flex;flex-direction:column;align-items:center;width:50px;">
+                                <div style="display:flex;flex-direction:column;align-items:center;width:40px;">
                                     <div class="stat-bar"><div class="fill-home" style="width:${hp}%;"></div><div class="fill-away" style="width:${ap}%;"></div></div>
                                 </div>
                                 <div class="stat-value-away">${av}</div>
@@ -2779,10 +3055,10 @@
                     const ap = al?.players || [];
                     lineupsHtml = `
                         <div class="lineup-aiscore">
-                            <div class="team-lineup"><div class="title">${homeLogo ? `<img src="${homeLogo}" style="width:20px;height:20px;vertical-align:middle;">` : ''} ${home}</div>
+                            <div class="team-lineup"><div class="title">${homeLogo ? `<img src="${homeLogo}" style="width:18px;height:18px;vertical-align:middle;">` : ''} ${home}</div>
                                 ${hp.length > 0 ? hp.slice(0, 11).map(p => `<div class="player"><span class="number">${p.number || ''}</span><span class="name">${p.name || ''}</span></div>`).join('') : '<div class="empty-state">No lineup</div>'}
                             </div>
-                            <div class="team-lineup"><div class="title">${awayLogo ? `<img src="${awayLogo}" style="width:20px;height:20px;vertical-align:middle;">` : ''} ${away}</div>
+                            <div class="team-lineup"><div class="title">${awayLogo ? `<img src="${awayLogo}" style="width:18px;height:18px;vertical-align:middle;">` : ''} ${away}</div>
                                 ${ap.length > 0 ? ap.slice(0, 11).map(p => `<div class="player"><span class="number">${p.number || ''}</span><span class="name">${p.name || ''}</span></div>`).join('') : '<div class="empty-state">No lineup</div>'}
                             </div>
                         </div>
@@ -2901,7 +3177,6 @@
 
                 let results = [];
 
-                // Matches
                 allMatches.forEach(m => {
                     const home = m.homeName || '';
                     const away = m.awayName || '';
@@ -2919,7 +3194,6 @@
                     }
                 });
 
-                // TV
                 tvChannels.forEach(ch => {
                     if (ch.name.toLowerCase().includes(query) || ch.league.toLowerCase().includes(query)) {
                         results.push({
@@ -2934,7 +3208,7 @@
 
                 if (results.length === 0) {
                     globalSearchResults.innerHTML =
-                        `<div style="text-align:center;padding:30px;color:var(--text-secondary);">No results for "${query}"</div>`;
+                        `<div style="text-align:center;padding:24px;color:var(--text-secondary);">No results for "${query}"</div>`;
                     return;
                 }
 
@@ -2942,12 +3216,12 @@
                 results.slice(0, 20).forEach(item => {
                     html += `
                         <div class="zs-search-section-item" data-url="${item.url || ''}">
-                            <div style="font-size:24px;width:40px;text-align:center;">${item.icon}</div>
+                            <div style="font-size:20px;width:32px;text-align:center;">${item.icon}</div>
                             <div class="zs-info">
                                 <div class="zs-title">${item.title}</div>
                                 <div class="zs-desc">${item.subtitle || ''}</div>
                             </div>
-                            ${item.url ? '<div style="font-size:12px;color:var(--live);">▶ Play</div>' : ''}
+                            ${item.url ? '<div style="font-size:11px;color:var(--live);">▶ Play</div>' : ''}
                         </div>
                     `;
                 });
