@@ -108,36 +108,29 @@
             }
         }
 
-        async function fetchNews() {
-            const loader = document.getElementById('loader');
-            const errorMsg = document.getElementById('errorMessage');
-            const container = document.getElementById('newsContainer');
+     async function fetchNews() {
+    const loader = document.getElementById('loader');
+    const errorMsg = document.getElementById('errorMessage');
+    const container = document.getElementById('newsContainer');
 
-            loader.style.display = 'block';
-            errorMsg.style.display = 'none';
-            container.innerHTML = '';
+    loader.style.display = 'block';
+    errorMsg.style.display = 'none';
+    container.innerHTML = '';
 
-            try {
-                const response = await fetch(FINAL_URL, {
-                    headers: {
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error ${response.status}`);
-                }
-
-                const data = await response.json();
-                renderNews(data.data);
-            } catch (error) {
-                console.error('فشل الجلب:', error);
-                errorMsg.style.display = 'block';
-            } finally {
-                loader.style.display = 'none';
-            }
+    try {
+        const response = await fetch(FINAL_URL); // بدون ترويسات
+        if (!response.ok) {
+            throw new Error(`HTTP error ${response.status}`);
         }
+        const data = await response.json();
+        renderNews(data.data);
+    } catch (error) {
+        console.error('فشل الجلب:', error);
+        errorMsg.style.display = 'block';
+    } finally {
+        loader.style.display = 'none';
+    }
+}
 
         document.addEventListener('DOMContentLoaded', fetchNews);
     </script>
