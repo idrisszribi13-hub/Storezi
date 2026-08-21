@@ -1230,7 +1230,6 @@
             color: var(--text-secondary);
         }
 
-        /* ===== STANDINGS (General) ===== */
         .standings-grid-detail .league-block {
             background: var(--surface);
             border-radius: var(--radius-sm);
@@ -2256,7 +2255,7 @@
                 </div>
             </div>
 
-            <!-- ===== STANDINGS (General - includes all leagues with standings) ===== -->
+            <!-- ===== STANDINGS ===== -->
             <div class="zs-tab-content" id="tab-standings">
                 <div class="zs-section-title">🏆 Standings</div>
                 <div id="standingsContainer"><div class="loading"><div class="spinner"></div><div>Loading leagues...</div></div></div>
@@ -2377,12 +2376,16 @@
             const GOLIVE_API = 'https://admin.golive-pro.online/api/public/events?tz=1';
             const API_SPORTS_KEY = 'e227ff90ed4eacc3eacb07eca05ce78b';
 
-            // YSScores API
+            // ==================== SUPABASE PROXY (لحل CORS) ====================
+            const SUPABASE_PROXY_URL = 'https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/proxy';
+            const SUPABASE_ANON_KEY = 'sb_publishable_1uSIqgNONAV53GjOoBoZUw_niAGJXO6';
+
+            // YSScores APIs
             const YS_BASE = 'https://api-en.ysscores.com/api/';
             const YS_NEWS = 'https://news-en.ysscores.com/api/';
             const YS_IMG = 'https://imgs.ysscores.com/';
 
-            // Movie & Series (using direct URLs via worker)
+            // Movie & Series
             const MOVIE_API = 'https://admin.golive-pro.online/api/content/movies?limit=30';
             const SERIES_API = 'https://admin.golive-pro.online/api/content/series?limit=30';
 
@@ -2912,7 +2915,17 @@
                 fetchGoliveMatches();
             });
 
-            // ==================== YS SCORES API HELPER ====================
+            // ==================== SUPABASE PROXY HELPER ====================
+            // استخدام Supabase Proxy لحل CORS لـ YSScores API (الأخبار واللاعبين)
+            async function fetchViaProxy(targetUrl) {
+                const proxyUrl = SUPABASE_PROXY_URL + '?url=' + encodeURIComponent(targetUrl);
+                const response = await fetch(proxyUrl);
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                return response.json();
+            }
+
+            // ==================== YS SCORES API HELPER (للترتيب والتحويلات) ====================
+            // لا تزال تستخدم الـ Worker القديم لأن Supabase Proxy قد لا يعمل معها
             async function fetchYS(endpoint, base = YS_BASE) {
                 const url = WORKER_URL + '?url=' + encodeURIComponent(base + endpoint);
                 const resp = await fetch(url);
@@ -2940,7 +2953,7 @@
                 return code.split('').map(c => String.fromCodePoint(0x1F1E6 - 65 + c.charCodeAt(0))).join('');
             }
 
-            // ==================== STANDINGS (All leagues with standings) ====================
+            // ==================== STANDINGS ====================
             async function loadStandings() {
                 standingsContainer.innerHTML =
                 '<div class="loading"><div class="spinner"></div><div>Loading leagues...</div></div>';
@@ -2959,7 +2972,6 @@
                     return;
                 }
 
-                // Filter only leagues with standings = 1 (true)
                 const leaguesWithStandings = leagues.filter(l => l.standings === 1);
 
                 if (leaguesWithStandings.length === 0) {
@@ -3148,20 +3160,25 @@
                 });
             }
 
-            // ==================== NEWS ====================
+            // ==================== NEWS (باستخدام Supabase Proxy) ====================
             async function loadNews(page = 1) {
                 newsContainer.innerHTML =
                     '<div class="loading"><div class="spinner"></div><div>Loading news...</div></div>';
                 try {
+                    // جلب الأخبار الرئيسية
                     let featuredData = null;
                     try {
-                        const featuredResp = await fetchYS('News/all_news_page/%5B%5D', YS_NEWS);
+                        const featuredUrl = YS_NEWS + 'News/all_news_page/%5B%5D';
+                        const featuredResp = await fetchViaProxy(featuredUrl);
                         if (featuredResp.status) {
                             featuredData = featuredResp.data;
                         }
-                    } catch (e) {}
+                    } catch (e) { console.warn('Featured news error:', e); }
 
-                    const data = await fetchYS(`News/latest_news/%5B%5D?page=${page}`, YS_NEWS);
+                    // جلب آخر الأخبار
+                    const newsUrl = YS_NEWS + `News/latest_news/%5B%5D?page=${page}`;
+                    const data = await fetchViaProxy(newsUrl);
+
                     if (!data.status) throw new Error('Failed to load news');
 
                     newsPage = data.data.current_page || page;
@@ -3252,13 +3269,14 @@
                 });
             }
 
-            // ==================== NEWS DETAIL ====================
+            // ==================== NEWS DETAIL (باستخدام Supabase Proxy) ====================
             async function showNewsDetail(newsId) {
                 newsDetailOverlay.classList.add('visible');
                 newsDetailContent.innerHTML =
                     '<div class="loading"><div class="spinner"></div><div>Loading...</div></div>';
                 try {
-                    const data = await fetchYS(`News/news_detail/${newsId}`, YS_NEWS);
+                    const url = YS_NEWS + `News/news_detail/${newsId}`;
+                    const data = await fetchViaProxy(url);
                     if (!data.status) throw new Error('Failed to load news detail');
                     const item = data.data;
                     const imgUrl = item.image ? getImageUrl(item.image, 'news') : '';
@@ -3275,14 +3293,15 @@
                 }
             }
 
-            // ==================== PLAYER DETAIL ====================
+            // ==================== PLAYER DETAIL (باستخدام Supabase Proxy) ====================
             async function showPlayerDetail(playerId) {
                 if (!playerId) return;
                 playerDetailOverlay.classList.add('visible');
                 playerDetailContent.innerHTML =
                     '<div class="loading"><div class="spinner"></div><div>Loading player...</div></div>';
                 try {
-                    const data = await fetchYS(`info/player_info/${playerId}/L/60`);
+                    const url = YS_BASE + `info/player_info/${playerId}/L/60`;
+                    const data = await fetchViaProxy(url);
                     if (!data.status) throw new Error('Failed to load player');
                     const player = data.data;
                     const imgUrl = player.image ? getImageUrl(player.image, 'player', '80') :
@@ -3459,7 +3478,7 @@
 
                     let newsHtml = '<div class="empty-state">No news</div>';
                     try {
-                        const nData = await fetchYS(`News/news_team/${teamId}?page=1`, YS_NEWS);
+                        const nData = await fetchViaProxy(YS_NEWS + `News/news_team/${teamId}?page=1`);
                         if (nData.status && nData.data && nData.data.length > 0) {
                             let nHtml = '<div class="team-news-list">';
                             nData.data.slice(0, 6).forEach(item => {
@@ -3545,11 +3564,10 @@
                 }
             }
 
-            // ==================== MOVIES (Fixed) ====================
+            // ==================== MOVIES ====================
             async function loadMovies() {
                 moviesContainer.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading movies...</div></div>';
                 try {
-                    // Try using the worker with a different approach
                     const url = WORKER_URL + '?url=' + encodeURIComponent(MOVIE_API);
                     const resp = await fetch(url);
                     if (!resp.ok) throw new Error('HTTP ' + resp.status);
@@ -3594,7 +3612,7 @@
                 }
             }
 
-            // ==================== SERIES (Fixed) ====================
+            // ==================== SERIES ====================
             async function loadSeries() {
                 seriesContainer.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading series...</div></div>';
                 try {
