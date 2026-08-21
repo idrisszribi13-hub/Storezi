@@ -1670,7 +1670,7 @@
             font-size: 18px;
         }
 
-        /* ===== CATEGORY PILLS (not used but kept for compatibility) ===== */
+        /* ===== CATEGORY PILLS ===== */
         .zs-category-pill-container {
             width: 100%;
             display: flex;
@@ -1986,9 +1986,22 @@
             const GOLIVE_API = 'https://admin.golive-pro.online/api/public/events?tz=1';
             const API_SPORTS_KEY = 'e227ff90ed4eacc3eacb07eca05ce78b';
 
-            // Movie & Series API (simple direct fetch through worker)
-            const MOVIES_API = 'https://admin.golive-pro.online/api/content/movies?limit=30';
-            const SERIES_API = 'https://admin.golive-pro.online/api/content/series?limit=30';
+            // Movie & Series API endpoints (old working code)
+            const MOVIE_CATEGORIES_URL = WORKER_URL + '?url=' + encodeURIComponent(
+                'https://admin.golive-pro.online/api/content/movie-categories');
+            const MOVIES_BASE_URL = 'https://admin.golive-pro.online/api/content/movies?limit=20&categoryId=';
+            const SERIES_CATEGORIES_URL = WORKER_URL + '?url=' + encodeURIComponent(
+                'https://admin.golive-pro.online/api/content/series-categories');
+            const SERIES_BASE_URL = 'https://admin.golive-pro.online/api/content/series?limit=50&categoryId=';
+            const SERIES_EPISODES_URL = 'https://admin.golive-pro.online/api/content/series/';
+
+            const fallbackSeriesCategories = [
+                { id: "dd185bc6-1dfd-45c2-9189-13c47f672e5a", name: "مسلسلات عربية", icon: "🇸🇦", count: 186 },
+                { id: "1bf63825-0b85-4ed8-8964-4cf2efb854d6", name: "مسلسلات أجنبية", icon: "🌍", count: 113 },
+                { id: "32d17563-00ee-4433-8b59-ddf969a51230", name: "مسلسلات تركية", icon: "🇹🇷", count: 40 },
+                { id: "0669005a-e8dd-4a00-8986-a905826eaca3", name: "مسلسلات آسيوية", icon: "🎎", count: 56 },
+                { id: "2660c480-65f2-4a30-a0c9-eda017ea660b", name: "مسلسلات مدبلجة", icon: "🗣️", count: 29 }
+            ];
 
             // ==================== STATE ====================
             let allMatches = [];
@@ -1996,6 +2009,17 @@
             let hls = null;
             let currentStreamUrl = '';
             let currentFixtureData = null;
+
+            // Movie & Series state
+            let movies = [];
+            let movieCategories = [];
+            let series = [];
+            let seriesCategories = [];
+            let seriesGenres = [];
+            let currentSeriesGenre = 'all';
+            let currentView = 'home';
+            let currentId = null;
+            let seriesEpisodesCache = {};
 
             // ==================== DOM REFS ====================
             const video = document.getElementById('zsVideo');
@@ -2369,8 +2393,6 @@
                     const home = searchTerms[0].trim();
                     const away = searchTerms[1].trim();
 
-                    // Use worker to avoid CORS? Actually this call is directly to API-Sports, but it's okay because we have the key.
-                    // However, to avoid CORS, we could use worker. But for now, try direct.
                     const resp = await fetch(
                         `https://v3.football.api-sports.io/fixtures?date=${new Date().toISOString().split('T')[0]}`, {
                             headers: {
@@ -2500,111 +2522,388 @@
                 fetchGoliveMatches();
             });
 
-            // ==================== MOVIES (Simplified, direct fetch through worker) ====================
-            async function loadMovies() {
-                moviesContainer.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading movies...</div></div>';
+            // ==================== MOVIES (old working code) ====================
+            async function loadMovieCategoriesFromAPI() {
                 try {
-                    const url = WORKER_URL + '?url=' + encodeURIComponent(MOVIES_API);
-                    const resp = await fetch(url);
-                    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                    const resp = await fetch(MOVIE_CATEGORIES_URL);
                     const data = await resp.json();
-
-                    if (data.data && Array.isArray(data.data) && data.data.length > 0) {
-                        let html = '<div class="media-grid">';
-                        data.data.forEach(m => {
-                            const poster = (m.posterUrl || '').replace('http:', 'https:');
-                            const title = m.title || m.titleEn || 'Unknown';
-                            const streamUrl = m.sources && m.sources.length > 0 ? m.sources[0]
-                            .streamUrl : '';
-                            html += `
-                                <div class="media-card" data-url="${streamUrl}">
-                                    <img class="media-poster" src="${poster}" onerror="this.style.display='none'">
-                                    <div class="media-info">
-                                        <div class="media-title">${title}</div>
-                                        <div class="media-sub">${m.genre || 'Movie'}</div>
-                                    </div>
-                                </div>
-                            `;
-                        });
-                        html += '</div>';
-                        moviesContainer.innerHTML = html;
-
-                        moviesContainer.querySelectorAll('.media-card[data-url]').forEach(card => {
-                            card.addEventListener('click', function() {
-                                const url = this.dataset.url;
-                                if (url) {
-                                    loadStream(url, '🎬 Movie');
-                                    camelOverlay.style.display = 'none';
-                                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                                } else {
-                                    alert('No stream link available');
-                                }
-                            });
-                        });
-                    } else {
-                        moviesContainer.innerHTML =
-                            '<div class="empty-state">No movies available right now.</div>';
+                    if (Array.isArray(data) && data.length > 0) {
+                        movieCategories = data.map(c => ({ id: c.id, name: c.nameAr || c.name || c.nameEn || c
+                                .name, icon: c.icon || '🎬', count: c.moviesCount || 0 }));
+                        if (currentView === 'movie-categories' || currentView === 'home') renderMovieCategories();
                     }
                 } catch (e) {
-                    console.error('Movies error:', e);
-                    moviesContainer.innerHTML =
-                        `<div class="error-msg">Failed to load movies: ${e.message}</div>`;
+                    console.warn('Movie categories API failed', e);
+                    movieCategories = [
+                        { id: "action", name: "Action", icon: "🎬", count: 10 },
+                        { id: "comedy", name: "Comedy", icon: "😂", count: 8 },
+                        { id: "drama", name: "Drama", icon: "🎭", count: 12 },
+                        { id: "sci-fi", name: "Sci-Fi", icon: "🚀", count: 6 }
+                    ];
+                    if (currentView === 'movie-categories' || currentView === 'home') renderMovieCategories();
                 }
             }
 
-            // ==================== SERIES (Simplified) ====================
-            async function loadSeries() {
-                seriesContainer.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading series...</div></div>';
+            function renderMovieCategories() {
+                const container = document.getElementById('movieCategoriesContainer');
+                if (!container) return;
+                if (movieCategories.length === 0) {
+                    container.innerHTML =
+                        '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No categories available</div>';
+                    return;
+                }
+                container.innerHTML = movieCategories.map(c =>
+                    `<div class="zs-category-pill" data-id="${c.id}">
+                        <div class="zs-category-pill-icon">${c.icon}</div>
+                        <div class="zs-category-pill-title">${c.name}</div>
+                        <div class="zs-category-pill-count">${c.count} Movies</div>
+                    </div>`
+                ).join('');
+                container.querySelectorAll('.zs-category-pill').forEach(pill => {
+                    pill.addEventListener('click', () => {
+                        const categoryId = pill.dataset.id;
+                        const categoryName = movieCategories.find(c => c.id === categoryId)?.name ||
+                            'Movies';
+                        goToMovieList(categoryId, categoryName);
+                    });
+                });
+            }
+
+            async function loadMoviesFromAPI(categoryId) {
+                const container = document.getElementById('moviesListContainer');
+                if (!container) return;
+                container.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading movies...</div></div>';
                 try {
-                    const url = WORKER_URL + '?url=' + encodeURIComponent(SERIES_API);
-                    const resp = await fetch(url);
-                    if (!resp.ok) throw new Error('HTTP ' + resp.status);
-                    const data = await resp.json();
+                    const firstUrl = WORKER_URL + '?url=' + encodeURIComponent(MOVIES_BASE_URL + categoryId +
+                        '&page=1');
+                    const firstResp = await fetch(firstUrl);
+                    if (!firstResp.ok) throw new Error('Worker error: ' + firstResp.status);
+                    const firstData = await firstResp.json();
 
-                    if (data.data && Array.isArray(data.data) && data.data.length > 0) {
-                        let html = '<div class="media-grid">';
-                        data.data.forEach(s => {
-                            const poster = (s.posterUrl || '').replace('http:', 'https:');
-                            const title = s.title || s.titleEn || 'Unknown';
-                            const streamUrl = s.sources && s.sources.length > 0 ? s.sources[0]
-                            .streamUrl : '';
-                            html += `
-                                <div class="media-card" data-url="${streamUrl}">
-                                    <img class="media-poster" src="${poster}" onerror="this.style.display='none'">
-                                    <div class="media-info">
-                                        <div class="media-title">${title}</div>
-                                        <div class="media-sub">${s.genre || 'Series'}</div>
-                                    </div>
-                                </div>
-                            `;
-                        });
-                        html += '</div>';
-                        seriesContainer.innerHTML = html;
+                    if (firstData.data && Array.isArray(firstData.data)) {
+                        let allMovies = firstData.data.map(m => ({
+                            id: m.id,
+                            title: m.title || m.titleEn || 'Unknown',
+                            posterUrl: (m.posterUrl || '').replace('http:', 'https:'),
+                            year: m.year,
+                            rating: m.rating,
+                            genre: m.genre || m.genreEn || '',
+                            genreAr: m.genreAr || m.genre || '',
+                            url: m.sources && m.sources.length > 0 ? m.sources[0].streamUrl : null
+                        }));
+                        movies = allMovies;
+                        renderMovies();
 
-                        seriesContainer.querySelectorAll('.media-card[data-url]').forEach(card => {
-                            card.addEventListener('click', function() {
-                                const url = this.dataset.url;
-                                if (url) {
-                                    loadStream(url, '📺 Series');
-                                    camelOverlay.style.display = 'none';
-                                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                                } else {
-                                    alert('No stream link available');
-                                }
-                            });
-                        });
+                        const totalPages = firstData.meta?.totalPages || 0;
+                        if (totalPages > 1) {
+                            for (let i = 2; i <= totalPages; i++) {
+                                try {
+                                    const url = WORKER_URL + '?url=' + encodeURIComponent(MOVIES_BASE_URL +
+                                        categoryId + '&page=' + i);
+                                    const res = await fetch(url);
+                                    const data = await res.json();
+                                    if (data.data && Array.isArray(data.data)) {
+                                        const newMovies = data.data.map(m => ({
+                                            id: m.id,
+                                            title: m.title || m.titleEn || 'Unknown',
+                                            posterUrl: (m.posterUrl || '').replace('http:',
+                                            'https:'),
+                                            year: m.year,
+                                            rating: m.rating,
+                                            genre: m.genre || m.genreEn || '',
+                                            genreAr: m.genreAr || m.genre || '',
+                                            url: m.sources && m.sources.length > 0 ? m
+                                                .sources[0].streamUrl : null
+                                        }));
+                                        allMovies = allMovies.concat(newMovies);
+                                        movies = allMovies;
+                                        renderMovies();
+                                    }
+                                } catch (e) { console.warn('Failed to load page ' + i); }
+                            }
+                        }
                     } else {
-                        seriesContainer.innerHTML =
-                            '<div class="empty-state">No series available right now.</div>';
+                        movies = [];
+                        renderMovies();
                     }
                 } catch (e) {
-                    console.error('Series error:', e);
-                    seriesContainer.innerHTML =
-                        `<div class="error-msg">Failed to load series: ${e.message}</div>`;
+                    console.error('Failed to load movies', e);
+                    movies = [];
+                    renderMovies();
                 }
             }
 
-            // ==================== STANDINGS (via Worker proxy, no custom headers) ====================
+            function renderMovies() {
+                const container = document.getElementById('moviesListContainer');
+                if (!container) return;
+                if (!movies || movies.length === 0) {
+                    container.innerHTML =
+                        '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No movies found in this category</div>';
+                    return;
+                }
+                let html = '<div class="media-grid">';
+                movies.forEach(m => {
+                    html += `
+                        <div class="media-card" data-url="${m.url || ''}">
+                            <img class="media-poster" src="${m.posterUrl}" onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
+                            <div class="media-info">
+                                <div class="media-title">${m.title}</div>
+                                <div class="media-sub">${m.genre || ''}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+
+                container.querySelectorAll('.media-card[data-url]').forEach(card => {
+                    card.addEventListener('click', function() {
+                        const url = this.dataset.url;
+                        if (url) {
+                            const title = this.querySelector('.media-title')?.textContent || 'Movie';
+                            loadStream(url, '🎬 ' + title);
+                            camelOverlay.style.display = 'none';
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        } else {
+                            alert('No stream link available for this movie');
+                        }
+                    });
+                });
+            }
+
+            function goToMovieList(categoryId, categoryName) {
+                currentView = 'movie-detail';
+                const titleEl = document.getElementById('movieListTitle');
+                if (titleEl) titleEl.textContent = '🎬 ' + categoryName;
+                const catView = document.getElementById('movieCategoriesView');
+                const detailView = document.getElementById('movieDetailView');
+                if (catView) catView.style.display = 'none';
+                if (detailView) detailView.style.display = 'flex';
+                loadMoviesFromAPI(categoryId);
+            }
+
+            // ==================== SERIES (old working code) ====================
+            async function loadSeriesCategoriesFromAPI() {
+                try {
+                    const url = WORKER_URL + '?url=' + encodeURIComponent(SERIES_CATEGORIES_URL);
+                    const resp = await fetch(url);
+                    const data = await resp.json();
+                    if (Array.isArray(data) && data.length > 0) {
+                        seriesCategories = data.map(c => ({ id: c.id, name: c.nameAr || c.name || c.nameEn || c
+                                .name, icon: c.icon || '📺', count: c.seriesCount || 0 }));
+                    } else throw new Error('Invalid data');
+                } catch (e) {
+                    console.warn('Series categories API failed, using fallback data.');
+                    seriesCategories = fallbackSeriesCategories.map(c => ({ ...c, name: c.name.replace('مسلسلات',
+                        'Series') }));
+                } finally {
+                    if (currentView === 'series-categories' || currentView === 'home') renderSeriesCategories();
+                }
+            }
+
+            function renderSeriesCategories() {
+                const container = document.getElementById('seriesCategoriesContainer');
+                if (!container) return;
+                if (seriesCategories.length === 0) {
+                    container.innerHTML =
+                        '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No categories available</div>';
+                    return;
+                }
+                container.innerHTML = seriesCategories.map(c =>
+                    `<div class="zs-category-pill" data-id="${c.id}">
+                        <div class="zs-category-pill-icon">${c.icon}</div>
+                        <div class="zs-category-pill-title">${c.name}</div>
+                        <div class="zs-category-pill-count">${c.count} Series</div>
+                    </div>`
+                ).join('');
+                container.querySelectorAll('.zs-category-pill').forEach(pill => {
+                    pill.addEventListener('click', () => {
+                        const categoryId = pill.dataset.id;
+                        const categoryName = seriesCategories.find(c => c.id === categoryId)?.name ||
+                            'Series';
+                        goToSeriesList(categoryId, categoryName);
+                    });
+                });
+            }
+
+            async function loadSeriesFromAPI(categoryId) {
+                const container = document.getElementById('seriesListContainer');
+                if (!container) return;
+                container.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading series...</div></div>';
+                series = [];
+                seriesGenres = [];
+                try {
+                    const firstUrl = WORKER_URL + '?url=' + encodeURIComponent(SERIES_BASE_URL + categoryId +
+                        '&page=1');
+                    const firstResp = await fetch(firstUrl);
+                    if (!firstResp.ok) throw new Error('Worker error: ' + firstResp.status);
+                    const firstData = await firstResp.json();
+
+                    if (firstData.data && Array.isArray(firstData.data)) {
+                        let allSeries = firstData.data.map(s => {
+                            const genreName = s.genreObj?.nameEn || s.genreEn || s.genre || 'Unknown';
+                            return {
+                                id: s.id,
+                                title: s.title || s.titleEn || 'Unknown',
+                                titleAr: s.titleAr || s.title,
+                                titleEn: s.titleEn || s.title,
+                                posterUrl: (s.posterUrl || '').replace('http:', 'https:'),
+                                year: s.year,
+                                rating: s.rating,
+                                genre: genreName,
+                                genreAr: s.genreAr || s.genreObj?.nameAr || genreName,
+                                genreIcon: s.genreObj?.icon || '🎬',
+                                url: s.sources && s.sources.length > 0 ? s.sources[0].streamUrl : null,
+                                description: s.description || '',
+                                totalEpisodes: s.totalEpisodes,
+                                isReels: s.isReels || false
+                            };
+                        });
+
+                        const genresSet = new Set();
+                        allSeries.forEach(s => {
+                            if (s.genre && s.genre !== 'Unknown') {
+                                genresSet.add(s.genre);
+                            }
+                        });
+                        seriesGenres = ['all', ...Array.from(genresSet)];
+
+                        series = allSeries;
+                        renderSeriesGenreFilters();
+                        renderSeries();
+
+                        const totalPages = firstData.meta?.totalPages || 0;
+                        if (totalPages > 1) {
+                            for (let i = 2; i <= totalPages; i++) {
+                                try {
+                                    const url = WORKER_URL + '?url=' + encodeURIComponent(SERIES_BASE_URL +
+                                        categoryId + '&page=' + i);
+                                    const res = await fetch(url);
+                                    const data = await res.json();
+                                    if (data.data && Array.isArray(data.data)) {
+                                        const newSeries = data.data.map(s => {
+                                            const genreName = s.genreObj?.nameEn || s.genreEn || s
+                                                .genre || 'Unknown';
+                                            return {
+                                                id: s.id,
+                                                title: s.title || s.titleEn || 'Unknown',
+                                                titleAr: s.titleAr || s.title,
+                                                titleEn: s.titleEn || s.title,
+                                                posterUrl: (s.posterUrl || '').replace('http:',
+                                                'https:'),
+                                                year: s.year,
+                                                rating: s.rating,
+                                                genre: genreName,
+                                                genreAr: s.genreAr || s.genreObj?.nameAr ||
+                                                genreName,
+                                                genreIcon: s.genreObj?.icon || '🎬',
+                                                url: s.sources && s.sources.length > 0 ? s
+                                                    .sources[0].streamUrl : null,
+                                                description: s.description || '',
+                                                totalEpisodes: s.totalEpisodes,
+                                                isReels: s.isReels || false
+                                            };
+                                        });
+                                        newSeries.forEach(s => {
+                                            if (s.genre && s.genre !== 'Unknown') {
+                                                genresSet.add(s.genre);
+                                            }
+                                        });
+                                        allSeries = allSeries.concat(newSeries);
+                                        series = allSeries;
+                                        seriesGenres = ['all', ...Array.from(genresSet)];
+                                        renderSeriesGenreFilters();
+                                        renderSeries();
+                                    }
+                                } catch (e) { console.warn('Failed to load series page ' + i); }
+                            }
+                        }
+                    } else {
+                        series = [];
+                        renderSeries();
+                    }
+                } catch (e) {
+                    console.error('Failed to load series', e);
+                    series = [];
+                    renderSeries();
+                }
+            }
+
+            function renderSeriesGenreFilters() {
+                const container = document.getElementById('seriesGenreFilters');
+                if (!container) return;
+                let html = '';
+                seriesGenres.forEach(genre => {
+                    const label = genre === 'all' ? 'All' : genre;
+                    const active = genre === currentSeriesGenre ? 'active' : '';
+                    html += `<button class="zs-genre-pill ${active}" data-genre="${genre}">${label}</button>`;
+                });
+                container.innerHTML = html;
+                container.querySelectorAll('.zs-genre-pill').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        currentSeriesGenre = this.dataset.genre;
+                        renderSeriesGenreFilters();
+                        renderSeries();
+                    });
+                });
+            }
+
+            function renderSeries() {
+                const container = document.getElementById('seriesListContainer');
+                if (!container) return;
+                const filtered = series.filter(s => {
+                    if (currentSeriesGenre === 'all') return true;
+                    return s.genre === currentSeriesGenre;
+                });
+                if (filtered.length === 0) {
+                    container.innerHTML =
+                        '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No series found</div>';
+                    return;
+                }
+                let html = '<div class="media-grid">';
+                filtered.forEach(s => {
+                    html += `
+                        <div class="media-card" data-url="${s.url || ''}">
+                            <img class="media-poster" src="${s.posterUrl}" onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
+                            <div class="media-info">
+                                <div class="media-title">${s.title}</div>
+                                <div class="media-sub">${s.genre || ''}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+
+                container.querySelectorAll('.media-card[data-url]').forEach(card => {
+                    card.addEventListener('click', function() {
+                        const url = this.dataset.url;
+                        if (url) {
+                            const title = this.querySelector('.media-title')?.textContent || 'Series';
+                            loadStream(url, '📺 ' + title);
+                            camelOverlay.style.display = 'none';
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        } else {
+                            alert('No stream link available for this series');
+                        }
+                    });
+                });
+            }
+
+            function goToSeriesList(categoryId, categoryName) {
+                currentView = 'series-detail';
+                const titleEl = document.getElementById('seriesListTitle');
+                if (titleEl) titleEl.textContent = '📺 ' + categoryName;
+                const catView = document.getElementById('seriesCategoriesView');
+                const detailView = document.getElementById('seriesDetailView');
+                const detailPage = document.getElementById('seriesDetailViewPage');
+                if (catView) catView.style.display = 'none';
+                if (detailView) detailView.style.display = 'flex';
+                if (detailPage) detailPage.classList.remove('visible');
+                loadSeriesFromAPI(categoryId);
+            }
+
+            // ==================== STANDINGS (via CORS proxy) ====================
             async function fetchStandings() {
                 standingsContainer.innerHTML =
                 '<div class="loading"><div class="spinner"></div><div>Loading standings...</div></div>';
@@ -2621,9 +2920,14 @@
                         try {
                             const targetUrl =
                                 `https://v3.football.api-sports.io/standings?league=${league.id}&season=${league.season}`;
-                            // No custom headers, just fetch the worker URL; the worker will add the key.
-                            const proxyUrl = WORKER_URL + '?url=' + encodeURIComponent(targetUrl);
-                            const resp = await fetch(proxyUrl);
+                            // Use CORS proxy (corsproxy.io)
+                            const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(targetUrl);
+                            const resp = await fetch(proxyUrl, {
+                                headers: {
+                                    'x-apisports-key': API_SPORTS_KEY,
+                                    'Content-Type': 'application/json'
+                                }
+                            });
                             if (!resp.ok) throw new Error('HTTP ' + resp.status);
                             const data = await resp.json();
                             if (data.response && data.response.length > 0) {
@@ -2661,7 +2965,7 @@
                 }
             }
 
-            // ==================== TRANSFERS (via Worker proxy, no custom headers) ====================
+            // ==================== TRANSFERS (via CORS proxy) ====================
             async function fetchTransfers() {
                 transfersContainer.innerHTML =
                     '<div class="loading"><div class="spinner"></div><div>Loading transfers...</div></div>';
@@ -2672,8 +2976,13 @@
                         try {
                             const targetUrl =
                                 `https://v3.football.api-sports.io/transfers?team=${id}`;
-                            const proxyUrl = WORKER_URL + '?url=' + encodeURIComponent(targetUrl);
-                            const resp = await fetch(proxyUrl);
+                            const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(targetUrl);
+                            const resp = await fetch(proxyUrl, {
+                                headers: {
+                                    'x-apisports-key': API_SPORTS_KEY,
+                                    'Content-Type': 'application/json'
+                                }
+                            });
                             if (!resp.ok) throw new Error('HTTP ' + resp.status);
                             const data = await resp.json();
                             if (data.response && data.response.length > 0) {
@@ -3195,14 +3504,18 @@
 
                 if (tabId === 'home') {
                     fetchGoliveMatches();
+                    // Load movie/series categories in background
+                    loadMovieCategoriesFromAPI();
+                    loadSeriesCategoriesFromAPI();
                 } else if (tabId === 'standings') {
                     fetchStandings();
                 } else if (tabId === 'transfers') {
                     fetchTransfers();
                 } else if (tabId === 'movies') {
-                    loadMovies();
+                    // Show movies view
+                    loadMovieCategoriesFromAPI();
                 } else if (tabId === 'series') {
-                    loadSeries();
+                    loadSeriesCategoriesFromAPI();
                 } else if (tabId === 'tv') {
                     if (tvChannels.length === 0) fetchGoliveMatches();
                     else renderTVChannels(tvChannels);
