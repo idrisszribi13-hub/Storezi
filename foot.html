@@ -265,7 +265,6 @@
             display: block;
         }
 
-        /* ===== LIVE BADGE ===== */
         .zs-live-badge {
             position: absolute;
             top: 12px;
@@ -306,7 +305,6 @@
             }
         }
 
-        /* ===== START OVERLAY ===== */
         .zs-start-overlay {
             position: absolute;
             inset: 0;
@@ -341,7 +339,6 @@
             margin-top: 6px;
         }
 
-        /* ===== CONTROLS ===== */
         .zs-controls {
             position: absolute;
             bottom: 0;
@@ -1233,6 +1230,7 @@
             color: var(--text-secondary);
         }
 
+        /* ===== STANDINGS (General) ===== */
         .standings-grid-detail .league-block {
             background: var(--surface);
             border-radius: var(--radius-sm);
@@ -1283,6 +1281,150 @@
         .standings-grid-detail .league-block .points {
             font-weight: 700;
             color: var(--accent);
+        }
+
+        /* ===== CHAMPIONS LEAGUE SPECIFIC ===== */
+        .cl-standings-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .cl-standings-table th {
+            text-align: left;
+            padding: 8px 6px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            border-bottom: 2px solid var(--border);
+        }
+        .cl-standings-table td {
+            padding: 6px 6px;
+            border-bottom: 1px solid var(--border);
+        }
+        .cl-standings-table .team-cell {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .cl-standings-table .team-cell img {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            object-fit: contain;
+        }
+        .cl-standings-table .points {
+            font-weight: 700;
+        }
+        .cl-standings-table .qualified {
+            color: var(--accent-green);
+        }
+        .cl-standings-table .playoff {
+            color: var(--accent-blue);
+        }
+        .cl-standings-table .eliminated {
+            color: var(--accent-red);
+        }
+        .cl-standings-table .team-click {
+            cursor: pointer;
+        }
+        .cl-standings-table .team-click:hover {
+            color: var(--accent);
+            text-decoration: underline;
+        }
+
+        .cl-knockout-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+            gap: 16px;
+            width: 100%;
+            margin-top: 16px;
+        }
+        @media(max-width:768px) {
+            .cl-knockout-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+        }
+        @media(max-width:480px) {
+            .cl-knockout-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .cl-round-card {
+            background: var(--surface);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            padding: 12px;
+            transition: var(--transition);
+        }
+        .cl-round-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .cl-round-card .round-title {
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--accent);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .cl-round-card .round-title .badge {
+            font-size: 10px;
+            background: var(--live);
+            color: #fff;
+            padding: 1px 8px;
+            border-radius: 20px;
+        }
+        .cl-match-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 0;
+            font-size: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .cl-match-item:hover {
+            background: var(--surface-hover);
+            border-radius: 4px;
+        }
+        .cl-match-item .cl-teams {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex: 1;
+            min-width: 0;
+        }
+        .cl-match-item .cl-teams img {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            object-fit: contain;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .cl-match-item .cl-teams .cl-team-name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 80px;
+        }
+        .cl-match-item .cl-score {
+            font-weight: 700;
+            color: var(--text-primary);
+            min-width: 36px;
+            text-align: center;
+        }
+        .cl-match-item .cl-score.winner {
+            color: var(--accent-green);
+        }
+        .cl-match-item .cl-score.loser {
+            color: var(--text-secondary);
         }
 
         /* ===== BACK BUTTON ===== */
@@ -1388,6 +1530,17 @@
             }
             .match-card .match-meta {
                 justify-content: space-between;
+            }
+            .cl-knockout-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+            .cl-standings-table {
+                font-size: 11px;
+            }
+            .cl-standings-table .team-cell img {
+                width: 18px;
+                height: 18px;
             }
         }
 
@@ -1677,9 +1830,6 @@
             color: var(--text-secondary);
             white-space: nowrap;
         }
-        .transfer-card .transfer-flag {
-            font-size: 18px;
-        }
 
         /* ===== NEWS ===== */
         .news-grid {
@@ -1830,9 +1980,6 @@
             font-size: 15px;
             line-height: 1.8;
             color: var(--text);
-        }
-        .news-detail-box .news-detail-content p {
-            margin-bottom: 12px;
         }
 
         /* ===== PLAYER DETAIL MODAL ===== */
@@ -2091,6 +2238,10 @@
             font-size: 10px;
             font-weight: 500;
         }
+
+        .accent-yellow {
+            --accent-yellow: #d29922;
+        }
     </style>
 </head>
 <body>
@@ -2111,6 +2262,7 @@
                 <button class="zs-nav-btn" data-tab="movies">🎬 Movies</button>
                 <button class="zs-nav-btn" data-tab="series">📺 Series</button>
                 <button class="zs-nav-btn" data-tab="tv">📡 TV</button>
+                <button class="zs-nav-btn" data-tab="champions">🏆 UCL</button>
             </div>
             <div class="zs-header-actions">
                 <button class="zs-search-btn-main" id="toggleSearchBtnMain">🔍</button>
@@ -2212,25 +2364,21 @@
             <div class="zs-tab-content active" id="tab-home">
                 <div class="zs-section-title">⚽ Today's Matches <span id="streamCount" style="font-size:14px;color:var(--text-secondary);font-weight:600;"></span></div>
 
-                <!-- Live -->
                 <div class="match-section" id="liveMatchesSection">
                     <div class="section-header"><h3>🔴 Live <span class="badge" id="liveCount">0</span></h3></div>
                     <div id="liveMatchesContainer"><div class="loading"><div class="spinner"></div><div>Loading live matches...</div></div></div>
                 </div>
 
-                <!-- Upcoming -->
                 <div class="match-section" id="upcomingMatchesSection">
                     <div class="section-header"><h3>⏳ Upcoming <span class="badge upcoming" id="upcomingCount">0</span></h3></div>
                     <div id="upcomingMatchesContainer"><div class="loading"><div class="spinner"></div><div>Loading upcoming matches...</div></div></div>
                 </div>
 
-                <!-- Finished -->
                 <div class="match-section" id="finishedMatchesSection">
                     <div class="section-header"><h3>✅ Finished <span class="badge finished" id="finishedCount">0</span></h3></div>
                     <div id="finishedMatchesContainer"><div class="loading"><div class="spinner"></div><div>Loading finished matches...</div></div></div>
                 </div>
 
-                <!-- Widget -->
                 <div style="margin-top:8px;width:100%;">
                     <api-sports-widget
                         data-type="games"
@@ -2264,19 +2412,19 @@
                 </div>
             </div>
 
-            <!-- ===== STANDINGS (from YSScores) ===== -->
+            <!-- ===== STANDINGS (General) ===== -->
             <div class="zs-tab-content" id="tab-standings">
                 <div class="zs-section-title">🏆 Standings</div>
                 <div id="standingsContainer"><div class="loading"><div class="spinner"></div><div>Loading leagues...</div></div></div>
             </div>
 
-            <!-- ===== TRANSFERS (from YSScores) ===== -->
+            <!-- ===== TRANSFERS ===== -->
             <div class="zs-tab-content" id="tab-transfers">
                 <div class="zs-section-title">🔄 Transfer Market</div>
                 <div id="transfersContainer"><div class="loading"><div class="spinner"></div><div>Loading transfers...</div></div></div>
             </div>
 
-            <!-- ===== NEWS (from YSScores) ===== -->
+            <!-- ===== NEWS ===== -->
             <div class="zs-tab-content" id="tab-news">
                 <div class="zs-section-title">📰 Latest News</div>
                 <div id="newsContainer"><div class="loading"><div class="spinner"></div><div>Loading news...</div></div></div>
@@ -2306,6 +2454,14 @@
                     </div>
                 </div>
                 <div id="tvChannelsContainer"><div class="loading"><div class="spinner"></div><div>Loading TV channels...</div></div></div>
+            </div>
+
+            <!-- ===== CHAMPIONS LEAGUE TAB ===== -->
+            <div class="zs-tab-content" id="tab-champions">
+                <div class="zs-section-title">🏆 UEFA Champions League</div>
+                <div id="championsContainer">
+                    <div class="loading"><div class="spinner"></div><div>Loading Champions League data...</div></div>
+                </div>
             </div>
 
             <!-- ===== MATCH DETAIL ===== -->
@@ -2385,11 +2541,12 @@
             const GOLIVE_API = 'https://admin.golive-pro.online/api/public/events?tz=1';
             const API_SPORTS_KEY = 'e227ff90ed4eacc3eacb07eca05ce78b';
 
-            // YSScores API endpoints (via Worker)
+            // YSScores API
             const YS_BASE = 'https://api-en.ysscores.com/api/';
             const YS_NEWS = 'https://news-en.ysscores.com/api/';
+            const YS_IMG = 'https://imgs.ysscores.com/';
 
-            // Movie & Series API
+            // Movie & Series
             const MOVIE_API = 'https://admin.golive-pro.online/api/content/movies?limit=30';
             const SERIES_API = 'https://admin.golive-pro.online/api/content/series?limit=30';
 
@@ -2399,6 +2556,8 @@
             let hls = null;
             let currentStreamUrl = '';
             let currentFixtureData = null;
+            let newsPage = 1;
+            let newsTotalPages = 1;
 
             // ==================== DOM REFS ====================
             const video = document.getElementById('zsVideo');
@@ -2439,6 +2598,8 @@
             const seriesContainer = document.getElementById('seriesContainer');
             const tvChannelsContainer = document.getElementById('tvChannelsContainer');
             const tvSearchInput = document.getElementById('tvSearchInput');
+
+            const championsContainer = document.getElementById('championsContainer');
 
             const newsDetailOverlay = document.getElementById('newsDetailOverlay');
             const newsDetailContent = document.getElementById('newsDetailContent');
@@ -2569,7 +2730,6 @@
                         showError(); });
             }
 
-            // Player controls
             btnPlay.addEventListener('click', () => { if (video.paused) video.play();
                 else video.pause(); });
             video.addEventListener('play', () => { btnPlay.innerHTML =
@@ -2926,7 +3086,27 @@
                 return resp.json();
             }
 
-            // ==================== STANDINGS (from YSScores) ====================
+            // ==================== IMAGE HELPER ====================
+            function getImageUrl(path, type, size = '64') {
+                if (!path) return '';
+                if (path.startsWith('http')) return path;
+                const maps = {
+                    'team': 'teams/' + size + '/',
+                    'player': 'players/' + size + '/',
+                    'news': 'news/',
+                    'country': 'countries/',
+                    'championship': 'championship/cups/'
+                };
+                return YS_IMG + (maps[type] || '') + path;
+            }
+
+            function getFlagEmoji(countryCode) {
+                if (!countryCode) return '🌍';
+                const code = countryCode.toUpperCase();
+                return code.split('').map(c => String.fromCodePoint(0x1F1E6 - 65 + c.charCodeAt(0))).join('');
+            }
+
+            // ==================== STANDINGS ====================
             async function loadStandings() {
                 standingsContainer.innerHTML =
                 '<div class="loading"><div class="spinner"></div><div>Loading leagues...</div></div>';
@@ -3028,36 +3208,229 @@
                 return html;
             }
 
-            // ==================== TRANSFERS (from YSScores) ====================
-            async function loadTransfers() {
+            // ==================== CHAMPIONS LEAGUE ====================
+            const CL_LEAGUE_ID = 904988; // UEFA Champions League
+
+            async function loadChampionsLeague() {
+                championsContainer.innerHTML =
+                    '<div class="loading"><div class="spinner"></div><div>Loading Champions League data...</div></div>';
+                try {
+                    // Fetch standings
+                    const standingsData = await fetchYS(`matches/cups_teams_standings/${CL_LEAGUE_ID}/L/60`);
+                    // Fetch knockout map (playoffs, rounds)
+                    const mapData = await fetchYS(`matches/group_standing_stage/${CL_LEAGUE_ID}`);
+
+                    // If standings fail, show error
+                    if (!standingsData.status) {
+                        championsContainer.innerHTML =
+                            `<div class="error-msg">⚠️ Failed to load Champions League data</div>`;
+                        return;
+                    }
+
+                    renderChampionsLeague(standingsData.data, mapData.data);
+
+                } catch (error) {
+                    championsContainer.innerHTML = `<div class="error-msg">⚠️ ${error.message}</div>`;
+                }
+            }
+
+            function renderChampionsLeague(standings, mapData) {
+                // Standings
+                let html = `<div style="margin-bottom:16px;">`;
+
+                // Color legend
+                html += `<div style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:12px; font-size:12px;">
+                    <span><span style="display:inline-block; width:12px; height:12px; background:#16a765; border-radius:4px; vertical-align:middle;"></span> Qualified for Round of 16</span>
+                    <span><span style="display:inline-block; width:12px; height:12px; background:#4986e7; border-radius:4px; vertical-align:middle;"></span> Knockout Round</span>
+                    <span><span style="display:inline-block; width:12px; height:12px; background:#f83a22; border-radius:4px; vertical-align:middle;"></span> Eliminated</span>
+                </div>`;
+
+                // Standings table
+                html += `<div style="overflow-x:auto;">
+                    <table class="cl-standings-table">
+                        <thead>
+                            <tr>
+                                <th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+
+                const groups = standings.standings?.groups || {};
+                const groupA = groups['A'] || groups['One Group'] || [];
+                // Sort by points descending, then GD
+                groupA.sort((a, b) => {
+                    if (b.points !== a.points) return b.points - a.points;
+                    return b.diff - a.diff;
+                });
+
+                groupA.forEach((item, index) => {
+                    const team = item.team_name || {};
+                    const teamId = team.row_id || null;
+                    const logo = getImageUrl(team.image, 'team');
+                    const color = item.color || '#4986e7';
+                    const isQualified = item.isqualified === 1;
+                    const isPlayoff = !isQualified && (item.points >= 9 && item.points <= 13);
+                    const isEliminated = !isQualified && !isPlayoff;
+                    let statusClass = '';
+                    if (isQualified) statusClass = 'qualified';
+                    else if (isPlayoff) statusClass = 'playoff';
+                    else statusClass = 'eliminated';
+
+                    html += `
+                        <tr style="border-left: 4px solid ${color};">
+                            <td>${index + 1}</td>
+                            <td><div class="team-cell">
+                                <img src="${logo}" onerror="this.style.display='none'">
+                                <span class="team-click" data-team-id="${teamId}" style="cursor:pointer;">${team.title || '?'}</span>
+                            </div></td>
+                            <td>${item.play || 0}</td>
+                            <td>${item.wins || 0}</td>
+                            <td>${item.draw || 0}</td>
+                            <td>${item.lose || 0}</td>
+                            <td>${item.for || 0}</td>
+                            <td>${item.against || 0}</td>
+                            <td>${item.diff || 0}</td>
+                            <td class="points ${statusClass}">${item.points || 0}</td>
+                        </tr>
+                    `;
+                });
+
+                html += `</tbody></table></div></div>`;
+
+                // Knockout Rounds
+                if (mapData && mapData.lot) {
+                    html += `<div style="margin-top:16px;">
+                        <h3 style="font-size:16px; font-weight:700; margin-bottom:8px; color:var(--accent);">🏆 Knockout Stages</h3>
+                        <div class="cl-knockout-grid">`;
+
+                    // Group by round_name
+                    const rounds = ['Playoffs', 'Round of 16', 'Quarter Final', 'Semi Final', 'Final'];
+                    rounds.forEach(roundName => {
+                        const matches = mapData.lot.filter(m => m.round_name === roundName) || [];
+                        if (matches.length === 0) return;
+
+                        html += `<div class="cl-round-card">
+                            <div class="round-title">
+                                ${roundName}
+                                <span class="badge">${matches.length}</span>
+                            </div>`;
+
+                        matches.forEach(m => {
+                            const teamA = m.teamA || {};
+                            const teamB = m.teamB || {};
+                            const winTeamId = m.winTeam || null;
+                            const aLogo = getImageUrl(teamA.image, 'team');
+                            const bLogo = getImageUrl(teamB.image, 'team');
+                            const aId = teamA.row_id || null;
+                            const bId = teamB.row_id || null;
+
+                            // Determine scores if available
+                            let scoreA = m.teamA_score !== undefined ? m.teamA_score : '?';
+                            let scoreB = m.teamB_score !== undefined ? m.teamB_score : '?';
+                            const isPlayed = (scoreA !== '?' && scoreB !== '?');
+
+                            html += `<div class="cl-match-item" data-match-id="${m.match_id || ''}">
+                                <div class="cl-teams">
+                                    <img src="${aLogo}" onerror="this.style.display='none'">
+                                    <span class="cl-team-name team-click" data-team-id="${aId}" style="cursor:pointer;">${teamA.title || '?'}</span>
+                                </div>
+                                <div class="cl-score ${winTeamId === aId ? 'winner' : (winTeamId === bId ? 'loser' : '')}">
+                                    ${isPlayed ? scoreA : '—'}
+                                </div>
+                                <span style="color:var(--text-secondary); font-size:10px;">vs</span>
+                                <div class="cl-score ${winTeamId === bId ? 'winner' : (winTeamId === aId ? 'loser' : '')}">
+                                    ${isPlayed ? scoreB : '—'}
+                                </div>
+                                <div class="cl-teams">
+                                    <span class="cl-team-name team-click" data-team-id="${bId}" style="cursor:pointer;">${teamB.title || '?'}</span>
+                                    <img src="${bLogo}" onerror="this.style.display='none'">
+                                </div>
+                            </div>`;
+                        });
+
+                        html += `</div>`;
+                    });
+
+                    html += `</div></div>`;
+                }
+
+                championsContainer.innerHTML = html;
+
+                // Add click events for team names
+                document.querySelectorAll('.team-click[data-team-id]').forEach(el => {
+                    el.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const teamId = this.dataset.teamId;
+                        if (teamId && teamId !== 'null') {
+                            showTeamDetail(teamId);
+                        }
+                    });
+                });
+
+                // Add click events for match items (if match-id exists)
+                document.querySelectorAll('.cl-match-item[data-match-id]').forEach(el => {
+                    const matchId = el.dataset.matchId;
+                    if (matchId && matchId !== '') {
+                        el.style.cursor = 'pointer';
+                        el.addEventListener('click', function() {
+                            showMatchDetailAiScore(matchId);
+                        });
+                    }
+                });
+            }
+
+            // ==================== TRANSFERS ====================
+            async function loadTransfers(page = 1) {
                 transfersContainer.innerHTML =
                 '<div class="loading"><div class="spinner"></div><div>Loading transfers...</div></div>';
                 try {
-                    const data = await fetchYS('info/transfer_info_page/0?page=1');
-                    if (!data.status) throw new Error('Failed to load transfers');
-                    renderTransfers(data.data);
+                    let allTransfers = [];
+                    for (let p = 1; p <= 3; p++) {
+                        try {
+                            const data = await fetchYS(`info/transfer_info_page/0?page=${p}`);
+                            if (data.status && data.data) {
+                                const items = data.data.important || [];
+                                const all = data.data.all || [];
+                                allTransfers = allTransfers.concat(items, all);
+                            }
+                        } catch (e) { continue; }
+                    }
+
+                    const seen = new Set();
+                    const unique = allTransfers.filter(item => {
+                        const id = item.player_name?.row_id || item.player_name?.id;
+                        if (seen.has(id)) return false;
+                        seen.add(id);
+                        return true;
+                    });
+
+                    unique.sort((a, b) => {
+                        const dateA = a.date_from || '';
+                        const dateB = b.date_from || '';
+                        return dateB.localeCompare(dateA);
+                    });
+
+                    const transfers = unique.slice(0, 30);
+                    if (transfers.length === 0) {
+                        transfersContainer.innerHTML = '<div class="empty-state">No transfers available</div>';
+                        return;
+                    }
+                    renderTransfers(transfers);
+
                 } catch (error) {
                     transfersContainer.innerHTML = `<div class="error-msg">⚠️ ${error.message}</div>`;
                 }
             }
 
-            function renderTransfers(transferData) {
-                const important = transferData.important || [];
-                const all = transferData.all || [];
-                const list = [...important, ...all].slice(0, 20);
-                if (list.length === 0) {
-                    transfersContainer.innerHTML = '<div class="empty-state">No transfers available</div>';
-                    return;
-                }
-
+            function renderTransfers(transfers) {
                 let html = '';
-                list.forEach(item => {
+                transfers.forEach(item => {
                     const player = item.player_name || {};
                     const teamOut = item.team_out || {};
                     const teamIn = item.team_in || {};
-                    const playerImg = getImageUrl(player.image, 'player');
-                    const outImg = getImageUrl(teamOut.image, 'team');
-                    const inImg = getImageUrl(teamIn.image, 'team');
+                    const playerImg = getImageUrl(player.image, 'player', '64');
+                    const outImg = getImageUrl(teamOut.image, 'team', '64');
+                    const inImg = getImageUrl(teamIn.image, 'team', '64');
                     const value = item.value ? (parseInt(item.value) / 1000000).toFixed(1) + 'M' : 'Free';
                     const date = item.date_from || '';
                     const playerId = player.row_id || player.id || null;
@@ -3067,9 +3440,9 @@
                     html += `
                         <div class="transfer-card" data-player-id="${playerId}" data-out-id="${outId}" data-in-id="${inId}">
                             <div class="transfer-player">
-                                <img src="${playerImg || 'https://ui-avatars.com/api/?name=Player&background=4c8bf5&color=fff&size=60'}" onerror="this.style.display='none'">
+                                <img src="${playerImg || 'https://ui-avatars.com/api/?name='+encodeURIComponent(player.title||'P')+'&background=4c8bf5&color=fff&size=32'}" onerror="this.style.display='none'">
                                 <div>
-                                    <div class="name">${player.title || 'Player'}</div>
+                                    <div class="name">${player.title || 'Unknown'}</div>
                                     <div class="detail">${player.position || ''}</div>
                                 </div>
                             </div>
@@ -3087,24 +3460,21 @@
                 transfersContainer.innerHTML = html;
 
                 document.querySelectorAll('.transfer-card[data-player-id]').forEach(card => {
-                    card.addEventListener('click', function(e) {
-                        const playerId = this.dataset.playerId;
-                        if (playerId && playerId !== 'null') {
+                    const playerId = card.dataset.playerId;
+                    if (playerId && playerId !== 'null') {
+                        card.addEventListener('click', function(e) {
+                            e.stopPropagation();
                             showPlayerDetail(playerId);
-                        }
-                    });
+                        });
+                    }
                 });
             }
 
-            // ==================== NEWS (from YSScores) ====================
-            let newsPage = 1;
-            let newsTotalPages = 1;
-
+            // ==================== NEWS ====================
             async function loadNews(page = 1) {
                 newsContainer.innerHTML =
                     '<div class="loading"><div class="spinner"></div><div>Loading news...</div></div>';
                 try {
-                    // Get featured news first
                     let featuredData = null;
                     try {
                         const featuredResp = await fetchYS('News/all_news_page/%5B%5D', YS_NEWS);
@@ -3237,46 +3607,34 @@
                     const data = await fetchYS(`info/player_info/${playerId}/L/60`);
                     if (!data.status) throw new Error('Failed to load player');
                     const player = data.data;
-                    const imgUrl = player.image ? getImageUrl(player.image, 'player') :
-                        'https://ui-avatars.com/api/?name=Player&background=4c8bf5&color=fff&size=80';
+                    const imgUrl = player.image ? getImageUrl(player.image, 'player', '80') :
+                        'https://ui-avatars.com/api/?name=' + encodeURIComponent(player.title || 'P') +
+                        '&background=4c8bf5&color=fff&size=80';
                     const team = player.team_name || {};
                     const teamLogo = getImageUrl(team.image, 'team');
                     const teamId = team.row_id || null;
                     const age = player.birth_day ? new Date().getFullYear() - new Date(player.birth_day).getFullYear() :
                         'N/A';
                     const foot = player.foot === 'R' ? 'Right' : (player.foot === 'L' ? 'Left' : 'N/A');
+                    const countryCode = player.country?.code || '';
+                    const flagEmoji = getFlagEmoji(countryCode);
 
-                    // Statistics
                     let statsHtml = '';
                     if (player.player_statistics && player.player_statistics.length > 0) {
                         const stats = player.player_statistics[0] || {};
                         statsHtml = `
                             <div class="player-stats-grid">
-                                <div class="stat-item">
-                                    <div class="stat-value">${stats.appearances || 0}</div>
-                                    <div class="stat-label">Apps</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-value">${stats.goals || 0}</div>
-                                    <div class="stat-label">Goals</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-value">${stats.assist || 0}</div>
-                                    <div class="stat-label">Assists</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-value">${stats.yellow_card || 0}</div>
-                                    <div class="stat-label">Yellow</div>
-                                </div>
+                                <div class="stat-item"><div class="stat-value">${stats.appearances || 0}</div><div class="stat-label">Apps</div></div>
+                                <div class="stat-item"><div class="stat-value">${stats.goals || 0}</div><div class="stat-label">Goals</div></div>
+                                <div class="stat-item"><div class="stat-value">${stats.assist || 0}</div><div class="stat-label">Assists</div></div>
+                                <div class="stat-item"><div class="stat-value">${stats.yellow_card || 0}</div><div class="stat-label">Yellow</div></div>
                             </div>
                         `;
                     }
 
-                    // Transfers
                     let transfersHtml = '';
                     if (player.transfers && player.transfers.length > 0) {
-                        transfersHtml = `<div class="player-transfers-list">
-                            <div class="title">📋 Transfers</div>`;
+                        transfersHtml = `<div class="player-transfers-list"><div class="title">📋 Transfer History</div>`;
                         player.transfers.slice(0, 8).forEach(t => {
                             const teamIn = t.team_in || {};
                             const teamOut = t.team_out || {};
@@ -3297,7 +3655,7 @@
                         <div class="player-header">
                             <img src="${imgUrl}" onerror="this.style.display='none'">
                             <div>
-                                <div class="player-name">${player.title || 'Player'}</div>
+                                <div class="player-name">${player.title || 'Player'} ${flagEmoji}</div>
                                 <div class="player-team team-click" data-team-id="${teamId}">${team.title || 'Club'}</div>
                                 <div style="font-size:12px;color:var(--text-secondary);">${player.position || ''} • ${age} years • ${foot}</div>
                             </div>
@@ -3332,12 +3690,12 @@
                     const teamData = await fetchYS(`info/team_info/${teamId}/L/60`);
                     if (!teamData.status) throw new Error('Failed to load team');
                     const team = teamData.data;
-                    const imgUrl = team.image ? getImageUrl(team.image, 'team') :
-                        'https://ui-avatars.com/api/?name=Team&background=4c8bf5&color=fff&size=80';
+                    const imgUrl = team.image ? getImageUrl(team.image, 'team', '80') :
+                        'https://ui-avatars.com/api/?name=' + encodeURIComponent(team.title || 'T') +
+                        '&background=4c8bf5&color=fff&size=80';
                     const country = team.country || {};
                     const countryFlag = country.image ? getImageUrl(country.image, 'country') : '';
 
-                    // Get standings
                     let standingsHtml = '<div class="empty-state">No standings</div>';
                     if (team.championships && team.championships.length > 0) {
                         for (const champ of team.championships) {
@@ -3349,8 +3707,7 @@
                                     const firstGroup = Object.values(groups)[0] || [];
                                     if (firstGroup.length > 0) {
                                         let sHtml =
-                                            `<table class="standings-table">
-                                            <thead><tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr></thead><tbody>`;
+                                            `<table class="standings-table"><thead><tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr></thead><tbody>`;
                                         firstGroup.slice(0, 16).forEach((t, idx) => {
                                             const teamObj = t.team_name || {};
                                             const logo = getImageUrl(teamObj.image, 'team');
@@ -3375,7 +3732,6 @@
                         }
                     }
 
-                    // Get matches
                     let matchesHtml = '<div class="empty-state">No matches</div>';
                     try {
                         const mData = await fetchYS(`matches/team_matches/${teamId}/L/60`);
@@ -3423,7 +3779,6 @@
                         }
                     } catch (e) {}
 
-                    // Get news
                     let newsHtml = '<div class="empty-state">No news</div>';
                     try {
                         const nData = await fetchYS(`News/news_team/${teamId}?page=1`, YS_NEWS);
@@ -3894,21 +4249,6 @@
                 camelOverlay.style.display = 'none';
             });
 
-            // ==================== IMAGE HELPER ====================
-            function getImageUrl(path, type) {
-                if (!path) return '';
-                if (path.startsWith('http')) return path;
-                const IMG_BASE = 'https://imgs.ysscores.com/';
-                const maps = {
-                    'team': 'teams/64/',
-                    'player': 'players/',
-                    'news': 'news/',
-                    'country': 'countries/',
-                    'championship': 'championship/cups/'
-                };
-                return IMG_BASE + (maps[type] || '') + path;
-            }
-
             // ==================== GLOBAL SEARCH ====================
             toggleSearchBtnMain.addEventListener('click', () => {
                 globalSearchView.classList.add('visible');
@@ -4025,6 +4365,8 @@
                 } else if (tabId === 'tv') {
                     if (tvChannels.length === 0) fetchGoliveMatches();
                     else renderTVChannels(tvChannels);
+                } else if (tabId === 'champions') {
+                    loadChampionsLeague();
                 }
             }
 
@@ -4083,6 +4425,7 @@
                     loadStandings();
                     loadTransfers();
                     loadNews(1);
+                    loadChampionsLeague(); // Load champions data in background
                 }, 2000);
             }
 
@@ -4091,4 +4434,4 @@
         })();
     </script>
 </body>
-</html>
+    </html>
