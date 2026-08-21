@@ -765,7 +765,7 @@
             font-size: 14px;
         }
 
-        /* ===== TV TAB ===== */
+        /* ===== TV ===== */
         .tv-channel-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -1372,7 +1372,34 @@
             }
         }
 
-        /* ===== TV SECTION HEADER ===== */
+        /* ===== TV SEARCH ===== */
+        .tv-search-container {
+            width: 100%;
+            margin-bottom: 14px;
+        }
+        .tv-search-container .zs-search-section-input-wrap {
+            max-width: 400px;
+            display: flex;
+            align-items: center;
+            background: var(--surface-glass);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            padding: 4px 14px;
+            transition: var(--transition);
+        }
+        .tv-search-container .zs-search-section-input-wrap:focus-within {
+            border-color: var(--accent);
+        }
+        .tv-search-container .zs-search-section-input-wrap input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-size: 13px;
+            outline: none;
+            width: 100%;
+            padding: 6px 0;
+        }
         .tv-section-header {
             display: flex;
             align-items: center;
@@ -1405,7 +1432,7 @@
             border-color: var(--accent);
         }
 
-        /* ===== SEARCH VIEW ===== */
+        /* ===== SEARCH OVERLAY ===== */
         .zs-search-section-view {
             display: none;
             width: 100%;
@@ -1522,17 +1549,47 @@
             color: var(--text);
         }
 
-        /* ===== TV SEARCH ===== */
-        .tv-search-container {
+        /* ===== MOVIES / SERIES GRID (simple) ===== */
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
             width: 100%;
-            margin-bottom: 14px;
-        }
-        .tv-search-container .zs-search-section-input-wrap {
-            max-width: 400px;
-        }
-        .tv-search-container .zs-search-section-input-wrap input {
             padding: 8px 0;
-            font-size: 13px;
+        }
+        .media-card {
+            background: var(--surface);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        .media-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+        }
+        .media-card .media-poster {
+            width: 100%;
+            aspect-ratio: 2/3;
+            object-fit: cover;
+            background: rgba(0, 0, 0, 0.3);
+        }
+        .media-card .media-info {
+            padding: 8px 10px;
+            text-align: center;
+        }
+        .media-card .media-title {
+            font-weight: 700;
+            font-size: 12px;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .media-card .media-sub {
+            font-size: 10px;
+            color: var(--text-secondary);
         }
     </style>
 </head>
@@ -1567,7 +1624,7 @@
 
         <main class="zs-main">
 
-            <!-- ===== PLAYER SECTION ===== -->
+            <!-- ===== PLAYER ===== -->
             <section class="zs-player-section" id="zsPlayerSection">
                 <div class="zs-player-wrapper" id="zsPlayerWrapper">
                     <div class="zs-video-container" id="zsVideoContainer">
@@ -1575,7 +1632,7 @@
                         <div class="zs-live-badge" id="zsLiveBadge"><span>🔴</span> LIVE</div>
                         <div class="zs-loading" id="zsLoading"><div class="zs-spinner"></div></div>
                         <div class="zs-error-overlay" id="zsErrorOverlay">
-                            <div style="text-align:center;line-height:1.8;">⚠️ Unable to play stream.<br /><span style="font-size:11px;color:#bbb;">If you're on mobile, try opening this site in <b>Firefox</b>.</span></div>
+                            <div style="text-align:center;line-height:1.8;">⚠️ Unable to play stream.<br /><span style="font-size:11px;color:#bbb;">If you're on mobile, try Firefox.</span></div>
                             <button id="zsErrorRetry" class="zs-btn" style="margin-top:8px;background:var(--accent);color:#000;border-radius:5px;padding:4px 14px;width:auto;height:auto;">Retry</button>
                         </div>
                         <div class="zs-start-overlay" id="zsStartOverlay">
@@ -1583,7 +1640,7 @@
                             <div style="color:var(--text-secondary);font-size:12px;margin-top:6px;">Select a match, movie, series or TV channel</div>
                         </div>
 
-                        <!-- Camel Live Overlay -->
+                        <!-- Camel Overlay -->
                         <div id="camelOverlay">
                             <div class="camel-top">
                                 <div class="camel-team">
@@ -1656,31 +1713,25 @@
             <div class="zs-tab-content active" id="tab-home">
                 <div class="zs-section-title">⚽ Today's Matches <span id="streamCount" style="font-size:14px;color:var(--text-secondary);font-weight:600;"></span></div>
 
-                <!-- Live Matches -->
+                <!-- Live -->
                 <div class="match-section" id="liveMatchesSection">
-                    <div class="section-header">
-                        <h3>🔴 Live <span class="badge" id="liveCount">0</span></h3>
-                    </div>
+                    <div class="section-header"><h3>🔴 Live <span class="badge" id="liveCount">0</span></h3></div>
                     <div id="liveMatchesContainer"><div class="loading"><div class="spinner"></div><div>Loading live matches...</div></div></div>
                 </div>
 
-                <!-- Upcoming Matches -->
+                <!-- Upcoming -->
                 <div class="match-section" id="upcomingMatchesSection">
-                    <div class="section-header">
-                        <h3>⏳ Upcoming <span class="badge upcoming" id="upcomingCount">0</span></h3>
-                    </div>
+                    <div class="section-header"><h3>⏳ Upcoming <span class="badge upcoming" id="upcomingCount">0</span></h3></div>
                     <div id="upcomingMatchesContainer"><div class="loading"><div class="spinner"></div><div>Loading upcoming matches...</div></div></div>
                 </div>
 
-                <!-- Finished Matches -->
+                <!-- Finished -->
                 <div class="match-section" id="finishedMatchesSection">
-                    <div class="section-header">
-                        <h3>✅ Finished <span class="badge finished" id="finishedCount">0</span></h3>
-                    </div>
+                    <div class="section-header"><h3>✅ Finished <span class="badge finished" id="finishedCount">0</span></h3></div>
                     <div id="finishedMatchesContainer"><div class="loading"><div class="spinner"></div><div>Loading finished matches...</div></div></div>
                 </div>
 
-                <!-- API Sports Widget -->
+                <!-- Widget -->
                 <div style="margin-top:8px;width:100%;">
                     <api-sports-widget
                         data-type="games"
@@ -1696,7 +1747,7 @@
                 </div>
             </div>
 
-            <!-- ===== LIVESCORE TAB ===== -->
+            <!-- ===== LIVESCORE ===== -->
             <div class="zs-tab-content" id="tab-livescore">
                 <div class="zs-section-title">📊 Livescore</div>
                 <div style="margin-top:8px;width:100%;">
@@ -1714,37 +1765,37 @@
                 </div>
             </div>
 
-            <!-- ===== ODDS TAB ===== -->
+            <!-- ===== ODDS ===== -->
             <div class="zs-tab-content" id="tab-odds">
                 <div class="zs-section-title">💰 Live Odds</div>
                 <div id="oddsContainer"><div class="loading"><div class="spinner"></div><div>Loading odds...</div></div></div>
             </div>
 
-            <!-- ===== STANDINGS TAB ===== -->
+            <!-- ===== STANDINGS ===== -->
             <div class="zs-tab-content" id="tab-standings">
                 <div class="zs-section-title">🏆 Standings</div>
                 <div id="standingsContainer"><div class="loading"><div class="spinner"></div><div>Loading standings...</div></div></div>
             </div>
 
-            <!-- ===== TRANSFERS TAB ===== -->
+            <!-- ===== TRANSFERS ===== -->
             <div class="zs-tab-content" id="tab-transfers">
                 <div class="zs-section-title">🔄 Transfer Market</div>
                 <div id="transfersContainer"><div class="loading"><div class="spinner"></div><div>Loading transfers...</div></div></div>
             </div>
 
-            <!-- ===== MOVIES TAB (simplified) ===== -->
+            <!-- ===== MOVIES ===== -->
             <div class="zs-tab-content" id="tab-movies">
                 <div class="zs-section-title">🎬 Movies</div>
                 <div id="moviesContainer"><div class="loading"><div class="spinner"></div><div>Loading movies...</div></div></div>
             </div>
 
-            <!-- ===== SERIES TAB (simplified) ===== -->
+            <!-- ===== SERIES ===== -->
             <div class="zs-tab-content" id="tab-series">
                 <div class="zs-section-title">📺 Series</div>
                 <div id="seriesContainer"><div class="loading"><div class="spinner"></div><div>Loading series...</div></div></div>
             </div>
 
-            <!-- ===== TV TAB ===== -->
+            <!-- ===== TV ===== -->
             <div class="zs-tab-content" id="tab-tv">
                 <div class="tv-section-header">
                     <h2>📡 TV Channels</h2>
@@ -1755,9 +1806,7 @@
                         <input type="text" id="tvSearchInput" placeholder="Search channels..." autocomplete="off" />
                     </div>
                 </div>
-                <div id="tvChannelsContainer">
-                    <div class="loading"><div class="spinner"></div><div>Loading TV channels...</div></div>
-                </div>
+                <div id="tvChannelsContainer"><div class="loading"><div class="spinner"></div><div>Loading TV channels...</div></div></div>
             </div>
 
             <!-- ===== MATCH DETAIL ===== -->
@@ -1771,12 +1820,12 @@
                 <div id="matchDetailContentAiScore"><div class="loading"><div class="spinner"></div><div>Loading details...</div></div></div>
             </div>
 
-            <!-- ===== SEARCH OVERLAY ===== -->
+            <!-- ===== GLOBAL SEARCH ===== -->
             <div class="zs-search-section-view" id="globalSearchView">
                 <div class="zs-search-section-header">
                     <button class="zs-back-btn" id="closeGlobalSearchBtn">← Back</button>
                     <div class="zs-search-section-input-wrap">
-                        <input type="text" id="globalSearchInput" placeholder="Search matches, movies, series, TV..." autocomplete="off" />
+                        <input type="text" id="globalSearchInput" placeholder="Search matches, TV, movies, series..." autocomplete="off" />
                     </div>
                 </div>
                 <div id="globalSearchResults" style="width:100%;flex:1;display:flex;flex-direction:column;"></div>
@@ -1784,7 +1833,7 @@
 
         </main>
 
-        <!-- ===== API-SPORTS WIDGETS CONFIG ===== -->
+        <!-- ===== API-SPORTS CONFIG ===== -->
         <api-sports-widget
             data-type="config"
             data-key="e227ff90ed4eacc3eacb07eca05ce78b"
@@ -1808,10 +1857,12 @@
         (function() {
             "use strict";
 
-            // ==================== WORKER ====================
+            // ==================== WORKER & API ====================
             const WORKER_URL = 'https://dry-truth-a84e.idriss-zribi13.workers.dev/';
             const GOLIVE_API = 'https://admin.golive-pro.online/api/public/events?tz=1';
             const API_SPORTS_KEY = 'e227ff90ed4eacc3eacb07eca05ce78b';
+            const MOVIE_API = 'https://admin.golive-pro.online/api/content/movies?limit=30';
+            const SERIES_API = 'https://admin.golive-pro.online/api/content/series?limit=30';
 
             // ==================== STATE ====================
             let allMatches = [];
@@ -2061,7 +2112,7 @@
                 camelOverlay.style.display = 'flex';
             }
 
-            // ==================== GOLIVE MATCHES ====================
+            // ==================== FETCH MATCHES ====================
             async function fetchGoliveMatches() {
                 liveContainer.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading live matches...</div></div>';
                 upcomingContainer.innerHTML =
@@ -2079,8 +2130,6 @@
 
                     allMatches = data;
                     categorizeAndRenderMatches(data);
-
-                    // Extract TV channels from matches with streams
                     extractTVChannels(data);
 
                 } catch (error) {
@@ -2096,7 +2145,6 @@
 
             function categorizeAndRenderMatches(matches) {
                 const now = new Date();
-
                 const live = [];
                 const upcoming = [];
                 const finished = [];
@@ -2104,7 +2152,6 @@
                 matches.forEach(m => {
                     const start = new Date(m.startTime);
                     const end = new Date(start.getTime() + 2 * 60 * 60 * 1000); // assume 2h match
-
                     const hasStream = m.sources && m.sources.length > 0;
 
                     if (now >= start && now <= end) {
@@ -2186,7 +2233,6 @@
                             const title = this.dataset.home + ' vs ' + this.dataset.away;
                             loadStream(url, title);
                             window.scrollTo({ top: 0, behavior: 'smooth' });
-                            // Try to fetch match details for camel overlay
                             fetchMatchDetailsForCamel(title);
                         } else {
                             alert('No stream link available for this match');
@@ -2195,7 +2241,7 @@
                 });
             }
 
-            // ==================== FETCH MATCH DETAILS FOR CAMEL ====================
+            // ==================== FETCH MATCH DETAILS ====================
             async function fetchMatchDetailsForCamel(title) {
                 try {
                     const searchTerms = title.split(' vs ');
@@ -2203,7 +2249,6 @@
                     const home = searchTerms[0].trim();
                     const away = searchTerms[1].trim();
 
-                    // Try to find fixture via API
                     const resp = await fetch(
                         `https://v3.football.api-sports.io/fixtures?date=${new Date().toISOString().split('T')[0]}`, {
                             headers: {
@@ -2231,7 +2276,6 @@
                             stats = sData.response || [];
                         } catch (e) {}
                         updateCamelOverlay(match, stats);
-                        // Also show match detail
                         showMatchDetailAiScore(match.fixture.id);
                     }
                 } catch (e) {
@@ -2252,7 +2296,6 @@
                                 seen.add(url);
                                 let label = s.label || 'Channel';
                                 let name = m.leagueName || 'Unknown';
-                                // Try to extract channel name from URL
                                 let channelName = name;
                                 if (url.includes('bein')) {
                                     const match = url.match(/bein(\d+)/i);
@@ -2336,35 +2379,33 @@
                 fetchGoliveMatches();
             });
 
-            // ==================== MOVIES (simplified) ====================
+            // ==================== MOVIES ====================
             async function loadMovies() {
                 moviesContainer.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading movies...</div></div>';
                 try {
-                    const url = WORKER_URL + '?url=' + encodeURIComponent(
-                        'https://admin.golive-pro.online/api/content/movies?limit=30');
+                    const url = WORKER_URL + '?url=' + encodeURIComponent(MOVIE_API);
                     const resp = await fetch(url);
                     const data = await resp.json();
                     if (data.data && Array.isArray(data.data)) {
-                        let html = '<div class="tv-channel-grid">';
+                        let html = '<div class="media-grid">';
                         data.data.forEach(m => {
                             const poster = (m.posterUrl || '').replace('http:', 'https:');
                             const title = m.title || m.titleEn || 'Unknown';
                             const url = m.sources && m.sources.length > 0 ? m.sources[0].streamUrl : '';
                             html += `
-                                <div class="tv-channel-card" data-url="${url}" style="cursor:pointer;">
-                                    <div style="width:100%;aspect-ratio:2/3;border-radius:8px;overflow:hidden;background:rgba(0,0,0,0.3);">
-                                        <img src="${poster}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">
+                                <div class="media-card" data-url="${url}">
+                                    <img class="media-poster" src="${poster}" onerror="this.style.display='none'">
+                                    <div class="media-info">
+                                        <div class="media-title">${title}</div>
+                                        <div class="media-sub">${m.genre || 'Movie'}</div>
                                     </div>
-                                    <div class="channel-name" style="font-size:12px;">${title}</div>
-                                    <div class="channel-label">${m.genre || 'Movie'}</div>
-                                    ${url ? '<div class="channel-status">▶ Play</div>' : ''}
                                 </div>
                             `;
                         });
                         html += '</div>';
                         moviesContainer.innerHTML = html;
 
-                        moviesContainer.querySelectorAll('.tv-channel-card[data-url]').forEach(card => {
+                        moviesContainer.querySelectorAll('.media-card[data-url]').forEach(card => {
                             card.addEventListener('click', function() {
                                 const url = this.dataset.url;
                                 if (url) {
@@ -2382,35 +2423,33 @@
                 }
             }
 
-            // ==================== SERIES (simplified) ====================
+            // ==================== SERIES ====================
             async function loadSeries() {
                 seriesContainer.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading series...</div></div>';
                 try {
-                    const url = WORKER_URL + '?url=' + encodeURIComponent(
-                        'https://admin.golive-pro.online/api/content/series?limit=30');
+                    const url = WORKER_URL + '?url=' + encodeURIComponent(SERIES_API);
                     const resp = await fetch(url);
                     const data = await resp.json();
                     if (data.data && Array.isArray(data.data)) {
-                        let html = '<div class="tv-channel-grid">';
+                        let html = '<div class="media-grid">';
                         data.data.forEach(s => {
                             const poster = (s.posterUrl || '').replace('http:', 'https:');
                             const title = s.title || s.titleEn || 'Unknown';
                             const url = s.sources && s.sources.length > 0 ? s.sources[0].streamUrl : '';
                             html += `
-                                <div class="tv-channel-card" data-url="${url}" style="cursor:pointer;">
-                                    <div style="width:100%;aspect-ratio:2/3;border-radius:8px;overflow:hidden;background:rgba(0,0,0,0.3);">
-                                        <img src="${poster}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">
+                                <div class="media-card" data-url="${url}">
+                                    <img class="media-poster" src="${poster}" onerror="this.style.display='none'">
+                                    <div class="media-info">
+                                        <div class="media-title">${title}</div>
+                                        <div class="media-sub">${s.genre || 'Series'}</div>
                                     </div>
-                                    <div class="channel-name" style="font-size:12px;">${title}</div>
-                                    <div class="channel-label">${s.genre || 'Series'}</div>
-                                    ${url ? '<div class="channel-status">▶ Play</div>' : ''}
                                 </div>
                             `;
                         });
                         html += '</div>';
                         seriesContainer.innerHTML = html;
 
-                        seriesContainer.querySelectorAll('.tv-channel-card[data-url]').forEach(card => {
+                        seriesContainer.querySelectorAll('.media-card[data-url]').forEach(card => {
                             card.addEventListener('click', function() {
                                 const url = this.dataset.url;
                                 if (url) {
@@ -2912,7 +2951,7 @@
 
                 let results = [];
 
-                // Search matches
+                // Matches
                 allMatches.forEach(m => {
                     const home = m.homeName || '';
                     const away = m.awayName || '';
@@ -2930,7 +2969,7 @@
                     }
                 });
 
-                // Search TV
+                // TV
                 tvChannels.forEach(ch => {
                     if (ch.name.toLowerCase().includes(query) || ch.league.toLowerCase().includes(query)) {
                         results.push({
