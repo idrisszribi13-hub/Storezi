@@ -1283,150 +1283,6 @@
             color: var(--accent);
         }
 
-        /* ===== CHAMPIONS LEAGUE SPECIFIC ===== */
-        .cl-standings-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-        .cl-standings-table th {
-            text-align: left;
-            padding: 8px 6px;
-            color: var(--text-secondary);
-            font-weight: 600;
-            border-bottom: 2px solid var(--border);
-        }
-        .cl-standings-table td {
-            padding: 6px 6px;
-            border-bottom: 1px solid var(--border);
-        }
-        .cl-standings-table .team-cell {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .cl-standings-table .team-cell img {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            object-fit: contain;
-        }
-        .cl-standings-table .points {
-            font-weight: 700;
-        }
-        .cl-standings-table .qualified {
-            color: var(--accent-green);
-        }
-        .cl-standings-table .playoff {
-            color: var(--accent-blue);
-        }
-        .cl-standings-table .eliminated {
-            color: var(--accent-red);
-        }
-        .cl-standings-table .team-click {
-            cursor: pointer;
-        }
-        .cl-standings-table .team-click:hover {
-            color: var(--accent);
-            text-decoration: underline;
-        }
-
-        .cl-knockout-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
-            gap: 16px;
-            width: 100%;
-            margin-top: 16px;
-        }
-        @media(max-width:768px) {
-            .cl-knockout-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 10px;
-            }
-        }
-        @media(max-width:480px) {
-            .cl-knockout-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .cl-round-card {
-            background: var(--surface);
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border);
-            padding: 12px;
-            transition: var(--transition);
-        }
-        .cl-round-card:hover {
-            border-color: var(--accent);
-            transform: translateY(-3px);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-        .cl-round-card .round-title {
-            font-weight: 700;
-            font-size: 14px;
-            color: var(--accent);
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 6px;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .cl-round-card .round-title .badge {
-            font-size: 10px;
-            background: var(--live);
-            color: #fff;
-            padding: 1px 8px;
-            border-radius: 20px;
-        }
-        .cl-match-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 0;
-            font-size: 12px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-            cursor: pointer;
-            transition: var(--transition);
-        }
-        .cl-match-item:hover {
-            background: var(--surface-hover);
-            border-radius: 4px;
-        }
-        .cl-match-item .cl-teams {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            flex: 1;
-            min-width: 0;
-        }
-        .cl-match-item .cl-teams img {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            object-fit: contain;
-            background: rgba(255, 255, 255, 0.05);
-        }
-        .cl-match-item .cl-teams .cl-team-name {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 80px;
-        }
-        .cl-match-item .cl-score {
-            font-weight: 700;
-            color: var(--text-primary);
-            min-width: 36px;
-            text-align: center;
-        }
-        .cl-match-item .cl-score.winner {
-            color: var(--accent-green);
-        }
-        .cl-match-item .cl-score.loser {
-            color: var(--text-secondary);
-        }
-
         /* ===== BACK BUTTON ===== */
         .zs-back-btn {
             background: var(--surface);
@@ -1530,17 +1386,6 @@
             }
             .match-card .match-meta {
                 justify-content: space-between;
-            }
-            .cl-knockout-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 8px;
-            }
-            .cl-standings-table {
-                font-size: 11px;
-            }
-            .cl-standings-table .team-cell img {
-                width: 18px;
-                height: 18px;
             }
         }
 
@@ -2262,7 +2107,6 @@
                 <button class="zs-nav-btn" data-tab="movies">🎬 Movies</button>
                 <button class="zs-nav-btn" data-tab="series">📺 Series</button>
                 <button class="zs-nav-btn" data-tab="tv">📡 TV</button>
-                <button class="zs-nav-btn" data-tab="champions">🏆 UCL</button>
             </div>
             <div class="zs-header-actions">
                 <button class="zs-search-btn-main" id="toggleSearchBtnMain">🔍</button>
@@ -2412,7 +2256,7 @@
                 </div>
             </div>
 
-            <!-- ===== STANDINGS (General) ===== -->
+            <!-- ===== STANDINGS (General - includes all leagues with standings) ===== -->
             <div class="zs-tab-content" id="tab-standings">
                 <div class="zs-section-title">🏆 Standings</div>
                 <div id="standingsContainer"><div class="loading"><div class="spinner"></div><div>Loading leagues...</div></div></div>
@@ -2454,14 +2298,6 @@
                     </div>
                 </div>
                 <div id="tvChannelsContainer"><div class="loading"><div class="spinner"></div><div>Loading TV channels...</div></div></div>
-            </div>
-
-            <!-- ===== CHAMPIONS LEAGUE TAB ===== -->
-            <div class="zs-tab-content" id="tab-champions">
-                <div class="zs-section-title">🏆 UEFA Champions League</div>
-                <div id="championsContainer">
-                    <div class="loading"><div class="spinner"></div><div>Loading Champions League data...</div></div>
-                </div>
             </div>
 
             <!-- ===== MATCH DETAIL ===== -->
@@ -2546,7 +2382,7 @@
             const YS_NEWS = 'https://news-en.ysscores.com/api/';
             const YS_IMG = 'https://imgs.ysscores.com/';
 
-            // Movie & Series
+            // Movie & Series (using direct URLs via worker)
             const MOVIE_API = 'https://admin.golive-pro.online/api/content/movies?limit=30';
             const SERIES_API = 'https://admin.golive-pro.online/api/content/series?limit=30';
 
@@ -2598,8 +2434,6 @@
             const seriesContainer = document.getElementById('seriesContainer');
             const tvChannelsContainer = document.getElementById('tvChannelsContainer');
             const tvSearchInput = document.getElementById('tvSearchInput');
-
-            const championsContainer = document.getElementById('championsContainer');
 
             const newsDetailOverlay = document.getElementById('newsDetailOverlay');
             const newsDetailContent = document.getElementById('newsDetailContent');
@@ -3106,7 +2940,7 @@
                 return code.split('').map(c => String.fromCodePoint(0x1F1E6 - 65 + c.charCodeAt(0))).join('');
             }
 
-            // ==================== STANDINGS ====================
+            // ==================== STANDINGS (All leagues with standings) ====================
             async function loadStandings() {
                 standingsContainer.innerHTML =
                 '<div class="loading"><div class="spinner"></div><div>Loading leagues...</div></div>';
@@ -3124,8 +2958,18 @@
                     standingsContainer.innerHTML = '<div class="empty-state">No leagues available</div>';
                     return;
                 }
+
+                // Filter only leagues with standings = 1 (true)
+                const leaguesWithStandings = leagues.filter(l => l.standings === 1);
+
+                if (leaguesWithStandings.length === 0) {
+                    standingsContainer.innerHTML =
+                        '<div class="empty-state">No leagues with standings available</div>';
+                    return;
+                }
+
                 let html = '<div class="leagues-grid">';
-                leagues.slice(0, 30).forEach(league => {
+                leaguesWithStandings.forEach(league => {
                     const img = getImageUrl(league.image, 'championship');
                     html += `
                         <div class="league-card" data-league-id="${league.url_id}">
@@ -3148,9 +2992,14 @@
             async function showLeagueStandings(leagueId) {
                 try {
                     const data = await fetchYS(`matches/league_standing_stage/${leagueId}`);
-                    if (!data.status) throw new Error('Failed to load standings');
+                    if (!data.status || !data.data) {
+                        standingsContainer.innerHTML =
+                            `<div class="error-msg">No standings data available for this league</div>`;
+                        return;
+                    }
                     const standingData = data.data;
-                    const leagueName = standingData.league?.stage0?.[0]?.team_name?.full_title || 'League';
+                    const leagueName = standingData.league?.stage0?.[0]?.team_name?.full_title ||
+                        standingData.league?.title || 'League';
                     let html = `
                         <div style="margin-bottom:8px;">
                             <button class="zs-back-btn" onclick="window.loadStandingsGlobal()">← Back</button>
@@ -3208,179 +3057,8 @@
                 return html;
             }
 
-            // ==================== CHAMPIONS LEAGUE ====================
-            const CL_LEAGUE_ID = 904988; // UEFA Champions League
-
-            async function loadChampionsLeague() {
-                championsContainer.innerHTML =
-                    '<div class="loading"><div class="spinner"></div><div>Loading Champions League data...</div></div>';
-                try {
-                    // Fetch standings
-                    const standingsData = await fetchYS(`matches/cups_teams_standings/${CL_LEAGUE_ID}/L/60`);
-                    // Fetch knockout map (playoffs, rounds)
-                    const mapData = await fetchYS(`matches/group_standing_stage/${CL_LEAGUE_ID}`);
-
-                    // If standings fail, show error
-                    if (!standingsData.status) {
-                        championsContainer.innerHTML =
-                            `<div class="error-msg">⚠️ Failed to load Champions League data</div>`;
-                        return;
-                    }
-
-                    renderChampionsLeague(standingsData.data, mapData.data);
-
-                } catch (error) {
-                    championsContainer.innerHTML = `<div class="error-msg">⚠️ ${error.message}</div>`;
-                }
-            }
-
-            function renderChampionsLeague(standings, mapData) {
-                // Standings
-                let html = `<div style="margin-bottom:16px;">`;
-
-                // Color legend
-                html += `<div style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:12px; font-size:12px;">
-                    <span><span style="display:inline-block; width:12px; height:12px; background:#16a765; border-radius:4px; vertical-align:middle;"></span> Qualified for Round of 16</span>
-                    <span><span style="display:inline-block; width:12px; height:12px; background:#4986e7; border-radius:4px; vertical-align:middle;"></span> Knockout Round</span>
-                    <span><span style="display:inline-block; width:12px; height:12px; background:#f83a22; border-radius:4px; vertical-align:middle;"></span> Eliminated</span>
-                </div>`;
-
-                // Standings table
-                html += `<div style="overflow-x:auto;">
-                    <table class="cl-standings-table">
-                        <thead>
-                            <tr>
-                                <th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th>
-                            </tr>
-                        </thead>
-                        <tbody>`;
-
-                const groups = standings.standings?.groups || {};
-                const groupA = groups['A'] || groups['One Group'] || [];
-                // Sort by points descending, then GD
-                groupA.sort((a, b) => {
-                    if (b.points !== a.points) return b.points - a.points;
-                    return b.diff - a.diff;
-                });
-
-                groupA.forEach((item, index) => {
-                    const team = item.team_name || {};
-                    const teamId = team.row_id || null;
-                    const logo = getImageUrl(team.image, 'team');
-                    const color = item.color || '#4986e7';
-                    const isQualified = item.isqualified === 1;
-                    const isPlayoff = !isQualified && (item.points >= 9 && item.points <= 13);
-                    const isEliminated = !isQualified && !isPlayoff;
-                    let statusClass = '';
-                    if (isQualified) statusClass = 'qualified';
-                    else if (isPlayoff) statusClass = 'playoff';
-                    else statusClass = 'eliminated';
-
-                    html += `
-                        <tr style="border-left: 4px solid ${color};">
-                            <td>${index + 1}</td>
-                            <td><div class="team-cell">
-                                <img src="${logo}" onerror="this.style.display='none'">
-                                <span class="team-click" data-team-id="${teamId}" style="cursor:pointer;">${team.title || '?'}</span>
-                            </div></td>
-                            <td>${item.play || 0}</td>
-                            <td>${item.wins || 0}</td>
-                            <td>${item.draw || 0}</td>
-                            <td>${item.lose || 0}</td>
-                            <td>${item.for || 0}</td>
-                            <td>${item.against || 0}</td>
-                            <td>${item.diff || 0}</td>
-                            <td class="points ${statusClass}">${item.points || 0}</td>
-                        </tr>
-                    `;
-                });
-
-                html += `</tbody></table></div></div>`;
-
-                // Knockout Rounds
-                if (mapData && mapData.lot) {
-                    html += `<div style="margin-top:16px;">
-                        <h3 style="font-size:16px; font-weight:700; margin-bottom:8px; color:var(--accent);">🏆 Knockout Stages</h3>
-                        <div class="cl-knockout-grid">`;
-
-                    // Group by round_name
-                    const rounds = ['Playoffs', 'Round of 16', 'Quarter Final', 'Semi Final', 'Final'];
-                    rounds.forEach(roundName => {
-                        const matches = mapData.lot.filter(m => m.round_name === roundName) || [];
-                        if (matches.length === 0) return;
-
-                        html += `<div class="cl-round-card">
-                            <div class="round-title">
-                                ${roundName}
-                                <span class="badge">${matches.length}</span>
-                            </div>`;
-
-                        matches.forEach(m => {
-                            const teamA = m.teamA || {};
-                            const teamB = m.teamB || {};
-                            const winTeamId = m.winTeam || null;
-                            const aLogo = getImageUrl(teamA.image, 'team');
-                            const bLogo = getImageUrl(teamB.image, 'team');
-                            const aId = teamA.row_id || null;
-                            const bId = teamB.row_id || null;
-
-                            // Determine scores if available
-                            let scoreA = m.teamA_score !== undefined ? m.teamA_score : '?';
-                            let scoreB = m.teamB_score !== undefined ? m.teamB_score : '?';
-                            const isPlayed = (scoreA !== '?' && scoreB !== '?');
-
-                            html += `<div class="cl-match-item" data-match-id="${m.match_id || ''}">
-                                <div class="cl-teams">
-                                    <img src="${aLogo}" onerror="this.style.display='none'">
-                                    <span class="cl-team-name team-click" data-team-id="${aId}" style="cursor:pointer;">${teamA.title || '?'}</span>
-                                </div>
-                                <div class="cl-score ${winTeamId === aId ? 'winner' : (winTeamId === bId ? 'loser' : '')}">
-                                    ${isPlayed ? scoreA : '—'}
-                                </div>
-                                <span style="color:var(--text-secondary); font-size:10px;">vs</span>
-                                <div class="cl-score ${winTeamId === bId ? 'winner' : (winTeamId === aId ? 'loser' : '')}">
-                                    ${isPlayed ? scoreB : '—'}
-                                </div>
-                                <div class="cl-teams">
-                                    <span class="cl-team-name team-click" data-team-id="${bId}" style="cursor:pointer;">${teamB.title || '?'}</span>
-                                    <img src="${bLogo}" onerror="this.style.display='none'">
-                                </div>
-                            </div>`;
-                        });
-
-                        html += `</div>`;
-                    });
-
-                    html += `</div></div>`;
-                }
-
-                championsContainer.innerHTML = html;
-
-                // Add click events for team names
-                document.querySelectorAll('.team-click[data-team-id]').forEach(el => {
-                    el.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        const teamId = this.dataset.teamId;
-                        if (teamId && teamId !== 'null') {
-                            showTeamDetail(teamId);
-                        }
-                    });
-                });
-
-                // Add click events for match items (if match-id exists)
-                document.querySelectorAll('.cl-match-item[data-match-id]').forEach(el => {
-                    const matchId = el.dataset.matchId;
-                    if (matchId && matchId !== '') {
-                        el.style.cursor = 'pointer';
-                        el.addEventListener('click', function() {
-                            showMatchDetailAiScore(matchId);
-                        });
-                    }
-                });
-            }
-
             // ==================== TRANSFERS ====================
-            async function loadTransfers(page = 1) {
+            async function loadTransfers() {
                 transfersContainer.innerHTML =
                 '<div class="loading"><div class="spinner"></div><div>Loading transfers...</div></div>';
                 try {
@@ -3867,10 +3545,11 @@
                 }
             }
 
-            // ==================== MOVIES ====================
+            // ==================== MOVIES (Fixed) ====================
             async function loadMovies() {
                 moviesContainer.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading movies...</div></div>';
                 try {
+                    // Try using the worker with a different approach
                     const url = WORKER_URL + '?url=' + encodeURIComponent(MOVIE_API);
                     const resp = await fetch(url);
                     if (!resp.ok) throw new Error('HTTP ' + resp.status);
@@ -3910,11 +3589,12 @@
                         moviesContainer.innerHTML = '<div class="empty-state">No movies available</div>';
                     }
                 } catch (e) {
+                    console.error('Movies error:', e);
                     moviesContainer.innerHTML = `<div class="error-msg">Failed to load movies</div>`;
                 }
             }
 
-            // ==================== SERIES ====================
+            // ==================== SERIES (Fixed) ====================
             async function loadSeries() {
                 seriesContainer.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading series...</div></div>';
                 try {
@@ -3957,6 +3637,7 @@
                         seriesContainer.innerHTML = '<div class="empty-state">No series available</div>';
                     }
                 } catch (e) {
+                    console.error('Series error:', e);
                     seriesContainer.innerHTML = `<div class="error-msg">Failed to load series</div>`;
                 }
             }
@@ -4365,8 +4046,6 @@
                 } else if (tabId === 'tv') {
                     if (tvChannels.length === 0) fetchGoliveMatches();
                     else renderTVChannels(tvChannels);
-                } else if (tabId === 'champions') {
-                    loadChampionsLeague();
                 }
             }
 
@@ -4425,7 +4104,6 @@
                     loadStandings();
                     loadTransfers();
                     loadNews(1);
-                    loadChampionsLeague(); // Load champions data in background
                 }, 2000);
             }
 
