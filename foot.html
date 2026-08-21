@@ -80,7 +80,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 8px 14px;
+            padding: 10px 16px;
             background: var(--header-bg);
             backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--border);
@@ -88,44 +88,54 @@
             top: 0;
             z-index: 50;
             flex-wrap: wrap;
-            gap: 4px;
+            gap: 6px;
         }
         .zs-header-brand {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             font-weight: 800;
-            font-size: 16px;
+            font-size: 18px;
             color: var(--text);
             letter-spacing: -0.5px;
         }
         .zs-brand-icon {
-            width: 30px;
-            height: 30px;
+            width: 34px;
+            height: 34px;
             border-radius: 50%;
             background: linear-gradient(135deg, var(--accent), #ff6b00);
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 900;
-            font-size: 14px;
+            font-size: 16px;
             color: #0a0a0f;
-            box-shadow: 0 0 12px var(--accent-glow);
+            box-shadow: 0 0 15px var(--accent-glow);
             flex-shrink: 0;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%,
+            100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
         }
         .zs-nav-buttons {
             display: flex;
-            gap: 3px;
+            gap: 4px;
             flex-wrap: wrap;
         }
         .zs-nav-btn {
             background: var(--surface-glass);
             border: 1px solid var(--border);
             border-radius: 30px;
-            padding: 4px 10px;
+            padding: 5px 12px;
             color: var(--text-secondary);
             font-weight: 600;
-            font-size: 10px;
+            font-size: 11px;
             cursor: pointer;
             transition: var(--transition);
             white-space: nowrap;
@@ -134,36 +144,37 @@
             background: var(--surface-hover);
             color: var(--text);
             border-color: var(--accent);
+            transform: translateY(-2px);
         }
         .zs-nav-btn.active {
             background: var(--accent);
             color: #0a0a0f;
             border-color: var(--accent);
-            box-shadow: 0 0 12px var(--accent-glow);
+            box-shadow: 0 0 20px var(--accent-glow);
         }
         .zs-header-actions {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             flex-wrap: wrap;
         }
         .zs-theme-switch {
             display: flex;
             background: var(--surface-glass);
-            padding: 2px;
+            padding: 3px;
             border-radius: 30px;
             border: 1px solid var(--border);
             gap: 2px;
         }
         .zs-theme-btn {
-            padding: 3px 8px;
+            padding: 4px 10px;
             border-radius: 20px;
             border: none;
             background: transparent;
             color: var(--text-secondary);
             cursor: pointer;
             font-weight: 600;
-            font-size: 9px;
+            font-size: 10px;
             transition: var(--transition);
             white-space: nowrap;
         }
@@ -174,21 +185,21 @@
         .zs-theme-btn.zs-active {
             background: var(--accent);
             color: #0a0a0f;
-            box-shadow: 0 0 8px var(--accent-glow);
+            box-shadow: 0 0 10px var(--accent-glow);
         }
         .zs-search-btn-main {
             background: var(--surface-glass);
             border: 1px solid var(--border);
             border-radius: 30px;
-            width: 28px;
-            height: 28px;
+            width: 32px;
+            height: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: var(--text-secondary);
             cursor: pointer;
             transition: var(--transition);
-            font-size: 12px;
+            font-size: 14px;
         }
         .zs-search-btn-main:hover {
             background: var(--surface-hover);
@@ -199,7 +210,7 @@
         /* ===== MAIN ===== */
         .zs-main {
             flex: 1;
-            padding: 12px;
+            padding: 16px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -213,7 +224,7 @@
             display: none;
             width: 100%;
             max-width: 100%;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
             animation: fadeSlideIn 0.4s ease forwards;
         }
         .zs-player-section.visible {
@@ -233,7 +244,7 @@
             position: relative;
             width: 100%;
             background: #000;
-            border-radius: 16px;
+            border-radius: 20px;
             overflow: hidden;
             box-shadow: var(--shadow);
             aspect-ratio: 16/9;
@@ -431,7 +442,7 @@
             }
         }
 
-        /* ===== CAMEL OVERLAY (small & refined) ===== */
+        /* ===== CAMEL OVERLAY ===== */
         #camelOverlay {
             position: absolute;
             top: 0;
@@ -668,43 +679,43 @@
         }
 
         .zs-section-title {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 800;
-            margin: 6px 0 10px;
+            margin: 8px 0 12px;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             background: var(--surface);
-            padding: 6px 14px;
+            padding: 8px 16px;
             border-radius: var(--radius-sm);
-            border-left: 3px solid var(--accent);
+            border-left: 4px solid var(--accent);
         }
 
         /* ===== MATCH SECTIONS ===== */
         .match-section {
             width: 100%;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
         }
         .match-section .section-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             padding: 0 4px;
         }
         .match-section .section-header h3 {
-            font-size: 14px;
+            font-size: 16px;
             font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
         }
         .match-section .section-header .badge {
             background: var(--live);
             color: #fff;
-            font-size: 10px;
-            padding: 1px 8px;
-            border-radius: 10px;
+            font-size: 11px;
+            padding: 2px 10px;
+            border-radius: 12px;
             font-weight: 700;
         }
         .match-section .section-header .badge.upcoming {
@@ -717,8 +728,8 @@
         .match-card {
             background: var(--surface);
             border-radius: var(--radius-sm);
-            padding: 10px 12px;
-            margin-bottom: 4px;
+            padding: 12px 14px;
+            margin-bottom: 6px;
             border: 1px solid var(--border);
             cursor: pointer;
             transition: all var(--transition);
@@ -726,31 +737,31 @@
             align-items: center;
             justify-content: space-between;
             flex-wrap: wrap;
-            gap: 4px;
+            gap: 6px;
         }
         .match-card:hover {
             border-color: var(--accent);
-            transform: translateX(3px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transform: translateX(4px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
         .match-card .match-info {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             flex: 1;
-            min-width: 140px;
+            min-width: 160px;
         }
         .match-card .match-info .teams {
             display: flex;
             align-items: center;
-            gap: 3px;
+            gap: 4px;
             font-weight: 600;
-            font-size: 12px;
+            font-size: 13px;
             flex-wrap: wrap;
         }
         .match-card .match-info .teams img {
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
             object-fit: contain;
             background: rgba(255, 255, 255, 0.05);
@@ -758,35 +769,35 @@
         .match-card .match-info .teams .vs {
             color: var(--text-secondary);
             font-weight: 400;
-            font-size: 10px;
+            font-size: 11px;
         }
         .match-card .match-info .league {
-            font-size: 10px;
+            font-size: 11px;
             color: var(--text-secondary);
         }
         .match-card .match-meta {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             flex-wrap: wrap;
         }
         .match-card .match-meta .score {
             font-weight: 700;
-            font-size: 14px;
-            min-width: 34px;
+            font-size: 16px;
+            min-width: 40px;
             text-align: center;
             color: var(--live) !important;
         }
         .match-card .match-meta .time {
-            font-size: 11px;
+            font-size: 12px;
             color: var(--text-secondary);
             font-weight: 600;
         }
         .match-card .match-meta .status-badge {
-            font-size: 9px;
+            font-size: 10px;
             font-weight: 700;
-            padding: 1px 6px;
-            border-radius: 10px;
+            padding: 2px 8px;
+            border-radius: 12px;
             background: var(--live);
             color: #fff;
         }
@@ -798,39 +809,39 @@
         }
         .match-card .match-meta .stream-icon {
             color: var(--live);
-            font-size: 12px;
+            font-size: 14px;
         }
 
         /* ===== TV ===== */
         .tv-channel-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 12px;
             width: 100%;
-            padding: 6px 0;
+            padding: 8px 0;
         }
         .tv-channel-card {
             background: var(--surface);
             border-radius: var(--radius-sm);
             border: 1px solid var(--border);
-            padding: 12px 8px;
+            padding: 14px 10px;
             text-align: center;
             cursor: pointer;
             transition: all var(--transition);
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
         }
         .tv-channel-card:hover {
             border-color: var(--accent);
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
         }
         .tv-channel-card .channel-icon {
-            font-size: 24px;
-            width: 42px;
-            height: 42px;
+            font-size: 28px;
+            width: 48px;
+            height: 48px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -840,15 +851,15 @@
         }
         .tv-channel-card .channel-name {
             font-weight: 700;
-            font-size: 12px;
+            font-size: 13px;
             color: var(--text);
         }
         .tv-channel-card .channel-label {
-            font-size: 9px;
+            font-size: 10px;
             color: var(--text-secondary);
         }
         .tv-channel-card .channel-status {
-            font-size: 9px;
+            font-size: 10px;
             color: var(--live);
             font-weight: 600;
         }
@@ -857,18 +868,18 @@
         api-sports-widget {
             display: block;
             width: 100%;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
 
         /* ===== FOOTER ===== */
         .zs-footer {
             width: 100%;
             text-align: center;
-            padding: 12px 10px;
+            padding: 16px 10px;
             margin-top: auto;
             border-top: 1px solid var(--border);
             color: var(--text-secondary);
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 500;
         }
         .zs-footer span {
@@ -880,32 +891,31 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 8px;
-            padding: 24px 12px;
+            gap: 10px;
+            padding: 30px 16px;
             color: var(--text-secondary);
         }
         .loading .spinner {
-            width: 28px;
-            height: 28px;
-            border: 3px solid var(--border);
+            width: 32px;
+            height: 32px;
+            border: 4px solid var(--border);
             border-top-color: var(--accent);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
         .error-msg {
-            padding: 20px;
+            padding: 24px;
             text-align: center;
             color: var(--live);
             background: var(--surface);
             border-radius: var(--radius-sm);
             border: 1px solid var(--border);
-            font-size: 13px;
         }
         .empty-state {
             text-align: center;
-            padding: 20px;
+            padding: 24px;
             color: var(--text-secondary);
-            font-size: 12px;
+            font-size: 13px;
         }
 
         /* ===== MATCH DETAIL ===== */
@@ -921,12 +931,12 @@
         .match-header-aiscore {
             background: var(--surface);
             border-radius: var(--radius);
-            padding: 12px;
-            margin-bottom: 12px;
+            padding: 14px;
+            margin-bottom: 14px;
             border: 1px solid var(--border);
         }
         .match-header-aiscore .league-name {
-            font-size: 11px;
+            font-size: 12px;
             color: var(--text-secondary);
             margin-bottom: 4px;
         }
@@ -934,29 +944,29 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 6px;
+            gap: 8px;
             flex-wrap: wrap;
         }
         .match-header-aiscore .team-block {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
         }
         .match-header-aiscore .team-block img {
-            width: 24px;
-            height: 24px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             object-fit: contain;
         }
         .match-header-aiscore .team-block .name {
             font-weight: 700;
-            font-size: 13px;
+            font-size: 14px;
         }
         .match-header-aiscore .score-block {
             text-align: center;
         }
         .match-header-aiscore .score-block .score {
-            font-size: 20px;
+            font-size: 24px;
             font-weight: 900;
             color: var(--text);
         }
@@ -964,16 +974,16 @@
             color: var(--live) !important;
         }
         .match-header-aiscore .score-block .status {
-            font-size: 11px;
+            font-size: 12px;
             color: var(--live);
             font-weight: 700;
         }
         .match-header-aiscore .score-block .ht-score {
-            font-size: 10px;
+            font-size: 11px;
             color: var(--text-secondary);
         }
         .match-header-aiscore .progress-bar {
-            margin-top: 8px;
+            margin-top: 10px;
             height: 3px;
             background: var(--border);
             border-radius: 2px;
@@ -989,16 +999,16 @@
         .match-header-aiscore .progress-bar .time-label {
             position: absolute;
             right: 0;
-            top: -12px;
-            font-size: 10px;
+            top: -14px;
+            font-size: 11px;
             color: var(--text-secondary);
         }
         .match-meta-info {
             display: flex;
             flex-wrap: wrap;
-            gap: 6px;
-            margin-top: 6px;
-            font-size: 11px;
+            gap: 8px;
+            margin-top: 8px;
+            font-size: 12px;
             color: var(--text-secondary);
             justify-content: center;
         }
@@ -1012,22 +1022,22 @@
 
         .match-tabs-aiscore {
             position: sticky;
-            top: 60px;
+            top: 70px;
             z-index: 40;
             background: var(--bg);
-            padding: 8px 4px;
+            padding: 10px 4px;
             border-bottom: 1px solid var(--border);
-            border-radius: 0 0 10px 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             display: flex;
-            gap: 3px;
+            gap: 4px;
             flex-wrap: wrap;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
         @media(max-width:600px) {
             .match-tabs-aiscore {
-                top: 100px;
-                padding: 4px 2px;
+                top: 110px;
+                padding: 6px 2px;
             }
         }
         .match-tabs-aiscore button {
@@ -1035,9 +1045,9 @@
             border: none;
             color: var(--text-secondary);
             font-weight: 600;
-            font-size: 11px;
+            font-size: 12px;
             cursor: pointer;
-            padding: 3px 10px;
+            padding: 4px 12px;
             border-radius: 20px;
             transition: all 0.2s;
             white-space: nowrap;
@@ -1054,7 +1064,7 @@
 
         .match-tab-content-aiscore {
             display: none;
-            padding: 4px 0;
+            padding: 6px 0;
             width: 100%;
         }
         .match-tab-content-aiscore.active {
@@ -1064,7 +1074,7 @@
         .stats-grid-aiscore {
             display: grid;
             grid-template-columns: 1fr auto 1fr;
-            gap: 4px 10px;
+            gap: 6px 14px;
             align-items: center;
             width: 100%;
         }
@@ -1073,10 +1083,10 @@
         }
         .stats-grid-aiscore .stat-label {
             color: var(--text-secondary);
-            font-size: 11px;
+            font-size: 12px;
             text-align: center;
             grid-column: 1/-1;
-            margin-top: 4px;
+            margin-top: 6px;
             font-weight: 600;
         }
         .stats-grid-aiscore .stat-value-home {
@@ -1090,8 +1100,8 @@
             color: var(--text);
         }
         .stats-grid-aiscore .stat-bar {
-            width: 40px;
-            height: 3px;
+            width: 50px;
+            height: 4px;
             background: var(--border);
             border-radius: 2px;
             overflow: hidden;
@@ -1114,31 +1124,31 @@
         .lineup-aiscore {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            gap: 16px;
         }
         .lineup-aiscore .team-lineup {
             background: var(--surface);
             border-radius: var(--radius-sm);
-            padding: 8px;
+            padding: 10px;
             border: 1px solid var(--border);
         }
         .lineup-aiscore .team-lineup .title {
             font-weight: 700;
-            font-size: 13px;
-            margin-bottom: 4px;
+            font-size: 14px;
+            margin-bottom: 6px;
         }
         .lineup-aiscore .team-lineup .player {
             display: flex;
             align-items: center;
-            gap: 4px;
-            padding: 2px 0;
+            gap: 6px;
+            padding: 3px 0;
             border-bottom: 1px solid var(--border);
-            font-size: 11px;
+            font-size: 12px;
         }
         .lineup-aiscore .team-lineup .player .number {
             font-weight: 700;
             color: var(--accent);
-            min-width: 18px;
+            min-width: 20px;
         }
         .lineup-aiscore .team-lineup .player .name {
             flex: 1;
@@ -1147,23 +1157,23 @@
         .events-aiscore {
             display: flex;
             flex-direction: column;
-            gap: 3px;
+            gap: 4px;
         }
         .events-aiscore .event-row {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 3px 0;
+            gap: 10px;
+            padding: 4px 0;
             border-bottom: 1px solid var(--border);
-            font-size: 12px;
+            font-size: 13px;
         }
         .events-aiscore .event-row .time {
             font-weight: 700;
             color: var(--accent);
-            min-width: 30px;
+            min-width: 34px;
         }
         .events-aiscore .event-row .icon {
-            font-size: 14px;
+            font-size: 16px;
         }
         .events-aiscore .event-row .desc {
             flex: 1;
@@ -1176,14 +1186,14 @@
         .goal-label {
             background: var(--live);
             color: #fff;
-            padding: 0px 5px;
-            border-radius: 3px;
-            font-size: 8px;
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-size: 9px;
             font-weight: 800;
-            margin-left: 3px;
+            margin-left: 4px;
             display: inline-block;
             animation: goal-pulse 1s infinite;
-            box-shadow: 0 0 8px var(--live-glow);
+            box-shadow: 0 0 10px var(--live-glow);
             vertical-align: middle;
         }
         @keyframes goal-pulse {
@@ -1193,7 +1203,7 @@
                 opacity: 1;
             }
             50% {
-                transform: scale(1.08);
+                transform: scale(1.1);
                 opacity: 0.8;
             }
         }
@@ -1201,16 +1211,16 @@
         .h2h-aiscore {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 6px;
         }
         .h2h-aiscore .h2h-row {
             display: flex;
             justify-content: space-between;
-            padding: 3px 0;
+            padding: 4px 0;
             border-bottom: 1px solid var(--border);
-            font-size: 12px;
+            font-size: 13px;
             flex-wrap: wrap;
-            gap: 3px;
+            gap: 4px;
         }
         .h2h-aiscore .h2h-row .teams {
             font-weight: 600;
@@ -1219,7 +1229,7 @@
             font-weight: 700;
         }
         .h2h-aiscore .h2h-row .date {
-            font-size: 10px;
+            font-size: 11px;
             color: var(--text-secondary);
         }
 
@@ -1227,46 +1237,46 @@
             background: var(--surface);
             border-radius: var(--radius-sm);
             border: 1px solid var(--border);
-            padding: 8px;
+            padding: 10px;
         }
         .standings-grid-detail .league-block .league-title {
             font-weight: 700;
-            font-size: 13px;
-            margin-bottom: 6px;
+            font-size: 14px;
+            margin-bottom: 8px;
             color: var(--accent);
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
         }
         .standings-grid-detail .league-block .league-title img {
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
             object-fit: contain;
         }
         .standings-grid-detail .league-block table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 11px;
+            font-size: 12px;
         }
         .standings-grid-detail .league-block th {
             text-align: left;
-            padding: 2px 3px;
+            padding: 3px 4px;
             color: var(--text-secondary);
             font-weight: 600;
             border-bottom: 1px solid var(--border);
         }
         .standings-grid-detail .league-block td {
-            padding: 2px 3px;
+            padding: 3px 4px;
             border-bottom: 1px solid var(--border);
         }
         .standings-grid-detail .league-block .team-cell {
             display: flex;
             align-items: center;
-            gap: 3px;
+            gap: 4px;
         }
         .standings-grid-detail .league-block .team-cell img {
-            width: 14px;
-            height: 14px;
+            width: 16px;
+            height: 16px;
             border-radius: 50%;
             object-fit: contain;
         }
@@ -1280,15 +1290,15 @@
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 30px;
-            padding: 4px 10px;
+            padding: 6px 12px;
             color: var(--text);
             font-weight: 600;
-            font-size: 11px;
+            font-size: 12px;
             cursor: pointer;
             transition: var(--transition);
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
         }
         .zs-back-btn:hover {
             background: var(--surface-hover);
@@ -1298,18 +1308,18 @@
             width: 100%;
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 4px 0 10px 0;
+            gap: 10px;
+            padding: 6px 0 14px 0;
             justify-content: space-between;
             flex-wrap: wrap;
         }
         .zs-list-header-left {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
         .zs-list-title {
-            font-size: 16px;
+            font-size: 17px;
             font-weight: 800;
         }
 
@@ -1318,8 +1328,8 @@
             .zs-header {
                 flex-direction: column;
                 align-items: stretch;
-                gap: 4px;
-                padding: 6px 10px;
+                gap: 6px;
+                padding: 8px 12px;
             }
             .zs-nav-buttons {
                 justify-content: center;
@@ -1328,7 +1338,7 @@
                 justify-content: center;
             }
             .zs-main {
-                padding: 10px;
+                padding: 12px;
             }
             .match-header-aiscore .match-teams-score {
                 flex-direction: column;
@@ -1339,16 +1349,16 @@
             }
             .stats-grid-aiscore {
                 grid-template-columns: 1fr auto 1fr;
-                gap: 3px;
+                gap: 4px;
             }
             .stats-grid-aiscore .stat-bar {
-                width: 30px;
+                width: 36px;
             }
             .lineup-aiscore {
                 grid-template-columns: 1fr;
             }
             .tv-channel-grid {
-                grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
             }
             #camelOverlay .camel-team span {
                 font-size: 10px;
@@ -1384,16 +1394,16 @@
         /* ===== TV SEARCH ===== */
         .tv-search-container {
             width: 100%;
-            margin-bottom: 10px;
+            margin-bottom: 14px;
         }
         .tv-search-container .zs-search-section-input-wrap {
-            max-width: 350px;
+            max-width: 400px;
             display: flex;
             align-items: center;
             background: var(--surface-glass);
             border: 1px solid var(--border);
             border-radius: 30px;
-            padding: 3px 12px;
+            padding: 4px 14px;
             transition: var(--transition);
         }
         .tv-search-container .zs-search-section-input-wrap:focus-within {
@@ -1404,37 +1414,37 @@
             background: transparent;
             border: none;
             color: var(--text);
-            font-size: 12px;
+            font-size: 13px;
             outline: none;
             width: 100%;
-            padding: 4px 0;
+            padding: 6px 0;
         }
         .tv-section-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             width: 100%;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             flex-wrap: wrap;
-            gap: 6px;
+            gap: 8px;
         }
         .tv-section-header h2 {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 800;
         }
         .tv-refresh-btn {
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 30px;
-            padding: 3px 12px;
+            padding: 4px 14px;
             color: var(--text);
             font-weight: 600;
-            font-size: 11px;
+            font-size: 12px;
             cursor: pointer;
             transition: var(--transition);
             display: flex;
             align-items: center;
-            gap: 3px;
+            gap: 4px;
         }
         .tv-refresh-btn:hover {
             background: var(--surface-hover);
@@ -1447,7 +1457,7 @@
             width: 100%;
             flex-direction: column;
             animation: fadeSlideIn 0.3s ease forwards;
-            min-height: 35vh;
+            min-height: 40vh;
         }
         .zs-search-section-view.visible {
             display: flex;
@@ -1456,8 +1466,8 @@
             display: flex;
             align-items: center;
             width: 100%;
-            margin-bottom: 10px;
-            gap: 8px;
+            margin-bottom: 14px;
+            gap: 10px;
         }
         .zs-search-section-input-wrap {
             flex: 1;
@@ -1466,7 +1476,7 @@
             background: var(--surface-glass);
             border: 1px solid var(--border);
             border-radius: 30px;
-            padding: 3px 12px;
+            padding: 4px 14px;
             transition: var(--transition);
         }
         .zs-search-section-input-wrap:focus-within {
@@ -1477,24 +1487,24 @@
             background: transparent;
             border: none;
             color: var(--text);
-            font-size: 12px;
+            font-size: 13px;
             outline: none;
             width: 100%;
-            padding: 4px 0;
+            padding: 6px 0;
         }
         .zs-search-section-results {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 8px;
             width: 100%;
         }
         .zs-search-section-item {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 6px 10px;
+            gap: 10px;
+            padding: 8px 12px;
             background: var(--surface);
-            border-radius: 12px;
+            border-radius: 14px;
             border: 1px solid var(--border);
             cursor: pointer;
             transition: all var(--transition);
@@ -1504,9 +1514,9 @@
             border-color: var(--accent);
         }
         .zs-search-section-item .zs-thumb {
-            width: 32px;
-            height: 32px;
-            border-radius: 6px;
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
             object-fit: cover;
             flex-shrink: 0;
             background: rgba(0, 0, 0, 0.3);
@@ -1519,21 +1529,21 @@
         }
         .zs-search-section-item .zs-title {
             font-weight: 700;
-            font-size: 12px;
+            font-size: 13px;
             color: var(--text);
             line-height: 1.2;
         }
         .zs-search-section-item .zs-desc {
-            font-size: 10px;
+            font-size: 11px;
             color: var(--text-secondary);
         }
         .zs-search-section-item .zs-stars {
             display: flex;
             align-items: center;
-            gap: 3px;
+            gap: 4px;
             color: var(--accent);
             font-weight: 600;
-            font-size: 10px;
+            font-size: 11px;
         }
         .zs-search-empty-state {
             flex: 1;
@@ -1543,17 +1553,17 @@
             justify-content: center;
             color: var(--text-secondary);
             text-align: center;
-            padding: 24px 0;
+            padding: 30px 0;
         }
         .zs-search-empty-state svg {
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             fill: var(--text-secondary);
             opacity: 0.5;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
         .zs-search-empty-state h3 {
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 600;
             color: var(--text);
         }
@@ -1561,10 +1571,10 @@
         /* ===== MEDIA GRID (Movies & Series) ===== */
         .media-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
             width: 100%;
-            padding: 6px 0;
+            padding: 8px 0;
         }
         .media-card {
             background: var(--surface);
@@ -1575,9 +1585,9 @@
             transition: all var(--transition);
         }
         .media-card:hover {
-            transform: translateY(-4px);
+            transform: translateY(-6px);
             border-color: var(--accent);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
         }
         .media-card .media-poster {
             width: 100%;
@@ -1586,19 +1596,19 @@
             background: rgba(0, 0, 0, 0.3);
         }
         .media-card .media-info {
-            padding: 6px 8px;
+            padding: 8px 10px;
             text-align: center;
         }
         .media-card .media-title {
             font-weight: 700;
-            font-size: 11px;
+            font-size: 12px;
             color: var(--text);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
         .media-card .media-sub {
-            font-size: 9px;
+            font-size: 10px;
             color: var(--text-secondary);
         }
 
@@ -1614,6 +1624,7 @@
             gap: 10px;
             flex-wrap: wrap;
             transition: var(--transition);
+            cursor: pointer;
         }
         .transfer-card:hover {
             border-color: var(--accent);
@@ -1668,6 +1679,369 @@
         }
         .transfer-card .transfer-flag {
             font-size: 18px;
+        }
+
+        /* ===== NEWS ===== */
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            width: 100%;
+            padding: 8px 0;
+        }
+        .news-card {
+            background: var(--surface);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        .news-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        .news-card .news-img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            background: var(--surface-hover);
+        }
+        .news-card .news-body {
+            padding: 12px 14px;
+        }
+        .news-card .news-body .news-title {
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--text);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .news-card .news-body .news-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+        .news-card .news-body .news-time {
+            font-size: 10px;
+            color: var(--text-secondary);
+            margin-top: 6px;
+        }
+
+        /* ===== LEAGUES GRID ===== */
+        .leagues-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 10px;
+            width: 100%;
+            padding: 8px 0;
+        }
+        .league-card {
+            background: var(--surface);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            padding: 12px 14px;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .league-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .league-card img {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            object-fit: contain;
+        }
+        .league-card .league-name {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text);
+        }
+
+        /* ===== NEWS DETAIL MODAL ===== */
+        .news-detail-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .news-detail-overlay.visible {
+            display: flex;
+        }
+        .news-detail-box {
+            background: var(--surface);
+            border-radius: var(--radius);
+            max-width: 700px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 24px;
+            border: 1px solid var(--border);
+            animation: fadeSlideIn 0.3s ease;
+        }
+        .news-detail-box .close-btn {
+            float: right;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .news-detail-box .close-btn:hover {
+            color: var(--text);
+        }
+        .news-detail-box .news-detail-title {
+            font-size: 22px;
+            font-weight: 800;
+            margin: 8px 0 12px;
+            color: var(--text);
+        }
+        .news-detail-box .news-detail-img {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: var(--radius-sm);
+            margin: 8px 0 16px;
+        }
+        .news-detail-box .news-detail-meta {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+        .news-detail-box .news-detail-content {
+            font-size: 15px;
+            line-height: 1.8;
+            color: var(--text);
+        }
+        .news-detail-box .news-detail-content p {
+            margin-bottom: 12px;
+        }
+
+        /* ===== PLAYER DETAIL MODAL ===== */
+        .player-detail-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .player-detail-overlay.visible {
+            display: flex;
+        }
+        .player-detail-box {
+            background: var(--surface);
+            border-radius: var(--radius);
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 24px;
+            border: 1px solid var(--border);
+            animation: fadeSlideIn 0.3s ease;
+        }
+        .player-detail-box .close-btn {
+            float: right;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .player-detail-box .close-btn:hover {
+            color: var(--text);
+        }
+        .player-detail-box .player-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .player-detail-box .player-header img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: contain;
+            background: var(--surface-hover);
+        }
+        .player-detail-box .player-header .player-name {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text);
+        }
+        .player-detail-box .player-header .player-team {
+            font-size: 14px;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+        .player-detail-box .player-header .player-team:hover {
+            color: var(--accent);
+        }
+        .player-detail-box .player-stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 8px;
+            background: var(--surface-hover);
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            margin: 12px 0;
+        }
+        .player-detail-box .player-stats-grid .stat-item {
+            text-align: center;
+        }
+        .player-detail-box .player-stats-grid .stat-item .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .player-detail-box .player-stats-grid .stat-item .stat-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+        .player-detail-box .player-transfers-list {
+            margin-top: 12px;
+        }
+        .player-detail-box .player-transfers-list .title {
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+        .player-detail-box .transfer-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .player-detail-box .transfer-row .type {
+            font-weight: 600;
+            color: var(--accent);
+            min-width: 80px;
+        }
+        .player-detail-box .transfer-row .value {
+            font-weight: 700;
+            color: var(--live);
+            min-width: 60px;
+            text-align: right;
+        }
+
+        /* ===== TEAM DETAIL MODAL ===== */
+        .team-detail-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .team-detail-overlay.visible {
+            display: flex;
+        }
+        .team-detail-box {
+            background: var(--surface);
+            border-radius: var(--radius);
+            max-width: 700px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 24px;
+            border: 1px solid var(--border);
+            animation: fadeSlideIn 0.3s ease;
+        }
+        .team-detail-box .close-btn {
+            float: right;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .team-detail-box .close-btn:hover {
+            color: var(--text);
+        }
+        .team-detail-box .team-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .team-detail-box .team-header img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: contain;
+            background: var(--surface-hover);
+        }
+        .team-detail-box .team-header .team-name {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text);
+        }
+        .team-detail-box .team-header .team-country {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        .team-detail-box .team-tabs {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 6px;
+            margin: 12px 0 10px;
+        }
+        .team-detail-box .team-tabs button {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            padding: 4px 14px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .team-detail-box .team-tabs button:hover {
+            color: var(--text);
+            background: var(--surface-hover);
+        }
+        .team-detail-box .team-tabs button.active {
+            background: var(--accent);
+            color: #0a0a0f;
+        }
+        .team-detail-box .team-tab-content {
+            display: none;
+            animation: fadeSlideIn 0.25s ease;
+        }
+        .team-detail-box .team-tab-content.active {
+            display: block;
         }
 
         /* ===== CATEGORY PILLS ===== */
@@ -1733,6 +2107,7 @@
                 <button class="zs-nav-btn" data-tab="livescore">📊 Livescore</button>
                 <button class="zs-nav-btn" data-tab="standings">🏆 Standings</button>
                 <button class="zs-nav-btn" data-tab="transfers">🔄 Transfers</button>
+                <button class="zs-nav-btn" data-tab="news">📰 News</button>
                 <button class="zs-nav-btn" data-tab="movies">🎬 Movies</button>
                 <button class="zs-nav-btn" data-tab="series">📺 Series</button>
                 <button class="zs-nav-btn" data-tab="tv">📡 TV</button>
@@ -1754,13 +2129,10 @@
                 <div class="zs-player-wrapper" id="zsPlayerWrapper">
                     <div class="zs-video-container" id="zsVideoContainer">
                         <video id="zsVideo" playsinline></video>
-
-                        <!-- Live Badge with blinking dot -->
                         <div class="zs-live-badge" id="zsLiveBadge">
                             <span class="zs-live-dot"></span>
                             <span>LIVE</span>
                         </div>
-
                         <div class="zs-loading" id="zsLoading"><div class="zs-spinner"></div></div>
                         <div class="zs-error-overlay" id="zsErrorOverlay">
                             <div style="text-align:center;line-height:1.6;font-size:13px;">⚠️ Unable to play stream.<br /><span style="font-size:10px;color:#bbb;">Try opening in Firefox.</span></div>
@@ -1770,8 +2142,6 @@
                             <button class="zs-start-play-btn" id="zsStartPlayBtn">▶</button>
                             <div class="hint">Select a match, movie, series or TV channel</div>
                         </div>
-
-                        <!-- Camel Overlay - refined & small -->
                         <div id="camelOverlay">
                             <div class="camel-top">
                                 <div class="camel-team">
@@ -1808,7 +2178,6 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="zs-controls" id="zsControls">
                         <div class="zs-controls-row">
                             <button class="zs-btn" id="zsBtnPlay"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
@@ -1834,14 +2203,14 @@
                     <button class="zs-banner-btn" data-action="tv">TV</button>
                 </div>
                 <div class="zs-banner-slide" style="background:linear-gradient(135deg,#3b1f2b,#9c3a5a);">
-                    <div class="zs-banner-text"><div class="zs-banner-title">📺 Premium Series</div><div class="zs-banner-sub">Watch trending series</div></div>
-                    <button class="zs-banner-btn" data-action="series">Series</button>
+                    <div class="zs-banner-text"><div class="zs-banner-title">📰 Latest News</div><div class="zs-banner-sub">Stay updated</div></div>
+                    <button class="zs-banner-btn" data-action="news">News</button>
                 </div>
             </div>
 
             <!-- ===== HOME TAB ===== -->
             <div class="zs-tab-content active" id="tab-home">
-                <div class="zs-section-title">⚽ Today's Matches <span id="streamCount" style="font-size:13px;color:var(--text-secondary);font-weight:600;"></span></div>
+                <div class="zs-section-title">⚽ Today's Matches <span id="streamCount" style="font-size:14px;color:var(--text-secondary);font-weight:600;"></span></div>
 
                 <!-- Live -->
                 <div class="match-section" id="liveMatchesSection">
@@ -1862,7 +2231,7 @@
                 </div>
 
                 <!-- Widget -->
-                <div style="margin-top:6px;width:100%;">
+                <div style="margin-top:8px;width:100%;">
                     <api-sports-widget
                         data-type="games"
                         data-tab="all"
@@ -1880,7 +2249,7 @@
             <!-- ===== LIVESCORE ===== -->
             <div class="zs-tab-content" id="tab-livescore">
                 <div class="zs-section-title">📊 Livescore</div>
-                <div style="margin-top:6px;width:100%;">
+                <div style="margin-top:8px;width:100%;">
                     <api-sports-widget
                         data-type="games"
                         data-tab="all"
@@ -1895,16 +2264,22 @@
                 </div>
             </div>
 
-            <!-- ===== STANDINGS ===== -->
+            <!-- ===== STANDINGS (from YSScores) ===== -->
             <div class="zs-tab-content" id="tab-standings">
                 <div class="zs-section-title">🏆 Standings</div>
-                <div id="standingsContainer"><div class="loading"><div class="spinner"></div><div>Loading standings...</div></div></div>
+                <div id="standingsContainer"><div class="loading"><div class="spinner"></div><div>Loading leagues...</div></div></div>
             </div>
 
-            <!-- ===== TRANSFERS ===== -->
+            <!-- ===== TRANSFERS (from YSScores) ===== -->
             <div class="zs-tab-content" id="tab-transfers">
                 <div class="zs-section-title">🔄 Transfer Market</div>
                 <div id="transfersContainer"><div class="loading"><div class="spinner"></div><div>Loading transfers...</div></div></div>
+            </div>
+
+            <!-- ===== NEWS (from YSScores) ===== -->
+            <div class="zs-tab-content" id="tab-news">
+                <div class="zs-section-title">📰 Latest News</div>
+                <div id="newsContainer"><div class="loading"><div class="spinner"></div><div>Loading news...</div></div></div>
             </div>
 
             <!-- ===== MOVIES ===== -->
@@ -1942,6 +2317,30 @@
                     </div>
                 </div>
                 <div id="matchDetailContentAiScore"><div class="loading"><div class="spinner"></div><div>Loading details...</div></div></div>
+            </div>
+
+            <!-- ===== NEWS DETAIL ===== -->
+            <div class="news-detail-overlay" id="newsDetailOverlay">
+                <div class="news-detail-box">
+                    <button class="close-btn" id="newsDetailClose">✕</button>
+                    <div id="newsDetailContent"><div class="loading"><div class="spinner"></div><div>Loading...</div></div></div>
+                </div>
+            </div>
+
+            <!-- ===== PLAYER DETAIL ===== -->
+            <div class="player-detail-overlay" id="playerDetailOverlay">
+                <div class="player-detail-box">
+                    <button class="close-btn" id="playerDetailClose">✕</button>
+                    <div id="playerDetailContent"><div class="loading"><div class="spinner"></div><div>Loading player...</div></div></div>
+                </div>
+            </div>
+
+            <!-- ===== TEAM DETAIL ===== -->
+            <div class="team-detail-overlay" id="teamDetailOverlay">
+                <div class="team-detail-box">
+                    <button class="close-btn" id="teamDetailClose">✕</button>
+                    <div id="teamDetailContent"><div class="loading"><div class="spinner"></div><div>Loading team...</div></div></div>
+                </div>
             </div>
 
             <!-- ===== GLOBAL SEARCH ===== -->
@@ -1986,22 +2385,13 @@
             const GOLIVE_API = 'https://admin.golive-pro.online/api/public/events?tz=1';
             const API_SPORTS_KEY = 'e227ff90ed4eacc3eacb07eca05ce78b';
 
-            // Movie & Series API endpoints (old working code)
-            const MOVIE_CATEGORIES_URL = WORKER_URL + '?url=' + encodeURIComponent(
-                'https://admin.golive-pro.online/api/content/movie-categories');
-            const MOVIES_BASE_URL = 'https://admin.golive-pro.online/api/content/movies?limit=20&categoryId=';
-            const SERIES_CATEGORIES_URL = WORKER_URL + '?url=' + encodeURIComponent(
-                'https://admin.golive-pro.online/api/content/series-categories');
-            const SERIES_BASE_URL = 'https://admin.golive-pro.online/api/content/series?limit=50&categoryId=';
-            const SERIES_EPISODES_URL = 'https://admin.golive-pro.online/api/content/series/';
+            // YSScores API endpoints (via Worker)
+            const YS_BASE = 'https://api-en.ysscores.com/api/';
+            const YS_NEWS = 'https://news-en.ysscores.com/api/';
 
-            const fallbackSeriesCategories = [
-                { id: "dd185bc6-1dfd-45c2-9189-13c47f672e5a", name: "مسلسلات عربية", icon: "🇸🇦", count: 186 },
-                { id: "1bf63825-0b85-4ed8-8964-4cf2efb854d6", name: "مسلسلات أجنبية", icon: "🌍", count: 113 },
-                { id: "32d17563-00ee-4433-8b59-ddf969a51230", name: "مسلسلات تركية", icon: "🇹🇷", count: 40 },
-                { id: "0669005a-e8dd-4a00-8986-a905826eaca3", name: "مسلسلات آسيوية", icon: "🎎", count: 56 },
-                { id: "2660c480-65f2-4a30-a0c9-eda017ea660b", name: "مسلسلات مدبلجة", icon: "🗣️", count: 29 }
-            ];
+            // Movie & Series API
+            const MOVIE_API = 'https://admin.golive-pro.online/api/content/movies?limit=30';
+            const SERIES_API = 'https://admin.golive-pro.online/api/content/series?limit=30';
 
             // ==================== STATE ====================
             let allMatches = [];
@@ -2009,17 +2399,6 @@
             let hls = null;
             let currentStreamUrl = '';
             let currentFixtureData = null;
-
-            // Movie & Series state
-            let movies = [];
-            let movieCategories = [];
-            let series = [];
-            let seriesCategories = [];
-            let seriesGenres = [];
-            let currentSeriesGenre = 'all';
-            let currentView = 'home';
-            let currentId = null;
-            let seriesEpisodesCache = {};
 
             // ==================== DOM REFS ====================
             const video = document.getElementById('zsVideo');
@@ -2055,10 +2434,23 @@
 
             const standingsContainer = document.getElementById('standingsContainer');
             const transfersContainer = document.getElementById('transfersContainer');
+            const newsContainer = document.getElementById('newsContainer');
             const moviesContainer = document.getElementById('moviesContainer');
             const seriesContainer = document.getElementById('seriesContainer');
             const tvChannelsContainer = document.getElementById('tvChannelsContainer');
             const tvSearchInput = document.getElementById('tvSearchInput');
+
+            const newsDetailOverlay = document.getElementById('newsDetailOverlay');
+            const newsDetailContent = document.getElementById('newsDetailContent');
+            const newsDetailClose = document.getElementById('newsDetailClose');
+
+            const playerDetailOverlay = document.getElementById('playerDetailOverlay');
+            const playerDetailContent = document.getElementById('playerDetailContent');
+            const playerDetailClose = document.getElementById('playerDetailClose');
+
+            const teamDetailOverlay = document.getElementById('teamDetailOverlay');
+            const teamDetailContent = document.getElementById('teamDetailContent');
+            const teamDetailClose = document.getElementById('teamDetailClose');
 
             const globalSearchView = document.getElementById('globalSearchView');
             const globalSearchInput = document.getElementById('globalSearchInput');
@@ -2083,9 +2475,13 @@
 
             // ==================== PLAYER ====================
             function showLoading() { loadingEl.classList.add('zs-visible'); }
+
             function hideLoading() { loadingEl.classList.remove('zs-visible'); }
+
             function showError() { errorOverlay.classList.add('zs-visible'); }
+
             function hideError() { errorOverlay.classList.remove('zs-visible'); }
+
             function setLiveMode(live) { liveBadge.classList.toggle('zs-visible', live); }
 
             function formatTime(s) {
@@ -2257,7 +2653,7 @@
                 camelOverlay.style.display = 'flex';
             }
 
-            // ==================== FETCH MATCHES ====================
+            // ==================== FETCH GOLIVE MATCHES ====================
             async function fetchGoliveMatches() {
                 liveContainer.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading live matches...</div></div>';
                 upcomingContainer.innerHTML =
@@ -2522,598 +2918,695 @@
                 fetchGoliveMatches();
             });
 
-            // ==================== MOVIES (old working code) ====================
-            async function loadMovieCategoriesFromAPI() {
-                try {
-                    const resp = await fetch(MOVIE_CATEGORIES_URL);
-                    const data = await resp.json();
-                    if (Array.isArray(data) && data.length > 0) {
-                        movieCategories = data.map(c => ({ id: c.id, name: c.nameAr || c.name || c.nameEn || c
-                                .name, icon: c.icon || '🎬', count: c.moviesCount || 0 }));
-                        if (currentView === 'movie-categories' || currentView === 'home') renderMovieCategories();
-                    }
-                } catch (e) {
-                    console.warn('Movie categories API failed', e);
-                    movieCategories = [
-                        { id: "action", name: "Action", icon: "🎬", count: 10 },
-                        { id: "comedy", name: "Comedy", icon: "😂", count: 8 },
-                        { id: "drama", name: "Drama", icon: "🎭", count: 12 },
-                        { id: "sci-fi", name: "Sci-Fi", icon: "🚀", count: 6 }
-                    ];
-                    if (currentView === 'movie-categories' || currentView === 'home') renderMovieCategories();
-                }
+            // ==================== YS SCORES API HELPER ====================
+            async function fetchYS(endpoint, base = YS_BASE) {
+                const url = WORKER_URL + '?url=' + encodeURIComponent(base + endpoint);
+                const resp = await fetch(url);
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                return resp.json();
             }
 
-            function renderMovieCategories() {
-                const container = document.getElementById('movieCategoriesContainer');
-                if (!container) return;
-                if (movieCategories.length === 0) {
-                    container.innerHTML =
-                        '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No categories available</div>';
-                    return;
-                }
-                container.innerHTML = movieCategories.map(c =>
-                    `<div class="zs-category-pill" data-id="${c.id}">
-                        <div class="zs-category-pill-icon">${c.icon}</div>
-                        <div class="zs-category-pill-title">${c.name}</div>
-                        <div class="zs-category-pill-count">${c.count} Movies</div>
-                    </div>`
-                ).join('');
-                container.querySelectorAll('.zs-category-pill').forEach(pill => {
-                    pill.addEventListener('click', () => {
-                        const categoryId = pill.dataset.id;
-                        const categoryName = movieCategories.find(c => c.id === categoryId)?.name ||
-                            'Movies';
-                        goToMovieList(categoryId, categoryName);
-                    });
-                });
-            }
-
-            async function loadMoviesFromAPI(categoryId) {
-                const container = document.getElementById('moviesListContainer');
-                if (!container) return;
-                container.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading movies...</div></div>';
-                try {
-                    const firstUrl = WORKER_URL + '?url=' + encodeURIComponent(MOVIES_BASE_URL + categoryId +
-                        '&page=1');
-                    const firstResp = await fetch(firstUrl);
-                    if (!firstResp.ok) throw new Error('Worker error: ' + firstResp.status);
-                    const firstData = await firstResp.json();
-
-                    if (firstData.data && Array.isArray(firstData.data)) {
-                        let allMovies = firstData.data.map(m => ({
-                            id: m.id,
-                            title: m.title || m.titleEn || 'Unknown',
-                            posterUrl: (m.posterUrl || '').replace('http:', 'https:'),
-                            year: m.year,
-                            rating: m.rating,
-                            genre: m.genre || m.genreEn || '',
-                            genreAr: m.genreAr || m.genre || '',
-                            url: m.sources && m.sources.length > 0 ? m.sources[0].streamUrl : null
-                        }));
-                        movies = allMovies;
-                        renderMovies();
-
-                        const totalPages = firstData.meta?.totalPages || 0;
-                        if (totalPages > 1) {
-                            for (let i = 2; i <= totalPages; i++) {
-                                try {
-                                    const url = WORKER_URL + '?url=' + encodeURIComponent(MOVIES_BASE_URL +
-                                        categoryId + '&page=' + i);
-                                    const res = await fetch(url);
-                                    const data = await res.json();
-                                    if (data.data && Array.isArray(data.data)) {
-                                        const newMovies = data.data.map(m => ({
-                                            id: m.id,
-                                            title: m.title || m.titleEn || 'Unknown',
-                                            posterUrl: (m.posterUrl || '').replace('http:',
-                                            'https:'),
-                                            year: m.year,
-                                            rating: m.rating,
-                                            genre: m.genre || m.genreEn || '',
-                                            genreAr: m.genreAr || m.genre || '',
-                                            url: m.sources && m.sources.length > 0 ? m
-                                                .sources[0].streamUrl : null
-                                        }));
-                                        allMovies = allMovies.concat(newMovies);
-                                        movies = allMovies;
-                                        renderMovies();
-                                    }
-                                } catch (e) { console.warn('Failed to load page ' + i); }
-                            }
-                        }
-                    } else {
-                        movies = [];
-                        renderMovies();
-                    }
-                } catch (e) {
-                    console.error('Failed to load movies', e);
-                    movies = [];
-                    renderMovies();
-                }
-            }
-
-            function renderMovies() {
-                const container = document.getElementById('moviesListContainer');
-                if (!container) return;
-                if (!movies || movies.length === 0) {
-                    container.innerHTML =
-                        '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No movies found in this category</div>';
-                    return;
-                }
-                let html = '<div class="media-grid">';
-                movies.forEach(m => {
-                    html += `
-                        <div class="media-card" data-url="${m.url || ''}">
-                            <img class="media-poster" src="${m.posterUrl}" onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
-                            <div class="media-info">
-                                <div class="media-title">${m.title}</div>
-                                <div class="media-sub">${m.genre || ''}</div>
-                            </div>
-                        </div>
-                    `;
-                });
-                html += '</div>';
-                container.innerHTML = html;
-
-                container.querySelectorAll('.media-card[data-url]').forEach(card => {
-                    card.addEventListener('click', function() {
-                        const url = this.dataset.url;
-                        if (url) {
-                            const title = this.querySelector('.media-title')?.textContent || 'Movie';
-                            loadStream(url, '🎬 ' + title);
-                            camelOverlay.style.display = 'none';
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                        } else {
-                            alert('No stream link available for this movie');
-                        }
-                    });
-                });
-            }
-
-            function goToMovieList(categoryId, categoryName) {
-                currentView = 'movie-detail';
-                const titleEl = document.getElementById('movieListTitle');
-                if (titleEl) titleEl.textContent = '🎬 ' + categoryName;
-                const catView = document.getElementById('movieCategoriesView');
-                const detailView = document.getElementById('movieDetailView');
-                if (catView) catView.style.display = 'none';
-                if (detailView) detailView.style.display = 'flex';
-                loadMoviesFromAPI(categoryId);
-            }
-
-            // ==================== SERIES (old working code) ====================
-            async function loadSeriesCategoriesFromAPI() {
-                try {
-                    const url = WORKER_URL + '?url=' + encodeURIComponent(SERIES_CATEGORIES_URL);
-                    const resp = await fetch(url);
-                    const data = await resp.json();
-                    if (Array.isArray(data) && data.length > 0) {
-                        seriesCategories = data.map(c => ({ id: c.id, name: c.nameAr || c.name || c.nameEn || c
-                                .name, icon: c.icon || '📺', count: c.seriesCount || 0 }));
-                    } else throw new Error('Invalid data');
-                } catch (e) {
-                    console.warn('Series categories API failed, using fallback data.');
-                    seriesCategories = fallbackSeriesCategories.map(c => ({ ...c, name: c.name.replace('مسلسلات',
-                        'Series') }));
-                } finally {
-                    if (currentView === 'series-categories' || currentView === 'home') renderSeriesCategories();
-                }
-            }
-
-            function renderSeriesCategories() {
-                const container = document.getElementById('seriesCategoriesContainer');
-                if (!container) return;
-                if (seriesCategories.length === 0) {
-                    container.innerHTML =
-                        '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No categories available</div>';
-                    return;
-                }
-                container.innerHTML = seriesCategories.map(c =>
-                    `<div class="zs-category-pill" data-id="${c.id}">
-                        <div class="zs-category-pill-icon">${c.icon}</div>
-                        <div class="zs-category-pill-title">${c.name}</div>
-                        <div class="zs-category-pill-count">${c.count} Series</div>
-                    </div>`
-                ).join('');
-                container.querySelectorAll('.zs-category-pill').forEach(pill => {
-                    pill.addEventListener('click', () => {
-                        const categoryId = pill.dataset.id;
-                        const categoryName = seriesCategories.find(c => c.id === categoryId)?.name ||
-                            'Series';
-                        goToSeriesList(categoryId, categoryName);
-                    });
-                });
-            }
-
-            async function loadSeriesFromAPI(categoryId) {
-                const container = document.getElementById('seriesListContainer');
-                if (!container) return;
-                container.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading series...</div></div>';
-                series = [];
-                seriesGenres = [];
-                try {
-                    const firstUrl = WORKER_URL + '?url=' + encodeURIComponent(SERIES_BASE_URL + categoryId +
-                        '&page=1');
-                    const firstResp = await fetch(firstUrl);
-                    if (!firstResp.ok) throw new Error('Worker error: ' + firstResp.status);
-                    const firstData = await firstResp.json();
-
-                    if (firstData.data && Array.isArray(firstData.data)) {
-                        let allSeries = firstData.data.map(s => {
-                            const genreName = s.genreObj?.nameEn || s.genreEn || s.genre || 'Unknown';
-                            return {
-                                id: s.id,
-                                title: s.title || s.titleEn || 'Unknown',
-                                titleAr: s.titleAr || s.title,
-                                titleEn: s.titleEn || s.title,
-                                posterUrl: (s.posterUrl || '').replace('http:', 'https:'),
-                                year: s.year,
-                                rating: s.rating,
-                                genre: genreName,
-                                genreAr: s.genreAr || s.genreObj?.nameAr || genreName,
-                                genreIcon: s.genreObj?.icon || '🎬',
-                                url: s.sources && s.sources.length > 0 ? s.sources[0].streamUrl : null,
-                                description: s.description || '',
-                                totalEpisodes: s.totalEpisodes,
-                                isReels: s.isReels || false
-                            };
-                        });
-
-                        const genresSet = new Set();
-                        allSeries.forEach(s => {
-                            if (s.genre && s.genre !== 'Unknown') {
-                                genresSet.add(s.genre);
-                            }
-                        });
-                        seriesGenres = ['all', ...Array.from(genresSet)];
-
-                        series = allSeries;
-                        renderSeriesGenreFilters();
-                        renderSeries();
-
-                        const totalPages = firstData.meta?.totalPages || 0;
-                        if (totalPages > 1) {
-                            for (let i = 2; i <= totalPages; i++) {
-                                try {
-                                    const url = WORKER_URL + '?url=' + encodeURIComponent(SERIES_BASE_URL +
-                                        categoryId + '&page=' + i);
-                                    const res = await fetch(url);
-                                    const data = await res.json();
-                                    if (data.data && Array.isArray(data.data)) {
-                                        const newSeries = data.data.map(s => {
-                                            const genreName = s.genreObj?.nameEn || s.genreEn || s
-                                                .genre || 'Unknown';
-                                            return {
-                                                id: s.id,
-                                                title: s.title || s.titleEn || 'Unknown',
-                                                titleAr: s.titleAr || s.title,
-                                                titleEn: s.titleEn || s.title,
-                                                posterUrl: (s.posterUrl || '').replace('http:',
-                                                'https:'),
-                                                year: s.year,
-                                                rating: s.rating,
-                                                genre: genreName,
-                                                genreAr: s.genreAr || s.genreObj?.nameAr ||
-                                                genreName,
-                                                genreIcon: s.genreObj?.icon || '🎬',
-                                                url: s.sources && s.sources.length > 0 ? s
-                                                    .sources[0].streamUrl : null,
-                                                description: s.description || '',
-                                                totalEpisodes: s.totalEpisodes,
-                                                isReels: s.isReels || false
-                                            };
-                                        });
-                                        newSeries.forEach(s => {
-                                            if (s.genre && s.genre !== 'Unknown') {
-                                                genresSet.add(s.genre);
-                                            }
-                                        });
-                                        allSeries = allSeries.concat(newSeries);
-                                        series = allSeries;
-                                        seriesGenres = ['all', ...Array.from(genresSet)];
-                                        renderSeriesGenreFilters();
-                                        renderSeries();
-                                    }
-                                } catch (e) { console.warn('Failed to load series page ' + i); }
-                            }
-                        }
-                    } else {
-                        series = [];
-                        renderSeries();
-                    }
-                } catch (e) {
-                    console.error('Failed to load series', e);
-                    series = [];
-                    renderSeries();
-                }
-            }
-
-            function renderSeriesGenreFilters() {
-                const container = document.getElementById('seriesGenreFilters');
-                if (!container) return;
-                let html = '';
-                seriesGenres.forEach(genre => {
-                    const label = genre === 'all' ? 'All' : genre;
-                    const active = genre === currentSeriesGenre ? 'active' : '';
-                    html += `<button class="zs-genre-pill ${active}" data-genre="${genre}">${label}</button>`;
-                });
-                container.innerHTML = html;
-                container.querySelectorAll('.zs-genre-pill').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        currentSeriesGenre = this.dataset.genre;
-                        renderSeriesGenreFilters();
-                        renderSeries();
-                    });
-                });
-            }
-
-            function renderSeries() {
-                const container = document.getElementById('seriesListContainer');
-                if (!container) return;
-                const filtered = series.filter(s => {
-                    if (currentSeriesGenre === 'all') return true;
-                    return s.genre === currentSeriesGenre;
-                });
-                if (filtered.length === 0) {
-                    container.innerHTML =
-                        '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No series found</div>';
-                    return;
-                }
-                let html = '<div class="media-grid">';
-                filtered.forEach(s => {
-                    html += `
-                        <div class="media-card" data-url="${s.url || ''}">
-                            <img class="media-poster" src="${s.posterUrl}" onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
-                            <div class="media-info">
-                                <div class="media-title">${s.title}</div>
-                                <div class="media-sub">${s.genre || ''}</div>
-                            </div>
-                        </div>
-                    `;
-                });
-                html += '</div>';
-                container.innerHTML = html;
-
-                container.querySelectorAll('.media-card[data-url]').forEach(card => {
-                    card.addEventListener('click', function() {
-                        const url = this.dataset.url;
-                        if (url) {
-                            const title = this.querySelector('.media-title')?.textContent || 'Series';
-                            loadStream(url, '📺 ' + title);
-                            camelOverlay.style.display = 'none';
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                        } else {
-                            alert('No stream link available for this series');
-                        }
-                    });
-                });
-            }
-
-            function goToSeriesList(categoryId, categoryName) {
-                currentView = 'series-detail';
-                const titleEl = document.getElementById('seriesListTitle');
-                if (titleEl) titleEl.textContent = '📺 ' + categoryName;
-                const catView = document.getElementById('seriesCategoriesView');
-                const detailView = document.getElementById('seriesDetailView');
-                const detailPage = document.getElementById('seriesDetailViewPage');
-                if (catView) catView.style.display = 'none';
-                if (detailView) detailView.style.display = 'flex';
-                if (detailPage) detailPage.classList.remove('visible');
-                loadSeriesFromAPI(categoryId);
-            }
-
-            // ==================== STANDINGS (via CORS proxy) ====================
-            async function fetchStandings() {
+            // ==================== STANDINGS (from YSScores) ====================
+            async function loadStandings() {
                 standingsContainer.innerHTML =
-                '<div class="loading"><div class="spinner"></div><div>Loading standings...</div></div>';
-                const leagues = [
-                    { id: 39, name: 'Premier League', country: 'England', season: 2026 },
-                    { id: 140, name: 'La Liga', country: 'Spain', season: 2026 },
-                    { id: 78, name: 'Bundesliga', country: 'Germany', season: 2026 },
-                    { id: 135, name: 'Serie A', country: 'Italy', season: 2026 },
-                    { id: 61, name: 'Ligue 1', country: 'France', season: 2026 },
-                ];
+                '<div class="loading"><div class="spinner"></div><div>Loading leagues...</div></div>';
                 try {
-                    let html = '<div class="standings-grid-detail" style="display:grid;gap:12px;grid-template-columns:1fr;">';
-                    for (const league of leagues) {
-                        try {
-                            const targetUrl =
-                                `https://v3.football.api-sports.io/standings?league=${league.id}&season=${league.season}`;
-                            // Use CORS proxy (corsproxy.io)
-                            const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(targetUrl);
-                            const resp = await fetch(proxyUrl, {
-                                headers: {
-                                    'x-apisports-key': API_SPORTS_KEY,
-                                    'Content-Type': 'application/json'
-                                }
-                            });
-                            if (!resp.ok) throw new Error('HTTP ' + resp.status);
-                            const data = await resp.json();
-                            if (data.response && data.response.length > 0) {
-                                const s = data.response[0];
-                                const standings = s.league?.standings?.[0] || [];
-                                html += `
-                                    <div class="league-block">
-                                        <div class="league-title">${league.country} : ${league.name}</div>
-                                        <table>
-                                            <thead><tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr></thead>
-                                            <tbody>
-                                                ${standings.slice(0, 8).map((t, i) => `
-                                                    <tr>
-                                                        <td>${i+1}</td>
-                                                        <td><div class="team-cell"><img src="${t.team?.logo || ''}" onerror="this.style.display='none'"> ${t.team?.name || ''}</div></td>
-                                                        <td>${t.all?.played || 0}</td>
-                                                        <td>${t.all?.win || 0}</td>
-                                                        <td>${t.all?.draw || 0}</td>
-                                                        <td>${t.all?.lose || 0}</td>
-                                                        <td>${t.goalsDiff || 0}</td>
-                                                        <td class="points">${t.points || 0}</td>
-                                                    </tr>
-                                                `).join('')}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                `;
-                            }
-                        } catch (e) { console.warn('Standings error for ' + league.name, e); }
-                    }
-                    html += '</div>';
-                    standingsContainer.innerHTML = html;
-                } catch (e) {
-                    standingsContainer.innerHTML = '<div class="error-msg">Failed to load standings</div>';
+                    const data = await fetchYS('info/championship_ranking/L/60');
+                    if (!data.status) throw new Error('Failed to load leagues');
+                    renderLeagues(data.data);
+                } catch (error) {
+                    standingsContainer.innerHTML = `<div class="error-msg">⚠️ ${error.message}</div>`;
                 }
             }
 
-            // ==================== TRANSFERS (via CORS proxy) ====================
-            async function fetchTransfers() {
-                transfersContainer.innerHTML =
-                    '<div class="loading"><div class="spinner"></div><div>Loading transfers...</div></div>';
-                const teamIds = [541, 529, 157, 50, 40, 85, 33, 42, 58, 44, 52, 55, 31, 41, 47, 49, 34, 35, 36, 37];
+            function renderLeagues(leagues) {
+                if (!leagues || leagues.length === 0) {
+                    standingsContainer.innerHTML = '<div class="empty-state">No leagues available</div>';
+                    return;
+                }
+                let html = '<div class="leagues-grid">';
+                leagues.slice(0, 30).forEach(league => {
+                    const img = getImageUrl(league.image, 'championship');
+                    html += `
+                        <div class="league-card" data-league-id="${league.url_id}">
+                            <img src="${img}" onerror="this.style.display='none'">
+                            <span class="league-name">${league.title || 'League'}</span>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                standingsContainer.innerHTML = html;
+
+                document.querySelectorAll('.league-card').forEach(card => {
+                    card.addEventListener('click', function() {
+                        const leagueId = this.dataset.leagueId;
+                        if (leagueId) showLeagueStandings(leagueId);
+                    });
+                });
+            }
+
+            async function showLeagueStandings(leagueId) {
                 try {
-                    let allTransfers = [];
-                    const fetchPromises = teamIds.map(async (id) => {
-                        try {
-                            const targetUrl =
-                                `https://v3.football.api-sports.io/transfers?team=${id}`;
-                            const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(targetUrl);
-                            const resp = await fetch(proxyUrl, {
-                                headers: {
-                                    'x-apisports-key': API_SPORTS_KEY,
-                                    'Content-Type': 'application/json'
-                                }
-                            });
-                            if (!resp.ok) throw new Error('HTTP ' + resp.status);
-                            const data = await resp.json();
-                            if (data.response && data.response.length > 0) {
-                                data.response.forEach(item => {
-                                    const player = item.player || {};
-                                    const transfersList = item.transfers || [];
-                                    transfersList.forEach(t => {
-                                        const nationality = player.nationality || '';
-                                        const flagEmoji = getFlagEmoji(nationality);
-                                        allTransfers.push({
-                                            playerName: player.name || 'Unknown',
-                                            playerPhoto: player.photo || '',
-                                            playerPosition: player.position || '',
-                                            nationality: nationality,
-                                            flag: flagEmoji,
-                                            from: t.teams?.out?.name || '?',
-                                            fromLogo: t.teams?.out?.logo || '',
-                                            to: t.teams?.in?.name || '?',
-                                            toLogo: t.teams?.in?.logo || '',
-                                            date: t.date || '',
-                                            type: t.type || 'Transfer'
-                                        });
-                                    });
-                                });
+                    const data = await fetchYS(`matches/league_standing_stage/${leagueId}`);
+                    if (!data.status) throw new Error('Failed to load standings');
+                    const standingData = data.data;
+                    const leagueName = standingData.league?.stage0?.[0]?.team_name?.full_title || 'League';
+                    let html = `
+                        <div style="margin-bottom:8px;">
+                            <button class="zs-back-btn" onclick="window.loadStandingsGlobal()">← Back</button>
+                            <span style="font-weight:700; font-size:15px; margin-left:8px;">${leagueName}</span>
+                        </div>
+                    `;
+                    html += renderStandingsTable(standingData);
+                    standingsContainer.innerHTML = html;
+                } catch (error) {
+                    standingsContainer.innerHTML = `<div class="error-msg">⚠️ ${error.message}</div>`;
+                }
+            }
+
+            function renderStandingsTable(data) {
+                if (!data || !data.league || !data.league.stage0) {
+                    return '<div class="empty-state">No standings data available</div>';
+                }
+                const teams = data.league.stage0;
+                if (teams.length === 0) return '<div class="empty-state">No teams found</div>';
+
+                let html = `<div class="standings-grid-detail"><div class="league-block">
+                    <table>
+                        <thead><tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GD</th><th>Pts</th></tr></thead>
+                        <tbody>`;
+                teams.slice(0, 16).forEach((t, idx) => {
+                    const team = t.team_name || {};
+                    const logo = getImageUrl(team.image, 'team');
+                    const teamId = team.row_id || null;
+                    html += `<tr>
+                        <td>${idx+1}</td>
+                        <td><div class="team-cell"><img src="${logo}" onerror="this.style.display='none'"> <span class="team-click" data-team-id="${teamId}" style="cursor:pointer;">${team.title || '?'}</span></div></td>
+                        <td>${t.play || 0}</td>
+                        <td>${t.wins || 0}</td>
+                        <td>${t.draw || 0}</td>
+                        <td>${t.lose || 0}</td>
+                        <td>${t.for || 0}</td>
+                        <td>${t.diff || 0}</td>
+                        <td class="points">${t.points || 0}</td>
+                    </tr>`;
+                });
+                html += '</tbody></table></div></div>';
+
+                setTimeout(() => {
+                    document.querySelectorAll('.team-click[data-team-id]').forEach(el => {
+                        el.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const teamId = this.dataset.teamId;
+                            if (teamId && teamId !== 'null') {
+                                showTeamDetail(teamId);
                             }
-                        } catch (e) { /* ignore */ }
+                        });
                     });
+                }, 50);
 
-                    await Promise.all(fetchPromises);
+                return html;
+            }
 
-                    allTransfers.sort((a, b) => {
-                        if (!a.date) return 1;
-                        if (!b.date) return -1;
-                        return new Date(b.date) - new Date(a.date);
+            // ==================== TRANSFERS (from YSScores) ====================
+            async function loadTransfers() {
+                transfersContainer.innerHTML =
+                '<div class="loading"><div class="spinner"></div><div>Loading transfers...</div></div>';
+                try {
+                    const data = await fetchYS('info/transfer_info_page/0?page=1');
+                    if (!data.status) throw new Error('Failed to load transfers');
+                    renderTransfers(data.data);
+                } catch (error) {
+                    transfersContainer.innerHTML = `<div class="error-msg">⚠️ ${error.message}</div>`;
+                }
+            }
+
+            function renderTransfers(transferData) {
+                const important = transferData.important || [];
+                const all = transferData.all || [];
+                const list = [...important, ...all].slice(0, 20);
+                if (list.length === 0) {
+                    transfersContainer.innerHTML = '<div class="empty-state">No transfers available</div>';
+                    return;
+                }
+
+                let html = '';
+                list.forEach(item => {
+                    const player = item.player_name || {};
+                    const teamOut = item.team_out || {};
+                    const teamIn = item.team_in || {};
+                    const playerImg = getImageUrl(player.image, 'player');
+                    const outImg = getImageUrl(teamOut.image, 'team');
+                    const inImg = getImageUrl(teamIn.image, 'team');
+                    const value = item.value ? (parseInt(item.value) / 1000000).toFixed(1) + 'M' : 'Free';
+                    const date = item.date_from || '';
+                    const playerId = player.row_id || player.id || null;
+                    const outId = teamOut.row_id || teamOut.id || null;
+                    const inId = teamIn.row_id || teamIn.id || null;
+
+                    html += `
+                        <div class="transfer-card" data-player-id="${playerId}" data-out-id="${outId}" data-in-id="${inId}">
+                            <div class="transfer-player">
+                                <img src="${playerImg || 'https://ui-avatars.com/api/?name=Player&background=4c8bf5&color=fff&size=60'}" onerror="this.style.display='none'">
+                                <div>
+                                    <div class="name">${player.title || 'Player'}</div>
+                                    <div class="detail">${player.position || ''}</div>
+                                </div>
+                            </div>
+                            <div class="transfer-clubs">
+                                <img src="${outImg}" onerror="this.style.display='none'">
+                                <span>${teamOut.title || '?'}</span>
+                                <span class="arrow">→</span>
+                                <img src="${inImg}" onerror="this.style.display='none'">
+                                <span>${teamIn.title || '?'}</span>
+                            </div>
+                            <div class="transfer-date">${value} · ${date}</div>
+                        </div>
+                    `;
+                });
+                transfersContainer.innerHTML = html;
+
+                document.querySelectorAll('.transfer-card[data-player-id]').forEach(card => {
+                    card.addEventListener('click', function(e) {
+                        const playerId = this.dataset.playerId;
+                        if (playerId && playerId !== 'null') {
+                            showPlayerDetail(playerId);
+                        }
                     });
+                });
+            }
 
-                    const recent = allTransfers.slice(0, 20);
+            // ==================== NEWS (from YSScores) ====================
+            let newsPage = 1;
+            let newsTotalPages = 1;
 
-                    if (recent.length === 0) {
-                        transfersContainer.innerHTML = '<div class="empty-state">No recent transfers available</div>';
-                        return;
+            async function loadNews(page = 1) {
+                newsContainer.innerHTML =
+                    '<div class="loading"><div class="spinner"></div><div>Loading news...</div></div>';
+                try {
+                    // Get featured news first
+                    let featuredData = null;
+                    try {
+                        const featuredResp = await fetchYS('News/all_news_page/%5B%5D', YS_NEWS);
+                        if (featuredResp.status) {
+                            featuredData = featuredResp.data;
+                        }
+                    } catch (e) {}
+
+                    const data = await fetchYS(`News/latest_news/%5B%5D?page=${page}`, YS_NEWS);
+                    if (!data.status) throw new Error('Failed to load news');
+
+                    newsPage = data.data.current_page || page;
+                    newsTotalPages = data.data.last_page || 1;
+
+                    let allNews = [];
+
+                    if (featuredData) {
+                        if (featuredData.main) {
+                            allNews.push({ ...featuredData.main, is_featured: true });
+                        }
+                        if (featuredData.important && featuredData.important.length > 0) {
+                            featuredData.important.forEach(item => {
+                                allNews.push({ ...item, is_featured: true });
+                            });
+                        }
                     }
 
-                    let html = '';
-                    recent.forEach(t => {
-                        const playerPhoto = t.playerPhoto || '';
-                        const flag = t.flag || '🌍';
-                        const fromLogo = t.fromLogo || '';
-                        const toLogo = t.toLogo || '';
-                        const dateStr = t.date ? new Date(t.date).toLocaleDateString() : '';
-                        html += `
-                            <div class="transfer-card">
-                                <div class="transfer-player">
-                                    ${playerPhoto ? `<img src="${playerPhoto}" onerror="this.style.display='none'">` : `<div style="width:32px;height:32px;border-radius:50%;background:var(--surface-hover);display:flex;align-items:center;justify-content:center;font-size:16px;">${flag}</div>`}
-                                    <div>
-                                        <div class="name">${t.playerName}</div>
-                                        <div class="detail">${t.playerPosition || ''} ${flag}</div>
-                                    </div>
+                    const existingIds = new Set(allNews.map(item => item.id));
+                    if (data.data.data && data.data.data.length > 0) {
+                        data.data.data.forEach(item => {
+                            if (!existingIds.has(item.id)) {
+                                allNews.push({ ...item, is_featured: false });
+                            }
+                        });
+                    }
+
+                    renderNews(allNews, data.data);
+
+                } catch (error) {
+                    newsContainer.innerHTML = `<div class="error-msg">⚠️ ${error.message}</div>`;
+                }
+            }
+
+            function renderNews(newsItems, paginationData) {
+                if (!newsItems || newsItems.length === 0) {
+                    newsContainer.innerHTML = '<div class="empty-state">No news available</div>';
+                    return;
+                }
+
+                let html = '<div class="news-grid">';
+                const displayItems = newsItems.slice(0, 12);
+                displayItems.forEach(item => {
+                    const imgUrl = item.image ? getImageUrl(item.image, 'news') : '';
+                    const time = item.created_at?.date ? new Date(item.created_at.date).toLocaleString('en-US') :
+                        '';
+                    html += `
+                        <div class="news-card" data-news-id="${item.id}">
+                            ${imgUrl ? `<img class="news-img" src="${imgUrl}" onerror="this.style.display='none'" alt="">` : `<div style="height:150px;background:var(--surface-hover);display:flex;align-items:center;justify-content:center;color:var(--text-secondary);font-size:12px;">📰 No Image</div>`}
+                            <div class="news-body">
+                                ${item.is_featured ? `<span style="font-size:10px;color:var(--accent);font-weight:700;">★ Featured</span>` : ''}
+                                <div class="news-title">${item.title || ''}</div>
+                                <div class="news-desc">${item.news_desc || ''}</div>
+                                <div class="news-time">${time}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+
+                if (paginationData && paginationData.last_page > 1) {
+                    html += `
+                        <div style="display:flex;justify-content:center;gap:10px;margin-top:16px;flex-wrap:wrap;">
+                            <button onclick="window.loadNewsPage(${paginationData.current_page - 1})"
+                                    style="background:var(--surface);border:1px solid var(--border);color:var(--text-secondary);padding:6px 16px;border-radius:30px;cursor:pointer;font-weight:600;transition:var(--transition);"
+                                    ${paginationData.current_page <= 1 ? 'disabled style="opacity:0.3;cursor:not-allowed;"' : ''}>
+                                ← Previous
+                            </button>
+                            <span style="color:var(--text-secondary);font-size:13px;display:flex;align-items:center;">
+                                Page ${paginationData.current_page} of ${paginationData.last_page}
+                            </span>
+                            <button onclick="window.loadNewsPage(${paginationData.current_page + 1})"
+                                    style="background:var(--surface);border:1px solid var(--border);color:var(--text-secondary);padding:6px 16px;border-radius:30px;cursor:pointer;font-weight:600;transition:var(--transition);"
+                                    ${paginationData.current_page >= paginationData.last_page ? 'disabled style="opacity:0.3;cursor:not-allowed;"' : ''}>
+                                Next →
+                            </button>
+                        </div>
+                    `;
+                }
+
+                newsContainer.innerHTML = html;
+
+                document.querySelectorAll('.news-card').forEach(card => {
+                    card.addEventListener('click', function() {
+                        const newsId = this.dataset.newsId;
+                        if (newsId) showNewsDetail(newsId);
+                    });
+                });
+            }
+
+            // ==================== NEWS DETAIL ====================
+            async function showNewsDetail(newsId) {
+                newsDetailOverlay.classList.add('visible');
+                newsDetailContent.innerHTML =
+                    '<div class="loading"><div class="spinner"></div><div>Loading...</div></div>';
+                try {
+                    const data = await fetchYS(`News/news_detail/${newsId}`, YS_NEWS);
+                    if (!data.status) throw new Error('Failed to load news detail');
+                    const item = data.data;
+                    const imgUrl = item.image ? getImageUrl(item.image, 'news') : '';
+                    const time = item.created_at?.date ? new Date(item.created_at.date).toLocaleString('en-US') : '';
+
+                    newsDetailContent.innerHTML = `
+                        <div class="news-detail-title">${item.title || ''}</div>
+                        ${imgUrl ? `<img class="news-detail-img" src="${imgUrl}" onerror="this.style.display='none'" alt="">` : ''}
+                        <div class="news-detail-meta">📅 ${time}</div>
+                        <div class="news-detail-content">${item.full_news || item.news_desc || ''}</div>
+                    `;
+                } catch (error) {
+                    newsDetailContent.innerHTML = `<div class="error-msg">⚠️ ${error.message}</div>`;
+                }
+            }
+
+            // ==================== PLAYER DETAIL ====================
+            async function showPlayerDetail(playerId) {
+                if (!playerId) return;
+                playerDetailOverlay.classList.add('visible');
+                playerDetailContent.innerHTML =
+                    '<div class="loading"><div class="spinner"></div><div>Loading player...</div></div>';
+                try {
+                    const data = await fetchYS(`info/player_info/${playerId}/L/60`);
+                    if (!data.status) throw new Error('Failed to load player');
+                    const player = data.data;
+                    const imgUrl = player.image ? getImageUrl(player.image, 'player') :
+                        'https://ui-avatars.com/api/?name=Player&background=4c8bf5&color=fff&size=80';
+                    const team = player.team_name || {};
+                    const teamLogo = getImageUrl(team.image, 'team');
+                    const teamId = team.row_id || null;
+                    const age = player.birth_day ? new Date().getFullYear() - new Date(player.birth_day).getFullYear() :
+                        'N/A';
+                    const foot = player.foot === 'R' ? 'Right' : (player.foot === 'L' ? 'Left' : 'N/A');
+
+                    // Statistics
+                    let statsHtml = '';
+                    if (player.player_statistics && player.player_statistics.length > 0) {
+                        const stats = player.player_statistics[0] || {};
+                        statsHtml = `
+                            <div class="player-stats-grid">
+                                <div class="stat-item">
+                                    <div class="stat-value">${stats.appearances || 0}</div>
+                                    <div class="stat-label">Apps</div>
                                 </div>
-                                <div class="transfer-clubs">
-                                    ${fromLogo ? `<img src="${fromLogo}" onerror="this.style.display='none'">` : ''}
-                                    <span>${t.from}</span>
-                                    <span class="arrow">→</span>
-                                    ${toLogo ? `<img src="${toLogo}" onerror="this.style.display='none'">` : ''}
-                                    <span>${t.to}</span>
+                                <div class="stat-item">
+                                    <div class="stat-value">${stats.goals || 0}</div>
+                                    <div class="stat-label">Goals</div>
                                 </div>
-                                <div class="transfer-date">${t.type} · ${dateStr}</div>
+                                <div class="stat-item">
+                                    <div class="stat-value">${stats.assist || 0}</div>
+                                    <div class="stat-label">Assists</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value">${stats.yellow_card || 0}</div>
+                                    <div class="stat-label">Yellow</div>
+                                </div>
                             </div>
                         `;
+                    }
+
+                    // Transfers
+                    let transfersHtml = '';
+                    if (player.transfers && player.transfers.length > 0) {
+                        transfersHtml = `<div class="player-transfers-list">
+                            <div class="title">📋 Transfers</div>`;
+                        player.transfers.slice(0, 8).forEach(t => {
+                            const teamIn = t.team_in || {};
+                            const teamOut = t.team_out || {};
+                            const value = t.value ? (parseInt(t.value) / 1000000).toFixed(1) + 'M' : 'Free';
+                            transfersHtml += `
+                                <div class="transfer-row">
+                                    <span class="type">${t.trans || 'Transfer'}</span>
+                                    <span>${teamOut.title || '?'} → ${teamIn.title || '?'}</span>
+                                    <span class="value">${value}</span>
+                                    <span>${t.date_from || ''}</span>
+                                </div>
+                            `;
+                        });
+                        transfersHtml += '</div>';
+                    }
+
+                    playerDetailContent.innerHTML = `
+                        <div class="player-header">
+                            <img src="${imgUrl}" onerror="this.style.display='none'">
+                            <div>
+                                <div class="player-name">${player.title || 'Player'}</div>
+                                <div class="player-team team-click" data-team-id="${teamId}">${team.title || 'Club'}</div>
+                                <div style="font-size:12px;color:var(--text-secondary);">${player.position || ''} • ${age} years • ${foot}</div>
+                            </div>
+                        </div>
+                        ${statsHtml}
+                        ${transfersHtml}
+                    `;
+
+                    document.querySelectorAll('.team-click[data-team-id]').forEach(el => {
+                        el.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const teamId = this.dataset.teamId;
+                            if (teamId && teamId !== 'null') {
+                                playerDetailOverlay.classList.remove('visible');
+                                setTimeout(() => showTeamDetail(teamId), 200);
+                            }
+                        });
                     });
-                    transfersContainer.innerHTML = html;
 
+                } catch (error) {
+                    playerDetailContent.innerHTML = `<div class="error-msg">⚠️ ${error.message}</div>`;
+                }
+            }
+
+            // ==================== TEAM DETAIL ====================
+            async function showTeamDetail(teamId) {
+                if (!teamId) return;
+                teamDetailOverlay.classList.add('visible');
+                teamDetailContent.innerHTML =
+                    '<div class="loading"><div class="spinner"></div><div>Loading team...</div></div>';
+                try {
+                    const teamData = await fetchYS(`info/team_info/${teamId}/L/60`);
+                    if (!teamData.status) throw new Error('Failed to load team');
+                    const team = teamData.data;
+                    const imgUrl = team.image ? getImageUrl(team.image, 'team') :
+                        'https://ui-avatars.com/api/?name=Team&background=4c8bf5&color=fff&size=80';
+                    const country = team.country || {};
+                    const countryFlag = country.image ? getImageUrl(country.image, 'country') : '';
+
+                    // Get standings
+                    let standingsHtml = '<div class="empty-state">No standings</div>';
+                    if (team.championships && team.championships.length > 0) {
+                        for (const champ of team.championships) {
+                            try {
+                                const sData = await fetchYS(
+                                    `matches/cups_teams_standings/${champ.url_id}/L/60`);
+                                if (sData.status && sData.data?.standings) {
+                                    const groups = sData.data.standings.groups || {};
+                                    const firstGroup = Object.values(groups)[0] || [];
+                                    if (firstGroup.length > 0) {
+                                        let sHtml =
+                                            `<table class="standings-table">
+                                            <thead><tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr></thead><tbody>`;
+                                        firstGroup.slice(0, 16).forEach((t, idx) => {
+                                            const teamObj = t.team_name || {};
+                                            const logo = getImageUrl(teamObj.image, 'team');
+                                            const tid = teamObj.row_id || null;
+                                            sHtml += `<tr>
+                                                <td>${idx+1}</td>
+                                                <td><div class="team-cell"><img src="${logo}" onerror="this.style.display='none'"> <span class="team-click" data-team-id="${tid}" style="cursor:pointer;">${teamObj.title || '?'}</span></div></td>
+                                                <td>${t.play || 0}</td>
+                                                <td>${t.wins || 0}</td>
+                                                <td>${t.draw || 0}</td>
+                                                <td>${t.lose || 0}</td>
+                                                <td>${t.diff || 0}</td>
+                                                <td class="points">${t.points || 0}</td>
+                                            </tr>`;
+                                        });
+                                        sHtml += '</tbody></table>';
+                                        standingsHtml = sHtml;
+                                        break;
+                                    }
+                                }
+                            } catch (e) { continue; }
+                        }
+                    }
+
+                    // Get matches
+                    let matchesHtml = '<div class="empty-state">No matches</div>';
+                    try {
+                        const mData = await fetchYS(`matches/team_matches/${teamId}/L/60`);
+                        if (mData.status && mData.data) {
+                            const matches = mData.data;
+                            let mHtml = '<div class="team-matches-list">';
+                            if (matches.coming?.data?.length > 0) {
+                                mHtml +=
+                                    `<div style="font-weight:600;font-size:13px;color:var(--accent);margin:4px 0;">⬆️ Upcoming</div>`;
+                                matches.coming.data.slice(0, 5).forEach(m => {
+                                    const home = m.home_team || {};
+                                    const away = m.away_team || {};
+                                    const homeLogo = getImageUrl(home.image, 'team');
+                                    const awayLogo = getImageUrl(away.image, 'team');
+                                    mHtml += `
+                                        <div class="team-match-item" data-match-id="${m.match_id}">
+                                            <div class="teams"><img src="${homeLogo}" onerror="this.style.display='none'"> ${home.title || 'Home'} vs ${away.title || 'Away'} <img src="${awayLogo}" onerror="this.style.display='none'"></div>
+                                            <div class="score">${m.home_scores ?? 0} - ${m.away_scores ?? 0}</div>
+                                            <span class="status upcoming">⏳</span>
+                                            <span class="date">${m.match_date || ''}</span>
+                                        </div>
+                                    `;
+                                });
+                            }
+                            if (matches.end?.data?.length > 0) {
+                                mHtml +=
+                                    `<div style="font-weight:600;font-size:13px;color:var(--text-secondary);margin:4px 0;">✅ Finished</div>`;
+                                matches.end.data.slice(0, 5).forEach(m => {
+                                    const home = m.home_team || {};
+                                    const away = m.away_team || {};
+                                    const homeLogo = getImageUrl(home.image, 'team');
+                                    const awayLogo = getImageUrl(away.image, 'team');
+                                    mHtml += `
+                                        <div class="team-match-item" data-match-id="${m.match_id}">
+                                            <div class="teams"><img src="${homeLogo}" onerror="this.style.display='none'"> ${home.title || 'Home'} vs ${away.title || 'Away'} <img src="${awayLogo}" onerror="this.style.display='none'"></div>
+                                            <div class="score">${m.home_scores ?? 0} - ${m.away_scores ?? 0}</div>
+                                            <span class="status finished">✅</span>
+                                            <span class="date">${m.match_date || ''}</span>
+                                        </div>
+                                    `;
+                                });
+                            }
+                            mHtml += '</div>';
+                            matchesHtml = mHtml;
+                        }
+                    } catch (e) {}
+
+                    // Get news
+                    let newsHtml = '<div class="empty-state">No news</div>';
+                    try {
+                        const nData = await fetchYS(`News/news_team/${teamId}?page=1`, YS_NEWS);
+                        if (nData.status && nData.data && nData.data.length > 0) {
+                            let nHtml = '<div class="team-news-list">';
+                            nData.data.slice(0, 6).forEach(item => {
+                                const time = item.created_at?.date ? new Date(item.created_at.date)
+                                    .toLocaleString('en-US') : '';
+                                nHtml += `
+                                    <div class="team-news-item" data-news-id="${item.id}">
+                                        <div class="title">${item.title || ''}</div>
+                                        <div class="time">${time}</div>
+                                    </div>
+                                `;
+                            });
+                            nHtml += '</div>';
+                            newsHtml = nHtml;
+                        }
+                    } catch (e) {}
+
+                    teamDetailContent.innerHTML = `
+                        <div class="team-header">
+                            <img src="${imgUrl}" onerror="this.style.display='none'">
+                            <div>
+                                <div class="team-name">${team.title || 'Team'}</div>
+                                <div class="team-country">${countryFlag ? `<img src="${countryFlag}" style="width:20px;height:14px;object-fit:cover;border-radius:2px;vertical-align:middle;" onerror="this.style.display='none'">` : ''} ${country.title || ''}</div>
+                                <div style="font-size:13px;color:var(--text-secondary);">🏟️ ${team.stadium_name || 'N/A'}</div>
+                            </div>
+                        </div>
+                        <div class="team-tabs" id="teamTabs">
+                            <button class="active" data-ttab="matches">📋 Matches</button>
+                            <button data-ttab="standings">📊 Standings</button>
+                            <button data-ttab="news">📰 News</button>
+                        </div>
+                        <div class="team-tab-content active" id="ttab-matches">${matchesHtml}</div>
+                        <div class="team-tab-content" id="ttab-standings">${standingsHtml}</div>
+                        <div class="team-tab-content" id="ttab-news">${newsHtml}</div>
+                    `;
+
+                    document.querySelectorAll('#teamTabs button').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            document.querySelectorAll('#teamTabs button').forEach(b => b.classList.remove(
+                                'active'));
+                            this.classList.add('active');
+                            const tab = this.dataset.ttab;
+                            document.querySelectorAll('.team-tab-content').forEach(el => el.classList.remove(
+                                'active'));
+                            const target = document.getElementById('ttab-' + tab);
+                            if (target) target.classList.add('active');
+                        });
+                    });
+
+                    document.querySelectorAll('.team-match-item[data-match-id]').forEach(el => {
+                        el.addEventListener('click', function() {
+                            const matchId = this.dataset.matchId;
+                            if (matchId) {
+                                teamDetailOverlay.classList.remove('visible');
+                                showMatchDetailAiScore(matchId);
+                            }
+                        });
+                    });
+
+                    document.querySelectorAll('.team-news-item[data-news-id]').forEach(el => {
+                        el.addEventListener('click', function() {
+                            const newsId = this.dataset.newsId;
+                            if (newsId) {
+                                teamDetailOverlay.classList.remove('visible');
+                                showNewsDetail(newsId);
+                            }
+                        });
+                    });
+
+                    document.querySelectorAll('.team-click[data-team-id]').forEach(el => {
+                        el.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const teamId = this.dataset.teamId;
+                            if (teamId && teamId !== 'null') {
+                                teamDetailOverlay.classList.remove('visible');
+                                setTimeout(() => showTeamDetail(teamId), 200);
+                            }
+                        });
+                    });
+
+                } catch (error) {
+                    teamDetailContent.innerHTML = `<div class="error-msg">⚠️ ${error.message}</div>`;
+                }
+            }
+
+            // ==================== MOVIES ====================
+            async function loadMovies() {
+                moviesContainer.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading movies...</div></div>';
+                try {
+                    const url = WORKER_URL + '?url=' + encodeURIComponent(MOVIE_API);
+                    const resp = await fetch(url);
+                    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                    const data = await resp.json();
+
+                    if (data.data && Array.isArray(data.data) && data.data.length > 0) {
+                        let html = '<div class="media-grid">';
+                        data.data.forEach(m => {
+                            const poster = (m.posterUrl || '').replace('http:', 'https:');
+                            const title = m.title || m.titleEn || 'Unknown';
+                            const streamUrl = m.sources && m.sources.length > 0 ? m.sources[0]
+                            .streamUrl : '';
+                            html += `
+                                <div class="media-card" data-url="${streamUrl}">
+                                    <img class="media-poster" src="${poster}" onerror="this.style.display='none'">
+                                    <div class="media-info">
+                                        <div class="media-title">${title}</div>
+                                        <div class="media-sub">${m.genre || 'Movie'}</div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        html += '</div>';
+                        moviesContainer.innerHTML = html;
+
+                        moviesContainer.querySelectorAll('.media-card[data-url]').forEach(card => {
+                            card.addEventListener('click', function() {
+                                const url = this.dataset.url;
+                                if (url) {
+                                    loadStream(url, '🎬 Movie');
+                                    camelOverlay.style.display = 'none';
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }
+                            });
+                        });
+                    } else {
+                        moviesContainer.innerHTML = '<div class="empty-state">No movies available</div>';
+                    }
                 } catch (e) {
-                    console.error('Transfers error:', e);
-                    transfersContainer.innerHTML =
-                    '<div class="error-msg">Failed to load transfers</div>';
+                    moviesContainer.innerHTML = `<div class="error-msg">Failed to load movies</div>`;
                 }
             }
 
-            // Helper: get flag emoji from country name
-            function getFlagEmoji(country) {
-                const flags = {
-                    'England': '🇬🇧',
-                    'Spain': '🇪🇸',
-                    'Germany': '🇩🇪',
-                    'Italy': '🇮🇹',
-                    'France': '🇫🇷',
-                    'Brazil': '🇧🇷',
-                    'Argentina': '🇦🇷',
-                    'Portugal': '🇵🇹',
-                    'Netherlands': '🇳🇱',
-                    'Belgium': '🇧🇪',
-                    'Croatia': '🇭🇷',
-                    'Serbia': '🇷🇸',
-                    'Switzerland': '🇨🇭',
-                    'Sweden': '🇸🇪',
-                    'Denmark': '🇩🇰',
-                    'Norway': '🇳🇴',
-                    'Poland': '🇵🇱',
-                    'Ukraine': '🇺🇦',
-                    'Russia': '🇷🇺',
-                    'Turkey': '🇹🇷',
-                    'Greece': '🇬🇷',
-                    'Egypt': '🇪🇬',
-                    'Morocco': '🇲🇦',
-                    'Algeria': '🇩🇿',
-                    'Tunisia': '🇹🇳',
-                    'Senegal': '🇸🇳',
-                    'Nigeria': '🇳🇬',
-                    'Ghana': '🇬🇭',
-                    'Cameroon': '🇨🇲',
-                    'Colombia': '🇨🇴',
-                    'Uruguay': '🇺🇾',
-                    'Chile': '🇨🇱',
-                    'Mexico': '🇲🇽',
-                    'USA': '🇺🇸',
-                    'Canada': '🇨🇦',
-                    'Australia': '🇦🇺',
-                    'Japan': '🇯🇵',
-                    'South Korea': '🇰🇷',
-                    'Saudi Arabia': '🇸🇦',
-                    'Qatar': '🇶🇦',
-                    'UAE': '🇦🇪',
-                };
-                for (const [key, emoji] of Object.entries(flags)) {
-                    if (country.includes(key) || key.includes(country)) return emoji;
+            // ==================== SERIES ====================
+            async function loadSeries() {
+                seriesContainer.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading series...</div></div>';
+                try {
+                    const url = WORKER_URL + '?url=' + encodeURIComponent(SERIES_API);
+                    const resp = await fetch(url);
+                    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                    const data = await resp.json();
+
+                    if (data.data && Array.isArray(data.data) && data.data.length > 0) {
+                        let html = '<div class="media-grid">';
+                        data.data.forEach(s => {
+                            const poster = (s.posterUrl || '').replace('http:', 'https:');
+                            const title = s.title || s.titleEn || 'Unknown';
+                            const streamUrl = s.sources && s.sources.length > 0 ? s.sources[0]
+                            .streamUrl : '';
+                            html += `
+                                <div class="media-card" data-url="${streamUrl}">
+                                    <img class="media-poster" src="${poster}" onerror="this.style.display='none'">
+                                    <div class="media-info">
+                                        <div class="media-title">${title}</div>
+                                        <div class="media-sub">${s.genre || 'Series'}</div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        html += '</div>';
+                        seriesContainer.innerHTML = html;
+
+                        seriesContainer.querySelectorAll('.media-card[data-url]').forEach(card => {
+                            card.addEventListener('click', function() {
+                                const url = this.dataset.url;
+                                if (url) {
+                                    loadStream(url, '📺 Series');
+                                    camelOverlay.style.display = 'none';
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }
+                            });
+                        });
+                    } else {
+                        seriesContainer.innerHTML = '<div class="empty-state">No series available</div>';
+                    }
+                } catch (e) {
+                    seriesContainer.innerHTML = `<div class="error-msg">Failed to load series</div>`;
                 }
-                return '🌍';
             }
 
-            // ==================== MATCH DETAIL ====================
+            // ==================== MATCH DETAIL (API-Sports) ====================
             async function showMatchDetailAiScore(fixtureId) {
                 matchDetailAiScore.classList.add('visible');
                 matchDetailContentAiScore.innerHTML =
@@ -3401,6 +3894,21 @@
                 camelOverlay.style.display = 'none';
             });
 
+            // ==================== IMAGE HELPER ====================
+            function getImageUrl(path, type) {
+                if (!path) return '';
+                if (path.startsWith('http')) return path;
+                const IMG_BASE = 'https://imgs.ysscores.com/';
+                const maps = {
+                    'team': 'teams/64/',
+                    'player': 'players/',
+                    'news': 'news/',
+                    'country': 'countries/',
+                    'championship': 'championship/cups/'
+                };
+                return IMG_BASE + (maps[type] || '') + path;
+            }
+
             // ==================== GLOBAL SEARCH ====================
             toggleSearchBtnMain.addEventListener('click', () => {
                 globalSearchView.classList.add('visible');
@@ -3504,18 +4012,16 @@
 
                 if (tabId === 'home') {
                     fetchGoliveMatches();
-                    // Load movie/series categories in background
-                    loadMovieCategoriesFromAPI();
-                    loadSeriesCategoriesFromAPI();
                 } else if (tabId === 'standings') {
-                    fetchStandings();
+                    loadStandings();
                 } else if (tabId === 'transfers') {
-                    fetchTransfers();
+                    loadTransfers();
+                } else if (tabId === 'news') {
+                    loadNews(1);
                 } else if (tabId === 'movies') {
-                    // Show movies view
-                    loadMovieCategoriesFromAPI();
+                    loadMovies();
                 } else if (tabId === 'series') {
-                    loadSeriesCategoriesFromAPI();
+                    loadSeries();
                 } else if (tabId === 'tv') {
                     if (tvChannels.length === 0) fetchGoliveMatches();
                     else renderTVChannels(tvChannels);
@@ -3533,8 +4039,7 @@
                     const action = btn.dataset.action;
                     if (action === 'home') switchTab('home');
                     else if (action === 'tv') switchTab('tv');
-                    else if (action === 'series') switchTab('series');
-                    else if (action === 'movies') switchTab('movies');
+                    else if (action === 'news') switchTab('news');
                 });
             });
 
@@ -3546,12 +4051,38 @@
                 }
             });
 
+            // ==================== CLOSE MODALS ====================
+            newsDetailClose.addEventListener('click', () => { newsDetailOverlay.classList.remove('visible'); });
+            playerDetailClose.addEventListener('click', () => { playerDetailOverlay.classList.remove('visible'); });
+            teamDetailClose.addEventListener('click', () => { teamDetailOverlay.classList.remove('visible'); });
+
+            newsDetailOverlay.addEventListener('click', function(e) {
+                if (e.target === this) this.classList.remove('visible');
+            });
+            playerDetailOverlay.addEventListener('click', function(e) {
+                if (e.target === this) this.classList.remove('visible');
+            });
+            teamDetailOverlay.addEventListener('click', function(e) {
+                if (e.target === this) this.classList.remove('visible');
+            });
+
+            // ==================== GLOBAL FUNCTIONS ====================
+            window.loadStandingsGlobal = loadStandings;
+            window.loadNewsPage = function(page) {
+                if (page >= 1 && page <= newsTotalPages) loadNews(page);
+            };
+            window.showTeamDetail = showTeamDetail;
+            window.showPlayerDetail = showPlayerDetail;
+            window.showMatchDetailAiScore = showMatchDetailAiScore;
+            window.showNewsDetail = showNewsDetail;
+
             // ==================== INIT ====================
             function init() {
                 switchTab('home');
                 setTimeout(() => {
-                    fetchTransfers();
-                    fetchStandings();
+                    loadStandings();
+                    loadTransfers();
+                    loadNews(1);
                 }, 2000);
             }
 
