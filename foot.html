@@ -55,7 +55,6 @@
             --shadow: 0 15px 40px rgba(255, 215, 0, 0.1);
             --header-bg: rgba(18, 15, 10, 0.95);
         }
-
         * {
             margin: 0;
             padding: 0;
@@ -264,7 +263,6 @@
             object-fit: contain;
             display: block;
         }
-
         .zs-live-badge {
             position: absolute;
             top: 12px;
@@ -304,7 +302,6 @@
                 transform: scale(0.7);
             }
         }
-
         .zs-start-overlay {
             position: absolute;
             inset: 0;
@@ -338,7 +335,6 @@
             font-size: 11px;
             margin-top: 6px;
         }
-
         .zs-controls {
             position: absolute;
             bottom: 0;
@@ -674,7 +670,6 @@
         .zs-tab-content.active {
             display: flex;
         }
-
         .zs-section-title {
             font-size: 20px;
             font-weight: 800;
@@ -721,7 +716,6 @@
         .match-section .section-header .badge.finished {
             background: var(--text-secondary);
         }
-
         .match-card {
             background: var(--surface);
             border-radius: var(--radius-sm);
@@ -1016,7 +1010,6 @@
             color: var(--text);
             font-weight: 600;
         }
-
         .match-tabs-aiscore {
             position: sticky;
             top: 70px;
@@ -1058,7 +1051,6 @@
             background: rgba(88, 166, 255, 0.1);
             border: 1px solid var(--accent);
         }
-
         .match-tab-content-aiscore {
             display: none;
             padding: 6px 0;
@@ -1067,7 +1059,6 @@
         .match-tab-content-aiscore.active {
             display: block;
         }
-
         .stats-grid-aiscore {
             display: grid;
             grid-template-columns: 1fr auto 1fr;
@@ -1117,7 +1108,6 @@
             right: 0;
             top: 0;
         }
-
         .lineup-aiscore {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -1150,7 +1140,6 @@
         .lineup-aiscore .team-lineup .player .name {
             flex: 1;
         }
-
         .events-aiscore {
             display: flex;
             flex-direction: column;
@@ -1179,7 +1168,6 @@
             font-weight: 600;
             color: var(--text-secondary);
         }
-
         .goal-label {
             background: var(--live);
             color: #fff;
@@ -1204,7 +1192,6 @@
                 opacity: 0.8;
             }
         }
-
         .h2h-aiscore {
             display: flex;
             flex-direction: column;
@@ -1229,7 +1216,6 @@
             font-size: 11px;
             color: var(--text-secondary);
         }
-
         .standings-grid-detail .league-block {
             background: var(--surface);
             border-radius: var(--radius-sm);
@@ -1653,7 +1639,6 @@
             border-radius: 50%;
             object-fit: contain;
         }
-
         .transfer-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -1666,7 +1651,6 @@
                 grid-template-columns: 1fr;
             }
         }
-
         .transfer-card-enhanced {
             background: var(--surface);
             border-radius: var(--radius-sm);
@@ -1683,7 +1667,6 @@
             transform: translateY(-3px);
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
         }
-
         .transfer-card-enhanced .player-row {
             display: flex;
             align-items: center;
@@ -1709,7 +1692,6 @@
             font-size: 12px;
             color: var(--text-secondary);
         }
-
         .transfer-card-enhanced .clubs-row {
             display: flex;
             align-items: center;
@@ -1733,7 +1715,6 @@
             font-weight: 700;
             font-size: 16px;
         }
-
         .transfer-card-enhanced .meta-row {
             display: flex;
             align-items: center;
@@ -1769,7 +1750,6 @@
             color: var(--text-secondary);
             font-size: 11px;
         }
-
         .transfer-pagination {
             display: flex;
             justify-content: center;
@@ -3062,7 +3042,6 @@
             }
 
             // ==================== IMAGE HELPERS ====================
-            // المسار الصحيح للصور: player (بدون s)
             function getPlayerImage(path) {
                 if (!path) return '';
                 if (path.startsWith('http')) return path;
@@ -3224,19 +3203,20 @@
                 return html;
             }
 
-            // ==================== TRANSFERS (Enhanced) ====================
-            // قائمة البطولات مع المعرفات الصحيحة (تم تحديثها)
+            // ==================== TRANSFERS (Enhanced with all major leagues) ====================
+            // قائمة البطولات الكبرى مع المعرفات الصحيحة (تم تحديثها من البيانات المقدمة)
             const POPULAR_LEAGUES = [
-                { id: '937599', name: 'Premier League', img: '3411694791422.png' },
-                { id: '938652', name: 'LaLiga', img: '8641690196626.png' },
-                { id: '938769', name: 'Bundesliga', img: '6171690288722.png' },
-                { id: '936357', name: 'Serie A', img: '6281692568873.png' },
-                { id: '937873', name: 'Ligue 1', img: '9551719862665.png' },
-                { id: '941825', name: 'Saudi Pro League', img: '5111703719091.png' },
+                { id: '6811', name: 'Premier League', img: '3411694791422.png' },
+                { id: '1933', name: 'LaLiga', img: '8641690196626.png' },
+                { id: '3734', name: 'Serie A', img: '6281692568873.png' },
+                { id: '2606', name: 'Bundesliga', img: '6171690288722.png' },
+                { id: '1985', name: 'Ligue 1', img: '9551719862665.png' },
+                { id: '7167', name: 'Saudi Pro League', img: '5111703719091.png' },
                 { id: '943009', name: 'Egyptian League', img: '17860128653611.png' },
                 { id: '47037', name: 'Belgian Pro League', img: '6291755056529.png' },
                 { id: '76040', name: 'Tunisian Ligue 1', img: '5641693174914.png' },
                 { id: '573139', name: 'Scottish Premiership', img: '8331722958055.png' },
+                // يمكن إضافة المزيد حسب الحاجة
             ];
 
             function getLeagueImage(id) {
@@ -3244,7 +3224,6 @@
                 return found ? getImageUrl(found.img, 'championship') : '';
             }
 
-            // وظيفة تحميل الانتقالات مع التعامل مع البطولات التي قد لا تحتوي على بيانات
             async function loadTransfers(leagueId = 'all', page = 1) {
                 transfersContainer.innerHTML =
                     '<div class="loading"><div class="spinner"></div><div>Loading transfers...</div></div>';
@@ -3254,8 +3233,8 @@
                 try {
                     let data;
                     if (leagueId === 'all') {
-                        // نستخدم الدوري البلجيكي كمصدر لـ All لأنه يحتوي على انتقالات
-                        const resp = await fetchViaProxy(YS_BASE + `info/transfer_info_page/47037?page=${page}`);
+                        // نستخدم الدوري الإنجليزي كمصدر لـ All لأنه يحتوي على انتقالات كثيرة
+                        const resp = await fetchViaProxy(YS_BASE + `info/transfer_info_page/6811?page=${page}`);
                         data = resp;
                     } else {
                         const resp = await fetchViaProxy(YS_BASE + `info/transfer_info_page/${leagueId}?page=${page}`);
@@ -3282,7 +3261,7 @@
                         return true;
                     });
 
-                    // ترتيب حسب التاريخ
+                    // ترتيب حسب التاريخ (الأحدث أولاً)
                     unique.sort((a, b) => {
                         const dateA = a.date_from || '';
                         const dateB = b.date_from || '';
@@ -3290,26 +3269,22 @@
                     });
 
                     if (unique.length === 0) {
-                        transfersContainer.innerHTML = '<div class="empty-state">No transfers available for this league.</div>';
-                        // نضيف شريط الفلاتر أيضاً إذا لم يكن موجوداً
+                        transfersContainer.innerHTML =
+                        '<div class="empty-state">No transfers available for this league.</div>';
                         renderLeagueFilter(leagueId);
                         return;
                     }
 
                     totalPages = transferData.pagination?.last_page || 1;
 
-                    // عرض البطاقات
                     renderTransfersEnhanced(unique);
-                    // عرض شريط الفلاتر
                     renderLeagueFilter(leagueId);
-                    // عرض الترقيم
                     renderPagination(totalPages, page);
 
                 } catch (error) {
                     console.error('Transfer load error:', error);
                     transfersContainer.innerHTML =
                         `<div class="error-msg">⚠️ Failed to load transfers: ${error.message}</div>`;
-                    // نحاول عرض الفلاتر حتى في حالة الخطأ
                     renderLeagueFilter(leagueId);
                 }
             }
@@ -3324,7 +3299,6 @@
                     const outId = teamOut.row_id || teamOut.id || null;
                     const inId = teamIn.row_id || teamIn.id || null;
 
-                    // استخدام المسار الصحيح للصور
                     const playerImg = getPlayerImage(player.image) ||
                         'https://ui-avatars.com/api/?name=' + encodeURIComponent(player.title || 'P') +
                         '&background=4c8bf5&color=fff&size=48';
@@ -3364,9 +3338,7 @@
                     `;
                 });
                 html += '</div>';
-                // إدراج البطاقات داخل الحاوية
                 const container = document.getElementById('transfersContainer');
-                // نحذف أي محتوى سابق باستثناء شريط الفلاتر
                 const filterBar = container.querySelector('.transfer-leagues-bar');
                 const pagination = container.querySelector('.transfer-pagination');
                 container.innerHTML = '';
@@ -3374,7 +3346,6 @@
                 container.insertAdjacentHTML('beforeend', html);
                 if (pagination) container.appendChild(pagination);
 
-                // ربط الأحداث
                 container.querySelectorAll('.transfer-card-enhanced[data-player-id]').forEach(card => {
                     const playerId = card.dataset.playerId;
                     if (playerId && playerId !== 'null') {
@@ -3403,7 +3374,6 @@
 
             function renderLeagueFilter(activeLeague) {
                 const container = document.getElementById('transfersContainer');
-                // إزالة الفلتر القديم إذا كان موجوداً
                 const oldFilter = container.querySelector('.transfer-leagues-bar');
                 if (oldFilter) oldFilter.remove();
 
@@ -3422,20 +3392,16 @@
                 });
                 filterHtml += `</div>`;
 
-                // إدراج الفلتر في بداية الحاوية
                 container.insertAdjacentHTML('afterbegin', filterHtml);
 
-                // ربط الأحداث
                 container.querySelectorAll('.league-btn').forEach(btn => {
                     btn.addEventListener('click', function() {
                         const lid = this.dataset.league;
                         currentLeagueId = lid;
                         currentPage = 1;
-                        // تحديث الحالة النشطة
                         document.querySelectorAll('.transfer-leagues-bar .league-btn').forEach(b =>
                             b.classList.remove('active'));
                         this.classList.add('active');
-                        // إعادة تحميل البيانات
                         loadTransfers(lid, 1);
                     });
                 });
@@ -3443,7 +3409,6 @@
 
             function renderPagination(total, current) {
                 const container = document.getElementById('transfersContainer');
-                // إزالة الترقيم القديم
                 const oldPagination = container.querySelector('.transfer-pagination');
                 if (oldPagination) oldPagination.remove();
 
