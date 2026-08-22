@@ -435,7 +435,7 @@
             }
         }
 
-        /* ===== CAMEL OVERLAY (improved - fixed under player) ===== */
+        /* ===== CAMEL OVERLAY ===== */
         #camelOverlay {
             position: absolute;
             top: 0;
@@ -958,7 +958,7 @@
             font-size: 13px;
         }
 
-        /* ===== MATCH DETAIL (Improved) ===== */
+        /* ===== MATCH DETAIL ===== */
         .match-detail-aiscore {
             display: none;
             width: 100%;
@@ -1073,7 +1073,7 @@
             font-weight: 600;
         }
 
-        /* ===== LINEUPS (Improved - Formation style with player images) ===== */
+        /* ===== LINEUPS ===== */
         .lineup-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -1408,12 +1408,13 @@
             color: var(--text-secondary);
         }
 
-        /* ===== STANDINGS TABLE ===== */
+        /* ===== STANDINGS TABLE (improved - shows all teams) ===== */
         .standings-grid-detail .league-block {
             background: var(--surface);
             border-radius: var(--radius-sm);
             border: 1px solid var(--border);
             padding: 10px;
+            overflow-x: auto;
         }
         .standings-grid-detail .league-block .league-title {
             font-weight: 700;
@@ -1433,32 +1434,184 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 12px;
+            min-width: 500px;
         }
         .standings-grid-detail .league-block th {
             text-align: left;
-            padding: 3px 4px;
+            padding: 4px 6px;
             color: var(--text-secondary);
             font-weight: 600;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 2px solid var(--border);
         }
         .standings-grid-detail .league-block td {
-            padding: 3px 4px;
+            padding: 4px 6px;
             border-bottom: 1px solid var(--border);
+        }
+        .standings-grid-detail .league-block tr:hover td {
+            background: var(--surface-hover);
         }
         .standings-grid-detail .league-block .team-cell {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
         }
         .standings-grid-detail .league-block .team-cell img {
-            width: 16px;
-            height: 16px;
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
             object-fit: contain;
+            flex-shrink: 0;
+        }
+        .standings-grid-detail .league-block .team-cell .team-click {
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+        .standings-grid-detail .league-block .team-cell .team-click:hover {
+            color: var(--accent);
+            text-decoration: underline;
         }
         .standings-grid-detail .league-block .points {
             font-weight: 700;
             color: var(--accent);
+        }
+        .standings-grid-detail .league-block .rank-badge {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+            font-weight: 700;
+            font-size: 11px;
+            color: #fff;
+        }
+
+        /* ===== RANKING KEY ===== */
+        .ranking-key-aiscore {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 16px;
+            padding: 10px 14px;
+            background: var(--surface);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            margin: 10px 0 14px 0;
+            align-items: center;
+        }
+        .ranking-key-aiscore .key-title {
+            font-weight: 700;
+            font-size: 12px;
+            color: var(--text);
+            margin-right: 4px;
+        }
+        .ranking-key-aiscore .key-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+        .ranking-key-aiscore .key-item .key-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            flex-shrink: 0;
+            border: 1px solid var(--border);
+        }
+        .ranking-key-aiscore .key-item .key-label {
+            font-weight: 500;
+        }
+
+        /* ===== TEAM DETAIL - MATCHES & NEWS ===== */
+        .team-matches-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 4px 0;
+        }
+        .team-match-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: var(--surface-hover);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all var(--transition);
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .team-match-item:hover {
+            border-color: var(--accent);
+            transform: translateX(3px);
+        }
+        .team-match-item .teams {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+            font-size: 13px;
+            flex: 1;
+            min-width: 140px;
+        }
+        .team-match-item .teams img {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            object-fit: contain;
+        }
+        .team-match-item .score {
+            font-weight: 700;
+            font-size: 14px;
+            min-width: 44px;
+            text-align: center;
+            color: var(--text);
+        }
+        .team-match-item .status {
+            font-size: 12px;
+        }
+        .team-match-item .status.upcoming {
+            color: var(--accent);
+        }
+        .team-match-item .status.finished {
+            color: var(--text-secondary);
+        }
+        .team-match-item .date {
+            font-size: 11px;
+            color: var(--text-secondary);
+            min-width: 70px;
+            text-align: right;
+        }
+
+        .team-news-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 4px 0;
+        }
+        .team-news-item {
+            padding: 8px 12px;
+            background: var(--surface-hover);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        .team-news-item:hover {
+            border-color: var(--accent);
+            transform: translateX(3px);
+        }
+        .team-news-item .title {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text);
+        }
+        .team-news-item .time {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 2px;
         }
 
         /* ===== BACK BUTTON ===== */
@@ -1573,6 +1726,21 @@
             }
             .match-card .match-meta {
                 justify-content: space-between;
+            }
+            .standings-grid-detail .league-block table {
+                font-size: 10px;
+                min-width: 400px;
+            }
+            .standings-grid-detail .league-block td,
+            .standings-grid-detail .league-block th {
+                padding: 2px 4px;
+            }
+            .ranking-key-aiscore {
+                gap: 4px 10px;
+                padding: 6px 10px;
+            }
+            .ranking-key-aiscore .key-item {
+                font-size: 10px;
             }
         }
 
@@ -1753,7 +1921,7 @@
             color: var(--text);
         }
 
-        /* ===== MEDIA GRID (Movies & Series) ===== */
+        /* ===== MEDIA GRID ===== */
         .media-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -2392,6 +2560,71 @@
             font-size: 10px;
             font-weight: 500;
         }
+
+        /* ===== STANDINGS COMPACT ===== */
+        .standings-compact {
+            width: 100%;
+            background: var(--surface);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            padding: 10px;
+            overflow-x: auto;
+        }
+        .standings-compact table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            min-width: 450px;
+        }
+        .standings-compact th {
+            text-align: left;
+            padding: 4px 6px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            border-bottom: 2px solid var(--border);
+        }
+        .standings-compact td {
+            padding: 4px 6px;
+            border-bottom: 1px solid var(--border);
+        }
+        .standings-compact tr:hover td {
+            background: var(--surface-hover);
+        }
+        .standings-compact .team-cell {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .standings-compact .team-cell img {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            object-fit: contain;
+        }
+        .standings-compact .team-cell .team-click {
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+        .standings-compact .team-cell .team-click:hover {
+            color: var(--accent);
+            text-decoration: underline;
+        }
+        .standings-compact .points {
+            font-weight: 700;
+            color: var(--accent);
+        }
+        .standings-compact .rank-badge {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 20px;
+            font-weight: 700;
+            font-size: 10px;
+            color: #fff;
+        }
     </style>
 </head>
 <body>
@@ -2443,7 +2676,7 @@
                             <button class="zs-start-play-btn" id="zsStartPlayBtn">▶</button>
                             <div class="hint">Select a match, movie, series or TV channel</div>
                         </div>
-                        <!-- Camel Overlay - improved -->
+                        <!-- Camel Overlay -->
                         <div id="camelOverlay">
                             <div class="camel-top">
                                 <div class="camel-team">
@@ -2903,7 +3136,7 @@
             document.getElementById('zsErrorRetry').addEventListener('click', () => { if (currentStreamUrl) loadStream(
                     currentStreamUrl); });
 
-            // ==================== CAMEL OVERLAY (improved) ====================
+            // ==================== CAMEL OVERLAY ====================
             function updateCamelOverlay(fixture, stats, matchInfo) {
                 if (!fixture) {
                     camelOverlay.style.display = 'none';
@@ -2939,7 +3172,6 @@
                 statusEl.textContent = statusShort;
                 statusEl.className = 'status ' + statusClass;
 
-                // Try to get possession from matchInfo or stats
                 let homePoss = 50,
                     awayPoss = 50;
                 if (matchInfo && matchInfo.statics_match) {
@@ -3092,7 +3324,6 @@
                             const title = this.dataset.home + ' vs ' + this.dataset.away;
                             loadStream(url, title);
                             window.scrollTo({ top: 0, behavior: 'smooth' });
-                            // Try to fetch match details from YS API for better camel overlay
                             const matchId = this.dataset.matchId;
                             if (matchId) {
                                 fetchMatchDetailFromYS(matchId);
@@ -3112,7 +3343,6 @@
                     const url = YS_BASE + `matches/match_info/${matchId}/L/60`;
                     const data = await fetchViaProxy(url);
                     if (data.status && data.data) {
-                        // Convert YS format to fixture format for camel overlay
                         const matchInfo = data.data;
                         const fixture = {
                             teams: {
@@ -3130,7 +3360,6 @@
                             }
                         };
                         updateCamelOverlay(fixture, null, matchInfo);
-                        // Also show match detail with lineup
                         showMatchDetailFromYS(matchId, matchInfo);
                     }
                 } catch (e) {
@@ -3189,12 +3418,10 @@
                     ?.title + ' vs ' + matchInfo.away_team?.title || 'Match Details';
 
                 try {
-                    // Fetch lineup data
                     const lineupUrl = YS_BASE + `matches/matches_lineup/${matchId}`;
                     const lineupData = await fetchViaProxy(lineupUrl);
                     const lineupInfo = lineupData.status ? lineupData.data : null;
 
-                    // Fetch stats if available
                     let statsData = null;
                     try {
                         const statsUrl = YS_BASE + `matches/statics_match/${matchId}`;
@@ -3202,7 +3429,6 @@
                         if (statsResp.status) statsData = statsResp.data;
                     } catch (e) {}
 
-                    // Fetch events if available
                     let eventsData = null;
                     try {
                         const eventsUrl = YS_BASE + `matches/matches_event/${matchId}`;
@@ -3283,19 +3509,10 @@
                     </div>
                 `;
 
-                // Lineups tab content (improved with formation)
                 let lineupsHtml = renderLineupsFromYS(lineupData, home, away, matchInfo);
-
-                // Stats
                 let statsHtml = renderStatsFromYS(statsData, home, away);
-
-                // Events
                 let eventsHtml = renderEventsFromYS(eventsData, home, away);
-
-                // H2H
                 let h2hHtml = renderH2HFromYS(matchInfo, home, away);
-
-                // Standings (try to fetch)
                 let standingsHtml =
                     '<div class="empty-state">Standings data not available for this match</div>';
 
@@ -3326,7 +3543,6 @@
                     <div id="tab-events" class="match-tab-content-aiscore">${eventsHtml}</div>
                 `;
 
-                // Tab switching
                 document.querySelectorAll('#matchTabsAiScore button').forEach(btn => {
                     btn.addEventListener('click', function() {
                         document.querySelectorAll('#matchTabsAiScore button').forEach(b => b.classList
@@ -3340,14 +3556,13 @@
                     });
                 });
 
-                // Update camel buttons
                 document.querySelectorAll('.camel-btn').forEach(btn => {
                     btn.removeEventListener('click', camelBtnHandler);
                     btn.addEventListener('click', camelBtnHandler);
                 });
             }
 
-            // ==================== RENDER LINEUPS (Improved with formation) ====================
+            // ==================== RENDER LINEUPS ====================
             function renderLineupsFromYS(lineupData, home, away, matchInfo) {
                 if (!lineupData || !lineupData.lineup) {
                     return '<div class="empty-state">No lineup data available</div>';
@@ -3431,7 +3646,6 @@
                         `;
                     });
 
-                    // Substitutions
                     if (subs && subs.length > 0) {
                         html += `
                             <div class="position-row">
@@ -3483,7 +3697,6 @@
                 html += renderTeamLineup(awayPlayers, away, awayFormation, matchInfo.away_coach, awayInjuries, awaySubs);
                 html += '</div>';
 
-                // Add click events for player badges
                 setTimeout(() => {
                     document.querySelectorAll('.player-badge[data-player-id]').forEach(badge => {
                         const playerId = badge.dataset.playerId;
@@ -3503,7 +3716,6 @@
             // ==================== RENDER STATS ====================
             function renderStatsFromYS(statsData, home, away) {
                 if (!statsData) {
-                    // Try to get from matchInfo
                     return '<div class="empty-state">No statistics available</div>';
                 }
 
@@ -3656,13 +3868,12 @@
                 btns.forEach(b => {
                     if (b.dataset.tab === tab) {
                         b.click();
-                        // Scroll to match detail
                         matchDetailAiScore.scrollIntoView({ behavior: 'smooth' });
                     }
                 });
             }
 
-            // ==================== FETCH MATCH DETAIL (API-Sports) ====================
+            // ==================== SHOW MATCH DETAIL (API-Sports) ====================
             async function showMatchDetailAiScore(fixtureId) {
                 matchDetailAiScore.classList.add('visible');
                 matchDetailContentAiScore.innerHTML =
@@ -3850,7 +4061,6 @@
                     const hp = hl?.players || [];
                     const ap = al?.players || [];
 
-                    // Helper to get player image
                     const getPlayerImg = (p) => {
                         if (!p) return '';
                         const img = p.photo || '';
@@ -3858,7 +4068,6 @@
                         return '';
                     };
 
-                    // Build lineups with formation style
                     lineupsHtml = `
                         <div class="lineup-container">
                             <div class="lineup-team-card">
@@ -4164,7 +4373,7 @@
             // ==================== STANDINGS ====================
             async function loadStandings() {
                 standingsContainer.innerHTML =
-                '<div class="loading"><div class="spinner"></div><div>Loading leagues...</div></div>';
+                    '<div class="loading"><div class="spinner"></div><div>Loading leagues...</div></div>';
                 try {
                     const data = await fetchYS('info/championship_ranking/L/60');
                     if (!data.status) throw new Error('Failed to load leagues');
@@ -4209,6 +4418,7 @@
                 });
             }
 
+            // ==================== SHOW LEAGUE STANDINGS (ALL TEAMS + RANKING KEY) ====================
             async function showLeagueStandings(leagueId) {
                 try {
                     const data = await fetchYS(`matches/league_standing_stage/${leagueId}`);
@@ -4220,20 +4430,42 @@
                     const standingData = data.data;
                     const leagueName = standingData.league?.stage0?.[0]?.team_name?.full_title ||
                         standingData.league?.title || 'League';
+
                     let html = `
                         <div style="margin-bottom:8px;">
                             <button class="zs-back-btn" onclick="window.loadStandingsGlobal()">← Back</button>
                             <span style="font-weight:700; font-size:15px; margin-left:8px;">${leagueName}</span>
                         </div>
                     `;
-                    html += renderStandingsTable(standingData);
+
+                    // Render the ranking key from the API response
+                    if (standingData.color && standingData.color.stage0 && standingData.color.stage0.length > 0) {
+                        html += `<div class="ranking-key-aiscore">
+                            <span class="key-title">📋 Ranking Key:</span>
+                        `;
+                        standingData.color.stage0.forEach(item => {
+                            const emoji = item.promotion === 1 ? '⬆️' : '⬇️';
+                            html += `
+                                <div class="key-item">
+                                    <span class="key-color" style="background:${item.color};"></span>
+                                    <span class="key-label">${item.league_to || 'Unknown'}</span>
+                                    ${emoji}
+                                </div>
+                            `;
+                        });
+                        html += `</div>`;
+                    }
+
+                    // Render the standings table with ALL teams (no slice limit)
+                    html += renderStandingsTableAll(standingData);
                     standingsContainer.innerHTML = html;
                 } catch (error) {
                     standingsContainer.innerHTML = `<div class="error-msg">⚠️ ${error.message}</div>`;
                 }
             }
 
-            function renderStandingsTable(data) {
+            // ==================== RENDER STANDINGS TABLE (ALL TEAMS) ====================
+            function renderStandingsTableAll(data) {
                 if (!data || !data.league || !data.league.stage0) {
                     return '<div class="empty-state">No standings data available</div>';
                 }
@@ -4244,13 +4476,23 @@
                     <table>
                         <thead><tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GD</th><th>Pts</th></tr></thead>
                         <tbody>`;
-                teams.slice(0, 16).forEach((t, idx) => {
+
+                // Show ALL teams (no slice)
+                teams.forEach((t, idx) => {
                     const team = t.team_name || {};
                     const logo = getTeamImage(team.image);
                     const teamId = team.row_id || null;
+                    const rankColor = t.color || null;
+                    const rankBadge = rankColor ?
+                        `<span class="rank-badge" style="background:${rankColor};">${idx+1}</span>` :
+                        `<span style="font-weight:600;min-width:24px;">${idx+1}</span>`;
+
                     html += `<tr>
-                        <td>${idx+1}</td>
-                        <td><div class="team-cell"><img src="${logo}" onerror="this.style.display='none'"> <span class="team-click" data-team-id="${teamId}" style="cursor:pointer;">${team.title || '?'}</span></div></td>
+                        <td>${rankBadge}</td>
+                        <td><div class="team-cell">
+                            <img src="${logo}" onerror="this.style.display='none'">
+                            <span class="team-click" data-team-id="${teamId}" style="cursor:pointer;">${team.title || '?'}</span>
+                        </div></td>
                         <td>${t.play || 0}</td>
                         <td>${t.wins || 0}</td>
                         <td>${t.draw || 0}</td>
@@ -4260,6 +4502,7 @@
                         <td class="points">${t.points || 0}</td>
                     </tr>`;
                 });
+
                 html += '</tbody></table></div></div>';
 
                 setTimeout(() => {
@@ -4339,7 +4582,7 @@
 
                     if (unique.length === 0) {
                         transfersContainer.innerHTML =
-                        '<div class="empty-state">No transfers available for this league.</div>';
+                            '<div class="empty-state">No transfers available for this league.</div>';
                         renderLeagueFilter(leagueId);
                         return;
                     }
@@ -4706,7 +4949,7 @@
                 }
             }
 
-            // ==================== TEAM DETAIL ====================
+            // ==================== TEAM DETAIL (IMPROVED - SHOWS MATCHES) ====================
             async function showTeamDetail(teamId) {
                 if (!teamId) return;
                 teamDetailOverlay.classList.add('visible');
@@ -4758,53 +5001,82 @@
                         }
                     }
 
+                    // ===== FETCH TEAM MATCHES (IMPROVED) =====
                     let matchesHtml = '<div class="empty-state">No matches</div>';
                     try {
                         const mData = await fetchYS(`matches/team_matches/${teamId}/L/60`);
                         if (mData.status && mData.data) {
                             const matches = mData.data;
                             let mHtml = '<div class="team-matches-list">';
-                            if (matches.coming?.data?.length > 0) {
+
+                            // Upcoming matches
+                            if (matches.coming?.data && matches.coming.data.length > 0) {
                                 mHtml +=
                                     `<div style="font-weight:600;font-size:13px;color:var(--accent);margin:4px 0;">⬆️ Upcoming</div>`;
-                                matches.coming.data.slice(0, 5).forEach(m => {
+                                matches.coming.data.slice(0, 6).forEach(m => {
                                     const home = m.home_team || {};
                                     const away = m.away_team || {};
                                     const homeLogo = getTeamImage(home.image);
                                     const awayLogo = getTeamImage(away.image);
+                                    const homeScore = m.home_scores ?? '-';
+                                    const awayScore = m.away_scores ?? '-';
+                                    const scoreDisplay = (homeScore !== '-' || awayScore !== '-') ?
+                                        homeScore + ' - ' + awayScore : 'vs';
+                                    const dateStr = m.match_date ? new Date(m.match_date)
+                                        .toLocaleDateString('en-US') : '';
                                     mHtml += `
                                         <div class="team-match-item" data-match-id="${m.match_id}">
-                                            <div class="teams"><img src="${homeLogo}" onerror="this.style.display='none'"> ${home.title || 'Home'} vs ${away.title || 'Away'} <img src="${awayLogo}" onerror="this.style.display='none'"></div>
-                                            <div class="score">${m.home_scores ?? 0} - ${m.away_scores ?? 0}</div>
+                                            <div class="teams">
+                                                ${homeLogo ? `<img src="${homeLogo}" onerror="this.style.display='none'">` : ''}
+                                                ${home.title || 'Home'} vs ${away.title || 'Away'}
+                                                ${awayLogo ? `<img src="${awayLogo}" onerror="this.style.display='none'">` : ''}
+                                            </div>
+                                            <div class="score">${scoreDisplay}</div>
                                             <span class="status upcoming">⏳</span>
-                                            <span class="date">${m.match_date || ''}</span>
+                                            <span class="date">${dateStr}</span>
                                         </div>
                                     `;
                                 });
                             }
-                            if (matches.end?.data?.length > 0) {
+
+                            // Finished matches
+                            if (matches.end?.data && matches.end.data.length > 0) {
                                 mHtml +=
                                     `<div style="font-weight:600;font-size:13px;color:var(--text-secondary);margin:4px 0;">✅ Finished</div>`;
-                                matches.end.data.slice(0, 5).forEach(m => {
+                                matches.end.data.slice(0, 6).forEach(m => {
                                     const home = m.home_team || {};
                                     const away = m.away_team || {};
                                     const homeLogo = getTeamImage(home.image);
                                     const awayLogo = getTeamImage(away.image);
+                                    const homeScore = m.home_scores ?? '-';
+                                    const awayScore = m.away_scores ?? '-';
+                                    const scoreDisplay = (homeScore !== '-' || awayScore !== '-') ?
+                                        homeScore + ' - ' + awayScore : 'vs';
+                                    const dateStr = m.match_date ? new Date(m.match_date)
+                                        .toLocaleDateString('en-US') : '';
                                     mHtml += `
                                         <div class="team-match-item" data-match-id="${m.match_id}">
-                                            <div class="teams"><img src="${homeLogo}" onerror="this.style.display='none'"> ${home.title || 'Home'} vs ${away.title || 'Away'} <img src="${awayLogo}" onerror="this.style.display='none'"></div>
-                                            <div class="score">${m.home_scores ?? 0} - ${m.away_scores ?? 0}</div>
+                                            <div class="teams">
+                                                ${homeLogo ? `<img src="${homeLogo}" onerror="this.style.display='none'">` : ''}
+                                                ${home.title || 'Home'} vs ${away.title || 'Away'}
+                                                ${awayLogo ? `<img src="${awayLogo}" onerror="this.style.display='none'">` : ''}
+                                            </div>
+                                            <div class="score">${scoreDisplay}</div>
                                             <span class="status finished">✅</span>
-                                            <span class="date">${m.match_date || ''}</span>
+                                            <span class="date">${dateStr}</span>
                                         </div>
                                     `;
                                 });
                             }
+
                             mHtml += '</div>';
                             matchesHtml = mHtml;
                         }
-                    } catch (e) {}
+                    } catch (e) {
+                        console.warn('Could not fetch team matches:', e);
+                    }
 
+                    // ===== FETCH TEAM NEWS =====
                     let newsHtml = '<div class="empty-state">No news</div>';
                     try {
                         const nData = await fetchViaProxy(YS_NEWS + `News/news_team/${teamId}?page=1`);
@@ -5146,6 +5418,11 @@
                 if (e.target === this) this.classList.remove('visible');
             });
 
+            closeMatchDetailAiScore.addEventListener('click', () => {
+                matchDetailAiScore.classList.remove('visible');
+                camelOverlay.style.display = 'none';
+            });
+
             // ==================== GLOBAL FUNCTIONS ====================
             window.loadStandingsGlobal = loadStandings;
             window.loadNewsPage = function(page) {
@@ -5160,6 +5437,7 @@
             window.showPlayerDetail = showPlayerDetail;
             window.showMatchDetailAiScore = showMatchDetailAiScore;
             window.showNewsDetail = showNewsDetail;
+            window.fetchGoliveMatches = fetchGoliveMatches;
 
             // ==================== INIT ====================
             function init() {
