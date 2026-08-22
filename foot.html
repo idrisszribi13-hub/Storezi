@@ -1498,7 +1498,7 @@
             font-weight: 500;
         }
 
-        /* ===== TEAM DETAIL - COMPLETE ===== */
+        /* ===== TEAM DETAIL ===== */
         .team-detail-overlay {
             display: none;
             position: fixed;
@@ -1613,7 +1613,7 @@
             display: block;
         }
 
-        /* ===== TEAM CHAMPIONSHIPS ===== */
+        /* ===== TEAM CHAMPIONSHIPS (all years visible) ===== */
         .championships-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -1653,9 +1653,10 @@
         .championship-card .champ-years {
             font-size: 10px;
             color: var(--text-secondary);
-            max-height: 60px;
+            max-height: 80px;
             overflow-y: auto;
             line-height: 1.4;
+            padding-right: 4px;
         }
         .championship-card .champ-years::-webkit-scrollbar {
             width: 2px;
@@ -1663,6 +1664,10 @@
         .championship-card .champ-years::-webkit-scrollbar-thumb {
             background: var(--border);
             border-radius: 2px;
+        }
+        .championship-card .champ-years .year-item {
+            display: inline-block;
+            margin-right: 4px;
         }
 
         /* ===== TEAM PLAYERS (POSITION GROUPS) ===== */
@@ -4668,14 +4673,17 @@
                     let transfersHtml = '';
                     if (player.transfers && player.transfers.length > 0) {
                         transfersHtml = `<div class="player-transfers-list"><div class="title">📋 Transfer History</div>`;
-                        player.transfers.slice(0, 8).forEach(t => {
+                        player.transfers.forEach(t => {
                             const teamIn = t.team_in || {};
                             const teamOut = t.team_out || {};
-                            const isCurrent = teamIn.row_id === currentClubId;
+                            const isCurrent = t.active === 1 || teamIn.row_id === currentClubId;
                             const value = t.value ? (parseInt(t.value) / 1000000).toFixed(1) + 'M' : 'Free';
-                            const type = getTransferType(t.type);
+                            const type = getTransferType(t.trans || t.type);
+                            const dateFrom = t.date_from || '';
+                            const dateTo = t.date_to || '';
+                            const transType = t.trans || type;
                             transfersHtml +=
-                                `<div class="transfer-row ${isCurrent ? 'current' : ''}"><span class="type">${type}</span><span>${teamOut.title || '?'} → ${teamIn.title || '?'}</span><span class="value">${value}</span><span>${t.date_from || ''}</span>${isCurrent ? '<span class="current-badge">● Current</span>' : ''}</div>`;
+                                `<div class="transfer-row ${isCurrent ? 'current' : ''}"><span class="type">${transType}</span><span>${teamOut.title || '?'} → ${teamIn.title || '?'}</span><span class="value">${value}</span><span>${dateFrom} ${dateTo ? '→ '+dateTo : ''}</span>${isCurrent ? '<span class="current-badge">● Current</span>' : ''}</div>`;
                         });
                         transfersHtml += '</div>';
                     }
@@ -4815,7 +4823,7 @@
                         </div>
                     `;
 
-                    // Tab: Championships
+                    // Tab: Championships (all years displayed)
                     let champHtml = '<div class="empty-state">No championships data available</div>';
                     if (page && page.cups && page.cups.length > 0) {
                         champHtml = '<div class="championships-grid">';
@@ -4825,67 +4833,49 @@
                             const count = cup.numbers || 0;
                             const img = champ.image ? getImageUrl(champ.image, 'championship') : '';
                             const years = cup.years || [];
-                            const yearsStr = years.slice(0, 8).join(', ') + (years.length > 8 ? '...' : '');
+                            const yearsHtml = years.map(y =>
+                                `<span class="year-item">${y}</span>`).join('');
                             champHtml += `
                                 <div class="championship-card">
                                     ${img ? `<img class="champ-icon" src="${img}" onerror="this.style.display='none'">` : ''}
                                     <div class="champ-name">${title}</div>
                                     <div class="champ-count">${count}</div>
-                                    <div class="champ-years">${yearsStr}</div>
+                                    <div class="champ-years">${yearsHtml}</div>
                                 </div>
                             `;
                         });
                         champHtml += '</div>';
                     }
 
-                    // Tab: Players (grouped by position)
+                    // Tab: Players (using G,D,M,F groups from team_page)
                     let playersHtml = '<div class="empty-state">No player data available</div>';
-                    if (page && page.players) {
-                        const players = page.players || [];
-                        const groups = { 'Attackers': [], 'Midfielders': [], 'Defenders': [], 'Goalkeepers': [] };
-                        players.forEach(p => {
-                            const pos = p.position || '';
-                            if (pos.toLowerCase().includes('attack') || pos.toLowerCase().includes('forward') || pos
-                                .toLowerCase().includes('wing') || pos.toLowerCase().includes('striker')) {
-                                groups['Attackers'].push(p);
-                            } else if (pos.toLowerCase().includes('mid') || pos.toLowerCase().includes('central') ||
-                                pos.toLowerCase().includes('defensive mid')) {
-                                groups['Midfielders'].push(p);
-                            } else if (pos.toLowerCase().includes('def') || pos.toLowerCase().includes('back') ||
-                                pos.toLowerCase().includes('center back')) {
-                                groups['Defenders'].push(p);
-                            } else if (pos.toLowerCase().includes('goal') || pos.toLowerCase().includes('gk')) {
-                                groups['Goalkeepers'].push(p);
-                            } else {
-                                // Fallback: assign based on keywords
-                                if (pos.includes('F') || pos.includes('Wing') || pos.includes('Attack')) groups[
-                                    'Attackers'].push(p);
-                                else if (pos.includes('M') || pos.includes('Mid')) groups['Midfielders'].push(p);
-                                else if (pos.includes('D') || pos.includes('Back')) groups['Defenders'].push(p);
-                                else if (pos.includes('GK') || pos.includes('Goalkeeper')) groups['Goalkeepers'].push(
-                                    p);
-                                else groups['Midfielders'].push(p);
-                            }
-                        });
-
+                    if (page) {
+                        const groups = [
+                            { key: 'F', label: 'Attackers' },
+                            { key: 'M', label: 'Midfielders' },
+                            { key: 'D', label: 'Defenders' },
+                            { key: 'G', label: 'Goalkeepers' }
+                        ];
                         let playersHtmlInner = '';
-                        const order = ['Attackers', 'Midfielders', 'Defenders', 'Goalkeepers'];
-                        order.forEach(groupName => {
-                            const list = groups[groupName] || [];
+                        let hasPlayers = false;
+                        groups.forEach(group => {
+                            const list = page[group.key] || [];
                             if (list.length === 0) return;
+                            hasPlayers = true;
                             playersHtmlInner +=
-                                `<div class="players-position-group"><div class="group-title">${groupName} <span class="count">(${list.length})</span></div><div class="players-grid">`;
+                                `<div class="players-position-group"><div class="group-title">${group.label} <span class="count">(${list.length})</span></div><div class="players-grid">`;
                             list.forEach(p => {
                                 const pImg = getPlayerImage(p.image) ||
                                     'https://ui-avatars.com/api/?name=' + encodeURIComponent(p
                                         .title || 'P') + '&background=4c8bf5&color=fff&size=36';
                                 const pId = p.row_id || p.id || null;
+                                const pos = p.position || '';
+                                const number = p.player_number || '';
                                 playersHtmlInner +=
-                                    `<div class="player-card-mini" data-player-id="${pId}"><img src="${pImg}" onerror="this.style.display='none'"><div class="info"><div class="name">${p.title || 'Player'}</div><div class="position">${p.position || ''} ${p.player_number ? '• #'+p.player_number : ''}</div></div></div>`;
+                                    `<div class="player-card-mini" data-player-id="${pId}"><img src="${pImg}" onerror="this.style.display='none'"><div class="info"><div class="name">${p.title || 'Player'}</div><div class="position">${pos} ${number ? '• #'+number : ''}</div></div></div>`;
                             });
                             playersHtmlInner += '</div></div>';
                         });
-
                         // Coach
                         if (page.coach) {
                             const coach = page.coach;
@@ -4896,8 +4886,7 @@
                             playersHtmlInner +=
                                 `<div class="players-position-group"><div class="group-title">🧑‍🏫 Coach</div><div class="coach-card-mini" data-coach-id="${coachId}"><img src="${coachImg}" onerror="this.style.display='none'"><div class="info"><div class="name">${coach.title || 'Coach'}</div><div class="role">${coach.type || 'Manager'}</div></div></div></div>`;
                         }
-
-                        playersHtml = playersHtmlInner || '<div class="empty-state">No players found</div>';
+                        playersHtml = hasPlayers ? playersHtmlInner : '<div class="empty-state">No players found</div>';
                     }
 
                     // Tab: Matches
